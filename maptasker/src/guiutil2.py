@@ -836,7 +836,10 @@ def _insert_styled_message(
     # Secondary font specified?
     if len(temp_font) > 1:
         new_font = temp_font[1]
-        tag_id = tag_id.replace(font, new_font)
+        # If it is a tuple, then it is a hyperlink tag and not associated with a font.
+        # Don't modify the tag_id in that case, just make a new one for the font.
+        if not isinstance(tag_id, tuple):
+            tag_id = f"{tag_id}_{new_font}"
         font_to_use = (mygui.font, font_size, new_font)
         _configure_tag(self, tag_id, font_to_use, bg_color, fg_color, underline, between_line_spacing)
 

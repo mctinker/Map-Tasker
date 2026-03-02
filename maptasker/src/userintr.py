@@ -67,6 +67,7 @@ from maptasker.src.guiwins import (
     CTkTextview,
     CTkTreeview,
     TextWindow,
+    create_appearance_mode_section,
     get_appropriate_color,
     get_rid_of_windows_and_exit,
     initialize_gui,
@@ -1650,7 +1651,7 @@ class MyGui(customtkinter.CTk):
                 "#6563ff",
                 self.event_handlers.upgrade_event,
                 1,
-                "Upgrade to Latest Version",
+                translate_string("Upgrade to Latest Version"),
                 "1",
                 6,
                 2,
@@ -1669,7 +1670,7 @@ class MyGui(customtkinter.CTk):
                 # "#1bc9ff",
                 self.event_handlers.whatsnew_event,
                 1,
-                "What's New?",
+                translate_string("What's New?"),
                 2,
                 6,
                 2,
@@ -1677,7 +1678,7 @@ class MyGui(customtkinter.CTk):
                 (80, 10),
                 "",
             )
-            self.message = self.message + "\n\nA new version of MapTasker is available."
+            self.message = self.message + "\n\n" + translate_string("A new version of MapTasker is available.")
 
     # Display any messages we may currently have..
     def process_current_messages(self) -> None:
@@ -2520,16 +2521,51 @@ class EventHandlers:
         - Update the local appearance mode attribute to the new lowercased mode"""
 
         the_view = self.parent
-        customtkinter.set_appearance_mode(new_appearance_mode)
-        the_view.appearance_mode = new_appearance_mode.lower()
-        the_view.appearance_mode_optionmenu.set(the_view.appearance_mode.capitalize())
+
+        # Determine if the selected appearance mode is one of the standard modes or a translated mode, and set the mode accordingly.
+        # First, check if it is a previously-set language mode.
+        if new_appearance_mode not in ["dark", "light", "system"] and PrimeItems.appearance_translated:
+            # Find our new appearance mode in the translated values and set the language to the corresponding key to
+            # translate it back to English for the appearance mode setting.
+            for key, value in PrimeItems.appearance_translated.items():
+                if new_appearance_mode in value:
+                    save_language = PrimeItems.program_arguments["language"]
+                    PrimeItems.program_arguments["language"] = key
+                    _ = translate_string(key, set_language=True)
+                    new_appearance_mode = translate_string(new_appearance_mode.capitalize()).lower()
+                    PrimeItems.program_arguments["language"] = save_language
+                    _ = translate_string(save_language, set_language=True)
+                    break
+        elif new_appearance_mode not in ["dark", "light", "system"]:
+            new_appearance_mode = "system"
+
+        if PrimeItems.program_arguments["language"] != "English":
+            # Translated string is capitalized, so we need to translate first and then lowercase for the appearance mode.
+            new_appearance_mode_translated = translate_string(new_appearance_mode.capitalize())
+            # Recreate the pulldown menu translated.
+            the_view.appearance_mode_optionmenu.destroy()
+            create_appearance_mode_section(the_view)
+            if new_appearance_mode in ["dark", "light", "system"]:
+                appearance_mode_to_set = new_appearance_mode_translated.capitalize()
+                mode_to_set = new_appearance_mode
+            else:
+                appearance_mode_to_set = new_appearance_mode
+                mode_to_set = new_appearance_mode_translated.lower()
+        else:
+            new_appearance_mode_translated = new_appearance_mode.capitalize()
+            appearance_mode_to_set = new_appearance_mode_translated
+            mode_to_set = new_appearance_mode
+
+        customtkinter.set_appearance_mode(mode_to_set)
+        the_view.appearance_mode = mode_to_set.lower()
+        the_view.appearance_mode_optionmenu.set(appearance_mode_to_set)
         if not the_view.extract_in_progress:
             the_view.color_lookup = set_color_mode(the_view.appearance_mode)
             # Save our background color for later reuse
             the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
         text = translate_string("Appearance mode set to")
         the_view.display_message_box(
-            text + the_view.appearance_mode.capitalize(),
+            text + " " + new_appearance_mode_translated.capitalize(),
             "Green",
         )
 
@@ -2639,6 +2675,9 @@ class EventHandlers:
         # Let's first make sure that if a color has been chosen for a display flag,
         # that the associated display flag is True (e.g. display this colored item)
         with contextlib.suppress(Exception):
+            # Handle translated color_selected_item
+            if PrimeItems.program_arguments["language"] != "english":
+                color_selected_item = translate_string(color_selected_item)
             the_index = warning_check.index(color_selected_item)
             if not check_against[the_index]:
                 the_output_message = color_selected_item.replace("Profile ", "")
@@ -2653,8 +2692,9 @@ class EventHandlers:
         pick_color.focus_set()  # Set focus to the color picker
         color = pick_color.get()  # Get the color
         if color is not None:
+            translated_color_name = translate_string(color_selected_item)
             the_view.display_message_box(
-                f"{color_selected_item} color changed to {color}",
+                f"{translated_color_name} {translate_string('color changed to')} {color}",
                 color,
             )
 
@@ -2901,7 +2941,7 @@ class EventHandlers:
 
     def language_set_event(self, language: str) -> None:
         """
-        Set the language for the GUI.  COmes here via 'restore_display' and 'language_saet_event'
+        Set the language for the GUI.  COmes here via 'restore_display' and 'language_set_event'
 
         Args:
             language: The language selected by the user.
@@ -2932,6 +2972,7 @@ class EventHandlers:
         # Change the menu to reflect the selected language
         if hasattr(the_view, "language_optionmenu"):
             the_view.language_optionmenu.set(language_translated)
+            PrimeItems.program_arguments["language"] = language_to_use
 
         # Translate and format message
         message = f"{translate_string('Language set to')} {language_translated}."
@@ -2954,13 +2995,15 @@ class EventHandlers:
         # Set the translation function in PrimeItems
         self.language_set_event(translate_string(language))
 
-        # Clear out all of the text fields
+        # Clear out all of the text fields in labels, checkboxes and buttons across all windows, since we are going to
+        # reinitialize the GUI with the new language and we don't want old text hanging around.
         self.clear_text_fields(the_view)
 
         # Redisplay the GUI with the new language
         initialize_screen(the_view)
 
-        # Redisplay current file
+        # Redisplay current file as "None" since we are reinitializing the GUI.  This will be updated to the
+        # current file after we reset the Tasker data and pulldown menus.
         display_current_file(the_view, the_view.file)
 
         # Restore settings so that they are correctly displayed in the GUI
@@ -2979,6 +3022,9 @@ class EventHandlers:
             get_data=False,
             reset_single_names=False,
         )
+
+        # Handle upgrade buttons
+        the_view.check_new_version()
 
         # Update the pull-down menus and display message
         list_tasker_objects(the_view)
@@ -3031,6 +3077,10 @@ class EventHandlers:
         self.clear_messages = True
         the_view.display_message_box(message, "Green")
 
+        # Translate thew appearance mode values and save per language for userintr: change_appearance_mode_event
+        appearance_translated = [translate_string(item) for item in ["Dark", "Light", "System"]]
+        PrimeItems.appearance_translated[PrimeItems.program_arguments["language"]] = appearance_translated
+
     def extended_models_event(self) -> None:
         """
         Get input to display names in bold and put message
@@ -3071,7 +3121,7 @@ class EventHandlers:
         labels = self.find_variables(the_view, "_label")
         for label in labels:
             label_to_clear = getattr(the_view, label)
-            label_to_clear.configure(text="")
+            label_to_clear.destroy()
         # Ditto buttons
         buttons = self.find_variables(the_view, "_button")
         for button in buttons:
@@ -3491,7 +3541,7 @@ class EventHandlers:
         # Save the model and name of the AI.
         the_view.ai_model = model
         the_view.ai_name = name
-        the_view.display_message_box(f"{name} model set to {model}.", "Green")
+        the_view.display_message_box(f"{name} {translate_string('model set to')} {model}.", "Green")
 
         # Set the appropriate API key based on the model chosen.
         _ = set_ai_key(the_view, model)

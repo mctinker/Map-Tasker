@@ -164,6 +164,7 @@ class PrimeItems:
         "Czech": "cs",
     }
     languages_translated: ClassVar[dict[str, str]] = {}
+    appearance_translated: ClassVar[dict[str, str]] = {}
 
 
 # Reset all values

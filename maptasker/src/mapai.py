@@ -603,8 +603,7 @@ def display_the_popup(title: str, the_text: str, font_size: int, text_color: str
     popup.Popup_label.grid(row=0, column=0, padx=0, pady=0, sticky="nw")
 
     # Start the background analysis after so many milliseconds.
-    if "Analysis" in the_text:
-        popup.after(200, _run_analysis_in_background, popup)
+    popup.after(200, _run_analysis_in_background, popup)
     # Force the label/window to appear.
     popup.Popup_label.pack(side="top", padx=20, pady=20)
     # popup.update_idletasks()
