@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.8] 26-Feb-2026
+## [10.0.8] 02-Mar-2026
 
 ### Added
 
@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: Changing colors in the GUI with a language other than English causes a program error.
 - Fixed: Program error in guiutil2.
 - Fixed: Hover text fails if the language is traditional or simplfied Chinese.
+- Fixed: AI Analysis hangs if using a language other than English.
 
 ### Known Issue
 

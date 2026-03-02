@@ -2536,10 +2536,11 @@ class EventHandlers:
                     PrimeItems.program_arguments["language"] = save_language
                     _ = translate_string(save_language, set_language=True)
                     break
+        elif new_appearance_mode not in ["dark", "light", "system"]:
+            new_appearance_mode = "system"
 
         if PrimeItems.program_arguments["language"] != "English":
             # Translated string is capitalized, so we need to translate first and then lowercase for the appearance mode.
-            # FIX new_appearance_mode is in the previously-set language.
             new_appearance_mode_translated = translate_string(new_appearance_mode.capitalize())
             # Recreate the pulldown menu translated.
             the_view.appearance_mode_optionmenu.destroy()
@@ -2556,8 +2557,7 @@ class EventHandlers:
             mode_to_set = new_appearance_mode
 
         customtkinter.set_appearance_mode(mode_to_set)
-        print("bingo", mode_to_set)
-        the_view.appearance_mode = new_appearance_mode_translated.lower()
+        the_view.appearance_mode = mode_to_set.lower()
         the_view.appearance_mode_optionmenu.set(appearance_mode_to_set)
         if not the_view.extract_in_progress:
             the_view.color_lookup = set_color_mode(the_view.appearance_mode)
@@ -2565,7 +2565,7 @@ class EventHandlers:
             the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
         text = translate_string("Appearance mode set to")
         the_view.display_message_box(
-            text + " " + the_view.appearance_mode.capitalize(),
+            text + " " + new_appearance_mode_translated.capitalize(),
             "Green",
         )
 
