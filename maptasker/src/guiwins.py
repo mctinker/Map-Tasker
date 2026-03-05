@@ -397,9 +397,10 @@ class TextWindow(ctk.CTkToplevel):
         self.protocol("WM_DELETE_WINDOW", lambda: on_closing(self))
 
         # Display the title.
-        self.title(
-            f"{title} - Drag window to desired position and rerun the {title} command.",
-        )
+        # 1. Determine which command to reference
+        cmd = "Map" if "Map" in title else "Diagram"
+        translated_title = translate_string(f"Drag window to desired position and rerun the {cmd} command.")
+        self.title(f"{title} - {translated_title}")
 
 
 # Display a Text structure: Used for 'Map', 'Diagram' and 'Tree' views.
@@ -612,7 +613,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)

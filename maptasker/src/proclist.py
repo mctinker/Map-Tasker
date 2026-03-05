@@ -213,6 +213,7 @@ def add_task_hyperlink(task_name: str, display_name: bool, blank: str) -> None:
     """
     hyperlink_name = task_name.replace(" ", "_")
     name = f"{blank * 8}{task_name}" if display_name else ""
+    # FIX See if unnamed task gets added to the directory
     PrimeItems.output_lines.add_line_to_output(
         2,
         f'<a id="tasks_{hyperlink_name}"><br>{name}</a>',
