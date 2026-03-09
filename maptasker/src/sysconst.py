@@ -259,6 +259,7 @@ TABLE_BORDER = f"\n<style> table, td, th {{ padding: 5px; border: 2px solid {TAB
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
 OPENAI_MODELS = [
+    "gpt-5.4",
     "gpt-5.3-Codex",
     "gpt-5.3",
     "2",

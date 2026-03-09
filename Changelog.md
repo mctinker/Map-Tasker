@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: The Map and Diaghram view title translations are missing.
+- Fixed: Unnamed Tasks are not appearing in the Directory if 'List Unnamed Items' is selected.
 
 ### Known Issue
 
