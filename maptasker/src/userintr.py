@@ -2579,26 +2579,31 @@ class EventHandlers:
             None: No value is returned
         Processing Logic:
             - Sets the internal font attribute to the selected font
-            - Destroys any existing font label to update it
-            - Creates a new label displaying the selected font
-            - Places the label in the GUI
+            - Creates or updates the font label.
             - Displays a message box confirming the font change
         """
         the_view = self.parent
         the_view.font = font_selected
-        with contextlib.suppress(Exception):
-            the_view.font_out_label.destroy()
-        text = translate_string("Monospaced Font To Use")
-        the_view.font_out_label = customtkinter.CTkLabel(
-            master=the_view,
-            text=f"{text}: {font_selected}",
-            anchor="sw",
-            font=(font_selected, 14),
-        )
-        the_view.font_out_label.grid(row=6, column=1, padx=10, pady=10, sticky="nw")
+
+        # Prepare translated text
+        font_use_text = translate_string("Monospaced Font To Use")
+        label_text = f"{font_use_text}: {font_selected}"
+
+        # Update or create the label to avoid destroying/recreating it
+        if hasattr(the_view, "font_out_label") and the_view.font_out_label.winfo_exists():
+            the_view.font_out_label.configure(text=label_text, font=(font_selected, 14))
+        else:
+            the_view.font_out_label = customtkinter.CTkLabel(
+                master=the_view,
+                text=label_text,
+                anchor="sw",
+                font=(font_selected, 14),
+            )
+            the_view.font_out_label.grid(row=6, column=1, padx=10, pady=10, sticky="nw")
+
         the_view.font_optionmenu.set(font_selected)
-        text = translate_string("Font To Use set to")
-        the_view.display_message_box(f"{text} {font_selected}", "Green")
+        set_to_text = translate_string("Font To Use set to")
+        the_view.display_message_box(f"{set_to_text} {font_selected}", "Green")
 
     # Process the Display Detail Level selection
     def detail_selected_event(self, display_detail: str) -> None:

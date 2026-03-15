@@ -293,7 +293,7 @@ class CTkHyperlinkManager:
                 destroy_hover_tooltip(self.hover_tooltip)
             if tag.startswith("hyper-") and self.links:
                 link = self.links[tag]
-                if link[0] in tasker_object:
+                if link and link[0] in tasker_object:
                     # Add a hover text to the link entered of the name of the link.
                     label = tk.Label(
                         event.widget.master,

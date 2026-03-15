@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "10.0.8"
+VERSION = "10.1.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -259,7 +259,10 @@ TABLE_BORDER = f"\n<style> table, td, th {{ padding: 5px; border: 2px solid {TAB
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
 OPENAI_MODELS = [
-    "gpt-5.2",
+    "gpt-5.4",
+    "gpt-5.3-Codex",
+    "gpt-5.3",
+    "2",
     "gpt-5.2-pro",
     "gpt-5.1",
     "gpt-5",
@@ -295,6 +298,7 @@ LLAMA_MODELS = [
     "phi3",
     "phi4-mini",
     "qwen3:1.7b",
+    "qwen3.5:0.8b",
     "tinyllama",
 ]
 ANTHROPIC_MODELS = [

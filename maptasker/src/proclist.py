@@ -112,6 +112,9 @@ def add_dictionary_and_twisty(
 
     if "&#45;&#45;Task:" in list_type:
         temp_item, temp_list = handle_task(list_type, the_item, blank)
+        if PrimeItems.program_arguments["directory"]:
+            task_name = PrimeItems.tasker_root_elements["all_tasks"][the_item]["name"]
+            add_directory_item("tasks", task_name)
     elif PrimeItems.program_arguments["directory"]:
         handle_directory(list_type, the_item, the_task)
     elif "Task:" in list_type:
@@ -213,6 +216,7 @@ def add_task_hyperlink(task_name: str, display_name: bool, blank: str) -> None:
     """
     hyperlink_name = task_name.replace(" ", "_")
     name = f"{blank * 8}{task_name}" if display_name else ""
+    # Add hyperlink html (<a id="tasks_Task_Name"><br>Task Name</a>) to the output
     PrimeItems.output_lines.add_line_to_output(
         2,
         f'<a id="tasks_{hyperlink_name}"><br>{name}</a>',

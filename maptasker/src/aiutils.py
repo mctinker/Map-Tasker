@@ -284,7 +284,7 @@ def get_llama_models() -> list:
         "gwen3-coder",
         "qwen3-coder-next",
         "qwen3-next",
-        "qwen3.5",
+        "qwen3.5:0.8b",
         "starcoder2:latest",
         "tinyllama",
     ]
