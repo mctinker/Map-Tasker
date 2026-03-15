@@ -776,9 +776,6 @@ class CTkTextview(ctk.CTkFrame):
                 display_only_event,
             ) = event_assignments[title]()
 
-        # Make sure not to assign a weight so that the buttons stack-up next to each other and respect the previous one.
-        self.grid_columnconfigure(0, weight=0)
-
         # Add label
         drag_msg = translate_string(f"Drag window to desired position and rerun the {title} command.")
         self.text_message_label = add_label(

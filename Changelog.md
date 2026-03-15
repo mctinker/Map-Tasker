@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.1.0] ??-Mar-2026  # FIX
+## [10.1.0] 15-Mar-2026
 
 ### Added
 
-- Added: No additions.
+- Added: Tasker 6.7.0-beta with Scene V2 is supported.
 
 ### Changed
 
@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: The Map and Diaghram view title translations are missing.
 - Fixed: Unnamed Tasks are not appearing in the Directory if 'List Unnamed Items' is selected.
+- Fixed: A program error can occur in guiwin2.py if displaying the Diagram view in a language other than English.
+- Fixed: Program error in guiwins.py when changing language in the GUI.
 
 ### Known Issue
 

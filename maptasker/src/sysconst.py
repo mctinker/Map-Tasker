@@ -298,6 +298,7 @@ LLAMA_MODELS = [
     "phi3",
     "phi4-mini",
     "qwen3:1.7b",
+    "qwen3.5:0.8b",
     "tinyllama",
 ]
 ANTHROPIC_MODELS = [

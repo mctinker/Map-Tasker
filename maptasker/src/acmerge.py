@@ -9,7 +9,7 @@ Tasker"""
 # 1- Run the new version of Tasker and invoke the WebUI in the new Tasker interface.
 # 2- Access the WebUI via browser on desktop: https://192.168.0.xx:8745
 # 3- Run 'Get Args' to list all of the Task action codes.
-# 4- Copy the results into /maptasker/asseets/json/task_all_actions.json
+# 4- Copy the results into /maptasker/assets/json/task_all_actions.json
 # 5- Modify proginit 'build_it_all = True
 # 6- Run with debug on to create 'newdict.py'.  Look for errors and missing codes.
 # 7- Replace 'actionc.py' with '/assets/json/arg_dict.py' contents.
