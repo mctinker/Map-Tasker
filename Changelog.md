@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.0.8] 02-Mar-2026
+## [10.1.0] 15-Mar-2026
 
 ### Added
 
-- Added: No additions.
+- Added: Tasker 6.7.0-beta with Scene V2 is supported.
 
 ### Changed
 
@@ -14,17 +14,24 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed: Some GUI text translations are missing.
-- Fixed: Changing colors in the GUI with a language other than English causes a program error.
-- Fixed: Program error in guiutil2.
-- Fixed: Hover text fails if the language is traditional or simplfied Chinese.
-- Fixed: AI Analysis hangs if using a language other than English.
+- Fixed: The Map and Diaghram view title translations are missing.
+- Fixed: Unnamed Tasks are not appearing in the Directory if 'List Unnamed Items' is selected.
+- Fixed: A program error can occur in guiwin2.py if displaying the Diagram view in a language other than English.
+- Fixed: Program error in guiwins.py when changing language in the GUI.
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [10.0.8] 02-Mar-2026
+
+- Fixed: Some GUI text translations are missing.
+- Fixed: Changing colors in the GUI with a language other than English causes a program error.
+- Fixed: Program error in guiutil2.
+- Fixed: Hover text fails if the language is traditional or simplfied Chinese.
+- Fixed: AI Analysis hangs if using a language other than English.
 
 ## [10.0.7] ??-Feb-2026
 
