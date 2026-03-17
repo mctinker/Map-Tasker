@@ -2,28 +2,33 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.1.0] 15-Mar-2026
+## [10.1.1] ??-Mar-2026  # FIX
 
 ### Added
 
-- Added: Tasker 6.7.0-beta with Scene V2 is supported.
+- Added:
 
 ### Changed
 
-- Changed: No changes.
+- Changed: AI-related modules (openai, anthropic and gemini, ollama, cria) are not installed until they are actually needed.  This results in a savings of about 48MBs in storage and a faster initial build time.
 
 ### Fixed
 
-- Fixed: The Map and Diaghram view title translations are missing.
-- Fixed: Unnamed Tasks are not appearing in the Directory if 'List Unnamed Items' is selected.
-- Fixed: A program error can occur in guiwin2.py if displaying the Diagram view in a language other than English.
-- Fixed: Program error in guiwins.py when changing language in the GUI.
+- Fixed: OpenAI's 'o4-mini' model is incorrectly listed as '04-mini'.
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [10.1.0] 15-Mar-2026
+
+- Added: Tasker 6.7.0-beta with Scene V2 is supported.
+- Fixed: The Map and Diagram view title translations are missing.
+- Fixed: Unnamed Tasks are not appearing in the Directory if 'List Unnamed Items' is selected.
+- Fixed: A program error can occur in guiwin2.py if displaying the Diagram view in a language other than English.
+- Fixed: Program error in guiwins.py when changing language in the GUI.
 
 ## [10.0.8] 02-Mar-2026
 

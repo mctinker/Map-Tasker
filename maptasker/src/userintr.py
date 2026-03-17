@@ -149,6 +149,7 @@ class MyGui(customtkinter.CTk):
         Checks for changelog and displays message box if applicable."""
         super().__init__()
         logger.info("Starting GUI")
+        self.initialization = True
         # Set up event handlers
         self.event_handlers = EventHandlers(self)
 
@@ -227,6 +228,8 @@ class MyGui(customtkinter.CTk):
         # Update the analysis button
         logger.info("Updating analysis button")
         display_analyze_button(self, 13, first_time=True)
+        # Make sure the extended model list is deselected so we don't force openai et al to load prematurely.
+        self.aimodel_extend_checkbox.deselect()
 
         # Update the Project/Profile/Task pulldown option menus.
         set_tasker_object_names(self)
@@ -258,6 +261,7 @@ class MyGui(customtkinter.CTk):
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
         # exit()
+        self.initialization = False
 
     # Establish all the default values used
     def set_defaults(self) -> None:
@@ -3076,6 +3080,7 @@ class EventHandlers:
 
         # Display the default model list
         the_view.displaying_extended_list = None  # Force pulldown to be recreated.
+        the_view.aimodel_extend_checkbox.deselect()
 
         # Let user know
         message = f"{translate_string('Language set to')} {translate_string(the_view.language)}."
@@ -3421,7 +3426,7 @@ class EventHandlers:
         Returns:
             None
         """
-        apikeys_to_validate = ["openai_key", "anthropic_key"]
+        apikeys_to_validate = ["openai_key", "anthropic_key", "gemini_key"]
         # self points to the 'event_handlers'; apikey_window is the dialog box window (APIKeyDialog).
         my_gui = self.parent
         # Bail out if user hit 'Cancel' button.
@@ -3462,7 +3467,7 @@ class EventHandlers:
 
             # See if a valid API key was entered
             if PrimeItems.ai[key] != value:  # If the key entered doesn't matych what we already have.
-                # Validate the lngth of the key
+                # Validate the length of the key
                 if value and key in apikeys_to_validate and not _valid_api_key(key, value):
                     text = translate_string("API key is invalid!")
                     error_msg = f"{key.replace('_key', '').title()} {text}"

@@ -1447,7 +1447,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # If this is a 'search' tag, then make the tag = 'found'.
         if tag_flag == "found":
-            tag_hover_line = index.split(".")[0]
+            tag_hover_line = index.split(".", maxsplit=1)[0]
             tag = tag_flag
 
         # Point to our gui self.
@@ -1682,7 +1682,7 @@ class CTkTextview(ctk.CTkFrame):
         """
         # Get the owning Profile.
         textbox = self.textview_textbox
-        line_number = tag.split(".")[0]
+        line_number = tag.split(".", maxsplit=1)[0]
 
         # See if this is a launcher task.  If it is, ignore it.
         _, prev_line, dont_got_line = find_the_line(
@@ -3842,6 +3842,7 @@ def _initialize_gui_settings(self: ctk) -> None:
     self.pretty = False
     self.task_action_warning_limit = 20
     self.language = "English"
+    self.initialization = True
 
 
 def _initialize_ai_settings(self: ctk) -> None:
@@ -4548,7 +4549,7 @@ def _create_file_and_message_buttons_section(self: ctk) -> None:
         "#246FB6",
         "",
         "",
-        lambda: self.event_handlers.clear_messages_event(),
+        lambda: self.event_handlers.clear_messages_event(),  # noqa: PLW0108
         2,
         "Clear Messages",
         1,
@@ -4873,10 +4874,14 @@ def _create_analyze_tab_content(self: ctk, tab: str) -> None:
         text=(
             "Display an extended list of ALL available models.\n\n"
             "Note: If the API key is not set for OpenAI or Gemini,\n"
-            "then the default model list for the respective\n"
-            "AI provider will be displayed.\n\n"
+            "      then the default model list for the respective\n"
+            "      AI provider will be displayed.\n\n"
             "Note: Not all models have been validated and\n"
-            "      one or more may return an error on analysis."
+            "      one or more may return an error on analysis.\n\n"
+            "Note: Enabling this option for the first time will\n"
+            "      force the installation of the following modules\n"
+            "      and all of their dependencies:\n"
+            "      google-genai, anthropic, openai, ollama"
         ),
     )
 

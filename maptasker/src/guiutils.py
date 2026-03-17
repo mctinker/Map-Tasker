@@ -2724,7 +2724,10 @@ def set_ai_key(self: object, model: str) -> None:
         **dict.fromkeys(PrimeItems.ai["deepseek_models"], "deepseek_key"),
         **dict.fromkeys(PrimeItems.ai["gemini_models"], "gemini_key"),
     }
-    self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
+    ai_to_get = model_keys.get(model, "")
+    if not ai_to_get:
+        return False
+    self.ai_apikey = PrimeItems.ai.get(ai_to_get)
 
     # If we didn't find the key, then see if we are using the extended list and need to get the key.
     if not self.ai_apikey and self.ai_model_extended_list:
@@ -3002,7 +3005,7 @@ def display_model_pulldown(self: ctk, center: int) -> None:
     tab = guiwin.tabview.tab("Analyze")
 
     # Add the list of models.  If this is a request for an extended list, then get the extended list.
-    if guiwin.ai_model_extended_list:
+    if guiwin.ai_model_extended_list and not guiwin.initialization:
         if guiwin.displaying_extended_list is not None and guiwin.displaying_extended_list:
             return  # Return if we are already displaying it.
         # Destroy the old window if it is last to be displayed.

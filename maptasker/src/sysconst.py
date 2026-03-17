@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "10.1.0"
+VERSION = "10.1.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -278,7 +278,7 @@ OPENAI_MODELS = [
     "o1-pro",
     "o3",
     "o3-mini",
-    "04-mini",
+    "o4-mini",
 ]
 LLAMA_MODELS = [
     "aya",

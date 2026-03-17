@@ -10,18 +10,17 @@ import os
 import re
 import sys
 
-import anthropic
+# import anthropic
 import customtkinter as ctk
-from google import genai
 
+# from google import genai
 # from google.genai import types
-from openai import OpenAI, OpenAIError
-
-from maptasker.src import cria
+# from openai import OpenAI, OpenAIError
+# from maptasker.src import cria
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import error_handler
 from maptasker.src.guiwins import PopupWindow
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import ensure_and_import, translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
@@ -34,30 +33,48 @@ from maptasker.src.sysconst import (
 # Validate OpenAI API key
 def valid_api_key(ai: str, api_key: str) -> bool:
     """
-    Validate the provided OpenAI API key.
+    Validate the length/value of the provided API key.  This can only work for OpewnAI and antrhopic, since DeepSeek doesn't
+    have a specific API key format, and the only way to validate is to make an API call and see if it works.
 
     Args:
         ai (str): The AI service to validate the API key for.
-        api_key (str): The OpenAI API key to validate.
+        api_key (str): The AI API key to validate.
 
     Returns:
         bool: True if the API key is valid, False otherwise.
     """
     if ai == "openai_key":
         try:
-            client = OpenAI(api_key=api_key)
-            client.models.list()
-            return True  # noqa: TRY300
-        except OpenAIError:
+            # 1. Dynamically get the 'openai' module
+            openai_lib = ensure_and_import("openai", "openai")
+
+            # 2. Extract the specific classes needed
+            OpenAI = openai_lib.OpenAI  # noqa: N806
+            OpenAIError = openai_lib.OpenAIError  # noqa: N806
+            try:
+                client = OpenAI(api_key=api_key)
+                client.models.list()
+                return True  # noqa: TRY300
+            except OpenAIError:
+                return False
+        except Exception as e:  # noqa: BLE001
+            print(f"Error importing OpenAI: {e}")
             return False
 
     elif ai == "anthropic_key":
         try:
+            anthropic = ensure_and_import("anthropic", "anthropic")
             client = anthropic.Anthropic(api_key=api_key)
             client.models.list()
             return True  # noqa: TRY300
         except anthropic.AnthropicError:
             return False
+
+    elif ai == "gemini_key":
+        # Regex: Starts with AIzaSy, followed by 33 characters (total 39)
+        pattern = r"^AIzaSy[A-Za-z0-9_-]{33}$"
+        return bool(re.match(pattern, api_key))
+
     else:
         # Validate DeepSeek API key.
         expected_length = 32
@@ -87,6 +104,10 @@ def module_is_available(module_name: str) -> bool:
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
+        return True
+    # Load the module dynamically.
+    if spec is None:
+        _ = ensure_and_import(module_name, module_name)
         return True
 
     return False
@@ -174,6 +195,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
         local_ai("What is the capital of France?")
         # Output: "Paris"
     """
+    from maptasker.src import cria  # noqa: PLC0415
     # if PrimeItems.program_arguments["ai_analyze"] and not module_is_available("cria"):
     #     error_handler("Module 'cria' not found.  Please install the 'cria' module and the Ollama app.", 12)
     #     return
@@ -187,7 +209,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
     # print(f"Query: {query}")
 
     # Prep the querey for the model.
-    prompt = query.split(":")[0]  # Skip the first character, which is a colon.
+    prompt = query.split(":", maxsplit=1)[0]  # Skip the first character, which is a colon.
     context = query.replace(prompt[1:], "")  # All of the Project/Profile/Task data
     # Set up the query
     messages = [
@@ -349,6 +371,11 @@ def process_ai_query_and_response(
     }
 
     try:
+        # 1. Dynamically get the 'openai' module
+        openai_lib = ensure_and_import("openai", "openai")
+
+        # 2. Extract the specific classes needed
+        OpenAIError = openai_lib.OpenAIError  # noqa: N806
         # Get the appropriate processing function and call it
         process_function = ai_processors.get(name)
         if process_function:
@@ -430,6 +457,12 @@ def open_ai(query: str, ai_object: str, item: str) -> None:
         if PrimeItems.program_arguments["ai_apikey"] == "Hidden" and os.path.isfile(KEYFILE)
         else PrimeItems.program_arguments["ai_apikey"]
     )
+    # 1. Dynamically get the 'openai' module
+    openai_lib = ensure_and_import("openai", "openai")
+
+    # 2. Extract the specific classes needed
+    OpenAI = openai_lib.OpenAI  # noqa: N806
+
     client = OpenAI(api_key=api_key)
     process_ai_query_and_response(client, query, ai_object, item)
 
@@ -446,6 +479,7 @@ def claude_ai(query: str, ai_object: str, item: str) -> None:
     Returns:
         None: This function does not return anything.
     """
+    anthropic = ensure_and_import("anthropic", "anthropic")
     client = anthropic.Anthropic(api_key=PrimeItems.program_arguments["ai_apikey"])
     process_ai_query_and_response(client, query, ai_object, item)
 
@@ -455,13 +489,18 @@ def deepseek_ai(query: str, ai_object: str, item: str) -> None:
     Sends a query to the DeepSeek API to generate a completion using the specified model.
 
     Args:
-        query (str): The query to be sent to the Claude API.
-        ai_object (str): The object to be processed by the Claude API.
+        query (str): The query to be sent to the OpenAI API, pointing to deepseek.
+        ai_object (str): The object to be processed by the OpenAI API.
         item (str): The name of the object.
 
     Returns:
         None: This function does not return anything.
     """
+    # 1. Dynamically get the 'openai' module
+    openai_lib = ensure_and_import("openai", "openai")
+
+    # 2. Extract the specific classes needed
+    OpenAI = openai_lib.OpenAI  # noqa: N806
     client = OpenAI(
         api_key=PrimeItems.program_arguments["ai_apikey"],
         base_url="https://api.deepseek.com",
@@ -482,6 +521,7 @@ def gemini_ai(query: str, ai_object: str, item: str) -> None:
         None: This function does not return anything.
     """
     # genai.configure(api_key=PrimeItems.program_arguments["ai_apikey"])
+    genai = ensure_and_import("google-genai", "google.genai")
     client = genai.Client(api_key=PrimeItems.program_arguments["ai_apikey"])
     process_ai_query_and_response(client, query, ai_object, item)
 
@@ -503,8 +543,6 @@ def get_ai_object() -> tuple:
         ((obj, PrimeItems.program_arguments[key]) for key, obj in options.items() if PrimeItems.program_arguments[key]),
         ("", ""),
     )
-
-    # Create an Event object to signal when the analysis is done.
 
 
 # Default AI prompt..

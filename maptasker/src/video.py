@@ -18,17 +18,20 @@ from tkinter import TclError
 
 import customtkinter as ctk
 import requests
-import yt_dlp
+
+# import yt_dlp
 from PIL import Image, ImageTk
 
 from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import ensure_and_import, translate_string
 from maptasker.src.primitem import PrimeItems
 
 # We will force a 480x480 resolution video.
 TARGET_WIDTH = "640"
 TARGET_HEIGHT = "640"
+# FIX Move this to each yt_dlp call
+yt_dlp = ensure_and_import("yt-dlp[default]", "yt-dlp[default]")
 
 
 def handle_image(self: ctk, msg: str, start_idx: str) -> None:
@@ -347,7 +350,7 @@ class VideoEmbedder:
         """Loads the video capture and starts the display loop."""
         # Only import cv3 if not on Windows.
         if not PrimeItems.windows_system:
-            import cv3  # noqa: PLC0415
+            cv3 = ensure_and_import("cv3", "cv3")
 
         stream_url = self._get_stream_source()
 

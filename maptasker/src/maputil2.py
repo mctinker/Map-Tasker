@@ -9,8 +9,10 @@ import error.
 """
 
 import contextlib
+import importlib.util
 import os
 import re
+import subprocess
 import sys
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -250,3 +252,27 @@ def http_request(
         8,
         f"Request failed for url: {url} ...with status code {response.status_code}",
     )
+
+
+def ensure_and_import(pypi_name: str, import_path: str) -> object:
+    """
+    Determine if a module is available, and if not, install it and then import it.
+
+    Args:
+        pypi_name (str): The name used in 'pip install' (e.g., "google-genai")
+        import_path (str): The name used in 'import' (e.g., "google.genai")
+
+    Returns:
+        object: The imported module.
+    """
+    if pypi_name == "OpenAI":
+        print("bingo")
+    # 1. Check if the module path exists
+    try:
+        return importlib.import_module(import_path)
+    except ImportError:
+        print(f"--- {import_path} not found. Installing {pypi_name}... ---")
+        # 2. Install using the PyPI name
+        subprocess.check_call([sys.executable, "-m", "pip", "install", pypi_name])  # noqa: S603
+        # 3. Import using the import path
+        return importlib.import_module(import_path)

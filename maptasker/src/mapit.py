@@ -447,7 +447,7 @@ def check_single_item(
     if single_project_name and not single_project_found:
         if PrimeItems.program_arguments["gui"]:
             PrimeItems.error_code = 1
-            PrimeItems.error_msg = f"Projecte {single_project_name} was not found."
+            PrimeItems.error_msg = f"Project {single_project_name} was not found."
             return
         clean_up_and_exit("Project", single_project_name)
 
