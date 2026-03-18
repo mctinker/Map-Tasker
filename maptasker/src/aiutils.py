@@ -40,6 +40,8 @@ def get_openai_models() -> list:
         # Initialize the OpenAI client
         # 1. Dynamically get the 'openai' module
         openai_lib = ensure_and_import("openai", "openai")
+        if openai_lib is None:
+            return OPENAI_MODELS
 
         # 2. Extract the specific classes needed
         OpenAI = openai_lib.OpenAI  # noqa: N806
@@ -161,6 +163,8 @@ def get_gemini_models() -> list:
     # environment variable.
     try:
         google_lib = ensure_and_import("google-genai", "google.genai")
+        if google_lib is None:
+            return GEMINI_MODELS
         genai = google_lib.genai
         client = genai.Client(api_key=api_key)
     except Exception as e:  # noqa: BLE001
@@ -300,6 +304,9 @@ def get_llama_models() -> list:
     try:
         # Get all locally available models
         ollama = ensure_and_import("ollama", "ollama")
+        if ollama is None:
+            return extended_list
+
         all_models = ollama.list()
         loaded_models = []
 

@@ -47,6 +47,8 @@ def valid_api_key(ai: str, api_key: str) -> bool:
         try:
             # 1. Dynamically get the 'openai' module
             openai_lib = ensure_and_import("openai", "openai")
+            if openai_lib is None:
+                return False
 
             # 2. Extract the specific classes needed
             OpenAI = openai_lib.OpenAI  # noqa: N806
@@ -64,6 +66,9 @@ def valid_api_key(ai: str, api_key: str) -> bool:
     elif ai == "anthropic_key":
         try:
             anthropic = ensure_and_import("anthropic", "anthropic")
+            if anthropic is None:
+                return False
+
             client = anthropic.Anthropic(api_key=api_key)
             client.models.list()
             return True  # noqa: TRY300
@@ -107,8 +112,8 @@ def module_is_available(module_name: str) -> bool:
         return True
     # Load the module dynamically.
     if spec is None:
-        _ = ensure_and_import(module_name, module_name)
-        return True
+        _kaka = ensure_and_import(module_name, module_name)
+        return _kaka is not None  # Return boolean indicating if the module was successfully imported.
 
     return False
 
@@ -373,6 +378,9 @@ def process_ai_query_and_response(
     try:
         # 1. Dynamically get the 'openai' module
         openai_lib = ensure_and_import("openai", "openai")
+        if openai_lib is None:
+            error_handler("Module 'openai' not found. Please install the 'openai' module.", 12)
+            return
 
         # 2. Extract the specific classes needed
         OpenAIError = openai_lib.OpenAIError  # noqa: N806
@@ -459,6 +467,8 @@ def open_ai(query: str, ai_object: str, item: str) -> None:
     )
     # 1. Dynamically get the 'openai' module
     openai_lib = ensure_and_import("openai", "openai")
+    if openai_lib is None:
+        return
 
     # 2. Extract the specific classes needed
     OpenAI = openai_lib.OpenAI  # noqa: N806
@@ -480,6 +490,9 @@ def claude_ai(query: str, ai_object: str, item: str) -> None:
         None: This function does not return anything.
     """
     anthropic = ensure_and_import("anthropic", "anthropic")
+    if anthropic is None:
+        error_handler("Module 'anthropic' not found. Please install the 'anthropic' module.", 12)
+        return
     client = anthropic.Anthropic(api_key=PrimeItems.program_arguments["ai_apikey"])
     process_ai_query_and_response(client, query, ai_object, item)
 
@@ -498,6 +511,8 @@ def deepseek_ai(query: str, ai_object: str, item: str) -> None:
     """
     # 1. Dynamically get the 'openai' module
     openai_lib = ensure_and_import("openai", "openai")
+    if openai_lib is None:
+        return
 
     # 2. Extract the specific classes needed
     OpenAI = openai_lib.OpenAI  # noqa: N806
@@ -522,6 +537,9 @@ def gemini_ai(query: str, ai_object: str, item: str) -> None:
     """
     # genai.configure(api_key=PrimeItems.program_arguments["ai_apikey"])
     genai = ensure_and_import("google-genai", "google.genai")
+    if genai is None:
+        error_handler("Module 'google-genai' not found. Please install the 'google-genai' module.", 12)
+        return
     client = genai.Client(api_key=PrimeItems.program_arguments["ai_apikey"])
     process_ai_query_and_response(client, query, ai_object, item)
 

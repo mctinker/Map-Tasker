@@ -254,7 +254,7 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # CHG: For Development Only!
+        # FIX: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
@@ -2465,10 +2465,22 @@ class EventHandlers:
                 the_view.single_project_name = ""
                 the_view.single_profile_name = ""
                 the_view.single_task_name = ""
+                PrimeItems.program_arguments["single_project_name"] = ""
+                PrimeItems.program_arguments["single_profile_name"] = ""
+                PrimeItems.program_arguments["single_task_name"] = ""
+                PrimeItems.found_named_items["single_project_name"] = False
+                PrimeItems.found_named_items["single_profile_name"] = False
+                PrimeItems.found_named_items["single_task_name"] = False
+
                 # Save the name in mygui signle_xxx_name.
                 name_entered = "" if name_entered == none_translated else name_entered
 
+                # Now save the name where it counts: the_view andf PrimeItems.program_arguments for use in mapit_all.
                 setattr(the_view, f"single_{my_name.lower()}_name", name_entered)
+                key_name = f"single_{my_name.lower()}_name"
+                # Assign it to the dictionary
+                PrimeItems.program_arguments[key_name] = name_entered
+
                 text1 = translate_string("Display only")
                 text2 = translate_string("Display all")
                 name_entered = PrimeItems._(name_entered) if hasattr(PrimeItems, "_") else name_entered

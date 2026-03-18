@@ -30,8 +30,6 @@ from maptasker.src.primitem import PrimeItems
 # We will force a 480x480 resolution video.
 TARGET_WIDTH = "640"
 TARGET_HEIGHT = "640"
-# FIX Move this to each yt_dlp call
-yt_dlp = ensure_and_import("yt-dlp[default]", "yt-dlp[default]")
 
 
 def handle_image(self: ctk, msg: str, start_idx: str) -> None:
@@ -266,7 +264,7 @@ class VideoEmbedder:
     the main CustomTkinter application from freezing.
 
     It supports direct video URLs (e.g., .mp4) and automatically fetches
-    stream URLs for YouTube links using the 'pytube' library.
+    stream URLs for YouTube links using the 'yt-dlp' library.
 
     :param master_root: The main application's root window (CTk or Tk).
                         The Toplevel window will be attached to this master.
@@ -351,6 +349,9 @@ class VideoEmbedder:
         # Only import cv3 if not on Windows.
         if not PrimeItems.windows_system:
             cv3 = ensure_and_import("cv3", "cv3")
+            if cv3 is None:
+                self._display_message("Error: 'cv3' library not found. Video playback is unavailable.")
+                return
 
         stream_url = self._get_stream_source()
 
@@ -513,6 +514,13 @@ class VideoEmbedder:
         try:
             # Step 1: Extract metadata without downloading
             ydl_opts = {"quiet": True, "skip_download": True, "logger": MyLogger()}
+
+            # Load yt-dlp
+            yt_dlp = ensure_and_import("yt_dlp", "yt_dlp")
+            if yt_dlp is None:
+                self._display_message("Error: 'yt_dlp' library not found. Video playback is unavailable.")
+                return None
+
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info_dict = ydl.extract_info(url, download=False)
                 formats = info_dict.get("formats", [])
