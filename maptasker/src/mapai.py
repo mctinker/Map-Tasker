@@ -201,6 +201,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
         # Output: "Paris"
     """
     from maptasker.src import cria  # noqa: PLC0415
+
     # if PrimeItems.program_arguments["ai_analyze"] and not module_is_available("cria"):
     #     error_handler("Module 'cria' not found.  Please install the 'cria' module and the Ollama app.", 12)
     #     return
@@ -376,23 +377,12 @@ def process_ai_query_and_response(
     }
 
     try:
-        # 1. Dynamically get the 'openai' module
-        openai_lib = ensure_and_import("openai", "openai")
-        if openai_lib is None:
-            error_handler("Module 'openai' not found. Please install the 'openai' module.", 12)
-            return
-
-        # 2. Extract the specific classes needed
-        OpenAIError = openai_lib.OpenAIError  # noqa: N806
-        # Get the appropriate processing function and call it
         process_function = ai_processors.get(name)
         if process_function:
             response = process_function(client, query)
             record_response(response, ai_object, item)
         else:
             error_handler("Invalid AI name selected.", 12)
-    except OpenAIError as e:
-        process_error(str(e), ai_object, item)
     except Exception as e:  # noqa: BLE001
         error_message = handle_ai_error(e)  # Pass the exception object directly
         with open(ERROR_FILE, "w") as response_file:

@@ -266,7 +266,7 @@ def ensure_and_import(pypi_name: str, import_path: str) -> object:
         pass  # Not found, proceed to installation
 
     # 2. Module doesn't exist. Attempt to install it.
-    print(f"MapTasker: --- Package{import_path} not found. Installing {pypi_name}... ---")
+    print(f"MapTasker: --- Package {import_path} not found. Installing {pypi_name}... ---")
     try:
         # Using check_call ensures we wait for completion
         subprocess.check_call(  # noqa: S603
@@ -274,6 +274,7 @@ def ensure_and_import(pypi_name: str, import_path: str) -> object:
             stdout=subprocess.DEVNULL,  # Optional: silence output
             stderr=subprocess.STDOUT,
         )
+        print(f"MapTasker: --- Package {import_path} module {pypi_name}" + " ...installed! ---")
 
         # CRITICAL: Clear the import cache so Python sees the new files
         importlib.invalidate_caches()

@@ -9,18 +9,27 @@ import subprocess
 import time
 from contextlib import ContextDecorator
 
-import httpx
-
+# import httpx
 # import ollama
-import psutil
-
+# import psutil
 # from ollama._client import Client as OllamaClient
 from maptasker.src.maputil2 import ensure_and_import
 from maptasker.src.primitem import PrimeItems
 
+httpx = ensure_and_import("httpx", "httpx")
+if httpx is None:
+    print("MapTasker Cria: httpx could not be installed.")
+psutil = ensure_and_import("psutil", "psutil")
+if psutil is None:
+    print("MapTasker Cria: psutil could not be installed.")
+
+
 DEFAULT_MODEL = "llama3.1:8b"
 DEFAULT_MESSAGE_HISTORY = [{"role": "system", "content": "You are a helpful AI assistant."}]
 ollama = ensure_and_import("ollama", "ollama")
+if ollama is None:
+    PrimeItems.error_code = 1
+    PrimeItems.error_msg = "Ollama is not installed, please install ollama from 'https://ollama.com/download'"
 ollama_module = ensure_and_import("ollama", "ollama._client")
 OllamaClient = ollama_module.Client
 

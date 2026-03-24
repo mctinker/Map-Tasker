@@ -321,6 +321,7 @@ ANTHROPIC_MODELS = [
 DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
     "gemini-3.1-pro-preview",
+    "gemini-3.1-flash-lite-preview",
     "gemini-3-pro",
     "gemini-3-flash",
     "gemini-2.5-flash",

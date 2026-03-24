@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.2.0] ??-Mar-2026  # FIX
+## [10.2.0] 26-Mar-2026
 
 ### Added
 
@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed: Large modules (AI-related: openai, anthropic, gemini, ollama; video-related: cr3 and yt-dlp) are dynamically loaded when/if needed rather than getting installed by default.  This saves ~300MBs in storage space.
+- Changed: Large modules (AI and video related) are now dynamically loaded when/if needed rather than getting installed by default.  This potentially saves ~300MBs in storage space.
 To take full advantage of this, it is best to completely uninstall MapTasker and then reinstall it.  If using a virtual environment,
 delete it completely and re-create it, and then reinstall MapTasker.
 
@@ -18,6 +18,7 @@ delete it completely and re-create it, and then reinstall MapTasker.
 
 - Fixed: OpenAI's 'o4-mini' model is incorrectly listed as '04-mini'.
 - Fixed: Tasker Project/Profile/Task is not found when selecting the 'Run Analysis' button even though it exists.
+- FIxed: Regardless of the AI model selected, OpenAI is unnessarily being loaded.
 
 ### Known Issue
 
@@ -41,7 +42,7 @@ delete it completely and re-create it, and then reinstall MapTasker.
 - Fixed: Hover text fails if the language is traditional or simplified Chinese.
 - Fixed: AI Analysis hangs if using a language other than English.
 
-## [10.0.7] ??-Feb-2026
+## [10.0.7] 20-Feb-2026
 
 - Added: Tasker version 6.6.18 fully supported.
 - Changed: Updated AI model list.
