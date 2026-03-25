@@ -528,11 +528,17 @@ class CTkHyperlinkManager:
             None: This function does not return anything.
         """
         our_view = guiself.mapview
-        search_string = f"{action[:-1].capitalize()}: {name}"
+        # Get 'Task", "Project", "Profile", "Scene" from "tasks", "projects", "profiles", "scenes"
+        tasker_object = action[:-1].capitalize() + ":"
+        # if PrimeItems.program_arguments["language"] != "English":
+        #     # For non-English, we need to translate '(Unnamed) in the name
+        #     name = name.replace("(Unnamed)", f"{translate_string('(Unnamed)')}")
+        #     tasker_object = translate_string(tasker_object)
+        search_string = f"{tasker_object} {name}"
 
         # Handle translations
         if PrimeItems.program_arguments["language"] not in ("English"):
-            prefix = search_string.split(":")[0] + ": "
+            prefix = search_string.split(":", maxsplit=1)[0] + ": "
             translated_prefix = f"{guiself.textview.translation[action[:-1]]}"
             search_string = search_string.replace(prefix, translated_prefix)
 

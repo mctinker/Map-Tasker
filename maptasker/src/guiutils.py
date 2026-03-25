@@ -1902,10 +1902,14 @@ def search_substring_in_list(
     """
     matches = []
     task_translated = translate_string("Task: ")
-    # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
+    task_translated_lower = task_translated.lower()
+    unnamed_translated = translate_string("(Unnamed)")
+    # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well, since
+    # Task names in Scenes are listed as "Task: ...(Unnamed)" and the Task ID is listed in the Scene as "id:task_id".
     if task_translated in substring and "(Unnamed)" in substring:
         # Get the Task ID.
         task_id = get_taskid_from_unnamed_task(substring)
+        # FIX Not working for 114 in Project Weather
         second_search_string = f"id:{task_id}"
     elif substring[6:] in PrimeItems.task_action_warnings:
         second_search_string = f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
@@ -1927,9 +1931,13 @@ def search_substring_in_list(
             # Do we need to search for a Task in a Scene (ID: task_id)?
             if pos == -1 and second_search_string:
                 pos = lower_string.find(second_search_string, start)
-                # If we have the "id:task_id" then get the position of the name.
+                # If we have the "id:task_id" then get the position of the name (e.g. beyond 'Task: ).
                 if pos != -1:
-                    lower_substring = lower_substring.replace("task: ", "")
+                    lower_substring = (
+                        lower_substring.replace(f"{task_translated_lower}", "")
+                        .replace("(unnamed)", unnamed_translated.lower())
+                        .strip()
+                    )
                     pos = lower_string.find(lower_substring, start)
             if pos == -1 or "up one level" in lower_string:
                 break
@@ -2842,7 +2850,7 @@ def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
     # Extract the task ID from the unnamed task string
     position = unnamed_task.rfind(".")
     if position != -1:
-        return unnamed_task[position + 1 :].split(" (Unnamed)")[0]
+        return unnamed_task[position + 1 :].split(" (Unnamed)", maxsplit=1)[0]
 
     rutroh_error(f"Error.  Missing period for task ID in Taask name: '{unnamed_task}'")
     return unnamed_task.split(".")[1].strip()

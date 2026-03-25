@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.2.0] 26-Mar-2026
+## [10.2.0] ??-Mar-2026  # FIX
 
 ### Added
 
@@ -18,7 +18,8 @@ delete it completely and re-create it, and then reinstall MapTasker.
 
 - Fixed: OpenAI's 'o4-mini' model is incorrectly listed as '04-mini'.
 - Fixed: Tasker Project/Profile/Task is not found when selecting the 'Run Analysis' button even though it exists.
-- FIxed: Regardless of the AI model selected, OpenAI is unnessarily being loaded.
+- Fixed: Regardless of the AI model selected, OpenAI is unnessarily being loaded.
+- Fixed: Unnamed Task directory hotlink entries do not work in the Map view if using a language other than English.
 
 ### Known Issue
 
