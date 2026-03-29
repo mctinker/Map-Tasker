@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.2.0] ??-Mar-2026  # FIX
+## [10.2.0] 30-Mar-2026
 
 ### Added
 
-- Added:
+- Added: No additions to this release.
 
 ### Changed
 
@@ -20,6 +20,7 @@ delete it completely and re-create it, and then reinstall MapTasker.
 - Fixed: Tasker Project/Profile/Task is not found when selecting the 'Run Analysis' button even though it exists.
 - Fixed: Regardless of the AI model selected, OpenAI is unnessarily being loaded.
 - Fixed: Unnamed Task directory hotlink entries do not work in the Map view if using a language other than English.
+- Fixed: Hotlinks in TaskerNet descriptions are broken.  The text appears twice and the link doesn't work.
 
 ### Known Issue
 

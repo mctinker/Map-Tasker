@@ -123,6 +123,8 @@ def valid_item(
         and not PrimeItems.tasker_root_elements["all_profiles"]
         and not PrimeItems.tasker_root_elements["all_tasks"]
     ):
+        PrimeItems.program_arguments["directory"] = self.directory
+        PrimeItems.program_arguments["list_unnamed_items"] = self.list_unnamed_items
         return_code = get_xml(debug, appearance_mode)
 
         # Did we get an error reading the backup file?
@@ -1899,6 +1901,8 @@ def search_substring_in_list(
 
     Returns:
         list: A list of tuples containing the index of the string and the position of the substring.
+
+    Note: Tasker objects with anything that looks like HTML will nmot get a match since the html is stripped out by guimap.
     """
     matches = []
     task_translated = translate_string("Task: ")
@@ -1909,13 +1913,13 @@ def search_substring_in_list(
     if task_translated in substring and "(Unnamed)" in substring:
         # Get the Task ID.
         task_id = get_taskid_from_unnamed_task(substring)
-        # FIX Not working for 114 in Project Weather
+
         second_search_string = f"id:{task_id}"
     elif substring[6:] in PrimeItems.task_action_warnings:
         second_search_string = f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
     else:
         second_search_string = ""
-    lower_substring = substring.lower()
+    lower_substring = substring.replace("(Unnamed)", unnamed_translated).lower()
 
     # If stop on first match and a Tasker object, then indicate we need an exact match.
     exact_match = bool(stop_on_first_match and is_tasker_object(substring, True))
@@ -1923,7 +1927,7 @@ def search_substring_in_list(
     # Go through all data looking for our substring.  Do all compares in lowercase.
     # If we don't find a match, then search on second substring.
     for i, string in enumerate(strings):
-        lower_string = string.lower()
+        lower_string = string.lower().strip()
         lower_string_len = len(lower_string)
         start = 0
         while start < lower_string_len:
@@ -1943,7 +1947,7 @@ def search_substring_in_list(
                 break
 
             # Drop here if we have a potential match.
-            # If doing an exact match on a Tasker object, m ake sure we have an exact match.
+            # If doing an exact match on a Tasker object, make sure we have an exact match.
             if exact_match:
                 potential_match = lower_string[pos:]
                 # Handle possible --Task ... ID:
@@ -1963,7 +1967,7 @@ def search_substring_in_list(
             if substring.startswith(task_translated) and string.startswith(" [Launcher "):
                 start = pos + 1
                 continue
-            # Okay, we have the match!
+            # Okay, we have the match!  Save the index and position.
             matches.append((i, pos))
             if stop_on_first_match:
                 return matches

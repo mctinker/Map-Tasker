@@ -1,4 +1,4 @@
-#! /usr/bin/env python3  # noqa: D100
+#! /usr/bin/env python3
 
 #                                                                                      #
 # proginit: perform program initialization functions                                   #
