@@ -525,8 +525,7 @@ def gemini_ai(query: str, ai_object: str, item: str) -> None:
     Returns:
         None: This function does not return anything.
     """
-    # genai.configure(api_key=PrimeItems.program_arguments["ai_apikey"])
-    genai = ensure_and_import("google-genai", "google.genai")
+    genai = ensure_and_import("google.genai", "google.genai")
     if genai is None:
         error_handler("Module 'google-genai' not found. Please install the 'google-genai' module.", 12)
         return

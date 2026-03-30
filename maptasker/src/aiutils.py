@@ -162,11 +162,11 @@ def get_gemini_models() -> list:
     # The Client will automatically look for your API key in the GOOGLE_API_KEY
     # environment variable.
     try:
-        google_lib = ensure_and_import("google-genai", "google.genai")
+        google_lib = ensure_and_import("google.genai", "google.genai")
         if google_lib is None:
             return GEMINI_MODELS
-        genai = google_lib.genai
-        client = genai.Client(api_key=api_key)
+        # genai = google_lib.genai
+        client = google_lib.Client(api_key=api_key)
     except Exception as e:  # noqa: BLE001
         rutroh_error(f"Error initializing client: {e}")
         rutroh_error("\nPlease ensure your GOOGLE_API_KEY environment variable is set correctly.")

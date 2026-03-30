@@ -2986,9 +2986,6 @@ class EventHandlers:
         except KeyError:
             pass
 
-        # Set the translation function in PrimeItems
-        # T.set_language(language_to_use)
-
         language_translated = translate_string(language_to_use)
         # Change the menu to reflect the selected language
         if hasattr(the_view, "language_optionmenu"):
@@ -3009,6 +3006,9 @@ class EventHandlers:
         Args:
             language: The language selected by the user.
         """
+        # Let everyone know we are setting the language
+        PrimeItems.language_set = True
+
         the_view = self if self.__class__.__name__ == "MyGui" else self.parent
         if the_view.language == language:
             return
@@ -3093,6 +3093,8 @@ class EventHandlers:
         # Display the default model list
         the_view.displaying_extended_list = None  # Force pulldown to be recreated.
         the_view.aimodel_extend_checkbox.deselect()
+        # Display the model pulldown list.
+        display_model_pulldown(self, 50)
 
         # Let user know
         message = f"{translate_string('Language set to')} {translate_string(the_view.language)}."
@@ -3102,6 +3104,8 @@ class EventHandlers:
         # Translate thew appearance mode values and save per language for userintr: change_appearance_mode_event
         appearance_translated = [translate_string(item) for item in ["Dark", "Light", "System"]]
         PrimeItems.appearance_translated[PrimeItems.program_arguments["language"]] = appearance_translated
+
+        PrimeItems.language_set = False
 
     def extended_models_event(self) -> None:
         """
@@ -3144,6 +3148,11 @@ class EventHandlers:
         for label in labels:
             label_to_clear = getattr(the_view, label)
             label_to_clear.destroy()
+        # Ditto option menus
+        options = self.find_variables(the_view, "_option")
+        for option in options:
+            option_to_clear = getattr(the_view, option)
+            option_to_clear.destroy()
         # Ditto buttons
         buttons = self.find_variables(the_view, "_button")
         for button in buttons:
@@ -3606,7 +3615,7 @@ class EventHandlers:
         ):
             text = translate_string("The API Key is not set for model")
             the_view.display_message_box(
-                f"T{text} {the_view.ai_model}.",
+                f"{text} {the_view.ai_model}, or the model {the_view.ai_model} is not supported.",
                 "Orange",
             )
             return
