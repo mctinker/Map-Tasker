@@ -2,22 +2,25 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.1.0] 15-Mar-2026
+## [10.2.0] 30-Mar-2026
 
 ### Added
 
-- Added: Tasker 6.7.0-beta with Scene V2 is supported.
+- Added: No additions to this release.
 
 ### Changed
 
-- Changed: No changes.
+- Changed: Large modules (AI and video related) are now dynamically loaded when/if needed rather than getting installed by default.  This potentially saves ~300MBs in storage space.
+To take full advantage of this, it is best to completely uninstall MapTasker and then reinstall it.  If using a virtual environment,
+delete it completely and re-create it, and then reinstall MapTasker.
 
 ### Fixed
 
-- Fixed: The Map and Diaghram view title translations are missing.
-- Fixed: Unnamed Tasks are not appearing in the Directory if 'List Unnamed Items' is selected.
-- Fixed: A program error can occur in guiwin2.py if displaying the Diagram view in a language other than English.
-- Fixed: Program error in guiwins.py when changing language in the GUI.
+- Fixed: OpenAI's 'o4-mini' model is incorrectly listed as '04-mini'.
+- Fixed: Tasker Project/Profile/Task is not found when selecting the 'Run Analysis' button even though it exists.
+- Fixed: Regardless of the AI model selected, OpenAI is unnessarily being loaded.
+- Fixed: Unnamed Task directory hotlink entries do not work in the Map view if using a language other than English.
+- Fixed: Hotlinks in TaskerNet descriptions are broken.  The text appears twice and the link doesn't work.
 
 ### Known Issue
 
@@ -25,15 +28,23 @@ All notable changes to this project will be documented in this file!
 
 ## Older History Logs
 
+## [10.1.0] 15-Mar-2026
+
+- Added: Tasker 6.7.0-beta with Scene V2 is supported.
+- Fixed: The Map and Diagram view title translations are missing.
+- Fixed: Unnamed Tasks are not appearing in the Directory if 'List Unnamed Items' is selected.
+- Fixed: A program error can occur in guiwin2.py if displaying the Diagram view in a language other than English.
+- Fixed: Program error in guiwins.py when changing language in the GUI.
+
 ## [10.0.8] 02-Mar-2026
 
 - Fixed: Some GUI text translations are missing.
 - Fixed: Changing colors in the GUI with a language other than English causes a program error.
-- Fixed: Program error in guiutil2.
-- Fixed: Hover text fails if the language is traditional or simplfied Chinese.
+- Fixed: Program error in guiutil2.py .
+- Fixed: Hover text fails if the language is traditional or simplified Chinese.
 - Fixed: AI Analysis hangs if using a language other than English.
 
-## [10.0.7] ??-Feb-2026
+## [10.0.7] 20-Feb-2026
 
 - Added: Tasker version 6.6.18 fully supported.
 - Changed: Updated AI model list.
