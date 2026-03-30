@@ -3606,7 +3606,7 @@ class EventHandlers:
         ):
             text = translate_string("The API Key is not set for model")
             the_view.display_message_box(
-                f"T{text} {the_view.ai_model}.",
+                f"{text} {the_view.ai_model}, or the model {the_view.ai_model} is not supported.",
                 "Orange",
             )
             return
