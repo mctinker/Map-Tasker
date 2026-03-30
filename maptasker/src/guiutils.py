@@ -937,8 +937,10 @@ def display_selected_object_labels(self) -> None:  # noqa: ANN001
     project_to_display = self.single_project_name if self.single_project_name else none_translated
     profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
     task_to_display = self.single_task_name if self.single_task_name else none_translated
-    self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
-
+    if self.ai_model_option.children:  # If we have the valid option menu, then set it to the current model.
+        self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
+    else:
+        display_model_pulldown(self, 50)  # Otherwise, display the pulldown.
     # Display the Project to analyze
     translation = translate_string("Project to Analyze:")
     self.ai_set_label2 = add_label(
@@ -3020,12 +3022,20 @@ def display_model_pulldown(self: ctk, center: int) -> None:
     if guiwin.ai_model_extended_list and not guiwin.initialization:
         if guiwin.displaying_extended_list is not None and guiwin.displaying_extended_list:
             return  # Return if we are already displaying it.
-        # Destroy the old window if it is last to be displayed.
-        if guiwin.displaying_extended_list is not None:
+        # Destroy the old window if it is last to be displayed and get the extended list...only if we are not in the
+        # middle of setting/changing the language.
+        if not PrimeItems.language_set:
             with contextlib.suppress(AttributeError):
                 guiwin.ai_model_option.destroy()
-        display_models = get_extended_ai_model_list()
-        guiwin.displaying_extended_list = True
+            display_models = get_extended_ai_model_list()
+            guiwin.displaying_extended_list = True
+        else:
+            # Not a request to build the extended, or we are in the middle of changing the language.
+            with contextlib.suppress(AttributeError):
+                guiwin.ai_model_option.destroy()
+            display_models = sorted(
+                model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
+            )
 
     # Just display the pre-defined model names.
     else:
