@@ -8,17 +8,30 @@ import atexit
 import subprocess
 import time
 from contextlib import ContextDecorator
-from typing import Optional
 
-import httpx
-import ollama
-import psutil
-from ollama._client import Client as OllamaClient
-
+# import httpx
+# import ollama
+# import psutil
+# from ollama._client import Client as OllamaClient
+from maptasker.src.maputil2 import ensure_and_import
 from maptasker.src.primitem import PrimeItems
+
+httpx = ensure_and_import("httpx", "httpx")
+if httpx is None:
+    print("MapTasker Cria: httpx could not be installed.")
+psutil = ensure_and_import("psutil", "psutil")
+if psutil is None:
+    print("MapTasker Cria: psutil could not be installed.")
+
 
 DEFAULT_MODEL = "llama3.1:8b"
 DEFAULT_MESSAGE_HISTORY = [{"role": "system", "content": "You are a helpful AI assistant."}]
+ollama = ensure_and_import("ollama", "ollama")
+if ollama is None:
+    PrimeItems.error_code = 1
+    PrimeItems.error_msg = "Ollama is not installed, please install ollama from 'https://ollama.com/download'"
+ollama_module = ensure_and_import("ollama", "ollama._client")
+OllamaClient = ollama_module.Client
 
 
 class Client(OllamaClient):
@@ -59,9 +72,9 @@ class Client(OllamaClient):
 
     def chat(
         self,
-        prompt: Optional[str] = None,
-        messages: Optional[list] = DEFAULT_MESSAGE_HISTORY,
-        stream: Optional[bool] = True,
+        prompt: str | None = None,
+        messages: list | None = DEFAULT_MESSAGE_HISTORY,
+        stream: bool | None = True,
         **kwargs,
     ) -> str:
         model = self.model
@@ -93,6 +106,7 @@ class Client(OllamaClient):
 
     def generate_stream(self, prompt, **kwargs):
         model = self.model
+
         ai = ollama
 
         response = ""
@@ -108,7 +122,7 @@ class Client(OllamaClient):
 
         self.running = False
 
-    def generate(self, prompt: str, stream: Optional[bool] = True, **kwargs) -> str:
+    def generate(self, prompt: str, stream: bool | None = True, **kwargs) -> str:
         model = self.model
         ai = ollama
 
@@ -181,13 +195,13 @@ def find_process(command, process_name="ollama"):
 class Cria(Client):
     def __init__(
         self,
-        model: Optional[str] = DEFAULT_MODEL,
-        standalone: Optional[bool] = False,
-        run_subprocess: Optional[bool] = False,
-        capture_output: Optional[bool] = False,
-        allow_interruption: Optional[bool] = True,
-        silence_output: Optional[bool] = False,
-        close_on_exit: Optional[bool] = True,
+        model: str | None = DEFAULT_MODEL,
+        standalone: bool | None = False,
+        run_subprocess: bool | None = False,
+        capture_output: bool | None = False,
+        allow_interruption: bool | None = True,
+        silence_output: bool | None = False,
+        close_on_exit: bool | None = True,
     ) -> None:
         self.run_subprocess = run_subprocess
         self.capture_output = capture_output
@@ -273,13 +287,13 @@ class Cria(Client):
 class Model(Cria, ContextDecorator):
     def __init__(
         self,
-        model: Optional[str] = DEFAULT_MODEL,
-        run_attached: Optional[bool] = False,
-        run_subprocess: Optional[bool] = False,
-        allow_interruption: Optional[bool] = True,
-        capture_output: Optional[bool] = False,
-        silence_output: Optional[bool] = False,
-        close_on_exit: Optional[bool] = True,
+        model: str | None = DEFAULT_MODEL,
+        run_attached: bool | None = False,
+        run_subprocess: bool | None = False,
+        allow_interruption: bool | None = True,
+        capture_output: bool | None = False,
+        silence_output: bool | None = False,
+        close_on_exit: bool | None = True,
     ) -> None:
         super().__init__(
             model=model,

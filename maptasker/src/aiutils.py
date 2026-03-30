@@ -7,11 +7,11 @@ import os
 import pickle
 from contextlib import suppress
 
-import ollama
-from google.genai import Client
-from openai import OpenAI
-
+# import ollama
+# from google.genai import Client
+# from openai import OpenAI
 from maptasker.src.error import rutroh_error
+from maptasker.src.maputil2 import ensure_and_import
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DEEPSEEK_MODELS,
@@ -38,6 +38,14 @@ def get_openai_models() -> list:
         if not api_key:
             return OPENAI_MODELS
         # Initialize the OpenAI client
+        # 1. Dynamically get the 'openai' module
+        openai_lib = ensure_and_import("openai", "openai")
+        if openai_lib is None:
+            return OPENAI_MODELS
+
+        # 2. Extract the specific classes needed
+        OpenAI = openai_lib.OpenAI  # noqa: N806
+
         client = OpenAI(api_key=api_key)
 
         # List all models
@@ -154,7 +162,11 @@ def get_gemini_models() -> list:
     # The Client will automatically look for your API key in the GOOGLE_API_KEY
     # environment variable.
     try:
-        client = Client(api_key=api_key)
+        google_lib = ensure_and_import("google-genai", "google.genai")
+        if google_lib is None:
+            return GEMINI_MODELS
+        genai = google_lib.genai
+        client = genai.Client(api_key=api_key)
     except Exception as e:  # noqa: BLE001
         rutroh_error(f"Error initializing client: {e}")
         rutroh_error("\nPlease ensure your GOOGLE_API_KEY environment variable is set correctly.")
@@ -291,6 +303,10 @@ def get_llama_models() -> list:
 
     try:
         # Get all locally available models
+        ollama = ensure_and_import("ollama", "ollama")
+        if ollama is None:
+            return extended_list
+
         all_models = ollama.list()
         loaded_models = []
 
@@ -298,7 +314,7 @@ def get_llama_models() -> list:
         loaded_models = [model_info["model"] for model_info in all_models["models"]]
 
         # Remove duplicates and sort for cleaner output
-        return sorted(list(set(modify_list_elements(extended_list, loaded_models, " (installed)"))))
+        return sorted(set(modify_list_elements(extended_list, loaded_models, " (installed)")))
 
     except ollama.ResponseError as e:
         rutroh_error(f"Error connecting to Ollama: {e}")

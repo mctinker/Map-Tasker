@@ -11,7 +11,7 @@ def error_handler(error_message: str, exit_code: int) -> None:
         :param error_message: text of error to print and log
         :param exit_code: error code to exit with
     """
-    from maptasker.src.maputils import exit_program
+    from maptasker.src.maputils import exit_program  # noqa: PLC0415
 
     # Add our heading to more easily identify the problem
     if exit_code in {0, 99}:
@@ -29,7 +29,7 @@ def error_handler(error_message: str, exit_code: int) -> None:
             PrimeItems.program_arguments
             and PrimeItems.program_arguments["debug"]
             and not PrimeItems.program_arguments["gui"]
-        ):
+        ) or exit_code == 5:
             print(final_error_message)
 
         # If coming from GUI, set error info. and return to GUI.

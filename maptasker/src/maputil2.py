@@ -9,8 +9,10 @@ import error.
 """
 
 import contextlib
+import importlib.util
 import os
 import re
+import subprocess
 import sys
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -250,3 +252,38 @@ def http_request(
         8,
         f"Request failed for url: {url} ...with status code {response.status_code}",
     )
+
+
+def ensure_and_import(pypi_name: str, import_path: str) -> object:
+    """
+    Determine if a module is available, and if not, install it and then import it.
+    Returns None if the module cannot be installed or imported.
+    """
+    # 1. Attempt to import if already present
+    try:
+        return importlib.import_module(import_path)
+    except ImportError:
+        pass  # Not found, proceed to installation
+
+    # 2. Module doesn't exist. Attempt to install it.
+    print(f"MapTasker: --- Package {import_path} not found. Installing {pypi_name}... ---")
+    try:
+        # Using check_call ensures we wait for completion
+        subprocess.check_call(  # noqa: S603
+            [sys.executable, "-m", "pip", "install", pypi_name],
+            stdout=subprocess.DEVNULL,  # Optional: silence output
+            stderr=subprocess.STDOUT,
+        )
+        print(f"MapTasker: --- Package {import_path} module {pypi_name}" + " ...installed! ---")
+
+        # CRITICAL: Clear the import cache so Python sees the new files
+        importlib.invalidate_caches()
+
+        # 3. Try to import again after installation
+        return importlib.import_module(import_path)
+
+    except (subprocess.CalledProcessError, ImportError) as e:
+        # CalledProcessError: Pip failed (e.g., no internet, no such package)
+        # ImportError: Pip succeeded but the import_path provided is wrong
+        print(f"MapTasker:--- Failed to provide Package {import_path}: {e} ---")
+        return None

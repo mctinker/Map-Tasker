@@ -696,7 +696,7 @@ def merge_action_codes() -> None:
             category = tasker_action_code.get("category_code", "")
             canfail = tasker_action_code.get("canfail", "")
             debug_print(
-                f"Adding Task action: {value['name']}...validate the arguments!",
+                f"Adding Task action: {value['name']}...validate the arguments!\n",
             )
             new_dict = merge_add_code(
                 new_dict,

@@ -18,12 +18,13 @@ from tkinter import TclError
 
 import customtkinter as ctk
 import requests
-import yt_dlp
+
+# import yt_dlp
 from PIL import Image, ImageTk
 
 from maptasker.src.diagutil import width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import ensure_and_import, translate_string
 from maptasker.src.primitem import PrimeItems
 
 # We will force a 480x480 resolution video.
@@ -263,7 +264,7 @@ class VideoEmbedder:
     the main CustomTkinter application from freezing.
 
     It supports direct video URLs (e.g., .mp4) and automatically fetches
-    stream URLs for YouTube links using the 'pytube' library.
+    stream URLs for YouTube links using the 'yt-dlp' library.
 
     :param master_root: The main application's root window (CTk or Tk).
                         The Toplevel window will be attached to this master.
@@ -347,7 +348,10 @@ class VideoEmbedder:
         """Loads the video capture and starts the display loop."""
         # Only import cv3 if not on Windows.
         if not PrimeItems.windows_system:
-            import cv3  # noqa: PLC0415
+            cv3 = ensure_and_import("cv3", "cv3")
+            if cv3 is None:
+                self._display_message("Error: 'cv3' library not found. Video playback is unavailable.")
+                return
 
         stream_url = self._get_stream_source()
 
@@ -510,6 +514,13 @@ class VideoEmbedder:
         try:
             # Step 1: Extract metadata without downloading
             ydl_opts = {"quiet": True, "skip_download": True, "logger": MyLogger()}
+
+            # Load yt-dlp
+            yt_dlp = ensure_and_import("yt_dlp", "yt_dlp")
+            if yt_dlp is None:
+                self._display_message("Error: 'yt_dlp' library not found. Video playback is unavailable.")
+                return None
+
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info_dict = ydl.extract_info(url, download=False)
                 formats = info_dict.get("formats", [])

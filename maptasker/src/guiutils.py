@@ -123,6 +123,8 @@ def valid_item(
         and not PrimeItems.tasker_root_elements["all_profiles"]
         and not PrimeItems.tasker_root_elements["all_tasks"]
     ):
+        PrimeItems.program_arguments["directory"] = self.directory
+        PrimeItems.program_arguments["list_unnamed_items"] = self.list_unnamed_items
         return_code = get_xml(debug, appearance_mode)
 
         # Did we get an error reading the backup file?
@@ -1899,19 +1901,25 @@ def search_substring_in_list(
 
     Returns:
         list: A list of tuples containing the index of the string and the position of the substring.
+
+    Note: Tasker objects with anything that looks like HTML will nmot get a match since the html is stripped out by guimap.
     """
     matches = []
     task_translated = translate_string("Task: ")
-    # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well.
+    task_translated_lower = task_translated.lower()
+    unnamed_translated = translate_string("(Unnamed)")
+    # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well, since
+    # Task names in Scenes are listed as "Task: ...(Unnamed)" and the Task ID is listed in the Scene as "id:task_id".
     if task_translated in substring and "(Unnamed)" in substring:
         # Get the Task ID.
         task_id = get_taskid_from_unnamed_task(substring)
+
         second_search_string = f"id:{task_id}"
     elif substring[6:] in PrimeItems.task_action_warnings:
         second_search_string = f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
     else:
         second_search_string = ""
-    lower_substring = substring.lower()
+    lower_substring = substring.replace("(Unnamed)", unnamed_translated).lower()
 
     # If stop on first match and a Tasker object, then indicate we need an exact match.
     exact_match = bool(stop_on_first_match and is_tasker_object(substring, True))
@@ -1919,7 +1927,7 @@ def search_substring_in_list(
     # Go through all data looking for our substring.  Do all compares in lowercase.
     # If we don't find a match, then search on second substring.
     for i, string in enumerate(strings):
-        lower_string = string.lower()
+        lower_string = string.lower().strip()
         lower_string_len = len(lower_string)
         start = 0
         while start < lower_string_len:
@@ -1927,15 +1935,19 @@ def search_substring_in_list(
             # Do we need to search for a Task in a Scene (ID: task_id)?
             if pos == -1 and second_search_string:
                 pos = lower_string.find(second_search_string, start)
-                # If we have the "id:task_id" then get the position of the name.
+                # If we have the "id:task_id" then get the position of the name (e.g. beyond 'Task: ).
                 if pos != -1:
-                    lower_substring = lower_substring.replace("task: ", "")
+                    lower_substring = (
+                        lower_substring.replace(f"{task_translated_lower}", "")
+                        .replace("(unnamed)", unnamed_translated.lower())
+                        .strip()
+                    )
                     pos = lower_string.find(lower_substring, start)
             if pos == -1 or "up one level" in lower_string:
                 break
 
             # Drop here if we have a potential match.
-            # If doing an exact match on a Tasker object, m ake sure we have an exact match.
+            # If doing an exact match on a Tasker object, make sure we have an exact match.
             if exact_match:
                 potential_match = lower_string[pos:]
                 # Handle possible --Task ... ID:
@@ -1955,7 +1967,7 @@ def search_substring_in_list(
             if substring.startswith(task_translated) and string.startswith(" [Launcher "):
                 start = pos + 1
                 continue
-            # Okay, we have the match!
+            # Okay, we have the match!  Save the index and position.
             matches.append((i, pos))
             if stop_on_first_match:
                 return matches
@@ -2724,7 +2736,10 @@ def set_ai_key(self: object, model: str) -> None:
         **dict.fromkeys(PrimeItems.ai["deepseek_models"], "deepseek_key"),
         **dict.fromkeys(PrimeItems.ai["gemini_models"], "gemini_key"),
     }
-    self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
+    ai_to_get = model_keys.get(model, "")
+    if not ai_to_get:
+        return False
+    self.ai_apikey = PrimeItems.ai.get(ai_to_get)
 
     # If we didn't find the key, then see if we are using the extended list and need to get the key.
     if not self.ai_apikey and self.ai_model_extended_list:
@@ -2839,7 +2854,7 @@ def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
     # Extract the task ID from the unnamed task string
     position = unnamed_task.rfind(".")
     if position != -1:
-        return unnamed_task[position + 1 :].split(" (Unnamed)")[0]
+        return unnamed_task[position + 1 :].split(" (Unnamed)", maxsplit=1)[0]
 
     rutroh_error(f"Error.  Missing period for task ID in Taask name: '{unnamed_task}'")
     return unnamed_task.split(".")[1].strip()
@@ -3002,7 +3017,7 @@ def display_model_pulldown(self: ctk, center: int) -> None:
     tab = guiwin.tabview.tab("Analyze")
 
     # Add the list of models.  If this is a request for an extended list, then get the extended list.
-    if guiwin.ai_model_extended_list:
+    if guiwin.ai_model_extended_list and not guiwin.initialization:
         if guiwin.displaying_extended_list is not None and guiwin.displaying_extended_list:
             return  # Return if we are already displaying it.
         # Destroy the old window if it is last to be displayed.

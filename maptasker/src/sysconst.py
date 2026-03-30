@@ -18,7 +18,7 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 
-VERSION = "10.1.0"
+VERSION = "10.2.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -260,6 +260,9 @@ NOW_TIME = datetime.now()  # noqa: DTZ005
 
 OPENAI_MODELS = [
     "gpt-5.4",
+    "gpt-5.4-pro",
+    "gpt-5.4-mini",
+    "gpt-5.4-nano",
     "gpt-5.3-Codex",
     "gpt-5.3",
     "2",
@@ -276,9 +279,11 @@ OPENAI_MODELS = [
     "gpt-4.1-nano",
     "o1-mini",
     "o1-pro",
+    "o1",
     "o3",
+    "03-pro",
     "o3-mini",
-    "04-mini",
+    "o4-mini",
 ]
 LLAMA_MODELS = [
     "aya",
@@ -316,6 +321,7 @@ ANTHROPIC_MODELS = [
 DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
     "gemini-3.1-pro-preview",
+    "gemini-3.1-flash-lite-preview",
     "gemini-3-pro",
     "gemini-3-flash",
     "gemini-2.5-flash",

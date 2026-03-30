@@ -713,7 +713,7 @@ def _insert_and_tag(
         temp = message.split('"')
 
         # Handle first part before href, if any.
-        href = ""  # Clear href to avoid double insert below
+        href = temp[1]  # Get the url reference.  It'll be plugged in, below.
         message = orig_message.split('<a href="')[0]
         if message:
             if spacing > 0:
@@ -828,7 +828,7 @@ def _insert_styled_message(
         self.textview_textbox.insert(start_idx, f"{spacing * ' '}", "blank")
 
         # Update start index after spacing
-        start_idx = f"{start_idx.split('.')[0]}.{1 + spacing!s}"
+        start_idx = f"{start_idx.split('.', maxsplit=1)[0]}.{1 + spacing!s}"
 
         # Remove spacing from the message
         message = message[spacing:]
@@ -1058,7 +1058,7 @@ def _apply_bounding_box(
     minimum_space: bool,
 ) -> int:
     if not its_a_label:
-        begin_box = f"{(int(begin_box.split('.')[0]) + 1)}.0"
+        begin_box = f"{(int(begin_box.split('.', maxsplit=1)[0]) + 1)}.0"
     end_box = f"{line_num!s}.{max_msg_len + 1!s}"
 
     spacing1, spacing2, spacing3 = (5, 0, 5) if minimum_space else (-5, -30, -5)

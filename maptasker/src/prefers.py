@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 """Process the Tasker preferences via the services xml elements"""
+
 #                                                                                      #
 # prefers: Process Tasker's Preferences                                                #
 #                                                                                      #
@@ -72,10 +73,8 @@ def process_service(
                 format_html(
                     "preferences_color",
                     "",
-                    (
-                        f"{preferences_html}{blank * 2}{output_service_name}\
-                            {blank * 4}{service_value}"
-                    ),
+                    (f"{preferences_html}{blank * 2}{output_service_name}\
+                            {blank * 4}{service_value}"),
                     True,
                 )
             ),
@@ -139,11 +138,8 @@ def process_preferences(temp_output_lines: list) -> None:
                         _format_html(
                             "preferences_color",
                             "",
-                            (
-                                f"{blank * 2}Not yet"
-                                f" mapped or unused:{service_name}{blank * 4}type:{service_type}\
-                                {blank * 4}value:{service_value}"
-                            ),
+                            (f"{blank * 2}Not yet" f" mapped or unused:{service_name}{blank * 4}type:{service_type}\
+                                {blank * 4}value:{service_value}"),
                             True,
                         ),
                     ],
