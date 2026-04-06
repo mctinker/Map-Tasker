@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.2.3] ??-Apr-2026  # FIX
+## [10.2.3] 07-Apr-2026
 
 ### Added
 
@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed:  # FIX
+- Changed: Changed internal build process from poetry to uv.
 
 ### Fixed
 
