@@ -43,6 +43,7 @@ def tag_in_type(tag: str, flag: bool) -> bool:
         "SwitchElement",
         "ToggleElement",
         "VideoElement",
+        "lj",  # Scene V2 compressed JSON element
         "PropertiesElement",  # this element doesn't contain anything of value/import
     }
     scene_task_click_types = {

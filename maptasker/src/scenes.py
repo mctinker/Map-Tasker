@@ -7,7 +7,11 @@
 #                                                                                      #
 from __future__ import annotations
 
+import base64
 import contextlib
+import gzip
+import io
+import json
 from typing import TYPE_CHECKING
 
 from maptasker.src import tasks
@@ -56,6 +60,101 @@ def get_geometry(scene_element: defusedxml.ElementTree) -> tuple[str, str]:
     return width, height
 
 
+def decompress_gzip_json(b64_string: str) -> dict | str:
+    """Decodes a Base64 string, decompresses it using Gzip, and parses the JSON.
+
+    This function reverses a common data pipeline where a JSON object is
+    serialized, compressed to save space, and encoded into Base64 for
+    safe transmission as text.
+
+    Args:
+        b64_string (str): A Base64-encoded string representing zlib-compressed
+            JSON data.
+
+    Returns:
+        dict|list|str: The parsed JSON data. The type depends on the structure
+            of the original JSON (usually a dictionary or list).
+        str: Returns an error message string if decoding, decompression,
+            or parsing fails.
+
+    Example:
+        >>> example_input = "eJyrViotTi1SslJQcs7PzffLzM8rSyzI0S9ITM5W0lFKzMkMDvIBAL06C9M="
+        >>> decompress_json(example_input)
+        {'status': 'success', 'data': [1, 2, 3]}
+    """
+    try:
+        # 1. Decode Base64 to bytes
+        compressed_data = base64.b64decode(b64_string)
+
+        # 2. Use BytesIO to treat the bytes like a file, then decompress with gzip
+        with gzip.GzipFile(fileobj=io.BytesIO(compressed_data)) as f:
+            decompressed_data = f.read()
+
+        # 3. Parse JSON
+        return json.loads(decompressed_data.decode("utf-8"))
+
+    except Exception as e:  # noqa: BLE001
+        return f"An error occurred: {e}"
+
+
+def print_formatted_json(data: str | dict | list) -> None:
+    """
+    Parses a Python object (dict or list) and prints it as a formatted JSON string.
+
+    Args:
+        data: The Python object (usually returned from decompress_gzip_json).
+    """
+    # Check if the data is already a string (like an error message) or actual JSON data
+    if isinstance(data, (dict, list)):
+        # sort_keys=True is optional, but helps keep output consistent
+        return json.dumps(data, indent=4, sort_keys=True)
+    return f"Data is not a valid JSON object/list: {data}"
+
+
+def process_recursive_json(data: str, indentation: str, current_depth: int = 0) -> None:
+    """
+    Recursively processes JSON data and adds it to PrimeItems output.
+    """
+    blank = " "  # Assuming blank is a space character
+
+    if isinstance(data, dict):
+        for key, value in data.items():
+            # Calculate dynamic indentation: base (3) + parent + (3 per depth level)
+            current_indent = (3 + indentation) + (current_depth * 3)
+
+            if isinstance(value, dict):
+                # Print the key and indicate it's a nested object
+                PrimeItems.output_lines.add_line_to_output(
+                    0,
+                    f"{blank * current_indent}{key}:\n",
+                    ["", "scene_color", FormatLine.add_end_span],
+                )
+                # Recursive call: increment depth
+                process_recursive_json(value, indentation, current_depth + 1)
+            elif isinstance(value, list):
+                # Print the key and indicate it's a list
+                PrimeItems.output_lines.add_line_to_output(
+                    0,
+                    f"{blank * current_indent}{key}:\n",
+                    ["", "scene_color", FormatLine.add_end_span],
+                )
+                # Recursive call for each item in the list: increment depth
+                for item in value:
+                    process_recursive_json(item, indentation, current_depth + 1)
+            else:
+                # Base case: standard key-value pair
+                PrimeItems.output_lines.add_line_to_output(
+                    0,
+                    f"{blank * current_indent}{key}: {value}\n",
+                    ["", "scene_color", FormatLine.add_end_span],
+                )
+    elif isinstance(data, list):
+        # Optional: Handle lists if they appear in your Scene V2 JSON
+        for i, item in enumerate(data):
+            current_indent = (3 + indentation) + (current_depth * 3)
+            process_recursive_json({f"[{i}]": item}, indentation, current_depth)
+
+
 # Get the Scene's elements
 def get_scene_elements(
     child: defusedxml.ElementTree,
@@ -73,6 +172,23 @@ def get_scene_elements(
         - Add the element's information to the output lines.
         - Check if the element has a sub-scene and process it if so."""
     element_type = child.tag.split("Element")
+
+    # Handle scene V2 compressed JSON element
+    if element_type[0] == "lj":
+        json_data = decompress_gzip_json(child.text)
+
+        # Check for errors in decompression
+        if isinstance(json_data, str) and json_data.startswith("An error occurred"):
+            PrimeItems.output_lines.add_line_to_output(
+                0,
+                f"{blank * (3 + indentation)}Scene V2 compressed JSON element could not be processed: {json_data}",
+                ["", "scene_color", FormatLine.add_end_span],
+            )
+        else:
+            # Start the recursive processing.  Scene V2 JSON is nested, so we need to recurse through it to get all the details.
+            process_recursive_json(json_data, indentation)
+        return
+
     # First string is the name of the element
     name_xml_element = child.find("Str")
     # Get the element's geometry

@@ -180,7 +180,7 @@ def handle_task_hyperlink(the_item: str, blank: str) -> None:
     Returns:
         None
     """
-    task_name = the_item.split("&nbsp;")[0]
+    task_name = the_item.split("&nbsp;", maxsplit=1)[0]
     add_task_hyperlink(task_name, False, blank)
 
 

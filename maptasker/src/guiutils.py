@@ -2528,6 +2528,8 @@ def get_profiles_in_project(project_name: str) -> str:
             Returns an empty string if no profiles are found.
     """
     # Get the Project's profile Ids.
+    if "Properties" in project_name:  # Ignore if this is a Properties statement rather than a project name.
+        return ""
     pids = get_ids(
         True,
         PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"],

@@ -1616,7 +1616,7 @@ class CTkTextview(ctk.CTkFrame):
             str: The updated tooltip text including the list of profiles.
         """
         # Get the Project's properties (temporarily commented out for now).
-        if name == "N/A":
+        if name == "N/A" or "Properties comment:" in name or "Properties..." in name:
             return ""
         properties = ""
         # Get a list of the Profiles and Tasks in the Project.
@@ -1760,12 +1760,22 @@ class CTkTextview(ctk.CTkFrame):
         # Put the Scene's details into the output_lines.
         PrimeItems.output_lines.output_lines = []
         get_details(scene_xml, [], 0)
+        # Find the owning project
+        owning_project_name = ""
+        for project in PrimeItems.tasker_root_elements["all_projects"].values():
+            scenes = project["xml"].find("scenes")
+            if scenes is not None and name in scenes.text:
+                owning_project_name = project["name"]
+                break
         # Get just the elements
         elements = [line for line in PrimeItems.output_lines.output_lines if "Element of type" in line]
         _remove_html_tags = remove_html_tags
         for num, element in enumerate(elements):
             elements[num] = _remove_html_tags(element, "").replace("&nbsp;", "")
-        return text + "\nElements...\n" + "\n".join(elements)
+        # Check if Scene V2.
+        if not elements and "root:" in PrimeItems.output_lines.output_lines[0]:
+            elements = ["Scene Version 2"]
+        return text + "\nOwning Project: " + owning_project_name + "\nElements...\n" + "\n".join(elements)
 
     def get_list_of_actions(self, name: str, task_xml: defusedxml) -> str:
         """
@@ -2988,9 +2998,9 @@ class CTkTextview(ctk.CTkFrame):
             return char_position, previous_directory, line_num + (char_position == 0)
         # Configure the tag for the hyperlink in the background color
         self.textview_textbox.tag_config(
-            tag_id[1],
+            tag_id,
             background=self.master.master.saved_background_color,
-            font=(self.font_name, 12, "normal"),  # Force normal font.  For some reason, it is getting 'bold'.
+            font=self.font_normal,  # Force normal font.  For some reason, it is getting 'bold'.
         )
 
         char_position = 0 if char_position == spacing * columns else char_position + spacing

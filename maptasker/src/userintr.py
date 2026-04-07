@@ -254,7 +254,7 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # CHG: For Development Only!
+        # TODO: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()

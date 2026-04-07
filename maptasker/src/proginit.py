@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+"""proginit: perform program initialization functions"""
 
 #                                                                                      #
 # proginit: perform program initialization functions                                   #
