@@ -2,31 +2,38 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.2.0-10.2.2] 30-Mar-2026
+## [10.2.3] 07-Apr-2026
 
 ### Added
 
-- Added: No additions to this release.
+- Added: Tasker version 6.7.1-beta (Scenes V2) is now supported.
 
 ### Changed
 
-- Changed: Large modules (AI and video related) are now dynamically loaded when/if needed rather than getting installed by default.  This potentially saves ~300MBs in storage space.
-To take full advantage of this, it is best to completely uninstall MapTasker and then reinstall it.  If using a virtual environment,
-delete it completely and re-create it, and then reinstall MapTasker.
+- Changed: Changed internal build process from poetry to uv.
+- Changed: Inline videos are now disabled and are replaced with the video via your web browser for better performance.
 
 ### Fixed
 
-- Fixed: OpenAI's 'o4-mini' model is incorrectly listed as '04-mini'.
-- Fixed: Tasker Project/Profile/Task is not found when selecting the 'Run Analysis' button even though it exists.
-- Fixed: Regardless of the AI model selected, OpenAI is unnessarily being loaded.
-- Fixed: Unnamed Task directory hotlink entries do not work in the Map view if using a language other than English.
-- Fixed: Hotlinks in TaskerNet descriptions are broken.  The text appears twice and the link doesn't work.
+- Fixed: Hovering over 'Properties...' statement in the Map view causes a program error in guiutils.py.
+- Fixed: The Map view directory font size is too large.
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [10.2.0-10.2.2] 30-Mar-2026
+
+- Changed: Large modules (AI and video related) are now dynamically loaded when/if needed rather than getting installed by default.  This potentially saves ~300MBs in storage space.
+To take full advantage of this, it is best to completely uninstall MapTasker and then reinstall it.  If using a virtual environment,
+delete it completely and re-create it, and then reinstall MapTasker.
+- Fixed: OpenAI's 'o4-mini' model is incorrectly listed as '04-mini'.
+- Fixed: Tasker Project/Profile/Task is not found when selecting the 'Run Analysis' button even though it exists.
+- Fixed: Regardless of the AI model selected, OpenAI is unnessarily being loaded.
+- Fixed: Unnamed Task directory hotlink entries do not work in the Map view if using a language other than English.
+- Fixed: Hotlinks in TaskerNet descriptions are broken.  The text appears twice and the link doesn't work.
 
 ## [10.1.0] 15-Mar-2026
 
