@@ -41,7 +41,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131888420,
+                "helpResId": 2131888486,
                 "id": 5,
                 "isMandatory": true,
                 "name": "Enable Debugging (Check Help)",
@@ -49,7 +49,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888421,
+                "helpResId": 2131888487,
                 "id": 6,
                 "isMandatory": false,
                 "name": "Result Encoding",
@@ -411,7 +411,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131889861,
+                "helpResId": 2131889935,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Names",
@@ -557,7 +557,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131889860,
+                "helpResId": 2131889934,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Names",
@@ -573,7 +573,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131886831,
+                "helpResId": 2131886855,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Joiner",
@@ -582,7 +582,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131886828,
+                "helpResId": 2131886852,
                 "id": 4,
                 "isMandatory": true,
                 "name": "Format",
@@ -591,7 +591,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131886829,
+                "helpResId": 2131886853,
                 "id": 5,
                 "isMandatory": true,
                 "name": "Output",
@@ -600,7 +600,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131886830,
+                "helpResId": 2131886854,
                 "id": 6,
                 "isMandatory": false,
                 "name": "Join Output",
@@ -609,7 +609,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131886832,
+                "helpResId": 2131886856,
                 "id": 7,
                 "isMandatory": true,
                 "name": "Replace Variables In Arrays",
@@ -633,7 +633,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131886836,
+                "helpResId": 2131886860,
                 "id": 1,
                 "isMandatory": false,
                 "name": "Prompt If Not Granted",
@@ -1343,7 +1343,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131890759,
+                "helpResId": 2131890836,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Disallow/Allow",
@@ -1351,7 +1351,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131887040,
+                "helpResId": 2131887064,
                 "id": 2,
                 "isMandatory": true,
                 "name": "Reject",
@@ -1359,7 +1359,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131887041,
+                "helpResId": 2131887065,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Silence",
@@ -1367,7 +1367,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131887042,
+                "helpResId": 2131887066,
                 "id": 4,
                 "isMandatory": true,
                 "name": "Skip Call Log",
@@ -1375,7 +1375,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131887043,
+                "helpResId": 2131887067,
                 "id": 5,
                 "isMandatory": true,
                 "name": "Skip Notification",
@@ -1658,7 +1658,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888448,
+                "helpResId": 2131888518,
                 "id": 4,
                 "isMandatory": true,
                 "name": "Back Out",
@@ -2196,7 +2196,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131891135,
+                "helpResId": 2131891253,
                 "id": 1,
                 "isMandatory": true,
                 "name": "ID",
@@ -2243,7 +2243,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131887176,
+                "helpResId": 2131887205,
                 "id": 7,
                 "isMandatory": false,
                 "name": "Command",
@@ -2333,7 +2333,7 @@
     {
         "args": [
             {
-                "helpResId": 2131888503,
+                "helpResId": 2131888574,
                 "id": 0,
                 "isMandatory": false,
                 "name": "Screen ID",
@@ -3700,7 +3700,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888547,
+                "helpResId": 2131888618,
                 "id": 9,
                 "isMandatory": true,
                 "name": "Continue Task Immediately",
@@ -3709,7 +3709,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888554,
+                "helpResId": 2131888625,
                 "id": 2,
                 "isMandatory": true,
                 "name": "Tasker Layout",
@@ -3717,7 +3717,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888551,
+                "helpResId": 2131888622,
                 "id": 15,
                 "isMandatory": false,
                 "name": "ID",
@@ -3729,7 +3729,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888557,
+                "helpResId": 2131888628,
                 "id": 3,
                 "isMandatory": false,
                 "name": "Title",
@@ -3741,7 +3741,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888549,
+                "helpResId": 2131888620,
                 "id": 4,
                 "isMandatory": false,
                 "name": "Icon",
@@ -3753,7 +3753,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888550,
+                "helpResId": 2131888621,
                 "id": 5,
                 "isMandatory": false,
                 "name": "Icon Size",
@@ -3765,7 +3765,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888555,
+                "helpResId": 2131888626,
                 "id": 10,
                 "isMandatory": false,
                 "name": "Text Colour",
@@ -3777,7 +3777,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888545,
+                "helpResId": 2131888616,
                 "id": 6,
                 "isMandatory": false,
                 "name": "Background Colour",
@@ -3800,7 +3800,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888552,
+                "helpResId": 2131888623,
                 "id": 13,
                 "isMandatory": false,
                 "name": "Position",
@@ -3812,7 +3812,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888553,
+                "helpResId": 2131888624,
                 "id": 12,
                 "isMandatory": true,
                 "name": "Show Over Everything",
@@ -3824,7 +3824,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888546,
+                "helpResId": 2131888617,
                 "id": 7,
                 "isMandatory": false,
                 "name": "Task",
@@ -3836,7 +3836,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888548,
+                "helpResId": 2131888619,
                 "id": 11,
                 "isMandatory": true,
                 "name": "Dismiss On Click",
@@ -3848,7 +3848,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888556,
+                "helpResId": 2131888627,
                 "id": 8,
                 "isMandatory": false,
                 "name": "Timeout",
@@ -4211,7 +4211,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888388,
+                "helpResId": 2131888446,
                 "id": 8,
                 "isMandatory": false,
                 "name": "Mime Type",
@@ -4673,7 +4673,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131890216,
+                "helpResId": 2131890291,
                 "id": 9,
                 "isMandatory": true,
                 "name": "Force High Accuracy",
@@ -4726,7 +4726,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131891778,
+                "helpResId": 2131891909,
                 "id": 2,
                 "isMandatory": true,
                 "name": "From",
@@ -4735,7 +4735,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131891777,
+                "helpResId": 2131891908,
                 "id": 3,
                 "isMandatory": true,
                 "name": "To",
@@ -4744,7 +4744,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888625,
+                "helpResId": 2131888699,
                 "id": 4,
                 "isMandatory": false,
                 "name": "Package",
@@ -4774,6 +4774,14 @@
                 "name": "Output Variables",
                 "sortOrder": 2147482647,
                 "type": 5
+            },
+            {
+                "helpResId": 2131890561,
+                "id": 1,
+                "isMandatory": true,
+                "name": "Get Cell Info",
+                "sortOrder": 2147482648,
+                "type": 3
             }
         ],
         "canFail": true,
@@ -4799,7 +4807,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131890000,
+                "helpResId": 2131890074,
                 "id": 2,
                 "isMandatory": true,
                 "name": "Pixel Coordinates",
@@ -4823,7 +4831,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131888513,
+                "helpResId": 2131888584,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Screen ID",
@@ -4832,7 +4840,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888512,
+                "helpResId": 2131888583,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Element ID",
@@ -4871,7 +4879,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131888628,
+                "helpResId": 2131888702,
                 "id": 1,
                 "isMandatory": false,
                 "name": "Latitude",
@@ -4880,7 +4888,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888628,
+                "helpResId": 2131888702,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Longitude",
@@ -4889,7 +4897,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888629,
+                "helpResId": 2131888703,
                 "id": 3,
                 "isMandatory": false,
                 "name": "Seconds Since Epoch",
@@ -4898,7 +4906,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888633,
+                "helpResId": 2131888707,
                 "id": 4,
                 "isMandatory": false,
                 "name": "Custom Sun Elevation Angle",
@@ -6604,7 +6612,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131888480,
+                "helpResId": 2131888551,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Device IDs/Names",
@@ -6957,7 +6965,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131889863,
+                "helpResId": 2131889937,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Names",
@@ -6966,7 +6974,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131891468,
+                "helpResId": 2131891586,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Variable Names Splitter",
@@ -6975,7 +6983,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131889864,
+                "helpResId": 2131889938,
                 "id": 3,
                 "isMandatory": false,
                 "name": "Values",
@@ -6984,7 +6992,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131891467,
+                "helpResId": 2131891585,
                 "id": 4,
                 "isMandatory": false,
                 "name": "Values Splitter",
@@ -6993,7 +7001,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131887601,
+                "helpResId": 2131887635,
                 "id": 5,
                 "isMandatory": true,
                 "name": "Do Maths",
@@ -7009,7 +7017,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131888733,
+                "helpResId": 2131888806,
                 "id": 7,
                 "isMandatory": true,
                 "name": "Keep Existing",
@@ -7846,7 +7854,7 @@
     {
         "args": [
             {
-                "helpResId": 2131889924,
+                "helpResId": 2131889998,
                 "id": 0,
                 "isMandatory": true,
                 "name": "Output Variables",
@@ -7861,7 +7869,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131888663,
+                "helpResId": 2131888737,
                 "id": 2,
                 "isMandatory": true,
                 "name": "Input",
@@ -7870,7 +7878,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888662,
+                "helpResId": 2131888736,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Input Format",
@@ -7879,7 +7887,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131891122,
+                "helpResId": 2131891240,
                 "id": 4,
                 "isMandatory": false,
                 "name": "Input Separator",
@@ -7888,7 +7896,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131889922,
+                "helpResId": 2131889996,
                 "id": 5,
                 "isMandatory": false,
                 "name": "Output Format",
@@ -7897,7 +7905,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131891122,
+                "helpResId": 2131891240,
                 "id": 6,
                 "isMandatory": false,
                 "name": "Output Format Separator",
@@ -7906,7 +7914,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131889923,
+                "helpResId": 2131889997,
                 "id": 7,
                 "isMandatory": false,
                 "name": "Formatted Variable Names",
@@ -7922,7 +7930,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131887602,
+                "helpResId": 2131887636,
                 "id": 9,
                 "isMandatory": true,
                 "name": "Do Maths",
@@ -7930,7 +7938,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131889926,
+                "helpResId": 2131890000,
                 "id": 10,
                 "isMandatory": true,
                 "name": "Output Offset Type",
@@ -7938,7 +7946,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131889925,
+                "helpResId": 2131889999,
                 "id": 11,
                 "isMandatory": true,
                 "name": "Output Offset",
@@ -7947,7 +7955,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131891783,
+                "helpResId": 2131891914,
                 "id": 12,
                 "isMandatory": false,
                 "name": "Time Zone",
@@ -8071,7 +8079,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888479,
+                "helpResId": 2131888550,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Title",
@@ -8080,7 +8088,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888478,
+                "helpResId": 2131888549,
                 "id": 3,
                 "isMandatory": false,
                 "name": "Text",
@@ -8181,7 +8189,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131887228,
+                "helpResId": 2131887261,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Copy To Cache",
@@ -8470,7 +8478,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131888481,
+                "helpResId": 2131888552,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Action",
@@ -8478,7 +8486,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131888485,
+                "helpResId": 2131888556,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Title",
@@ -8487,7 +8495,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888485,
+                "helpResId": 2131888556,
                 "id": 3,
                 "isMandatory": false,
                 "name": "Text",
@@ -8496,7 +8504,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888486,
+                "helpResId": 2131888557,
                 "id": 4,
                 "isMandatory": true,
                 "name": "Type",
@@ -8504,7 +8512,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131888483,
+                "helpResId": 2131888554,
                 "id": 5,
                 "isMandatory": false,
                 "name": "Animation Images",
@@ -8513,7 +8521,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888484,
+                "helpResId": 2131888555,
                 "id": 6,
                 "isMandatory": false,
                 "name": "Animation Tint",
@@ -8522,7 +8530,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888482,
+                "helpResId": 2131888553,
                 "id": 7,
                 "isMandatory": true,
                 "name": "Frame Duration",
@@ -8956,7 +8964,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131890961,
+                "helpResId": 2131891076,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Only Monitor",
@@ -8987,7 +8995,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888487,
+                "helpResId": 2131888558,
                 "id": 2,
                 "isMandatory": true,
                 "name": "Local Variable Passthrough",
@@ -8996,7 +9004,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888489,
+                "helpResId": 2131888560,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Replace On Passthrough",
@@ -9005,7 +9013,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888488,
+                "helpResId": 2131888559,
                 "id": 4,
                 "isMandatory": false,
                 "name": "Limit Passthrough To",
@@ -9110,7 +9118,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131888511,
+                "helpResId": 2131888582,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Screen ID",
@@ -9119,7 +9127,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888508,
+                "helpResId": 2131888579,
                 "id": 2,
                 "isMandatory": true,
                 "name": "Element ID",
@@ -9128,7 +9136,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888507,
+                "helpResId": 2131888578,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Action Name",
@@ -9137,7 +9145,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888509,
+                "helpResId": 2131888580,
                 "id": 4,
                 "isMandatory": false,
                 "name": "Names",
@@ -9146,7 +9154,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888510,
+                "helpResId": 2131888581,
                 "id": 5,
                 "isMandatory": false,
                 "name": "Values",
@@ -9512,7 +9520,7 @@
     {
         "args": [
             {
-                "helpResId": 2131891761,
+                "helpResId": 2131891892,
                 "id": 0,
                 "isMandatory": true,
                 "name": "Text/SSML",
@@ -9614,7 +9622,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131888492,
+                "helpResId": 2131888563,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Mode",
@@ -9637,7 +9645,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131892049,
+                "helpResId": 2131892183,
                 "id": 4,
                 "isMandatory": false,
                 "name": "Video Encoder",
@@ -9646,7 +9654,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131892051,
+                "helpResId": 2131892185,
                 "id": 5,
                 "isMandatory": false,
                 "name": "Resolution",
@@ -9655,7 +9663,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131892048,
+                "helpResId": 2131892182,
                 "id": 6,
                 "isMandatory": false,
                 "name": "Video Bitrate",
@@ -9664,7 +9672,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131892050,
+                "helpResId": 2131892184,
                 "id": 7,
                 "isMandatory": false,
                 "name": "Video Framerate",
@@ -9984,7 +9992,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131887118,
+                "helpResId": 2131887147,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Image",
@@ -9993,7 +10001,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888626,
+                "helpResId": 2131888700,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Is Sensitive Data",
@@ -10170,7 +10178,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131891494,
+                "helpResId": 2131891611,
                 "id": 2,
                 "isMandatory": true,
                 "name": "Structure Type",
@@ -10179,7 +10187,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131891493,
+                "helpResId": 2131891610,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Prevent JSON Smart Search",
@@ -10239,7 +10247,7 @@
     {
         "args": [
             {
-                "helpResId": 2131891099,
+                "helpResId": 2131891217,
                 "id": 0,
                 "isMandatory": true,
                 "name": "Name",
@@ -10248,7 +10256,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131891098,
+                "helpResId": 2131891216,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Icon",
@@ -10661,7 +10669,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131888516,
+                "helpResId": 2131888587,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Name/JSON",
@@ -10670,7 +10678,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888529,
+                "helpResId": 2131888600,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Screen ID",
@@ -10679,7 +10687,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888505,
+                "helpResId": 2131888576,
                 "id": 3,
                 "isMandatory": false,
                 "name": "Display Mode",
@@ -10688,7 +10696,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888541,
+                "helpResId": 2131888612,
                 "id": 4,
                 "isMandatory": false,
                 "name": "X Position",
@@ -10697,7 +10705,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888542,
+                "helpResId": 2131888613,
                 "id": 5,
                 "isMandatory": false,
                 "name": "Y Position",
@@ -10706,7 +10714,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888540,
+                "helpResId": 2131888611,
                 "id": 6,
                 "isMandatory": false,
                 "name": "Width",
@@ -10715,7 +10723,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888514,
+                "helpResId": 2131888585,
                 "id": 7,
                 "isMandatory": false,
                 "name": "Height",
@@ -10724,7 +10732,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888500,
+                "helpResId": 2131888571,
                 "id": 8,
                 "isMandatory": true,
                 "name": "Blocking Overlay",
@@ -10733,7 +10741,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888527,
+                "helpResId": 2131888598,
                 "id": 9,
                 "isMandatory": false,
                 "name": "Show Animation",
@@ -10742,7 +10750,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888502,
+                "helpResId": 2131888573,
                 "id": 10,
                 "isMandatory": false,
                 "name": "Dismiss Animation",
@@ -10751,7 +10759,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888499,
+                "helpResId": 2131888570,
                 "id": 11,
                 "isMandatory": false,
                 "name": "Auto Dismiss (ms)",
@@ -10760,7 +10768,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888528,
+                "helpResId": 2131888599,
                 "id": 12,
                 "isMandatory": true,
                 "name": "Show Over Everything",
@@ -10768,7 +10776,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888501,
+                "helpResId": 2131888572,
                 "id": 13,
                 "isMandatory": true,
                 "name": "Continue Task Immediately",
@@ -10776,7 +10784,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888515,
+                "helpResId": 2131888586,
                 "id": 14,
                 "isMandatory": true,
                 "name": "Long-Click Root To Dismiss",
@@ -10784,7 +10792,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888504,
+                "helpResId": 2131888575,
                 "id": 15,
                 "isMandatory": false,
                 "name": "Physical Display",
@@ -10849,7 +10857,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131886174,
+                "helpResId": 2131886188,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Regex",
@@ -10858,7 +10866,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131886174,
+                "helpResId": 2131886188,
                 "id": 4,
                 "isMandatory": true,
                 "name": "Match Pattern",
@@ -10924,7 +10932,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131888634,
+                "helpResId": 2131888708,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Ignore DND",
@@ -11613,7 +11621,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131887222,
+                "helpResId": 2131887255,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Convert Orientation",
@@ -11779,7 +11787,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131888543,
+                "helpResId": 2131888614,
                 "id": 8,
                 "isMandatory": false,
                 "name": "Image",
@@ -11788,7 +11796,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888544,
+                "helpResId": 2131888615,
                 "id": 9,
                 "isMandatory": false,
                 "name": "Max Width Or Height",
@@ -12004,7 +12012,7 @@
     {
         "args": [
             {
-                "helpResId": 2131888534,
+                "helpResId": 2131888605,
                 "id": 0,
                 "isMandatory": false,
                 "name": "Screen ID",
@@ -12013,7 +12021,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888506,
+                "helpResId": 2131888577,
                 "id": 1,
                 "isMandatory": false,
                 "name": "Element ID",
@@ -12022,7 +12030,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888526,
+                "helpResId": 2131888597,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Property",
@@ -12031,7 +12039,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888537,
+                "helpResId": 2131888608,
                 "id": 3,
                 "isMandatory": false,
                 "name": "Value",
@@ -12040,7 +12048,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888477,
+                "helpResId": 2131888548,
                 "id": 4,
                 "isMandatory": true,
                 "name": "Local Variable Passthrough",
@@ -12049,7 +12057,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888452,
+                "helpResId": 2131888522,
                 "id": 5,
                 "isMandatory": false,
                 "name": "Limit Passthrough To",
@@ -12066,7 +12074,7 @@
     {
         "args": [
             {
-                "helpResId": 2131888519,
+                "helpResId": 2131888590,
                 "id": 0,
                 "isMandatory": false,
                 "name": "Screen ID",
@@ -12075,7 +12083,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888524,
+                "helpResId": 2131888595,
                 "id": 1,
                 "isMandatory": false,
                 "name": "X Position",
@@ -12084,7 +12092,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888525,
+                "helpResId": 2131888596,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Y Position",
@@ -12093,7 +12101,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888523,
+                "helpResId": 2131888594,
                 "id": 3,
                 "isMandatory": false,
                 "name": "Width",
@@ -12102,7 +12110,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888518,
+                "helpResId": 2131888589,
                 "id": 4,
                 "isMandatory": false,
                 "name": "Height",
@@ -12111,7 +12119,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888517,
+                "helpResId": 2131888588,
                 "id": 5,
                 "isMandatory": true,
                 "name": "Blocking Overlay",
@@ -12120,7 +12128,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888521,
+                "helpResId": 2131888592,
                 "id": 6,
                 "isMandatory": true,
                 "name": "Transition Duration (ms)",
@@ -12129,7 +12137,7 @@
                 "type": 0
             },
             {
-                "helpResId": 2131888522,
+                "helpResId": 2131888593,
                 "id": 7,
                 "isMandatory": false,
                 "name": "Transition Easing",
@@ -12601,7 +12609,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131887601,
+                "helpResId": 2131887635,
                 "id": 3,
                 "isMandatory": true,
                 "name": "Do Maths",
@@ -12609,7 +12617,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131886820,
+                "helpResId": 2131886844,
                 "id": 4,
                 "isMandatory": true,
                 "name": "Append",
@@ -12881,7 +12889,7 @@
                 "type": 5
             },
             {
-                "helpResId": 2131888538,
+                "helpResId": 2131888609,
                 "id": 1,
                 "isMandatory": true,
                 "name": "Screen ID",
@@ -12890,7 +12898,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888539,
+                "helpResId": 2131888610,
                 "id": 2,
                 "isMandatory": false,
                 "name": "Timeout (ms)",
@@ -13070,7 +13078,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888561,
+                "helpResId": 2131888635,
                 "id": 3,
                 "isMandatory": false,
                 "name": "Background Colour",
@@ -13087,7 +13095,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888571,
+                "helpResId": 2131888645,
                 "id": 5,
                 "isMandatory": false,
                 "name": "Texts",
@@ -13096,7 +13104,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888572,
+                "helpResId": 2131888646,
                 "id": 6,
                 "isMandatory": false,
                 "name": "Text Styles",
@@ -13105,7 +13113,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888566,
+                "helpResId": 2131888640,
                 "id": 7,
                 "isMandatory": false,
                 "name": "Images",
@@ -13114,7 +13122,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888565,
+                "helpResId": 2131888639,
                 "id": 8,
                 "isMandatory": false,
                 "name": "Image Tints",
@@ -13123,7 +13131,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888569,
+                "helpResId": 2131888643,
                 "id": 9,
                 "isMandatory": false,
                 "name": "Image Sizes",
@@ -13132,7 +13140,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888570,
+                "helpResId": 2131888644,
                 "id": 10,
                 "isMandatory": false,
                 "name": "Tasks",
@@ -13141,7 +13149,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888563,
+                "helpResId": 2131888637,
                 "id": 11,
                 "isMandatory": false,
                 "name": "Commands",
@@ -13150,7 +13158,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888562,
+                "helpResId": 2131888636,
                 "id": 12,
                 "isMandatory": false,
                 "name": "Command Prefix",
@@ -13159,7 +13167,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888564,
+                "helpResId": 2131888638,
                 "id": 13,
                 "isMandatory": false,
                 "name": "Custom Layout",
@@ -13168,7 +13176,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888567,
+                "helpResId": 2131888641,
                 "id": 14,
                 "isMandatory": true,
                 "name": "Material You Colors",
@@ -13177,7 +13185,7 @@
                 "type": 3
             },
             {
-                "helpResId": 2131888568,
+                "helpResId": 2131888642,
                 "id": 15,
                 "isMandatory": true,
                 "name": "Number of Columns",
@@ -13186,7 +13194,7 @@
                 "type": 1
             },
             {
-                "helpResId": 2131888560,
+                "helpResId": 2131888634,
                 "id": 16,
                 "isMandatory": true,
                 "name": "Ask To Add If Not Present",

@@ -11,10 +11,12 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: Changed internal build process from poetry to uv.
+- Changed: Inline videos are now disabled and are replaced with the video via your web browser for better performance.
 
 ### Fixed
 
 - Fixed: Hovering over 'Properties...' statement in the Map view causes a program error in guiutils.py.
+- Fixed: The Map view directory font size is too large.
 
 ### Known Issue
 

@@ -2998,9 +2998,9 @@ class CTkTextview(ctk.CTkFrame):
             return char_position, previous_directory, line_num + (char_position == 0)
         # Configure the tag for the hyperlink in the background color
         self.textview_textbox.tag_config(
-            tag_id[1],
+            tag_id,
             background=self.master.master.saved_background_color,
-            font=(self.font_name, 12, "normal"),  # Force normal font.  For some reason, it is getting 'bold'.
+            font=self.font_normal,  # Force normal font.  For some reason, it is getting 'bold'.
         )
 
         char_position = 0 if char_position == spacing * columns else char_position + spacing
