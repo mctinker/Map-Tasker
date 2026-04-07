@@ -16,14 +16,14 @@ keywords = [
     "tasker configuration",
 ]
 dependencies = [
-    "darkdetect>=0.8.0",
-    "deep_translator>=1.11.4",
-    "defusedxml>=0.7.1",
-    "packaging>=26.0",
-    "pillow==12.1.1",
-    "requests>=2.33.0",
-    "tomli_w>=1.2.0",
-    "webcolors>=25.10.0",
+    'darkdetect>=0.8.0',
+    'deep_translator>=1.11.4',
+    'defusedxml>=0.7.1',
+    'packaging>=26.0',
+    'pillow==12.2.0',
+    'requests>=2.33.1',
+    'tomli_w>=1.2.0',
+    'webcolors>=25.10.0',
 ]
 
 [project.urls]
@@ -61,6 +61,7 @@ exclude = [
 name = "testpypi"
 url = "https://test.pypi.org/simple"
 publish-url = "https://test.pypi.org/legacy/"
+explicit = true
 
 [tool.hatch.build.targets.wheel]
 # Ensure only the maptasker folder is treated as the package
