@@ -1455,6 +1455,7 @@ class CTkTextview(ctk.CTkFrame):
 
         # Make sure it is a good tag.
         try:
+            # FIX items.for_selection is empty after 'display all'
             item_data = mygui.items_for_selection[tag]
             item_type = item_data["item"]
             name = item_data["name"]
@@ -3317,7 +3318,7 @@ class CTkTextview(ctk.CTkFrame):
         if not self._insert_text_and_tag(task_start_idx, task_end_idx, task_name, hyper_tag_id):
             return char_position
         # Tag the hyperlink text as normal since something is making it bold by mistake.
-        self.textview_textbox.tag_config(hyper_tag_id, font=(self.font_name, 12, "normal"))
+        self.textview_textbox.tag_config(hyper_tag_id, font=self.font_normal)
 
         # Add message trailer
         # Remove task delimiter once, avoid repeated replace()
