@@ -2,27 +2,39 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.2.3-10.2.4] 07-Apr-2026
+## [10.2.5] 15-Apr-2026
 
 ### Added
 
-- Added: Tasker version 6.7.1-beta (Scenes V2) is now supported.
+- Added:
 
 ### Changed
 
-- Changed: Changed internal build process from poetry to uv.
-- Changed: Inline videos are now disabled and are replaced with the video via your web browser for better performance.
+- Changed: THe 'Extended' model list option is no longer saved across sessions, so that AI-related modules can still be dynamically loaded only when needed.
 
 ### Fixed
 
-- Fixed: Hovering over 'Properties...' statement in the Map view causes a program error in guiutils.py.
-- Fixed: The Map view directory font size is too large.
+- Fixed: Task name for 'Task with too many actions' in Map view is in bold by mistake.
+- Fixed: Dynamic module loading doesn't work if 'pip' is only available via 'uv'.
+- Fixed: Changing the language causes the AI model pulldown list to be updated twice rather than just once.
+- Fixed: Inline youtubew/dropbox videos are enabled.
+- Fixed: Search hits in the Map and Diagram views don't completely highlight the full matching string.
+- Fixed: Program errore in guiwins.py when clicking on a connection in the Diagram view in a language other than English.
+- Fixed: Program error in userintr.py when selecting the "Clear" from the Diagram view.
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [10.2.3-10.2.4] 07-Apr-2026
+
+- Added: Tasker version 6.7.1-beta (Scenes V2) is now supported.
+- Changed: Changed internal build process from poetry to uv.
+- Changed: Inline videos are now disabled and are replaced with the video via your web browser for better performance.
+- Fixed: Hovering over 'Properties...' statement in the Map view causes a program error in guiutils.py.
+- Fixed: The Map view directory font size is too large.
 
 ## [10.2.0-10.2.2] 30-Mar-2026
 

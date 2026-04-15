@@ -104,6 +104,8 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 - Install MapTasker by entering the following command into the Terminal:
 
      ```python -m pip install maptasker -U```
+                 ...OR...
+     ```uv add maptasker```
 
 - To install it into a virtual environment, enter the following command into Terminal:
 
