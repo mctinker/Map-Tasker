@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.2.5] ??-Apr-2026  # FIX
+## [10.2.5] 15-Apr-2026
 
 ### Added
 
@@ -16,7 +16,11 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: Task name for 'Task with too many actions' in Map view is in bold by mistake.
 - Fixed: Dynamic module loading doesn't work if 'pip' is only available via 'uv'.
-- Fixed: Changing the language causes the AI model pulldown list to be updated twice ratyher than just once.
+- Fixed: Changing the language causes the AI model pulldown list to be updated twice rather than just once.
+- Fixed: Inline youtubew/dropbox videos are enabled.
+- Fixed: Search hits in the Map and Diagram views don't completely highlight the full matching string.
+- Fixed: Program errore in guiwins.py when clicking on a connection in the Diagram view in a language other than English.
+- Fixed: Program error in userintr.py when selecting the "Clear" from the Diagram view.
 
 ### Known Issue
 

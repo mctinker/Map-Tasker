@@ -254,10 +254,10 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # FIX: For Development Only!
+        # CHG: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        self.event_handlers.map_event()
+        # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
         # exit()
@@ -4373,10 +4373,11 @@ class EventHandlers:
         textview.textview_textbox.tag_remove("misc_high", "1.0", "end")
         # Deal with diagram connectors
         if textview.textview_textbox.diagram_highlighted_connector:
+            mygui = textview.master.master
             remove_tags_from_bars_and_names(textview)
             textview.textview_textbox.tag_config(
                 textview.textview_textbox.diagram_highlighted_connector,
-                background=textview.saved_background_color,
+                background=mygui.saved_background_color,
             )
             textview.textview_textbox.diagram_highlighted_connector = ""
         # Clear the search input field.

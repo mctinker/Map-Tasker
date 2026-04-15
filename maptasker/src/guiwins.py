@@ -1455,7 +1455,6 @@ class CTkTextview(ctk.CTkFrame):
 
         # Make sure it is a good tag.
         try:
-            # FIX items.for_selection is empty after 'display all'
             item_data = mygui.items_for_selection[tag]
             item_type = item_data["item"]
             name = item_data["name"]
@@ -2041,8 +2040,11 @@ class CTkTextview(ctk.CTkFrame):
         if line_num == len(self.data):
             line_num = len(self.data) - 1
 
-        # Highlight the task name.
-        if connector["task_upper"] and angle in self.data[line_num]:
+        # Highlight the task name: angle = "└─ "
+        if line_num >= len(self.data):
+            line_num = len(self.data) - 1
+
+        if connector["task_upper"] and line_num <= len(self.data) - 1 and angle in self.data[line_num]:
             task_name = connector["task_upper"][0]
             # Make sure to point to the correct task if it is called multiple times on the same line.
             matches = find_all_positions(self.data[line_num], task_name)
