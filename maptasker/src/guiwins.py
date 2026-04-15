@@ -2040,8 +2040,11 @@ class CTkTextview(ctk.CTkFrame):
         if line_num == len(self.data):
             line_num = len(self.data) - 1
 
-        # Highlight the task name.
-        if connector["task_upper"] and angle in self.data[line_num]:
+        # Highlight the task name: angle = "└─ "
+        if line_num >= len(self.data):
+            line_num = len(self.data) - 1
+
+        if connector["task_upper"] and line_num <= len(self.data) - 1 and angle in self.data[line_num]:
             task_name = connector["task_upper"][0]
             # Make sure to point to the correct task if it is called multiple times on the same line.
             matches = find_all_positions(self.data[line_num], task_name)
@@ -3317,7 +3320,7 @@ class CTkTextview(ctk.CTkFrame):
         if not self._insert_text_and_tag(task_start_idx, task_end_idx, task_name, hyper_tag_id):
             return char_position
         # Tag the hyperlink text as normal since something is making it bold by mistake.
-        self.textview_textbox.tag_config(hyper_tag_id, font=(self.font_name, 12, "normal"))
+        self.textview_textbox.tag_config(hyper_tag_id, font=self.font_normal)
 
         # Add message trailer
         # Remove task delimiter once, avoid repeated replace()

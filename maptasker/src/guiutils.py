@@ -1929,7 +1929,7 @@ def search_substring_in_list(
     # Go through all data looking for our substring.  Do all compares in lowercase.
     # If we don't find a match, then search on second substring.
     for i, string in enumerate(strings):
-        lower_string = string.lower().strip()
+        lower_string = string.lower()
         lower_string_len = len(lower_string)
         start = 0
         while start < lower_string_len:
@@ -3010,8 +3010,8 @@ def display_model_pulldown(self: ctk, center: int) -> None:
         center (int): The x-coordinate for centering the pulldown menu on the display.
     """
     # Determine if we are coming from guiwins (valid 'self') or userintr ('event_handler')
+    guiwin = self
     try:
-        guiwin = self
         if self.ai_model:
             pass
     except AttributeError:

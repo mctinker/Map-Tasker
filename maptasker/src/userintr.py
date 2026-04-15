@@ -254,7 +254,7 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # TODO: For Development Only!
+        # CHG: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
         # self.event_handlers.map_event()
@@ -3021,6 +3021,8 @@ class EventHandlers:
         self.clear_text_fields(the_view)
 
         # Redisplay the GUI with the new language
+        the_view.displaying_extended_list = None  # Force pulldown to be recreated.
+        the_view.aimodel_extend_checkbox.deselect()
         initialize_screen(the_view)
 
         # Redisplay current file as "None" since we are reinitializing the GUI.  This will be updated to the
@@ -3094,7 +3096,7 @@ class EventHandlers:
         the_view.displaying_extended_list = None  # Force pulldown to be recreated.
         the_view.aimodel_extend_checkbox.deselect()
         # Display the model pulldown list.
-        display_model_pulldown(self, 50)
+        # display_model_pulldown(self, 50)
 
         # Let user know
         message = f"{translate_string('Language set to')} {translate_string(the_view.language)}."
@@ -4092,6 +4094,9 @@ class EventHandlers:
         :rtype: None
         """
         mygui = self.parent
+        # Save our Tasker items for selection since we wipe them out in this function, and we need them for the Tasker object hover details.
+        save_items_for_selection = mygui.items_for_selection
+
         # 1- Search for and add matches to a list of line.pos matches, starting ast line 1.
         self.search_event(textview, "1", list_only=True)
         # If we got matches...
@@ -4193,6 +4198,9 @@ class EventHandlers:
             justify="left",
         )
         instruct.grid(row=0, column=0, padx=0, pady=0, sticky="nw")
+
+        # Restore the list of indecies for use in the Tasker object hover details.
+        mygui.items_for_selection = save_items_for_selection
 
     def search_here_event(self: customtkinter.CTkTextview, textview: CTkTextview) -> None:
         """
@@ -4365,10 +4373,11 @@ class EventHandlers:
         textview.textview_textbox.tag_remove("misc_high", "1.0", "end")
         # Deal with diagram connectors
         if textview.textview_textbox.diagram_highlighted_connector:
+            mygui = textview.master.master
             remove_tags_from_bars_and_names(textview)
             textview.textview_textbox.tag_config(
                 textview.textview_textbox.diagram_highlighted_connector,
-                background=textview.saved_background_color,
+                background=mygui.saved_background_color,
             )
             textview.textview_textbox.diagram_highlighted_connector = ""
         # Clear the search input field.
