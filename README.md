@@ -72,7 +72,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ### - Tasker full or partial XML file: backup.xml or other Tasker exported XML file
 
-### - Optional 'ffmpeg' for Youtube video hotlinks (see [Note 6](#6))
+### - Optional 'ffmpeg' for inline Youtube video hotlinks (see [Note 6](#6))
 
 &nbsp;&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
 
@@ -101,7 +101,7 @@ A brief overview of the main files and their purpose:
 
 This program and all of it's perquisites will take about 230MBs of space.  It is recommended that you install it into a virtual environment (option 2).
 
-- Install MapTasker by entering the following command into the Terminal:
+- Install MapTasker by entering one of the following commands into the Terminal/Command Prompt:
 
      ```python -m pip install maptasker -U```
                  ...OR...
@@ -246,13 +246,13 @@ However, you will miss out on newer features and fixes. See the [Changelog](http
 Details for some of the points mentioned in the "Troubleshooting and FAQ" section are preserved here for additional context.
 
 ### 1
-**Regarding Windows 11 Specifics**
+**Windows 11 Specifics:**
 
 - Only WIndows 11 is supported.  Any earlier versions of Windows are not supported.
 - For `MapTasker_Map.txt` display issues in Notepad, use an alternative text editor like Typepad and set it as default for `.txt` files.
 
 ### 2
-**Regarding Direct XML Retrieval from Android**
+**Direct XML Retrieval from Android:**
 
 To retrieve the Tasker XML file directly:
 
@@ -262,7 +262,7 @@ To retrieve the Tasker XML file directly:
 - Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
 
 ### 3
-**Regarding Tkinter Installation:**
+**Tkinter Installation:**
 
 The most direct and simple solution for Tkinter compatibility is to get and use the [standard Python release download](https://www.python.org). If using package managers like Brew or version managers like `pyenv`, specific steps might be needed if Tkinter version issues (requiring 8.6+) arise:
 
@@ -278,7 +278,7 @@ The most direct and simple solution for Tkinter compatibility is to get and use 
 - If still having issues, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
 ### 4
-**Regarding Older Python Versions**
+**Older Python Versions:**
 
 If you cannot use Python 3.11+, MapTasker version 2.6.3 is available for Python 3.10: `pip install maptasker==2.6.3`. This version will not have the latest features (see [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md)).
 
@@ -292,7 +292,7 @@ Llama based models are supported via [Ollama](https://ollama.com/), which you mu
 
 
 ### 6
-**Optional Addons**
+**Optional Addons:**
 'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
 
 The direct playing of YouTube videos is not supported on Windows due to a dependency issue.  Therefore, 'ffmpeg' is not required for Windows users.
