@@ -285,14 +285,15 @@ If you cannot use Python 3.11+, MapTasker version 2.6.3 is available for Python 
 ### 5
 **AI Support**
 
-Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile or Task only. Support is available for server-based OpenAi (ChatGPT) and local-based Llama models.
+Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile or Task only. Support is available for server-based OpenAi (ChatGPT), Gemini, and Anthropic, as well as local-based Llama models.
 
-Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.
+Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.  MapTasker will dynamically load the Llama models for you if not already loaded.
 
+The supporting AI modules are not installed by default when MapTasker is installed.  Instead, they are dynamically installed upon first-use of the specific AI request.  In this way, if you do not plan to use AI, then you do not incur the overhead.
 
 
 ### 6
-**Optional Addons:**
+**Optional Inline Videos:**
 'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
 
 The direct playing of YouTube videos is not supported on Windows due to a dependency issue.  Therefore, 'ffmpeg' is not required for Windows users.
@@ -309,7 +310,7 @@ To install ffmpeg:
 
 Refer to [the ffmpeg download documentation](https://www.ffmpeg.org/download.html) for further details.
 
-If ffmpeg is not installed, then '[▶️ VIDEO: some-youtube-url...]' will still appear, but will not be hot/clickable, and the video can not be displayed in a separate MapTasker window.
+If ffmpeg is not installed, then '[▶️ VIDEO: some-youtube-url...]' will still appear, but will not be hot/clickable, and the video can not be displayed, inline, in a separate MapTasker window.
 
 YouTube videos are downloaded to your local drive from which they are then played.  The bigger the video, the longer it will take to process the video.  Only YouTube videos with no audio or English audio will play under the current implementation.  Additional lanaguages will be supported in a future release.
 
