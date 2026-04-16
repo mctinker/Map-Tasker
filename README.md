@@ -88,6 +88,7 @@ A brief overview of the main files and their purpose:
   - `maptasker/src/`: The main Python source files for MapTasker's logic.
   - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
   - `maptasker/custom_overrides/`: Contains custom modifications to third-party libraries.
+  - `maptasker/locale`: language files for translations.
 - `documentation_images/`: Images used within this README and other documentation.
 - `tests/`: Contains test scripts and related files for ensuring code quality.
 - `main.py`: The main entry point script for running MapTasker from a cloned repository.
@@ -95,7 +96,6 @@ A brief overview of the main files and their purpose:
 - `README.md`: This file.
 - `Changelog.md`: A log of changes made in each version.
 - `pyproject.toml`: Project metadata and build system configuration.
-- `requirements.txt`: Lists project dependencies (primarily for GitHub installs).
 
 ## Installation
 
@@ -107,31 +107,35 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
                  ...OR...
      ```uv add maptasker```
 
-- To install it into a virtual environment, enter the following command into Terminal:
+- To install it into a virtual environment, enter the following command into Terminal/command prompt:
 
-  - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment:
+  via pip...
+  - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment.
   - `python -m venv venv`
-  - `source {directory path to 'xxx'}/venv/bin/activate`
+  - Activate the virtual environment...
+    MAC/linux: `source {directory path to 'xxx'}/venv/bin/activate`
+    Windows: `.venv\Scripts\activate`
   - `pip install maptasker`
 
-- To install it from GitHub:
-  - get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu,
-  - select 'Download ZIP',
-  - save it into a new directory (e.g. /your_id/maptasker) and
-  - uncompress it into that directory.
-  - `pip install -r requirements.txt`   ...to first install the prerequisites
-
+  ...or...
+  
+  via uv...
+  - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment.
+  - `uv venv`
+  - Activate the virtual environment...
+    MAC/linux: `source {directory path to 'xxx'}/venv/bin/activate`
+    Windows: `.venv\Scripts\activate`
+  - `uv pip install maptasker`
+  
 ## Usage
 
 - Enter the command:
 
-     ```maptasker -option1 -option2``` ...
+     ```maptasker -option1 -option2```
+     ...or...
+     ```uv run maptasker -option1 -option2```
 
      &nbsp;See below for runtime options.
-
-- If running from the sourced GITHUB zip file, then do the following to run the program:
-
-     ```python main.py -option1 -option2```   ...to run Map-Tasker
 
 - Get started with the GUI:
     ```maptasker -g```
@@ -158,7 +162,7 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
      This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
 
-- hidden files: system settings and API keys.
+- hidden files: system settings, run counter, and API keys.
 
 ## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
@@ -241,7 +245,8 @@ However, you will miss out on newer features and fixes. See the [Changelog](http
 
 Details for some of the points mentioned in the "Troubleshooting and FAQ" section are preserved here for additional context.
 
-**Regarding Tkinter Installation (formerly Note 3):**
+#3
+**Regarding Tkinter Installation:**
 
 The most direct and simple solution for Tkinter compatibility is to get and use the [standard Python release download](https://www.python.org). If using package managers like Brew or version managers like `pyenv`, specific steps might be needed if Tkinter version issues (requiring 8.6+) arise:
 
