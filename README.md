@@ -245,7 +245,7 @@ However, you will miss out on newer features and fixes. See the [Changelog](http
 
 Details for some of the points mentioned in the "Troubleshooting and FAQ" section are preserved here for additional context.
 
-#3
+### 3
 **Regarding Tkinter Installation:**
 
 The most direct and simple solution for Tkinter compatibility is to get and use the [standard Python release download](https://www.python.org). If using package managers like Brew or version managers like `pyenv`, specific steps might be needed if Tkinter version issues (requiring 8.6+) arise:
