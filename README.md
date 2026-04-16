@@ -245,6 +245,22 @@ However, you will miss out on newer features and fixes. See the [Changelog](http
 
 Details for some of the points mentioned in the "Troubleshooting and FAQ" section are preserved here for additional context.
 
+### 1
+**Regarding Windows 11 Specifics**
+
+- Only WIndows 11 is supported.  Any earlier versions of Windows are not supported.
+- For `MapTasker_Map.txt` display issues in Notepad, use an alternative text editor like Typepad and set it as default for `.txt` files.
+
+### 2
+**Regarding Direct XML Retrieval from Android**
+
+To retrieve the Tasker XML file directly:
+
+- Ensure both desktop and Android devices are on the same local network.
+- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, with the server running. Remember to run the "launch" Task and enter your Google Drive ID.
+- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) must be imported into Tasker for the 'List XML Files' button in the GUI. You can [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
+- Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
+
 ### 3
 **Regarding Tkinter Installation:**
 
@@ -261,31 +277,22 @@ The most direct and simple solution for Tkinter compatibility is to get and use 
   - Python 3.13: Generally compatible with Tcl/Tk version 9.
 - If still having issues, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
-**Regarding Direct XML Retrieval from Android (formerly Note 2):**
-
-To retrieve the Tasker XML file directly:
-
-- Ensure both desktop and Android devices are on the same local network.
-- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, with the server running. Remember to run the "launch" Task and enter your Google Drive ID.
-- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) must be imported into Tasker for the 'List XML Files' button in the GUI. You can [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
-- Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
-
-**Regarding Windows 11 Specifics (formerly Note 1):**
-
-- Only WIndows 11 is supported.  Any earlier versions of Windows are not supported.
-- For `MapTasker_Map.txt` display issues in Notepad, use an alternative text editor like Typepad and set it as default for `.txt` files.
-
-**Regarding Older Python Versions (formerly Note 4):**
+### 4
+**Regarding Older Python Versions**
 
 If you cannot use Python 3.11+, MapTasker version 2.6.3 is available for Python 3.10: `pip install maptasker==2.6.3`. This version will not have the latest features (see [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md)).
 
-**Note 5:**
+### 5
+**AI Support**
 
 Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile or Task only. Support is available for server-based OpenAi (ChatGPT) and local-based Llama models.
 
 Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.
 
-**Note 6:**
+
+
+### 6
+**Optional Addons**
 'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
 
 The direct playing of YouTube videos is not supported on Windows due to a dependency issue.  Therefore, 'ffmpeg' is not required for Windows users.
