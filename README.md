@@ -23,7 +23,7 @@
 
 # MapTasker
 
-## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX/WIN11 machine based on Tasker's backup or exported XML file
+## Display the Tasker Project(s), Profile(s), Task(s), and Scene(s) hierarchy on a PC/MAC/LINUX/WIN11 machine based on Tasker's backup or exported XML file
 
 Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
