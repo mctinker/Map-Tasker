@@ -23,7 +23,7 @@
 
 # MapTasker
 
-## Display the Tasker Project/Profile/Task/Scene hierarchy on a PC/MAC/LINUX/WIN11 machine based on Tasker's backup or exported XML file
+## Display the Tasker Project(s), Profile(s), Task(s), and Scene(s) hierarchy on a PC/MAC/LINUX/WIN11 machine based on Tasker's backup or exported XML file
 
 Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
@@ -72,7 +72,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ### - Tasker full or partial XML file: backup.xml or other Tasker exported XML file
 
-### - Optional 'ffmpeg' for Youtube video hotlinks (see [Note 6](#6))
+### - Optional 'ffmpeg' for inline Youtube video hotlinks (see [Note 6](#6))
 
 &nbsp;&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
 
@@ -88,6 +88,7 @@ A brief overview of the main files and their purpose:
   - `maptasker/src/`: The main Python source files for MapTasker's logic.
   - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
   - `maptasker/custom_overrides/`: Contains custom modifications to third-party libraries.
+  - `maptasker/locale`: language files for translations.
 - `documentation_images/`: Images used within this README and other documentation.
 - `tests/`: Contains test scripts and related files for ensuring code quality.
 - `main.py`: The main entry point script for running MapTasker from a cloned repository.
@@ -95,43 +96,46 @@ A brief overview of the main files and their purpose:
 - `README.md`: This file.
 - `Changelog.md`: A log of changes made in each version.
 - `pyproject.toml`: Project metadata and build system configuration.
-- `requirements.txt`: Lists project dependencies (primarily for GitHub installs).
 
 ## Installation
 
 This program and all of it's perquisites will take about 230MBs of space.  It is recommended that you install it into a virtual environment (option 2).
 
-- Install MapTasker by entering the following command into the Terminal:
+- Install MapTasker by entering one of the following commands into the Terminal/Command Prompt:
 
      ```python -m pip install maptasker -U```
                  ...OR...
      ```uv add maptasker```
 
-- To install it into a virtual environment, enter the following command into Terminal:
+- To install it into a virtual environment, enter the following command into Terminal/command prompt:
 
-  - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment:
+  via pip...
+  - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment.
   - `python -m venv venv`
-  - `source {directory path to 'xxx'}/venv/bin/activate`
+  - Activate the virtual environment...
+    MAC/linux: `source {directory path to 'xxx'}/venv/bin/activate`
+    Windows: `.venv\Scripts\activate`
   - `pip install maptasker`
 
-- To install it from GitHub:
-  - get the zip file by clicking on the ['Code'](https://github.com/mctinker/Map-Tasker) pull-down menu,
-  - select 'Download ZIP',
-  - save it into a new directory (e.g. /your_id/maptasker) and
-  - uncompress it into that directory.
-  - `pip install -r requirements.txt`   ...to first install the prerequisites
-
+  ...or...
+  
+  via uv...
+  - `cd xxx`, where 'xxx' is a directory into which you want to set up the virtual environment.
+  - `uv venv`
+  - Activate the virtual environment...
+    MAC/linux: `source {directory path to 'xxx'}/venv/bin/activate`
+    Windows: `.venv\Scripts\activate`
+  - `uv pip install maptasker`
+  
 ## Usage
 
 - Enter the command:
 
-     ```maptasker -option1 -option2``` ...
+     ```maptasker -option1 -option2```
+     ...or...
+     ```uv run maptasker -option1 -option2```
 
      &nbsp;See below for runtime options.
-
-- If running from the sourced GITHUB zip file, then do the following to run the program:
-
-     ```python main.py -option1 -option2```   ...to run Map-Tasker
 
 - Get started with the GUI:
     ```maptasker -g```
@@ -158,7 +162,7 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
      This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
 
-- hidden files: system settings and API keys.
+- hidden files: system settings, run counter, and API keys.
 
 ## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
@@ -241,7 +245,24 @@ However, you will miss out on newer features and fixes. See the [Changelog](http
 
 Details for some of the points mentioned in the "Troubleshooting and FAQ" section are preserved here for additional context.
 
-**Regarding Tkinter Installation (formerly Note 3):**
+### 1
+**Windows 11 Specifics:**
+
+- Only WIndows 11 is supported.  Any earlier versions of Windows are not supported.
+- For `MapTasker_Map.txt` display issues in Notepad, use an alternative text editor like Typepad and set it as default for `.txt` files.
+
+### 2
+**Direct XML Retrieval from Android:**
+
+To retrieve the Tasker XML file directly:
+
+- Ensure both desktop and Android devices are on the same local network.
+- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, with the server running. Remember to run the "launch" Task and enter your Google Drive ID.
+- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) must be imported into Tasker for the 'List XML Files' button in the GUI. You can [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
+- Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
+
+### 3
+**Tkinter Installation:**
 
 The most direct and simple solution for Tkinter compatibility is to get and use the [standard Python release download](https://www.python.org). If using package managers like Brew or version managers like `pyenv`, specific steps might be needed if Tkinter version issues (requiring 8.6+) arise:
 
@@ -256,31 +277,23 @@ The most direct and simple solution for Tkinter compatibility is to get and use 
   - Python 3.13: Generally compatible with Tcl/Tk version 9.
 - If still having issues, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
-**Regarding Direct XML Retrieval from Android (formerly Note 2):**
-
-To retrieve the Tasker XML file directly:
-
-- Ensure both desktop and Android devices are on the same local network.
-- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, with the server running. Remember to run the "launch" Task and enter your Google Drive ID.
-- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) must be imported into Tasker for the 'List XML Files' button in the GUI. You can [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
-- Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
-
-**Regarding Windows 11 Specifics (formerly Note 1):**
-
-- Only WIndows 11 is supported.  Any earlier versions of Windows are not supported.
-- For `MapTasker_Map.txt` display issues in Notepad, use an alternative text editor like Typepad and set it as default for `.txt` files.
-
-**Regarding Older Python Versions (formerly Note 4):**
+### 4
+**Older Python Versions:**
 
 If you cannot use Python 3.11+, MapTasker version 2.6.3 is available for Python 3.10: `pip install maptasker==2.6.3`. This version will not have the latest features (see [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md)).
 
-**Note 5:**
+### 5
+**AI Support**
 
-Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile or Task only. Support is available for server-based OpenAi (ChatGPT) and local-based Llama models.
+Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile or Task only. Support is available for server-based OpenAi (ChatGPT), Gemini, and Anthropic, as well as local-based Llama models.
 
-Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.
+Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.  MapTasker will dynamically load the Llama models for you if not already loaded.
 
-**Note 6:**
+The supporting AI modules are not installed by default when MapTasker is installed.  Instead, they are dynamically installed upon first-use of the specific AI request.  In this way, if you do not plan to use AI, then you do not incur the overhead.
+
+
+### 6
+**Optional Inline Videos:**
 'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
 
 The direct playing of YouTube videos is not supported on Windows due to a dependency issue.  Therefore, 'ffmpeg' is not required for Windows users.
@@ -297,7 +310,7 @@ To install ffmpeg:
 
 Refer to [the ffmpeg download documentation](https://www.ffmpeg.org/download.html) for further details.
 
-If ffmpeg is not installed, then '[▶️ VIDEO: some-youtube-url...]' will still appear, but will not be hot/clickable, and the video can not be displayed in a separate MapTasker window.
+If ffmpeg is not installed, then '[▶️ VIDEO: some-youtube-url...]' will still appear, but will not be hot/clickable, and the video can not be displayed, inline, in a separate MapTasker window.
 
 YouTube videos are downloaded to your local drive from which they are then played.  The bigger the video, the longer it will take to process the video.  Only YouTube videos with no audio or English audio will play under the current implementation.  Additional lanaguages will be supported in a future release.
 

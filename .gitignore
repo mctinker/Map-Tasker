@@ -21,3 +21,5 @@ dmg_builder
 
 # recursively re-ignore
 __pycache__
+# Great Docs build directory (ephemeral, do not commit)
+great-docs/
