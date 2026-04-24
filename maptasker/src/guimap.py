@@ -928,7 +928,6 @@ def additional_formatting(
     """
     line = pattern8.sub("\n", line)
     color_span = '<span style="color:'
-    print("bingo", line)
 
     # Fix bad class statement
     if "class='\\blanktab1\\'" in line:
@@ -995,9 +994,6 @@ def additional_formatting(
             spacing = glob_spacing
 
     # Cleanup the new output line
-    # FIX Directory name with html gets cleaned and the hotlink nolonger works.
-    if "Ad Brg" in line:
-        print("bingo")
     output_lines = cleanup_text_elements(output_lines, line_num, remove_html)
     texts = output_lines[line_num]["text"]
     for i, text in enumerate(texts):

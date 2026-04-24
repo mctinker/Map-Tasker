@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: Tasker version 6.7.3-beta is supported.
 
 ### Changed
 
@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: The auto-update feature does not work if 'uv' is installed rather than pip.
+- Fixed: Highlighting in Profile name results in a Map view directory entry hotlink that fails.
 
 ### Known Issue
 

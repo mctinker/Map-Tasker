@@ -23,6 +23,7 @@ from maptasker.src.sysconst import (
     UNNAMED_ITEM,
     FormatLine,
 )
+from maptasker.src.xmldata import remove_html_tags
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -227,7 +228,8 @@ def set_name_to_condition(
         profile_conditions = profile_conditions.replace("&nbsp;&nbsp;", " ", 1)
     # Break out the conditions.
     conditions = (
-        profile_conditions.replace("&nbsp;&nbsp;Configuration Parameter(s):<br>", " ")
+        profile_conditions
+        .replace("&nbsp;&nbsp;Configuration Parameter(s):<br>", " ")
         .replace("&nbsp;", "")
         .split(
             ":",
@@ -289,6 +291,7 @@ def set_name_to_condition(
 
         # Truncate the name
         if len(new_name) > TASK_NAME_MAX_LENGTH:
+            new_name = remove_html_tags(new_name, "")
             new_name = new_name[:35].rstrip()
 
     return f"*{new_name}"
