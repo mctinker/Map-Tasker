@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: The auto-update feature does not work if 'uv' is installed rather than pip.
 - Fixed: Highlighting in Profile name results in a Map view directory entry hotlink that fails.
+- Fixed: Changing the Appearance in the GUI is not working.
+- Fixed: Directory entries and hover-info font sizes are too small on Windows.
 
 ### Known Issue
 
