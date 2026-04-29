@@ -11,6 +11,7 @@ import ipaddress
 import json
 import os
 import re
+import shutil
 import socket
 import subprocess
 import sys
@@ -85,13 +86,31 @@ def validate_port(address: str, port_number: int) -> bool:
 
 
 # Auto Update our code
+# def update_maptasker() -> None:
+#     """Update this package."""
+#     version = get_pypi_version()
+#     packageversion = "maptasker" + version
+#     subprocess.call(
+#         [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"],
+#     )
 def update_maptasker() -> None:
-    """Update this package."""
-    version = get_pypi_version()
+    """Update this package using uv if available, otherwise fall back to pip."""
+    version = get_pypi_version()  # Assuming this is defined elsewhere in your code
     packageversion = "maptasker" + version
-    subprocess.call(  # noqa: S603
-        [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"],
-    )
+
+    # 1. Check if 'uv' is installed and available on the system
+    if shutil.which("uv"):
+        # Build the command for uv
+        # uv uses the syntax: uv pip install <package>
+        command = ["uv", "pip", "install", packageversion, "--upgrade"]
+        print("Updating with uv...")
+    else:
+        # Build the fallback command for pip
+        command = [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"]
+        print("Updating with pip...")
+
+    # 2. Execute the chosen command
+    subprocess.call(command)  # noqa: S603
 
 
 # Get the version of our code out on Pypi
