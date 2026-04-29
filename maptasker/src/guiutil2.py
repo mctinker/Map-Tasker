@@ -9,6 +9,7 @@ import error.
 """
 
 import contextlib
+import ctypes
 import os
 import re
 import tkinter as tk
@@ -682,6 +683,9 @@ def _insert_and_tag(
 
     # Get font size safely
     font_size = heading_fonts.get(heading_num, heading_fonts["0"])
+    # Adjust font size if we are running on Windows 11.
+    if PrimeItems.windows_system:
+        font_size = get_windows_equivalent_font_size(font_size)
     if font_size < 12 and char_position == 0:
         spacing += 3
 
@@ -929,9 +933,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h5-text"
             else:
                 # Decrease the heading number by 1 (making the text "bigger")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                value["highlights"][entry_to_update] = (
+                    f"h{max(1, heading_num - 1)!s}-text"  # Use max(1, ...) to prevent h0
+                )
 
         elif "<small>" in message:
             # Save current heading
@@ -946,9 +950,9 @@ def _clean_message(self: ctk.CTkTextbox, message: str, value: dict, inner_num: i
                 value["highlights"][entry_to_update] = "h7-text"
             else:
                 # Increase the heading number by 1 (making the text "smaller")
-                value["highlights"][
-                    entry_to_update
-                ] = f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                value["highlights"][entry_to_update] = (
+                    f"h{min(6, heading_num + 1)!s}-text"  # Use min(6, ...) to prevent > h6
+                )
 
         elif "</big>" in message or "</small>" in message:
             if message.startswith(("</big>", "</small>")):
@@ -1367,3 +1371,50 @@ def sort_languages_with_priority(language_list: list) -> list:
     # We use the built-in sorted() function, which returns a new sorted list
     # and leaves the original list unchanged.
     return sorted(language_list, key=hybrid_sort_key)
+
+
+def get_windows_equivalent_font_size(mac_font_size: int) -> int:
+    """
+    Converts a macOS font size (in points) to the equivalent
+    Windows font size (in pixels).
+
+    Args:
+        mac_font_size (float): The font size used on macOS (Points).
+
+    Returns:
+        int: The equivalent font size for Windows rounded to the nearest pixel.
+    """
+    # Get the window dpi
+    windows_dpi = get_windows_system_dpi()
+    # Standard conversion factor: 1 point = 1/72 of an inch.
+    # Windows Pixels = (Points * DPI) / 72
+    windows_dpi = 96
+    equivalent_size = (mac_font_size * windows_dpi) / 72
+
+    return round(equivalent_size)
+
+
+def get_windows_system_dpi() -> int:
+    """
+    Retrieves the current system DPI for the primary monitor.
+    Requires Windows Vista or later.
+    """
+    try:
+        # 1. Tell Windows that this process is DPI-aware.
+        # This ensures we get the actual physical DPI rather than a virtualized one.
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)  # 1 = Process_System_DPI_Aware
+
+        # 2. Get the Device Context (DC) for the entire screen.
+        hdc = ctypes.windll.user32.GetDC(0)
+
+        # 3. Get the specific capability for Logical Pixels in the X direction.
+        # LOGPIXELSX = 88, LOGPIXELSY = 90
+        dpi = ctypes.windll.gdi32.GetDeviceCaps(hdc, 88)
+
+        # 4. Release the Device Context to free up resources.
+        ctypes.windll.user32.ReleaseDC(0, hdc)
+
+        return dpi  # noqa: TRY300
+    except Exception as e:  # noqa: BLE001
+        print(f"Non-Windows system or error: {e}")
+        return 96  # Return standard 96 DPI as a fallback

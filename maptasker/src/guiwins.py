@@ -23,7 +23,12 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.diagutil import task_delimeter, width_and_height_calculator_in_pixel
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
-from maptasker.src.guiutil2 import configure_progress_bar, draw_box_around_text, sort_languages_with_priority
+from maptasker.src.guiutil2 import (
+    configure_progress_bar,
+    draw_box_around_text,
+    get_windows_equivalent_font_size,
+    sort_languages_with_priority,
+)
 from maptasker.src.guiutils import (
     add_button,
     add_checkbox,
@@ -484,19 +489,23 @@ class CTkTextview(ctk.CTkFrame):
         self.textview_style.theme_use("default")
 
         # Define our fonts
-        self.font_name = getattr(self.master.master, "font", ("Courier", 12))  # Default font
+        font_size = 12
+        # Adjust font size if we are running on Windows 11.
+        if PrimeItems.windows_system:
+            font_size = get_windows_equivalent_font_size(font_size)
+        self.font_name = getattr(self.master.master, "font", ("Courier", font_size))  # Default font
         self.font_normal = ctk.CTkFont(
             family=self.font_name,
-            size=12,
+            size=font_size,
         )
         self.font_bold = ctk.CTkFont(
             family=self.font_name,
             weight="bold",
-            size=12,
+            size=font_size,
         )
         self.font_italic = ctk.CTkFont(
             family=self.font_name,
-            size=12,
+            size=font_size,
             slant="italic",
         )
 
@@ -540,8 +549,9 @@ class CTkTextview(ctk.CTkFrame):
         _ = ctk.CTkScrollbar(self)
 
         # Configure the text box
+        font_size = get_windows_equivalent_font_size(12) if PrimeItems.windows_system else 12
         self.textview_textbox.configure(
-            font=self.font_normal,
+            font=(self.font_name, font_size),
             height=int(height),
             width=int(width),
             state="normal",
@@ -613,7 +623,9 @@ class CTkTextview(ctk.CTkFrame):
                 else (
                     f"{i + 1}{line}\n"
                     if debug_mode
-                    else f"{line[:max_length]}{trunncated}" if len(line) > max_length else f"{line}\n"
+                    else f"{line[:max_length]}{trunncated}"
+                    if len(line) > max_length
+                    else f"{line}\n"
                 )
             )
             for i, line in enumerate(the_data)
@@ -702,9 +714,10 @@ class CTkTextview(ctk.CTkFrame):
         self.add_view_widgets("Diagram")
         # Force courier new for diagram view if just Courier...perfect character alignment.
         if getattr(self.master.master, "font", "Arial") == "Courier":
+            font_size = get_windows_equivalent_font_size(12) if PrimeItems.windows_system else 12
             self.textview_textbox.configure(
                 self,
-                font=("Courier New", 12),
+                font=("Courier New", font_size),
                 fg_color=self.master.master.saved_background_color,
             )
         else:
@@ -1515,13 +1528,14 @@ class CTkTextview(ctk.CTkFrame):
         background_color, foreground_color1, foreground_color2 = get_foreground_background_colors(self.master.master)
 
         # Create the label.
+        font_size = get_windows_equivalent_font_size(14) if PrimeItems.windows_system else 12
         label = tk.Label(
             self,
             text=text,
             bg=background_color,
             fg=foreground_color1,
             justify="left",
-            font=("Courier", 12),
+            font=("Courier", font_size),
             padx=5,
             pady=5,
         )
@@ -1537,7 +1551,7 @@ class CTkTextview(ctk.CTkFrame):
                 bg=background_color,
                 fg=foreground_color2,
                 justify="left",
-                font=("Courier", 12),
+                font=("Courier", font_size),
                 padx=5,
                 pady=5,
             )
@@ -2393,6 +2407,7 @@ class CTkTextview(ctk.CTkFrame):
         _handle_special_spacing_and_blanks = self._handle_special_spacing_and_blanks
         _process_value_with_color_or_directory = self._process_value_with_color_or_directory
         _update_progress_display = self._update_progress_display
+        _process_label_box_logic = self.process_label_box_logic
 
         # Setup debug output file
         if master_debug:
@@ -2415,7 +2430,7 @@ class CTkTextview(ctk.CTkFrame):
                 _update_progress_display(progress, num)
 
             # Determine if we need to draw a box around the label text
-            should_continue, temp_previous_value, line_num = self.process_label_box_logic(
+            should_continue, temp_previous_value, line_num = _process_label_box_logic(
                 num,
                 value,
                 temp_previous_value,
@@ -2997,11 +3012,13 @@ class CTkTextview(ctk.CTkFrame):
             )
         except TclError:
             return char_position, previous_directory, line_num + (char_position == 0)
+
         # Configure the tag for the hyperlink in the background color
+        font_size = get_windows_equivalent_font_size(14) if PrimeItems.windows_system else 10
         self.textview_textbox.tag_config(
             tag_id,
             background=self.master.master.saved_background_color,
-            font=self.font_normal,  # Force normal font.  For some reason, it is getting 'bold'.
+            font=(self.font_name, font_size),  # Force normal font.  For some reason, it is getting 'bold'.
         )
 
         char_position = 0 if char_position == spacing * columns else char_position + spacing
@@ -3318,7 +3335,8 @@ class CTkTextview(ctk.CTkFrame):
         if not self._insert_text_and_tag(task_start_idx, task_end_idx, task_name, hyper_tag_id):
             return char_position
         # Tag the hyperlink text as normal since something is making it bold by mistake.
-        self.textview_textbox.tag_config(hyper_tag_id, font=self.font_normal)
+        font_size = get_windows_equivalent_font_size(10) if PrimeItems.windows_system else 12
+        self.textview_textbox.tag_config(hyper_tag_id, font=(self.font_name, font_size))
 
         # Add message trailer
         # Remove task delimiter once, avoid repeated replace()
@@ -5043,6 +5061,7 @@ class ToolTip(object):  # noqa: UP004
 
         foreground_color = "white" if is_color_dark(mygui.saved_background_color) else "black"
         translated_text = live_translate_text(self.text)
+        font_size = get_windows_equivalent_font_size(14) if PrimeItems.windows_system else 12
         label = Label(
             tw,
             text=translated_text,
@@ -5052,7 +5071,7 @@ class ToolTip(object):  # noqa: UP004
             foreground=foreground_color,
             relief="solid",
             borderwidth=1,
-            font=(font, "12", "normal"),
+            font=(font, font_size, "normal"),
         )
 
         label.pack(ipadx=1)
