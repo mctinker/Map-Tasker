@@ -254,10 +254,10 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # FIX: For Development Only!
+        # CHG: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        self.event_handlers.map_event()
+        # self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
         # exit()
@@ -2540,7 +2540,10 @@ class EventHandlers:
 
         # Determine if the selected appearance mode is one of the standard modes or a translated mode, and set the mode accordingly.
         # First, check if it is a previously-set language mode.
-        if new_appearance_mode not in ["dark", "light", "system"] and PrimeItems.appearance_translated:
+        if (
+            new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]
+            and PrimeItems.appearance_translated
+        ):
             # Find our new appearance mode in the translated values and set the language to the corresponding key to
             # translate it back to English for the appearance mode setting.
             for key, value in PrimeItems.appearance_translated.items():
@@ -2552,7 +2555,7 @@ class EventHandlers:
                     PrimeItems.program_arguments["language"] = save_language
                     _ = translate_string(save_language, set_language=True)
                     break
-        elif new_appearance_mode not in ["dark", "light", "system"]:
+        elif new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]:
             new_appearance_mode = "system"
 
         if PrimeItems.program_arguments["language"] != "English":
