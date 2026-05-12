@@ -22,7 +22,7 @@ from zoneinfo import (
     ZoneInfoNotFoundError,
 )  # Import ZoneInfoNotFoundError for specific error handling
 
-import defusedxml.ElementTree as et  # noqa: N813
+import pygixml as et
 import requests
 import webcolors
 from deep_translator import GoogleTranslator

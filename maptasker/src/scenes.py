@@ -30,7 +30,7 @@ from maptasker.src.tasks import get_actions
 from maptasker.src.xmldata import tag_in_type
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    import pygixml
 
 SCENE_TAGS_TO_IGNORE = [
     "cdate",
@@ -44,7 +44,7 @@ blank = "&nbsp;"
 
 
 # Get the Scene's geometry
-def get_geometry(scene_element: defusedxml.ElementTree) -> tuple[str, str]:
+def get_geometry(scene_element: pygixml.XMLNode) -> tuple[str, str]:
     """
     Get the Scene's geometry
         :param scene_element: xml element of the Scene <Scene sr="scene...
@@ -157,12 +157,12 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
 
 # Get the Scene's elements
 def get_scene_elements(
-    child: defusedxml.ElementTree,
+    child: pygixml.XMLNode,
     indentation: int,
 ) -> None:
     """Get_scene_elements function processes an XML element and its sub-elements to retrieve their names, geometry, and layout information if applicable.
     Parameters:
-        - child (defusedxml.ElementTree): The XML element to be processed.
+        - child (pygixml.XMLNode): The XML element to be processed.
         - indentation (int): The number of spaces to indent the output lines.
     Returns:
         - None: This function does not return any value.
@@ -211,12 +211,12 @@ def get_scene_elements(
 
 
 # Handle sub-lements of the element we are doing.
-def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> None:
+def process_sub_elements(child: pygixml.XMLNode, indentation: int) -> None:
     """
     Process the sub-elements of the given child ElementTree.
 
     Args:
-        child (defusedxml.ElementTree): The child ElementTree to process.
+        child (pygixml.XMLNode): The child ElementTree to process.
         indentation (int): The indentation level to use for output.
 
     Returns:
@@ -255,7 +255,7 @@ def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> Non
 
 # Process the Properties ListElementItem element.
 def process_list_element(
-    child: defusedxml.ElementTree,
+    child: pygixml.XMLNode,
     indentation: int,
     element_name: str,
 ) -> None:
@@ -263,7 +263,7 @@ def process_list_element(
     Process the list element associated with the given child element.
 
     Args:
-        child (defusedxml.ElementTree): The child element to process.
+        child (pygixml.XMLNode): The child element to process.
         indentation (int): The indentation level of the child element.
         element_name (str): The name of the element.
 
@@ -297,7 +297,7 @@ def process_list_element(
 
 # Get the xxxElement arguments, format and output them.  Recurse for more sub-elements.
 def format_and_output_arguments(
-    child: defusedxml.ElementTree,
+    child: pygixml.XMLNode,
     element_type: str,
     indentation: int,
 ) -> None:
@@ -317,7 +317,7 @@ def format_and_output_arguments(
     line_indentation = f"{blank * len(element_name)}{blank * (18 + indentation)}"
 
     # Get the internal element name
-    internal_name = child.attrib.get("sr")
+    internal_name = child.attribute("sr").as_string("")
 
     # Extract argument and translate it.
     the_result = action_results.get_action_results(
@@ -376,7 +376,7 @@ def format_and_output_arguments(
 
 # Break down the UI aspects and output them based on it's arguments.
 def process_arguments(
-    child: defusedxml.ElementTree,
+    child: pygixml.XMLNode,
     element_type: str,
     indentation: int,
 ) -> None:
@@ -384,7 +384,7 @@ def process_arguments(
     Process the arguments of a given child element in a scene.
 
     Args:
-        child (defusedxml.ElementTree): The child element to process.
+        child (pygixml.XMLNode): The child element to process.
         element_type (str): The type of the child element.
         indentation (int): The indentation level of the child element.
 
@@ -412,9 +412,9 @@ def process_arguments(
 
 
 # Go through Scene's XML looking for Tasks (e.g. ClickTask) and output if found
-def process_tasks(child: defusedxml.ElementTree, tasks_found: list) -> None:
+def process_tasks(child: pygixml.XMLNode, tasks_found: list) -> None:
     """Parameters:
-        - child (defusedxml.ElementTree): The element to be processed.
+        - child (pygixml.XMLNode): The element to be processed.
         - tasks_found (list): A list of tasks that have been found.
         - indentation (int): The number of spaces to indent the output.
     Returns:
@@ -558,16 +558,16 @@ def adjust_name_and_add_to_directory(
 
 # Pull out the screen width and height
 def get_details(
-    scene: defusedxml.ElementTree,
-    tasks_found: defusedxml.ElementTree,
+    scene: pygixml.XMLNode,
+    tasks_found: pygixml.XMLNode,
     indentation: int = 0,
 ) -> None:
     """
     Go through Scene to obtain it's height and width and output.
 
     Args:
-        scene (defusedxml.ElementTree): Scene xml element to trundle through.
-        tasks_found (defusedxml.ElementTree): List of Tasks found so far.
+        scene (pygixml.XMLNode): Scene xml element to trundle through.
+        tasks_found (pygixml.XMLNode): List of Tasks found so far.
         indentation (int): Indentation number of blanks to add to output lines.
 
     Returns:
@@ -621,7 +621,7 @@ def get_details(
 
 
 # Process the Scene's Properties
-def process_properties(scene: defusedxml.ElementTree, indentation: int) -> None:
+def process_properties(scene: pygixml.XMLNode, indentation: int) -> None:
     # Get the PropertiesElement
     """Returns:
         - None: No return value.
@@ -642,7 +642,7 @@ def process_properties(scene: defusedxml.ElementTree, indentation: int) -> None:
 def process_scene(
     my_scene: str,
     tasks_found: list[str],
-    scene_xml: defusedxml.ElementTree,
+    scene_xml: pygixml.XMLNode,
     indentation: int,
 ) -> None:
     """
@@ -685,8 +685,8 @@ def process_scene(
 
 # Go through all Scenes for Project, get their detail and output it
 def process_project_scenes(
-    project: defusedxml.ElementTree,
-    our_task_element: defusedxml.ElementTree,
+    project: pygixml.XMLNode,
+    our_task_element: pygixml.XMLNode,
     found_tasks: list,
 ) -> bool:
     """

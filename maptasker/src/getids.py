@@ -7,12 +7,12 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
-import defusedxml.ElementTree  # Need for type hints
+import pygixml  # Need for type hints
 
 
 def get_ids(
     doing_head_xml_element: bool,
-    head_xml_element: defusedxml.ElementTree,
+    head_xml_element: pygixml.XMLNode,
     head_xml_element_name: str,
     head_xml_elements_without_profiles: list,
 ) -> list:

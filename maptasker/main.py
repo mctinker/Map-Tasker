@@ -6,6 +6,9 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
+import os
+import sys
+
 # FOR DEVELOPMENT ONLY  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # print("Path:", os.getcwd())
 # print(
@@ -14,8 +17,6 @@
 # print(sys.argv)
 # # Verify Python version.
 # print("Python version ", sys.version)
-import os
-import sys
 
 # print("\nsys.path BEFORE modification:")
 # for p in sys.path:

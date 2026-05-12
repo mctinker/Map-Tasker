@@ -7,7 +7,7 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
-import defusedxml.ElementTree  # Need for type hints
+import pygixml  # Need for type hints
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
@@ -126,7 +126,7 @@ def get_variables() -> None:
 
     """
     # Get all of the Tasker variables
-    if not (global_variables := PrimeItems.xml_root.findall("Variable")):
+    if not (global_variables := list(PrimeItems.xml_root.children("Variable"))):
         return
     # Save each in a dictionary.
     # Loop through the variables.
@@ -151,10 +151,10 @@ def get_variables() -> None:
 
 
 # Print the variables (Project's or Unreferenced)
-def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> None:
+def print_the_variables(color_to_use: str, project: pygixml.XMLNode) -> None:
     """Parameters:
         - color_to_use (str): The color to use for the table definition.
-        - project (defusedxml.ElementTree): The project to use, if applicable.
+        - project (pygixml.XMLNode): The project to use, if applicable.
     Returns:
         - None: This function does not return anything.
     Processing Logic:
@@ -198,7 +198,7 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
 
 
 # Print variables by adding them to the output.
-def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
+def output_variables(heading: str, project: pygixml.XMLNode) -> None:
     """
     Print variables by adding them to the output.
         Args:

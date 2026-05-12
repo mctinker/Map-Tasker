@@ -9,7 +9,7 @@ MIT License   Refer to https://opensource.org/license/mit
 # proclist: process list - process a list of line items for Tasks and Scenes           #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
-import defusedxml
+import pygixml
 
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.nameattr import add_name_attribute
@@ -89,7 +89,7 @@ def format_task_or_scene(list_type: list, the_item: str) -> tuple:
 def add_dictionary_and_twisty(
     list_type: str,
     the_item: str,
-    the_task: defusedxml,
+    the_task: pygixml.XMLNode,
     output_line: str,
     color_to_use: str,
 ) -> tuple[str, str]:
@@ -100,7 +100,7 @@ def add_dictionary_and_twisty(
     Args:
         list_type (str): Either "Task:" or "Scene:"
         the_item (str): Task ID for Task or Scene
-        the_task (defusedxml): XML pointer to the Task being processed
+        the_task (pygixml.XMLNode): XML pointer to the Task being processed
         output_line (str): The text string containing the output
         color_to_use (str): The color to use in the output
 
@@ -151,14 +151,14 @@ def handle_task(list_type: str, the_item: str, blank: str) -> tuple[str, str]:
     return temp_item, temp_list
 
 
-def handle_directory(list_type: str, the_item: str, the_task: defusedxml) -> None:
+def handle_directory(list_type: str, the_item: str, the_task: pygixml.XMLNode) -> None:
     """
     Handle the directory by processing tasks or adding scene directories.
 
     Args:
         list_type (str): The type of the list.
         the_item (str): The text item to process.
-        the_task (defusedxml): The task XML element.
+        the_task (pygixml.XMLNode): The task XML element.
 
     Returns:
         None
@@ -224,17 +224,17 @@ def add_task_hyperlink(task_name: str, display_name: bool, blank: str) -> None:
     )
 
 
-def process_task_directory(the_task: defusedxml) -> None:
+def process_task_directory(the_task: pygixml.XMLNode) -> None:
     """
     Process the task directory by adding the task name to the directory items.
 
     Args:
-        the_task (defusedxml): The task XML element.
+        the_task (pygixml.XMLNode): The task XML element.
 
     Returns:
         None
     """
-    task_id = the_task.attrib.get("sr", "")[4:]
+    task_id = the_task.attribute("sr").as_string("")[4:]
     task_name = PrimeItems.tasker_root_elements["all_tasks"].get(task_id, {}).get("name", "")
     if task_name:
         add_directory_item("tasks", task_name)
@@ -304,7 +304,7 @@ def format_item(
     list_type: str,
     the_item: str,
     the_list: list,
-    the_task: defusedxml,
+    the_task: pygixml.XMLNode,
 ) -> None:
     """
     Given an item, format it with all of the particulars:
@@ -313,7 +313,7 @@ def format_item(
             list_type (str): Either "Task:" or "Scene:"
             the_item (str): The string for the above type
             the_list (list): List of Tasks or Scenes
-            the_task (defusedxml): The Task XML element
+            the_task (pygixml.XMLNode): The Task XML element
     """
     # Log if in debug mode
     if PrimeItems.program_arguments["debug"]:
@@ -362,7 +362,7 @@ def format_item(
 def process_item(
     the_item: str,
     list_type: str,
-    the_task: defusedxml.ElementTree,
+    the_task: pygixml.XMLNode,
     tasks_found: list,
 ) -> None:
     """
@@ -432,7 +432,7 @@ def process_item(
 def process_list(
     list_type: str,
     the_list: list,
-    the_task: defusedxml.ElementTree,
+    the_task: pygixml.XMLNode,
     tasks_found: list,
 ) -> None:
     """

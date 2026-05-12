@@ -4,7 +4,7 @@
 #                                                                                      #
 # condition: Process profile condition: time, date, state, event, location, app        #
 #                                                                                      #
-import defusedxml.ElementTree
+import pygixml
 
 import maptasker.src.actiond as process_action_codes
 import maptasker.src.actione as action_evaluate
@@ -23,7 +23,7 @@ spaces = f"{space * 50}"
 
 
 # Profile condition: Time
-def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) -> str:
+def condition_time(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
     """
     Handle the "Time" condition.
 
@@ -79,7 +79,7 @@ def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) 
 
 
 # Profile condition: Day
-def condition_day(the_item: defusedxml.ElementTree, the_output_condition: str) -> str:
+def condition_day(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
     """
     Handle the "Day" condition
         :param the_item: the xml element with the Condition
@@ -135,7 +135,7 @@ def condition_day(the_item: defusedxml.ElementTree, the_output_condition: str) -
 
 # Profile condition: State
 def condition_state(
-    the_item: defusedxml.ElementTree,
+    the_item: pygixml.XMLNode,
     the_output_condition: str,
 ) -> str:
     """
@@ -193,7 +193,7 @@ def condition_state(
 
 # Profile condition: Event
 def condition_event(
-    the_item: defusedxml.ElementTree,
+    the_item: pygixml.XMLNode,
     the_output_condition: str,
 ) -> str:
     """
@@ -247,7 +247,7 @@ def condition_event(
 
 
 # Profile condition: App (application)
-def condition_app(item: defusedxml.ElementTree, condition: str) -> str:
+def condition_app(item: pygixml.XMLNode, condition: str) -> str:
     """
     Handle the "App" condition
         :param the_item: the xml element with the Condition
@@ -263,7 +263,7 @@ def condition_app(item: defusedxml.ElementTree, condition: str) -> str:
 
 
 # Profile condition: Loc (location)
-def condition_loc(item: defusedxml.ElementTree, condition: str) -> str:
+def condition_loc(item: pygixml.XMLNode, condition: str) -> str:
     """
     Handle the "Location" condition
         :param the_item: the xml element with the Condition
@@ -280,7 +280,7 @@ def condition_loc(item: defusedxml.ElementTree, condition: str) -> str:
 
 
 # Given a Profile, return its list of conditions
-def parse_profile_condition(the_profile: defusedxml.ElementTree) -> str:
+def parse_profile_condition(the_profile: pygixml.XMLNode) -> str:
     """
     Given a Profile, return its list of conditions
         :param the_profile: the xml element pointing to <Profile object

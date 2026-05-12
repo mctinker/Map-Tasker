@@ -4,10 +4,10 @@
 # taskflag: Get Profile/Task fags: priority, collision, stay awake                     #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
-import defusedxml.ElementTree  # Need for type hints
+import pygixml  # Need for type hints
 
 
-def get_priority(element: defusedxml.ElementTree, event: bool) -> str:
+def get_priority(element: pygixml.XMLNode, event: bool) -> str:
     """
     Get any associated priority for the Task/Profile
         :param element: root element to search for
@@ -24,7 +24,7 @@ def get_priority(element: defusedxml.ElementTree, event: bool) -> str:
     return f"&nbsp;&nbsp;[Priority: {priority_element.text}]"
 
 
-def get_collision(element: defusedxml.ElementTree) -> str:
+def get_collision(element: pygixml.XMLNode) -> str:
     """
     Get any Task collision setting
         :param element: root element to search for
@@ -47,7 +47,7 @@ def get_collision(element: defusedxml.ElementTree) -> str:
     return f"&nbsp;&nbsp;[Collision: {collision_text}]"
 
 
-def get_awake(element: defusedxml.ElementTree) -> str:
+def get_awake(element: pygixml.XMLNode) -> str:
     """
     Get any Task Stay Awake (Keep Device Awake) setting
         :param element: root element to search for

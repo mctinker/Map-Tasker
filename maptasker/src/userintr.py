@@ -254,10 +254,10 @@ class MyGui(customtkinter.CTk):
         # Reestabslish the window size since it might get changed by the deiconify call.
         self.geometry(window_position)
 
-        # CHG: For Development Only!
+        # FIX: For Development Only!
         # The following lines are for testing only.
         # self.event_handlers.diagram_event()
-        # self.event_handlers.map_event()
+        self.event_handlers.map_event()
         # self.event_handlers.ai_apikey_event()
         # self.event_handlers.upgrade_event()
         # exit()
@@ -3162,34 +3162,30 @@ class EventHandlers:
         buttons = self.find_variables(the_view, "_button")
         for button in buttons:
             button_to_clear = getattr(the_view, button)
-            button_to_clear.configure(text="")
+            button_to_clear.destroy()
         # Ditto mapview top-row buttons
         with contextlib.suppress(AttributeError):
             buttons = self.find_variables(the_view.mapview, "_button")
             for button in buttons:
                 button_to_clear = getattr(the_view.mapview, button)
-                # button_to_clear.configure(text="")
                 button_to_clear.destroy()
         # Ditto diagramiew top-row buttons
         with contextlib.suppress(AttributeError):
             buttons = self.find_variables(the_view.diagramview, "_button")
             for button in buttons:
                 button_to_clear = getattr(the_view.diagramview, button)
-                # button_to_clear.configure(text="")
                 button_to_clear.destroy()
         # Ditto mapview top-row labels
         with contextlib.suppress(AttributeError, TclError):
             labels = self.find_variables(the_view.mapview, "_label")
             for label in labels:
                 label_to_clear = getattr(the_view.mapview, label)
-                # label_to_clear.configure(text="")
                 label_to_clear.destroy()
         # Ditto mapview top-row labels
         with contextlib.suppress(AttributeError, TclError):
             labels = self.find_variables(the_view.diagramview, "_label")
             for label in labels:
                 label_to_clear = getattr(the_view.diagramview, label)
-                # label_to_clear.configure(text="")
                 label_to_clear.destroy()
 
     def find_variables(self, the_view: MyGui, var_to_find: str) -> list:

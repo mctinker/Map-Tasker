@@ -5,7 +5,7 @@
 #                                                                                      #
 # share: process TaskerNet "Share" information                                         #
 #                                                                                      #
-import defusedxml.ElementTree  # Need for type hints
+import pygixml  # Need for type hints
 
 from maptasker.src.format import format_html, format_label
 from maptasker.src.primitem import PrimeItems
@@ -15,7 +15,7 @@ from maptasker.src.sysconst import FormatLine
 # Go through xml <Share> elements to grab and output TaskerNet description and
 # search-on lines.
 def share(
-    root_element: defusedxml.ElementTree,
+    root_element: pygixml.XMLNode,
     tab: str,
 ) -> None:
     """
@@ -24,7 +24,7 @@ def share(
         :param tab: "projtab", "proftab" or "tasktab"
     """
     # Get the <share> element, if any
-    share_element: defusedxml.ElementTree = root_element.find("Share")
+    share_element: pygixml.XMLNode = root_element.find("Share")
     if share_element is not None:
         #  We have a <Share> .  Find the description
         description_element = share_element.find("d")
@@ -82,7 +82,7 @@ def share(
 # Process the description <d> element
 # ################################################################################
 def description_element_output(
-    description_element: defusedxml.ElementTree,
+    description_element: pygixml.XMLNode,
     tab: str,
 ) -> None:
     """

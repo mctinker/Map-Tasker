@@ -30,7 +30,7 @@
 
 import contextlib
 
-import defusedxml.ElementTree  # Need for type hints
+import pygixml  # Need for type hints
 
 from maptasker.src.diagram import network_map
 from maptasker.src.format import format_html
@@ -47,7 +47,7 @@ arrow = f"├{line * 3}▶"
 
 # Update Task with calls and called_by details
 def update_caller_and_called_tasks(
-    task: defusedxml.ElementTree,
+    task: pygixml.XMLNode,
     perform_task_name: str,
 ) -> None:
     # Find the Task xml element to which this Perform Task refers.
@@ -104,15 +104,15 @@ def update_caller_and_called_tasks(
 
 # Go through the Task's Actions looking for any Perform Task actions.
 def do_task_actions(
-    task_actions: defusedxml.ElementTree,
-    task: defusedxml.ElementTree,
+    task_actions: pygixml.XMLNode,
+    task: pygixml.XMLNode,
 ) -> None:
     """
     Parses task action elements and updates task call relationships.
 
     Args:
-        task_actions: defusedxml.ElementTree - Task action elements.
-        task: defusedxml.ElementTree - Task element.
+        task_actions: pygixml.XMLNode - Task action elements.
+        task: pygixml.XMLNode - Task element.
 
     Returns:
         None
@@ -126,7 +126,7 @@ def do_task_actions(
     _update_caller_and_called_tasks = update_caller_and_called_tasks
     for action in task_actions:
         if any(child.tag == "code" and child.text == "130" for child in action):
-            perform_task_name = next((s.text for s in action.findall("Str")), None)
+            perform_task_name = next((s.text() for s in action.children("Str")), None)
             if perform_task_name:
                 # Just get ther task name and not the whole output line
                 task["name"] = task["name"].split("&nbsp;")[0]
@@ -141,7 +141,7 @@ def get_perform_task_actions(the_tasks: list) -> None:
     If so, save the link to the other Task to be displayed in the outline.
         Args:
             primary_item (dict): Program registry.  See primitem.py for details.
-            profile (defusedxml.ElementTree): Profile that owns these Tasks
+            profile (pygixml.XMLNode): Profile that owns these Tasks
             the_tasks (list): List of Task xml elements under this Profile.
     """
     # Go through each Task to find out if this Task is calling other Tasks.
@@ -150,9 +150,8 @@ def get_perform_task_actions(the_tasks: list) -> None:
         # Only do this if we haven't already processed this task
         if task["name"] not in PrimeItems.outline_tasks_mapped:
             # Get Task's Actions
-            try:
-                task_actions = task["xml"].findall("Action")
-            except defusedxml.DefusedXmlException:
+            task_actions = [action.attribute("sr").as_string("") for action in task["xml"].children("Action")]
+            if not task_actions:
                 task_actions = ""
                 continue
             # Go through Actions and see if any are "Perform Task"
@@ -170,7 +169,7 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> No
     Find tasks not processed by any profile
     Args:
         tasks_processed: list - Tasks already processed
-        task_ids: defusedxml - All tasks in the project
+        task_ids: pygixml.XMLNode - All tasks in the project
     Returns:
         None
     1. Loop through all tasks in the project
@@ -292,7 +291,7 @@ def do_profile_tasks(
     _add_line_to_output = PrimeItems.output_lines.add_line_to_output
     for task_line, task in zip(task_output_line, the_tasks, strict=False):
         # Keep track of Tasks processed.
-        taskid = task["xml"].attrib.get("sr")
+        taskid = task["xml"].attribute("sr").as_string("")
         if taskid not in tasks_in_profile:
             tasks_in_profile.append(taskid)
 
@@ -325,10 +324,10 @@ def do_profile_tasks(
             )
 
         # Add the Task output line
-        task_line = f"{blank * 5}{arrow_to_use}{blank * 2}Task: {task_line[0]}{call_task}"
+        task_line_final = f"{blank * 5}{arrow_to_use}{blank * 2}Task: {task_line[0]}{call_task}"
         _add_line_to_output(
             0,
-            task_line,
+            task_line_final,
             ["", "task_color", FormatLine.add_end_span],
         )
     return tasks_in_profile

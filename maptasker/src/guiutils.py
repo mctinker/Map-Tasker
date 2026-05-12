@@ -76,8 +76,6 @@ from maptasker.src.xmldata import is_tasker_object
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    import defusedxml
-
 
 default_font_size = 14
 
@@ -1452,12 +1450,12 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
 def build_profiles(
     root: dict,
     profile_ids: list,
-    project: defusedxml.ElementTree,
+    project: pygixml.XMLNode,
 ) -> list:
     """Parameters:
         - root (dict): Dictionary containing all profiles and their tasks.
         - profile_ids (list): List of profile IDs to be processed.
-        - project (defusedxml.ElementTree): The project xml element.
+        - project (pygixml.XMLNode): The project xml element.
     Returns:
         - list: List of dictionaries containing profile names and their corresponding tasks.
     Processing Logic:
@@ -1940,7 +1938,8 @@ def search_substring_in_list(
                 # If we have the "id:task_id" then get the position of the name (e.g. beyond 'Task: ).
                 if pos != -1:
                     lower_substring = (
-                        lower_substring.replace(f"{task_translated_lower}", "")
+                        lower_substring
+                        .replace(f"{task_translated_lower}", "")
                         .replace("(unnamed)", unnamed_translated.lower())
                         .strip()
                     )
@@ -2702,7 +2701,7 @@ def prefix_and_sort(strings: list[str], name: str) -> list[str]:
 
 
 @cache
-def get_item_xml(item_type: str, item_name: str) -> defusedxml.Element | None:
+def get_item_xml(item_type: str, item_name: str) -> pygixml.XMLNode | None:
     """
     Retrieve the XML element for a given item type and name.
 
@@ -2712,7 +2711,7 @@ def get_item_xml(item_type: str, item_name: str) -> defusedxml.Element | None:
         item_name (str): The name of the item.
 
     Returns:
-        defusedxml.Element | None: The XML element if found, otherwise None.
+        pygixml.XMLNode | None: The XML element if found, otherwise None.
     """
     if item_type == "Task":
         return next(

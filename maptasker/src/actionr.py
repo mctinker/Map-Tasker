@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from typing import TYPE_CHECKING
 
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
@@ -27,9 +26,6 @@ from maptasker.src.sysconst import (
     pattern11,
     pattern12,
 )
-
-if TYPE_CHECKING:
-    import defusedxml.ElementTree
 
 
 # Given a list of positional items, return a string in the correct order based on position.
@@ -153,8 +149,8 @@ def fix_config_parameters(s: str, target: str, replacement: str) -> str:
 # Then evaluate the data against the master dictionary of actions.
 def get_action_results(
     the_action_code_plus: str,
-    action_codes: defusedxml.Element,
-    code_action: defusedxml.Element,
+    action_codes: pygixml.XMLNode,
+    code_action: pygixml.XMLNode,
     action_type: bool,
 ) -> str:
     """

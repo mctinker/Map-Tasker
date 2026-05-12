@@ -8,13 +8,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 # TYPE_CHECKING is a special constant that is assumed to be True by 3rd party static type checkers. It is False at runtime.
-if TYPE_CHECKING:
-    import defusedxml.ElementTree
-
 import contextlib
+from typing import TYPE_CHECKING
 
 from maptasker.src.actiont import lookup_values
 from maptasker.src.error import error_handler
@@ -28,6 +24,9 @@ from maptasker.src.sysconst import (
     DISPLAY_DETAIL_LEVEL_all_tasks,
 )
 
+if TYPE_CHECKING:
+    import pygixml
+
 
 # Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
 #  This is only called if the action code is not already in our master dictionary
@@ -39,7 +38,7 @@ from maptasker.src.sysconst import (
 #   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
 #   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
 def get_args(
-    action: defusedxml.ElementTree,
+    action: pygixml.XMLNode,
     ignore_list: list,
 ) -> tuple[list, list, list]:
     """
@@ -54,7 +53,7 @@ def get_args(
     for child in action:
         if child.tag in ignore_list:  # Ignore certain tags
             continue
-        action_arg = child.attrib.get("sr")
+        action_arg = child.attribute("sr").as_string("")
         if action_arg is not None:
             master_list.append(child)  # Build out list of args
     # If we have args then sort them and convert to string
@@ -64,7 +63,7 @@ def get_args(
         # Now go through args and build our "type" and "arg" lists
         for child in master_list:
             argument_types.append(child.tag)  # one of: 'Str' 'Int' 'Bundle' 'App'
-            arguments.append(child.attrib.get("sr"))
+            arguments.append(child.attribute("sr").as_string(""))
         # Build list of arg position only (numeric part of argn)
         arg_nums = [
             str(ind) for ind, x in enumerate(arguments)
@@ -74,7 +73,7 @@ def get_args(
 
 
 # Evaluate the If statement and return the operation
-def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
+def evaluate_condition(child: pygixml.XMLNode) -> tuple[str, str, str]:
     """
     Evaluate the If statement and return the operation
         :param child: xml head element containing the <lhs xml element to be evaluated
@@ -167,7 +166,7 @@ def process_xml_list(
     arg_location: int,
     the_int_value: str,
     match_results: list,
-    arguments: defusedxml.ElementTree,
+    arguments: pygixml.XMLNode,
 ) -> None:
     """
     Evaluates an argument from an XML list and adds the processed result to match_results.
@@ -247,7 +246,7 @@ def process_xml_list(
 
 
 # Get Task's label, disabled flag and any conditions
-def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
+def get_label_disabled_condition(child: pygixml.XMLNode) -> str:
     """
     Get Task's label, disabled flag and any conditions
         :param child: head Action xml element
@@ -309,7 +308,7 @@ def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
 
 # Get any/all conditions associated wwith this Task.
 # Get any/all conditions associated with Action
-def get_conditions(child: defusedxml, the_action_code: str) -> str:
+def get_conditions(child: pygixml.XMLNode, the_action_code: str) -> str:
     """
     Generates conditional statements for an action.
 
@@ -358,7 +357,7 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
 # Get the: label, whether to continue Task after error, etc.
 # Chase after relevant data after <code> Task action
 def get_extra_stuff(
-    code_action: defusedxml.ElementTree,
+    code_action: pygixml.XMLNode,
     action_type: bool,
 ) -> str:
     """
@@ -446,7 +445,7 @@ def replace_newline(string: str) -> str:
 
 
 # Get the application specifics for the given code
-def get_app_details(code_child: defusedxml.ElementTree) -> tuple[str, str, str]:
+def get_app_details(code_child: pygixml.XMLNode) -> tuple[str, str, str]:
     """
     Extracts application details from the given XML code element.
 

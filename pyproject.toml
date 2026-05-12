@@ -1,6 +1,6 @@
 [project]
 name = "maptasker"
-version = "10.2.6"
+version = "10.3.0"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
@@ -18,7 +18,8 @@ keywords = [
 dependencies = [
     'darkdetect>=0.8.0',
     'deep_translator>=1.11.4',
-    'defusedxml>=0.7.1',
+#    'pygixml.XMLNode>=0.7.1',
+    'pygixml>=0.10.2',
     'packaging>=26.2',
     'pillow==12.2.0',
     'requests>=2.33.1',

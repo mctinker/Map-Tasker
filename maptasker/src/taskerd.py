@@ -7,7 +7,7 @@
 #                                                                                      #
 import re
 
-import defusedxml.ElementTree as ET  # noqa: N817
+import pygixml
 
 from maptasker.src import condition
 from maptasker.src.actione import get_action_code
@@ -45,139 +45,116 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     return new_table
 
 
-# Load all of the Projects, Profiles and Tasks into a format we can easily
-# navigate through.
-# Optimized
-def get_the_xml_data() -> bool:
-    # Put this code into a while loop in the event we have to re-call it again.
+def get_the_xml_data() -> int:
     """Gets the XML data from a Tasker backup file and returns it in a dictionary.
-    Parameters:
-        - None
     Returns:
         - int: 0 if successful, 1 if bad XML, 2 if not a Tasker backup file, 3 if not a valid Tasker backup file.
-    Processing Logic:
-        - Put code into a while loop in case it needs to be re-called.
-        - Defines XML parser with ISO encoding.
-        - If encoding error, rewrites XML with proper encoding and tries again.
-        - If any other error, logs and exits.
-        - Returns 1 if bad XML and not in GUI mode.
-        - Returns 1 if bad XML and in GUI mode.
-        - Gets XML root.
-        - Checks for valid Tasker backup file.
-        - Moves all data into dictionaries.
-        - Returns all data in a dictionary."""
+    """
     file_to_parse = PrimeItems.file_to_get.name
     counter = 0
     anchor = "Anchor ...with label:\n"
 
-    # # Count the lines to see if we should issue a status.
-    # with open(file_to_parse, "rb") as f:
-    #     count = sum(1 for _ in f)
-    # if count > 15000:
-    #     print("Parsing XML file...")
-
     _rewrite_xml = rewrite_xml
-    # Validate the XML file by parsing it twice if necessary.
+
+    # Validate the XML file using pygixml
     while True:
         try:
-            xmlp = ET.XMLParser(encoding="utf-8")
-            PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
+            # pygixml automatically handles encoding; if it fails, it returns an empty doc
+            PrimeItems.xml_tree = pygixml.parse_file(file_to_parse)
+
+            # Check if parsing actually succeeded
+            if not PrimeItems.xml_tree:
+                error_handler(f"Error in {file_to_parse}: unable to parse the date.", 1)
+                return 1
             break
-        # If error, rewrite thqat file with correct encoding.  Try this twice and then call it quits if still fails.
-        except (ET.ParseError, UnicodeDecodeError) as e:
+
+        except pygixml.PygiXMLError:
             counter += 1
-            if counter > 2 or isinstance(e, ET.ParseError):
-                error_handler(f"Error in {file_to_parse}: {e}", 1)
+            # If error, rewrite the file with correct encoding (UTF-8) and try again.
+            if counter > 2:
+                error_handler(f"Error in {file_to_parse}: failed to parse the XML file.", 1)
                 return 1
             _rewrite_xml(file_to_parse)
 
-    if PrimeItems.xml_tree is None:
-        return 1 if not PrimeItems.program_arguments["gui"] else _handle_gui_error("Bad XML file")
+    # In pygixml, we get the root node directly from the document object
+    PrimeItems.xml_root = PrimeItems.xml_tree.root.xml
 
-    PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
-    if PrimeItems.xml_root.tag != "TaskerData":
+    # Check for valid Tasker backup file (.name() instead of .tag)
+    if PrimeItems.xml_tree.name != "TaskerData":
         return _handle_gui_error("Invalid Tasker backup XML file", code=3)
 
-    # Extract and transform data into Projects, Profiles, Tasks, Scenes and Services
+    # Extract and transform data
     _move_xml_to_table = move_xml_to_table
+
+    # pygixml.select_nodes returns a list of xpath_node objects;
+    # we pass the node itself to move_xml_to_table
     PrimeItems.tasker_root_elements = {
         "all_projects": _move_xml_to_table(
-            PrimeItems.xml_root.findall("Project"),
+            [res.node for res in PrimeItems.xml_root.select_nodes("Project")],
             False,
             "name",
         ),
         "all_profiles": _move_xml_to_table(
-            PrimeItems.xml_root.findall("Profile"),
+            [res.node for res in PrimeItems.xml_root.select_nodes("Profile")],
             True,
             "nme",
         ),
         "all_tasks": _move_xml_to_table(
-            PrimeItems.xml_root.findall("Task"),
+            [res.node for res in PrimeItems.xml_root.select_nodes("Task")],
             True,
             "nme",
         ),
         "all_scenes": _move_xml_to_table(
-            PrimeItems.xml_root.findall("Scene"),
+            [res.node for res in PrimeItems.xml_root.select_nodes("Scene")],
             False,
             "nme",
         ),
-        "all_services": PrimeItems.xml_root.findall("Setting"),
+        "all_services": [res.node for res in PrimeItems.xml_root.select_nodes("Setting")],
     }
 
-    # Assign names to Profiles that have no name = their condition.nnn (Unnamed)
-    # Cache external references and methods to local variables
-    # This avoids repeated global/attribute lookups in the loop
+    # Assign names to Profiles that have no name
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
     _parse_condition = condition.parse_profile_condition
     _conditions_to_name = conditions_to_name
     unnamed_label = UNNAMED_ITEM
-
-    # Pre-compile regex if multiple tags need cleaning (faster than multiple .replace)
     tag_cleaner = re.compile(r"</?em>")
 
     for profile in all_profiles.values():
-        # Check if the name is missing or empty
         if not profile.get("name"):
             xml_content = profile["xml"]
             conditions = _parse_condition(xml_content)
-
             current_name = unnamed_label
 
             if conditions:
-                # Assuming _to_name returns (something, name, something_else)
                 _, current_name, _ = _conditions_to_name(xml_content, conditions, unnamed_label, "")
 
-            # Efficiently strip HTML tags
             if "<em>" in current_name:
                 current_name = tag_cleaner.sub("", current_name)
 
-            # Direct update to the dictionary reference
             profile["name"] = current_name
 
-    # Get Tasks by name and handle Tasks with no name.
+    # Get Tasks by name and handle unnamed Tasks
     PrimeItems.tasker_root_elements["all_tasks_by_name"] = {}
     _get_first_action = get_first_action
     for key, value in PrimeItems.tasker_root_elements["all_tasks"].items():
         if not value["name"]:
-            # Get the first Task Action and user it as the Task name.
             first_action = _get_first_action(value["xml"])
-            # Handle special case of 'Anchor ...with label:\n'
             if anchor in first_action:
                 first_action = 'Anchor "' + first_action.split(anchor, 1)[1]
 
-            # Put the new name back into PrimeItems.tasker_root_elements["all_tasks"]
-            value["name"] = f"{first_action.rstrip()}.{key!s} (Unnamed)"
+            value["name"] = f"{first_action.rstrip()}.{key!s} ({unnamed_label})"
 
         PrimeItems.tasker_root_elements["all_tasks_by_name"][value["name"]] = {
             "xml": value["xml"],
             "id": key,
         }
 
-    # Sort them for easier debug.
-    temp = sorted(PrimeItems.tasker_root_elements["all_tasks"].items())
-    PrimeItems.tasker_root_elements["all_tasks"] = dict(temp)
-    temp = sorted(PrimeItems.tasker_root_elements["all_tasks_by_name"].items())
-    PrimeItems.tasker_root_elements["all_tasks_by_name"] = dict(temp)
+    # Sort results
+    PrimeItems.tasker_root_elements["all_tasks"] = dict(sorted(PrimeItems.tasker_root_elements["all_tasks"].items()))
+    PrimeItems.tasker_root_elements["all_tasks_by_name"] = dict(
+        sorted(PrimeItems.tasker_root_elements["all_tasks_by_name"].items()),
+    )
+
     return 0
 
 
@@ -188,12 +165,12 @@ def _handle_gui_error(message: str, code: int = 1) -> int:
     return code
 
 
-def get_first_action(task: ET) -> str:
+def get_first_action(task: pygixml.XPathNode) -> str:
     """
     Retrieve the name of the first action code from a Tasker task XML element.
 
     Args:
-        task (ET.ElementTree): The XML element representing a Tasker task.
+        task (pygixml.XPathNode): The XML element representing a Tasker task.
 
     Returns:
         str: The name of the first action's code if found, otherwise an empty string.
@@ -207,16 +184,16 @@ def get_first_action(task: ET) -> str:
     """
     # Build the Tasker argument codes dictionary if we don't yet have it.
     if not PrimeItems.tasker_arg_specs:
-        from maptasker.src.proginit import build_action_codes_from_json
+        from maptasker.src.proginit import build_action_codes_from_json  # noqa: PLC0415
 
         build_action_codes_from_json(False)
 
-    task_actions = task.findall("Action")
+    task_actions = list(task.children("Action"))
     if task_actions is not None:
         have_first_action = False
         # Go through Actions looking for the first one ("act0")
         for action in task_actions:
-            action_number = action.attrib.get("sr")
+            action_number = action.attribute("sr").as_string("")
             if action_number == "act0":
                 have_first_action = True
                 break
@@ -229,7 +206,8 @@ def get_first_action(task: ET) -> str:
         the_result = get_action_code(child, action, True, "t")
         clean_text = strip_html_tags(the_result)
         clean_text = (
-            clean_text.replace("&nbsp;&nbsp;", "&nbsp;")
+            clean_text
+            .replace("&nbsp;&nbsp;", "&nbsp;")
             .replace("( ", "(")
             .replace("(", "")
             .replace(")", "")

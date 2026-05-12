@@ -5,7 +5,7 @@
 #                                                                                      #
 # property: get Project/Profile/Task properties and output them                        #
 #                                                                                      #
-import defusedxml.ElementTree  # Need for type hints
+import pygixml  # Need for type hints
 
 from maptasker.src.actione import fix_json
 from maptasker.src.error import rutroh_error
@@ -14,7 +14,7 @@ from maptasker.src.sysconst import FormatLine
 
 
 # Helper function to get text safely
-def get_text(element: defusedxml.ElementTree) -> str:
+def get_text(element: pygixml.XMLNode) -> str:
     """Return value or"""
     return element.text if element is not None else ""
 
@@ -23,7 +23,7 @@ def get_text(element: defusedxml.ElementTree) -> str:
 def parse_variable(
     property_tag: str,
     css_attribute: str,
-    variable_header: defusedxml.ElementTree,
+    variable_header: pygixml.XMLNode,
     cooldown: int,
     limit: int,
 ) -> None:
@@ -34,7 +34,7 @@ def parse_variable(
     Args:
         property_tag (str): The property tag of the variable.
         css_attribute (str): The CSS attribute of the variable.
-        variable_header (defusedxml.ElementTree): The XML element representing the variable header.
+        variable_header (pygixml.XMLNode): The XML element representing the variable header.
         cooldown (int): The cooldown time in seconds.
         limit (int): Limit repeats.
 
@@ -166,12 +166,12 @@ def get_css_attributes(property_tag: str) -> str:
 
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out.
-def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
+def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
     """
 
     Args:
         property_tag (str): Either "Project:", "Profile:", or "Task:"
-        header (defusedxml.ElementTree): xml header to Project/Profile/Task
+        header (pygixml.XMLNode): xml header to Project/Profile/Task
 
     Returns:
         nothing

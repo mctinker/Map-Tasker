@@ -84,7 +84,7 @@ from maptasker.src.sysconst import (
 from maptasker.src.xmldata import remove_html_tags
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    import pygixml
 
     from maptasker.src.userintr import MyGui
 
@@ -1789,7 +1789,7 @@ class CTkTextview(ctk.CTkFrame):
             elements = ["Scene Version 2"]
         return text + "\nOwning Project: " + owning_project_name + "\nElements...\n" + "\n".join(elements)
 
-    def get_list_of_actions(self, name: str, task_xml: defusedxml) -> str:
+    def get_list_of_actions(self, name: str, task_xml: pygixml.XMLNode) -> str:
         """
         Retrieves the list of Actions for a given Task and appends them to a string.
 
@@ -1815,8 +1815,9 @@ class CTkTextview(ctk.CTkFrame):
             task_element = task_xml
 
         # Get the Task actions.
+        # Get the Task actions.
         try:
-            task_actions = task_element.findall("Action")
+            task_actions = list(task_element.children("Action"))
         # Handle situations in which "Task:" appears elsewhere.
         except (AttributeError, UnboundLocalError):
             return ""
@@ -3298,7 +3299,7 @@ class CTkTextview(ctk.CTkFrame):
                 self.textview_textbox.tag_config(tag_id, background=background_color)
             return char_position + msg_len
 
-        # --- Handle Task Action Limit Warnings ---
+        # --- Handle Task Action Limit Warnings (too many actions)---
         # Search for task names in known warnings
         task_action_warnings = PrimeItems.task_action_warnings
         track_task_warnings = PrimeItems.track_task_warnings
@@ -3335,7 +3336,7 @@ class CTkTextview(ctk.CTkFrame):
         if not self._insert_text_and_tag(task_start_idx, task_end_idx, task_name, hyper_tag_id):
             return char_position
         # Tag the hyperlink text as normal since something is making it bold by mistake.
-        font_size = get_windows_equivalent_font_size(10) if PrimeItems.windows_system else 12
+        font_size = get_windows_equivalent_font_size(10) if PrimeItems.windows_system else 10
         self.textview_textbox.tag_config(hyper_tag_id, font=(self.font_name, font_size))
 
         # Add message trailer

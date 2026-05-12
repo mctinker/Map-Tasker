@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 
-import defusedxml.ElementTree  # Need for type hints
+import pygixml  # Need for type hints
 
 import maptasker.src.actione as action_evaluate
 import maptasker.src.taskflag as task_flags
@@ -82,7 +82,7 @@ def reformat_html(html_string: str) -> str:
 # Navigate through Task's Actions and identify each
 # Return a list of Task's actions for the given Task
 # Optimized
-def get_actions(current_task: defusedxml.ElementTree) -> list:
+def get_actions(current_task: pygixml.XMLNode) -> list:
     """
     Optimized extraction of actions from a task XML element.
     """
@@ -91,8 +91,9 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
     blanks = f"{'&nbsp;' * indent_size}"
 
     try:
-        task_actions = current_task.findall("Action")
-    except defusedxml.DefusedXmlException:
+        task_actions = list(current_task.children("Action"))
+    # pygixml raises RuntimeError or its own exceptions for malformed access
+    except (RuntimeError, AttributeError):
         print("tasks.py current Task:", current_task)
         error_handler("Error: No action found!!!", 0)
         return []
@@ -233,7 +234,7 @@ def get_task_name(
 def get_project_for_solo_task(
     the_task_id: str,
     projects_with_no_tasks: list,
-) -> tuple[str, defusedxml.Element]:
+) -> tuple[str, pygixml.XMLNode]:
     """
     Find the Project belonging to the Task id passed in
     :param the_task_id: the ID of the Task
@@ -268,7 +269,7 @@ def do_single_task(
     project_name: str,
     profile_name: str,
     task_list: list,
-    our_task_element: defusedxml.ElementTree,
+    our_task_element: pygixml.XMLNode,
     list_of_found_tasks: list,
 ) -> None:
     """
@@ -279,7 +280,7 @@ def do_single_task(
         project_name (str): The name of the Project the Task belongs to.
         profile_name (str): The name of the Profile the Task belongs to.
         task_list (list): A list of Tasks.
-        our_task_element (defusedxml.ElementTree): The XML element for this Task.
+        our_task_element (pygixml.XMLNode): The XML element for this Task.
         list_of_found_tasks (list): A list of all Tasks processed so far.
 
     Returns:
@@ -345,11 +346,11 @@ def do_single_task(
 
 
 # Search image xml element for key and return title=value
-def get_image(image: defusedxml.ElementTree, title: str, key: str) -> str:
+def get_image(image: pygixml.XMLNode, title: str, key: str) -> str:
     """Returns:
         - str: Returns a string.
     Parameters:
-        - image (defusedxml.ElementTree): An XML element tree.
+        - image (pygixml.XMLNode): An XML element tree.
         - title (str): The title of the image.
         - key (str): The key to search for in the XML element tree.
     Processing Logic:
@@ -368,11 +369,11 @@ def get_image(image: defusedxml.ElementTree, title: str, key: str) -> str:
 
 
 # If Task has an icon, get and format it in the Task output line.
-def get_icon_info(the_task: defusedxml.ElementTree) -> str:
+def get_icon_info(the_task: pygixml.XMLNode) -> str:
     """
     Gets icon information from the task XML.
     Args:
-        the_task: defusedxml.ElementTree: The task XML tree
+        the_task: pygixml.XMLNode: The task XML tree
     Returns:
         str: Formatted icon information text wrapped in brackets
     - Finds the <Img> element from the task
@@ -397,7 +398,7 @@ def get_icon_info(the_task: defusedxml.ElementTree) -> str:
 # Get additional information for this Task
 # Optimized
 def get_extra_details(
-    our_task_element: defusedxml.ElementTree,
+    our_task_element: pygixml.XMLNode,
     task_output_lines: list,
 ) -> tuple:
     """

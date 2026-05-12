@@ -9,7 +9,7 @@ import os
 import re
 import shutil
 
-import defusedxml.ElementTree
+import pygixml
 
 from maptasker.src.maputil2 import translate_string
 
@@ -69,7 +69,7 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
 def extract_integer(
-    code_action: defusedxml.ElementTree,
+    code_action: pygixml.XMLNode,
     the_arg: str,
     argeval: str,
     arg: list,
@@ -90,14 +90,14 @@ def extract_integer(
 
     # Find the first matching <Int> element with the desired 'sr' attribute
     int_element = next(
-        (child for child in code_action if child.tag == "Int" and child.attrib.get("sr") == the_arg),
+        (child for child in code_action if child.tag == "Int" and child.attribute("sr").as_string("") == the_arg),
         None,
     )
     if int_element is None:
         return ""  # No matching <Int> element found
 
     # Extract value or variable
-    the_int_value = int_element.attrib.get("val") or (
+    the_int_value = int_element.attribute("val").as_string("") or (
         int_element.find("var").text if int_element.find("var") is not None else ""
     )
 
@@ -148,7 +148,7 @@ def extract_integer(
 
 
 # Extracts and returns the text from the given argument as a string.
-def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> str:
+def extract_string(action: pygixml.XMLNode, arg: str, argeval: str) -> str:
     """
     Extracts a string from an XML action element.
 
@@ -164,7 +164,7 @@ def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> st
 
     # Find the first matching <Str> element with the desired 'sr' attribute
     str_element = next(
-        (child for child in action.findall("Str") if child.attrib.get("sr") == arg),
+        (child for child in action.children("Str") if child.attribute("sr").as_string("") == arg),
         None,
     )
 

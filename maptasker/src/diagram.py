@@ -77,7 +77,7 @@ from maptasker.src.sysconst import (
 from maptasker.src.xmldata import tag_in_type
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    import pygixml
 
 try:
     profiles_per_line = PrimeItems.profiles_per_line
@@ -239,7 +239,7 @@ def output_the_task(
 
 # Process all Tasks in the Profile
 def print_all_tasks(
-    tasks: defusedxml.ElementTree,
+    tasks: pygixml.XMLNode,
     position_for_anchor: int,
     output_task_lines: list,
     print_tasks: bool,
@@ -249,7 +249,7 @@ def print_all_tasks(
     Process all Tasks in the Profile.
 
     Args:
-        tasks (defusedxml.ElementTree): the Tasks in the Profile
+        tasks (pygixml.XMLNode): the Tasks in the Profile
         position_for_anchor (int): the position of the anchor point for the Task
         output_task_lines (list): the output lines for the Tasks
         print_tasks (bool): True if we are printing Tasks
@@ -638,7 +638,7 @@ def get_index_setup(s: str, called_task_name: str) -> tuple:
         return -1
 
     # Extract the relevant substring after "Calls ──▶ "
-    temp_line = s[start_search:].split("]")[0].strip()
+    temp_line = s[start_search:].split("]", maxsplit=1)[0].strip()
     close_bracket_pos = temp_line.find("]")
     if close_bracket_pos != -1:
         temp_line = temp_line[:close_bracket_pos]
@@ -1403,7 +1403,7 @@ def handle_calls(output_lines: list) -> None:
 
 # Build the Profile box.
 def build_profile_box(
-    profile: defusedxml.ElementTree,
+    profile: pygixml.XMLNode,
     profile_counter: int,
     output_profile_lines: list,
     output_task_lines: list,

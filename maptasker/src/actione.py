@@ -17,7 +17,7 @@
 import contextlib
 import re
 
-import defusedxml.ElementTree  # Need for type hints
+import pygixml  # Need for type hints
 
 import maptasker.src.actionr as action_results
 from maptasker.src.action import get_extra_stuff
@@ -51,8 +51,8 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
 
 # Given an action code, evaluate it for display.
 def get_action_code(
-    code_child: defusedxml.ElementTree,
-    code_action: defusedxml.ElementTree,
+    code_child: pygixml.XMLNode,
+    code_action: pygixml.XMLNode,
     action_type: bool,
     code_type: str,
 ) -> str:
@@ -186,7 +186,8 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     else:
         # Variable Set:  Just split at the ', To=', ", Max Rounding Digits", and ", Structure Output"
         task_code_line = (
-            task_code_line.replace(", To=", f", <br>{indent_amt}{blank * extra_blanks}To=")
+            task_code_line
+            .replace(", To=", f", <br>{indent_amt}{blank * extra_blanks}To=")
             .replace(
                 ", Max Rounding Digits",
                 f", <br>{indent_amt}{blank * extra_blanks}Max Rounding Digits",
@@ -298,7 +299,7 @@ def finalize_action_details(
 def build_action(
     alist: list,
     task_code_line: str,
-    code_element: defusedxml.ElementTree,
+    code_element: pygixml.XMLNode,
     indent: int,
     indent_amt: str,
 ) -> list:

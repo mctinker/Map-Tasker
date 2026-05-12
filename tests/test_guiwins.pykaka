@@ -44,7 +44,7 @@ class TestCTkTextview(unittest.TestCase):  # noqa: D101
     def test_get_list_of_actions(self):  # noqa: D102
         # Example test for get_list_of_actions method
         name = "Example Task"
-        task_xml = None  # Replace with actual defusedxml.ElementTree object
+        task_xml = None  # Replace with actual pygixml.XMLNode object
         result = self.textview.get_list_of_actions(name, task_xml)
         # Add assertions to verify the behavior
 

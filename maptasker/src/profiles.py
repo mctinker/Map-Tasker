@@ -26,12 +26,12 @@ from maptasker.src.sysconst import (
 from maptasker.src.xmldata import remove_html_tags
 
 if TYPE_CHECKING:
-    import defusedxml.ElementTree
+    import pygixml
 
 
 # Get a specific Profile's Tasks (maximum of two:entry and exit)
 def get_profile_tasks(
-    the_profile: defusedxml.ElementTree,
+    the_profile: pygixml.XMLNode,
     found_tasks_list: list,
     task_output_line: list,
 ) -> list:
@@ -83,7 +83,7 @@ def get_profile_tasks(
 
 # Get a specific Profile's name
 def get_profile_name(
-    profile: defusedxml.ElementTree,
+    profile: pygixml.XMLNode,
 ) -> tuple[str, str]:
     """
     Get a specific Profile's name
@@ -92,7 +92,7 @@ def get_profile_name(
         :return: Profile name with appropriate html and the profile name itself
     """
     # If we don't have the name, then set it to 'No Profile'
-    profile_id = profile.attrib.get("sr")
+    profile_id = profile.attribute("sr").as_string("")
     profile_id = profile_id[4:]
     if not (the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]):
         the_profile_name = UNNAMED_ITEM
@@ -298,7 +298,7 @@ def set_name_to_condition(
 
 
 def conditions_to_name(
-    profile: defusedxml.ElementTree,
+    profile: pygixml.XMLNode,
     profile_conditions: str,
     profile_name: str,
     profile_name_with_html: str,
@@ -308,7 +308,7 @@ def conditions_to_name(
 
     Parameters
     ----------
-    profile : defusedxml.ElementTree
+    profile : pygixml.XMLNode
         The XML element representing the profile.
     profile_conditions : str
         The conditions associated with the profile.
@@ -328,7 +328,7 @@ def conditions_to_name(
     )
     # Put this name back into the master profile dictionary in PrimeItems.
     # Add a unique identifier to the name: the profile id: profile_name.id
-    profile_id = profile.attrib.get("sr")
+    profile_id = profile.attribute("sr").as_string("")
     profile_id = profile_id[4:]
     # Add the profile id and unnamed portion
     profile_name = f"{profile_name.rstrip()}.{profile_id} {UNNAMED_ITEM}"
@@ -354,7 +354,7 @@ def conditions_to_name(
 
 # Get the Profile's key attributes: limit, launcher task, run conditions
 def build_profile_line(
-    profile: defusedxml.ElementTree,
+    profile: pygixml.XMLNode,
 ) -> str:
     """
     Get the Profile's key attributes: limit, launcher task, run conditions and output it
@@ -446,19 +446,19 @@ def build_profile_line(
 
 # Process the Profile passed in.
 def do_profile(
-    item: defusedxml.ElementTree,
-    project: defusedxml.ElementTree,
+    item: pygixml.XMLNode,
+    project: pygixml.XMLNode,
     project_name: str,
-    profile: defusedxml.ElementTree,
+    profile: pygixml.XMLNode,
     list_of_found_tasks: list,
 ) -> bool:
     """Function:
         This function searches for a specific Profile and outputs its Tasks.
     Parameters:
-        - item (defusedxml.ElementTree): The current item being processed.
-        - project (defusedxml.ElementTree): The current project being processed.
+        - item (pygixml.XMLNode): The current item being processed.
+        - project (pygixml.XMLNode): The current project being processed.
         - project_name (str): The name of the current project.
-        - profile (defusedxml.ElementTree): The current profile being processed.
+        - profile (pygixml.XMLNode): The current profile being processed.
         - list_of_found_tasks (list): A list of all found tasks.
     Returns:
         - bool: True if a specific Task is being searched for, False otherwise.
@@ -648,11 +648,11 @@ def align_html_text(html_string: str) -> str:
 
 # Go through all Projects Profiles...and output them
 def process_profiles(
-    project: defusedxml.ElementTree,
+    project: pygixml.XMLNode,
     project_name: str,
     profile_ids: list,
     list_of_found_tasks: list,
-) -> defusedxml.ElementTree:
+) -> pygixml.XMLNode:
     """
     Go through Project's Profiles and output each
         all Tasker xml root elements, and a list of all output lines.

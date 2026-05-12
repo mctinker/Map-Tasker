@@ -37,8 +37,8 @@ def shell_sort(arr: list, do_arguments: bool, by_numeric: bool) -> None:
                     # Get the n from <Action sr='actn' ve='7'> as a number for comparison purposes
                     attr1 = arr[i]
                     attr2 = arr[i + gap]
-                    val1 = attr1.attrib.get("sr", "")
-                    val2 = attr2.attrib.get("sr", "")
+                    val1 = attr1.attribute("sr").as_string("")
+                    val2 = attr2.attribute("sr").as_string("")
                     if val1[3:] == "" or val2[3:] == "":  # 'if' argument...skip
                         break
                     comp1 = val1[3:]
