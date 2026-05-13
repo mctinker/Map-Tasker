@@ -38,9 +38,9 @@ def get_boolean_or_condition(
         tuple: A tuple containing the updated condition_list and boolean_list.
     """
 
-    if "bool" in child.tag:
-        boolean_list.append(child.text.upper())
-    elif child.tag == "Condition":
+    if "bool" in child.name:
+        boolean_list.append(child.value.upper())
+    elif child.name == "Condition":
         (
             first_string,
             the_operation,
@@ -64,11 +64,12 @@ def process_condition_list(
     Returns:
         tuple[list[list[Any]], list[str]]: List of conditions and their associated booleans.
     """
-    condition_list_str = code_action.find("ConditionList")
+    condition_list_str = code_action.child_value("ConditionList")
     if condition_list_str is None:
         return [], []
 
     condition_list, boolean_list = [], []
+    list_of_conditions = code_action.select_nodes("ConditionList")
     for child in condition_list_str:
         condition_list, boolean_list = get_boolean_or_condition(
             child,

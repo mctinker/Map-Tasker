@@ -45,21 +45,21 @@ def condition_time(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
     }
 
     for child in the_item:
-        match child.tag:
+        match child.name:
             case "fh" | "fm" | "th" | "tm" | "fromvar" | "tovar":
-                time_values[child.tag] = child.text or ""
+                time_values[child.name] = child.value or ""
             case "rep":
-                time_values["rep_type"] = " minutes " if child.text == "2" else " hours "
+                time_values["rep_type"] = " minutes " if child.value == "2" else " hours "
             case "repval":
-                time_values["rep"] = f" repeat every {child.text}{time_values['rep_type']}"
+                time_values["rep"] = f" repeat every {child.value}{time_values['rep_type']}"
             case "cname":
-                time_values["cname"] = f" Name={child.text}"
+                time_values["cname"] = f" Name={child.value}"
             case _:
                 return (
-                    f"{the_output_condition}{child.text} not yet mapped!",
+                    f"{the_output_condition}{child.value} not yet mapped!",
                     not_in_dictionary(
                         "Condition Time",
-                        child.text,
+                        child.value,
                     ),
                 )
 
@@ -114,14 +114,14 @@ def condition_day(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
     results = {"wday": [], "mday": [], "mnth": [], "cname": ""}
 
     for child in the_item:
-        if "wday" in child.tag:
-            results["wday"].append(weekdays[int(child.text) - 1])
-        elif "mday" in child.tag:
-            results["mday"].append(child.text)
-        elif "mnth" in child.tag:
-            results["mnth"].append(months[int(child.text)])
-        elif "cname" in child.tag:
-            results["cname"] = f" ,Name={child.text}"
+        if "wday" in child.name:
+            results["wday"].append(weekdays[int(child.value) - 1])
+        elif "mday" in child.name:
+            results["mday"].append(child.value)
+        elif "mnth" in child.name:
+            results["mnth"].append(months[int(child.value)])
+        elif "cname" in child.name:
+            results["cname"] = f" ,Name={child.value}"
 
     formatted_parts = [
         f"Days of Week: {' '.join(results['wday'])}" if results["wday"] else "",
@@ -152,15 +152,15 @@ def condition_state(
     _extract_condition = extract_condition
     for child in the_item:
         # Process the state code
-        if child.tag == "code":
-            logger.debug(f"condition_state:{child.text}")
-            state_code = f"{child.text}s" if "s" not in child.text else child.text
+        if child.name == "code":
+            logger.debug(f"condition_state:{child.value}")
+            state_code = f"{child.value}s" if "s" not in child.value else child.value
             if state_code not in action_codes:
                 _build_action_codes(
                     child,
                     the_item,
                 )  # Add it to our action dictionary
-            # child.text = state_code
+            # child.value = state_code
             state = _get_action_code(
                 child,
                 the_item,
@@ -175,13 +175,13 @@ def condition_state(
             # Add this State to any preceding State
             state = state.replace("\n", spaces)
             the_output_condition = f"{the_output_condition}State: {state}"
-            invert = the_item.find("pin")
-            if invert is not None and invert.text == "true":
+            invert = the_item.child("pin").text()
+            if invert and invert.text == "true":
                 the_output_condition = f"{the_output_condition} <em>[inverted]</em>"
             if PrimeItems.program_arguments["debug"]:
-                the_output_condition = f"{the_output_condition} (code:{child.text})"
+                the_output_condition = f"{the_output_condition} (code:{child.value})"
 
-        elif child.tag == "ConditionList":
+        elif child.name == "ConditionList":
             evaluated_results = {}
             _extract_condition(evaluated_results, "0", "", the_item)
             the_output_condition = f"{the_output_condition}, Condition(s): {evaluated_results['arg0']['value']}"
@@ -203,12 +203,12 @@ def condition_event(
             be formatted
         :return: the formatted condition's output string
     """
-    the_event_code = the_item.find("code")
+    the_event_code = the_item.child("code").text()
 
     # Determine what the Event code is and return the actual Event text
-    event_code = f"{the_event_code.text}e" if "e" not in the_event_code.text else the_event_code.text
+    event_code = f"{the_event_code}e" if "e" not in the_event_code else the_event_code
     if event_code not in action_codes:
-        logger.debug(f"code:{the_event_code.text} not found in action codes!")
+        logger.debug(f"code:{the_event_code} not found in action codes!")
         # Build new (template_ action code if not in our dictionary of codes yet
         process_action_codes.build_action_codes(
             the_event_code,
@@ -232,7 +232,7 @@ def condition_event(
     event = f"{event}{get_priority(the_item, True)}"
 
     # Handle any conditions in the Event
-    condition_list = the_item.find("ConditionList")
+    condition_list = the_item.child("ConditionList")
     if condition_list is not None:
         evaluated_results = {}
         extract_condition(evaluated_results, "0", "", the_item)
@@ -257,7 +257,7 @@ def condition_app(item: pygixml.XMLNode, condition: str) -> str:
     """
     the_apps = ""
     for apps in item:
-        if "label" in apps.tag:
+        if "label" in apps.name:
             the_apps = f"{the_apps} {apps.text}"
     return f"{condition}Application:{the_apps}"
 
@@ -309,13 +309,13 @@ def parse_profile_condition(the_profile: pygixml.XMLNode) -> str:
 
     # Go through Profile'x sub-XML looking for conditions
     for item in the_profile:
-        if item.tag in ignore_items or "mid" in item.tag:  # Bypass junk we don't care about
+        if item.name in ignore_items or "mid" in item.name:  # Bypass junk we don't care about
             continue
         if condition:  # If we already have a condition, add 'and' (italicized)
             condition = f"{condition}, <em>AND</em> "
 
         # Find out what the condition is and handle it.
-        if item.tag in function_map:
-            condition = function_map[item.tag](item, condition)
+        if item.name in function_map:
+            condition = function_map[item.name](item, condition)
 
     return condition

@@ -371,11 +371,9 @@ def get_extra_stuff(
     """
 
     # If no code, just bail out.
-    action_code_xml = code_action.find("code")
-    if action_code_xml is None:
+    action_code = code_action.child("code").text()
+    if action_code is None:
         return ""
-
-    action_code = action_code_xml.text if action_code_xml is not None and not isinstance(action_code_xml, int) else ""
 
     program_arguments = PrimeItems.program_arguments
     colors_to_use = PrimeItems.colors_to_use
@@ -411,8 +409,8 @@ def get_extra_stuff(
 
     # See if Task action is to be continued after error
     if program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
-        child = code_action.find("se")
-        if child is not None and child.text == "false":
+        child = code_action.child("se").text()
+        if child and child == "false":
             extra_stuff = f"{format_html('action_color', '', ' [Continue Task After Error]', True)}{extra_stuff}"
 
     # For some reason, we're left with an empty "<span..." element.  Remove it.

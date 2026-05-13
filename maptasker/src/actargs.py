@@ -80,18 +80,17 @@ def get_bundle(
 
     evaluated_results["returning_something"] = True coming into this function
     """
-    bundle = code_action.find("Bundle")
+    bundle = code_action.child("Bundle")
     if bundle is None:
         evaluated_results[f"arg{arg}"] = {"value": ""}
         evaluated_results["returning_something"] = False
         return evaluated_results
 
     # Handle any pref = Output Variables name
-    pref_tag = bundle.find("pref")
-    pref = pref_tag.text if pref_tag is not None else ""
+    pref = bundle.child("pref").text()
 
     # Handle the twofortyfouram.locale.intent.extra.BLURB tag
-    vals = bundle.find("Vals")
+    vals = bundle.child("Vals")
     if vals is None:
         evaluated_results[f"arg{arg}"] = {"value": ""}
         evaluated_results["returning_something"] = False
@@ -99,9 +98,9 @@ def get_bundle(
 
     clean_string = next(
         (
-            node.text
+            node.value
             for tag in ["com.twofortyfouram.locale.intent.extra.BLURB", "Configcommand"]
-            if (node := vals.find(tag)) is not None and node.text
+            if (node := vals.child(tag)) is not None and node.text
         ),
         "",
     )

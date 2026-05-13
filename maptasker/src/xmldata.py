@@ -89,6 +89,7 @@ def extract_integer(
     from maptasker.src.action import drop_trailing_comma, process_xml_list  # noqa: PLC0415
 
     # Find the first matching <Int> element with the desired 'sr' attribute
+    # FIX We need to figure this out.
     int_element = next(
         (child for child in code_action if child.tag == "Int" and child.attribute("sr").as_string("") == the_arg),
         None,
@@ -164,7 +165,7 @@ def extract_string(action: pygixml.XMLNode, arg: str, argeval: str) -> str:
 
     # Find the first matching <Str> element with the desired 'sr' attribute
     str_element = next(
-        (child for child in action.children("Str") if child.attribute("sr").as_string("") == arg),
+        (child for child in action.children("Str") if child.attribute("sr").value == arg),
         None,
     )
 

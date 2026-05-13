@@ -328,7 +328,7 @@ def conditions_to_name(
     )
     # Put this name back into the master profile dictionary in PrimeItems.
     # Add a unique identifier to the name: the profile id: profile_name.id
-    profile_id = profile.attribute("sr").as_string("")
+    profile_id = profile.attribute("sr").value
     profile_id = profile_id[4:]
     # Add the profile id and unnamed portion
     profile_name = f"{profile_name.rstrip()}.{profile_id} {UNNAMED_ITEM}"

@@ -32,12 +32,12 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     new_table = {}
     for item in all_xml:
         # Get the element name
-        name_element = item.find(name_qualifier)
-        name = name_element.text.strip() if name_element is not None and name_element.text else ""
+        name_temp = item.child("name").text()
+        name = name_temp.strip() if name_temp is not None and name_temp else ""
 
         # Get the Profile/Task identifier: id=number for Profiles and Tasks,
-        id_element = item.find("id")
-        item_id = id_element.text if get_id and id_element is not None else name
+        id_element = item.child("id").text()
+        item_id = id_element if get_id and id_element is not None else name
 
         new_table[item_id] = {"xml": item, "name": name}
 
@@ -80,7 +80,7 @@ def get_the_xml_data() -> int:
     PrimeItems.xml_root = PrimeItems.xml_tree.root.xml
 
     # Check for valid Tasker backup file (.name() instead of .tag)
-    if PrimeItems.xml_tree.name != "TaskerData":
+    if PrimeItems.xml_tree.root.name != "TaskerData":
         return _handle_gui_error("Invalid Tasker backup XML file", code=3)
 
     # Extract and transform data
@@ -90,26 +90,26 @@ def get_the_xml_data() -> int:
     # we pass the node itself to move_xml_to_table
     PrimeItems.tasker_root_elements = {
         "all_projects": _move_xml_to_table(
-            [res.node for res in PrimeItems.xml_root.select_nodes("Project")],
+            [res.node for res in PrimeItems.xml_tree.root.select_nodes("Project")],
             False,
             "name",
         ),
         "all_profiles": _move_xml_to_table(
-            [res.node for res in PrimeItems.xml_root.select_nodes("Profile")],
+            [res.node for res in PrimeItems.xml_tree.root.select_nodes("Profile")],
             True,
             "nme",
         ),
         "all_tasks": _move_xml_to_table(
-            [res.node for res in PrimeItems.xml_root.select_nodes("Task")],
+            [res.node for res in PrimeItems.xml_tree.root.select_nodes("Task")],
             True,
             "nme",
         ),
         "all_scenes": _move_xml_to_table(
-            [res.node for res in PrimeItems.xml_root.select_nodes("Scene")],
+            [res.node for res in PrimeItems.xml_tree.root.select_nodes("Scene")],
             False,
             "nme",
         ),
-        "all_services": [res.node for res in PrimeItems.xml_root.select_nodes("Setting")],
+        "all_services": [res.node for res in PrimeItems.xml_tree.root.select_nodes("Setting")],
     }
 
     # Assign names to Profiles that have no name

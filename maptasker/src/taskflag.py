@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+"""Get Profile/Task flags: priority, collision, stay awake"""
 
 #                                                                                      #
 # taskflag: Get Profile/Task fags: priority, collision, stay awake                     #
@@ -16,12 +17,12 @@ def get_priority(element: pygixml.XMLNode, event: bool) -> str:
     """
     if element is None:
         return ""
-    priority_element = element.find("pri")
+    priority_element = element.child("pri").text()
     if priority_element is None:
         return ""
     if event:
-        return f" Priority:{priority_element.text}"
-    return f"&nbsp;&nbsp;[Priority: {priority_element.text}]"
+        return f" Priority:{priority_element}"
+    return f"&nbsp;&nbsp;[Priority: {priority_element}]"
 
 
 def get_collision(element: pygixml.XMLNode) -> str:
@@ -32,11 +33,11 @@ def get_collision(element: pygixml.XMLNode) -> str:
     """
     if element is None:
         return ""
-    collision_element = element.find("rty")
+    collision_element = element.child("rty").text()
     # No collision tag = default = Abort Task on collision (we'll leave it blank)
     if collision_element is None:
         return ""
-    collision_flag = collision_element.text or ""
+    collision_flag = collision_element or ""
     if collision_flag == "1":
         collision_text = "Abort Existing Task"
     elif collision_flag == "2":
@@ -55,5 +56,5 @@ def get_awake(element: pygixml.XMLNode) -> str:
     """
     if element is None:
         return ""
-    awake_element = element.find("stayawake")
+    awake_element = element.child("stayawake")
     return "" if awake_element is None else "&nbsp;&nbsp;[Keep Device Awake]"
