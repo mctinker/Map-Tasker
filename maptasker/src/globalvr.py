@@ -126,16 +126,13 @@ def get_variables() -> None:
 
     """
     # Get all of the Tasker variables
-    if not (global_variables := list(PrimeItems.xml_root.children("Variable"))):
+    if not (global_variables := list(PrimeItems.xml_tree.root.children("Variable"))):
         return
     # Save each in a dictionary.
     # Loop through the variables.
     for variable in global_variables:
-        for num, child in enumerate(variable):
-            if num == 0:
-                variable_name = child.text
-            else:
-                variable_value = child.text
+        variable_name = variable.name
+        variable_value = variable.value if variable.value is not None else ""
 
         # Format the output
         if variable_value:

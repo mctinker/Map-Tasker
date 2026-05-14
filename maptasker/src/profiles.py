@@ -49,7 +49,7 @@ def get_profile_tasks(
 
     _get_task_name = tasks.get_task_name
     for child in the_profile:
-        tag = child.tag
+        tag = child.name
         if tag in keys_we_dont_want:
             continue
 
@@ -70,9 +70,9 @@ def get_profile_tasks(
 
             if single_task_name and single_task_name == task_name:
                 PrimeItems.found_named_items["single_task_found"] = True
-                profile_name = the_profile.find("nme")
+                profile_name = the_profile.child("nme")
                 if profile_name is not None:
-                    PrimeItems.program_arguments["single_profile_name"] = profile_name.text
+                    PrimeItems.program_arguments["single_profile_name"] = profile_name.value
                 break
 
         elif tag == "nme":
@@ -118,7 +118,7 @@ def get_profile_name(
 
     # If we are debugging, add the Profile ID
     if PrimeItems.program_arguments["debug"]:
-        profile_id = profile.find("id").text
+        profile_id = profile.child("id").text()
         profile_name_with_html = (
             f"{profile_name_with_html} {format_html('unknown_task_color', '', f', ID:{profile_id}', True)}"
         )
@@ -343,7 +343,6 @@ def conditions_to_name(
 
     # Make the conditions pretty
     if PrimeItems.program_arguments["pretty"]:
-        # condition_length = profile_conditions.find(":")
         # Add spacing for profile name, condition name and "Profile:"
         profile_conditions = profile_conditions.replace(",", "<br>")
         # Fix splitting up of JSON Structure Output text
@@ -383,17 +382,17 @@ def build_profile_line(
     )
 
     # Look for disabled Profile
-    limit = profile.find("limit")  # Is the Profile disabled?
-    disabled = disabled_profile_html if limit is not None and limit.text == "true" else ""
+    limit = profile.child("limit")  # Is the Profile disabled?
+    disabled = disabled_profile_html if limit is not None and limit.value == "true" else ""
 
     # Is there a Launcher Task with this Project?
-    launcher_xml = profile.find("ProfileVariable")
+    launcher_xml = profile.child("ProfileVariable")
     launcher = launcher_task_html if launcher_xml is not None else ""
 
     # Display flags for debug mode
     if PrimeItems.program_arguments["debug"]:
-        flags = profile.find("flags")
-        flags = format_html("launcher_task_color", "", f" flags: {flags.text}", True) if flags is not None else ""
+        flags = profile.child("flags")
+        flags = format_html("launcher_task_color", "", f" flags: {flags.value}", True) if flags is not None else ""
 
     # Get the Profile name
     profile_name_with_html, profile_name = get_profile_name(profile)
@@ -581,10 +580,6 @@ def align_html_text(html_string: str) -> str:
     # Calculate the number of spaces before the first occurrence
     spaces_before_position = position_end - position_start
 
-    # Get the length of the profile name substring and add it to the spaces
-    # profile_name_start = html_string.find("Profile: ")
-    # profile_name_end = html_string.find("</span>", profile_name_start)
-    # profile_name_length = profile_name_end - profile_name_start
     # Setup the intial spacing
     spaces_before_position += 20
 

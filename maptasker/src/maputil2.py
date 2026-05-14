@@ -20,6 +20,7 @@ from contextlib import contextmanager
 from tkinter import TclError
 
 import customtkinter as ctk
+import pygixml
 import requests
 from requests.exceptions import ConnectionError, InvalidSchema, Timeout  # noqa: A004
 
@@ -275,7 +276,7 @@ def ensure_and_import(pypi_name: str, import_path: str) -> object:
 
     # Try to see if 'pip' module exists in the current sys.executable
     try:
-        subprocess.run([sys.executable, "-m", "pip", "--version"], capture_output=True, check=True)  # noqa: S603
+        subprocess.run([sys.executable, "-m", "pip", "--version"], capture_output=True, check=True)
         use_uv = False
     except (subprocess.CalledProcessError, FileNotFoundError):
         use_uv = has_uv  # Use uv if pip failed but uv exists
@@ -305,3 +306,32 @@ def ensure_and_import(pypi_name: str, import_path: str) -> object:
     except (subprocess.CalledProcessError, ImportError) as e:
         print(f"MapTasker: --- Failed to provide Package {import_path}: {e} ---")
         return None
+
+
+def find_first_tag_by_value(node: pygixml.XMLNode, tag_name: str, the_arg: str) -> pygixml.XMLNode | None:
+    """
+    Traverses the tree to find the first node with a specific tag name
+    and a specific value.
+    Parameters:
+        node: The current XML node being inspected.
+        tag_name: The name of the tag to search for.
+        the_arg: The value to match against the node's child value.
+    Returns:
+        The first XML node that matches the specified tag name and value, or None if no match is found.
+    """
+    # Standardize comparison value
+    target_val = str(the_arg)
+
+    # 1. Check if the current node matches both the tag name and the value
+    if node.name == tag_name and node.child_value() == target_val:
+        return node
+
+    # 2. Recursively search children
+    for child in node.children():
+        result = find_first_tag_by_value(child, tag_name, the_arg)
+
+        # 3. Short-circuit: return as soon as the first match is found
+        if result:
+            return result
+
+    return None

@@ -125,7 +125,7 @@ def do_task_actions(
     """
     _update_caller_and_called_tasks = update_caller_and_called_tasks
     for action in task_actions:
-        if any(child.tag == "code" and child.text == "130" for child in action):
+        if any(child.name == "code" and child.value == "130" for child in action):
             perform_task_name = next((s.text() for s in action.children("Str")), None)
             if perform_task_name:
                 # Just get ther task name and not the whole output line

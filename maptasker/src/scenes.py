@@ -171,11 +171,11 @@ def get_scene_elements(
         - Find the element's name and geometry.
         - Add the element's information to the output lines.
         - Check if the element has a sub-scene and process it if so."""
-    element_type = child.tag.split("Element")
+    element_type = child.name.split("Element")
 
     # Handle scene V2 compressed JSON element
     if element_type[0] == "lj":
-        json_data = decompress_gzip_json(child.text)
+        json_data = decompress_gzip_json(child.value)
 
         # Check for errors in decompression
         if isinstance(json_data, str) and json_data.startswith("An error occurred"):
@@ -233,17 +233,17 @@ def process_sub_elements(child: pygixml.XMLNode, indentation: int) -> None:
     for subchild in child:
         indentation = original_indentation
         # If it is an xxxElement, then process it by recursing.
-        if tag_in_type(subchild.tag, True):
-            process_arguments(subchild, subchild.tag, indentation + 5)
+        if tag_in_type(subchild.name, True):
+            process_arguments(subchild, subchild.name, indentation + 5)
         # Handle Properties KEY Tab
-        elif subchild.tag == "LinkClickFilter":
+        elif subchild.name == "LinkClickFilter":
             line_out = ""
             stopbottom_event_element = subchild.find("stopEvent")
             if stopbottom_event_element is not None:
-                line_out = f"Stop Event={stopbottom_event_element.text},"
+                line_out = f"Stop Event={stopbottom_event_element.value},"
             url_match_element = subchild.find("urlMatch")
             if url_match_element is not None:
-                line_out = f"{line_out} URL Match={url_match_element.text}"
+                line_out = f"{line_out} URL Match={url_match_element.value}"
             if line_out:
                 PrimeItems.output_lines.add_line_to_output(
                     2,
@@ -437,9 +437,9 @@ def process_tasks(child: pygixml.XMLNode, tasks_found: list) -> None:
     for sub_child in child:  # Go through Element sub-items
         # Task-Click (<xxxClick>, <xxxTask>, etc.) associated with this
         #  Scene's element?
-        if tag_in_type(sub_child.tag, False):  # e.g. clickTask?
+        if tag_in_type(sub_child.name, False):  # e.g. clickTask?
             # Start Scene's Task list
-            temp_task_list = [sub_child.text]
+            temp_task_list = [sub_child.value]
 
             # Only process Task if it is not a fake Task.
             if temp_task_list[0][0] != "-":
@@ -458,7 +458,7 @@ def process_tasks(child: pygixml.XMLNode, tasks_found: list) -> None:
                 )
 
                 # reset to task name since get_task_name changes its value
-                temp_task_list = [sub_child.text]
+                temp_task_list = [sub_child.value]
 
                 # Add the Scene Task to the directory if unnamed.
                 if "(Unnamed)" in task_name:
@@ -469,10 +469,10 @@ def process_tasks(child: pygixml.XMLNode, tasks_found: list) -> None:
                     )
 
                 # If Task is related to the scene Properties, some of the names change.
-                task_title = SCENE_TASK_TYPES[sub_child.tag]  # Pick up title from xxxTask element.
-                if child.tag == "PropertiesElement":
+                task_title = SCENE_TASK_TYPES[sub_child.name]  # Pick up title from xxxTask element.
+                if child.name == "PropertiesElement":
                     preamble = "  Properties "
-                    if sub_child.tag == "itemselectedTask":
+                    if sub_child.name == "itemselectedTask":
                         task_title = "TAB TAP"
                 else:
                     preamble = ""
@@ -491,7 +491,7 @@ def process_tasks(child: pygixml.XMLNode, tasks_found: list) -> None:
                 )
 
         # If we hit the arguments, then break out of loop looking for tasks.add
-        elif sub_child.tag in ["Str", "Int"]:
+        elif sub_child.name in ["Str", "Int"]:
             break
 
     # Add a break after last Task.
@@ -582,13 +582,13 @@ def get_details(
     _get_geometry = get_geometry
     _process_scene = process_scene
     for child in scene:
-        if child.tag in SCENE_TAGS_TO_IGNORE:
+        if child.name in SCENE_TAGS_TO_IGNORE:
             continue
         indentation = original_indent
 
         # Is this an xxxElement?
-        if _tag_in_type(child.tag, True):  # xxxElement (e.g. RectElement)?
-            element_type = child.tag
+        if _tag_in_type(child.name, True):  # xxxElement (e.g. RectElement)?
+            element_type = child.name
             # Display the Element details
             if PrimeItems.program_arguments["display_detail_level"] > 2:
                 _get_scene_elements(child, indentation)

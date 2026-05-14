@@ -79,7 +79,7 @@ def get_the_xml_data() -> int:
     # In pygixml, we get the root node directly from the document object
     PrimeItems.xml_root = PrimeItems.xml_tree.root.xml
 
-    # Check for valid Tasker backup file (.name() instead of .tag)
+    # Check for valid Tasker backup file .
     if PrimeItems.xml_tree.root.name != "TaskerData":
         return _handle_gui_error("Invalid Tasker backup XML file", code=3)
 
@@ -193,8 +193,8 @@ def get_first_action(task: pygixml.XPathNode) -> str:
         have_first_action = False
         # Go through Actions looking for the first one ("act0")
         for action in task_actions:
-            action_number = action.attribute("sr").as_string("")
-            if action_number == "act0":
+            action_number = action.attribute("sr").value
+            if action_number is not None and action_number == "act0":
                 have_first_action = True
                 break
 
@@ -202,7 +202,7 @@ def get_first_action(task: pygixml.XPathNode) -> str:
             return ""
 
         # Now get the Action code
-        child = action.find("code")
+        child = action.child("code")
         the_result = get_action_code(child, action, True, "t")
         clean_text = strip_html_tags(the_result)
         clean_text = (

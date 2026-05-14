@@ -218,11 +218,11 @@ def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
     limit = ""
     _parse_variable = parse_variable
     for item in header:
-        if item.tag == "cldm":
-            cooldown = item.text
-        if item.tag == "limit":
-            limit = item.text
-        if item.tag == "ProfileVariable":
+        if item.name == "cldm":
+            cooldown = item.value
+        if item.name == "limit":
+            limit = item.value
+        if item.name == "ProfileVariable":
             _parse_variable(property_tag, css_attribute, item, cooldown, limit)
             have_property = True
 

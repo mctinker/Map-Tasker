@@ -176,7 +176,7 @@ def condition_state(
             state = state.replace("\n", spaces)
             the_output_condition = f"{the_output_condition}State: {state}"
             invert = the_item.child("pin").text()
-            if invert and invert.text == "true":
+            if invert and invert == "true":
                 the_output_condition = f"{the_output_condition} <em>[inverted]</em>"
             if PrimeItems.program_arguments["debug"]:
                 the_output_condition = f"{the_output_condition} (code:{child.value})"
@@ -271,9 +271,9 @@ def condition_loc(item: pygixml.XMLNode, condition: str) -> str:
             be formatted
         :return: the formatted condition's output string
     """
-    lat = item.find("lat").text
-    lon = item.find("long").text
-    rad = item.find("rad").text
+    lat = item.child("lat").text()
+    lon = item.child("long").text()
+    rad = item.child("rad").text()
     if lat:
         return f"{condition}Location with latitude {lat} longitude {lon} radius {rad}"
     return ""

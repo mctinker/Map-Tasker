@@ -11,7 +11,7 @@ import shutil
 
 import pygixml
 
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import find_first_tag_by_value, translate_string
 
 
 # See if the xml tag is one of the predefined types and return result
@@ -90,16 +90,13 @@ def extract_integer(
 
     # Find the first matching <Int> element with the desired 'sr' attribute
     # FIX We need to figure this out.
-    int_element = next(
-        (child for child in code_action if child.tag == "Int" and child.attribute("sr").as_string("") == the_arg),
-        None,
-    )
+    int_element = find_first_tag_by_value(code_action, "Int", the_arg)
     if int_element is None:
         return ""  # No matching <Int> element found
 
     # Extract value or variable
     the_int_value = int_element.attribute("val").as_string("") or (
-        int_element.find("var").text if int_element.find("var") is not None else ""
+        int_element.child("var").text() if int_element.child("var") is not None else ""
     )
 
     if not the_int_value:
@@ -164,18 +161,15 @@ def extract_string(action: pygixml.XMLNode, arg: str, argeval: str) -> str:
     from maptasker.src.action import drop_trailing_comma  # noqa: PLC0415
 
     # Find the first matching <Str> element with the desired 'sr' attribute
-    str_element = next(
-        (child for child in action.children("Str") if child.attribute("sr").value == arg),
-        None,
-    )
+    str_element = find_first_tag_by_value(action, "Str", arg)
 
-    if str_element is None or str_element.text is None:
+    if str_element is None:
         return ""  # No matching element found
 
     # Extract text value with prefix
     new_argeval = f"{argeval}=" if argeval[-1] != "=" else argeval
     extracted_text = (
-        f"{argeval}(carriage return)" if str_element.text == "\n" else f"{new_argeval}{str_element.text or ''}"
+        f"{argeval}(carriage return)" if str_element.text() == "\n" else f"{new_argeval}{str_element.text() or ''}"
     )
 
     # Drop trailing comma if necessary

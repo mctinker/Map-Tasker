@@ -30,10 +30,10 @@ def get_kid_app(element: pygixml.XMLNode) -> str:
     num_feature = num_plugin = 0
 
     for item in kid_element:  # Get any special features
-        if "feat" in item.tag:
+        if "feat" in item.name:
             kid_features = f" {kid_features}{num_feature + 1}={item.text}, "
             num_feature += 1
-        elif "mplug" in item.tag:
+        elif "mplug" in item.name:
             kid_plugins = f" {kid_plugins}{num_plugin + 1}={item.text}, "
             num_plugin += 1
     if kid_features:

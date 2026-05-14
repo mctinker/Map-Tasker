@@ -51,7 +51,7 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
                     result_parts.pop()
                     continue
             # Argument is missing...ignore it.
-            except KeyError:
+            except (KeyError, TypeError):
                 pass
 
     # Return results as a string

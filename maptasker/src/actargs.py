@@ -14,6 +14,7 @@ import pygixml
 import maptasker.src.action as get_action
 from maptasker.src.actiond import process_condition_list
 from maptasker.src.format import format_html
+from maptasker.src.maputil2 import find_first_tag_by_value
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.xmldata import extract_integer, extract_string
@@ -49,7 +50,7 @@ def process_clean_string(
         clean_string = clean_string.replace("\n\n", "\n")
         clean_string = clean_string.replace("\n", ",")
 
-        if code_action.tag == "Event":
+        if code_action.name == "Event":
             padding = blank * 50
             clean_string = f"{padding}{clean_string}"
             clean_string = clean_string.replace(",", f"\n{blank * 49}")
@@ -151,11 +152,8 @@ def evaluate_argument(
 
         case "Str":
             if argeval == "Label":
-                label = next(
-                    (child.text for child in code_action if child.tag == "label"),
-                    None,
-                )
-                evaluated_results[the_arg] = {"value": label or ""}
+                label = find_first_tag_by_value(code_action, "label", the_arg)
+                evaluated_results[the_arg] = {"value": label or ""} if label is not None else ""
             else:
                 evaluated_string = extract_string(code_action, the_arg, argeval)
                 # Convert any embedded html to plain text so it can be embedded ion our HTML.
@@ -222,17 +220,17 @@ def extract_image(
         - Set returning_something to False if no image is found
     """
     image, package = "", ""
-    child = code_action.find("Img")
+    child = code_action.child("Img")
     if child is None:
         evaluated_results[f"arg{arg[0]}"]["value"] = " "
         return
     # Image name
     with contextlib.suppress(Exception):
-        image = child.find("nme").text
-    if child.find("pkg") is not None:
-        package = f'", Package:"{child.find("pkg").text}'
-    elif child.find("var") is not None:  # There is a variable name?
-        image = child.find("var").text
+        image = child.child("nme").text()
+    if child.child("pkg") is not None:
+        package = f'", Package:"{child.child("pkg").text()}'
+    elif child.child("var") is not None:  # There is a variable name?
+        image = child.child("var").text()
     if image:
         evaluated_results[f"arg{arg[0]}"]["value"] = f"{argeval}{image}{package}"
 
@@ -281,7 +279,6 @@ def extract_condition(
     evaluated_results[f"arg{arg}"]["value"] = seperator.join(conditions)
 
 
-# Get the argument details from action xml
 # Get the argument details from action xml
 def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
     """

@@ -329,7 +329,7 @@ def process_scene_tasks(
     scene_xml = PrimeItems.tasker_root_elements["all_scenes"].get(scene, {}).get("xml", [])
     # Go through the scene elements, looking for "xxxElement"
     for sub_scene in scene_xml:
-        sub_scene_tag = sub_scene.tag
+        sub_scene_tag = sub_scene.name
 
         if not tag_in_type(sub_scene_tag, True):
             if sub_scene_tag in {"Str", "Int"}:
@@ -344,7 +344,7 @@ def process_scene_tasks(
 
         # Go through the "xxxElement" sub-elements looking for a "xxxTask"
         for sub_element in sub_scene:
-            sub_element_tag = sub_element.tag
+            sub_element_tag = sub_element.name
 
             if sub_element_tag == "PropertiesElement":
                 break  # No need to continue if we hit arguments
