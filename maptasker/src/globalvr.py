@@ -173,7 +173,7 @@ def print_the_variables(color_to_use: str, project: pygixml.XMLNode) -> None:
             value["value"] = "<em>Tasker Global</em>"
 
         # If doing the Project variables, first find the Project
-        if project is not None and project != "":
+        if project is not None:
             # Does this variable have a list of Projects?
             if PrimeItems.variables[key]["project"]:
                 variable_output_lines.extend(
@@ -206,7 +206,7 @@ def output_variables(heading: str, project: pygixml.XMLNode) -> None:
     if not PrimeItems.variables:
         return
     # Add a directory entry for variables.
-    if (project is None or project == "") and PrimeItems.program_arguments["directory"]:
+    if (project is None) and PrimeItems.program_arguments["directory"]:
         PrimeItems.output_lines.add_line_to_output(
             5,
             '<a id="unreferenced_variables"></a>',
@@ -215,7 +215,7 @@ def output_variables(heading: str, project: pygixml.XMLNode) -> None:
 
     # Output unreferenced global variables.  The Project will be "".
     # Force an indentation and set color to use in output.
-    if project is None or project == "":
+    if project is None:
         color_to_use = PrimeItems.colors_to_use["trailing_comments_color"]
         color_name = "trailing_comments_color"
         PrimeItems.output_lines.add_line_to_output(

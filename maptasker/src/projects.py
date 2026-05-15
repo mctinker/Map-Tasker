@@ -167,14 +167,14 @@ def get_launcher_task(project: pygixml.XMLNode, project_name: str) -> str:
     # blanks_in_front = f"{space * total_spaces_first_line}"
     # blanks_after_front = f"{space * (total_spaces_first_line + 22)}"
     launcher_task_info = ""
-    share_element = project.find("Share")
+    share_element = project.child("Share")
     if share_element is not None:
-        launcher_task_element = share_element.find("t")
-        if launcher_task_element is not None and launcher_task_element.text is not None:
+        launcher_task_element = share_element.child("t")
+        if launcher_task_element is not None and launcher_task_element.value is not None:
             launcher_task_info = format_html(
                 "launcher_task_color",
                 "",
-                f"[Launcher Task: {launcher_task_element.text}] ",
+                f"[Launcher Task: {launcher_task_element.value}] ",
                 True,
             )
 

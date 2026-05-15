@@ -372,8 +372,8 @@ def check_project(item: str) -> bool:
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
     project = PrimeItems.tasker_root_elements["all_projects"][item[1]]["xml"]
-    project_id = project.attribute("sr").as_string("")
-    project_id = project_id[4:]
+    project_id = project.attribute("sr")
+    project_id = project_id.value[4:]
     # Are we looking for specific Preoject and this is it?
     if PrimeItems.program_arguments["single_project_name"]:
         if item[1] != PrimeItems.program_arguments["single_project_name"]:

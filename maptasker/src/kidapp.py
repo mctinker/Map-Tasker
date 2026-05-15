@@ -20,21 +20,21 @@ def get_kid_app(element: pygixml.XMLNode) -> str:
     four_spaces = "&nbsp;&nbsp;&nbsp;&nbsp;"
     if element is None:
         return ""
-    kid_element = element.find("Kid")
+    kid_element = element.child("Kid")
     if kid_element is None:
         return ""
 
-    kid_package = kid_element.find("pkg").text
-    kid_version = kid_element.find("vnme").text
-    kid_target = kid_element.find("vTarg").text
+    kid_package = kid_element.child("pkg").text()
+    kid_version = kid_element.child("vnme").text()
+    kid_target = kid_element.child("vTarg").text()
     num_feature = num_plugin = 0
 
     for item in kid_element:  # Get any special features
         if "feat" in item.name:
-            kid_features = f" {kid_features}{num_feature + 1}={item.text}, "
+            kid_features = f" {kid_features}{num_feature + 1}={item.value}, "
             num_feature += 1
         elif "mplug" in item.name:
-            kid_plugins = f" {kid_plugins}{num_plugin + 1}={item.text}, "
+            kid_plugins = f" {kid_plugins}{num_plugin + 1}={item.value}, "
             num_plugin += 1
     if kid_features:
         kid_features = f"<br>{four_spaces}Features:{kid_features[: len(kid_features) - 2]}"

@@ -110,7 +110,7 @@ def get_actions(current_task: pygixml.XMLNode) -> list:
     _reformat_html = reformat_html
     _build_action = action_evaluate.build_action
     for action in task_actions:
-        child = action.find("code")
+        child = action.child("code")
         task_code = _get_action_code(child, action, True, "t")
 
         if any(token in task_code for token in [">End If", ">Else", ">End For"]):
@@ -383,7 +383,7 @@ def get_icon_info(the_task: pygixml.XMLNode) -> str:
     """
     if the_task is None:
         return ""
-    image = the_task.find("Img")
+    image = the_task.child("Img")
     if image is None:
         return ""
     icon_name = get_image(image, "name", "nme")

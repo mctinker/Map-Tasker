@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import maptasker.src.action as get_action
 from maptasker.src.actargs import action_args
@@ -26,6 +27,9 @@ from maptasker.src.sysconst import (
     pattern11,
     pattern12,
 )
+
+if TYPE_CHECKING:
+    import pygixml
 
 
 # Given a list of positional items, return a string in the correct order based on position.

@@ -48,6 +48,7 @@ def get_profile_tasks(
     single_task_name = PrimeItems.program_arguments.get("single_task_name")
 
     _get_task_name = tasks.get_task_name
+    # FIX Get all children and then loop on children
     for child in the_profile:
         tag = child.name
         if tag in keys_we_dont_want:
@@ -55,7 +56,7 @@ def get_profile_tasks(
 
         if "mid" in tag:
             task_type = "Exit" if tag == "mid1" else "Entry"
-            task_id = child.text
+            task_id = child.value
 
             if task_id not in found_tasks_list:
                 PrimeItems.task_count_for_profile += 1
@@ -92,8 +93,8 @@ def get_profile_name(
         :return: Profile name with appropriate html and the profile name itself
     """
     # If we don't have the name, then set it to 'No Profile'
-    profile_id = profile.attribute("sr").as_string("")
-    profile_id = profile_id[4:]
+    profile_id = profile.attribute("sr")
+    profile_id = profile_id.value[4:]
     if not (the_profile_name := PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]):
         the_profile_name = UNNAMED_ITEM
 

@@ -24,10 +24,10 @@ def share(
         :param tab: "projtab", "proftab" or "tasktab"
     """
     # Get the <share> element, if any
-    share_element: pygixml.XMLNode = root_element.find("Share")
+    share_element: pygixml.XMLNode = root_element.child("Share")
     if share_element is not None:
         #  We have a <Share> .  Find the description
-        description_element = share_element.find("d")
+        description_element = share_element.child("d").text()
         # Process the description
         if description_element is not None:
             description_element_output(
@@ -36,13 +36,13 @@ def share(
             )
 
         # Look for TaskerNet search parameters
-        search_element = share_element.find("g")
-        if search_element is not None and search_element.text:
+        search_element = share_element.child("g")
+        if search_element is not None and search_element.value:
             # Found search...format and output
             out_string = format_html(
                 "taskernet_color",
                 "",
-                f"\n<br>TaskerNet search on: {search_element.text}\n<br>",
+                f"\n<br>TaskerNet search on: {search_element.value}\n<br>",
                 True,
             )
             # Add the tab CSS call to the color.
@@ -82,7 +82,7 @@ def share(
 # Process the description <d> element
 # ################################################################################
 def description_element_output(
-    description_element: pygixml.XMLNode,
+    description_element: str,
     tab: str,
 ) -> None:
     """
@@ -93,7 +93,7 @@ def description_element_output(
     """
     # Format the description as if it is a label with embedded html/
     out_string = (
-        format_label(f"<h6>TaskerNet description: {description_element.text}")
+        format_label(f"<h6>TaskerNet description: {description_element}")
         .replace("action_label_color", "taskernet_color")
         .replace(" ...with label:", "")
         .replace("\n", "<br>")

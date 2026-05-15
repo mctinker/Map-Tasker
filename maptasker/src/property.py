@@ -16,7 +16,7 @@ from maptasker.src.sysconst import FormatLine
 # Helper function to get text safely
 def get_text(element: pygixml.XMLNode) -> str:
     """Return value or"""
-    return element.text if element is not None else ""
+    return element.value if element is not None else ""
 
 
 # Parse Property's variable and output it
@@ -81,16 +81,16 @@ def parse_variable(
     }
     # Extract values from XML once
     fields = {
-        "clearout": variable_header.find("clearout"),
-        "immutable": variable_header.find("immutable"),
-        "pvci": variable_header.find("pvci"),
-        "pvd": variable_header.find("pvd"),
-        "pvv": variable_header.find("pvv"),
-        "pvdn": variable_header.find("pvdn"),
-        "strout": variable_header.find("strout"),
-        "pvn": variable_header.find("pvn"),
-        "exportval": variable_header.find("exportval"),
-        "pvt": variable_header.find("pvt"),
+        "clearout": variable_header.child("clearout"),
+        "immutable": variable_header.child("immutable"),
+        "pvci": variable_header.child("pvci"),
+        "pvd": variable_header.child("pvd"),
+        "pvv": variable_header.child("pvv"),
+        "pvdn": variable_header.child("pvdn"),
+        "strout": variable_header.child("strout"),
+        "pvn": variable_header.child("pvn"),
+        "exportval": variable_header.child("exportval"),
+        "pvt": variable_header.child("pvt"),
     }
 
     # Mapping field values to output strings.  They are in the order as displayed in Tasker.
@@ -183,9 +183,9 @@ def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
     css_attribute = get_css_attributes(property_tag)
 
     # Get the item comment, if any.  Don't process it if we already have it
-    comment_xml = header.find("pc")
+    comment_xml = header.child("pc")
     if comment_xml is not None:
-        out_string = f"<br>{property_tag} Properties comment: {comment_xml.text}"
+        out_string = f"<br>{property_tag} Properties comment: {comment_xml.value}"
         PrimeItems.output_lines.add_line_to_output(
             2,
             out_string,
@@ -193,9 +193,9 @@ def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
         )
         have_property = True
 
-    keep_alive = header.find("stayawake")
+    keep_alive = header.child("stayawake")
     if keep_alive is not None:
-        out_string = f"{property_tag} Properties Keep Device Awake: {keep_alive.text}"
+        out_string = f"{property_tag} Properties Keep Device Awake: {keep_alive.value}"
         PrimeItems.output_lines.add_line_to_output(
             2,
             out_string,
@@ -203,9 +203,9 @@ def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
         )
         have_property = True
 
-    collision_handling = header.find("rty")
-    if collision_handling is not None:
-        out_string = f"{property_tag} Properties Collision Handling: {collision[int(collision_handling.text)]}"
+    collision_handling = header.child("rty")
+    if collision_handling is not None and collision_handling.value is not None:
+        out_string = f"{property_tag} Properties Collision Handling: {collision[int(collision_handling.value)]}"
         PrimeItems.output_lines.add_line_to_output(
             2,
             out_string,
