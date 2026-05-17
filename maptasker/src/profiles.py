@@ -5,8 +5,10 @@
 #                                                                                      #
 # profiles: process Profiles for given project                                         #
 #                                                                                      #
+
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING
 
 from maptasker.src import condition, tasks
@@ -43,41 +45,39 @@ def get_profile_tasks(
     :param task_output_line: List to store the output lines of tasks.
     :return: List of tasks with their XML elements and names.
     """
-    keys_we_dont_want = {"cdate", "edate", "flags", "id", "limit"}
     list_of_tasks = []
     single_task_name = PrimeItems.program_arguments.get("single_task_name")
 
     _get_task_name = tasks.get_task_name
-    # FIX Get all children and then loop on children
-    for child in the_profile:
-        tag = child.name
-        if tag in keys_we_dont_want:
-            continue
 
-        if "mid" in tag:
-            task_type = "Exit" if tag == "mid1" else "Entry"
-            task_id = child.value
+    mid0 = the_profile.child("mid0")
+    if mid0 is not None:
+        task_type = "Entry"
+        task_id = mid0.value
+    else:
+        mid1 = the_profile.child("mid1")
+        if mid1 is not None:
+            task_type = "Exit"
+            task_id = mid1.value
+        else:
+            return list_of_tasks  # No Tasks for this Profile
 
-            if task_id not in found_tasks_list:
-                PrimeItems.task_count_for_profile += 1
-            task_element, task_name = _get_task_name(
-                task_id,
-                found_tasks_list,
-                task_output_line,
-                task_type,
-            )
-            # Add the Task to our list of found Tasks, and use the Task output line as the name.
-            list_of_tasks.append({"xml": task_element, "name": task_output_line[-1]})
+    if task_id not in found_tasks_list:
+        PrimeItems.task_count_for_profile += 1
+    task_element, task_name = _get_task_name(
+        task_id,
+        found_tasks_list,
+        task_output_line,
+        task_type,
+    )
+    # Add the Task to our list of found Tasks, and use the Task output line as the name.
+    list_of_tasks.append({"xml": task_element, "name": task_output_line[-1]})
 
-            if single_task_name and single_task_name == task_name:
-                PrimeItems.found_named_items["single_task_found"] = True
-                profile_name = the_profile.child("nme")
-                if profile_name is not None:
-                    PrimeItems.program_arguments["single_profile_name"] = profile_name.value
-                break
-
-        elif tag == "nme":
-            break
+    if single_task_name and single_task_name == task_name:
+        PrimeItems.found_named_items["single_task_found"] = True
+        profile_name = the_profile.child("nme")
+        if profile_name is not None:
+            PrimeItems.program_arguments["single_profile_name"] = profile_name.value
 
     return list_of_tasks
 
@@ -551,7 +551,6 @@ def align_html_text(html_string: str) -> str:
     Returns:
         The modified HTML string with added "&nbsp;" for alignment.
     """
-    import re
 
     # Find the starting position of the first occurrence of any of the target substrings
     target_substrings = [

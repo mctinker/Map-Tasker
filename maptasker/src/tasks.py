@@ -7,8 +7,7 @@
 from __future__ import annotations
 
 import re
-
-import pygixml  # Need for type hints
+from typing import TYPE_CHECKING
 
 import maptasker.src.actione as action_evaluate
 import maptasker.src.taskflag as task_flags
@@ -16,6 +15,7 @@ from maptasker.src.error import error_handler
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.kidapp import get_kid_app
+from maptasker.src.maputil2 import get_xml_value
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
@@ -25,6 +25,9 @@ from maptasker.src.sysconst import (
     logger,
     pattern14,
 )
+
+if TYPE_CHECKING:
+    import pygixml
 
 blank = "&nbsp;"
 
@@ -91,16 +94,19 @@ def get_actions(current_task: pygixml.XMLNode) -> list:
     blanks = f"{'&nbsp;' * indent_size}"
 
     try:
-        task_actions = list(current_task.children("Action"))
+        task_actions_nodes = list(current_task.select_nodes("Action"))
     # pygixml raises RuntimeError or its own exceptions for malformed access
     except (RuntimeError, AttributeError):
         print("tasks.py current Task:", current_task)
         error_handler("Error: No action found!!!", 0)
         return []
 
-    if not task_actions:
+    if not task_actions_nodes:
         return []
 
+    # Now get all of the actual 'Action' elements into a list and sort them by their 'sr' attribute value since they are
+    # not necessarily in order in the XML backup file.
+    task_actions = [action.node.xml for action in task_actions_nodes]
     shell_sort(task_actions, True, False)
 
     indentation = 0
@@ -110,7 +116,7 @@ def get_actions(current_task: pygixml.XMLNode) -> list:
     _reformat_html = reformat_html
     _build_action = action_evaluate.build_action
     for action in task_actions:
-        child = action.child("code")
+        child = get_xml_value(action, "code")
         task_code = _get_action_code(child, action, True, "t")
 
         if any(token in task_code for token in [">End If", ">Else", ">End For"]):
@@ -359,7 +365,7 @@ def get_image(image: pygixml.XMLNode, title: str, key: str) -> str:
         - If the element's text contains a period, splits the text at the last period and returns the second part.
         - If the text is empty, returns an empty string.
         - Otherwise, returns a string containing the title and text."""
-    element = image.find(key)
+    element = image.child(key)
     if element is None:
         return ""
     text = element.text
@@ -384,7 +390,7 @@ def get_icon_info(the_task: pygixml.XMLNode) -> str:
     if the_task is None:
         return ""
     image = the_task.child("Img")
-    if image is None:
+    if image.value is None:
         return ""
     icon_name = get_image(image, "name", "nme")
     icon_pkg = get_image(image, "pkg", "pkg")
@@ -461,7 +467,10 @@ def output_task_list(
     _do_single_task = do_single_task
     for task_item in list_of_tasks:
         # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
-        # the Task name.
+        # the Task name.  If it is unnamed, only capture the name up to the UNNAMED_ITEM text since that is all we are showing in the output.
+        unnamed = task_item["name"].find(UNNAMED_ITEM)
+        if unnamed != -1:
+            task_item["name"] = task_item["name"][0 : unnamed + len(UNNAMED_ITEM)]
         task_output_lines.append(f"{task_item['name']}&nbsp;&nbsp;")
         count = len(task_output_lines) - 1
 

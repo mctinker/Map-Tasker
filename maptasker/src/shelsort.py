@@ -5,6 +5,8 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
+
+from maptasker.src.maputil2 import get_xml_value
 from maptasker.src.sysconst import logger
 
 
@@ -37,8 +39,10 @@ def shell_sort(arr: list, do_arguments: bool, by_numeric: bool) -> None:
                     # Get the n from <Action sr='actn' ve='7'> as a number for comparison purposes
                     attr1 = arr[i]
                     attr2 = arr[i + gap]
-                    val1 = attr1.attribute("sr").as_string("")
-                    val2 = attr2.attribute("sr").as_string("")
+                    # Parse the XML string
+                    val1 = get_xml_value(attr1, "sr")
+                    val2 = get_xml_value(attr2, "sr")
+
                     if val1[3:] == "" or val2[3:] == "":  # 'if' argument...skip
                         break
                     comp1 = val1[3:]

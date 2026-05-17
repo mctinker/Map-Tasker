@@ -14,7 +14,7 @@ import pygixml
 import maptasker.src.action as get_action
 from maptasker.src.actiond import process_condition_list
 from maptasker.src.format import format_html
-from maptasker.src.maputil2 import find_first_tag_by_value
+from maptasker.src.maputil2 import find_first_tag_by_value, get_xml_value
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.xmldata import extract_integer, extract_string
@@ -72,7 +72,7 @@ def get_bundle(
     Extracts a bundle value from an XML code action.
 
     Args:
-        code_action (ElementTree.XML): The XML code action.
+        code_action (XMLNode): The XML code action.
         evaluated_results (dict): Dictionary to store results.
         arg (str): Argument name.
 
@@ -81,7 +81,7 @@ def get_bundle(
 
     evaluated_results["returning_something"] = True coming into this function
     """
-    bundle = code_action.child("Bundle")
+    bundle = get_xml_value(code_action, "Bundle")
     if bundle is None:
         evaluated_results[f"arg{arg}"] = {"value": ""}
         evaluated_results["returning_something"] = False

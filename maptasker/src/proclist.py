@@ -234,7 +234,7 @@ def process_task_directory(the_task: pygixml.XMLNode) -> None:
     Returns:
         None
     """
-    task_id = the_task.attribute("sr").as_string("")[4:]
+    task_id = the_task.attribute("sr").value[4:]
     task_name = PrimeItems.tasker_root_elements["all_tasks"].get(task_id, {}).get("name", "")
     if task_name:
         add_directory_item("tasks", task_name)

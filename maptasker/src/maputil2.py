@@ -323,8 +323,10 @@ def find_first_tag_by_value(node: pygixml.XMLNode, tag_name: str, the_arg: str) 
     target_val = str(the_arg)
 
     # 1. Check if the current node matches both the tag name and the value
-    if node.name == tag_name and node.child_value() == target_val:
+    if isinstance(node, pygixml.XMLNode) and node.name == tag_name and node.child_value() == target_val:
         return node
+    if isinstance(node, str):
+        return find_first_stringtag_by_value(node, the_arg)
 
     # 2. Recursively search children
     for child in node.children():
@@ -335,3 +337,61 @@ def find_first_tag_by_value(node: pygixml.XMLNode, tag_name: str, the_arg: str) 
             return result
 
     return None
+
+
+def find_first_stringtag_by_value(xml_string: str, tag_name: str) -> dict | None:
+    """
+    Parses an XML string and returns a dictionary containing the 'tag' and 'value'
+    of the FIRST element matching the specified tag_name. Returns None if no match is found.
+    """
+    # Parse the string into a pygixml document
+    # FIX THIS doesn't work for shit.
+    doc = pygixml.parse_string(xml_string)
+
+    # Use XPath to find the first element matching the given tag name
+    xpath_query = f"//*[local-name()='{tag_name}']"
+    match = doc.select_node(xpath_query)
+
+    # If no matching element exists, return None
+    if not match:
+        return None
+
+    node = match.node
+
+    # Extract internal text value
+    text_value = node.child_value()
+
+    # Fallback: If the tag is self-closing but has a 'val' attribute (like <Int val="30" />)
+    if not text_value and node.attribute("val"):
+        text_value = node.attribute("val").value
+
+    return {"tag": node.name, "value": text_value}
+
+
+def get_xml_value(node: str, tag_name: str) -> str:
+    """
+    Retrieves the value of the first child node with a specific tag name.
+    Parameters:
+        node: The current XML node being inspected.
+        tag_name: The name of the tag to search for.
+    Returns:
+        The value of the first child node that matches the specified tag name, or an empty string if no match is found.
+    """
+    # Parse the XML string
+    if not isinstance(node, str):
+        node = node.xml
+    doc = pygixml.parse_string(node)
+
+    # If the tag_name is 'sr', then we need the attribute value since 'sr' isn't <sr>'
+    if tag_name == "sr":
+        return doc.root.attribute("sr").value
+
+    # Get the <tag_name> element's text content
+    the_element = doc.root.select_node(tag_name)
+
+    # Return its text content
+    if the_element is not None:
+        return the_element.node.value
+
+    # 2. If no matching child is found, return an empty string
+    return ""

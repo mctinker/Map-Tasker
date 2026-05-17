@@ -51,14 +51,14 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
 
 # Given an action code, evaluate it for display.
 def get_action_code(
-    code_child: pygixml.XMLNode,
+    just_the_code: str,
     code_action: pygixml.XMLNode,
     action_type: bool,
     code_type: str,
 ) -> str:
     """
     Given an action code, evaluate it for display
-        :param code_child: xml element of the <code>
+        :param just_the_code: the action code <code>just_the_code</code> (e.g. "861")
         :param code_action: xml; element of the <Action
         :param action_type: True if task, False otherwise
         :param code_type: 'e'=event, 's'=state, 't'=task
@@ -66,7 +66,8 @@ def get_action_code(
     """
 
     # logger.debug(f"get action code:{code_child.text}{code_type}")
-    just_the_code = code_child.value if not isinstance(code_child, str) else code_child
+    if not isinstance(just_the_code, str):
+        just_the_code = just_the_code.value  # Get the code from the XML if not already a string.
     the_action_code_plus = just_the_code + code_type
 
     # See if this code is deprecated
