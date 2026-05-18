@@ -89,15 +89,15 @@ def extract_integer(
     from maptasker.src.action import drop_trailing_comma, process_xml_list  # noqa: PLC0415
 
     # Find the first matching <Int> element with the desired 'sr' attribute
-    # FIX We need to figure this out.
     int_element = find_first_tag_by_value(code_action, "Int", the_arg)
     if int_element is None:
         return ""  # No matching <Int> element found
 
     # Extract value or variable
-    the_int_value = int_element.attribute("val").as_string("") or (
-        int_element.child("var").text() if int_element.child("var") is not None else ""
-    )
+    the_int_value = int_element
+    # the_int_value = int_element.attribute("val").as_string("") or (
+    #     int_element.child("var").text() if int_element.child("var") is not None else ""
+    # )
 
     if not the_int_value:
         return ""  # No valid integer or variable name found
@@ -168,9 +168,7 @@ def extract_string(action: pygixml.XMLNode, arg: str, argeval: str) -> str:
 
     # Extract text value with prefix
     new_argeval = f"{argeval}=" if argeval[-1] != "=" else argeval
-    extracted_text = (
-        f"{argeval}(carriage return)" if str_element.text() == "\n" else f"{new_argeval}{str_element.text() or ''}"
-    )
+    extracted_text = f"{argeval}(carriage return)" if str_element == "\n" else f"{new_argeval}{str_element or ''}"
 
     # Drop trailing comma if necessary
     return drop_trailing_comma([extracted_text])[0] if extracted_text else ""

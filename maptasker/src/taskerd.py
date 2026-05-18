@@ -32,7 +32,7 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     new_table = {}
     for item in all_xml:
         # Get the element name
-        name_temp = item.child("name").text()
+        name_temp = item.child(name_qualifier).text()
         name = name_temp.strip() if name_temp is not None and name_temp else ""
 
         # Get the Profile/Task identifier: id=number for Profiles and Tasks,
@@ -188,7 +188,8 @@ def get_first_action(task: pygixml.XPathNode) -> str:
 
         build_action_codes_from_json(False)
 
-    task_actions = list(task.children("Action"))
+    # Get all of the Action statements.
+    task_actions = [child for child in task.children() if child.name == "Action"]
     if task_actions is not None:
         have_first_action = False
         # Go through Actions looking for the first one ("act0")

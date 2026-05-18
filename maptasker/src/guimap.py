@@ -1066,7 +1066,8 @@ def add_directory_entry(temp: list, output_lines: dict, line_num: int) -> dict:
         return output_lines
 
     # Get the tasker object name and type (projects, profiles, tasks, scenes)
-    name = parse_name(temp[1]).replace("</a></td>", "")
+    tmp = parse_name(temp[1])
+    name = tmp.replace("</a></td>", "") if tmp is not None else ""
     start_pos = temp[1].find("#")
     end_pos = temp[1].find("_", 1)
     tasker_type = temp[1][start_pos + 1 : end_pos]

@@ -220,7 +220,7 @@ def extract_image(
         - Set returning_something to False if no image is found
     """
     image, package = "", ""
-    child = code_action.child("Img")
+    child = get_xml_value(code_action, "Img")
     if child is None:
         evaluated_results[f"arg{arg[0]}"]["value"] = " "
         return

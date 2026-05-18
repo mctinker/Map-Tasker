@@ -71,7 +71,7 @@ def get_action_code(
     the_action_code_plus = just_the_code + code_type
 
     # See if this code is deprecated
-    depricated = check_for_deprecation(the_action_code_plus)
+    # depricated = check_for_deprecation(the_action_code_plus)
 
     # We have a code that is not yet in the dictionary?
     if the_action_code_plus not in action_codes:
@@ -82,22 +82,24 @@ def get_action_code(
         )
 
     else:
+        # FIX It is believed that the commented code is not needed/used.
         # Format the output with HTML if this is a Task
-        if action_type and len(just_the_code) <= 3:
-            # The code is in our dictionary.  Add the display name
-            the_result = format_html(
-                "action_name_color",
-                "",
-                f"{action_codes[the_action_code_plus].name}{depricated}",
-                True,
-            )
-            # numargs = len(PrimeItems.tasker_action_codes[just_the_code]["args"])
+        # if action_type and len(just_the_code) <= 3:
+        #     # The code is in our dictionary.  Add the display name
+        #     the_result = format_html(
+        #         "action_name_color",
+        #         "",
+        #         f"{action_codes[the_action_code_plus].name}{depricated}",
+        #         True,
+        #     )
+        #     # numargs = len(PrimeItems.tasker_action_codes[just_the_code]["args"])
 
-        # Not a Task.  Must be a condition.
-        else:
-            the_result = f"{action_codes[the_action_code_plus].name}{depricated}"
+        # # Not a Task.  Must be a condition.
+        # else:
+        #     the_result = f"{action_codes[the_action_code_plus].name}{depricated}"
 
         # Get the actions results
+        # FIX Doesn't work
         the_result = action_results.get_action_results(
             the_action_code_plus,
             action_codes,

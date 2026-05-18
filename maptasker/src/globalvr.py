@@ -148,10 +148,10 @@ def get_variables() -> None:
 
 
 # Print the variables (Project's or Unreferenced)
-def print_the_variables(color_to_use: str, project: pygixml.XMLNode) -> None:
+def print_the_variables(color_to_use: str, project: pygixml.XMLNode | str) -> None:
     """Parameters:
         - color_to_use (str): The color to use for the table definition.
-        - project (pygixml.XMLNode): The project to use, if applicable.
+        - project (pygixml.XMLNode | str): The project to use, if applicable.
     Returns:
         - None: This function does not return anything.
     Processing Logic:
@@ -173,7 +173,7 @@ def print_the_variables(color_to_use: str, project: pygixml.XMLNode) -> None:
             value["value"] = "<em>Tasker Global</em>"
 
         # If doing the Project variables, first find the Project
-        if project is not None:
+        if project is not None and (not isinstance(project, str) or project != ""):
             # Does this variable have a list of Projects?
             if PrimeItems.variables[key]["project"]:
                 variable_output_lines.extend(
@@ -201,7 +201,7 @@ def output_variables(heading: str, project: pygixml.XMLNode) -> None:
         Args:
 
             heading (str): Heading to print.
-            project (xml.etree.ElementTree): Project to print.
+            project (pygixml.XMLNode): Project to print.
     """
     if not PrimeItems.variables:
         return
@@ -265,7 +265,7 @@ def output_variables(heading: str, project: pygixml.XMLNode) -> None:
             FormatLine.dont_format_line,
         )
         # Un-indent the output only if doing unreferenced variables.
-        if project is None or project == "":
+        if project is None:
             PrimeItems.output_lines.add_line_to_output(
                 3,
                 "",

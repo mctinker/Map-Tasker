@@ -323,10 +323,10 @@ def find_first_tag_by_value(node: pygixml.XMLNode, tag_name: str, the_arg: str) 
     target_val = str(the_arg)
 
     # 1. Check if the current node matches both the tag name and the value
-    if isinstance(node, pygixml.XMLNode) and node.name == tag_name and node.child_value() == target_val:
+    if isinstance(node, pygixml.XMLNode) and node.name == tag_name and node.attribute("sr").value == target_val:
         return node
     if isinstance(node, str):
-        return find_first_stringtag_by_value(node, the_arg)
+        return find_element_by_attribute(node, "sr", the_arg)
 
     # 2. Recursively search children
     for child in node.children():
@@ -339,33 +339,40 @@ def find_first_tag_by_value(node: pygixml.XMLNode, tag_name: str, the_arg: str) 
     return None
 
 
-def find_first_stringtag_by_value(xml_string: str, tag_name: str) -> dict | None:
+def find_element_by_attribute(xml_string: str, attr_name: str, attr_value: str) -> pygixml.XMLNode | None:
     """
-    Parses an XML string and returns a dictionary containing the 'tag' and 'value'
-    of the FIRST element matching the specified tag_name. Returns None if no match is found.
+    Parses an XML string and returns the tag name and text value of the FIRST
+    element where the specified attribute matches the given value.
+
+    Arguments:
+    xml_string: The XML content as a string.
+    attr_name: The name of the attribute to search for.
+    attr_value: The value of the attribute to match.
+    Returns:
+    The first pygixml.XMLNode if a matching element is found,
+    or None if no match is found.
     """
     # Parse the string into a pygixml document
-    # FIX THIS doesn't work for shit.
     doc = pygixml.parse_string(xml_string)
 
-    # Use XPath to find the first element matching the given tag name
-    xpath_query = f"//*[local-name()='{tag_name}']"
-    match = doc.select_node(xpath_query)
+    # Construct an XPath query to look for any tag with the specific attribute value
+    # Example: //*[@sr='arg1']
+    xpath_query = f"//*[@{attr_name}='{attr_value}']"
 
-    # If no matching element exists, return None
+    match = doc.root.select_node(xpath_query)
+
+    # If no match is found, return None
     if not match:
         return None
 
     node = match.node
+    text_value = node.value
 
-    # Extract internal text value
-    text_value = node.child_value()
-
-    # Fallback: If the tag is self-closing but has a 'val' attribute (like <Int val="30" />)
+    # Fallback for self-closing/empty tags that might store data in a 'val' attribute
     if not text_value and node.attribute("val"):
         text_value = node.attribute("val").value
 
-    return {"tag": node.name, "value": text_value}
+    return text_value
 
 
 def get_xml_value(node: str, tag_name: str) -> str:

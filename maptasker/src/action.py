@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 from maptasker.src.actiont import lookup_values
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_html, format_label
+from maptasker.src.maputil2 import get_xml_value
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
@@ -258,15 +259,13 @@ def get_label_disabled_condition(child: pygixml.XMLNode) -> str:
     remote_timeout = ""
 
     # If no code found, bail.
-    if child.child("code") is not None:
-        the_action_code = child.child("code").text()
-    else:
+    the_action_code = get_xml_value(child, "code")
+    if the_action_code is None:
         return ""
 
     # Get the label, if any
-    if child.child("label") is not None:
-        lbl = child.child("label").value
-        task_label = format_label(lbl) if lbl is not None else ""
+    lbl = get_xml_value(child, "label")
+    task_label = format_label(lbl) if lbl is not None else ""
 
     # See if Action is disabled
     action_disabled = (
@@ -276,11 +275,12 @@ def get_label_disabled_condition(child: pygixml.XMLNode) -> str:
             DISABLED,
             True,
         )
-        if child.child("on") is not None
+        if get_xml_value(child, "on") is not None
         else ""
     )
     # Look for any conditions:  <ConditionList sr="if">
-    if child.child("ConditionList") is not None:  # If condition on Action?
+    cond_list = get_xml_value(child, "ConditionList")
+    if cond_list is not None:  # If condition on Action?
         task_conditions = get_conditions(child, the_action_code)
 
     # Format conditions if any
@@ -293,13 +293,13 @@ def get_label_disabled_condition(child: pygixml.XMLNode) -> str:
         )
 
     # See if this is a remote action
-    if child.child("remoteDevice") is not None:
+    if get_xml_value(child, "remoteDevice") is not None:
         # remote_execution = format_html("action_condition_color", "", ", Remote Device/Execution", True)
         remote_execution = ", Remote Device/Execution"
 
     # See if this is a remote timeout value
-    if child.child("remoteTimeout") is not None:
-        timout = child.child("remoteTimeout").value
+    timout = get_xml_value(child, "remoteTimeout")
+    if timout is not None:
         remote_timeout = ", Remote Timeout (Seconds): " + timout + "\n" if timout is not None else ""
 
     # Return the lot
@@ -370,7 +370,10 @@ def get_extra_stuff(
     """
 
     # If no code, just bail out.
-    action_code = code_action.child("code").text()
+    if isinstance(code_action, str):
+        action_code = get_xml_value(code_action, "code")
+    else:
+        action_code = code_action.child("code").text()
     if action_code is None:
         return ""
 
@@ -408,7 +411,7 @@ def get_extra_stuff(
 
     # See if Task action is to be continued after error
     if program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
-        child = code_action.child("se").text()
+        child = get_xml_value(code_action, "se")
         if child and child == "false":
             extra_stuff = f"{format_html('action_color', '', ' [Continue Task After Error]', True)}{extra_stuff}"
 
@@ -453,8 +456,12 @@ def get_app_details(code_child: pygixml.XMLNode) -> tuple[str, str, str]:
         tuple[str, str, str]: Class, package name, and app name.
     """
     app_class = app_pkg = app = ""
-
-    child = code_child.child("App")
+    if isinstance(code_child, str):
+        code_child = get_xml_value(code_child, "App")
+        if code_child is None:
+            return "", "", ""
+    else:
+        child = code_child.child("App")
     if child is not None:
         app_class = child.child("appClass").text()
         app_pkg = child.child("appPkg").text()

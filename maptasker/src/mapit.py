@@ -296,11 +296,12 @@ def initialize_everything() -> tuple[list, list, list]:
     initialize.start_up()
 
     # Set up to catch all crashes gracefully
-    if sys.excepthook == sys.excepthook:
-        global crash_debug  # noqa: PLW0603
-        if PrimeItems.program_arguments["debug"]:
-            crash_debug = True
-        sys.excepthook = on_crash
+    # FIX: Uncomment
+    # if sys.excepthook == sys.excepthook:
+    #     global crash_debug
+    #     if PrimeItems.program_arguments["debug"]:
+    #         crash_debug = True
+    #     sys.excepthook = on_crash
 
     # If debugging, force an ESC so that the full command/path is not displayed in
     #   VsCode terminal window.

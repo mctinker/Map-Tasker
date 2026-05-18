@@ -466,11 +466,15 @@ def output_task_list(
     _get_extra_details = get_extra_details
     _do_single_task = do_single_task
     for task_item in list_of_tasks:
+        # Fix up the task namew if it unnamed and missing the trailing paren.
+        if task_item["name"].endswith(f"({UNNAMED_ITEM}"):
+            task_item["name"] = task_item["name"].replace(f"({UNNAMED_ITEM}", f"({UNNAMED_ITEM})")
+
         # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
         # the Task name.  If it is unnamed, only capture the name up to the UNNAMED_ITEM text since that is all we are showing in the output.
-        unnamed = task_item["name"].find(UNNAMED_ITEM)
-        if unnamed != -1:
-            task_item["name"] = task_item["name"][0 : unnamed + len(UNNAMED_ITEM)]
+        # unnamed = task_item["name"].find(UNNAMED_ITEM)
+        # if unnamed != -1:
+        #     task_item["name"] = task_item["name"][0 : unnamed + len(UNNAMED_ITEM)]
         task_output_lines.append(f"{task_item['name']}&nbsp;&nbsp;")
         count = len(task_output_lines) - 1
 
