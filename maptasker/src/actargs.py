@@ -60,8 +60,67 @@ def process_clean_string(
     }
 
 
-# Usage within your original context:
-# process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
+def get_bundle_as_xml(xml_string: str) -> tuple:
+    """
+    Parses the given XML string to extract the Bundle node and its relevant child nodes.
+
+    Args:
+        xml_string (str): The XML string to parse.
+    Returns:
+        tuple: A tuple containing the bundle, pref, and vals nodes.
+    """
+    try:
+        # 1. Parse the XML string into a pygixml XMLDocument object
+        # pygixml raises a PygiXMLError automatically if the string is completely malformed
+        doc = pygixml.parse_string(xml_string)
+    except Exception as e:
+        print(f"XML Parsing failed: {e}")
+        exit()
+
+    # 2. Access the root element (Action) using the pythonic .root property
+    root = doc.root
+
+    if not root:
+        print("Could not find a valid root element.")
+        exit()
+
+    # 3. Find the 'Bundle' (or 'bundle') node
+    bundle_node = root.child("Bundle")
+    if not bundle_node:
+        bundle_node = root.child("bundle")
+
+    if bundle_node:
+        print("--- Found Bundle Node ---")
+
+        # 4. From the bundle, find the 'vals' (or 'Vals') node
+        vals_node = bundle_node.child("Vals")
+        if not vals_node:
+            vals_node = bundle_node.child("vals")
+
+        if vals_node:
+            # Get the internal text content of the 'thingID' child node
+            thing_id = vals_node.child_value("thingID")
+            print(f"Vals content found! Inner 'thingID': {thing_id}")
+        else:
+            print("Tag 'vals'/'Vals' not found inside Bundle.")
+
+        # 5. From the bundle, find the 'pref' (or 'Pref') node
+        pref_node = bundle_node.child("Pref")
+        if not pref_node:
+            pref_node = bundle_node.child("pref")
+
+        if pref_node:
+            # In pygixml, .text() evaluates directly to a Python string or text payload
+            print(f"Pref value: {pref_node.text()}")
+        else:
+            print("Tag 'pref'/'Pref' not found inside Bundle.")
+
+        return bundle_node.text(), pref_node.text(), vals_node.text()
+
+    print("Tag 'bundle'/'Bundle' not found.")
+    return bundle_node.text(), pref_node.text(), vals_node.text()
+
+
 ## We have a <bundle>.   Process it
 def get_bundle(
     code_action: pygixml.XMLNode,
@@ -72,7 +131,7 @@ def get_bundle(
     Extracts a bundle value from an XML code action.
 
     Args:
-        code_action (XMLNode): The XML code action.
+        code_action (pygixml.XMLNode): The XML code action.
         evaluated_results (dict): Dictionary to store results.
         arg (str): Argument name.
 
@@ -81,17 +140,42 @@ def get_bundle(
 
     evaluated_results["returning_something"] = True coming into this function
     """
-    bundle = get_xml_value(code_action, "Bundle")
-    if bundle is None:
-        evaluated_results[f"arg{arg}"] = {"value": ""}
-        evaluated_results["returning_something"] = False
-        return evaluated_results
+    bundle = None
 
-    # Handle any pref = Output Variables name
-    pref = bundle.child("pref").text()
+    # 1. If code_action is a string, parse it as XML and find the Bundle element
+    if isinstance(code_action, str):
+        bundle, pref, vals = get_bundle_as_xml(code_action)
+    else:
+        # 2. Use XPath '//Bundle' to find the Bundle element anywhere in the document hierarchy
+        xpath_result = code_action.select_node("//Bundle")
+        if xpath_result:
+            # 2. Extract the actual node from the XPath result match
+            bundle_node = xpath_result.node
 
-    # Handle the twofortyfouram.locale.intent.extra.BLURB tag
-    vals = bundle.child("Vals")
+            # 3. Safely chain down the known path relative to the Bundle tag
+            target_node = bundle_node.child("Vals").child("net.dinglisch.android.tasker.RELEVANT_VARIABLES")
+
+            if target_node:
+                bundle = target_node.text()
+            else:
+                evaluated_results[f"arg{arg}"] = {"value": ""}
+                evaluated_results["returning_something"] = False
+                return evaluated_results
+        else:
+            evaluated_results[f"arg{arg}"] = {"value": ""}
+            evaluated_results["returning_something"] = False
+            return evaluated_results
+        if bundle is None:
+            evaluated_results[f"arg{arg}"] = {"value": ""}
+            evaluated_results["returning_something"] = False
+            return evaluated_results
+
+        # Handle any pref = Output Variables name
+        pref = bundle_node.select_node(".//pref").node.value if bundle_node is not None else ""
+
+        # Handle the twofortyfouram.locale.intent.extra.BLURB tag
+        vals = bundle_node.select_node(".//Vals")
+
     if vals is None:
         evaluated_results[f"arg{arg}"] = {"value": ""}
         evaluated_results["returning_something"] = False
@@ -99,9 +183,9 @@ def get_bundle(
 
     clean_string = next(
         (
-            node.value
+            node.text()
             for tag in ["com.twofortyfouram.locale.intent.extra.BLURB", "Configcommand"]
-            if (node := vals.child(tag)) is not None and node.text
+            if (node := vals.node.child(tag)) and node.text()
         ),
         "",
     )
