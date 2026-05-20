@@ -6,6 +6,7 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 import pygixml  # Need for type hints
 
+from maptasker.src.maputil2 import get_values_by_tag_prefix
 from maptasker.src.primitem import PrimeItems
 
 
@@ -21,21 +22,19 @@ def get_kid_app(element: pygixml.XMLNode) -> str:
     if element is None:
         return ""
     kid_element = element.child("Kid")
-    if kid_element is None:
+    if kid_element is None or kid_element.xml == "":
         return ""
 
     kid_package = kid_element.child("pkg").text()
     kid_version = kid_element.child("vnme").text()
     kid_target = kid_element.child("vTarg").text()
-    num_feature = num_plugin = 0
 
-    for item in kid_element:  # Get any special features
-        if "feat" in item.name:
-            kid_features = f" {kid_features}{num_feature + 1}={item.value}, "
-            num_feature += 1
-        elif "mplug" in item.name:
-            kid_plugins = f" {kid_plugins}{num_plugin + 1}={item.value}, "
-            num_plugin += 1
+    features = get_values_by_tag_prefix(kid_element, "feat")
+    plugins = get_values_by_tag_prefix(kid_element, "mplug")
+    for num, feature in enumerate(features):  # Get any special features
+        kid_features = f" {kid_features}{num + 1}={feature}, "
+    for num, plugin in enumerate(plugins):  # Get any special plugins
+        kid_plugins = f" {kid_plugins}{num + 1}={plugin}, "
     if kid_features:
         kid_features = f"<br>{four_spaces}Features:{kid_features[: len(kid_features) - 2]}"
     if kid_plugins:
@@ -46,6 +45,7 @@ def get_kid_app(element: pygixml.XMLNode) -> str:
         f" Name:{kid_version}, Target Android"
         f" Version:{kid_target} {kid_features} {kid_plugins}]"
     )
+    print("bingo", kid_app_info)  # --- IGNORE ---
 
     if PrimeItems.program_arguments["pretty"]:
         number_of_blanks = kid_app_info.find("Package:") - 4

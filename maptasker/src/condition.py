@@ -258,7 +258,7 @@ def condition_app(item: pygixml.XMLNode, condition: str) -> str:
     the_apps = ""
     for apps in item:
         if "label" in apps.name:
-            the_apps = f"{the_apps} {apps.text}"
+            the_apps = f"{the_apps} {apps.value}"
     return f"{condition}Application:{the_apps}"
 
 
@@ -308,14 +308,17 @@ def parse_profile_condition(the_profile: pygixml.XMLNode) -> str:
     condition = ""  # Assume no condition
 
     # Go through Profile'x sub-XML looking for conditions
+    # FIX SOmething isn't right
     for item in the_profile:
         if item.name in ignore_items or "mid" in item.name:  # Bypass junk we don't care about
             continue
-        if condition:  # If we already have a condition, add 'and' (italicized)
-            condition = f"{condition}, <em>AND</em> "
 
         # Find out what the condition is and handle it.
         if item.name in function_map:
-            condition = function_map[item.name](item, condition)
+            if condition and not condition.endswith("Condition(s): "):
+                condition = f"{condition}, <em>AND</em> {function_map[item.name](item, condition)}"
+            else:
+                condition = function_map[item.name](item, condition)
+            print("bingo", condition)
 
     return condition

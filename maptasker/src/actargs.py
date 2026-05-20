@@ -50,7 +50,8 @@ def process_clean_string(
         clean_string = clean_string.replace("\n\n", "\n")
         clean_string = clean_string.replace("\n", ",")
 
-        if code_action.name == "Event":
+        action_name = code_action.root.name if isinstance(code_action, pygixml.XMLDocument) else code_action.name
+        if action_name == "Event":
             padding = blank * 50
             clean_string = f"{padding}{clean_string}"
             clean_string = clean_string.replace(",", f"\n{blank * 49}")
@@ -73,16 +74,14 @@ def get_bundle_as_xml(xml_string: str) -> tuple:
         # 1. Parse the XML string into a pygixml XMLDocument object
         # pygixml raises a PygiXMLError automatically if the string is completely malformed
         doc = pygixml.parse_string(xml_string)
-    except Exception as e:
-        print(f"XML Parsing failed: {e}")
-        exit()
+    except Exception:  # noqa: BLE001
+        return None, None, None
 
     # 2. Access the root element (Action) using the pythonic .root property
     root = doc.root
 
     if not root:
-        print("Could not find a valid root element.")
-        exit()
+        return None, None, None
 
     # 3. Find the 'Bundle' (or 'bundle') node
     bundle_node = root.child("Bundle")
@@ -90,35 +89,22 @@ def get_bundle_as_xml(xml_string: str) -> tuple:
         bundle_node = root.child("bundle")
 
     if bundle_node:
-        print("--- Found Bundle Node ---")
-
         # 4. From the bundle, find the 'vals' (or 'Vals') node
         vals_node = bundle_node.child("Vals")
         if not vals_node:
             vals_node = bundle_node.child("vals")
 
-        if vals_node:
-            # Get the internal text content of the 'thingID' child node
-            thing_id = vals_node.child_value("thingID")
-            print(f"Vals content found! Inner 'thingID': {thing_id}")
-        else:
-            print("Tag 'vals'/'Vals' not found inside Bundle.")
+        # if vals_node:
+        #     # Get the internal text content of the 'blurb' child node
+        #     # blurb = vals_node.child_value("com.twofortyfouram.locale.intent.extra.BLURB")
 
         # 5. From the bundle, find the 'pref' (or 'Pref') node
-        pref_node = bundle_node.child("Pref")
-        if not pref_node:
-            pref_node = bundle_node.child("pref")
+        pref_node = bundle_node.child("pref")
+        pref = pref_node.text() if pref_node else ""
 
-        if pref_node:
-            # In pygixml, .text() evaluates directly to a Python string or text payload
-            print(f"Pref value: {pref_node.text()}")
-        else:
-            print("Tag 'pref'/'Pref' not found inside Bundle.")
+        return bundle_node, pref, vals_node
 
-        return bundle_node.text(), pref_node.text(), vals_node.text()
-
-    print("Tag 'bundle'/'Bundle' not found.")
-    return bundle_node.text(), pref_node.text(), vals_node.text()
+    return bundle_node, pref, vals_node
 
 
 ## We have a <bundle>.   Process it
@@ -144,7 +130,8 @@ def get_bundle(
 
     # 1. If code_action is a string, parse it as XML and find the Bundle element
     if isinstance(code_action, str):
-        bundle, pref, vals = get_bundle_as_xml(code_action)
+        bundle_node, pref, vals = get_bundle_as_xml(code_action)
+        code_action = pygixml.parse_string(code_action)  # Re-parse to get a proper XMLNode for further processing
     else:
         # 2. Use XPath '//Bundle' to find the Bundle element anywhere in the document hierarchy
         xpath_result = code_action.select_node("//Bundle")
@@ -181,14 +168,17 @@ def get_bundle(
         evaluated_results["returning_something"] = False
         return evaluated_results
 
-    clean_string = next(
-        (
-            node.text()
-            for tag in ["com.twofortyfouram.locale.intent.extra.BLURB", "Configcommand"]
-            if (node := vals.node.child(tag)) and node.text()
-        ),
-        "",
-    )
+    # Start building the details
+    clean_string = ""
+    vals_node = vals.node if vals is not None and isinstance(vals, pygixml.XPathNode) else vals
+    blurb_node = vals_node.child("com.twofortyfouram.locale.intent.extra.BLURB")
+    if blurb_node is not None and blurb_node.value is not None:
+        blurb = blurb_node.value
+        configcommand_node = blurb_node.child("configcommand")
+        configcommand = (
+            configcommand_node.value if configcommand_node is not None and configcommand_node.value is not None else ""
+        )
+        clean_string = blurb + configcommand
 
     # If we have a <pref> tag, add it to the clean_string
     if pref:

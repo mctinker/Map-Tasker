@@ -412,7 +412,7 @@ def get_extra_stuff(
     # See if Task action is to be continued after error
     if program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
         child = get_xml_value(code_action, "se")
-        if child and child == "false":
+        if not child is None and child == "false":
             extra_stuff = f"{format_html('action_color', '', ' [Continue Task After Error]', True)}{extra_stuff}"
 
     # For some reason, we're left with an empty "<span..." element.  Remove it.

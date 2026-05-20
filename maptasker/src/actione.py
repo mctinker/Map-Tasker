@@ -99,7 +99,6 @@ def get_action_code(
         #     the_result = f"{action_codes[the_action_code_plus].name}{depricated}"
 
         # Get the actions results
-        # FIX Doesn't work
         the_result = action_results.get_action_results(
             the_action_code_plus,
             action_codes,

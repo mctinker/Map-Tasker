@@ -116,7 +116,6 @@ def extract_integer(
             new_argeval = argeval
 
         # Process the argument evaluation
-        # FIX the_int_value is an xmlnode
         process_xml_list([new_argeval], 0, the_int_value, result, [the_arg])
         final_result = " ".join(result)
 

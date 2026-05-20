@@ -402,3 +402,31 @@ def get_xml_value(node: str, tag_name: str) -> str:
 
     # 2. If no matching child is found, return an empty string
     return ""
+
+
+def get_values_by_tag_prefix(parent_node: pygixml.XMLNode, prefix_string: str) -> list[str]:
+    """
+    Iterates through all direct children of an XMLNode, looks for tags
+    that start with a specific prefix string, and returns their text values.
+
+    Parameters:
+    parent_node (pygixml.XMLNode): The node whose children we are scanning.
+    prefix_string (str): The specific string prefix to search for (case-sensitive).
+
+    Returns:
+    list: A list of strings containing the text values of all matching tags.
+    """
+    matched_values = []
+
+    # 1. Iterate through every direct child node using pygixml's iterator
+    for child in parent_node:
+        # child.name gives us the tag name as a string (e.g., 'attributes-type')
+        tag_name = child.name
+
+        # 2. Check if the tag name begins with our target specific string
+        if tag_name.startswith(prefix_string):
+            # child.text() retrieves the inner text payload of that element
+            tag_value = child.text()
+            matched_values.append(tag_value)
+
+    return matched_values
