@@ -50,7 +50,10 @@ def process_clean_string(
         clean_string = clean_string.replace("\n\n", "\n")
         clean_string = clean_string.replace("\n", ",")
 
-        action_name = code_action.root.name if isinstance(code_action, pygixml.XMLDocument) else code_action.name
+        try:
+            action_name = code_action.root.name if isinstance(code_action, pygixml.XMLDocument) else code_action.name
+        except AttributeError:
+            action_name = ""
         if action_name == "Event":
             padding = blank * 50
             clean_string = f"{padding}{clean_string}"
@@ -130,55 +133,46 @@ def get_bundle(
 
     # 1. If code_action is a string, parse it as XML and find the Bundle element
     if isinstance(code_action, str):
-        bundle_node, pref, vals = get_bundle_as_xml(code_action)
-        code_action = pygixml.parse_string(code_action)  # Re-parse to get a proper XMLNode for further processing
-    else:
-        # 2. Use XPath '//Bundle' to find the Bundle element anywhere in the document hierarchy
-        xpath_result = code_action.select_node("//Bundle")
-        if xpath_result:
-            # 2. Extract the actual node from the XPath result match
-            bundle_node = xpath_result.node
+        # bundle_node, pref, vals = get_bundle_as_xml(code_action)
+        temp = pygixml.parse_string(code_action)  # Re-parse to get a proper XMLNode for further processing
+        try:
+            code_action = temp.root
+        except AttributeError:
+            evaluated_results[f"arg{arg}"] = {"value": ""}
+            evaluated_results["returning_something"] = False
+            return evaluated_results
 
-            # 3. Safely chain down the known path relative to the Bundle tag
-            target_node = bundle_node.child("Vals").child("net.dinglisch.android.tasker.RELEVANT_VARIABLES")
+    # 2. Get the bundle, pref, and vals nodes
+    bundle = code_action.child("Bundle")
+    if bundle is not None:
+        pref = bundle.child("pref").text() if bundle.child("pref") is not None else ""
+        vals = bundle.child("Vals")
+        if vals is not None:
+            blurb = vals.child("com.twofortyfouram.locale.intent.extra.BLURB")
+            blurb_text = blurb.value if blurb.value is not None else ""
+            configcommand = blurb.child("configcommand") if blurb is not None else None
+            configcommand_text = (
+                configcommand.value if configcommand is not None and configcommand.value is not None else ""
+            )
 
-            if target_node:
-                bundle = target_node.text()
-            else:
-                evaluated_results[f"arg{arg}"] = {"value": ""}
-                evaluated_results["returning_something"] = False
-                return evaluated_results
+        # No val found
         else:
             evaluated_results[f"arg{arg}"] = {"value": ""}
             evaluated_results["returning_something"] = False
             return evaluated_results
-        if bundle is None:
-            evaluated_results[f"arg{arg}"] = {"value": ""}
-            evaluated_results["returning_something"] = False
-            return evaluated_results
-
-        # Handle any pref = Output Variables name
-        pref = bundle_node.select_node(".//pref").node.value if bundle_node is not None else ""
-
-        # Handle the twofortyfouram.locale.intent.extra.BLURB tag
-        vals = bundle_node.select_node(".//Vals")
-
-    if vals is None:
+    # No bundle found
+    else:
         evaluated_results[f"arg{arg}"] = {"value": ""}
         evaluated_results["returning_something"] = False
         return evaluated_results
 
-    # Start building the details
-    clean_string = ""
-    vals_node = vals.node if vals is not None and isinstance(vals, pygixml.XPathNode) else vals
-    blurb_node = vals_node.child("com.twofortyfouram.locale.intent.extra.BLURB")
-    if blurb_node is not None and blurb_node.value is not None:
-        blurb = blurb_node.value
-        configcommand_node = blurb_node.child("configcommand")
-        configcommand = (
-            configcommand_node.value if configcommand_node is not None and configcommand_node.value is not None else ""
-        )
-        clean_string = blurb + configcommand
+    if not blurb_text and not configcommand_text:
+        evaluated_results[f"arg{arg}"] = {"value": ""}
+        evaluated_results["returning_something"] = False
+        return evaluated_results
+
+    # Now process the data collected
+    clean_string = blurb_text + configcommand_text
 
     # If we have a <pref> tag, add it to the clean_string
     if pref:
@@ -188,6 +182,63 @@ def get_bundle(
     save_returning = evaluated_results["returning_something"]
     process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
     evaluated_results["returning_something"] = save_returning
+
+    #     xpath_result = code_action.select_node("//Bundle")
+    #     if xpath_result:
+    #         # 2. Extract the actual node from the XPath result match
+    #         bundle_node = xpath_result.node
+
+    #         # 3. Safely chain down the known path relative to the Bundle tag
+    #         target_node = bundle_node.child("Vals").child("net.dinglisch.android.tasker.RELEVANT_VARIABLES")
+
+    #         if target_node:
+    #             bundle = target_node.text()
+    #         else:
+    #             evaluated_results[f"arg{arg}"] = {"value": ""}
+    #             evaluated_results["returning_something"] = False
+    #             return evaluated_results
+    #     else:
+    #         evaluated_results[f"arg{arg}"] = {"value": ""}
+    #         evaluated_results["returning_something"] = False
+    #         return evaluated_results
+    #     if bundle is None:
+    #         evaluated_results[f"arg{arg}"] = {"value": ""}
+    #         evaluated_results["returning_something"] = False
+    #         return evaluated_results
+
+    #     # Handle any pref = Output Variables name
+    #     pref = bundle_node.select_node(".//pref").node.value if bundle_node is not None else ""
+    #     if pref is None:
+    #         pref = ""
+
+    #     # Handle the twofortyfouram.locale.intent.extra.BLURB tag
+    #     vals = bundle_node.select_node(".//Vals")
+
+    # if vals is None:
+    #     evaluated_results[f"arg{arg}"] = {"value": ""}
+    #     evaluated_results["returning_something"] = False
+    #     return evaluated_results
+
+    # # Start building the details
+    # clean_string = ""
+    # vals_node = vals.node if vals is not None and isinstance(vals, pygixml.XPathNode) else vals
+    # blurb_node = vals_node.child("com.twofortyfouram.locale.intent.extra.BLURB")
+    # if blurb_node is not None and blurb_node.value is not None:
+    #     blurb = blurb_node.value
+    #     configcommand_node = blurb_node.child("configcommand")
+    #     configcommand = (
+    #         configcommand_node.value if configcommand_node is not None and configcommand_node.value is not None else ""
+    #     )
+    #     clean_string = blurb + configcommand
+
+    # # If we have a <pref> tag, add it to the clean_string
+    # if pref:
+    #     clean_string = f"Output Variables={pref}{clean_string}"
+
+    # # Separate configuration parameter arguments by commas.
+    # save_returning = evaluated_results["returning_something"]
+    # process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
+    # evaluated_results["returning_something"] = save_returning
 
     return evaluated_results
 

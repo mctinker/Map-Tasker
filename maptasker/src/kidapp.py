@@ -45,7 +45,6 @@ def get_kid_app(element: pygixml.XMLNode) -> str:
         f" Name:{kid_version}, Target Android"
         f" Version:{kid_target} {kid_features} {kid_plugins}]"
     )
-    print("bingo", kid_app_info)  # --- IGNORE ---
 
     if PrimeItems.program_arguments["pretty"]:
         number_of_blanks = kid_app_info.find("Package:") - 4

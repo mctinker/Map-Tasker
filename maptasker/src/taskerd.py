@@ -189,9 +189,12 @@ def get_first_action(task: pygixml.XPathNode) -> str:
         build_action_codes_from_json(False)
 
     # Get all of the Action statements.
-    task_actions = [child for child in task.children() if child.name == "Action"]
-    if task_actions is not None:
+    # task_actions = [child for child in task.children() if child.name == "Action"]
+    first_action = task.child("Action")
+    if first_action is not None:
         have_first_action = False
+        # FIX Clean this all up for pygixml
+        arg0 = first_action.attribute("sr").value if first_action.attribute("sr") is not None else None
         # Go through Actions looking for the first one ("act0")
         for action in task_actions:
             action_number = action.attribute("sr").value

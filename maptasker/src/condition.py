@@ -233,7 +233,7 @@ def condition_event(
 
     # Handle any conditions in the Event
     condition_list = the_item.child("ConditionList")
-    if condition_list is not None:
+    if condition_list is not None and condition_list.value is not None:
         evaluated_results = {}
         extract_condition(evaluated_results, "0", "", the_item)
         event = f"{event}, Condition(s): {evaluated_results['arg0']['value']}"
@@ -256,8 +256,8 @@ def condition_app(item: pygixml.XMLNode, condition: str) -> str:
         :return: the formatted condition's output string
     """
     the_apps = ""
-    for apps in item:
-        if "label" in apps.name:
+    for apps in item.children("App"):
+        if apps.name.startswith("label"):
             the_apps = f"{the_apps} {apps.value}"
     return f"{condition}Application:{the_apps}"
 
@@ -308,7 +308,6 @@ def parse_profile_condition(the_profile: pygixml.XMLNode) -> str:
     condition = ""  # Assume no condition
 
     # Go through Profile'x sub-XML looking for conditions
-    # FIX SOmething isn't right
     for item in the_profile:
         if item.name in ignore_items or "mid" in item.name:  # Bypass junk we don't care about
             continue
@@ -319,6 +318,5 @@ def parse_profile_condition(the_profile: pygixml.XMLNode) -> str:
                 condition = f"{condition}, <em>AND</em> {function_map[item.name](item, condition)}"
             else:
                 condition = function_map[item.name](item, condition)
-            print("bingo", condition)
 
     return condition
