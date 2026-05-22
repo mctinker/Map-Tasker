@@ -14,14 +14,13 @@
 #                       or event condition)                                          #
 #                                                                                    #
 # ####################################################################################
-import contextlib
 import re
 
 import pygixml  # Need for type hints
 
 import maptasker.src.actionr as action_results
 from maptasker.src.action import get_extra_stuff
-from maptasker.src.actionc import ActionCode, action_codes
+from maptasker.src.actionc import action_codes
 from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.debug import not_in_dictionary
 from maptasker.src.deprecate import depricated
@@ -71,7 +70,9 @@ def get_action_code(
     the_action_code_plus = just_the_code + code_type
 
     # See if this code is deprecated
-    # depricated = check_for_deprecation(the_action_code_plus)
+    depricated = check_for_deprecation(the_action_code_plus)
+    if depricated:
+        print("bingo depricated")
 
     # We have a code that is not yet in the dictionary?
     if the_action_code_plus not in action_codes:
@@ -82,57 +83,36 @@ def get_action_code(
         )
 
     else:
-        # FIX It is believed that the commented code is not needed/used.
-        # Format the output with HTML if this is a Task
-        # if action_type and len(just_the_code) <= 3:
-        #     # The code is in our dictionary.  Add the display name
-        #     the_result = format_html(
-        #         "action_name_color",
-        #         "",
-        #         f"{action_codes[the_action_code_plus].name}{depricated}",
-        #         True,
-        #     )
-        #     # numargs = len(PrimeItems.tasker_action_codes[just_the_code]["args"])
+        # 1. Fetch the initial action code object once to avoid multiple dictionary lookups
+        action_entry = action_codes.get(the_action_code_plus)
 
-        # # Not a Task.  Must be a condition.
-        # else:
-        #     the_result = f"{action_codes[the_action_code_plus].name}{depricated}"
+        if action_entry and action_entry.redirect:
+            # 2. Extract the referral key directly
+            referral = action_entry.redirect
 
-        # Get the actions results
-        the_result = action_results.get_action_results(
-            the_action_code_plus,
-            action_codes,
-            code_action,
-            action_type,
-        )
-
-        # If this is a redirected lookup entry, create a temporary mirror
-        # dictionary entry.
-        # Then grab the 'display' key and fill in rest with directed-to keys
-        with contextlib.suppress(KeyError):
-            if action_codes[the_action_code_plus].redirect:
-                # Get the referred-to dictionary item.
-                referral = action_codes[the_action_code_plus].redirect
-
-                # Create a temporary mirror dictionary entry using values of redirected code
-                temp_lookup_codes = {}
-                temp_lookup_codes[the_action_code_plus] = ActionCode(
-                    "",
-                    action_codes[referral].args,
-                    action_codes[the_action_code_plus].name,
-                    action_codes[referral].category,
-                    action_codes[referral].canfail,
-                )
-
-                # Get the results from the (copy of the) referred-to dictionary entry
+            # 3. Clean fallback logic: check if the referral actually exists in action_codes
+            if referral in action_codes:
+                # We fetch the result using the redirected/referred code instead of building a fake object
                 the_result = action_results.get_action_results(
-                    the_action_code_plus,
-                    temp_lookup_codes,
+                    referral,  # Pass the actual referral code
+                    action_codes,  # Pass the original dictionary
                     code_action,
                     action_type,
                 )
 
-    return the_result
+                # 4. Patch the name back to the original action code's name if necessary
+                if the_result and hasattr(the_result, "name"):
+                    the_result.name = action_entry.name
+        else:
+            # Default behavior if there is no redirection
+            the_result = action_results.get_action_results(
+                the_action_code_plus,
+                action_codes,
+                code_action,
+                action_type,
+            )
+
+    return f"{the_result}{depricated}"
 
 
 # Put the line '"Structure Output (JSON, etc)' back together.
@@ -142,7 +122,7 @@ def fix_json(line_to_fix: str, text_to_match: str) -> str:
 
     Args:
         line_to_fix (str): The line to be fixed.
-        texct_to_match (str): The text to match against.
+        text_to_match (str): The text to match against.
 
     Returns:
         str: The fixed line.

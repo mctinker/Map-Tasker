@@ -6,16 +6,17 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: 
 
 ### Changed
 
-- Changed:
+- Changed: XML processing improvement of up to 9 times faster.
 
 ### Fixed
 
 - Fixed: The Task name for tasks with too many actions is displayed too large in the Map view.
 - Fixed: 'Upgrade to New Version' button from previous language remains in GUI when changing language.
+- Fixed: Unnamed Task 'name' is not complete if it is associated with a condition.
 
 ### Known Issue
 

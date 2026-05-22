@@ -150,7 +150,8 @@ def get_perform_task_actions(the_tasks: list) -> None:
         # Only do this if we haven't already processed this task
         if task["name"] not in PrimeItems.outline_tasks_mapped:
             # Get Task's Actions
-            task_actions = [action.attribute("sr").as_string("") for action in task["xml"].children("Action")]
+            # FIX Need to convert to an XMLNodeList to be able to loop through it more than once.  Otherwise, we loop through it here and then it's empty when we try to loop through it again in the do_profile_tasks function.
+            task_actions = list(task["xml"].children("Action"))
             if not task_actions:
                 task_actions = ""
                 continue

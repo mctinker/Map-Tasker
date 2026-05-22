@@ -10,6 +10,7 @@ import re
 import pygixml
 
 from maptasker.src import condition
+from maptasker.src.action import get_conditions
 from maptasker.src.actione import get_action_code
 from maptasker.src.error import error_handler
 from maptasker.src.maputil2 import strip_html_tags, truncate_string
@@ -189,25 +190,42 @@ def get_first_action(task: pygixml.XPathNode) -> str:
         build_action_codes_from_json(False)
 
     # Get all of the Action statements.
-    # task_actions = [child for child in task.children() if child.name == "Action"]
     first_action = task.child("Action")
     if first_action is not None:
-        have_first_action = False
-        # FIX Clean this all up for pygixml
-        arg0 = first_action.attribute("sr").value if first_action.attribute("sr") is not None else None
-        # Go through Actions looking for the first one ("act0")
-        for action in task_actions:
-            action_number = action.attribute("sr").value
-            if action_number is not None and action_number == "act0":
-                have_first_action = True
-                break
+        # Parse the incoming string buffer into an internal memory XML document layout
+        doc = pygixml.parse_string(first_action.xml)
 
-        if not have_first_action:
-            return ""
+        # Get the root element node of our document tree (the <Task> tag context)
+        root_node = doc.root
+        # Query the node tree utilizing full XPath 1.0 syntax.
+        # '//Str[@sr="arg0"]' scans globally for any <Str> element where the 'sr' attribute is exactly "arg0"
+        arg0_path = root_node.select_node('//Str[@sr="arg0"]')
+        arg0_node = arg0_path.node if arg0_path else None
+
+        # If we don't have an arg0, then get any conditions on the Action and return those instead.
+        if arg0_node is None or arg0_node.value is None:  # If no arg0 (i.e. State/Event/etc.)
+            # Look for any conditions:  <ConditionList sr="if">
+            cond_list = first_action.child("ConditionList")
+            if cond_list is not None:  # If condition on Action?
+                code_node = first_action.child("code")
+                task_conditions = get_conditions(first_action, code_node.value)
+                if task_conditions:
+                    tc = task_conditions.replace("<em>", "").replace("</em>", "").replace("(", "").replace(")", "")
+                    arg0_value = tc.strip()
+                    get_arg0 = False
+                else:
+                    return ""
+        else:
+            get_arg0 = True
+
+        if get_arg0:
+            arg0_value = arg0_node.text()
+            if arg0_value is None or arg0_value.strip() == "":
+                return ""
 
         # Now get the Action code
-        child = action.child("code")
-        the_result = get_action_code(child, action, True, "t")
+        code_node = first_action.child("code")
+        the_result = get_action_code(code_node, arg0_node, True, "t") if get_arg0 else arg0_value
         clean_text = strip_html_tags(the_result)
         clean_text = (
             clean_text
