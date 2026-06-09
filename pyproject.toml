@@ -1,6 +1,6 @@
 [project]
 name = "maptasker"
-version = "10.2.6"
+version = "10.2.7"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
@@ -21,7 +21,7 @@ dependencies = [
     'defusedxml>=0.7.1',
     'packaging>=26.2',
     'pillow==12.2.0',
-    'requests>=2.33.1',
+    'requests>=2.34.2',
     'tomli_w>=1.2.0',
     'webcolors>=25.10.0',
 ]
@@ -72,6 +72,7 @@ test = ["pytest>=7.3.2", "pytest-mock"]
 dev = [
     "black>=26.3.1",
     "pip-autoremove>=0.10.0",
+    "ripgrep>=15.1.0",
 ]
 
 [tool.ruff]

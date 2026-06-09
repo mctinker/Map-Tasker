@@ -2,28 +2,38 @@
 
 All notable changes to this project will be documented in this file!
 
-## [10.2.6] 29-Apr-2026
+## [10.2.7] 09-Jun-2026
 
 ### Added
 
-- Added: Tasker version '6.7.3-beta Screen V2 Update' is supported.
+- Added: Tasker version 6.7.4-beta is supported.
 
 ### Changed
 
-- Changed:
+- Changed: Updated the AI list of avaiable models.
+- Changed: Optimized the 'Diagram' view performance.
+- Changed: Only check for a new version of MapTasker once a day for improved startup performance.
 
 ### Fixed
 
-- Fixed: The auto-update feature does not work if 'uv' is installed rather than pip.
-- Fixed: Highlighting in Profile name results in a Map view directory entry hotlink that fails.
-- Fixed: Changing the Appearance in the GUI is not working.
-- Fixed: Directory entries and hover-info font sizes are too small on Windows.
+- Fixed: The Task name for tasks with too many actions is displayed too large in the Map view.
+- Fixed: 'Upgrade to New Version' button from previous language remains in GUI when changing language.
+- Fixed: Some unnamed Tasks are missing from the directory in tha Map view.
+- FIxed: GLobal variable values are incorrectly displaying as '/td>"
 
 ### Known Issue
 
 - The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
 
 ## Older History Logs
+
+## [10.2.6] 29-Apr-2026
+
+- Added: Tasker version '6.7.3-beta Screen V2 Update' is supported.
+- Fixed: The auto-update feature does not work if 'uv' is installed rather than pip.
+- Fixed: Highlighting in Profile name results in a Map view directory entry hotlink that fails.
+- Fixed: Changing the Appearance in the GUI is not working.
+- Fixed: Directory entries and hover-info font sizes are too small on Windows.
 
 ## [10.2.5] 15-Apr-2026
 

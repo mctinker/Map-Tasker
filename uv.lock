@@ -227,7 +227,7 @@ wheels = [
 
 [[package]]
 name = "maptasker"
-version = "10.2.6"
+version = "10.2.7"
 source = { editable = "." }
 dependencies = [
     { name = "darkdetect" },
@@ -244,6 +244,7 @@ dependencies = [
 dev = [
     { name = "black" },
     { name = "pip-autoremove" },
+    { name = "ripgrep" },
 ]
 test = [
     { name = "pytest" },
@@ -257,7 +258,7 @@ requires-dist = [
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "packaging", specifier = ">=26.2" },
     { name = "pillow", specifier = "==12.2.0" },
-    { name = "requests", specifier = ">=2.33.1" },
+    { name = "requests", specifier = ">=2.34.2" },
     { name = "tomli-w", specifier = ">=1.2.0" },
     { name = "webcolors", specifier = ">=25.10.0" },
 ]
@@ -266,6 +267,7 @@ requires-dist = [
 dev = [
     { name = "black", specifier = ">=26.3.1" },
     { name = "pip-autoremove", specifier = ">=0.10.0" },
+    { name = "ripgrep", specifier = ">=15.1.0" },
 ]
 test = [
     { name = "pytest", specifier = ">=7.3.2" },
@@ -499,7 +501,7 @@ wheels = [
 
 [[package]]
 name = "requests"
-version = "2.33.1"
+version = "2.34.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
@@ -507,9 +509,19 @@ dependencies = [
     { name = "idna" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5f/a4/98b9c7c6428a668bf7e42ebb7c79d576a1c3c1e3ae2d47e674b468388871/requests-2.33.1.tar.gz", hash = "sha256:18817f8c57c6263968bc123d237e3b8b08ac046f5456bd1e307ee8f4250d3517", size = 134120, upload-time = "2026-03-30T16:09:15.531Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ac/c3/e2a2b89f2d3e2179abd6d00ebd70bff6273f37fb3e0cc209f48b39d00cbf/requests-2.34.2.tar.gz", hash = "sha256:f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed", size = 142856, upload-time = "2026-05-14T19:25:27.735Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d7/8e/7540e8a2036f79a125c1d2ebadf69ed7901608859186c856fa0388ef4197/requests-2.33.1-py3-none-any.whl", hash = "sha256:4e6d1ef462f3626a1f0a0a9c42dd93c63bad33f9f1c1937509b8c5c8718ab56a", size = 64947, upload-time = "2026-03-30T16:09:13.83Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl", hash = "sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0", size = 73075, upload-time = "2026-05-14T19:25:26.443Z" },
+]
+
+[[package]]
+name = "ripgrep"
+version = "15.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/18/0740869cfcee3b9671d601aec90541cc68e342794cecf02c6eec7ee12f19/ripgrep-15.1.0.tar.gz", hash = "sha256:3b4793859cd25c57ffd894b59ba9155636616b4084a1c12d0b9e819c16931ebf", size = 488918, upload-time = "2026-05-24T04:02:30.224Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/42/994bb17dc45399f60bc850c9ea295b9638eb7abee9ec26cc386a2ebc264d/ripgrep-15.1.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:3f99a068cea48d10ffc6b3c43bef37b684e1ba449d4ae57b0f96c4521f8d923f", size = 2072593, upload-time = "2026-05-24T04:02:26.66Z" },
+    { url = "https://files.pythonhosted.org/packages/29/5c/951baee5033a25e9b79df51b378276fd0b3a88c7aba9665d50178e9738c1/ripgrep-15.1.0-py3-none-manylinux_2_39_x86_64.whl", hash = "sha256:9b9bbd02a7f2c3e88882f9a9df416da8e272957071ba8ab59a7a7f06813643cf", size = 7817112, upload-time = "2026-05-24T04:02:28.625Z" },
 ]
 
 [[package]]
