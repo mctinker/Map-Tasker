@@ -17,8 +17,7 @@ import darkdetect
 
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
-
-VERSION = "10.2.6"
+VERSION = "10.2.7"  # 10.2.7
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -259,18 +258,19 @@ TABLE_BORDER = f"\n<style> table, td, th {{ padding: 5px; border: 2px solid {TAB
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
 OPENAI_MODELS = [
+    "gpt-5.5",
     "gpt-5.4",
     "gpt-5.4-pro",
     "gpt-5.4-mini",
     "gpt-5.4-nano",
     "gpt-5.3-Codex",
-    "gpt-5.3",
-    "2",
+    "gpt-5.2",
     "gpt-5.2-pro",
     "gpt-5.1",
     "gpt-5",
     "gpt-5-mini",
     "gpt-5-nano",
+    "gpt-5-pro",
     "gpt-4o",
     "gpt-4o-latest",
     "gpt-4o-mini",
@@ -281,8 +281,7 @@ OPENAI_MODELS = [
     "o1-pro",
     "o1",
     "o3",
-    "03-pro",
-    "o3-mini",
+    "o3-pro",
     "o4-mini",
 ]
 LLAMA_MODELS = [
@@ -298,6 +297,7 @@ LLAMA_MODELS = [
     "llama2",
     "llama3.2",
     "llama3.3",
+    "minimax-m3",
     "mistral",
     "mistral-nemo",
     "phi3",
@@ -307,26 +307,16 @@ LLAMA_MODELS = [
     "tinyllama",
 ]
 ANTHROPIC_MODELS = [
-    "claude-sonnet-4-5",
     "claude-haiku-4-5",
-    "claude-3-5-haiku-latest",
-    "claude-opus-4-6",
-    "claude-opus-4-5",
-    "claude-opus-4-0",
-    "claude-opus-4-1",
-    "claude-sonnet-4-0",
-    "claude-sonnet-4-5",
+    "claude-opus-4-8",
     "claude-sonnet-4-6",
 ]
 DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
-    "gemini-3.1-pro-preview",
-    "gemini-3.1-flash-lite-preview",
-    "gemini-3-pro",
+    "gemini-3.1-pro",
     "gemini-3-flash",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-2.5-pro",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
 ]
 MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,

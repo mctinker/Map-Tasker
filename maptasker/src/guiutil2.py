@@ -1373,7 +1373,7 @@ def sort_languages_with_priority(language_list: list) -> list:
     return sorted(language_list, key=hybrid_sort_key)
 
 
-def get_windows_equivalent_font_size(mac_font_size: int) -> int:
+def get_windows_equivalent_font_size(mac_font_size: int, query_true_dpi: int = False) -> int:
     """
     Converts a macOS font size (in points) to the equivalent
     Windows font size (in pixels).
@@ -1385,10 +1385,11 @@ def get_windows_equivalent_font_size(mac_font_size: int) -> int:
         int: The equivalent font size for Windows rounded to the nearest pixel.
     """
     # Get the window dpi
-    windows_dpi = get_windows_system_dpi()
+    windows_dpi = get_windows_system_dpi() if query_true_dpi else 96
+
     # Standard conversion factor: 1 point = 1/72 of an inch.
     # Windows Pixels = (Points * DPI) / 72
-    windows_dpi = 96
+
     equivalent_size = (mac_font_size * windows_dpi) / 72
 
     return round(equivalent_size)

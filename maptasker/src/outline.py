@@ -124,12 +124,25 @@ def do_task_actions(
         - Updates caller and called task relationships.
     """
     _update_caller_and_called_tasks = update_caller_and_called_tasks
+
+    # Pre-split the constant delimiter outside the loop if possible,
+    # or ensure it's done efficiently.
+    delimiter = "&nbsp;"
+
     for action in task_actions:
-        if any(child.tag == "code" and child.text == "130" for child in action):
-            perform_task_name = next((s.text for s in action.findall("Str")), None)
+        # 1. Use .find() to look for the <code> tag directly.
+        # This avoids iterating through every single child via a Python generator.
+        code_node = action.find("code")
+
+        # 2. Check the text condition first. If it matches, proceed.
+        if code_node is not None and code_node.text == "130":
+            # 3. Use findtext() instead of findall() + a generator expression.
+            # This instantly grabs the text of the *first* <Str> child natively in C.
+            perform_task_name = action.findtext("Str")
+
             if perform_task_name:
-                # Just get ther task name and not the whole output line
-                task["name"] = task["name"].split("&nbsp;")[0]
+                # 4. Optimize the string split by limiting it to 1 maxsplit.
+                task["name"] = task["name"].split(delimiter, 1)[0]
                 _update_caller_and_called_tasks(task, perform_task_name)
 
 

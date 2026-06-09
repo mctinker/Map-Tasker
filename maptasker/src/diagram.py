@@ -638,7 +638,7 @@ def get_index_setup(s: str, called_task_name: str) -> tuple:
         return -1
 
     # Extract the relevant substring after "Calls ──▶ "
-    temp_line = s[start_search:].split("]")[0].strip()
+    temp_line = s[start_search:].split("]", maxsplit=1)[0].strip()
     close_bracket_pos = temp_line.find("]")
     if close_bracket_pos != -1:
         temp_line = temp_line[:close_bracket_pos]
@@ -1108,8 +1108,13 @@ def cleanup_dangling_elbows(output_lines: list, num: int) -> list:
     return output_lines
 
 
+# Pre-compile the regex pattern outside the function to maximize performance.
+# This matches: "straight_line" followed by a space, followed by "straight_line"
+# Using a lookahead (?=...) ensures overlapping matches are caught cleanly.
+MISSING_BAR_PATTERN = re.compile(f"({re.escape(straight_line)}) (?={re.escape(straight_line)})")
+
+
 def cleanup_missing_straight_lines(output_lines: list, num: str, line: str) -> list:
-    # Add missing straight lines in which there is one or more blanks before "╯".
     """
     Add missing straight lines in which there is one or more blanks before "╯" or missing bars: "straight_line space straight_line".
     Replace the space with a straight line and replace all single-quotes with a blank.
@@ -1120,37 +1125,26 @@ def cleanup_missing_straight_lines(output_lines: list, num: str, line: str) -> l
         line (str): The current line string.
     Returns:
         list: The modified list of strings.
+
+    Optimized version utilizing native string methods and regex to eliminate the while loop.
     """
-    new_string = list(line)
-    length = len(new_string)
+    # 1. Handle "straight_line space straight_line" pattern using regex
+    # Replaces the space with the straight_line variable
+    line = MISSING_BAR_PATTERN.sub(rf"\1{straight_line}", line)
 
-    i = 1  # Start at 1 to check the previous character
-    while i < length:
-        # Check for right_arrow_corner_up and preceding space, replace if found
-        if new_string[i] == right_arrow_corner_up and new_string[i - 1] == " ":
-            new_string[i - 1] = straight_line
+    # 2. Handle "space right_arrow_corner_up" pattern using native string replace
+    # Equivalent to checking new_string[i] == corner and new_string[i-1] == " "
+    line = line.replace(f" {right_arrow_corner_up}", f"{straight_line}{right_arrow_corner_up}")
 
-        # Check for missing bars: "straight_line space straight_line"
-        if (
-            i + 2 < length
-            and new_string[i] == straight_line
-            and new_string[i + 1] == " "
-            and new_string[i + 2] == straight_line
-        ):
-            new_string[i + 1] = straight_line
-            i += 2  # Skip ahead to avoid rechecking parts of the pattern
+    # 3. Handle the hardcoded block replace
+    line = line.replace("  ─╯", "───╯")
 
-        i += 1
+    # 4. If the last position is a bracket, strip out the task_delimeter
+    if line.endswith("]"):
+        line = line.replace(task_delimeter, "")
 
-    # Join once at the end
-    output_lines[num] = "".join(new_string)
-
-    # Likewise for " ──╯".  Replace the space with a straight line and replace all single-quotes with a blank.
-    output_lines[num] = output_lines[num].replace("  ─╯", "───╯")
-
-    # If last position is a bracket, just continue.
-    if output_lines[num] and output_lines[num][-1] == "]":
-        output_lines[num] = output_lines[num].replace(task_delimeter, "")
+    # Save back to the array (ensuring the index is an integer)
+    output_lines[int(num)] = line
 
     return output_lines
 

@@ -9,6 +9,7 @@ from __future__ import annotations  # noqa: I001
 
 import contextlib
 import copy
+from datetime import date
 import os
 import pickle
 from tkinter import TclError
@@ -440,6 +441,7 @@ class MyGui(customtkinter.CTk):
         # self.textbox.focus_set()
         # Set the font
         self.textbox.configure(font=(self.font, 14))
+        self.textbox.focus()
 
     # Check the current messsage for additional highlighting
     def check_message_for_special_highlighting(
@@ -1632,6 +1634,30 @@ class MyGui(customtkinter.CTk):
             self.display_message_box(f"{text} {filename}", "Green")
         self.file = filename  # Set this so it is saved in settings.
 
+    def is_first_run_today(self, filename: str = ".maptasker_last_run.txt") -> bool:
+        """Checks if this is the first time the function has been executed today.
+
+        Saves the current date to a file. If the file doesn't exist or contains
+        a older date, it returns True. Otherwise, it returns False.
+        """
+        # 1. Get today's date as a string (YYYY-MM-DD)
+        today_str = str(date.today())  # noqa: DTZ011
+
+        # 2. Check if the tracking file exists
+        if os.path.exists(filename):
+            with open(filename) as file:
+                last_run_str = file.read().strip()
+
+            # If the date in the file matches today, it's NOT the first run
+            if last_run_str == today_str:
+                return False
+
+        # 3. If file doesn't exist OR the date is old, update the file and return True
+        with open(filename, "w") as file:
+            file.write(today_str)
+
+        return True
+
     # Check to see if a new version of our code is available.
     # Add Update Version button if there is a new version.
     def check_new_version(self) -> None:
@@ -1641,7 +1667,9 @@ class MyGui(customtkinter.CTk):
             self: The class instance
         Returns:
             None"""
-        logger.info("Checking for new version...")
+        if not self.is_first_run_today():
+            logger.info("Not the first run today.  Skipping new version check.")
+            return
         # Add a button to enable user to update.
         # TODO For testing only = True.  False for production
         test_button = False
@@ -3162,34 +3190,30 @@ class EventHandlers:
         buttons = self.find_variables(the_view, "_button")
         for button in buttons:
             button_to_clear = getattr(the_view, button)
-            button_to_clear.configure(text="")
+            button_to_clear.destroy()
         # Ditto mapview top-row buttons
         with contextlib.suppress(AttributeError):
             buttons = self.find_variables(the_view.mapview, "_button")
             for button in buttons:
                 button_to_clear = getattr(the_view.mapview, button)
-                # button_to_clear.configure(text="")
                 button_to_clear.destroy()
         # Ditto diagramiew top-row buttons
         with contextlib.suppress(AttributeError):
             buttons = self.find_variables(the_view.diagramview, "_button")
             for button in buttons:
                 button_to_clear = getattr(the_view.diagramview, button)
-                # button_to_clear.configure(text="")
                 button_to_clear.destroy()
         # Ditto mapview top-row labels
         with contextlib.suppress(AttributeError, TclError):
             labels = self.find_variables(the_view.mapview, "_label")
             for label in labels:
                 label_to_clear = getattr(the_view.mapview, label)
-                # label_to_clear.configure(text="")
                 label_to_clear.destroy()
         # Ditto mapview top-row labels
         with contextlib.suppress(AttributeError, TclError):
             labels = self.find_variables(the_view.diagramview, "_label")
             for label in labels:
                 label_to_clear = getattr(the_view.diagramview, label)
-                # label_to_clear.configure(text="")
                 label_to_clear.destroy()
 
     def find_variables(self, the_view: MyGui, var_to_find: str) -> list:
@@ -3891,12 +3915,11 @@ class EventHandlers:
             # Process the diagram: builds the 'network' and then draws it in the GUI
             save_outline = guiview.outline
             guiview.outline = True
-            # The following doesn't display
+            # Let the user know
             guiview.display_message_box(
                 "The 'Diagram' view is running in the background.  Please stand by...",
                 "LimeGreen",
             )
-            guiview.textbox.focus_set()
 
             # Get rid of the previous window
             if guiview.diagramview_window is not None:

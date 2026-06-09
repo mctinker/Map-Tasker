@@ -274,6 +274,7 @@ def get_llama_models() -> list:
         "glm-4.7",
         "glm-4.7-flash",
         "gpt-oss:latest",
+        "granite4.1",
         "llama2",
         "llama3",
         "llama3.1:latest",
@@ -282,6 +283,7 @@ def get_llama_models() -> list:
         "llama3.2:1b",
         "llama3.3",
         "llama4",
+        "lfm2",
         "magistral",
         "mistral",
         "mistral-nemo",
@@ -297,6 +299,7 @@ def get_llama_models() -> list:
         "qwen3-coder-next",
         "qwen3-next",
         "qwen3.5:0.8b",
+        "qwen3.6:latest",
         "starcoder2:latest",
         "tinyllama",
     ]

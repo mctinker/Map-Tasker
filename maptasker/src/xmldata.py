@@ -79,7 +79,7 @@ def extract_integer(
 
     Args:
         code_action (XML element): The XML action element to search.
-        arg (str): The name of the argument to search for.
+        the_arg (str): The name of the argument to search for.
         argeval (str | list): The evaluation to perform on the integer.
         arg: (list): The list of arguments for this action from action_codes.
 
@@ -89,17 +89,15 @@ def extract_integer(
     from maptasker.src.action import drop_trailing_comma, process_xml_list  # noqa: PLC0415
 
     # Find the first matching <Int> element with the desired 'sr' attribute
-    int_element = next(
-        (child for child in code_action if child.tag == "Int" and child.attrib.get("sr") == the_arg),
-        None,
-    )
-    if int_element is None:
-        return ""  # No matching <Int> element found
+    # Use an XPath expression to find the exact matching <Int> element directly in C
+    int_element = code_action.find(f"./Int[@sr='{the_arg}']")
 
-    # Extract value or variable
-    the_int_value = int_element.attrib.get("val") or (
-        int_element.find("var").text if int_element.find("var") is not None else ""
-    )
+    if int_element is None:
+        return ""
+
+    # 1. Use .get() for the attribute (fast)
+    # 2. Use findtext() instead of checking if .find() is not None and then extracting text
+    the_int_value = int_element.get("val") or int_element.findtext("var", default="")
 
     if not the_int_value:
         return ""  # No valid integer or variable name found

@@ -974,9 +974,10 @@ def additional_formatting(
         name, _, rest = rest.partition("<")
 
         # Extract value
-        value, _, tail = rest.partition("<")
-        if not value:
-            value = tail[3:]
+        # Search for text between '>' and '<'
+        _, _, tail = rest.partition("<")
+        match = re.search(r">([^<]*)<", tail)
+        value = match.group(1) if match else "(unassigned)"
 
         out["text"] = [
             f"{name.ljust(25, '.')}{value.rjust(15, '.')}",

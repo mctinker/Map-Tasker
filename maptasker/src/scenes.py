@@ -37,8 +37,10 @@ SCENE_TAGS_TO_IGNORE = [
     "edate",
     "flags",
     "heightLand",
+    "heightPort",
     "nme",
     "widthLand",
+    "widthPort",
 ]
 blank = "&nbsp;"
 

@@ -150,42 +150,48 @@ def condition_state(
     _get_action_code = action_evaluate.get_action_code
     _reformat_html = reformat_html
     _extract_condition = extract_condition
-    for child in the_item:
-        # Process the state code
-        if child.tag == "code":
-            logger.debug(f"condition_state:{child.text}")
-            state_code = f"{child.text}s" if "s" not in child.text else child.text
-            if state_code not in action_codes:
-                _build_action_codes(
-                    child,
-                    the_item,
-                )  # Add it to our action dictionary
-            # child.text = state_code
-            state = _get_action_code(
-                child,
-                the_item,
-                False,
-                "s",
-            )
 
-            # If pretty text, then reformat it.
-            if "Configuration Parameter(s):" in state and PrimeItems.program_arguments["pretty"]:
-                state = _reformat_html(state)
+    # 1. Hoist configurations and flags
+    is_pretty = PrimeItems.program_arguments["pretty"]
+    is_debug = PrimeItems.program_arguments["debug"]
 
-            # Add this State to any preceding State
-            state = state.replace("\n", spaces)
-            the_output_condition = f"{the_output_condition}State: {state}"
-            invert = the_item.find("pin")
-            if invert is not None and invert.text == "true":
-                the_output_condition = f"{the_output_condition} <em>[inverted]</em>"
-            if PrimeItems.program_arguments["debug"]:
-                the_output_condition = f"{the_output_condition} (code:{child.text})"
+    invert_node = the_item.find("pin")
+    is_inverted = invert_node is not None and invert_node.text == "true"
 
-        elif child.tag == "ConditionList":
-            evaluated_results = {}
-            _extract_condition(evaluated_results, "0", "", the_item)
-            the_output_condition = f"{the_output_condition}, Condition(s): {evaluated_results['arg0']['value']}"
-            break
+    condition_chunks = [the_output_condition] if the_output_condition else []
+
+    # 2. Directly find the code node (No loop!)
+    code_node = the_item.find("code")
+    if code_node is not None:
+        child_text = code_node.text or ""
+        logger.debug(f"condition_state:{child_text}")
+
+        state_code = child_text if "s" in child_text else f"{child_text}s"
+        if state_code not in action_codes:
+            _build_action_codes(code_node, the_item)
+
+        state = _get_action_code(code_node, the_item, False, "s")
+
+        if is_pretty and "Configuration Parameter(s):" in state:
+            state = _reformat_html(state)
+
+        state = state.replace("\n", spaces)
+        condition_chunks.append(f"State: {state}")
+
+        if is_inverted:
+            condition_chunks.append(" <em>[inverted]</em>")
+        if is_debug:
+            condition_chunks.append(f" (code:{child_text})")
+
+    # 3. Directly find the ConditionList node
+    condition_list_node = the_item.find("ConditionList")
+    if condition_list_node is not None:
+        evaluated_results = {}
+        _extract_condition(evaluated_results, "0", "", the_item)
+        condition_chunks.append(f", Condition(s): {evaluated_results['arg0']['value']}")
+
+    # Collapse chunks
+    the_output_condition = "".join(condition_chunks)
 
     return the_output_condition
     # return ""
