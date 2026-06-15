@@ -52,7 +52,6 @@ sys.path.insert(0, override_path)
 #     )
 
 from maptasker.src.mapit import mapit_all
-from maptasker.src.maputils import exit_program
 
 
 def main() -> None:
@@ -62,7 +61,8 @@ def main() -> None:
     # Call the core function passing an empty filename
     return_code = mapit_all("")
     # Call it quits.
-    exit_program(return_code)
+    # exit_program(return_code)
+    return return_code
 
 
 if __name__ == "__main__":

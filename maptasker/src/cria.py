@@ -13,7 +13,7 @@ from contextlib import ContextDecorator
 # import ollama
 # import psutil
 # from ollama._client import Client as OllamaClient
-from maptasker.src.maputil2 import ensure_and_import
+from maptasker.src.maputil3 import ensure_and_import
 from maptasker.src.primitem import PrimeItems
 
 httpx = ensure_and_import("httpx", "httpx")

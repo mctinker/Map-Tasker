@@ -31,7 +31,7 @@ from maptasker.src.taskflag import get_priority
 from maptasker.src.twisty import add_twisty, remove_twisty
 
 if TYPE_CHECKING:
-    import pygixml
+    import defusedxml.ElementTree
 
 
 # process_projects: go through all Projects Profiles...and output them
@@ -58,7 +58,8 @@ def process_projects_and_their_profiles(
 
     # Process unnamed Task
     if (
-        UNNAMED_ITEM in PrimeItems.program_arguments["single_task_name"]
+        PrimeItems.program_arguments["single_task_name"] is not None
+        and UNNAMED_ITEM in PrimeItems.program_arguments["single_task_name"]
         and PrimeItems.program_arguments["list_unnamed_items"]
     ) and PrimeItems.tasker_root_elements["all_tasks_by_name"]:
         task_name = PrimeItems.program_arguments["single_task_name"]
@@ -154,7 +155,7 @@ def process_projects_and_their_profiles(
 # ################################################################################
 # Identify and format launcher Task for Project
 # ################################################################################
-def get_launcher_task(project: pygixml.XMLNode, project_name: str) -> str:
+def get_launcher_task(project: defusedxml.ElementTree, project_name: str) -> str:
     """
     If Project has a launcher Task, get it and format it for output
         :param project: xml element of Project we are processing
@@ -167,14 +168,14 @@ def get_launcher_task(project: pygixml.XMLNode, project_name: str) -> str:
     # blanks_in_front = f"{space * total_spaces_first_line}"
     # blanks_after_front = f"{space * (total_spaces_first_line + 22)}"
     launcher_task_info = ""
-    share_element = project.child("Share")
+    share_element = project.find("Share")
     if share_element is not None:
-        launcher_task_element = share_element.child("t")
-        if launcher_task_element is not None and launcher_task_element.value is not None:
+        launcher_task_element = share_element.find("t")
+        if launcher_task_element is not None and launcher_task_element.text is not None:
             launcher_task_info = format_html(
                 "launcher_task_color",
                 "",
-                f"[Launcher Task: {launcher_task_element.value}] ",
+                f"[Launcher Task: {launcher_task_element.text}] ",
                 True,
             )
 
@@ -342,7 +343,7 @@ def tasks_not_in_profiles(
 
 # Add extra info to Project output line as appropriate and then output it.
 def get_extra_and_output_project(
-    project: pygixml.XMLNode,
+    project: defusedxml.ElementTree,
     project_name: str,
     launcher_task_info: str,
 ) -> bool:
@@ -479,10 +480,10 @@ def summary_counts(project_name: str, profile_count: int) -> None:
 
 # Output the remaining components related to the Project
 def finish_up(
-    project: pygixml.XMLNode,
+    project: defusedxml.ElementTree,
     project_name: str,
     found_tasks: list,
-    our_task_element: pygixml.XMLNode,
+    our_task_element: defusedxml.ElementTree,
     profile_count: int,
 ) -> None:
     """
@@ -552,7 +553,7 @@ def is_single_task_or_profile_found() -> bool:
 
 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
 def get_profile_ids(
-    project: pygixml.XMLNode,
+    project: defusedxml.ElementTree,
     project_name: str,
     projects_without_profiles: list,
 ) -> list:
@@ -664,27 +665,27 @@ def get_profile_details_and_output(
 # Process all of the Profiles for this Project
 # ################################################################################
 def process_project_profiles(
-    project: pygixml.XMLNode,
+    project: defusedxml.ElementTree,
     project_name: str,
     projects_without_profiles: list,
     found_tasks: list,
-    our_task_element: pygixml.XMLNode,
+    our_task_element: defusedxml.ElementTree,
     profile_count: int,
 ) -> tuple:
     """
     Process all of the Profiles for this Project
         Args:
-            project (pygixml.XMLNode): XML element for the Project we are doing
+            project (defusedxml.ElementTree): XML element for the Project we are doing
             project_name (str): Name of the Project we are doing
             projects_without_profiles (list): List of Project XML elements that have
                     no Profiles
             found_tasks (list): list of Tasks found so far
-            our_task_element(pygixml.XMLNode): effectivewly empty for Projects,
+            our_task_element(defusedxml.ElementTree): effectivewly empty for Projects,
                     but needed for Profile processing further down the chain of code
             profile_count(int): count of the number of Profiles for this Project
 
         Returns:
-            tuple[bool, pygixml.XMLNode, int]: True if no Profiles found,
+            tuple[bool, defusedxml.ElementTree, int]: True if no Profiles found,
                 False otherwise; our Task XML element, count of Profiles in Project
     """
     # Get the Profile IDs for this Project and process them
@@ -713,7 +714,7 @@ def process_project_profiles(
 def process_projects(
     projects_without_profiles: list,
     found_tasks: list,
-    our_task_element: pygixml.XMLNode,
+    our_task_element: defusedxml.ElementTree,
 ) -> list:
     """
     Go through all the Projects, get their detail and output it

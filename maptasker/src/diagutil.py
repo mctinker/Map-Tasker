@@ -622,30 +622,7 @@ def build_call_table(output_lines: list) -> list:
     return call_table
 
 
-def unique_up_down_location_by_project(call_table: dict, up_down_location: int) -> int:
-    # Collect all existing up_down_location values in the call_table
-    """
-    Ensure that the given up_down_location is not already in use in the call_table by
-    incrementing or decrementing it until it is unique for the given project.
-
-    Args:
-        call_table (dict): The dictionary of caller/called Task connections.
-        up_down_location (int): The up_down_location to check for uniqueness.
-
-    Returns:
-        int: A unique up_down_location value.
-    """
-    existing_locations = {entry["up_down_location"] for entry in call_table.values()}
-
-    # Check if the given up_down_location is already in use
-    while up_down_location in existing_locations:
-        # Increment or decrement to find a unique value
-        up_down_location += 2  # You could change to -1 if decrementing is preferred
-
-    # Return a unique up_down_location value
-    return up_down_location
-
-
+#     return up_down_location
 def ensure_unique_up_down_location(
     call_table: dict,
     up_down_location: int,
@@ -665,38 +642,52 @@ def ensure_unique_up_down_location(
 
     Returns:
         int: A unique up_down_location value.
+
+    Optimized version utilizing O(1) set lookups to eliminate nested loop bottlenecks.
     """
-    project_keys_values = [
-        (key, details) for key, details in call_table.items() if details.get("project_name") == project_name
-    ]
+    # Step 1: Pre-calculate sets for O(1) lookups instead of repeatedly scanning call_table
+    global_locations = set()
+    project_locations = set()
 
-    # Make sure this called Task is in this Project.
-    for key_value in project_keys_values:
-        task_to_find = key_value[1]["caller_task_name"]
-        caller_keys_values = [
-            (key, details) for key, details in call_table.items() if details.get("caller_task_name") == task_to_find
-        ]
+    # A mapping to quickly find the project_name of any caller_task_name in O(1) time
+    task_project_map = {}
 
-        # If the caller task's project is not this called task project, then the called task project is outside this project.
-        if caller_keys_values and caller_keys_values[0][1]["project_name"] != project_name:
-            restart = True
-            while restart:
-                restart = False
-                for value in call_table.values():
-                    if value["up_down_location"] == up_down_location:
-                        up_down_location += 2
-                        restart = True
-                        break
+    for details in call_table.values():
+        loc = details.get("up_down_location")
+        if loc is not None:
+            global_locations.add(loc)
+            if details.get("project_name") == project_name:
+                project_locations.add(loc)
 
-        # Caller and called tasks are in same project.  Just make sure up_down_location is unique for this project.
-        else:
-            mini_call_table = {}
-            for key_value in project_keys_values:  # noqa: PLW2901
-                mini_call_table[key_value[0]] = call_table[key_value[0]]
-            up_down_location = unique_up_down_location_by_project(
-                mini_call_table,
-                up_down_location,
-            )
+        # Cache task-to-project relationships
+        caller = details.get("caller_task_name")
+        p_name = details.get("project_name")
+        if caller and p_name:
+            task_project_map[caller] = p_name
+
+    # Step 2: Gather unique caller tasks inside THIS project
+    # (Matches the original logic's intent for project_keys_values)
+    this_project_callers = {
+        details["caller_task_name"]
+        for details in call_table.values()
+        if details.get("project_name") == project_name and "caller_task_name" in details
+    }
+
+    # Step 3: Determine if we need a globally unique or project-unique location
+    is_outside_project = False
+    for task_to_find in this_project_callers:
+        # Get the project of the caller task using our fast O(1) map
+        caller_project = task_project_map.get(task_to_find)
+
+        if caller_project and caller_project != project_name:
+            is_outside_project = True
+            break  # If even one is outside, global rules apply, no need to keep checking
+
+    # Step 4: Resolve collisions instantly using the appropriate pre-built set
+    target_set = global_locations if is_outside_project else project_locations
+
+    while up_down_location in target_set:
+        up_down_location += 2
 
     return up_down_location
 

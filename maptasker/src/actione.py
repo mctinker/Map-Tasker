@@ -14,13 +14,14 @@
 #                       or event condition)                                          #
 #                                                                                    #
 # ####################################################################################
+import contextlib
 import re
 
-import pygixml  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.actionr as action_results
 from maptasker.src.action import get_extra_stuff
-from maptasker.src.actionc import action_codes
+from maptasker.src.actionc import ActionCode, action_codes
 from maptasker.src.config import CONTINUE_LIMIT
 from maptasker.src.debug import not_in_dictionary
 from maptasker.src.deprecate import depricated
@@ -50,14 +51,14 @@ def check_for_deprecation(the_action_code_plus: str) -> None:
 
 # Given an action code, evaluate it for display.
 def get_action_code(
-    just_the_code: str,
-    code_action: pygixml.XMLNode,
+    code_child: defusedxml.ElementTree,
+    code_action: defusedxml.ElementTree,
     action_type: bool,
     code_type: str,
 ) -> str:
     """
     Given an action code, evaluate it for display
-        :param just_the_code: the action code <code>just_the_code</code> (e.g. "861")
+        :param code_child: xml element of the <code>
         :param code_action: xml; element of the <Action
         :param action_type: True if task, False otherwise
         :param code_type: 'e'=event, 's'=state, 't'=task
@@ -65,14 +66,11 @@ def get_action_code(
     """
 
     # logger.debug(f"get action code:{code_child.text}{code_type}")
-    if not isinstance(just_the_code, str):
-        just_the_code = just_the_code.value  # Get the code from the XML if not already a string.
+    just_the_code = code_child.text
     the_action_code_plus = just_the_code + code_type
 
     # See if this code is deprecated
     depricated = check_for_deprecation(the_action_code_plus)
-    if depricated:
-        print("bingo depricated")
 
     # We have a code that is not yet in the dictionary?
     if the_action_code_plus not in action_codes:
@@ -83,36 +81,56 @@ def get_action_code(
         )
 
     else:
-        # 1. Fetch the initial action code object once to avoid multiple dictionary lookups
-        action_entry = action_codes.get(the_action_code_plus)
+        # Format the output with HTML if this is a Task
+        if action_type and len(just_the_code) <= 3:
+            # The code is in our dictionary.  Add the display name
+            the_result = format_html(
+                "action_name_color",
+                "",
+                f"{action_codes[the_action_code_plus].name}{depricated}",
+                True,
+            )
+            # numargs = len(PrimeItems.tasker_action_codes[just_the_code]["args"])
 
-        if action_entry and action_entry.redirect:
-            # 2. Extract the referral key directly
-            referral = action_entry.redirect
+        # Not a Task.  Must be a condition.
+        else:
+            the_result = f"{action_codes[the_action_code_plus].name}{depricated}"
 
-            # 3. Clean fallback logic: check if the referral actually exists in action_codes
-            if referral in action_codes:
-                # We fetch the result using the redirected/referred code instead of building a fake object
+        # Get the actions results
+        the_result = action_results.get_action_results(
+            the_action_code_plus,
+            action_codes,
+            code_action,
+            action_type,
+        )
+
+        # If this is a redirected lookup entry, create a temporary mirror
+        # dictionary entry.
+        # Then grab the 'display' key and fill in rest with directed-to keys
+        with contextlib.suppress(KeyError):
+            if action_codes[the_action_code_plus].redirect:
+                # Get the referred-to dictionary item.
+                referral = action_codes[the_action_code_plus].redirect
+
+                # Create a temporary mirror dictionary entry using values of redirected code
+                temp_lookup_codes = {}
+                temp_lookup_codes[the_action_code_plus] = ActionCode(
+                    "",
+                    action_codes[referral].args,
+                    action_codes[the_action_code_plus].name,
+                    action_codes[referral].category,
+                    action_codes[referral].canfail,
+                )
+
+                # Get the results from the (copy of the) referred-to dictionary entry
                 the_result = action_results.get_action_results(
-                    referral,  # Pass the actual referral code
-                    action_codes,  # Pass the original dictionary
+                    the_action_code_plus,
+                    temp_lookup_codes,
                     code_action,
                     action_type,
                 )
 
-                # 4. Patch the name back to the original action code's name if necessary
-                if the_result and hasattr(the_result, "name"):
-                    the_result.name = action_entry.name
-        else:
-            # Default behavior if there is no redirection
-            the_result = action_results.get_action_results(
-                the_action_code_plus,
-                action_codes,
-                code_action,
-                action_type,
-            )
-
-    return f"{the_result}{depricated}"
+    return the_result
 
 
 # Put the line '"Structure Output (JSON, etc)' back together.
@@ -122,7 +140,7 @@ def fix_json(line_to_fix: str, text_to_match: str) -> str:
 
     Args:
         line_to_fix (str): The line to be fixed.
-        text_to_match (str): The text to match against.
+        texct_to_match (str): The text to match against.
 
     Returns:
         str: The fixed line.
@@ -168,8 +186,7 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     else:
         # Variable Set:  Just split at the ', To=', ", Max Rounding Digits", and ", Structure Output"
         task_code_line = (
-            task_code_line
-            .replace(", To=", f", <br>{indent_amt}{blank * extra_blanks}To=")
+            task_code_line.replace(", To=", f", <br>{indent_amt}{blank * extra_blanks}To=")
             .replace(
                 ", Max Rounding Digits",
                 f", <br>{indent_amt}{blank * extra_blanks}Max Rounding Digits",
@@ -281,7 +298,7 @@ def finalize_action_details(
 def build_action(
     alist: list,
     task_code_line: str,
-    code_element: pygixml.XMLNode,
+    code_element: defusedxml.ElementTree,
     indent: int,
     indent_amt: str,
 ) -> list:

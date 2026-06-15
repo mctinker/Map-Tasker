@@ -14,7 +14,7 @@ from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
-    import pygixml
+    import defusedxml.ElementTree
 
 IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 
@@ -22,7 +22,7 @@ IGNORE_ITEMS = ["code", "label", "se", "on", "ListElementItem", "pri", "pin"]
 # Given a child xml element, determine if it is a boolean of condtion
 # add return if in a list
 def get_boolean_or_condition(
-    child: pygixml.XMLNode,
+    child: defusedxml.ElementTree,
     condition_list: list,
     boolean_list: list,
 ) -> tuple[list, list]:
@@ -38,9 +38,9 @@ def get_boolean_or_condition(
         tuple: A tuple containing the updated condition_list and boolean_list.
     """
 
-    if "bool" in child.name:
-        boolean_list.append(child.value.upper())
-    elif child.name == "Condition":
+    if "bool" in child.tag:
+        boolean_list.append(child.text.upper())
+    elif child.tag == "Condition":
         (
             first_string,
             the_operation,
@@ -53,7 +53,7 @@ def get_boolean_or_condition(
 # Trundle through ConditionList "If" conditions
 # Return the list of conditions and list of associated booleans
 def process_condition_list(
-    code_action: pygixml.XMLNode,
+    code_action: defusedxml.ElementTree,
 ) -> tuple[list[list[Any]], list[str]]:
     """
     Extracts conditions and their associated booleans from the <ConditionList> element.
@@ -64,12 +64,11 @@ def process_condition_list(
     Returns:
         tuple[list[list[Any]], list[str]]: List of conditions and their associated booleans.
     """
-    condition_list_str = code_action.child_value("ConditionList")
+    condition_list_str = code_action.find("ConditionList")
     if condition_list_str is None:
         return [], []
 
     condition_list, boolean_list = [], []
-    list_of_conditions = code_action.select_nodes("ConditionList")
     for child in condition_list_str:
         condition_list, boolean_list = get_boolean_or_condition(
             child,
@@ -84,9 +83,9 @@ def process_condition_list(
 #  This is only called if the action code is already in our master
 #  dictionary of codes.
 def update_action_codes(
-    action: pygixml.XMLNode,
-    the_action_code_plus: pygixml.XMLNode,
-) -> pygixml.XMLNode:
+    action: defusedxml.ElementTree,
+    the_action_code_plus: defusedxml.ElementTree,
+) -> defusedxml.ElementTree:
     """
     Update the dictionary for the Action code
         :param action: <Action> xml element
@@ -117,9 +116,9 @@ def update_action_codes(
 # Build the dictionary for the Action code.  Only called if the action code is not
 #   in our master dictionary of codes.
 def build_new_action_codes(
-    action: pygixml.XMLNode,
-    the_action_code_plus: pygixml.XMLNode,
-) -> pygixml.XMLNode:
+    action: defusedxml.ElementTree,
+    the_action_code_plus: defusedxml.ElementTree,
+) -> defusedxml.ElementTree:
     """
     Build the dictionary for the Action code
         :param action: <Action> xml element
@@ -146,9 +145,9 @@ def build_new_action_codes(
 # action = pointer to root xml (<Action> or <Profile>)
 # adder = empty if <action>.  Else it is a Profile condition, and we need to make key unique
 def build_action_codes(
-    action: pygixml.XMLNode,
-    child: pygixml.XMLNode,
-) -> pygixml.XMLNode:
+    action: defusedxml.ElementTree,
+    child: defusedxml.ElementTree,
+) -> defusedxml.ElementTree:
     """
     Build the dictionary for each Action code
     We first check if the_action_code_plus is already in action_codes.

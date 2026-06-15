@@ -5,7 +5,7 @@
 #                                                                                      #
 # property: get Project/Profile/Task properties and output them                        #
 #                                                                                      #
-import pygixml  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.actione import fix_json
 from maptasker.src.error import rutroh_error
@@ -14,16 +14,16 @@ from maptasker.src.sysconst import FormatLine
 
 
 # Helper function to get text safely
-def get_text(element: pygixml.XMLNode) -> str:
+def get_text(element: defusedxml.ElementTree) -> str:
     """Return value or"""
-    return element.value if element is not None else ""
+    return element.text if element is not None else ""
 
 
 # Parse Property's variable and output it
 def parse_variable(
     property_tag: str,
     css_attribute: str,
-    variable_header: pygixml.XMLNode,
+    variable_header: defusedxml.ElementTree,
     cooldown: int,
     limit: int,
 ) -> None:
@@ -34,7 +34,7 @@ def parse_variable(
     Args:
         property_tag (str): The property tag of the variable.
         css_attribute (str): The CSS attribute of the variable.
-        variable_header (pygixml.XMLNode): The XML element representing the variable header.
+        variable_header (defusedxml.ElementTree): The XML element representing the variable header.
         cooldown (int): The cooldown time in seconds.
         limit (int): Limit repeats.
 
@@ -81,16 +81,16 @@ def parse_variable(
     }
     # Extract values from XML once
     fields = {
-        "clearout": variable_header.child("clearout"),
-        "immutable": variable_header.child("immutable"),
-        "pvci": variable_header.child("pvci"),
-        "pvd": variable_header.child("pvd"),
-        "pvv": variable_header.child("pvv"),
-        "pvdn": variable_header.child("pvdn"),
-        "strout": variable_header.child("strout"),
-        "pvn": variable_header.child("pvn"),
-        "exportval": variable_header.child("exportval"),
-        "pvt": variable_header.child("pvt"),
+        "clearout": variable_header.find("clearout"),
+        "immutable": variable_header.find("immutable"),
+        "pvci": variable_header.find("pvci"),
+        "pvd": variable_header.find("pvd"),
+        "pvv": variable_header.find("pvv"),
+        "pvdn": variable_header.find("pvdn"),
+        "strout": variable_header.find("strout"),
+        "pvn": variable_header.find("pvn"),
+        "exportval": variable_header.find("exportval"),
+        "pvt": variable_header.find("pvt"),
     }
 
     # Mapping field values to output strings.  They are in the order as displayed in Tasker.
@@ -166,12 +166,12 @@ def get_css_attributes(property_tag: str) -> str:
 
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out.
-def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
+def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
     """
 
     Args:
         property_tag (str): Either "Project:", "Profile:", or "Task:"
-        header (pygixml.XMLNode): xml header to Project/Profile/Task
+        header (defusedxml.ElementTree): xml header to Project/Profile/Task
 
     Returns:
         nothing
@@ -183,9 +183,9 @@ def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
     css_attribute = get_css_attributes(property_tag)
 
     # Get the item comment, if any.  Don't process it if we already have it
-    comment_xml = header.child("pc")
+    comment_xml = header.find("pc")
     if comment_xml is not None:
-        out_string = f"<br>{property_tag} Properties comment: {comment_xml.value}"
+        out_string = f"<br>{property_tag} Properties comment: {comment_xml.text}"
         PrimeItems.output_lines.add_line_to_output(
             2,
             out_string,
@@ -193,9 +193,9 @@ def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
         )
         have_property = True
 
-    keep_alive = header.child("stayawake")
+    keep_alive = header.find("stayawake")
     if keep_alive is not None:
-        out_string = f"{property_tag} Properties Keep Device Awake: {keep_alive.value}"
+        out_string = f"{property_tag} Properties Keep Device Awake: {keep_alive.text}"
         PrimeItems.output_lines.add_line_to_output(
             2,
             out_string,
@@ -203,9 +203,9 @@ def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
         )
         have_property = True
 
-    collision_handling = header.child("rty")
-    if collision_handling is not None and collision_handling.value is not None:
-        out_string = f"{property_tag} Properties Collision Handling: {collision[int(collision_handling.value)]}"
+    collision_handling = header.find("rty")
+    if collision_handling is not None:
+        out_string = f"{property_tag} Properties Collision Handling: {collision[int(collision_handling.text)]}"
         PrimeItems.output_lines.add_line_to_output(
             2,
             out_string,
@@ -218,11 +218,11 @@ def get_properties(property_tag: str, header: pygixml.XMLNode) -> None:
     limit = ""
     _parse_variable = parse_variable
     for item in header:
-        if item.name == "cldm":
-            cooldown = item.value
-        if item.name == "limit":
-            limit = item.value
-        if item.name == "ProfileVariable":
+        if item.tag == "cldm":
+            cooldown = item.text
+        if item.tag == "limit":
+            limit = item.text
+        if item.tag == "ProfileVariable":
             _parse_variable(property_tag, css_attribute, item, cooldown, limit)
             have_property = True
 

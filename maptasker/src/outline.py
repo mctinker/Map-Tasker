@@ -30,7 +30,7 @@
 
 import contextlib
 
-import pygixml  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.diagram import network_map
 from maptasker.src.format import format_html
@@ -47,7 +47,7 @@ arrow = f"├{line * 3}▶"
 
 # Update Task with calls and called_by details
 def update_caller_and_called_tasks(
-    task: pygixml.XMLNode,
+    task: defusedxml.ElementTree,
     perform_task_name: str,
 ) -> None:
     # Find the Task xml element to which this Perform Task refers.
@@ -104,15 +104,15 @@ def update_caller_and_called_tasks(
 
 # Go through the Task's Actions looking for any Perform Task actions.
 def do_task_actions(
-    task_actions: pygixml.XMLNode,
-    task: pygixml.XMLNode,
+    task_actions: defusedxml.ElementTree,
+    task: defusedxml.ElementTree,
 ) -> None:
     """
     Parses task action elements and updates task call relationships.
 
     Args:
-        task_actions: pygixml.XMLNode - Task action elements.
-        task: pygixml.XMLNode - Task element.
+        task_actions: defusedxml.ElementTree - Task action elements.
+        task: defusedxml.ElementTree - Task element.
 
     Returns:
         None
@@ -124,12 +124,25 @@ def do_task_actions(
         - Updates caller and called task relationships.
     """
     _update_caller_and_called_tasks = update_caller_and_called_tasks
+
+    # Pre-split the constant delimiter outside the loop if possible,
+    # or ensure it's done efficiently.
+    delimiter = "&nbsp;"
+
     for action in task_actions:
-        if any(child.name == "code" and child.value == "130" for child in action):
-            perform_task_name = next((s.text() for s in action.children("Str")), None)
+        # 1. Use .find() to look for the <code> tag directly.
+        # This avoids iterating through every single child via a Python generator.
+        code_node = action.find("code")
+
+        # 2. Check the text condition first. If it matches, proceed.
+        if code_node is not None and code_node.text == "130":
+            # 3. Use findtext() instead of findall() + a generator expression.
+            # This instantly grabs the text of the *first* <Str> child natively in C.
+            perform_task_name = action.findtext("Str")
+
             if perform_task_name:
-                # Just get ther task name and not the whole output line
-                task["name"] = task["name"].split("&nbsp;")[0]
+                # 4. Optimize the string split by limiting it to 1 maxsplit.
+                task["name"] = task["name"].split(delimiter, 1)[0]
                 _update_caller_and_called_tasks(task, perform_task_name)
 
 
@@ -141,7 +154,7 @@ def get_perform_task_actions(the_tasks: list) -> None:
     If so, save the link to the other Task to be displayed in the outline.
         Args:
             primary_item (dict): Program registry.  See primitem.py for details.
-            profile (pygixml.XMLNode): Profile that owns these Tasks
+            profile (defusedxml.ElementTree): Profile that owns these Tasks
             the_tasks (list): List of Task xml elements under this Profile.
     """
     # Go through each Task to find out if this Task is calling other Tasks.
@@ -150,9 +163,9 @@ def get_perform_task_actions(the_tasks: list) -> None:
         # Only do this if we haven't already processed this task
         if task["name"] not in PrimeItems.outline_tasks_mapped:
             # Get Task's Actions
-            # FIX Need to convert to an XMLNodeList to be able to loop through it more than once.  Otherwise, we loop through it here and then it's empty when we try to loop through it again in the do_profile_tasks function.
-            task_actions = list(task["xml"].children("Action"))
-            if not task_actions:
+            try:
+                task_actions = task["xml"].findall("Action")
+            except defusedxml.DefusedXmlException:
                 task_actions = ""
                 continue
             # Go through Actions and see if any are "Perform Task"
@@ -170,7 +183,7 @@ def tasks_not_in_profile(all_profiles_tasks: list, tasks_in_project: list) -> No
     Find tasks not processed by any profile
     Args:
         tasks_processed: list - Tasks already processed
-        task_ids: pygixml.XMLNode - All tasks in the project
+        task_ids: defusedxml - All tasks in the project
     Returns:
         None
     1. Loop through all tasks in the project
@@ -292,7 +305,7 @@ def do_profile_tasks(
     _add_line_to_output = PrimeItems.output_lines.add_line_to_output
     for task_line, task in zip(task_output_line, the_tasks, strict=False):
         # Keep track of Tasks processed.
-        taskid = task["xml"].attribute("sr").as_string("")
+        taskid = task["xml"].attrib.get("sr")
         if taskid not in tasks_in_profile:
             tasks_in_profile.append(taskid)
 
@@ -325,10 +338,10 @@ def do_profile_tasks(
             )
 
         # Add the Task output line
-        task_line_final = f"{blank * 5}{arrow_to_use}{blank * 2}Task: {task_line[0]}{call_task}"
+        task_line = f"{blank * 5}{arrow_to_use}{blank * 2}Task: {task_line[0]}{call_task}"
         _add_line_to_output(
             0,
-            task_line_final,
+            task_line,
             ["", "task_color", FormatLine.add_end_span],
         )
     return tasks_in_profile

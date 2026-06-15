@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import contextlib
-from tkinter import TclError
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
@@ -59,8 +58,9 @@ def do_colors(user_input: dict) -> dict:
     colormap = set_color_mode(user_input.appearance_mode)
 
     # Process the colors
-    if user_input.color_lookup:
-        for key, value in user_input.color_lookup.items():
+    color_lookup = getattr(user_input, "color_lookup", None)
+    if color_lookup is not None and color_lookup:
+        for key, value in color_lookup.items():
             colormap[key] = value
 
     PrimeItems.program_arguments["gui"] = True  # Set flag to indicate we are using GUI
@@ -91,8 +91,10 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # CODE STARTS HERE
     logger.info("starting")
 
-    # Keep this here to avoid circular import
+    # Keep this here to avoid circular import.  We only need to import MyGui if we are using the GUI,
+    # and this is the only place we need it.
     if use_gui:
+        # Initialize the GUI and get the user input.  We do this here to avoid a circular import error.
         from maptasker.src.userintr import MyGui  # noqa: PLC0415
 
     PrimeItems.program_arguments["gui"] = True  # Set flag to indicate we are using GUI
@@ -104,28 +106,30 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # Display GUI and get the user input
     user_input = MyGui()
+    # ui.run(reload=False, storage_secret="maptasker_gui_storage", title="MapTasker", port=8080, dark=True)
     logger.info("Starting mainloop")
 
     # Process the GUI
-    user_input.mainloop()
+    # user_input.mainloop()
     # try:
     #     user_input.mainloop()
     # except Exception as e:
     #     rutroh_error(f"An error occurred trying to process GUI: {e}")
 
     # Get rid of window
-    MyGui.quit(user_input)
-    with contextlib.suppress(AttributeError, TclError):
-        user_input.textview.destroy()
-    del MyGui
+    # MyGui.quit(user_input)
+    # with contextlib.suppress(AttributeError, TclError):
+    #     user_input.textview.destroy()
+    # del MyGui
 
     # Establish our runtime default values if we don't yet have 'em.
     if not PrimeItems.colors_to_use:
+        # FIX This is the second call to this rtn.  runcli is the first call.  redudant!
         PrimeItems.program_arguments = initialize_runtime_arguments()
 
     # Has the user closed the window?
-    if not user_input.go_program and not user_input.rerun and not user_input.exit:
-        error_handler("Program canceled by user (killed GUI)", 100)
+    # if not user_input.go_program and not user_input.rerun and not user_input.exit:
+    #     error_handler("Program canceled by user (killed GUI)", 100)
 
     # 'Run' button hit.  Get all the input from GUI variables
     PrimeItems.program_arguments["gui"] = True
@@ -134,8 +138,9 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         PrimeItems.file_to_get = value if isinstance(value, str) else value.name
 
     # Hide the Ai key so when settings are saved, it isn't written to toml file.
-    if user_input.ai_apikey is not None and user_input.ai_apikey:
-        PrimeItems.ai["api_key"] = user_input.ai_apikey
+    ai_apikey = getattr(user_input, "ai_apikey", None)
+    if ai_apikey is not None and ai_apikey:
+        PrimeItems.ai["api_key"] = ai_apikey
         PrimeItems.program_arguments["ai_apikey"] = "HIDDEN"
 
     # Get the program arguments and save them in our dictionary
@@ -161,7 +166,8 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         PrimeItems.program_arguments["font"] = the_font
 
     # If user selected the "Exit" button, call it quits.
-    if user_input.exit:
+    user_exit = getattr(user_input, "exit", False)
+    if user_exit:
         # Save the runtijme settings first.
         _, _ = save_restore_args(
             PrimeItems.program_arguments,

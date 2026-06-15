@@ -60,7 +60,7 @@ from maptasker.src.guiutils import (
 
 # Avoid circular import error: guiwins has the proper import statement for configure_progress_bar,
 # the function, of which, is in guiutil2.
-from maptasker.src.guiwins import configure_progress_bar
+# from maptasker.src.guiwins import configure_progress_bar
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import find_all_positions, live_translate_text
 from maptasker.src.primitem import PrimeItems
@@ -77,7 +77,7 @@ from maptasker.src.sysconst import (
 from maptasker.src.xmldata import tag_in_type
 
 if TYPE_CHECKING:
-    import pygixml
+    import defusedxml.ElementTree
 
 try:
     profiles_per_line = PrimeItems.profiles_per_line
@@ -239,7 +239,7 @@ def output_the_task(
 
 # Process all Tasks in the Profile
 def print_all_tasks(
-    tasks: pygixml.XMLNode,
+    tasks: defusedxml.ElementTree,
     position_for_anchor: int,
     output_task_lines: list,
     print_tasks: bool,
@@ -249,7 +249,7 @@ def print_all_tasks(
     Process all Tasks in the Profile.
 
     Args:
-        tasks (pygixml.XMLNode): the Tasks in the Profile
+        tasks (defusedxml.ElementTree): the Tasks in the Profile
         position_for_anchor (int): the position of the anchor point for the Task
         output_task_lines (list): the output lines for the Tasks
         print_tasks (bool): True if we are printing Tasks
@@ -329,7 +329,7 @@ def process_scene_tasks(
     scene_xml = PrimeItems.tasker_root_elements["all_scenes"].get(scene, {}).get("xml", [])
     # Go through the scene elements, looking for "xxxElement"
     for sub_scene in scene_xml:
-        sub_scene_tag = sub_scene.name
+        sub_scene_tag = sub_scene.tag
 
         if not tag_in_type(sub_scene_tag, True):
             if sub_scene_tag in {"Str", "Int"}:
@@ -344,7 +344,7 @@ def process_scene_tasks(
 
         # Go through the "xxxElement" sub-elements looking for a "xxxTask"
         for sub_element in sub_scene:
-            sub_element_tag = sub_element.name
+            sub_element_tag = sub_element.tag
 
             if sub_element_tag == "PropertiesElement":
                 break  # No need to continue if we hit arguments
@@ -1108,8 +1108,13 @@ def cleanup_dangling_elbows(output_lines: list, num: int) -> list:
     return output_lines
 
 
+# Pre-compile the regex pattern outside the function to maximize performance.
+# This matches: "straight_line" followed by a space, followed by "straight_line"
+# Using a lookahead (?=...) ensures overlapping matches are caught cleanly.
+MISSING_BAR_PATTERN = re.compile(f"({re.escape(straight_line)}) (?={re.escape(straight_line)})")
+
+
 def cleanup_missing_straight_lines(output_lines: list, num: str, line: str) -> list:
-    # Add missing straight lines in which there is one or more blanks before "╯".
     """
     Add missing straight lines in which there is one or more blanks before "╯" or missing bars: "straight_line space straight_line".
     Replace the space with a straight line and replace all single-quotes with a blank.
@@ -1120,37 +1125,26 @@ def cleanup_missing_straight_lines(output_lines: list, num: str, line: str) -> l
         line (str): The current line string.
     Returns:
         list: The modified list of strings.
+
+    Optimized version utilizing native string methods and regex to eliminate the while loop.
     """
-    new_string = list(line)
-    length = len(new_string)
+    # 1. Handle "straight_line space straight_line" pattern using regex
+    # Replaces the space with the straight_line variable
+    line = MISSING_BAR_PATTERN.sub(rf"\1{straight_line}", line)
 
-    i = 1  # Start at 1 to check the previous character
-    while i < length:
-        # Check for right_arrow_corner_up and preceding space, replace if found
-        if new_string[i] == right_arrow_corner_up and new_string[i - 1] == " ":
-            new_string[i - 1] = straight_line
+    # 2. Handle "space right_arrow_corner_up" pattern using native string replace
+    # Equivalent to checking new_string[i] == corner and new_string[i-1] == " "
+    line = line.replace(f" {right_arrow_corner_up}", f"{straight_line}{right_arrow_corner_up}")
 
-        # Check for missing bars: "straight_line space straight_line"
-        if (
-            i + 2 < length
-            and new_string[i] == straight_line
-            and new_string[i + 1] == " "
-            and new_string[i + 2] == straight_line
-        ):
-            new_string[i + 1] = straight_line
-            i += 2  # Skip ahead to avoid rechecking parts of the pattern
+    # 3. Handle the hardcoded block replace
+    line = line.replace("  ─╯", "───╯")
 
-        i += 1
+    # 4. If the last position is a bracket, strip out the task_delimeter
+    if line.endswith("]"):
+        line = line.replace(task_delimeter, "")
 
-    # Join once at the end
-    output_lines[num] = "".join(new_string)
-
-    # Likewise for " ──╯".  Replace the space with a straight line and replace all single-quotes with a blank.
-    output_lines[num] = output_lines[num].replace("  ─╯", "───╯")
-
-    # If last position is a bracket, just continue.
-    if output_lines[num] and output_lines[num][-1] == "]":
-        output_lines[num] = output_lines[num].replace(task_delimeter, "")
+    # Save back to the array (ensuring the index is an integer)
+    output_lines[int(num)] = line
 
     return output_lines
 
@@ -1348,7 +1342,9 @@ def handle_calls(output_lines: list) -> None:
     - Remove all icons from the names to ensure arrow alignment
     """
     # Display a progress bar if coming from the GUI.
-    progress = configure_progress_bar(None, output_lines, "Diagram")
+    # progress = configure_progress_bar(None, output_lines, "Diagram")
+    # FIX
+    progress = []
 
     # Go through the output and add blanks above the called tasks, one for each caller.
     output_lines = add_blanks_above_called_tasks(output_lines)
@@ -1403,7 +1399,7 @@ def handle_calls(output_lines: list) -> None:
 
 # Build the Profile box.
 def build_profile_box(
-    profile: pygixml.XMLNode,
+    profile: defusedxml.ElementTree,
     profile_counter: int,
     output_profile_lines: list,
     output_task_lines: list,

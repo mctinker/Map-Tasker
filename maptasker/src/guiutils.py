@@ -1,25 +1,14 @@
-"""Utilities used by GUI"""
-
-#! /usr/bin/env python3
-
-#                                                                                      #
-# guiutil: Utilities used by GUI                                                       #
-#                                                                                      #
-# MIT License   Refer to https://opensource.org/license/mit                            #
-
-from __future__ import annotations
+"""Utilities used by GUI (NiceGUI Version)"""
 
 import contextlib
 import os
-import re
-from functools import cache
-from tkinter import TclError, font
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
-import customtkinter as ctk
-import darkdetect
-from PIL import Image
+import defusedxml
+from nicegui import ui
 
+# Keep your existing logic imports (e.g., from maptasker.src.aiutils import ...)
 from maptasker.src.aiutils import (
     get_anthropic_models,
     get_api_key,
@@ -29,1012 +18,176 @@ from maptasker.src.aiutils import (
     get_openai_models,
 )
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.diagcnst import (
-    angle,
-    bar,
-    left_arrow_corner_down,
-    left_arrow_corner_up,
-    right_arrow,
-    right_arrow_corner_down,
-    right_arrow_corner_up,
-    straight_line,
-)
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.guiutil2 import get_changelog_file, is_valid_ai_config
 from maptasker.src.lineout import LineOut
-from maptasker.src.maputil2 import save_window_position, store_windows, translate_string
-from maptasker.src.maputils import (
-    append_item_to_list,
-    get_pypi_version,
-    http_request,
-    is_color_dark,
-    restart_program_subprocess,
-    validate_ip_address,
-    validate_port,
-    validate_xml_file,
-)
-from maptasker.src.nameattr import get_tk
+from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputils import restart_program_subprocess
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
-from maptasker.src.sysconst import (
-    ARGUMENT_NAMES,
-    CHANGELOG_FILE,
-    CHANGELOG_URL,
-    ERROR_FILE,
-    MODEL_GROUPS,
-    NOW_TIME,
-    TAB_NAMES,
-    UNNAMED_ITEM,
-    VERSION,
-    logger,
-)
-from maptasker.src.xmldata import is_tasker_object
+from maptasker.src.sysconst import ARGUMENT_NAMES, MODEL_GROUPS, UNNAMED_ITEM, logger
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from maptasker.src.userintr import MyGui
 
 
-default_font_size = 14
-
-
-# Make sure the single named item exists...that it is a valid name
-def valid_item(
-    self: object,
-    the_name: str,
-    element_name: str,
-    debug: bool,
-    appearance_mode: str,
-) -> bool:
+# ==========================================
+# 1. NOTIFICATIONS & FEEDBACK
+# ==========================================
+def output_label(view_instance: object, text: str) -> None:
     """
-    Checks if an item name is valid
-    Args:
-        the_name: String - Name to check
-        element_name: String - Element type being checked
-        debug: boolean - GUI debug mode True or False
-        appearance_mode: String - Light/Dark/System
-    Returns:
-        Boolean - Whether the name is valid
-    Processing Logic:
-    - Initialize temporary primary items object
-    - Get backup xml data and root elements
-    - Match element type and get corresponding root element
-    - Check if item name exists by going through all names in root element
+    Replaces the old status label updates.
+    Displays a toast notification to the user in the browser.
     """
-    if the_name == "None" or the_name == translate_string("None"):
-        return True
-    # Set our file to get the file from the local drive since it had previously been pulled from the Android device.
-    # Setting PrimeItems.program_arguments["file"] will be used in get_xml() and won't prompt for file if it exists.
-    filename_location = self.android_file.rfind(PrimeItems.slash) + 1
-    if filename_location != 0:
-        PrimeItems.program_arguments["file"] = self.android_file[filename_location:]
-    elif self.file:
-        PrimeItems.program_arguments["file"] = self.file
+    logger.info(f"GUI Message: {text}")
+    # Determine message type based on keywords for color-coding
+    msg_type = "negative" if "error" in text.lower() or "could not" in text.lower() else "positive"
+
+    ui.notify(text, type=msg_type, position="bottom-right", timeout=3000)
+
+
+def display_no_xml_message(gui_instance: object) -> None:
+    """Displays an error if no XML is loaded."""
+    ui.notify("No XML data loaded! Please Get XML from Android or Local drive first.", type="warning", position="top")
+
+
+# ==========================================
+# 2. DYNAMIC COMPONENT UPDATERS
+# ==========================================
+def display_model_pulldown(gui_instance: "MyGui", tab: object = None) -> None:
+    """
+    Updates or creates the AI model dropdown.
+    In NiceGUI, we update the existing `ui.select` options instead of destroying/recreating widgets.
+    """
+    # Add the list of models.  If this is a request for an extended list, then get the extended list.
+    if gui_instance.ai_model_extended_list and not gui_instance.initialization:
+        if gui_instance.displaying_extended_list is not None and gui_instance.displaying_extended_list:
+            return  # Return if we are already displaying it.
+        # Destroy the old window if it is last to be displayed and get the extended list...only if we are not in the
+        # middle of setting/changing the language.
+        if not PrimeItems.language_set:
+            with contextlib.suppress(AttributeError):
+                gui_instance.ai_model_option.destroy()
+            display_models = get_extended_ai_model_list()
+            gui_instance.displaying_extended_list = True
+        else:
+            # Not a request to build the extended, or we are in the middle of changing the language.
+            with contextlib.suppress(AttributeError):
+                gui_instance.ai_model_option.destroy()
+            display_models = sorted(
+                model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
+            )
+
+    # Just display the pre-defined model names.
     else:
-        _ = self.prompt_and_get_file(self.debug, self.appearance_mode)
+        if gui_instance.displaying_extended_list is not None and not gui_instance.displaying_extended_list:
+            return  # Return if we are already displaying it.
+        # Destroy the old window if it is last to be displayed.
+        if gui_instance.displaying_extended_list is not None:
+            with contextlib.suppress(AttributeError):
+                gui_instance.ai_model_option.destroy()
+        display_models = sorted(
+            model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
+        )
+        gui_instance.displaying_extended_list = False
 
-    # Get the XML data only if it hasn't been loaded yet
-    if (
-        not PrimeItems.tasker_root_elements["all_projects"]
-        and not PrimeItems.tasker_root_elements["all_profiles"]
-        and not PrimeItems.tasker_root_elements["all_tasks"]
-    ):
-        PrimeItems.program_arguments["directory"] = self.directory
-        PrimeItems.program_arguments["list_unnamed_items"] = self.list_unnamed_items
-        return_code = get_xml(debug, appearance_mode)
+    # If the select dropdown already exists on the GUI instance, just update its options
+    if hasattr(gui_instance, "ai_model_option") and gui_instance.ai_model_option:
+        gui_instance.ai_model_option.options = display_models
+        gui_instance.ai_model_option.update()
+    else:
+        # Otherwise, if we are building it for the first time
+        current_model = [PrimeItems.program_arguments.get("ai_model", "None")]
+        if not current_model or current_model not in display_models:
+            current_model = ["None"]
+        print("bingo", gui_instance, display_models, current_model)
+        gui_instance.ai_model_option = ui.select(
+            options=display_models,
+            value=current_model,
+            label="AI Model",
+            on_change=gui_instance.event_handlers.ai_model_selected_event,
+        ).classes("w-64")
 
-        # Did we get an error reading the backup file?
-        if return_code > 0:
-            if return_code == 6:
-                PrimeItems.error_msg = "Cancel button pressed."
-            PrimeItems.error_code = 0
-            return False
 
-    # Set up for name checking
-    # Find the specific item and get it's root element
-    root_element_choices = {
-        "Project": PrimeItems.tasker_root_elements["all_projects"],
-        "Profile": PrimeItems.tasker_root_elements["all_profiles"],
-        "Task": PrimeItems.tasker_root_elements["all_tasks"],
+def prefix_and_sort(strings: list[str], name: str) -> list[str]:
+    """
+    Prefixes each string in a list with a given name and returns the modified list sorted.
+
+    Args:
+        strings: A list of strings.
+        name: The name to prefix each string with.
+
+    Returns:
+        A new list of strings with each original string prefixed by `name`, sorted alphabetically.
+    """
+
+    prefixed_strings = [f"{name}: {s}" for s in strings]
+    prefixed_strings.sort()
+    return prefixed_strings
+
+
+def get_extended_ai_model_list() -> list:
+    """Retrieves and compiles an extended list of available AI models from various providers.
+
+    This function fetches models from OpenAI, Anthropic, and Gemini (assuming respective
+    API keys are configured or default lists are available). It groups these models
+    by their provider, applies a prefix and sorts them within their groups,
+    and then consolidates them into a single, sorted list.
+
+    The process involves:
+    1. Attempting to retrieve API keys (though the result is not directly used here).
+    2. Fetching available models from OpenAI.
+    3. Fetching available models from Anthropic.
+    4. Fetching available models from Gemini.
+    5. Organizing these models into a dictionary, keyed by provider name.
+    6. Iterating through each provider's models, applying 'prefix_and_sort'
+       (which is expected to add a provider-specific prefix and sort them).
+    7. Consolidating all processed models into a single list.
+    8. Performing a final sort on the entire consolidated list.
+
+    Returns:
+        list: A sorted list of strings, where each string represents an AI model,
+              potentially prefixed with its provider name (e.g., "OpenAI/gpt-4o",
+              "Anthropic/claude-3-opus-20240229", "Gemini/gemini-pro").
+              Returns an empty list if no models are retrieved.
+    """
+    _ = get_api_key()
+    PrimeItems.ai["openai_models"] = get_openai_models()
+    PrimeItems.ai["anthropic_models"] = get_anthropic_models()
+    PrimeItems.ai["gemini_models"] = get_gemini_models()
+    PrimeItems.ai["llama_models"] = get_llama_models()
+    PrimeItems.ai["deepseek_models"] = get_deepseek_models()
+
+    # Define the models
+    extended_model_groups = {
+        "OpenAI": PrimeItems.ai["openai_models"],
+        "Anthropic": PrimeItems.ai["anthropic_models"],
+        "Gemini": PrimeItems.ai["gemini_models"],
+        "LLAMA": PrimeItems.ai["llama_models"],
+        "DeepSeek": PrimeItems.ai["deepseek_models"],
     }
-    root_element = root_element_choices[element_name]
+    # all_models = openai_models + anthropic_models + gemini_models
 
-    # Special case if Task.
-    if root_element == PrimeItems.tasker_root_elements["all_tasks"] and UNNAMED_ITEM in the_name:
-        task_id = get_taskid_from_unnamed_task(the_name)
-        return task_id in root_element
+    # Create an empty list to store the display models
+    display_models = []
 
-    # See if the item exists by going through all names.  Get rtid of "Project: " or "Profile: " portion of name.
-    colon = the_name.find(":")
-    if colon != -1:
-        the_name = the_name[colon + 1 :].lstrip()
-    return any(root_element[item]["name"] == the_name for item in root_element)
+    # Iterate through the items in extended_model_groups
+    for name, models in extended_model_groups.items():
+        # Apply prefix_and_sort to the current group of models
+        sorted_models_with_prefix = prefix_and_sort(models, name)
 
+        # Extend the display_models list with the processed models
+        display_models.extend(sorted_models_with_prefix)
 
-# Get the XML data and setup Primeitems
-def get_xml(debug: bool, appearance_mode: str) -> int:
-    """ "Returns the tasker root xml items from the backup xml file based on the given debug and appearance mode parameters."
-    Parameters:
-        debug (bool): Indicates whether the program is in debug mode or not.
-        appearance_mode (str): Specifies the color mode to be used.
-    Returns:
-        int: The return code from getting the xml file.
-    Processing Logic:
-        - Initialize temporary PrimaryItems object.
-        - Set file_to_get variable based on debug mode.
-        - Set program_arguments variable for debug mode.
-        - Set colors_to_use variable based on appearance mode.
-        - Initialize output_lines variable.
-        - Return data and output intro."""
-    PrimeItems.file_to_use = ""  # Get rid of any previous file
-    if not PrimeItems.program_arguments["debug"]:
-        PrimeItems.program_arguments["debug"] = debug
-    PrimeItems.program_arguments["gui"] = True
-    PrimeItems.colors_to_use = set_color_mode(appearance_mode)
-    PrimeItems.output_lines = LineOut()
-
-    return get_data_and_output_intro(False)
+    # Finally, sort the entire list of display models
+    return sorted(display_models)
 
 
-# # Get all monospace fonts from TKInter
-def get_mono_fonts() -> None:
+def update_tasker_object_menus(self: "MyGui", get_data: bool = False, reset_single_names: bool = False) -> None:
     """
-    Returns a dictionary of fixed-width fonts
-    Args:
-        self: The class instance
-    Returns:
-        dict: A dictionary of fixed-width fonts and their family names
-    - Get all available fonts from the font module
-    - Filter fonts to only those with a fixed width
-    - Build a dictionary with font name as key and family as value
-    """
-    # Make sure we have the Tkinter window/root
-    get_tk()
-    fonts = [font.Font(family=f) for f in font.families()]
-    return {f.name: f.actual("family") for f in fonts if f.metrics("fixed")}
-
-
-# Build list of all available monospace fonts
-def get_monospace_fonts() -> dict:
-    """
-    Returns monospace fonts from system fonts.
-    Args:
-        fonts: All system fonts
-    Returns:
-        font_items: List of monospace fonts
-        res: List containing Courier or default Monaco font
-    - Get all system fonts
-    - Filter fonts to only include monospace fonts excluding Wingdings
-    - Find Courier font in list and set as res
-    - If Courier not found, set Monaco as default res
-    - Return lists of monospace fonts and Courier/Monaco font
-    """
-    fonts = get_mono_fonts()
-    # font_items = ["Courier"]
-    font_items = [value for value in fonts.values() if "Wingdings" not in value]
-    # Find which Courier font is in our list and set.
-    res = [i for i in font_items if "Courier" in i]
-    # If Courier is not found for some reason, default to Monaco
-    if not res:
-        res = [i for i in font_items if "Monaco" in i]
-    return font_items, res
-
-
-# Ping the Android evice to make sure it is reachable.
-def ping_android_device(self, ip_address: str, port_number: str) -> bool:  # noqa: ANN001
-    # The following should return a list: [ip_address:port_number, file_location]
-    """
-    Pings an Android device
-    Args:
-        ip_address: str - TCP IP address of the Android device
-        port_number: str - TCP port number of the Android device
-    Return:
-        Error: True if error, false if all is good.
-    Processing Logic:
-    - Splits the backup_info string into ip_address, port_number, and file_location
-    - Validates the IP address, port number, and file location
-    - Pings the IP address to check connectivity
-    - Returns a tuple indicating success/failure and any error message
-    """
-    # Validate IP Address
-    if validate_ip_address(ip_address):
-        # Verify that the host IP is reachable:
-        self.display_message_box(
-            f"Pinging address {ip_address}.  Please wait...",
-            "Green",
-        )
-        self.update()  # Force a window refresh.
-
-        # Ping IP address.
-        response = os.system(f"ping -c 1 -t50 > /dev/null {ip_address}")  # noqa: S605
-        if response != 0:
-            self.backup_error(
-                f"{ip_address} is not reachable (error {response}).  Try again.",
-            )
-            return False
-        self.display_message_box("Ping successful.", "Green")
-    else:
-        self.backup_error(
-            f"Invalid IP address: {ip_address}.  Try again.",
-        )
-        return False
-
-    # Validate port number
-    if validate_port(ip_address, port_number) != 0:
-        self.backup_error(
-            f"Invalid Port number: {port_number} or the given IP address does not permit access to this port.  Try again.",
-        )
-        return False
-
-    # Valid IP Address...good ping.
-    return True
-
-
-# Clear all buttons associated with fetching the backup file from Android device
-def clear_android_buttons(self) -> None:  # noqa: ANN001
-    """
-    Clears android device configuration buttons and displays backup button
-    Args:
-        self: The class instance
-    Returns:
-        None
-    - Destroys all labels, buttons and entries associated with fetching the backup file from Android device
-    """
-
-    # Each element to be destoryed needs a suppression since any one suppression will be triggered if any one of
-    # the elements is not defined.
-    with contextlib.suppress(AttributeError):
-        self.ip_entry.destroy()
-    with contextlib.suppress(AttributeError):
-        self.port_entry.destroy()
-    with contextlib.suppress(AttributeError):
-        self.file_entry.destroy()
-    with contextlib.suppress(AttributeError):
-        self.ip_label.destroy()
-    with contextlib.suppress(AttributeError):
-        self.port_label.destroy()
-    with contextlib.suppress(AttributeError):
-        self.file_label.destroy()
-    with contextlib.suppress(AttributeError):
-        self.get_backup_button.destroy()
-    with contextlib.suppress(AttributeError):
-        self.cancel_entry_button.destroy()
-    with contextlib.suppress(AttributeError):
-        self.list_files_button.destroy()
-    with contextlib.suppress(AttributeError):
-        self.label_or.destroy()
-    with contextlib.suppress(AttributeError):
-        self.filelist_label.destroy()
-    with contextlib.suppress(AttributeError):
-        self.filelist_option.destroy()
-    with contextlib.suppress(AttributeError):
-        self.list_files_query_button.destroy()
-    if not self.first_time:  # If first time, don't destory Upgrade and What's New buttons.
-        with contextlib.suppress(AttributeError):
-            self.list_files_query_button.destroy()
-        with contextlib.suppress(
-            AttributeError,
-        ):  # Destroy upgrade button since file location would sit on top of it.
-            self.upgrade_button.destroy()
-
-    self.get_backup_button = self.display_backup_button(
-        "Get XML from Android Device",
-        "#246FB6",
-        "#6563ff",
-        self.event_handlers.get_xml_from_android_event,
-    )
-
-
-# Compare two versions and return True if version2 is greater than version1.
-def is_version_greater(version1: str, version2: str) -> bool:
-    """
-    This function checks if version2 is greater than version1.
-
-    Args:
-        version1: A string representing the first version in the format "major.minor.patch".
-        version2: A string representing the second version in the format "major.minor.patch".
-
-    Returns:
-        True if version2 is greater than version1, False otherwise.
-    """
-
-    # Split the versions by "."
-    v1_parts = [int(x) for x in version1.split(".")]
-    v2_parts = [int(x) for x in version2.split(".")]
-
-    # Iterate through each part of the version
-    for i in range(min(len(v1_parts), len(v2_parts))):
-        if v1_parts[i] < v2_parts[i]:
-            return True
-        if v1_parts[i] > v2_parts[i]:
-            return False
-
-    # If all parts are equal, check length
-    return len(v2_parts) > len(v1_parts)
-
-
-# Get Pypi version and return True if it is newer than our current version.
-def is_new_version() -> bool:
-    """
-    Check if the new version is available
-    Args:
-        self: The class instance
-    Returns:
-        bool: True if new version is available, False if not"""
-    # Check if newer version of our code is available on Pypi.
-    pypi_version_code = get_pypi_version()
-    if pypi_version_code:
-        pypi_version = pypi_version_code.split("==")[1]
-        PrimeItems.last_run = NOW_TIME  # Update last run to now since we are doing the check.
-        return is_version_greater(VERSION, pypi_version)
-    return False
-
-
-# List the XML files on the Android device
-def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tuple:
-    """Get list of files from given IP address.
-    Parameters:
-        - ip_address (str): IP address to connect to.
-        - ip_port (str): Port number to connect to.
-        - file_location (str): Location of the file to retrieve.
-    Returns:
-        - tuple: Return code and list of file locations.
-    Processing Logic:
-        - Retrieve file contents using http_request.
-        - If return code is 0, split the decoded string into a list and return.
-        - Otherwise, return error with empty string."""
-
-    # Get the contents of the file.
-    return_code, file_contents = http_request(
-        ip_address,
-        ip_port,
-        file_location,
-        "maplist",
-        "?xml",
-    )
-
-    # If good return code, get the list of XML file locations into a list and return.
-    if return_code == 0:
-        decoded_string = (file_contents.decode("utf-8")).split(",")
-        # Strip off the count field
-        for num, item in enumerate(decoded_string):
-            temp_item = item[:-3]  # Drop last 3 characters
-            decoded_string[num] = temp_item.replace("/storage/emulated/0", "")
-        # Remove items that are in the trash
-        final_list = [item for item in decoded_string if ".Trash" not in item]
-        return 0, final_list
-
-    # Otherwise, return error
-    return return_code, file_contents
-
-
-# Write out the changelog defined in guiutils after updating the app from pypi.
-def create_changelog() -> None:
-    """Create changelog file."""
-    changes = get_changelog_file(CHANGELOG_URL, "##", 11)
-    with open(CHANGELOG_FILE, "w") as changelog_file:
-        for change in changes:
-            changelog_file.write(f"{change}\n")
-
-
-# Read the change log file, add it to the messages to be displayed and then remove it.
-def check_for_changelog(self) -> None:  # noqa: ANN001
-    """Function to check for a changelog file and add its contents to a message if the current version is correct.
-    Parameters:
-        - self (object): The object that the function is being called on.
-    Returns:
-        - None: The function does not return anything, but updates the message attribute of the object.
-    Processing Logic:
-        - Check if the changelog file exists.
-        - If it exists, prepare to display changes and remove the file so we only display the changes once.
-    Note: The changelog file is created immediately after the program is updated (userintr upgrade_event)
-    """
-    logger.info("Checking for changelog file.")
-
-    # # TODO Test changelog before posting to PyPi.  Comment it out after testing.
-    # self.message = "\n".join(get_changelog_file(CHANGELOG_URL, "##", 11))
-    # return
-    # # TODO END Test
-
-    self.message = "\n\n"
-    if os.path.isfile(CHANGELOG_FILE):
-        with open(CHANGELOG_FILE) as changelog_file:
-            for line in changelog_file:
-                self.message = f"{self.message}{line}"
-        os.remove(CHANGELOG_FILE)
-
-
-def add_logo(self, logo_name: str) -> None:  # noqa: ANN001
-    """Add a logo to the screen.
-
-    Parameters:
-        - self (object): The calling object.
-        - logo_type (str): The logo identifier ('maptasker' or 'coffee').
-
-    Returns:
-        - None: The function modifies the GUI components directly.
-    """
-    logo_map = {
-        "maptasker": (
-            "maptasker_logo_light.png",  # Light image
-            "maptasker_logo_dark.png",  # Dark image
-            (190, 50),  # Size
-            self.sidebar_frame,  # parent
-            (0, 0),  # Grid position
-            "0",  # Pad x
-            "0",  # Pad y
-            "n",  # Sticky
-        ),
-        "coffee": (
-            "bmc-logo-no-background.png",
-            "bmc-logo-no-background.png",
-            (36, 54),
-            self.tabview.tab("Debug"),
-            (5, 3),
-            "10",
-            "0",
-            "se",
-        ),
-        "flag": (
-            "en.png",
-            "en.png",
-            (25, 16),
-            self.sidebar_frame,
-            (17, 0),
-            "10",
-            "0",
-            "se",
-        ),
-    }
-    doing_flag = bool(logo_name.startswith("flag"))
-
-    # Get the path to our logos:
-    # current_dir = directory from which we are running.
-    # abspath = path of this source code (userintr.py).
-    # cwd = directory from which the main program is (main.py)
-    current_dir = os.getcwd()
-    abspath = os.path.abspath(__file__)
-    # cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
-    assets_dir = os.path.dirname(abspath).replace("src", "assets")
-
-    # Set up icon for flag
-    if doing_flag:
-        assets_dir = assets_dir + PrimeItems.slash + "icons"
-        language = logo_name.split("flag_")[1]
-        logo_map["flag"] = (
-            f"{language}.png",
-            f"{language}.png",
-            (25, 16),
-            self.sidebar_frame,
-            (17, 0),
-            "10",
-            "0",
-            "se",
-        )
-        logo_name = "flag"
-
-    # Switch to our temp directory (assets)
-    os.chdir(assets_dir)
-
-    if logo_name in logo_map:
-        light_img, dark_img, size, parent, grid_pos, padx, pady, sticky = logo_map[logo_name]
-        my_image = ctk.CTkImage(
-            light_image=Image.open(light_img),
-            dark_image=Image.open(dark_img),
-            size=size,
-        )
-        try:
-            label = ctk.CTkLabel(
-                parent,
-                image=my_image,
-                text="",
-                compound="left",
-                font=ctk.CTkFont(size=1, weight="bold"),
-            )
-            label.grid(
-                row=grid_pos[0],
-                column=grid_pos[1],
-                padx=padx,
-                pady=pady,
-                sticky=sticky,
-            )
-        except (FileNotFoundError, TypeError, TclError) as e:
-            rutroh_error(
-                f"Error displaying {logo_name} logo: {e}  Unable to attach Tkinter for image.",
-            )
-    else:
-        rutroh_error("Invalid logo type")
-    # Put the directory back to where it should be.
-    os.chdir(current_dir)
-
-    if logo_name == "coffee":
-        self.coffee_button = add_button(
-            self,
-            parent,
-            "#246FB6",
-            "",
-            "",
-            self.event_handlers.coffee_event,
-            1,
-            translate_string("Buy Me A Coffee"),
-            1,
-            *grid_pos,
-            20,
-            10,
-            "nw",
-        )
-
-    return my_image
-
-
-# Create a label general routine
-def add_label(
-    self: object,  # noqa: ARG001
-    frame: ctk.CTkFrame,
-    text: str,
-    text_color: str,
-    font_size: int,
-    font_weight: str,
-    row: int,
-    column: int,
-    padx: int | tuple,
-    pady: int | tuple,
-    sticky: str,
-) -> ctk.CTkLabel:
-    """Adds a custom label to a custom tkinter frame.
-    Parameters:
-        - frame (ctk.CTkFrame): The frame to add the label to.
-        - name (ctk.CTkLabel): The label to be added.
-            - text (str): The text to be displayed on the label.
-        - text_color (str): color for the text
-        - font_size (int): The font size of the label.
-        - font_weight (str): The font weight of the label.
-        - row (int): The row number to place the label in.
-        - column (int): The column number to place the label in.
-        - padx (tuple): The horizontal padding of the label.
-        - pady (tuple): The vertical padding of the label.
-        - sticky (str): The alignment of the label within its grid cell.
-    Returns:
-        - label_name (str): The name of the label.
-    Processing Logic:
-        - Creates a custom label with the given parameters.
-        - Places the label in the specified row and column of the frame.
-        - Adds horizontal and vertical padding to the label.
-        - Aligns the label within its grid cell."""
-    # Configuration
-    char_width_estimate = 9  # Average pixels per character for default font
-    padding = 20  # Internal button padding
-    gap = 5
-
-    # Translate the text if we have it.
-    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
-
-    if not font_size or font_size == 0:
-        font_size = default_font_size
-    if not text_color:
-        label_name = ctk.CTkLabel(
-            frame,
-            text=text,
-            font=ctk.CTkFont(size=font_size, weight=font_weight),
-        )
-    else:
-        # Note: If user double-clicks a button, the textbox is not valid on the second click.
-        try:
-            label_name = ctk.CTkLabel(
-                frame,
-                text=text,
-                text_color=text_color,
-                font=ctk.CTkFont(size=font_size, weight=font_weight),
-            )
-        except TclError:
-            return None
-    label_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
-
-    # Save the position for next button placement
-    n = len(text)
-    btn_width = (n * char_width_estimate) + padding
-    start_x = padx[0] if isinstance(padx, tuple) else padx
-    label_name.next_button_position = start_x + btn_width + gap
-    label_name.text_length = len(text)
-    return label_name
-
-
-# Create a checkbox general routine
-def add_checkbox(
-    self,  # noqa: ANN001, ARG001
-    frame: ctk.CTkFrame,
-    command: Callable,
-    text: str,
-    row: int,
-    column: int,
-    padx: tuple,
-    pady: tuple,
-    sticky: str,
-    border_color: str,
-) -> None:
-    """Add a checkbox to a custom tkinter frame.
-    Parameters:
-        - frame (ctk.CTkFrame): The custom tkinter frame to add the checkbox to.
-        - command (object): The command to be executed when the checkbox is clicked.
-        - text (str): The text to be displayed next to the checkbox.
-        - row (int): The row to place the checkbox in.
-        - column (int): The column to place the checkbox in.
-        - padx (tuple): The horizontal padding for the checkbox.
-        - pady (tuple): The vertical padding for the checkbox.
-        - sticky (str): The alignment of the checkbox within its grid cell.
-        - border_color (str): The color to highlightn the button with.
-    Returns:
-        - checkbox_name: the named checkbox.
-    Processing Logic:
-        - Create a custom tkinter checkbox.
-        - Add the checkbox to the specified frame.
-        - Place the checkbox in the specified row and column.
-        - Apply the specified padding to the checkbox.
-        - Align the checkbox within its grid cell."""
-    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
-    checkbox_name = ctk.CTkCheckBox(
-        frame,
-        command=command,
-        text=text,
-        font=ctk.CTkFont(size=default_font_size, weight="normal"),
-        onvalue=True,
-        offvalue=False,
-    )
-    if border_color:
-        checkbox_name.configure(border_color=border_color)
-    checkbox_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
-    return checkbox_name
-
-
-# Create a button general routine
-def add_button(
-    self,  # noqa: ANN001, ARG001
-    frame: ctk.CTkFrame,
-    fg_color: str | tuple,
-    text_color: str | tuple,
-    border_color: str,
-    command: Callable,
-    border_width: int,
-    text: str,
-    columnspan: int,
-    row: int,
-    column: int,
-    padx: int | tuple,
-    pady: int | tuple,
-    sticky: str,
-) -> ctk.CTkButton:
-    """Add a button to a custom tkinter frame.
-    Parameters:
-        - frame (ctk.CTkFrame): The frame to add the button to.
-        - fg_color (str): The color of the button's text.
-        - text_color (str) The color of the button's text.
-        - command (object): The function to be executed when the button is clicked.
-        - border_width (int): The width of the button's border.
-        - text (str): The text to be displayed on the button.
-        - columnspan (int): The number of columns to span the button across.
-        - row (int): The row to place the button in.
-        - column (int): The column to place the button in.
-        - padx (tuple): The amount of padding on the x-axis.
-        - pady (tuple): The amount of padding on the y-axis.
-        - sticky (str): The alignment of the button within its cell.
-    Returns:
-        - button_name: the named button.
-    Processing Logic:
-        - Create a custom tkinter button with the given parameters.
-        - Place the button in the specified row and column.
-        - Add padding and alignment to the button."""
-
-    # Configuration
-    char_width_estimate = 9  # Average pixels per character for default font
-    padding = 20  # Internal button padding
-    gap = (
-        5
-        if PrimeItems.program_arguments["language"]
-        not in ("Japanese", "Korean", "Simplified Chinese", "Traditional Chinese")
-        else 35
-    )  # Gap between buttons, more so for certain languages
-    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
-
-    n = len(text)
-    btn_width = (n * char_width_estimate) + padding
-
-    if not fg_color:
-        fg_color = "#246FB6"
-    if not text_color:
-        text_color = "#FFFFFF"
-    if not border_color:
-        border_color = "Gray"
-    if not columnspan:
-        columnspan = 1
-    button_name = ctk.CTkButton(
-        frame,
-        fg_color=fg_color,
-        text_color=text_color,
-        font=ctk.CTkFont(size=default_font_size, weight="normal"),
-        border_color=border_color,
-        command=command,
-        border_width=border_width,
-        text=text,
-        # width=btn_width,
-    )
-    button_name.grid(
-        row=row,
-        column=column,
-        columnspan=columnspan,
-        padx=padx,
-        pady=pady,
-        sticky=sticky,
-    )
-
-    start_x = padx[0] if isinstance(padx, tuple) else padx
-    button_name.next_button_position = start_x + btn_width + gap
-    button_name.text_length = len(text)
-    return button_name
-
-
-# Create a button general routine
-def add_option_menu(
-    self,  # noqa: ANN001, ARG001
-    frame: ctk.CTkFrame,
-    command: Callable,
-    values: str | list,
-    row: int,
-    column: int,
-    padx: int | tuple,
-    pady: int | tuple,
-    sticky: str,
-) -> ctk.CTkOptionMenu:
-    """Adds an option menu to a given frame with specified parameters.
-    Parameters:
-        - frame (ctk.CTkFrame): The frame to add the option menu to.
-        - command (object): The function to be called when an option is selected.
-        - values (str | list): The options to be displayed in the menu.
-        - row (int): The row in which the option menu should be placed.
-        - column (int): The column in which the option menu should be placed.
-        - padx (tuple): The amount of padding in the x-direction.
-        - pady (tuple): The amount of padding in the y-direction.
-        - sticky (str): The direction in which the option menu should stick to the frame.
-    Returns:
-        - option_menu_name (ctk.CTkOptionMenu): The option menu.
-    Processing Logic:
-        - Adds an option menu to a frame.
-        - Sets the command to be called when an option is selected.
-        - Displays the specified options in the menu.
-        - Places the option menu in the specified row and column.
-        - Adds padding to the option menu.
-        - Sets the direction in which the option menu should stick to the frame."""
-    translations = []
-    if isinstance(values, list):
-        for value in values:
-            translated_value = PrimeItems._(value) if hasattr(PrimeItems, "_") else value
-            translations.append(translated_value)
-        values = translations
-    option_menu_name = ctk.CTkOptionMenu(
-        frame,
-        values=translations,
-        command=command,
-    )
-    option_menu_name.grid(row=row, column=column, padx=padx, pady=pady, sticky=sticky)
-    return option_menu_name
-
-
-# Display Ai 'Analyze" button
-def display_analyze_button(self, row: int, first_time: bool) -> None:  # noqa: ANN001
-    """
-    Display the 'Analyze' button for the AI API key.
-
-    This function creates and displays a button on the 'Analyze' tab of the tabview. The button is used to run the analysis for the AI API key.
-
-    Parameters:
-        self (object): The instance of the class.
-        row (int): The row number to display the button.
-        first_time (bool): True if this is the first time the button is to be displayed
-
-    Returns:
-        None: This function does not return anything.
-    """
-    # Make sure Ai model is blank if value is "None"
-    if self.ai_model == "None":
-        self.ai_model = ""
-    # Highlight the button if we have everything to run the Analysis.
-    if (is_valid_ai_config(self)) and (self.single_task_name or self.single_profile_name or self.single_project_name):
-        # Make it pink
-        fg_color = "#f55dff"
-        text_color = "#FFFFFF"
-    # Otherwise, use the default colors.
-    else:
-        fg_color = "#246FB6"
-        text_color = "#FFFFFF"
-    # First time only, add the button
-    if first_time:
-        self.ai_analyze_button = add_button(
-            self,
-            self.tabview.tab("Analyze"),
-            fg_color,  # fg_color: str,
-            text_color,  # text_color: str,
-            "#6563ff",  # border_color: str,
-            self.event_handlers.ai_analyze_event,  # command
-            2,  # border_width: int,
-            "Run Analysis",  # text: str,
-            1,  # columnspan: int,
-            row,  # row: int,
-            0,  # column: int,
-            50,  # padx: tuple,
-            (10, 10),  # pady: tuple,
-            "n",
-        )
-    else:  # Not first time, just reconfigure the colors of the button.
-        self.ai_analyze_button.configure(fg_color=fg_color, text_color=text_color)
-
-
-# $ Delete existing Ai labels
-def delete_ai_labels(self: object) -> None:
-    """Delete existing AI labels if they exist."""
-    for attr in (
-        "ai_set_label1",
-        "ai_set_label2",
-        "ai_set_label3",
-        "ai_set_label4",
-        "ai_set_label5",
-        "single_label",
-    ):
-        label = getattr(self, attr, None)
-        if label is not None:
-            with contextlib.suppress(Exception):
-                label.destroy()
-
-
-# Display the current settings for Ai
-def display_selected_object_labels(self) -> None:  # noqa: ANN001
-    """
-    Display the current settings for Ai
-    """
-    # Delete previous labels since they may be longer than new labels
-    delete_ai_labels(self)
-
-    # If we don't have a model yet, find out which model this key belongs to.
-    if not self.ai_model:
-        # Get all available models
-        all_models = {
-            "OpenAI": PrimeItems.ai["openai_models"],
-            "anthropic": PrimeItems.ai["anthropic_models"],
-            "LLAMA": PrimeItems.ai["llama_models"],
-            "DeepSeek": PrimeItems.ai["deepseek_models"],
-            "Gemini": PrimeItems.ai["gemini_models"],
-        }
-        # Set up for the display line of the API key and model details.
-        for ai, models in all_models.items():
-            if self.ai_model in models:
-                self.ai_model = ai
-
-                break
-
-    # Load the api_keys if we don't have 'em yet and get the model name to display
-    if not self.ai_apikey:
-        self.ai_apikey = get_api_key()
-    key_to_display = "N/A" if self.ai_name == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
-    model_to_display = self.ai_model if self.ai_model else "None"
-
-    self.ai_set_label1 = add_label(
-        self,
-        self.tabview.tab("Analyze"),
-        f"{self.ai_name} API Key: {key_to_display}, Model: {model_to_display}",
-        "",
-        0,
-        "normal",
-        14,
-        0,
-        10,
-        (0, 30),
-        "nw",
-    )
-    # Set up name to display
-    none_translated = translate_string("None")
-    project_to_display = self.single_project_name if self.single_project_name else none_translated
-    profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
-    task_to_display = self.single_task_name if self.single_task_name else none_translated
-    if self.ai_model_option.children:  # If we have the valid option menu, then set it to the current model.
-        self.ai_model_option.set(model_to_display)  # Set the current model in the pulldown.
-    else:
-        display_model_pulldown(self, 50)  # Otherwise, display the pulldown.
-    # Display the Project to analyze
-    translation = translate_string("Project to Analyze:")
-    self.ai_set_label2 = add_label(
-        self,
-        self.tabview.tab("Analyze"),
-        f"{translation} {project_to_display}",
-        "",
-        0,
-        "normal",
-        14,
-        0,
-        10,
-        (0, 0),
-        "sw",
-    )
-    # Display the Profile to analyze
-    translation = translate_string("Profile to Analyze:")
-    self.ai_set_label3 = add_label(
-        self,
-        self.tabview.tab("Analyze"),
-        f"{translation} {profile_to_display}",
-        "",
-        0,
-        "normal",
-        15,
-        0,
-        10,
-        (0, 30),
-        "nw",
-    )
-    # Display the Task to analyze
-    translation = translate_string("Task to Analyze:")
-    self.ai_set_label4 = add_label(
-        self,
-        self.tabview.tab("Analyze"),
-        f"{translation} {task_to_display}",
-        "",
-        0,
-        "normal",
-        15,
-        0,
-        10,
-        (0, 0),
-        "sw",
-    )
-    # Display the Prompt..newline after every maxlen characters forces it to wrap.
-    maxlen = 35
-    display_prompt = "\n".join(self.ai_prompt[i : i + maxlen] for i in range(0, len(self.ai_prompt), maxlen))
-    display_prompt = translate_string(display_prompt)
-    prompt = translate_string("Prompt:")
-    self.ai_set_label5 = add_label(
-        self,
-        self.tabview.tab("Analyze"),
-        f"{prompt} '{display_prompt}'",
-        "",
-        0,
-        "normal",
-        16,
-        0,
-        10,
-        (0, 30),
-        "nw",
-    )
-
-    # Display the label on 'Specific Name' tab.
-    # First time through, self.specific_name_msg = ''
-    all_objects = translate_string("Display all Projects, Profiles, and Tasks.")
-    name_to_display = self.specific_name_msg if self.specific_name_msg else all_objects
-
-    self.single_label = add_label(
-        self,
-        self.tabview.tab("Specific Name"),
-        name_to_display,
-        "",
-        # ("#0BF075", "#3f99ff"),
-        0,
-        "normal",
-        10,
-        0,
-        20,
-        (10, 10),
-        "w",
-    )
-
-
-# Update the Project/Profile/Task pulldown option menus.
-def update_tasker_object_menus(self, get_data: bool, reset_single_names: bool) -> None:  # noqa: ANN001
-    """
-    Update the Project/Profile/Task pulldown option menus. Only do this if we have the object name since it forces a read of XML.
-
-    Parameters:
-        get_data (bool): If True, then get the data tree, list and set the Project/Profile/Task list in 'Specific Name' and 'Analyze' tab. If False, then don't get the data.
-        reset_single_names (bool): If True, then reset the Project/Profile/Task name fields in 'Specific Name' tab. If False, then don't reset the fields.
-
-    Returns:
-        None
+    Updates the Project, Profile, and Task dropdowns in the 'Specific Name' tab.
     """
     if get_data:
         if reset_single_names:
@@ -1049,260 +202,6 @@ def update_tasker_object_menus(self, get_data: bool, reset_single_names: bool) -
 
     # Update the text labels
     display_selected_object_labels(self)
-
-
-# Either validate the file location provided or provide a filelist of XML files
-def validate_or_filelist_xml(
-    self,  # noqa: ANN001
-    android_ipaddr: str,
-    android_port: str,
-    android_file: str,
-) -> tuple[int, str]:
-    # If we don't have the file location yet and we don't yet have a list of files, then get the XML file
-    # to validate that it exists.
-    """Function to validate an XML file on an Android device and return the file's contents if it exists.
-    Parameters:
-        - android_ipaddr (str): IP address of the Android device.
-        - android_port (str): Port number of the Android device.
-        - android_file (str): File name of the XML file to validate.
-    Returns:
-        - Tuple[int, str]: A tuple containing the return code and the file's contents if it exists.
-    Processing Logic:
-        - Get the XML file from the Android device if no file location is provided.
-        - Validate the XML file.
-        - If the file does not exist, display an error message.
-        - If the file location is not provided, get a list of all XML files from the Android device and present it to the user.
-    """
-    # If we don't yet have the file, then get it from the Android device.
-    if len(android_file) != 0 and android_file != "" and self.list_files == False:
-        return_code, _ = http_request(
-            android_ipaddr,
-            android_port,
-            android_file,
-            "file",
-            "?download=1",
-        )
-
-        # Validate XML file.
-        if return_code == 0:
-            PrimeItems.program_arguments["gui"] = True
-            return_code, error_message = validate_xml_file(
-                android_ipaddr,
-                android_port,
-                android_file,
-            )
-            if return_code != 0:
-                self.display_message_box(error_message, "Red")
-                return 1, android_ipaddr, android_port, android_file
-        else:
-            return 1, android_ipaddr, android_port, android_file
-
-    # File location not provided.  Get the list of all XML files from the Android device and present it to the user.
-    else:
-        clear_android_buttons(self)
-        # Get list from Tasker directory (/Tasker) or system directory (/storage/emulated/0)
-        return_code, filelist = get_list_of_files(
-            android_ipaddr,
-            android_port,
-            "/storage/emulated/0/Tasker",
-        )
-        if return_code != 0:
-            # Error getting list of files.
-            self.display_message_box(filelist, "Red")
-            return 1, android_ipaddr, android_port, android_file
-
-        # Display File List for file selection
-        self.filelist_label = add_label(
-            self,
-            self,
-            "Select XML From Android Device:",
-            "",
-            0,
-            "normal",
-            7,
-            1,
-            (200, 0),
-            (0, 10),
-            "w",
-        )
-        self.filelist_option = add_option_menu(
-            self,
-            self,
-            self.event_handlers.file_selected_event,
-            filelist,
-            7,
-            1,
-            (200, 0),
-            (50, 10),
-            "w",
-        )
-        # Add 'Cancel Entry' button.
-        add_cancel_button(self, row=8, delta_y=0)
-
-        # Set backup IP and file location attributes if valid
-        self.android_ipaddr = android_ipaddr
-        self.android_port = android_port
-        return (
-            2,
-            "",
-            "",
-            "",
-        )  # Just return with error so the prompt comes up to select file.
-
-    # All is okay
-    return 0, android_ipaddr, android_port, android_file
-
-
-# Add pulldown menus for the Projects/Profiles/Tasks for selection
-def display_object_pulldowns(
-    self,  # noqa: ANN001
-    frame: ctk.CTkFrame,
-    row: int,
-    projects_to_display: list,
-    profiles_to_display: list,
-    tasks_to_display: list,
-    project_name_event: Callable,
-    profile_name_event: Callable,
-    task_name_event: Callable,
-) -> None:
-    """
-    Displays the pulldown menus for selecting profiles and tasks.
-
-    Parameters:
-        frame (ctk.CTkFrame): The frame to display the pulldown menus in.
-        row (int): The row number to start displaying the pulldown menus.
-        projects_to_display (list): The list of projects to display in the projects pulldown menu.
-        profiles_to_display (list): The list of profiles to display in the profiles pulldown menu.
-        tasks_to_display (list): The list of tasks to display in the tasks pulldown menu.
-        project_name_event (object): The event to trigger when a project is selected.
-        profile_name_event (object): The event to trigger when a profile is selected.
-        task_name_event (object): The event to trigger when a task is selected.
-
-    Returns:
-        None
-    """
-    # Display all of the Projects for selection.
-    profile_row = row + 2
-    task_row = row + 4
-
-    # Make sure there is something to display
-    if not projects_to_display and not profiles_to_display and not tasks_to_display:
-        self.current_object_label = add_label(
-            self,
-            frame,
-            "No Projects, Profiles or Tasks to display!",
-            "",
-            0,
-            "normal",
-            row,
-            0,
-            20,
-            (10, 0),
-            "s",
-        )
-
-    # Okay, we have some actual data to display
-    else:
-        self.select_project_label = add_label(
-            self,
-            frame,
-            "Select Project to process:",
-            "",
-            0,
-            "normal",
-            row,
-            0,
-            20,
-            (10, 0),
-            "s",
-        )
-        project_option = add_option_menu(
-            self,
-            frame,
-            project_name_event,
-            projects_to_display,
-            row + 1,
-            0,
-            20,
-            (0, 10),
-            "n",
-        )
-
-        # Display all of the Profiles for selection.
-        self.select_profile_label = add_label(
-            self,
-            frame,
-            "Select Profile to process:",
-            "",
-            0,
-            "normal",
-            profile_row,
-            0,
-            20,
-            (0, 0),
-            "s",
-        )
-        profile_option = add_option_menu(
-            self,
-            frame,
-            profile_name_event,
-            profiles_to_display,
-            profile_row + 1,
-            0,
-            20,
-            (0, 10),
-            "n",
-        )
-
-        # Display all of the Tasks for selection.
-        self.task_label = add_label(
-            self,
-            frame,
-            "Select Task to process:",
-            "",
-            0,
-            "normal",
-            task_row,
-            0,
-            20,
-            (0, 0),
-            "n",
-        )
-        task_option = add_option_menu(
-            self,
-            frame,
-            task_name_event,
-            tasks_to_display,
-            task_row,
-            0,
-            20,
-            (30, 0),
-            "s",
-        )
-
-    return project_option, profile_option, task_option
-
-
-# Delete old pulldown menus since the older selected items could be longer than the new,
-# and both will appear.
-def delete_old_pulldown_menus(self: object) -> None:
-    """Delete old pulldown menus if they exist."""
-    for attr in (
-        "specific_project_optionmenu",
-        "specific_profile_optionmenu",
-        "specific_task_optionmenu",
-        "ai_project_optionmenu",
-        "ai_profile_optionmenu",
-        "ai_task_optionmenu",
-        "single_label",
-        "select_project_label",
-        "select_profile_label",
-        "task_label",
-    ):
-        widget = getattr(self, attr, None)
-        if widget:
-            with contextlib.suppress(Exception):
-                widget.destroy()
 
 
 # Provide a pulldown list for the selection of a Profile name
@@ -1353,7 +252,7 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     # Display the object pulldowns in 'Analyze' tab
     self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
         self,
-        self.tabview.tab("Analyze"),
+        self.tab_analyze,
         8,
         projects_to_display,
         profiles_to_display,
@@ -1382,6 +281,56 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
         self.event_handlers.single_task_name_event,
     )
     return True
+
+
+def display_object_pulldowns(
+    self: Any,
+    container: ui.element,  # Replaced ctk.CTkFrame with a NiceGUI element (like ui.column or ui.card)
+    projects_to_display: list,
+    profiles_to_display: list,
+    tasks_to_display: list,
+    project_name_event: Callable,
+    profile_name_event: Callable,
+    task_name_event: Callable,
+) -> tuple:
+    """
+    Displays the pulldown menus for selecting projects, profiles, and tasks.
+    Returns the ui.select objects so they can be modified or deleted later.
+    """
+    project_option = profile_option = task_option = None
+
+    # 'with container:' tells NiceGUI to draw everything inside this specific UI block
+    with container:
+        # Make sure there is something to display
+        if not projects_to_display and not profiles_to_display and not tasks_to_display:
+            self.current_object_label = ui.label("No Projects, Profiles or Tasks to display!").classes(
+                "text-red-500 font-bold mt-4",
+            )
+
+        # Okay, we have some actual data to display
+        else:
+            # Display all of the Projects for selection.
+            self.select_project_label = ui.label("Select Project to process:").classes("mt-2 text-sm font-semibold")
+            project_option = ui.select(
+                options=projects_to_display,
+                on_change=lambda e: project_name_event(e.value) if e.value else None,
+            ).classes("w-full max-w-sm")
+
+            # Display all of the Profiles for selection.
+            self.select_profile_label = ui.label("Select Profile to process:").classes("mt-4 text-sm font-semibold")
+            profile_option = ui.select(
+                options=profiles_to_display,
+                on_change=lambda e: profile_name_event(e.value) if e.value else None,
+            ).classes("w-full max-w-sm")
+
+            # Display all of the Tasks for selection.
+            self.task_label = ui.label("Select Task to process:").classes("mt-4 text-sm font-semibold")
+            task_option = ui.select(
+                options=tasks_to_display,
+                on_change=lambda e: task_name_event(e.value) if e.value else None,
+            ).classes("w-full max-w-sm")
+
+    return project_option, profile_option, task_option
 
 
 # Get all Projects, Profiles and Tasks to display
@@ -1446,16 +395,338 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     return True, projects_to_display, profiles_to_display, tasks_to_display
 
 
+# Delete old pulldown menus since the older selected items could be longer than the new,
+# and both will appear.
+def delete_old_pulldown_menus(self: object) -> None:
+    """Delete old pulldown menus if they exist."""
+    for attr in (
+        "specific_project_optionmenu",
+        "specific_profile_optionmenu",
+        "specific_task_optionmenu",
+        "ai_project_optionmenu",
+        "ai_profile_optionmenu",
+        "ai_task_optionmenu",
+        "single_label",
+        "select_project_label",
+        "select_profile_label",
+        "task_label",
+    ):
+        widget = getattr(self, attr, None)
+        if widget:
+            with contextlib.suppress(Exception):
+                widget.delete()  # NiceGUI uses .delete() to remove widgets.
+            # Best practice: clear the reference so your logic knows it's gone
+            setattr(self, attr, None)
+
+
+def display_selected_object_labels(self) -> None:
+    """
+    Display the current settings for Ai
+    """
+    # 1. Data Resolution (Kept identical to your original logic)
+    if not self.ai_model:
+        all_models = {
+            "OpenAI": PrimeItems.ai["openai_models"],
+            "anthropic": PrimeItems.ai["anthropic_models"],
+            "LLAMA": PrimeItems.ai["llama_models"],
+            "DeepSeek": PrimeItems.ai["deepseek_models"],
+            "Gemini": PrimeItems.ai["gemini_models"],
+        }
+        for ai, models in all_models.items():
+            if self.ai_model in models:
+                self.ai_model = ai
+                break
+
+    if not self.ai_apikey:
+        self.ai_apikey = get_api_key()
+
+    key_to_display = "N/A" if getattr(self, "ai_name", "") == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
+    model_to_display = self.ai_model if self.ai_model else "None"
+
+    none_translated = translate_string("None")
+    project_to_display = self.single_project_name if self.single_project_name else none_translated
+    profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
+    task_to_display = self.single_task_name if self.single_task_name else none_translated
+
+    # 2. Render the "Analyze" Tab
+    # Assuming self.tab_analyze is the ui.tab_panel("Analyze") you created elsewhere
+    with self.tab_analyze:
+        # Instead of `delete_ai_labels(self)`, we just clear the container.
+        self.tab_analyze.clear()
+
+        # Display Model & Key
+        ui.label(f"{getattr(self, 'ai_name', '')} API Key: {key_to_display}, Model: {model_to_display}").classes(
+            "text-sm mt-4",
+        )
+
+        # Update Pulldown
+        if getattr(self, "ai_model_option", None):
+            # In NiceGUI, ui.select uses `.value` instead of `.set()`
+            self.ai_model_option.value = model_to_display
+        else:
+            display_model_pulldown(self, 50)
+
+        # Display Targets
+        translation_proj = translate_string("Project to Analyze:")
+        ui.label(f"{translation_proj} {project_to_display}").classes("text-sm mt-2")
+
+        translation_prof = translate_string("Profile to Analyze:")
+        ui.label(f"{translation_prof} {profile_to_display}").classes("text-sm mt-4")
+
+        translation_task = translate_string("Task to Analyze:")
+        ui.label(f"{translation_task} {task_to_display}").classes("text-sm mt-2")
+
+        # Display Prompt
+        display_prompt = translate_string(self.ai_prompt)
+        prompt_title = translate_string("Prompt:")
+
+        # Web browsers handle text wrapping automatically!
+        # We use Tailwind classes to limit width (max-w-md) and force wrapping (whitespace-pre-wrap).
+        ui.label(f"{prompt_title} '{display_prompt}'").classes(
+            "text-base mt-4 max-w-md whitespace-pre-wrap break-words",
+        )
+
+    # 3. Render the "Specific Name" Tab
+    # Assuming self.tab_specific_name is your ui.tab_panel("Specific Name")
+    with self.tab_specific_name:
+        self.tab_specific_name.clear()
+
+        all_objects = translate_string("Display all Projects, Profiles, and Tasks.")
+        name_to_display = self.specific_name_msg if getattr(self, "specific_name_msg", None) else all_objects
+
+        ui.label(name_to_display).classes("text-xs ml-2 mt-2 text-left")
+
+
+# ==========================================
+# 3. PROGRESS BAR MANAGEMENT
+# ==========================================
+def display_progress_bar(progress_dict: dict, is_instance_method: bool = False) -> None:
+    """
+    Updates the value of an existing NiceGUI linear_progress element.
+    """
+    if not progress_dict or "progress_widget" not in progress_dict:
+        return
+
+    # Calculate the percentage (0.0 to 1.0)
+    current = progress_dict.get("progress_counter", 0)
+    maximum = progress_dict.get("max_data", 1)
+
+    # Update the NiceGUI element directly
+    percentage = min(current / maximum, 1.0)
+    progress_dict["progress_widget"].value = percentage
+
+
+def kill_the_progress_bar(progress_dict: dict, remove_windows: bool = True) -> None:
+    """
+    Closes the progress bar dialog.
+    """
+    if progress_dict and "dialog" in progress_dict:
+        progress_dict["dialog"].close()
+
+
+# ==========================================
+# 4. PURE LOGIC FUNCTIONS (Unchanged)
+# ==========================================
+def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
+    """
+    Extracts the task ID from an unnamed task string.
+
+    Args:
+        unnamed_task (str): The unnamed task string.
+
+    Returns:
+        str: The extracted task ID.
+    """
+    # Extract the task ID from the unnamed task string
+    position = unnamed_task.rfind(".")
+    if position != -1:
+        return unnamed_task[position + 1 :].split(" (Unnamed)", maxsplit=1)[0]
+
+    rutroh_error(f"Error.  Missing period for task ID in Taask name: '{unnamed_task}'")
+    return unnamed_task.split(".")[1].strip()
+
+
+# Reload the program
+def reload_gui(self: object) -> None:
+    """
+    Reload the GUI by running a new process with the new program/version.
+
+    This function reloads the GUI by running a new process using the `os.execl` function.
+    The new process will load and run the new program/version.
+
+    Note:
+        - This function will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'.
+        - The current process will not return after this call, but will simply be killed.
+
+    Parameters:
+        *args (list): A variable-length argument list of command-line arguments to be passed to the new process.
+
+    Returns:
+        None
+    """
+
+    # Save the settings
+    temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+    _, _ = save_restore_args(temp_args, self.color_lookup, to_save=True)
+
+    # ReRun via a new process, which will load and run the new program/version.
+    # Note: this current process will not return after this call, but simply be killed.
+    restart_program_subprocess()
+
+
+def reset_primeitems_single_names() -> None:
+    """
+    Reset the prime items related to single names.
+    """
+    PrimeItems.found_named_items = {
+        "single_project_found": False,
+        "single_profile_found": False,
+        "single_task_found": False,
+    }
+    PrimeItems.directory_items = {
+        "current_item": "",
+        "projects": [],
+        "profiles": [],
+        "tasks": [],
+        "scenes": [],
+    }
+    PrimeItems.program_arguments["single_project_name"] = ""
+    PrimeItems.program_arguments["single_profile_name"] = ""
+    PrimeItems.program_arguments["single_task_name"] = ""
+    PrimeItems.found_named_items = {
+        "single_project_found": False,
+        "single_profile_found": False,
+        "single_task_found": False,
+    }
+
+
+def align_text(text: str, column: int) -> str:
+    """
+    Aligns the given text so that its first non-&nbsp; character starts at the specified column.
+
+    :param text: The input string where '&nbsp;' is treated as a space.
+    :param column: The desired starting column for the first non-&nbsp; character.
+    :return: The aligned string.
+    """
+    nbsp = "&nbsp;"
+    stripped_text = text.lstrip(nbsp)  # Remove leading '&nbsp;' characters
+    leading_spaces = (len(text) - len(stripped_text)) // len(
+        nbsp,
+    )  # Count '&nbsp;' as spaces
+    adjusted_column = max(0, column - leading_spaces)  # Ensure non-negative padding
+
+    return (nbsp * adjusted_column) + text  # Adjust spacing to align correctly
+
+
+def display_current_file(self: "MyGui", file_name: str) -> None:
+    """
+    A function to display the current file as a label in the GUI.
+    """
+    # 1. Cleaner File Path Parsing
+    # Python's built-in os.path.basename handles slashes (both / and \) automatically
+    clean_file_name = os.path.basename(file_name)
+
+    # 2. Translation Logic (Kept identical)
+    text = "Current File"
+    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
+    full_display_text = f"{text}: {clean_file_name}"
+
+    # 3. The NiceGUI Way: Update text rather than destroying and recreating the element
+    if getattr(self, "current_file_label", None):
+        # If the label already exists, just change its text property!
+        self.current_file_label.text = full_display_text
+    else:
+        # If this is the first time running, create the label.
+        # .classes("ml-4 text-left") replaces padx=20 and sticky="w"
+        self.current_file_label = ui.label(full_display_text).classes("ml-4 text-left")
+
+    # 4. Update other UI elements (Kept identical)
+    update_tasker_object_menus(self, get_data=False, reset_single_names=False)
+
+
+# Get the XML data and setup Primeitems
+def get_xml(debug: bool, appearance_mode: str) -> int:
+    """ "Returns the tasker root xml items from the backup xml file based on the given debug and appearance mode parameters."
+    Parameters:
+        debug (bool): Indicates whether the program is in debug mode or not.
+        appearance_mode (str): Specifies the color mode to be used.
+    Returns:
+        int: The return code from getting the xml file.
+    Processing Logic:
+        - Initialize temporary PrimaryItems object.
+        - Set file_to_get variable based on debug mode.
+        - Set program_arguments variable for debug mode.
+        - Set colors_to_use variable based on appearance mode.
+        - Initialize output_lines variable.
+        - Return data and output intro."""
+
+    if not PrimeItems.program_arguments["debug"]:
+        PrimeItems.program_arguments["debug"] = debug
+    PrimeItems.program_arguments["gui"] = True
+    PrimeItems.colors_to_use = set_color_mode(appearance_mode)
+    PrimeItems.output_lines = LineOut()
+
+    return get_data_and_output_intro(False)
+
+
+# Clear all buttons associated with fetching the backup file from Android device
+def clear_android_buttons(self: "MyGui") -> None:
+    """
+    Clears android device configuration UI elements and displays the backup button.
+    """
+    # 1. Group all the base elements you want to delete
+    elements_to_delete = [
+        "ip_entry",
+        "port_entry",
+        "file_entry",
+        "ip_label",
+        "port_label",
+        "file_label",
+        "get_backup_button",
+        "cancel_entry_button",
+        "list_files_button",
+        "label_or",
+        "filelist_label",
+        "filelist_option",
+        "list_files_query_button",
+    ]
+
+    # 2. Conditionally add elements based on the first_time flag
+    # (Using getattr as a safeguard in case first_time hasn't been initialized yet)
+    if not getattr(self, "first_time", True):
+        elements_to_delete.append("upgrade_button")
+
+    # 3. Iterate and delete efficiently
+    for attr in elements_to_delete:
+        widget = getattr(self, attr, None)
+        if widget:
+            with contextlib.suppress(Exception):
+                widget.delete()  # NiceGUI uses .delete() instead of .destroy()
+
+            # Clear the reference so your object state stays clean
+            setattr(self, attr, None)
+
+    # 4. Recreate the backup button
+    # (Note: Ensure display_backup_button is also updated for NiceGUI,
+    # particularly how it handles the Hex color codes)
+    self.get_backup_button = self.display_backup_button(
+        "Get XML from Android Device",
+        "#246FB6",
+        "#6563ff",
+        self.event_handlers.get_xml_from_android_event,
+    )
+
+
 # Build a list of Profiles that are under the given project, and all of their (Tasks) children.
 def build_profiles(
     root: dict,
     profile_ids: list,
-    project: pygixml.XMLNode,
+    project: defusedxml.ElementTree,
 ) -> list:
     """Parameters:
         - root (dict): Dictionary containing all profiles and their tasks.
         - profile_ids (list): List of profile IDs to be processed.
-        - project (pygixml.XMLNode): The project xml element.
+        - project (defusedxml.ElementTree): The project xml element.
     Returns:
         - list: List of dictionaries containing profile names and their corresponding tasks.
     Processing Logic:
@@ -1513,1558 +784,3 @@ def build_profiles(
         profile_list.append({"name": translate_string("No Profile"), "children": no_profile_tasks})
 
     return profile_list
-
-
-# Display startup messages which are a carryover from the last run.
-def display_messages_from_last_run(self) -> None:  # noqa: ANN001
-    """
-        Displays messages from the last run.
-    #
-        This function checks if there are any carryover error messages from the last run (rerun).
-        If there are, it reads the error message from the file specified by the `ERROR_FILE` constant and handles
-        potential missing modules. If the error message contains the string "Ai Response", it displays the
-        error message in a new toplevel window and displays a message box indicating that the analysis response
-        is in a separate window and saved as `ANALYSIS_FILE`. If the error message contains newline characters,
-        it breaks the message up into multiple lines and displays each line in a message box. If the error message
-        does not contain newline characters, it displays the error message in a message box. After displaying the
-        error message, it removes the error file to prevent it from being displayed again.
-
-        If there is an error message from other routines, it displays the error message in a message box with the return code.
-
-        Parameters:
-        - None
-
-        Returns:
-        - None
-    """
-    logger.info("Displaying messages from last run.")
-    # See if we have any carryover error messages from last run (rerun).
-    if os.path.isfile(ERROR_FILE):
-        with open(ERROR_FILE) as error_file:
-            error_msg = error_file.read()
-            # Handle potential mssing modules
-            # if "cria" in error_msg:
-            #     self.ai_missing_module = "cria"
-            # elif "openai" in error_msg:
-            #     self.ai_missing_module = "openai"
-
-            # Handle Ai Response and display it in a new toplevel window
-            if "AI Response" in error_msg:
-                self.display_ai_response(error_msg)
-                self.display_message_box(
-                    "Analysis response is in a separate Window.",
-                    "Turquoise",
-                )
-                self.tabview.set("Analyze")  # Switch to the 'Analyze' tab
-
-            # Some other message.  Just display it in the message box and break it up if needed.
-            elif "\n" in error_msg:
-                messages = error_msg.split("\n")
-                self.clear_messages = True
-                for message_line in messages:
-                    self.display_message_box(message_line, "Red")
-            else:
-                self.clear_messages = True
-                self.display_message_box(error_msg, "Red")
-        # Get rid of error message so we don't display it again.
-        try:
-            os.remove(ERROR_FILE)
-        except PermissionError:
-            # If the error file is locked up by us, then just rename the file.
-            print(f"Unable to delete the error file: {ERROR_FILE}.  You must delete it manually!")
-        except FileNotFoundError:
-            pass
-
-    # Display any error message from other rountines
-    if PrimeItems.error_msg:
-        self.display_message_box(
-            f"{PrimeItems.error_msg} with return code {PrimeItems.error_code}.",
-            "Red",
-        )
-
-
-# Display the current file as a label
-def display_current_file(self, file_name: str) -> None:  # noqa: ANN001
-    """
-    A function to display the current file as a label in the GUI.
-
-    Args:
-        self: The object instance.
-        file_name (str): The name of the file to be displayed.
-
-    Returns:
-        None: This function does not return anything.
-    """
-    # Clear previous if filled.
-    with contextlib.suppress(AttributeError):
-        self.current_file_label.destroy()
-    # Check for slashes and remove if nessesary
-    filename_location = file_name.rfind(PrimeItems.slash) + 1
-    if filename_location != -1:
-        file_name = file_name[filename_location:]
-    text = "Current File"
-    text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
-    self.current_file_label = add_label(
-        self,
-        self,
-        f"{text}: {file_name}",
-        "",
-        "",
-        "normal",
-        8,
-        1,
-        20,
-        (20, 0),
-        "w",
-    )
-    # Update UI elements
-    update_tasker_object_menus(self, get_data=False, reset_single_names=False)
-    # X Do we need this call here?
-    # display_analyze_button(self, 13, first_time=False)
-
-
-# Set up error message for single Project/Profile/Task name that was entered.  Called by check_name in userintr.
-def setup_name_error(
-    object1_name: str,
-    object2_name: str,
-    single_name1: str,
-    single_name2: str,
-) -> None:
-    """
-    Set up an error message for when both a Project and a Profile name are entered.
-
-    Args:
-        object1_name (str): The name of the first object (Project).
-        object2_name (str): The name of the second object (Profile).
-        single_name1 (str): The name of the Project.
-        single_name2 (str): The name of the Profile.
-
-    Returns:
-        None: This function does not return anything.
-    """
-    return [
-        "Error:\n\n",
-        f"You have entered both a {object1_name} and a {object2_name} name!\n",
-        f"(Project {single_name1} and Profile {single_name2})\n",
-        "Try again and only select one.\n",
-    ]
-
-
-def set_tasker_object_names(self: object) -> None:
-    """Set names to display in pulldown menus based on current tasker object names."""
-    # Translate the default values if possible
-    none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
-    display_only_text = "Display only"
-    display_only_text = PrimeItems._(display_only_text) if hasattr(PrimeItems, "_") else display_only_text
-    defaults = {
-        "project": self.single_project_name if self.single_project_name else none_text,
-        "profile": self.single_profile_name if self.single_profile_name else none_text,
-        "task": self.single_task_name if self.single_task_name else none_text,
-        "display_only": f"{display_only_text} ",
-    }
-
-    # Map attribute presence to corresponding function
-    handlers = (
-        (self.single_project_name, _set_single_project_name),
-        (self.single_profile_name, _set_single_profile_name),
-        (self.single_task_name, _set_single_task_name),
-    )
-
-    # Go through handlers and call the appropriate function for a single named item
-    for attr_value, func in handlers:
-        if attr_value:
-            # We have a single-named item.  Set values and return
-            func(self, defaults)
-            return
-
-    # No single item selected.  Set the defaults.
-    _set_default_names(self, defaults)
-
-
-def _set_single_project_name(self: object, defaults: dict) -> None:
-    """Handles setting names when a single project name is available."""
-    # Translate string if possible
-    text = f"{defaults['display_only']}{translate_string('Project')}"
-
-    self.specific_name_msg = f"{text} '{self.single_project_name}'"
-    try:
-        self.specific_project_optionmenu.set(self.single_project_name)
-    except AttributeError:
-        return
-    self.ai_project_optionmenu.set(self.single_project_name)
-    self.specific_profile_optionmenu.set(defaults["profile"])
-    self.ai_profile_optionmenu.set(defaults["profile"])
-    self.specific_task_optionmenu.set(defaults["task"])
-    self.ai_task_optionmenu.set(defaults["task"])
-    self.update()
-
-
-def _set_single_profile_name(self: object, defaults: dict) -> None:
-    """Handles setting names when a single profile name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Profile')} {self.single_profile_name}'"
-    try:
-        self.specific_profile_optionmenu.set(self.single_profile_name)
-    except AttributeError:
-        return
-    self.ai_profile_optionmenu.set(self.single_profile_name)
-    self.ai_project_optionmenu.set(defaults["project"])
-    self.specific_project_optionmenu.set(defaults["project"])
-    self.specific_task_optionmenu.set(defaults["task"])
-    self.ai_task_optionmenu.set(defaults["task"])
-
-
-def _set_single_task_name(self: object, defaults: dict) -> None:
-    """Handles setting names when a single task name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Task')} '{self.single_task_name}'"
-    try:
-        self.specific_task_optionmenu.set(self.single_task_name)
-    except AttributeError:
-        return
-    self.ai_task_optionmenu.set(self.single_task_name)
-    self.specific_project_optionmenu.set(defaults["project"])
-    self.specific_profile_optionmenu.set(defaults["profile"])
-    self.ai_project_optionmenu.set(defaults["project"])
-    self.ai_profile_optionmenu.set(defaults["profile"])
-
-
-def _set_default_names(self: object, defaults: dict) -> None:
-    """Handles setting names when no specific name is available."""
-    self.specific_name_msg = ""
-    try:
-        # Translate the default values if possible
-        none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
-        project_text = defaults["project"]
-        profile_text = defaults["profile"]
-        task_text = defaults["task"]
-        self.specific_project_optionmenu.set(project_text)
-        if not PrimeItems.tasker_root_elements["all_projects"]:
-            self.specific_project_optionmenu.configure(none_text)
-            self.ai_project_optionmenu.configure(none_text)
-        if not PrimeItems.tasker_root_elements["all_profiles"]:
-            self.specific_profile_optionmenu.configure(none_text)
-            self.ai_profile_optionmenu.configure(none_text)
-        if not PrimeItems.tasker_root_elements["all_tasks"]:
-            self.specific_task_optionmenu.configure(none_text)
-            self.ai_task_optionmenu.configure(none_text)
-        self.specific_profile_optionmenu.set(profile_text)
-        self.ai_project_optionmenu.set(project_text)
-        self.ai_profile_optionmenu.set(profile_text)
-        self.specific_task_optionmenu.set(task_text)
-        self.ai_task_optionmenu.set(task_text)
-    except AttributeError:
-        pass
-
-
-# Adds the "Cancel Entry" button to the GUI.
-def add_cancel_button(self, row: int, delta_y: int) -> None:  # noqa: ANN001
-    """
-    Adds a cancel button to the GUI.
-
-    This function creates a cancel button and adds it to the GUI. The button is created using the `add_button` function
-    and is assigned to the `cancel_entry_button` attribute of the `self` object.
-    The button is styled with specific colors and has a label "Cancel Entry".
-
-    Parameters:
-        row (int): The row number where the button should be placed.
-        delta_y (int): The vertical offset of the button.
-
-    Returns:
-        None
-    """
-    # Add Cancel button
-    self.cancel_entry_button = add_button(
-        self,
-        self,
-        "#246FB6",
-        "",
-        "#1bc9ff",
-        self.event_handlers.backup_cancel_event,
-        2,  # border width
-        "Cancel Entry",
-        2,  # column span
-        row,  # row
-        1,  # column
-        (80, 260),
-        (delta_y, 0),
-        "ne",
-    )
-
-
-# Reload the program
-def reload_gui(self: object) -> None:
-    """
-    Reload the GUI by running a new process with the new program/version.
-
-    This function reloads the GUI by running a new process using the `os.execl` function.
-    The new process will load and run the new program/version.
-
-    Note:
-        - This function will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'.
-        - The current process will not return after this call, but will simply be killed.
-
-    Parameters:
-        *args (list): A variable-length argument list of command-line arguments to be passed to the new process.
-
-    Returns:
-        None
-    """
-    # Save windows
-    store_windows(self)
-
-    # Save the last-used tab
-    self.tab_to_use = self.tabview.get()
-
-    # Save the settings
-    temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
-    _, _ = save_restore_args(temp_args, self.color_lookup, to_save=True)
-
-    # ReRun via a new process, which will load and run the new program/version.
-    # Note: this current process will not return after this call, but simply be killed.
-    restart_program_subprocess()
-
-
-def display_no_xml_message(self) -> None:  # noqa: ANN001
-    """
-    Display a message indicating that a map is not possible because there are no projects, profiles, tasks, or scenes
-    in the current XML file.
-
-    This function does not take any parameters.
-
-    Returns:
-        None
-    """
-    self.display_message_box(
-        "View not possible.  No Projects, Profiles Tasks (or Scenes) in the current XML file.\n",
-        "Orange",
-    )
-    self.display_message_box(
-        "Click the 'Get Local XML' or 'Get XML From Android' button to load some XML first.",
-        "Orange",
-    )
-    # Clear everything out.
-    update_tasker_object_menus(self, get_data=False, reset_single_names=True)
-
-
-def reset_primeitems_single_names() -> None:
-    """
-    Reset the prime items related to single names.
-    """
-    PrimeItems.found_named_items = {
-        "single_project_found": False,
-        "single_profile_found": False,
-        "single_task_found": False,
-    }
-    PrimeItems.directory_items = {
-        "current_item": "",
-        "projects": [],
-        "profiles": [],
-        "tasks": [],
-        "scenes": [],
-    }
-    PrimeItems.program_arguments["single_project_name"] = ""
-    PrimeItems.program_arguments["single_profile_name"] = ""
-    PrimeItems.program_arguments["single_task_name"] = ""
-    PrimeItems.found_named_items = {
-        "single_project_found": False,
-        "single_profile_found": False,
-        "single_task_found": False,
-    }
-    # self.single_project_name = ""
-    # self.single_profile_name = ""
-    # self.single_task_name = ""
-
-
-def fresh_message_box(self: ctk.windows.Window) -> None:
-    """
-    A function to refresh the message box by destroying the existing textbox and creating a new one.
-    No parameters are taken, and no return value is provided.
-    """
-    self.all_messages = {}
-    with contextlib.suppress(AttributeError):
-        self.textbox.destroy()
-    # Pick up create_new_textbox from userintr (MyGui)
-    self.create_new_textbox()
-
-
-def search_substring_in_list(
-    strings: list,
-    substring: str,
-    stop_on_first_match: bool,
-) -> list:
-    """
-    Searches for a given substring within a list of strings and returns a list of tuples containing the index of the string and the position of the substring.
-
-    Args:
-        strings (list): A list of strings to search within.
-        substring (str): The substring to search for.
-        stop_on_first_match (bool): Whether to stop searching after the first match is found.
-
-    Returns:
-        list: A list of tuples containing the index of the string and the position of the substring.
-
-    Note: Tasker objects with anything that looks like HTML will nmot get a match since the html is stripped out by guimap.
-    """
-    matches = []
-    task_translated = translate_string("Task: ")
-    task_translated_lower = task_translated.lower()
-    unnamed_translated = translate_string("(Unnamed)")
-    # If this is an Unknown Task or Task in warning dict, we need to search for the Task ID in A Scene as well, since
-    # Task names in Scenes are listed as "Task: ...(Unnamed)" and the Task ID is listed in the Scene as "id:task_id".
-    if task_translated in substring and "(Unnamed)" in substring:
-        # Get the Task ID.
-        task_id = get_taskid_from_unnamed_task(substring)
-
-        second_search_string = f"id:{task_id}"
-    elif substring[6:] in PrimeItems.task_action_warnings:
-        second_search_string = f"id: {PrimeItems.task_action_warnings[substring[6:]]['id']}"
-    else:
-        second_search_string = ""
-    lower_substring = substring.replace("(Unnamed)", unnamed_translated).lower()
-
-    # If stop on first match and a Tasker object, then indicate we need an exact match.
-    exact_match = bool(stop_on_first_match and is_tasker_object(substring, True))
-
-    # Go through all data looking for our substring.  Do all compares in lowercase.
-    # If we don't find a match, then search on second substring.
-    for i, string in enumerate(strings):
-        lower_string = string.lower()
-        lower_string_len = len(lower_string)
-        start = 0
-        while start < lower_string_len:
-            pos = lower_string.find(lower_substring, start)
-            # Do we need to search for a Task in a Scene (ID: task_id)?
-            if pos == -1 and second_search_string:
-                pos = lower_string.find(second_search_string, start)
-                # If we have the "id:task_id" then get the position of the name (e.g. beyond 'Task: ).
-                if pos != -1:
-                    lower_substring = (
-                        lower_substring
-                        .replace(f"{task_translated_lower}", "")
-                        .replace("(unnamed)", unnamed_translated.lower())
-                        .strip()
-                    )
-                    pos = lower_string.find(lower_substring, start)
-            if pos == -1 or "up one level" in lower_string:
-                break
-
-            # Drop here if we have a potential match.
-            # If doing an exact match on a Tasker object, make sure we have an exact match.
-            if exact_match:
-                potential_match = lower_string[pos:]
-                # Handle possible --Task ... ID:
-                pos2 = potential_match.find(" id:")
-                if pos2 != -1:
-                    potential_match = potential_match[:pos2]
-                pos1 = potential_match.find("   ")
-                if pos2 != -1:
-                    potential_match = potential_match[:pos2]
-                pos1 = potential_match.find("   ")
-                if pos1 != -1 or (len(potential_match) != len(lower_substring)):
-                    new_lower_substring = potential_match[:pos1]
-                    if new_lower_substring != lower_substring:
-                        break
-
-            # Make sure we are not searching for a task and this is a launcher task
-            if substring.startswith(task_translated) and string.startswith(" [Launcher "):
-                start = pos + 1
-                continue
-            # Okay, we have the match!  Save the index and position.
-            matches.append((i, pos))
-            if stop_on_first_match:
-                return matches
-            start = pos + 1  # Move start index forward to continue searching
-    return matches
-
-
-def search_nextprev_string(
-    self: object,
-    textview: ctk.CTkTextbox,
-    direction: str,
-) -> None:
-    """
-    Searches for the next or previous occurrence of a string in a text box based on the given direction.
-
-    Args:
-        self (object): The object instance.
-        direction (str): The direction to search, either "next" or "previous".
-
-    Returns:
-        None
-    """
-    if not textview.search_string:
-        no_search_string(textview)
-        return
-
-    # Remove tag 'next' from index 1 to END
-    textview.textview_textbox.tag_remove("next", "1.0", "end")
-    try:
-        search_indices = textview.search_indecies
-    except:
-        no_search_string(self)
-        return
-
-    for num, idx in enumerate(search_indices):
-        if idx == textview.search_current_line:
-            # End of search?
-            if (direction == "next" and idx == search_indices[-1]) or (
-                direction == "previous" and idx == search_indices[0]
-            ):
-                # Add label for reaching the end or beginning of the text
-                message = (
-                    "The end of the text has been reached."
-                    if direction == "next"
-                    else "The beginning of the text has been reached."
-                )
-                output_label(textview, message)
-            else:
-                # Determine the new current line based on direction
-                if direction == "next":
-                    # Point to next search if we didn't just do a 'Top' button.
-                    if not textview.top:
-                        textview.search_current_line = search_indices[num + 1]
-                    else:
-                        textview.top = False
-                elif direction == "previous":
-                    textview.search_current_line = search_indices[num - 1]
-
-                # Add tag to highlight the found text
-                temp = textview.search_current_line.split(".")
-                end_index = int(temp[1]) + len(textview.search_string)
-                textview.textview_textbox.tag_add(
-                    "next",
-                    textview.search_current_line,
-                    f"{temp[0]!s}.{end_index}",
-                )
-                textview.textview_textbox.tag_config(
-                    "next",
-                    foreground=textview.search_color_text,
-                    background=textview.search_color_nextprev,
-                    relief="raised",
-                )
-
-                # Set the line at the first hit. "See" makes it visible.
-                textview.textview_textbox.see(textview.search_current_line)
-
-                # # Move the window so that the match is in the middle of the screen.
-                # # 'end-1c' means 'the end of the text, minus one character'
-                # # (this avoids counting the invisible final newline Tkinter adds)
-                # last_index = textview.textview_textbox.index("end-1c")
-
-                # # The index is returned as a string like "100.5" (Line 100, Column 5)
-                # # We split by the dot and take the first part
-                # total_lines = int(last_index.split(".")[0])
-
-                # pos = int(temp[0]) / total_lines
-                # # Move the view to show the found text, adjusting to center it
-                # textview.textview_textbox.yview_moveto(float(pos) - 0.02)
-                # # textview.textview_textbox.focus_set()
-                break
-
-
-def no_search_string(textview: ctk.CTkTextbox) -> None:
-    """
-    Displays a message box indicating that no search string was found.
-
-    Args:
-        self (object): The object instance.
-
-    Returns:
-        None
-    """
-    output_label(textview, "No search string was entered.")
-
-
-def output_label(textview: ctk.CTkTextbox, message: str) -> None:
-    """
-    Displays a message label in the GUI.
-
-    Args:
-        self (object): The object instance.
-        message (str): The message to display.
-
-    Returns:
-        None
-    """
-    # Get the right view/textview
-    if "Analysis" in textview.title:
-        the_view = textview.master.master.analysisview
-    elif "Diagram" in textview.title:
-        the_view = textview.master.master.diagramview
-    else:
-        the_view = textview.master.master.mapview
-
-    the_view.text_message_label.destroy()
-    the_view.text_message_label = add_label(
-        textview,
-        textview,
-        message,
-        "Orange",
-        12,
-        "bold",
-        0,
-        0,
-        10,
-        40,
-        "n",
-    )
-
-    the_view.after(3000, textview.delay_event)  # 3-second timer
-    the_view.focus_set()
-
-
-def get_appropriate_color(self: object, color_to_use: str) -> str:
-    """Given a color to use, returns the appropriate color to use in the GUI for dark and light modes.
-
-    Args:
-        color_to_use (str): color to check against
-
-    Returns:
-        color_to_use (str): color to use based on dark or light mode
-    """
-    # Color matching dictionary: color_to_use: [dark-mode color, light-mode color], ...
-    color_match = {
-        "blue": ["LightSkyBlue", "darkblue"],
-        "green": ["lightgreen", "darkgreen"],
-    }
-
-    if self.appearance_mode is None:
-        self.appearance_mode = "system"
-
-    for key, color in color_match.items():
-        if color_to_use == key and (
-            self.appearance_mode == "dark" or (self.appearance_mode == "system" and darkdetect.isDark())
-        ):
-            # Return the dark-mode color
-            return color[0]
-        if color_to_use == key:
-            # Return the light-mode color
-            return color[1]
-    return color_to_use
-
-
-def display_progress_bar(
-    progress: dict,
-    is_instance_method: bool = False,
-) -> None:
-    """
-    Update and display a progress bar with a specified color based on the progress percentage.
-
-    Args:
-        progress (dict): The dictionary containing the progress bar details.
-        is_instance_method (bool): Flag to determine if the function is used as a class instance method.
-
-    Returns:
-        None: This function does not return anything.
-    """
-    # Set values for use in this function.
-    tenth_increment = progress["tenth_increment"]
-    progress_counter = progress["progress_counter"]
-    max_data = progress["max_data"]
-
-    # If used as an instance method (Map), adjust the progress_bar reference.
-    if is_instance_method:
-        comp2 = 2
-        comp4 = 4
-        comp6 = 6
-        comp8 = 8
-        threshold = progress_counter / tenth_increment
-    else:
-        # Diagram view
-        comp2 = tenth_increment * 2
-        comp4 = tenth_increment * 4
-        comp6 = tenth_increment * 6
-        comp8 = tenth_increment * 8
-        threshold = progress_counter
-
-    # Calculate our progress value based on the maximum value and current value.
-    progress_value = round((progress_counter / max_data), 2)
-
-    # Determine the progress color based on the current value.
-    if threshold <= comp2:
-        progress_color = "red"
-    elif threshold <= comp4:
-        progress_color = "orangered"
-    elif threshold <= comp6:
-        progress_color = "orange"
-    elif threshold <= comp8:
-        progress_color = "limegreen"
-    else:
-        progress_color = "green"
-        # If value is over .99, for some reason the progress bar users a value of .02 ratherr than 1.
-        # So we have to force it to something just short of 1.
-        if progress_counter / max_data >= 0.99:
-            progress_value = 0.97
-
-    if PrimeItems.program_arguments["debug"]:
-        print(
-            "Display Progressbar",
-            progress_value,
-            threshold,
-            progress_counter,
-            max_data,
-        )
-
-    # Update the progress bar with the current value and color.
-    progress["progress_bar"].progressbar.set(progress_value)
-    progress["progress_bar"].progressbar.configure(progress_color=progress_color)
-    progress["progress_bar"].progressbar.update()
-
-
-def find_connector(
-    output_lines: list,
-    line_num: int,
-    start_symbol: str,
-    end_symbol: str,
-) -> tuple:
-    """
-    Finds the start and end positions for a connector within a line of the diagram.
-
-    Args:
-        output_lines (list): The list of strings representing the diagram.
-        line_num (int): The line number to search within.
-        start_symbol (str): The symbol indicating the start of the connector.
-        end_symbol (str): The symbol indicating the end of the connector.
-
-    Returns:
-        tuple: (start_position, end_position) if found, otherwise (None, None).
-    """
-    start_pos = output_lines[line_num].find(start_symbol)
-    if start_pos != -1:
-        end_pos = output_lines[line_num].find(end_symbol)
-        if end_pos != -1:
-            return start_pos, end_pos
-    return None, None
-
-
-def find_lower_elbows(
-    output_lines: list,
-    line_num: int,
-    end_elbow: str,
-    right_corner_up: str,
-    left_corner_down: str,
-) -> tuple:
-    """
-    Finds the positions of the lower elbows in the connector.
-
-    Args:
-        output_lines (list): The list of strings representing the diagram.
-        line_num (int): The starting line number for the search.
-        end_elbow (int): The column position of the end elbow.
-        right_corner_up (str): The symbol for the right lower elbow.
-        left_corner_down (str): The symbol for the left lower elbow.
-
-    Returns:
-        tuple: (next_line, right_lower_elbow, left_lower_elbow)
-    """
-    found_arrow = False
-    while not found_arrow:
-        line_num += 1
-        if line_num < len(output_lines):
-            right_lower_elbow = output_lines[line_num].find(
-                right_corner_up,
-                end_elbow,
-                end_elbow + 1,
-            )
-            if right_lower_elbow != -1:
-                found_arrow = True
-                left_lower_elbow = output_lines[line_num].find(left_corner_down)
-                if left_lower_elbow == -1:
-                    rutroh_error(
-                        f"Missing left lower elbow in line {line_num} guiutils.py:build_connectors line:\n{output_lines[line_num]}",
-                    )
-                return line_num, right_lower_elbow, left_lower_elbow
-        else:
-            return line_num, -1, -1
-    return None, None, None
-
-
-def get_connected_task(
-    output_lines: list,
-    line_num: int,
-    elbow: int,
-    top: bool,
-) -> tuple:
-    """
-    Finds the connected task in the connector.
-
-    Args:
-        output_lines (list): The list of strings representing the diagram.
-        line_num (int): The line number to search within.
-        elbow (int): The column position of the lower elbow.
-        top (bool): True if the tasak is up, False if the task is below.
-
-    Returns:
-        tuple: (connected_task, left_position, right_position)
-    """
-    # Get the line with the task name in it.
-    if top:
-        while angle not in output_lines[line_num]:
-            line_num -= 1
-    else:
-        while angle not in output_lines[line_num]:
-            line_num += 1
-    line = output_lines[line_num]
-
-    # Get the left position of the name
-    comma_found = False
-    search_position = elbow
-    while not comma_found:
-        if line[search_position] in (",", right_arrow, straight_line, "[", "]"):
-            break
-        search_position -= 1
-    left_position = search_position + 3
-
-    # Get the right position of the name
-    comma_found = False
-    search_position = left_position
-    while not comma_found:
-        if (
-            len(line) == search_position
-            or line[search_position] in (",", "]", "[", "(", bar)
-            or line[search_position][0:3] == "    "
-        ):
-            break
-        search_position += 1
-    right_position = search_position
-
-    return (
-        line[left_position - 1 : right_position].strip(),
-        left_position,
-        right_position,
-    )
-
-
-def build_connectors(
-    output_lines: list,
-    line_num: int,
-    diagram_connectors: dict,
-) -> dict:
-    """
-    Build the connectors for a given line number.
-
-    Args:
-        output_lines (list): The list of strings representing the diagram.
-        line_num (int): The line number to build the connectors for.
-        diagram_connectors (dict): The dictionary to store the connectors information.
-
-    Returns:
-        dict: Updated dictionary of connectors.
-    """
-    # Handle top-down connectors
-    start_elbow, end_elbow = find_connector(
-        output_lines,
-        line_num,
-        right_arrow_corner_down,
-        left_arrow_corner_up,
-    )
-    if start_elbow is not None:
-        next_line, right_lower_elbow, left_lower_elbow = find_lower_elbows(
-            output_lines,
-            line_num,
-            end_elbow,
-            right_arrow_corner_up,
-            left_arrow_corner_down,
-        )
-
-        # Build the connector
-        diagram_connectors[f"{line_num + 1}"] = {
-            "start_top": (line_num + 1, start_elbow),
-            "end_top": (line_num + 1, end_elbow),
-            "start_bottom": (next_line + 1, left_lower_elbow),
-            "end_bottom": (next_line + 1, right_lower_elbow),
-            "tag": "",
-            "extra_bars": [],
-            "task_upper": [],
-        }
-
-        # Get the connecting task name at above the elbow.
-        task_to_highlight, _, _ = get_connected_task(
-            output_lines,
-            line_num,
-            start_elbow,
-            True,
-        )
-        diagram_connectors[f"{line_num + 1}"]["task_upper"] = append_item_to_list(
-            (task_to_highlight),
-            diagram_connectors[f"{line_num + 1}"]["task_upper"],
-        )
-
-    # Handle bottom-up connectors
-    else:
-        start_elbow, end_elbow = find_connector(
-            output_lines,
-            line_num,
-            left_arrow_corner_down,
-            left_arrow_corner_up,
-        )
-        if start_elbow is not None:
-            next_line, right_lower_elbow, left_lower_elbow = find_lower_elbows(
-                output_lines,
-                line_num,
-                end_elbow,
-                right_arrow_corner_up,
-                right_arrow_corner_down,
-            )
-
-            # Build the connector
-            diagram_connectors[f"{line_num + 1}"] = {
-                "start_top": (line_num + 1, start_elbow),
-                "end_top": (line_num + 1, end_elbow),
-                "start_bottom": (next_line + 1, left_lower_elbow),
-                "end_bottom": (next_line + 1, right_lower_elbow),
-                "tag": "",
-                "extra_bars": [],
-                "task_upper": [],
-            }
-
-            # Get the connecting task name at above the elbow.
-            task_to_highlight, _, _ = get_connected_task(
-                output_lines,
-                line_num,
-                start_elbow,
-                False,
-            )
-            diagram_connectors[f"{line_num + 1}"]["task_upper"] = append_item_to_list(
-                (task_to_highlight),
-                diagram_connectors[f"{line_num + 1}"]["task_upper"],
-            )
-
-    return diagram_connectors
-
-
-def remove_tags_from_bars_and_names(self: object) -> None:
-    """
-    Remove the tags from the bars in the diagram.
-
-    This function loops through all of the connectors and Task names in the diagram and removes the tags from each.
-    The tags are removed from the bars in the connectors, and the "tag" key in the connector dictionary is set to an empty string.
-    """
-    _textview_textbox = self.textview_textbox
-    for values in self.diagram_connectors.values():
-        # Remove the bars from the text widget.
-        if values["tag"]:
-            line_num = values["start_top"][0]
-            number_of_lines_to_highlight = values["start_bottom"][0] - values["start_top"][0] + 1
-            for _ in range(number_of_lines_to_highlight):
-                _textview_textbox.tag_remove(
-                    values["tag"],
-                    f"{line_num}.{values['end_top'][1]!s}",
-                    f"{line_num}.{values['end_top'][1] + 1!s}",
-                )
-                line_num += 1
-            for bar in values["extra_bars"]:
-                _textview_textbox.tag_remove(
-                    values["tag"],
-                    f"{bar[0]!s}.{bar[1]!s}",
-                    f"{bar[0]!s}.{bar[1] + 1!s}",
-                )
-            values["tag"] = ""
-
-        # Remove the tags in the Task names.
-        if values["task_upper"] and len(values["task_upper"]) > 1:
-            task = values["task_upper"]
-            _textview_textbox.tag_remove(
-                values["tag"],
-                f"{task[1]}.{task[2]!s}",
-                f"{task[1]}.{task[3]!s}",
-            )
-
-
-def kill_the_progress_bar(progress_bar: dict, remove_windows: bool = False) -> None:
-    """
-    Stop and destroy the progress bar. and any open views.
-
-    Args:
-        progress_bar (dict): The dictionary containing the progress bar information.
-
-    Returns:
-        None
-    """
-    # Make sure we have a progressbar.
-    if not progress_bar:
-        return
-
-    # Save the window position in our main window (self=MyGui).
-    if PrimeItems.progressbar:
-        PrimeItems.mygui.progressbar_window_position = save_window_position(
-            progress_bar["self"],
-            "progressbar_window",
-        )
-        # Get rid of the progressbar
-        progress_bar["progress_bar"].progressbar.stop()
-        progress_bar["progress_bar"].progressbar.destroy()
-        progress_bar["progress_bar"].destroy()
-        progress_bar.clear()
-        PrimeItems.progressbar.clear()
-        # Get rid of any open views.
-        if remove_windows:
-            for window_attr in [
-                "mapview_window",
-                "diagramview_window",
-                "treeview_window",
-            ]:
-                window = getattr(PrimeItems.mygui, window_attr, None)
-                if window is not None:
-                    window.destroy()
-                    setattr(PrimeItems.mygui, window_attr, None)
-    # If we don't have PrimeItems.progressbar, we have a runaway situation (tkinter bug).
-    # Just destory the window.
-    else:
-        progress_bar = {}
-        PrimeItems.program_arguments["guiview"] = True
-
-
-def get_profiles_in_project(project_name: str) -> str:
-    r"""
-    Retrieves and returns a string of profile names for a given project.
-
-    Args:
-        project_name (str): The name of the project for which to retrieve profile names.
-
-    Returns:
-        str: A string containing the list of profile names associated with the project,
-            formatted as "Profiles:\n" followed by a comma-separated list of names.
-            Returns an empty string if no profiles are found.
-    """
-    # Get the Project's profile Ids.
-    if "Properties" in project_name:  # Ignore if this is a Properties statement rather than a project name.
-        return ""
-    pids = get_ids(
-        True,
-        PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"],
-        project_name,
-        [],
-    )
-    # Get all of the Profiles in the Project
-    profile_names = [PrimeItems.tasker_root_elements["all_profiles"][pid]["name"] for pid in pids]
-    if pids:
-        return profile_names
-    return ""
-
-
-def get_tasks_in_project(project_name: str) -> str:
-    r"""
-    Retrieves and returns a string of task names for a given project.
-
-    Args:
-        project_name (str): The name of the project.
-
-    Returns:
-        str: A string containing the list of task names associated with the project,
-            formatted as "Tasks:\n" followed by a comma-separated list of names.
-            Returns an empty string if no tasks are found.
-    """
-    task_names = []
-    if not project_name:
-        return task_names
-
-    # Get the Project's Task Ids.
-    tids = get_ids(
-        False,
-        PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"],
-        project_name,
-        [],
-    )
-    # Get the Project's Profile Ids.
-    pids = get_ids(
-        True,
-        PrimeItems.tasker_root_elements["all_projects"][project_name]["xml"],
-        project_name,
-        [],
-    )
-    # Get all of the Tasks in the Profile
-    task_names = [PrimeItems.tasker_root_elements["all_tasks"][tid]["name"] for tid in tids]
-    # Include the Tasks under Profiles with no name.
-    if pids:
-        # Go through all Profiles in Project loking for anonymous names.
-        for pid in pids:
-            profile = PrimeItems.tasker_root_elements["all_profiles"][pid]
-            possible_task = None
-            if profile["name"].startswith("*"):
-                possible_task = profile["xml"].find("mid0")
-                if possible_task is None:
-                    possible_task = profile["xml"].find("mid1")
-                if possible_task is not None:
-                    task_names.append(
-                        PrimeItems.tasker_root_elements["all_tasks"][possible_task.text]["name"],
-                    )
-
-        # Remove duplicates and sort the list.
-        task_names = list(set(task_names))
-        task_names.sort()
-    return task_names
-
-
-def merge_lists(list1: list, list2: list) -> tuple:
-    """
-    Merge two lists into a single list of pairs.
-
-    Args:
-        list1 (list): The first list to merge.
-        list2 (list): The second list to merge.
-
-    Returns:
-        list: A list of pairs, where each pair is a tuple containing one element from
-            each of the two input lists, in order. The lists are extended with None
-            to the maximum length of the two lists.
-    """
-    # Find the maximum length of the two lists
-    max_length = max(len(list1), len(list2))
-
-    # Make sure we have a valid list
-    if not list1:
-        list1 = [" "]
-    if not list2:
-        list2 = [" "]
-
-    # Extend both lists to the same length with None (or any placeholder)
-    list1.extend([""] * (max_length - len(list1)))
-    list2.extend([""] * (max_length - len(list2)))
-
-    # Merge the lists into pairs and return it.
-    return [(list1[i], list2[i]) for i in range(max_length)]
-
-
-def parse_pairs_to_columns(pairs: list) -> str:
-    """
-    Parses a list of string pairs into two aligned columns.
-
-    Args:
-        pairs (list of tuples): A list of (string1, string2) pairs.
-
-    Returns:
-        str: A string representing the two-column formatted text.
-    """
-    # Find the maximum width of the first column
-    max_width_col1 = 0
-    for pair in pairs:
-        max_width_col1 = max(len(pair[0]), max_width_col1)
-    max_width_col1 += 2
-
-    # Format each pair into two columns
-    formatted_lines = [f"{pair[0].ljust(max_width_col1)}{pair[1]}" for pair in pairs]
-
-    # Join all lines with a newline character
-    return "\n".join(formatted_lines)
-
-
-# Window is getting closed. Save the window position.
-def on_closing(self: object) -> None:
-    """Save the window position and close the window."""
-    window_position = self.wm_geometry()
-    title = self.wm_title()
-
-    # Mapping keywords to their corresponding master attributes
-    window_position_map = {
-        "Diagram": "diagram_window_position",
-        "Progress": "progressbar_window_position",
-        "Analysis": "ai_analysis_window_position",
-        "Tree": "tree_window_position",
-        "Map View": "map_window_position",
-        "MIsc View": "misc_window_position",
-        "API": "apikey_window_position",
-    }
-    if "Progress" in title:
-        progressbar = PrimeItems.progressbar or self.progressbar
-        kill_the_progress_bar(progressbar, remove_windows=True)
-        return
-    # Find the window being closed and save it's position.
-    for keyword, attribute in window_position_map.items():
-        # If this is for the progressbar, then handle separately.
-        if keyword in title:
-            setattr(self.master, attribute, window_position)
-            break
-
-    # Special handling if this is our main windows.
-    if "Runtime" in title:
-        # Save the window position on closure
-        self.event_handlers.exit_program_event()
-
-    self.destroy()
-
-
-def prefix_and_sort(strings: list[str], name: str) -> list[str]:
-    """
-    Prefixes each string in a list with a given name and returns the modified list sorted.
-
-    Args:
-        strings: A list of strings.
-        name: The name to prefix each string with.
-
-    Returns:
-        A new list of strings with each original string prefixed by `name`, sorted alphabetically.
-    """
-
-    prefixed_strings = [f"{name}: {s}" for s in strings]
-    prefixed_strings.sort()
-    return prefixed_strings
-
-
-@cache
-def get_item_xml(item_type: str, item_name: str) -> pygixml.XMLNode | None:
-    """
-    Retrieve the XML element for a given item type and name.
-
-    Args:
-        self (object): The instance of the class.
-        item_type (str): The type of the item (e.g., "Task").
-        item_name (str): The name of the item.
-
-    Returns:
-        pygixml.XMLNode | None: The XML element if found, otherwise None.
-    """
-    if item_type == "Task":
-        return next(
-            (v["xml"] for v in PrimeItems.tasker_root_elements["all_tasks"].values() if v["name"] == item_name),
-            None,
-        )
-    return PrimeItems.tasker_root_elements["all_projects"].get(item_name, {}).get("xml")
-
-
-def set_ai_key(self: object, model: str) -> None:
-    """
-    Set the API key for the AI service based on the selected model.
-
-    Args:
-        self (object): The instance of the class.
-        model (str): The model name for which to set the API key.
-
-    Returns:
-        None
-    """
-    # Set the appropriate API key based on the model chosen.  This doesn't apply to llama (no apikey).
-    model_keys = {
-        **dict.fromkeys(PrimeItems.ai["openai_models"], "openai_key"),
-        **dict.fromkeys(PrimeItems.ai["anthropic_models"], "anthropic_key"),
-        **dict.fromkeys(PrimeItems.ai["deepseek_models"], "deepseek_key"),
-        **dict.fromkeys(PrimeItems.ai["gemini_models"], "gemini_key"),
-    }
-    ai_to_get = model_keys.get(model, "")
-    if not ai_to_get:
-        return False
-    self.ai_apikey = PrimeItems.ai.get(ai_to_get)
-
-    # If we didn't find the key, then see if we are using the extended list and need to get the key.
-    if not self.ai_apikey and self.ai_model_extended_list:
-        self.ai_apikey = get_api_key()
-        # Try again using the updated model list.
-        self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
-
-    return bool(self.ai_apikey)
-
-
-def align_text(text: str, column: int) -> str:
-    """
-    Aligns the given text so that its first non-&nbsp; character starts at the specified column.
-
-    :param text: The input string where '&nbsp;' is treated as a space.
-    :param column: The desired starting column for the first non-&nbsp; character.
-    :return: The aligned string.
-    """
-    nbsp = "&nbsp;"
-    stripped_text = text.lstrip(nbsp)  # Remove leading '&nbsp;' characters
-    leading_spaces = (len(text) - len(stripped_text)) // len(
-        nbsp,
-    )  # Count '&nbsp;' as spaces
-    adjusted_column = max(0, column - leading_spaces)  # Ensure non-negative padding
-
-    return (nbsp * adjusted_column) + text  # Adjust spacing to align correctly
-
-
-def destroy_hover_tooltip(tooltip: object | list) -> None:
-    """
-    Destroy the hover tooltip if it exists.
-
-    Args:
-        tooltip (object): The instance of the tk.label or list.
-
-    Returns:
-        None
-    """
-    if tooltip:
-        if isinstance(tooltip, list):
-            try:
-                tooltip[0].destroy()
-                tooltip[1].destroy()
-            except AttributeError:
-                pass
-        else:
-            tooltip.destroy()
-    tooltip = None
-
-
-def extract_number_from_line(line: str) -> str | None:
-    """
-    Checks if a string ends with '.n' or '.nn' or '.nnn' (where 'n' represents a digit)
-    and returns the number part as a string. Leading zeros are not required.
-
-    Args:
-      line: The input string.
-
-    Returns:
-      The number part as a string if the line ends with a dot followed by one or more digits, otherwise None.
-    """
-    match = re.search(r"\.(\d+)$", line)
-    if match:
-        return match.group(1)
-    return None
-
-
-def find_the_line(
-    textbox: ctk.CTkTextbox,
-    line: str,
-    text_line_num: str,
-) -> tuple[str, str]:
-    """
-    Searches for a line containing a specific substring in a CTkTextbox, starting from a given line number and moving upwards.
-
-    Args:
-        textbox (ctk.CTkTextbox): The text widget to search in.
-        line (str): The substring to search for within each line.
-        text_line_num (str): The starting line number as a string.
-
-    Returns:
-        tuple[str, str]: A tuple containing the found line number, the line content, and a boolean indicating if the line was not found.
-    """
-    line_to_get = text_line_num
-    dont_got_line = True
-    # Search the lines in reverse order for the originating line number.
-    while dont_got_line and line_to_get != "0":
-        # Get the line and check for the owner name.
-        idx = f"{line_to_get}.0"
-        prev_line = textbox.get(idx, idx + " lineend")
-        if line in prev_line:
-            dont_got_line = False
-            break
-        # If not found, decrement the line number.
-        line_to_get = str(int(line_to_get) - 1)
-
-    # Convert the line number back to a string and return everything needed.
-    line_to_get = str(int(line_to_get) - 1)
-    return line_to_get, prev_line, dont_got_line
-
-
-def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
-    """
-    Extracts the task ID from an unnamed task string.
-
-    Args:
-        unnamed_task (str): The unnamed task string.
-
-    Returns:
-        str: The extracted task ID.
-    """
-    # Extract the task ID from the unnamed task string
-    position = unnamed_task.rfind(".")
-    if position != -1:
-        return unnamed_task[position + 1 :].split(" (Unnamed)", maxsplit=1)[0]
-
-    rutroh_error(f"Error.  Missing period for task ID in Taask name: '{unnamed_task}'")
-    return unnamed_task.split(".")[1].strip()
-
-
-def set_tab_to_use(self: object) -> None:
-    """Set the Tab to display as the last tab used."""
-    if self.tab_to_use:
-        self.tabview.set(self.tab_to_use)
-    else:
-        self.tabview.set(TAB_NAMES[0])
-
-
-def get_foreground_background_colors(self: ctk.MyGui) -> tuple[str, str, str]:
-    """
-    Determines background and foreground colors based on the current background color's darkness.
-
-    Args:
-        self (ctk.MyGui): The instance of the MyGui class, containing color_lookup.
-
-    Returns:
-        tuple[str, str, str]: A tuple containing (background_color, foreground_color1, foreground_color2).
-    """
-    # Establish appropriate colors
-    if is_color_dark(self.color_lookup["background_color"]):
-        return "#092944", "white", "yellow"
-    return "white", "black", "darkgreen"
-
-
-def is_line_displayed(text_widget: ctk.CTkTextbox, line_number: int) -> bool:
-    """
-    Determines if a given line number in a Tkinter Text widget is currently visible.
-
-    Args:
-        text_widget (tk.Text): The Tkinter Text widget instance.
-        line_number (int): The 1-based line number to check for visibility.
-
-    Returns:
-        bool: True if the line is currently displayed, False otherwise.
-              Returns False if line_number is invalid or out of bounds.
-    """
-    if not isinstance(line_number, int) or line_number < 1:
-        print(
-            f"Error: Invalid line number '{line_number}'. Must be a positive integer.",
-        )
-        return False
-
-    # Get the total number of lines in the text widget
-    # 'end-1c' means the index before the final newline, which is the last character.
-    # The 'line' part of this index string gives the total number of lines.
-    total_lines = int(text_widget.index("end-1c").split(".")[0])
-
-    if line_number > total_lines:
-        print(
-            f"Warning: Line {line_number} is out of bounds (total lines: {total_lines}).",
-        )
-        return False
-
-    # 1. Get the current visible line range based on pixel coordinates.
-    # '@0,0' gives the index of the character at the top-left corner of the visible area.
-    top_visible_index_str = text_widget.index("@0,0")
-
-    # Get the height of the widget
-    widget_height = text_widget.winfo_height()
-
-    # '@0,widget_height' gives the index of the character at the bottom-left corner.
-    # This represents the start of the line at the very bottom of the view.
-    bottom_visible_index_str = text_widget.index(f"@0,{widget_height}")
-
-    # Extract the line numbers from these indices
-    top_visible_line = int(top_visible_index_str.split(".")[0])
-    bottom_visible_line = int(bottom_visible_index_str.split(".")[0])
-
-    # Debug prints (can be removed in final code)
-    # print(f"Visible lines range: {top_visible_line} to {bottom_visible_line}")
-
-    # 2. Compare: Check if the given line_number falls within this range.
-    return top_visible_line <= line_number <= bottom_visible_line
-
-
-def get_extended_ai_model_list() -> list:
-    """Retrieves and compiles an extended list of available AI models from various providers.
-
-    This function fetches models from OpenAI, Anthropic, and Gemini (assuming respective
-    API keys are configured or default lists are available). It groups these models
-    by their provider, applies a prefix and sorts them within their groups,
-    and then consolidates them into a single, sorted list.
-
-    The process involves:
-    1. Attempting to retrieve API keys (though the result is not directly used here).
-    2. Fetching available models from OpenAI.
-    3. Fetching available models from Anthropic.
-    4. Fetching available models from Gemini.
-    5. Organizing these models into a dictionary, keyed by provider name.
-    6. Iterating through each provider's models, applying 'prefix_and_sort'
-       (which is expected to add a provider-specific prefix and sort them).
-    7. Consolidating all processed models into a single list.
-    8. Performing a final sort on the entire consolidated list.
-
-    Returns:
-        list: A sorted list of strings, where each string represents an AI model,
-              potentially prefixed with its provider name (e.g., "OpenAI/gpt-4o",
-              "Anthropic/claude-3-opus-20240229", "Gemini/gemini-pro").
-              Returns an empty list if no models are retrieved.
-    """
-    _ = get_api_key()
-    PrimeItems.ai["openai_models"] = get_openai_models()
-    PrimeItems.ai["anthropic_models"] = get_anthropic_models()
-    PrimeItems.ai["gemini_models"] = get_gemini_models()
-    PrimeItems.ai["llama_models"] = get_llama_models()
-    PrimeItems.ai["deepseek_models"] = get_deepseek_models()
-
-    # Define the models
-    extended_model_groups = {
-        "OpenAI": PrimeItems.ai["openai_models"],
-        "Anthropic": PrimeItems.ai["anthropic_models"],
-        "Gemini": PrimeItems.ai["gemini_models"],
-        "LLAMA": PrimeItems.ai["llama_models"],
-        "DeepSeek": PrimeItems.ai["deepseek_models"],
-    }
-    # all_models = openai_models + anthropic_models + gemini_models
-
-    # Create an empty list to store the display models
-    display_models = []
-
-    # Iterate through the items in extended_model_groups
-    for name, models in extended_model_groups.items():
-        # Apply prefix_and_sort to the current group of models
-        sorted_models_with_prefix = prefix_and_sort(models, name)
-
-        # Extend the display_models list with the processed models
-        display_models.extend(sorted_models_with_prefix)
-
-    # Finally, sort the entire list of display models
-    return sorted(display_models)
-
-
-def display_model_pulldown(self: ctk, center: int) -> None:
-    """Displays a pulldown menu of AI models.
-
-    This function dynamically creates and displays an option menu containing a list of AI models.
-    The list of models can be either a pre-defined set or an extended list, depending on the
-    `guiwin.ai_model_extended_list` flag. It also handles the initial selection in the pulldown
-    based on a saved model name from program arguments.
-
-    Args:
-        self: The instance of the calling class, which can be a `guiwin` object or an
-            `event_handler` object that contains a `parent` attribute referencing the `guiwin`.
-        center (int): The x-coordinate for centering the pulldown menu on the display.
-    """
-    # Determine if we are coming from guiwins (valid 'self') or userintr ('event_handler')
-    guiwin = self
-    try:
-        if self.ai_model:
-            pass
-    except AttributeError:
-        guiwin = self.parent
-
-    # Set the window tab
-    tab = guiwin.tabview.tab("Analyze")
-
-    # Add the list of models.  If this is a request for an extended list, then get the extended list.
-    if guiwin.ai_model_extended_list and not guiwin.initialization:
-        if guiwin.displaying_extended_list is not None and guiwin.displaying_extended_list:
-            return  # Return if we are already displaying it.
-        # Destroy the old window if it is last to be displayed and get the extended list...only if we are not in the
-        # middle of setting/changing the language.
-        if not PrimeItems.language_set:
-            with contextlib.suppress(AttributeError):
-                guiwin.ai_model_option.destroy()
-            display_models = get_extended_ai_model_list()
-            guiwin.displaying_extended_list = True
-        else:
-            # Not a request to build the extended, or we are in the middle of changing the language.
-            with contextlib.suppress(AttributeError):
-                guiwin.ai_model_option.destroy()
-            display_models = sorted(
-                model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
-            )
-
-    # Just display the pre-defined model names.
-    else:
-        if guiwin.displaying_extended_list is not None and not guiwin.displaying_extended_list:
-            return  # Return if we are already displaying it.
-        # Destroy the old window if it is last to be displayed.
-        if guiwin.displaying_extended_list is not None:
-            with contextlib.suppress(AttributeError):
-                guiwin.ai_model_option.destroy()
-        display_models = sorted(
-            model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
-        )
-        guiwin.displaying_extended_list = False
-
-    # Insert the saved model name or 'None'.
-    (
-        display_models.insert(0, PrimeItems.program_arguments["ai_model"])
-        if PrimeItems.program_arguments["ai_model"]
-        else display_models.insert(0, "None")
-    )
-    guiwin.ai_model_option = add_option_menu(
-        guiwin,
-        tab,
-        guiwin.event_handlers.ai_model_selected_event,
-        display_models,
-        6,
-        0,
-        center - 30,
-        (30, 0),
-        "sw",
-    )

@@ -5,7 +5,7 @@
 #                                                                                      #
 # share: process TaskerNet "Share" information                                         #
 #                                                                                      #
-import pygixml  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.format import format_html, format_label
 from maptasker.src.primitem import PrimeItems
@@ -15,7 +15,7 @@ from maptasker.src.sysconst import FormatLine
 # Go through xml <Share> elements to grab and output TaskerNet description and
 # search-on lines.
 def share(
-    root_element: pygixml.XMLNode,
+    root_element: defusedxml.ElementTree,
     tab: str,
 ) -> None:
     """
@@ -24,10 +24,10 @@ def share(
         :param tab: "projtab", "proftab" or "tasktab"
     """
     # Get the <share> element, if any
-    share_element: pygixml.XMLNode = root_element.child("Share")
+    share_element: defusedxml.ElementTree = root_element.find("Share")
     if share_element is not None:
         #  We have a <Share> .  Find the description
-        description_element = share_element.child("d").text()
+        description_element = share_element.find("d")
         # Process the description
         if description_element is not None:
             description_element_output(
@@ -36,13 +36,13 @@ def share(
             )
 
         # Look for TaskerNet search parameters
-        search_element = share_element.child("g")
-        if search_element is not None and search_element.value:
+        search_element = share_element.find("g")
+        if search_element is not None and search_element.text:
             # Found search...format and output
             out_string = format_html(
                 "taskernet_color",
                 "",
-                f"\n<br>TaskerNet search on: {search_element.value}\n<br>",
+                f"\n<br>TaskerNet search on: {search_element.text}\n<br>",
                 True,
             )
             # Add the tab CSS call to the color.
@@ -82,7 +82,7 @@ def share(
 # Process the description <d> element
 # ################################################################################
 def description_element_output(
-    description_element: str,
+    description_element: defusedxml.ElementTree,
     tab: str,
 ) -> None:
     """
@@ -93,7 +93,7 @@ def description_element_output(
     """
     # Format the description as if it is a label with embedded html/
     out_string = (
-        format_label(f"<h6>TaskerNet description: {description_element}")
+        format_label(f"<h6>TaskerNet description: {description_element.text}")
         .replace("action_label_color", "taskernet_color")
         .replace(" ...with label:", "")
         .replace("\n", "<br>")

@@ -9,12 +9,11 @@
 import contextlib
 import html
 
-import pygixml
+import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.action as get_action
 from maptasker.src.actiond import process_condition_list
 from maptasker.src.format import format_html
-from maptasker.src.maputil2 import find_first_tag_by_value, get_xml_value
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.xmldata import extract_integer, extract_string
@@ -24,7 +23,7 @@ blank = "&nbsp;"
 
 def process_clean_string(
     clean_string: bool,
-    code_action: pygixml.XMLNode,
+    code_action: defusedxml.ElementTree,
     arg: tuple,
     evaluated_results: dict,
     blank: str,
@@ -50,11 +49,7 @@ def process_clean_string(
         clean_string = clean_string.replace("\n\n", "\n")
         clean_string = clean_string.replace("\n", ",")
 
-        try:
-            action_name = code_action.root.name if isinstance(code_action, pygixml.XMLDocument) else code_action.name
-        except AttributeError:
-            action_name = ""
-        if action_name == "Event":
+        if code_action.tag == "Event":
             padding = blank * 50
             clean_string = f"{padding}{clean_string}"
             clean_string = clean_string.replace(",", f"\n{blank * 49}")
@@ -64,55 +59,11 @@ def process_clean_string(
     }
 
 
-def get_bundle_as_xml(xml_string: str) -> tuple:
-    """
-    Parses the given XML string to extract the Bundle node and its relevant child nodes.
-
-    Args:
-        xml_string (str): The XML string to parse.
-    Returns:
-        tuple: A tuple containing the bundle, pref, and vals nodes.
-    """
-    try:
-        # 1. Parse the XML string into a pygixml XMLDocument object
-        # pygixml raises a PygiXMLError automatically if the string is completely malformed
-        doc = pygixml.parse_string(xml_string)
-    except Exception:  # noqa: BLE001
-        return None, None, None
-
-    # 2. Access the root element (Action) using the pythonic .root property
-    root = doc.root
-
-    if not root:
-        return None, None, None
-
-    # 3. Find the 'Bundle' (or 'bundle') node
-    bundle_node = root.child("Bundle")
-    if not bundle_node:
-        bundle_node = root.child("bundle")
-
-    if bundle_node:
-        # 4. From the bundle, find the 'vals' (or 'Vals') node
-        vals_node = bundle_node.child("Vals")
-        if not vals_node:
-            vals_node = bundle_node.child("vals")
-
-        # if vals_node:
-        #     # Get the internal text content of the 'blurb' child node
-        #     # blurb = vals_node.child_value("com.twofortyfouram.locale.intent.extra.BLURB")
-
-        # 5. From the bundle, find the 'pref' (or 'Pref') node
-        pref_node = bundle_node.child("pref")
-        pref = pref_node.text() if pref_node else ""
-
-        return bundle_node, pref, vals_node
-
-    return bundle_node, pref, vals_node
-
-
+# Usage within your original context:
+# process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
 ## We have a <bundle>.   Process it
 def get_bundle(
-    code_action: pygixml.XMLNode,
+    code_action: defusedxml.ElementTree,
     evaluated_results: dict,
     arg: str,
 ) -> dict:
@@ -120,7 +71,7 @@ def get_bundle(
     Extracts a bundle value from an XML code action.
 
     Args:
-        code_action (pygixml.XMLNode): The XML code action.
+        code_action (ElementTree.XML): The XML code action.
         evaluated_results (dict): Dictionary to store results.
         arg (str): Argument name.
 
@@ -129,50 +80,31 @@ def get_bundle(
 
     evaluated_results["returning_something"] = True coming into this function
     """
-    bundle = None
-
-    # 1. If code_action is a string, parse it as XML and find the Bundle element
-    if isinstance(code_action, str):
-        # bundle_node, pref, vals = get_bundle_as_xml(code_action)
-        temp = pygixml.parse_string(code_action)  # Re-parse to get a proper XMLNode for further processing
-        try:
-            code_action = temp.root
-        except AttributeError:
-            evaluated_results[f"arg{arg}"] = {"value": ""}
-            evaluated_results["returning_something"] = False
-            return evaluated_results
-
-    # 2. Get the bundle, pref, and vals nodes
-    bundle = code_action.child("Bundle")
-    if bundle is not None:
-        pref = bundle.child("pref").text() if bundle.child("pref") is not None else ""
-        vals = bundle.child("Vals")
-        if vals is not None:
-            blurb = vals.child("com.twofortyfouram.locale.intent.extra.BLURB")
-            blurb_text = blurb.value if blurb.value is not None else ""
-            configcommand = blurb.child("configcommand") if blurb is not None else None
-            configcommand_text = (
-                configcommand.value if configcommand is not None and configcommand.value is not None else ""
-            )
-
-        # No val found
-        else:
-            evaluated_results[f"arg{arg}"] = {"value": ""}
-            evaluated_results["returning_something"] = False
-            return evaluated_results
-    # No bundle found
-    else:
+    bundle = code_action.find("Bundle")
+    if bundle is None:
         evaluated_results[f"arg{arg}"] = {"value": ""}
         evaluated_results["returning_something"] = False
         return evaluated_results
 
-    if not blurb_text and not configcommand_text:
+    # Handle any pref = Output Variables name
+    pref_tag = bundle.find("pref")
+    pref = pref_tag.text if pref_tag is not None else ""
+
+    # Handle the twofortyfouram.locale.intent.extra.BLURB tag
+    vals = bundle.find("Vals")
+    if vals is None:
         evaluated_results[f"arg{arg}"] = {"value": ""}
         evaluated_results["returning_something"] = False
         return evaluated_results
 
-    # Now process the data collected
-    clean_string = blurb_text + configcommand_text
+    clean_string = next(
+        (
+            node.text
+            for tag in ["com.twofortyfouram.locale.intent.extra.BLURB", "Configcommand"]
+            if (node := vals.find(tag)) is not None and node.text
+        ),
+        "",
+    )
 
     # If we have a <pref> tag, add it to the clean_string
     if pref:
@@ -183,63 +115,6 @@ def get_bundle(
     process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
     evaluated_results["returning_something"] = save_returning
 
-    #     xpath_result = code_action.select_node("//Bundle")
-    #     if xpath_result:
-    #         # 2. Extract the actual node from the XPath result match
-    #         bundle_node = xpath_result.node
-
-    #         # 3. Safely chain down the known path relative to the Bundle tag
-    #         target_node = bundle_node.child("Vals").child("net.dinglisch.android.tasker.RELEVANT_VARIABLES")
-
-    #         if target_node:
-    #             bundle = target_node.text()
-    #         else:
-    #             evaluated_results[f"arg{arg}"] = {"value": ""}
-    #             evaluated_results["returning_something"] = False
-    #             return evaluated_results
-    #     else:
-    #         evaluated_results[f"arg{arg}"] = {"value": ""}
-    #         evaluated_results["returning_something"] = False
-    #         return evaluated_results
-    #     if bundle is None:
-    #         evaluated_results[f"arg{arg}"] = {"value": ""}
-    #         evaluated_results["returning_something"] = False
-    #         return evaluated_results
-
-    #     # Handle any pref = Output Variables name
-    #     pref = bundle_node.select_node(".//pref").node.value if bundle_node is not None else ""
-    #     if pref is None:
-    #         pref = ""
-
-    #     # Handle the twofortyfouram.locale.intent.extra.BLURB tag
-    #     vals = bundle_node.select_node(".//Vals")
-
-    # if vals is None:
-    #     evaluated_results[f"arg{arg}"] = {"value": ""}
-    #     evaluated_results["returning_something"] = False
-    #     return evaluated_results
-
-    # # Start building the details
-    # clean_string = ""
-    # vals_node = vals.node if vals is not None and isinstance(vals, pygixml.XPathNode) else vals
-    # blurb_node = vals_node.child("com.twofortyfouram.locale.intent.extra.BLURB")
-    # if blurb_node is not None and blurb_node.value is not None:
-    #     blurb = blurb_node.value
-    #     configcommand_node = blurb_node.child("configcommand")
-    #     configcommand = (
-    #         configcommand_node.value if configcommand_node is not None and configcommand_node.value is not None else ""
-    #     )
-    #     clean_string = blurb + configcommand
-
-    # # If we have a <pref> tag, add it to the clean_string
-    # if pref:
-    #     clean_string = f"Output Variables={pref}{clean_string}"
-
-    # # Separate configuration parameter arguments by commas.
-    # save_returning = evaluated_results["returning_something"]
-    # process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
-    # evaluated_results["returning_something"] = save_returning
-
     return evaluated_results
 
 
@@ -249,7 +124,7 @@ def evaluate_argument(
     arg: object,
     argeval: list,
     argtype: str,
-    code_action: pygixml.XMLNode,
+    code_action: defusedxml.ElementTree,
 ) -> dict:
     """
     Extracts action arguments from an XML code action.
@@ -259,7 +134,7 @@ def evaluate_argument(
         arg (object): Argument object.
         argeval (list): Argument evaluation criteria.
         argtype (str): Argument type.
-        code_action (pygixml.XMLNode): XML code action.
+        code_action (defusedxml.ElementTree): XML code action.
 
     Returns:
         dict: Updated evaluated results.
@@ -277,14 +152,18 @@ def evaluate_argument(
 
         case "Str":
             if argeval == "Label":
-                label = find_first_tag_by_value(code_action, "label", the_arg)
-                evaluated_results[the_arg] = {"value": label or ""} if label is not None else ""
-            else:
-                evaluated_string = extract_string(code_action, the_arg, argeval)
-                # Convert any embedded html to plain text so it can be embedded ion our HTML.
-                evaluated_string = html.escape(evaluated_string)
+                # 1. Use findtext() instead of a generator expression for a massive speedup
                 evaluated_results[the_arg] = {
-                    "value": evaluated_string,
+                    "value": code_action.findtext("label", default=""),
+                }
+            else:
+                # 2. Extract and escape the string directly
+                evaluated_string = extract_string(code_action, the_arg, argeval)
+
+                # 3. Micro-optimization: standard library html.escape is fast,
+                # but avoid re-allocating dicts or running extra lookups where possible.
+                evaluated_results[the_arg] = {
+                    "value": html.escape(evaluated_string),
                 }
 
         case "Boolean":
@@ -325,7 +204,7 @@ def evaluate_argument(
 # Get image related details from action xml
 def extract_image(
     evaluated_results: dict,
-    code_action: pygixml.XMLNode,
+    code_action: defusedxml,
     argeval: str,
     arg: str,
 ) -> None:
@@ -333,7 +212,7 @@ def extract_image(
     Extract image from evaluated results
     Args:
         evaluated_results: dict - The dictionary containing the evaluation results
-        code_action: pygixml - The parsed pygixml object
+        code_action: defusedxml - The parsed defusedxml object
         argeval: str - The argument evaluation string
         arg: str - The argument number
     Returns:
@@ -345,17 +224,17 @@ def extract_image(
         - Set returning_something to False if no image is found
     """
     image, package = "", ""
-    child = get_xml_value(code_action, "Img")
+    child = code_action.find("Img")
     if child is None:
         evaluated_results[f"arg{arg[0]}"]["value"] = " "
         return
     # Image name
     with contextlib.suppress(Exception):
-        image = child.child("nme").text()
-    if child.child("pkg") is not None:
-        package = f'", Package:"{child.child("pkg").text()}'
-    elif child.child("var") is not None:  # There is a variable name?
-        image = child.child("var").text()
+        image = child.find("nme").text
+    if child.find("pkg") is not None:
+        package = f'", Package:"{child.find("pkg").text}'
+    elif child.find("var") is not None:  # There is a variable name?
+        image = child.find("var").text
     if image:
         evaluated_results[f"arg{arg[0]}"]["value"] = f"{argeval}{image}{package}"
 
@@ -404,6 +283,7 @@ def extract_condition(
     evaluated_results[f"arg{arg}"]["value"] = seperator.join(conditions)
 
 
+# Get the argument details from action xml
 # Get the argument details from action xml
 def extract_argument(evaluated_results: dict, arg: str, argeval: str) -> None:
     """
@@ -457,7 +337,7 @@ def handle_missing_code(the_action_code_plus: str, index: int) -> str:
 def action_args(
     the_action_code_plus: str,
     action_codes: list,
-    code_action: pygixml.XMLNode,
+    code_action: defusedxml,
     evaluated_results: dict,
 ) -> list:
     """

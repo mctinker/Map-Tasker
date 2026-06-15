@@ -296,12 +296,11 @@ def initialize_everything() -> tuple[list, list, list]:
     initialize.start_up()
 
     # Set up to catch all crashes gracefully
-    # FIX: Uncomment
-    # if sys.excepthook == sys.excepthook:
-    #     global crash_debug
-    #     if PrimeItems.program_arguments["debug"]:
-    #         crash_debug = True
-    #     sys.excepthook = on_crash
+    if sys.excepthook == sys.excepthook:
+        global crash_debug  # noqa: PLW0603
+        if PrimeItems.program_arguments["debug"]:
+            crash_debug = True
+        sys.excepthook = on_crash
 
     # If debugging, force an ESC so that the full command/path is not displayed in
     #   VsCode terminal window.
@@ -369,7 +368,7 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
     logger.debug("MapTasker program ended normally")
 
     # Only invoke the browser if not doing a Map View from the GUI.
-    if not PrimeItems.program_arguments["guiview"] and not PrimeItems.program_arguments["ai_analyze"]:
+    if PrimeItems.mygui is None and not PrimeItems.program_arguments["ai_analyze"]:
         try:
             webbrowser.open(
                 f"file:{PrimeItems.slash * 2}{my_output_dir}{my_file_name}",
@@ -731,6 +730,9 @@ def mapit_all(file_to_get: str) -> int:
     # Set up file to read if it is passed in (via rerun)
     if file_to_get:
         PrimeItems.file_to_get = file_to_get
+    else:
+        # No file.  Just return to gui
+        return 0
 
     # Get all Tasker variables
     if PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:

@@ -4,7 +4,7 @@
 #                                                                                      #
 # condition: Process profile condition: time, date, state, event, location, app        #
 #                                                                                      #
-import pygixml
+import defusedxml.ElementTree
 
 import maptasker.src.actiond as process_action_codes
 import maptasker.src.actione as action_evaluate
@@ -23,7 +23,7 @@ spaces = f"{space * 50}"
 
 
 # Profile condition: Time
-def condition_time(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
+def condition_time(the_item: defusedxml.ElementTree, the_output_condition: str) -> str:
     """
     Handle the "Time" condition.
 
@@ -45,21 +45,21 @@ def condition_time(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
     }
 
     for child in the_item:
-        match child.name:
+        match child.tag:
             case "fh" | "fm" | "th" | "tm" | "fromvar" | "tovar":
-                time_values[child.name] = child.value or ""
+                time_values[child.tag] = child.text or ""
             case "rep":
-                time_values["rep_type"] = " minutes " if child.value == "2" else " hours "
+                time_values["rep_type"] = " minutes " if child.text == "2" else " hours "
             case "repval":
-                time_values["rep"] = f" repeat every {child.value}{time_values['rep_type']}"
+                time_values["rep"] = f" repeat every {child.text}{time_values['rep_type']}"
             case "cname":
-                time_values["cname"] = f" Name={child.value}"
+                time_values["cname"] = f" Name={child.text}"
             case _:
                 return (
-                    f"{the_output_condition}{child.value} not yet mapped!",
+                    f"{the_output_condition}{child.text} not yet mapped!",
                     not_in_dictionary(
                         "Condition Time",
-                        child.value,
+                        child.text,
                     ),
                 )
 
@@ -79,7 +79,7 @@ def condition_time(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
 
 
 # Profile condition: Day
-def condition_day(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
+def condition_day(the_item: defusedxml.ElementTree, the_output_condition: str) -> str:
     """
     Handle the "Day" condition
         :param the_item: the xml element with the Condition
@@ -114,14 +114,14 @@ def condition_day(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
     results = {"wday": [], "mday": [], "mnth": [], "cname": ""}
 
     for child in the_item:
-        if "wday" in child.name:
-            results["wday"].append(weekdays[int(child.value) - 1])
-        elif "mday" in child.name:
-            results["mday"].append(child.value)
-        elif "mnth" in child.name:
-            results["mnth"].append(months[int(child.value)])
-        elif "cname" in child.name:
-            results["cname"] = f" ,Name={child.value}"
+        if "wday" in child.tag:
+            results["wday"].append(weekdays[int(child.text) - 1])
+        elif "mday" in child.tag:
+            results["mday"].append(child.text)
+        elif "mnth" in child.tag:
+            results["mnth"].append(months[int(child.text)])
+        elif "cname" in child.tag:
+            results["cname"] = f" ,Name={child.text}"
 
     formatted_parts = [
         f"Days of Week: {' '.join(results['wday'])}" if results["wday"] else "",
@@ -135,7 +135,7 @@ def condition_day(the_item: pygixml.XMLNode, the_output_condition: str) -> str:
 
 # Profile condition: State
 def condition_state(
-    the_item: pygixml.XMLNode,
+    the_item: defusedxml.ElementTree,
     the_output_condition: str,
 ) -> str:
     """
@@ -150,42 +150,48 @@ def condition_state(
     _get_action_code = action_evaluate.get_action_code
     _reformat_html = reformat_html
     _extract_condition = extract_condition
-    for child in the_item:
-        # Process the state code
-        if child.name == "code":
-            logger.debug(f"condition_state:{child.value}")
-            state_code = f"{child.value}s" if "s" not in child.value else child.value
-            if state_code not in action_codes:
-                _build_action_codes(
-                    child,
-                    the_item,
-                )  # Add it to our action dictionary
-            # child.value = state_code
-            state = _get_action_code(
-                child,
-                the_item,
-                False,
-                "s",
-            )
 
-            # If pretty text, then reformat it.
-            if "Configuration Parameter(s):" in state and PrimeItems.program_arguments["pretty"]:
-                state = _reformat_html(state)
+    # 1. Hoist configurations and flags
+    is_pretty = PrimeItems.program_arguments["pretty"]
+    is_debug = PrimeItems.program_arguments["debug"]
 
-            # Add this State to any preceding State
-            state = state.replace("\n", spaces)
-            the_output_condition = f"{the_output_condition}State: {state}"
-            invert = the_item.child("pin").text()
-            if invert and invert == "true":
-                the_output_condition = f"{the_output_condition} <em>[inverted]</em>"
-            if PrimeItems.program_arguments["debug"]:
-                the_output_condition = f"{the_output_condition} (code:{child.value})"
+    invert_node = the_item.find("pin")
+    is_inverted = invert_node is not None and invert_node.text == "true"
 
-        elif child.name == "ConditionList":
-            evaluated_results = {}
-            _extract_condition(evaluated_results, "0", "", the_item)
-            the_output_condition = f"{the_output_condition}, Condition(s): {evaluated_results['arg0']['value']}"
-            break
+    condition_chunks = [the_output_condition] if the_output_condition else []
+
+    # 2. Directly find the code node (No loop!)
+    code_node = the_item.find("code")
+    if code_node is not None:
+        child_text = code_node.text or ""
+        logger.debug(f"condition_state:{child_text}")
+
+        state_code = child_text if "s" in child_text else f"{child_text}s"
+        if state_code not in action_codes:
+            _build_action_codes(code_node, the_item)
+
+        state = _get_action_code(code_node, the_item, False, "s")
+
+        if is_pretty and "Configuration Parameter(s):" in state:
+            state = _reformat_html(state)
+
+        state = state.replace("\n", spaces)
+        condition_chunks.append(f"State: {state}")
+
+        if is_inverted:
+            condition_chunks.append(" <em>[inverted]</em>")
+        if is_debug:
+            condition_chunks.append(f" (code:{child_text})")
+
+    # 3. Directly find the ConditionList node
+    condition_list_node = the_item.find("ConditionList")
+    if condition_list_node is not None:
+        evaluated_results = {}
+        _extract_condition(evaluated_results, "0", "", the_item)
+        condition_chunks.append(f", Condition(s): {evaluated_results['arg0']['value']}")
+
+    # Collapse chunks
+    the_output_condition = "".join(condition_chunks)
 
     return the_output_condition
     # return ""
@@ -193,7 +199,7 @@ def condition_state(
 
 # Profile condition: Event
 def condition_event(
-    the_item: pygixml.XMLNode,
+    the_item: defusedxml.ElementTree,
     the_output_condition: str,
 ) -> str:
     """
@@ -203,12 +209,12 @@ def condition_event(
             be formatted
         :return: the formatted condition's output string
     """
-    the_event_code = the_item.child("code").text()
+    the_event_code = the_item.find("code")
 
     # Determine what the Event code is and return the actual Event text
-    event_code = f"{the_event_code}e" if "e" not in the_event_code else the_event_code
+    event_code = f"{the_event_code.text}e" if "e" not in the_event_code.text else the_event_code.text
     if event_code not in action_codes:
-        logger.debug(f"code:{the_event_code} not found in action codes!")
+        logger.debug(f"code:{the_event_code.text} not found in action codes!")
         # Build new (template_ action code if not in our dictionary of codes yet
         process_action_codes.build_action_codes(
             the_event_code,
@@ -232,8 +238,8 @@ def condition_event(
     event = f"{event}{get_priority(the_item, True)}"
 
     # Handle any conditions in the Event
-    condition_list = the_item.child("ConditionList")
-    if condition_list is not None and condition_list.value is not None:
+    condition_list = the_item.find("ConditionList")
+    if condition_list is not None:
         evaluated_results = {}
         extract_condition(evaluated_results, "0", "", the_item)
         event = f"{event}, Condition(s): {evaluated_results['arg0']['value']}"
@@ -247,7 +253,7 @@ def condition_event(
 
 
 # Profile condition: App (application)
-def condition_app(item: pygixml.XMLNode, condition: str) -> str:
+def condition_app(item: defusedxml.ElementTree, condition: str) -> str:
     """
     Handle the "App" condition
         :param the_item: the xml element with the Condition
@@ -256,14 +262,14 @@ def condition_app(item: pygixml.XMLNode, condition: str) -> str:
         :return: the formatted condition's output string
     """
     the_apps = ""
-    for apps in item.children("App"):
-        if apps.name.startswith("label"):
-            the_apps = f"{the_apps} {apps.value}"
+    for apps in item:
+        if "label" in apps.tag:
+            the_apps = f"{the_apps} {apps.text}"
     return f"{condition}Application:{the_apps}"
 
 
 # Profile condition: Loc (location)
-def condition_loc(item: pygixml.XMLNode, condition: str) -> str:
+def condition_loc(item: defusedxml.ElementTree, condition: str) -> str:
     """
     Handle the "Location" condition
         :param the_item: the xml element with the Condition
@@ -271,16 +277,16 @@ def condition_loc(item: pygixml.XMLNode, condition: str) -> str:
             be formatted
         :return: the formatted condition's output string
     """
-    lat = item.child("lat").text()
-    lon = item.child("long").text()
-    rad = item.child("rad").text()
+    lat = item.find("lat").text
+    lon = item.find("long").text
+    rad = item.find("rad").text
     if lat:
         return f"{condition}Location with latitude {lat} longitude {lon} radius {rad}"
     return ""
 
 
 # Given a Profile, return its list of conditions
-def parse_profile_condition(the_profile: pygixml.XMLNode) -> str:
+def parse_profile_condition(the_profile: defusedxml.ElementTree) -> str:
     """
     Given a Profile, return its list of conditions
         :param the_profile: the xml element pointing to <Profile object
@@ -309,14 +315,13 @@ def parse_profile_condition(the_profile: pygixml.XMLNode) -> str:
 
     # Go through Profile'x sub-XML looking for conditions
     for item in the_profile:
-        if item.name in ignore_items or "mid" in item.name:  # Bypass junk we don't care about
+        if item.tag in ignore_items or "mid" in item.tag:  # Bypass junk we don't care about
             continue
+        if condition:  # If we already have a condition, add 'and' (italicized)
+            condition = f"{condition}, <em>AND</em> "
 
         # Find out what the condition is and handle it.
-        if item.name in function_map:
-            if condition and not condition.endswith("Condition(s): "):
-                condition = f"{condition}, <em>AND</em> {function_map[item.name](item, condition)}"
-            else:
-                condition = function_map[item.name](item, condition)
+        if item.tag in function_map:
+            condition = function_map[item.tag](item, condition)
 
     return condition

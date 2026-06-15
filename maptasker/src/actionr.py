@@ -29,7 +29,7 @@ from maptasker.src.sysconst import (
 )
 
 if TYPE_CHECKING:
-    import pygixml
+    import defusedxml.ElementTree
 
 
 # Given a list of positional items, return a string in the correct order based on position.
@@ -55,7 +55,7 @@ def get_results_in_arg_order(evaluated_results: dict) -> str:
                     result_parts.pop()
                     continue
             # Argument is missing...ignore it.
-            except (KeyError, TypeError):
+            except KeyError:
                 pass
 
     # Return results as a string
@@ -153,8 +153,8 @@ def fix_config_parameters(s: str, target: str, replacement: str) -> str:
 # Then evaluate the data against the master dictionary of actions.
 def get_action_results(
     the_action_code_plus: str,
-    action_codes: pygixml.XMLNode,
-    code_action: pygixml.XMLNode,
+    action_codes: defusedxml.Element,
+    code_action: defusedxml.Element,
     action_type: bool,
 ) -> str:
     """

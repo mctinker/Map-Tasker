@@ -87,7 +87,7 @@ def get_backup_file() -> str:
     # Perform a lazy import to avoid a circular-import error.
     from maptasker.src.maputil2 import http_request  # noqa: PLC0415
 
-    # If ruinning from the GUI, then we have already gotten the file. Just return the name on the local drive.add
+    # If running from the GUI, then we have already gotten the file. Just return the name on the local drive.add
     if PrimeItems.program_arguments["gui"]:
         return substring_after_last(PrimeItems.program_arguments["android_file"], "/")
 

@@ -7,7 +7,7 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
-import pygixml  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
@@ -126,13 +126,16 @@ def get_variables() -> None:
 
     """
     # Get all of the Tasker variables
-    if not (global_variables := list(PrimeItems.xml_tree.root.children("Variable"))):
+    if not (global_variables := PrimeItems.xml_root.findall("Variable")):
         return
     # Save each in a dictionary.
     # Loop through the variables.
     for variable in global_variables:
-        variable_name = variable.name
-        variable_value = variable.value if variable.value is not None else ""
+        for num, child in enumerate(variable):
+            if num == 0:
+                variable_name = child.text
+            else:
+                variable_value = child.text
 
         # Format the output
         if variable_value:
@@ -148,10 +151,10 @@ def get_variables() -> None:
 
 
 # Print the variables (Project's or Unreferenced)
-def print_the_variables(color_to_use: str, project: pygixml.XMLNode | str) -> None:
+def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> None:
     """Parameters:
         - color_to_use (str): The color to use for the table definition.
-        - project (pygixml.XMLNode | str): The project to use, if applicable.
+        - project (defusedxml.ElementTree): The project to use, if applicable.
     Returns:
         - None: This function does not return anything.
     Processing Logic:
@@ -173,7 +176,7 @@ def print_the_variables(color_to_use: str, project: pygixml.XMLNode | str) -> No
             value["value"] = "<em>Tasker Global</em>"
 
         # If doing the Project variables, first find the Project
-        if project is not None and (not isinstance(project, str) or project != ""):
+        if project is not None and project != "":
             # Does this variable have a list of Projects?
             if PrimeItems.variables[key]["project"]:
                 variable_output_lines.extend(
@@ -195,18 +198,18 @@ def print_the_variables(color_to_use: str, project: pygixml.XMLNode | str) -> No
 
 
 # Print variables by adding them to the output.
-def output_variables(heading: str, project: pygixml.XMLNode) -> None:
+def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
     """
     Print variables by adding them to the output.
         Args:
 
             heading (str): Heading to print.
-            project (pygixml.XMLNode): Project to print.
+            project (xml.etree.ElementTree): Project to print.
     """
     if not PrimeItems.variables:
         return
     # Add a directory entry for variables.
-    if (project is None) and PrimeItems.program_arguments["directory"]:
+    if (project is None or project == "") and PrimeItems.program_arguments["directory"]:
         PrimeItems.output_lines.add_line_to_output(
             5,
             '<a id="unreferenced_variables"></a>',
@@ -215,7 +218,7 @@ def output_variables(heading: str, project: pygixml.XMLNode) -> None:
 
     # Output unreferenced global variables.  The Project will be "".
     # Force an indentation and set color to use in output.
-    if project is None:
+    if project is None or project == "":
         color_to_use = PrimeItems.colors_to_use["trailing_comments_color"]
         color_name = "trailing_comments_color"
         PrimeItems.output_lines.add_line_to_output(
@@ -265,7 +268,7 @@ def output_variables(heading: str, project: pygixml.XMLNode) -> None:
             FormatLine.dont_format_line,
         )
         # Un-indent the output only if doing unreferenced variables.
-        if project is None:
+        if project is None or project == "":
             PrimeItems.output_lines.add_line_to_output(
                 3,
                 "",

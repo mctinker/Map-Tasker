@@ -7,12 +7,12 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
-import pygixml  # Need for type hints
+import defusedxml.ElementTree  # Need for type hints
 
 
 def get_ids(
     doing_head_xml_element: bool,
-    head_xml_element: pygixml.XMLNode,
+    head_xml_element: defusedxml.ElementTree,
     head_xml_element_name: str,
     head_xml_elements_without_profiles: list,
 ) -> list:
@@ -32,7 +32,7 @@ def get_ids(
     # Get the IDs.
     try:
         # Get a list of the Profiles for this head_xml_element
-        found_ids = head_xml_element.child(ids_to_find).text()
+        found_ids = head_xml_element.find(ids_to_find).text
     except AttributeError:  # head_xml_element has no Profile/Task IDs
         if head_xml_element_name not in head_xml_elements_without_profiles:
             head_xml_elements_without_profiles.append(head_xml_element_name)

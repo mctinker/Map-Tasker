@@ -32,7 +32,9 @@ def get_program_arguments() -> None:
     if GUI:
         PrimeItems.program_arguments["gui"] = True
 
-    # Process the command line runtime options
+    # Process the command line runtime options.  This will call the GUI if the GUI is being used,
+    # and will call the CLI processing if not.  This is where we will get all of our runtime arguments
+    # from the user.
     process_cli()
 
     # Do GUI processing if GUI is being used

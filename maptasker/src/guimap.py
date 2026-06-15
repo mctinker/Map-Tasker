@@ -974,9 +974,10 @@ def additional_formatting(
         name, _, rest = rest.partition("<")
 
         # Extract value
-        value, _, tail = rest.partition("<")
-        if not value:
-            value = tail[3:]
+        # Search for text between '>' and '<'
+        _, _, tail = rest.partition("<")
+        match = re.search(r">([^<]*)<", tail)
+        value = match.group(1) if match else "(unassigned)"
 
         out["text"] = [
             f"{name.ljust(25, '.')}{value.rjust(15, '.')}",
@@ -1066,8 +1067,7 @@ def add_directory_entry(temp: list, output_lines: dict, line_num: int) -> dict:
         return output_lines
 
     # Get the tasker object name and type (projects, profiles, tasks, scenes)
-    tmp = parse_name(temp[1])
-    name = tmp.replace("</a></td>", "") if tmp is not None else ""
+    name = parse_name(temp[1]).replace("</a></td>", "")
     start_pos = temp[1].find("#")
     end_pos = temp[1].find("_", 1)
     tasker_type = temp[1][start_pos + 1 : end_pos]

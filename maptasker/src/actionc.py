@@ -34,7 +34,6 @@ ArgumentCode = namedtuple(  # noqa: PYI024
 )
 
 # Refactored action_codes dictionary with explicit keyword arguments
-# Refactored action_codes dictionary with explicit keyword arguments
 action_codes = {
     "1000e": ActionCode(
         redirect="",
@@ -1463,7 +1462,7 @@ action_codes = {
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="1", arg_eval="SSID="),
             ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", MAC="),
             ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", IP"),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["Active=", "l", "160"]),
+            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Active=", "l", "160"]),
         ],
         name="Wifi Connected",
         category="",
@@ -8133,6 +8132,7 @@ action_codes = {
             ),
             ArgumentCode(arg_id="1", arg_required=True, arg_name="Screen ID", arg_type="1", arg_eval=", Screen ID"),
             ArgumentCode(arg_id="2", arg_required=False, arg_name="Element ID", arg_type="1", arg_eval=", Element ID"),
+            ArgumentCode(arg_id="3", arg_required=False, arg_name="Property", arg_type="1", arg_eval=""),
         ],
         name="Get Scene v2 Values",
         category="103",

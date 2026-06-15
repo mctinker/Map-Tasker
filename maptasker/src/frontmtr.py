@@ -35,9 +35,9 @@ def output_the_heading() -> None:
     tasker_mapping = f"Tasker Mapping{ai_message}................ Tasker XML version:"
 
     # Get the screen dimensions from <dmetric> xml
-    screen_element = PrimeItems.xml_tree.root.child("dmetric")
+    screen_element = PrimeItems.xml_root.find("dmetric")
     screen_size = (
-        f"&nbsp;&nbsp;Device screen size: {screen_element.text().replace(',', ' X ')}"
+        f'&nbsp;&nbsp;Device screen size: {screen_element.text.replace(",", " X ")}'
         if screen_element is not None
         else ""
     )
@@ -58,19 +58,15 @@ def output_the_heading() -> None:
 
     # Format the output heading
     heading_color = "heading_color"
-    # Access the attribute by name = Tasker version...tv=version
-    tv_attr = PrimeItems.xml_tree.root.attribute("tv")
-    # Get the value as a string
-    tv_value = tv_attr.value
     PrimeItems.heading = (
         f'<!doctype html>\n<html lang=”en”>\n<head>\n<meta charset="UTF-8">{background_color_html}<title>MapTasker</title>\n<body'
-        f' style="background-color:{PrimeItems.colors_to_use["background_color"]}">\n'
+        f" style=\"background-color:{PrimeItems.colors_to_use['background_color']}\">\n"
         + format_html(
             heading_color,
             "",
             (
                 f"<h2>MapTasker</h2><br>{tasker_mapping}"
-                f" {tv_value}&nbsp;&nbsp;&nbsp;&nbsp;"
+                f" {PrimeItems.xml_root.attrib['tv']}&nbsp;&nbsp;&nbsp;&nbsp;"
                 f"{MY_VERSION}{screen_size}&nbsp;&nbsp;&nbsp;&nbsp;{now_for_output}"
             ),
             True,
@@ -99,9 +95,9 @@ def output_the_heading() -> None:
     if PrimeItems.program_arguments["fetched_backup_from_android"]:
         source_file = (
             "From Android device"
-            f" TCP IP address:{PrimeItems.program_arguments['android_ipaddr']}"
-            f" on port:{PrimeItems.program_arguments['android_port']}"
-            f" with file location: {PrimeItems.program_arguments['android_file']}"
+            f' TCP IP address:{PrimeItems.program_arguments["android_ipaddr"]}'
+            f' on port:{PrimeItems.program_arguments["android_port"]}'
+            f' with file location: {PrimeItems.program_arguments["android_file"]}'
         )
     elif PrimeItems.program_arguments["debug"] or not PrimeItems.program_arguments["file"]:
         filename = isinstance(PrimeItems.file_to_get, str)

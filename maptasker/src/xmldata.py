@@ -9,9 +9,9 @@ import os
 import re
 import shutil
 
-import pygixml
+import defusedxml.ElementTree
 
-from maptasker.src.maputil2 import find_first_tag_by_value, translate_string
+from maptasker.src.maputil2 import translate_string
 
 
 # See if the xml tag is one of the predefined types and return result
@@ -69,7 +69,7 @@ def tag_in_type(tag: str, flag: bool) -> bool:
 
 # We have an integer.  Evaluaate it's value based oon the code's evaluation parameters.
 def extract_integer(
-    code_action: pygixml.XMLNode,
+    code_action: defusedxml.ElementTree,
     the_arg: str,
     argeval: str,
     arg: list,
@@ -79,7 +79,7 @@ def extract_integer(
 
     Args:
         code_action (XML element): The XML action element to search.
-        arg (str): The name of the argument to search for.
+        the_arg (str): The name of the argument to search for.
         argeval (str | list): The evaluation to perform on the integer.
         arg: (list): The list of arguments for this action from action_codes.
 
@@ -89,17 +89,15 @@ def extract_integer(
     from maptasker.src.action import drop_trailing_comma, process_xml_list  # noqa: PLC0415
 
     # Find the first matching <Int> element with the desired 'sr' attribute
-    int_element = find_first_tag_by_value(code_action, "Int", the_arg)
-    if int_element is None:
-        return ""  # No matching <Int> element found
+    # Use an XPath expression to find the exact matching <Int> element directly in C
+    int_element = code_action.find(f"./Int[@sr='{the_arg}']")
 
-    # Extract value or variable name from the <Int> element
-    the_int_value = (
-        int_element
-        if isinstance(int_element, str)
-        else int_element.attribute("val").value
-        or (int_element.child("var").text() if int_element.child("var") is not None else "")
-    )
+    if int_element is None:
+        return ""
+
+    # 1. Use .get() for the attribute (fast)
+    # 2. Use findtext() instead of checking if .find() is not None and then extracting text
+    the_int_value = int_element.get("val") or int_element.findtext("var", default="")
 
     if not the_int_value:
         return ""  # No valid integer or variable name found
@@ -148,7 +146,7 @@ def extract_integer(
 
 
 # Extracts and returns the text from the given argument as a string.
-def extract_string(action: pygixml.XMLNode, arg: str, argeval: str) -> str:
+def extract_string(action: defusedxml.ElementTree, arg: str, argeval: str) -> str:
     """
     Extracts a string from an XML action element.
 
@@ -163,15 +161,19 @@ def extract_string(action: pygixml.XMLNode, arg: str, argeval: str) -> str:
     from maptasker.src.action import drop_trailing_comma  # noqa: PLC0415
 
     # Find the first matching <Str> element with the desired 'sr' attribute
-    str_element = find_first_tag_by_value(action, "Str", arg)
+    str_element = next(
+        (child for child in action.findall("Str") if child.attrib.get("sr") == arg),
+        None,
+    )
 
-    if str_element is None:
+    if str_element is None or str_element.text is None:
         return ""  # No matching element found
 
     # Extract text value with prefix
     new_argeval = f"{argeval}=" if argeval[-1] != "=" else argeval
-    the_string = str_element if isinstance(str_element, str) else str_element.value or ""
-    extracted_text = f"{argeval}(carriage return)" if the_string == "\n" else f"{new_argeval}{the_string or ''}"
+    extracted_text = (
+        f"{argeval}(carriage return)" if str_element.text == "\n" else f"{new_argeval}{str_element.text or ''}"
+    )
 
     # Drop trailing comma if necessary
     return drop_trailing_comma([extracted_text])[0] if extracted_text else ""

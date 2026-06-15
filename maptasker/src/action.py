@@ -8,14 +8,17 @@
 
 from __future__ import annotations
 
-# TYPE_CHECKING is a special constant that is assumed to be True by 3rd party static type checkers. It is False at runtime.
-import contextlib
 from typing import TYPE_CHECKING
+
+# TYPE_CHECKING is a special constant that is assumed to be True by 3rd party static type checkers. It is False at runtime.
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
+
+import contextlib
 
 from maptasker.src.actiont import lookup_values
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_html, format_label
-from maptasker.src.maputil2 import get_xml_value
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
@@ -24,9 +27,6 @@ from maptasker.src.sysconst import (
     RE_FONT,
     DISPLAY_DETAIL_LEVEL_all_tasks,
 )
-
-if TYPE_CHECKING:
-    import pygixml
 
 
 # Given a Task's Action, find all 'arg(n)' xml elements and return as a sorted list
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 #   arg_lst: list of sorted args as numbers only (e.g. 'arg' removed from 'arg0')
 #   type_list: list of sorted types (e.g. 'Int', 'Str', etc.)
 def get_args(
-    action: pygixml.XMLNode,
+    action: defusedxml.ElementTree,
     ignore_list: list,
 ) -> tuple[list, list, list]:
     """
@@ -52,9 +52,9 @@ def get_args(
     arguments, argument_types, master_list = [], [], []
     arg_nums = 0
     for child in action:
-        if child.name in ignore_list:  # Ignore certain tags
+        if child.tag in ignore_list:  # Ignore certain tags
             continue
-        action_arg = child.attribute("sr").as_string("")
+        action_arg = child.attrib.get("sr")
         if action_arg is not None:
             master_list.append(child)  # Build out list of args
     # If we have args then sort them and convert to string
@@ -63,8 +63,8 @@ def get_args(
         shell_sort(master_list, True, False)
         # Now go through args and build our "type" and "arg" lists
         for child in master_list:
-            argument_types.append(child.name)  # one of: 'Str' 'Int' 'Bundle' 'App'
-            arguments.append(child.attribute("sr").as_string(""))
+            argument_types.append(child.tag)  # one of: 'Str' 'Int' 'Bundle' 'App'
+            arguments.append(child.attrib.get("sr"))
         # Build list of arg position only (numeric part of argn)
         arg_nums = [
             str(ind) for ind, x in enumerate(arguments)
@@ -74,7 +74,7 @@ def get_args(
 
 
 # Evaluate the If statement and return the operation
-def evaluate_condition(child: pygixml.XMLNode) -> tuple[str, str, str]:
+def evaluate_condition(child: defusedxml.ElementTree) -> tuple[str, str, str]:
     """
     Evaluate the If statement and return the operation
         :param child: xml head element containing the <lhs xml element to be evaluated
@@ -95,11 +95,11 @@ def evaluate_condition(child: pygixml.XMLNode) -> tuple[str, str, str]:
         "13": " not set",
     }
 
-    first_string = child.child("lhs").text()
-    operation = child.child("op").text()
+    first_string = child.find("lhs").text
+    operation = child.find("op").text
     the_operation = the_operations[operation]
-    if "set" not in the_operation and child.child("rhs").text() is not None:  # No second string if "set/not" set
-        second_operation = child.child("rhs").text()
+    if "set" not in the_operation and child.find("rhs").text is not None:  # No second string if "set/not" set
+        second_operation = child.find("rhs").text
         # Correct any embedded html tags in text string.
         second_operation = second_operation.replace("<", "&lt;")
         second_operation = second_operation.replace(">", "&gt;")
@@ -167,7 +167,7 @@ def process_xml_list(
     arg_location: int,
     the_int_value: str,
     match_results: list,
-    arguments: pygixml.XMLNode,
+    arguments: defusedxml.ElementTree,
 ) -> None:
     """
     Evaluates an argument from an XML list and adds the processed result to match_results.
@@ -247,7 +247,7 @@ def process_xml_list(
 
 
 # Get Task's label, disabled flag and any conditions
-def get_label_disabled_condition(child: pygixml.XMLNode) -> str:
+def get_label_disabled_condition(child: defusedxml.ElementTree) -> str:
     """
     Get Task's label, disabled flag and any conditions
         :param child: head Action xml element
@@ -259,13 +259,15 @@ def get_label_disabled_condition(child: pygixml.XMLNode) -> str:
     remote_timeout = ""
 
     # If no code found, bail.
-    the_action_code = get_xml_value(child, "code")
-    if the_action_code is None:
+    if child.find("code") is not None:
+        the_action_code = child.find("code").text
+    else:
         return ""
 
     # Get the label, if any
-    lbl = get_xml_value(child, "label")
-    task_label = format_label(lbl) if lbl is not None else ""
+    if child.find("label") is not None:
+        lbl = child.find("label").text
+        task_label = format_label(lbl)
 
     # See if Action is disabled
     action_disabled = (
@@ -275,12 +277,11 @@ def get_label_disabled_condition(child: pygixml.XMLNode) -> str:
             DISABLED,
             True,
         )
-        if get_xml_value(child, "on") is not None
+        if child.find("on") is not None
         else ""
     )
     # Look for any conditions:  <ConditionList sr="if">
-    cond_list = get_xml_value(child, "ConditionList")
-    if cond_list is not None:  # If condition on Action?
+    if child.find("ConditionList") is not None:  # If condition on Action?
         task_conditions = get_conditions(child, the_action_code)
 
     # Format conditions if any
@@ -293,14 +294,14 @@ def get_label_disabled_condition(child: pygixml.XMLNode) -> str:
         )
 
     # See if this is a remote action
-    if get_xml_value(child, "remoteDevice") is not None:
+    if child.find("remoteDevice") is not None:
         # remote_execution = format_html("action_condition_color", "", ", Remote Device/Execution", True)
         remote_execution = ", Remote Device/Execution"
 
     # See if this is a remote timeout value
-    timout = get_xml_value(child, "remoteTimeout")
-    if timout is not None:
-        remote_timeout = ", Remote Timeout (Seconds): " + timout + "\n" if timout is not None else ""
+    if child.find("remoteTimeout") is not None:
+        timout = child.find("remoteTimeout").text
+        remote_timeout = ", Remote Timeout (Seconds): " + timout + "\n"
 
     # Return the lot
     return f"{task_conditions}{action_disabled}{task_label}{remote_execution}{remote_timeout}"
@@ -308,7 +309,7 @@ def get_label_disabled_condition(child: pygixml.XMLNode) -> str:
 
 # Get any/all conditions associated wwith this Task.
 # Get any/all conditions associated with Action
-def get_conditions(child: pygixml.XMLNode, the_action_code: str) -> str:
+def get_conditions(child: defusedxml, the_action_code: str) -> str:
     """
     Generates conditional statements for an action.
 
@@ -330,10 +331,11 @@ def get_conditions(child: pygixml.XMLNode, the_action_code: str) -> str:
     booleans = []
     # Go through <ConditionList sr="if"> sub-elements
     _evaluate_condition = evaluate_condition
-    for children in child.child("ConditionList"):
-        if "bool" in children.name:
-            booleans.append(children.value)
-        elif children.name == "Condition":
+    for children in child.find("ConditionList"):
+        if "bool" in children.tag:
+            booleans.append(children.text)
+        # elif children.tag == "Condition" and the_action_code != "37":
+        elif children.tag == "Condition":
             # Evaluate the condition to add to output
             string1, operator, string2 = _evaluate_condition(children)
             if condition_count != 0:
@@ -356,7 +358,7 @@ def get_conditions(child: pygixml.XMLNode, the_action_code: str) -> str:
 # Get the: label, whether to continue Task after error, etc.
 # Chase after relevant data after <code> Task action
 def get_extra_stuff(
-    code_action: pygixml.XMLNode,
+    code_action: defusedxml.ElementTree,
     action_type: bool,
 ) -> str:
     """
@@ -370,12 +372,11 @@ def get_extra_stuff(
     """
 
     # If no code, just bail out.
-    if isinstance(code_action, str):
-        action_code = get_xml_value(code_action, "code")
-    else:
-        action_code = code_action.child("code").text()
-    if action_code is None:
+    action_code_xml = code_action.find("code")
+    if action_code_xml is None:
         return ""
+
+    action_code = action_code_xml.text if action_code_xml is not None and not isinstance(action_code_xml, int) else ""
 
     program_arguments = PrimeItems.program_arguments
     colors_to_use = PrimeItems.colors_to_use
@@ -405,14 +406,14 @@ def get_extra_stuff(
         extra_stuff = extra_stuff + format_html(
             "disabled_action_color",
             "",
-            f"&nbsp;&nbsp;code: {code_action.child('code').text()}-",
+            f"&nbsp;&nbsp;code: {code_action.find('code').text}-",
             True,
         )
 
     # See if Task action is to be continued after error
     if program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
-        child = get_xml_value(code_action, "se")
-        if not child is None and child == "false":
+        child = code_action.find("se")
+        if child is not None and child.text == "false":
             extra_stuff = f"{format_html('action_color', '', ' [Continue Task After Error]', True)}{extra_stuff}"
 
     # For some reason, we're left with an empty "<span..." element.  Remove it.
@@ -445,7 +446,7 @@ def replace_newline(string: str) -> str:
 
 
 # Get the application specifics for the given code
-def get_app_details(code_child: pygixml.XMLNode) -> tuple[str, str, str]:
+def get_app_details(code_child: defusedxml.ElementTree) -> tuple[str, str, str]:
     """
     Extracts application details from the given XML code element.
 
@@ -456,16 +457,12 @@ def get_app_details(code_child: pygixml.XMLNode) -> tuple[str, str, str]:
         tuple[str, str, str]: Class, package name, and app name.
     """
     app_class = app_pkg = app = ""
-    if isinstance(code_child, str):
-        code_child = get_xml_value(code_child, "App")
-        if code_child is None:
-            return "", "", ""
-    else:
-        child = code_child.child("App")
+
+    child = code_child.find("App")
     if child is not None:
-        app_class = child.child("appClass").text()
-        app_pkg = child.child("appPkg").text()
-        app = child.child("label").text()
+        app_class = child.findtext("appClass", default="")
+        app_pkg = child.findtext("appPkg", default="")
+        app = child.findtext("label", default="")
         # .replace(',\n', ';') is for handling multple names.
         app_class = replace_newline(app_class)
         app_pkg = replace_newline(app_pkg)

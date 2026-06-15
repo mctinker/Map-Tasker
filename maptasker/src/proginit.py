@@ -11,15 +11,14 @@ import json
 import os
 import platform
 import sys
-import tkinter as tk
+
+# import tkinter as tk
 from collections import namedtuple
 from json import dumps, loads
 from pathlib import Path
 from tkinter import TkVersion, messagebox
 
 # importing askopenfile (from class filedialog) and messagebox functions
-from tkinter.filedialog import askopenfile
-
 import maptasker.src.progargs as get_arguments
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE, GUI
@@ -31,7 +30,6 @@ from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     COUNTER_FILE,
-    DEFAULT_GUI_WINDOW,
     TYPES_OF_COLOR_NAMES,
     logger,
 )
@@ -95,37 +93,18 @@ def prompt_for_backup_file(dir_path: str) -> None:
     """
     file_error = False
 
-    # Create a temporary window into which to place the file prompt.  The following code ensures the window is topmost.
-    root = tk.Tk()
-    root.title("MapTasker: Identify the XML file to use")
-    root.geometry(DEFAULT_GUI_WINDOW)  # Force the default window dimensions
-    root.update_idletasks()  # Make sure the window manager knows about it
-    root.lift()
-    root.attributes("-topmost", True)
-    root.focus_force()
+    # Opens the dialog starting at the current directory
+    # You can also pass 'upper_limit' to restrict how high up the directory tree a user can go
+    # PrimeItems.file_to_get = Local_File_Picker("~", multiple=False)
+    # if PrimeItems.file_to_get:
+    #     ui.notify(f"Selected file: {PrimeItems.file_to_get}")
 
-    # Tkinter prompt for file selection.
-    try:
-        PrimeItems.file_to_get = askopenfile(
-            parent=root,
-            mode="r",
-            title="Select Tasker XML file to use...",
-            initialdir=dir_path,
-            filetypes=[("XML Files", "*.xml")],
-        )
-        PrimeItems.error_code = 0  # No error.  Clear the code if there is one.
-    except Exception:  # noqa: BLE001
-        file_error = True
     if PrimeItems.file_to_get is None:
         file_error = True
     if file_error and not PrimeItems.program_arguments["gui"]:
         error_handler("Backup file selection canceled.  Program ended.", 6)
     elif file_error:
         PrimeItems.error_code = 6
-
-    # Get rid of the temporary window.
-    root.attributes("-topmost", False)
-    root.destroy()
 
 
 # Open and read the Tasker backup XML file
@@ -166,6 +145,7 @@ def open_and_get_backup_xml_file() -> dict:
         # We already have the file name...open it.
         try:
             PrimeItems.file_to_get = open(filename)
+            # PrimeItems.file_to_get is now an open file object that can be read from.
         except FileNotFoundError:
             file_not_found = filename
             error_handler(f"XML file {file_not_found} not found.", 5)
@@ -448,6 +428,7 @@ def start_up() -> dict:
         PrimeItems.program_arguments["doing_diagram"] = False
 
     # Get the XML data and output the front matter
-    _ = get_data_and_output_intro(True)
+    if PrimeItems.file_to_get or PrimeItems.program_arguments["file"]:
+        _ = get_data_and_output_intro(True)
 
     return

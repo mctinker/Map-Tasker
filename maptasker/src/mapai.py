@@ -10,17 +10,14 @@ import os
 import re
 import sys
 
-# import anthropic
-import customtkinter as ctk
+from nicegui import ui
 
-# from google import genai
-# from google.genai import types
-# from openai import OpenAI, OpenAIError
-# from maptasker.src import cria
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import error_handler
-from maptasker.src.guiwins import PopupWindow
-from maptasker.src.maputil2 import ensure_and_import, translate_string
+from maptasker.src.guiwins import create_popup_window
+from maptasker.src.guiwins import create_popup_window as popupwindow
+from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil3 import ensure_and_import
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
@@ -556,7 +553,7 @@ def get_ai_object() -> tuple:
 AI_PROMPT = "Analyze the following Tasker data"
 
 
-def _run_analysis_in_background(popup: PopupWindow) -> None:
+def _run_analysis_in_background(popup: popupwindow) -> None:
     """
     This function contains the main analysis logic.
     """
@@ -613,51 +610,20 @@ def _run_analysis_in_background(popup: PopupWindow) -> None:
         # Remove the popup window
         if popup:
             popup.popup_button_event()
+            popup.destroy()  # Ensure the popup is destroyed after analysis is complete, even if there was an error.
 
 
-def display_the_popup(title: str, the_text: str, font_size: int, text_color: str) -> ctk.CTkToplevel:
-    """Displays a popup window indicating that an analysis is running.
-
-    This function creates and displays a `PopupWindow` (assuming it's a custom
-    class that inherits from `ctk.CTkToplevel` or similar) with a message
-    informing the user that an analysis is being performed in the background.
-    The popup includes a label with the text "Analysis is running in the
-    background. Please stand by...".
-    Args:
-        title (str): Text to diosplay in the titlebar.
-        the_text (str): The text to display.
-        font_size (int): The size of the font to use.
-        text_color: The color to display the text in.
-
-    Returns:
-        ctk.CTkToplevel: The created and displayed `PopupWindow` instance.
+def display_the_popup(title: str, text: str) -> None:
     """
-    # Display a popup window telling user we are analyzing
-    popup = PopupWindow(
-        title=title,
-    )
+    Displays a popup window telling user we are analyzing.
+    Calls _run_analysis_in_background via a one-time timer.
+    """
+    # 1. Create and open the dialog using the helper we just built in guiwins.py
+    dialog = create_popup_window(title, text)
 
-    popup.Popup_label = ctk.CTkLabel(
-        master=popup,
-        text=the_text,
-        font=("", font_size),
-        text_color=text_color,
-        anchor="nw",
-        justify="left",
-    )
-    popup.Popup_label.grid(row=0, column=0, padx=0, pady=0, sticky="nw")
-
-    # Start the background analysis after so many milliseconds.
-    popup.after(200, _run_analysis_in_background, popup)
-    # Force the label/window to appear.
-    popup.Popup_label.pack(side="top", padx=20, pady=20)
-    # popup.update_idletasks()
-    # Ok, sstart the loop to wait for user input.
-    # NOTE: _run_analysis_in_background will remove this window at the end of the function.
-    popup.mainloop()
-
-    # Return the toplevel popup window.
-    return
+    # 2. Start the background analysis after 200 milliseconds.
+    # In NiceGUI, ui.timer(..., once=True) completely replaces popup.after()
+    ui.timer(0.2, lambda: _run_analysis_in_background(dialog), once=True)
 
 
 # Map Ai: set up Ai query and call appropriate function based on the model.

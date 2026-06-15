@@ -1,13 +1,13 @@
 [project]
 name = "maptasker"
-version = "10.3.0"
+version = "11.0.0"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
 ]
 license = {text = "MIT"}
 readme = "README_PyPl.md"
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.11, <4.0"
 keywords = [
     "tasker",
     "Tasker",
@@ -18,8 +18,8 @@ keywords = [
 dependencies = [
     'darkdetect>=0.8.0',
     'deep_translator>=1.11.4',
-#    'pygixml.XMLNode>=0.7.1',
-    'pygixml>=0.10.2',
+    'defusedxml>=0.7.1',
+    'nicegui>=3.13.0',
     'packaging>=26.2',
     'pillow==12.2.0',
     'requests>=2.33.1',
