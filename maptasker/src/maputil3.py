@@ -64,3 +64,21 @@ def ensure_and_import(pypi_name: str, import_path: str) -> object:
     except (subprocess.CalledProcessError, ImportError) as e:
         print(f"MapTasker: --- Failed to provide Package {import_path}: {e} ---")
         return None
+
+
+def align_text(text: str, column: int) -> str:
+    """
+    Aligns the given text so that its first non-&nbsp; character starts at the specified column.
+
+    :param text: The input string where '&nbsp;' is treated as a space.
+    :param column: The desired starting column for the first non-&nbsp; character.
+    :return: The aligned string.
+    """
+    nbsp = "&nbsp;"
+    stripped_text = text.lstrip(nbsp)  # Remove leading '&nbsp;' characters
+    leading_spaces = (len(text) - len(stripped_text)) // len(
+        nbsp,
+    )  # Count '&nbsp;' as spaces
+    adjusted_column = max(0, column - leading_spaces)  # Ensure non-negative padding
+
+    return (nbsp * adjusted_column) + text  # Adjust spacing to align correctly

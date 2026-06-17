@@ -96,7 +96,7 @@ class NiceGuiTextView:
         self.process_data(the_data)
 
     def build_ui(self) -> None:
-        """Builds the UI layout for the text view, including toolbar and scrollable display area."""
+        """Builds the UI layout for the various text views, including toolbar and scrollable display area."""
         # Toolbar
         with ui.row().classes("w-full items-center gap-2 p-2 mb-2 bg-gray-200 dark:bg-gray-800 rounded"):
             ui.label(f"{self.title} View").classes("text-orange-500 font-bold mr-4")
@@ -132,7 +132,8 @@ class NiceGuiTextView:
             safe_lines = [line.replace("<", "&lt;").replace(">", "&gt;") for line in the_data]
             self.html_display.content = "<div>" + "</div><div>".join(safe_lines) + "</div>"
 
-    def search_event(self) -> None:
+    def search_event(self: MyGui) -> None:
+        """Search for the input text in the displayed content."""
         ui.notify(f"Searching for: {self.search_input.value}", type="info")
 
     def scroll(self: MyGui, direction: str) -> None:
@@ -147,7 +148,7 @@ class NiceGuiTextView:
 # ==========================================
 # 4. INITIALIZATION & LAYOUT
 # ==========================================
-def initialize_gui(self) -> None:
+def initialize_gui(self: MyGui) -> None:
     """Initialize state variables. 'self' is the MyGui instance."""
     _initialize_gui_settings(self)
     _initialize_ai_settings(self)
@@ -310,14 +311,17 @@ def initialize_screen(self: MyGui) -> None:
         ui.separator().classes("my-4")
 
         # Sidebar buttons
+        get_file_color = "green" if PrimeItems.file_to_get else "red"
+        # Determine if the button should blink (pulse) using Tailwind CSS
+        blink_class = "" if PrimeItems.file_to_get else " animate-pulse"
         with ui.row().classes("w-full justify-between gap-2"):
-            ui.button(
+            self.get_xml_button = ui.button(
                 "Get Local XML File",
-                color="green",
+                color=get_file_color,
                 on_click=self.event_handlers.getxml_event,
                 icon="folder",
             ).classes(
-                "flex-grow",
+                f"flex-grow{blink_class}",
             )
             ui.button("Run & Exit", color="green", on_click=self.event_handlers.run_program_event).classes("flex-grow")
             ui.button("ReRun", color="green", on_click=self.event_handlers.rerun_event).classes("flex-grow")
@@ -327,7 +331,7 @@ def initialize_screen(self: MyGui) -> None:
     # Main Content Area
     with ui.column().classes("p-6 w-full max-w-5xl mx-auto"):
         # View Buttons
-        # --> FIXED: Pointed to self.event_handlers
+        # Event Handler > Pointed to self.event_handlers
         with ui.row().classes("gap-4 mb-6"):
             ui.button("Map View", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
             ui.button("Diagram View", on_click=lambda: self.event_handlers.view_event("diagram")).classes("bg-blue-500")
@@ -344,10 +348,15 @@ def initialize_screen(self: MyGui) -> None:
         with ui.tab_panels(tabs, value=self.tab_specific_name).classes("w-full border rounded shadow-inner p-6 mt-2"):
             with ui.tab_panel(self.tab_specific_name):
                 ui.label("Target specific Projects, Profiles, or Tasks.").classes("text-lg mb-4")
-                ui.select(["None"], label="Project").classes("w-64 mb-2")
-                ui.select(["None"], label="Profile").classes("w-64 mb-2")
-                ui.select(["None"], label="Task").classes("w-64 mb-2")
-                ui.checkbox("List Unnamed Items")
+
+                # Bind these to self so guiutils.py can update them!
+                self.specific_project_optionmenu = ui.select(["None"], label="Project").classes("w-64 mb-2")
+                self.specific_profile_optionmenu = ui.select(["None"], label="Profile").classes("w-64 mb-2")
+                self.specific_task_optionmenu = ui.select(["None"], label="Task").classes("w-64 mb-2")
+
+                # Make sure the label is also assigned so we can update its text later
+                self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-2 text-left")
+                ui.checkbox("List Unnamed Items").bind_value(self, "list_unnamed_items")
 
             with ui.tab_panel(self.tab_colors):
                 ui.label("Theme Configuration").classes("text-lg")

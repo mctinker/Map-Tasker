@@ -62,7 +62,7 @@ def main() -> None:
     return_code = mapit_all("")
     # Call it quits.
     # exit_program(return_code)
-    return return_code
+    return return_code  # noqa: RET504
 
 
 if __name__ == "__main__":

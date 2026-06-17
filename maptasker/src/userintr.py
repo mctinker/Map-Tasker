@@ -15,14 +15,18 @@ from maptasker.src.guimap import parse_html
 from maptasker.src.guiutils import (
     build_profiles,
     clear_android_buttons,
+    display_analyze_button,
     display_current_file,
     get_xml,
     reload_gui,
     reset_primeitems_single_names,
+    set_tasker_object_names,
     update_tasker_object_menus,
+    valid_item,
 )
 from maptasker.src.guiwins import (
     NiceGuiTextView,
+    NiceGuiTreeView,
     initialize_gui,
     initialize_screen,
 )
@@ -52,7 +56,25 @@ class MyGui:
     """Main UI Interface for MapTasker using NiceGUI."""
 
     def __init__(self: "MyGui") -> None:
-        """Initializes the GUI and sets up all necessary state and layout."""
+        """Initialize the GUI and set up all necessary state and layout."""
+        # # Trace code
+        # PrimeItems.program_arguments["debug"] = True  # Set this to True to enable tracing
+        # # Create the trace object (set trace=False to only get function names, not every line)
+        # def trace_calls(frame, event, arg):
+        #     if event == "call":
+        #         func_name = frame.f_code.co_name
+        #         file_name = frame.f_code.co_filename
+
+        #         # Filter out standard library calls
+        #         if "site-packages" not in file_name and "lib/python" not in file_name:
+        #             # 2. Write to the file instead of the terminal
+        #             logger.debug(f"CALL: {func_name}() in {file_name}\n")
+
+        #     return trace_calls
+
+        # # Enable the profiler
+        # sys.setprofile(trace_calls)
+
         logger.info("Starting GUI")
         self.initialization = True
 
@@ -76,18 +98,6 @@ class MyGui:
             print("=" * 50 + "\n")
 
         self.initialization = False
-
-        # 5. Start the server
-        ui.run(
-            reload=False,
-            host="127.0.0.1",
-            # FIX
-            storage_secret="maptasker_gui_storage",
-            title="MapTasker",
-            port=8080,
-            dark=None,
-            show=True,  # Force the browser to open the correct HTTP link
-        )
 
     def set_defaults(self: "MyGui") -> None:
         """Initializes all the default variables that MapTasker relies on."""
@@ -243,7 +253,6 @@ class MyGui:
             - Packs the view in the window with specified padding and filling.
         """
         window_attribute = f"{view_type}view_window"
-        window_position_attribute = f"{view_type}_window_position"
         window_title = f"{view_type.capitalize()} View"
 
         # Map view
@@ -262,12 +271,18 @@ class MyGui:
                     "Orange",
                 )
                 return None
+            if data:
+                NiceGuiTextView(
+                    master=getattr(self, window_attribute),
+                    title=window_title,
+                    the_data=data,
+                )
 
         # Setup diagram view.
         elif view_type in ("diagram", "misc"):
             # Display the data.
             if data:
-                view = NiceGuiTextView(
+                NiceGuiTextView(
                     master=getattr(self, window_attribute),
                     title=window_title,
                     the_data=data,
@@ -277,7 +292,7 @@ class MyGui:
                 return None
         elif view_type == "tree":
             if data:
-                view = NiceGuiTextView(master=getattr(self, window_attribute), items=data)
+                NiceGuiTreeView(master=getattr(self, window_attribute), items=data)
             else:
                 self.display_message_box("No Project(s) Found in XML!", "Red")
                 return None
@@ -287,8 +302,7 @@ class MyGui:
                 "Red",
             )
 
-        view.pack(padx=10, pady=10, fill="none", expand=True)
-        return view
+        return None
 
     # Load the XML if not already loaded.
     def load_xml(self) -> bool:
@@ -499,6 +513,81 @@ class MyGui:
         # Return our data tree
         return tree_data
 
+    # Validate name entered
+    def check_name(self, the_name: str, element_name: str) -> bool:
+        """
+        Optimized name validity check.
+        Uses truth tables for exclusivity and minimized translation overhead.
+        """
+        # 1. Local caching for speed
+        _translate = translate_string
+        _prime = PrimeItems
+        error_message = None
+
+        # 2. Check for missing name (Early exit potential)
+        if not the_name:
+            error_message = [
+                f"Either the name entered for the {element_name} is blank or the 'Cancel' button was clicked.\n",
+                "All Projects, Profiles, and Tasks will be displayed.\n",
+            ]
+            self.named_item = False
+
+        # 3. Optimized Mutual Exclusivity Check
+        # Instead of nested elifs, we check the 'truthiness' count
+        else:
+            names = [
+                ("Project", self.single_project_name),
+                ("Profile", self.single_profile_name),
+                ("Task", self.single_task_name),
+            ]
+            # Count how many names are set
+            active_names = [n for n in names if n[1]]
+
+            if len(active_names) > 1:
+                # We only ever need to compare the first two found for the error setup
+                n1, n2 = active_names[0], active_names[1]
+                error_message = [
+                    "Error:\n\n",
+                    f"You have entered both a {n1[0]} and a {n2[0]} name!\n",
+                    f"(Project {n1[1]} and Profile {n2[1]})\n",
+                    "Try again and only select one.\n",
+                ]
+
+            # 4. Check existence if still no error
+            elif not valid_item(self, the_name, element_name, self.debug, self.appearance_mode):
+                front_error = f'Error: Trying to validate "{the_name}" {element_name}'
+
+                if not _prime.file_to_get:
+                    error_message = [f'{front_error}, but the "Cancel" was selected!\n']
+                    set_tasker_object_names(self)
+                else:
+                    # Optimized attribute fetch
+                    file_name = getattr(_prime.file_to_get, "name", _prime.file_to_get)
+                    error_message = [
+                        f"{front_error} but it was not found in {file_name}! "
+                        "All Projects, Profiles and Tasks will be displayed.\n",
+                    ]
+
+        # 5. Handle Errors
+        if error_message:
+            self.display_multiple_messages(error_message, "Red")
+            self.single_project_name = self.single_profile_name = self.single_task_name = ""
+            return False
+
+        # 6. Success Logic (Minimized translations)
+        none_text = _translate("None")
+        if the_name == none_text:
+            msg = _translate("'None' selected.  Displaying all Projects, Profiles and Tasks.")
+            self.display_message_box(msg, "Green")
+        else:
+            # Check for localization method once
+            localized_el = _prime._(element_name) if hasattr(_prime, "_") else element_name
+            text1 = _translate("Display only the")
+            text2 = _translate("overrides any previous set name")
+            self.display_message_box(f"{text1} '{the_name}' {localized_el} ({text2}).", "Green")
+
+        return True
+
 
 class MapTaskerEventHandlers:
     """
@@ -520,7 +609,7 @@ class MapTaskerEventHandlers:
         logger.info("GUI: Run Program Event Triggered")
         ui.notify("Executing MapTasker...", type="info")
 
-        the_view = self.parent
+        the_view = self.gui
         the_view.go_program = True
         the_view.rerun = False
 
@@ -559,15 +648,68 @@ class MapTaskerEventHandlers:
         reload_gui(the_view)
 
     # ==========================================
-    # 2. VIEW & TAB NAVIGATION
+    # 2. Display View: Map, Diagram, Misc or Tree
     # ==========================================
     def view_event(self: "MapTaskerEventHandlers", view_type: str) -> None:
         """Triggered when Map, Diagram, or Tree buttons are clicked."""
-        logger.info(f"GUI: Switching to {view_type} view")
-        ui.notify(f"Loading {view_type.title()} View...", type="info", timeout=1000)
+        window_title = f"{view_type.capitalize()} View"
+        logger.info(f"GUI: Switching to {window_title}")
+        ui.notify(f"Loading {window_title} View...", type="info", timeout=1000)
 
-        # Here you would trigger the logic to fetch the data and update
-        # your NiceGuiTextView or NiceGuiTreeView components.
+        # Here you would trigger the logic to display the view via
+        # the NiceGuiTextView or NiceGuiTreeView components.
+        # Map view
+        if view_type == "map":
+            map_data = parse_html()
+            # Check if too much data to display
+            map_length = len(map_data)
+            if map_length > self.view_limit:
+                text1 = translate_string("Too much data to display (Size=")
+                text2 = translate_string("View Limit=")
+                text3 = translate_string(
+                    "Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
+                )
+                self.display_message_box(
+                    f"{text1}{map_length}, {text2}{self.view_limit}).  {text3}",
+                    "Orange",
+                )
+                if self.mapview_window is not None:
+                    self.mapview_window.destroy()
+                return
+
+            # Define the view and display the map.
+            NiceGuiTextView(
+                self.gui,
+                title=window_title,
+                the_data=map_data,
+            )
+
+        # Setup diagram view.
+        elif view_type in ("diagram", "misc"):
+            # Display the data.
+            if data:
+                view = NiceGuiTextView(
+                    self.gui,
+                    title=window_title,
+                    the_data=map_data,
+                )
+            else:
+                self.display_message_box("No Project(s) Found in XML!", "Red")
+                return
+        elif view_type == "tree":
+            if data:
+                view = CTkTreeview(master=getattr(self, window_attribute), items=data)
+            else:
+                self.display_message_box("No Project(s) Found in XML!", "Red")
+                return
+        else:
+            self.display_message_box()(
+                "Invalid view type specified. Use 'map', 'diagram', or 'tree'.",
+                "Red",
+            )
+
+        return
+        NiceGuiTextView if view_type != "tree" else NiceGuiTreeView(self.gui, f"{view_type} View", "place_holder")
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
@@ -586,7 +728,6 @@ class MapTaskerEventHandlers:
         """Updates the AI model based on dropdown selection."""
         self.gui.ai_model = event.value
         logger.info(f"AI Model changed to: {event.value}")
-        print("bingo")
 
     # ==========================================
     # 4. TEXT VIEW CONTROLS (Replacing the old _handle_event router)
@@ -658,7 +799,7 @@ class MapTaskerEventHandlers:
             - Notify user of filter
             - Deselect checkbox clicked
         """
-        the_view = self.parent
+        the_view = self.gui
 
         # Handle translation of item first
         my_name_translated = translate_string(my_name)
@@ -699,8 +840,7 @@ class MapTaskerEventHandlers:
                     the_view.specific_name_msg = f"{text2} {my_name_translated}."
             else:
                 the_view.single_name_msg = all_objects
-            # Set the names in the pulldown menus and update the pulldown menus.
-            set_tasker_object_names(the_view)
+            # Update the pulldown menus.
             update_tasker_object_menus(
                 the_view,
                 get_data=False,
@@ -718,8 +858,11 @@ class MapTaskerEventHandlers:
             None: Does not return anything.
         - Calls process_name_event() to handle the event.
         """
-        the_view = self.parent
-        name_selected = name_selected.replace(f"{event_type}: ", "")
+        the_view = self.gui
+        if isinstance(name_selected, dict):
+            name_selected = name_selected["label"]
+        if name_selected.startswith(f"{event_type}: "):
+            name_selected = name_selected.replace(f"{event_type}: ", "")
         the_view.event_handlers.process_name_event(event_type, name_selected)
 
     def single_project_name_event(self, name_selected: str) -> None:
@@ -780,6 +923,11 @@ class MapTaskerEventHandlers:
             program_args["android_file"] = ""
             program_args["android_ipaddr"] = ""
             program_args["android_port"] = ""
+
+            # UPDATE THE XML BUTTON COLOR & STOP BLINKING
+            if hasattr(gui, "get_xml_button"):
+                gui.get_xml_button.props("color=green")  # Switch color from red to green
+                gui.get_xml_button.classes(remove="animate-pulse")  # Strip out blinking animation
 
             # Redisplay the Projects/Profiles/Tasks pulldown menus for selection
             # It will call 'display_and_set_file' to display the current file name via call to 'load_xml'

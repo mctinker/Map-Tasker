@@ -3,7 +3,7 @@
 import contextlib
 import os
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import defusedxml
 from nicegui import ui
@@ -16,6 +16,7 @@ from maptasker.src.aiutils import (
     get_gemini_models,
     get_llama_models,
     get_openai_models,
+    is_valid_ai_config,
 )
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import rutroh_error
@@ -102,7 +103,6 @@ def display_model_pulldown(gui_instance: "MyGui", tab: object = None) -> None:
         current_model = [PrimeItems.program_arguments.get("ai_model", "None")]
         if not current_model or current_model not in display_models:
             current_model = ["None"]
-        print("bingo", gui_instance, display_models, current_model)
         gui_instance.ai_model_option = ui.select(
             options=display_models,
             value=current_model,
@@ -226,7 +226,7 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
         return False
 
     # Get rid of previous data
-    delete_old_pulldown_menus(self)
+    # delete_old_pulldown_menus(self)
 
     # Get all of the Tasker objects: Projects/Profiles/Tasks/Scenes
     return_code, projects_to_display, profiles_to_display, tasks_to_display = get_tasker_objects(self)
@@ -253,7 +253,6 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
         self,
         self.tab_analyze,
-        8,
         projects_to_display,
         profiles_to_display,
         tasks_to_display,
@@ -271,8 +270,7 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
         self.specific_task_optionmenu,
     ) = display_object_pulldowns(
         self,
-        self.tabview.tab("Specific Name"),
-        5,
+        self.tab_specific_name,
         projects_to_display,
         profiles_to_display,
         tasks_to_display,
@@ -284,8 +282,8 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
 
 
 def display_object_pulldowns(
-    self: Any,
-    container: ui.element,  # Replaced ctk.CTkFrame with a NiceGUI element (like ui.column or ui.card)
+    self: "MyGui",
+    container: ui.element,
     projects_to_display: list,
     profiles_to_display: list,
     tasks_to_display: list,
@@ -294,9 +292,44 @@ def display_object_pulldowns(
     task_name_event: Callable,
 ) -> tuple:
     """
-    Displays the pulldown menus for selecting projects, profiles, and tasks.
-    Returns the ui.select objects so they can be modified or deleted later.
+    Updates the pulldown menus for selecting projects, profiles, and tasks.
     """
+
+    # If the container is tab_specific_name, we just update the options for the widgets we created in guiwins.py
+    if container == self.tab_specific_name:
+        if hasattr(self, "specific_project_optionmenu") and self.specific_project_optionmenu:
+            # 1. Assign the new lists to the options attributes
+            self.specific_project_optionmenu.options = projects_to_display
+            self.specific_profile_optionmenu.options = profiles_to_display
+            self.specific_task_optionmenu.options = tasks_to_display
+
+            # 2. Attach the event listeners using NiceGUI's .on() method
+            # We clear existing listeners first to prevent duplicates if this function is called multiple times
+            self.specific_project_optionmenu.clear()
+            self.specific_project_optionmenu.on(
+                "update:model-value",
+                lambda e: project_name_event(e.args) if e.args else None,
+            )
+
+            self.specific_profile_optionmenu.clear()
+            self.specific_profile_optionmenu.on(
+                "update:model-value",
+                lambda e: profile_name_event(e.args) if e.args else None,
+            )
+
+            self.specific_task_optionmenu.clear()
+            self.specific_task_optionmenu.on(
+                "update:model-value",
+                lambda e: task_name_event(e.args) if e.args else None,
+            )
+
+            # 3. CRITICAL: Tell the browser to re-render the widgets with the new options
+            self.specific_project_optionmenu.update()
+            self.specific_profile_optionmenu.update()
+            self.specific_task_optionmenu.update()
+
+        return self.specific_project_optionmenu, self.specific_profile_optionmenu, self.specific_task_optionmenu
+
     project_option = profile_option = task_option = None
 
     # 'with container:' tells NiceGUI to draw everything inside this specific UI block
@@ -419,7 +452,7 @@ def delete_old_pulldown_menus(self: object) -> None:
             setattr(self, attr, None)
 
 
-def display_selected_object_labels(self) -> None:
+def display_selected_object_labels(self: "MyGui") -> None:
     """
     Display the current settings for Ai
     """
@@ -462,7 +495,7 @@ def display_selected_object_labels(self) -> None:
         # Update Pulldown
         if getattr(self, "ai_model_option", None):
             # In NiceGUI, ui.select uses `.value` instead of `.set()`
-            self.ai_model_option.value = model_to_display
+            self.ai_model_option.value = [model_to_display]
         else:
             display_model_pulldown(self, 50)
 
@@ -489,12 +522,15 @@ def display_selected_object_labels(self) -> None:
     # 3. Render the "Specific Name" Tab
     # Assuming self.tab_specific_name is your ui.tab_panel("Specific Name")
     with self.tab_specific_name:
-        self.tab_specific_name.clear()
-
         all_objects = translate_string("Display all Projects, Profiles, and Tasks.")
         name_to_display = self.specific_name_msg if getattr(self, "specific_name_msg", None) else all_objects
 
-        ui.label(name_to_display).classes("text-xs ml-2 mt-2 text-left")
+        # Just update the text of the existing label rather than recreating it
+        if hasattr(self, "specific_name_msg_label") and self.specific_name_msg_label:
+            self.specific_name_msg_label.text = name_to_display
+        else:
+            with self.tab_specific_name:
+                self.specific_name_msg_label = ui.label(name_to_display).classes("text-xs ml-2 mt-2 text-left")
 
 
 # ==========================================
@@ -598,24 +634,6 @@ def reset_primeitems_single_names() -> None:
         "single_profile_found": False,
         "single_task_found": False,
     }
-
-
-def align_text(text: str, column: int) -> str:
-    """
-    Aligns the given text so that its first non-&nbsp; character starts at the specified column.
-
-    :param text: The input string where '&nbsp;' is treated as a space.
-    :param column: The desired starting column for the first non-&nbsp; character.
-    :return: The aligned string.
-    """
-    nbsp = "&nbsp;"
-    stripped_text = text.lstrip(nbsp)  # Remove leading '&nbsp;' characters
-    leading_spaces = (len(text) - len(stripped_text)) // len(
-        nbsp,
-    )  # Count '&nbsp;' as spaces
-    adjusted_column = max(0, column - leading_spaces)  # Ensure non-negative padding
-
-    return (nbsp * adjusted_column) + text  # Adjust spacing to align correctly
 
 
 def display_current_file(self: "MyGui", file_name: str) -> None:
@@ -784,3 +802,243 @@ def build_profiles(
         profile_list.append({"name": translate_string("No Profile"), "children": no_profile_tasks})
 
     return profile_list
+
+
+def set_tasker_object_names(self: object) -> None:
+    """Set names to display in pulldown menus based on current tasker object names."""
+    # Translate the default values if possible
+    none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
+    display_only_text = "Display only"
+    display_only_text = PrimeItems._(display_only_text) if hasattr(PrimeItems, "_") else display_only_text
+
+    defaults = {
+        "project": self.single_project_name if self.single_project_name else none_text,
+        "profile": self.single_profile_name if self.single_profile_name else none_text,
+        "task": self.single_task_name if self.single_task_name else none_text,
+        "display_only": f"{display_only_text} ",
+    }
+
+    # Map attribute presence to corresponding function
+    handlers = (
+        (self.single_project_name, _set_single_project_name),
+        (self.single_profile_name, _set_single_profile_name),
+        (self.single_task_name, _set_single_task_name),
+    )
+
+    # Go through handlers and call the appropriate function for a single named item
+    for attr_value, func in handlers:
+        if attr_value:
+            # We have a single-named item. Set values and return
+            func(self, defaults)
+            return
+
+    # No single item selected. Set the defaults.
+    _set_default_names(self, defaults)
+
+
+def _set_single_project_name(self: object, defaults: dict) -> None:
+    """Handles setting names when a single project name is available."""
+    text = f"{defaults['display_only']}{translate_string('Project')}"
+    self.specific_name_msg = f"{text} '{self.single_project_name}'"
+
+    try:
+        # NiceGUI uses .value instead of .set()
+        self.specific_project_optionmenu.value = self.single_project_name
+    except AttributeError:
+        return
+
+    self.ai_project_optionmenu.value = self.single_project_name
+    self.specific_profile_optionmenu.value = defaults["profile"]
+    self.ai_profile_optionmenu.value = defaults["profile"]
+    self.specific_task_optionmenu.value = defaults["task"]
+    self.ai_task_optionmenu.value = defaults["task"]
+    # self.update() is removed because NiceGUI automatically updates the UI on value changes.
+
+
+def _set_single_profile_name(self: object, defaults: dict) -> None:
+    """Handles setting names when a single profile name is available."""
+    # Note: Fixed a missing opening single quote before the profile name from the original code
+    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Profile')} '{self.single_profile_name}'"
+
+    try:
+        self.specific_profile_optionmenu.value = self.single_profile_name
+    except AttributeError:
+        return
+
+    self.ai_profile_optionmenu.value = self.single_profile_name
+    self.ai_project_optionmenu.value = defaults["project"]
+    self.specific_project_optionmenu.value = defaults["project"]
+    self.specific_task_optionmenu.value = defaults["task"]
+    self.ai_task_optionmenu.value = defaults["task"]
+
+
+def _set_single_task_name(self: object, defaults: dict) -> None:
+    """Handles setting names when a single task name is available."""
+    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Task')} '{self.single_task_name}'"
+
+    try:
+        self.specific_task_optionmenu.value = self.single_task_name
+    except AttributeError:
+        return
+
+    self.ai_task_optionmenu.value = self.single_task_name
+    self.specific_project_optionmenu.value = defaults["project"]
+    self.specific_profile_optionmenu.value = defaults["profile"]
+    self.ai_project_optionmenu.value = defaults["project"]
+    self.ai_profile_optionmenu.value = defaults["profile"]
+
+
+def _set_default_names(self: object, defaults: dict) -> None:
+    """Handles setting names when no specific name is available."""
+    self.specific_name_msg = ""
+    try:
+        none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
+        project_text = defaults["project"]
+        profile_text = defaults["profile"]
+        task_text = defaults["task"]
+
+        self.specific_project_optionmenu.value = project_text
+
+        # NiceGUI updates available options by changing the .options list directly
+        if not PrimeItems.tasker_root_elements.get("all_projects"):
+            self.specific_project_optionmenu.options = [none_text]
+            self.specific_project_optionmenu.value = none_text
+            self.ai_project_optionmenu.options = [none_text]
+            self.ai_project_optionmenu.value = none_text
+
+        if not PrimeItems.tasker_root_elements.get("all_profiles"):
+            self.specific_profile_optionmenu.options = [none_text]
+            self.specific_profile_optionmenu.value = none_text
+            self.ai_profile_optionmenu.options = [none_text]
+            self.ai_profile_optionmenu.value = none_text
+
+        if not PrimeItems.tasker_root_elements.get("all_tasks"):
+            self.specific_task_optionmenu.options = [none_text]
+            self.specific_task_optionmenu.value = none_text
+            self.ai_task_optionmenu.options = [none_text]
+            self.ai_task_optionmenu.value = none_text
+
+        self.specific_profile_optionmenu.value = profile_text
+        self.ai_project_optionmenu.value = project_text
+        self.ai_profile_optionmenu.value = profile_text
+        self.specific_task_optionmenu.value = task_text
+        self.ai_task_optionmenu.value = task_text
+    except AttributeError:
+        pass
+
+
+from nicegui import ui
+
+
+def display_analyze_button(self: "MyGui", row: int, first_time: bool) -> None:
+    """
+    Display or update the 'Analyze' button for the AI API key.
+    """
+    # Make sure Ai model is blank if value is "None"
+    if self.ai_model == "None":
+        self.ai_model = ""
+
+    # Highlight the button if we have everything to run the Analysis.
+    if is_valid_ai_config(self) and (self.single_task_name or self.single_profile_name or self.single_project_name):
+        # Make it pink
+        bg_color = "#f55dff"
+        text_color = "#FFFFFF"
+    else:
+        # Otherwise, use the default blue.
+        bg_color = "#246FB6"
+        text_color = "#FFFFFF"
+
+    # Define the exact CSS string to apply
+    # We include the border color here since it was defined in your original add_button
+    css_style = f"background-color: {bg_color}; color: {text_color}; border: 2px solid #6563ff;"
+
+    # If first time (or the button doesn't exist yet), create it.
+    if first_time or not getattr(self, "ai_analyze_button", None):
+        # Assuming self.tab_analyze is the ui.tab_panel("Analyze") container
+        with self.tab_analyze:
+            self.ai_analyze_button = (
+                ui
+                .button("Run Analysis", on_click=self.event_handlers.ai_analyze_event)
+                .style(css_style)
+                .classes("mx-auto mt-4 px-8 py-2 font-bold")
+            )
+            # mx-auto centers it (like sticky="n")
+            # px-8 py-2 adds horizontal and vertical padding (like padx=50, pady=(10,10))
+
+    else:
+        # Not first time, just reconfigure the colors of the existing button.
+        # Calling .style() on an existing NiceGUI element instantly updates its CSS!
+        self.ai_analyze_button.style(css_style)
+
+
+# Make sure the single named item exists...that it is a valid name
+def valid_item(
+    self: object,
+    the_name: str,
+    element_name: str,
+    debug: bool,
+    appearance_mode: str,
+) -> bool:
+    """
+    Checks if an item name is valid
+    Args:
+        the_name: String - Name to check
+        element_name: String - Element type being checked
+        debug: boolean - GUI debug mode True or False
+        appearance_mode: String - Light/Dark/System
+    Returns:
+        Boolean - Whether the name is valid
+    Processing Logic:
+    - Initialize temporary primary items object
+    - Get backup xml data and root elements
+    - Match element type and get corresponding root element
+    - Check if item name exists by going through all names in root element
+    """
+    if the_name == "None" or the_name == translate_string("None"):
+        return True
+    # Set our file to get the file from the local drive since it had previously been pulled from the Android device.
+    # Setting PrimeItems.program_arguments["file"] will be used in get_xml() and won't prompt for file if it exists.
+    filename_location = self.android_file.rfind(PrimeItems.slash) + 1
+    if filename_location != 0:
+        PrimeItems.program_arguments["file"] = self.android_file[filename_location:]
+    elif self.file:
+        PrimeItems.program_arguments["file"] = self.file
+    else:
+        _ = self.prompt_and_get_file(self.debug, self.appearance_mode)
+
+    # Get the XML data only if it hasn't been loaded yet
+    if (
+        not PrimeItems.tasker_root_elements["all_projects"]
+        and not PrimeItems.tasker_root_elements["all_profiles"]
+        and not PrimeItems.tasker_root_elements["all_tasks"]
+    ):
+        PrimeItems.program_arguments["directory"] = self.directory
+        PrimeItems.program_arguments["list_unnamed_items"] = self.list_unnamed_items
+        return_code = get_xml(debug, appearance_mode)
+
+        # Did we get an error reading the backup file?
+        if return_code > 0:
+            if return_code == 6:
+                PrimeItems.error_msg = "Cancel button pressed."
+            PrimeItems.error_code = 0
+            return False
+
+    # Set up for name checking
+    # Find the specific item and get it's root element
+    root_element_choices = {
+        "Project": PrimeItems.tasker_root_elements["all_projects"],
+        "Profile": PrimeItems.tasker_root_elements["all_profiles"],
+        "Task": PrimeItems.tasker_root_elements["all_tasks"],
+    }
+    root_element = root_element_choices[element_name]
+
+    # Special case if Task.
+    if root_element == PrimeItems.tasker_root_elements["all_tasks"] and UNNAMED_ITEM in the_name:
+        task_id = get_taskid_from_unnamed_task(the_name)
+        return task_id in root_element
+
+    # See if the item exists by going through all names.  Get rtid of "Project: " or "Profile: " portion of name.
+    colon = the_name.find(":")
+    if colon != -1:
+        the_name = the_name[colon + 1 :].lstrip()
+    return any(root_element[item]["name"] == the_name for item in root_element)

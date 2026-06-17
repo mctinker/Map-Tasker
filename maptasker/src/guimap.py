@@ -12,8 +12,8 @@ import contextlib
 import re
 
 from maptasker.src.error import rutroh_error
-from maptasker.src.guiutils import align_text
 from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil3 import align_text
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import pattern8
 from maptasker.src.xmldata import remove_html_tags

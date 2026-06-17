@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import contextlib
 
+from nicegui import ui
+
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
@@ -94,68 +96,44 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # Keep this here to avoid circular import.  We only need to import MyGui if we are using the GUI,
     # and this is the only place we need it.
     if use_gui:
-        from nicegui import ui  # noqa: PLC0415
-
+        # Initialize the GUI and get the user input.  We do this here to avoid a circular import error.
         from maptasker.src.userintr import MyGui  # noqa: PLC0415
 
-    PrimeItems.program_arguments["gui"] = True
+    PrimeItems.program_arguments["gui"] = True  # Set flag to indicate we are using GUI
 
     # Get rid of any previous Tkinter window
     if PrimeItems.tkroot is not None:
         del PrimeItems.tkroot
         PrimeItems.tkroot = None
 
-    # 1. Create a dictionary to hold our UI instance so we can retrieve it after the server closes
-    shared_state = {}
+    # Display GUI and get the user input
+    logger.info("Starting UI...")
+    user_input = MyGui()
+    # ui.run(reload=False, storage_secret="maptasker_gui_storage", title="MapTasker", port=8080, dark=True)
 
-    # Create a lock to prevent the browser from building the app multiple times
-    app_lock = {"is_built": False}
-
-    # 2. EXPLICITLY define the root page.
-    @ui.page("/")
-    def map_tasker_root() -> None:
-
-        # If the browser tries to refresh or open a second tab, block it!
-        if app_lock["is_built"]:
-            ui.label("MapTasker is already running!").classes("text-3xl text-red-600 font-bold m-8")
-            ui.label("Please check your other open browser tabs to use the application.").classes("text-lg ml-8")
-            return
-
-        print("bingo starting MyGui")
-        shared_state["user_input"] = MyGui()
-
-        # Lock the door behind us
-        app_lock["is_built"] = True
-
-    logger.info("Starting NiceGUI server mainloop")
-
-    # 3. Start the server (This will now properly block without running main() twice)
-    print("bingo ui.run")
+    # Start the server
     ui.run(
         reload=False,
         host="127.0.0.1",
+        # FIX
         storage_secret="maptasker_gui_storage",
         title="MapTasker",
-        port=0,  # Use 0 to automatically avoid port conflicts
+        port=0,
         dark=None,
-        show=True,
+        show=True,  # Force the browser to open the correct HTTP link
     )
-
-    logger.info("GUI closed. Processing arguments...")
-    print("bingo gui closed. Processing arguments...")
-
-    # 4. Retrieve the state created by the web browser session
-    user_input = shared_state.get("user_input")
-
-    # If the user closed the window/browser without the UI building
-    if not user_input:
-        error_handler("Program exited. Goodbye.", 0)
-        exit_program(0)
 
     # Establish our runtime default values if we don't yet have 'em.
     if not PrimeItems.colors_to_use:
+        # FIX This is the second call to this rtn.  runcli is the first call.  redudant!
         PrimeItems.program_arguments = initialize_runtime_arguments()
 
+    # Has the user closed the window?
+    # if not user_input.go_program and not user_input.rerun and not user_input.exit:
+    #     error_handler("Program canceled by user (killed GUI)", 100)
+
+    # 'Run' button hit.  Get all the input from GUI variables
+    PrimeItems.program_arguments["gui"] = True
     # Do we already have the file object?
     if value := user_input.file:
         PrimeItems.file_to_get = value if isinstance(value, str) else value.name

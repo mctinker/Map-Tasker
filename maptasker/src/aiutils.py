@@ -6,6 +6,10 @@
 import os
 import pickle
 from contextlib import suppress
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from maptasker.src.userintr import MyGui
 
 # import ollama
 # from google.genai import Client
@@ -398,3 +402,59 @@ def detect_and_read_file(file_path: object) -> tuple:
         pass
 
     return "None", None
+
+
+def is_valid_ai_config(self: "MyGui") -> bool:
+    """
+    Validates the AI model and API key against predefined configurations in PrimeItems.
+
+    This method iterates through a list of known AI providers (e.g., OpenAI, Anthropic, Gemini)
+    and checks if the instance's `self.ai_model` exists within any provider's model list.
+    If a matching model is found, it further checks if the `self.ai_apikey` matches
+    the corresponding API key stored in `PrimeItems.ai` for that provider.
+    Some providers (like 'llama' in this example) may not require an API key check.
+
+    The method rutroh_errors a message indicating whether the AI model and API key combination
+    is considered valid based on the configurations.
+
+    Returns:
+        bool: True if the `self.ai_model` and `self.ai_apikey` (if required)
+              are valid according to `PrimeItems.ai` configurations; False otherwise.
+    """
+    # Dictionary mapping provider names to their models and key attributes in PrimeItems.ai
+    # If 'llama_models' needs an API key, add 'llama_key' here.
+    ai_providers = {
+        "openai": {"models": "openai_models", "key": "openai_key"},
+        "anthropic": {"models": "anthropic_models", "key": "anthropic_key"},
+        "gemini": {"models": "gemini_models", "key": "gemini_key"},
+        "deepseek": {"models": "deepseek_models", "key": "deepseek_key"},
+        "llama": {"models": "llama_models", "key": None},  # Assuming no key for llama based on original if
+    }
+    if not self.ai_model:
+        return False  # Don't do anything if there is no model to check against.
+
+    # Make sure we have read in the api keys.
+    if not self.ai_apikey or self.ai_apikey == "Hidden":
+        self.ai_apikey = get_api_key()
+
+    is_valid_config = False
+    for provider, config in ai_providers.items():
+        models = PrimeItems.ai.get(config["models"], [])
+        key_to_check = PrimeItems.ai.get(config["key"], None)
+        api_key = key_to_check if provider != "llama" and key_to_check == PrimeItems.ai[f"{provider}_key"] else None
+
+        # If llama, then we need to strip " (Installed)" off the name.
+        if provider == "llama":
+            models = [item.replace(" (installed)", "") for item in models]
+
+        if self.ai_model in models:
+            if provider != "llama" and not api_key:
+                # We have found the model but it doesn't have the api key.
+                break
+            if api_key is None or PrimeItems.ai[config["key"]] == api_key:  # No key check needed for this provider
+                is_valid_config = True
+                self.ai_apikey = api_key
+                break
+            break
+
+    return is_valid_config
