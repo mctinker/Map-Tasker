@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING
 
 from nicegui import app, ui
 
+from maptasker.src.guiutil2 import sort_languages_with_priority
+from maptasker.src.guiutils import display_model_pulldown
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_PROFILES_PER_LINE, logger
 
@@ -95,7 +98,7 @@ class NiceGuiTextView:
         self.build_ui()
         self.process_data(the_data)
 
-    def build_ui(self) -> None:
+    def build_ui(self: MyGui) -> None:
         """Builds the UI layout for the various text views, including toolbar and scrollable display area."""
         # Toolbar
         with ui.row().classes("w-full items-center gap-2 p-2 mb-2 bg-gray-200 dark:bg-gray-800 rounded"):
@@ -108,9 +111,11 @@ class NiceGuiTextView:
             ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
 
         # Text Display Area
+        background_color = "bg-blue-100 dark:bg-blue-900"
         self.scroll_area = ui.scroll_area().classes(
-            "w-full h-[70vh] border-2 border-gray-600 p-4 font-mono text-sm whitespace-pre bg-white dark:bg-black",
+            "w-full h-[70vh] border-2 border-gray-600 p-4 font-mono text-sm whitespace-pre bg-blue-100 dark:bg-blue-900",
         )
+
         with self.scroll_area:
             self.html_display = ui.html()
 
@@ -299,14 +304,24 @@ def initialize_screen(self: MyGui) -> None:
             .classes("w-full")
         )
 
-        ui.checkbox("Just Display Everything!").bind_value(self, "everything")
-        ui.checkbox("Display Conditions").bind_value(self, "conditions")
-        ui.checkbox("Display TaskerNet Info").bind_value(self, "taskernet")
-        ui.checkbox("Display Tasker Preferences").bind_value(self, "preferences")
-        ui.checkbox("Hide Task Details Under Twisty").bind_value(self, "twisty")
-        ui.checkbox("Display Directory").bind_value(self, "directory")
-        ui.checkbox("Display Configuration Outline").bind_value(self, "outline")
-        ui.checkbox("Display Prettier Output").bind_value(self, "pretty")
+        self.everything_checkbox = ui.checkbox("Just Display Everything!").bind_value(self, "everything")
+        self.conditions_checkbox = ui.checkbox("Display Conditions").bind_value(self, "conditions")
+        self.taskernet_checkbox = ui.checkbox("Display TaskerNet Info").bind_value(self, "taskernet")
+        self.preferences_checkbox = ui.checkbox("Display Tasker Preferences").bind_value(self, "preferences")
+        self.twisty_checkbox = ui.checkbox("Hide Task Details Under Twisty").bind_value(self, "twisty")
+        self.directory_checkbox = ui.checkbox("Display Directory").bind_value(self, "directory")
+        self.configuration_checkbox = ui.checkbox("Display Configuration Outline").bind_value(self, "outline")
+        self.pretty_checkbox = ui.checkbox("Display Prettier Output").bind_value(self, "pretty")
+        # Screen appearance: Light, Dark, Sysatem
+        create_appearance_mode_section(self)
+        # Label for Project/Profile/Task/Scene attributes
+        _create_name_display_options_section(self)
+        # Task action limit
+        _create_task_action_limit_section(self)
+        # Indentation amount
+        _create_indentation_section(self)
+        # Language
+        _create_language_selection_section(self)
 
         ui.separator().classes("my-4")
 
@@ -356,7 +371,10 @@ def initialize_screen(self: MyGui) -> None:
 
                 # Make sure the label is also assigned so we can update its text later
                 self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-2 text-left")
-                ui.checkbox("List Unnamed Items").bind_value(self, "list_unnamed_items")
+                self.list_unnamed_items_checkbox = ui.checkbox("List Unnamed Items").bind_value(
+                    self,
+                    "list_unnamed_items",
+                )
 
             with ui.tab_panel(self.tab_colors):
                 ui.label("Theme Configuration").classes("text-lg")
@@ -367,13 +385,176 @@ def initialize_screen(self: MyGui) -> None:
                 with ui.row().classes("gap-4"):
                     ui.button("Show/Edit API Key(s)")
                     ui.button("Change Prompt")
+                    self.everything_checkbox = ui.checkbox("Just Display Everything!").bind_value(self, "everything")
+                    _create_analyze_tab_content(self, ui.tab_panel(self.tab_analyze))
 
             with ui.tab_panel(self.tab_debug):
-                ui.checkbox("Debug Mode").bind_value(self, "debug")
-                ui.checkbox("Display Runtime Settings")
+                self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug")
+                self.runtime_checkbox = ui.checkbox("Display Runtime Settings")
 
 
 def get_rid_of_windows_and_exit(self: MyGui, delete_all: bool = True) -> None:
     """Shuts down the NiceGUI server and exits."""
     ui.notify("Shutting down MapTasker...", type="warning")
     app.shutdown()
+
+
+def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
+    """Populates the 'Analyze' (AI) tab using NiceGUI."""
+
+    # Use the 'with' context manager to place elements inside the passed tab panel
+    with tab:
+        # 1. Action Buttons Row
+        with ui.row().classes("items-center gap-4 mb-4"):
+            self.show_apikeys_button = ui.button("Show/Edit API Key(s)", on_click=self.event_handlers.ai_apikey_event)
+            self.change_prompt_button = ui.button("Change Prompt", on_click=self.event_handlers.ai_prompt_event)
+
+        # 2. Model Selection Row
+        with ui.row().classes("items-center gap-4"):
+            self.model_to_use_label = ui.label("Model to Use:").classes("font-bold")
+
+            # Display the default model list
+            # Note: Removed the 'center' argument as layout is now handled by CSS flexbox
+            display_model_pulldown(self)
+
+            # Extra model list checkbox with chained tooltip
+            self.aimodel_extend_checkbox = (
+                ui
+                .checkbox("Extended", on_change=self.event_handlers.extended_models_event)
+                .tooltip(
+                    "Display an extended list of ALL available models.\n\n"
+                    "Note: If the API key is not set for OpenAI or Gemini,\n"
+                    "      then the default model list for the respective\n"
+                    "      AI provider will be displayed.\n\n"
+                    "Note: Not all models have been validated and\n"
+                    "      one or more may return an error on analysis.\n\n"
+                    "Note: Enabling this option for the first time will\n"
+                    "      force the installation of the following modules\n"
+                    "      and all of their dependencies:\n"
+                    "      google-genai, anthropic, openai, ollama",
+                )
+                .style("white-space: pre-line")
+            )  # Ensures the newline characters format correctly in HTML
+
+
+def create_appearance_mode_section(self: MyGui) -> None:
+    """Creates the appearance mode selection in the NiceGUI sidebar."""
+    # Label for the section
+    self.appearance_mode_label = ui.label("Appearance Mode:").classes("text-sm font-semibold mt-2")
+
+    # Dropdown select menu mapping to your event handler
+    self.appearance_mode_optionmenu = ui.select(
+        options=["Light", "Dark", "System"],
+        value="Dark",  # Default initial value
+        on_change=self.event_handlers.change_appearance_mode_event,
+    ).classes("w-full")
+
+
+def _create_name_display_options_section(self: MyGui) -> None:
+    """
+    Optimized creation of name display options using NiceGUI.
+    Renders a section header and a 2x2 grid of styling checkboxes.
+    """
+    handlers = self.event_handlers
+
+    # 1. Create the Section Label with an inline native tooltip
+    self.display_names_label = (
+        ui
+        .label("Project/Profile/Task/Scene Names:")
+        .classes("text-sm font-semibold mt-4 mb-1")
+        .tooltip("Add highlighting to Project, Profile and Task names in the output.")
+    )
+
+    # 2. Define Checkbox Configurations
+    # We drop the row layout configurations and coordinate geometry strings
+    checkbox_configs = [
+        (
+            "bold_checkbox",
+            handlers.names_bold_event,
+            "Bold",
+            "Bold and Italicize are mutually exclusive in the Map view.",
+        ),
+        (
+            "italicize_checkbox",
+            handlers.names_italicize_event,
+            "Italicize",
+            "Italicize and Bold are mutually exclusive in the Map view.",
+        ),
+        ("highlight_checkbox", handlers.names_highlight_event, "Highlight", None),
+        ("underline_checkbox", handlers.names_underline_event, "Underline", None),
+    ]
+
+    # 3. Batch Creation inside a 2-Column Responsive Grid Layout
+    with ui.grid(columns=2).classes("w-full gap-x-4 gap-y-1 pl-2"):
+        for attr, event, label, tip in checkbox_configs:
+            # Instantiate the checkbox
+            checkbox = ui.checkbox(label, on_change=event)
+
+            # Save the reference dynamically to the 'self' instance
+            setattr(self, attr, checkbox)
+
+            # Chain the tooltip natively if one is defined
+            if tip:
+                checkbox.tooltip(tip)
+
+
+def _create_task_action_limit_section(self: MyGui) -> None:
+    """Creates the task 'actions' limit slider in the NiceGUI sidebar."""
+    text_to_insert = "Task 'actions' limit"
+    text = PrimeItems._(text_to_insert) if hasattr(PrimeItems, "_") else text_to_insert
+
+    # 1. Label tracking the live dynamic value
+    self.task_action_label = ui.label(f"{text}: {self.task_action_warning_limit}").classes(
+        "text-sm font-semibold mt-4 mb-1",
+    )
+
+    # 2. NiceGUI Slider
+    # CustomTkinter uses 'command=', NiceGUI uses 'on_change='
+    # NiceGUI handles styling with Tailwind (e.g., track color tints via accent)
+    self.task_action_limit = (
+        ui.slider(min=10, max=100, step=1, value=100, on_change=self.event_handlers.tasklimit_event).classes(
+            "w-full px-2 accent-green-600",
+        )
+        # .slider has no tooltip_element object
+        # .tooltip(
+        #     "Select how many actions in a Task before issuing a warning.\n"
+        #     "The warning appears near the bottom of the configuration output,\n"
+        #     "and is intended to help identify Tasks that are too complex\n"
+        #     "and which should potentially be broken up into multiple Tasks.\n"
+        #     "A setting of '100' means there is no limit.",
+        # )
+    )
+    # Style the multi-line tooltip explicitly so web browsers respect the newlines
+    # self.task_action_limit.tooltip_element.style("white-space: pre-line")
+
+
+def _create_indentation_section(self: MyGui) -> None:
+    """Creates the If/Then/Else indentation dropdown options in the NiceGUI sidebar."""
+    self.indent_label = ui.label("If/Then/Else Indentation Amount:").classes("text-sm font-semibold mt-4 mb-1")
+
+    # CustomTkinter's option menu transforms into ui.select
+    self.indent_option = (
+        ui.select(
+            options=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+            value="4",  # Default initial value matching your original comments
+            on_change=self.event_handlers.indent_selected_event,
+        ).classes("w-full")
+        # .tooltip("Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.")
+    )
+    # self.indent_option.tooltip_element.style("white-space: pre-line")
+
+
+def _create_language_selection_section(self: MyGui) -> None:
+    """Creates the language selection dropdown in the NiceGUI sidebar."""
+    self.language_label = ui.label("Language:").classes("text-sm font-semibold mt-4 mb-1")
+
+    languages = sort_languages_with_priority(PrimeItems.languages.keys())
+
+    # Pre-determine current translated initial string match
+    initial_language = translate_string(self.language)
+
+    self.language_optionmenu = ui.select(
+        options=languages,
+        value=initial_language,
+        on_change=self.event_handlers.language_selected_event,
+    ).classes("w-full")

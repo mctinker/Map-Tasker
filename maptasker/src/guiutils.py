@@ -1042,3 +1042,184 @@ def valid_item(
     if colon != -1:
         the_name = the_name[colon + 1 :].lstrip()
     return any(root_element[item]["name"] == the_name for item in root_element)
+
+
+# def display_model_pulldown(self: "MyGui") -> None:
+#     """Displays a pulldown menu of AI models using NiceGUI.
+
+#     This function dynamically creates or updates a select pulldown containing a list of AI models.
+#     The list of models can be either a pre-defined set or an extended list, depending on the
+#     `guiwin.ai_model_extended_list` flag.
+#     """
+#     # Determine if we are coming from guiwins (valid 'self') or userintr ('event_handler')
+#     guiwin = self
+#     try:
+#         if self.ai_model:
+#             pass
+#     except AttributeError:
+#         guiwin = self.parent
+
+#     # Determine what list of models to generate
+#     if guiwin.ai_model_extended_list and not guiwin.initialization:
+#         if guiwin.displaying_extended_list is not None and guiwin.displaying_extended_list:
+#             return  # Return if we are already displaying it.
+
+#         if not PrimeItems.language_set:
+#             display_models = get_extended_ai_model_list()
+#             guiwin.displaying_extended_list = True
+#         else:
+#             display_models = sorted(
+#                 model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
+#             )
+#     else:
+#         if guiwin.displaying_extended_list is not None and not guiwin.displaying_extended_list:
+#             return  # Return if we are already displaying it.
+
+#         display_models = sorted(
+#             model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
+#         )
+#         guiwin.displaying_extended_list = False
+
+#     # Insert the saved model name or 'None' as the initial selection placeholder
+#     default_value = PrimeItems.program_arguments["ai_model"] if PrimeItems.program_arguments["ai_model"] else "None"
+#     if default_value not in display_models:
+#         display_models.insert(0, default_value)
+
+#     # In NiceGUI, we check if the element already exists.
+#     # If it does, we just swap its options out dynamically instead of tearing down the UI element!
+#     if hasattr(guiwin, "ai_model_option") and guiwin.ai_model_option:
+#         guiwin.ai_model_option.options = display_models
+#         guiwin.ai_model_option.value = default_value
+#         guiwin.ai_model_option.update()
+#     else:
+#         # If it doesn't exist yet, build it.
+#         # (Assuming this runs inside the UI layout row block set up by `_create_analyze_tab_content`)
+#         guiwin.ai_model_option = (
+#             ui.select(
+#                 options=display_models,
+#                 value=default_value,
+#                 on_change=guiwin.event_handlers.ai_model_selected_event,
+#             ).classes("w-64")  # Sets a standard width layout constraint
+#         )
+
+
+# def display_selected_object_labels(self: "MyGui") -> None:
+#     """
+#     Display the current settings for AI dynamically via NiceGUI properties.
+#     """
+#     # 1. State/Data Processing Logic (Kept identical to your original logic)
+#     if not self.ai_model:
+#         all_models = {
+#             "OpenAI": PrimeItems.ai["openai_models"],
+#             "anthropic": PrimeItems.ai["anthropic_models"],
+#             "LLAMA": PrimeItems.ai["llama_models"],
+#             "DeepSeek": PrimeItems.ai["deepseek_models"],
+#             "Gemini": PrimeItems.ai["gemini_models"],
+#         }
+#         for ai, models in all_models.items():
+#             if self.ai_model in models:
+#                 self.ai_model = ai
+#                 break
+
+#     if not self.ai_apikey:
+#         self.ai_apikey = get_api_key()
+
+#     key_to_display = "N/A" if self.ai_name == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
+#     model_to_display = self.ai_model if self.ai_model else "None"
+
+#     none_translated = translate_string("None")
+#     project_to_display = self.single_project_name if self.single_project_name else none_translated
+#     profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
+#     task_to_display = self.single_task_name if self.single_task_name else none_translated
+
+#     # 2. Update the Model Pulldown Selection Selection
+#     # In NiceGUI, we just modify the selector's .value instead of calling a .set() method
+#     if hasattr(self, "ai_model_option") and self.ai_model_option:
+#         self.ai_model_option.value = model_to_display
+#     else:
+#         # If it hasn't been built yet, invoke your pulldown generator function
+#         display_model_pulldown(self)
+
+#     # 3. Update Text Values Directly (No widget destruction required!)
+#     self.ai_set_label1.text = f"{self.ai_name} API Key: {key_to_display}, Model: {model_to_display}"
+
+#     translation2 = translate_string("Project to Analyze:")
+#     self.ai_set_label2.text = f"{translation2} {project_to_display}"
+
+#     translation3 = translate_string("Profile to Analyze:")
+#     self.ai_set_label3.text = f"{translation3} {profile_to_display}"
+
+#     translation4 = translate_string("Task to Analyze:")
+#     self.ai_set_label4.text = f"{translation4} {task_to_display}"
+
+#     # Let the browser wrap text natively via standard string injection
+#     prompt_prefix = translate_string("Prompt:")
+#     translated_prompt = translate_string(self.ai_prompt)
+#     self.ai_set_label5.text = f"{prompt_prefix} '{translated_prompt}'"
+
+#     # 4. Update the label on the 'Specific Name' tab
+#     all_objects = translate_string("Display all Projects, Profiles, and Tasks.")
+#     name_to_display = self.specific_name_msg if self.specific_name_msg else all_objects
+
+#     # Setting text directly on the tracking element you saved in guiwins.py
+#     self.specific_name_msg_label.text = name_to_display
+
+
+def add_logo(self: "MyGui", logo_name: str) -> None:
+    """
+    Add a logo to the screen dynamically via NiceGUI.
+
+    Instead of grid coordinates, layouts are handled naturally inside their parent panels
+    (the sidebar drawer, the tab panel, etc.).
+    """
+    # 1. Determine the path to the assets directory
+    abspath = os.path.abspath(__file__)
+    assets_dir = os.path.dirname(abspath).replace("src", "assets")
+
+    doing_flag = logo_name.startswith("flag")
+
+    if doing_flag:
+        language = logo_name.split("flag_")[1]
+        img_src = f"file://{assets_dir}/icons/{language}.png"
+        size_classes = "w-[25px] h-[16px]"
+        parent = self  # Sidebar context or wherever you invoke it
+    elif logo_name == "maptasker":
+        # We fetch local file paths as absolute URIs
+        light_src = f"file://{assets_dir}/maptasker_logo_light.png"
+        dark_src = f"file://{assets_dir}/maptasker_logo_dark.png"
+        size_classes = "w-[190px] h-[50px]"
+        parent = self
+    elif logo_name == "coffee":
+        img_src = f"file://{assets_dir}/bmc-logo-no-background.png"
+        size_classes = "w-[36px] h-[54px]"
+        parent = self.tab_debug  # Points to the ui.tab_panel built in guiwins.py
+    else:
+        # Replaces your custom error function layout
+        if "rutroh_error" in globals():
+            rutroh_error("Invalid logo type")
+        return
+
+    # 2. Render the images using NiceGUI context rules
+    with parent:
+        try:
+            # MapTasker requires handling an explicit dark mode swap swap over the web
+            if logo_name == "maptasker":
+                # Render the light version (hidden when dark class is applied to html)
+                ui.image(light_src).classes(f"{size_classes} block dark:hidden object-contain")
+                # Render the dark version (hidden by default, shown when dark class is applied)
+                ui.image(dark_src).classes(f"{size_classes} hidden dark:block object-contain")
+            else:
+                # Flags and Coffee do not change based on dark mode status
+                ui.image(img_src).classes(f"{size_classes} object-contain")
+
+        except Exception as e:
+            if "rutroh_error" in globals():
+                rutroh_error(f"Error displaying {logo_name} logo: {e}")
+
+        # 3. Handle the structural coffee button appending
+        if logo_name == "coffee":
+            with ui.row().classes("items-center gap-2 mt-2"):
+                self.coffee_button = ui.button(
+                    translate_string("Buy Me A Coffee"),
+                    on_click=self.event_handlers.coffee_event,
+                ).classes("bg-blue-600 text-white font-bold")

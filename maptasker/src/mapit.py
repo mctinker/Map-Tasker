@@ -14,8 +14,7 @@
 #                         \__|
 
 """
-This is the main coordinator module that imports all the other components and
-executes the key steps to take the Tasker backup and produce the visual map output.
+This is the main coordinator module that kicks-off the other components that launch the GUI.
 """
 
 #                                                                                      #
@@ -30,18 +29,9 @@ executes the key steps to take the Tasker backup and produce the visual map outp
 import sys
 
 import maptasker.src.proginit as initialize
-from maptasker.src import projects
-from maptasker.src.getputer import save_restore_args
-from maptasker.src.globalvr import get_variables
 from maptasker.src.lineout import LineOut
-from maptasker.src.mapai import map_ai
-from maptasker.src.maputils import (
-    exit_program,
-    restart_program_subprocess,
-)
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
-    DISPLAY_DETAIL_LEVEL_all_variables,
     debug_file,
 )
 
@@ -141,55 +131,18 @@ def initialize_everything() -> tuple[list, list, list]:
     return [], [], []
 
 
-# Re-launch our program via the "rerun" feature.
-def restart_program() -> None:
-    # Restart our program
-    # sys.executable = the path of the python interpreter and use it to execute ourselves again.
-    """Restarts the program.
-    Parameters:
-        - None
-    Returns:
-        - None
-    Processing Logic:
-        - Call ourselves and exit after the last call."""
-
-    # _ = mapit_all("")
-    restart_program_subprocess()
-    exit_program(0)  # This should never be called.
-
-
-# Handle "rerun" request
-def do_rerun() -> None:
-    """
-    Re-runs the program with a new file
-    Args:
-        None: No arguments required
-    Returns:
-        None: Function does not return anything
-    Re-runs the program with a new file by:
-    - Freeing up memory
-    - Rerunning the program with the new file
-    """
-
-    # Get rid of everything.
-    clean_up_memory()
-
-    # Now do it!  Rerun the program.
-    restart_program()
-
-
 ########################################################################################
 #                                                                                      #
 #   Main Program Starts Here                                                           #
 #                                                                                      #
 ########################################################################################
-def mapit_all(file_to_get: str) -> int:
+def mapit_all() -> int:
     # Initialize variables and get the backup xml file
     """
     Maps all Projects, Profiles, Tasks and Scenes in a Tasker backup file
 
     Args:
-        file_to_get (str): The Tasker backup file to process
+        None
 
     Returns:
         int: 0
@@ -199,85 +152,11 @@ def mapit_all(file_to_get: str) -> int:
 
         - Initialize everything
 
-        - Gets all Project and Profile variables
-        - Processes each Project and its associated Profiles
-        - Stores details of single selected Project, Profile or Task
-
-    Checks for single selected item and processes accordingly.
-    Processes unique situations like Tasks not in Profiles and Projects without Profiles/Tasks.
-    Cleans up memory after completing processing.
-    If coming from the GUI, then PrimeItems may already be primed with data.
+        This will eventually call rungui or runcli.
     """
 
-    # # Save our mapview and doing_diagram flags since 'initialize_everything' would otherwise wipe them out.
-    # try:
-    #     save_map = PrimeItems.program_arguments["guiview"]
-    # except (KeyError, TypeError):
-    #     save_map = False
-    # try:
-    #     save_diagram = PrimeItems.program_arguments["doing_diagram"]
-    # except (KeyError, TypeError):
-    #     save_diagram = False
+    _, _, _ = initialize_everything()
 
-    (
-        found_tasks,
-        projects_without_profiles,
-        projects_with_no_tasks,
-    ) = initialize_everything()
-
-    # FIX Move into a separate program to generate the output html file.
-    # Let the userr know we are in debug mode.
-    if PrimeItems.program_arguments["debug"]:
-        print(">>>  MapTasker is in debug mode.  <<<")
-
-    PrimeItems.program_arguments["guiview"] = save_map
-    PrimeItems.program_arguments["doing_diagram"] = save_diagram
-
-    if PrimeItems.error_code > 0:
-        # We have a error.  Spit it out and exit.
-        exit_program(PrimeItems.error_code)
-
-    # Set up file to read if it is passed in (via rerun)
-    if file_to_get:
-        PrimeItems.file_to_get = file_to_get
-    else:
-        # No file.  Just return to gui
-        return 0
-
-    # Get all Tasker variables
-    if PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
-        get_variables()
-
-    # Process all Projects and their Profiles
-    found_tasks = projects.process_projects_and_their_profiles(
-        found_tasks,
-        projects_without_profiles,
-    )
-
-    # Do special handling: wrap up back matter and print the output.
-    final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks)
-
-    # Handle Ai Analysis
-    if PrimeItems.program_arguments["ai_analyze"]:
-        map_ai()
-        PrimeItems.program_arguments["rerun"] = True
-
-    # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
-    save_rerun_state = PrimeItems.program_arguments["rerun"]
-    PrimeItems.program_arguments["rerun"] = False
-    _, _ = save_restore_args(
-        PrimeItems.program_arguments,
-        PrimeItems.colors_to_use,
-        to_save=True,
-    )
-    PrimeItems.program_arguments["rerun"] = save_rerun_state
-
-    # Do a little cleanup by clearing output lines
-    PrimeItems.output_lines.output_lines.clear()
-
-    # Rerun this program if "Rerun" was selected from GUI
-    # First get the filename as a string.
-    if PrimeItems.program_arguments["rerun"]:
-        do_rerun()
+    # Code drops down here upon exit of the GUI.
 
     return 0

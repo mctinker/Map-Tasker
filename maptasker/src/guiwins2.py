@@ -7,7 +7,89 @@ from maptasker.src.getputer import save_restore_args
 from maptasker.src.primitem import PrimeItems
 
 
-def open_api_key_dialog(gui_instance: object = None):
+class APIKeyDialog:
+    """Manages the AI API Keys popup using a NiceGUI modal dialog."""
+
+    def __init__(self, master_gui: object) -> None:
+        """Initialize the NiceGUI dialog container."""
+        self.master = master_gui
+        self.my_gui = master_gui  # Reference to master GUI matching original code logic
+
+        # In NiceGUI, we save the dialog object itself
+        self.my_gui.ai_apikey_window = ui.dialog()
+
+        # Build the layout inside the dialog
+        with self.my_gui.ai_apikey_window, ui.card().classes("w-[700px] p-6 max-w-full"):
+            ui.label("API Key Options").classes("text-xl font-bold text-blue-600 mb-4")
+
+            # Form grid layout area (Labels, Inputs, and Clears)
+            with ui.column().classes("w-full gap-4 mb-6"):
+                self.openai_key = self.create_key_entry("OpenAI API Key:", "openai_key")
+                self.anthropic_key = self.create_key_entry("Claude API Key:", "anthropic_key")
+                self.deepseek_key = self.create_key_entry("DeepSeek API Key:", "deepseek_key")
+                self.gemini_key = self.create_key_entry("Gemini API Key:", "gemini_key")
+
+            # Action Buttons Row (OK, ?, and Cancel)
+            with ui.row().classes("w-full justify-end items-center gap-2 border-t pt-4"):
+                # OK Button
+                ui.button(
+                    "OK",
+                    on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(cancel=False, clear=""),
+                ).classes("bg-blue-600 text-white px-6")
+
+                # Help/Query Button
+                ui.button("?", on_click=lambda: self.my_gui.event_handlers.query_event("apikey")).classes(
+                    "bg-gray-500 text-white min-w-[40px]",
+                )
+
+                # Cancel Button
+                ui.button(
+                    "Cancel",
+                    on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(cancel=True, clear=""),
+                ).classes("bg-red-500 text-white px-6")
+
+    def create_key_entry(self, label_text: str, placeholder_key: str) -> ui.input:
+        """Helper function to create a label, text entry, and 'Clear' button for an API key."""
+        entry_name = f"entry_{placeholder_key}"
+
+        # Align each key group in a single clean horizontal row
+        with ui.row().classes("w-full items-center justify-between gap-4"):
+            # Label
+            ui.label(label_text).classes("text-orange-500 font-semibold w-32")
+
+            # Input field tied directly to dynamic object variable names
+            # Using password mode keeps keys masked out securely on screen
+            input_widget = (
+                ui
+                .input(value=PrimeItems.ai.get(placeholder_key, ""), placeholder="Not configured...")
+                .props("password clearable")
+                .classes("flex-grow")
+            )
+
+            # Save widget representation dynamically to the dialog instance
+            setattr(self, entry_name, input_widget)
+
+            # Clear button action
+            ui.button(
+                "Clear",
+                on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(
+                    cancel=False,
+                    clear=placeholder_key,
+                ),
+            ).classes("bg-gray-300 text-black text-xs")
+
+        return input_widget
+
+    def open(self) -> None:
+        """Public method to show the dialog."""
+        self.my_gui.ai_apikey_window.open()
+
+    def close(self) -> None:
+        """Public method to close the dialog."""
+        self.my_gui.ai_apikey_window.close()
+
+
+def open_api_key_dialog(gui_instance: object = None) -> ui.dialog:
     """
     Opens a NiceGUI dialog to manage AI API keys.
     Replaces the old CTk APIKeyDialog class.

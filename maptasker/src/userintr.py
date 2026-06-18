@@ -7,17 +7,23 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, ui
 
+from maptasker.src.aiutils import get_api_key
+from maptasker.src.bildhtml import build_html
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guimap import parse_html
 from maptasker.src.guiutils import (
+    add_logo,
     build_profiles,
     clear_android_buttons,
     display_analyze_button,
     display_current_file,
+    display_model_pulldown,
+    display_selected_object_labels,
     get_xml,
+    list_tasker_objects,
     reload_gui,
     reset_primeitems_single_names,
     set_tasker_object_names,
@@ -27,17 +33,21 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins import (
     NiceGuiTextView,
     NiceGuiTreeView,
+    create_appearance_mode_section,
     initialize_gui,
     initialize_screen,
 )
+from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapit import mapit_all
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import log_startup_values, translate_string
 from maptasker.src.maputils import (
     clear_tasker_data,
+    make_hex_color,
 )
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
+    TAB_NAMES,
     TYPES_OF_COLOR_NAMES,
     logger,
 )
@@ -91,11 +101,27 @@ class MyGui:
         except Exception as e:  # noqa: BLE001
             ui.label(f"CRASH IN UI LAYOUT: {e}").classes("text-2xl text-red-500 m-8 font-mono")
             print("\n" + "=" * 50)
-            print("🚨 CRITICAL UI BUILD ERROR 🚨")
-            import traceback  # noqa: PLC0415
+            print("🚨 CRITICAL UI BUILD ERROR 🚨", e)
+            exit(99)
+            # import traceback
+
+        # Now restore the settings and update the fields if not resetting.
+        default_language = "English"
+        if not PrimeItems.program_arguments["reset"]:
+            self.event_handlers.restore_settings_event()
 
             traceback.print_exc()
             print("=" * 50 + "\n")
+
+        # FIX: FOR DEVELOPMENT ONLY
+        PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
+        PrimeItems.single_project_name = self.single_project_name = PrimeItems.program_arguments[
+            "single_project_name"
+        ] = "Chat GPT"
+        PrimeItems.program_arguments["guiview"] = True
+        _ = get_xml(self.debug, self.appearance_mode)
+        self.view_limit = 30000
+        self.event_handlers.view_event("map")
 
         self.initialization = False
 
@@ -588,6 +614,282 @@ class MyGui:
 
         return True
 
+    def extract_settings(self, temp_args: dict) -> None:
+        """
+        Extract settings from arguments dictionary.  Invoke the argument's lamba routine to set the value and display message.
+        Args:
+            temp_args: Dictionary of settings
+        Returns:
+            None: Does not return anything
+        - Loops through dictionary and sets attributes on object
+        - Calls restore_display to get message for setting change
+        - Loops through color lookup and builds message of color changes
+        - Displays message box with all setting changes
+        """
+        # Indicate that an extraction is in progress so we don't inadvertently change the colors already set
+        # via the 'appearance_mode' setting.
+        self.extract_in_progress = True
+        for key, value in temp_args.items():
+            if key is not None:
+                setattr(self, key, value)
+                # Start log if debug
+                if key == "debug" and value:
+                    log_startup_values()
+                # Now display the setting and act on it if necessary.
+                if new_message := self.restore_display(key, value):
+                    self.display_message_box(f"{new_message}\n", "Green")
+
+        # Set the tab to use to the default.
+        if self.tab_to_use is None:
+            self.tab_to_use = TAB_NAMES[0]
+
+        # We have read colors and runtime args from backup file.  Now extract them for use.
+        self.extract_colors()
+
+        # Display completion
+        self.display_message_box("Settings restored.\n", "Green")
+        self.extract_in_progress = False
+
+    # Given a setting key and value, set the attribute for the key to the value and return the setting as a message.
+    def restore_display(self, key: str, value: str) -> str:
+        # Dictionary of program arguments and function to run for each upon restoration.
+        """
+        Restores display settings
+        Args:
+            key: str - Setting name
+            value: str - Setting value
+        Returns:
+            message: str - Message describing setting change
+        {Processing Logic}:
+            - Maps setting names to lambda functions for processing
+            - Checks for special case settings and sets attribute directly
+            - Looks up and runs corresponding lambda function
+            - Returns message generated by lambda function
+        """
+        message = ""
+        keys_to_ignore = {
+            "gui",
+            "save",
+            "restore",
+            "rerun",
+            "reset",
+            "window_position",
+            "Analyze",
+            "ai_analyze",
+            "ai_analysis_window_position",
+            "ai_apikey_window_position",
+            "ai_model",
+            "ai_name",
+            "ai_popup_window_position",
+            "ai_prompt",
+            "color_window_position",
+            "diagram_window_position",
+            "map_window_position",
+            "misc_window_position",
+            "progressbar_window_position",
+            "tab_to_use",
+            "tree_window_position",
+            "guiview",
+            "fetched_backup_from_android",
+        }
+        # Define what to do for each argument restored.
+        set_to = translate_string("set to")
+        message_map = {
+            "android_ipaddr": lambda: f"{translate_string('Android Get XML TCP IP Address')} {set_to} {value}\n",
+            "android_port": lambda: f"{translate_string('Android Get XML Port Number')} {set_to} {value}\n",
+            "android_file": lambda: f"{translate_string('Android Get XML File Location')} {set_to} {value}\n",
+            "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(
+                value,
+            ),
+            "ai_model_extended_list": lambda: self.select_deselect_checkbox(
+                self.aimodel_extend_checkbox,
+                value,
+                "Display Profile/Task Conditions",
+                display=False,
+            ),
+            "bold": lambda: self.select_deselect_checkbox(
+                self.bold_checkbox,
+                value,
+                "Display Names in Bold",
+                display=False,
+            ),
+            "conditions": lambda: self.select_deselect_checkbox(
+                self.conditions_checkbox,
+                value,
+                "Display Profile/Task Conditions",
+                display=False,
+            ),
+            "debug": lambda: self.select_deselect_checkbox(
+                self.debug_checkbox,
+                value,
+                "Debug Mode",
+                display=False,
+            ),
+            "directory": lambda: self.select_deselect_checkbox(
+                self.directory_checkbox,
+                value,
+                "Display Directory",
+                display=False,
+            ),
+            "display_detail_level": lambda: self.event_handlers.detail_selected_event(
+                value,
+            ),
+            "file": lambda: self.display_and_set_file(value),
+            "font": lambda: self.event_handlers.font_event(value),
+            # "font": lambda: f"Font set to {value}.\n",
+            "highlight": lambda: self.select_deselect_checkbox(
+                self.highlight_checkbox,
+                value,
+                "Display Names Highlighted",
+                display=False,
+            ),
+            "indent": lambda: self.event_handlers.indent_selected_event(value),
+            "italicize": lambda: self.select_deselect_checkbox(
+                self.italicize_checkbox,
+                value,
+                "Display Names Italicized",
+                display=False,
+            ),
+            "language": lambda: self.event_handlers.language_set_event(value),
+            "list_unnamed_items": lambda: self.select_deselect_checkbox(
+                self.list_unnamed_items_checkbox,
+                value,
+                "Display Unnamed Tasks",
+                display=False,
+            ),
+            "view_limit": lambda: self.event_handlers.viewlimit_event(value),
+            "outline": lambda: self.select_deselect_checkbox(
+                self.outline_checkbox,
+                value,
+                "Display Configuration Outline",
+                display=False,
+            ),
+            "preferences": lambda: self.select_deselect_checkbox(
+                self.preferences_checkbox,
+                value,
+                "Display Tasker Preferences",
+                display=False,
+            ),
+            "pretty": lambda: self.select_deselect_checkbox(
+                self.pretty_checkbox,
+                value,
+                "Display Prettier",
+                display=False,
+            ),
+            "runtime": lambda: self.select_deselect_checkbox(
+                self.runtime_checkbox,
+                value,
+                "Display Runtime Settings",
+                display=False,
+            ),
+            "single_profile_name": lambda: self.process_single_name_restore(
+                "Profile",
+                value,
+            ),
+            "single_project_name": lambda: self.process_single_name_restore(
+                "Project",
+                value,
+            ),
+            "single_task_name": lambda: self.process_single_name_restore("Task", value),
+            "task_action_warning_limit": lambda: self.tasklimit_set(value),
+            "taskernet": lambda: self.select_deselect_checkbox(
+                self.taskernet_checkbox,
+                value,
+                "Display TaskerNet Information",
+                display=False,
+            ),
+            "twisty": lambda: self.select_deselect_checkbox(
+                self.twisty_checkbox,
+                value,
+                "Hide Task Details Under Twisty",
+                display=False,
+            ),
+            "underline": lambda: self.select_deselect_checkbox(
+                self.underline_checkbox,
+                value,
+                "Display Names Underlined",
+                display=False,
+            ),
+        }
+
+        # Processs specific items that have no effect on the GUI
+        if key in keys_to_ignore:
+            message = ""
+            # Check if key is an attribute on self before setting
+            if hasattr(self, key):
+                setattr(self, key, value)
+        else:
+            # Use dictionary lookup and lambda funtion to process key/value.
+            message_func = message_map.get(key)
+            if message_func:
+                # Note: display_detail_level, file, font, indent, and single object name all return a message of 'None'.
+                message = message_func()  # This calls the lambda function and takes a bit of time.
+            # Catch bug where we have a key but no lambda function to process it.
+            elif self.debug:
+                logger.debug(
+                    f"userintr: no lambda rtn for key or value: {key}, {value}",
+                )
+
+        # Cleanup the end of the message if it is not set.
+        the_empty_ending = "set to \n"
+        the_empty_ending_length = len(the_empty_ending)
+        named_ending = "named ''.\n"
+        named_ending_length = len(named_ending)
+        if message is None or message == "":
+            return ""
+        if message.endswith(the_empty_ending):
+            message = f"{message[:-the_empty_ending_length]} is not set.\n"
+        elif message.endswith(named_ending):
+            message = f"{message[:-named_ending_length]} is not named.\n"
+
+        return message
+
+    # ################################################################################
+    # Select or deselect a checkbox based on the value passed in
+    # ################################################################################
+    def select_deselect_checkbox(
+        self,
+        checkbox: ui.checkbox,
+        checked: bool,
+        argument_name: str,
+        display: bool,
+    ) -> str:
+        """Select or deselect a checkbox widget
+        Args:
+            checkbox: The checkbox widget to select or deselect
+            checked: Whether to select or deselect the checkbox
+            argument_name: The name of the argument being checked/unchecked
+            display: True if we are to display the message, false if not.
+        Returns:
+            status: A string indicating if the checkbox was selected or deselected
+        - Check if checked is True, call checkbox.select() to select it
+        - Check if checked is False, call checkbox.deselect() to deselect it
+        - Return a string with the argument name and checked status"""
+        checkbox = not checkbox if checked else checkbox
+        if display:
+            onoff = "On" if checked else "Off"
+            set_on_off = translate_string(f"set {onoff}")
+            self.display_message_box(f"{translate_string(argument_name)} {set_on_off}.", "Green")
+        return f"{argument_name} set to {checked}.\n"
+
+    # ################################################################################
+    # Select or deselect a checkbox based on the value passed in
+    # ################################################################################
+    def get_input_and_put_message(self, checkbox: ui.checkbox, title: str) -> bool:
+        """
+        Get checkbox value and display message using NiceGUI.
+        Args:
+            checkbox: NiceGUI checkbox object
+            title: Title of message box
+        Returns:
+            checkbox_value: Value of checkbox (True/False)
+        """
+        # In NiceGUI, use .value instead of .get()
+        checkbox_value = checkbox.value
+
+        self.inform_message(title, checkbox_value, "")
+        return checkbox_value
+
 
 class MapTaskerEventHandlers:
     """
@@ -656,20 +958,27 @@ class MapTaskerEventHandlers:
         logger.info(f"GUI: Switching to {window_title}")
         ui.notify(f"Loading {window_title} View...", type="info", timeout=1000)
 
-        # Here you would trigger the logic to display the view via
-        # the NiceGuiTextView or NiceGuiTreeView components.
+        # Point to the data
+        data = PrimeItems.output_lines.output_lines
+        gui = self.gui
+
         # Map view
         if view_type == "map":
+            # Process all of the data and build/output our html
+            build_html("")
+
+            # Now process the data for display in the gui
             map_data = parse_html()
+
             # Check if too much data to display
             map_length = len(map_data)
-            if map_length > self.view_limit:
+            if map_length > gui.view_limit:
                 text1 = translate_string("Too much data to display (Size=")
                 text2 = translate_string("View Limit=")
                 text3 = translate_string(
                     "Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
                 )
-                self.display_message_box(
+                gui.display_message_box(
                     f"{text1}{map_length}, {text2}{self.view_limit}).  {text3}",
                     "Orange",
                 )
@@ -689,7 +998,7 @@ class MapTaskerEventHandlers:
             # Display the data.
             if data:
                 view = NiceGuiTextView(
-                    self.gui,
+                    gui,
                     title=window_title,
                     the_data=map_data,
                 )
@@ -698,7 +1007,7 @@ class MapTaskerEventHandlers:
                 return
         elif view_type == "tree":
             if data:
-                view = CTkTreeview(master=getattr(self, window_attribute), items=data)
+                view = NiceGuiTreeView(master=getattr(self, window_attribute), items=data)
             else:
                 self.display_message_box("No Project(s) Found in XML!", "Red")
                 return
@@ -714,20 +1023,20 @@ class MapTaskerEventHandlers:
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
     # ==========================================
-    def detail_selected_event(self: "MapTaskerEventHandlers", event: Event) -> None:
+    def detail_selected_event(self: "MapTaskerEventHandlers", event_value: Event) -> None:
         """
         NICEGUI PARADIGM SHIFT:
         Dropdown (ui.select) on_change events automatically pass an 'event' object.
         The new selected value is stored in `event.value`.
         """
-        self.gui.display_detail_level = event.value
-        logger.info(f"Detail level changed to: {event.value}")
+        self.gui.display_detail_level = event_value
+        logger.info(f"Detail level changed to: {event_value}")
         # Note: If you bound this via `.bind_value()`, you don't even need this function!
 
-    def ai_model_selected_event(self: "MapTaskerEventHandlers", event: Event) -> None:
+    def ai_model_selected_event(self: "MapTaskerEventHandlers", event_value: Event) -> None:
         """Updates the AI model based on dropdown selection."""
-        self.gui.ai_model = event.value
-        logger.info(f"AI Model changed to: {event.value}")
+        self.gui.ai_model = event_value
+        logger.info(f"AI Model changed to: {event_value}")
 
     # ==========================================
     # 4. TEXT VIEW CONTROLS (Replacing the old _handle_event router)
@@ -938,6 +1247,491 @@ class MapTaskerEventHandlers:
         else:
             # Handle the case where the user hit "Cancel" or closed the dialog
             ui.notify("File selection canceled.", type="warning")
+
+    # Process the 'Restore Settings' checkbox
+    def restore_settings_event(self) -> None:
+        """
+        Resets settings to defaults and restores from saved settings file
+        Args:
+            self: The class instance
+            first_time: bool - True if this is the first time the checkbox is clicked
+        Returns:
+            None: No value is returned
+        Processing Logic:
+            - Reset all values to defaults
+            - Restore saved settings from file
+            - Check for errors and display messages
+            - Extract restored settings into class attributes
+            - Empty message queue after restoring
+        """
+        the_view = self.gui
+        the_view.set_defaults()  # Reset all values
+        temp_args = {}
+        the_view.color_lookup = {}
+        # Restore all changes that have been saved
+        temp_args, the_view.color_lookup = save_restore_args(
+            temp_args,
+            the_view.color_lookup,
+            to_save=False,
+        )
+
+        # Check for errors
+        with contextlib.suppress(KeyError):
+            if temp_args["msg"]:
+                the_view.display_message_box(temp_args["msg"], "Red")
+                temp_args["msg"] = ""
+                self.color_reset_event()
+                return
+
+        # If no colors restored, let user know.
+        if not the_view.color_lookup:
+            the_view.display_message_box("Colors set to defaults.", "Green")
+
+        # Restore progargs values
+        if temp_args or the_view.color_lookup:
+            the_view.extract_settings(temp_args)
+            the_view.restore = True
+
+        # No arguments mean no settings.
+        else:  # Empty?
+            the_view.display_message_box("No settings file found.", "Orange")
+
+        # Save our background color for later reuse
+        the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
+
+    # Show for edit the AI API Key
+    def ai_apikey_event(self) -> None:
+        """
+        Prompts the user to enter their API key, or leaves it as is if it already exists.
+        If the user enters a new API key, it is saved to a file.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+        the_view = self.gui
+        # Get our key, if it exists.
+        the_view.ai_apikey = get_api_key()
+
+        # Issue the dialog box for the API key.
+        api_key = APIKeyDialog(the_view)
+        # Save the window
+        api_key.master.ai_apikey_window = api_key
+
+    async def ai_prompt_event(self) -> None:
+        """
+        Handles the event when the AI prompt is changed using an async NiceGUI dialog.
+        """
+        the_view = self.gui
+        msg1 = translate_string("Current prompt:")
+        msg2 = translate_string("Enter a new prompt for the AI to use:")
+        dialog_title = translate_string("Change the Ai Prompt")
+
+        # 1. Create a custom asynchronous input dialog structure
+        # This structure waits for the user to click either 'Submit' or 'Cancel'
+        name_entered = None
+
+        with ui.dialog() as dialog, ui.card().classes("w-[500px] p-6"):
+            ui.label(dialog_title).classes("text-xl font-bold text-blue-600 mb-2")
+
+            # Display current prompt info
+            ui.label(f"{msg1} '{the_view.ai_prompt}'").classes("text-sm text-gray-500 italic mb-4")
+            ui.label(msg2).classes("text-sm font-semibold")
+
+            # Input field (initialized with current prompt text for convenience)
+            prompt_input = ui.input(value=the_view.ai_prompt).classes("w-full mb-6")
+
+            # Actions Row
+            with ui.row().classes("w-full justify-end gap-2"):
+                ui.button("Cancel", on_click=lambda: dialog.submit(None)).classes("bg-gray-400 text-white")
+                ui.button("Submit", on_click=lambda: dialog.submit(prompt_input.value)).classes(
+                    "bg-blue-600 text-white",
+                )
+
+        # 2. Open the dialog and execution halts here until dialog.submit() is triggered
+        name_entered = await dialog
+
+        # 3. Handle the resulting inputs identically to your original logic
+        # Canceled? (User clicked Cancel or closed the modal backdrop)
+        if name_entered is None:
+            the_view.display_message_box("Prompt change canceled.", "Orange")
+
+        # The same?
+        elif name_entered == the_view.ai_prompt:
+            the_view.display_message_box("Prompt did not change.", "Orange")
+
+        # Valid response
+        else:
+            the_view.ai_prompt = name_entered
+            msg = translate_string("Prompt changed to")
+            the_view.display_message_box(
+                f"{msg} '{the_view.ai_prompt}'.",
+                "Green",
+            )
+            display_selected_object_labels(the_view)
+
+    def extended_models_event(self) -> None:
+        """
+        Get input to display names in bold and put message
+        Args:
+            self: The class instance
+        Returns:
+            None: No value is returned
+        - Get input value from bold_checkbox attribute
+        - Put message "Display Names in Bold" based on input
+        - No return value, function updates attribute on class instance"""
+        the_view = self.gui
+
+        # Re-display pulldown list.
+        the_view.ai_model_extended_list = the_view.get_input_and_put_message(
+            the_view.aimodel_extend_checkbox,
+            "Display The Extended List of AI Models",
+        )
+
+        # Display the model pulldown list.
+        display_model_pulldown(self, 50)
+
+    # Process the screen mode: dark, light, system
+    def change_appearance_mode_event(self, new_appearance_mode: str) -> None:
+        """
+        Change the appearance mode of the GUI
+        Args:
+            new_appearance_mode: The new appearance mode as a string
+        Returns:
+            None: Does not return anything
+        - Set the global appearance mode to the new mode
+        - Update the local appearance mode attribute to the new lowercased mode"""
+
+        the_view = self.gui
+
+        # Determine if the selected appearance mode is one of the standard modes or a translated mode, and set the mode accordingly.
+        # First, check if it is a previously-set language mode.
+        if (
+            new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]
+            and PrimeItems.appearance_translated
+        ):
+            # Find our new appearance mode in the translated values and set the language to the corresponding key to
+            # translate it back to English for the appearance mode setting.
+            for key, value in PrimeItems.appearance_translated.items():
+                if new_appearance_mode in value:
+                    save_language = PrimeItems.program_arguments["language"]
+                    PrimeItems.program_arguments["language"] = key
+                    _ = translate_string(key, set_language=True)
+                    new_appearance_mode = translate_string(new_appearance_mode.capitalize()).lower()
+                    PrimeItems.program_arguments["language"] = save_language
+                    _ = translate_string(save_language, set_language=True)
+                    break
+        elif new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]:
+            new_appearance_mode = "system"
+
+        if PrimeItems.program_arguments["language"] != "English":
+            # Translated string is capitalized, so we need to translate first and then lowercase for the appearance mode.
+            new_appearance_mode_translated = translate_string(new_appearance_mode.capitalize())
+            # Recreate the pulldown menu translated.
+            the_view.appearance_mode_optionmenu.destroy()
+            create_appearance_mode_section(the_view)
+            if new_appearance_mode in ["dark", "light", "system"]:
+                appearance_mode_to_set = new_appearance_mode_translated.capitalize()
+                mode_to_set = new_appearance_mode
+            else:
+                appearance_mode_to_set = new_appearance_mode
+                mode_to_set = new_appearance_mode_translated.lower()
+        else:
+            new_appearance_mode_translated = new_appearance_mode.capitalize()
+            # FIX what is this for?
+            appearance_mode_to_set = new_appearance_mode_translated
+            mode_to_set = new_appearance_mode
+
+    # Process the 'Bold Names' checkbox
+    def names_bold_event(self) -> None:
+        """
+        Get input to display names in bold and put message
+        Args:
+            self: The class instance
+        Returns:
+            None: No value is returned
+        - Get input value from bold_checkbox attribute
+        - Put message "Display Names in Bold" based on input
+        - No return value, function updates attribute on class instance"""
+        the_view = self.gui
+        the_view.bold = the_view.get_input_and_put_message(
+            the_view.bold_checkbox,
+            "Display Names in Bold",
+        )
+
+    def names_highlight_event(self) -> None:
+        """
+        Get input and put message for names highlight checkbox
+        Args:
+            self: The class instance
+            highlight_checkbox: The checkbox input element
+            "Display Names Highlighted": The message to display
+        Returns:
+            None: No value is returned
+        - Get the value of the highlight_checkbox input
+        - If checked, put the "Display Names Highlighted" message
+        - If not checked, do not put any message
+        """
+        the_view = self.gui
+        the_view.highlight = the_view.get_input_and_put_message(
+            the_view.highlight_checkbox,
+            "Display Names Highlighted",
+        )
+
+    # Process the 'Italicize Names' checkbox
+    def names_italicize_event(self) -> None:
+        """
+        Italicize names based on checkbox input
+        Args:
+            self: The class instance
+        Returns:
+            None: No value is returned
+        - Get input value from italicize_checkbox checkbox
+        - Put message based on input value to "Display Names Italicized" label
+        - No return value, function updates UI state directly
+        """
+        the_view = self.gui
+        the_view.italicize = the_view.get_input_and_put_message(
+            the_view.italicize_checkbox,
+            "Display Names Italicized",
+        )
+
+    # Process the 'Underline Names' checkbox
+    def names_underline_event(self) -> None:
+        """
+                Gets user input to display names underlined or not
+                Args:
+                    self: The class instance
+                Returns:
+                    None: No value is returned
+                - Gets user input from the underline_checkbox checkbox
+                - Passes the input value and a label to get_input_and_put_message()
+        #Loading.
+        """
+        the_view = self.gui
+        the_view.underline = the_view.get_input_and_put_message(
+            the_view.underline_checkbox,
+            "Display Names Underlined",
+        )
+
+    # Process the 'Taskernet' checkbox
+    def taskernet_event(self) -> None:
+        """
+        Display TaskerNet Information
+        Args:
+            self: The TaskerNet object
+        Returns:
+            None: Does not return anything
+        - Check if TaskerNet checkbox is checked
+        - Get user input for displaying TaskerNet information
+        - Put message dialog to display TaskerNet information
+        """
+        the_view = self.gui
+        the_view.taskernet = the_view.get_input_and_put_message(
+            the_view.taskernet_checkbox,
+            "Display TaskerNet Information",
+        )
+
+    def font_event(self, font_selected: str) -> None:
+        """
+        Sets the font for the GUI using NiceGUI properties.
+        Args:
+            font_selected: The font name selected by the user
+        """
+        the_view = self.gui
+        the_view.font = font_selected
+
+        # Prepare translated text
+        font_use_text = translate_string("Monospaced Font To Use")
+        label_text = f"{font_use_text}: {font_selected}"
+
+        # 1. Update or create the label
+        # In NiceGUI, we just check if the attribute exists and isn't None
+        if hasattr(the_view, "font_out_label") and the_view.font_out_label:
+            the_view.font_out_label.text = label_text
+            # Dynamically change the font-family styling over the web
+            the_view.font_out_label.style(f"font-family: {font_selected}; font-size: 14px;")
+        else:
+            # Assuming this falls back to a layout container context if created on the fly,
+            # or you can pre-instantiate it in your main layout setup.
+            the_view.font_out_label = (
+                ui.label(label_text).style(f"font-family: {font_selected}; font-size: 14px;").classes("mt-2 ml-2")
+            )
+
+        # 2. Update the option menu selection drop-down
+        if hasattr(the_view, "font_optionmenu") and the_view.font_optionmenu:
+            the_view.font_optionmenu.value = font_selected
+
+        # 3. Toast confirmation message box
+        set_to_text = translate_string("Font To Use set to")
+        the_view.display_message_box(f"{set_to_text} {font_selected}", "Green")
+
+    # Process the Identation Amount selection
+    def indent_selected_event(self, ident_amount: str) -> None:
+        """Indent selected text or code block
+        Args:
+            ident_amount: The amount of indentation to apply as a string
+        Returns:
+            None: No value is returned
+        - Set the indent attribute to the passed ident_amount
+        - Update the indent option dropdown to the selected amount
+        - Display confirmation message of indentation amount"""
+        the_view = self.gui
+        the_view.indent = int(ident_amount)
+        the_view.indent_option.value = str(ident_amount)
+        the_view.display_message_box(f"Indentation Amount set to {ident_amount}", "green")
+
+    def language_selected_event(self, language: str) -> None:
+        """
+        Set the language for the GUI and redisplay everything using NiceGUI.
+
+        Args:
+            language: The language selected by the user.
+        """
+        # Let everyone know we are setting the language
+        PrimeItems.language_set = True
+
+        # Determine reference view (matches your event logic structure)
+        the_view = self if self.__class__.__name__ == "MyGui" else self.gui
+        if the_view.language == language:
+            return
+
+        # Set the translation function in PrimeItems
+        # Assuming language_set_event handles internal localization configurations
+        if hasattr(self, "language_set_event"):
+            self.language_set_event(translate_string(language))
+
+        # Reset selection checkboxes / extended list flags
+        the_view.displaying_extended_list = None  # Force pulldown to be recreated.
+        if hasattr(the_view, "aimodel_extend_checkbox") and the_view.aimodel_extend_checkbox:
+            the_view.aimodel_extend_checkbox.value = False
+
+        # Wipe out and rebuild layout context blocks natively
+        # Re-initialize the screen components using the new localized string tables
+        initialize_screen(the_view)
+
+        # Redisplay current file
+        display_current_file(the_view, the_view.file)
+
+        # Restore settings values so that they are correctly displayed in the new UI instance
+        temp_args = {arg: getattr(the_view, arg) for arg in ARGUMENT_NAMES if hasattr(the_view, arg)}
+        the_view.extract_settings(temp_args)
+
+        # Trigger task limit label updates
+        if hasattr(self, "tasklimit_event"):
+            self.tasklimit_event(the_view.task_action_warning_limit)
+
+        # Reset the single item object tracking names
+        set_tasker_object_names(the_view)
+
+        # Reset single item dropdown select lists
+        update_tasker_object_menus(
+            the_view,
+            get_data=False,
+            reset_single_names=False,
+        )
+
+        # Handle upgrade buttons checks
+        if hasattr(the_view, "check_new_version"):
+            the_view.check_new_version()
+
+        # Update the pull-down menus option items lists
+        if "list_tasker_objects" in globals():
+            list_tasker_objects(the_view)
+
+        # Plug back current localized option value matches into dropdown selectors (.value replaces .set())
+        if the_view.single_project_name:
+            if hasattr(the_view, "specific_project_optionmenu") and the_view.specific_project_optionmenu:
+                the_view.specific_project_optionmenu.value = the_view.single_project_name
+            if hasattr(the_view, "ai_project_optionmenu") and the_view.ai_project_optionmenu:
+                the_view.ai_project_optionmenu.value = the_view.single_project_name
+        elif the_view.single_profile_name:
+            if hasattr(the_view, "specific_profile_optionmenu") and the_view.specific_profile_optionmenu:
+                the_view.specific_profile_optionmenu.value = the_view.single_profile_name
+            if hasattr(the_view, "ai_profile_optionmenu") and the_view.ai_profile_optionmenu:
+                the_view.ai_profile_optionmenu.value = the_view.single_profile_name
+        elif the_view.single_task_name:
+            if hasattr(the_view, "specific_task_optionmenu") and the_view.specific_task_optionmenu:
+                the_view.specific_task_optionmenu.value = the_view.single_task_name
+            if hasattr(the_view, "ai_task_optionmenu") and the_view.ai_task_optionmenu:
+                the_view.ai_task_optionmenu.value = the_view.single_task_name
+
+        # Redo the contextual text labels values
+        display_selected_object_labels(the_view)
+
+        # Update text labels inside tabs directly by changing the properties of references saved in guiwins.py
+        if hasattr(the_view, "tab_specific_name") and the_view.tab_specific_name:
+            the_view.tab_specific_name.text = translate_string("Specific Name")
+        if hasattr(the_view, "tab_colors") and the_view.tab_colors:
+            the_view.tab_colors.text = translate_string("Colors")
+        if hasattr(the_view, "tab_analyze") and the_view.tab_analyze:
+            the_view.tab_analyze.text = translate_string("Analyze")
+        if hasattr(the_view, "tab_debug") and the_view.tab_debug:
+            the_view.tab_debug.text = translate_string("Debug")
+
+        # Forces the tab panel component container to process text and redraw updates
+        ui.update()
+
+    def language_set_event(self, language: str) -> None:
+        """
+        Set the language for the GUI.  COmes here via 'restore_display' and 'language_set_event'
+
+        Args:
+            language: The language selected by the user.
+        """
+        the_view = self if self.__class__.__name__ == "MyGui" else self.gui
+
+        # Get or Set and Get the language to use in English: Spanish, German, etc.
+        language_translated = translate_string(language, set_language=True)
+        if language in PrimeItems.languages:
+            language_to_use = language
+        elif language_translated in PrimeItems.languages:
+            language_to_use = language_translated
+        else:
+            language_to_use = "English"
+        the_view.language = language_to_use
+
+        flag_language = language if language in PrimeItems.languages else translate_string(language)
+        try:
+            flag = f"flag_{PrimeItems.languages[flag_language]}"
+            add_logo(the_view, flag)
+        except KeyError:
+            pass
+
+        language_translated = translate_string(language_to_use)
+        # Change the menu to reflect the selected language
+        if hasattr(the_view, "language_optionmenu"):
+            the_view.language_optionmenu.set(language_translated)
+            PrimeItems.program_arguments["language"] = language_to_use
+
+        # Translate and format message
+        message = f"{translate_string('Language set to')} {language_translated}."
+
+        # Display message in the GUI
+        the_view.clear_messages = True
+        the_view.display_message_box(message, "Green")
+
+    def tasklimit_event(self, slider_value: any) -> None:
+        """
+        Handles the task limit slider change event using NiceGUI.
+
+        This function updates the internal task warning limit and dynamically
+        refreshes the text on the sidebar label.
+        """
+        # Determine if slider_value is a raw number or a NiceGUI Event object
+        value = int(slider_value.value if hasattr(slider_value, "value") else slider_value)
+
+        # In your event handler class context, self.gui represents 'the_view' (self.gui)
+        the_view = self.gui
+
+        # 1. Update the backend state logic
+        the_view.task_action_warning_limit = value
+
+        # 2. Update the tracking label text dynamically over the web interface
+        if hasattr(the_view, "task_action_label") and the_view.task_action_label:
+            the_view.task_action_label.text = f"Task Action Limit: {value}"
 
 
 # Define a state container to hold our saved file locationvariable

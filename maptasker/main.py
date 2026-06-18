@@ -59,7 +59,7 @@ def main() -> None:
     Kick off the main program: mapit.pypwd
     """
     # Call the core function passing an empty filename
-    return_code = mapit_all("")
+    return_code = mapit_all()
     # Call it quits.
     # exit_program(return_code)
     return return_code  # noqa: RET504

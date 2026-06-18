@@ -11,6 +11,7 @@ from maptasker.src import projects
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory
 from maptasker.src.error import error_handler, rutroh_error
+from maptasker.src.format import format_line
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -20,6 +21,7 @@ from maptasker.src.maputils import (
     display_task_warnings,
     exit_program,
     live_translate_text,
+    restart_program_subprocess,
 )
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
@@ -29,8 +31,128 @@ from maptasker.src.sysconst import (
     DISPLAY_DETAIL_LEVEL_all_tasks,
     DISPLAY_DETAIL_LEVEL_all_variables,
     FormatLine,
+    debug_out,
     logger,
 )
+
+
+def build_html(file_to_get: str) -> int:
+    """Builds and generates the final HTML output file for MapTasker.
+
+    This function coordinates the primary workflow of processing Tasker projects
+    and profiles, managing runtime arguments, wrapping up the HTML back matter,
+    triggering AI analysis if configured, and handling program restarts
+    (reruns) via the GUI.
+
+    Args:
+        file_to_get (str): The path or filename of the Tasker configuration
+            file to read. If empty, the function returns early.
+
+    Returns:
+        int: Returns 0 upon successful processing or if no file is provided.
+            If a pre-existing error state is detected, it will terminate the
+            program using the current error code.
+
+    Side Effects:
+        - Prints debug messages to stdout if debug mode is active.
+        - Calls `exit_program` directly if `PrimeItems.error_code` is greater than 0.
+        - Updates `PrimeItems.file_to_get` with the provided `file_to_get` value.
+        - Gathers Tasker variables globally if the display detail level warrants it.
+        - Modifies global states via `projects.process_projects_and_their_profiles`
+          and `final_processing`.
+        - Invokes `map_ai()` if AI analysis (`ai_analyze`) is enabled, which sets
+          the `rerun` state to True.
+        - Clears the global `PrimeItems.output_lines` queue multiple times.
+        - Persists runtime settings and color configurations to disk via `save_restore_args`.
+        - Triggers a full program relaunch (`do_rerun()`) if the `rerun` argument
+          flag remains active at the end of execution.
+    """
+    # Let the userr know we are in debug mode.
+    if PrimeItems.program_arguments["debug"]:
+        print(">>>  MapTasker is in debug mode.  <<<")
+
+    if PrimeItems.error_code > 0:
+        # We have a error.  Spit it out and exit.
+        exit_program(PrimeItems.error_code)
+
+    # Set up file to read if it is passed in (via rerun)
+    if file_to_get:
+        PrimeItems.file_to_get = file_to_get
+
+    # Get all Tasker variables
+    if PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
+        get_variables()
+
+    # Process all Projects and their Profiles
+    found_tasks = []
+    projects_without_profiles = []
+    projects_with_no_tasks = []
+    found_tasks = projects.process_projects_and_their_profiles(
+        found_tasks,
+        projects_without_profiles,
+    )
+
+    # Do special handling: wrap up back matter and print the output.
+    final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks)
+
+    # Handle Ai Analysis
+    if PrimeItems.program_arguments["ai_analyze"]:
+        map_ai()
+        PrimeItems.program_arguments["rerun"] = True
+
+    # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
+    save_rerun_state = PrimeItems.program_arguments["rerun"]
+    PrimeItems.program_arguments["rerun"] = False
+    _, _ = save_restore_args(
+        PrimeItems.program_arguments,
+        PrimeItems.colors_to_use,
+        to_save=True,
+    )
+    PrimeItems.program_arguments["rerun"] = save_rerun_state
+
+    # Rerun this program if "Rerun" was selected from GUI
+    # First get the filename as a string.
+    if PrimeItems.program_arguments["rerun"]:
+        do_rerun()
+
+    return 0
+
+
+# Re-launch our program via the "rerun" feature.
+def restart_program() -> None:
+    # Restart our program
+    # sys.executable = the path of the python interpreter and use it to execute ourselves again.
+    """Restarts the program.
+    Parameters:
+        - None
+    Returns:
+        - None
+    Processing Logic:
+        - Call ourselves and exit after the last call."""
+
+    # _ = mapit_all("")
+    restart_program_subprocess()
+    exit_program(0)  # This should never be called.
+
+
+# Handle "rerun" request
+def do_rerun() -> None:
+    """
+    Re-runs the program with a new file
+    Args:
+        None: No arguments required
+    Returns:
+        None: Function does not return anything
+    Re-runs the program with a new file by:
+    - Freeing up memory
+    - Rerunning the program with the new file
+    """
+
+    # Get rid of everything.
+    clean_up_memory()
+
+    # Now do it!  Rerun the program.
+    restart_program()
 
 
 # write_out_the_file: we have a list of output lines.  Write them out.
@@ -501,60 +623,3 @@ def final_processing(
         single_profile_found,
         single_task_found,
     )
-
-
-def build_html(file_to_get: str) -> int:
-    # Let the userr know we are in debug mode.
-    if PrimeItems.program_arguments["debug"]:
-        print(">>>  MapTasker is in debug mode.  <<<")
-
-    if PrimeItems.error_code > 0:
-        # We have a error.  Spit it out and exit.
-        exit_program(PrimeItems.error_code)
-
-    # Set up file to read if it is passed in (via rerun)
-    if file_to_get:
-        PrimeItems.file_to_get = file_to_get
-    else:
-        # No file.  Just return to gui
-        return 0
-
-    # Get all Tasker variables
-    if PrimeItems.program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
-        get_variables()
-
-    # Process all Projects and their Profiles
-    found_tasks = []
-    projects_without_profiles = []
-    found_tasks = projects.process_projects_and_their_profiles(
-        found_tasks,
-        projects_without_profiles,
-    )
-
-    # Do special handling: wrap up back matter and print the output.
-    final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks)
-
-    # Handle Ai Analysis
-    if PrimeItems.program_arguments["ai_analyze"]:
-        map_ai()
-        PrimeItems.program_arguments["rerun"] = True
-
-    # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
-    save_rerun_state = PrimeItems.program_arguments["rerun"]
-    PrimeItems.program_arguments["rerun"] = False
-    _, _ = save_restore_args(
-        PrimeItems.program_arguments,
-        PrimeItems.colors_to_use,
-        to_save=True,
-    )
-    PrimeItems.program_arguments["rerun"] = save_rerun_state
-
-    # Do a little cleanup by clearing output lines
-    PrimeItems.output_lines.output_lines.clear()
-
-    # Rerun this program if "Rerun" was selected from GUI
-    # First get the filename as a string.
-    if PrimeItems.program_arguments["rerun"]:
-        do_rerun()
-
-    return 0
