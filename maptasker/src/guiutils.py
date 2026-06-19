@@ -2,7 +2,9 @@
 
 import contextlib
 import os
+import tkinter as tk
 from collections.abc import Callable
+from tkinter import font as tkfont
 from typing import TYPE_CHECKING
 
 import defusedxml
@@ -1182,25 +1184,23 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
         language = logo_name.split("flag_")[1]
         img_src = f"file://{assets_dir}/icons/{language}.png"
         size_classes = "w-[25px] h-[16px]"
-        parent = self  # Sidebar context or wherever you invoke it
+        parent = self.left_drawer  # <--- FIX: Point to NiceGUI left drawer element
     elif logo_name == "maptasker":
-        # We fetch local file paths as absolute URIs
         light_src = f"file://{assets_dir}/maptasker_logo_light.png"
         dark_src = f"file://{assets_dir}/maptasker_logo_dark.png"
         size_classes = "w-[190px] h-[50px]"
-        parent = self
+        parent = self.left_drawer  # <--- FIX: Point to NiceGUI left drawer element
     elif logo_name == "coffee":
         img_src = f"file://{assets_dir}/bmc-logo-no-background.png"
         size_classes = "w-[36px] h-[54px]"
-        parent = self.tab_debug  # Points to the ui.tab_panel built in guiwins.py
+        parent = self.tab_debug  # This works because tab_debug is a ui.tab_panel element
     else:
-        # Replaces your custom error function layout
         if "rutroh_error" in globals():
             rutroh_error("Invalid logo type")
         return
 
     # 2. Render the images using NiceGUI context rules
-    with parent:
+    with parent:  # <--- This will now succeed perfectly!
         try:
             # MapTasker requires handling an explicit dark mode swap swap over the web
             if logo_name == "maptasker":
@@ -1212,7 +1212,7 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                 # Flags and Coffee do not change based on dark mode status
                 ui.image(img_src).classes(f"{size_classes} object-contain")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             if "rutroh_error" in globals():
                 rutroh_error(f"Error displaying {logo_name} logo: {e}")
 
@@ -1223,3 +1223,33 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                     translate_string("Buy Me A Coffee"),
                     on_click=self.event_handlers.coffee_event,
                 ).classes("bg-blue-600 text-white font-bold")
+
+
+def get_monospace_fonts() -> list[str]:
+    """Queries the OS via Tkinter to retrieve available monospaced fonts."""
+    # Create a hidden root window to initialize the font subsystem
+    root = tk.Tk()
+    root.withdraw()
+
+    mono_fonts = []
+    # Get all unique families available on the system
+    all_fonts = sorted(set(tkfont.families()))
+
+    for f in all_fonts:
+        try:
+            # Create a font object and check if it has fixed-width properties
+            current_font = tkfont.Font(family=f, size=12)
+            if current_font.metrics("fixed"):
+                mono_fonts.append(f)
+        except Exception as e:  # noqa: BLE001
+            rutroh_error(f"Unable to create font object for {f}: {e}")
+            continue
+
+    # Clean up the hidden tkinter root instance
+    root.destroy()
+
+    # Fallback default values if the system returns an empty list
+    if not mono_fonts:
+        mono_fonts = ["Courier New", "Courier", "Consolas", "Monospace"]
+
+    return mono_fonts

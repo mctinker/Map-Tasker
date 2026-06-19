@@ -6,6 +6,8 @@ These are pure Python functions pulled out to avoid circular imports.
 
 import os
 
+import requests
+
 # import re
 # import requests
 from maptasker.src.error import rutroh_error
@@ -119,3 +121,45 @@ def my_trace_function(frame, event, arg) -> None:  # noqa: ANN001
     # Important: The trace function must return itself (or another trace function)
     # to continue tracing in the current or new scope.
     return my_trace_function
+
+
+def get_changelog_file(url: str, delimiter: str, n: int) -> list:
+    """
+    Fetches a text file from a URL and returns a list of lines until the nth
+    occurrence of a specified delimiter is encountered.
+
+    Args:
+        url (str): The URL of the text file.
+        delimiter (str): The string to count occurrences of (e.g., "##").
+        n (int): The nth occurrence of the delimiter to stop at.
+
+    Returns:
+        list: A list of text lines up to (but not including) the line
+              where the nth occurrence of the delimiter is found.
+              Returns an empty list if the URL is invalid or the delimiter
+              is not found 'n' times.
+    """
+    if n <= 0:
+        rutroh_error(f"Invalid integer value for n: {n!s}")
+        return []
+
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
+    except requests.exceptions.RequestException as e:
+        rutroh_error(f"Error fetching the URL: {e}")
+        return []
+
+    lines = []
+    delimiter_count = 0
+
+    # Decode the content and split into lines
+    text_content = response.text
+    for line in text_content.splitlines():
+        if line.startswith(f"{delimiter} "):
+            delimiter_count += 1
+        if delimiter_count == n:
+            break  # Stop when the nth occurrence is found
+        lines.append(line)
+
+    return lines

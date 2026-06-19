@@ -2,6 +2,8 @@
 
 import contextlib
 import os
+import sys
+import webbrowser
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
@@ -14,6 +16,7 @@ from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guimap import parse_html
+from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.guiutils import (
     add_logo,
     build_profiles,
@@ -47,11 +50,23 @@ from maptasker.src.maputils import (
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
+    CHANGELOG_URL,
     TAB_NAMES,
     TYPES_OF_COLOR_NAMES,
     logger,
 )
 from maptasker.src.taskerd import get_the_xml_data
+from maptasker.src.userhelp import (
+    AI_HELP_TEXT,
+    APIKEY_HELP_TEXT,
+    BACKUP_HELP_TEXT,
+    HELP,
+    LISTFILES_HELP_TEXT,
+    PPP_HELP_TEXT,
+    SEARCH_HELP_TEXT,
+    VIEW_HELP_TEXT,
+    VIEWLIMIT_HELP_TEXT,
+)
 
 if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
@@ -102,15 +117,15 @@ class MyGui:
             ui.label(f"CRASH IN UI LAYOUT: {e}").classes("text-2xl text-red-500 m-8 font-mono")
             print("\n" + "=" * 50)
             print("🚨 CRITICAL UI BUILD ERROR 🚨", e)
-            exit(99)
+            sys.exit(99)
             # import traceback
 
         # Now restore the settings and update the fields if not resetting.
-        default_language = "English"
+        self.default_language = "English"
         if not PrimeItems.program_arguments["reset"]:
             self.event_handlers.restore_settings_event()
 
-            traceback.print_exc()
+            # traceback.print_exc()
             print("=" * 50 + "\n")
 
         # FIX: FOR DEVELOPMENT ONLY
@@ -128,6 +143,7 @@ class MyGui:
     def set_defaults(self: "MyGui") -> None:
         """Initializes all the default variables that MapTasker relies on."""
         logger.info("Setting defaults")
+        self.is_updating = False  # Indicator for when we're in the middle of an update to prevent recursive calls
         self.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
         self.conditions = self.preferences = self.taskernet = self.debug = self.everything = self.clear_settings = (
             self.reset
@@ -629,15 +645,24 @@ class MyGui:
         # Indicate that an extraction is in progress so we don't inadvertently change the colors already set
         # via the 'appearance_mode' setting.
         self.extract_in_progress = True
+        counter = 0
         for key, value in temp_args.items():
             if key is not None:
+                print("bingo", key, value)
+                counter += 1
+                if counter > 50:
+                    sys.exit(99)
                 setattr(self, key, value)
                 # Start log if debug
                 if key == "debug" and value:
                     log_startup_values()
-                # Now display the setting and act on it if necessary.
-                if new_message := self.restore_display(key, value):
-                    self.display_message_box(f"{new_message}\n", "Green")
+                # Make the modification based on the specfic setting
+                if key == "font":
+                    print("bingo")
+                _ = self.restore_display(key, value)
+                # # Now display the setting and act on it if necessary.
+                # if new_message := self.restore_display(key, value):
+                #     self.display_message_box(f"{new_message}\n", "Green")
 
         # Set the tab to use to the default.
         if self.tab_to_use is None:
@@ -649,6 +674,46 @@ class MyGui:
         # Display completion
         self.display_message_box("Settings restored.\n", "Green")
         self.extract_in_progress = False
+
+    def extract_colors(self) -> None:
+        """
+        Extracts and displays the color settings from the color_lookup dictionary.
+        Reverses the TYPES_OF_COLOR_NAMES dictionary to map color names to their corresponding keys.
+        Displays each color setting using the display_message_box method, handling cases where the background color is set.
+        Ensures all colors are accounted for, setting any missing colors to turquoise.
+        """
+        # Display the restored color changes, using the reverse dictionary of
+        #   TYPES_OF_COLOR_NAMES (found in sysconst.py)
+        # inv_color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
+        # for key, value in self.color_lookup.items():
+        #     text_out = value
+        #     if key is not None:
+        #         if key == "msg":
+        #             inv_color_names[key] = ""
+        #         else:
+        #             # Set the displayed color to that of the color name, unlessa it is the background color.
+        #             color = value
+        #             if inv_color_names[key] == "Background":
+        #                 color = "white"
+        #                 text_out = f"{value} (displayed as white)"
+        #             with contextlib.suppress(KeyError):
+        #                 self.display_message_box(
+        #                     f"{inv_color_names[key]} color set to {text_out}\n",
+        #                     color,
+        #                 )
+
+        # Make sure we have all of our colors.  If any are missing then just make them turquoise.
+        if self.color_lookup:
+            for key, color in TYPES_OF_COLOR_NAMES.items():
+                if color not in self.color_lookup:
+                    self.color_lookup[color] = "turquoise"
+                    self.display_message_box(
+                        f"{key} color missing.  It has been set to turquoise.\n",
+                        "turquoise",
+                    )
+
+            # Save our background color for later reuse
+            self.saved_background_color = make_hex_color(self.color_lookup.get("background_color"))
 
     # Given a setting key and value, set the attribute for the key to the value and return the setting as a message.
     def restore_display(self, key: str, value: str) -> str:
@@ -758,12 +823,12 @@ class MyGui:
                 display=False,
             ),
             "view_limit": lambda: self.event_handlers.viewlimit_event(value),
-            "outline": lambda: self.select_deselect_checkbox(
-                self.outline_checkbox,
-                value,
-                "Display Configuration Outline",
-                display=False,
-            ),
+            # "outline": lambda: self.select_deselect_checkbox(
+            #     self.outline_checkbox,
+            #     value,
+            #     "Display Configuration Outline",
+            #     display=False,
+            # ),
             "preferences": lambda: self.select_deselect_checkbox(
                 self.preferences_checkbox,
                 value,
@@ -875,6 +940,9 @@ class MyGui:
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
     # ################################################################################
+    # ################################################################################
+    # Select or deselect a checkbox based on the value passed in
+    # ################################################################################
     def get_input_and_put_message(self, checkbox: ui.checkbox, title: str) -> bool:
         """
         Get checkbox value and display message using NiceGUI.
@@ -884,11 +952,86 @@ class MyGui:
         Returns:
             checkbox_value: Value of checkbox (True/False)
         """
-        # In NiceGUI, use .value instead of .get()
+        # Read the value from the element directly.
+        # Reading a value never fires an event in NiceGUI, so we don't need to suppress anything!
         checkbox_value = checkbox.value
 
         self.inform_message(title, checkbox_value, "")
         return checkbox_value
+
+    # Process single name restore
+    def process_single_name_restore(
+        self,
+        my_name: str,
+        name_entered: str,
+    ) -> None:
+        """
+        Restores a single name based on the provided name type.
+        Args:
+            my_name: Name of the type to restore (Project, Profile, Task)
+            name_entered: Name entered by the user
+        Returns:
+            None: No value is returned
+        Processing Logic:
+            - Check if the entered name is valid
+            - Clear existing single name values
+            - Match the name type and assign the entered name to the correct single name attribute
+            - Do nothing if an invalid name type is provided"""
+        # Don't display current_file message
+        self.current_file_display_message = False
+        # Load file for def get_xml
+        if self.file:
+            PrimeItems.file_to_get = self.file
+
+        ## Let uer know what is happening
+        # self.display_message_box(f"Verifing {my_name}...", "Green")
+
+        # Validate the name by using the existing XML or reading it in.
+        # We will prompt user for XML file if it hasn't already been loaded.
+        name_entered = name_entered.strip()
+        if name_entered and self.check_name(name_entered, my_name):
+            self.single_project_name = self.single_profile_name = self.single_task_name = ""
+
+            match my_name:
+                case "Project":
+                    self.single_project_name = name_entered
+                case "Profile":
+                    self.single_profile_name = name_entered
+                case "Task":
+                    self.single_task_name = name_entered
+                case _:
+                    pass
+
+    def tasklimit_set(self, limit: str | int) -> None:
+        """
+        Set the limit for the number of Task actions before issuing a warning.
+        Updated for NiceGUI tracking values with an integrated state lock.
+
+        Args:
+            limit (str | int): The limit to set for the number of Task actions.
+        """
+        # Convert to int for logic state safety, but preserve string conversion where needed
+        limit_int = int(limit)
+        self.task_action_warning_limit = limit_int
+
+        # 1. Output feedback notification
+        text = translate_string("Task Action Warning Limit set to")
+        self.display_message_box(
+            f"{text} {limit_int}.\n",
+            "Green",
+        )
+
+        # 2. Update the tracking text label directly
+        if hasattr(self, "task_action_label") and self.task_action_label:
+            self.task_action_label.text = f"Task Action Limit: {limit_int}"
+
+        # 3. Update the NiceGUI slider's current knob placement value SAFELY using the lock flag
+        if hasattr(self, "task_action_limit") and self.task_action_limit:
+            try:
+                self.is_updating = True  # Engage the lock to silence slider echoes
+                self.task_action_limit.value = limit_int
+            finally:
+                self.is_updating = False  # Always disengage the lock
 
 
 class MapTaskerEventHandlers:
@@ -1027,7 +1170,7 @@ class MapTaskerEventHandlers:
         """
         NICEGUI PARADIGM SHIFT:
         Dropdown (ui.select) on_change events automatically pass an 'event' object.
-        The new selected value is stored in `event.value`.
+        The new selected value is stored in `event`.
         """
         self.gui.display_detail_level = event_value
         logger.info(f"Detail level changed to: {event_value}")
@@ -1541,51 +1684,60 @@ class MapTaskerEventHandlers:
             font_selected: The font name selected by the user
         """
         the_view = self.gui
+
+        # 1. Check if an automatic programmatic update is currently running
+        if getattr(the_view, "is_updating", False):
+            return  # Exit early to break the recursive loop!
+
         the_view.font = font_selected
 
         # Prepare translated text
         font_use_text = translate_string("Monospaced Font To Use")
         label_text = f"{font_use_text}: {font_selected}"
 
-        # 1. Update or create the label
-        # In NiceGUI, we just check if the attribute exists and isn't None
+        # Update or create the label
         if hasattr(the_view, "font_out_label") and the_view.font_out_label:
             the_view.font_out_label.text = label_text
-            # Dynamically change the font-family styling over the web
             the_view.font_out_label.style(f"font-family: {font_selected}; font-size: 14px;")
         else:
-            # Assuming this falls back to a layout container context if created on the fly,
-            # or you can pre-instantiate it in your main layout setup.
             the_view.font_out_label = (
                 ui.label(label_text).style(f"font-family: {font_selected}; font-size: 14px;").classes("mt-2 ml-2")
             )
 
-        # 2. Update the option menu selection drop-down
+        # 2. Update the option menu selection drop-down SAFELY using the lock flag
         if hasattr(the_view, "font_optionmenu") and the_view.font_optionmenu:
-            the_view.font_optionmenu.value = font_selected
+            try:
+                the_view.is_updating = True  # Engage the lock
+                the_view.font_optionmenu.value = font_selected  # Safe update
+            finally:
+                the_view.is_updating = False  # Always disengage the lock
 
-        # 3. Toast confirmation message box
+        # Toast confirmation message box
         set_to_text = translate_string("Font To Use set to")
         the_view.display_message_box(f"{set_to_text} {font_selected}", "Green")
 
     # Process the Identation Amount selection
     def indent_selected_event(self, ident_amount: str) -> None:
-        """Indent selected text or code block
-        Args:
-            ident_amount: The amount of indentation to apply as a string
-        Returns:
-            None: No value is returned
-        - Set the indent attribute to the passed ident_amount
-        - Update the indent option dropdown to the selected amount
-        - Display confirmation message of indentation amount"""
+        """Indent selected text or code block without recursive loops."""
         the_view = self.gui
+        if getattr(the_view, "is_updating", False):
+            return
+
         the_view.indent = int(ident_amount)
-        the_view.indent_option.value = str(ident_amount)
+
+        if hasattr(the_view, "indent_option") and the_view.indent_option:
+            try:
+                the_view.is_updating = True
+                the_view.indent_option.value = str(ident_amount)
+            finally:
+                the_view.is_updating = False
+
         the_view.display_message_box(f"Indentation Amount set to {ident_amount}", "green")
 
     def language_selected_event(self, language: str) -> None:
         """
         Set the language for the GUI and redisplay everything using NiceGUI.
+        Uses a state lock to prevent recursive dropdown triggers.
 
         Args:
             language: The language selected by the user.
@@ -1599,17 +1751,19 @@ class MapTaskerEventHandlers:
             return
 
         # Set the translation function in PrimeItems
-        # Assuming language_set_event handles internal localization configurations
         if hasattr(self, "language_set_event"):
             self.language_set_event(translate_string(language))
 
-        # Reset selection checkboxes / extended list flags
+        # Reset selection checkboxes / extended list flags safely using the lock flag
         the_view.displaying_extended_list = None  # Force pulldown to be recreated.
         if hasattr(the_view, "aimodel_extend_checkbox") and the_view.aimodel_extend_checkbox:
-            the_view.aimodel_extend_checkbox.value = False
+            try:
+                the_view.is_updating = True  # Engage the lock
+                the_view.aimodel_extend_checkbox.value = False
+            finally:
+                the_view.is_updating = False  # Disengage the lock
 
         # Wipe out and rebuild layout context blocks natively
-        # Re-initialize the screen components using the new localized string tables
         initialize_screen(the_view)
 
         # Redisplay current file
@@ -1641,22 +1795,35 @@ class MapTaskerEventHandlers:
         if "list_tasker_objects" in globals():
             list_tasker_objects(the_view)
 
-        # Plug back current localized option value matches into dropdown selectors (.value replaces .set())
+        # Map menu attributes to their target values for a clean batch update
+        menu_updates = []
+
         if the_view.single_project_name:
-            if hasattr(the_view, "specific_project_optionmenu") and the_view.specific_project_optionmenu:
-                the_view.specific_project_optionmenu.value = the_view.single_project_name
-            if hasattr(the_view, "ai_project_optionmenu") and the_view.ai_project_optionmenu:
-                the_view.ai_project_optionmenu.value = the_view.single_project_name
+            menu_updates = [
+                ("specific_project_optionmenu", the_view.single_project_name),
+                ("ai_project_optionmenu", the_view.single_project_name),
+            ]
         elif the_view.single_profile_name:
-            if hasattr(the_view, "specific_profile_optionmenu") and the_view.specific_profile_optionmenu:
-                the_view.specific_profile_optionmenu.value = the_view.single_profile_name
-            if hasattr(the_view, "ai_profile_optionmenu") and the_view.ai_profile_optionmenu:
-                the_view.ai_profile_optionmenu.value = the_view.single_profile_name
+            menu_updates = [
+                ("specific_profile_optionmenu", the_view.single_profile_name),
+                ("ai_profile_optionmenu", the_view.single_profile_name),
+            ]
         elif the_view.single_task_name:
-            if hasattr(the_view, "specific_task_optionmenu") and the_view.specific_task_optionmenu:
-                the_view.specific_task_optionmenu.value = the_view.single_task_name
-            if hasattr(the_view, "ai_task_optionmenu") and the_view.ai_task_optionmenu:
-                the_view.ai_task_optionmenu.value = the_view.single_task_name
+            menu_updates = [
+                ("specific_task_optionmenu", the_view.single_task_name),
+                ("ai_task_optionmenu", the_view.single_task_name),
+            ]
+
+        # Batch update the dropdown values safely under the state lock
+        try:
+            the_view.is_updating = True  # Engage the lock
+            for attr_name, target_value in menu_updates:
+                if hasattr(the_view, attr_name):
+                    menu_widget = getattr(the_view, attr_name)
+                    if menu_widget:
+                        menu_widget.value = target_value
+        finally:
+            the_view.is_updating = False  # Always disengage the lock
 
         # Redo the contextual text labels values
         display_selected_object_labels(the_view)
@@ -1676,12 +1843,17 @@ class MapTaskerEventHandlers:
 
     def language_set_event(self, language: str) -> None:
         """
-        Set the language for the GUI.  COmes here via 'restore_display' and 'language_set_event'
+        Set the language for the GUI. Comes here via 'restore_display' and 'language_set_event'.
+        Uses the state lock to prevent recursive dropdown triggers.
 
         Args:
             language: The language selected by the user.
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.gui
+
+        # 1. Early exit if an automatic programmatic update loop is already active
+        if getattr(the_view, "is_updating", False):
+            return
 
         # Get or Set and Get the language to use in English: Spanish, German, etc.
         language_translated = translate_string(language, set_language=True)
@@ -1701,10 +1873,15 @@ class MapTaskerEventHandlers:
             pass
 
         language_translated = translate_string(language_to_use)
-        # Change the menu to reflect the selected language
-        if hasattr(the_view, "language_optionmenu"):
-            the_view.language_optionmenu.set(language_translated)
-            PrimeItems.program_arguments["language"] = language_to_use
+
+        # 2. Change the menu dropdown value safely using the lock flag
+        if hasattr(the_view, "language_optionmenu") and the_view.language_optionmenu:
+            try:
+                the_view.is_updating = True  # Engage the lock
+                the_view.language_optionmenu.value = language_translated
+                PrimeItems.program_arguments["language"] = language_to_use
+            finally:
+                the_view.is_updating = False  # Disengage the lock
 
         # Translate and format message
         message = f"{translate_string('Language set to')} {language_translated}."
@@ -1714,24 +1891,162 @@ class MapTaskerEventHandlers:
         the_view.display_message_box(message, "Green")
 
     def tasklimit_event(self, slider_value: any) -> None:
+        """Handles the task limit slider change event safely using NiceGUI.
+        Uses a state lock to prevent recursive updates.
         """
-        Handles the task limit slider change event using NiceGUI.
+        the_view = self.gui
 
-        This function updates the internal task warning limit and dynamically
-        refreshes the text on the sidebar label.
-        """
+        # 1. Early exit if an automatic programmatic update loop is already active
+        if getattr(the_view, "is_updating", False):
+            return
+
         # Determine if slider_value is a raw number or a NiceGUI Event object
         value = int(slider_value.value if hasattr(slider_value, "value") else slider_value)
 
-        # In your event handler class context, self.gui represents 'the_view' (self.gui)
-        the_view = self.gui
-
-        # 1. Update the backend state logic
         the_view.task_action_warning_limit = value
 
-        # 2. Update the tracking label text dynamically over the web interface
         if hasattr(the_view, "task_action_label") and the_view.task_action_label:
             the_view.task_action_label.text = f"Task Action Limit: {value}"
+
+        # 2. Update the NiceGUI slider's current knob placement value SAFELY using the lock flag
+        if hasattr(the_view, "task_action_limit") and the_view.task_action_limit:
+            try:
+                the_view.is_updating = True  # Engage the lock
+                the_view.task_action_limit.value = value
+            finally:
+                the_view.is_updating = False  # Always disengage the lock
+
+    # Process the 'Save Settings' checkbox
+    def save_settings_event(self) -> None:
+        # Get program arguments from GUI and store in a temporary dictionary
+        """
+        Saves program settings from GUI to file.
+        Args:
+            self: The class instance.
+        Returns:
+            None
+        - Get program arguments from GUI and store in a temporary dictionary
+        - Save the arguments in the temporary dictionary to file
+        - Display confirmation message box
+        """
+        the_view = self.gui
+        temp_args = {value: getattr(the_view, value) for value in ARGUMENT_NAMES}
+
+        # Save the arguments in the temporary dictionary
+        temp_args, the_view.color_lookup = save_restore_args(
+            temp_args,
+            the_view.color_lookup,
+            to_save=True,
+        )
+        the_view.display_message_box("Settings saved.", "Green")
+
+    # The Upgrade Version button has been pressed.
+    def report_issue_event(self) -> None:
+        """Opens a web browser and directs the user to create a new issue on GitHub for the Map-Tasker project.
+        Parameters:
+            - self (object): The instance of the class calling the function.
+        Returns:
+            - None: This function does not return any values.
+        Processing Logic:
+            - Opens a web browser using the webbrowser module.
+            - Uses the url variable to direct the user to the correct page on GitHub.
+            - If the web browser is not supported, a message box is displayed.
+            - If the web browser is supported, a message box is displayed with instructions for creating a new issue."""
+        url = "//github.com/mctinker/Map-Tasker/issues"
+        issue_text = (
+            translate_string(
+                "Go to your browser and create a new issue or feature request, providing as much detail as possible.",
+            ),
+        )
+        the_view = self.gui
+        try:
+            webbrowser.open(f"https:{PrimeItems.slash * 2}{url}", new=2)
+        except webbrowser.Error:
+            the_view.display_message_box(
+                "Error: Failed to open output in browser: your browser is not supported.",
+                "Red",
+            )
+            return
+        the_view.display_message_box(
+            translate_string("Report an Issue or Request a Feature\n\n") + issue_text,
+            "Green",
+        )
+
+    # Process the '?' List XML Files query button
+    def query_event(self: object, query_name: str) -> None:
+        """Function to display help text for the query_event method.
+        Parameters:
+            - self (object): The object that the method is being called on.
+            - query_name (str): The name of the query to display help for.
+        Returns:
+            - None: This method does not return anything.
+        Processing Logic:
+            - Displays help text for query_event method.
+            - Uses new_message_box method.
+            - Help text is stored in {query_event.upper}_HELP_TEXT variable."""
+
+        guiview = self.parent
+
+        help_texts = {
+            "viewlimit": ("View Limit Help", VIEWLIMIT_HELP_TEXT),
+            "view": ("Views Help", VIEW_HELP_TEXT),
+            "ai": ("Ai Analyze Help", AI_HELP_TEXT),
+            "help": ("", HELP),
+            "android": ("Get XML From Android Device Help", BACKUP_HELP_TEXT),
+            "listfile": ("List Android Files Help", LISTFILES_HELP_TEXT),
+            "search": ("Search Help", SEARCH_HELP_TEXT),
+            "ppp": ("Profiles Per Line Help", PPP_HELP_TEXT),
+            "apikey": ("API Key Help", APIKEY_HELP_TEXT),
+        }
+
+        title, help_text = help_texts.get(
+            query_name,
+            ("", "No help available for this query."),
+        )
+        # Add the changelog to the help text.
+        if query_name == "help":
+            changes = get_changelog_file(CHANGELOG_URL, "##", 11)
+            # Bypass the version number and transl;ate the rest of the help text.
+            temp = help_text.find("Help\n\n")
+            help_text = translate_string(help_text[temp:])
+            help_text = help_text + "\n".join(changes)
+
+        guiview.new_message_box(f"{translate_string(title)}\n\n{translate_string(help_text)}")
+        guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
+
+    def viewlimit_event(self: object, view_limit: str) -> None:
+        """View Limit Event handled safely without recursion."""
+        guiview = self.gui
+        if getattr(guiview, "is_updating", False):
+            return
+
+        guiview.view_limit = 9999999 if view_limit == translate_string("Unlimited") else int(view_limit)
+        if view_limit == 9999999:
+            view_limit = "Unlimited"
+
+        if hasattr(guiview, "viewlimit_optionmenu") and guiview.viewlimit_optionmenu:
+            try:
+                guiview.is_updating = True
+                guiview.viewlimit_optionmenu.value = view_limit
+            finally:
+                guiview.is_updating = False
+
+        text = translate_string("View Limit set to")
+        guiview.display_message_box(f"{text} {view_limit}.", "Green")
+
+    # Clear the message text box.
+    def clear_messages_event(self) -> None:
+        """
+        Clears the message box
+        Args:
+            None
+        Returns:
+            None
+        Processing Logic:
+            - Destroys the message box
+        """
+        the_view = self.parent
+        the_view.all_messages = {}
 
 
 # Define a state container to hold our saved file locationvariable

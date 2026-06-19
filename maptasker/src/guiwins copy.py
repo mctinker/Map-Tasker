@@ -279,21 +279,17 @@ def _initialize_runtime_options(self: MyGui) -> None:
 
 
 def initialize_screen(self: MyGui) -> None:
-    """Initializes the main GUI screen layout using NiceGUI with split sidebars."""
+    """Initializes the main GUI screen layout using NiceGUI."""
     logger.info("Building UI Layout...")
 
-    # =========================================================================
-    # 1. HEADER
-    # =========================================================================
+    # Header
     with ui.header().classes("bg-blue-900 text-white p-4 justify-between items-center"):
         ui.label("MapTasker").classes("text-2xl font-bold")
         ui.switch("Dark Mode", value=True, on_change=lambda e: ui.dark_mode(e.value))
 
-    # =========================================================================
-    # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
-    # =========================================================================
+    # Sidebar (Left Drawer)
     with ui.left_drawer(fixed=True).classes(
-        "bg-gray-100 dark:bg-gray-800 p-4 w-96 flex flex-col gap-0 h-screen overflow-y-auto custom-scrollbar",
+        "bg-gray-100 dark:bg-gray-800 p-4 w-96 flex flex-col gap-2 overflow-y-auto h-clean custom-scrollbar",
     ) as self.left_drawer:
         ui.label("Display Options").classes("text-lg font-bold mb-2")
 
@@ -310,7 +306,6 @@ def initialize_screen(self: MyGui) -> None:
             .classes("w-full")
         )
 
-        # Core Feature Checkboxes
         self.everything_checkbox = ui.checkbox("Just Display Everything!").bind_value(self, "everything")
         self.conditions_checkbox = ui.checkbox("Display Conditions").bind_value(self, "conditions")
         self.taskernet_checkbox = ui.checkbox("Display TaskerNet Info").bind_value(self, "taskernet")
@@ -319,63 +314,49 @@ def initialize_screen(self: MyGui) -> None:
         self.directory_checkbox = ui.checkbox("Display Directory").bind_value(self, "directory")
         self.configuration_checkbox = ui.checkbox("Display Configuration Outline").bind_value(self, "outline")
         self.pretty_checkbox = ui.checkbox("Display Prettier Output").bind_value(self, "pretty")
-
-        # Build styling checkboxes, inputs, dropdown configurations
+        # Build remaining components of sidebar
         create_appearance_mode_section(self)
         _create_name_display_options_section(self)
         _create_task_action_limit_section(self)
         _create_indentation_section(self)
         _create_language_selection_section(self)
+        _create_settings_buttons_section(self)
         _create_font_section(self)
         _create_view_limit_section(self)
-
-    # =========================================================================
-    # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
-    # =========================================================================
-    with ui.right_drawer(fixed=True).classes(
-        "bg-gray-100 dark:bg-gray-800 p-4 w-80 flex flex-col gap-3 h-screen overflow-y-auto custom-scrollbar",
-    ) as self.right_drawer:
-        ui.label("Actions & Control").classes("text-lg font-bold mb-2")
-
-        # Global Runtime Execution Triggers
-        ui.label("Execution").classes("text-xs font-bold uppercase text-gray-400 mt-2")
-        get_file_color = "green" if PrimeItems.file_to_get else "red"
-        blink_class = "" if PrimeItems.file_to_get else " animate-pulse"
-
-        self.get_xml_button = ui.button(
-            "Get Local XML File",
-            color=get_file_color,
-            on_click=self.event_handlers.getxml_event,
-            icon="folder",
-        ).classes(f"w-full{blink_class}")
-
-        ui.button("Run & Exit", color="green", on_click=self.event_handlers.run_program_event).classes("w-full")
-        ui.button("ReRun", color="green", on_click=self.event_handlers.rerun_event).classes("w-full")
-
-        # File Actions & Messages Section
-        ui.label("File / Message Operations").classes("text-xs font-bold uppercase text-gray-400 mt-2")
         _create_file_and_message_buttons_section(self)
-
-        # Settings Configuration State Saving
-        ui.label("Application Settings").classes("text-xs font-bold uppercase text-gray-400 mt-2")
-        _create_settings_buttons_section(self)
-
-        # Help Routing Links
-        ui.label("Help Resources").classes("text-xs font-bold uppercase text-gray-400 mt-2")
         _create_browser_options_section(self)
 
-    # =========================================================================
-    # 4. MAIN BODY CONTENT AREA
-    # =========================================================================
+        ui.separator().classes("my-4")
+
+        # Sidebar buttons
+        get_file_color = "green" if PrimeItems.file_to_get else "red"
+        # Determine if the button should blink (pulse) using Tailwind CSS
+        blink_class = "" if PrimeItems.file_to_get else " animate-pulse"
+        with ui.row().classes("w-full justify-between gap-2"):
+            self.get_xml_button = ui.button(
+                "Get Local XML File",
+                color=get_file_color,
+                on_click=self.event_handlers.getxml_event,
+                icon="folder",
+            ).classes(
+                f"flex-grow{blink_class}",
+            )
+            ui.button("Run & Exit", color="green", on_click=self.event_handlers.run_program_event).classes("flex-grow")
+            ui.button("ReRun", color="green", on_click=self.event_handlers.rerun_event).classes("flex-grow")
+
+        ui.button("Exit", color="red", on_click=lambda: get_rid_of_windows_and_exit(self)).classes("w-full mt-4")
+
+    # Main Content Area
     with ui.column().classes("p-6 w-full max-w-5xl mx-auto"):
-        # View Navigation Switching Buttons Row
+        # View Buttons
+        # Event Handler > Pointed to self.event_handlers
         with ui.row().classes("gap-4 mb-6"):
             ui.button("Map View", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
             ui.button("Diagram View", on_click=lambda: self.event_handlers.view_event("diagram")).classes("bg-blue-500")
             ui.button("Tree View", on_click=lambda: self.event_handlers.view_event("treeview")).classes("bg-blue-500")
             self.current_file = ui.label("No file loaded").classes("text-gray-500 italic")
 
-        # Primary Multi-tab Application Panel Window Layout Structure
+        # Tabs
         with ui.tabs().classes("w-full") as tabs:
             self.tab_specific_name = ui.tab("Specific Name", icon="filter_list")
             self.tab_colors = ui.tab("Colors", icon="palette")
@@ -385,9 +366,13 @@ def initialize_screen(self: MyGui) -> None:
         with ui.tab_panels(tabs, value=self.tab_specific_name).classes("w-full border rounded shadow-inner p-6 mt-2"):
             with ui.tab_panel(self.tab_specific_name):
                 ui.label("Target specific Projects, Profiles, or Tasks.").classes("text-lg mb-4")
+
+                # Bind these to self so guiutils.py can update them!
                 self.specific_project_optionmenu = ui.select(["None"], label="Project").classes("w-64 mb-2")
                 self.specific_profile_optionmenu = ui.select(["None"], label="Profile").classes("w-64 mb-2")
                 self.specific_task_optionmenu = ui.select(["None"], label="Task").classes("w-64 mb-2")
+
+                # Make sure the label is also assigned so we can update its text later
                 self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-2 text-left")
                 self.list_unnamed_items_checkbox = ui.checkbox("List Unnamed Items").bind_value(
                     self,
@@ -400,7 +385,11 @@ def initialize_screen(self: MyGui) -> None:
 
             with ui.tab_panel(self.tab_analyze):
                 ui.label("AI Analysis").classes("text-lg mb-4")
-                _create_analyze_tab_content(self, ui.tab_panel(self.tab_analyze))
+                with ui.row().classes("gap-4"):
+                    ui.button("Show/Edit API Key(s)")
+                    ui.button("Change Prompt")
+                    self.everything_checkbox = ui.checkbox("Just Display Everything!").bind_value(self, "everything")
+                    _create_analyze_tab_content(self, ui.tab_panel(self.tab_analyze))
 
             with ui.tab_panel(self.tab_debug):
                 self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug")
