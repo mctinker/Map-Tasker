@@ -219,11 +219,8 @@ class LineOut:
         Otherwise, adds it after 5 blanks.
         """
         blank = "&nbsp;"
-        if len(element) < 70:
-            element = f"{element}{blank * 20}<a href='#'>Go to top</a><br>"
-        else:
-            element = f"{element}{blank * 5}<a href='#'>Go to top</a><br>"
-        return element
+        javacode = """<a href='#the_top'>Go to top</a><br>"""
+        return f"{element}{blank * 20}{javacode}" if len(element) < 70 else f"{element}{blank * 5}{javacode}"
 
     # Given a text string to output, format it based on it's contents:
     #   Project/Profile/Task/Actrion/Scene

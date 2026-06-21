@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+import re
 from typing import TYPE_CHECKING
 
 from nicegui import app, ui
@@ -100,42 +102,204 @@ class NiceGuiTextView:
 
     def build_ui(self: MyGui) -> None:
         """Builds the UI layout for the various text views, including toolbar and scrollable display area."""
-        # Toolbar
-        with ui.row().classes("w-full items-center gap-2 p-2 mb-2 bg-gray-200 dark:bg-gray-800 rounded"):
-            ui.label(f"{self.title} View").classes("text-orange-500 font-bold mr-4")
-            self.search_input = ui.input(placeholder="Search...").classes("w-48")
-            ui.button("Search", on_click=self.search_event).classes("bg-blue-600")
-            ui.button("Clear", on_click=lambda: self.search_input.set_value("")).classes("bg-blue-600")
-            ui.separator().props("vertical")
-            ui.button("Top", on_click=lambda: self.scroll("top")).classes("bg-blue-600")
-            ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
 
-        # Text Display Area
-        background_color = "bg-blue-100 dark:bg-blue-900"
-        self.scroll_area = ui.scroll_area().classes(
-            "w-full h-[70vh] border-2 border-gray-600 p-4 font-mono text-sm whitespace-pre bg-blue-100 dark:bg-blue-900",
-        )
+        # Clear the previously displayed dynamic view and target the dedicated full-width slot
+        if hasattr(self.master_gui, "content_container") and self.master_gui.content_container:
+            self.master_gui.content_container.clear()
+            container_context = self.master_gui.content_container
+        else:
+            container_context = ui.column()  # Fallback context if called standalone
 
-        with self.scroll_area:
-            self.html_display = ui.html()
+        with container_context:
+            # Toolbar
+            with ui.row().classes("w-full items-center gap-2 p-2 mb-2 bg-gray-200 dark:bg-gray-800 rounded"):
+                ui.label(f"{self.title} View").classes("text-orange-500 font-bold mr-4")
+                self.search_input = ui.input(placeholder="Search...").classes("w-48")
+                ui.button("Search", on_click=self.search_event).classes("bg-blue-600")
+                ui.button("Clear", on_click=lambda: self.search_input.set_value("")).classes("bg-blue-600")
+                ui.separator().props("vertical")
+                ui.button("Top", on_click=lambda: self.scroll("top")).classes("bg-blue-600")
+                ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
+
+            # Text Display Area
+            # Configured explicitly with max-w-full and broad block styles to prevent any compression constraints
+            self.scroll_area = (
+                ui
+                .scroll_area()
+                .classes(
+                    "w-full max-w-full block h-[70vh] border-2 border-gray-600 p-4 font-mono text-sm whitespace-pre bg-blue-100 dark:bg-blue-900",
+                )
+                .style("width: 100%; max-width: 100%;")
+            )
+
+            with self.scroll_area:
+                # Forced block structural styles directly onto the raw HTML renderer
+                self.html_display = ui.html().classes("w-full block").style("width: 100%;")
 
     def process_data(self: MyGui, the_data: dict | list) -> None:
-        """Converts data to an HTML string."""
+        """Converts data to an HTML string, properly handling embedded CSS styles."""
+
+        # --- 1. TRY TO READ PRE-COMPREHRESSED HTML FILE FIRST ---
+        try:
+            target_file = os.path.join(os.getcwd(), "MapTasker.html")
+            with open(target_file, encoding="utf-8") as f:
+                final_html = f.read()
+                final_html = (
+                    final_html
+                    .replace("\n\n\n", "")
+                    .replace("\n\n", "")
+                    .replace("<br>\n<br><br>", "")
+                    .replace("<br>\n", "<br>")
+                    .replace("<h2>MapTasker</h2>", '<a id="the_top"></a><h4>MapTasker</h4>')
+                    .replace(
+                        '<h2><span class="normtab"></span>Directory</h2>',
+                        '<h4><span class="normtab"></span>Directory</h4>',
+                    )
+                )  # Remove excessive blank lines
+
+            # The file is already pure, raw HTML.
+            # We completely bypass all loops and assign it directly!
+            self.html_display.content = final_html
+            return  # noqa: TRY300
+
+        except FileNotFoundError:
+            # Fallback gracefully to your legacy processing if MapTasker.html doesn't exist yet and use the
+            # passed data to build the HTML content.
+            pass
+
+        html_builder = []
+        in_style_block = False
+        style_buffer = []
+
+        def is_css_line(text: str) -> bool:
+            """Helper function to determine if a stray line is actually a CSS rule."""
+            clean = text.strip()
+            if clean.startswith((".", "#", "}", "{")):
+                return True
+            return bool(":" in clean and (clean.endswith(";") or "/*" in clean or "*/" in clean))
+
+        def escape_text_except_html(text: str) -> str:
+            """Escapes < and > but preserves intended HTML tags like tables and links."""
+            import re
+
+            parts = re.split(r"(<[^>]+>)", text)
+
+            allowed_tags = {
+                "a",
+                "table",
+                "tr",
+                "td",
+                "th",
+                "tbody",
+                "thead",
+                "div",
+                "span",
+                "br",
+                "style",
+                "b",
+                "i",
+                "u",
+                "strong",
+                "em",
+                "hr",
+                "!doctype",
+                "html",
+                "head",
+                "meta",
+                "title",
+                "body",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+                "p",
+                "ul",
+                "ol",
+                "li",
+            }
+
+            for i in range(len(parts)):
+                if i % 2 == 0:
+                    parts[i] = parts[i].replace("<", "&lt;").replace(">", "&gt;")
+                else:
+                    tag_name_match = re.match(r"^</?([!a-zA-Z0-9]+)", parts[i])
+                    if tag_name_match and tag_name_match.group(1).lower() in allowed_tags:
+                        pass
+                    else:
+                        parts[i] = parts[i].replace("<", "&lt;").replace(">", "&gt;")
+            return "".join(parts)
+
+        # --- 2. FALLBACK DICTIONARY PROCESSING (Legacy Map View) ---
         if self.is_map:
-            html_builder = []
             for num, (linenum, value) in enumerate(the_data.items()):
                 text_list = value.get("text", [])
                 color_list = value.get("color", [])
-                line_html = "<div>"
-                for t_idx, text_segment in enumerate(text_list):
-                    safe_text = str(text_segment).replace("<", "&lt;").replace(">", "&gt;")
-                    color = color_list[t_idx] if t_idx < len(color_list) else "inherit"
-                    line_html += f"<span style='color: {color};'>{safe_text}</span>"
-                html_builder.append(line_html + "</div>")
-            self.html_display.content = "".join(html_builder)
+                full_line_text = "".join(str(t) for t in text_list)
+
+                if "<style>" in full_line_text:
+                    in_style_block = True
+
+                if in_style_block:
+                    clean_line = full_line_text.replace("<style>", "").replace("</style>", "").replace('"""', "")
+                    style_buffer.append(clean_line)
+                    if "</style>" in full_line_text:
+                        in_style_block = False
+                        html_builder.append(f"<style>{''.join(style_buffer)}</style>")
+                        style_buffer = []
+                elif is_css_line(full_line_text):
+                    html_builder.append(f"<style>{full_line_text}</style>")
+                else:
+                    line_html = "<div>"
+                    for t_idx, text_segment in enumerate(text_list):
+                        if '"""' in str(text_segment):
+                            text_segment = str(text_segment).replace('"""', "")
+                        safe_text = escape_text_except_html(str(text_segment))
+                        color = color_list[t_idx] if t_idx < len(color_list) else "inherit"
+                        line_html += f"<span style='color: {color};'>{safe_text}</span>"
+                    line_html = line_html.rstrip("\r\n")
+                    html_builder.append(line_html + "</div>")
+
+        # --- 3. FALLBACK LIST DATA PROCESSING (Other Views) ---
         else:
-            safe_lines = [line.replace("<", "&lt;").replace(">", "&gt;") for line in the_data]
-            self.html_display.content = "<div>" + "</div><div>".join(safe_lines) + "</div>"
+            for line in the_data:
+                if line.strip() == "":
+                    html_builder.append("<div>&nbsp;</div>")
+                    continue
+                if "<br><br>" in line:
+                    line = line.replace("<br><br>", "")
+                if '"""' in line:
+                    if line in {"<div>  </tr>\n</div>", "<div>\n</div>"}:
+                        continue
+                    line = line.replace('"""', "")
+
+                if "<style>" in line:
+                    in_style_block = True
+
+                if in_style_block:
+                    clean_line = line.replace("<style>", "").replace("</style>", "")
+                    style_buffer.append(clean_line)
+                    if "</style>" in line:
+                        in_style_block = False
+                        html_builder.append(f"<style>{''.join(style_buffer)}</style>")
+                        style_buffer = []
+                elif is_css_line(line):
+                    html_builder.append(f"<style>{line}</style>")
+                else:
+                    clean_text_line = line.rstrip("\r\n")
+                    safe_line = escape_text_except_html(clean_text_line)
+                    html_builder.append(f"<div>{safe_line}</div>")
+
+        # --- 4. COMPRESS MULTIPLE BLANK LINES FOR FALLBACK DATA ---
+        final_html = "".join(html_builder)
+        empty_div_pattern = r"(<div>(?:\s|&nbsp;|<span[^>]*>(?:\s|&nbsp;)*</span>)*</div>\s*){2,}"
+        final_html = re.sub(empty_div_pattern, "", final_html)
+        final_html = re.sub(r"\n{3,}", "\n", final_html)
+        final_html = re.sub(r"(<br\s*/?>\s*){2,}", "<br>", final_html)
+
+        self.html_display.content = final_html
+        print("bingo")
 
     def search_event(self: MyGui) -> None:
         """Search for the input text in the displayed content."""
@@ -278,9 +442,59 @@ def _initialize_runtime_options(self: MyGui) -> None:
     self.taskernet = None
 
 
+# ===============================================
+# Initialize the GUI screen layout using NiceGUI with split sidebars and main content area.
+# ==============================================
 def initialize_screen(self: MyGui) -> None:
     """Initializes the main GUI screen layout using NiceGUI with split sidebars."""
     logger.info("Building UI Layout...")
+
+    # Inject a clean scrollbar theme block that doesn't break Quasar's layout engine
+    ui.add_head_html("""
+        <style>
+            /* Force scrollbar tracks to be visible on our target components */
+            .force-scrollbar,
+            .force-scrollbar .q-drawer__content {
+                overflow-y: scroll !important; /* Force vertical scrollbar footprint */
+                overflow-x: auto !important;   /* Let horizontal scrollbar show only if needed */
+            }
+
+            /* WebKit Engines (Chrome, Safari, Edge) visual overrides */
+            .force-scrollbar::-webkit-scrollbar,
+            .force-scrollbar .q-drawer__content::-webkit-scrollbar {
+                display: block !important;
+                width: 8px !important;
+                height: 8px !important; /* For horizontal scrollbar track */
+            }
+            .force-scrollbar::-webkit-scrollbar-track,
+            .force-scrollbar .q-drawer__content::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.03) !important;
+                border-radius: 4px !important;
+            }
+            .force-scrollbar::-webkit-scrollbar-thumb,
+            .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb {
+                background: #cbd5e1 !important;
+                border-radius: 4px !important;
+            }
+            .force-scrollbar::-webkit-scrollbar-thumb:hover,
+            .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8 !important;
+            }
+
+            /* Dark Mode Support Overrides */
+            .dark .force-scrollbar::-webkit-scrollbar-thumb,
+            .dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb {
+                background: #4b5563 !important;
+            }
+
+            /* Firefox Engine Fallback */
+            .force-scrollbar,
+            .force-scrollbar .q-drawer__content {
+                scrollbar-width: thin !important;
+                scrollbar-color: #cbd5e1 rgba(0, 0, 0, 0.03) !important;
+            }
+        </style>
+    """)
 
     # =========================================================================
     # 1. HEADER
@@ -293,9 +507,9 @@ def initialize_screen(self: MyGui) -> None:
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
     # =========================================================================
     with ui.left_drawer(fixed=True).classes(
-        "bg-gray-100 dark:bg-gray-800 p-4 w-96 flex flex-col gap-0 h-screen overflow-y-auto custom-scrollbar",
+        "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
     ) as self.left_drawer:
-        ui.label("Display Options").classes("text-lg font-bold mb-2")
+        ui.label("Display Options").classes("text-lg font-bold mb-2 gap-y-0 m-0 p-0 leading-none")
 
         # Detail level pulldown
         self.sidebar_detail_option = (
@@ -333,7 +547,7 @@ def initialize_screen(self: MyGui) -> None:
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
     with ui.right_drawer(fixed=True).classes(
-        "bg-gray-100 dark:bg-gray-800 p-4 w-80 flex flex-col gap-3 h-screen overflow-y-auto custom-scrollbar",
+        "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar",
     ) as self.right_drawer:
         ui.label("Actions & Control").classes("text-lg font-bold mb-2")
 
@@ -349,31 +563,32 @@ def initialize_screen(self: MyGui) -> None:
             icon="folder",
         ).classes(f"w-full{blink_class}")
 
-        ui.button("Run & Exit", color="green", on_click=self.event_handlers.run_program_event).classes("w-full")
-        ui.button("ReRun", color="green", on_click=self.event_handlers.rerun_event).classes("w-full")
+        self.exit_button = ui.button("Exit", on_click=lambda: get_rid_of_windows_and_exit(self)).classes(
+            "w-full bg-red-600 text-white mt-4",
+        )
 
-        # File Actions & Messages Section
-        ui.label("File / Message Operations").classes("text-xs font-bold uppercase text-gray-400 mt-2")
+        # Section headings for clarity
+        ui.label("File Operations").classes("text-xs font-bold uppercase text-gray-400 mt-2")
         _create_file_and_message_buttons_section(self)
 
         # Settings Configuration State Saving
         ui.label("Application Settings").classes("text-xs font-bold uppercase text-gray-400 mt-2")
         _create_settings_buttons_section(self)
 
-        # Help Routing Links
-        ui.label("Help Resources").classes("text-xs font-bold uppercase text-gray-400 mt-2")
-        _create_browser_options_section(self)
-
     # =========================================================================
     # 4. MAIN BODY CONTENT AREA
     # =========================================================================
-    with ui.column().classes("p-6 w-full max-w-5xl mx-auto"):
+    # Maximized width class footprint parameters
+    with ui.column().classes("p-6 w-full max-w-full mx-auto"):
         # View Navigation Switching Buttons Row
         with ui.row().classes("gap-4 mb-6"):
             ui.button("Map View", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
             ui.button("Diagram View", on_click=lambda: self.event_handlers.view_event("diagram")).classes("bg-blue-500")
             ui.button("Tree View", on_click=lambda: self.event_handlers.view_event("treeview")).classes("bg-blue-500")
             self.current_file = ui.label("No file loaded").classes("text-gray-500 italic")
+
+        # Dedicated full-width dynamic container slot block target for views
+        self.content_container = ui.column().classes("w-full max-w-full p-0 m-0")
 
         # Primary Multi-tab Application Panel Window Layout Structure
         with ui.tabs().classes("w-full") as tabs:
@@ -419,7 +634,7 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
     # Use the 'with' context manager to place elements inside the passed tab panel
     with tab:
         # 1. Action Buttons Row
-        with ui.row().classes("items-center gap-4 mb-4"):
+        with ui.row().classes("items-center gap-0 mb-4"):
             self.show_apikeys_button = ui.button("Show/Edit API Key(s)", on_click=self.event_handlers.ai_apikey_event)
             self.change_prompt_button = ui.button("Change Prompt", on_click=self.event_handlers.ai_prompt_event)
 
@@ -454,20 +669,22 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
 def create_appearance_mode_section(self: MyGui) -> None:
     """Creates the appearance mode selection in the NiceGUI sidebar."""
     # Label for the section
-    self.appearance_mode_label = ui.label("Appearance Mode:").classes("text-sm font-semibold mt-2")
+    self.appearance_mode_label = ui.label("Appearance Mode:").classes(
+        "text-sm font-semibold mt-2 gap-y-0 m-0 p-0 leading-none",
+    )
 
     # Dropdown select menu mapping to your event handler
     self.appearance_mode_optionmenu = ui.select(
         options=["Light", "Dark", "System"],
         value="Dark",  # Default initial value
         on_change=self.event_handlers.change_appearance_mode_event,
-    ).classes("w-full")
+    ).classes("w-full py-0 my-0 gap-y-0 m-0 p-0 leading-none")  # Adjust padding and margin to reduce spacing
 
 
 def _create_name_display_options_section(self: MyGui) -> None:
     """
     Optimized creation of name display options using NiceGUI.
-    Renders a section header and a 2x2 grid of styling checkboxes.
+    Renders a section header and a condensed 2x2 grid of styling checkboxes.
     """
     handlers = self.event_handlers
 
@@ -475,12 +692,11 @@ def _create_name_display_options_section(self: MyGui) -> None:
     self.display_names_label = (
         ui
         .label("Project/Profile/Task/Scene Names:")
-        .classes("text-sm font-semibold mt-4 mb-1")
+        .classes("text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 leading-none")
         .tooltip("Add highlighting to Project, Profile and Task names in the output.")
     )
 
     # 2. Define Checkbox Configurations
-    # We drop the row layout configurations and coordinate geometry strings
     checkbox_configs = [
         (
             "bold_checkbox",
@@ -498,11 +714,12 @@ def _create_name_display_options_section(self: MyGui) -> None:
         ("underline_checkbox", handlers.names_underline_event, "Underline", None),
     ]
 
-    # 3. Batch Creation inside a 2-Column Responsive Grid Layout
-    with ui.grid(columns=2).classes("w-full gap-x-4 gap-y-1 pl-2"):
+    # 3. Batch Creation inside a highly condensed 2-Column Grid Layout
+    # Changed gap-y-1 to gap-y-0 to completely eliminate grid vertical row spacing
+    with ui.grid(columns=2).classes("w-full gap-x-4 py-0 my-0 gap-y-0 pl-2"):
         for attr, event, label, tip in checkbox_configs:
-            # Instantiate the checkbox
-            checkbox = ui.checkbox(label, on_change=event)
+            # Instantiate the checkbox and strip vertical padding/margins via py-0 my-0
+            checkbox = ui.checkbox(label, on_change=event).classes("py-0 my-0")
 
             # Save the reference dynamically to the 'self' instance
             setattr(self, attr, checkbox)
@@ -519,7 +736,7 @@ def _create_task_action_limit_section(self: MyGui) -> None:
 
     # 1. Label tracking the live dynamic value
     self.task_action_label = ui.label(f"{text}: {self.task_action_warning_limit}").classes(
-        "text-sm font-semibold mt-4 mb-1",
+        "text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0",
     )
 
     # 2. NiceGUI Slider
@@ -532,7 +749,7 @@ def _create_task_action_limit_section(self: MyGui) -> None:
         value=100,
         on_change=self.event_handlers.tasklimit_event,
     ).classes(
-        "w-full px-2 accent-green-600",
+        "w-full px-2 accent-green-600 py-0 my-0 gap-y-0",
     )
     with self.task_action_limit:
         ui.tooltip(
@@ -546,23 +763,29 @@ def _create_task_action_limit_section(self: MyGui) -> None:
 
 def _create_indentation_section(self: MyGui) -> None:
     """Creates the If/Then/Else indentation dropdown options in the NiceGUI sidebar."""
-    self.indent_label = ui.label("If/Then/Else Indentation Amount:").classes("text-sm font-semibold mt-4 mb-1")
+    self.indent_label = ui.label("If/Then/Else Indentation Amount:").classes(
+        "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
+    )
 
     # CustomTkinter's option menu transforms into ui.select
-    self.indent_option = (
-        ui.select(
-            options=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-            value="4",  # Default initial value matching your original comments
-            on_change=self.event_handlers.indent_selected_event,
-        ).classes("w-full")
-        # .tooltip("Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.")
-    )
-    # self.indent_option.tooltip_element.style("white-space: pre-line")
+    self.indent_option = ui.select(
+        options=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
+        value="4",  # Default initial value matching your original comments
+        on_change=self.event_handlers.indent_selected_event,
+    ).classes("w-full leading-none py-0 my-0 gap-y-0")
+    with self.indent_option:
+        ui.tooltip(
+            "Set the indentation amount for If/Then/Else blocks.\n\n"
+            "The default is '4'.\n\n"
+            "This affects how the output is formatted in the Map and Diagram views.",
+        ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
 
 
 def _create_language_selection_section(self: MyGui) -> None:
     """Creates the language selection dropdown in the NiceGUI sidebar."""
-    self.language_label = ui.label("Language:").classes("text-sm font-semibold mt-4 mb-1")
+    self.language_label = ui.label("Language:").classes(
+        "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
+    )
 
     languages = sort_languages_with_priority(PrimeItems.languages.keys())
 
@@ -578,7 +801,9 @@ def _create_language_selection_section(self: MyGui) -> None:
 
 def _create_view_limit_section(self: MyGui) -> None:
     """Creates the view limit dropdown in the sidebar drawer."""
-    self.viewlimit_label = ui.label("View Limit:").classes("text-sm font-semibold mt-4 mb-1")
+    self.viewlimit_label = ui.label("View Limit:").classes(
+        "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
+    )
 
     with ui.row().classes("w-full items-center gap-2"):
         # CustomTkinter's option menu becomes a ui.select dropdown
@@ -640,7 +865,9 @@ def _create_settings_buttons_section(self: MyGui) -> None:
 
 def _create_font_section(self: MyGui) -> None:
     """Creates the monospaced font selection dropdown inside the content container."""
-    self.font_label = ui.label("Font To Use In Output:").classes("text-sm font-semibold mt-4 mb-1")
+    self.font_label = ui.label("Font To Use In Output:").classes(
+        "text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 m-0 p-0 leading-none",
+    )
 
     if not PrimeItems.mono_fonts:
         font_items = get_monospace_fonts()
@@ -668,10 +895,10 @@ def _create_font_section(self: MyGui) -> None:
 def _create_file_and_message_buttons_section(self: MyGui) -> None:
     """Creates file actions and message configuration button rows."""
     with ui.row().classes("w-full items-center gap-4 mt-4"):
-        self.clear_messages_button = ui.button(
-            "Clear Messages",
-            on_click=self.event_handlers.clear_messages_event,
-        ).classes("bg-blue-600 text-white")
+        # self.clear_messages_button = ui.button(
+        #     "Clear Messages",
+        #     on_click=self.event_handlers.clear_messages_event,
+        # ).classes("bg-blue-600 text-white")
 
         # Uses your existing display_backup_button logic defined in guiwins.py
         self.get_backup_button = self.display_backup_button(
@@ -696,43 +923,42 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
             ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
 
 
-def _create_browser_options_section(self: MyGui) -> None:
-    """Creates browser execution panels, help routing shortcuts, and app termination controls."""
-    handlers = self.event_handlers
+# FIX Deleet section below if not needed.  It was used in the original Tkinter GUI but is not needed in NiceGUI.
+# def _create_browser_options_section(self: MyGui) -> None:
+#     """Creates browser execution panels, help routing shortcuts, and app termination controls."""
+#     handlers = self.event_handlers
 
-    # 1. Specialized Help Buttons Row
-    with ui.row().classes("w-full gap-2 mt-4"):
-        self.display_help_button = ui.button("Display Help", on_click=lambda: handlers.query_event("help")).classes(
-            "bg-blue-600 text-white",
-        )
+#     # 1. Specialized Help Buttons Row
+#     with ui.row().classes("w-full gap-2 mt-4"):
+#         self.display_help_button = ui.button("Display Help", on_click=lambda: handlers.query_event("help")).classes(
+#             "bg-blue-600 text-white",
+#         )
 
-        self.get_android_help_button = ui.button(
-            "Get Android Help",
-            on_click=lambda: handlers.query_event("android"),
-        ).classes("bg-blue-600 text-white")
+#         self.get_android_help_button = ui.button(
+#             "Get Android Help",
+#             on_click=lambda: handlers.query_event("android"),
+#         ).classes("bg-blue-600 text-white")
 
-    # 2. Section Subtitle Label
-    self.text_message_label = ui.label("Browser Options").classes("text-lg font-bold mt-6 mb-2")
 
-    # 3. Execution Action Action Controllers
-    with ui.row().classes("w-full gap-2"):
-        self.run_button = ui.button("Run and Exit", on_click=handlers.run_program_event).classes(
-            "bg-green-600 text-white",
-        )
-        with self.run_button:
-            ui.tooltip(
-                "Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\n"
-                "The program terminates when done.",
-            ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
+# 2. Section Subtitle Label
+# self.text_message_label = ui.label("Browser Options").classes("text-lg font-bold mt-6 mb-2")
 
-        self.rerun_button = ui.button("ReRun", on_click=handlers.rerun_event).classes("bg-green-600 text-white")
-        with self.rerun_button:
-            ui.tooltip(
-                "Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output.",
-            ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
+# # 3. Execution Action Action Controllers
+# with ui.row().classes("w-full gap-2"):
+#     self.run_button = ui.button("Run and Exit", on_click=handlers.run_program_event).classes(
+#         "bg-green-600 text-white",
+#     )
+#     with self.run_button:
+#         ui.tooltip(
+#             "Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\n"
+#             "The program terminates when done.",
+#         ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
 
-    # 4. Global Application Exit Button
-    # Uses your exit router already linked in initialize_screen inside guiwins.py
-    self.exit_button = ui.button("Exit", on_click=lambda: get_rid_of_windows_and_exit(self)).classes(
-        "w-full bg-red-600 text-white mt-4",
-    )
+#     self.rerun_button = ui.button("ReRun", on_click=handlers.rerun_event).classes("bg-green-600 text-white")
+#     with self.rerun_button:
+#         ui.tooltip(
+#             "Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output.",
+#         ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
+
+# 4. Global Application Exit Button
+# Uses your exit router already linked in initialize_screen inside guiwins.py

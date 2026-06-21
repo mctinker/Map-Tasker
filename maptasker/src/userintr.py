@@ -1,7 +1,6 @@
 """Code to manage the graphical user interface using NiceGUI."""
 
 import contextlib
-import os
 import sys
 import webbrowser
 from collections.abc import Callable
@@ -27,7 +26,6 @@ from maptasker.src.guiutils import (
     display_selected_object_labels,
     get_xml,
     list_tasker_objects,
-    reload_gui,
     reset_primeitems_single_names,
     set_tasker_object_names,
     update_tasker_object_menus,
@@ -254,7 +252,7 @@ class MyGui:
         )
 
         # Launch the main MapTasker to display all or single item.
-        _ = mapit_all("")
+        _ = mapit_all()
 
         # Restore settings
         self.twisty = save_twisty
@@ -645,20 +643,13 @@ class MyGui:
         # Indicate that an extraction is in progress so we don't inadvertently change the colors already set
         # via the 'appearance_mode' setting.
         self.extract_in_progress = True
-        counter = 0
         for key, value in temp_args.items():
             if key is not None:
-                print("bingo", key, value)
-                counter += 1
-                if counter > 50:
-                    sys.exit(99)
                 setattr(self, key, value)
                 # Start log if debug
                 if key == "debug" and value:
                     log_startup_values()
                 # Make the modification based on the specfic setting
-                if key == "font":
-                    print("bingo")
                 _ = self.restore_display(key, value)
                 # # Now display the setting and act on it if necessary.
                 # if new_message := self.restore_display(key, value):
@@ -668,7 +659,7 @@ class MyGui:
         if self.tab_to_use is None:
             self.tab_to_use = TAB_NAMES[0]
 
-        # We have read colors and runtime args from backup file.  Now extract them for use.
+        # We have read colors and runtime args from backup file.  Now extract process_data,  them for use.
         self.extract_colors()
 
         # Display completion
@@ -1049,48 +1040,49 @@ class MapTaskerEventHandlers:
     # ==========================================
     # 1. CORE EXECUTION EVENTS
     # ==========================================
-    def run_program_event(self: "MapTaskerEventHandlers") -> None:
-        """Triggered when 'Run & Exit' is clicked."""
-        logger.info("GUI: Run Program Event Triggered")
-        ui.notify("Executing MapTasker...", type="info")
+    # FIX Delete commented code below if not needed.  It was used in the original Tkinter GUI but is not needed in NiceGUI.
+    # def run_program_event(self: "MapTaskerEventHandlers") -> None:
+    #     """Triggered when 'Run & Exit' is clicked."""
+    #     logger.info("GUI: Run Program Event Triggered")
+    #     ui.notify("Executing MapTasker...", type="info")
 
-        the_view = self.gui
-        the_view.go_program = True
-        the_view.rerun = False
+    #     the_view = self.gui
+    #     the_view.go_program = True
+    #     the_view.rerun = False
 
-        # Reset fund items in case they had already been set by 'Map' view.
-        PrimeItems.found_named_items = {
-            "single_project_found": False,
-            "single_profile_found": False,
-            "single_task_found": False,
-        }
+    #     # Reset fund items in case they had already been set by 'Map' view.
+    #     PrimeItems.found_named_items = {
+    #         "single_project_found": False,
+    #         "single_profile_found": False,
+    #         "single_task_found": False,
+    #     }
 
-        # Validate the XML and cleanup
-        the_view.cleanup_and_run(run_only=True)
+    #     # Validate the XML and cleanup
+    #     the_view.cleanup_and_run(run_only=True)
 
-    def rerun_event(self: "MapTaskerEventHandlers", output_to_browser: bool = True) -> None:
-        """Triggered when 'ReRun' is clicked."""
-        logger.info("GUI: ReRun Event Triggered")
-        ui.notify("Re-running MapTasker with current settings...", type="ongoing")
+    # def rerun_event(self: "MapTaskerEventHandlers", output_to_browser: bool = True) -> None:
+    #     """Triggered when 'ReRun' is clicked."""
+    #     logger.info("GUI: ReRun Event Triggered")
+    #     ui.notify("Re-running MapTasker with current settings...", type="ongoing")
 
-        the_view = self.gui
+    #     the_view = self.gui
 
-        if output_to_browser:
-            # Remap everything with the current settings from the GUI.
-            the_view.remapit(clear_names=False)
+    #     if output_to_browser:
+    #         # Remap everything with the current settings from the GUI.
+    #         the_view.remapit(clear_names=False)
 
-            # Setup to redisplay the output in the browser.
-            # Get the output directory/folder path
-            my_output_dir = os.getcwd()
-            # Finally, write out all of the output that is queued up.
-            my_file_name = f"{PrimeItems.slash}MapTasker.html"
-            # These need to be off for the web browsere to display
-            PrimeItems.program_arguments["guiview"] = False
-            PrimeItems.program_arguments["ai_analyze"] = False
-            # Display the final results in the default web browser
-            the_view.display_message_box(f"{my_output_dir}, {my_file_name}", "green")
+    #         # Setup to redisplay the output in the browser.
+    #         # Get the output directory/folder path
+    #         my_output_dir = os.getcwd()
+    #         # Finally, write out all of the output that is queued up.
+    #         my_file_name = f"{PrimeItems.slash}MapTasker.html"
+    #         # These need to be off for the web browsere to display
+    #         PrimeItems.program_arguments["guiview"] = False
+    #         PrimeItems.program_arguments["ai_analyze"] = False
+    #         # Display the final results in the default web browser
+    #         the_view.display_message_box(f"{my_output_dir}, {my_file_name}", "green")
 
-        reload_gui(the_view)
+    #     reload_gui(the_view)
 
     # ==========================================
     # 2. Display View: Map, Diagram, Misc or Tree
@@ -1985,7 +1977,7 @@ class MapTaskerEventHandlers:
             - Uses new_message_box method.
             - Help text is stored in {query_event.upper}_HELP_TEXT variable."""
 
-        guiview = self.parent
+        guiview = self.gui
 
         help_texts = {
             "viewlimit": ("View Limit Help", VIEWLIMIT_HELP_TEXT),
@@ -2045,7 +2037,7 @@ class MapTaskerEventHandlers:
         Processing Logic:
             - Destroys the message box
         """
-        the_view = self.parent
+        the_view = self.gui
         the_view.all_messages = {}
 
 

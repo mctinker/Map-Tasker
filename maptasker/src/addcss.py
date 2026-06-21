@@ -56,17 +56,17 @@ def add_css() -> None:
     """
 
     box = """
-    <style>
-    .text-box {
-        border: 2px solid #333;
-        padding-left: 10px;    /* Keeps the existing left padding */
-        padding-right: 10px;   /* Keeps the existing right padding */
-        padding-top: 0px;     /* Increases the space at the top */
-        padding-bottom: 10px;  /* Increases the space at the bottom */
-        margin: 10px;
-        width: 100%;
-        background-color: #f9f9f9;
-    }
+<style>
+.text-box {
+    border: 2px solid #333;
+    padding-left: 10px;    /* Keeps the existing left padding */
+    padding-right: 10px;   /* Keeps the existing right padding */
+    padding-top: 0px;     /* Increases the space at the top */
+    padding-bottom: 10px;  /* Increases the space at the bottom */
+    margin: 10px;
+    width: 100%;
+    background-color: #f9f9f9;
+}
 </style>
     """
 
