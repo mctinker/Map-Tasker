@@ -288,11 +288,12 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
 
 
 # Output the configuration outline and map
+# FIX Remove this function and it's call.
 def process_outline() -> None:
     """
     Output the configuration outline and map
     Args:
-        my_output_dir (str): Our current directory for output.
+        None
     Returns:
         None: This function does not return anything
     Processing Logic:
@@ -303,8 +304,6 @@ def process_outline() -> None:
 
     """
     Output the configuration outline and map
-        Args:
-            my_output_dir (str): Our current directory for output.
     """
     # Do the configuration outline and generate the map
     outline_the_configuration()

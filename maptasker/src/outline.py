@@ -27,10 +27,11 @@
 #     }
 #   }
 # }
-
+import asyncio
 import contextlib
 
 import defusedxml.ElementTree  # Need for type hints
+from nicegui import context
 
 from maptasker.src.diagram import network_map
 from maptasker.src.format import format_html
@@ -630,4 +631,15 @@ def outline_the_configuration() -> None:
 
     # Now generate the outline diagram text file.
     if network:
-        network_map(network)
+        """
+        NiceGUI elements require an active tracking slot during instantiation. By using from nicegui import context and
+        capturing context.get_client(), you save a direct reference to the user's current UI session. Passing it into
+        the async task and invoking with client: explicitly forces NiceGUI to re-attach the execution loop to that
+        exact browser session, allowing your modal dialog box to render safely without an exception.
+        """
+        # Schedules the async network_map directly onto the active event loop
+        # Access the client property directly from context
+        current_client = context.client
+
+        # Pass the client along to the background thread task
+        asyncio.create_task(network_map(network, client=current_client))  # noqa: RUF006

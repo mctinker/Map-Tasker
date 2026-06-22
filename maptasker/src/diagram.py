@@ -13,6 +13,7 @@ diagramming app rather than rely on yet-another-dependency such as that for
 
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import gc
 import os
@@ -54,9 +55,9 @@ from maptasker.src.diagutil import (
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
 from maptasker.src.guiutils import (
-    display_progress_bar,
     kill_the_progress_bar,
 )
+from maptasker.src.guiwins import create_progressbar_window
 
 # Avoid circular import error: guiwins has the proper import statement for configure_progress_bar,
 # the function, of which, is in guiutil2.
@@ -1231,19 +1232,10 @@ def cleanup_diagram(
     output_lines: list,
     progress: dict,
 ) -> list:
-    # Go thru each line of the diagram.
     """
-    Cleanup the diagram by adding missing straight lines, replacing spaces with straight lines,
-    replacing single quotes with blanks, and adjusting spacing around Task names.
-
-    Args:
-        output_lines (list): The list of strings representing the diagram.
-        progress (dict): The progress bar dictionary.
-        call_table (dict): The call table with caaller and called task linkages.
-
-    Returns:
-        output_lines (list): The modified list of strings.
+    Cleanup the diagram by adding missing straight lines and replacing spaces.
     """
+    total_lines = len(output_lines)
 
     for num, line in enumerate(output_lines):
         # Add missing straight lines in which there is one or more blanks before "╯".
@@ -1265,10 +1257,9 @@ def cleanup_diagram(
         if position != -1 and line[position - 1][0] == " ":
             output_lines = cleanup_missing_bars(output_lines, num, position)
 
-        # Update progress bar if needed.
-        if PrimeItems.program_arguments["gui"] and progress["progress_counter"] % progress["tenth_increment"] == 0:
-            display_progress_bar(progress, is_instance_method=False)
-        progress["progress_counter"] += 1
+        # OPTIMIZED: Update progress text smoothly during large operations without crashing performance
+        if "progress_bar" in progress and num % 50 == 0:
+            progress["status_label"].set_text(f"Cleaning layout structures: line {num} / {total_lines}")
 
     # Delete hanging bars "│" and substitute every arrow with beginning and end arrows only.
     return delete_hanging_bars(output_lines)
@@ -1328,11 +1319,12 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
 
 
 # If Task line has any "Task Call" Task actions, fill it with arrows.
-def handle_calls(output_lines: list) -> None:
+async def handle_calls(output_lines: list, progress: dict) -> None:
     """
     Handle calls in output lines from parsing
     Args:
         output_lines: output lines from parsing in one line
+        progress: progress bar dictionary
     Returns:
         output_lines: output lines with arrows added in one line
     Processing Logic:
@@ -1341,11 +1333,6 @@ def handle_calls(output_lines: list) -> None:
     - Traverse the call table and add arrows to the output lines
     - Remove all icons from the names to ensure arrow alignment
     """
-    # Display a progress bar if coming from the GUI.
-    # progress = configure_progress_bar(None, output_lines, "Diagram")
-    # FIX
-    progress = []
-
     # Go through the output and add blanks above the called tasks, one for each caller.
     output_lines = add_blanks_above_called_tasks(output_lines)
 
@@ -1591,38 +1578,45 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
     return "".join(new_parts)
 
 
-def build_network_map(data: dict) -> None:
+async def build_network_map(data: dict, progress: dict) -> None:
     """
     Builds a network map from project and profile data
-    Args:
-        data: Project and profile data dictionary
-    Returns:
-    - Loops through each project in the data dictionary
-    - Prints the project name in a box
-    - Prints all profiles and their tasks for that project
-    - Handles calling relationships between tasks and adds them to the network map output
     """
-    # Go through each project
     project_text = (
         translate_string("Project:")
         if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
         else "Project:"
     )
-    for project, profiles in data.items():
+
+    total_projects = len(data)
+
+    for idx, (project, profiles) in enumerate(data.items(), start=1):
+        # Update progress tracking increments safely
+        if "progress_bar" in progress:
+            # Update the progress percentage label text dynamically
+            progress["status_label"].set_text(f"Mapping Project {idx} of {total_projects}: {project}")
+            # Calculate fractional float between 0.0 and 1.0
+            progress["progress_bar"].set_value(idx / total_projects)
+
+        # Give control back to NiceGUI event loop for 1 millisecond to force render redraw
+        await asyncio.sleep(0.001)
+
         # Print Project as a box
         print_box(project, project_text, 1)
         # Print all of the Project's Profiles and their Tasks
         print_profiles_and_tasks(project, profiles)
 
-    # Handle Task calls
-    PrimeItems.netmap_output = handle_calls(PrimeItems.netmap_output)
+    # Process task relational arrow connectors
+    if "status_label" in progress:
+        progress["status_label"].set_text("Drawing call relationship arrows...")
+
+    PrimeItems.netmap_output = await handle_calls(PrimeItems.netmap_output, progress)
 
     # Remove lines that only contain bars ( | )
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
 
-    # Translate the output lines if needed.  Can't translate anything that has diagram lines
+    # Translate the output lines if needed
     if PrimeItems.program_arguments["language"] not in ("English", "Arabic"):
-        # Pre-translate once to save resources
         trans = {
             "no_proj": ("No Project", translate_string("No Project")),
             "calls": ("[Calls", f"[{translate_string('Calls')}"),
@@ -1632,12 +1626,9 @@ def build_network_map(data: dict) -> None:
             "notfound": (" (Not Found!)", f" {translate_string('(Not Found!)')}"),
         }
 
-        # Store items in a local variable for faster access than repeated attribute lookups
         output_list = PrimeItems.netmap_output
 
         for i, line in enumerate(output_list):
-            # Optimization: Only process lines that contain at least one target keyword
-            # This skips the 5 function calls for diagram-only or empty lines
             if any(key[0] in line for key in trans.values()):
                 newline = line
                 newline = replace_maintain_column(newline, trans["no_proj"][0], trans["no_proj"][1])
@@ -1650,34 +1641,29 @@ def build_network_map(data: dict) -> None:
 
 
 # Print the network map.
-def network_map(network: dict) -> None:
+async def network_map(network: dict, client: object = None) -> None:
     """
     Output a network map of the Tasker configuration.
-        Args:
-
-            network (dict): the network laid out for mapping.
-
-            network = {
-                "Project 1": {
-                    "Profile 1": [
-                        {"Task 1": "xml": xml, "name": "Task 1", "calls_tasks": ["Task 2", "Task 3"]}
-                        {"Task 2": "xml": xml, "name": "Task 1", "calls_tasks": []}
-                        ],
-                    "Profile 1": [
-                        {"Task 1": "xml": xml, "name": "Task 3", "calls_tasks": ["Task 8"]}
-                        {"Task 2": "xml": xml, "name": "Task 4", "calls_tasks": []}
-                        ],
-                    "Scenes": ["Scene 1", "Scene 2"] # List of Scenes for this Project
-                },
-                "Project 2": {
-                    "Profile 1": [
-                        {"Task 1": {"xml": xml, "name": "Task 4", "calls_tasks": []}
-                        ]
-                }
-            }
-
-    The output is stored in PrimeItems.netmap_output
     """
+    # =========================================================================
+    # OPTIMIZED: Approach 1 Progress Bar Integration
+    # =========================================================================
+
+    # Initialize and display the modal dialog popup window natively in NiceGUI
+    # If a client context is provided, force NiceGUI to use it for rendering the dialog
+    if client:
+        with client:
+            dialog, progress_bar, status_label = create_progressbar_window("Generating Diagram View...")
+    else:
+        dialog, progress_bar, status_label = create_progressbar_window("Generating Diagram View...")
+
+    progress = {}
+    progress["dialog"] = dialog
+    progress["progress_bar"] = progress_bar
+    progress["status_label"] = status_label
+    progress["progress_counter"] = 0
+    # Estimate total points: Number of projects * arbitrary processing weight
+    progress["max_data"] = max(len(network) * 10, 10)
 
     # Start with a ruler line
     PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
@@ -1685,20 +1671,11 @@ def network_map(network: dict) -> None:
     PrimeItems.netmap_output = []
     PrimeItems.called_task_tracker = {}
 
-    # Print a heading
-
     # datetime object containing current date and time
     now = datetime.now()  # noqa: DTZ005
-
-    # dd/mm/YY H:M:S
-    dt_string = now.strftime("%B %d, %Y  %H:%M:%S")
-
-    # dd/mm/YY H:M:S
     dt_string = NOW_TIME.strftime("%B %d, %Y  %H:%M:%S")
 
-    add_output_line(
-        f"{MY_VERSION}{blank * 5}Configuration Map{blank * 5}{dt_string}",
-    )
+    add_output_line(f"{MY_VERSION}{blank * 5}Configuration Map{blank * 5}{dt_string}")
     add_output_line(" ")
     add_output_line(
         live_translate_text(
@@ -1708,13 +1685,16 @@ def network_map(network: dict) -> None:
     add_output_line(" ")
     add_output_line(" ")
 
-    # Build and print the configuration.  Network consists of all the projects, profiles, tasks and scenes in network.
-    build_network_map(network)
+    try:
+        # Build and print the configuration tracking progress updates asynchronously
+        await build_network_map(network, progress)
+    finally:
+        # ABSOLUTE SAFEGUARD: Always guarantee the modal closes even if compilation crashes
+        dialog.close()
 
-    # Print it all out if we have output.
     # Redirect print to a file
     if PrimeItems.netmap_output:
-        output_dir = f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"  # Get the directory from which we are running.
+        output_dir = f"{os.getcwd()}{PrimeItems.slash}{DIAGRAM_FILE}"
         first_project = True
         project_translated = (
             translate_string("Project:")
@@ -1722,34 +1702,26 @@ def network_map(network: dict) -> None:
             else "Project:"
         )
         with open(str(output_dir), "w", encoding="utf-8") as mapfile:
-            # PrimeItems.printfile = mapfile
             for num, line in enumerate(PrimeItems.netmap_output):
-                # Add spacer if we have hit a Project and it isn't the first one.
                 if (
                     not first_project
                     and box_line in line
                     and num + 1 < len(PrimeItems.netmap_output)
                     and project_translated in PrimeItems.netmap_output[num + 1]
                 ):
-                    # Create a spacer line with just bars
                     if bar in PrimeItems.netmap_output[num - 1]:
                         spacer = (
                             "".join(char if char == bar else " " for char in PrimeItems.netmap_output[num + 1]) + "\n"
                         )
                     else:
                         spacer = "\n"
-                    # Add the spacers
                     mapfile.write(spacer)
                     mapfile.write(spacer)
                 if project_translated in line:
                     first_project = False
 
-                # Remove any icons from the line
-                line = remove_icon(line)  # noqa: PLW2901
-
-                # Output the line
+                line = remove_icon(line)
                 mapfile.write(f"{line}\n")
-
             mapfile.close()
 
         # Cleanup

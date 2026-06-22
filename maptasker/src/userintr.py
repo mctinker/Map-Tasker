@@ -10,6 +10,7 @@ from nicegui import Event, ui
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
+from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getids import get_ids
@@ -34,7 +35,6 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins import (
     NiceGuiTextView,
     NiceGuiTreeView,
-    create_appearance_mode_section,
     initialize_gui,
     initialize_screen,
 )
@@ -45,6 +45,7 @@ from maptasker.src.maputils import (
     clear_tasker_data,
     make_hex_color,
 )
+from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
@@ -164,7 +165,7 @@ class MyGui:
         if self.first_time:
             self.all_messages = {}
         self.color_lookup = {}  # Setup default dictionary as empty list
-        self.saved_backgfround_color = "#3e1414"
+        self.saved_background_color = "#3e1414"
         self.font = OUTPUT_FONT
         self.gui = True
         self.color_row = 4
@@ -754,9 +755,10 @@ class MyGui:
             "android_ipaddr": lambda: f"{translate_string('Android Get XML TCP IP Address')} {set_to} {value}\n",
             "android_port": lambda: f"{translate_string('Android Get XML Port Number')} {set_to} {value}\n",
             "android_file": lambda: f"{translate_string('Android Get XML File Location')} {set_to} {value}\n",
-            "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(
-                value,
-            ),
+            # FIX Delete the fopllowing code
+            # "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(
+            #     value,
+            # ),
             "ai_model_extended_list": lambda: self.select_deselect_checkbox(
                 self.aimodel_extend_checkbox,
                 value,
@@ -1122,7 +1124,7 @@ class MapTaskerEventHandlers:
                 return
 
             # Define the view and display the map.
-            NiceGuiTextView(
+            gui.textview = NiceGuiTextView(
                 self.gui,
                 title=window_title,
                 the_data=map_data,
@@ -1130,30 +1132,45 @@ class MapTaskerEventHandlers:
 
         # Setup diagram view.
         elif view_type in ("diagram", "misc"):
-            # Display the data.
-            if data:
-                view = NiceGuiTextView(
-                    gui,
-                    title=window_title,
-                    the_data=map_data,
-                )
+            # Check if we have a Project or Profile
+            if view_type == "diagram":
+                # If we don't already have Project, then get some XML.
+                if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
+                    # Let the user know
+                    gui.display_message_box(
+                        "The 'Diagram' view is running in the background.  Please stand by...",
+                        "LimeGreen",
+                    )
+                    # Process the diagram: builds the 'network' and then draws it in the GUI
+                    outline_the_configuration()
+                    # Display the diagram in the GUI
+                    gui.textview = NiceGuiTextView(
+                        gui,
+                        title=window_title,
+                        the_data=[],
+                    )
+
             else:
-                self.display_message_box("No Project(s) Found in XML!", "Red")
-                return
+                data = []
+                gui.display_message_box(
+                    "The 'Misc' view is running in the background.  Please stand by...",
+                    "LimeGreen",
+                )
+                # FIX: Implement the 'Misc' view logic here, similar to the 'Diagram' view.
+
         elif view_type == "tree":
             if data:
-                view = NiceGuiTreeView(master=getattr(self, window_attribute), items=data)
+                NiceGuiTreeView(master=getattr(self, window_attribute), items=data)
             else:
-                self.display_message_box("No Project(s) Found in XML!", "Red")
+                gui.display_message_box("No Project(s) Found in XML!", "Red")
                 return
         else:
-            self.display_message_box()(
+            gui.display_message_box(
                 "Invalid view type specified. Use 'map', 'diagram', or 'tree'.",
                 "Red",
             )
 
         return
-        NiceGuiTextView if view_type != "tree" else NiceGuiTreeView(self.gui, f"{view_type} View", "place_holder")
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
@@ -1528,56 +1545,57 @@ class MapTaskerEventHandlers:
         # Display the model pulldown list.
         display_model_pulldown(self, 50)
 
-    # Process the screen mode: dark, light, system
-    def change_appearance_mode_event(self, new_appearance_mode: str) -> None:
-        """
-        Change the appearance mode of the GUI
-        Args:
-            new_appearance_mode: The new appearance mode as a string
-        Returns:
-            None: Does not return anything
-        - Set the global appearance mode to the new mode
-        - Update the local appearance mode attribute to the new lowercased mode"""
+    # FIX Delete the following code
+    # # Process the screen mode: dark, light, system
+    # def change_appearance_mode_event(self, new_appearance_mode: str) -> None:
+    #     """
+    #     Change the appearance mode of the GUI
+    #     Args:
+    #         new_appearance_mode: The new appearance mode as a string
+    #     Returns:
+    #         None: Does not return anything
+    #     - Set the global appearance mode to the new mode
+    #     - Update the local appearance mode attribute to the new lowercased mode"""
 
-        the_view = self.gui
+    #     the_view = self.gui
 
-        # Determine if the selected appearance mode is one of the standard modes or a translated mode, and set the mode accordingly.
-        # First, check if it is a previously-set language mode.
-        if (
-            new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]
-            and PrimeItems.appearance_translated
-        ):
-            # Find our new appearance mode in the translated values and set the language to the corresponding key to
-            # translate it back to English for the appearance mode setting.
-            for key, value in PrimeItems.appearance_translated.items():
-                if new_appearance_mode in value:
-                    save_language = PrimeItems.program_arguments["language"]
-                    PrimeItems.program_arguments["language"] = key
-                    _ = translate_string(key, set_language=True)
-                    new_appearance_mode = translate_string(new_appearance_mode.capitalize()).lower()
-                    PrimeItems.program_arguments["language"] = save_language
-                    _ = translate_string(save_language, set_language=True)
-                    break
-        elif new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]:
-            new_appearance_mode = "system"
+    #     # Determine if the selected appearance mode is one of the standard modes or a translated mode, and set the mode accordingly.
+    #     # First, check if it is a previously-set language mode.
+    #     if (
+    #         new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]
+    #         and PrimeItems.appearance_translated
+    #     ):
+    #         # Find our new appearance mode in the translated values and set the language to the corresponding key to
+    #         # translate it back to English for the appearance mode setting.
+    #         for key, value in PrimeItems.appearance_translated.items():
+    #             if new_appearance_mode in value:
+    #                 save_language = PrimeItems.program_arguments["language"]
+    #                 PrimeItems.program_arguments["language"] = key
+    #                 _ = translate_string(key, set_language=True)
+    #                 new_appearance_mode = translate_string(new_appearance_mode.capitalize()).lower()
+    #                 PrimeItems.program_arguments["language"] = save_language
+    #                 _ = translate_string(save_language, set_language=True)
+    #                 break
+    #     elif new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]:
+    #         new_appearance_mode = "system"
 
-        if PrimeItems.program_arguments["language"] != "English":
-            # Translated string is capitalized, so we need to translate first and then lowercase for the appearance mode.
-            new_appearance_mode_translated = translate_string(new_appearance_mode.capitalize())
-            # Recreate the pulldown menu translated.
-            the_view.appearance_mode_optionmenu.destroy()
-            create_appearance_mode_section(the_view)
-            if new_appearance_mode in ["dark", "light", "system"]:
-                appearance_mode_to_set = new_appearance_mode_translated.capitalize()
-                mode_to_set = new_appearance_mode
-            else:
-                appearance_mode_to_set = new_appearance_mode
-                mode_to_set = new_appearance_mode_translated.lower()
-        else:
-            new_appearance_mode_translated = new_appearance_mode.capitalize()
-            # FIX what is this for?
-            appearance_mode_to_set = new_appearance_mode_translated
-            mode_to_set = new_appearance_mode
+    #     if PrimeItems.program_arguments["language"] != "English":
+    #         # Translated string is capitalized, so we need to translate first and then lowercase for the appearance mode.
+    #         new_appearance_mode_translated = translate_string(new_appearance_mode.capitalize())
+    #         # Recreate the pulldown menu translated.
+    #         the_view.appearance_mode_optionmenu.destroy()
+    #         create_appearance_mode_section(the_view)
+    #         if new_appearance_mode in ["dark", "light", "system"]:
+    #             appearance_mode_to_set = new_appearance_mode_translated.capitalize()
+    #             mode_to_set = new_appearance_mode
+    #         else:
+    #             appearance_mode_to_set = new_appearance_mode
+    #             mode_to_set = new_appearance_mode_translated.lower()
+    #     else:
+    #         new_appearance_mode_translated = new_appearance_mode.capitalize()
+    #         # FIX what is this for?
+    #         appearance_mode_to_set = new_appearance_mode_translated
+    #         mode_to_set = new_appearance_mode
 
     # Process the 'Bold Names' checkbox
     def names_bold_event(self) -> None:
@@ -2039,6 +2057,114 @@ class MapTaskerEventHandlers:
         """
         the_view = self.gui
         the_view.all_messages = {}
+
+    def colors_event(self, e) -> None:
+        """Fires whenever the user changes the dropdown category selection."""
+        color_selected_item = e.value if hasattr(e, "value") else e
+        if not color_selected_item:
+            return
+
+        the_view = self.gui
+        warning_check = ["Profile Conditions", "Action Conditions", "TaskerNet Information", "Tasker Preferences"]
+        check_against = [the_view.conditions, the_view.conditions, the_view.taskernet, the_view.preferences]
+
+        # Ensure the feature visibility flag is active before changing colors
+        with contextlib.suppress(Exception):
+            if PrimeItems.program_arguments["language"] != "english":
+                color_selected_item = translate_string(color_selected_item)
+            the_index = warning_check.index(color_selected_item)
+            if not check_against[the_index]:
+                the_output_message = color_selected_item.replace("Profile ", "").replace("Action ", "")
+                ui.notify(
+                    f"Display {the_output_message} is not set to display! Turn on Display {color_selected_item} first.",
+                    type="negative",
+                )
+                return
+
+        # Explicitly tell the user what they are altering
+        if hasattr(the_view, "color_change") and the_view.color_change:
+            the_view.color_change.set_text(f"Modifying color for: {color_selected_item}")
+            the_view.color_change.style("color: inherit;")
+
+    def handle_color_pick_event(self, color_value: str) -> None:
+        """Triggered automatically when a hex code or pop-up spectrum value updates."""
+        the_view = self.gui
+
+        # Read the active category directly from the dropdown selection box value
+        if hasattr(the_view, "color_objects_options") and the_view.color_objects_options:
+            color_selected_item = the_view.color_objects_options.value
+        else:
+            return
+
+        if color_value and color_selected_item:
+            translated_color_name = translate_string(color_selected_item)
+            ui.notify(
+                f"{translated_color_name} {translate_string('color changed to')} {color_value}",
+                color=color_value,
+            )
+
+            # Plug in the selected color for the selected named item
+            the_view.event_handlers.extract_color_from_event(color_value, color_selected_item)
+
+            # --- DYNAMIC BACKGROUND LIVE REFRESH ---
+            if color_selected_item == "Background":
+                the_view.saved_background_color = make_hex_color(color_value)
+
+                # If a Map/Diagram view is currently rendered on screen, update its background instantly!
+                if hasattr(the_view, "textview") and the_view.textview:
+                    # Method A: Force styling directly onto the NiceGUI scroll_area container component
+                    if hasattr(the_view.textview, "scroll_area") and the_view.textview.scroll_area:
+                        the_view.textview.scroll_area.style(f"background-color: {color_value} !important;")
+
+            else:
+                ui.notify("The change will take effect the next time you open the view.", color="green")
+
+            # Update the visual status label text and text color instantly
+            if hasattr(the_view, "color_change") and the_view.color_change:
+                the_view.color_change.set_text(f"{color_selected_item} displays in this color.")
+                the_view.color_change.style(f"color: {color_value};")
+
+    # Color selected...process it.
+    def extract_color_from_event(self, color: str, color_selected_item: str) -> None:
+        """Maps a color name to a selected item
+        Args:
+            color: str - The color name
+            color_selected_item: str - The name of the selected item
+        Returns:
+            None - No return value
+        Maps a color name to a selected item:
+            - Looks up the color name in a dictionary of color types
+            - Adds the color as a value to the color lookup dictionary using the looked up color type as the key
+            - This associates the given color with the given selected item"""
+        the_view = self.gui
+        the_view.color_lookup[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
+            color  # Add color for the selected item to our dictionary
+        )
+        PrimeItems.colors_to_use[TYPES_OF_COLOR_NAMES[color_selected_item]] = (
+            color  # Add color for the selected item to our dictionary
+        )
+
+    # User has requested that the colors be result to their defaults.
+    def color_reset_event(self) -> None:
+        """Resets the color mode for Tasker items.
+        Parameters:
+            self (object): The current instance of the class.
+        Returns:
+            None: This function does not return anything.
+        Processing Logic:
+            - Resets color mode for Tasker items.
+            - Sets color mode to default.
+            - Displays message box to confirm reset.
+            - Destroys color change window."""
+        the_view = self.gui
+        PrimeItems.colors_to_use = set_color_mode(the_view.appearance_mode)
+        # Save our background color for later reuse
+        the_view.saved_background_color = make_hex_color(PrimeItems.colors_to_use.get("background_color"))
+        the_view.color_lookup = {}
+        the_view.display_message_box(
+            "Tasker items set back to their default colors.",
+            "Green",
+        )
 
 
 # Define a state container to hold our saved file locationvariable
