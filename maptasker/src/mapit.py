@@ -26,7 +26,9 @@ This is the main coordinator module that kicks-off the other components that lau
 #                                                                                      #
 # Reference: https://github.com/Taskomater/Tasker-XML-Info                             #
 #                                                                                      #
+import asyncio
 import sys
+from venv import logger
 
 import maptasker.src.proginit as initialize
 from maptasker.src.lineout import LineOut
@@ -91,6 +93,22 @@ def on_crash(exctype: object, value: str, traceback: list) -> None:
             sys.__excepthook__(exctype, value, traceback)
 
 
+def handle_async_exceptions(loop, context) -> None:
+    """Custom handler for async loop background crashes."""
+    exception = context.get("exception")
+    message = context.get("message")
+
+    # Silence the stack trace completely, and route a clean message to your logger
+    if exception:
+        err_message = f"Async Background Task aborted: {exception}"
+        print(err_message)
+        logger.error(err_message)
+    else:
+        err_message = f"Async Loop Error: : {message}"
+        print(err_message)
+        logger.error(err_message)
+
+
 # Set up the major variables used within this program, and set up crash routine
 def initialize_everything() -> tuple[list, list, list]:
     """
@@ -111,6 +129,10 @@ def initialize_everything() -> tuple[list, list, list]:
     # We have to initialize output_lines here. Otherwise, we'll lose the output class
     # with the upcoming call to start_up.
     PrimeItems.output_lines = LineOut()
+
+    # Attach the handler to the active running Nicegui ui loop
+    loop = asyncio.get_event_loop()
+    loop.set_exception_handler(handle_async_exceptions)
 
     # Get colors to use, runtime arguments etc...all of our primary items we need
     # throughout

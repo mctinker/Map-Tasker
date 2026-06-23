@@ -112,6 +112,10 @@ def display_model_pulldown(gui_instance: "MyGui", tab: object = None) -> None:
             on_change=gui_instance.event_handlers.ai_model_selected_event,
         ).classes("w-64")
 
+        # Updates NiceGUI visual rendering colors reactively
+        has_all = bool(gui_instance.ai_apikey and gui_instance.ai_model and gui_instance.ai_prompt)
+        gui_instance.analysis_button.props(f"color={'green' if has_all else 'red'}")
+
 
 def prefix_and_sort(strings: list[str], name: str) -> list[str]:
     """
@@ -1046,127 +1050,6 @@ def valid_item(
     return any(root_element[item]["name"] == the_name for item in root_element)
 
 
-# def display_model_pulldown(self: "MyGui") -> None:
-#     """Displays a pulldown menu of AI models using NiceGUI.
-
-#     This function dynamically creates or updates a select pulldown containing a list of AI models.
-#     The list of models can be either a pre-defined set or an extended list, depending on the
-#     `guiwin.ai_model_extended_list` flag.
-#     """
-#     # Determine if we are coming from guiwins (valid 'self') or userintr ('event_handler')
-#     guiwin = self
-#     try:
-#         if self.ai_model:
-#             pass
-#     except AttributeError:
-#         guiwin = self.parent
-
-#     # Determine what list of models to generate
-#     if guiwin.ai_model_extended_list and not guiwin.initialization:
-#         if guiwin.displaying_extended_list is not None and guiwin.displaying_extended_list:
-#             return  # Return if we are already displaying it.
-
-#         if not PrimeItems.language_set:
-#             display_models = get_extended_ai_model_list()
-#             guiwin.displaying_extended_list = True
-#         else:
-#             display_models = sorted(
-#                 model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
-#             )
-#     else:
-#         if guiwin.displaying_extended_list is not None and not guiwin.displaying_extended_list:
-#             return  # Return if we are already displaying it.
-
-#         display_models = sorted(
-#             model for name, models in MODEL_GROUPS.items() for model in prefix_and_sort(models, name)
-#         )
-#         guiwin.displaying_extended_list = False
-
-#     # Insert the saved model name or 'None' as the initial selection placeholder
-#     default_value = PrimeItems.program_arguments["ai_model"] if PrimeItems.program_arguments["ai_model"] else "None"
-#     if default_value not in display_models:
-#         display_models.insert(0, default_value)
-
-#     # In NiceGUI, we check if the element already exists.
-#     # If it does, we just swap its options out dynamically instead of tearing down the UI element!
-#     if hasattr(guiwin, "ai_model_option") and guiwin.ai_model_option:
-#         guiwin.ai_model_option.options = display_models
-#         guiwin.ai_model_option.value = default_value
-#         guiwin.ai_model_option.update()
-#     else:
-#         # If it doesn't exist yet, build it.
-#         # (Assuming this runs inside the UI layout row block set up by `_create_analyze_tab_content`)
-#         guiwin.ai_model_option = (
-#             ui.select(
-#                 options=display_models,
-#                 value=default_value,
-#                 on_change=guiwin.event_handlers.ai_model_selected_event,
-#             ).classes("w-64")  # Sets a standard width layout constraint
-#         )
-
-
-# def display_selected_object_labels(self: "MyGui") -> None:
-#     """
-#     Display the current settings for AI dynamically via NiceGUI properties.
-#     """
-#     # 1. State/Data Processing Logic (Kept identical to your original logic)
-#     if not self.ai_model:
-#         all_models = {
-#             "OpenAI": PrimeItems.ai["openai_models"],
-#             "anthropic": PrimeItems.ai["anthropic_models"],
-#             "LLAMA": PrimeItems.ai["llama_models"],
-#             "DeepSeek": PrimeItems.ai["deepseek_models"],
-#             "Gemini": PrimeItems.ai["gemini_models"],
-#         }
-#         for ai, models in all_models.items():
-#             if self.ai_model in models:
-#                 self.ai_model = ai
-#                 break
-
-#     if not self.ai_apikey:
-#         self.ai_apikey = get_api_key()
-
-#     key_to_display = "N/A" if self.ai_name == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
-#     model_to_display = self.ai_model if self.ai_model else "None"
-
-#     none_translated = translate_string("None")
-#     project_to_display = self.single_project_name if self.single_project_name else none_translated
-#     profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
-#     task_to_display = self.single_task_name if self.single_task_name else none_translated
-
-#     # 2. Update the Model Pulldown Selection Selection
-#     # In NiceGUI, we just modify the selector's .value instead of calling a .set() method
-#     if hasattr(self, "ai_model_option") and self.ai_model_option:
-#         self.ai_model_option.value = model_to_display
-#     else:
-#         # If it hasn't been built yet, invoke your pulldown generator function
-#         display_model_pulldown(self)
-
-#     # 3. Update Text Values Directly (No widget destruction required!)
-#     self.ai_set_label1.text = f"{self.ai_name} API Key: {key_to_display}, Model: {model_to_display}"
-
-#     translation2 = translate_string("Project to Analyze:")
-#     self.ai_set_label2.text = f"{translation2} {project_to_display}"
-
-#     translation3 = translate_string("Profile to Analyze:")
-#     self.ai_set_label3.text = f"{translation3} {profile_to_display}"
-
-#     translation4 = translate_string("Task to Analyze:")
-#     self.ai_set_label4.text = f"{translation4} {task_to_display}"
-
-#     # Let the browser wrap text natively via standard string injection
-#     prompt_prefix = translate_string("Prompt:")
-#     translated_prompt = translate_string(self.ai_prompt)
-#     self.ai_set_label5.text = f"{prompt_prefix} '{translated_prompt}'"
-
-#     # 4. Update the label on the 'Specific Name' tab
-#     all_objects = translate_string("Display all Projects, Profiles, and Tasks.")
-#     name_to_display = self.specific_name_msg if self.specific_name_msg else all_objects
-
-#     # Setting text directly on the tracking element you saved in guiwins.py
-#     self.specific_name_msg_label.text = name_to_display
-
-
 def add_logo(self: "MyGui", logo_name: str) -> None:
     """
     Add a logo to the screen dynamically via NiceGUI.
@@ -1253,3 +1136,35 @@ def get_monospace_fonts() -> list[str]:
         mono_fonts = ["Courier New", "Courier", "Consolas", "Monospace"]
 
     return mono_fonts
+
+
+def set_ai_key(self: object, model: str) -> None:
+    """
+    Set the API key for the AI service based on the selected model.
+
+    Args:
+        self (object): The instance of the class.
+        model (str): The model name for which to set the API key.
+
+    Returns:
+        None
+    """
+    # Set the appropriate API key based on the model chosen.  This doesn't apply to llama (no apikey).
+    model_keys = {
+        **dict.fromkeys(PrimeItems.ai["openai_models"], "openai_key"),
+        **dict.fromkeys(PrimeItems.ai["anthropic_models"], "anthropic_key"),
+        **dict.fromkeys(PrimeItems.ai["deepseek_models"], "deepseek_key"),
+        **dict.fromkeys(PrimeItems.ai["gemini_models"], "gemini_key"),
+    }
+    ai_to_get = model_keys.get(model, "")
+    if not ai_to_get:
+        return False
+    self.ai_apikey = PrimeItems.ai.get(ai_to_get)
+
+    # If we didn't find the key, then see if we are using the extended list and need to get the key.
+    if not self.ai_apikey and self.ai_model_extended_list:
+        self.ai_apikey = get_api_key()
+        # Try again using the updated model list.
+        self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
+
+    return bool(self.ai_apikey)

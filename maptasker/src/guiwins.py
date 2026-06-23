@@ -673,13 +673,15 @@ def initialize_screen(self: MyGui) -> None:
             self.current_file = ui.label("No file loaded").classes("text-gray-500 italic")
 
         # Primary Multi-tab Application Panel Window Layout Structure
-        with ui.tabs().classes("w-full") as tabs:
+        with ui.tabs().classes("w-full") as self.main_tabs_container:
             self.tab_specific_name = ui.tab("Specific Name", icon="filter_list")
             self.tab_colors = ui.tab("Colors", icon="palette")
             self.tab_analyze = ui.tab("Analyze", icon="analytics")
             self.tab_debug = ui.tab("Debug", icon="bug_report")
 
-        with ui.tab_panels(tabs, value=self.tab_specific_name).classes("w-full border rounded shadow-inner p-6 mt-2"):
+        with ui.tab_panels(self.main_tabs_container, value=self.tab_specific_name).classes(
+            "w-full border rounded shadow-inner p-6 mt-2",
+        ):
             # Specific Name panel for targeting specific Projects, Profiles, or Tasks
             with ui.tab_panel(self.tab_specific_name):
                 ui.label("Target specific Projects, Profiles, or Tasks.").classes("text-lg mb-4")
@@ -755,6 +757,10 @@ def initialize_screen(self: MyGui) -> None:
             self.picker_engine = ui.color_picker()
             ui.button("Cancel", on_click=self.picker_dialog.close).classes("mt-4 w-full bg-gray-500 text-white")
 
+    # Set the last-used tab to use
+    if self.tab_to_use:
+        self.main_tabs_container.set_value = self.tab_to_use
+
 
 def get_rid_of_windows_and_exit(self: MyGui, delete_all: bool = True) -> None:
     """Shuts down the NiceGUI server and exits."""
@@ -763,21 +769,35 @@ def get_rid_of_windows_and_exit(self: MyGui, delete_all: bool = True) -> None:
 
 
 def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
-    """Populates the 'Analyze' (AI) tab using NiceGUI."""
+    """Populates the 'Analyze' (AI) tab using NiceGUI and colors the analysis button contextually."""
 
     # Use the 'with' context manager to place elements inside the passed tab panel
     with tab:
         # 1. Action Buttons Row
-        with ui.row().classes("items-center gap-0 mb-4"):
+        with ui.row().classes("items-center gap-4 mb-4"):
             self.show_apikeys_button = ui.button("Show/Edit API Key(s)", on_click=self.event_handlers.ai_apikey_event)
             self.change_prompt_button = ui.button("Change Prompt", on_click=self.event_handlers.ai_prompt_event)
+
+            # --- DYNAMIC ANALYSIS BUTTON COLORING LOGIC ---
+            # Determine if any required fields are empty/None
+            has_key = bool(getattr(self, "ai_apikey", None))
+            has_model = bool(getattr(self, "ai_model", "")) and getattr(self, "ai_model") != "None"
+            has_prompt = bool(getattr(self, "ai_prompt", ""))
+
+            # If everything is filled out, make it green. Otherwise, color it red.
+            analysis_btn_color = "green" if (has_key and has_model and has_prompt) else "red"
+
+            self.analysis_button = ui.button(
+                "Run Analysis",
+                color=analysis_btn_color,
+                on_click=self.event_handlers.ai_analyze_event,
+            )
 
         # 2. Model Selection Row
         with ui.row().classes("items-center gap-4"):
             self.model_to_use_label = ui.label("Model to Use:").classes("font-bold")
 
             # Display the default model list
-            # Note: Removed the 'center' argument as layout is now handled by CSS flexbox
             display_model_pulldown(self)
 
             # Extra model list checkbox with chained tooltip

@@ -4,7 +4,6 @@ The response will be saved as a file, which will then be read in by userintr and
 upon reinvocation of the application.
 """
 
-import contextlib
 import importlib.util
 import os
 import re
@@ -25,6 +24,8 @@ from maptasker.src.sysconst import (
     ERROR_FILE,
     KEYFILE,
 )
+
+ai_role = "You are a Tasker programmer on Android"
 
 
 # Validate OpenAI API key
@@ -285,7 +286,7 @@ def process_error(error: str, ai_object: str, item: str) -> None:
 def _process_openai_response(client: object, query: str) -> str:
     """Helper function to process OpenAI responses."""
     model = PrimeItems.program_arguments["ai_model"]
-    role = "You are a Tasker programmer on Android"
+    role = ai_role
     roletype = "user" if "o1" in PrimeItems.program_arguments["ai_model"] else "system"
     stream_feed = client.chat.completions.create(
         model=model,
@@ -301,7 +302,7 @@ def _process_openai_response(client: object, query: str) -> str:
 
 def _process_anthropic_response(client: object, query: str) -> str:
     """Helper function to process Anthropic (Claude) responses."""
-    role = "You are a Tasker programmer on Android"
+    role = ai_role
     message = client.messages.create(
         model=PrimeItems.program_arguments["ai_model"],
         max_tokens=1024,
@@ -315,7 +316,7 @@ def _process_anthropic_response(client: object, query: str) -> str:
 def _process_deepseek_response(client: object, query: str) -> str:
     """Helper function to process DeepSeek responses."""
     model = PrimeItems.program_arguments["ai_model"]
-    role = "You are a Tasker programmer on Android"
+    role = ai_role
     message = client.chat.completions.create(
         model=model,
         messages=[
@@ -332,7 +333,7 @@ def _process_deepseek_response(client: object, query: str) -> str:
 def _process_gemini_response(client: object, query: str) -> str:
     """Helper function to process Gemini responses."""
     model = PrimeItems.program_arguments["ai_model"]
-    role = "You are a Tasker programmer on Android"
+    role = ai_role
     # Suppress logging warnings
     # message = client.GenerativeModel(model)
     # response1 = message.generate_content(role + query)
@@ -561,11 +562,6 @@ def _run_analysis_in_background(popup: popupwindow) -> None:
         # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
         temp_output = cleanup_output()
 
-        # Save the ai popup window position
-        if popup:
-            with contextlib.suppress(AttributeError):
-                PrimeItems.program_arguments["ai_popup_window_position"] = popup.ai_popup_window_position
-
         # Setup the query: ai_object (Task, Profile or Project) and item (name of the object)
         ai_object, item = get_ai_object()
 
@@ -607,10 +603,14 @@ def _run_analysis_in_background(popup: popupwindow) -> None:
         # Indicate that we are done
         PrimeItems.program_arguments["ai_analyze"] = False
 
-        # Remove the popup window
+        # Remove the popup window using NiceGUI syntax
         if popup:
-            popup.popup_button_event()
-            popup.destroy()  # Ensure the popup is destroyed after analysis is complete, even if there was an error.
+            # Check if it has a native close method (NiceGUI ui.dialog wrapper)
+            if hasattr(popup, "close"):
+                popup.close()
+            # Fallback if it is a class instance wrapping the dialog
+            elif hasattr(popup, "dialog") and hasattr(popup.dialog, "close"):
+                popup.dialog.close()
 
 
 def display_the_popup(title: str, text: str) -> None:
@@ -641,6 +641,4 @@ def map_ai() -> None:
         translate_string(
             "Analysis is running in the background.\n\nOnce complete, the program will restart and the results will appear in a new window.\n\nPlease stand by...",
         ),
-        24,
-        "turquoise",
     )

@@ -13,13 +13,16 @@ class APIKeyDialog:
     def __init__(self, master_gui: object) -> None:
         """Initialize the NiceGUI dialog container."""
         self.master = master_gui
-        self.my_gui = master_gui  # Reference to master GUI matching original code logic
+        self.my_gui = master_gui
 
-        # In NiceGUI, we save the dialog object itself
-        self.my_gui.ai_apikey_window = ui.dialog()
+        # Create the inner NiceGUI dialog element
+        self.dialog = ui.dialog()
+
+        # CHANGE: Store the custom class instance container on my_gui instead of the raw dialog
+        self.my_gui.ai_apikey_window = self
 
         # Build the layout inside the dialog
-        with self.my_gui.ai_apikey_window, ui.card().classes("w-[700px] p-6 max-w-full"):
+        with self.dialog, ui.card().classes("w-[700px] p-6 max-w-full"):
             ui.label("API Key Options").classes("text-xl font-bold text-blue-600 mb-4")
 
             # Form grid layout area (Labels, Inputs, and Clears)
@@ -47,6 +50,14 @@ class APIKeyDialog:
                     "Cancel",
                     on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(cancel=True, clear=""),
                 ).classes("bg-red-500 text-white px-6")
+
+    def open(self) -> None:
+        """Public method to show the dialog."""
+        self.dialog.open()
+
+    def close(self) -> None:
+        """Public method to close the dialog."""
+        self.dialog.close()
 
     def create_key_entry(self, label_text: str, placeholder_key: str) -> ui.input:
         """Helper function to create a label, text entry, and 'Clear' button for an API key."""
@@ -79,14 +90,6 @@ class APIKeyDialog:
             ).classes("bg-gray-300 text-black text-xs")
 
         return input_widget
-
-    def open(self) -> None:
-        """Public method to show the dialog."""
-        self.my_gui.ai_apikey_window.open()
-
-    def close(self) -> None:
-        """Public method to close the dialog."""
-        self.my_gui.ai_apikey_window.close()
 
 
 def open_api_key_dialog(gui_instance: object = None) -> ui.dialog:

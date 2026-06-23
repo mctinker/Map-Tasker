@@ -1,6 +1,7 @@
 """Code to manage the graphical user interface using NiceGUI."""
 
 import contextlib
+import pickle
 import sys
 import webbrowser
 from collections.abc import Callable
@@ -28,6 +29,7 @@ from maptasker.src.guiutils import (
     get_xml,
     list_tasker_objects,
     reset_primeitems_single_names,
+    set_ai_key,
     set_tasker_object_names,
     update_tasker_object_menus,
     valid_item,
@@ -39,6 +41,7 @@ from maptasker.src.guiwins import (
     initialize_screen,
 )
 from maptasker.src.guiwins2 import APIKeyDialog
+from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
 from maptasker.src.mapit import mapit_all
 from maptasker.src.maputil2 import log_startup_values, translate_string
 from maptasker.src.maputils import (
@@ -50,6 +53,7 @@ from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     CHANGELOG_URL,
+    KEYFILE,
     TAB_NAMES,
     TYPES_OF_COLOR_NAMES,
     logger,
@@ -116,7 +120,7 @@ class MyGui:
             ui.label(f"CRASH IN UI LAYOUT: {e}").classes("text-2xl text-red-500 m-8 font-mono")
             print("\n" + "=" * 50)
             print("🚨 CRITICAL UI BUILD ERROR 🚨", e)
-            sys.exit(99)
+            sys.exit()
             # import traceback
 
         # Now restore the settings and update the fields if not resetting.
@@ -1026,6 +1030,39 @@ class MyGui:
             finally:
                 self.is_updating = False  # Always disengage the lock
 
+    # Inform user of toggle selection
+    def inform_message(
+        self,
+        toggle_name: str,
+        toggle_value: str,
+        number_value: str,
+    ) -> None:
+        """
+        Set a toggle and display a message box
+        Args:
+            toggle_name: Name of the toggle being set
+            toggle_value: Value of the toggle
+            number_value: Optional number value
+        Returns:
+            None
+        - Check if number_value is empty, set response to number_value and extra text to " to "
+        - If toggle_value is True, set response to "On"
+        - If toggle_value is False, set response to "Off"
+        - Display message box with toggle name, response and extra text
+        """
+        extra = " "
+        if number_value != "":
+            response = number_value
+            extra = " to "
+        elif toggle_value:
+            response = "On"
+        else:
+            response = "Off"
+        toggle_name = translate_string(toggle_name)
+        setit = translate_string(f"set{extra}")
+        set_on_off = translate_string(f"{setit}{response}")
+        self.display_message_box(f"{translate_string(toggle_name)} {set_on_off}", "Green")
+
 
 class MapTaskerEventHandlers:
     """
@@ -1160,7 +1197,7 @@ class MapTaskerEventHandlers:
 
         elif view_type == "tree":
             if data:
-                NiceGuiTreeView(master=getattr(self, window_attribute), items=data)
+                NiceGuiTreeView("Tree View", items=data)
             else:
                 gui.display_message_box("No Project(s) Found in XML!", "Red")
                 return
@@ -1187,8 +1224,19 @@ class MapTaskerEventHandlers:
 
     def ai_model_selected_event(self: "MapTaskerEventHandlers", event_value: Event) -> None:
         """Updates the AI model based on dropdown selection."""
-        self.gui.ai_model = event_value
-        logger.info(f"AI Model changed to: {event_value}")
+        if isinstance(event_value.value, str):
+            self.gui.ai_model = event_value.value.split(":", 1)[1].strip()
+        elif isinstance(event_value.value, list):
+            self.gui.ai_model = event_value.value[0]
+        logger.info(f"AI Model changed to: {self.gui.ai_model}")
+
+        # Set the PrimeItems.ai model keys and appropriate API key based on the model chosen.
+        _ = get_api_key()
+        _ = set_ai_key(self.gui, self.gui.ai_model)
+
+        # Updates NiceGUI visual rendering colors reactively
+        has_all = bool(self.gui.ai_apikey and self.gui.ai_model and self.gui.ai_prompt)
+        self.gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
 
     # ==========================================
     # 4. TEXT VIEW CONTROLS (Replacing the old _handle_event router)
@@ -1231,11 +1279,6 @@ class MapTaskerEventHandlers:
         """Reset everything back to defaults."""
         self.set_defaults()
         ui.notify("Settings Reset!", type="warning")
-
-    def ai_analyze_event(self: "MyGui") -> None:
-        """Run analysis using the selected AI model and api key."""
-        ui.notify("Starting AI Analysis...", type="info")
-        # TODO: Implement analysis logic here...
 
     # Process single name selection/event
     def process_name_event(
@@ -1456,27 +1499,29 @@ class MapTaskerEventHandlers:
         """
         Prompts the user to enter their API key, or leaves it as is if it already exists.
         If the user enters a new API key, it is saved to a file.
-
-        Parameters:
-            None
-
-        Returns:
-            None
         """
         the_view = self.gui
         # Get our key, if it exists.
         the_view.ai_apikey = get_api_key()
 
-        # Issue the dialog box for the API key.
-        api_key = APIKeyDialog(the_view)
-        # Save the window
-        api_key.master.ai_apikey_window = api_key
+        # 1. Instantiate the Dialog Class
+        api_key_dialog = APIKeyDialog(the_view)
+
+        # 2. Keep the class reference safely stored if needed elsewhere
+        the_view.ai_apikey_dialog_instance = api_key_dialog
+
+        # 3. Explicitly open it!
+        api_key_dialog.open()
+        print("bingo")
 
     async def ai_prompt_event(self) -> None:
         """
         Handles the event when the AI prompt is changed using an async NiceGUI dialog.
         """
         the_view = self.gui
+        if not the_view.ai_prompt:
+            ai_object, item = get_ai_object()
+            the_view.ai_prompt = AI_PROMPT
         msg1 = translate_string("Current prompt:")
         msg2 = translate_string("Enter a new prompt for the AI to use:")
         dialog_title = translate_string("Change the Ai Prompt")
@@ -2165,6 +2210,281 @@ class MapTaskerEventHandlers:
             "Tasker items set back to their default colors.",
             "Green",
         )
+
+    # Kickoff the AI analysis
+    def ai_analyze_event(self) -> None:
+        """
+        Analyzes a single item identified by the current instance.
+
+        This function checks if the instance has a single project name, profile name, or task name.
+        If so, it sets the `ai_analyze` attribute to True, displays a message box indicating the analysis is running
+        with the current model, and reruns the program.
+
+        If no single item is identified, it displays a message box indicating that a single project, profile,
+        or task has not been selected.
+
+        Parameters:
+            self (object): The current instance of the class.
+
+        Returns:
+            None
+        """
+        ui.notify("Starting AI Analysis...", type="info")
+        the_view = self.gui
+
+        # Validate the model
+        if the_view.ai_model in ("None", ""):
+            the_view.display_message_box("No model selected.", "Orange")
+            return
+
+        # Set the AI API key based on the model selected.
+        if the_view.ai_name != "LLAMA" and not set_ai_key(
+            the_view,
+            the_view.ai_model,
+        ):
+            text = translate_string("The API Key is not set for model")
+            the_view.display_message_box(
+                f"{text} {the_view.ai_model}, or the model {the_view.ai_model} is not supported.",
+                "Orange",
+            )
+            return
+        # Make sure we have a single name.
+        if the_view.single_profile_name == translate_string("None or unnamed!"):
+            the_view.single_profile_name = ""
+        # Do we have a single item identified?
+        if the_view.single_project_name or the_view.single_profile_name or the_view.single_task_name:
+            the_view.ai_analyze = True
+            the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
+            text1 = translate_string("Running")
+            text2 = translate_string("analysis with model")
+            the_view.display_message_box(
+                f"{text1} {the_view.ai_name} {text2} {the_view.ai_model}.",
+                "Green",
+            )
+            # Save the current tab
+            the_view.tab_to_use = self.gui.main_tabs_container.value
+
+            # Do the analysis.  First save our windows and settings.
+            temp_args = {value: getattr(the_view, value) for value in ARGUMENT_NAMES}
+            _, _ = save_restore_args(temp_args, the_view.color_lookup, to_save=True)
+
+            # Ok, run the analysis by rerunning the program with our ai_analyze = True
+            map_ai()
+            print("bingo")
+            # The analysis output file will be created and displayed upon reentry to MyGui.
+            # NOTE: We have to rerun the program in the same program instance to allow the PrimeItems
+            #       settings to carry over.
+            # the_view.rerun = True
+            # the_view.cleanup_and_run(run_only=False)
+            # the_view.event_handlers.rerun_event()
+            # This will launch a new instance of the program which breaks us.
+        # Test if no XML data loaded
+        elif (
+            not PrimeItems.tasker_root_elements["all_projects"]
+            and not PrimeItems.tasker_root_elements["all_profiles"]
+            and not PrimeItems.tasker_root_elements["all_tasks"]
+        ):
+            the_view.display_message_box(
+                "No projects, profiles, or tasks have been loaded!  Load some XML and try again.",
+                "Orange",
+            )
+        # No single item has been selected.
+        else:
+            the_view.display_message_box(
+                "Single Project/Profile/Task has not been selected!  Select only one and try again.",
+                "Orange",
+            )
+            # Get the Profile or Task to analyze
+            # If there are no Profiles or Tasks, redisplay the Analyze button
+            if not list_tasker_objects(the_view):
+                # Drop here if we don't have any XML loaded yet.
+                display_analyze_button(the_view, 13, first_time=False)
+
+    def ai_apikey_process_event(
+        self: MyGui,
+        dialog_container: APIKeyDialog,  # This is now accurately receiving your APIKeyDialog instance
+        cancel: bool,
+        clear: str,
+    ) -> None:
+        """
+        Process the AI API Dialog key event.
+        """
+        apikeys_to_validate = ["openai_key", "anthropic_key", "gemini_key"]
+        my_gui = self.gui
+
+        if not dialog_container:
+            return
+
+        # 1. Handle Cancel Event
+        if cancel:
+            my_gui.display_message_box(
+                "'Cancel' button selected. No change to the API keys!",
+                "Orange",
+            )
+            dialog_container.close()  # Routes down to the inner dialog element cleanly
+            return
+
+        # 2. Handle Clear Event
+        if clear:
+            apikey_entry = f"entry_{clear}"
+            if hasattr(dialog_container, apikey_entry):
+                entry_field = getattr(dialog_container, apikey_entry)
+                entry_field.set_value("")
+
+                text = translate_string("API key cleared.")
+                my_gui.display_message_box(
+                    f"{clear.replace('_key', '').title()} {text}",
+                    "LimeGreen",
+                )
+            return
+
+        # 3. GET THE RETURNED API KEYS
+        # This will now succeed because dialog_container points to the class object containing attributes
+        api_keys = {
+            "openai_key": dialog_container.entry_openai_key.value,
+            "anthropic_key": dialog_container.entry_anthropic_key.value,
+            "deepseek_key": dialog_container.entry_deepseek_key.value,
+            "gemini_key": dialog_container.entry_gemini_key.value,
+        }
+
+        apikey_changed = False
+        _valid_api_key = valid_api_key
+        _display_message_box = my_gui.display_message_box
+
+        # 4. Iterate over keys and validate/commit changes
+        for key, value in api_keys.items():
+            if PrimeItems.ai.get(key, "") != value:  # Check if the key value changed
+                # Validate the length/format of the key if it has a value
+                if value and key in apikeys_to_validate and not _valid_api_key(key, value):
+                    text = translate_string("API key is invalid!")
+                    error_msg = f"{key.replace('_key', '').title()} {text}"
+                    _display_message_box(error_msg, "Red")
+                    ui.notify(error_msg, type="negative")
+                    return
+
+                # Commit change to state
+                PrimeItems.ai[key] = value
+                apikey_changed = True
+
+                text = translate_string("API key saved:")
+                _display_message_box(
+                    f"{key.replace('_', ' ').title()} {text} '{value}'.",
+                    "LimeGreen",
+                )
+            else:
+                text = translate_string("API key unmodified")
+                _display_message_box(
+                    f"{key.replace('_', ' ').title()} {text}",
+                    "LimeGreen",
+                )
+
+        # 5. Save the keys to disk if they have modified state
+        if apikey_changed:
+            with open(KEYFILE, "wb") as key_file:
+                pickle.dump(PrimeItems.ai, key_file)
+
+            # Redisplay the UI dependencies
+            display_analyze_button(my_gui, 13, first_time=False)
+            display_selected_object_labels(my_gui)
+        else:
+            my_gui.display_message_box("No API keys changed.", "LimeGreen")
+
+        # 6. Close the window view
+        dialog_container.close()
+
+        # Updates NiceGUI visual rendering colors reactively
+        has_all = bool(self.gui.ai_apikey and self.gui.ai_model and self.gui.ai_prompt)
+        self.gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
+
+    # Front-end event handlers
+    def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:
+        """
+        Internal method to handle events based on event method and view name.
+
+        Parameters:
+            event_method (str): The name of the event method to call.
+            view_name (str): The name of the view to apply the event to.
+            *args (str): Additional arguments to pass to the event method.
+
+        Returns:
+            None
+        """
+        method = getattr(self, event_method)
+        view = getattr(self.gui, view_name)
+        method(view, *args)
+
+    # Handlers for Search/Next/Prev/Clear/Toggle Word Wrap/Display Only ...for each view.
+    def diagram_display_only_event(self) -> None:  # noqa: D102
+        self._handle_event("display_only_event", "diagramview")
+
+    def analysis_display_only_event(self) -> None:  # noqa: D102
+        self._handle_event("display_only_event", "analysisview")
+
+    def map_display_only_event(self) -> None:  # noqa: D102
+        self._handle_event("display_only_event", "mapview")
+
+    def diagram_search_event(self) -> None:  # noqa: D102
+        self._handle_event("search_event", "diagramview")
+
+    def map_search_event(self) -> None:  # noqa: D102
+        self._handle_event("search_event", "mapview")
+
+    def analysis_search_event(self) -> None:  # noqa: D102
+        self._handle_event("search_event", "analysisview")
+
+    def diagram_search_here_event(self) -> None:  # noqa: D102
+        self._handle_event("search_here_event", "diagramview")
+
+    def map_search_here_event(self) -> None:  # noqa: D102
+        self._handle_event("search_here_event", "mapview")
+
+    def analysis_search_here_event(self) -> None:  # noqa: D102
+        self._handle_event("search_here_event", "analysisview")
+
+    def diagram_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
+        self._handle_event("nextprev_search_event", "diagramview", search_next)
+
+    def map_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
+        self._handle_event("nextprev_search_event", "mapview", search_next)
+
+    def analysis_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
+        self._handle_event("nextprev_search_event", "analysisview", search_next)
+
+    def diagram_clear_event(self) -> None:  # noqa: D102
+        self._handle_event("clear_event", "diagramview")
+
+    def map_clear_event(self) -> None:  # noqa: D102
+        self._handle_event("clear_event", "mapview")
+
+    def analysis_clear_event(self) -> None:  # noqa: D102
+        self._handle_event("clear_event", "analysisview")
+
+    def diagram_wordwrap_event(self) -> None:  # noqa: D102
+        self._handle_event("wordwrap_event", "diagramview")
+
+    def map_wordwrap_event(self) -> None:  # noqa: D102
+        self._handle_event("wordwrap_event", "mapview")
+
+    def analysis_wordwrap_event(self) -> None:  # noqa: D102
+        self._handle_event("wordwrap_event", "analysisview")
+
+    def analysis_topbottom_event(self, top: bool) -> None:  # noqa: D102
+        self._handle_event("topbottom_event", "analysisview", top)
+
+    def map_topbottom_event(self, top: bool) -> None:  # noqa: D102
+        self._handle_event("topbottom_event", "mapview", top)
+
+    def diagram_topbottom_event(self, top: bool) -> None:  # noqa: D102
+        self._handle_event("topbottom_event", "diagramview", top)
+
+    def diagram_jump_topbottom_event(self, top: bool, connector: int) -> None:  # noqa: D102
+        self._handle_event("jump_topbottom_event", "diagramview", top, connector)
+
+    def profiles_per_line_event(self, profiles_per_line: str) -> None:  # noqa: D102
+        self._handle_event("profiles_level_event", "diagramview", profiles_per_line)
+
+    def ai_apikey_get_event(self, cancel: bool, clear: bool) -> None:  # noqa: D102
+        self._handle_event("ai_apikey_process_event", "ai_apikey_window", cancel, clear)
 
 
 # Define a state container to hold our saved file locationvariable
