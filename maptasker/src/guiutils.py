@@ -30,7 +30,7 @@ from maptasker.src.maputils import restart_program_subprocess
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
-from maptasker.src.sysconst import ARGUMENT_NAMES, MODEL_GROUPS, UNNAMED_ITEM, logger
+from maptasker.src.sysconst import ARGUMENT_NAMES, ERROR_FILE, MODEL_GROUPS, UNNAMED_ITEM, logger
 
 if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
@@ -1168,3 +1168,65 @@ def set_ai_key(self: object, model: str) -> None:
         self.ai_apikey = PrimeItems.ai.get(model_keys.get(model, ""), "")
 
     return bool(self.ai_apikey)
+
+
+# Display startup messages which are a carryover from the last run.
+def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
+    """
+        Displays messages from the last run.
+    #
+        This function checks if there are any carryover error messages from the last run (rerun).
+        If there are, it reads the error message from the file specified by the `ERROR_FILE` constant and handles
+        potential missing modules. If the error message contains the string "Ai Response", it displays the
+        error message in a new toplevel window and displays a message box indicating that the analysis response
+        is in a separate window and saved as `ANALYSIS_FILE`. If the error message contains newline characters,
+        it breaks the message up into multiple lines and displays each line in a message box. If the error message
+        does not contain newline characters, it displays the error message in a message box. After displaying the
+        error message, it removes the error file to prevent it from being displayed again.
+
+        If there is an error message from other routines, it displays the error message in a message box with the return code.
+
+        Parameters:
+        - None
+
+        Returns:
+        - None
+    """
+    logger.info("Displaying messages from last run.")
+    gui = self.gui
+    # See if we have any carryover error messages from last run (rerun).
+    if os.path.isfile(ERROR_FILE):
+        with open(ERROR_FILE) as error_file:
+            error_msg = error_file.read()
+
+            # Handle Ai Response and display it in a new toplevel window
+            if "AI Response" in error_msg:
+                gui.display_ai_response(error_msg)
+                gui.display_message_box(
+                    "Analysis response is in a separate Window.",
+                    "Turquoise",
+                )
+                gui.main_tabs_container.set_value = self.tab_to_use
+
+            # Some other message.  Just display it in the message box and break it up if needed.
+            elif "\n" in error_msg:
+                messages = error_msg.split("\n")
+                for message_line in messages:
+                    gui.display_message_box(message_line, "Red")
+            else:
+                gui.display_message_box(error_msg, "Red")
+        # Get rid of error message so we don't display it again.
+        try:
+            os.remove(ERROR_FILE)
+        except PermissionError:
+            # If the error file is locked up by us, then just rename the file.
+            print(f"Unable to delete the error file: {ERROR_FILE}.  You must delete it manually!")
+        except FileNotFoundError:
+            pass
+
+    # Display any error message from other rountines
+    if PrimeItems.error_msg:
+        gui.display_message_box(
+            f"{PrimeItems.error_msg} with return code {PrimeItems.error_code}.",
+            "Red",
+        )

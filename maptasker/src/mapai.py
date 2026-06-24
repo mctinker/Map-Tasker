@@ -24,6 +24,7 @@ from maptasker.src.sysconst import (
     ERROR_FILE,
     KEYFILE,
 )
+from maptasker.src.xmldata import remove_html_tags
 
 ai_role = "You are a Tasker programmer on Android"
 
@@ -128,7 +129,7 @@ def cleanup_output() -> list:
     # Delete everything up to the Profile.
     temp_output = []
     got_it = False
-    for line in PrimeItems.ai["output_lines"]:
+    for line in PrimeItems.output_lines.output_lines:
         if "Profile:" in line or "Project:" in line or "Task:" in line:
             got_it = True
         if got_it:
@@ -139,6 +140,7 @@ def cleanup_output() -> list:
             if "Tasks not in any Profile," in line:
                 break
             temp_line = line.replace("&nbsp;", " ")
+            temp_line = remove_html_tags(temp_line, "")
             temp_output.append(temp_line)
 
     return temp_output
@@ -578,7 +580,7 @@ def _run_analysis_in_background(popup: popupwindow) -> None:
             f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...",
         )
 
-        # Call appropriate AI routine: OpenAI or local Ollama
+        # Call appropriate AI routine: OpenAI, local Ollama, etc.
         name_function_map = {
             "OpenAI": open_ai,
             "Anthropic": claude_ai,
@@ -587,6 +589,9 @@ def _run_analysis_in_background(popup: popupwindow) -> None:
             "LLAMA": local_ai,
         }
         ai_name = PrimeItems.program_arguments["ai_name"]
+
+        # Call the appropriate AI function based on the selected AI name. If the AI name is not found in the map,
+        # it will call the error handler.
         name_function_map.get(
             ai_name,
             lambda *args: error_handler("Invalid model selected.", 12),  # noqa: ARG005

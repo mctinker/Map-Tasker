@@ -37,7 +37,7 @@ def create_popup_window(title: str, message: str = "") -> ui.dialog:
         ui.label(title).classes("text-xl font-bold text-blue-600")
         if message:
             ui.label(message).classes("mt-2 text-center")
-        ui.button("Close", on_click=dialog.close).classes("mt-6 bg-red-500 text-white w-full")
+        # ui.button("Close", on_click=dialog.close).classes("mt-6 bg-red-500 text-white w-full")
 
     dialog.open()
     return dialog

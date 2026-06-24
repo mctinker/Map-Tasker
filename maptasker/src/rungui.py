@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import contextlib
 
+from nicegui import ui
+
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
@@ -94,8 +96,6 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # Keep this here to avoid circular import.  We only need to import MyGui if we are using the GUI,
     # and this is the only place we need it.
     if use_gui:
-        from nicegui import ui  # noqa: PLC0415
-
         from maptasker.src.userintr import MyGui  # noqa: PLC0415
 
     PrimeItems.program_arguments["gui"] = True
@@ -128,6 +128,31 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         app_lock["is_built"] = True
 
     logger.info("Starting NiceGUI server mainloop")
+
+    # # =========================================================================
+    # # Intercept all interactions with the UI to save MyGui to PrimeItems and shared_state
+    # # from nicegui import core, ui
+    # # 1. Save a reference to NiceGUI's core Socket.IO emitter function
+    # _original_sio_emit = core.sio.emit
+
+    # # 2. Define the interception proxy function
+    # async def intercepted_sio_emit(event, data=None, room=None, **kwargs):
+    #     # Grab your active MyGui instance securely from global state tracking
+    #     my_gui_instance = getattr(PrimeItems, "mygui", None)
+    #     print("bingo intercepted_sio_emit", event, data, room, kwargs)
+
+    #     if my_gui_instance:
+    #         # You have full structural access to your MyGui class properties here!
+    #         # 'event' will be strings like 'download', 'config', 'run_method', etc.
+    #         # 'data' contains the raw JSON payloads synced to user screens.
+    #         pass
+
+    #     # Always forward execution to the original emitter so the browser communicates!
+    #     await _original_sio_emit(event, data=data, room=room, **kwargs)
+
+    # # 3. Apply the monkey-patch directly to the core server emitter instance
+    # core.sio.emit = intercepted_sio_emit
+    # # =========================================================================
 
     # 3. Start the server (This will now properly block without running main() twice)
     print("bingo ui.run")

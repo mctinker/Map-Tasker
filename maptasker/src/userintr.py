@@ -24,6 +24,7 @@ from maptasker.src.guiutils import (
     clear_android_buttons,
     display_analyze_button,
     display_current_file,
+    display_error_file_and_ai_response,
     display_model_pulldown,
     display_selected_object_labels,
     get_xml,
@@ -45,12 +46,16 @@ from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
 from maptasker.src.mapit import mapit_all
 from maptasker.src.maputil2 import log_startup_values, translate_string
 from maptasker.src.maputils import (
+    append_to_filename,
     clear_tasker_data,
+    get_current_local_time_auto_timezone,
     make_hex_color,
+    rename_file,
 )
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
+    ANALYSIS_FILE,
     ARGUMENT_NAMES,
     CHANGELOG_URL,
     KEYFILE,
@@ -937,9 +942,6 @@ class MyGui:
     # ################################################################################
     # Select or deselect a checkbox based on the value passed in
     # ################################################################################
-    # ################################################################################
-    # Select or deselect a checkbox based on the value passed in
-    # ################################################################################
     def get_input_and_put_message(self, checkbox: ui.checkbox, title: str) -> bool:
         """
         Get checkbox value and display message using NiceGUI.
@@ -1062,6 +1064,40 @@ class MyGui:
         setit = translate_string(f"set{extra}")
         set_on_off = translate_string(f"{setit}{response}")
         self.display_message_box(f"{translate_string(toggle_name)} {set_on_off}", "Green")
+
+    # Display Ai Analysis response in a separate top level window.
+    def display_ai_response(self, error_msg: str) -> None:
+        """
+        Display AI response in a GUI window and rename ther anaysis file.
+
+        Args:
+            error_msg (str): The error message to display in the GUI.
+
+        Returns:
+            None
+        """
+        # Get our date and time and save it for the file name.
+        now_time = get_current_local_time_auto_timezone()
+        date_and_time = (
+            f"-{now_time.month}-{now_time.day}-{now_time.year}_{now_time.hour}-{now_time.minute}-{now_time.second}"
+        )
+        error_msg = error_msg.replace("-date-time", date_and_time)
+
+        # Display the analysis in the toplevel window.
+        NiceGuiTextView(
+            title="Analysis View",
+            the_data=error_msg,
+        )
+
+        # Rename ANALYSIS_FILE.
+        # X Get front part of filename ANALYSIS_FILE and plug it in as the beginning.
+        if new_file_name := append_to_filename(ANALYSIS_FILE, date_and_time):
+            rename_file(ANALYSIS_FILE, new_file_name)
+            text = translate_string("saved as")
+            self.display_message_box(
+                f"{ANALYSIS_FILE} {text} {new_file_name}",
+                "turquoise",
+            )
 
 
 class MapTaskerEventHandlers:
@@ -1226,8 +1262,11 @@ class MapTaskerEventHandlers:
         """Updates the AI model based on dropdown selection."""
         if isinstance(event_value.value, str):
             self.gui.ai_model = event_value.value.split(":", 1)[1].strip()
+            self.gui.ai_name = event_value.value.split(":")[0].strip()
+            PrimeItems.program_arguments["ai_name"] = self.gui.ai_name
         elif isinstance(event_value.value, list):
             self.gui.ai_model = event_value.value[0]
+            print("bingo", event_value.value)
         logger.info(f"AI Model changed to: {self.gui.ai_model}")
 
         # Set the PrimeItems.ai model keys and appropriate API key based on the model chosen.
@@ -2230,75 +2269,87 @@ class MapTaskerEventHandlers:
             None
         """
         ui.notify("Starting AI Analysis...", type="info")
-        the_view = self.gui
+        gui = self.gui
 
         # Validate the model
-        if the_view.ai_model in ("None", ""):
-            the_view.display_message_box("No model selected.", "Orange")
+        if gui.ai_model in ("None", ""):
+            gui.display_message_box("No model selected.", "Orange")
             return
 
         # Set the AI API key based on the model selected.
-        if the_view.ai_name != "LLAMA" and not set_ai_key(
-            the_view,
-            the_view.ai_model,
+        if gui.ai_name != "LLAMA" and not set_ai_key(
+            gui,
+            gui.ai_model,
         ):
             text = translate_string("The API Key is not set for model")
-            the_view.display_message_box(
-                f"{text} {the_view.ai_model}, or the model {the_view.ai_model} is not supported.",
+            gui.display_message_box(
+                f"{text} {gui.ai_model}, or the model {gui.ai_model} is not supported.",
                 "Orange",
             )
             return
         # Make sure we have a single name.
-        if the_view.single_profile_name == translate_string("None or unnamed!"):
-            the_view.single_profile_name = ""
+        if gui.single_profile_name == translate_string("None or unnamed!"):
+            gui.single_profile_name = ""
         # Do we have a single item identified?
-        if the_view.single_project_name or the_view.single_profile_name or the_view.single_task_name:
-            the_view.ai_analyze = True
-            the_view.event_handlers.clear_messages_event()  # Clear out all displayed messages.
+        if gui.single_project_name or gui.single_profile_name or gui.single_task_name:
+            gui.ai_analyze = True
+            # gui.event_handlers.clear_messages_event()  # Clear out all displayed messages.
             text1 = translate_string("Running")
             text2 = translate_string("analysis with model")
-            the_view.display_message_box(
-                f"{text1} {the_view.ai_name} {text2} {the_view.ai_model}.",
+            gui.display_message_box(
+                f"{text1} {gui.ai_name} {text2} {gui.ai_model}.",
                 "Green",
             )
             # Save the current tab
-            the_view.tab_to_use = self.gui.main_tabs_container.value
+            gui.tab_to_use = self.gui.main_tabs_container.value
+
+            # Make sure we have the ai name
+            if not gui.ai_name:
+                if gui.ai_model.startswith("gemini"):
+                    gui.ai_name = "Gemini"
+                elif gui.ai_model.startswith("claude"):
+                    gui.ai_name = "Claude"
+                elif gui.ai_model.startswith("gpt") or gui.ai_model.startswith("o"):
+                    gui.ai_name = "OpenAI"
+                else:
+                    gui.ai_name = "LLaMA"
 
             # Do the analysis.  First save our windows and settings.
-            temp_args = {value: getattr(the_view, value) for value in ARGUMENT_NAMES}
-            _, _ = save_restore_args(temp_args, the_view.color_lookup, to_save=True)
+            temp_args = {value: getattr(gui, value) for value in ARGUMENT_NAMES}
+            # PrimeItems.program_arguments = temp_args
+            _, _ = save_restore_args(temp_args, gui.color_lookup, to_save=True)
+
+            # Now make certain we have the api key set for the model we are using.
+            PrimeItems.program_arguments["ai_apikey"] = gui.ai_apikey
 
             # Ok, run the analysis by rerunning the program with our ai_analyze = True
             map_ai()
-            print("bingo")
-            # The analysis output file will be created and displayed upon reentry to MyGui.
-            # NOTE: We have to rerun the program in the same program instance to allow the PrimeItems
-            #       settings to carry over.
-            # the_view.rerun = True
-            # the_view.cleanup_and_run(run_only=False)
-            # the_view.event_handlers.rerun_event()
-            # This will launch a new instance of the program which breaks us.
+            print("bingo back from map_ai")
+            # See if we have any carryover error messages from the AI run.
+            # Note: this must go after the settings restoration.
+            display_error_file_and_ai_response(self)
+
         # Test if no XML data loaded
         elif (
             not PrimeItems.tasker_root_elements["all_projects"]
             and not PrimeItems.tasker_root_elements["all_profiles"]
             and not PrimeItems.tasker_root_elements["all_tasks"]
         ):
-            the_view.display_message_box(
+            gui.display_message_box(
                 "No projects, profiles, or tasks have been loaded!  Load some XML and try again.",
                 "Orange",
             )
         # No single item has been selected.
         else:
-            the_view.display_message_box(
+            gui.display_message_box(
                 "Single Project/Profile/Task has not been selected!  Select only one and try again.",
                 "Orange",
             )
             # Get the Profile or Task to analyze
             # If there are no Profiles or Tasks, redisplay the Analyze button
-            if not list_tasker_objects(the_view):
+            if not list_tasker_objects(gui):
                 # Drop here if we don't have any XML loaded yet.
-                display_analyze_button(the_view, 13, first_time=False)
+                display_analyze_button(gui, 13, first_time=False)
 
     def ai_apikey_process_event(
         self: MyGui,
