@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import app, ui
 
-from maptasker.src.guiutil2 import sort_languages_with_priority
-from maptasker.src.guiutils import display_model_pulldown, get_monospace_fonts
+from maptasker.src.guiutil2 import get_monospace_fonts, sort_languages_with_priority
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_FILE, DIAGRAM_PROFILES_PER_LINE, logger
@@ -153,19 +152,31 @@ class NiceGuiTextView:
                 wrap_class = "whitespace-pre-wrap"  # Normal wrapping behavior for Map view
                 break_class = "break-words"
 
-            # Text Display Area
+            # Text Display Area (Modified to remove conflicting hardcoded background colors)
+            # self.scroll_area = (
+            #     ui
+            #     .scroll_area()
+            #     .classes(
+            #         f"w-full max-w-full block h-[70vh] border-2 border-gray-600 p-4 font-mono text-sm {wrap_class} {break_class}",
+            #     )
+            #     .style(
+            #         f"width: 100%;max-w: 100%;background-color: {getattr(self.master_gui, 'saved_background_color', 'transparent')} !important;",
+            #     )
+            # )
             self.scroll_area = (
                 ui
                 .scroll_area()
                 .classes(
-                    f"w-full max-w-full block h-[70vh] border-2 border-gray-600 p-4 font-mono text-sm {wrap_class} {break_class} bg-blue-100 dark:bg-blue-900",
+                    f"w-full max-w-full block h-[70vh] border-2 border-gray-600 p-4 font-mono text-sm {wrap_class} {break_class}",
                 )
-                .style("width: 100%; max-width: 100%;")
+                .style(
+                    "width: 100%;max-w: 100%;",  # Removed background-color override
+                )
             )
 
             with self.scroll_area:
                 # Direct structural constraints onto the raw HTML content block container
-                html_style = "width: 100%; max-width: 100%;"
+                html_style = "width: 100%;max-width: 100%;"
                 if "Diagram" not in self.title:
                     html_style += " word-break: break-word;"
 
@@ -179,6 +190,12 @@ class NiceGuiTextView:
             file_to_read = os.path.join(os.getcwd(), "MapTasker.html")
         elif self.title.startswith("Diagram"):
             file_to_read = os.path.join(os.getcwd(), DIAGRAM_FILE)
+        elif self.title.startswith("Misc"):
+            if isinstance(the_data, list):
+                self.html_display.content = "\n".join(str(line) for line in the_data)
+            else:
+                self.html_display.content = str(the_data)
+            return
 
         # Get the data to process
         # --- 1. TRY TO READ PRE-COMPRESSED HTML FILE FIRST ---
@@ -348,7 +365,7 @@ class NiceGuiTextView:
             ui.run_javascript(f"document.getElementById('c{self.scroll_area.id}').scrollTop = 0")
         else:
             ui.run_javascript(
-                f"const el = document.getElementById('c{self.scroll_area.id}'); el.scrollTop = el.scrollHeight",
+                f"const el = document.getElementById('c{self.scroll_area.id}');el.scrollTop = el.scrollHeight",
             )
 
 
@@ -494,8 +511,8 @@ def initialize_screen(self: MyGui) -> None:
             /* Force scrollbar tracks to be visible on our target components */
             .force-scrollbar,
             .force-scrollbar .q-drawer__content {
-                overflow-y: scroll !important; 
-                overflow-x: auto !important;   
+                overflow-y: scroll !important;
+                overflow-x: auto !important;  
             }
 
             /* =========================================================================
@@ -504,23 +521,23 @@ def initialize_screen(self: MyGui) -> None:
             .force-scrollbar::-webkit-scrollbar,
             .force-scrollbar .q-drawer__content::-webkit-scrollbar {
                 display: block !important;
-                width: 10px !important;  /* Widened slightly for better visibility */
-                height: 10px !important; 
+                width: 10px !important; 
+                height: 10px !important;
             }
             .force-scrollbar::-webkit-scrollbar-track,
             .force-scrollbar .q-drawer__content::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.08) !important; /* Darkened track background */
+                background: rgba(0, 0, 0, 0.08) !important;
                 border-radius: 4px !important;
             }
             .force-scrollbar::-webkit-scrollbar-thumb,
             .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb {
-                background: #475569 !important; /* Dark slate grey for maximum light-mode contrast */
+                background: #475569 !important;
                 border-radius: 4px !important;
-                border: 1px solid #ffffff !important; /* Adds a crisp border outline */
+                border: 1px solid #ffffff !important;
             }
             .force-scrollbar::-webkit-scrollbar-thumb:hover,
             .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb:hover {
-                background: #1e293b !important; /* Deep charcoal on hover */
+                background: #1e293b !important;
             }
 
             /* =========================================================================
@@ -528,14 +545,14 @@ def initialize_screen(self: MyGui) -> None:
                ========================================================================= */
             .q-scrollarea__thumb--v,
             .q-scrollarea__thumb--h {
-                background: #475569 !important; /* Dark slate grey */
-                opacity: 0.95 !important;        /* Raised opacity from 0.7 to 0.95 for heavy visibility */
+                background: #475569 !important;
+                opacity: 0.95 !important;       
                 border: 1px solid #ffffff !important;
             }
 
             .q-scrollarea__thumb--v:hover,
             .q-scrollarea__thumb--h:hover {
-                background: #1e293b !important; /* Charcoal hover */
+                background: #1e293b !important;
                 opacity: 1 !important;
             }
 
@@ -544,33 +561,80 @@ def initialize_screen(self: MyGui) -> None:
                ========================================================================= */
             .dark .force-scrollbar::-webkit-scrollbar-track,
             .dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-track {
-                background: rgba(255, 255, 255, 0.1) !important; /* Visible track rule */
+                background: rgba(255, 255, 255, 0.1) !important;
             }
             .dark .force-scrollbar::-webkit-scrollbar-thumb,
             .dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb,
             .dark .q-scrollarea__thumb--v,
             .dark .q-scrollarea__thumb--h {
-                background: #e2e8f0 !important; /* Bright silver-white for popping off dark backgrounds */
-                border: 1px solid #1e293b !important; /* Dark contrasting border frame */
+                background: #e2e8f0 !important;
+                border: 1px solid #1e293b !important;
                 opacity: 0.95 !important;
             }
             .dark .force-scrollbar::-webkit-scrollbar-thumb:hover,
             .dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb:hover,
             .dark .q-scrollarea__thumb--v:hover,
             .dark .q-scrollarea__thumb--h:hover {
-                background: #ffffff !important; /* Blinding white focus highlight */
+                background: #ffffff !important;
                 opacity: 1 !important;
             }
 
             /* Firefox Engine Fallback High-Contrast */
             .force-scrollbar,
             .force-scrollbar .q-drawer__content {
-                scrollbar-width: auto !important; /* Reset to normal width for visual tracking */
+                scrollbar-width: auto !important;
                 scrollbar-color: #475569 rgba(0, 0, 0, 0.08) !important;
             }
             .dark .force-scrollbar,
             .dark .force-scrollbar .q-drawer__content {
                 scrollbar-color: #e2e8f0 rgba(255, 255, 255, 0.1) !important;
+            }
+
+            /* =========================================================================
+               TARGETED LIGHT MODE OVERRIDES (Completely bypasses macOS System preferences)
+               ========================================================================= */
+            html:not(.dark) body,
+            html:not(.dark) .q-layout,
+            html:not(.dark) .q-page-container,
+            html:not(.dark) main,
+            html:not(.dark) .q-drawer,
+            html:not(.dark) .q-tab-panels,
+            html:not(.dark) .q-tab-panel,
+            html:not(.dark) .q-card,
+            html:not(.dark) .q-tabs,
+            html:not(.dark) .q-scrollarea, /* <-- ADD THIS */
+            html:not(.dark) div.nicegui-content {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+}
+
+            /* =========================================================================
+               TARGETED DARK MODE RULES
+               ========================================================================= */
+            html.dark body,
+            html.dark .q-layout,
+            html.dark .q-page-container,
+            html.dark main,
+            html.dark .q-drawer,
+            html.dark .q-tab-panels,
+            html.dark .q-tab-panel,
+            html.dark .q-card,
+            html.dark .q-tabs,
+            html.dark div.nicegui-content {
+                background-color: #1e293b !important;
+                color: #ffffff !important;
+            }
+
+            /* Ensure text inside form inputs and selection text fields remains visible */
+            html:not(.dark) input,
+            html:not(.dark) textarea,
+            html:not(.dark) .q-field__native {
+                color: #000000 !important;
+            }
+            html.dark input,
+            html.dark textarea,
+            html.dark .q-field__native {
+                color: #ffffff !important;
             }
         </style>
     """)
@@ -578,14 +642,78 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     # 1. HEADER
     # =========================================================================
+    # with ui.header().classes("bg-blue-900 text-white p-4 justify-between items-center"):
+    #     ui.label("MapTasker").classes("text-2xl font-bold")
+
+    #     dm_controller = ui.dark_mode()
+
+    #     def toggle_dark_mode(e: ui.ValueChangeEventArguments) -> None:
+    #         if e.value:
+    #             dm_controller.enable()
+    #             self.appearance_mode = "dark"
+    #             self.dark_mode = True
+    #             self.saved_background_color = "#1e293b"
+    #         else:
+    #             dm_controller.disable()
+    #             # Force tailwind / HTML engine to strip the dark class entirely to trigger your :not(.dark) CSS rules
+    #             ui.run_javascript("document.documentElement.classList.remove('dark')")
+    #             self.appearance_mode = "light"
+    #             self.dark_mode = False
+    #             self.saved_background_color = "#ffffff"
+
+    #     ui.switch("Dark Mode", value=True, on_change=toggle_dark_mode)
+    # =========================================================================
+    # 1. HEADER
+    # =========================================================================
     with ui.header().classes("bg-blue-900 text-white p-4 justify-between items-center"):
         ui.label("MapTasker").classes("text-2xl font-bold")
-        dark_mode = ui.switch("Dark Mode", value=True, on_change=lambda e: ui.dark_mode(e.value))
-        self.dark_mode = dark_mode.value
-        if self.dark_mode:
-            self.appearance_mode = "dark"
-        else:
-            self.appearance_mode = "light"
+
+        dm_controller = ui.dark_mode()
+
+        def toggle_dark_mode(e: ui.ValueChangeEventArguments) -> None:
+            if e.value:
+                dm_controller.enable()
+                self.appearance_mode = "dark"
+                self.dark_mode = True
+                self.saved_background_color = "#1e293b"
+
+                ui.run_javascript("document.body.style.backgroundColor = '#1e293b';")
+                if hasattr(self, "left_drawer") and self.left_drawer:
+                    self.left_drawer.style("background-color: #1f2937 !important;")
+                if hasattr(self, "right_drawer") and self.right_drawer:
+                    self.right_drawer.style("background-color: #1f2937 !important;")
+                if hasattr(self, "main_column") and self.main_column:
+                    self.main_column.style("background-color: #1e293b !important; color: #ffffff !important;")
+                # Dark mode styles for the nested tab sheets
+                if hasattr(self, "tab_panels_container") and self.tab_panels_container:
+                    self.tab_panels_container.style("background-color: #1e293b !important; color: #ffffff !important;")
+                if hasattr(self, "tab_panels") and self.tab_panels:
+                    self.tab_panels.style("background-color: #1e293b !important; color: #ffffff !important;")
+            else:
+                dm_controller.disable()
+                self.appearance_mode = "light"
+                self.dark_mode = False
+                self.saved_background_color = "#ffffff"
+
+                ui.run_javascript("document.body.style.backgroundColor = '#ffffff';")
+                if hasattr(self, "left_drawer") and self.left_drawer:
+                    self.left_drawer.style("background-color: #ffffff !important;")
+                if hasattr(self, "right_drawer") and self.right_drawer:
+                    self.right_drawer.style("background-color: #ffffff !important;")
+                if hasattr(self, "main_column") and self.main_column:
+                    self.main_column.style("background-color: #ffffff !important; color: #000000 !important;")
+                # CRITICAL FIX: Explicitly force white background and dark text on the active tab cards
+                if hasattr(self, "tab_panels_container") and self.tab_panels_container:
+                    self.tab_panels_container.style("background-color: #ffffff !important; color: #000000 !important;")
+                if hasattr(self, "tab_panels") and self.tab_panels:
+                    self.tab_panels.style("background-color: #ffffff !important; color: #000000 !important;")
+
+            # If a view is active, force an instantaneous layout style redraw
+            if hasattr(self, "textview") and self.textview:
+                if hasattr(self.textview, "scroll_area") and self.textview.scroll_area:
+                    self.textview.scroll_area.style(f"background-color: {self.saved_background_color} !important;")
+
+        ui.switch("Dark Mode", value=True, on_change=toggle_dark_mode)
 
     # =========================================================================
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
@@ -664,7 +792,7 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     # 4. MAIN BODY CONTENT AREA
     # =========================================================================
-    with ui.column().classes("p-6 w-full max-w-full mx-auto"):
+    with ui.column().classes("p-6 w-full max-w-full mx-auto") as self.main_column:
         # View Navigation Switching Buttons Row
         with ui.row().classes("gap-4 mb-6"):
             ui.button("Map View", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
@@ -681,7 +809,7 @@ def initialize_screen(self: MyGui) -> None:
 
         with ui.tab_panels(self.main_tabs_container, value=self.tab_specific_name).classes(
             "w-full border rounded shadow-inner p-6 mt-2",
-        ):
+        ) as self.tab_panels:
             # Specific Name panel for targeting specific Projects, Profiles, or Tasks
             with ui.tab_panel(self.tab_specific_name):
                 ui.label("Target specific Projects, Profiles, or Tasks.").classes("text-lg mb-4")
@@ -770,6 +898,7 @@ def get_rid_of_windows_and_exit(self: MyGui, delete_all: bool = True) -> None:
 
 def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
     """Populates the 'Analyze' (AI) tab using NiceGUI and colors the analysis button contextually."""
+    from maptasker.src.guiutils import display_model_pulldown  # noqa: PLC0415  Avoid circular import
 
     # Use the 'with' context manager to place elements inside the passed tab panel
     with tab:
@@ -780,12 +909,12 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
 
             # --- DYNAMIC ANALYSIS BUTTON COLORING LOGIC ---
             # Determine if any required fields are empty/None
-            has_key = bool(getattr(self, "ai_apikey", None))
-            has_model = bool(getattr(self, "ai_model", "")) and getattr(self, "ai_model") != "None"
-            has_prompt = bool(getattr(self, "ai_prompt", ""))
+            self.has_key = bool(getattr(self, "ai_apikey", None))
+            self.has_model = bool(getattr(self, "ai_model", "")) and getattr(self, "ai_model") != "None"
+            self.has_prompt = bool(getattr(self, "ai_prompt", ""))
 
             # If everything is filled out, make it green. Otherwise, color it red.
-            analysis_btn_color = "green" if (has_key and has_model and has_prompt) else "red"
+            analysis_btn_color = "green" if (self.has_key and self.has_model and self.has_prompt) else "red"
 
             self.analysis_button = ui.button(
                 "Run Analysis",

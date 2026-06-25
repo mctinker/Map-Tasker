@@ -2,9 +2,7 @@
 
 import contextlib
 import os
-import tkinter as tk
 from collections.abc import Callable
-from tkinter import font as tkfont
 from typing import TYPE_CHECKING
 
 import defusedxml
@@ -30,7 +28,7 @@ from maptasker.src.maputils import restart_program_subprocess
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
-from maptasker.src.sysconst import ARGUMENT_NAMES, ERROR_FILE, MODEL_GROUPS, UNNAMED_ITEM, logger
+from maptasker.src.sysconst import ANALYSIS_FILE, ARGUMENT_NAMES, ERROR_FILE, MODEL_GROUPS, UNNAMED_ITEM, logger
 
 if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
@@ -304,32 +302,16 @@ def display_object_pulldowns(
     # If the container is tab_specific_name, we just update the options for the widgets we created in guiwins.py
     if container == self.tab_specific_name:
         if hasattr(self, "specific_project_optionmenu") and self.specific_project_optionmenu:
-            # 1. Assign the new lists to the options attributes
+            # 1. Assign the new lists to the options attributes safely
             self.specific_project_optionmenu.options = projects_to_display
             self.specific_profile_optionmenu.options = profiles_to_display
             self.specific_task_optionmenu.options = tasks_to_display
 
-            # 2. Attach the event listeners using NiceGUI's .on() method
-            # We clear existing listeners first to prevent duplicates if this function is called multiple times
-            self.specific_project_optionmenu.clear()
-            self.specific_project_optionmenu.on(
-                "update:model-value",
-                lambda e: project_name_event(e.args) if e.args else None,
-            )
+            # 2. FIX: REMOVED .clear() AND .on() LOOPS HERE!
+            # The event listeners are already bound via 'on_change=' during initialization.
+            # No changes to event listeners means NO CONSOLE WARNINGS.
 
-            self.specific_profile_optionmenu.clear()
-            self.specific_profile_optionmenu.on(
-                "update:model-value",
-                lambda e: profile_name_event(e.args) if e.args else None,
-            )
-
-            self.specific_task_optionmenu.clear()
-            self.specific_task_optionmenu.on(
-                "update:model-value",
-                lambda e: task_name_event(e.args) if e.args else None,
-            )
-
-            # 3. CRITICAL: Tell the browser to re-render the widgets with the new options
+            # 3. Tell the browser to re-render the options lists cleanly
             self.specific_project_optionmenu.update()
             self.specific_profile_optionmenu.update()
             self.specific_task_optionmenu.update()
@@ -460,52 +442,56 @@ def delete_old_pulldown_menus(self: object) -> None:
 
 def display_selected_object_labels(self: "MyGui") -> None:
     """
-    Display the current settings for Ai
+    Display the current settings for Ai with absolute value-matching fixes for NiceGUI.
     """
-    # 1. Data Resolution (Kept identical to your original logic)
-    if not self.ai_model:
-        all_models = {
-            "OpenAI": PrimeItems.ai["openai_models"],
-            "anthropic": PrimeItems.ai["anthropic_models"],
-            "LLAMA": PrimeItems.ai["llama_models"],
-            "DeepSeek": PrimeItems.ai["deepseek_models"],
-            "Gemini": PrimeItems.ai["gemini_models"],
-        }
-        for ai, models in all_models.items():
-            if self.ai_model in models:
-                self.ai_model = ai
-                break
-
     if not self.ai_apikey:
         self.ai_apikey = get_api_key()
 
     key_to_display = "N/A" if getattr(self, "ai_name", "") == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
-    model_to_display = self.ai_model if self.ai_model else "None"
+
+    # 1. FIX: Resolve the true display value for the model dropdown
+    model_to_display = "None"
+    if self.ai_model:
+        # If the dropdown widget exists, look for the choice that ends with our active model
+        if getattr(self, "ai_model_option", None) and self.ai_model_option.options:
+            matching_option = next((opt for opt in self.ai_model_option.options if opt.endswith(self.ai_model)), None)
+            if matching_option:
+                model_to_display = matching_option
+            else:
+                model_to_display = self.ai_model
+        else:
+            model_to_display = self.ai_model
 
     none_translated = translate_string("None")
     project_to_display = self.single_project_name if self.single_project_name else none_translated
     profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
     task_to_display = self.single_task_name if self.single_task_name else none_translated
 
-    # 2. Render the "Analyze" Tab
-    # Assuming self.tab_analyze is the ui.tab_panel("Analyze") you created elsewhere
+    # 2. Render the "Analyze" Tab panel context natively
     with self.tab_analyze:
-        # Instead of `delete_ai_labels(self)`, we just clear the container.
+        # Clear the container frame so elements don't stack up iteratively
         self.tab_analyze.clear()
 
-        # Display Model & Key
-        ui.label(f"{getattr(self, 'ai_name', '')} API Key: {key_to_display}, Model: {model_to_display}").classes(
+        # Display Model & Key tracking summaries
+        # Use the raw model string or cleaned display model cleanly
+        short_model_name = self.ai_model if self.ai_model else "None"
+        ui.label(f"{getattr(self, 'ai_name', '')} API Key: {key_to_display}, Model: {short_model_name}").classes(
             "text-sm mt-4",
         )
 
-        # Update Pulldown
+        # 3. FIX: Safely assign the value selection back to NiceGUI dropdown tree context
+        # NiceGUI dropdown values are single primitives (string), not arrays like legacy wrappers!
         if getattr(self, "ai_model_option", None):
-            # In NiceGUI, ui.select uses `.value` instead of `.set()`
-            self.ai_model_option.value = [model_to_display]
+            try:
+                self.is_updating = True  # Engage state lock protection
+                self.ai_model_option.value = model_to_display
+                self.ai_model_option.update()  # Push stream frame instantly
+            finally:
+                self.is_updating = False
         else:
             display_model_pulldown(self, 50)
 
-        # Display Targets
+        # Display Targets selections
         translation_proj = translate_string("Project to Analyze:")
         ui.label(f"{translation_proj} {project_to_display}").classes("text-sm mt-2")
 
@@ -515,23 +501,19 @@ def display_selected_object_labels(self: "MyGui") -> None:
         translation_task = translate_string("Task to Analyze:")
         ui.label(f"{translation_task} {task_to_display}").classes("text-sm mt-2")
 
-        # Display Prompt
+        # Display Prompt configurations
         display_prompt = translate_string(self.ai_prompt)
         prompt_title = translate_string("Prompt:")
 
-        # Web browsers handle text wrapping automatically!
-        # We use Tailwind classes to limit width (max-w-md) and force wrapping (whitespace-pre-wrap).
         ui.label(f"{prompt_title} '{display_prompt}'").classes(
             "text-base mt-4 max-w-md whitespace-pre-wrap break-words",
         )
 
-    # 3. Render the "Specific Name" Tab
-    # Assuming self.tab_specific_name is your ui.tab_panel("Specific Name")
+    # 4. Render Specific Name Tab labels tracking sync
     with self.tab_specific_name:
-        all_objects = translate_string("Display all Projects, Profiles, and Tasks.")
-        name_to_display = self.specific_name_msg if getattr(self, "specific_name_msg", None) else all_objects
+        all_objects_text = translate_string("Display all Projects, Profiles, and Tasks.")
+        name_to_display = self.specific_name_msg if getattr(self, "specific_name_msg", None) else all_objects_text
 
-        # Just update the text of the existing label rather than recreating it
         if hasattr(self, "specific_name_msg_label") and self.specific_name_msg_label:
             self.specific_name_msg_label.text = name_to_display
         else:
@@ -1108,36 +1090,6 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                 ).classes("bg-blue-600 text-white font-bold")
 
 
-def get_monospace_fonts() -> list[str]:
-    """Queries the OS via Tkinter to retrieve available monospaced fonts."""
-    # Create a hidden root window to initialize the font subsystem
-    root = tk.Tk()
-    root.withdraw()
-
-    mono_fonts = []
-    # Get all unique families available on the system
-    all_fonts = sorted(set(tkfont.families()))
-
-    for f in all_fonts:
-        try:
-            # Create a font object and check if it has fixed-width properties
-            current_font = tkfont.Font(family=f, size=12)
-            if current_font.metrics("fixed"):
-                mono_fonts.append(f)
-        except Exception as e:  # noqa: BLE001
-            rutroh_error(f"Unable to create font object for {f}: {e}")
-            continue
-
-    # Clean up the hidden tkinter root instance
-    root.destroy()
-
-    # Fallback default values if the system returns an empty list
-    if not mono_fonts:
-        mono_fonts = ["Courier New", "Courier", "Consolas", "Monospace"]
-
-    return mono_fonts
-
-
 def set_ai_key(self: object, model: str) -> None:
     """
     Set the API key for the AI service based on the selected model.
@@ -1194,35 +1146,36 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
     """
     logger.info("Displaying messages from last run.")
     gui = self.gui
-    # See if we have any carryover error messages from last run (rerun).
-    if os.path.isfile(ERROR_FILE):
+    analysis_response = ""
+    error_msg = ""
+
+    # Handle Ai Response and display it
+    if os.path.isfile(ANALYSIS_FILE):
+        with open(ANALYSIS_FILE) as analysis_file:
+            analysis_response = analysis_file.read()
+            gui.display_ai_response(analysis_response)
+
+    # See if we have any error messages from the AI analysis.
+    elif os.path.isfile(ERROR_FILE):
         with open(ERROR_FILE) as error_file:
             error_msg = error_file.read()
 
-            # Handle Ai Response and display it in a new toplevel window
-            if "AI Response" in error_msg:
-                gui.display_ai_response(error_msg)
-                gui.display_message_box(
-                    "Analysis response is in a separate Window.",
-                    "Turquoise",
-                )
-                gui.main_tabs_container.set_value = self.tab_to_use
-
             # Some other message.  Just display it in the message box and break it up if needed.
-            elif "\n" in error_msg:
+            if "\n" in error_msg:
                 messages = error_msg.split("\n")
                 for message_line in messages:
                     gui.display_message_box(message_line, "Red")
             else:
                 gui.display_message_box(error_msg, "Red")
-        # Get rid of error message so we don't display it again.
-        try:
-            os.remove(ERROR_FILE)
-        except PermissionError:
-            # If the error file is locked up by us, then just rename the file.
-            print(f"Unable to delete the error file: {ERROR_FILE}.  You must delete it manually!")
-        except FileNotFoundError:
-            pass
+
+    # Get rid of any error message so we don't display it again.
+    try:
+        os.remove(ERROR_FILE)
+    except PermissionError:
+        # If the error file is locked up by us, then just rename the file.
+        print(f"Unable to delete the error file: {ERROR_FILE}.  You must delete it manually!")
+    except FileNotFoundError:
+        pass
 
     # Display any error message from other rountines
     if PrimeItems.error_msg:
@@ -1230,3 +1183,6 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
             f"{PrimeItems.error_msg} with return code {PrimeItems.error_code}.",
             "Red",
         )
+
+    if hasattr(self, "tab_to_use"):
+        gui.main_tabs_container.set_value = self.tab_to_use

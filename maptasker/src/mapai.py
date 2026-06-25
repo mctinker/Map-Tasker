@@ -9,7 +9,7 @@ import os
 import re
 import sys
 
-from nicegui import ui
+from nicegui import run, ui
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import error_handler
@@ -556,18 +556,16 @@ def get_ai_object() -> tuple:
 AI_PROMPT = "Analyze the following Tasker data"
 
 
-def _run_analysis_in_background(popup: popupwindow) -> None:
+async def _run_analysis_in_background(popup: popupwindow) -> None:
     """
-    This function contains the main analysis logic.
+    This function contains the main analysis logic, now asynchronous
+    to prevent blocking the NiceGUI event loop.
     """
     try:
-        # Clean up the output list since it has all the front matter and we only need the object (Project/Profile/Task)
+        # 1. Gather data quickly on the main thread
         temp_output = cleanup_output()
-
-        # Setup the query: ai_object (Task, Profile or Project) and item (name of the object)
         ai_object, item = get_ai_object()
 
-        # Put the query together
         prompt = PrimeItems.program_arguments["ai_prompt"] if PrimeItems.program_arguments["ai_prompt"] else AI_PROMPT
         if not prompt.endswith(":"):
             prompt = f"{prompt}:"
@@ -575,12 +573,10 @@ def _run_analysis_in_background(popup: popupwindow) -> None:
         for line in temp_output:
             query += f"{line}\n"
 
-        # Let the user know what is going on.
         print(
             f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...",
         )
 
-        # Call appropriate AI routine: OpenAI, local Ollama, etc.
         name_function_map = {
             "OpenAI": open_ai,
             "Anthropic": claude_ai,
@@ -590,30 +586,28 @@ def _run_analysis_in_background(popup: popupwindow) -> None:
         }
         ai_name = PrimeItems.program_arguments["ai_name"]
 
-        # Call the appropriate AI function based on the selected AI name. If the AI name is not found in the map,
-        # it will call the error handler.
-        name_function_map.get(
+        # Get the targeted worker function
+        ai_func = name_function_map.get(
             ai_name,
-            lambda *args: error_handler("Invalid model selected.", 12),  # noqa: ARG005
-        )(
-            query,
-            ai_object,
-            item,
+            lambda *args: error_handler("Invalid model selected (AI name is blank).", 12),  # noqa: ARG005
         )
 
-        # We're done
+        # Use NiceGUI's run.io_bound to run the AI function in a separate thread so it doesn't block the main event
+        # loop.  In this way, the popup window can be displayed while the AI processing is happening in the background.
+        # The delay is to give the popup window time to display before the AI processing starts, so the user sees the
+        # "Please wait..." message.
+        await run.io_bound(ai_func, query, ai_object, item)
+
         print(f"MapTasker analysis for {ai_object} '{item}' is done.")
 
     finally:
-        # Indicate that we are done
+        # 3. Resume main thread operations securely
         PrimeItems.program_arguments["ai_analyze"] = False
 
         # Remove the popup window using NiceGUI syntax
         if popup:
-            # Check if it has a native close method (NiceGUI ui.dialog wrapper)
             if hasattr(popup, "close"):
                 popup.close()
-            # Fallback if it is a class instance wrapping the dialog
             elif hasattr(popup, "dialog") and hasattr(popup.dialog, "close"):
                 popup.dialog.close()
 
@@ -623,27 +617,27 @@ def display_the_popup(title: str, text: str) -> None:
     Displays a popup window telling user we are analyzing.
     Calls _run_analysis_in_background via a one-time timer.
     """
-    # 1. Create and open the dialog using the helper we just built in guiwins.py
+    # Create and open the dialog using the helper
     dialog = create_popup_window(title, text)
 
-    # 2. Start the background analysis after 200 milliseconds.
-    # In NiceGUI, ui.timer(..., once=True) completely replaces popup.after()
+    # ui.timer handles async functions natively when they are called
     ui.timer(0.2, lambda: _run_analysis_in_background(dialog), once=True)
 
 
 # Map Ai: set up Ai query and call appropriate function based on the model.
-def map_ai() -> None:
+async def map_ai() -> None:
     """
     A function that determines whether to call the OpenAI or local AI routine based on the model specified in PrimeItems.
 
     Does the setup for the query by concatenating the lines in PrimeItems.ai["output_lines"].
     """
-    # Display a popup window telling user we are analyzing
-    # NOTE: popup calls _run_analysais_in_background via popup.after,
-    #       and which then destroys the popup window when done.
-    display_the_popup(
+    # Create the dialog container on the main thread
+    dialog = create_popup_window(
         translate_string("MapTasker Analysis >>>>>>>>>> Please stand by..."),
         translate_string(
-            "Analysis is running in the background.\n\nOnce complete, the program will restart and the results will appear in a new window.\n\nPlease stand by...",
+            "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by...",
         ),
     )
+
+    # Instead of a ui.timer fire-and-forget loop, await the background processing task cleanly!
+    await _run_analysis_in_background(dialog)

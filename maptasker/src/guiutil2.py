@@ -5,6 +5,8 @@ These are pure Python functions pulled out to avoid circular imports.
 """
 
 import os
+import tkinter as tk
+import tkinter.font as tkfont
 
 import requests
 
@@ -163,3 +165,33 @@ def get_changelog_file(url: str, delimiter: str, n: int) -> list:
         lines.append(line)
 
     return lines
+
+
+def get_monospace_fonts() -> list[str]:
+    """Queries the OS via Tkinter to retrieve available monospaced fonts."""
+    # Create a hidden root window to initialize the font subsystem
+    root = tk.Tk()
+    root.withdraw()
+
+    mono_fonts = []
+    # Get all unique families available on the system
+    all_fonts = sorted(set(tkfont.families()))
+
+    for f in all_fonts:
+        try:
+            # Create a font object and check if it has fixed-width properties
+            current_font = tkfont.Font(family=f, size=12)
+            if current_font.metrics("fixed"):
+                mono_fonts.append(f)
+        except Exception as e:  # noqa: BLE001
+            rutroh_error(f"Unable to create font object for {f}: {e}")
+            continue
+
+    # Clean up the hidden tkinter root instance
+    root.destroy()
+
+    # Fallback default values if the system returns an empty list
+    if not mono_fonts:
+        mono_fonts = ["Courier New", "Courier", "Consolas", "Monospace"]
+
+    return mono_fonts

@@ -564,7 +564,7 @@ class MyGui:
         return tree_data
 
     # Validate name entered
-    def check_name(self, the_name: str, element_name: str) -> bool:
+    def check_name(self: "MyGui", the_name: str, element_name: str) -> bool:
         """
         Optimized name validity check.
         Uses truth tables for exclusivity and minimized translation overhead.
@@ -620,7 +620,11 @@ class MyGui:
 
         # 5. Handle Errors
         if error_message:
-            self.display_multiple_messages(error_message, "Red")
+            NiceGuiTextView(
+                self,
+                title="Misc View",
+                the_data=error_message,
+            )
             self.single_project_name = self.single_profile_name = self.single_task_name = ""
             return False
 
@@ -1066,7 +1070,7 @@ class MyGui:
         self.display_message_box(f"{translate_string(toggle_name)} {set_on_off}", "Green")
 
     # Display Ai Analysis response in a separate top level window.
-    def display_ai_response(self, error_msg: str) -> None:
+    def display_ai_response(self, analysis_response: str) -> None:
         """
         Display AI response in a GUI window and rename ther anaysis file.
 
@@ -1081,13 +1085,7 @@ class MyGui:
         date_and_time = (
             f"-{now_time.month}-{now_time.day}-{now_time.year}_{now_time.hour}-{now_time.minute}-{now_time.second}"
         )
-        error_msg = error_msg.replace("-date-time", date_and_time)
-
-        # Display the analysis in the toplevel window.
-        NiceGuiTextView(
-            title="Analysis View",
-            the_data=error_msg,
-        )
+        analysis_response = analysis_response.replace("-date-time", date_and_time)
 
         # Rename ANALYSIS_FILE.
         # X Get front part of filename ANALYSIS_FILE and plug it in as the beginning.
@@ -1098,6 +1096,14 @@ class MyGui:
                 f"{ANALYSIS_FILE} {text} {new_file_name}",
                 "turquoise",
             )
+            analysis_response = f"Analysis Response saved in file: {new_file_name}\n\n" + analysis_response.replace(ANALYSIS_FILE, new_file_name)
+
+        # Display the analysis in the toplevel window.
+        NiceGuiTextView(
+            self,
+            title="Misc View",
+            the_data=analysis_response,
+        )
 
 
 class MapTaskerEventHandlers:
@@ -1197,8 +1203,8 @@ class MapTaskerEventHandlers:
                 return
 
             # Define the view and display the map.
-            gui.textview = NiceGuiTextView(
-                self.gui,
+            NiceGuiTextView(
+                gui,
                 title=window_title,
                 the_data=map_data,
             )
@@ -1217,8 +1223,9 @@ class MapTaskerEventHandlers:
                     # Process the diagram: builds the 'network' and then draws it in the GUI
                     outline_the_configuration()
                     # Display the diagram in the GUI
-                    gui.textview = NiceGuiTextView(
-                        gui,
+                    window_attribute = f"{view_type}view_window"
+                    NiceGuiTextView(
+                        master=getattr(self, window_attribute),
                         title=window_title,
                         the_data=[],
                     )
@@ -1260,25 +1267,54 @@ class MapTaskerEventHandlers:
 
     def ai_model_selected_event(self: "MapTaskerEventHandlers", event_value: Event) -> None:
         """Updates the AI model based on dropdown selection."""
+        if not event_value.value:
+            return
+
+        # 1. Parse out the raw model and provider name for the backend logic
         if isinstance(event_value.value, str):
-            self.gui.ai_model = event_value.value.split(":", 1)[1].strip()
-            self.gui.ai_name = event_value.value.split(":")[0].strip()
+            if ":" in event_value.value:
+                self.gui.ai_model = event_value.value.split(":", 1)[1].strip()
+                self.gui.ai_name = event_value.value.split(":")[0].strip()
+            else:
+                self.gui.ai_model = event_value.value.strip()
             PrimeItems.program_arguments["ai_name"] = self.gui.ai_name
         elif isinstance(event_value.value, list):
             self.gui.ai_model = event_value.value[0]
-            print("bingo", event_value.value)
+
         logger.info(f"AI Model changed to: {self.gui.ai_model}")
 
         # Set the PrimeItems.ai model keys and appropriate API key based on the model chosen.
         _ = get_api_key()
         _ = set_ai_key(self.gui, self.gui.ai_model)
 
+        # Update has_model tracking flag context-conditional status
+        self.gui.has_model = bool(self.gui.ai_model) and self.gui.ai_model != "None"
+
+        # 2. Force the Dropdown value to stay matched with its prefixed display options list
+        # The lookup restoration and explicit .update() refresh cycle is only required for components like
+        # dropdowns/comboboxes (ui.select) where the programmatically assigned value gets mutated away from the
+        # literal string tokens stored inside the component's visible options array.
+        if hasattr(self.gui, "ai_model_option") and self.gui.ai_model_option:
+            # Look for the option item that ends with our newly set raw model string
+            matching_option = next(
+                (opt for opt in self.gui.ai_model_option.options if opt.endswith(self.gui.ai_model)),
+                None,
+            )
+            if matching_option:
+                # Use a temporary state lock block to prevent an event loop echo trigger
+                try:
+                    self.gui.is_updating = True
+                    self.gui.ai_model_option.value = matching_option
+                    self.gui.ai_model_option.update()  # Force the web browser to refresh the element layout tree
+                finally:
+                    self.gui.is_updating = False
+
         # Updates NiceGUI visual rendering colors reactively
         has_all = bool(self.gui.ai_apikey and self.gui.ai_model and self.gui.ai_prompt)
         self.gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
 
     # ==========================================
-    # 4. TEXT VIEW CONTROLS (Replacing the old _handle_event router)
+    # 4. TEXT VIEW CONTROLS
     # ==========================================
 
     def clear_event(self, view_name: str = "mapview") -> None:
@@ -1598,6 +1634,9 @@ class MapTaskerEventHandlers:
         elif name_entered == the_view.ai_prompt:
             the_view.display_message_box("Prompt did not change.", "Orange")
 
+            # UPDATE HAS_PROMPT TRACKING FLAG ---
+            the_view.has_prompt = bool(the_view.ai_prompt)
+
         # Valid response
         else:
             the_view.ai_prompt = name_entered
@@ -1606,7 +1645,15 @@ class MapTaskerEventHandlers:
                 f"{msg} '{the_view.ai_prompt}'.",
                 "Green",
             )
+
+            # UPDATE HAS_PROMPT TRACKING FLAG ---
+            the_view.has_prompt = bool(the_view.ai_prompt)
+
             display_selected_object_labels(the_view)
+
+        # Updates NiceGUI visual rendering colors reactively
+        has_all = bool(the_view.ai_apikey and the_view.ai_model and the_view.ai_prompt)
+        the_view.analysis_button.props(f"color={'green' if has_all else 'red'}")
 
     def extended_models_event(self) -> None:
         """
@@ -2251,7 +2298,7 @@ class MapTaskerEventHandlers:
         )
 
     # Kickoff the AI analysis
-    def ai_analyze_event(self) -> None:
+    async def ai_analyze_event(self) -> None:
         """
         Analyzes a single item identified by the current instance.
 
@@ -2312,7 +2359,9 @@ class MapTaskerEventHandlers:
                 elif gui.ai_model.startswith("gpt") or gui.ai_model.startswith("o"):
                     gui.ai_name = "OpenAI"
                 else:
-                    gui.ai_name = "LLaMA"
+                    gui.ai_name = "Llama"
+            else:
+                PrimeItems.program_arguments["ai_name"] = gui.ai_name
 
             # Do the analysis.  First save our windows and settings.
             temp_args = {value: getattr(gui, value) for value in ARGUMENT_NAMES}
@@ -2321,9 +2370,14 @@ class MapTaskerEventHandlers:
 
             # Now make certain we have the api key set for the model we are using.
             PrimeItems.program_arguments["ai_apikey"] = gui.ai_apikey
+            PrimeItems.program_arguments["ai_model"] = gui.ai_model
+            # Save the current tab
+            gui.tab_to_use = self.gui.main_tabs_container.value
 
-            # Ok, run the analysis by rerunning the program with our ai_analyze = True
-            map_ai()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # Ok, run the analysis.  Await the execution of map_ai() so control doesn't leak early!
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            await map_ai()
             print("bingo back from map_ai")
             # See if we have any carryover error messages from the AI run.
             # Note: this must go after the settings restoration.
@@ -2361,14 +2415,14 @@ class MapTaskerEventHandlers:
         Process the AI API Dialog key event.
         """
         apikeys_to_validate = ["openai_key", "anthropic_key", "gemini_key"]
-        my_gui = self.gui
+        gui = self.gui  # self is MapTaskerEventHandlers, my_gui is MyGui
 
         if not dialog_container:
             return
 
         # 1. Handle Cancel Event
         if cancel:
-            my_gui.display_message_box(
+            gui.display_message_box(
                 "'Cancel' button selected. No change to the API keys!",
                 "Orange",
             )
@@ -2383,10 +2437,19 @@ class MapTaskerEventHandlers:
                 entry_field.set_value("")
 
                 text = translate_string("API key cleared.")
-                my_gui.display_message_box(
+                gui.display_message_box(
                     f"{clear.replace('_key', '').title()} {text}",
                     "LimeGreen",
                 )
+
+                # Update state tracking if the cleared key belonged to the active model
+                PrimeItems.ai[clear] = ""
+                set_ai_key(gui, gui.ai_model)
+                gui.has_key = bool(getattr(gui, "ai_apikey", None))
+
+                # Force dynamic button styling update
+                has_all = bool(gui.ai_apikey and gui.ai_model and gui.ai_prompt)
+                gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
             return
 
         # 3. GET THE RETURNED API KEYS
@@ -2400,7 +2463,7 @@ class MapTaskerEventHandlers:
 
         apikey_changed = False
         _valid_api_key = valid_api_key
-        _display_message_box = my_gui.display_message_box
+        _display_message_box = gui.display_message_box
 
         # 4. Iterate over keys and validate/commit changes
         for key, value in api_keys.items():
@@ -2434,18 +2497,27 @@ class MapTaskerEventHandlers:
             with open(KEYFILE, "wb") as key_file:
                 pickle.dump(PrimeItems.ai, key_file)
 
+            # Refresh keys on the GUI instance and update context-conditional state flags
+            set_ai_key(gui, gui.ai_model)
+            print("bingo apikeys set to:", gui.ai_apikey)
+            gui.has_key = bool(getattr(gui, "ai_apikey", None))
+
             # Redisplay the UI dependencies
-            display_analyze_button(my_gui, 13, first_time=False)
-            display_selected_object_labels(my_gui)
+            display_analyze_button(gui, 13, first_time=False)
+            display_selected_object_labels(gui)
         else:
-            my_gui.display_message_box("No API keys changed.", "LimeGreen")
+            gui.display_message_box("No API keys changed.", "LimeGreen")
 
         # 6. Close the window view
         dialog_container.close()
 
         # Updates NiceGUI visual rendering colors reactively
-        has_all = bool(self.gui.ai_apikey and self.gui.ai_model and self.gui.ai_prompt)
-        self.gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
+        has_all = bool(gui.ai_apikey and gui.ai_model and gui.ai_prompt)
+        gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
+
+        # Updates NiceGUI visual rendering colors reactively
+        has_all = bool(gui.ai_apikey and gui.ai_model and gui.ai_prompt)
+        gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
 
     # Front-end event handlers
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:
