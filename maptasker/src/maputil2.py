@@ -61,15 +61,6 @@ def truncate_string(text: str, max_length: int = 30) -> str:
 # ==========================================
 
 
-def save_window_position(*args: list, **kwargs: list) -> None:
-    """
-    STUBBED FOR NICEGUI:
-    In a web environment, the browser manages window positions and DPI scaling natively.
-    This function is left as a safe 'pass' so any legacy calls to it won't break the app,
-    but it no longer needs to track X/Y coordinates!
-    """
-
-
 @contextmanager
 def suppress_stdout() -> Generator:  # type: ignore  # noqa: PGH003
     """

@@ -22,36 +22,26 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
+from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import restart_program_subprocess
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
-from maptasker.src.sysconst import ANALYSIS_FILE, ARGUMENT_NAMES, ERROR_FILE, MODEL_GROUPS, UNNAMED_ITEM, logger
+from maptasker.src.sysconst import (
+    ANALYSIS_FILE,
+    ARGUMENT_NAMES,
+    CHANGELOG_FILE,
+    CHANGELOG_URL,
+    ERROR_FILE,
+    MODEL_GROUPS,
+    UNNAMED_ITEM,
+    logger,
+)
 
 if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
-
-
-# ==========================================
-# 1. NOTIFICATIONS & FEEDBACK
-# ==========================================
-def output_label(view_instance: object, text: str) -> None:
-    """
-    Replaces the old status label updates.
-    Displays a toast notification to the user in the browser.
-    """
-    logger.info(f"GUI Message: {text}")
-    # Determine message type based on keywords for color-coding
-    msg_type = "negative" if "error" in text.lower() or "could not" in text.lower() else "positive"
-
-    ui.notify(text, type=msg_type, position="bottom-right", timeout=3000)
-
-
-def display_no_xml_message(gui_instance: object) -> None:
-    """Displays an error if no XML is loaded."""
-    ui.notify("No XML data loaded! Please Get XML from Android or Local drive first.", type="warning", position="top")
 
 
 # ==========================================
@@ -228,9 +218,6 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     # If we don't have any data, get it.
     if not self.load_xml():
         return False
-
-    # Get rid of previous data
-    # delete_old_pulldown_menus(self)
 
     # Get all of the Tasker objects: Projects/Profiles/Tasks/Scenes
     return_code, projects_to_display, profiles_to_display, tasks_to_display = get_tasker_objects(self)
@@ -416,30 +403,6 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     return True, projects_to_display, profiles_to_display, tasks_to_display
 
 
-# Delete old pulldown menus since the older selected items could be longer than the new,
-# and both will appear.
-def delete_old_pulldown_menus(self: object) -> None:
-    """Delete old pulldown menus if they exist."""
-    for attr in (
-        "specific_project_optionmenu",
-        "specific_profile_optionmenu",
-        "specific_task_optionmenu",
-        "ai_project_optionmenu",
-        "ai_profile_optionmenu",
-        "ai_task_optionmenu",
-        "single_label",
-        "select_project_label",
-        "select_profile_label",
-        "task_label",
-    ):
-        widget = getattr(self, attr, None)
-        if widget:
-            with contextlib.suppress(Exception):
-                widget.delete()  # NiceGUI uses .delete() to remove widgets.
-            # Best practice: clear the reference so your logic knows it's gone
-            setattr(self, attr, None)
-
-
 def display_selected_object_labels(self: "MyGui") -> None:
     """
     Display the current settings for Ai with absolute value-matching fixes for NiceGUI.
@@ -570,34 +533,6 @@ def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
     return unnamed_task.split(".")[1].strip()
 
 
-# Reload the program
-def reload_gui(self: object) -> None:
-    """
-    Reload the GUI by running a new process with the new program/version.
-
-    This function reloads the GUI by running a new process using the `os.execl` function.
-    The new process will load and run the new program/version.
-
-    Note:
-        - This function will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'.
-        - The current process will not return after this call, but will simply be killed.
-
-    Parameters:
-        *args (list): A variable-length argument list of command-line arguments to be passed to the new process.
-
-    Returns:
-        None
-    """
-
-    # Save the settings
-    temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
-    _, _ = save_restore_args(temp_args, self.color_lookup, to_save=True)
-
-    # ReRun via a new process, which will load and run the new program/version.
-    # Note: this current process will not return after this call, but simply be killed.
-    restart_program_subprocess()
-
-
 def reset_primeitems_single_names() -> None:
     """
     Reset the prime items related to single names.
@@ -643,7 +578,6 @@ def display_current_file(self: "MyGui", file_name: str) -> None:
         self.current_file_label.text = full_display_text
     else:
         # If this is the first time running, create the label.
-        # .classes("ml-4 text-left") replaces padx=20 and sticky="w"
         self.current_file_label = ui.label(full_display_text).classes("ml-4 text-left")
 
     # 4. Update other UI elements (Kept identical)
@@ -1049,12 +983,12 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
         language = logo_name.split("flag_")[1]
         img_src = f"file://{assets_dir}/icons/{language}.png"
         size_classes = "w-[25px] h-[16px]"
-        parent = self.left_drawer  # <--- FIX: Point to NiceGUI left drawer element
+        parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
     elif logo_name == "maptasker":
         light_src = f"file://{assets_dir}/maptasker_logo_light.png"
         dark_src = f"file://{assets_dir}/maptasker_logo_dark.png"
         size_classes = "w-[190px] h-[50px]"
-        parent = self.left_drawer  # <--- FIX: Point to NiceGUI left drawer element
+        parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
     elif logo_name == "coffee":
         img_src = f"file://{assets_dir}/bmc-logo-no-background.png"
         size_classes = "w-[36px] h-[54px]"
@@ -1186,3 +1120,42 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
 
     if hasattr(self, "tab_to_use"):
         gui.main_tabs_container.set_value = self.tab_to_use
+
+
+# Write out the changelog defined in guiutils after updating the app from pypi.
+def create_changelog() -> None:
+    """Create changelog file."""
+    changes = get_changelog_file(CHANGELOG_URL, "##", 11)
+    with open(CHANGELOG_FILE, "w") as changelog_file:
+        for change in changes:
+            changelog_file.write(f"{change}\n")
+
+
+# Reload the program
+def reload_gui(self: object) -> None:
+    """
+    Reload the GUI by running a new process with the new program/version.
+
+    This function reloads the GUI by running a new process using the `os.execl` function.
+    The new process will load and run the new program/version.
+
+    Note:
+        - This function will cause an OS error, 'python[35833:461355] Task policy set failed: 4 ((os/kern) invalid argument)'.
+        - The current process will not return after this call, but will simply be killed.
+
+    Parameters:
+        *args (list): A variable-length argument list of command-line arguments to be passed to the new process.
+
+    Returns:
+        None
+    """
+    # Save the last-used tab
+    self.tab_to_use = self.tabview.get()
+
+    # Save the settings
+    temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
+    _, _ = save_restore_args(temp_args, self.color_lookup, to_save=True)
+
+    # ReRun via a new process, which will load and run the new program/version.
+    # Note: this current process will not return after this call, but simply be killed.
+    restart_program_subprocess()

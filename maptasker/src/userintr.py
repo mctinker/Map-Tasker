@@ -22,6 +22,7 @@ from maptasker.src.guiutils import (
     add_logo,
     build_profiles,
     clear_android_buttons,
+    create_changelog,
     display_analyze_button,
     display_current_file,
     display_error_file_and_ai_response,
@@ -29,6 +30,7 @@ from maptasker.src.guiutils import (
     display_selected_object_labels,
     get_xml,
     list_tasker_objects,
+    reload_gui,
     reset_primeitems_single_names,
     set_ai_key,
     set_tasker_object_names,
@@ -51,6 +53,7 @@ from maptasker.src.maputils import (
     get_current_local_time_auto_timezone,
     make_hex_color,
     rename_file,
+    update_maptasker,
 )
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
@@ -322,7 +325,7 @@ class MyGui:
                 )
                 return None
             if data:
-                NiceGuiTextView(
+                self.textview = NiceGuiTextView(
                     master=getattr(self, window_attribute),
                     title=window_title,
                     the_data=data,
@@ -332,7 +335,7 @@ class MyGui:
         elif view_type in ("diagram", "misc"):
             # Display the data.
             if data:
-                NiceGuiTextView(
+                self.textview = NiceGuiTextView(
                     master=getattr(self, window_attribute),
                     title=window_title,
                     the_data=data,
@@ -342,7 +345,7 @@ class MyGui:
                 return None
         elif view_type == "tree":
             if data:
-                NiceGuiTreeView(master=getattr(self, window_attribute), items=data)
+                self.textview = NiceGuiTreeView(master=getattr(self, window_attribute), items=data)
             else:
                 self.display_message_box("No Project(s) Found in XML!", "Red")
                 return None
@@ -497,7 +500,7 @@ class MyGui:
             ui
             .button(the_text, on_click=routine)
             .style(f"background-color: {color1}; border-color: {color2}; border-width: 2px; color: white;")
-            .classes("mt-4 ml-4 font-bold")
+            .classes("mt-0 ml-0 font-bold")
         )
 
         return self.get_backup_button
@@ -620,7 +623,7 @@ class MyGui:
 
         # 5. Handle Errors
         if error_message:
-            NiceGuiTextView(
+            self.textview = NiceGuiTextView(
                 self,
                 title="Misc View",
                 the_data=error_message,
@@ -1096,10 +1099,13 @@ class MyGui:
                 f"{ANALYSIS_FILE} {text} {new_file_name}",
                 "turquoise",
             )
-            analysis_response = f"Analysis Response saved in file: {new_file_name}\n\n" + analysis_response.replace(ANALYSIS_FILE, new_file_name)
+            analysis_response = f"Analysis Response saved in file: {new_file_name}\n\n" + analysis_response.replace(
+                ANALYSIS_FILE,
+                new_file_name,
+            )
 
         # Display the analysis in the toplevel window.
-        NiceGuiTextView(
+        self.textview = NiceGuiTextView(
             self,
             title="Misc View",
             the_data=analysis_response,
@@ -1117,53 +1123,6 @@ class MapTaskerEventHandlers:
         # We store a reference to the main MyGui instance so we can read
         # checkbox states, inputs, and update the UI elements.
         self.gui = gui_instance
-
-    # ==========================================
-    # 1. CORE EXECUTION EVENTS
-    # ==========================================
-    # FIX Delete commented code below if not needed.  It was used in the original Tkinter GUI but is not needed in NiceGUI.
-    # def run_program_event(self: "MapTaskerEventHandlers") -> None:
-    #     """Triggered when 'Run & Exit' is clicked."""
-    #     logger.info("GUI: Run Program Event Triggered")
-    #     ui.notify("Executing MapTasker...", type="info")
-
-    #     the_view = self.gui
-    #     the_view.go_program = True
-    #     the_view.rerun = False
-
-    #     # Reset fund items in case they had already been set by 'Map' view.
-    #     PrimeItems.found_named_items = {
-    #         "single_project_found": False,
-    #         "single_profile_found": False,
-    #         "single_task_found": False,
-    #     }
-
-    #     # Validate the XML and cleanup
-    #     the_view.cleanup_and_run(run_only=True)
-
-    # def rerun_event(self: "MapTaskerEventHandlers", output_to_browser: bool = True) -> None:
-    #     """Triggered when 'ReRun' is clicked."""
-    #     logger.info("GUI: ReRun Event Triggered")
-    #     ui.notify("Re-running MapTasker with current settings...", type="ongoing")
-
-    #     the_view = self.gui
-
-    #     if output_to_browser:
-    #         # Remap everything with the current settings from the GUI.
-    #         the_view.remapit(clear_names=False)
-
-    #         # Setup to redisplay the output in the browser.
-    #         # Get the output directory/folder path
-    #         my_output_dir = os.getcwd()
-    #         # Finally, write out all of the output that is queued up.
-    #         my_file_name = f"{PrimeItems.slash}MapTasker.html"
-    #         # These need to be off for the web browsere to display
-    #         PrimeItems.program_arguments["guiview"] = False
-    #         PrimeItems.program_arguments["ai_analyze"] = False
-    #         # Display the final results in the default web browser
-    #         the_view.display_message_box(f"{my_output_dir}, {my_file_name}", "green")
-
-    #     reload_gui(the_view)
 
     # ==========================================
     # 2. Display View: Map, Diagram, Misc or Tree
@@ -1203,7 +1162,7 @@ class MapTaskerEventHandlers:
                 return
 
             # Define the view and display the map.
-            NiceGuiTextView(
+            gui.textview = NiceGuiTextView(
                 gui,
                 title=window_title,
                 the_data=map_data,
@@ -1224,7 +1183,7 @@ class MapTaskerEventHandlers:
                     outline_the_configuration()
                     # Display the diagram in the GUI
                     window_attribute = f"{view_type}view_window"
-                    NiceGuiTextView(
+                    gui.textview = NiceGuiTextView(
                         master=getattr(self, window_attribute),
                         title=window_title,
                         the_data=[],
@@ -1236,15 +1195,24 @@ class MapTaskerEventHandlers:
                     "The 'Misc' view is running in the background.  Please stand by...",
                     "LimeGreen",
                 )
-                # FIX: Implement the 'Misc' view logic here, similar to the 'Diagram' view.
+                gui.textview = NiceGuiTextView(
+                    master=getattr(self, window_attribute),
+                    title="Misc View",
+                    the_data=[],
+                )
 
         elif view_type == "tree":
             if data:
-                NiceGuiTreeView("Tree View", items=data)
+                gui.textview = NiceGuiTreeView("Tree View", items=data)
             else:
                 gui.display_message_box("No Project(s) Found in XML!", "Red")
                 return
         else:
+            ui.notify(
+                "No XML data loaded! Please Get XML from Android or Local drive first.",
+                type="warning",
+                position="top",
+            )
             gui.display_message_box(
                 "Invalid view type specified. Use 'map', 'diagram', or 'tree'.",
                 "Red",
@@ -2082,6 +2050,25 @@ class MapTaskerEventHandlers:
         the_view.display_message_box("Settings saved.", "Green")
 
     # The Upgrade Version button has been pressed.
+    def upgrade_event(self) -> None:
+        """ "Runs an update and reruns the program."
+        Parameters:
+            - self (object): Instance of the class.
+        Returns:
+            - None: No return value.
+        Processing Logic:
+            - Calls the update function.
+            - Reruns the program to pick up the update."""
+        the_view = self.parent
+        update_maptasker()
+        the_view.display_message_box("Program updated.  Restarting...", "Green")
+        # Create the Change Log file to be read and displayed after a program update.
+        create_changelog()
+
+        # Reload the GUI by running a new process with the new program/version.
+        reload_gui(the_view)
+
+
     def report_issue_event(self) -> None:
         """Opens a web browser and directs the user to create a new issue on GitHub for the Map-Tasker project.
         Parameters:
@@ -2347,8 +2334,6 @@ class MapTaskerEventHandlers:
                 f"{text1} {gui.ai_name} {text2} {gui.ai_model}.",
                 "Green",
             )
-            # Save the current tab
-            gui.tab_to_use = self.gui.main_tabs_container.value
 
             # Make sure we have the ai name
             if not gui.ai_name:
@@ -2372,7 +2357,7 @@ class MapTaskerEventHandlers:
             PrimeItems.program_arguments["ai_apikey"] = gui.ai_apikey
             PrimeItems.program_arguments["ai_model"] = gui.ai_model
             # Save the current tab
-            gui.tab_to_use = self.gui.main_tabs_container.value
+            gui.tab_to_use = "Analyze"
 
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # Ok, run the analysis.  Await the execution of map_ai() so control doesn't leak early!

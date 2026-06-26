@@ -18,16 +18,6 @@ if TYPE_CHECKING:
 
 
 # ==========================================
-# 1. TOOLTIPS
-# ==========================================
-def create_tooltip(widget: object, text: str) -> None:
-    """
-    Wrapper for NiceGUI tooltips to maintain compatibility with existing code calls.
-    """
-    widget.tooltip(text)
-
-
-# ==========================================
 # 2. DIALOGS & POPUPS
 # ==========================================
 def create_popup_window(title: str, message: str = "") -> ui.dialog:
@@ -115,7 +105,8 @@ class NiceGuiTreeView:
 class NiceGuiTextView:
     """Replaces CTkTextview. Handles rendering MapTasker data using HTML."""
 
-    def __init__(self: MyGui, master_gui, title: str, the_data: list | dict) -> None:
+    def __init__(self: MyGui, master_gui: MyGui, title: str, the_data: list | dict) -> None:
+        """Initialize the NiceGuiTextView."""
         self.master_gui = master_gui
         self.title = title
         self.is_map = isinstance(the_data, dict)
@@ -134,7 +125,9 @@ class NiceGuiTextView:
 
         with container_context:
             # Toolbar
-            with ui.row().classes("w-full items-center gap-2 p-2 mb-2 bg-gray-200 dark:bg-gray-800 rounded"):
+            with ui.row().classes(
+                "w-full items-center gap-2 p-2 mb-2",
+            ) as self.gui_toolbar:
                 ui.label(f"{self.title}").classes("text-orange-500 font-bold mr-4")
                 self.search_input = ui.input(placeholder="Search...").classes("w-48")
                 ui.button("Search", on_click=self.search_event).classes("bg-blue-600")
@@ -152,17 +145,6 @@ class NiceGuiTextView:
                 wrap_class = "whitespace-pre-wrap"  # Normal wrapping behavior for Map view
                 break_class = "break-words"
 
-            # Text Display Area (Modified to remove conflicting hardcoded background colors)
-            # self.scroll_area = (
-            #     ui
-            #     .scroll_area()
-            #     .classes(
-            #         f"w-full max-w-full block h-[70vh] border-2 border-gray-600 p-4 font-mono text-sm {wrap_class} {break_class}",
-            #     )
-            #     .style(
-            #         f"width: 100%;max-w: 100%;background-color: {getattr(self.master_gui, 'saved_background_color', 'transparent')} !important;",
-            #     )
-            # )
             self.scroll_area = (
                 ui
                 .scroll_area()
@@ -289,7 +271,7 @@ class NiceGuiTextView:
 
         # --- 2. FALLBACK DICTIONARY PROCESSING (Legacy Map View) ---
         if self.is_map:
-            for num, (linenum, value) in enumerate(the_data.items()):
+            for _num, (_linenum, value) in enumerate(the_data.items()):
                 text_list = value.get("text", [])
                 color_list = value.get("color", [])
                 full_line_text = "".join(str(t) for t in text_list)
@@ -512,7 +494,7 @@ def initialize_screen(self: MyGui) -> None:
             .force-scrollbar,
             .force-scrollbar .q-drawer__content {
                 overflow-y: scroll !important;
-                overflow-x: auto !important;  
+                overflow-x: auto !important;
             }
 
             /* =========================================================================
@@ -521,7 +503,7 @@ def initialize_screen(self: MyGui) -> None:
             .force-scrollbar::-webkit-scrollbar,
             .force-scrollbar .q-drawer__content::-webkit-scrollbar {
                 display: block !important;
-                width: 10px !important; 
+                width: 10px !important;
                 height: 10px !important;
             }
             .force-scrollbar::-webkit-scrollbar-track,
@@ -546,7 +528,7 @@ def initialize_screen(self: MyGui) -> None:
             .q-scrollarea__thumb--v,
             .q-scrollarea__thumb--h {
                 background: #475569 !important;
-                opacity: 0.95 !important;       
+                opacity: 0.95 !important;
                 border: 1px solid #ffffff !important;
             }
 
@@ -602,11 +584,21 @@ def initialize_screen(self: MyGui) -> None:
             html:not(.dark) .q-tab-panel,
             html:not(.dark) .q-card,
             html:not(.dark) .q-tabs,
-            html:not(.dark) .q-scrollarea, /* <-- ADD THIS */
+            html:not(.dark) .q-scrollarea,
             html:not(.dark) div.nicegui-content {
                 background-color: #ffffff !important;
                 color: #000000 !important;
-}
+            }
+
+            /* =========================================================================
+               CRITICAL FIX: FORCE TOOLBAR ROWS WHITE IN LIGHT MODE
+               ========================================================================= */
+            html:not(.dark) .bg-gray-200,
+            html:not(.dark) .dark\\:bg-gray-800,
+            html:not(.dark) .gap-4.mb-6 {
+                background-color: #ffffff !important;
+                color: #000000 !important;
+            }
 
             /* =========================================================================
                TARGETED DARK MODE RULES
@@ -625,6 +617,14 @@ def initialize_screen(self: MyGui) -> None:
                 color: #ffffff !important;
             }
 
+            /* Force toolbars dark in dark mode */
+            html.dark .bg-gray-200,
+            html.dark .dark\\:bg-gray-800,
+            html.dark .gap-4.mb-6 {
+                background-color: #1f2937 !important;
+                color: #ffffff !important;
+            }
+
             /* Ensure text inside form inputs and selection text fields remains visible */
             html:not(.dark) input,
             html:not(.dark) textarea,
@@ -636,32 +636,16 @@ def initialize_screen(self: MyGui) -> None:
             html.dark .q-field__native {
                 color: #ffffff !important;
             }
+            /* =========================================================================
+               GLOBAL TOOLTIP FONT SIZE ADJUSTMENT
+               ========================================================================= */
+            .q-tooltip {
+                font-size: 14px !important;  /* Change this value (e.g., 14px, 16px) to your preferred size */
+                line-height: 1.4 !important; /* Adjust spacing between wrapped lines if necessary */
+            }
         </style>
     """)
 
-    # =========================================================================
-    # 1. HEADER
-    # =========================================================================
-    # with ui.header().classes("bg-blue-900 text-white p-4 justify-between items-center"):
-    #     ui.label("MapTasker").classes("text-2xl font-bold")
-
-    #     dm_controller = ui.dark_mode()
-
-    #     def toggle_dark_mode(e: ui.ValueChangeEventArguments) -> None:
-    #         if e.value:
-    #             dm_controller.enable()
-    #             self.appearance_mode = "dark"
-    #             self.dark_mode = True
-    #             self.saved_background_color = "#1e293b"
-    #         else:
-    #             dm_controller.disable()
-    #             # Force tailwind / HTML engine to strip the dark class entirely to trigger your :not(.dark) CSS rules
-    #             ui.run_javascript("document.documentElement.classList.remove('dark')")
-    #             self.appearance_mode = "light"
-    #             self.dark_mode = False
-    #             self.saved_background_color = "#ffffff"
-
-    #     ui.switch("Dark Mode", value=True, on_change=toggle_dark_mode)
     # =========================================================================
     # 1. HEADER
     # =========================================================================
@@ -671,47 +655,66 @@ def initialize_screen(self: MyGui) -> None:
         dm_controller = ui.dark_mode()
 
         def toggle_dark_mode(e: ui.ValueChangeEventArguments) -> None:
-            if e.value:
-                dm_controller.enable()
-                self.appearance_mode = "dark"
-                self.dark_mode = True
-                self.saved_background_color = "#1e293b"
+            is_dark = e.value
 
-                ui.run_javascript("document.body.style.backgroundColor = '#1e293b';")
-                if hasattr(self, "left_drawer") and self.left_drawer:
-                    self.left_drawer.style("background-color: #1f2937 !important;")
-                if hasattr(self, "right_drawer") and self.right_drawer:
-                    self.right_drawer.style("background-color: #1f2937 !important;")
-                if hasattr(self, "main_column") and self.main_column:
-                    self.main_column.style("background-color: #1e293b !important; color: #ffffff !important;")
-                # Dark mode styles for the nested tab sheets
-                if hasattr(self, "tab_panels_container") and self.tab_panels_container:
-                    self.tab_panels_container.style("background-color: #1e293b !important; color: #ffffff !important;")
-                if hasattr(self, "tab_panels") and self.tab_panels:
-                    self.tab_panels.style("background-color: #1e293b !important; color: #ffffff !important;")
-            else:
-                dm_controller.disable()
-                self.appearance_mode = "light"
-                self.dark_mode = False
-                self.saved_background_color = "#ffffff"
+            # --- 1. Activate NiceGUI's built-in dark mode controller ---
+            dm_controller.enable() if is_dark else dm_controller.disable()
 
-                ui.run_javascript("document.body.style.backgroundColor = '#ffffff';")
-                if hasattr(self, "left_drawer") and self.left_drawer:
-                    self.left_drawer.style("background-color: #ffffff !important;")
-                if hasattr(self, "right_drawer") and self.right_drawer:
-                    self.right_drawer.style("background-color: #ffffff !important;")
-                if hasattr(self, "main_column") and self.main_column:
-                    self.main_column.style("background-color: #ffffff !important; color: #000000 !important;")
-                # CRITICAL FIX: Explicitly force white background and dark text on the active tab cards
-                if hasattr(self, "tab_panels_container") and self.tab_panels_container:
-                    self.tab_panels_container.style("background-color: #ffffff !important; color: #000000 !important;")
-                if hasattr(self, "tab_panels") and self.tab_panels:
-                    self.tab_panels.style("background-color: #ffffff !important; color: #000000 !important;")
+            # --- 2. Resolve theme colors from a single source of truth ---
+            bg = "#1e293b" if is_dark else "#ffffff"
+            drawer_bg = "#1f2937" if is_dark else "#ffffff"
+            fg = "#ffffff" if is_dark else "#000000"
 
-            # If a view is active, force an instantaneous layout style redraw
-            if hasattr(self, "textview") and self.textview:
-                if hasattr(self.textview, "scroll_area") and self.textview.scroll_area:
-                    self.textview.scroll_area.style(f"background-color: {self.saved_background_color} !important;")
+            # --- 3. Persist state on self ---
+            self.appearance_mode = "dark" if is_dark else "light"
+            self.dark_mode = is_dark
+            self.saved_background_color = bg
+
+            # --- 4. Push background color to the browser body ---
+            ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
+
+            # --- 5. Apply styles to every named widget that exists ---
+            for attr in ("gui_left_drawer", "gui_right_drawer"):
+                widget = getattr(self, attr, None)
+                if widget:
+                    widget.style(f"background-color: {drawer_bg} !important;")
+
+            for attr in (
+                "gui_main_column",
+                "gui_tab_panel",
+                "gui_tab_panels",
+                "gui_main_tabs_container",
+                "gui_color_panel",
+                "gui_ai_panel",
+                "gui_debug_panel",
+                "gui_tasker_object_panel",
+            ):
+                widget = getattr(self, attr, None)
+                if widget:
+                    widget.style(f"background-color: {bg} !important; color: {fg} !important;")
+
+            # --- 6. CRITICAL FIX: Force the text view's gui_toolbar color update ---
+            textview = getattr(self, "textview", None)
+            if textview:
+                scroll_area = getattr(textview, "scroll_area", None)
+                if scroll_area:
+                    scroll_area.style(f"background-color: {bg} !important;")
+
+                # Target the text view toolbar directly with an absolute style override
+                tv_toolbar = getattr(textview, "gui_toolbar", None)
+                if tv_toolbar:
+                    if is_dark:
+                        tv_toolbar.style("background-color: #1f2937 !important; color: #ffffff !important;")
+                    else:
+                        tv_toolbar.style("background-color: #ffffff !important; color: #000000 !important;")
+
+            # --- 7. CRITICAL FIX: Force the main body gui_view_toolbar color update ---
+            view_toolbar = getattr(self, "gui_view_toolbar", None)
+            if view_toolbar:
+                if is_dark:
+                    view_toolbar.style("background-color: #1e293b !important; color: #ffffff !important;")
+                else:
+                    view_toolbar.style("background-color: #ffffff !important; color: #000000 !important;")
 
         ui.switch("Dark Mode", value=True, on_change=toggle_dark_mode)
 
@@ -720,7 +723,7 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     with ui.left_drawer(fixed=True).classes(
         "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
-    ) as self.left_drawer:
+    ) as self.gui_left_drawer:
         ui.label("Display Options").classes("text-lg font-bold mb-2 gap-y-0 m-0 p-0 leading-none")
 
         # Detail level pulldown
@@ -761,7 +764,7 @@ def initialize_screen(self: MyGui) -> None:
     # OPTIMIZED: Added 'items-center text-center' to center all items horizontally
     with ui.right_drawer(fixed=True).classes(
         "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
-    ) as self.right_drawer:
+    ) as self.gui_right_drawer:
         ui.label("Actions & Control").classes("text-lg font-bold mb-2 self-center")
 
         # Global Runtime Execution Triggers
@@ -776,42 +779,52 @@ def initialize_screen(self: MyGui) -> None:
             on_click=self.event_handlers.getxml_event,
             icon="folder",
         ).classes(f"w-full justify-center {blink_class}")
+        with self.get_xml_button:
+            ui.tooltip(
+                "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
+            ).style("white-space: pre-line")
 
         self.exit_button = ui.button("Exit", on_click=lambda: get_rid_of_windows_and_exit(self)).classes(
-            "w-full bg-red-600 text-white mt-4 justify-center",
+            "w-full bg-red-600 text-white mt-2 justify-center",
         )
 
         # Section headings for clarity
-        ui.label("File Operations").classes("text-xs font-bold uppercase text-gray-400 mt-2 self-center")
+        ui.label("File Operations").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         _create_file_and_message_buttons_section(self)
 
         # Settings Configuration State Saving
-        ui.label("Application Settings").classes("text-xs font-bold uppercase text-gray-400 mt-2 self-center")
+        ui.label("Application Settings").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         _create_settings_buttons_section(self)
+
+        # HELP & INFORMATION
+        ui.label("Help & Information").classes(
+            "text-xs font-bold uppercase text-gray-400 mt-4 gap-w-0 m-0 p-0 leading-none self-center",
+        )
+        _create_help_options_section(self)
 
     # =========================================================================
     # 4. MAIN BODY CONTENT AREA
     # =========================================================================
-    with ui.column().classes("p-6 w-full max-w-full mx-auto") as self.main_column:
-        # View Navigation Switching Buttons Row
-        with ui.row().classes("gap-4 mb-6"):
+    with ui.column().classes("p-6 w-full max-w-full mx-auto") as self.gui_main_column:
+        # View Navigation Buttons Row
+        with ui.row().classes("gap-4 mb-6") as self.gui_view_toolbar:
             ui.button("Map View", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
             ui.button("Diagram View", on_click=lambda: self.event_handlers.view_event("diagram")).classes("bg-blue-500")
             ui.button("Tree View", on_click=lambda: self.event_handlers.view_event("treeview")).classes("bg-blue-500")
             self.current_file = ui.label("No file loaded").classes("text-gray-500 italic")
 
         # Primary Multi-tab Application Panel Window Layout Structure
-        with ui.tabs().classes("w-full") as self.main_tabs_container:
+        with ui.tabs().classes("w-full") as self.gui_main_tabs_container:
             self.tab_specific_name = ui.tab("Specific Name", icon="filter_list")
             self.tab_colors = ui.tab("Colors", icon="palette")
             self.tab_analyze = ui.tab("Analyze", icon="analytics")
             self.tab_debug = ui.tab("Debug", icon="bug_report")
 
-        with ui.tab_panels(self.main_tabs_container, value=self.tab_specific_name).classes(
+        with ui.tab_panels(self.gui_main_tabs_container, value=self.tab_specific_name).classes(
             "w-full border rounded shadow-inner p-6 mt-2",
-        ) as self.tab_panels:
+        ) as self.gui_tab_panels:
             # Specific Name panel for targeting specific Projects, Profiles, or Tasks
-            with ui.tab_panel(self.tab_specific_name):
+            with ui.tab_panel(self.tab_specific_name) as self.gui_tasker_object_panel:
                 ui.label("Target specific Projects, Profiles, or Tasks.").classes("text-lg mb-4")
                 self.specific_project_optionmenu = ui.select(["None"], label="Project").classes("w-64 mb-2")
                 self.specific_profile_optionmenu = ui.select(["None"], label="Profile").classes("w-64 mb-2")
@@ -823,7 +836,7 @@ def initialize_screen(self: MyGui) -> None:
                 )
 
             # Colors panel for configuring theme colors and styles
-            with ui.tab_panel(self.tab_colors):
+            with ui.tab_panel(self.tab_colors) as self.gui_color_panel:
                 ui.label("Theme Configuration").classes("text-lg mb-2")
                 ui.button(
                     "Reset to Default Colors",
@@ -866,12 +879,12 @@ def initialize_screen(self: MyGui) -> None:
                 ).classes("w-64 mt-2")
 
             # AI Analysis panel for configuring AI model, API keys, and prompts
-            with ui.tab_panel(self.tab_analyze):
+            with ui.tab_panel(self.tab_analyze) as self.gui_ai_panel:
                 ui.label("AI Analysis").classes("text-lg mb-4")
                 _create_analyze_tab_content(self, ui.tab_panel(self.tab_analyze))
 
             # Debug panel for toggling debug mode and runtime settings
-            with ui.tab_panel(self.tab_debug):
+            with ui.tab_panel(self.tab_debug) as self.gui_debug_panel:
                 self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug")
                 self.runtime_checkbox = ui.checkbox("Display Runtime Settings")
 
@@ -887,7 +900,7 @@ def initialize_screen(self: MyGui) -> None:
 
     # Set the last-used tab to use
     if self.tab_to_use:
-        self.main_tabs_container.set_value = self.tab_to_use
+        self.gui_main_tabs_container.set_value = self.tab_to_use
 
 
 def get_rid_of_windows_and_exit(self: MyGui, delete_all: bool = True) -> None:
@@ -1114,8 +1127,8 @@ def _create_settings_buttons_section(self: MyGui) -> None:
     """Creates settings buttons in their respective responsive layout containers."""
     handlers = self.event_handlers
 
-    # 1. Sidebar Buttons (Master: self.left_drawer)
-    with self.left_drawer:
+    # 1. Sidebar Buttons (Master: self.gui_left_drawer)
+    with self.gui_left_drawer:
         self.reset_button = ui.button("Reset Options", on_click=handlers.reset_settings_event).classes(
             "w-full bg-blue-600 text-white mt-2",
         )
@@ -1127,10 +1140,7 @@ def _create_settings_buttons_section(self: MyGui) -> None:
             ).style("white-space: pre-line;")  # Tells the web browser to render \n newlines!
 
     # 2. Main Window Buttons Layout Area
-    # Placed in a clean horizontal flexrow inside the body content columns
-    # 2. Main Window Buttons Layout Area
-    # OPTIMIZED: Added 'justify-center w-full' to ensure proper alignment controls
-    with ui.row().classes("w-full gap-2 mt-4 justify-center"):
+    with ui.row().classes("w-full gap-2 mt-0 justify-center"):
         self.save_settings_button = ui.button("Save Settings", on_click=handlers.save_settings_event).classes(
             "bg-indigo-600 text-white justify-center",
         )
@@ -1181,7 +1191,7 @@ def _create_font_section(self: MyGui) -> None:
 def _create_file_and_message_buttons_section(self: MyGui) -> None:
     """Creates file actions and message configuration button rows."""
     # OPTIMIZED: Added 'justify-center' to center-align the row contents
-    with ui.row().classes("w-full items-center justify-center gap-4 mt-4"):
+    with ui.row().classes("w-full items-center justify-center gap-4 mt-0"):
         # Uses your existing display_backup_button logic defined in guiwins.py
         self.get_backup_button = self.display_backup_button(
             "Get XML from Android Device",
@@ -1196,60 +1206,18 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
                 "The XML fetched will become the current source for MapTasker commands.",
             ).style("white-space: pre-line")
 
-        # OPTIMIZED: Added 'w-full justify-center' so it matches structural formatting boundaries
-        self.getxml_button = ui.button("Get Local XML", on_click=self.event_handlers.getxml_event).classes(
-            "bg-green-600 text-white w-full justify-center",
+
+def _create_help_options_section(self: MyGui) -> None:
+    """Creates browser execution panels, help routing shortcuts, and app termination controls."""
+    handlers = self.event_handlers
+
+    # 1. Specialized Help Buttons Row
+    with ui.row().classes("w-full gap-2 mt-0 self_center justify-center"):
+        self.display_help_button = ui.button("Display Help", on_click=lambda: handlers.query_event("help")).classes(
+            "bg-blue-600 text-white",
         )
-        with self.getxml_button:
-            ui.tooltip(
-                "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
-            ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
 
-        self.getxml_button = ui.button("Get Local XML", on_click=self.event_handlers.getxml_event).classes(
-            "bg-green-600 text-white",
-        )
-        with self.getxml_button:
-            ui.tooltip(
-                "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
-            ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
-
-
-# FIX Deleet section below if not needed.  It was used in the original Tkinter GUI but is not needed in NiceGUI.
-# def _create_browser_options_section(self: MyGui) -> None:
-#     """Creates browser execution panels, help routing shortcuts, and app termination controls."""
-#     handlers = self.event_handlers
-
-#     # 1. Specialized Help Buttons Row
-#     with ui.row().classes("w-full gap-2 mt-4"):
-#         self.display_help_button = ui.button("Display Help", on_click=lambda: handlers.query_event("help")).classes(
-#             "bg-blue-600 text-white",
-#         )
-
-#         self.get_android_help_button = ui.button(
-#             "Get Android Help",
-#             on_click=lambda: handlers.query_event("android"),
-#         ).classes("bg-blue-600 text-white")
-
-
-# 2. Section Subtitle Label
-# self.text_message_label = ui.label("Browser Options").classes("text-lg font-bold mt-6 mb-2")
-
-# # 3. Execution Action Action Controllers
-# with ui.row().classes("w-full gap-2"):
-#     self.run_button = ui.button("Run and Exit", on_click=handlers.run_program_event).classes(
-#         "bg-green-600 text-white",
-#     )
-#     with self.run_button:
-#         ui.tooltip(
-#             "Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\n"
-#             "The program terminates when done.",
-#         ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
-
-#     self.rerun_button = ui.button("ReRun", on_click=handlers.rerun_event).classes("bg-green-600 text-white")
-#     with self.rerun_button:
-#         ui.tooltip(
-#             "Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output.",
-#         ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
-
-# 4. Global Application Exit Button
-# Uses your exit router already linked in initialize_screen inside guiwins.py
+        self.get_android_help_button = ui.button(
+            "Get Android Help",
+            on_click=lambda: handlers.query_event("android"),
+        ).classes("bg-blue-600 text-white")

@@ -9,7 +9,7 @@ import os
 import re
 import sys
 
-from nicegui import run, ui
+from nicegui import run
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.error import error_handler
@@ -612,16 +612,17 @@ async def _run_analysis_in_background(popup: popupwindow) -> None:
                 popup.dialog.close()
 
 
-def display_the_popup(title: str, text: str) -> None:
-    """
-    Displays a popup window telling user we are analyzing.
-    Calls _run_analysis_in_background via a one-time timer.
-    """
-    # Create and open the dialog using the helper
-    dialog = create_popup_window(title, text)
+# FIX Do we need to popup any messages to the user?  If so, we can do that here, but we need to make sure we don't block the main thread.
+# def display_the_popup(title: str, text: str) -> None:
+#     """
+#     Displays a popup window telling user we are analyzing.
+#     Calls _run_analysis_in_background via a one-time timer.
+#     """
+#     # Create and open the dialog using the helper
+#     dialog = create_popup_window(title, text)
 
-    # ui.timer handles async functions natively when they are called
-    ui.timer(0.2, lambda: _run_analysis_in_background(dialog), once=True)
+#     # ui.timer handles async functions natively when they are called
+#     ui.timer(0.2, lambda: _run_analysis_in_background(dialog), once=True)
 
 
 # Map Ai: set up Ai query and call appropriate function based on the model.

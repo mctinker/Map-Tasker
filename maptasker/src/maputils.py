@@ -86,13 +86,6 @@ def validate_port(address: str, port_number: int) -> bool:
 
 
 # Auto Update our code
-# def update_maptasker() -> None:
-#     """Update this package."""
-#     version = get_pypi_version()
-#     packageversion = "maptasker" + version
-#     subprocess.call(
-#         [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"],
-#     )
 def update_maptasker() -> None:
     """Update this package using uv if available, otherwise fall back to pip."""
     version = get_pypi_version()  # Assuming this is defined elsewhere in your code
