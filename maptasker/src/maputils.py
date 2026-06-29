@@ -32,7 +32,7 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
 from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.getids import get_ids
-from maptasker.src.maputil2 import http_request, translate_string
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.taskerd import get_the_xml_data
@@ -190,55 +190,6 @@ def validate_xml(
                 process_file = False  # Get out of while/loop
 
     return error_message, xml_tree
-
-
-# Read XML file and validate the XML.
-def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
-    # Read the file
-    """Validates an XML file from an Android device.
-    Parameters:
-        - ip_address (str): IP address of the Android device.
-        - port (str): Port number of the Android device.
-        - android_file (str): Name of the XML file to be validated.
-    Returns:
-        - bool: True if the file is valid, False if not.
-    Processing Logic:
-        - Reads the file from the Android device.
-        - Validates the XML file.
-        - Checks if the file is Tasker XML.
-        - Returns True if the file is valid, False if not."""
-    if ip_address:
-        return_code, file_contents = http_request(
-            ip_address,
-            port,
-            android_file,
-            "file",
-            "?download=1",
-        )
-        if return_code != 0:
-            return 1, file_contents
-    else:
-        return_code = 0
-
-    # Validate the xml
-    error_message, xml_tree = validate_xml(
-        ip_address,
-        android_file,
-        return_code,
-        file_contents,
-    )
-
-    # If there was an error, bail out.
-    if error_message:
-        logger.debug(error_message)
-        return 1, error_message
-
-    # Make surre this is Tasker XML
-    xml_root = xml_tree.getroot()
-    if xml_root.tag != "TaskerData":
-        return 0, f"File {android_file} is not valid Tasker XML.\n\nTry again."
-
-    return 0, ""
 
 
 # If we have set the single Project name due to a single Task or Profile name, then reset it.

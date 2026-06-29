@@ -176,7 +176,6 @@ def mapit_all() -> int:
 
         This will eventually call rungui or runcli.
     """
-
     _, _, _ = initialize_everything()
 
     # Code drops down here upon exit of the GUI.

@@ -419,6 +419,9 @@ def start_up() -> dict:
     # Get runtime arguments (from CLI or GUI)
     get_arguments.get_program_arguments()
 
+    # Force GUI mode
+    PrimeItems.program_arguments["gui"] = True
+
     # Get our map of colors if we don't have them.
     if not PrimeItems.colors_to_use:
         PrimeItems.colors_to_use = setup_colors()

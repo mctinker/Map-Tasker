@@ -553,9 +553,9 @@ def _initialize_runtime_options(self: MyGui) -> None:
     self.taskernet = None
 
 
-# =========================================================================
+# ===============================================
 # Initialize the GUI screen layout using NiceGUI with split sidebars and main content area.
-# =========================================================================
+# ==============================================
 def initialize_screen(self: MyGui) -> None:
     """Initializes the main GUI screen layout using NiceGUI with split sidebars."""
     logger.info("Building UI Layout...")
@@ -713,8 +713,8 @@ def initialize_screen(self: MyGui) -> None:
                GLOBAL TOOLTIP FONT SIZE ADJUSTMENT
                ========================================================================= */
             .q-tooltip {
-                font-size: 14px !important;  
-                line-height: 1.4 !important; 
+                font-size: 14px !important;  /* Change this value (e.g., 14px, 16px) to your preferred size */
+                line-height: 1.4 !important; /* Adjust spacing between wrapped lines if necessary */
             }
         </style>
     """)
@@ -817,33 +817,27 @@ def initialize_screen(self: MyGui) -> None:
             "Just Display Everything!",
             on_change=self.event_handlers.everything_event,
         )
-
         self.conditions_checkbox = ui.checkbox(
             "Display Conditions",
             on_change=self.event_handlers.condition_event,
         )
-
-        # Hooked up to correct backend interaction event handlers
-        self.taskernet_checkbox = ui.checkbox("Display TaskerNet Info", on_change=self.event_handlers.taskernet_event)
-
+        self.taskernet_checkbox = ui.checkbox("Display TaskerNet Info").bind_value(self, "taskernet")
         self.preferences_checkbox = ui.checkbox(
             "Display Tasker Preferences",
             on_change=self.event_handlers.preferences_event,
         )
-
         self.twisty_checkbox = ui.checkbox(
             "Hide Task Details Under Twisty",
             on_change=self.event_handlers.twisty_event,
         )
-
-        self.directory_checkbox = ui.checkbox("Display Directory", on_change=self.event_handlers.directory_event)
-
+        self.directory_checkbox = ui.checkbox("Display Directory").bind_value(self, "directory")
         self.pretty_checkbox = ui.checkbox(
             "Display Prettier Output",
             on_change=self.event_handlers.pretty_event,
         )
 
         # Build styling checkboxes, inputs, dropdown configurations
+        # create_appearance_mode_section(self)
         _create_name_display_options_section(self)
         _create_task_action_limit_section(self)
         _create_indentation_section(self)
@@ -854,6 +848,7 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
+    # OPTIMIZED: Added 'items-center text-center' to center all items horizontally
     with ui.right_drawer(fixed=True).classes(
         "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
     ) as self.gui_right_drawer:
@@ -864,6 +859,7 @@ def initialize_screen(self: MyGui) -> None:
         get_file_color = "green" if PrimeItems.file_to_get else "red"
         blink_class = "" if PrimeItems.file_to_get else " animate-pulse"
 
+        # OPTIMIZED: Changed text layout properties to ensure centering internal contents
         self.get_xml_button = ui.button(
             "Get Local XML File",
             color=get_file_color,
@@ -910,40 +906,34 @@ def initialize_screen(self: MyGui) -> None:
 
         # Primary Multi-tab Application Panel Window Layout Structure
         with ui.tabs().classes("w-full") as self.gui_main_tabs_container:
-            # Primary Multi-tab Application Panel Window Layout Structure
-            self.tab_specific_name = ui.tab(translate_string("Specific Name"), icon="filter_list")
-            self.tab_colors = ui.tab(translate_string("Colors"), icon="palette")
-            self.tab_analyze = ui.tab(translate_string("Analyze"), icon="analytics")
-            self.tab_debug = ui.tab(translate_string("Debug"), icon="bug_report")
+            self.tab_specific_name = ui.tab("Specific Name", icon="filter_list")
+            self.tab_colors = ui.tab("Colors", icon="palette")
+            self.tab_analyze = ui.tab("Analyze", icon="analytics")
+            self.tab_debug = ui.tab("Debug", icon="bug_report")
 
         with ui.tab_panels(self.gui_main_tabs_container, value=self.tab_specific_name).classes(
             "w-full border rounded shadow-inner p-6 mt-2",
         ) as self.gui_tab_panels:
             # Specific Name panel for targeting specific Projects, Profiles, or Tasks
             with ui.tab_panel(self.tab_specific_name) as self.gui_tasker_object_panel:
-                # FIXED: Wrap the panel label text in translate_string()
-                ui.label(translate_string("Target specific Projects, Profiles, or Tasks.")).classes("text-lg mb-4")
-
+                ui.label("Target specific Projects, Profiles, or Tasks.").classes("text-lg mb-4")
                 self.specific_project_optionmenu = ui.select(
                     ["None"],
                     on_change=lambda e: self.event_handlers.single_project_name_event(e.value) if e.value else None,
-                    label=translate_string("Project"),  # Also translate option headers
+                    label="Project",
                 ).classes("w-64 mb-2")
-
                 self.specific_profile_optionmenu = ui.select(
                     ["None"],
                     on_change=lambda e: self.event_handlers.single_profile_name_event(e.value) if e.value else None,
-                    label=translate_string("Profile"),
+                    label="Profile",
                 ).classes("w-64 mb-2")
-
                 self.specific_task_optionmenu = ui.select(
                     ["None"],
                     on_change=lambda e: self.event_handlers.single_task_name_event(e.value) if e.value else None,
-                    label=translate_string("Task"),
+                    label="Task",
                 ).classes("w-64 mb-2")
-
                 self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-2 text-left")
-                self.list_unnamed_items_checkbox = ui.checkbox(translate_string("List Unnamed Items")).bind_value(
+                self.list_unnamed_items_checkbox = ui.checkbox("List Unnamed Items").bind_value(
                     self,
                     "list_unnamed_items",
                 )
@@ -1001,7 +991,8 @@ def initialize_screen(self: MyGui) -> None:
                 self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug")
                 self.runtime_checkbox = ui.checkbox("Display Runtime Settings")
 
-        # Dedicated full-width dynamic container slot block target for views
+        # Dedicated full-width dynamic container slot block target for (Map, etc.) views now displays
+        # BELOW the tabs.
         self.content_container = ui.column().classes("w-full max-w-full p-0 m-0 mt-6")
 
         # Persistent global dialog container for selecting display colors safely
@@ -1180,12 +1171,10 @@ def _create_language_selection_section(self: MyGui) -> None:
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
-    # This returns a list of English language keys, e.g., ["English", "German", "French"]
     languages = sort_languages_with_priority(PrimeItems.languages.keys())
 
-    # FIX: Do not translate the initial value here. Keep it in English
-    # so it perfectly matches one of the options inside the 'languages' list.
-    initial_language = self.language
+    # Pre-determine current translated initial string match
+    initial_language = translate_string(self.language)
 
     self.language_optionmenu = ui.select(
         options=languages,

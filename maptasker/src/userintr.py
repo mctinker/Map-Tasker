@@ -1,6 +1,7 @@
 """Code to manage the graphical user interface using NiceGUI."""
 
 import contextlib
+import copy
 import pickle
 import sys
 import webbrowser
@@ -9,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, ui
 
-from maptasker.src.aiutils import get_api_key
+from maptasker.src.aiutils import get_api_key, is_valid_ai_config
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
@@ -21,6 +22,7 @@ from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.guiutils import (
     add_logo,
     build_profiles,
+    check_for_changelog,
     clear_android_buttons,
     create_changelog,
     display_analyze_button,
@@ -30,16 +32,19 @@ from maptasker.src.guiutils import (
     display_selected_object_labels,
     get_xml,
     list_tasker_objects,
+    ping_android_device,
     reload_gui,
     reset_primeitems_single_names,
     set_ai_key,
     set_tasker_object_names,
     update_tasker_object_menus,
     valid_item,
+    validate_or_filelist_xml,
 )
 from maptasker.src.guiwins import (
     NiceGuiTextView,
     NiceGuiTreeView,
+    create_popup_window,
     initialize_gui,
     initialize_screen,
 )
@@ -47,6 +52,7 @@ from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
 from maptasker.src.mapit import mapit_all
 from maptasker.src.maputil2 import log_startup_values, translate_string
+from maptasker.src.maputil3 import validate_xml_file
 from maptasker.src.maputils import (
     append_to_filename,
     clear_tasker_data,
@@ -93,7 +99,7 @@ class MyGui:
 
     def __init__(self: "MyGui") -> None:
         """Initialize the GUI and set up all necessary state and layout."""
-        # # Trace code
+        # # Trace code callbacks
         # PrimeItems.program_arguments["debug"] = True  # Set this to True to enable tracing
         # # Create the trace object (set trace=False to only get function names, not every line)
         # def trace_calls(frame, event, arg):
@@ -119,35 +125,66 @@ class MyGui:
         self.set_defaults()
         PrimeItems.mygui = self
 
-        # 2. Attach Event Handlers
+        # Attach Event Handlers
         self.event_handlers = MapTaskerEventHandlers(self)
-        # 3. Build the UI Layout directly!
-        try:
-            initialize_screen(self)
-        except Exception as e:  # noqa: BLE001
-            ui.label(f"CRASH IN UI LAYOUT: {e}").classes("text-2xl text-red-500 m-8 font-mono")
-            print("\n" + "=" * 50)
-            print("🚨 CRITICAL UI BUILD ERROR 🚨", e)
-            sys.exit()
-            # import traceback
 
-        # Now restore the settings and update the fields if not resetting.
-        self.default_language = "English"
-        if not PrimeItems.program_arguments["reset"]:
-            self.event_handlers.restore_settings_event()
+        # =========================================================================
+        # CRITICAL TIMING FIX: DELAY ALL STARTUP LOGIC UNTIL AFTER HANDSHAKE
+        # =========================================================================
+        def initial_data_load() -> None:
+            default_language = "English"
 
-            # traceback.print_exc()
-            print("=" * 50 + "\n")
+            # 1. Restore the user settings from disk first to get the true saved language
+            if not PrimeItems.program_arguments["reset"]:
+                self.event_handlers.restore_settings_event()
 
-        # FIX: FOR DEVELOPMENT ONLY
-        PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
-        PrimeItems.single_project_name = self.single_project_name = PrimeItems.program_arguments[
-            "single_project_name"
-        ] = "Chat GPT"
-        PrimeItems.program_arguments["guiview"] = True
-        _ = get_xml(self.debug, self.appearance_mode)
-        self.view_limit = 30000
-        self.event_handlers.view_event("map")
+            # 2. FIXED: Call initialize_screen exactly once based on language requirement
+            if self.language != default_language:
+                language_to_switch_to = self.language
+                self.language = default_language
+                # This clears the empty root context and calls initialize_screen cleanly once
+                self.event_handlers.language_selected_event(language_to_switch_to)
+            else:
+                # If it is English, initialize the screen layout for the first and only time here
+                try:
+                    initialize_screen(self)
+                except Exception as e:  # noqa: BLE001
+                    ui.label(f"CRASH IN UI LAYOUT: {e}").classes("text-2xl text-red-500 m-8 font-mono")
+                    print("\n" + "=" * 50)
+                    print("🚨 CRITICAL UI BUILD ERROR 🚨", e)
+                    sys.exit()
+
+            # 3. Synchronize colors
+            if self.color_lookup and not PrimeItems.colors_to_use:
+                PrimeItems.colors_to_use = copy.deepcopy(self.color_lookup)
+
+            # 4. Set development defaults right before loading data
+            if not PrimeItems.file_to_get:
+                PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
+            PrimeItems.single_project_name = self.single_project_name = PrimeItems.program_arguments[
+                "single_project_name"
+            ] = "Chat GPT"
+            PrimeItems.program_arguments["guiview"] = True
+            self.view_limit = 30000
+
+            # 5. Heavy XML file opening and parsing
+            _ = get_xml(self.debug, self.appearance_mode)
+
+            # 6. Process the initial layout map view
+            self.event_handlers.view_event("map")
+
+            # 7. Complete background application tasks
+            self.check_new_version()
+            check_for_changelog(self)
+            self.process_current_messages()
+
+            # 8. Set the focus to the last used tab
+            if self.tab_to_use:
+                self.gui_main_tabs_container.set_value = self.tab_to_use
+
+        # Execute 150 milliseconds after the layout rendering thread registers with the browser
+        ui.timer(0.15, initial_data_load, once=True)
+        # =========================================================================
 
         self.initialization = False
 
@@ -206,6 +243,35 @@ class MyGui:
         ui.notify(message, type="positive" if color.lower() == "green" else "negative")
         if hasattr(self, "log_output"):
             self.log_output.push(message)
+
+    def process_current_messages(self) -> None:
+        """
+        Process any messages we may currently have.
+        Updated for NiceGUI styling and element lifecycle properties.
+        """
+        logger.info("Processing current messages...\n")
+
+        # 1. See if we have any current messages to display.
+        if self.message:
+            self.display_message_box(self.message, "Green")
+            self.message = ""
+
+        # 2. Resolve target AI Prompt
+        if not self.ai_prompt:
+            self.ai_prompt = AI_PROMPT
+
+        # 3. Dynamic layout color updating for the Analysis button
+        # Wrapped in an attribute safety check since it gets invoked during __init__
+        # before the visual components exist in the browser layout DOM tree.
+        if hasattr(self, "ai_analyze_button") and self.ai_analyze_button:
+            if is_valid_ai_config(self) and (
+                self.single_task_name or self.single_profile_name or self.single_project_name
+            ):
+                # NiceGUI updates button backgrounds and font color styles instantly via standard CSS rules
+                self.ai_analyze_button.style("background-color: #f55dff; color: #5554ff;")
+            else:
+                # Fallback to your application's baseline default blue styling rules
+                self.ai_analyze_button.style("background-color: #246FB6; color: #FFFFFF;")
 
     # Re-invoke mapit.
     def remapit(self, clear_names: bool = True) -> None:
@@ -1111,6 +1177,93 @@ class MyGui:
             the_data=analysis_response,
         )
 
+    def check_new_version(self) -> None:
+        """
+        Check if a new version is available and dynamically injects
+        the upgrade controls into the NiceGUI Right Sidebar layout tree.
+        """
+        # Ensure the underlying updater function checks daily bounds (Kept identical)
+        if hasattr(self, "is_first_run_today") and not self.is_first_run_today():
+            logger.info("Not the first run today. Skipping new version check.")
+            return
+
+        # Import lookups fallback wrap from internal files
+        from maptasker.src.guiutils import is_new_version  # Safeguard against circular imports  # noqa: PLC0415
+
+        test_button = False
+        if is_new_version() or test_button:
+            # 1. Clear out old instances and unhide the sidebar upgrade slot container
+            if hasattr(self, "upgrade_container") and self.upgrade_container:
+                self.upgrade_container.clear()
+                self.upgrade_container.classes(remove="hidden")
+            else:
+                return  # Exit early if the GUI layout hasn't initialized yet
+
+            # 2. Render buttons natively within the Right Sidebar's context node tree hierarchy
+            with self.upgrade_container:
+                ui.separator().classes("w-full my-1")
+                ui.label("Software Update Available").classes(
+                    "text-xs font-bold text-green-500 uppercase animate-pulse",
+                )
+
+                # "Upgrade to Latest Version" Action Button
+                self.upgrade_button = (
+                    ui
+                    .button(translate_string("Upgrade to Latest Version"), on_click=self.event_handlers.upgrade_event)
+                    .style("background-color: #79ff94; color: #1e293b; border: 2px solid #6563ff;")
+                    .classes("w-full font-bold text-xs py-2")
+                )
+
+                # "What's New?" Changelog Prompt Button
+                self.whats_new_button = (
+                    ui
+                    .button(
+                        translate_string("What's New?"),
+                        on_click=self.event_handlers.whatsnew_event
+                        if hasattr(self.event_handlers, "whatsnew_event")
+                        else lambda: None,
+                    )
+                    .style("background-color: #246FB6; color: #79ff94; border: 2px solid #6563ff;")
+                    .classes("w-full font-bold text-xs py-1")
+                )
+
+            # 3. Append state alert message strings
+            new_version_alert = translate_string("A new version of MapTasker is available.")
+            if new_version_alert not in self.message:
+                self.message = f"{self.message}\n\n{new_version_alert}" if self.message else new_version_alert
+
+
+# # =========================================================================
+# # DEFINE THE DECORATOR: Runs at beginning and end of event.
+# # =========================================================================
+# import inspect  # Add this import inside or above the decorator function
+
+
+# def manage_event_state(func: Callable[..., Any]) -> Callable[..., Any]:
+#     """Decorator to ensure self.event resets to False when the event method finishes."""
+#     # CHANGE: Use inspect.iscoroutinefunction instead of functools.inspect
+#     if inspect.iscoroutinefunction(func):
+
+#         @functools.wraps(func)
+#         async def async_wrapper(self, *args, **kwargs):
+#             self.event = True
+#             try:
+#                 return await func(self, *args, **kwargs)
+#             finally:
+#                 self.event = False
+
+#         return async_wrapper
+
+#     @functools.wraps(func)
+#     def sync_wrapper(self, *args, **kwargs):
+#         self.event = True
+#         try:
+#             return func(self, *args, **kwargs)
+#         finally:
+#             self.event = False
+
+#     return sync_wrapper
+
 
 class MapTaskerEventHandlers:
     """
@@ -1123,6 +1276,7 @@ class MapTaskerEventHandlers:
         # We store a reference to the main MyGui instance so we can read
         # checkbox states, inputs, and update the UI elements.
         self.gui = gui_instance
+        self.event = True
 
     # ==========================================
     # 2. Display View: Map, Diagram, Misc or Tree
@@ -1130,6 +1284,9 @@ class MapTaskerEventHandlers:
     def view_event(self: "MapTaskerEventHandlers", view_type: str) -> None:
         """Triggered when Map, Diagram, or Tree buttons are clicked."""
         window_title = f"{view_type.capitalize()} View"
+        self.gui.event = (
+            True  # Set the event flag to True to let rungui know to save the current state and not reset it.
+        )
         logger.info(f"GUI: Switching to {window_title}")
         ui.notify(f"Loading {window_title} View...", type="info", timeout=1000)
 
@@ -1177,33 +1334,33 @@ class MapTaskerEventHandlers:
                     # Let the user know
                     gui.display_message_box(
                         "The 'Diagram' view is running in the background.  Please stand by...",
-                        "LimeGreen",
+                        "Green",
                     )
                     # Process the diagram: builds the 'network' and then draws it in the GUI
                     outline_the_configuration()
                     # Display the diagram in the GUI
-                    window_attribute = f"{view_type}view_window"
                     gui.textview = NiceGuiTextView(
-                        master=getattr(self, window_attribute),
+                        gui,
                         title=window_title,
                         the_data=[],
                     )
 
             else:
-                data = []
                 gui.display_message_box(
                     "The 'Misc' view is running in the background.  Please stand by...",
                     "LimeGreen",
                 )
                 gui.textview = NiceGuiTextView(
-                    master=getattr(self, window_attribute),
+                    gui,
                     title="Misc View",
                     the_data=[],
                 )
 
         elif view_type == "tree":
-            if data:
-                gui.textview = NiceGuiTreeView("Tree View", items=data)
+            # Build our tree from XML data
+            tree_data = gui.build_the_tree()
+            if tree_data:
+                gui.textview = NiceGuiTreeView(gui, "Tree View", items=tree_data)
             else:
                 gui.display_message_box("No Project(s) Found in XML!", "Red")
                 return
@@ -1223,15 +1380,23 @@ class MapTaskerEventHandlers:
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
     # ==========================================
-    def detail_selected_event(self: "MapTaskerEventHandlers", event_value: Event) -> None:
-        """
-        NICEGUI PARADIGM SHIFT:
-        Dropdown (ui.select) on_change events automatically pass an 'event' object.
-        The new selected value is stored in `event`.
-        """
-        self.gui.display_detail_level = event_value
-        logger.info(f"Detail level changed to: {event_value}")
-        # Note: If you bound this via `.bind_value()`, you don't even need this function!
+    def detail_selected_event(self: "MapTaskerEventHandlers", event_value: any) -> None:
+        """Handles the detail level dropdown value changes safely."""
+        gui = self.gui
+        # Extract value if passed from an inline Quasar/NiceGUI change event mapping
+        value = event_value.value if hasattr(event_value, "value") else event_value
+
+        if value is None:
+            return
+
+        gui.display_detail_level = str(value)
+        PrimeItems.program_arguments["display_detail_level"] = int(gui.display_detail_level)
+        if not gui.initialization:
+            gui.display_message_box(
+                f"Detail level changed to: {gui.display_detail_level}",
+                "Green",
+            )
+        logger.info(f"Detail level changed to: {value}")
 
     def ai_model_selected_event(self: "MapTaskerEventHandlers", event_value: Event) -> None:
         """Updates the AI model based on dropdown selection."""
@@ -1313,10 +1478,209 @@ class MapTaskerEventHandlers:
             else:
                 self.gui.textview.scroll_area.classes(remove="whitespace-normal", add="whitespace-pre")
 
-    def get_xml_from_android_event(self: "MyGui") -> None:
-        """Equivalent to your old event handler."""
-        ui.notify("Fetching XML from Android...", type="info")
-        # TODO: Implement fetching logic here...
+    # ==========================================
+    # ANDROID XML BACKUP EVENT HANDLERS
+    # ==========================================
+    def get_xml_from_android_event(self) -> None:
+        """
+        Gets Android details from user inside the reactive right drawer container slot.
+        Replaces legacy manual CustomTkinter pixel coordinates with automated fluid Flexbox grids.
+        """
+        gui = self.gui
+
+        # 1. Clear out old entries and unhide the sidebar container panel slot
+        gui.android_container.clear()
+        gui.android_container.classes(remove="hidden")
+
+        # 2. Extract Fallback Default Values
+        android_ipaddr = (
+            "192.168.0.210" if gui.android_ipaddr == "" or gui.android_ipaddr is None else gui.android_ipaddr
+        )
+
+        android_port = "1821" if gui.android_port == "" or gui.android_port is None else gui.android_port
+
+        if gui.android_file == "" or gui.android_file is None:
+            android_file = "/Tasker/configs/user/backup.xml".replace("/", PrimeItems.slash)
+        else:
+            android_file = gui.android_file.replace("/", PrimeItems.slash)
+
+        # 3. Mount text input fields and control action items into the view hierarchy
+        with gui.android_container:
+            ui.label("Configure Android Connection:").classes("text-sm font-bold text-blue-500 mb-1 self-start")
+
+            # Form Fields
+            gui.ip_entry = ui.input(label="1-TCP/IP Address:", value=android_ipaddr).classes("w-full q-py-none")
+            gui.port_entry = ui.input(label="2-Port Number:", value=android_port).classes("w-full q-py-none")
+            gui.file_entry = ui.input(label="3-File Location:", value=android_file).classes("w-full q-py-none")
+
+            # Inline Button Row 1 (List XML & Query Help Button)
+            with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
+                gui.list_files_button = (
+                    ui
+                    .button("List XML Files", on_click=gui.event_handlers.list_files_event)
+                    .style("background-color: #D62CFF; color: white;")
+                    .classes("flex-grow text-xs")
+                )
+
+                gui.list_files_query_button = (
+                    ui
+                    .button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                    .style("background-color: #246FB6; color: #ffd941;")
+                    .classes("w-10 min-w-[40px] text-xs")
+                )
+
+            # Inline Button Row 2 (.or. Separator and Cancel Action)
+            with ui.row().classes("w-full items-center justify-center gap-2 mt-1"):
+                gui.label_or = ui.label(".or.").classes("text-xs text-gray-400 italic")
+
+                # Close button clears the contents and re-hides the panel drawer clean
+                ui.button(
+                    "Cancel Entry",
+                    on_click=lambda: (
+                        gui.android_container.clear(),
+                        gui.android_container.classes(add="hidden"),
+                    ),
+                ).classes("text-xs").props("flat color=negative dense")
+
+            # Master Set XML Backup execution button
+            gui.get_backup_button = (
+                ui
+                .button("Click Here to Set XML Details", on_click=gui.event_handlers.fetch_backup_event)
+                .style("background-color: #D62CFF; color: white;")
+                .classes("w-full mt-3 font-bold text-xs py-2")
+            )
+
+    async def list_files_event(self) -> None:
+        """
+        List (Android) XML files event updated for NiceGUI.
+        Alters the active view tracking text instead of legacy .configure() properties.
+        """
+        the_view = self.gui  # self maps to MapTaskerEventHandlers, use self.gui to target MyGui
+
+        the_view.list_files = True
+
+        # NiceGUI uses direct text assignment to change the displayed button label
+        if hasattr(the_view, "list_files_button") and the_view.list_files_button:
+            the_view.list_files_button.set_text("List Files Selected")
+
+        # Trigger the fetch execution routing
+        if hasattr(the_view.event_handlers, "fetch_backup_event"):
+            # --- CRITICAL FIX: Added 'await' here ---
+            await the_view.event_handlers.fetch_backup_event()
+
+    def file_selected_event(self, android_file: str) -> None:
+        """
+        User has selected a specific Android XML file from a pulldown menu context.
+        Removes absolute pixel offsets and handles notifications natively using NiceGUI.
+        """
+        the_view = self.gui  # Map references directly onto the shared view container state
+
+        # Strip off selection container payload wrappers if Quasar returns an option item dict
+        if isinstance(android_file, dict):
+            android_file = android_file.get("label", "")
+
+        the_view.android_file = android_file
+        clear_android_buttons(the_view)
+
+        # Display the connection feedback confirmations
+        the_view.display_message_box(
+            f"Get XML IP Address set to: {the_view.android_ipaddr}\n"
+            f"Port Number set to: {the_view.android_port}\n"
+            f"Get Location set to: {the_view.android_file}\n"
+            f"XML file acquired.",
+            "Green",
+        )
+        the_view.file = ""  # Negate any prior local computer directory file tracking pointers
+
+        # Validate the target remote XML structure
+        PrimeItems.program_arguments["gui"] = True
+
+        return_code, error_message = validate_xml_file(
+            the_view.android_ipaddr,
+            the_view.android_port,
+            android_file,
+        )
+
+        # Handle validation structural failures cleanly
+        if return_code > 0:
+            the_view.display_message_box(error_message, "Red")
+            the_view.android_file = ""
+            return
+
+        # Purge pre-existing data tracking fields
+        clear_tasker_data()
+
+        # Hide or update the dynamic input container panel block visually
+        if hasattr(the_view, "android_container") and the_view.android_container:
+            # Clear input fields out and hide the layout strip cleanly
+            the_view.android_container.clear()
+            the_view.android_container.classes(add="hidden")
+
+        # Execute fallback labels updates
+        if hasattr(the_view, "display_backup_details"):
+            the_view.display_backup_details()
+
+        # Fully reload and populate the Projects/Profiles/Tasks selection dropdown lists
+        update_tasker_object_menus(the_view, get_data=True, reset_single_names=True)
+
+    async def fetch_backup_event(self) -> None:
+        """
+        Fetches backup/XML details from NiceGUI user input fields and processes them.
+
+        - Validates IP address, port, and file location using .value properties.
+        - Pings the Android device to check reachability.
+        - Validates or fetches XML filelist.
+        - Updates the UI and internal state based on the fetched details.
+        """
+        gui = self.gui
+
+        # NICEGUI PARADIGM SHIFT: Replace legacy .get() calls with reactive .value properties
+        android_ipaddr = gui.ip_entry.value if hasattr(gui, "ip_entry") and gui.ip_entry else ""
+        android_port = gui.port_entry.value if hasattr(gui, "port_entry") and gui.port_entry else ""
+        android_file = (
+            "" if gui.list_files else (gui.file_entry.value if hasattr(gui, "file_entry") and gui.file_entry else "")
+        )
+
+        if hasattr(self, "_validate_input"):
+            error_msg = self._validate_input(android_ipaddr, android_port)
+            if error_msg:
+                gui.display_message_box(error_msg, "Red")
+                return
+
+        # --- Await the async ping function ---
+        if not await ping_android_device(gui, android_ipaddr, android_port):
+            return
+
+        # Attempt to pull structural backup contents or directory arrays
+        return_code, android_ipaddr, android_port, android_file = validate_or_filelist_xml(
+            gui,
+            android_ipaddr,
+            android_port,
+            android_file,
+        )
+
+        # Handle structural anomalies gracefully
+        if return_code not in (0, 2):
+            gui.display_message_box(f"File not found. Return code: {return_code}", "Red")
+            return
+
+        # Return code 2 signals that a sub-menu select drop-down tree is actively open waiting for user click feedback
+        if return_code == 2:
+            return
+
+        # Commit validated settings data properties down to our internal tracking state structures
+        if hasattr(self, "_update_internal_state"):
+            self._update_internal_state(android_ipaddr, android_port, android_file)
+        else:
+            gui.android_ipaddr = android_ipaddr
+            gui.android_port = android_port
+            gui.android_file = android_file
+
+        # Trigger final visual confirmation UI updates
+        if hasattr(self, "_display_backup_summary"):
+            self._display_backup_summary()
+        else:
+            gui.display_message_box("Android configuration details matched successfully!", "Green")
 
     def reset_settings_event(self: "MyGui") -> None:
         """Reset everything back to defaults."""
@@ -1644,58 +2008,6 @@ class MapTaskerEventHandlers:
         # Display the model pulldown list.
         display_model_pulldown(self, 50)
 
-    # FIX Delete the following code
-    # # Process the screen mode: dark, light, system
-    # def change_appearance_mode_event(self, new_appearance_mode: str) -> None:
-    #     """
-    #     Change the appearance mode of the GUI
-    #     Args:
-    #         new_appearance_mode: The new appearance mode as a string
-    #     Returns:
-    #         None: Does not return anything
-    #     - Set the global appearance mode to the new mode
-    #     - Update the local appearance mode attribute to the new lowercased mode"""
-
-    #     the_view = self.gui
-
-    #     # Determine if the selected appearance mode is one of the standard modes or a translated mode, and set the mode accordingly.
-    #     # First, check if it is a previously-set language mode.
-    #     if (
-    #         new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]
-    #         and PrimeItems.appearance_translated
-    #     ):
-    #         # Find our new appearance mode in the translated values and set the language to the corresponding key to
-    #         # translate it back to English for the appearance mode setting.
-    #         for key, value in PrimeItems.appearance_translated.items():
-    #             if new_appearance_mode in value:
-    #                 save_language = PrimeItems.program_arguments["language"]
-    #                 PrimeItems.program_arguments["language"] = key
-    #                 _ = translate_string(key, set_language=True)
-    #                 new_appearance_mode = translate_string(new_appearance_mode.capitalize()).lower()
-    #                 PrimeItems.program_arguments["language"] = save_language
-    #                 _ = translate_string(save_language, set_language=True)
-    #                 break
-    #     elif new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]:
-    #         new_appearance_mode = "system"
-
-    #     if PrimeItems.program_arguments["language"] != "English":
-    #         # Translated string is capitalized, so we need to translate first and then lowercase for the appearance mode.
-    #         new_appearance_mode_translated = translate_string(new_appearance_mode.capitalize())
-    #         # Recreate the pulldown menu translated.
-    #         the_view.appearance_mode_optionmenu.destroy()
-    #         create_appearance_mode_section(the_view)
-    #         if new_appearance_mode in ["dark", "light", "system"]:
-    #             appearance_mode_to_set = new_appearance_mode_translated.capitalize()
-    #             mode_to_set = new_appearance_mode
-    #         else:
-    #             appearance_mode_to_set = new_appearance_mode
-    #             mode_to_set = new_appearance_mode_translated.lower()
-    #     else:
-    #         new_appearance_mode_translated = new_appearance_mode.capitalize()
-    #         # FIX what is this for?
-    #         appearance_mode_to_set = new_appearance_mode_translated
-    #         mode_to_set = new_appearance_mode
-
     # Process the 'Bold Names' checkbox
     def names_bold_event(self) -> None:
         """
@@ -1786,82 +2098,133 @@ class MapTaskerEventHandlers:
             "Display TaskerNet Information",
         )
 
-    def font_event(self, font_selected: str) -> None:
+    def font_event(self, font_selected: any) -> None:
         """
-        Sets the font for the GUI using NiceGUI properties.
-        Args:
-            font_selected: The font name selected by the user
+        Sets the font for the GUI and updates the top toolbar row.
+        Employs an absolute re-entrancy lock to prevent NiceGUI internal
+        property update cycles from triggering a RecursionError.
         """
-        the_view = self.gui
+        gui = self.gui
 
-        # 1. Check if an automatic programmatic update is currently running
-        if getattr(the_view, "is_updating", False):
-            return  # Exit early to break the recursive loop!
-
-        the_view.font = font_selected
-
-        # Prepare translated text
-        font_use_text = translate_string("Monospaced Font To Use")
-        label_text = f"{font_use_text}: {font_selected}"
-
-        # Update or create the label
-        if hasattr(the_view, "font_out_label") and the_view.font_out_label:
-            the_view.font_out_label.text = label_text
-            the_view.font_out_label.style(f"font-family: {font_selected}; font-size: 14px;")
-        else:
-            the_view.font_out_label = (
-                ui.label(label_text).style(f"font-family: {font_selected}; font-size: 14px;").classes("mt-2 ml-2")
-            )
-
-        # 2. Update the option menu selection drop-down SAFELY using the lock flag
-        if hasattr(the_view, "font_optionmenu") and the_view.font_optionmenu:
-            try:
-                the_view.is_updating = True  # Engage the lock
-                the_view.font_optionmenu.value = font_selected  # Safe update
-            finally:
-                the_view.is_updating = False  # Always disengage the lock
-
-        # Toast confirmation message box
-        set_to_text = translate_string("Font To Use set to")
-        the_view.display_message_box(f"{set_to_text} {font_selected}", "Green")
-
-    # Process the Identation Amount selection
-    def indent_selected_event(self, ident_amount: str) -> None:
-        """Indent selected text or code block without recursive loops."""
-        the_view = self.gui
-        if getattr(the_view, "is_updating", False):
+        # 1. THE ABSOLUTE RECURSION SHIELD: Exit immediately if an update loop is active
+        if getattr(gui, "is_updating", False):
             return
 
-        the_view.indent = int(ident_amount)
+        # 2. Safely extract the string name from NiceGUI Events or raw strings
+        font_name = font_selected.value if hasattr(font_selected, "value") else str(font_selected)
+        if not font_name:
+            return
 
-        if hasattr(the_view, "indent_option") and the_view.indent_option:
+        # 3. Update the underlying application state
+        gui.font = font_name
+
+        # 4. Safely synchronize the dropdown UI component using the state lock
+        if hasattr(gui, "font_optionmenu") and gui.font_optionmenu and gui.font_optionmenu.value != font_name:
             try:
-                the_view.is_updating = True
-                the_view.indent_option.value = str(ident_amount)
+                # Engage the lock to completely silence NiceGUI's internal update echoes
+                gui.is_updating = True
+                gui.font_optionmenu.value = font_name
             finally:
-                the_view.is_updating = False
+                # Always release the lock regardless of execution success
+                gui.is_updating = False
 
-        the_view.display_message_box(f"Indentation Amount set to {ident_amount}", "green")
+        # 5. Handle the visual label synchronization on the toolbar
+        self._update_font_labels(gui, font_name)
 
-    def language_selected_event(self, language: str) -> None:
-        """
-        Set the language for the GUI and redisplay everything using NiceGUI.
+        # 6. Issue the feedback notification toast
+        set_to_text = translate_string("Font To Use set to")
+        gui.display_message_box(f"{set_to_text} {font_name}", "Green")
+
+    def _update_font_labels(self, gui: any, font_name: str) -> None:
+        """Helper subroutine to inject or update the toolbar's font indicator text."""
+        font_use_text = translate_string("Monospaced Font To Use")
+        label_text = f"{font_use_text}: {font_name}"
+
+        if hasattr(gui, "font_out_label") and gui.font_out_label:
+            gui.font_out_label.text = label_text
+            gui.font_out_label.style(f"font-family: {font_name}; font-size: 14px;")
+        else:
+            toolbar = getattr(gui, "gui_view_toolbar", None)
+            if toolbar:
+                with toolbar:
+                    gui.font_out_label = (
+                        ui
+                        .label(label_text)
+                        .style(f"font-family: {font_name}; font-size: 14px;")
+                        .classes("text-gray-500 italic ml-4")
+                    )
+
+    def _update_font_labels(self, the_view: any, font_name: str) -> None:
+        """Helper to keep toolbar text labels synchronized with the active font selection."""
+        font_use_text = translate_string("Monospaced Font To Use")
+        label_text = f"{font_use_text}: {font_name}"
+
+        if hasattr(the_view, "font_out_label") and the_view.font_out_label:
+            the_view.font_out_label.text = label_text
+            the_view.font_out_label.style(f"font-family: {font_name}; font-size: 14px;")
+        else:
+            toolbar = getattr(the_view, "gui_view_toolbar", None)
+            if toolbar:
+                with toolbar:
+                    the_view.font_out_label = (
+                        ui
+                        .label(label_text)
+                        .style(f"font-family: {font_name}; font-size: 14px;")
+                        .classes("text-gray-500 italic ml-4")
+                    )
+
+    # Process the Indentation Amount selection
+    def indent_selected_event(self, indent_amount: str) -> None:
+        """Indent selected text or code block without recursive loops."""
+        mygui = self.gui
+        mygui.event = True  # Flag that an event is being processed
+        if getattr(mygui, "is_updating", False):
+            return
+
+        if isinstance(indent_amount, str) and indent_amount.isdigit():
+            mygui.indent = int(indent_amount)
+        elif isinstance(indent_amount, int):
+            mygui.indent = indent_amount
+        else:
+            mygui.indent = int(indent_amount.value)
+
+        if hasattr(mygui, "indent_option") and mygui.indent_option:
+            try:
+                mygui.is_updating = True
+                mygui.indent_option.value = str(mygui.indent)
+            finally:
+                mygui.is_updating = False
+
+        mygui.display_message_box(f"Indentation Amount set to {mygui.indent!s}", "green")
+
+    def language_selected_event(self, language: any) -> None:
+        """Set the language for the GUI and redisplay everything using NiceGUI.
+
         Uses a state lock to prevent recursive dropdown triggers.
-
-        Args:
-            language: The language selected by the user.
         """
+        # =========================================================================
+        # CRITICAL RECURSION GUARD: Exit if we are currently updating settings programmatically
+        # =========================================================================
+        the_view = self if self.__class__.__name__ == "MyGui" else self.gui
+        if getattr(the_view, "is_updating", False):
+            return
+        # =========================================================================
+
+        # EXTRACT VALUE IF PASSED FROM A NICEGUI CHANGE EVENT OBJECT
+        the_view.event = True  # Flag that an event is being processed
+        language = language.value if hasattr(language, "value") else language
+
+        if language is None:
+            return
+
         # Let everyone know we are setting the language
         PrimeItems.language_set = True
 
-        # Determine reference view (matches your event logic structure)
-        the_view = self if self.__class__.__name__ == "MyGui" else self.gui
         if the_view.language == language:
             return
 
         # Set the translation function in PrimeItems
-        if hasattr(self, "language_set_event"):
-            self.language_set_event(translate_string(language))
+        self.language_set_event(translate_string(language))
 
         # Reset selection checkboxes / extended list flags safely using the lock flag
         the_view.displaying_extended_list = None  # Force pulldown to be recreated.
@@ -1872,8 +2235,22 @@ class MapTaskerEventHandlers:
             finally:
                 the_view.is_updating = False  # Disengage the lock
 
-        # Wipe out and rebuild layout context blocks natively
-        initialize_screen(the_view)
+        # =========================================================================
+        # CRITICAL FIX: RESET THE ACTIVE CONTEXT TO THE ROOT PAGE CLIENT
+        # =========================================================================
+        # 1. Safely remove top-level drawers and headers while keeping page_container intact
+        layout_slots = ui.context.client.layout.default_slot.children
+        for element in list(layout_slots):
+            if element != ui.context.client.page_container:
+                layout_slots.remove(element)
+
+        # 2. Flush the children components from the central main content window containe
+        ui.context.client.page_container.default_slot.children.clear()
+
+        # 3. Force NiceGUI back to the top-level slot context so layout elements are not nested
+        with ui.context.client:
+            initialize_screen(the_view)
+        # =========================================================================
 
         # Redisplay current file
         display_current_file(the_view, the_view.file)
@@ -2059,15 +2436,14 @@ class MapTaskerEventHandlers:
         Processing Logic:
             - Calls the update function.
             - Reruns the program to pick up the update."""
-        the_view = self.parent
+        gui = self.gui
         update_maptasker()
-        the_view.display_message_box("Program updated.  Restarting...", "Green")
+        gui.display_message_box("Program updated.  Restarting...", "Green")
         # Create the Change Log file to be read and displayed after a program update.
         create_changelog()
 
         # Reload the GUI by running a new process with the new program/version.
-        reload_gui(the_view)
-
+        reload_gui(gui)
 
     def report_issue_event(self) -> None:
         """Opens a web browser and directs the user to create a new issue on GitHub for the Map-Tasker project.
@@ -2139,8 +2515,8 @@ class MapTaskerEventHandlers:
             help_text = translate_string(help_text[temp:])
             help_text = help_text + "\n".join(changes)
 
-        guiview.new_message_box(f"{translate_string(title)}\n\n{translate_string(help_text)}")
-        guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
+        help_text = f"{translate_string(title)}\n\n{translate_string(help_text)}"
+        self.help_dialog = create_popup_window(title="HELP", message=help_text, close_button=True)
 
     def viewlimit_event(self: object, view_limit: str) -> None:
         """View Limit Event handled safely without recursion."""
@@ -2504,6 +2880,197 @@ class MapTaskerEventHandlers:
         has_all = bool(gui.ai_apikey and gui.ai_model and gui.ai_prompt)
         gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
 
+    def everything_event(self) -> None:
+        """
+        Handles toggling all options in the 'Everything' event using NiceGUI.
+
+        Args:
+            self: The MapTaskerEventHandlers class instance.
+        Returns:
+            None: Does not return anything.
+        """
+        # In this architecture, self.gui points directly to the main MyGui instance
+        mygui = self.gui
+        mygui.event = True  # Flag that an event is being processed
+
+        # NiceGUI reads state directly using the .value property
+        value = mygui.everything_checkbox.value
+        mygui.everything = value
+
+        # Dictionary of checkbox attributes and corresponding display messages
+        checkbox_map = {
+            "conditions_checkbox": "Display Profile/Task Conditions",
+            "directory_checkbox": "Display Directory",
+            "outline_checkbox": "Display Configuration Outline",
+            "preferences_checkbox": "Display Tasker Preferences",
+            "pretty_checkbox": "Display Prettier Output",
+            "runtime_checkbox": "Display Runtime Settings",
+            "taskernet_checkbox": "Display TaskerNet Information",
+            "list_unnamed_items_checkbox": "Display Unnamed Tasks",
+        }
+
+        # Toggle each checkbox and set attributes
+        _select_deselect_checkbox = mygui.select_deselect_checkbox
+        for attr_name, display_message in checkbox_map.items():
+            checkbox = getattr(mygui, attr_name, None)
+            if checkbox:
+                # 1. Update the visual element check state using .set_value()
+                checkbox.set_value(value)
+
+                # 2. Run your default notification/logging formatting string
+                _select_deselect_checkbox(
+                    checkbox,
+                    value,
+                    display_message,
+                    display=False,
+                )
+
+                # 3. Synchronize underlying property models
+                setattr(mygui, attr_name.replace("_checkbox", ""), value)
+
+        # Handle Display Detail Level separately
+        # In NiceGUI, we store DEFAULT_DISPLAY_DETAIL_LEVEL as a string configuration
+        detail_level_str = str(DEFAULT_DISPLAY_DETAIL_LEVEL)
+        mygui.event_handlers.detail_selected_event(detail_level_str)
+        mygui.display_detail_level = detail_level_str
+
+        # Safely force the Dropdown select component visual match if it exists
+        if hasattr(mygui, "sidebar_detail_option") and mygui.sidebar_detail_option:
+            mygui.sidebar_detail_option.value = detail_level_str
+
+        # Optionally display results in a message box
+        everything = "on" if value else "off"
+        msg = f"Everything toggled {everything} successfully"
+        mygui.display_message_box(
+            translate_string(msg),
+            "Green",
+        )
+
+    # Process the 'Prettier' checkbox
+    def pretty_event(self) -> None:
+        """
+        Display Configuration Outline
+        Args:
+            self: The class instance
+        Returns:
+            None: Does not return anything
+        - Get the input value of the outline_checkbox attribute
+        - Call the get_input_and_put_message method to get user input and display a message
+        - Assign the return value to the outline attribute
+        """
+        mygui = self.gui
+        mygui.event = True
+        mygui.pretty = mygui.get_input_and_put_message(
+            mygui.pretty_checkbox,
+            "Display Pretty Output",
+        )
+
+    # Process the 'conditions' checkbox
+    def condition_event(self) -> None:
+        """
+        Get input and put message for condition checkbox
+        Args:
+            self: The class instance
+            conditions_checkbox: Condition checkbox input
+            message: Message to display
+        Returns:
+            None: No return value
+        - Get input value from conditions_checkbox
+        - Display message to user
+        - Store input value in self.conditions"""
+        mygui = self.gui
+        mygui.event = True
+        mygui.conditions = mygui.get_input_and_put_message(
+            mygui.conditions_checkbox,
+            "Display Profile and Task Action Conditions",
+        )
+
+    # Process the 'Tasker Preferences' checkbox
+    def preferences_event(self) -> None:
+        """
+        Get user input on whether to display tasker preferences
+        Args:
+            self: The class instance
+        Returns:
+            None: Does not return anything
+        - Get user input from preferences_checkbox checkbox
+        - Store input in self.preferences
+        - Display message based on input to confirm action"""
+        mygui = self.gui
+        mygui.event = True
+        mygui.preferences = mygui.get_input_and_put_message(
+            mygui.preferences_checkbox,
+            "Display Tasker Preferences",
+        )
+
+    # Process the 'Twisty' checkbox
+    def twisty_event(self) -> None:
+        """
+        Toggle display of task details under a twisty using NiceGUI.
+
+        Args:
+            self: The MapTaskerEventHandlers class instance.
+        Returns:
+            None: No value is returned.
+        """
+        mygui = self.gui
+        mygui.event = True
+
+        # 1. Read the input value using the NiceGUI .value property
+        mygui.twisty = mygui.get_input_and_put_message(
+            mygui.twisty_checkbox,
+            "Hide Task Details Under Twisty",
+        )
+
+        # Define the threshold value matching the text explanation (3)
+        all_parameters_threshold = 3
+
+        # 2. Check if detail level is too low to support twisties
+        if mygui.twisty and int(mygui.display_detail_level) < all_parameters_threshold:
+            mygui.display_message_box(
+                "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!",
+                "Red",
+            )
+
+            # Update both the dropdown value and the class attribute property
+            if hasattr(mygui, "sidebar_detail_option") and mygui.sidebar_detail_option:
+                mygui.sidebar_detail_option.value = "3"
+            mygui.display_detail_level = "3"
+            PrimeItems.program_arguments["display_detail_level"] = 3
+
+        # 3. Check to see if we are doing everything (they are mutually exclusive)
+        if mygui.twisty and mygui.everything:
+            mygui.display_message_box(
+                "'Twisty' and 'Everything' are mutually exclusive.  Unchecking 'Twisty'.",
+                "Orange",
+            )
+
+            mygui.twisty = False
+
+            # NiceGUI updates checked states programmatically via set_value()
+            if hasattr(mygui, "twisty_checkbox") and mygui.twisty_checkbox:
+                mygui.twisty_checkbox.set_value(False)
+
+    # Process the 'Display Directory' checkbox
+    def directory_event(self) -> None:
+        """
+        Get input and put message for directory checkbox
+        Args:
+            self: The class instance
+            directory_checkbox: The directory checkbox
+            "Display Directory": The message to display
+        Returns:
+            None: Does not return anything
+        - Get input value from directory_checkbox
+        - If checked, put message "Display Directory"
+        - Does not return anything, just updates class attribute"""
+        mygui = self.gui
+        mygui.event = True
+        mygui.directory = mygui.get_input_and_put_message(
+            mygui.directory_checkbox,
+            "Display Directory",
+        )
+
     # Front-end event handlers
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:
         """
@@ -2522,76 +3089,76 @@ class MapTaskerEventHandlers:
         method(view, *args)
 
     # Handlers for Search/Next/Prev/Clear/Toggle Word Wrap/Display Only ...for each view.
-    def diagram_display_only_event(self) -> None:  # noqa: D102
+    def diagram_display_only_event(self) -> None:
         self._handle_event("display_only_event", "diagramview")
 
-    def analysis_display_only_event(self) -> None:  # noqa: D102
+    def analysis_display_only_event(self) -> None:
         self._handle_event("display_only_event", "analysisview")
 
-    def map_display_only_event(self) -> None:  # noqa: D102
+    def map_display_only_event(self) -> None:
         self._handle_event("display_only_event", "mapview")
 
-    def diagram_search_event(self) -> None:  # noqa: D102
+    def diagram_search_event(self) -> None:
         self._handle_event("search_event", "diagramview")
 
-    def map_search_event(self) -> None:  # noqa: D102
+    def map_search_event(self) -> None:
         self._handle_event("search_event", "mapview")
 
-    def analysis_search_event(self) -> None:  # noqa: D102
+    def analysis_search_event(self) -> None:
         self._handle_event("search_event", "analysisview")
 
-    def diagram_search_here_event(self) -> None:  # noqa: D102
+    def diagram_search_here_event(self) -> None:
         self._handle_event("search_here_event", "diagramview")
 
-    def map_search_here_event(self) -> None:  # noqa: D102
+    def map_search_here_event(self) -> None:
         self._handle_event("search_here_event", "mapview")
 
-    def analysis_search_here_event(self) -> None:  # noqa: D102
+    def analysis_search_here_event(self) -> None:
         self._handle_event("search_here_event", "analysisview")
 
-    def diagram_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
+    def diagram_nextprev_event(self, search_next: bool) -> None:
         self._handle_event("nextprev_search_event", "diagramview", search_next)
 
-    def map_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
+    def map_nextprev_event(self, search_next: bool) -> None:
         self._handle_event("nextprev_search_event", "mapview", search_next)
 
-    def analysis_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
+    def analysis_nextprev_event(self, search_next: bool) -> None:
         self._handle_event("nextprev_search_event", "analysisview", search_next)
 
-    def diagram_clear_event(self) -> None:  # noqa: D102
+    def diagram_clear_event(self) -> None:
         self._handle_event("clear_event", "diagramview")
 
-    def map_clear_event(self) -> None:  # noqa: D102
+    def map_clear_event(self) -> None:
         self._handle_event("clear_event", "mapview")
 
-    def analysis_clear_event(self) -> None:  # noqa: D102
+    def analysis_clear_event(self) -> None:
         self._handle_event("clear_event", "analysisview")
 
-    def diagram_wordwrap_event(self) -> None:  # noqa: D102
+    def diagram_wordwrap_event(self) -> None:
         self._handle_event("wordwrap_event", "diagramview")
 
-    def map_wordwrap_event(self) -> None:  # noqa: D102
+    def map_wordwrap_event(self) -> None:
         self._handle_event("wordwrap_event", "mapview")
 
-    def analysis_wordwrap_event(self) -> None:  # noqa: D102
+    def analysis_wordwrap_event(self) -> None:
         self._handle_event("wordwrap_event", "analysisview")
 
-    def analysis_topbottom_event(self, top: bool) -> None:  # noqa: D102
+    def analysis_topbottom_event(self, top: bool) -> None:
         self._handle_event("topbottom_event", "analysisview", top)
 
-    def map_topbottom_event(self, top: bool) -> None:  # noqa: D102
+    def map_topbottom_event(self, top: bool) -> None:
         self._handle_event("topbottom_event", "mapview", top)
 
-    def diagram_topbottom_event(self, top: bool) -> None:  # noqa: D102
+    def diagram_topbottom_event(self, top: bool) -> None:
         self._handle_event("topbottom_event", "diagramview", top)
 
-    def diagram_jump_topbottom_event(self, top: bool, connector: int) -> None:  # noqa: D102
+    def diagram_jump_topbottom_event(self, top: bool, connector: int) -> None:
         self._handle_event("jump_topbottom_event", "diagramview", top, connector)
 
-    def profiles_per_line_event(self, profiles_per_line: str) -> None:  # noqa: D102
+    def profiles_per_line_event(self, profiles_per_line: str) -> None:
         self._handle_event("profiles_level_event", "diagramview", profiles_per_line)
 
-    def ai_apikey_get_event(self, cancel: bool, clear: bool) -> None:  # noqa: D102
+    def ai_apikey_get_event(self, cancel: bool, clear: bool) -> None:
         self._handle_event("ai_apikey_process_event", "ai_apikey_window", cancel, clear)
 
 

@@ -13,6 +13,10 @@ import shutil
 import subprocess
 import sys
 
+from maptasker.src.maputil2 import http_request
+from maptasker.src.maputils import validate_xml
+from maptasker.src.sysconst import logger
+
 
 def ensure_and_import(pypi_name: str, import_path: str) -> object:
     """
@@ -82,3 +86,52 @@ def align_text(text: str, column: int) -> str:
     adjusted_column = max(0, column - leading_spaces)  # Ensure non-negative padding
 
     return (nbsp * adjusted_column) + text  # Adjust spacing to align correctly
+
+
+# Read XML file and validate the XML.
+def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
+    # Read the file
+    """Validates an XML file from an Android device.
+    Parameters:
+        - ip_address (str): IP address of the Android device.
+        - port (str): Port number of the Android device.
+        - android_file (str): Name of the XML file to be validated.
+    Returns:
+        - bool: True if the file is valid, False if not.
+    Processing Logic:
+        - Reads the file from the Android device.
+        - Validates the XML file.
+        - Checks if the file is Tasker XML.
+        - Returns True if the file is valid, False if not."""
+    if ip_address:
+        return_code, file_contents = http_request(
+            ip_address,
+            port,
+            android_file,
+            "file",
+            "?download=1",
+        )
+        if return_code != 0:
+            return 1, file_contents
+    else:
+        return_code = 0
+
+    # Validate the xml
+    error_message, xml_tree = validate_xml(
+        ip_address,
+        android_file,
+        return_code,
+        file_contents,
+    )
+
+    # If there was an error, bail out.
+    if error_message:
+        logger.debug(error_message)
+        return 1, error_message
+
+    # Make surre this is Tasker XML
+    xml_root = xml_tree.getroot()
+    if xml_root.tag != "TaskerData":
+        return 0, f"File {android_file} is not valid Tasker XML.\n\nTry again."
+
+    return 0, ""

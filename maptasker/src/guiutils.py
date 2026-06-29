@@ -6,7 +6,7 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import defusedxml
-from nicegui import ui
+from nicegui import run, ui
 
 # Keep your existing logic imports (e.g., from maptasker.src.aiutils import ...)
 from maptasker.src.aiutils import (
@@ -24,8 +24,9 @@ from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.lineout import LineOut
-from maptasker.src.maputil2 import translate_string
-from maptasker.src.maputils import restart_program_subprocess
+from maptasker.src.maputil2 import http_request, translate_string
+from maptasker.src.maputil3 import validate_xml_file
+from maptasker.src.maputils import get_pypi_version, restart_program_subprocess
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
@@ -36,7 +37,9 @@ from maptasker.src.sysconst import (
     CHANGELOG_URL,
     ERROR_FILE,
     MODEL_GROUPS,
+    NOW_TIME,
     UNNAMED_ITEM,
+    VERSION,
     logger,
 )
 
@@ -418,10 +421,7 @@ def display_selected_object_labels(self: "MyGui") -> None:
         # If the dropdown widget exists, look for the choice that ends with our active model
         if getattr(self, "ai_model_option", None) and self.ai_model_option.options:
             matching_option = next((opt for opt in self.ai_model_option.options if opt.endswith(self.ai_model)), None)
-            if matching_option:
-                model_to_display = matching_option
-            else:
-                model_to_display = self.ai_model
+            model_to_display = matching_option or self.ai_model
         else:
             model_to_display = self.ai_model
 
@@ -561,26 +561,39 @@ def reset_primeitems_single_names() -> None:
 
 def display_current_file(self: "MyGui", file_name: str) -> None:
     """
-    A function to display the current file as a label in the GUI.
+    A function to display the current file as a label in the GUI toolbar row.
     """
     # 1. Cleaner File Path Parsing
-    # Python's built-in os.path.basename handles slashes (both / and \) automatically
     clean_file_name = os.path.basename(file_name)
 
-    # 2. Translation Logic (Kept identical)
+    # 2. Translation Logic
     text = "Current File"
     text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
     full_display_text = f"{text}: {clean_file_name}"
 
-    # 3. The NiceGUI Way: Update text rather than destroying and recreating the element
-    if getattr(self, "current_file_label", None):
-        # If the label already exists, just change its text property!
-        self.current_file_label.text = full_display_text
-    else:
-        # If this is the first time running, create the label.
-        self.current_file_label = ui.label(full_display_text).classes("ml-4 text-left")
+    # 3. NICEGUI TARGET FIX:
+    # Check both potential property names to maintain alignment with initialize_screen
+    label_widget = getattr(self, "current_file", None) or getattr(self, "current_file_label", None)
 
-    # 4. Update other UI elements (Kept identical)
+    if label_widget:
+        # If the label already exists in the toolbar, simply alter its reactive text property!
+        label_widget.text = full_display_text
+        # Ensure both variable names reference the exact same widget on the instance
+        self.current_file = label_widget
+        self.current_file_label = label_widget
+    else:
+        # Fallback safeguard: If it doesn't exist yet, force creation INSIDE the toolbar container
+        toolbar = getattr(self, "gui_view_toolbar", None)
+        if toolbar:
+            with toolbar:
+                self.current_file_label = ui.label(full_display_text).classes("text-gray-500 italic ml-4")
+                self.current_file = self.current_file_label
+        else:
+            # Absolute fallback if called before screen layout renders
+            self.current_file_label = ui.label(full_display_text).classes("ml-4 text-left")
+            self.current_file = self.current_file_label
+
+    # 4. Update other UI elements
     update_tasker_object_menus(self, get_data=False, reset_single_names=False)
 
 
@@ -769,12 +782,8 @@ def _set_single_project_name(self: object, defaults: dict) -> None:
     except AttributeError:
         return
 
-    self.ai_project_optionmenu.value = self.single_project_name
     self.specific_profile_optionmenu.value = defaults["profile"]
-    self.ai_profile_optionmenu.value = defaults["profile"]
     self.specific_task_optionmenu.value = defaults["task"]
-    self.ai_task_optionmenu.value = defaults["task"]
-    # self.update() is removed because NiceGUI automatically updates the UI on value changes.
 
 
 def _set_single_profile_name(self: object, defaults: dict) -> None:
@@ -1159,3 +1168,254 @@ def reload_gui(self: object) -> None:
     # ReRun via a new process, which will load and run the new program/version.
     # Note: this current process will not return after this call, but simply be killed.
     restart_program_subprocess()
+
+
+# Ping the Android evice to make sure it is reachable.
+async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
+    """
+    Asynchronously checks if the target Android device and Tasker server are reachable.
+
+    Instead of a generic ping or raw socket connect, this utilizes the app's native
+    'http_request' functionality inside a background thread pool to ensure total accuracy.
+    """
+
+    # 1. Define the internal network check using your app's true HTTP handshake logic.
+    # This executes inside a worker thread pool, keeping NiceGUI's loop operational.
+    def raw_tasker_probe() -> bool:
+        try:
+            # We execute a minimal 'maplist' directory poll on the standard directory.
+            # If the Tasker server is running, this function will cleanly complete.
+            return_code, _ = http_request(
+                ipaddr,
+                port,
+                "/storage/emulated/0/Tasker",
+                "maplist",
+                "?xml",
+            )
+            # return_code == 0 means a flawless connection was made!
+            return return_code == 0  # noqa: TRY300
+        except Exception:  # noqa: BLE001
+            return False
+
+    # Show a brief non-blocking notification toast to show progress
+    ui.notify(f"Connecting to Android device at {ipaddr}:{port}...", type="info", timeout=1200)
+
+    try:
+        # 2. Hand off the logic block to NiceGUI's asynchronous thread executor
+        device_is_reachable = await run.io_bound(raw_tasker_probe)
+
+        if device_is_reachable:
+            return True
+
+        # Handle connectivity breakdown state safely
+        error_msg = (
+            f"{translate_string('Error')}: {translate_string('Android device at')} {ipaddr}:{port} "
+            f"{translate_string('is unreachable')}. {translate_string('Check your IP/Port and verify the Tasker HTTP server is running')}."
+        )
+        self.display_message_box(error_msg, "Red")
+        return False  # noqa: TRY300
+
+    except Exception as e:  # noqa: BLE001
+        self.display_message_box(f"Ping execution failure: {e!s}", "Red")
+        return False
+
+
+def validate_or_filelist_xml(
+    self: "MyGui",
+    android_ipaddr: str,
+    android_port: str,
+    android_file: str,
+) -> tuple[int, str, str, str]:
+    """
+    Validates an XML file on an Android device or generates a NiceGUI dropdown
+    selection list if no file or an explicit 'list files' action is requested.
+    """
+    # 1. If a file is specified and we aren't explicitly listing files, validate it
+    if len(android_file) != 0 and android_file != "" and not self.list_files:
+        return_code, _ = http_request(
+            android_ipaddr,
+            android_port,
+            android_file,
+            "file",
+            "?download=1",
+        )
+
+        # Validate the XML syntax structure
+        if return_code == 0:
+            PrimeItems.program_arguments["gui"] = True
+            return_code, error_message = validate_xml_file(
+                android_ipaddr,
+                android_port,
+                android_file,
+            )
+            if return_code != 0:
+                self.display_message_box(error_message, "Red")
+                return 1, android_ipaddr, android_port, android_file
+        else:
+            return 1, android_ipaddr, android_port, android_file
+
+    # 2. File location not provided or "List Files" requested.
+    # Fetch the directory catalog and present a NiceGUI ui.select component.
+    else:
+        clear_android_buttons(self)
+
+        return_code, filelist = get_list_of_files(
+            android_ipaddr,
+            android_port,
+            "/storage/emulated/0/Tasker",
+        )
+        if return_code != 0:
+            self.display_message_box(filelist, "Red")
+            return 1, android_ipaddr, android_port, android_file
+
+        # Clean slate the container before rendering the picker options
+        if hasattr(self, "android_container") and self.android_container:
+            self.android_container.clear()
+            self.android_container.classes(remove="hidden")
+        else:
+            # Fallback placeholder if no container container is declared
+            self.android_container = ui.column().classes("w-full gap-2 p-2")
+
+        # Mount the native interactive picking layout inside the container tree context
+        with self.android_container:
+            ui.separator().classes("my-2")
+
+            self.filelist_label = ui.label("Select XML From Android Device:").classes(
+                "text-xs font-bold text-purple-600 mt-1 self-start",
+            )
+
+            # Custom Tkinter OptionMenu transforms to a reactive NiceGUI ui.select dropdown
+            self.filelist_option = ui.select(
+                options=filelist,
+                label="Available Android Backups",
+                on_change=lambda e: self.event_handlers.file_selected_event(e.value),
+            ).classes("w-full q-mt-none")
+
+            # Flat modern action button to easily close the selection panel
+            ui.button(
+                "Cancel Entry",
+                on_click=lambda: (self.android_container.clear(), self.android_container.classes(add="hidden")),
+            ).classes("text-xs w-full mt-2").props("outline color=negative dense")
+
+        # Save connection details to state
+        self.android_ipaddr = android_ipaddr
+        self.android_port = android_port
+
+        # Return status code 2 to indicate layout suspension until user selects a file item.
+        return (2, "", "", "")
+
+    # All checks passed successfully
+    return 0, android_ipaddr, android_port, android_file
+
+
+# List the XML files on the Android device
+def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tuple:
+    """Get list of files from given IP address.
+    Parameters:
+        - ip_address (str): IP address to connect to.
+        - ip_port (str): Port number to connect to.
+        - file_location (str): Location of the file to retrieve.
+    Returns:
+        - tuple: Return code and list of file locations.
+    Processing Logic:
+        - Retrieve file contents using http_request.
+        - If return code is 0, split the decoded string into a list and return.
+        - Otherwise, return error with empty string."""
+
+    # Get the contents of the file.
+    return_code, file_contents = http_request(
+        ip_address,
+        ip_port,
+        file_location,
+        "maplist",
+        "?xml",
+    )
+
+    # If good return code, get the list of XML file locations into a list and return.
+    if return_code == 0:
+        decoded_string = (file_contents.decode("utf-8")).split(",")
+        # Strip off the count field
+        for num, item in enumerate(decoded_string):
+            temp_item = item[:-3]  # Drop last 3 characters
+            decoded_string[num] = temp_item.replace("/storage/emulated/0", "")
+        # Remove items that are in the trash
+        final_list = [item for item in decoded_string if ".Trash" not in item]
+        return 0, final_list
+
+    # Otherwise, return error
+    return return_code, file_contents
+
+
+# Read the change log file, add it to the messages to be displayed and then remove it.
+def check_for_changelog(self) -> None:  # noqa: ANN001
+    """Function to check for a changelog file and add its contents to a message if the current version is correct.
+    Parameters:
+        - self (object): The object that the function is being called on.
+    Returns:
+        - None: The function does not return anything, but updates the message attribute of the object.
+    Processing Logic:
+        - Check if the changelog file exists.
+        - If it exists, prepare to display changes and remove the file so we only display the changes once.
+    Note: The changelog file is created immediately after the program is updated (userintr upgrade_event)
+    """
+    logger.info("Checking for changelog file.")
+
+    # # TODO Test changelog before posting to PyPi.  Comment it out after testing.
+    # self.message = "\n".join(get_changelog_file(CHANGELOG_URL, "##", 11))
+    # return
+    # # TODO END Test
+
+    self.message = "\n\n"
+    if os.path.isfile(CHANGELOG_FILE):
+        with open(CHANGELOG_FILE) as changelog_file:
+            for line in changelog_file:
+                self.message = f"{self.message}{line}"
+        os.remove(CHANGELOG_FILE)
+
+
+# Get Pypi version and return True if it is newer than our current version.
+def is_new_version() -> bool:
+    """
+    Check if the new version is available
+    Args:
+        self: The class instance
+    Returns:
+        bool: True if new version is available, False if not"""
+    # Check if newer version of our code is available on Pypi.
+    pypi_version_code = get_pypi_version()
+    if pypi_version_code:
+        pypi_version = pypi_version_code.split("==")[1]
+        PrimeItems.last_run = NOW_TIME  # Update last run to now since we are doing the check.
+        return is_version_greater(VERSION, pypi_version)
+    return False
+
+
+# Compare two versions and return True if version2 is greater than version1.
+def is_version_greater(version1: str, version2: str) -> bool:
+    """
+    This function checks if version2 is greater than version1.
+
+    Args:
+        version1: A string representing the first version in the format "major.minor.patch".
+        version2: A string representing the second version in the format "major.minor.patch".
+
+    Returns:
+        True if version2 is greater than version1, False otherwise.
+    """
+
+    # Split the versions by "."
+    if "beta" in version1 or "beta" in version2:
+        # Handle beta versions by removing the "beta" part and comparing the numeric parts
+        return False
+    v1_parts = [int(x) for x in version1.split(".")]
+    v2_parts = [int(x) for x in version2.split(".")]
+
+    # Iterate through each part of the version
+    for i in range(min(len(v1_parts), len(v2_parts))):
+        if v1_parts[i] < v2_parts[i]:
+            return True
+        if v1_parts[i] > v2_parts[i]:
+            return False
+
+    # If all parts are equal, check length
+    return len(v2_parts) > len(v1_parts)

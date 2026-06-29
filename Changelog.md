@@ -10,7 +10,11 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed: GUI support via web browser interface, removes reliance on desktop.
+- Changed: GUI support via web browser interface (only), removes reliance on desktop.
+- Changed: Hover over Projects/Profiles/Tasks/Scenes in the Map view have no effect (hover info removed)
+- Changed: Message window has been replaced with 5-second message popups.
+- Changed: Batch mode and all associated runtime options are removed.  The GUI mode is all that is now supported.
+- Changed: 'Display Configuration Outline', 'Run and Exit', and 'Run' buttons have been removed from the GUI since they are no longer relevant.
 
 ### Fixed
 
