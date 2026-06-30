@@ -16,7 +16,7 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING, Any
 
-from nicegui import app, core, ui
+from nicegui import core, ui
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
@@ -74,25 +74,45 @@ def do_colors(user_input: dict) -> dict:
     return colormap
 
 
-def capture_gui_state(user_input: MyGui) -> None:
+def get_first_text_entry(data: dict) -> str:
+    # 1. Determine if data is a dictionary
+    if isinstance(data, dict) and data:
+        # 2. Get the first value in the dictionary
+        first_value = next(iter(data.values()))
+
+        # 3. Check if the first value is also a dict and contains 'text'
+        if isinstance(first_value, dict) and "text" in first_value:
+            return first_value["text"]
+
+    return ""
+
+
+def capture_gui_state(user_input: MyGui, data: dict) -> None:
     """Capture the current state of the GUI and save it to PrimeItems.
     Parameters:
         - user_input (MyGui): The user input object containing GUI state.
+        - data (dict): The data dictionary containing GUI state information.
     """
-    for value in ARGUMENT_NAMES:
-        with contextlib.suppress(AttributeError):
-            PrimeItems.program_arguments[value] = getattr(user_input, value)
-            logger.info(
-                f"GUI arg: {value} set to: {PrimeItems.program_arguments[value]}",
-            )
-    PrimeItems.program_arguments["display_detail_level"] = int(
-        PrimeItems.program_arguments["display_detail_level"],
-    )
-    PrimeItems.program_arguments["indent"] = int(
-        PrimeItems.program_arguments["indent"],
-    )
-    # Update colors based on the current MyGui instance
-    PrimeItems.colors_to_use = do_colors(user_input)
+    # Chexk to see if it is a specific entry:
+    if "Prettier" in get_first_text_entry(data):
+        PrimeItems.program_arguments["pretty"] = user_input.pretty
+
+    # Do the entire enchillada if it is not a specific entry:
+    else:
+        for value in ARGUMENT_NAMES:
+            with contextlib.suppress(AttributeError):
+                PrimeItems.program_arguments[value] = getattr(user_input, value)
+                logger.info(
+                    f"GUI arg: {value} set to: {PrimeItems.program_arguments[value]}",
+                )
+        PrimeItems.program_arguments["display_detail_level"] = int(
+            PrimeItems.program_arguments["display_detail_level"],
+        )
+        PrimeItems.program_arguments["indent"] = int(
+            PrimeItems.program_arguments["indent"],
+        )
+        # Update colors based on the current MyGui instance
+        PrimeItems.colors_to_use = do_colors(user_input)
 
 
 # Get the program arguments from GUI
@@ -167,6 +187,11 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         # METHOD 1 INTERCEPTION: ACCIDENTAL TAB/BROWSER CLOSE DISCONNECT HOOK
         # =========================================================================
         async def on_client_disconnect() -> None:
+            import traceback
+
+            logger.warning("📡 on_client_disconnect was triggered!")
+            # Log the current execution frame stack to see what led here
+            logger.warning(f"Disconnect Stack:\n{''.join(traceback.format_stack())}")
             logger.info("📡 Browser tab closed by user! Initiating automatic state save...")
 
             # Grab your active MyGui instance securely from global state tracking
@@ -177,7 +202,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
                 pass
 
             # Shut down the local NiceGUI web server gracefully instead of leaving it hanging
-            app.shutdown()
+            # app.shutdown()
 
         # Connect the event listener callback directly to this active browser page client session
         ui.context.client.on_disconnect(on_client_disconnect)
@@ -207,10 +232,17 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
             if hasattr(my_gui_instance, "event") and my_gui_instance.event:
                 my_gui_instance.event = False  # Reset the event flag after processing
 
-                capture_gui_state(my_gui_instance)
+                capture_gui_state(my_gui_instance, data)
 
         # Always forward execution to the original emitter so the browser communicates!
-        await _original_sio_emit(event, data=data, room=room, **kwargs)
+        try:
+            await _original_sio_emit(event, data=data, room=room, **kwargs)
+        except Exception as sio_err:
+            logger.error(f"💥 Socket.IO Emitter crashed during event '{event}': {sio_err}")
+            import traceback
+
+            logger.error(traceback.format_exc())
+            raise sio_err
 
     # 3. Apply the monkey-patch directly to the core server emitter instance
     core.sio.emit = intercepted_sio_emit
@@ -218,17 +250,28 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # 3. Start the server (This will now properly block without running main() twice)
     print("bingo ui.run")
-    ui.run(
-        reload=False,
-        host="127.0.0.1",
-        storage_secret="maptasker_gui_storage",
-        title="MapTasker",
-        port=0,  # Use 0 to automatically avoid port conflicts
-        dark=None,
-        show=True,
-    )
+    try:
+        ui.run(
+            reload=False,
+            host="127.0.0.1",
+            storage_secret="maptasker_gui_storage",
+            title="MapTasker",
+            port=0,
+            dark=None,
+            show=True,
+        )
+    except SystemExit as se:
+        print(f"bingo 🚨 ui.run exited via a hard SystemExit! Code: {se.code}")
+        import traceback
 
-    logger.info("GUI closed. Processing arguments...")
+        print(traceback.format_exc())
+    except Exception as e:
+        print(f"bingo 🚨 ui.run crashed due to an unhandled exception: {e!s}")
+        import traceback
+
+        print(traceback.format_exc())
+
+    logger.info("GUI closed. Processing arg∑uments...")
     print("bingo gui closed. Processing arguments...")
 
     # DROP HERE ON EXIT OF GUI.  Now we can retrieve the user input from shared_state and process it.

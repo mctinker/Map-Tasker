@@ -243,18 +243,6 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
         profiles_to_display.insert(0, none_translated)
     tasks_to_display.insert(0, none_translated)
 
-    # Display the object pulldowns in 'Analyze' tab
-    self.ai_project_optionmenu, self.ai_profile_optionmenu, self.ai_task_optionmenu = display_object_pulldowns(
-        self,
-        self.tab_analyze,
-        projects_to_display,
-        profiles_to_display,
-        tasks_to_display,
-        self.event_handlers.single_project_name_event,
-        self.event_handlers.single_profile_name_event,
-        self.event_handlers.single_task_name_event,
-    )
-
     # Display the object pulldowns in 'Specific Name' tab
     if not projects_to_display:  # If no Projects to display
         projects_to_display = [translate_string("None")]
@@ -796,11 +784,8 @@ def _set_single_profile_name(self: object, defaults: dict) -> None:
     except AttributeError:
         return
 
-    self.ai_profile_optionmenu.value = self.single_profile_name
-    self.ai_project_optionmenu.value = defaults["project"]
     self.specific_project_optionmenu.value = defaults["project"]
     self.specific_task_optionmenu.value = defaults["task"]
-    self.ai_task_optionmenu.value = defaults["task"]
 
 
 def _set_single_task_name(self: object, defaults: dict) -> None:
@@ -812,11 +797,8 @@ def _set_single_task_name(self: object, defaults: dict) -> None:
     except AttributeError:
         return
 
-    self.ai_task_optionmenu.value = self.single_task_name
     self.specific_project_optionmenu.value = defaults["project"]
     self.specific_profile_optionmenu.value = defaults["profile"]
-    self.ai_project_optionmenu.value = defaults["project"]
-    self.ai_profile_optionmenu.value = defaults["profile"]
 
 
 def _set_default_names(self: object, defaults: dict) -> None:
@@ -834,26 +816,17 @@ def _set_default_names(self: object, defaults: dict) -> None:
         if not PrimeItems.tasker_root_elements.get("all_projects"):
             self.specific_project_optionmenu.options = [none_text]
             self.specific_project_optionmenu.value = none_text
-            self.ai_project_optionmenu.options = [none_text]
-            self.ai_project_optionmenu.value = none_text
 
         if not PrimeItems.tasker_root_elements.get("all_profiles"):
             self.specific_profile_optionmenu.options = [none_text]
             self.specific_profile_optionmenu.value = none_text
-            self.ai_profile_optionmenu.options = [none_text]
-            self.ai_profile_optionmenu.value = none_text
 
         if not PrimeItems.tasker_root_elements.get("all_tasks"):
             self.specific_task_optionmenu.options = [none_text]
             self.specific_task_optionmenu.value = none_text
-            self.ai_task_optionmenu.options = [none_text]
-            self.ai_task_optionmenu.value = none_text
 
         self.specific_profile_optionmenu.value = profile_text
-        self.ai_project_optionmenu.value = project_text
-        self.ai_profile_optionmenu.value = profile_text
         self.specific_task_optionmenu.value = task_text
-        self.ai_task_optionmenu.value = task_text
     except AttributeError:
         pass
 

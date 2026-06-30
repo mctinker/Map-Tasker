@@ -8,7 +8,7 @@ import webbrowser
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from nicegui import Event, ui
+from nicegui import Event, run, ui
 
 from maptasker.src.aiutils import get_api_key, is_valid_ai_config
 from maptasker.src.bildhtml import build_html
@@ -122,7 +122,7 @@ class MyGui:
 
         # 1. Initialize settings and state
         initialize_gui(self)
-        self.set_defaults()
+        # self.set_defaults()
         PrimeItems.mygui = self
 
         # Attach Event Handlers
@@ -131,21 +131,34 @@ class MyGui:
         # =========================================================================
         # CRITICAL TIMING FIX: DELAY ALL STARTUP LOGIC UNTIL AFTER HANDSHAKE
         # =========================================================================
-        def initial_data_load() -> None:
-            default_language = "English"
+        async def initial_data_load() -> None:  # CHANGED: Added 'async' here
+            self.language = default_language = "English"
 
             # 1. Restore the user settings from disk first to get the true saved language
             if not PrimeItems.program_arguments["reset"]:
-                self.event_handlers.restore_settings_event()
+                # Restore settings so that we can get the language required
+                temp_args, _ = self.event_handlers.restore_settings_event(restore_only=True)
+                for value in ARGUMENT_NAMES:
+                    with contextlib.suppress(AttributeError):
+                        setattr(self, value, temp_args[value])
 
-            # 2. FIXED: Call initialize_screen exactly once based on language requirement
+            # 2. Call initialize_screen exactly once based on language requirement
             if self.language != default_language:
+                # Non-English language selected.
                 language_to_switch_to = self.language
                 self.language = default_language
-                # This clears the empty root context and calls initialize_screen cleanly once
+
+                # Initialize the screen
+                initialize_screen(self)
+
+                # This clears the empty root context and calls initialize_screen cleanly once.
+                # It also extracts the settings.
+                the_view.is_updating = True  # Engage temporary lock during setup redirection
+                the_view.language_optionmenu.value = translate_string(language_to_switch_to)
+                the_view.is_updating = False
                 self.event_handlers.language_selected_event(language_to_switch_to)
             else:
-                # If it is English, initialize the screen layout for the first and only time here
+                # If it is English, initialize the screen and extract the settings.
                 try:
                     initialize_screen(self)
                 except Exception as e:  # noqa: BLE001
@@ -153,6 +166,9 @@ class MyGui:
                     print("\n" + "=" * 50)
                     print("🚨 CRITICAL UI BUILD ERROR 🚨", e)
                     sys.exit()
+
+                # Restore and extract the settings for real this time.
+                self.event_handlers.restore_settings_event()
 
             # 3. Synchronize colors
             if self.color_lookup and not PrimeItems.colors_to_use:
@@ -171,7 +187,8 @@ class MyGui:
             _ = get_xml(self.debug, self.appearance_mode)
 
             # 6. Process the initial layout map view
-            self.event_handlers.view_event("map")
+            # CHANGED: Added 'await' here to cleanly resolve the async coroutine
+            await self.event_handlers.view_event("map")
 
             # 7. Complete background application tasks
             self.check_new_version()
@@ -890,7 +907,7 @@ class MyGui:
                 "Display Names Italicized",
                 display=False,
             ),
-            "language": lambda: self.event_handlers.language_set_event(value),
+            "language": lambda: self.event_handlers.language_selected_event(value),
             "list_unnamed_items": lambda: self.select_deselect_checkbox(
                 self.list_unnamed_items_checkbox,
                 value,
@@ -898,12 +915,6 @@ class MyGui:
                 display=False,
             ),
             "view_limit": lambda: self.event_handlers.viewlimit_event(value),
-            # "outline": lambda: self.select_deselect_checkbox(
-            #     self.outline_checkbox,
-            #     value,
-            #     "Display Configuration Outline",
-            #     display=False,
-            # ),
             "preferences": lambda: self.select_deselect_checkbox(
                 self.preferences_checkbox,
                 value,
@@ -1281,23 +1292,47 @@ class MapTaskerEventHandlers:
     # ==========================================
     # 2. Display View: Map, Diagram, Misc or Tree
     # ==========================================
-    def view_event(self: "MapTaskerEventHandlers", view_type: str) -> None:
-        """Triggered when Map, Diagram, or Tree buttons are clicked."""
-        window_title = f"{view_type.capitalize()} View"
-        self.gui.event = (
-            True  # Set the event flag to True to let rungui know to save the current state and not reset it.
-        )
-        logger.info(f"GUI: Switching to {window_title}")
-        ui.notify(f"Loading {window_title} View...", type="info", timeout=1000)
+    async def view_event(self: "MapTaskerEventHandlers", view_type: str) -> None:
+        """Triggered when Map, Diagram, or Tree buttons are clicked.
 
-        # Point to the data
-        data = PrimeItems.output_lines.output_lines
+        Uses run.io_bound to run blocking file generations in a background thread,
+        allowing thread-safe access to internal PrimeItems variables.
+        """
+        print("bingo view_event")
+
+        window_title = f"{view_type.capitalize()} View"
+        self.gui.event = True  # Set the event flag to True
+        logger.info(f"GUI: Switching to {window_title}")
+
         gui = self.gui
 
         # Map view
         if view_type == "map":
-            # Process all of the data and build/output our html
-            build_html("")
+            # 1. Clear out stale error codes before starting execution paths
+            PrimeItems.error_code = 0
+            PrimeItems.error_msg = ""
+
+            try:
+                # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
+                await run.io_bound(build_html, "")
+            except SystemExit as e:
+                # Intercept background termination codes gracefully
+                error_code_extracted = e.code if hasattr(e, "code") else 6
+                if error_code_extracted == 6:
+                    gui.display_message_box(
+                        "Map view creation skipped: No valid XML source found or action canceled.",
+                        "Orange",
+                    )
+                else:
+                    gui.display_message_box(f"Map processing halted with system code: {error_code_extracted}", "Red")
+                return
+
+            # Check if an entry-point processing failure occurred during build_html
+            if getattr(PrimeItems, "error_code", 0) > 0:
+                gui.display_message_box(f"Map processing error: {PrimeItems.error_msg}", "Orange")
+                PrimeItems.error_code = 0
+                PrimeItems.error_msg = ""
+                return
 
             # Now process the data for display in the gui
             map_data = parse_html()
@@ -1311,39 +1346,40 @@ class MapTaskerEventHandlers:
                     "Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
                 )
                 gui.display_message_box(
-                    f"{text1}{map_length}, {text2}{self.view_limit}).  {text3}",
+                    f"{text1}{map_length}, {text2}{gui.view_limit}).  {text3}",
                     "Orange",
                 )
-                if self.mapview_window is not None:
-                    self.mapview_window.destroy()
                 return
 
             # Define the view and display the map.
+            gui.display_message_box("Processing Map View.  Please stand by...", "Green")
             gui.textview = NiceGuiTextView(
                 gui,
                 title=window_title,
                 the_data=map_data,
             )
+            gui.display_message_box("Map View displayed.", "Green")
 
         # Setup diagram view.
         elif view_type in ("diagram", "misc"):
             # Check if we have a Project or Profile
             if view_type == "diagram":
-                # If we don't already have Project, then get some XML.
                 if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
-                    # Let the user know
                     gui.display_message_box(
                         "The 'Diagram' view is running in the background.  Please stand by...",
                         "Green",
                     )
-                    # Process the diagram: builds the 'network' and then draws it in the GUI
-                    outline_the_configuration()
-                    # Display the diagram in the GUI
+
+                    # Offload the configuration outliner to an IO-bound thread safely
+                    await run.io_bound(outline_the_configuration)
+
                     gui.textview = NiceGuiTextView(
                         gui,
                         title=window_title,
                         the_data=[],
                     )
+                else:
+                    gui.display_message_box("No XML data loaded! Please select a valid XML file first.", "Orange")
 
             else:
                 gui.display_message_box(
@@ -1357,7 +1393,6 @@ class MapTaskerEventHandlers:
                 )
 
         elif view_type == "tree":
-            # Build our tree from XML data
             tree_data = gui.build_the_tree()
             if tree_data:
                 gui.textview = NiceGuiTreeView(gui, "Tree View", items=tree_data)
@@ -1374,8 +1409,6 @@ class MapTaskerEventHandlers:
                 "Invalid view type specified. Use 'map', 'diagram', or 'tree'.",
                 "Red",
             )
-
-        return
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
@@ -1851,14 +1884,15 @@ class MapTaskerEventHandlers:
             ui.notify("File selection canceled.", type="warning")
 
     # Process the 'Restore Settings' checkbox
-    def restore_settings_event(self) -> None:
+    def restore_settings_event(self, restore_only: bool = False) -> None | tuple[dict, dict]:
         """
         Resets settings to defaults and restores from saved settings file
         Args:
             self: The class instance
-            first_time: bool - True if this is the first time the checkbox is clicked
+            restore_only: bool - True if only restoring settings without resetting defaults
         Returns:
-            None: No value is returned
+            None: No value is returned if not restoring only
+            tuple[dict, dict]: Returns a tuple of temporary arguments and color lookup if restoring only
         Processing Logic:
             - Reset all values to defaults
             - Restore saved settings from file
@@ -1876,6 +1910,8 @@ class MapTaskerEventHandlers:
             the_view.color_lookup,
             to_save=False,
         )
+        if restore_only:
+            return temp_args, the_view.color_lookup
 
         # Check for errors
         with contextlib.suppress(KeyError):
@@ -1883,13 +1919,13 @@ class MapTaskerEventHandlers:
                 the_view.display_message_box(temp_args["msg"], "Red")
                 temp_args["msg"] = ""
                 self.color_reset_event()
-                return
+                return None
 
         # If no colors restored, let user know.
         if not the_view.color_lookup:
             the_view.display_message_box("Colors set to defaults.", "Green")
 
-        # Restore progargs values
+        # Restore all values to self
         if temp_args or the_view.color_lookup:
             the_view.extract_settings(temp_args)
             the_view.restore = True
@@ -1900,6 +1936,10 @@ class MapTaskerEventHandlers:
 
         # Save our background color for later reuse
         the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
+
+        if restore_only:
+            return temp_args, the_view.color_lookup
+        return None
 
     # Show for edit the AI API Key
     def ai_apikey_event(self) -> None:
@@ -2200,148 +2240,122 @@ class MapTaskerEventHandlers:
     def language_selected_event(self, language: any) -> None:
         """Set the language for the GUI and redisplay everything using NiceGUI.
 
-        Uses a state lock to prevent recursive dropdown triggers.
+        Employs reverse-lookup key validation to intercept asynchronous browser
+        WebSocket echo loops perfectly.
         """
-        # =========================================================================
-        # CRITICAL RECURSION GUARD: Exit if we are currently updating settings programmatically
-        # =========================================================================
         the_view = self if self.__class__.__name__ == "MyGui" else self.gui
+
+        # 1. Check if an existing heavy structural update sequence is in progress
         if getattr(the_view, "is_updating", False):
             return
-        # =========================================================================
 
-        # EXTRACT VALUE IF PASSED FROM A NICEGUI CHANGE EVENT OBJECT
-        the_view.event = True  # Flag that an event is being processed
+        the_view.event = True
         language = language.value if hasattr(language, "value") else language
 
         if language is None:
             return
 
-        # Let everyone know we are setting the language
-        PrimeItems.language_set = True
+        # 2. REVERSE LOOKUP MAP: Dynamically align localized names back to internal keys
+        lang_lookup = {}
+        for eng_key in PrimeItems.languages.keys():
+            lang_lookup[eng_key.lower()] = eng_key
+            lang_lookup[translate_string(eng_key).lower()] = eng_key
 
-        if the_view.language == language:
+        # Resolve the true incoming internal key cleanly
+        incoming_language_key = lang_lookup.get(str(language).lower(), "English")
+
+        # 3. CRITICAL ASYNC GUARD: Drop the duplicate WebSocket echo event
+        # returned by the browser if the language state already matches.
+        if the_view.language == incoming_language_key:
             return
 
-        # Set the translation function in PrimeItems
-        self.language_set_event(translate_string(language))
+        PrimeItems.language_set = True
 
-        # Reset selection checkboxes / extended list flags safely using the lock flag
-        the_view.displaying_extended_list = None  # Force pulldown to be recreated.
-        if hasattr(the_view, "aimodel_extend_checkbox") and the_view.aimodel_extend_checkbox:
-            try:
-                the_view.is_updating = True  # Engage the lock
-                the_view.aimodel_extend_checkbox.value = False
-            finally:
-                the_view.is_updating = False  # Disengage the lock
-
-        # =========================================================================
-        # CRITICAL FIX: RESET THE ACTIVE CONTEXT TO THE ROOT PAGE CLIENT
-        # =========================================================================
-        # 1. Safely remove top-level drawers and headers while keeping page_container intact
-        layout_slots = ui.context.client.layout.default_slot.children
-        for element in list(layout_slots):
-            if element != ui.context.client.page_container:
-                layout_slots.remove(element)
-
-        # 2. Flush the children components from the central main content window containe
-        ui.context.client.page_container.default_slot.children.clear()
-
-        # 3. Force NiceGUI back to the top-level slot context so layout elements are not nested
-        with ui.context.client:
-            initialize_screen(the_view)
-        # =========================================================================
-
-        # Redisplay current file
-        display_current_file(the_view, the_view.file)
-
-        # Restore settings values so that they are correctly displayed in the new UI instance
-        temp_args = {arg: getattr(the_view, arg) for arg in ARGUMENT_NAMES if hasattr(the_view, arg)}
-        the_view.extract_settings(temp_args)
-
-        # Trigger task limit label updates
-        if hasattr(self, "tasklimit_event"):
-            self.tasklimit_event(the_view.task_action_warning_limit)
-
-        # Reset the single item object tracking names
-        set_tasker_object_names(the_view)
-
-        # Reset single item dropdown select lists
-        update_tasker_object_menus(
-            the_view,
-            get_data=False,
-            reset_single_names=False,
-        )
-
-        # Handle upgrade buttons checks
-        if hasattr(the_view, "check_new_version"):
-            the_view.check_new_version()
-
-        # Update the pull-down menus option items lists
-        if "list_tasker_objects" in globals():
-            list_tasker_objects(the_view)
-
-        # Map menu attributes to their target values for a clean batch update
-        menu_updates = []
-
-        if the_view.single_project_name:
-            menu_updates = [
-                ("specific_project_optionmenu", the_view.single_project_name),
-                ("ai_project_optionmenu", the_view.single_project_name),
-            ]
-        elif the_view.single_profile_name:
-            menu_updates = [
-                ("specific_profile_optionmenu", the_view.single_profile_name),
-                ("ai_profile_optionmenu", the_view.single_profile_name),
-            ]
-        elif the_view.single_task_name:
-            menu_updates = [
-                ("specific_task_optionmenu", the_view.single_task_name),
-                ("ai_task_optionmenu", the_view.single_task_name),
-            ]
-
-        # Batch update the dropdown values safely under the state lock
         try:
-            the_view.is_updating = True  # Engage the lock
+            # 4. ENGAGE LOCK HERE: Protect the structural layout rebuild phase
+            the_view.is_updating = True
+
+            # Set the translation function in PrimeItems
+            self.language_set_event(translate_string(language))
+
+            # Reset selection checkboxes / extended list flags safely
+            the_view.displaying_extended_list = None
+            if hasattr(the_view, "aimodel_extend_checkbox") and the_view.aimodel_extend_checkbox:
+                the_view.aimodel_extend_checkbox.value = False
+
+            # Redisplay current file
+            display_current_file(the_view, the_view.file)
+
+            # Restore settings values so that they are correctly displayed in the new UI instance if initializing.
+            temp_args = {arg: getattr(the_view, arg) for arg in ARGUMENT_NAMES if hasattr(the_view, arg)}
+            if the_view.initialization:
+                the_view.extract_settings(temp_args)
+
+            # Trigger task limit label updates
+            if hasattr(self, "tasklimit_event"):
+                self.tasklimit_event(the_view.task_action_warning_limit)
+
+            # Reset the single item object tracking names
+            set_tasker_object_names(the_view)
+
+            # Reset single item dropdown select lists
+            update_tasker_object_menus(the_view, get_data=False, reset_single_names=False)
+
+            if hasattr(the_view, "check_new_version"):
+                the_view.check_new_version()
+
+            if "list_tasker_objects" in globals():
+                list_tasker_objects(the_view)
+
+            # Map menu attributes to their target values for a clean batch update
+            menu_updates = []
+            if the_view.single_project_name:
+                menu_updates = [
+                    ("specific_project_optionmenu", the_view.single_project_name),
+                ]
+            elif the_view.single_profile_name:
+                menu_updates = [
+                    ("specific_profile_optionmenu", the_view.single_profile_name),
+                ]
+            elif the_view.single_task_name:
+                menu_updates = [
+                    ("specific_task_optionmenu", the_view.single_task_name),
+                ]
+
             for attr_name, target_value in menu_updates:
                 if hasattr(the_view, attr_name):
                     menu_widget = getattr(the_view, attr_name)
                     if menu_widget:
                         menu_widget.value = target_value
+
+            # Redo the contextual text labels values
+            display_selected_object_labels(the_view)
+
+            # Update text labels inside tabs directly
+            if hasattr(the_view, "tab_specific_name") and the_view.tab_specific_name:
+                the_view.tab_specific_name.text = translate_string("Specific Name")
+            if hasattr(the_view, "tab_colors") and the_view.tab_colors:
+                the_view.tab_colors.text = translate_string("Colors")
+            if hasattr(the_view, "tab_analyze") and the_view.tab_analyze:
+                the_view.tab_analyze.text = translate_string("Analyze")
+            if hasattr(the_view, "tab_debug") and the_view.tab_debug:
+                the_view.tab_debug.text = translate_string("Debug")
+
+            ui.update()
+
         finally:
-            the_view.is_updating = False  # Always disengage the lock
-
-        # Redo the contextual text labels values
-        display_selected_object_labels(the_view)
-
-        # Update text labels inside tabs directly by changing the properties of references saved in guiwins.py
-        if hasattr(the_view, "tab_specific_name") and the_view.tab_specific_name:
-            the_view.tab_specific_name.text = translate_string("Specific Name")
-        if hasattr(the_view, "tab_colors") and the_view.tab_colors:
-            the_view.tab_colors.text = translate_string("Colors")
-        if hasattr(the_view, "tab_analyze") and the_view.tab_analyze:
-            the_view.tab_analyze.text = translate_string("Analyze")
-        if hasattr(the_view, "tab_debug") and the_view.tab_debug:
-            the_view.tab_debug.text = translate_string("Debug")
-
-        # Forces the tab panel component container to process text and redraw updates
-        ui.update()
+            # 5. Release lock safely
+            the_view.is_updating = False
 
     def language_set_event(self, language: str) -> None:
-        """
-        Set the language for the GUI. Comes here via 'restore_display' and 'language_set_event'.
-        Uses the state lock to prevent recursive dropdown triggers.
+        """Set the language for the GUI.
 
-        Args:
-            language: The language selected by the user.
+        Uses value validation to mutate properties safely without entering
+        unwanted execution loops.
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.gui
 
-        # 1. Early exit if an automatic programmatic update loop is already active
-        if getattr(the_view, "is_updating", False):
-            return
-
-        # Get or Set and Get the language to use in English: Spanish, German, etc.
+        # Get or Set and Get the language to use in English
         language_translated = translate_string(language, set_language=True)
         if language in PrimeItems.languages:
             language_to_use = language
@@ -2360,14 +2374,13 @@ class MapTaskerEventHandlers:
 
         language_translated = translate_string(language_to_use)
 
-        # 2. Change the menu dropdown value safely using the lock flag
+        # Update dropdown menu value safely
         if hasattr(the_view, "language_optionmenu") and the_view.language_optionmenu:
-            try:
-                the_view.is_updating = True  # Engage the lock
-                the_view.language_optionmenu.value = language_translated
-                PrimeItems.program_arguments["language"] = language_to_use
-            finally:
-                the_view.is_updating = False  # Disengage the lock
+            menu = the_view.language_optionmenu
+
+            # Only mutate the value if it differs from the target translation string
+            if menu.value != language_translated:
+                menu.value = language_translated
 
         # Translate and format message
         message = f"{translate_string('Language set to')} {language_translated}."
@@ -2524,7 +2537,10 @@ class MapTaskerEventHandlers:
         if getattr(guiview, "is_updating", False):
             return
 
-        guiview.view_limit = 9999999 if view_limit == translate_string("Unlimited") else int(view_limit)
+        view_limit = view_limit.value if hasattr(view_limit, "value") else view_limit
+        if isinstance(view_limit, str) and view_limit.isdigit():
+            view_limit = int(view_limit)
+        guiview.view_limit = 9999999 if view_limit == translate_string("Unlimited") else view_limit
         if view_limit == 9999999:
             view_limit = "Unlimited"
 
@@ -2537,20 +2553,6 @@ class MapTaskerEventHandlers:
 
         text = translate_string("View Limit set to")
         guiview.display_message_box(f"{text} {view_limit}.", "Green")
-
-    # Clear the message text box.
-    def clear_messages_event(self) -> None:
-        """
-        Clears the message box
-        Args:
-            None
-        Returns:
-            None
-        Processing Logic:
-            - Destroys the message box
-        """
-        the_view = self.gui
-        the_view.all_messages = {}
 
     def colors_event(self, e) -> None:
         """Fires whenever the user changes the dropdown category selection."""
@@ -2703,7 +2705,6 @@ class MapTaskerEventHandlers:
         # Do we have a single item identified?
         if gui.single_project_name or gui.single_profile_name or gui.single_task_name:
             gui.ai_analyze = True
-            # gui.event_handlers.clear_messages_event()  # Clear out all displayed messages.
             text1 = translate_string("Running")
             text2 = translate_string("analysis with model")
             gui.display_message_box(
@@ -2964,6 +2965,7 @@ class MapTaskerEventHandlers:
             mygui.pretty_checkbox,
             "Display Pretty Output",
         )
+        print("bingo pretty:", PrimeItems.program_arguments["pretty"])
 
     # Process the 'conditions' checkbox
     def condition_event(self) -> None:

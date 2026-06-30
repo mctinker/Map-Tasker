@@ -104,7 +104,7 @@ def prompt_for_backup_file(dir_path: str) -> None:
     if file_error and not PrimeItems.program_arguments["gui"]:
         error_handler("Backup file selection canceled.  Program ended.", 6)
     elif file_error:
-        PrimeItems.error_code = 6
+        PrimeItems.error_code = 5
 
 
 # Open and read the Tasker backup XML file

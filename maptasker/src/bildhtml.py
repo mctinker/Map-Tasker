@@ -3,6 +3,7 @@
 import contextlib
 import gc
 import os
+import sys
 import webbrowser
 from subprocess import run
 
@@ -74,6 +75,9 @@ def build_html(file_to_get: str) -> int:
     if PrimeItems.error_code > 0:
         # We have a error.  Spit it out and exit.
         exit_program(PrimeItems.error_code)
+
+    if PrimeItems.xml_root is None:
+        sys.exit(6)  # No file to read in.  Exit with error code 6.  userintr will intercept and display a msg.
 
     # Set up file to read if it is passed in (via rerun)
     if file_to_get:

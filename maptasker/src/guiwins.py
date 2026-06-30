@@ -157,7 +157,7 @@ class NiceGuiTreeView:
 class NiceGuiTextView:
     """Replaces CTkTextview. Handles rendering MapTasker data using HTML."""
 
-    def __init__(self: MyGui, master_gui: MyGui, title: str, the_data: list | dict) -> None:
+    def __init__(self, master_gui: MyGui, title: str, the_data: list | dict) -> None:
         """Initialize the NiceGuiTextView."""
         self.master_gui = master_gui
         self.title = title
@@ -165,15 +165,14 @@ class NiceGuiTextView:
         self.build_ui()
         self.process_data(the_data)
 
-    def build_ui(self: MyGui) -> None:
+    def build_ui(self) -> None:
         """Builds the UI layout for the various text views, including toolbar and scrollable display area."""
 
-        # Clear the previously displayed dynamic view and target the dedicated full-width slot
         if hasattr(self.master_gui, "content_container") and self.master_gui.content_container:
             self.master_gui.content_container.clear()
             container_context = self.master_gui.content_container
         else:
-            container_context = ui.column()  # Fallback context if called standalone
+            container_context = ui.column()
 
         with container_context:
             # Toolbar
@@ -186,7 +185,6 @@ class NiceGuiTextView:
                 ui.button("Top", on_click=lambda: self.scroll("top")).classes("bg-blue-600")
                 ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
 
-            # --- DYNAMIC TEXT WRAPPING CONFIGURATION ---
             if "Diagram" in self.title:
                 wrap_class = "whitespace-pre"
                 break_class = ""
@@ -194,7 +192,6 @@ class NiceGuiTextView:
                 wrap_class = "whitespace-pre-wrap"
                 break_class = "break-words"
 
-            # UPDATED: Replaced fixed 'font-mono' with dynamic line font family injection
             self.scroll_area = (
                 ui
                 .scroll_area()
@@ -204,35 +201,20 @@ class NiceGuiTextView:
                 .style(f"width: 100%; max-w: 100%; font-family: '{self.master_gui.font}', monospace;")
             )
 
-            with self.scroll_area:
-                # Direct structural constraints onto the raw HTML content block container
-                # UPDATED: Enforced the dynamic font rule directly onto the HTML canvas element block
-                html_style = f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;"
-                if "Diagram" not in self.title:
-                    html_style += " word-break: break-word;"
-
-                self.html_display = ui.html().classes("w-full block max-w-full").style(html_style)
-
-    def process_data(self: MyGui, the_data: dict | list) -> None:
-        """Converts data to an HTML string, properly handling embedded CSS styles and chosen layout fonts."""
-
-        # Ensure the HTML container style block remains explicitly matching the active choice font parameter
-        # This acts as an absolute runtime override if process_data gets executed out of initialization order
+    def process_data(self, the_data: dict | list) -> None:
+        """Converts data to HTML chunks, preventing single-packet WebSocket buffer overruns."""
         html_style = f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;"
         if "Diagram" not in self.title:
             html_style += " word-break: break-word;"
-        self.html_display.style(html_style)
 
-        # Get the appropriate file to process.
         if self.title.startswith("Map"):
             file_to_read = os.path.join(os.getcwd(), "MapTasker.html")
         elif self.title.startswith("Diagram"):
             file_to_read = os.path.join(os.getcwd(), DIAGRAM_FILE)
         elif self.title.startswith("Misc"):
-            if isinstance(the_data, list):
-                self.html_display.content = "\n".join(str(line) for line in the_data)
-            else:
-                self.html_display.content = str(the_data)
+            with self.scroll_area:
+                content_str = "\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data)
+                ui.html(f"<pre style='{html_style}'>{content_str}</pre>")
             return
 
         try:
@@ -243,19 +225,25 @@ class NiceGuiTextView:
                     final_html,
                 )
 
-            # Get the font used in the HTML file, if any, and update the master GUI font accordingly
-            # Execute the extraction check
             extracted_font = self.extract_first_font_name(final_html)
             if extracted_font not in ("Font name not found", self.master_gui.font):
-                # FIX
                 final_html = final_html.replace(f"font-family:{extracted_font}", f"font-family:{self.master_gui.font}")
 
-            self.html_display.content = final_html
+            # --- STREAMING CHUNK ENGINE ---
+            # Slice the giant HTML text by lines and push them in digestible blocks
+            html_lines = final_html.splitlines()
+            chunk_size = 1000  # Number of lines per single WebSocket packet transaction block
+
+            with self.scroll_area:
+                for i in range(0, len(html_lines), chunk_size):
+                    chunk_content = "\n".join(html_lines[i : i + chunk_size])
+                    ui.html(chunk_content).classes("w-full block max-w-full").style(html_style)
             return  # noqa: TRY300
 
         except FileNotFoundError:
             pass
 
+        # Apply the fallback generation if the file does not exist
         self._process_fallback_data(the_data)
 
     def extract_first_font_name(self: MyGui, text: str) -> str:
@@ -559,6 +547,7 @@ def _initialize_runtime_options(self: MyGui) -> None:
 def initialize_screen(self: MyGui) -> None:
     """Initializes the main GUI screen layout using NiceGUI with split sidebars."""
     logger.info("Building UI Layout...")
+    print("bingo initialize_screen")
 
     # Inject an ultra-high-contrast scrollbar theme block targeting drawers and view scroll areas
     ui.add_head_html("""
@@ -1202,6 +1191,9 @@ def _create_view_limit_section(self: MyGui) -> None:
 
     with ui.row().classes("w-full items-center gap-2"):
         # CustomTkinter's option menu becomes a ui.select dropdown
+        temp_view_limit = getattr(self, "view_limit", "10000")
+        if temp_view_limit == 9999999:
+            self.view_limit = "Unlimited"
         self.viewlimit_optionmenu = ui.select(
             options=["5000", "10000", "15000", "20000", "25000", "30000", "Unlimited"],
             value=str(getattr(self, "view_limit", "10000")),
@@ -1213,6 +1205,7 @@ def _create_view_limit_section(self: MyGui) -> None:
                 "Anything over this amount will stop the generation of the view as a means to throttle the program.\n\n"
                 "Note: This is only for the 'Map' and 'Diagram' views, not the tree view.",
             ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
+        self.view_limit = int(temp_view_limit) if temp_view_limit != "Unlimited" else 9999999
 
         # Query help button
         self.viewlimit_query_button = ui.button(
