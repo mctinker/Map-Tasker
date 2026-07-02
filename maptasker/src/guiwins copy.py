@@ -232,9 +232,7 @@ class NiceGuiTextView:
             # --- STREAMING CHUNK ENGINE ---
             # Slice the giant HTML text by lines and push them in digestible blocks
             html_lines = final_html.splitlines()
-            if html_lines and html_lines[0].strip() == '<span class="normtab"></span><!doctype html>':
-                del html_lines[0]  # Remove the first line if it matches the unwanted header
-            chunk_size = 500  # Number of lines per single WebSocket packet transaction block
+            chunk_size = 1000  # Number of lines per single WebSocket packet transaction block
 
             with self.scroll_area:
                 for i in range(0, len(html_lines), chunk_size):
@@ -405,13 +403,13 @@ class NiceGuiTextView:
         """Search for the input text in the displayed content."""
         ui.notify(f"Searching for: {self.search_input.value}", type="info")
 
-    def scroll(self, direction: str) -> None:
+    def scroll(self: MyGui, direction: str) -> None:
         if direction == "top":
-            # Native NiceGUI scroll to top (0% progress)
-            self.scroll_area.scroll_to(percent=0.0)
+            ui.run_javascript(f"document.getElementById('c{self.scroll_area.id}').scrollTop = 0")
         else:
-            # Native NiceGUI scroll to bottom (100% progress)
-            self.scroll_area.scroll_to(percent=1.0)
+            ui.run_javascript(
+                f"const el = document.getElementById('c{self.scroll_area.id}');el.scrollTop = el.scrollHeight",
+            )
 
 
 # ==========================================
@@ -549,6 +547,7 @@ def _initialize_runtime_options(self: MyGui) -> None:
 def initialize_screen(self: MyGui) -> None:
     """Initializes the main GUI screen layout using NiceGUI with split sidebars."""
     logger.info("Building UI Layout...")
+    print("bingo initialize_screen")
 
     # Inject an ultra-high-contrast scrollbar theme block targeting drawers and view scroll areas
     ui.add_head_html("""
@@ -664,6 +663,42 @@ def initialize_screen(self: MyGui) -> None:
             }
 
             /* =========================================================================
+               TARGETED DARK MODE RULES
+               ========================================================================= */
+            html.dark body,
+            html.dark .q-layout,
+            html.dark .q-page-container,
+            html.dark main,
+            html.dark .q-drawer,
+            html.dark .q-tab-panels,
+            html.dark .q-tab-panel,
+            html.dark .q-card,
+            html.dark .q-tabs,
+            html.dark div.nicegui-content {
+                background-color: #1e293b !important;
+                color: #ffffff !important;
+            }
+
+            /* Force toolbars dark in dark mode */
+            html.dark .bg-gray-200,
+            html.dark .dark\\:bg-gray-800,
+            html.dark .gap-4.mb-6 {
+                background-color: #1f2937 !important;
+                color: #ffffff !important;
+            }
+
+            /* Ensure text inside form inputs and selection text fields remains visible */
+            html:not(.dark) input,
+            html:not(.dark) textarea,
+            html:not(.dark) .q-field__native {
+                color: #000000 !important;
+            }
+            html.dark input,
+            html.dark textarea,
+            html.dark .q-field__native {
+                color: #ffffff !important;
+            }
+            /* =========================================================================
                GLOBAL TOOLTIP FONT SIZE ADJUSTMENT
                ========================================================================= */
             .q-tooltip {
@@ -701,11 +736,10 @@ def initialize_screen(self: MyGui) -> None:
             ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
 
             # --- 5. Apply styles to every named widget that exists ---
-            # CHANGED: Added text color enforcement (color: {fg} !important;) to the drawers
             for attr in ("gui_left_drawer", "gui_right_drawer"):
                 widget = getattr(self, attr, None)
                 if widget:
-                    widget.style(f"background-color: {drawer_bg} !important; color: {fg} !important;")
+                    widget.style(f"background-color: {drawer_bg} !important;")
 
             for attr in (
                 "gui_main_column",
@@ -830,11 +864,7 @@ def initialize_screen(self: MyGui) -> None:
                 "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
             ).style("white-space: pre-line")
 
-        self.exit_button = ui.button(
-            "Exit",
-            color="orange",
-            on_click=lambda: get_rid_of_windows_and_exit(self),
-        ).classes(
+        self.exit_button = ui.button("Exit", on_click=lambda: get_rid_of_windows_and_exit(self)).classes(
             "w-full bg-red-600 text-white mt-2 justify-center",
         )
 
@@ -876,17 +906,12 @@ def initialize_screen(self: MyGui) -> None:
             self.tab_debug = ui.tab(translate_string("Debug"), icon="bug_report")
 
         with ui.tab_panels(self.gui_main_tabs_container, value=self.tab_specific_name).classes(
-            "w-full border rounded shadow-inner p-6 mt-2 gap-y-0 m-0 p-0 leading-none",
+            "w-full border rounded shadow-inner p-6 mt-2",
         ) as self.gui_tab_panels:
             # Specific Name panel for targeting specific Projects, Profiles, or Tasks
             with ui.tab_panel(self.tab_specific_name) as self.gui_tasker_object_panel:
                 # FIXED: Wrap the panel label text in translate_string()
                 ui.label(translate_string("Target specific Projects, Profiles, or Tasks.")).classes("text-lg mb-4")
-                ui.label(
-                    translate_string(
-                        f"Project: {self.single_project_name} | Profile: {self.single_profile_name} | Task: {self.single_task_name}",
-                    ),
-                ).classes("text-sm mb-4")
 
                 self.specific_project_optionmenu = ui.select(
                     ["None"],

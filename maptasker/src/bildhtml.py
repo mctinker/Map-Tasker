@@ -173,10 +173,21 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
         # Output the rest that is in our output queue
         _output_directory = output_directory  # Localize for speed
         _format_line = format_line  # Localize for speed
-        for item in PrimeItems.output_lines.output_lines:
+        for num, item in enumerate(PrimeItems.output_lines.output_lines):
             # Check to see if this is where the directory is to go in the
             # Output directory. if so, output_directory will create it's own list of
             # output lines.
+            # FIX This is a temporary workaround to the GUI terminating prematurely due to output size.
+            if num > PrimeItems.view_limit:
+                print(
+                    f"bingo write_out_the_file: view limit reached, stopping output to file.  num={num}, view_limit={PrimeItems.view_limit}",
+                )
+                out_file.write("</span></body></html>")  # Close out the html file
+                logger.info(
+                    f"bingo write_out_the_file: view limit reached, stopping output to file.  num={num}, view_limit={PrimeItems.view_limit}",
+                )
+                break  # Don't output more than the view limit
+
             if "maptasker_directory" in item:
                 # Temporarily save our output lines
                 temp_lines_out = PrimeItems.output_lines.output_lines

@@ -49,7 +49,7 @@ def convert_to_integer(value_to_convert: str, default_value: int) -> int:
 
 
 # Get the colors to use.
-def do_colors(user_input: MyGui) -> dict:
+def do_colors(user_input: dict) -> dict:
     """Sets color mode and processes colors.
     Parameters:
         - user_input (dict): User input dictionary containing appearance mode and color lookup.
@@ -126,24 +126,35 @@ def capture_gui_state(user_input: MyGui, data: dict) -> None:
 
 # Get the program arguments from GUI
 def process_gui(use_gui: bool) -> tuple[dict, dict]:
-    # global MyGui
-    """Parameters:
-        - use_gui (bool): Flag to indicate whether to use GUI or not.
+    """
+    Process the graphical user interface for MapTasker using NiceGUI.
+
+    This function initializes the web-server environment, handles circular imports
+    for the GUI layout engine, setups WebSocket interaction logging filters, and blocks
+    execution via a local web server loop until the client session disconnects. On server
+    termination, it commits active session properties to disk and closes the parent process.
+
+    Args:
+        use_gui (bool): Flag indicating whether the graphical interface should be invoked.
+
     Returns:
-        - tuple[dict, dict]: Tuple containing program arguments and colors to use.
+        tuple[dict, dict]: Formatted program runtime arguments and colors lookup map
+                           (Note: This function completes execution internally via
+                           exit_program() and typically does not hit standard returns).
+
     Processing Logic:
-        - Import MyGui if use_gui is True.
-        - Set flag to indicate GUI usage.
-        - Delete previous Tkinter window if it exists.
-        - Display GUI and get user input.
-        - Initialize runtime arguments if not already set.
-        - If user clicks "Exit" button, save settings and exit program.
-        - If user closes window, cancel program.
-        - If user clicks "Run" button, get input from GUI variables.
-        - Set program arguments in dictionary.
-        - Convert display_detail_level and indent to integers.
-        - Get font from GUI.
-        - Return program arguments and colors to use."""
+        - Dynamically imports MyGui when use_gui is active to prevent module loops.
+        - Clears out vestigial desktop Tkinter window fragments if they exist.
+        - Maps a native single-instance root path page target equipped with disconnect
+          auto-termination safety hooks.
+        - Monkey-patches the core Socket.IO server layer to dynamically filter, log,
+          and serialize active visual properties to program state properties during use.
+        - Starts the blocking local uvicorn app instance server pool.
+        - Extracts the post-session variables block configuration from the browser state tracking cache.
+        - Sanitizes input types, filters critical security values (like API keys),
+          and dumps configurations down to the backend runtime settings binary save files.
+        - Shuts down the backend execution engine via early script termination.
+    """
     # CODE STARTS HERE
     logger.info("starting")
 
@@ -181,11 +192,29 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         # Lock the door behind us
         app_lock["is_built"] = True
 
-    logger.info("Starting NiceGUI server mainloop")
+        # =========================================================================
+        # METHOD 1 INTERCEPTION: ACCIDENTAL TAB/BROWSER CLOSE DISCONNECT HOOK
+        # =========================================================================
+        async def on_client_disconnect() -> None:
+            logger.info("📡 Browser tab closed by user! Initiating automatic state save...")
 
-    # =========================================================================
+            # Grab your active MyGui instance securely from global state tracking
+            my_gui_instance = getattr(PrimeItems, "mygui", None)
+
+            if my_gui_instance:
+                # Do any special processing here if needed.  Code will then fall-thru the 'ui.run' and exit normally.
+                pass
+
+            # Shut down the local NiceGUI web server gracefully instead of leaving it hanging
+            # app.shutdown()
+
+        # Connect the event listener callback directly to this active browser page client session
+        ui.context.client.on_disconnect(on_client_disconnect)
+        # =========================================================================
+
+    # ===================================================================================
     # Intercept all interactions with the UI to save MyGui to PrimeItems and shared_state
-    # from nicegui import core, ui
+    # ===================================================================================
     # 1. Save a reference to NiceGUI's core Socket.IO emitter function
     _original_sio_emit = core.sio.emit
 
@@ -198,6 +227,8 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     ) -> None:
         # Grab your active MyGui instance securely from global state tracking
         my_gui_instance = getattr(PrimeItems, "mygui", None)
+        # print("bingo intercepted_sio_emit event:", event, "data:", data, "room:", room, "kwargs:", kwargs)
+        # print("bingo")
 
         if my_gui_instance:  # noqa: SIM102
             # You have full structural access to your MyGui class properties here!
@@ -224,11 +255,14 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         port=0,  # Use 0 to automatically avoid port conflicts
         dark=None,
         show=True,
+        ws_ping_timeout=60,
+        ws_ping_interval=20,
     )
 
     logger.info("GUI closed. Processing arguments...")
     print("bingo gui closed. Processing arguments...")
 
+    # DROP HERE ON EXIT OF GUI.  Now we can retrieve the user input from shared_state and process it.
     # 4. Retrieve the state created by the web browser session
     user_input = shared_state.get("user_input")
 
@@ -273,20 +307,14 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     if the_font := user_input.font:
         PrimeItems.program_arguments["font"] = the_font
 
-    # If user selected the "Exit" button, call it quits.
-    user_exit = getattr(user_input, "exit", False)
-    if user_exit:
-        # Save the runtijme settings first.
-        _, _ = save_restore_args(
-            PrimeItems.program_arguments,
-            PrimeItems.colors_to_use,
-            to_save=True,
-        )
-        # Spit out the message and log it.
-        error_handler("Program exited. Goodbye.", 0)
+    # Save the runtime settings and exit.
+    _, _ = save_restore_args(
+        PrimeItems.program_arguments,
+        PrimeItems.colors_to_use,
+        to_save=True,
+    )
+    # Spit out the message and log it.
+    error_handler("Program exited. Goodbye.", 0)
 
-        # Call it quits.
-        exit_program(0)
-
-    # Return the program arguments and colors to use.
-    return (PrimeItems.program_arguments, do_colors(user_input))
+    # Call it quits.
+    exit_program(0)

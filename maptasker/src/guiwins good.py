@@ -20,20 +20,13 @@ if TYPE_CHECKING:
 # ==========================================
 # 2. DIALOGS & POPUPS
 # ==========================================
-def create_popup_window(title: str, message: str = "", close_button: bool = False) -> ui.dialog:
-    """Creates a modal dialog. Replaces PopupWindow and CTkToplevel.
-
-    Modified to expand width constraints allowing long text arrays
-    and log data streams more horizontal breathing room.
-    """
-    # CHANGED: Increased max-w-[500px] to max-w-[800px] (or use w-[700px] / w-full)
-    with ui.dialog() as dialog, ui.card().classes("min-w-[400px] max-w-[800px] w-full items-center p-6"):
-        ui.label(title).classes("text-xl font-bold text-blue-600 text-center")
+def create_popup_window(title: str, message: str = "") -> ui.dialog:
+    """Creates a modal dialog. Replaces PopupWindow and CTkToplevel."""
+    with ui.dialog() as dialog, ui.card().classes("min-w-[300px] items-center p-6"):
+        ui.label(title).classes("text-xl font-bold text-blue-600")
         if message:
-            # The 'w-full' ensures the text block utilizes 100% of the wider card frame
-            ui.label(message).classes("mt-2 text-left whitespace-pre-line break-words w-full text-base")
-        if close_button:
-            ui.button("Close", on_click=dialog.close).classes("mt-6 bg-red-500 text-white w-full")
+            ui.label(message).classes("mt-2 text-center")
+        # ui.button("Close", on_click=dialog.close).classes("mt-6 bg-red-500 text-white w-full")
 
     dialog.open()
     return dialog
@@ -76,88 +69,43 @@ HTML_REPLACEMENT_MAP = {
 
 
 class NiceGuiTreeView:
-    """Replaces CTkTreeview. Renders a hierarchical tree representation in the main view column."""
+    """Replaces CTkTreeview. Renders a hierarchical tree representation."""
 
-    def __init__(self, master_gui: MyGui, title: str, items: list) -> None:
-        """Initialize the Tree view with a title and hierarchical items."""
+    def __init__(self: MyGui, master_gui: object, title: str, items: list) -> None:
         self.master_gui = master_gui
         self.title = title
         self.build_ui(items)
 
-    def build_ui(self, items: list) -> None:
-        """Build the base UI layout for the Tree view inside the main content container slot."""
+    def build_ui(self: MyGui, items: list) -> None:
+        with ui.card().classes("w-full max-w-4xl mx-auto mt-4 p-6 shadow-lg"):
+            with ui.row().classes("items-center justify-between w-full border-b pb-4 mb-4"):
+                ui.label(f"{self.title} View").classes("text-2xl font-bold text-blue-600")
+                ui.label("Click arrows to expand/collapse.").classes("text-sm text-gray-500 italic")
 
-        # 1. Target and clear the dedicated full-width main view column slot
-        if hasattr(self.master_gui, "content_container") and self.master_gui.content_container:
-            self.master_gui.content_container.clear()
-            container_context = self.master_gui.content_container
-        else:
-            container_context = ui.column()  # Fallback context if called standalone
+            tree_data = self._format_data(items)
+            self.tree = ui.tree(tree_data, label_key="label", children_key="children", tick_strategy="none").classes(
+                "w-full text-lg",
+            )
 
-        # 2. Render the layout inside the main application body container
-        with container_context:
-            with ui.card().classes("w-full max-w-full mx-auto p-6 shadow-md border-2 border-gray-300"):
-                # Header row with title and navigation hints
-                with ui.row().classes("items-center justify-between w-full border-b pb-3 mb-4"):
-                    ui.label(f"{self.title}").classes("text-orange-500 font-bold text-lg")
-                    ui.label("Click arrows to expand/collapse details.").classes("text-xs text-gray-500 italic")
-
-                # Convert MapTasker nested dictionary list nodes to NiceGUI tree notation
-                tree_data = self._format_data(items)
-
-                # 3. Create a scrollable window container for large tree structures
-                with ui.scroll_area().classes("w-full h-[65vh] p-2"):
-                    # Render the native responsive Tree component
-                    # Injected custom fonts to preserve monospace formatting matches
-                    self.tree = (
-                        ui
-                        .tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
-                        .classes("w-full text-base")
-                        .style(f"font-family: '{self.master_gui.font}', monospace;")
-                    )
-
-    def _format_data(self, items: list, parent_id: str = "node") -> list:
-        """Converts MapTasker lists/dicts into NiceGUI's strict dict format,
-
-        replacing HTML non-breaking spaces (&nbsp;) with standard spaces
-        and cleaning raw arrow entities (&#11013;) into clear symbols.
-        """
+    def _format_data(self: MyGui, items: list, parent_id: str = "node") -> list:
+        """Converts MapTasker lists/dicts into NiceGUI's strict dict format."""
         formatted_nodes = []
         for i, item in enumerate(items):
             current_id = f"{parent_id}_{i}"
             if isinstance(item, dict):
-                # Extract the name and clean out the raw HTML markup fragments
-                raw_name = item.get("name", "Unnamed")
-                clean_name = (
-                    raw_name
-                    .replace("&nbsp;", " ")
-                    .replace("&#9940;", "⛔")
-                    .replace("&#11013;", "⬅️")
-                    .replace("&#11157;", "➡️")
-                    .ljust(50)
-                )
-
-                node = {"id": current_id, "label": clean_name}
+                node = {"id": current_id, "label": item.get("name", "Unnamed").ljust(50)}
                 if item.get("children"):
                     node["children"] = self._format_data(item["children"], current_id)
                 formatted_nodes.append(node)
             else:
-                # Handle raw string line items (like nested Task Actions or standalone strings)
-                clean_string = (
-                    str(item)
-                    .replace("&nbsp;", " ")
-                    .replace("&#9940;", "⛔")
-                    .replace("&#11013;", "⬅️")
-                    .replace("&#11157;", "➡️")
-                )
-                formatted_nodes.append({"id": current_id, "label": clean_string})
+                formatted_nodes.append({"id": current_id, "label": str(item)})
         return formatted_nodes
 
 
 class NiceGuiTextView:
     """Replaces CTkTextview. Handles rendering MapTasker data using HTML."""
 
-    def __init__(self, master_gui: MyGui, title: str, the_data: list | dict) -> None:
+    def __init__(self: MyGui, master_gui: MyGui, title: str, the_data: list | dict) -> None:
         """Initialize the NiceGuiTextView."""
         self.master_gui = master_gui
         self.title = title
@@ -165,18 +113,21 @@ class NiceGuiTextView:
         self.build_ui()
         self.process_data(the_data)
 
-    def build_ui(self) -> None:
+    def build_ui(self: MyGui) -> None:
         """Builds the UI layout for the various text views, including toolbar and scrollable display area."""
 
+        # Clear the previously displayed dynamic view and target the dedicated full-width slot
         if hasattr(self.master_gui, "content_container") and self.master_gui.content_container:
             self.master_gui.content_container.clear()
             container_context = self.master_gui.content_container
         else:
-            container_context = ui.column()
+            container_context = ui.column()  # Fallback context if called standalone
 
         with container_context:
             # Toolbar
-            with ui.row().classes("w-full items-center gap-2 p-2 mb-2") as self.gui_toolbar:
+            with ui.row().classes(
+                "w-full items-center gap-2 p-2 mb-2",
+            ) as self.gui_toolbar:
                 ui.label(f"{self.title}").classes("text-orange-500 font-bold mr-4")
                 self.search_input = ui.input(placeholder="Search...").classes("w-48")
                 ui.button("Search", on_click=self.search_event).classes("bg-blue-600")
@@ -185,87 +136,73 @@ class NiceGuiTextView:
                 ui.button("Top", on_click=lambda: self.scroll("top")).classes("bg-blue-600")
                 ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
 
+            # --- DYNAMIC TEXT WRAPPING CONFIGURATION ---
+            # Diagram view needs strict, un-wrapped columns. Map and others can use pre-wrap.
             if "Diagram" in self.title:
-                wrap_class = "whitespace-pre"
-                break_class = ""
+                wrap_class = "whitespace-pre"  # Disables wrapping, enables horizontal scrollbar
+                break_class = ""  # Remove word breaks so characters align perfectly
             else:
-                wrap_class = "whitespace-pre-wrap"
+                wrap_class = "whitespace-pre-wrap"  # Normal wrapping behavior for Map view
                 break_class = "break-words"
 
             self.scroll_area = (
                 ui
                 .scroll_area()
                 .classes(
-                    f"w-full max-w-full block h-[70vh] border-2 border-gray-600 p-4 text-sm {wrap_class} {break_class}",
+                    f"w-full max-w-full block h-[70vh] border-2 border-gray-600 p-4 font-mono text-sm {wrap_class} {break_class}",
                 )
-                .style(f"width: 100%; max-w: 100%; font-family: '{self.master_gui.font}', monospace;")
+                .style(
+                    "width: 100%;max-w: 100%;",  # Removed background-color override
+                )
             )
 
-    def process_data(self, the_data: dict | list) -> None:
-        """Converts data to HTML chunks, preventing single-packet WebSocket buffer overruns."""
-        html_style = f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;"
-        if "Diagram" not in self.title:
-            html_style += " word-break: break-word;"
+            with self.scroll_area:
+                # Direct structural constraints onto the raw HTML content block container
+                html_style = "width: 100%;max-width: 100%;"
+                if "Diagram" not in self.title:
+                    html_style += " word-break: break-word;"
 
+                self.html_display = ui.html().classes("w-full block max-w-full").style(html_style)
+
+    def process_data(self: MyGui, the_data: dict | list) -> None:
+        """Converts data to an HTML string, properly handling embedded CSS styles."""
+
+        # Get the appropriate file to process.
         if self.title.startswith("Map"):
             file_to_read = os.path.join(os.getcwd(), "MapTasker.html")
         elif self.title.startswith("Diagram"):
             file_to_read = os.path.join(os.getcwd(), DIAGRAM_FILE)
         elif self.title.startswith("Misc"):
-            with self.scroll_area:
-                content_str = "\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data)
-                ui.html(f"<pre style='{html_style}'>{content_str}</pre>")
+            if isinstance(the_data, list):
+                self.html_display.content = "\n".join(str(line) for line in the_data)
+            else:
+                self.html_display.content = str(the_data)
             return
 
+        # Get the data to process
+        # --- 1. TRY TO READ PRE-COMPRESSED HTML FILE FIRST ---
         try:
             with open(file_to_read, encoding="utf-8") as f:
                 final_html = f.read()
+                # Remove excessive blank lines and redundant <br> tags for cleaner display
+                # OPTIMIZED: Replaced 10 chained .replace() calls with a single-pass regex lookup
                 final_html = HTML_OPTIMIZE_PATTERN.sub(
                     lambda match: HTML_REPLACEMENT_MAP[match.group(0)],
                     final_html,
                 )
 
-            extracted_font = self.extract_first_font_name(final_html)
-            if extracted_font not in ("Font name not found", self.master_gui.font):
-                final_html = final_html.replace(f"font-family:{extracted_font}", f"font-family:{self.master_gui.font}")
-
-            # --- STREAMING CHUNK ENGINE ---
-            # Slice the giant HTML text by lines and push them in digestible blocks
-            html_lines = final_html.splitlines()
-            if html_lines and html_lines[0].strip() == '<span class="normtab"></span><!doctype html>':
-                del html_lines[0]  # Remove the first line if it matches the unwanted header
-            chunk_size = 500  # Number of lines per single WebSocket packet transaction block
-
-            with self.scroll_area:
-                for i in range(0, len(html_lines), chunk_size):
-                    chunk_content = "\n".join(html_lines[i : i + chunk_size])
-                    ui.html(chunk_content).classes("w-full block max-w-full").style(html_style)
+            # The file is already pure, raw HTML.
+            # We completely bypass all loops and assign it directly! Let NiceGui display it.
+            self.html_display.content = final_html
             return  # noqa: TRY300
 
+        # Fallback gracefully to your legacy processing if MapTasker.html doesn't exist yet and use the
+        # passed data to build the HTML content.
         except FileNotFoundError:
             pass
 
-        # Apply the fallback generation if the file does not exist
+        # Execute processing via fallback function
         self._process_fallback_data(the_data)
-
-    def extract_first_font_name(self: MyGui, text: str) -> str:
-        """
-        Scans the given text to identify and return the font name
-        following the very first 'font-family:' rule declaration.
-        """
-        # Regex Breakdown:
-        # font-family\s*:\s* -> Matches 'font-family', optional spaces, a colon, and optional spaces
-        # ([a-zA-Z0-9\s\-_'\"]+) -> Capture Group 1: Matches valid font name characters (letters, numbers, spaces, quotes, hyphens)
-        # (?=[;}]) -> Positive Lookahead: Stops capturing when it hits a closing semicolon or bracket
-        pattern = re.compile(r"font-family\s*:\s*([a-zA-Z0-9\s\-_'\"]+)(?=[;}])")
-
-        match = pattern.search(text)
-
-        if match:
-            # Return the captured font name, stripping off any outer quotes or accidental whitespace
-            return match.group(1).strip().strip("'\"")
-
-        return "Font name not found"
 
     def _process_fallback_data(self: MyGui, the_data: dict | list) -> None:
         """Fallback logic to assemble HTML content strings when the source file is missing."""
@@ -405,13 +342,13 @@ class NiceGuiTextView:
         """Search for the input text in the displayed content."""
         ui.notify(f"Searching for: {self.search_input.value}", type="info")
 
-    def scroll(self, direction: str) -> None:
+    def scroll(self: MyGui, direction: str) -> None:
         if direction == "top":
-            # Native NiceGUI scroll to top (0% progress)
-            self.scroll_area.scroll_to(percent=0.0)
+            ui.run_javascript(f"document.getElementById('c{self.scroll_area.id}').scrollTop = 0")
         else:
-            # Native NiceGUI scroll to bottom (100% progress)
-            self.scroll_area.scroll_to(percent=1.0)
+            ui.run_javascript(
+                f"const el = document.getElementById('c{self.scroll_area.id}');el.scrollTop = el.scrollHeight",
+            )
 
 
 # ==========================================
@@ -543,9 +480,9 @@ def _initialize_runtime_options(self: MyGui) -> None:
     self.taskernet = None
 
 
-# =========================================================================
+# ===============================================
 # Initialize the GUI screen layout using NiceGUI with split sidebars and main content area.
-# =========================================================================
+# ==============================================
 def initialize_screen(self: MyGui) -> None:
     """Initializes the main GUI screen layout using NiceGUI with split sidebars."""
     logger.info("Building UI Layout...")
@@ -664,11 +601,47 @@ def initialize_screen(self: MyGui) -> None:
             }
 
             /* =========================================================================
+               TARGETED DARK MODE RULES
+               ========================================================================= */
+            html.dark body,
+            html.dark .q-layout,
+            html.dark .q-page-container,
+            html.dark main,
+            html.dark .q-drawer,
+            html.dark .q-tab-panels,
+            html.dark .q-tab-panel,
+            html.dark .q-card,
+            html.dark .q-tabs,
+            html.dark div.nicegui-content {
+                background-color: #1e293b !important;
+                color: #ffffff !important;
+            }
+
+            /* Force toolbars dark in dark mode */
+            html.dark .bg-gray-200,
+            html.dark .dark\\:bg-gray-800,
+            html.dark .gap-4.mb-6 {
+                background-color: #1f2937 !important;
+                color: #ffffff !important;
+            }
+
+            /* Ensure text inside form inputs and selection text fields remains visible */
+            html:not(.dark) input,
+            html:not(.dark) textarea,
+            html:not(.dark) .q-field__native {
+                color: #000000 !important;
+            }
+            html.dark input,
+            html.dark textarea,
+            html.dark .q-field__native {
+                color: #ffffff !important;
+            }
+            /* =========================================================================
                GLOBAL TOOLTIP FONT SIZE ADJUSTMENT
                ========================================================================= */
             .q-tooltip {
-                font-size: 14px !important;
-                line-height: 1.4 !important;
+                font-size: 14px !important;  /* Change this value (e.g., 14px, 16px) to your preferred size */
+                line-height: 1.4 !important; /* Adjust spacing between wrapped lines if necessary */
             }
         </style>
     """)
@@ -701,11 +674,10 @@ def initialize_screen(self: MyGui) -> None:
             ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
 
             # --- 5. Apply styles to every named widget that exists ---
-            # CHANGED: Added text color enforcement (color: {fg} !important;) to the drawers
             for attr in ("gui_left_drawer", "gui_right_drawer"):
                 widget = getattr(self, attr, None)
                 if widget:
-                    widget.style(f"background-color: {drawer_bg} !important; color: {fg} !important;")
+                    widget.style(f"background-color: {drawer_bg} !important;")
 
             for attr in (
                 "gui_main_column",
@@ -768,37 +740,17 @@ def initialize_screen(self: MyGui) -> None:
         )
 
         # Core Feature Checkboxes
-        self.everything_checkbox = ui.checkbox(
-            "Just Display Everything!",
-            on_change=self.event_handlers.everything_event,
-        )
-
-        self.conditions_checkbox = ui.checkbox(
-            "Display Conditions",
-            on_change=self.event_handlers.condition_event,
-        )
-
-        # Hooked up to correct backend interaction event handlers
-        self.taskernet_checkbox = ui.checkbox("Display TaskerNet Info", on_change=self.event_handlers.taskernet_event)
-
-        self.preferences_checkbox = ui.checkbox(
-            "Display Tasker Preferences",
-            on_change=self.event_handlers.preferences_event,
-        )
-
-        self.twisty_checkbox = ui.checkbox(
-            "Hide Task Details Under Twisty",
-            on_change=self.event_handlers.twisty_event,
-        )
-
-        self.directory_checkbox = ui.checkbox("Display Directory", on_change=self.event_handlers.directory_event)
-
-        self.pretty_checkbox = ui.checkbox(
-            "Display Prettier Output",
-            on_change=self.event_handlers.pretty_event,
-        )
+        self.everything_checkbox = ui.checkbox("Just Display Everything!").bind_value(self, "everything")
+        self.conditions_checkbox = ui.checkbox("Display Conditions").bind_value(self, "conditions")
+        self.taskernet_checkbox = ui.checkbox("Display TaskerNet Info").bind_value(self, "taskernet")
+        self.preferences_checkbox = ui.checkbox("Display Tasker Preferences").bind_value(self, "preferences")
+        self.twisty_checkbox = ui.checkbox("Hide Task Details Under Twisty").bind_value(self, "twisty")
+        self.directory_checkbox = ui.checkbox("Display Directory").bind_value(self, "directory")
+        self.configuration_checkbox = ui.checkbox("Display Configuration Outline").bind_value(self, "outline")
+        self.pretty_checkbox = ui.checkbox("Display Prettier Output").bind_value(self, "pretty")
 
         # Build styling checkboxes, inputs, dropdown configurations
+        # create_appearance_mode_section(self)
         _create_name_display_options_section(self)
         _create_task_action_limit_section(self)
         _create_indentation_section(self)
@@ -809,6 +761,7 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
+    # OPTIMIZED: Added 'items-center text-center' to center all items horizontally
     with ui.right_drawer(fixed=True).classes(
         "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
     ) as self.gui_right_drawer:
@@ -819,6 +772,7 @@ def initialize_screen(self: MyGui) -> None:
         get_file_color = "green" if PrimeItems.file_to_get else "red"
         blink_class = "" if PrimeItems.file_to_get else " animate-pulse"
 
+        # OPTIMIZED: Changed text layout properties to ensure centering internal contents
         self.get_xml_button = ui.button(
             "Get Local XML File",
             color=get_file_color,
@@ -830,24 +784,13 @@ def initialize_screen(self: MyGui) -> None:
                 "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
             ).style("white-space: pre-line")
 
-        self.exit_button = ui.button(
-            "Exit",
-            color="orange",
-            on_click=lambda: get_rid_of_windows_and_exit(self),
-        ).classes(
+        self.exit_button = ui.button("Exit", on_click=lambda: get_rid_of_windows_and_exit(self)).classes(
             "w-full bg-red-600 text-white mt-2 justify-center",
         )
 
         # Section headings for clarity
         ui.label("File Operations").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         _create_file_and_message_buttons_section(self)
-
-        # Display Views Section with buttons for different views
-        ui.label("Display Views").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
-        with ui.row().classes("w-full justify-center gap-2 gap-y-0 mt-1"):
-            ui.button("Map", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
-            ui.button("Diagram", on_click=lambda: self.event_handlers.view_event("diagram")).classes("bg-blue-500")
-            ui.button("Tree", on_click=lambda: self.event_handlers.view_event("tree")).classes("bg-blue-500")
 
         # Settings Configuration State Saving
         ui.label("Application Settings").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
@@ -865,49 +808,29 @@ def initialize_screen(self: MyGui) -> None:
     with ui.column().classes("p-6 w-full max-w-full mx-auto") as self.gui_main_column:
         # View Navigation Buttons Row
         with ui.row().classes("gap-4 mb-6") as self.gui_view_toolbar:
+            ui.button("Map View", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
+            ui.button("Diagram View", on_click=lambda: self.event_handlers.view_event("diagram")).classes("bg-blue-500")
+            ui.button("Tree View", on_click=lambda: self.event_handlers.view_event("treeview")).classes("bg-blue-500")
             self.current_file = ui.label("No file loaded").classes("text-gray-500 italic")
 
         # Primary Multi-tab Application Panel Window Layout Structure
         with ui.tabs().classes("w-full") as self.gui_main_tabs_container:
-            # Primary Multi-tab Application Panel Window Layout Structure
-            self.tab_specific_name = ui.tab(translate_string("Specific Name"), icon="filter_list")
-            self.tab_colors = ui.tab(translate_string("Colors"), icon="palette")
-            self.tab_analyze = ui.tab(translate_string("Analyze"), icon="analytics")
-            self.tab_debug = ui.tab(translate_string("Debug"), icon="bug_report")
+            self.tab_specific_name = ui.tab("Specific Name", icon="filter_list")
+            self.tab_colors = ui.tab("Colors", icon="palette")
+            self.tab_analyze = ui.tab("Analyze", icon="analytics")
+            self.tab_debug = ui.tab("Debug", icon="bug_report")
 
         with ui.tab_panels(self.gui_main_tabs_container, value=self.tab_specific_name).classes(
-            "w-full border rounded shadow-inner p-6 mt-2 gap-y-0 m-0 p-0 leading-none",
+            "w-full border rounded shadow-inner p-6 mt-2",
         ) as self.gui_tab_panels:
             # Specific Name panel for targeting specific Projects, Profiles, or Tasks
             with ui.tab_panel(self.tab_specific_name) as self.gui_tasker_object_panel:
-                # FIXED: Wrap the panel label text in translate_string()
-                ui.label(translate_string("Target specific Projects, Profiles, or Tasks.")).classes("text-lg mb-4")
-                ui.label(
-                    translate_string(
-                        f"Project: {self.single_project_name} | Profile: {self.single_profile_name} | Task: {self.single_task_name}",
-                    ),
-                ).classes("text-sm mb-4")
-
-                self.specific_project_optionmenu = ui.select(
-                    ["None"],
-                    on_change=lambda e: self.event_handlers.single_project_name_event(e.value) if e.value else None,
-                    label=translate_string("Project"),  # Also translate option headers
-                ).classes("w-64 mb-2")
-
-                self.specific_profile_optionmenu = ui.select(
-                    ["None"],
-                    on_change=lambda e: self.event_handlers.single_profile_name_event(e.value) if e.value else None,
-                    label=translate_string("Profile"),
-                ).classes("w-64 mb-2")
-
-                self.specific_task_optionmenu = ui.select(
-                    ["None"],
-                    on_change=lambda e: self.event_handlers.single_task_name_event(e.value) if e.value else None,
-                    label=translate_string("Task"),
-                ).classes("w-64 mb-2")
-
+                ui.label("Target specific Projects, Profiles, or Tasks.").classes("text-lg mb-4")
+                self.specific_project_optionmenu = ui.select(["None"], label="Project").classes("w-64 mb-2")
+                self.specific_profile_optionmenu = ui.select(["None"], label="Profile").classes("w-64 mb-2")
+                self.specific_task_optionmenu = ui.select(["None"], label="Task").classes("w-64 mb-2")
                 self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-2 text-left")
-                self.list_unnamed_items_checkbox = ui.checkbox(translate_string("List Unnamed Items")).bind_value(
+                self.list_unnamed_items_checkbox = ui.checkbox("List Unnamed Items").bind_value(
                     self,
                     "list_unnamed_items",
                 )
@@ -965,7 +888,8 @@ def initialize_screen(self: MyGui) -> None:
                 self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug")
                 self.runtime_checkbox = ui.checkbox("Display Runtime Settings")
 
-        # Dedicated full-width dynamic container slot block target for views
+        # Dedicated full-width dynamic container slot block target for (Map, etc.) views now displays
+        # BELOW the tabs.
         self.content_container = ui.column().classes("w-full max-w-full p-0 m-0 mt-6")
 
         # Persistent global dialog container for selecting display colors safely
@@ -1036,6 +960,22 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
                 )
                 .style("white-space: pre-line")
             )  # Ensures the newline characters format correctly in HTML
+
+
+# FIX Delete code
+# def create_appearance_mode_section(self: MyGui) -> None:
+#     """Creates the appearance mode selection in the NiceGUI sidebar."""
+#     # Label for the section
+#     self.appearance_mode_label = ui.label("Appearance Mode:").classes(
+#         "text-sm font-semibold mt-2 gap-y-0 m-0 p-0 leading-none",
+#     )
+
+#     # Dropdown select menu mapping to your event handler
+#     self.appearance_mode_optionmenu = ui.select(
+#         options=["Light", "Dark", "System"],
+#         value="Dark",  # Default initial value
+#         on_change=self.event_handlers.change_appearance_mode_event,
+#     ).classes("w-full py-0 my-0 gap-y-0 m-0 p-0 leading-none")  # Adjust padding and margin to reduce spacing
 
 
 def _create_name_display_options_section(self: MyGui) -> None:
@@ -1144,12 +1084,10 @@ def _create_language_selection_section(self: MyGui) -> None:
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
-    # This returns a list of English language keys, e.g., ["English", "German", "French"]
     languages = sort_languages_with_priority(PrimeItems.languages.keys())
 
-    # FIX: Do not translate the initial value here. Keep it in English
-    # so it perfectly matches one of the options inside the 'languages' list.
-    initial_language = self.language
+    # Pre-determine current translated initial string match
+    initial_language = translate_string(self.language)
 
     self.language_optionmenu = ui.select(
         options=languages,
@@ -1166,9 +1104,6 @@ def _create_view_limit_section(self: MyGui) -> None:
 
     with ui.row().classes("w-full items-center gap-2"):
         # CustomTkinter's option menu becomes a ui.select dropdown
-        temp_view_limit = getattr(self, "view_limit", "10000")
-        if temp_view_limit == 9999999:
-            self.view_limit = "Unlimited"
         self.viewlimit_optionmenu = ui.select(
             options=["5000", "10000", "15000", "20000", "25000", "30000", "Unlimited"],
             value=str(getattr(self, "view_limit", "10000")),
@@ -1180,7 +1115,6 @@ def _create_view_limit_section(self: MyGui) -> None:
                 "Anything over this amount will stop the generation of the view as a means to throttle the program.\n\n"
                 "Note: This is only for the 'Map' and 'Diagram' views, not the tree view.",
             ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
-        self.view_limit = int(temp_view_limit) if temp_view_limit != "Unlimited" else 9999999
 
         # Query help button
         self.viewlimit_query_button = ui.button(
@@ -1255,8 +1189,10 @@ def _create_font_section(self: MyGui) -> None:
 
 
 def _create_file_and_message_buttons_section(self: MyGui) -> None:
-    """Creates file actions, message configuration button rows, and dynamic android panel containers."""
+    """Creates file actions and message configuration button rows."""
+    # OPTIMIZED: Added 'justify-center' to center-align the row contents
     with ui.row().classes("w-full items-center justify-center gap-4 mt-0"):
+        # Uses your existing display_backup_button logic defined in guiwins.py
         self.get_backup_button = self.display_backup_button(
             "Get XML from Android Device",
             "#246FB6",
@@ -1265,15 +1201,10 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
         )
         with self.get_backup_button:
             ui.tooltip(
-                "Fetch XML from an Android device.",
+                "Fetch XML from an Android device.\n\n"
+                "Note: This requires ADB to be installed and configured on your computer, and the Android device to have USB debugging enabled.\n\n"
+                "The XML fetched will become the current source for MapTasker commands.",
             ).style("white-space: pre-line")
-
-    self.android_container = ui.column().classes(
-        "w-full gap-y-2 mt-4 p-2 bg-gray-50 dark:bg-gray-700 rounded shadow-sm hidden",
-    )
-
-    # --- ADD THE NEW UPGRADE ELEMENT SLOT HERE ---
-    self.upgrade_container = ui.column().classes("w-full gap-y-2 mt-2 items-center text-center hidden")
 
 
 def _create_help_options_section(self: MyGui) -> None:

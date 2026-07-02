@@ -11,7 +11,6 @@
 #  "export TK_SILENCE_DEPRECATION = 1"                                                 #
 #                                                                                      #
 import contextlib
-import os
 import sys
 from collections import namedtuple
 
@@ -29,7 +28,6 @@ from maptasker.src.parsearg import runtime_parser
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.rungui import process_gui
 from maptasker.src.sysconst import (
-    ARGUMENTS_FILE,
     MY_LICENSE,
     MY_VERSION,
     TYPES_OF_COLORS,
@@ -550,27 +548,12 @@ def process_cli() -> None:
     logger.debug(f"Program arguments: {args}")
 
     # Restore runtime arguments if we are not doing a reset and not doing the GUI and there is a settings file to restore.
-    # If doing thew GUI and poswsibly a map view, then the arguments are restored by userintr.py
-    PrimeItems.program_arguments["reset"] = getattr(args, reset_flag)
-    PrimeItems.program_arguments["gui"] = getattr(args, gui_flag)
-    save_gui = PrimeItems.program_arguments["gui"]
-    save_map = PrimeItems.program_arguments["guiview"]
-    if (
-        not PrimeItems.program_arguments["reset"]
-        and not PrimeItems.program_arguments["gui"]
-        and os.path.isfile(ARGUMENTS_FILE)
-    ) or PrimeItems.program_arguments["guiview"]:
-        restore_arguments()
-
-        # Restore the GUI and Map View flags.
-        PrimeItems.program_arguments["gui"] = save_gui  # Restore GUI flag from runtime options,
-        PrimeItems.program_arguments["guiview"] = save_map  # Restore GUI Map View flag from runtime options,
-
-        PrimeItems.program_arguments["rerun"] = False  # Make sure this is off!  Loops otherwise.
+    restore_arguments()
+    PrimeItems.program_arguments["gui"] = True
 
     # If using the GUI and not doing a map view or version, them process the GUI.
     do_version = getattr(args, version_flag)  # See if doing version (-v)
-    if PrimeItems.program_arguments["gui"] and not PrimeItems.program_arguments["guiview"] and not do_version:
+    if PrimeItems.program_arguments["gui"] and not do_version:
         (
             PrimeItems.program_arguments,
             PrimeItems.colors_to_use,
