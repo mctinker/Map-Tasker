@@ -474,23 +474,24 @@ def display_selected_object_labels(self: "MyGui") -> None:
         self.tab_specific_name.update()  # Force NiceGUI to re-render the tab context immediately
 
 
-# ==========================================
-# 3. PROGRESS BAR MANAGEMENT
-# ==========================================
-def display_progress_bar(progress_dict: dict, is_instance_method: bool = False) -> None:
-    """
-    Updates the value of an existing NiceGUI linear_progress element.
-    """
-    if not progress_dict or "progress_widget" not in progress_dict:
-        return
+# FIX Get rid of progressbar
+# # ==========================================
+# # 3. PROGRESS BAR MANAGEMENT
+# # ==========================================
+# def display_progress_bar(progress_dict: dict, is_instance_method: bool = False) -> None:
+#     """
+#     Updates the value of an existing NiceGUI linear_progress element.
+#     """
+#     if not progress_dict or "progress_widget" not in progress_dict:
+#         return
 
-    # Calculate the percentage (0.0 to 1.0)
-    current = progress_dict.get("progress_counter", 0)
-    maximum = progress_dict.get("max_data", 1)
+#     # Calculate the percentage (0.0 to 1.0)
+#     current = progress_dict.get("progress_counter", 0)
+#     maximum = progress_dict.get("max_data", 1)
 
-    # Update the NiceGUI element directly
-    percentage = min(current / maximum, 1.0)
-    progress_dict["progress_widget"].value = percentage
+#     # Update the NiceGUI element directly
+#     percentage = min(current / maximum, 1.0)
+#     progress_dict["progress_widget"].value = percentage
 
 
 def kill_the_progress_bar(progress_dict: dict, remove_windows: bool = True) -> None:
@@ -860,16 +861,17 @@ def display_analyze_button(self: "MyGui", row: int, first_time: bool) -> None:
 
     # If first time (or the button doesn't exist yet), create it.
     if first_time or not getattr(self, "ai_analyze_button", None):
+        pass
         # Assuming self.tab_analyze is the ui.tab_panel("Analyze") container
-        with self.tab_analyze:
-            self.ai_analyze_button = (
-                ui
-                .button("Run Analysis", on_click=self.event_handlers.ai_analyze_event)
-                .style(css_style)
-                .classes("mx-auto mt-4 px-8 py-2 font-bold")
-            )
-            # mx-auto centers it (like sticky="n")
-            # px-8 py-2 adds horizontal and vertical padding (like padx=50, pady=(10,10))
+        # with self.tab_analyze:
+        # self.ai_analyze_button = (
+        #     ui
+        #     .button("Run Analysis", on_click=self.event_handlers.ai_analyze_event)
+        #     .style(css_style)
+        #     .classes("mx-auto mt-4 px-8 py-2 font-bold")
+        # )
+        # mx-auto centers it (like sticky="n")
+        # px-8 py-2 adds horizontal and vertical padding (like padx=50, pady=(10,10))
 
     else:
         # Not first time, just reconfigure the colors of the existing button.

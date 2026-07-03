@@ -26,16 +26,17 @@ TRACE_LOG_FILE = "trace_log.txt"
 if os.path.exists(TRACE_LOG_FILE):
     os.remove(TRACE_LOG_FILE)
 
-heading_fonts = {
-    "0": "text-base",
-    "1": "text-3xl",
-    "2": "text-2xl",
-    "3": "text-xl",
-    "4": "text-lg",
-    "5": "text-base font-bold",
-    "6": "text-sm",
-    "7": "text-xs",
-}
+# FIX Delete this section.
+# heading_fonts = {
+#     "0": "text-base",
+#     "1": "text-3xl",
+#     "2": "text-2xl",
+#     "3": "text-xl",
+#     "4": "text-lg",
+#     "5": "text-base font-bold",
+#     "6": "text-sm",
+#     "7": "text-xs",
+# }
 
 # ==========================================
 # PURE PYTHON UTILITIES (Keep your existing logic here)

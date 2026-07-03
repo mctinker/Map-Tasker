@@ -30,11 +30,13 @@ from maptasker.src.guiutils import (
     display_selected_object_labels,
     get_xml,
     list_tasker_objects,
+    ping_android_device,
     reload_gui,
     set_ai_key,
     set_tasker_object_names,
     update_tasker_object_menus,
     valid_item,
+    validate_or_filelist_xml,
 )
 from maptasker.src.guiwins import (
     NiceGuiTextView,
@@ -45,6 +47,7 @@ from maptasker.src.guiwins import (
 from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
 from maptasker.src.maputil2 import log_startup_values, translate_string
+from maptasker.src.maputil3 import validate_xml_file
 from maptasker.src.maputils import (
     append_to_filename,
     clear_tasker_data,
@@ -1347,7 +1350,7 @@ class MapTaskerEventHandlers:
         if hasattr(self.gui, "textview"):
             self.gui.textview.search_input.set_value("")
 
-    def topbottom_event(self, top: bool, view_name: str = "mapview") -> None:
+    def topbottom_event(self, top: bool, _view_name: str = "mapview") -> None:
         """Jumps the view to the top or bottom."""
         direction = "top" if top else "bottom"
 
@@ -1366,10 +1369,95 @@ class MapTaskerEventHandlers:
             else:
                 self.gui.textview.scroll_area.classes(remove="whitespace-normal", add="whitespace-pre")
 
-    def get_xml_from_android_event(self: "MyGui") -> None:
-        """Equivalent to your old event handler."""
-        ui.notify("Fetching XML from Android...", type="info")
-        # TODO: Implement fetching logic here...
+    # ==========================================
+    # ANDROID XML BACKUP EVENT HANDLERS
+    # ==========================================
+    def get_xml_from_android_event(self) -> None:
+        """
+        Gets Android details from user inside the reactive right drawer container slot.
+        Replaces legacy manual CustomTkinter pixel coordinates with automated fluid Flexbox grids.
+        """
+        gui = self.gui
+
+        # 1. Clear out old entries and unhide the sidebar container panel slot
+        gui.android_container.clear()
+        gui.android_container.classes(remove="hidden")
+
+        # 2. Extract Fallback Default Values
+        android_ipaddr = (
+            "192.168.0.210" if gui.android_ipaddr == "" or gui.android_ipaddr is None else gui.android_ipaddr
+        )
+
+        android_port = "1821" if gui.android_port == "" or gui.android_port is None else gui.android_port
+
+        if gui.android_file == "" or gui.android_file is None:
+            android_file = "/Tasker/configs/user/backup.xml".replace("/", PrimeItems.slash)
+        else:
+            android_file = gui.android_file.replace("/", PrimeItems.slash)
+
+        # 3. Mount text input fields and control action items into the view hierarchy
+        with gui.android_container:
+            ui.label("Configure Android Connection:").classes("text-sm font-bold text-blue-500 mb-1 self-start")
+
+            # Form Fields
+            gui.ip_entry = ui.input(label="1-TCP/IP Address:", value=android_ipaddr).classes("w-full q-py-none")
+            gui.port_entry = ui.input(label="2-Port Number:", value=android_port).classes("w-full q-py-none")
+            gui.file_entry = ui.input(label="3-File Location:", value=android_file).classes("w-full q-py-none")
+
+            # Inline Button Row 1 (List XML & Query Help Button)
+            with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
+                gui.list_files_button = (
+                    ui
+                    .button("List XML Files", on_click=gui.event_handlers.list_files_event)
+                    .style("background-color: #D62CFF; color: white;")
+                    .classes("flex-grow text-xs")
+                )
+
+                gui.list_files_query_button = (
+                    ui
+                    .button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                    .style("background-color: #246FB6; color: #ffd941;")
+                    .classes("w-10 min-w-[40px] text-xs")
+                )
+
+            # Inline Button Row 2 (.or. Separator and Cancel Action)
+            with ui.row().classes("w-full items-center justify-center gap-2 mt-1"):
+                gui.label_or = ui.label(".or.").classes("text-xs text-gray-400 italic")
+
+                # Close button clears the contents and re-hides the panel drawer clean
+                ui.button(
+                    "Cancel Entry",
+                    on_click=lambda: (
+                        gui.android_container.clear(),
+                        gui.android_container.classes(add="hidden"),
+                    ),
+                ).classes("text-xs").props("flat color=negative dense")
+
+            # Master Set XML Backup execution button
+            gui.get_backup_button = (
+                ui
+                .button("Click Here to Set XML Details", on_click=gui.event_handlers.fetch_backup_event)
+                .style("background-color: #D62CFF; color: white;")
+                .classes("w-full mt-3 font-bold text-xs py-2")
+            )
+
+    async def list_files_event(self) -> None:
+        """
+        List (Android) XML files event updated for NiceGUI.
+        Alters the active view tracking text instead of legacy .configure() properties.
+        """
+        the_view = self.gui  # self maps to MapTaskerEventHandlers, use self.gui to target MyGui
+
+        the_view.list_files = True
+
+        # NiceGUI uses direct text assignment to change the displayed button label
+        if hasattr(the_view, "list_files_button") and the_view.list_files_button:
+            the_view.list_files_button.set_text("List Files Selected")
+
+        # Trigger the fetch execution routing
+        if hasattr(the_view.event_handlers, "fetch_backup_event"):
+            # --- CRITICAL FIX: Added 'await' here ---
+            await the_view.event_handlers.fetch_backup_event()
 
     def reset_settings_event(self: "MyGui") -> None:
         """Reset everything back to defaults."""
@@ -1617,7 +1705,7 @@ class MapTaskerEventHandlers:
         """
         the_view = self.gui
         if not the_view.ai_prompt:
-            ai_object, item = get_ai_object()
+            _ai_object, _item = get_ai_object()
             the_view.ai_prompt = AI_PROMPT
         msg1 = translate_string("Current prompt:")
         msg2 = translate_string("Enter a new prompt for the AI to use:")
@@ -2235,7 +2323,7 @@ class MapTaskerEventHandlers:
         the_view = self.gui
         the_view.all_messages = {}
 
-    def colors_event(self, e) -> None:
+    def colors_event(self, e: str) -> None:
         """Fires whenever the user changes the dropdown category selection."""
         color_selected_item = e.value if hasattr(e, "value") else e
         if not color_selected_item:
@@ -2288,7 +2376,7 @@ class MapTaskerEventHandlers:
                 the_view.saved_background_color = make_hex_color(color_value)
 
                 # If a Map/Diagram view is currently rendered on screen, update its background instantly!
-                if hasattr(the_view, "textview") and the_view.textview:
+                if hasattr(the_view, "textview") and the_view.textview:  # noqa: SIM102
                     # Method A: Force styling directly onto the NiceGUI scroll_area container component
                     if hasattr(the_view.textview, "scroll_area") and the_view.textview.scroll_area:
                         the_view.textview.scroll_area.style(f"background-color: {color_value} !important;")
@@ -2773,6 +2861,120 @@ class MapTaskerEventHandlers:
                         .style(f"font-family: {font_name}; font-size: 14px;")
                         .classes("text-gray-500 italic ml-4")
                     )
+
+    def file_selected_event(self, android_file: str) -> None:
+        """
+        User has selected a specific Android XML file from a pulldown menu context.
+        Removes absolute pixel offsets and handles notifications natively using NiceGUI.
+        """
+        the_view = self.gui  # Map references directly onto the shared view container state
+
+        # Strip off selection container payload wrappers if Quasar returns an option item dict
+        if isinstance(android_file, dict):
+            android_file = android_file.get("label", "")
+
+        the_view.android_file = android_file
+        clear_android_buttons(the_view)
+
+        # Display the connection feedback confirmations
+        the_view.display_message_box(
+            f"Get XML IP Address set to: {the_view.android_ipaddr}\n"
+            f"Port Number set to: {the_view.android_port}\n"
+            f"Get Location set to: {the_view.android_file}\n"
+            f"XML file acquired.",
+            "Green",
+        )
+        the_view.file = ""  # Negate any prior local computer directory file tracking pointers
+
+        # Validate the target remote XML structure
+        PrimeItems.program_arguments["gui"] = True
+
+        return_code, error_message = validate_xml_file(
+            the_view.android_ipaddr,
+            the_view.android_port,
+            android_file,
+        )
+
+        # Handle validation structural failures cleanly
+        if return_code > 0:
+            the_view.display_message_box(error_message, "Red")
+            the_view.android_file = ""
+            return
+
+        # Purge pre-existing data tracking fields
+        clear_tasker_data()
+
+        # Hide or update the dynamic input container panel block visually
+        if hasattr(the_view, "android_container") and the_view.android_container:
+            # Clear input fields out and hide the layout strip cleanly
+            the_view.android_container.clear()
+            the_view.android_container.classes(add="hidden")
+
+        # Execute fallback labels updates
+        if hasattr(the_view, "display_backup_details"):
+            the_view.display_backup_details()
+
+        # Fully reload and populate the Projects/Profiles/Tasks selection dropdown lists
+        update_tasker_object_menus(the_view, get_data=True, reset_single_names=True)
+
+    async def fetch_backup_event(self) -> None:
+        """
+        Fetches backup/XML details from NiceGUI user input fields and processes them.
+
+        - Validates IP address, port, and file location using .value properties.
+        - Pings the Android device to check reachability.
+        - Validates or fetches XML filelist.
+        - Updates the UI and internal state based on the fetched details.
+        """
+        gui = self.gui
+
+        # NICEGUI PARADIGM SHIFT: Replace legacy .get() calls with reactive .value properties
+        android_ipaddr = gui.ip_entry.value if hasattr(gui, "ip_entry") and gui.ip_entry else ""
+        android_port = gui.port_entry.value if hasattr(gui, "port_entry") and gui.port_entry else ""
+        android_file = (
+            "" if gui.list_files else (gui.file_entry.value if hasattr(gui, "file_entry") and gui.file_entry else "")
+        )
+
+        if hasattr(self, "_validate_input"):
+            error_msg = self._validate_input(android_ipaddr, android_port)
+            if error_msg:
+                gui.display_message_box(error_msg, "Red")
+                return
+
+        # --- Await the async ping function ---
+        if not await ping_android_device(gui, android_ipaddr, android_port):
+            return
+
+        # Attempt to pull structural backup contents or directory arrays
+        return_code, android_ipaddr, android_port, android_file = validate_or_filelist_xml(
+            gui,
+            android_ipaddr,
+            android_port,
+            android_file,
+        )
+
+        # Handle structural anomalies gracefully
+        if return_code not in (0, 2):
+            gui.display_message_box(f"File not found. Return code: {return_code}", "Red")
+            return
+
+        # Return code 2 signals that a sub-menu select drop-down tree is actively open waiting for user click feedback
+        if return_code == 2:
+            return
+
+        # Commit validated settings data properties down to our internal tracking state structures
+        if hasattr(self, "_update_internal_state"):
+            self._update_internal_state(android_ipaddr, android_port, android_file)
+        else:
+            gui.android_ipaddr = android_ipaddr
+            gui.android_port = android_port
+            gui.android_file = android_file
+
+        # Trigger final visual confirmation UI updates
+        if hasattr(self, "_display_backup_summary"):
+            self._display_backup_summary()
+        else:
+            gui.display_message_box("Android configuration details matched successfully!", "Green")
 
     # Front-end event handlers
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:

@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import app, ui
 
+from maptasker.src.colrmode import set_color_mode
 from maptasker.src.guiutil2 import get_monospace_fonts, sort_languages_with_priority
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
@@ -174,6 +175,27 @@ class NiceGuiTextView:
         else:
             container_context = ui.column()
 
+        # Set the appropriate background color based on the current appearance mode
+        # FIX The background is not getting properly set
+        bg = self.master_gui.color_lookup["background_color"] if self.master_gui.color_lookup else "#ffffff"
+        # --- 4. Push background color to the browser body ---
+        # ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
+        fg = "#ffffff" if self.master_gui.appearance_mode == "dark" else "#000000"
+        # for attr in (
+        #     "gui_main_column",
+        #     "gui_tab_panel",
+        #     "gui_tab_panels",
+        #     "gui_main_tabs_container",
+        #     "gui_color_panel",
+        #     "gui_ai_panel",
+        #     "gui_debug_panel",
+        #     "gui_tasker_object_panel",
+        #     "content_container",
+        #     "gui_view_toolbar",
+        # ):
+        #     widget = getattr(self, attr, None)
+        #     if widget:
+        #         widget.style(f"background-color: {bg} !important; color: {fg} !important;")
         with container_context:
             # Toolbar
             with ui.row().classes("w-full items-center gap-2 p-2 mb-2") as self.gui_toolbar:
@@ -648,6 +670,10 @@ def initialize_screen(self: MyGui) -> None:
             html:not(.dark) .q-card,
             html:not(.dark) .q-tabs,
             html:not(.dark) .q-scrollarea,
+            html:not(.dark) .q-scroll-area,
+            html:not(.dark) .q-textview,
+            html:not(.dark) .q-content-container,
+            html:not(.dark) .q-container-context,
             html:not(.dark) div.nicegui-content {
                 background-color: #ffffff !important;
                 color: #000000 !important;
@@ -696,12 +722,13 @@ def initialize_screen(self: MyGui) -> None:
             self.appearance_mode = "dark" if is_dark else "light"
             self.dark_mode = is_dark
             self.saved_background_color = bg
+            self.color_lookup = set_color_mode(self.appearance_mode)
+            bg = self.color_lookup.get("background", bg)
 
             # --- 4. Push background color to the browser body ---
             ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
 
             # --- 5. Apply styles to every named widget that exists ---
-            # CHANGED: Added text color enforcement (color: {fg} !important;) to the drawers
             for attr in ("gui_left_drawer", "gui_right_drawer"):
                 widget = getattr(self, attr, None)
                 if widget:
@@ -716,6 +743,7 @@ def initialize_screen(self: MyGui) -> None:
                 "gui_ai_panel",
                 "gui_debug_panel",
                 "gui_tasker_object_panel",
+                "content_container",
             ):
                 widget = getattr(self, attr, None)
                 if widget:
@@ -728,21 +756,21 @@ def initialize_screen(self: MyGui) -> None:
                 if scroll_area:
                     scroll_area.style(f"background-color: {bg} !important;")
 
-                # Target the text view toolbar directly with an absolute style override
+                # Map / Diagram / Tree View >  Search / Clear / Top / Bottom Toolbar
                 tv_toolbar = getattr(textview, "gui_toolbar", None)
                 if tv_toolbar:
                     if is_dark:
                         tv_toolbar.style("background-color: #1f2937 !important; color: #ffffff !important;")
                     else:
-                        tv_toolbar.style("background-color: #ffffff !important; color: #000000 !important;")
+                        tv_toolbar.style("background-color: #00ffff !important; color: #000000 !important;")
 
-            # --- 7. CRITICAL FIX: Force the main body gui_view_toolbar color update ---
+            # --- 7. CRITICAL FIX: Force the main body gui_view_toolbar color update (Current File: backup.xml ...---
             view_toolbar = getattr(self, "gui_view_toolbar", None)
             if view_toolbar:
                 if is_dark:
                     view_toolbar.style("background-color: #1e293b !important; color: #ffffff !important;")
                 else:
-                    view_toolbar.style("background-color: #ffffff !important; color: #000000 !important;")
+                    view_toolbar.style("background-color: #00ffff !important; color: #000000 !important;")
 
         ui.switch("Dark Mode", value=True, on_change=toggle_dark_mode)
 
@@ -765,6 +793,7 @@ def initialize_screen(self: MyGui) -> None:
             )
             .tooltip("0 = least detail, 5 = most detail.")
             .classes("w-full")
+            .props("dense")
         )
 
         # Core Feature Checkboxes
@@ -778,7 +807,6 @@ def initialize_screen(self: MyGui) -> None:
             on_change=self.event_handlers.condition_event,
         )
 
-        # Hooked up to correct backend interaction event handlers
         self.taskernet_checkbox = ui.checkbox("Display TaskerNet Info", on_change=self.event_handlers.taskernet_event)
 
         self.preferences_checkbox = ui.checkbox(
@@ -798,7 +826,6 @@ def initialize_screen(self: MyGui) -> None:
             on_change=self.event_handlers.pretty_event,
         )
 
-        # Build styling checkboxes, inputs, dropdown configurations
         _create_name_display_options_section(self)
         _create_task_action_limit_section(self)
         _create_indentation_section(self)
@@ -814,7 +841,6 @@ def initialize_screen(self: MyGui) -> None:
     ) as self.gui_right_drawer:
         ui.label("Actions & Control").classes("text-lg font-bold mb-2 self-center")
 
-        # Global Runtime Execution Triggers
         ui.label("Execution").classes("text-xs font-bold uppercase text-gray-400 mt-2 self-center")
         get_file_color = "green" if PrimeItems.file_to_get else "red"
         blink_class = "" if PrimeItems.file_to_get else " animate-pulse"
@@ -838,22 +864,18 @@ def initialize_screen(self: MyGui) -> None:
             "w-full bg-red-600 text-white mt-2 justify-center",
         )
 
-        # Section headings for clarity
         ui.label("File Operations").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         _create_file_and_message_buttons_section(self)
 
-        # Display Views Section with buttons for different views
         ui.label("Display Views").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         with ui.row().classes("w-full justify-center gap-2 gap-y-0 mt-1"):
             ui.button("Map", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
             ui.button("Diagram", on_click=lambda: self.event_handlers.view_event("diagram")).classes("bg-blue-500")
             ui.button("Tree", on_click=lambda: self.event_handlers.view_event("tree")).classes("bg-blue-500")
 
-        # Settings Configuration State Saving
         ui.label("Application Settings").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         _create_settings_buttons_section(self)
 
-        # HELP & INFORMATION
         ui.label("Help & Information").classes(
             "text-xs font-bold uppercase text-gray-400 mt-4 gap-w-0 m-0 p-0 leading-none self-center",
         )
@@ -863,118 +885,148 @@ def initialize_screen(self: MyGui) -> None:
     # 4. MAIN BODY CONTENT AREA
     # =========================================================================
     with ui.column().classes("p-6 w-full max-w-full mx-auto") as self.gui_main_column:
-        # View Navigation Buttons Row
         with ui.row().classes("gap-4 mb-6") as self.gui_view_toolbar:
             self.current_file = ui.label("No file loaded").classes("text-gray-500 italic")
 
-        # Primary Multi-tab Application Panel Window Layout Structure
         with ui.tabs().classes("w-full") as self.gui_main_tabs_container:
-            # Primary Multi-tab Application Panel Window Layout Structure
             self.tab_specific_name = ui.tab(translate_string("Specific Name"), icon="filter_list")
             self.tab_colors = ui.tab(translate_string("Colors"), icon="palette")
             self.tab_analyze = ui.tab(translate_string("Analyze"), icon="analytics")
             self.tab_debug = ui.tab(translate_string("Debug"), icon="bug_report")
 
         with ui.tab_panels(self.gui_main_tabs_container, value=self.tab_specific_name).classes(
-            "w-full border rounded shadow-inner p-6 mt-2 gap-y-0 m-0 p-0 leading-none",
+            "w-full border rounded shadow-inner p-4 mt-1 gap-y-0 m-0 p-0 leading-none",
         ) as self.gui_tab_panels:
-            # Specific Name panel for targeting specific Projects, Profiles, or Tasks
-            with ui.tab_panel(self.tab_specific_name) as self.gui_tasker_object_panel:
-                # FIXED: Wrap the panel label text in translate_string()
-                ui.label(translate_string("Target specific Projects, Profiles, or Tasks.")).classes("text-lg mb-4")
+            # --- TAB 1: SPECIFIC NAME (MINIMIZED SPACING) ---
+            with ui.tab_panel(self.tab_specific_name).classes("p-2 m-0") as self.gui_tasker_object_panel:
+                ui.label(translate_string("Target specific Projects, Profiles, or Tasks.")).classes("text-base mb-1")
                 ui.label(
                     translate_string(
                         f"Project: {self.single_project_name} | Profile: {self.single_profile_name} | Task: {self.single_task_name}",
                     ),
-                ).classes("text-sm mb-4")
+                ).classes("text-xs mb-2 text-gray-500")
 
-                self.specific_project_optionmenu = ui.select(
-                    ["None"],
-                    on_change=lambda e: self.event_handlers.single_project_name_event(e.value) if e.value else None,
-                    label=translate_string("Project"),  # Also translate option headers
-                ).classes("w-64 mb-2")
+                # Wrap the pulldowns in a tight column with minimal vertical gap
+                with ui.column().classes("gap-1 w-full m-0 p-0"):
+                    self.specific_project_optionmenu = (
+                        ui
+                        .select(
+                            ["None"],
+                            on_change=lambda e: (
+                                self.event_handlers.single_project_name_event(e.value) if e.value else None
+                            ),
+                            label=translate_string("Project"),
+                        )
+                        .classes("w-64 mb-0")
+                        .props("dense")
+                    )
 
-                self.specific_profile_optionmenu = ui.select(
-                    ["None"],
-                    on_change=lambda e: self.event_handlers.single_profile_name_event(e.value) if e.value else None,
-                    label=translate_string("Profile"),
-                ).classes("w-64 mb-2")
+                    self.specific_profile_optionmenu = (
+                        ui
+                        .select(
+                            ["None"],
+                            on_change=lambda e: (
+                                self.event_handlers.single_profile_name_event(e.value) if e.value else None
+                            ),
+                            label=translate_string("Profile"),
+                        )
+                        .classes("w-64 mb-0")
+                        .props("dense")
+                    )
 
-                self.specific_task_optionmenu = ui.select(
-                    ["None"],
-                    on_change=lambda e: self.event_handlers.single_task_name_event(e.value) if e.value else None,
-                    label=translate_string("Task"),
-                ).classes("w-64 mb-2")
+                    self.specific_task_optionmenu = (
+                        ui
+                        .select(
+                            ["None"],
+                            on_change=lambda e: (
+                                self.event_handlers.single_task_name_event(e.value) if e.value else None
+                            ),
+                            label=translate_string("Task"),
+                        )
+                        .classes("w-64 mb-0")
+                        .props("dense")
+                    )
 
-                self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-2 text-left")
-                self.list_unnamed_items_checkbox = ui.checkbox(translate_string("List Unnamed Items")).bind_value(
-                    self,
-                    "list_unnamed_items",
+                self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-1 text-left")
+                self.list_unnamed_items_checkbox = (
+                    ui
+                    .checkbox(translate_string("List Unnamed Items"))
+                    .bind_value(
+                        self,
+                        "list_unnamed_items",
+                    )
+                    .classes("mt-1 text-xs")
                 )
 
-            # Colors panel for configuring theme colors and styles
-            with ui.tab_panel(self.tab_colors) as self.gui_color_panel:
-                ui.label("Theme Configuration").classes("text-lg mb-2")
+            # --- TAB 2: COLORS (MINIMIZED SPACING) ---
+            with ui.tab_panel(self.tab_colors).classes("p-2 m-0") as self.gui_color_panel:
+                ui.label("Theme Configuration").classes("text-base mb-1")
                 ui.button(
                     "Reset to Default Colors",
                     on_click=self.event_handlers.color_reset_event,
-                ).classes("bg-blue-500")
+                ).classes("bg-blue-500 text-xs py-1")
 
-                # Dynamic placeholder label to display the active state
-                self.color_change = ui.label("Select a category to modify its color.").classes("text-sm mt-4")
+                self.color_change = ui.label("Select a category to modify its color.").classes("text-xs mt-2")
 
-                # The Dropdown Select Menu
-                self.color_objects_options = ui.select(
-                    options=[
-                        "Projects",
-                        "Profiles",
-                        "Disabled Profiles",
-                        "Launcher Tasks",
-                        "Profile Conditions",
-                        "Tasks",
-                        "Unnamed Tasks",
-                        "(Task) Actions",
-                        "Action Conditions",
-                        "Action Labels",
-                        "Action Names",
-                        "Scenes",
-                        "Background",
-                        "TaskerNet Information",
-                        "Tasker Preferences",
-                        "Highlight",
-                        "Heading",
-                    ],
-                    value="Projects",
-                    label="Select Category to Colorize",
-                ).classes("w-64 mt-2")
+                with ui.column().classes("gap-1 w-full mt-1"):
+                    self.color_objects_options = (
+                        ui
+                        .select(
+                            options=[
+                                "Projects",
+                                "Profiles",
+                                "Disabled Profiles",
+                                "Launcher Tasks",
+                                "Profile Conditions",
+                                "Tasks",
+                                "Unnamed Tasks",
+                                "(Task) Actions",
+                                "Action Conditions",
+                                "Action Labels",
+                                "Action Names",
+                                "Scenes",
+                                "Background",
+                                "TaskerNet Information",
+                                "Tasker Preferences",
+                                "Highlight",
+                                "Heading",
+                            ],
+                            value="Projects",
+                            label="Select Category to Colorize",
+                        )
+                        .classes("w-64 mb-0")
+                        .props("dense")
+                    )
 
-                # Place a persistent native Color Input field directly in the layout
-                self.color_picker_input = ui.color_input(
-                    label="Choose Hex Color",
-                    value="#3f99ff",
-                    on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value),
-                ).classes("w-64 mt-2")
+                    self.color_picker_input = (
+                        ui
+                        .color_input(
+                            label="Choose Hex Color",
+                            value="#3f99ff",
+                            on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value),
+                        )
+                        .classes("w-64 mb-0")
+                        .props("dense")
+                    )
 
-            # AI Analysis panel for configuring AI model, API keys, and prompts
-            with ui.tab_panel(self.tab_analyze) as self.gui_ai_panel:
-                ui.label("AI Analysis").classes("text-lg mb-4")
+            # --- TAB 3: ANALYZE (MINIMIZED SPACING) ---
+            with ui.tab_panel(self.tab_analyze).classes("p-2 m-0") as self.gui_ai_panel:
+                ui.label("AI Analysis").classes("text-base mb-2")
                 _create_analyze_tab_content(self, ui.tab_panel(self.tab_analyze))
 
-            # Debug panel for toggling debug mode and runtime settings
-            with ui.tab_panel(self.tab_debug) as self.gui_debug_panel:
-                self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug")
-                self.runtime_checkbox = ui.checkbox("Display Runtime Settings")
+            # --- TAB 4: DEBUG (MINIMIZED SPACING) ---
+            with ui.tab_panel(self.tab_debug).classes("p-2 m-0") as self.gui_debug_panel:
+                with ui.column().classes("gap-1"):
+                    self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug").classes("text-xs")
+                    self.runtime_checkbox = ui.checkbox("Display Runtime Settings").classes("text-xs")
 
-        # Dedicated full-width dynamic container slot block target for views
         self.content_container = ui.column().classes("w-full max-w-full p-0 m-0 mt-6")
 
-        # Persistent global dialog container for selecting display colors safely
         with ui.dialog() as self.picker_dialog, ui.card().classes("p-4 items-center"):
             self.picker_title_label = ui.label("").classes("font-bold text-sm mb-2")
             self.picker_engine = ui.color_picker()
             ui.button("Cancel", on_click=self.picker_dialog.close).classes("mt-4 w-full bg-gray-500 text-white")
 
-    # Set the last-used tab to use
     if self.tab_to_use:
         self.gui_main_tabs_container.set_value = self.tab_to_use
 
