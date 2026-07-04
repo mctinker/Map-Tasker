@@ -2,7 +2,6 @@
 
 import contextlib
 import os
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import defusedxml
@@ -50,7 +49,7 @@ if TYPE_CHECKING:
 # ==========================================
 # 2. DYNAMIC COMPONENT UPDATERS
 # ==========================================
-def display_model_pulldown(gui_instance: "MyGui", tab: object = None) -> None:
+def display_model_pulldown(gui_instance: "MyGui") -> None:
     """
     Updates or creates the AI model dropdown.
     In NiceGUI, we update the existing `ui.select` options instead of destroying/recreating widgets.
@@ -252,84 +251,40 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
         self.specific_task_optionmenu,
     ) = display_object_pulldowns(
         self,
-        self.tab_specific_name,
         projects_to_display,
         profiles_to_display,
         tasks_to_display,
-        self.event_handlers.single_project_name_event,
-        self.event_handlers.single_profile_name_event,
-        self.event_handlers.single_task_name_event,
     )
     return True
 
 
 def display_object_pulldowns(
     self: "MyGui",
-    container: ui.element,
     projects_to_display: list,
     profiles_to_display: list,
     tasks_to_display: list,
-    project_name_event: Callable,
-    profile_name_event: Callable,
-    task_name_event: Callable,
 ) -> tuple:
     """
     Updates the pulldown menus for selecting projects, profiles, and tasks.
     """
 
-    # If the container is tab_specific_name, we just update the options for the widgets we created in guiwins.py
-    if container == self.tab_specific_name:
-        if hasattr(self, "specific_project_optionmenu") and self.specific_project_optionmenu:
-            # 1. Assign the new lists to the options attributes safely
-            self.specific_project_optionmenu.options = projects_to_display
-            self.specific_profile_optionmenu.options = profiles_to_display
-            self.specific_task_optionmenu.options = tasks_to_display
+    # Just update the options for the widgets we created in guiwins.py
+    if hasattr(self, "specific_project_optionmenu") and self.specific_project_optionmenu:
+        # 1. Assign the new lists to the options attributes safely
+        self.specific_project_optionmenu.options = projects_to_display
+        self.specific_profile_optionmenu.options = profiles_to_display
+        self.specific_task_optionmenu.options = tasks_to_display
 
-            # 2. FIX: REMOVED .clear() AND .on() LOOPS HERE!
-            # The event listeners are already bound via 'on_change=' during initialization.
-            # No changes to event listeners means NO CONSOLE WARNINGS.
+        # 2. FIX: REMOVED .clear() AND .on() LOOPS HERE!
+        # The event listeners are already bound via 'on_change=' during initialization.
+        # No changes to event listeners means NO CONSOLE WARNINGS.
 
-            # 3. Tell the browser to re-render the options lists cleanly
-            self.specific_project_optionmenu.update()
-            self.specific_profile_optionmenu.update()
-            self.specific_task_optionmenu.update()
+        # 3. Tell the browser to re-render the options lists cleanly
+        self.specific_project_optionmenu.update()
+        self.specific_profile_optionmenu.update()
+        self.specific_task_optionmenu.update()
 
-        return self.specific_project_optionmenu, self.specific_profile_optionmenu, self.specific_task_optionmenu
-
-    project_option = profile_option = task_option = None
-
-    # 'with container:' tells NiceGUI to draw everything inside this specific UI block
-    with container:
-        # Make sure there is something to display
-        if not projects_to_display and not profiles_to_display and not tasks_to_display:
-            self.current_object_label = ui.label("No Projects, Profiles or Tasks to display!").classes(
-                "text-red-500 font-bold mt-4",
-            )
-
-        # Okay, we have some actual data to display
-        else:
-            # Display all of the Projects for selection.
-            self.select_project_label = ui.label("Select Project to process:").classes("mt-2 text-sm font-semibold")
-            project_option = ui.select(
-                options=projects_to_display,
-                on_change=lambda e: project_name_event(e.value) if e.value else None,
-            ).classes("w-full max-w-sm")
-
-            # Display all of the Profiles for selection.
-            self.select_profile_label = ui.label("Select Profile to process:").classes("mt-4 text-sm font-semibold")
-            profile_option = ui.select(
-                options=profiles_to_display,
-                on_change=lambda e: profile_name_event(e.value) if e.value else None,
-            ).classes("w-full max-w-sm")
-
-            # Display all of the Tasks for selection.
-            self.task_label = ui.label("Select Task to process:").classes("mt-4 text-sm font-semibold")
-            task_option = ui.select(
-                options=tasks_to_display,
-                on_change=lambda e: task_name_event(e.value) if e.value else None,
-            ).classes("w-full max-w-sm")
-
-    return project_option, profile_option, task_option
+    return self.specific_project_optionmenu, self.specific_profile_optionmenu, self.specific_task_optionmenu
 
 
 # Get all Projects, Profiles and Tasks to display
@@ -377,7 +332,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
 
     # Check for no tasks.
     if not tasks_to_display:
-        tasks_to_display = ["No tasks found"]
+        tasks_to_display = [translate_string("No tasks found")]
     else:
         if not self.list_unnamed_items:
             # Remove unnamed Tasks from the list.
@@ -417,6 +372,12 @@ def display_selected_object_labels(self: "MyGui") -> None:
     project_to_display = self.single_project_name if self.single_project_name else none_translated
     profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
     task_to_display = self.single_task_name if self.single_task_name else none_translated
+    if project_to_display is not None and project_to_display != "None":
+        self.currently_selected_label.set_text("Current Project selection: " + project_to_display)
+    elif profile_to_display is not None and profile_to_display != "None":
+        self.currently_selected_label.set_text("Current Profile selection: " + profile_to_display)
+    elif task_to_display is not None and task_to_display != "None":
+        self.currently_selected_label.set_text("Current Task selection: " + task_to_display)
 
     # 2. Render the "Analyze" Tab panel context natively
     with self.tab_analyze:
@@ -440,7 +401,7 @@ def display_selected_object_labels(self: "MyGui") -> None:
             finally:
                 self.is_updating = False
         else:
-            display_model_pulldown(self, 50)
+            display_model_pulldown(self)
 
         # Display Targets selections
         translation_proj = translate_string("Project to Analyze:")
@@ -463,43 +424,19 @@ def display_selected_object_labels(self: "MyGui") -> None:
 
     # 4. Render Specific Name Tab labels tracking sync
     with self.tab_specific_name:
-        all_objects_text = translate_string("Display all Projects, Profiles, and Tasks.")
-        name_to_display = self.specific_name_msg if getattr(self, "specific_name_msg", None) else all_objects_text
+        # NOTE: The following displays the selectrf Project/Profile/Task in the 'Specific Name' tab,
+        # below the pulldown lists.  It is in addition to the 'Current (object) selection' above the pulldowns.
+        # all_objects_text = translate_string("Display all Projects, Profiles, and Tasks.")
+        # name_to_display = self.specific_name_msg if getattr(self, "specific_name_msg", None) else all_objects_text
 
-        if hasattr(self, "specific_name_msg_label") and self.specific_name_msg_label:
-            self.specific_name_msg_label.text = name_to_display
-        else:
-            with self.tab_specific_name:
-                self.specific_name_msg_label = ui.label(name_to_display).classes("text-xs ml-2 mt-2 text-left")
+        # if hasattr(self, "specific_name_msg_label") and self.specific_name_msg_label:
+        #     self.specific_name_msg_label.text = name_to_display
+        # else:
+        #     with self.tab_specific_name:
+        #         self.specific_name_msg_label = ui.label(name_to_display).classes("text-xs ml-2 mt-2 text-left")
         self.tab_specific_name.update()  # Force NiceGUI to re-render the tab context immediately
 
-
-# FIX Get rid of progressbar
-# # ==========================================
-# # 3. PROGRESS BAR MANAGEMENT
-# # ==========================================
-# def display_progress_bar(progress_dict: dict, is_instance_method: bool = False) -> None:
-#     """
-#     Updates the value of an existing NiceGUI linear_progress element.
-#     """
-#     if not progress_dict or "progress_widget" not in progress_dict:
-#         return
-
-#     # Calculate the percentage (0.0 to 1.0)
-#     current = progress_dict.get("progress_counter", 0)
-#     maximum = progress_dict.get("max_data", 1)
-
-#     # Update the NiceGUI element directly
-#     percentage = min(current / maximum, 1.0)
-#     progress_dict["progress_widget"].value = percentage
-
-
-def kill_the_progress_bar(progress_dict: dict, remove_windows: bool = True) -> None:
-    """
-    Closes the progress bar dialog.
-    """
-    if progress_dict and "dialog" in progress_dict:
-        progress_dict["dialog"].close()
+    ui.update()  # Ensure the entire GUI context is refreshed after updates
 
 
 # ==========================================
@@ -766,42 +703,42 @@ def _set_single_project_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single project name is available."""
     text = f"{defaults['display_only']}{translate_string('Project')}"
     self.specific_name_msg = f"{text} '{self.single_project_name}'"
-
+    print("bingo _set_single_project_name", self.specific_name_msg)
     try:
         # NiceGUI uses .value instead of .set()
         self.specific_project_optionmenu.value = self.single_project_name
     except AttributeError:
         return
 
-    self.specific_profile_optionmenu.value = defaults["profile"]
-    self.specific_task_optionmenu.value = defaults["task"]
+    # self.specific_profile_optionmenu.value = defaults["profile"]
+    # self.specific_task_optionmenu.value = defaults["task"]
 
 
 def _set_single_profile_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single profile name is available."""
     # Note: Fixed a missing opening single quote before the profile name from the original code
     self.specific_name_msg = f"{defaults['display_only']}{translate_string('Profile')} '{self.single_profile_name}'"
-
+    print("bingo _set_single_profile_name", self.specific_name_msg)
     try:
         self.specific_profile_optionmenu.value = self.single_profile_name
     except AttributeError:
         return
 
-    self.specific_project_optionmenu.value = defaults["project"]
-    self.specific_task_optionmenu.value = defaults["task"]
+    # self.specific_project_optionmenu.value = defaults["project"]
+    # self.specific_task_optionmenu.value = defaults["task"]
 
 
 def _set_single_task_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single task name is available."""
     self.specific_name_msg = f"{defaults['display_only']}{translate_string('Task')} '{self.single_task_name}'"
-
+    print("bingo _set_single_task_name", self.specific_name_msg)
     try:
         self.specific_task_optionmenu.value = self.single_task_name
     except AttributeError:
         return
 
-    self.specific_project_optionmenu.value = defaults["project"]
-    self.specific_profile_optionmenu.value = defaults["profile"]
+    # self.specific_project_optionmenu.value = defaults["project"]
+    # self.specific_profile_optionmenu.value = defaults["profile"]
 
 
 def _set_default_names(self: object, defaults: dict) -> None:
@@ -834,10 +771,7 @@ def _set_default_names(self: object, defaults: dict) -> None:
         pass
 
 
-from nicegui import ui
-
-
-def display_analyze_button(self: "MyGui", row: int, first_time: bool) -> None:
+def display_analyze_button(self: "MyGui", _row: int, first_time: bool) -> None:
     """
     Display or update the 'Analyze' button for the AI API key.
     """
@@ -1257,20 +1191,20 @@ def validate_or_filelist_xml(
         with self.android_container:
             ui.separator().classes("my-2")
 
-            self.filelist_label = ui.label("Select XML From Android Device:").classes(
+            self.filelist_label = ui.label(translate_string("Select XML From Android Device:")).classes(
                 "text-xs font-bold text-purple-600 mt-1 self-start",
             )
 
             # Custom Tkinter OptionMenu transforms to a reactive NiceGUI ui.select dropdown
             self.filelist_option = ui.select(
                 options=filelist,
-                label="Available Android Backups",
+                label=translate_string("Available Android Backups"),
                 on_change=lambda e: self.event_handlers.file_selected_event(e.value),
             ).classes("w-full q-mt-none")
 
             # Flat modern action button to easily close the selection panel
             ui.button(
-                "Cancel Entry",
+                translate_string("Cancel Entry"),
                 on_click=lambda: (self.android_container.clear(), self.android_container.classes(add="hidden")),
             ).classes("text-xs w-full mt-2").props("outline color=negative dense")
 

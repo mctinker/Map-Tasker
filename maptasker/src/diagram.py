@@ -13,13 +13,11 @@ diagramming app rather than rely on yet-another-dependency such as that for
 
 from __future__ import annotations
 
-import asyncio
 import contextlib
 import gc
 import os
 import re
 from bisect import bisect_left
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 from maptasker.src.diagcnst import (
@@ -54,10 +52,6 @@ from maptasker.src.diagutil import (
 )
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
-from maptasker.src.guiutils import (
-    kill_the_progress_bar,
-)
-from maptasker.src.guiwins import create_progressbar_window
 
 # Avoid circular import error: guiwins has the proper import statement for configure_progress_bar,
 # the function, of which, is in guiutil2.
@@ -1025,8 +1019,6 @@ def check_limit(call_table: dict, output_lines: list, progress_bar: dict) -> Non
             # Setup to disp[lay error message in GUI
             PrimeItems.error_code = 1
             PrimeItems.error_msg = f"Too much data to display (Size={size!s}, View Limit={view_limit}).  Select a larger 'View Limit' or a single Project / Profile / Task and try again."
-            # Kill the progressbar.
-            kill_the_progress_bar(progress_bar, remove_windows=False)
 
             # Cleanup
             PrimeItems.netmap_output = []
@@ -1319,7 +1311,7 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
 
 
 # If Task line has any "Task Call" Task actions, fill it with arrows.
-async def handle_calls(output_lines: list, progress: dict) -> None:
+def handle_calls(output_lines: list, progress: dict) -> None:
     """
     Handle calls in output lines from parsing
     Args:
@@ -1376,10 +1368,6 @@ async def handle_calls(output_lines: list, progress: dict) -> None:
 
     # Now clean up the mess we made.
     output_lines = cleanup_diagram(output_lines, progress)
-
-    # We're done.  Kill the progressbar.
-    if PrimeItems.program_arguments["gui"]:
-        kill_the_progress_bar(progress, remove_windows=False)
 
     return output_lines
 
@@ -1578,7 +1566,7 @@ def replace_maintain_column(line: str, target: str, replacement: str) -> str:
     return "".join(new_parts)
 
 
-async def build_network_map(data: dict, progress: dict) -> None:
+def build_network_map(data: dict, progress: dict) -> None:
     """
     Builds a network map from project and profile data
     """
@@ -1598,9 +1586,6 @@ async def build_network_map(data: dict, progress: dict) -> None:
             # Calculate fractional float between 0.0 and 1.0
             progress["progress_bar"].set_value(idx / total_projects)
 
-        # Give control back to NiceGUI event loop for 1 millisecond to force render redraw
-        await asyncio.sleep(0.001)
-
         # Print Project as a box
         print_box(project, project_text, 1)
         # Print all of the Project's Profiles and their Tasks
@@ -1610,7 +1595,7 @@ async def build_network_map(data: dict, progress: dict) -> None:
     if "status_label" in progress:
         progress["status_label"].set_text("Drawing call relationship arrows...")
 
-    PrimeItems.netmap_output = await handle_calls(PrimeItems.netmap_output, progress)
+    PrimeItems.netmap_output = handle_calls(PrimeItems.netmap_output, progress)
 
     # Remove lines that only contain bars ( | )
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
@@ -1641,29 +1626,11 @@ async def build_network_map(data: dict, progress: dict) -> None:
 
 
 # Print the network map.
-async def network_map(network: dict, client: object = None) -> None:
+def network_map(network: dict) -> None:
     """
     Output a network map of the Tasker configuration.
     """
-    # =========================================================================
-    # OPTIMIZED: Approach 1 Progress Bar Integration
-    # =========================================================================
-
-    # Initialize and display the modal dialog popup window natively in NiceGUI
-    # If a client context is provided, force NiceGUI to use it for rendering the dialog
-    if client:
-        with client:
-            dialog, progress_bar, status_label = create_progressbar_window("Generating Diagram View...")
-    else:
-        dialog, progress_bar, status_label = create_progressbar_window("Generating Diagram View...")
-
     progress = {}
-    progress["dialog"] = dialog
-    progress["progress_bar"] = progress_bar
-    progress["status_label"] = status_label
-    progress["progress_counter"] = 0
-    # Estimate total points: Number of projects * arbitrary processing weight
-    progress["max_data"] = max(len(network) * 10, 10)
 
     # Start with a ruler line
     PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
@@ -1672,7 +1639,7 @@ async def network_map(network: dict, client: object = None) -> None:
     PrimeItems.called_task_tracker = {}
 
     # datetime object containing current date and time
-    now = datetime.now()  # noqa: DTZ005
+    # now = datetime.now()
     dt_string = NOW_TIME.strftime("%B %d, %Y  %H:%M:%S")
 
     add_output_line(f"{MY_VERSION}{blank * 5}Configuration Map{blank * 5}{dt_string}")
@@ -1685,12 +1652,8 @@ async def network_map(network: dict, client: object = None) -> None:
     add_output_line(" ")
     add_output_line(" ")
 
-    try:
-        # Build and print the configuration tracking progress updates asynchronously
-        await build_network_map(network, progress)
-    finally:
-        # ABSOLUTE SAFEGUARD: Always guarantee the modal closes even if compilation crashes
-        dialog.close()
+    # Build and print the configuration tracking progress updates asynchronously
+    build_network_map(network, progress)
 
     # Redirect print to a file
     if PrimeItems.netmap_output:

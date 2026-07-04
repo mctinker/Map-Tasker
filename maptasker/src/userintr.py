@@ -147,9 +147,10 @@ class MyGui:
 
         # FIX: FOR DEVELOPMENT ONLY
         PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
-        PrimeItems.single_project_name = self.single_project_name = PrimeItems.program_arguments[
-            "single_project_name"
-        ] = "Chat GPT"
+        PrimeItems.program_arguments["single_project_name"] = self.single_project_name = PrimeItems.program_arguments[
+            "single_profile_name"
+        ] = self.single_profile_name = PrimeItems.program_arguments["single_task_name"] = self.single_task_name = "None"
+        PrimeItems.program_arguments["single_project_name"] = self.single_project_name = "Chat GPT"
         PrimeItems.program_arguments["guiview"] = True
         _ = get_xml(self.debug, self.appearance_mode)
         self.view_limit = 9999999
@@ -1503,6 +1504,18 @@ class MapTaskerEventHandlers:
                 the_view.single_project_name = ""
                 the_view.single_profile_name = ""
                 the_view.single_task_name = ""
+                # Clear out the current values
+                the_view.is_updating = True
+                if my_name != "Project":
+                    the_view.specific_project_optionmenu.value = "None"
+                    the_view.specific_project_optionmenu.update()
+                if my_name != "Profile":
+                    the_view.specific_profile_optionmenu.value = "None"
+                    the_view.specific_profile_optionmenu.update()
+                if my_name != "Task":
+                    the_view.specific_task_optionmenu.value = "None"
+                    the_view.specific_task_optionmenu.update()
+
                 PrimeItems.program_arguments["single_project_name"] = ""
                 PrimeItems.program_arguments["single_profile_name"] = ""
                 PrimeItems.program_arguments["single_task_name"] = ""
@@ -1536,6 +1549,8 @@ class MapTaskerEventHandlers:
             )
             display_analyze_button(the_view, 13, first_time=False)
 
+            the_view.is_updating = False
+
     def process_single_name_event(self, event_type: str, name_selected: str) -> None:
         """Processes a name event for the given event type.
         Args:
@@ -1555,14 +1570,20 @@ class MapTaskerEventHandlers:
 
     def single_project_name_event(self, name_selected: str) -> None:
         """Generates a single project name event."""
+        if hasattr(self.gui, "is_updating") and self.gui.is_updating:
+            return  # Skip processing if we're in the middle of an update
         self.process_single_name_event("Project", name_selected)
 
     def single_profile_name_event(self, name_selected: str) -> None:
         """Generates a single profile name event."""
+        if hasattr(self.gui, "is_updating") and self.gui.is_updating:
+            return  # Skip processing if we're in the middle of an update
         self.process_single_name_event("Profile", name_selected)
 
     def single_task_name_event(self, name_selected: str) -> None:
         """Generates a single task name event."""
+        if hasattr(self.gui, "is_updating") and self.gui.is_updating:
+            return  # Skip processing if we're in the middle of an update
         self.process_single_name_event("Task", name_selected)
 
     # Define the asynchronous callback for the button
@@ -1784,59 +1805,7 @@ class MapTaskerEventHandlers:
         )
 
         # Display the model pulldown list.
-        display_model_pulldown(self, 50)
-
-    # FIX Delete the following code
-    # # Process the screen mode: dark, light, system
-    # def change_appearance_mode_event(self, new_appearance_mode: str) -> None:
-    #     """
-    #     Change the appearance mode of the GUI
-    #     Args:
-    #         new_appearance_mode: The new appearance mode as a string
-    #     Returns:
-    #         None: Does not return anything
-    #     - Set the global appearance mode to the new mode
-    #     - Update the local appearance mode attribute to the new lowercased mode"""
-
-    #     the_view = self.gui
-
-    #     # Determine if the selected appearance mode is one of the standard modes or a translated mode, and set the mode accordingly.
-    #     # First, check if it is a previously-set language mode.
-    #     if (
-    #         new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]
-    #         and PrimeItems.appearance_translated
-    #     ):
-    #         # Find our new appearance mode in the translated values and set the language to the corresponding key to
-    #         # translate it back to English for the appearance mode setting.
-    #         for key, value in PrimeItems.appearance_translated.items():
-    #             if new_appearance_mode in value:
-    #                 save_language = PrimeItems.program_arguments["language"]
-    #                 PrimeItems.program_arguments["language"] = key
-    #                 _ = translate_string(key, set_language=True)
-    #                 new_appearance_mode = translate_string(new_appearance_mode.capitalize()).lower()
-    #                 PrimeItems.program_arguments["language"] = save_language
-    #                 _ = translate_string(save_language, set_language=True)
-    #                 break
-    #     elif new_appearance_mode not in ["Dark", "Light", "System", "dark", "light", "system"]:
-    #         new_appearance_mode = "system"
-
-    #     if PrimeItems.program_arguments["language"] != "English":
-    #         # Translated string is capitalized, so we need to translate first and then lowercase for the appearance mode.
-    #         new_appearance_mode_translated = translate_string(new_appearance_mode.capitalize())
-    #         # Recreate the pulldown menu translated.
-    #         the_view.appearance_mode_optionmenu.destroy()
-    #         create_appearance_mode_section(the_view)
-    #         if new_appearance_mode in ["dark", "light", "system"]:
-    #             appearance_mode_to_set = new_appearance_mode_translated.capitalize()
-    #             mode_to_set = new_appearance_mode
-    #         else:
-    #             appearance_mode_to_set = new_appearance_mode
-    #             mode_to_set = new_appearance_mode_translated.lower()
-    #     else:
-    #         new_appearance_mode_translated = new_appearance_mode.capitalize()
-    #         # FIX what is this for?
-    #         appearance_mode_to_set = new_appearance_mode_translated
-    #         mode_to_set = new_appearance_mode
+        display_model_pulldown(self)
 
     # Process the 'Bold Names' checkbox
     def names_bold_event(self) -> None:
@@ -2975,6 +2944,30 @@ class MapTaskerEventHandlers:
             self._display_backup_summary()
         else:
             gui.display_message_box("Android configuration details matched successfully!", "Green")
+
+    # List unnamed Items checkbox event
+    def list_unnamed_items_event(self) -> None:
+        """
+        Handles the event of listing unnamed tasks.
+        Args:
+            self: The class instance.
+        Returns:
+            None
+        """
+        the_view = self.gui
+        the_view.list_unnamed_items = the_view.get_input_and_put_message(
+            the_view.list_unnamed_items_checkbox,
+            "List Unnamed Items",
+        )
+        selected = "selected" if the_view.list_unnamed_items else "deselected"
+        selected = translate_string(selected)
+        # Update the pull-down menus and display message
+        list_tasker_objects(the_view)
+        text = translate_string("'List Unnamed Items' checkbox")
+        the_view.display_message_box(
+            f"{text} {selected}.",
+            "Green",
+        )
 
     # Front-end event handlers
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:

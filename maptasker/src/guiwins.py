@@ -899,12 +899,10 @@ def initialize_screen(self: MyGui) -> None:
         ) as self.gui_tab_panels:
             # --- TAB 1: SPECIFIC NAME (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_specific_name).classes("p-2 m-0") as self.gui_tasker_object_panel:
-                ui.label(translate_string("Target specific Projects, Profiles, or Tasks.")).classes("text-base mb-1")
-                ui.label(
-                    translate_string(
-                        f"Project: {self.single_project_name} | Profile: {self.single_profile_name} | Task: {self.single_task_name}",
-                    ),
-                ).classes("text-xs mb-2 text-gray-500")
+                ui.label(translate_string("Target specific Projects, Profiles, or Tasks.   (Select only one)")).classes(
+                    "text-base mb-1",
+                )
+                self.currently_selected_label = ui.label("").classes("text-xs mb-2 text-gray-500 italic")
 
                 # Wrap the pulldowns in a tight column with minimal vertical gap
                 with ui.column().classes("gap-1 w-full m-0 p-0"):
@@ -948,15 +946,10 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                 self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-1 text-left")
-                self.list_unnamed_items_checkbox = (
-                    ui
-                    .checkbox(translate_string("List Unnamed Items"))
-                    .bind_value(
-                        self,
-                        "list_unnamed_items",
-                    )
-                    .classes("mt-1 text-xs")
-                )
+                self.list_unnamed_items_checkbox = ui.checkbox(
+                    translate_string("List Unnamed Items"),
+                    on_change=self.event_handlers.list_unnamed_items_event,
+                ).classes("mt-1 text-xs")
 
             # --- TAB 2: COLORS (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_colors).classes("p-2 m-0") as self.gui_color_panel:
