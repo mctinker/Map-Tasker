@@ -48,7 +48,6 @@ def test_main():
             "-test=yes",
             "reset",
             "debug",
-            "outline",
             f"file={file_to_use}",
         ],
     ):

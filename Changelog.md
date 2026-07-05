@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Tasker version 6.7.5-beta is supported.
+- Added: Tasker version 6.7.6-beta is supported.
 
 ### Changed
 

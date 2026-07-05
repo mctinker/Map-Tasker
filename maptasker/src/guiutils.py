@@ -358,7 +358,7 @@ def display_selected_object_labels(self: "MyGui") -> None:
 
     key_to_display = "N/A" if getattr(self, "ai_name", "") == "LLAMA" else "Unset" if not self.ai_apikey else "Set"
 
-    # 1. FIX: Resolve the true display value for the model dropdown
+    # 1. Resolve the true display value for the model dropdown
     model_to_display = "None"
     if self.ai_model:
         # If the dropdown widget exists, look for the choice that ends with our active model
@@ -383,6 +383,9 @@ def display_selected_object_labels(self: "MyGui") -> None:
     with self.tab_analyze:
         # Clear the container frame so elements don't stack up iteratively
         self.tab_analyze.clear()
+        self.ai_project_label = None
+        self.ai_profile_label = None
+        self.ai_task_label = None
 
         # Display Model & Key tracking summaries
         # Use the raw model string or cleaned display model cleanly
@@ -405,13 +408,13 @@ def display_selected_object_labels(self: "MyGui") -> None:
 
         # Display Targets selections
         translation_proj = translate_string("Project to Analyze:")
-        ui.label(f"{translation_proj} {project_to_display}").classes("text-sm mt-2")
+        self.ai_project_label = ui.label(f"{translation_proj} {project_to_display}").classes("text-sm mt-1")
 
         translation_prof = translate_string("Profile to Analyze:")
-        ui.label(f"{translation_prof} {profile_to_display}").classes("text-sm mt-4")
+        self.ai_profile_label = ui.label(f"{translation_prof} {profile_to_display}").classes("text-sm mt-1")
 
         translation_task = translate_string("Task to Analyze:")
-        ui.label(f"{translation_task} {task_to_display}").classes("text-sm mt-2")
+        self.ai_task_label = ui.label(f"{translation_task} {task_to_display}").classes("text-sm mt-1")
 
         # Display Prompt configurations
         display_prompt = translate_string(self.ai_prompt)
@@ -424,16 +427,16 @@ def display_selected_object_labels(self: "MyGui") -> None:
 
     # 4. Render Specific Name Tab labels tracking sync
     with self.tab_specific_name:
-        # NOTE: The following displays the selectrf Project/Profile/Task in the 'Specific Name' tab,
+        # The following displays the selected Project/Profile/Task in the 'Specific Name' tab,
         # below the pulldown lists.  It is in addition to the 'Current (object) selection' above the pulldowns.
-        # all_objects_text = translate_string("Display all Projects, Profiles, and Tasks.")
-        # name_to_display = self.specific_name_msg if getattr(self, "specific_name_msg", None) else all_objects_text
+        all_objects_text = translate_string("Display all Projects, Profiles, and Tasks.")
+        name_to_display = self.specific_name_msg if getattr(self, "specific_name_msg", None) else all_objects_text
 
-        # if hasattr(self, "specific_name_msg_label") and self.specific_name_msg_label:
-        #     self.specific_name_msg_label.text = name_to_display
-        # else:
-        #     with self.tab_specific_name:
-        #         self.specific_name_msg_label = ui.label(name_to_display).classes("text-xs ml-2 mt-2 text-left")
+        if hasattr(self, "specific_name_msg_label") and self.specific_name_msg_label:
+            self.specific_name_msg_label.text = name_to_display
+        else:
+            with self.tab_specific_name:
+                self.specific_name_msg_label = ui.label(name_to_display).classes("text-xs ml-2 mt-2 text-left")
         self.tab_specific_name.update()  # Force NiceGUI to re-render the tab context immediately
 
     ui.update()  # Ensure the entire GUI context is refreshed after updates

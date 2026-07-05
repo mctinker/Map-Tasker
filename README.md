@@ -23,19 +23,19 @@
 
 # MapTasker
 
-## Display the Tasker Project(s), Profile(s), Task(s), and Scene(s) hierarchy on a PC/MAC/LINUX/WIN11 machine based on Tasker's backup or exported XML file
+## Display the Tasker Project(s), Profile(s), Task(s), and Scene(s) hierarchy in your browser based on Tasker's backup or exported XML file
 
-Configuration Map...
+<!-- Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
 
 Diagram Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/Introd.png)
 
-[[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>)
+[[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>) -->
 
-This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a desktop running Windows, OS X or Linux (see [Note 1](#1)).
+This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on in a web browser (see [Note 1](#1)).
 
-I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, and my phone was too small to navigate over my Projects, Profiles, Tasks and Scenes.  So I wrote a Python program for my desktop to provide a complete map of my entire configuration based on my Tasker backup XML file that I saved to my local desktop drive.
+I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, and my phone was too small to navigate over my Projects, Profiles, Tasks and Scenes.  So I wrote a Python program to provide a complete map of my entire configuration in my web browser based on my Tasker backup XML file that I saved to my local desktop drive.
 
 Over time, I refined the map by providing many additional options.
 

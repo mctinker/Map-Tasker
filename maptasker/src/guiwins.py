@@ -175,27 +175,7 @@ class NiceGuiTextView:
         else:
             container_context = ui.column()
 
-        # Set the appropriate background color based on the current appearance mode
-        # FIX The background is not getting properly set
-        bg = self.master_gui.color_lookup["background_color"] if self.master_gui.color_lookup else "#ffffff"
-        # --- 4. Push background color to the browser body ---
-        # ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
-        fg = "#ffffff" if self.master_gui.appearance_mode == "dark" else "#000000"
-        # for attr in (
-        #     "gui_main_column",
-        #     "gui_tab_panel",
-        #     "gui_tab_panels",
-        #     "gui_main_tabs_container",
-        #     "gui_color_panel",
-        #     "gui_ai_panel",
-        #     "gui_debug_panel",
-        #     "gui_tasker_object_panel",
-        #     "content_container",
-        #     "gui_view_toolbar",
-        # ):
-        #     widget = getattr(self, attr, None)
-        #     if widget:
-        #         widget.style(f"background-color: {bg} !important; color: {fg} !important;")
+        # Set the main container to a vertical layout with full width and height
         with container_context:
             # Toolbar
             with ui.row().classes("w-full items-center gap-2 p-2 mb-2") as self.gui_toolbar:
@@ -787,7 +767,7 @@ def initialize_screen(self: MyGui) -> None:
             ui
             .select(
                 options=["0", "1", "2", "3", "4", "5"],
-                value="2",
+                value=str(self.display_detail_level),
                 label="Detail Level",
                 on_change=self.event_handlers.detail_selected_event,
             )
@@ -1192,7 +1172,7 @@ def _create_language_selection_section(self: MyGui) -> None:
     # This returns a list of English language keys, e.g., ["English", "German", "French"]
     languages = sort_languages_with_priority(PrimeItems.languages.keys())
 
-    # FIX: Do not translate the initial value here. Keep it in English
+    # Do not translate the initial value here. Keep it in English
     # so it perfectly matches one of the options inside the 'languages' list.
     initial_language = self.language
 

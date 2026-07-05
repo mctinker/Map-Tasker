@@ -26,17 +26,6 @@ TRACE_LOG_FILE = "trace_log.txt"
 if os.path.exists(TRACE_LOG_FILE):
     os.remove(TRACE_LOG_FILE)
 
-# FIX Delete this section.
-# heading_fonts = {
-#     "0": "text-base",
-#     "1": "text-3xl",
-#     "2": "text-2xl",
-#     "3": "text-xl",
-#     "4": "text-lg",
-#     "5": "text-base font-bold",
-#     "6": "text-sm",
-#     "7": "text-xs",
-# }
 
 # ==========================================
 # PURE PYTHON UTILITIES (Keep your existing logic here)
@@ -193,6 +182,6 @@ def get_monospace_fonts() -> list[str]:
 
     # Fallback default values if the system returns an empty list
     if not mono_fonts:
-        mono_fonts = ["Courier New", "Courier", "Consolas", "Monospace"]
+        mono_fonts = ["Courier New", "Courier"]
 
     return mono_fonts

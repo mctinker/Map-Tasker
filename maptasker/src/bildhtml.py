@@ -5,7 +5,6 @@ import gc
 import os
 import sys
 import webbrowser
-from subprocess import run
 
 import maptasker.src.taskuniq as special_tasks
 from maptasker.src import projects
@@ -16,7 +15,6 @@ from maptasker.src.format import format_line
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.mapai import map_ai
 from maptasker.src.maputils import (
     clear_tasker_data,
     display_task_warnings,
@@ -24,7 +22,6 @@ from maptasker.src.maputils import (
     live_translate_text,
     restart_program_subprocess,
 )
-from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
     NORMAL_TAB,
@@ -40,10 +37,7 @@ from maptasker.src.sysconst import (
 def build_html(file_to_get: str) -> int:
     """Builds and generates the final HTML output file for MapTasker.
 
-    This function coordinates the primary workflow of processing Tasker projects
-    and profiles, managing runtime arguments, wrapping up the HTML back matter,
-    triggering AI analysis if configured, and handling program restarts
-    (reruns) via the GUI.
+    This function builds the html output file for MapTasker.
 
     Args:
         file_to_get (str): The path or filename of the Tasker configuration
@@ -61,8 +55,6 @@ def build_html(file_to_get: str) -> int:
         - Gathers Tasker variables globally if the display detail level warrants it.
         - Modifies global states via `projects.process_projects_and_their_profiles`
           and `final_processing`.
-        - Invokes `map_ai()` if AI analysis (`ai_analyze`) is enabled, which sets
-          the `rerun` state to True.
         - Clears the global `PrimeItems.output_lines` queue multiple times.
         - Persists runtime settings and color configurations to disk via `save_restore_args`.
         - Triggers a full program relaunch (`do_rerun()`) if the `rerun` argument
@@ -98,11 +90,6 @@ def build_html(file_to_get: str) -> int:
 
     # Do special handling: wrap up back matter and print the output.
     final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks)
-
-    # Handle Ai Analysis
-    if PrimeItems.program_arguments["ai_analyze"]:
-        map_ai()
-        PrimeItems.program_arguments["rerun"] = True
 
     # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
     save_rerun_state = PrimeItems.program_arguments["rerun"]
@@ -174,20 +161,16 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
         _output_directory = output_directory  # Localize for speed
         _format_line = format_line  # Localize for speed
         for num, item in enumerate(PrimeItems.output_lines.output_lines):
-            # Check to see if this is where the directory is to go in the
-            # Output directory. if so, output_directory will create it's own list of
-            # output lines.
-            # FIX This is a temporary workaround to the GUI terminating prematurely due to output size.
+            # This is a temporary workaround to the GUI terminating prematurely due to output size.
             if num > PrimeItems.view_limit:
-                print(
-                    f"bingo write_out_the_file: view limit reached, stopping output to file.  num={num}, view_limit={PrimeItems.view_limit}",
-                )
-                out_file.write("</span></body></html>")  # Close out the html file
-                logger.info(
-                    f"bingo write_out_the_file: view limit reached, stopping output to file.  num={num}, view_limit={PrimeItems.view_limit}",
-                )
+                msg_text = f"MapTasker: view limit reached, stopping output to file.  num={num}, view_limit={PrimeItems.view_limit}"
+                print(msg_text)
+                out_file.write(f"{msg_text}</span></body></html>")  # Close out the html file
+                logger.info(msg_text)
                 break  # Don't output more than the view limit
 
+            # Check to see if this is where the directory is to go in the Output directory.
+            # if so, output_directory will create it's own list of output lines.
             if "maptasker_directory" in item:
                 # Temporarily save our output lines
                 temp_lines_out = PrimeItems.output_lines.output_lines
@@ -290,49 +273,6 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
                 1,
             )
 
-    # If doing the outline, let 'em know about the map file.
-    if not PrimeItems.program_arguments["guiview"]:
-        map_text = (
-            "The Configuration Map was saved as MapTasker_Map.txt.  " if PrimeItems.program_arguments["outline"] else ""
-        )
-        print("")
-        print(
-            f"{Colors.Green}You can find 'MapTasker.html' in the current folder.  {map_text}",
-        )
-        print("")
-
-
-# Output the configuration outline and map
-# FIX Remove this function and it's call.
-def process_outline() -> None:
-    """
-    Output the configuration outline and map
-    Args:
-        None
-    Returns:
-        None: This function does not return anything
-    Processing Logic:
-    - Call outline_the_configuration() to output the configuration outline
-    - Try to open and display the generated map file MapTasker_map.txt using the default text editor
-    - If the map file is not found, suppress the error and do not display anything
-    """
-
-    """
-    Output the configuration outline and map
-    """
-    # Do the configuration outline and generate the map
-    outline_the_configuration()
-
-    # Display the diagram in the default text editor.
-    if not PrimeItems.program_arguments["guiview"]:
-        with contextlib.suppress(FileNotFoundError):
-            # Asterisk before sys.argv breaks it into separate arguments
-            if PrimeItems.windows_system:
-                directory = os.getcwd()
-                os.startfile(f"{directory}{PrimeItems.slash}MapTasker_Map.txt")
-            else:
-                run(["open", "MapTasker_Map.txt"], check=False)  # noqa: S607
-
 
 # We've displayed Projects etc.. Now display the back matter
 def display_back_matter(
@@ -377,10 +317,6 @@ def display_back_matter(
 
     # Get the output directory/folder path
     my_output_dir = os.getcwd()
-
-    # Output the Configuration Outline
-    if program_arguments["outline"]:
-        process_outline()
 
     # Output the grand total (Projects/Profiles/Tasks/Scenes)
     output_grand_totals()

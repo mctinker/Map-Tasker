@@ -86,7 +86,6 @@ def get_and_set_booleans(args: list) -> None:
         "debug": "",
         "directory": "",
         "everything": "e",
-        "outline": "o",
         "pretty": "",
         "preferences": "",
         "reset": "",
@@ -142,7 +141,6 @@ def set_everything(program_arguments: dict) -> None:
     program_arguments["preferences"] = True
     program_arguments["directory"] = True
     program_arguments["taskernet"] = True
-    program_arguments["outline"] = True
     program_arguments["runtime"] = True
     program_arguments["pretty"] = True
 

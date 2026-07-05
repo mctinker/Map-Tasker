@@ -211,12 +211,6 @@ def do_trailing_matters() -> None:
             "<a href=#unreferenced_variables>Unreferenced Global Variables</a>",
         )
 
-    # Do Configuration Outline
-    if PrimeItems.program_arguments["outline"]:
-        trailing_matter.append(
-            "<a href=#configuration_outline>Configuration Outline</a>",
-        )
-
     # Add Grand Totals.
     trailing_matter.append("<a href=#grand_totals>Grand Totals</a>")
 

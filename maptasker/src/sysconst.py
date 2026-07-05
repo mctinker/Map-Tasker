@@ -17,7 +17,7 @@ import darkdetect
 
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
-VERSION = "11.0.0-beta"
+VERSION = "11.0.0-beta-0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -132,7 +132,6 @@ ARGUMENT_NAMES = {
     "view_limit": "View Limit",
     "map_window_position": "Last Map Window Position",
     "misc_window_position": "Last used Miscellaneous Window Position",
-    "outline": "Display Configuration Outline",
     "preferences": "Display Tasker Preferences",
     "pretty": "Display Prettier Output",
     "progressbar_window_position": "Last Progressbar Window Position",

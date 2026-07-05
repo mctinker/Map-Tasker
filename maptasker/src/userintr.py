@@ -131,7 +131,6 @@ class MyGui:
             print("\n" + "=" * 50)
             print("🚨 CRITICAL UI BUILD ERROR 🚨", e)
             sys.exit()
-            # import traceback
 
         # Now restore the settings and update the fields if not resetting.
         self.default_language = "English"
@@ -145,16 +144,16 @@ class MyGui:
             # traceback.print_exc()
             print("=" * 50 + "\n")
 
-        # FIX: FOR DEVELOPMENT ONLY
-        PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
-        PrimeItems.program_arguments["single_project_name"] = self.single_project_name = PrimeItems.program_arguments[
-            "single_profile_name"
-        ] = self.single_profile_name = PrimeItems.program_arguments["single_task_name"] = self.single_task_name = "None"
-        PrimeItems.program_arguments["single_project_name"] = self.single_project_name = "Chat GPT"
-        PrimeItems.program_arguments["guiview"] = True
-        _ = get_xml(self.debug, self.appearance_mode)
-        self.view_limit = 9999999
-        list_tasker_objects(self)
+        # CHG: FOR DEVELOPMENT ONLY
+        # PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
+        # PrimeItems.program_arguments["single_project_name"] = self.single_project_name = PrimeItems.program_arguments[
+        #     "single_profile_name"
+        # ] = self.single_profile_name = PrimeItems.program_arguments["single_task_name"] = self.single_task_name = "None"
+        # PrimeItems.program_arguments["single_project_name"] = self.single_project_name = "Chat GPT"
+        # PrimeItems.program_arguments["guiview"] = True
+        # _ = get_xml(self.debug, self.appearance_mode)
+        # self.view_limit = 9999999
+        # list_tasker_objects(self)
         # self.event_handlers.view_event("map")
 
         self.initialization = False
@@ -214,75 +213,6 @@ class MyGui:
         ui.notify(message, type="positive" if color.lower() == "green" else "negative")
         if hasattr(self, "log_output"):
             self.log_output.push(message)
-
-    def display_view(self, view_type: str, data: list | dict | None = None) -> object:
-        """
-        Displays a window with the given view type and data.
-
-        Parameters:
-            view_type (str): The type of view to display ("map", "diagram", or "tree").
-            data (list or dict, optional): List of data to be displayed in the view. Defaults to None.
-
-        Returns:
-            View (object): The window view.
-
-        Processing Logic:
-            - Creates a new window if one does not exist.
-            - Focuses on the window if it already exists.
-            - Displays the given data in the specified view format.
-            - Packs the view in the window with specified padding and filling.
-        """
-        window_attribute = f"{view_type}view_window"
-        window_title = f"{view_type.capitalize()} View"
-
-        # Map view
-        if view_type == "map":
-            map_data = parse_html()
-            # Check if too much data to display
-            map_length = len(map_data)
-            if map_length > self.view_limit:
-                text1 = translate_string("Too much data to display (Size=")
-                text2 = translate_string("View Limit=")
-                text3 = translate_string(
-                    "Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
-                )
-                self.display_message_box(
-                    f"{text1}{map_length}, {text2}{self.view_limit}).  {text3}",
-                    "Orange",
-                )
-                return None
-            if data:
-                self.textview = NiceGuiTextView(
-                    master=getattr(self, window_attribute),
-                    title=window_title,
-                    the_data=data,
-                )
-
-        # Setup diagram view.
-        elif view_type in ("diagram", "misc"):
-            # Display the data.
-            if data:
-                self.textview = NiceGuiTextView(
-                    master=getattr(self, window_attribute),
-                    title=window_title,
-                    the_data=data,
-                )
-            else:
-                self.display_message_box("No Project(s) Found in XML!", "Red")
-                return None
-        elif view_type == "tree":
-            if data:
-                self.textview = NiceGuiTreeView(master=getattr(self, window_attribute), items=data)
-            else:
-                self.display_message_box("No Project(s) Found in XML!", "Red")
-                return None
-        else:
-            self.display_message_box()(
-                "Invalid view type specified. Use 'map', 'diagram', or 'tree'.",
-                "Red",
-            )
-
-        return None
 
     # Load the XML if not already loaded.
     def load_xml(self) -> bool:
@@ -394,6 +324,8 @@ class MyGui:
             gui_instance.display_and_set_file("example.txt")
             ```
         """
+        if self.is_updating:
+            return
         display_current_file(self, filename)
         if self.current_file_display_message:
             text = translate_string("Current file set to")
@@ -520,7 +452,7 @@ class MyGui:
                 ("Profile", self.single_profile_name),
                 ("Task", self.single_task_name),
             ]
-            # Count how many names are set
+            # Count how many single_xxx_name names are set
             active_names = [n for n in names if n[1]]
 
             if len(active_names) > 1:
@@ -698,10 +630,6 @@ class MyGui:
             "android_ipaddr": lambda: f"{translate_string('Android Get XML TCP IP Address')} {set_to} {value}\n",
             "android_port": lambda: f"{translate_string('Android Get XML Port Number')} {set_to} {value}\n",
             "android_file": lambda: f"{translate_string('Android Get XML File Location')} {set_to} {value}\n",
-            # FIX Delete the fopllowing code
-            # "appearance_mode": lambda: self.event_handlers.change_appearance_mode_event(
-            #     value,
-            # ),
             "ai_model_extended_list": lambda: self.select_deselect_checkbox(
                 self.aimodel_extend_checkbox,
                 value,
@@ -759,12 +687,6 @@ class MyGui:
                 display=False,
             ),
             "view_limit": lambda: self.event_handlers.viewlimit_event(value),
-            # "outline": lambda: self.select_deselect_checkbox(
-            #     self.outline_checkbox,
-            #     value,
-            #     "Display Configuration Outline",
-            #     display=False,
-            # ),
             "preferences": lambda: self.select_deselect_checkbox(
                 self.preferences_checkbox,
                 value,
@@ -866,7 +788,7 @@ class MyGui:
         - Check if checked is True, call checkbox.select() to select it
         - Check if checked is False, call checkbox.deselect() to deselect it
         - Return a string with the argument name and checked status"""
-        checkbox = not checkbox if checked else checkbox
+        checkbox.value = bool(checked)
         if display:
             onoff = "On" if checked else "Off"
             set_on_off = translate_string(f"set {onoff}")
@@ -925,15 +847,49 @@ class MyGui:
         if name_entered and self.check_name(name_entered, my_name):
             self.single_project_name = self.single_profile_name = self.single_task_name = ""
 
-            match my_name:
-                case "Project":
-                    self.single_project_name = name_entered
-                case "Profile":
-                    self.single_profile_name = name_entered
-                case "Task":
-                    self.single_task_name = name_entered
-                case _:
-                    pass
+            try:
+                # 1. Engage the lock to silence NiceGUI event triggers
+                self.is_updating = True
+
+                match my_name:
+                    case "Project":
+                        self.single_project_name = name_entered
+                        if name_entered not in self.specific_project_optionmenu.options:
+                            self.specific_project_optionmenu.options.append(name_entered)
+                        self.specific_project_optionmenu.value = name_entered
+                        self.specific_profile_optionmenu.value = "None"
+                        self.specific_task_optionmenu.value = "None"
+                        translation_proj = translate_string("Project to Analyze:")
+                        self.ai_project_label.text = f"{translation_proj} {name_entered}"
+                        self.ai_profile_label.text = "None"
+                        self.ai_task_label.text = "None"
+                    case "Profile":
+                        self.single_profile_name = name_entered
+                        if name_entered not in self.specific_profile_optionmenu.options:
+                            self.specific_profile_optionmenu.options.append(name_entered)
+                        self.specific_profile_optionmenu.value = name_entered
+                        self.specific_project_optionmenu.value = "None"
+                        self.specific_task_optionmenu.value = "None"
+                        translation_prof = translate_string("Profile to Analyze:")
+                        self.ai_profile_label.text = f"{translation_prof} {name_entered}"
+                        self.ai_task_label.text = "None"
+                        self.ai_project_label.text = "None"
+                    case "Task":
+                        self.single_task_name = name_entered
+                        if name_entered not in self.specific_task_optionmenu.options:
+                            self.specific_task_optionmenu.options.append(name_entered)
+                        self.specific_task_optionmenu.value = name_entered
+                        self.specific_project_optionmenu.value = "None"
+                        self.specific_profile_optionmenu.value = "None"
+                        translation_task = translate_string("Task to Analyze:")
+                        self.ai_task_label.text = f"{translation_task} {name_entered}"
+                        self.ai_project_label.text = "None"
+                        self.ai_profile_label.text = "None"
+                    case _:
+                        pass
+            finally:
+                # 2. Always release the lock so user interaction still works
+                self.is_updating = False
 
     def tasklimit_set(self, limit: str | int) -> None:
         """
@@ -1060,20 +1016,16 @@ class MapTaskerEventHandlers:
         Uses run.io_bound to run blocking file generations in a background thread,
         allowing thread-safe access to internal PrimeItems variables.
         """
-        print("bingo view_event begins")
-
-        # FIX This is a temporary workaround to the GUI terminating prematurely due to output size.
-        PrimeItems.view_limit = 20000
-
         window_title = f"{view_type.capitalize()} View"
         self.gui.event = True  # Set the event flag to True
         logger.info(f"GUI: Switching to {window_title}")
 
         gui = self.gui
+        PrimeItems.view_limit = self.view_limit if self.view_limit <= 20000 else 20000
 
         # Map view
         if view_type == "map":
-            ui.notify(f"Loading {window_title} View...", type="info", timeout=1000)
+            ui.notify(f"Loading {window_title}.  Please stand by ...", type="info", timeout=1000)
             ui.update()  # Force immediate UI update to show notification
 
             # 1. Clear out stale error codes before starting execution paths
@@ -1177,106 +1129,6 @@ class MapTaskerEventHandlers:
                 "Red",
             )
 
-        print("bingo view_event ended")
-
-    # async def view_event(self: "MapTaskerEventHandlers", view_type: str) -> None:
-    #     """Triggered when Map, Diagram, or Tree buttons are clicked."""
-    #     window_title = f"{view_type.capitalize()} View"
-    #     logger.info(f"GUI: Switching to {window_title}")
-    #     print("bingo view_event")
-    #     ui.notify(f"Loading {window_title} View...", type="info", timeout=1000)
-    #     ui.update()  # Force immediate UI update to show notification
-
-    #     # Point to the data
-    #     data = PrimeItems.output_lines.output_lines
-    #     gui = self.gui
-    #     # FIX Temporary fix for view limit.  This will be settable in the GUI later.
-    #     PrimeItems.view_limit = 20000
-
-    #     # Map view
-    #     if view_type == "map":
-    #         # Process all of the data and build/output our html
-    #         build_html("")
-
-    #         # Now process the data for display in the gui
-    #         map_data = parse_html()
-
-    #         # Check if too much data to display
-    #         map_length = len(map_data)
-    #         if map_length > gui.view_limit:
-    #             text1 = translate_string("Too much data to display (Size=")
-    #             text2 = translate_string("View Limit=")
-    #             text3 = translate_string(
-    #                 "Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
-    #             )
-    #             gui.display_message_box(
-    #                 f"{text1}{map_length}, {text2}{gui.view_limit}).  {text3}",
-    #                 "Orange",
-    #             )
-    #             return
-
-    #         # Define the view and display the map.
-    #         gui.textview = NiceGuiTextView(
-    #             gui,
-    #             title=window_title,
-    #             the_data=map_data,
-    #         )
-    #         gui.display_message_box("Map View displayed.", "Green")
-
-    #     # Setup diagram view.
-    #     elif view_type in ("diagram", "misc"):
-    #         # Check if we have a Project or Profile
-    #         if view_type == "diagram":
-    #             # If we don't already have Project, then get some XML.
-    #             if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
-    #                 # Let the user know
-    #                 gui.display_message_box(
-    #                     "The 'Diagram' view is running in the background.  Please stand by...",
-    #                     "LimeGreen",
-    #                 )
-    #                 # Process the diagram: builds the 'network' and then draws it in the GUI
-    #                 outline_the_configuration()
-    #                 # Display the diagram in the GUI
-    #                 window_attribute = f"{view_type}view_window"
-    #                 gui.textview = NiceGuiTextView(
-    #                     master=getattr(self, window_attribute),
-    #                     title=window_title,
-    #                     the_data=[],
-    #                 )
-
-    #         else:
-    #             data = []
-    #             gui.display_message_box(
-    #                 "The 'Misc' view is running in the background.  Please stand by...",
-    #                 "LimeGreen",
-    #             )
-    #             gui.textview = NiceGuiTextView(
-    #                 master=getattr(self, window_attribute),
-    #                 title="Misc View",
-    #                 the_data=[],
-    #             )
-
-    #     elif view_type == "tree":
-    #         if data:
-    #             gui.textview = NiceGuiTreeView("Tree View", items=data)
-    #         else:
-    #             gui.display_message_box("No Project(s) Found in XML!", "Red")
-    #             return
-    #     else:
-    #         ui.notify(
-    #             "No XML data loaded! Please Get XML from Android or Local drive first.",
-    #             type="warning",
-    #             position="top",
-    #         )
-    #         gui.display_message_box(
-    #             "Invalid view type specified. Use 'map', 'diagram', or 'tree'.",
-    #             "Red",
-    #         )
-
-    #     print("bingo view event ended")
-
-    #     return
-
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
     # ==========================================
@@ -1286,9 +1138,20 @@ class MapTaskerEventHandlers:
         Dropdown (ui.select) on_change events automatically pass an 'event' object.
         The new selected value is stored in `event`.
         """
-        self.gui.display_detail_level = event_value
-        logger.info(f"Detail level changed to: {event_value}")
-        # Note: If you bound this via `.bind_value()`, you don't even need this function!
+        if self.gui.is_updating:
+            return
+
+        if isinstance(event_value, int):
+            self.gui.display_detail_level = str(event_value)
+        elif isinstance(event_value, str) and event_value.isdigit():
+            self.gui.display_detail_level = event_value
+        else:
+            self.gui.display_detail_level = event_value.value
+        self.gui.is_updating = True
+
+        self.gui.sidebar_detail_option.value = str(self.gui.display_detail_level)
+        self.gui.sidebar_detail_option.update()
+        self.gui.is_updating = False
 
     def ai_model_selected_event(self: "MapTaskerEventHandlers", event_value: Event) -> None:
         """Updates the AI model based on dropdown selection."""
@@ -1634,6 +1497,11 @@ class MapTaskerEventHandlers:
             program_args["android_ipaddr"] = ""
             program_args["android_port"] = ""
 
+            # Empty the pulldown menus for Project, Profile, and Task selections
+            gui.specific_project_optionmenu.value = "None"
+            gui.specific_profile_optionmenu.value = "None"
+            gui.specific_task_optionmenu.value = "None"
+
             # UPDATE THE XML BUTTON COLOR & STOP BLINKING
             if hasattr(gui, "get_xml_button"):
                 gui.get_xml_button.props("color=green")  # Switch color from red to green
@@ -1718,7 +1586,6 @@ class MapTaskerEventHandlers:
 
         # 3. Explicitly open it!
         api_key_dialog.open()
-        print("bingo")
 
     async def ai_prompt_event(self) -> None:
         """
@@ -2479,7 +2346,7 @@ class MapTaskerEventHandlers:
             # Ok, run the analysis.  Await the execution of map_ai() so control doesn't leak early!
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             await map_ai()
-            print("bingo back from map_ai")
+
             # See if we have any carryover error messages from the AI run.
             # Note: this must go after the settings restoration.
             display_error_file_and_ai_response(self)
@@ -2600,7 +2467,6 @@ class MapTaskerEventHandlers:
 
             # Refresh keys on the GUI instance and update context-conditional state flags
             set_ai_key(gui, gui.ai_model)
-            print("bingo apikeys set to:", gui.ai_apikey)
             gui.has_key = bool(getattr(gui, "ai_apikey", None))
 
             # Redisplay the UI dependencies
@@ -2704,7 +2570,6 @@ class MapTaskerEventHandlers:
             mygui.pretty_checkbox,
             "Display Pretty Output",
         )
-        print("bingo pretty:", PrimeItems.program_arguments["pretty"])
 
     # Process the 'conditions' checkbox
     def condition_event(self) -> None:
@@ -2962,7 +2827,9 @@ class MapTaskerEventHandlers:
         selected = "selected" if the_view.list_unnamed_items else "deselected"
         selected = translate_string(selected)
         # Update the pull-down menus and display message
+        the_view.is_updating = True
         list_tasker_objects(the_view)
+        the_view.is_updating = False
         text = translate_string("'List Unnamed Items' checkbox")
         the_view.display_message_box(
             f"{text} {selected}.",

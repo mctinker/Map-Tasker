@@ -175,7 +175,6 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
             ui.label("Please check your other open browser tabs to use the application.").classes("text-lg ml-8")
             return
 
-        print("bingo starting MyGui")
         shared_state["user_input"] = MyGui()
 
         # Lock the door behind us
@@ -215,11 +214,10 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # =========================================================================
 
     # 3. Start the server (This will now properly block without running main() twice)
-    print("bingo ui.run")
     ui.run(
         reload=False,
         host="127.0.0.1",
-        storage_secret="maptasker_gui_storage",
+        # storage_secret="maptasker_gui_storage",  # Only needed if using either app.storage.user or app.storage.browser
         title="MapTasker",
         port=0,  # Use 0 to automatically avoid port conflicts
         dark=None,
@@ -227,7 +225,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     )
 
     logger.info("GUI closed. Processing arguments...")
-    print("bingo gui closed. Processing arguments...")
+    print("MapTasker GUI closed. Processing arguments...")
 
     # 4. Retrieve the state created by the web browser session
     user_input = shared_state.get("user_input")

@@ -1,6 +1,6 @@
 [project]
 name = "maptasker"
-version = "11.0.0-beta"
+version = "11.0.0-beta-0"
 description = "Utility to display your entire Android 'Tasker' configuration on your Desktop."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
@@ -21,8 +21,8 @@ dependencies = [
     'defusedxml>=0.7.1',
     'nicegui>=3.13.0',
     'packaging>=26.2',
-    'pillow==12.2.0',
-    'requests>=2.33.1',
+    'pillow==12.3.0',
+    'requests>=2.34.2',
     'tomli_w>=1.2.0',
     'webcolors>=25.10.0',
 ]
