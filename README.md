@@ -66,13 +66,13 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ## Program Dependencies
 
-### - Python version 3.11 (see [Note 4](#4)) or higher
+### - Python version 3.12 or higher
 
 ### - TKinter 8.6 or higher (see [Note 3](#3))
 
 ### - Tasker full or partial XML file: backup.xml or other Tasker exported XML file
 
-### - Optional 'ffmpeg' for inline Youtube video hotlinks (see [Note 6](#6))
+<!-- ### - Optional 'ffmpeg' for inline Youtube video hotlinks (see [Note 6](#6)) -->
 
 &nbsp;&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
 
@@ -196,7 +196,6 @@ A: Tkinter 8.6 or higher is required.
     - If using Brew and encountering issues:
         - You might need to uninstall Python, install `tcl-tk@8` via Brew, and then reinstall Python.
         - For `pyenv` users:
-            - Python 3.11 may need `tcl-tk@8`. Commands: `brew uninstall tcl-tk`, `pyenv uninstall 3.11.xx`, `brew install tcl-tk@8`, `pyenv install 3.11:latest`.
             - Python 3.12 should be upgraded to the latest 3.12.x: `pyenv install 3.12:latest`.
             - Python 3.13 generally works with newer Tcl/Tk versions.
     - The "Notes" section of this README contains further details, particularly regarding Tkinter installation complexities.
@@ -211,7 +210,7 @@ It's recommended to use a different text editor like Notepad++, VS Code, or Type
 
 A: Prerequisites:
 
-1- Desktop and Android device on the same local network.
+1- Browser and Android device on the same local network.
 
 2- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
 
@@ -219,27 +218,14 @@ A: Prerequisites:
 
 Further details are available in the "Notes" section of this README.
 
-**Q: I see the error message 'IMKClient Stall detected...' on macOS.**
-
-A: This message can generally be ignored.
-
-It's related to the input method kit on macOS and doesn't usually affect MapTasker's functionality.
-
-**Q: The background color is incorrect in Firefox (light mode) if my system is in dark mode.**
-
-A: This is a known issue with browser theme handling.
-
-Try aligning your browser theme with your system theme or vice-versa.
-
 **Q: Diagram connectors are misaligned for names in Chinese, Korean, or Japanese.**
 
 A: This is a known issue related to font metrics for these languages in the diagramming library.
 
-**Q: I can't upgrade to Python 3.11+. Can I still use MapTasker?**
+**Q: Why is there a hard stop at 20,000 lines of output?**
+ 
+ A: This is a limitation of the (NiceGUI) user interface.  Ongoing efforts are being made to remove this limitation.
 
-A: Yes, an older version (2.6.3) is available for Python 3.10: `pip install maptasker==2.6.3`.
-
-However, you will miss out on newer features and fixes. See the [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md) for details.
 
 ## Notes
 
@@ -278,9 +264,7 @@ The most direct and simple solution for Tkinter compatibility is to get and use 
 - If still having issues, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
 
 ### 4
-**Older Python Versions:**
-
-If you cannot use Python 3.11+, MapTasker version 2.6.3 is available for Python 3.10: `pip install maptasker==2.6.3`. This version will not have the latest features (see [Changelog](https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md)).
+**TBD:**
 
 ### 5
 **AI Support**
@@ -294,7 +278,8 @@ The supporting AI modules are not installed by default when MapTasker is install
 
 ### 6
 **Optional Inline Videos:**
-'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
+Currently not functional.
+<!-- 'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
 
 The direct playing of YouTube videos is not supported on Windows due to a dependency issue.  Therefore, 'ffmpeg' is not required for Windows users.
 
@@ -314,7 +299,7 @@ If ffmpeg is not installed, then '[▶️ VIDEO: some-youtube-url...]' will stil
 
 YouTube videos are downloaded to your local drive from which they are then played.  The bigger the video, the longer it will take to process the video.  Only YouTube videos with no audio or English audio will play under the current implementation.  Additional lanaguages will be supported in a future release.
 
-MP4 videos are played directly from their source.
+MP4 videos are played directly from their source. -->
 
 ## To-Do List (in no particular order)
 
@@ -411,9 +396,7 @@ We appreciate your help in making MapTasker better!
 
 ## Known Issues
 
-- The background color may not be correct if using the Firefox browser in light mode if the system default is dark mode.
 - Diagram connectors are misaligned if names are in Chinese, Korean or Japanese.
-- Unable to change any colors in GUI if using UV to manage the application (this is an open UV bug).
 
 ## Contributions
 

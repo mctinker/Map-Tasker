@@ -1016,12 +1016,16 @@ class MapTaskerEventHandlers:
         Uses run.io_bound to run blocking file generations in a background thread,
         allowing thread-safe access to internal PrimeItems variables.
         """
+        # max_limit = 9999999
         window_title = f"{view_type.capitalize()} View"
         self.gui.event = True  # Set the event flag to True
         logger.info(f"GUI: Switching to {window_title}")
 
         gui = self.gui
-        PrimeItems.view_limit = self.view_limit if self.view_limit <= 20000 else 20000
+        PrimeItems.view_limit = gui.view_limit if hasattr(gui, "view_limit") else 10000
+        # PrimeItems.view_limit = (
+        #     gui.view_limit if hasattr(gui, "view_limit") and gui.view_limit <= max_limit else max_limit
+        # )
 
         # Map view
         if view_type == "map":
@@ -1058,18 +1062,18 @@ class MapTaskerEventHandlers:
             map_data = parse_html()
 
             # Check if too much data to display
-            map_length = len(map_data)
-            if map_length > gui.view_limit:
-                text1 = translate_string("Too much data to display (Size=")
-                text2 = translate_string("View Limit=")
-                text3 = translate_string(
-                    "Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
-                )
-                gui.display_message_box(
-                    f"{text1}{map_length}, {text2}{gui.view_limit}).  {text3}",
-                    "Orange",
-                )
-                return
+            # map_length = len(map_data)
+            # if map_length > gui.view_limit:
+            #     text1 = translate_string("Too much data to display (Size=")
+            #     text2 = translate_string("View Limit=")
+            #     text3 = translate_string(
+            #         "Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
+            #     )
+            #     gui.display_message_box(
+            #         f"{text1}{map_length}, {text2}{gui.view_limit}).  {text3}",
+            #         "Orange",
+            #     )
+            #     return
 
             # Define the view and display the map.
             gui.textview = NiceGuiTextView(
@@ -1077,6 +1081,14 @@ class MapTaskerEventHandlers:
                 title=window_title,
                 the_data=map_data,
             )
+
+            # Check for hard stop limit and notify user if output was truncated
+            output_length = len(PrimeItems.output_lines.output_lines)
+            if output_length > gui.view_limit:
+                gui.display_message_box(
+                    f"Map view truncated {output_length} lines to {gui.view_limit} lines due to view limit.",
+                    "Orange",
+                )
             gui.display_message_box("Map View displayed.", "Green")
 
         # Setup diagram view.
@@ -1128,6 +1140,12 @@ class MapTaskerEventHandlers:
                 "Invalid view type specified. Use 'map', 'diagram', or 'tree'.",
                 "Red",
             )
+
+    def clear_view_event(self: "MapTaskerEventHandlers") -> None:
+        """Clears the current view and resets the textview."""
+        if hasattr(self.gui, "content_container") and self.gui.content_container:
+            self.gui.content_container.clear()
+            ui.notify("View cleared.", type="info", position="top")
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS

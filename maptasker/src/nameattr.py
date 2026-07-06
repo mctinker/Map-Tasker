@@ -59,5 +59,5 @@ def get_tk() -> None:
     - Check if PrimeItems.tkroot already exists
     - If not, initialize new Tkinter root window object and assign to PrimeItems.tkroot
     - Return PrimeItems.tkroot"""
-    if not PrimeItems.program_arguments["gui"]:
+    if PrimeItems.tkroot is None:
         PrimeItems.tkroot = tk.Tk()

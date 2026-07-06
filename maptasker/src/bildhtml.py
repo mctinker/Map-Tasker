@@ -163,8 +163,8 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
         for num, item in enumerate(PrimeItems.output_lines.output_lines):
             # This is a temporary workaround to the GUI terminating prematurely due to output size.
             if num > PrimeItems.view_limit:
-                msg_text = f"MapTasker: view limit reached, stopping output to file.  num={num}, view_limit={PrimeItems.view_limit}"
-                print(msg_text)
+                msg_text = f"MapTasker: view limit reached, stopping output to file:  output={len(PrimeItems.output_lines.output_lines)}, hardstop_limit={PrimeItems.view_limit}"
+                # print(msg_text)
                 out_file.write(f"{msg_text}</span></body></html>")  # Close out the html file
                 logger.info(msg_text)
                 break  # Don't output more than the view limit

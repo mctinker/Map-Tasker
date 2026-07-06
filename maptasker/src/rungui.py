@@ -14,6 +14,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 from typing import TYPE_CHECKING, Any
 
 from nicegui import core, ui
@@ -168,17 +169,23 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # 2. EXPLICITLY define the root page.
     @ui.page("/")
     def map_tasker_root() -> None:
-
-        # If the browser tries to refresh or open a second tab, block it!
+        restart = False
+        # Check if this is a page refresh/re-connection
         if app_lock["is_built"]:
-            ui.label("MapTasker is already running!").classes("text-3xl text-red-600 font-bold m-8")
-            ui.label("Please check your other open browser tabs to use the application.").classes("text-lg ml-8")
-            return
+            logger.info("Application refreshed or reconnected. Re-initializing user interface context.")
+            print("bingo Application refreshed or reconnected. Re-initializing user interface context.")
 
+            # Optional: Clear out any global data references that should reset on a clean page refresh
+            if "user_input" in shared_state:
+                restart = True
+                del shared_state["user_input"]
+
+        # Safely instantiate or overwrite the UI instance
         shared_state["user_input"] = MyGui()
-
-        # Lock the door behind us
+        # Mark as built so the application tracks that initialization has occurred
         app_lock["is_built"] = True
+        if restart:
+            ui.notify("Application refreshed. Please re-enter your inputs.", color="orange", position="top")
 
     logger.info("Starting NiceGUI server mainloop")
 
@@ -211,9 +218,14 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # 3. Apply the monkey-patch directly to the core server emitter instance
     core.sio.emit = intercepted_sio_emit
+
+    # 4. Point to the icon directory fore our favicon.
+    abspath = os.path.abspath(__file__)
+    assets_dir = os.path.dirname(abspath).replace("src", f"assets{PrimeItems.slash}icons")
+
     # =========================================================================
 
-    # 3. Start the server (This will now properly block without running main() twice)
+    # 5. Start the server (This will now properly block without running main() twice)
     ui.run(
         reload=False,
         host="127.0.0.1",
@@ -222,6 +234,8 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         port=0,  # Use 0 to automatically avoid port conflicts
         dark=None,
         show=True,
+        cache_control_directives="no-store",
+        favicon=f"{assets_dir}{PrimeItems.slash}Animated Gear.gif",
     )
 
     logger.info("GUI closed. Processing arguments...")

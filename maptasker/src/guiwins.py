@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 from typing import TYPE_CHECKING
@@ -164,7 +165,8 @@ class NiceGuiTextView:
         self.title = title
         self.is_map = isinstance(the_data, dict)
         self.build_ui()
-        self.process_data(the_data)
+        # Schedule the coroutine into the active event loop safely
+        self._task = asyncio.create_task(self.process_data(the_data))
 
     def build_ui(self) -> None:
         """Builds the UI layout for the various text views, including toolbar and scrollable display area."""
@@ -203,7 +205,7 @@ class NiceGuiTextView:
                 .style(f"width: 100%; max-w: 100%; font-family: '{self.master_gui.font}', monospace;")
             )
 
-    def process_data(self, the_data: dict | list) -> None:
+    async def process_data(self, the_data: dict | list) -> None:
         """Converts data to HTML chunks, preventing single-packet WebSocket buffer overruns."""
         html_style = f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;"
         if "Diagram" not in self.title:
@@ -236,12 +238,13 @@ class NiceGuiTextView:
             html_lines = final_html.splitlines()
             if html_lines and html_lines[0].strip() == '<span class="normtab"></span><!doctype html>':
                 del html_lines[0]  # Remove the first line if it matches the unwanted header
-            chunk_size = 500  # Number of lines per single WebSocket packet transaction block
+            chunk_size = 2000  # Number of lines per single WebSocket packet transaction block
 
             with self.scroll_area:
                 for i in range(0, len(html_lines), chunk_size):
                     chunk_content = "\n".join(html_lines[i : i + chunk_size])
                     ui.html(chunk_content).classes("w-full block max-w-full").style(html_style)
+                    await asyncio.sleep(0.01)  # Yields loop to keep WebSocket alive
             return  # noqa: TRY300
 
         except FileNotFoundError:
@@ -852,6 +855,7 @@ def initialize_screen(self: MyGui) -> None:
             ui.button("Map", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
             ui.button("Diagram", on_click=lambda: self.event_handlers.view_event("diagram")).classes("bg-blue-500")
             ui.button("Tree", on_click=lambda: self.event_handlers.view_event("tree")).classes("bg-blue-500")
+        ui.button("Clear", on_click=self.event_handlers.clear_view_event).classes("bg-blue-500")
 
         ui.label("Application Settings").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         _create_settings_buttons_section(self)
