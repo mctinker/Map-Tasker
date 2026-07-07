@@ -49,11 +49,26 @@ if TYPE_CHECKING:
 # ==========================================
 # 2. DYNAMIC COMPONENT UPDATERS
 # ==========================================
-def display_model_pulldown(gui_instance: "MyGui") -> None:
+def display_model_pulldown(gui_arg: any, *args: dict, **kwargs) -> None:  # noqa: ANN003, ARG001
+    """Displays the AI model selection dropdown list.
+
+    Normalizes `gui_arg` whether it's passed a direct MyGui instance,
+    a NiceGUI event object, or a MapTaskerEventHandlers instance.
     """
-    Updates or creates the AI model dropdown.
-    In NiceGUI, we update the existing `ui.select` options instead of destroying/recreating widgets.
-    """
+    # 1. Normalize the argument to find the true MyGui instance context
+    if hasattr(gui_arg, "gui") and gui_arg.gui.__class__.__name__ == "MyGui":
+        gui_instance = gui_arg.gui
+    elif hasattr(gui_arg, "client") or hasattr(gui_arg, "sender"):
+        # It's a NiceGUI UI Event object; try to fetch from PrimeItems or a cross-reference
+        gui_instance = getattr(PrimeItems, "mygui", gui_arg)
+    else:
+        gui_instance = gui_arg
+
+    # 2. Safety Fallback validation check
+    if gui_instance.__class__.__name__ != "MyGui":
+        logger.error(f"display_model_pulldown received an invalid GUI context object: {type(gui_arg)}")
+        return
+
     # Add the list of models.  If this is a request for an extended list, then get the extended list.
     if gui_instance.ai_model_extended_list and not gui_instance.initialization:
         if gui_instance.displaying_extended_list is not None and gui_instance.displaying_extended_list:
