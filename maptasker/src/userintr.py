@@ -13,6 +13,7 @@ from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
+from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
@@ -41,6 +42,7 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins import (
     NiceGuiTextView,
     NiceGuiTreeView,
+    create_popup_window,
     initialize_gui,
     initialize_screen,
 )
@@ -143,6 +145,10 @@ class MyGui:
 
             # traceback.print_exc()
             print("=" * 50 + "\n")
+
+        # See if we have any carryover error messages from the AI run.
+        # Note: this must go after the settings restoration.
+        display_error_file_and_ai_response(self)
 
         # CHG: FOR DEVELOPMENT ONLY
         # PrimeItems.file_to_get = "/Users/mikrubin/$backup.xml"
@@ -340,26 +346,14 @@ class MyGui:
         routine: Callable,
     ) -> ui.button:
         """
-        Displays a backup button on the GUI.
-
-        Args:
-            the_text: The text to display on the button.
-            color1: The background color of the button (Hex code).
-            color2: The border color of the button (Hex code).
-            routine: The function to execute when the button is clicked.
-
-        Returns:
-            ui.button: The generated NiceGUI button object.
+        Displays a backup button on the GUI inline within the active context.
         """
-
-        # ui.button creates the button and binds the click event instantly.
-        # .style() applies the specific hex colors.
-        # .classes() applies Tailwind CSS for margins (spacing) and alignment.
+        # REMOVED the "with self.gui_right_drawer:" breakout block to preserve row placement order
         self.get_backup_button = (
             ui
             .button(the_text, on_click=routine)
             .style(f"background-color: {color1}; border-color: {color2}; border-width: 2px; color: white;")
-            .classes("mt-0 ml-0 font-bold")
+            .classes("mt-0 ml-0 font-bold w-full")
         )
 
         return self.get_backup_button
@@ -1023,9 +1017,9 @@ class MapTaskerEventHandlers:
 
         gui = self.gui
         PrimeItems.view_limit = gui.view_limit if hasattr(gui, "view_limit") else 10000
-        # PrimeItems.view_limit = (
-        #     gui.view_limit if hasattr(gui, "view_limit") and gui.view_limit <= max_limit else max_limit
-        # )
+
+        # Plug all of our settings back into PrimeItems.program_arguments
+        capture_gui_state(gui, {})
 
         # Map view
         if view_type == "map":
@@ -1035,6 +1029,27 @@ class MapTaskerEventHandlers:
             # 1. Clear out stale error codes before starting execution paths
             PrimeItems.error_code = 0
             PrimeItems.error_msg = ""
+
+            # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
+            PrimeItems.output_lines.output_lines.clear()
+            output_the_front_matter()
+            # # Clear the directory, grand totals, etc.
+            # PrimeItems.directory_items = {
+            #     "current_item": "",
+            #     "projects": [],
+            #     "profiles": [],
+            #     "tasks": [],
+            #     "scenes": [],
+            # }
+
+            # PrimeItems.grand_totals = {
+            #     "projects": 0,
+            #     "profiles": 0,
+            #     "unnamed_tasks": 0,
+            #     "named_tasks": 0,
+            #     "scenes": 0,
+            # }
+            PrimeItems.task_action_warnings = {}
 
             try:
                 # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
@@ -1060,6 +1075,10 @@ class MapTaskerEventHandlers:
 
             # Now process the data for display in the gui
             map_data = parse_html()
+            output_length = len(PrimeItems.output_lines.output_lines)
+
+            # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
+            PrimeItems.output_lines.output_lines.clear()
 
             # Check if too much data to display
             # map_length = len(map_data)
@@ -1083,7 +1102,6 @@ class MapTaskerEventHandlers:
             )
 
             # Check for hard stop limit and notify user if output was truncated
-            output_length = len(PrimeItems.output_lines.output_lines)
             if output_length > gui.view_limit:
                 gui.display_message_box(
                     f"Map view truncated {output_length} lines to {gui.view_limit} lines due to view limit.",
@@ -1145,7 +1163,7 @@ class MapTaskerEventHandlers:
         """Clears the current view and resets the textview."""
         if hasattr(self.gui, "content_container") and self.gui.content_container:
             self.gui.content_container.clear()
-            ui.notify("View cleared.", type="info", position="top")
+            ui.notify("View cleared.", type="info", position="bottom")
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
@@ -1403,7 +1421,9 @@ class MapTaskerEventHandlers:
                 PrimeItems.found_named_items["single_project_name"] = False
                 PrimeItems.found_named_items["single_profile_name"] = False
                 PrimeItems.found_named_items["single_task_name"] = False
-
+                PrimeItems.found_named_items["single_project_found"] = False
+                PrimeItems.found_named_items["single_profile_found"] = False
+                PrimeItems.found_named_items["single_task_found"] = False
                 # Save the name in mygui signle_xxx_name.
                 name_entered = "" if name_entered == none_translated else name_entered
 
@@ -1994,7 +2014,6 @@ class MapTaskerEventHandlers:
         message = f"{translate_string('Language set to')} {language_translated}."
 
         # Display message in the GUI
-        the_view.clear_messages = True
         the_view.display_message_box(message, "Green")
 
     def tasklimit_event(self, slider_value: any) -> None:
@@ -2110,7 +2129,7 @@ class MapTaskerEventHandlers:
             - Uses new_message_box method.
             - Help text is stored in {query_event.upper}_HELP_TEXT variable."""
 
-        guiview = self.gui
+        # guiview = self.gui
 
         help_texts = {
             "viewlimit": ("View Limit Help", VIEWLIMIT_HELP_TEXT),
@@ -2136,8 +2155,8 @@ class MapTaskerEventHandlers:
             help_text = translate_string(help_text[temp:])
             help_text = help_text + "\n".join(changes)
 
-        guiview.new_message_box(f"{translate_string(title)}\n\n{translate_string(help_text)}")
-        guiview.clear_messages = True  # Flag to tell display_message_box to clear the message box
+        # Create the dialog container on the main thread
+        dialog = create_popup_window(f"{translate_string(title)}", f"{translate_string(help_text)}", close_button=True)
 
     def viewlimit_event(self: object, view_limit: str) -> None:
         """View Limit Event handled safely without recursion."""
@@ -2145,23 +2164,35 @@ class MapTaskerEventHandlers:
         if getattr(guiview, "is_updating", False):
             return
 
-        # Get the limit and convert it to an integer if it's a digit, otherwise handle "Unlimited"
-        view_limit = view_limit.value if hasattr(view_limit, "value") else view_limit
-        if isinstance(view_limit, str) and view_limit.isdigit():
-            view_limit = int(view_limit)
-        guiview.view_limit = 9999999 if view_limit == translate_string("Unlimited") else view_limit
-        if view_limit == 9999999:
-            view_limit = "Unlimited"
+        # 1. Safely extract the raw string value from NiceGUI Event or raw string
+        view_limit_str = view_limit.value if hasattr(view_limit, "value") else str(view_limit)
 
+        # 2. Normalize values to match the options strings exactly
+        if view_limit_str == "9999999" or view_limit_str == translate_string("Unlimited"):
+            display_value = "Unlimited"
+            guiview.view_limit = 9999999
+        else:
+            display_value = str(view_limit_str)
+            if display_value.isdigit():
+                guiview.view_limit = int(display_value)
+            else:
+                display_value = "10000"  # Fallback safety
+                guiview.view_limit = 10000
+
+        # 3. Target the correct guiview reference variable
         if hasattr(guiview, "viewlimit_optionmenu") and guiview.viewlimit_optionmenu:
             try:
                 guiview.is_updating = True
-                guiview.viewlimit_optionmenu.value = view_limit
+                guiview.viewlimit_optionmenu.value = display_value
+                guiview.viewlimit_optionmenu.update()  # Force NiceGUI to update component properties
             finally:
                 guiview.is_updating = False
 
+        # 4. Force global UI panel recalculation to draw changes onto the browser screen
+        ui.update()
+
         text = translate_string("View Limit set to")
-        guiview.display_message_box(f"{text} {view_limit}.", "Green")
+        guiview.display_message_box(f"{text} {display_value}.", "Green")
 
     # Clear the message text box.
     def clear_messages_event(self) -> None:
@@ -2328,7 +2359,6 @@ class MapTaskerEventHandlers:
         # Do we have a single item identified?
         if gui.single_project_name or gui.single_profile_name or gui.single_task_name:
             gui.ai_analyze = True
-            # gui.event_handlers.clear_messages_event()  # Clear out all displayed messages.
             text1 = translate_string("Running")
             text2 = translate_string("analysis with model")
             gui.display_message_box(
@@ -2365,8 +2395,7 @@ class MapTaskerEventHandlers:
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             await map_ai()
 
-            # See if we have any carryover error messages from the AI run.
-            # Note: this must go after the settings restoration.
+            # Display messages from the AI run.
             display_error_file_and_ai_response(self)
 
         # Test if no XML data loaded

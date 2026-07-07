@@ -246,6 +246,7 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
     if return_code == 0 and do_front_matter and not PrimeItems.output_lines.output_lines:
         output_the_front_matter()
         return 0
+    print("front matter not set or no output:", do_front_matter, len(PrimeItems.output_lines.output_lines))
 
     return return_code
 

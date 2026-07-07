@@ -173,7 +173,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         # Check if this is a page refresh/re-connection
         if app_lock["is_built"]:
             logger.info("Application refreshed or reconnected. Re-initializing user interface context.")
-            print("bingo Application refreshed or reconnected. Re-initializing user interface context.")
+            # print("Application refreshed or reconnected. Re-initializing user interface context.")
 
             # Optional: Clear out any global data references that should reset on a clean page refresh
             if "user_input" in shared_state:
@@ -185,7 +185,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         # Mark as built so the application tracks that initialization has occurred
         app_lock["is_built"] = True
         if restart:
-            ui.notify("Application refreshed. Please re-enter your inputs.", color="orange", position="top")
+            ui.notify("Application refreshed. Please re-enter your inputs.", color="orange", position="bottom")
 
     logger.info("Starting NiceGUI server mainloop")
 
@@ -226,17 +226,26 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # =========================================================================
 
     # 5. Start the server (This will now properly block without running main() twice)
-    ui.run(
-        reload=False,
-        host="127.0.0.1",
-        # storage_secret="maptasker_gui_storage",  # Only needed if using either app.storage.user or app.storage.browser
-        title="MapTasker",
-        port=0,  # Use 0 to automatically avoid port conflicts
-        dark=None,
-        show=True,
-        cache_control_directives="no-store",
-        favicon=f"{assets_dir}{PrimeItems.slash}Animated Gear.gif",
-    )
+    try:
+        ui.run(
+            reload=False,
+            host="127.0.0.1",
+            # storage_secret="maptasker_gui_storage",  # Only needed if using either app.storage.user or app.storage.browser
+            title="MapTasker",
+            port=0,  # Use 0 to automatically avoid port conflicts
+            dark=None,
+            show=True,
+            cache_control_directives="no-store, no-cache, must-revalidate",  # Forces immediate network state clears
+            reconnect_timeout=10.0,  # Keeps a brief signal blip from clearing out memory singles
+            favicon=f"{assets_dir}{PrimeItems.slash}Animated Gear.gif",
+        )
+    except OSError as e:
+        logger.error(f"Error starting GUI: {e}")
+        if "Address already in use" in str(e):
+            error_handler(
+                "Error: Address already in use. Please close any other instances of MapTasker or change the port.",
+                100,  # Force an exit.
+            )
 
     logger.info("GUI closed. Processing arguments...")
     print("MapTasker GUI closed. Processing arguments...")

@@ -37,7 +37,7 @@ def output_the_heading() -> None:
     # Get the screen dimensions from <dmetric> xml
     screen_element = PrimeItems.xml_root.find("dmetric")
     screen_size = (
-        f'&nbsp;&nbsp;Device screen size: {screen_element.text.replace(",", " X ")}'
+        f"&nbsp;&nbsp;Device screen size: {screen_element.text.replace(',', ' X ')}"
         if screen_element is not None
         else ""
     )
@@ -60,7 +60,7 @@ def output_the_heading() -> None:
     heading_color = "heading_color"
     PrimeItems.heading = (
         f'<!doctype html>\n<html lang=”en”>\n<head>\n<meta charset="UTF-8">{background_color_html}<title>MapTasker</title>\n<body'
-        f" style=\"background-color:{PrimeItems.colors_to_use['background_color']}\">\n"
+        f' style="background-color:{PrimeItems.colors_to_use["background_color"]}">\n'
         + format_html(
             heading_color,
             "",
@@ -95,9 +95,9 @@ def output_the_heading() -> None:
     if PrimeItems.program_arguments["fetched_backup_from_android"]:
         source_file = (
             "From Android device"
-            f' TCP IP address:{PrimeItems.program_arguments["android_ipaddr"]}'
-            f' on port:{PrimeItems.program_arguments["android_port"]}'
-            f' with file location: {PrimeItems.program_arguments["android_file"]}'
+            f" TCP IP address:{PrimeItems.program_arguments['android_ipaddr']}"
+            f" on port:{PrimeItems.program_arguments['android_port']}"
+            f" with file location: {PrimeItems.program_arguments['android_file']}"
         )
     elif PrimeItems.program_arguments["debug"] or not PrimeItems.program_arguments["file"]:
         filename = isinstance(PrimeItems.file_to_get, str)

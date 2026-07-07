@@ -1003,6 +1003,8 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
     """
     logger.info("Displaying messages from last run.")
     gui = self.gui
+    if not isinstance(gui, bool):
+        gui = self
     analysis_response = ""
     error_msg = ""
 
@@ -1041,8 +1043,8 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
             "Red",
         )
 
-    if hasattr(self, "tab_to_use"):
-        gui.main_tabs_container.set_value = self.tab_to_use
+    if hasattr(gui, "tab_to_use") and hasattr(gui, "main_tabs_container"):
+        gui.main_tabs_container.set_value = gui.tab_to_use
 
 
 # Write out the changelog defined in guiutils after updating the app from pypi.

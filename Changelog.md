@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file!
 - Changed: Message window has been replaced with 5-second message popups.
 - Changed: Batch mode and all associated runtime options are removed.  The GUI mode is all that is now supported.
 - Changed: 'Display Configuration Outline', 'Run and Exit', and 'Run' buttons have been removed from the GUI since they are no longer relevant.
-- Changed: Support for Python version 11 and older is dropped.
+- Changed: Support for Python version 10 and older is dropped.
 
 ### Fixed
 

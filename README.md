@@ -10,11 +10,11 @@
 ![PyPI](https://img.shields.io/pypi/v/maptasker)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/maptasker?color=green&label=downloads)
 ![Downloads](https://static.pepy.tech/personalized-badge/maptasker?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)
-[![image](https://img.shields.io/pypi/pyversions/maptasker.svg)](https://pypi.python.org/pypi/maptasker)
+![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
 ![PyPI - License](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
 <!-- [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai) -->
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-black-000000.svg)](https://docs.astral.sh/ruff/formatter/)
 [!["Buy Me A Coffee"](/documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
 </div>
@@ -25,13 +25,13 @@
 
 ## Display the Tasker Project(s), Profile(s), Task(s), and Scene(s) hierarchy in your browser based on Tasker's backup or exported XML file
 
-<!-- Configuration Map...
+Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
 
 Diagram Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/Introd.png)
 
-[[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>) -->
+[[More Samples]](<https://github.com/mctinker/Map-Tasker/wiki#sample-output>)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on in a web browser (see [Note 1](#1)).
 
@@ -390,7 +390,7 @@ Contributions are welcome! Here are some ways you can contribute to MapTasker:
 
 **Coding Style:**
 
-- This project uses [Black](https://github.com/psf/black) for code formatting. Please ensure your contributions are formatted with Black.
+- This project uses [Ruff](https://docs.astral.sh/ruff/formatter/) for code formatting. Please ensure your contributions are formatted with Ruff.
 
 We appreciate your help in making MapTasker better!
 

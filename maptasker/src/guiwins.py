@@ -454,7 +454,6 @@ def _initialize_gui_settings(self: MyGui) -> None:
     self.everything = None
     self.view_limit = 10000
     self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
-    self.clear_messages = False
     self.pretty = False
     self.task_action_warning_limit = 20
     self.language = "English"
@@ -1144,7 +1143,9 @@ def _create_task_action_limit_section(self: MyGui) -> None:
             "and is intended to help identify Tasks that are too complex\n"
             "and which should potentially be broken up into multiple Tasks.\n"
             "A setting of '100' means there is no limit.",
-        ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
+        ).style(
+            "white-space: pre-line",
+        )  # Ensures the tooltip text respects newlines for better readability
 
 
 def _create_indentation_section(self: MyGui) -> None:
@@ -1164,7 +1165,9 @@ def _create_indentation_section(self: MyGui) -> None:
             "Set the indentation amount for If/Then/Else blocks.\n\n"
             "The default is '4'.\n\n"
             "This affects how the output is formatted in the Map and Diagram views.",
-        ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
+        ).style(
+            "white-space: pre-line",
+        )  # Ensures the tooltip text respects newlines for better readability
 
 
 def _create_language_selection_section(self: MyGui) -> None:
@@ -1208,7 +1211,9 @@ def _create_view_limit_section(self: MyGui) -> None:
                 "Select the maximum number of items to display in the view to be allowed.\n\n"
                 "Anything over this amount will stop the generation of the view as a means to throttle the program.\n\n"
                 "Note: This is only for the 'Map' and 'Diagram' views, not the tree view.",
-            ).style("white-space: pre-line")  # Ensures the tooltip text respects newlines for better readability
+            ).style(
+                "white-space: pre-line",
+            )  # Ensures the tooltip text respects newlines for better readability
         self.view_limit = int(temp_view_limit) if temp_view_limit != "Unlimited" else 9999999
 
         # Query help button
@@ -1232,7 +1237,9 @@ def _create_settings_buttons_section(self: MyGui) -> None:
             ui.tooltip(
                 "Reset all of the options to their default values, including colors, font used, and other settings.\n\n"
                 "The currently loaded XML will be cleared out.",
-            ).style("white-space: pre-line;")  # Tells the web browser to render \n newlines!
+            ).style(
+                "white-space: pre-line;",
+            )  # Tells the web browser to render \n newlines!
 
     # 2. Main Window Buttons Layout Area
     with ui.row().classes("w-full gap-2 mt-0 justify-center"):
@@ -1280,29 +1287,31 @@ def _create_font_section(self: MyGui) -> None:
             "This is a list of all of the monospaced fonts available on your system.\n\n"
             "The font selected will be used in all output.\n\n"
             "'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment.",
-        ).style("white-space: pre-line;")  # Ensures newlines render properly in the tooltip
+        ).style(
+            "white-space: pre-line;",
+        )  # Ensures newlines render properly in the tooltip
 
 
 def _create_file_and_message_buttons_section(self: MyGui) -> None:
     """Creates file actions, message configuration button rows, and dynamic android panel containers."""
-    with ui.row().classes("w-full items-center justify-center gap-4 mt-0"):
-        self.get_backup_button = self.display_backup_button(
-            "Get XML from Android Device",
-            "#246FB6",
-            "#6563ff",
-            self.event_handlers.get_xml_from_android_event,
-        )
+    with self.gui_right_drawer:
+        with ui.row().classes("w-full items-center justify-center gap-4 mt-0"):
+            self.get_backup_button = self.display_backup_button(
+                "Get XML from Android Device",
+                "#246FB6",
+                "#6563ff",
+                self.event_handlers.get_xml_from_android_event,
+            )
         with self.get_backup_button:
             ui.tooltip(
-                "Fetch XML from an Android device.",
+                "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n",
             ).style("white-space: pre-line")
 
-    self.android_container = ui.column().classes(
-        "w-full gap-y-2 mt-4 p-2 bg-gray-50 dark:bg-gray-700 rounded shadow-sm hidden",
-    )
-
-    # --- ADD THE NEW UPGRADE ELEMENT SLOT HERE ---
-    self.upgrade_container = ui.column().classes("w-full gap-y-2 mt-2 items-center text-center hidden")
+        # The container panels stay bound right here under the button setup
+        self.android_container = ui.column().classes(
+            "w-full gap-y-2 mt-4 p-2 bg-gray-50 dark:bg-gray-700 rounded shadow-sm hidden",
+        )
+        self.upgrade_container = ui.column().classes("w-full gap-y-2 mt-2 items-center text-center hidden")
 
 
 def _create_help_options_section(self: MyGui) -> None:

@@ -19,7 +19,7 @@ dependencies = [
     'darkdetect>=0.8.0',
     'deep_translator>=1.11.4',
     'defusedxml>=0.7.1',
-    'nicegui>=3.13.0',
+    'nicegui>=3.14.0',
     'packaging>=26.2',
     'pillow==12.3.0',
     'requests>=2.34.2',

@@ -69,6 +69,7 @@ def build_html(file_to_get: str) -> int:
         exit_program(PrimeItems.error_code)
 
     if PrimeItems.xml_root is None:
+        print(">>>  MapTasker: No file to read in.  Exiting.  <<<")
         sys.exit(6)  # No file to read in.  Exit with error code 6.  userintr will intercept and display a msg.
 
     # Set up file to read if it is passed in (via rerun)

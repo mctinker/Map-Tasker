@@ -54,11 +54,7 @@ class LineOut:
         project_name: str,
         profile_name: str,
     ) -> None:
-        """self.add_line_to_output(
-                2,
-                f"Project: {project_name}",
-                ["", "project_color", FormatLine.add_end_span],
-            )
+        """
         Refreshes the output by clearing existing output and starting anew.
         Parameters:
             include_the_profile (bool): Flag to indicate whether this is a Profile to be included.
