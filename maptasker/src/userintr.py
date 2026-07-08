@@ -22,6 +22,8 @@ from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.guiutils import (
     add_logo,
     build_profiles,
+    check_for_changelog,
+    check_new_version,
     clear_android_buttons,
     create_changelog,
     display_analyze_button,
@@ -145,6 +147,12 @@ class MyGui:
 
             # traceback.print_exc()
             print("=" * 50 + "\n")
+
+        # Check if newer version of our code is available on Pypi.
+        check_new_version(self)
+
+        # See if we have a changelog, and get it if we do.  This must go before 'self.process_current_messages()' call.
+        check_for_changelog(self)
 
         # See if we have any carryover error messages from the AI run.
         # Note: this must go after the settings restoration.

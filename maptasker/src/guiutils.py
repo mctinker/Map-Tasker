@@ -2,6 +2,7 @@
 
 import contextlib
 import os
+from datetime import date
 from typing import TYPE_CHECKING
 
 import defusedxml
@@ -1321,6 +1322,71 @@ def is_new_version() -> bool:
     return False
 
 
+def check_new_version(self: "MyGui") -> None:
+    """Check if a new version is available and dynamically populate
+    the upgrade container slot inside the right sidebar.
+    """
+    if not is_first_run_today():
+        logger.info("Not the first run today. Skipping new version check.")
+        return
+
+    # Set test_button to True for development testing, False for production.
+    test_button = False
+    if is_new_version() or test_button:
+        # 1. Clear out any stale visual elements and unhide the sidebar placeholder slot
+        self.upgrade_container.clear()
+        self.upgrade_container.classes(remove="hidden")
+
+        # 2. Render the interactive upgrade controls directly inside the target container context
+        with self.upgrade_container:
+            ui.label(translate_string("Update Available!")).classes(
+                "text-sm font-bold text-green-600 dark:text-green-400 mt-2",
+            )
+
+            # 'Upgrade to Latest Version' Button
+            self.upgrade_button = (
+                ui
+                .button(translate_string("Upgrade to Latest Version"), on_click=self.event_handlers.upgrade_event)
+                .style("background-color: #79ff94; color: #6563ff;")
+                .classes("w-full font-bold text-xs py-2")
+            )
+
+            # 'What's New' Button
+            self.whats_new_button = (
+                ui
+                .button(translate_string("What's New?"), on_click=self.event_handlers.whatsnew_event)
+                .style("background-color: #246FB6; border-color: #79ff94; border-width: 1px; color: white;")
+                .classes("w-full text-xs")
+            )
+
+        self.message = self.message + "\n\n" + translate_string("A new version of MapTasker is available.")
+
+
+def is_first_run_today(filename: str = ".maptasker_last_run.txt") -> bool:
+    """Checks if this is the first time the function has been executed today.
+
+    Saves the current date to a file. If the file doesn't exist or contains
+    a older date, it returns True. Otherwise, it returns False.
+    """
+    # 1. Get today's date as a string (YYYY-MM-DD)
+    today_str = str(date.today())  # noqa: DTZ011
+
+    # 2. Check if the tracking file exists
+    if os.path.exists(filename):
+        with open(filename) as file:
+            last_run_str = file.read().strip()
+
+        # If the date in the file matches today, it's NOT the first run
+        if last_run_str == today_str:
+            return False
+
+    # 3. If file doesn't exist OR the date is old, update the file and return True
+    with open(filename, "w") as file:
+        file.write(today_str)
+
+    return True
+
+
 # Compare two versions and return True if version2 is greater than version1.
 def is_version_greater(version1: str, version2: str) -> bool:
     """
@@ -1335,8 +1401,8 @@ def is_version_greater(version1: str, version2: str) -> bool:
     """
 
     # Split the versions by "."
-    if "beta" in version1 or "beta" in version2:
-        # Handle beta versions by removing the "beta" part and comparing the numeric parts
+    if "b" in version2 or "b" in version1:
+        # Ignore beta versions for now.  We don't want to offer an update to a beta version.
         return False
     v1_parts = [int(x) for x in version1.split(".")]
     v2_parts = [int(x) for x in version2.split(".")]

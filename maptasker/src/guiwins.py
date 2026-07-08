@@ -1296,11 +1296,17 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
     """Creates file actions, message configuration button rows, and dynamic android panel containers."""
     with self.gui_right_drawer:
         with ui.row().classes("w-full items-center justify-center gap-4 mt-0"):
-            self.get_backup_button = self.display_backup_button(
-                "Get XML from Android Device",
-                "#246FB6",
-                "#6563ff",
-                self.event_handlers.get_xml_from_android_event,
+            # self.get_backup_button = self.display_backup_button(
+            #     "Get XML from Android Device",
+            #     "#246FB6",
+            #     "#6563ff",
+            #     self.event_handlers.get_xml_from_android_event,
+            # )
+            self.get_backup_button = (
+                ui
+                .button("Get XML from Android Device", on_click=self.event_handlers.get_xml_from_android_event)
+                .style("background-color: #246FB6; border-color: #6563ff; border-width: 2px; color: white;")
+                .classes("mt-0 ml-0 font-bold w-full")
             )
         with self.get_backup_button:
             ui.tooltip(

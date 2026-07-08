@@ -57,12 +57,10 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
 - Save and restore runtime settings.
 - Identify Tasks that have too many 'actions', and which should potentially be broken up into multiple Tasks.
-- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models. *
-- Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View. *
-- Automatic update detection and optional installation of new versions. *
-- Enhanced search capabilities. *
-
-&nbsp;&nbsp;&nbsp;&nbsp;* Available via the GUI only.
+- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models.
+- Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.
+- Automatic update detection and optional installation of new versions.
+- Enhanced search capabilities.
 
 ## Program Dependencies
 
@@ -131,14 +129,10 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
 - Enter the command:
 
-     ```maptasker -option1 -option2```
-     ...or...
-     ```uv run maptasker -option1 -option2```
+     ```maptasker```
+     ...or if using uv to manage the virtual environment...
+     ```uv run maptasker```
 
-     &nbsp;See below for runtime options.
-
-- Get started with the GUI:
-    ```maptasker -g```
 
 ## Program Output
 
@@ -162,7 +156,7 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
      This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
 
-- hidden files: system settings, run counter, and API keys.
+- hidden files: system settings, run counter, last 'version checked' date, and API keys.
 
 ## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
