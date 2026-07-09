@@ -7,7 +7,7 @@ import webbrowser
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from nicegui import Event, run, ui
+from nicegui import Event, context, run, ui
 
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
@@ -1250,13 +1250,38 @@ class MapTaskerEventHandlers:
     # ==========================================
 
     def clear_event(self, view_name: str = "mapview") -> None:
-        """Clears the search input or the view itself."""
-        ui.notify(f"Clearing {view_name}...", type="warning")
-        # TODO: Implement logic to clear the view or reset the search input.
+        """Clears the search input and un-highlights all matches left by search_event."""
+        textview = getattr(self.gui, "textview", None)
+        if not textview:
+            return
 
-        # Example of how you interact with the new text engine:
-        if hasattr(self.gui, "textview"):
-            self.gui.textview.search_input.set_value("")
+        if hasattr(textview, "search_input"):
+            textview.search_input.set_value("")
+
+        if hasattr(textview, "scroll_area"):
+            # Mirrors the "clearPreviousHighlights" routine inside NiceGuiTextView.search_event:
+            # unwrap every '.search-highlight' span back into a plain text node, descending into
+            # Shadow DOM roots too since that's where the highlighted matches actually live.
+            ui.run_javascript(f"""
+                const outerContainer = document.getElementById("c{textview.scroll_area.id}");
+                if (!outerContainer) return;
+                const container = outerContainer.querySelector('.q-scrollarea__content') || outerContainer;
+
+                function clearHighlights(root) {{
+                    const highlights = root.querySelectorAll ? root.querySelectorAll('.search-highlight') : [];
+                    highlights.forEach(el => {{
+                        const textNode = document.createTextNode(el.textContent);
+                        el.parentNode.replaceChild(textNode, el);
+                    }});
+                    const children = root.querySelectorAll ? root.querySelectorAll('*') : [];
+                    children.forEach(child => {{
+                        if (child.shadowRoot) clearHighlights(child.shadowRoot);
+                    }});
+                }}
+                clearHighlights(container);
+            """)
+
+        ui.notify(f"Cleared search highlights in {view_name}.", type="info")
 
     def topbottom_event(self, top: bool, _view_name: str = "mapview") -> None:
         """Jumps the view to the top or bottom."""
@@ -1877,6 +1902,9 @@ class MapTaskerEventHandlers:
         Args:
             language: The language selected by the user.
         """
+        if self.gui.is_updating:
+            return  # Exit early to break the recursive loop!
+        language = language.value.strip() if hasattr(language, "value") else str(language).strip()
         # Let everyone know we are setting the language
         PrimeItems.language_set = True
 
@@ -1898,85 +1926,120 @@ class MapTaskerEventHandlers:
             finally:
                 the_view.is_updating = False  # Disengage the lock
 
-        # Wipe out and rebuild layout context blocks natively
-        initialize_screen(the_view)
+        # --- FIX: Defer layout reconstruction to break out of LeftDrawer context nesting ---
+        def rebuild_layout() -> None:
+            client = context.client
 
-        # Redisplay current file
-        display_current_file(the_view, the_view.file)
+            # Remove previous top-level layout elements (header/drawer/footer). NiceGUI
+            # moves those to be direct children of the q-layout (siblings of the page
+            # container), so they must be torn down explicitly rather than via
+            # `client.layout.clear()`, which would also destroy the page container itself.
+            for child in list(client.layout.default_slot.children):
+                if child is not client.page_container:
+                    child.delete()
 
-        # Restore settings values so that they are correctly displayed in the new UI instance
-        temp_args = {arg: getattr(the_view, arg) for arg in ARGUMENT_NAMES if hasattr(the_view, arg)}
-        the_view.extract_settings(temp_args)
+            # Clear the actual page content (this is where the new elements get built).
+            client.content.clear()
 
-        # Trigger task limit label updates
-        if hasattr(self, "tasklimit_event"):
-            self.tasklimit_event(the_view.task_action_warning_limit)
+            # Several widgets (e.g. ai_model_option, font_out_label) are only (re)created
+            # by helper functions that check "if the attribute is already set, reuse it"
+            # instead of always rebuilding. Now that their elements were torn down above,
+            # null out any such stale reference on the view so those helpers create fresh
+            # ones instead of touching an element NiceGUI considers deleted.
+            for attr_name, attr_value in list(vars(the_view).items()):
+                if getattr(attr_value, "is_deleted", False):
+                    setattr(the_view, attr_name, None)
 
-        # Reset the single item object tracking names
-        set_tasker_object_names(the_view)
+            # Rebuild inside the page content: NiceGUI requires top-level layout
+            # elements (header/drawer/footer) to be created while it is the active slot.
+            # Everything below also runs inside this block: the timer callback's own
+            # context is the *old* (now-deleted) slot it was created in, so anything
+            # relying on the active NiceGUI context (e.g. ui.notify()) would otherwise
+            # blow up with "The parent element this slot belongs to has been deleted."
+            # once this block exits and that stale context becomes active again.
+            with client.content:
+                initialize_screen(the_view)
 
-        # Reset single item dropdown select lists
-        update_tasker_object_menus(
-            the_view,
-            get_data=False,
-            reset_single_names=False,
-        )
+                # Redisplay current file onto the fresh layout
+                display_current_file(the_view, the_view.file)
 
-        # Handle upgrade buttons checks
-        if hasattr(the_view, "check_new_version"):
-            the_view.check_new_version()
+                # Restore settings values so that they are correctly displayed in the new UI instance
+                temp_args = {arg: getattr(the_view, arg) for arg in ARGUMENT_NAMES if hasattr(the_view, arg)}
+                the_view.extract_settings(temp_args)
 
-        # Update the pull-down menus option items lists
-        if "list_tasker_objects" in globals():
-            list_tasker_objects(the_view)
+                # Trigger task limit label updates
+                if hasattr(self, "tasklimit_event"):
+                    self.tasklimit_event(the_view.task_action_warning_limit)
 
-        # Map menu attributes to their target values for a clean batch update
-        menu_updates = []
+                # Reset the single item object tracking names
+                set_tasker_object_names(the_view)
 
-        if the_view.single_project_name:
-            menu_updates = [
-                ("specific_project_optionmenu", the_view.single_project_name),
-                ("ai_project_optionmenu", the_view.single_project_name),
-            ]
-        elif the_view.single_profile_name:
-            menu_updates = [
-                ("specific_profile_optionmenu", the_view.single_profile_name),
-                ("ai_profile_optionmenu", the_view.single_profile_name),
-            ]
-        elif the_view.single_task_name:
-            menu_updates = [
-                ("specific_task_optionmenu", the_view.single_task_name),
-                ("ai_task_optionmenu", the_view.single_task_name),
-            ]
+                # Reset single item dropdown select lists
+                update_tasker_object_menus(
+                    the_view,
+                    get_data=False,
+                    reset_single_names=False,
+                )
 
-        # Batch update the dropdown values safely under the state lock
-        try:
-            the_view.is_updating = True  # Engage the lock
-            for attr_name, target_value in menu_updates:
-                if hasattr(the_view, attr_name):
-                    menu_widget = getattr(the_view, attr_name)
-                    if menu_widget:
-                        menu_widget.value = target_value
-        finally:
-            the_view.is_updating = False  # Always disengage the lock
+                # Handle upgrade buttons checks
+                if hasattr(the_view, "check_new_version"):
+                    the_view.check_new_version()
 
-        # Redo the contextual text labels values
-        display_selected_object_labels(the_view)
+                # Update the pull-down menus option items lists
+                if "list_tasker_objects" in globals():
+                    list_tasker_objects(the_view)
 
-        # Update text labels inside tabs directly by changing the properties of references saved in guiwins.py
-        if hasattr(the_view, "tab_specific_name") and the_view.tab_specific_name:
-            the_view.tab_specific_name.text = translate_string("Specific Name")
-        if hasattr(the_view, "tab_colors") and the_view.tab_colors:
-            the_view.tab_colors.text = translate_string("Colors")
-        if hasattr(the_view, "tab_analyze") and the_view.tab_analyze:
-            the_view.tab_analyze.text = translate_string("Analyze")
-        if hasattr(the_view, "tab_debug") and the_view.tab_debug:
-            the_view.tab_debug.text = translate_string("Debug")
+                # Map menu attributes to their target values for a clean batch update
+                menu_updates = []
 
-        # Forces the tab panel component container to process text and redraw updates
-        ui.update()
+                if the_view.single_project_name:
+                    menu_updates = [
+                        ("specific_project_optionmenu", the_view.single_project_name),
+                        ("ai_project_optionmenu", the_view.single_project_name),
+                    ]
+                elif the_view.single_profile_name:
+                    menu_updates = [
+                        ("specific_profile_optionmenu", the_view.single_profile_name),
+                        ("ai_profile_optionmenu", the_view.single_profile_name),
+                    ]
+                elif the_view.single_task_name:
+                    menu_updates = [
+                        ("specific_task_optionmenu", the_view.single_task_name),
+                        ("ai_task_optionmenu", the_view.single_task_name),
+                    ]
 
-    def language_set_event(self, language: str) -> None:
+                # Batch update the dropdown values safely under the state lock
+                try:
+                    the_view.is_updating = True  # Engage the lock
+                    for attr_name, target_value in menu_updates:
+                        if hasattr(the_view, attr_name):
+                            menu_widget = getattr(the_view, attr_name)
+                            if menu_widget:
+                                menu_widget.value = target_value
+                finally:
+                    the_view.is_updating = False  # Always disengage the lock
+
+                # Redo the contextual text labels values
+                display_selected_object_labels(the_view)
+
+                # Update text labels inside tabs directly by changing properties
+                if hasattr(the_view, "tab_specific_name") and the_view.tab_specific_name:
+                    the_view.tab_specific_name.text = translate_string("Specific Name")
+                if hasattr(the_view, "tab_colors") and the_view.tab_colors:
+                    the_view.tab_colors.text = translate_string("Colors")
+                if hasattr(the_view, "tab_analyze") and the_view.tab_analyze:
+                    the_view.tab_analyze.text = translate_string("Analyze")
+                if hasattr(the_view, "tab_debug") and the_view.tab_debug:
+                    the_view.tab_debug.text = translate_string("Debug")
+
+                # Forces the tab panel component container to process text and redraw updates
+                ui.update()
+
+        # Safely trigger layout swap outside the active event scope in 10ms
+        ui.timer(0.01, rebuild_layout, once=True)
+        # --- END FIX ---
+
+    def language_set_event(self, language: str | Event) -> None:
         """
         Set the language for the GUI. Comes here via 'restore_display' and 'language_set_event'.
         Uses the state lock to prevent recursive dropdown triggers.
@@ -1985,6 +2048,7 @@ class MapTaskerEventHandlers:
             language: The language selected by the user.
         """
         the_view = self if self.__class__.__name__ == "MyGui" else self.gui
+        language = language.value.strip() if hasattr(language, "value") else str(language).strip()
 
         # 1. Early exit if an automatic programmatic update loop is already active
         if getattr(the_view, "is_updating", False):
@@ -2164,7 +2228,11 @@ class MapTaskerEventHandlers:
             help_text = help_text + "\n".join(changes)
 
         # Create the dialog container on the main thread
-        dialog = create_popup_window(f"{translate_string(title)}", f"{translate_string(help_text)}", close_button=True)
+        __package__dialog = create_popup_window(
+            f"{translate_string(title)}",
+            f"{translate_string(help_text)}",
+            close_button=True,
+        )
 
     def viewlimit_event(self: object, view_limit: str) -> None:
         """View Limit Event handled safely without recursion."""

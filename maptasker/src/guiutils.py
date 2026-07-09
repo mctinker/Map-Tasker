@@ -722,42 +722,39 @@ def _set_single_project_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single project name is available."""
     text = f"{defaults['display_only']}{translate_string('Project')}"
     self.specific_name_msg = f"{text} '{self.single_project_name}'"
-    print("bingo _set_single_project_name", self.specific_name_msg)
     try:
         # NiceGUI uses .value instead of .set()
         self.specific_project_optionmenu.value = self.single_project_name
     except AttributeError:
         return
 
-    # self.specific_profile_optionmenu.value = defaults["profile"]
-    # self.specific_task_optionmenu.value = defaults["task"]
+    self.specific_profile_optionmenu.value = defaults["profile"]
+    self.specific_task_optionmenu.value = defaults["task"]
 
 
 def _set_single_profile_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single profile name is available."""
     # Note: Fixed a missing opening single quote before the profile name from the original code
     self.specific_name_msg = f"{defaults['display_only']}{translate_string('Profile')} '{self.single_profile_name}'"
-    print("bingo _set_single_profile_name", self.specific_name_msg)
     try:
         self.specific_profile_optionmenu.value = self.single_profile_name
     except AttributeError:
         return
 
-    # self.specific_project_optionmenu.value = defaults["project"]
-    # self.specific_task_optionmenu.value = defaults["task"]
+    self.specific_project_optionmenu.value = defaults["project"]
+    self.specific_task_optionmenu.value = defaults["task"]
 
 
 def _set_single_task_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single task name is available."""
     self.specific_name_msg = f"{defaults['display_only']}{translate_string('Task')} '{self.single_task_name}'"
-    print("bingo _set_single_task_name", self.specific_name_msg)
     try:
         self.specific_task_optionmenu.value = self.single_task_name
     except AttributeError:
         return
 
-    # self.specific_project_optionmenu.value = defaults["project"]
-    # self.specific_profile_optionmenu.value = defaults["profile"]
+    self.specific_project_optionmenu.value = defaults["project"]
+    self.specific_profile_optionmenu.value = defaults["profile"]
 
 
 def _set_default_names(self: object, defaults: dict) -> None:

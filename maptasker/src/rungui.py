@@ -118,9 +118,7 @@ def capture_gui_state(user_input: MyGui, data: dict) -> None:
         PrimeItems.program_arguments["display_detail_level"] = int(
             PrimeItems.program_arguments["display_detail_level"],
         )
-        PrimeItems.program_arguments["indent"] = int(
-            PrimeItems.program_arguments["indent"],
-        )
+        PrimeItems.program_arguments["indent"] = int(PrimeItems.program_arguments.get("indent", 4))
         # Update colors based on the current MyGui instance
         PrimeItems.colors_to_use = do_colors(user_input)
 

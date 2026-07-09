@@ -326,6 +326,8 @@ def do_single_task(
             temporary_task_list,
             our_task_element,
             list_of_found_tasks,
+            project_name,
+            profile_name,
         )
 
         PrimeItems.program_arguments.update(
@@ -340,7 +342,7 @@ def do_single_task(
                 f"<br>{'&nbsp;' * len(our_task_name)}[",
             )
 
-        process_list("Task:", task_list, our_task_element, list_of_found_tasks)
+        process_list("Task:", task_list, our_task_element, list_of_found_tasks, project_name, profile_name)
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 

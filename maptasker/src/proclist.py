@@ -12,6 +12,7 @@ MIT License   Refer to https://opensource.org/license/mit
 import defusedxml
 
 from maptasker.src.dirout import add_directory_item
+from maptasker.src.format import build_tooltip_span
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
@@ -52,13 +53,20 @@ def adjust_name(list_type: str, the_item: str) -> str:
 # ################################################################################
 # Given an item, build output line for Task or Scene
 # ################################################################################
-def format_task_or_scene(list_type: list, the_item: str) -> tuple:
+def format_task_or_scene(
+    list_type: list,
+    the_item: str,
+    project_name: str = "",
+    profile_name: str = "",
+) -> tuple:
     """
     Given an item, build output line for Task or Scene
     Args:
 
         list_type (list): Either "Task:" or "Scene:"
         the_item (str): text for Task or Scene
+        project_name (str): name of the Project the Task belongs to (for the "Task:" tooltip)
+        profile_name (str): name of the Profile the Task belongs to (for the "Task:" tooltip)
 
     Returns:
         tuple[str, str]: Our formatted output line and color to user
@@ -74,8 +82,18 @@ def format_task_or_scene(list_type: list, the_item: str) -> tuple:
             "'&nbsp;&nbsp;",
         )
 
+    # Add a tooltip to the "Task:" label showing the owning Profile/Project, if known.
+    label = list_type
+    if list_type == "Task:":
+        tooltip_lines = []
+        if profile_name:
+            tooltip_lines.append(f"Profile: {profile_name}")
+        if project_name:
+            tooltip_lines.append(f"Project: {project_name}")
+        label = build_tooltip_span(list_type, tooltip_lines)
+
     # Format the output line
-    output_line = f"{list_type}&nbsp;{the_item_altered}"
+    output_line = f"{label}&nbsp;{the_item_altered}"
 
     # Set up the correct color for twisty of needed
     color_to_use = "scene_color" if list_type == "Scene:" else "task_color"
@@ -305,6 +323,8 @@ def format_item(
     the_item: str,
     the_list: list,
     the_task: defusedxml,
+    project_name: str = "",
+    profile_name: str = "",
 ) -> None:
     """
     Given an item, format it with all of the particulars:
@@ -314,6 +334,8 @@ def format_item(
             the_item (str): The string for the above type
             the_list (list): List of Tasks or Scenes
             the_task (defusedxml): The Task XML element
+            project_name (str): name of the Project the Task belongs to (for the "Task:" tooltip)
+            profile_name (str): name of the Profile the Task belongs to (for the "Task:" tooltip)
     """
     # Log if in debug mode
     if PrimeItems.program_arguments["debug"]:
@@ -323,7 +345,7 @@ def format_item(
         )
 
     # Format the Task or Scene
-    output_line, color_to_use = format_task_or_scene(list_type, the_item)
+    output_line, color_to_use = format_task_or_scene(list_type, the_item, project_name, profile_name)
 
     # If "--Task:" then this is a Task under a Scene.
     # Need to temporarily save the_item since add_line_to_output changes the_item
@@ -364,6 +386,8 @@ def process_item(
     list_type: str,
     the_task: defusedxml.ElementTree,
     tasks_found: list,
+    project_name: str = "",
+    profile_name: str = "",
 ) -> None:
     """
     Process the item and add it to the output.
@@ -373,6 +397,8 @@ def process_item(
         list_type (str): The type of the list.
         the_task (xml element): The task to process.
         tasks_found (list): The list of tasks found.
+        project_name (str): name of the Project the Task belongs to (for the "Task:" tooltip)
+        profile_name (str): name of the Profile the Task belongs to (for the "Task:" tooltip)
 
     Returns:
         None
@@ -381,7 +407,7 @@ def process_item(
     from maptasker.src.scenes import process_scene  # noqa: PLC0415
 
     # Given an item, format it with all of the particulars and add to output.
-    format_item(list_type, the_item, the_item, the_task)
+    format_item(list_type, the_item, the_item, the_task, project_name, profile_name)
 
     # If just displaying basic details, get out.
     if PrimeItems.program_arguments["display_detail_level"] == 0:
@@ -434,6 +460,8 @@ def process_list(
     the_list: list,
     the_task: defusedxml.ElementTree,
     tasks_found: list,
+    project_name: str = "",
+    profile_name: str = "",
 ) -> None:
     """
     Process Task/Scene text/line item: call recursively for Tasks within Scenes
@@ -442,6 +470,8 @@ def process_list(
         :param the_list: list of Task names tro process
         :param the_task: Task/Scene xml element
         :param tasks_found: list of Tasks found so far
+        :param project_name: name of the Project the Task belongs to (for the "Task:" tooltip)
+        :param profile_name: name of the Profile the Task belongs to (for the "Task:" tooltip)
         :return:
     """
 
@@ -451,4 +481,4 @@ def process_list(
     _process_item = process_item
     for the_item in the_list:
         # Process the item (list of items)
-        _process_item(the_item, list_type, the_task, tasks_found)
+        _process_item(the_item, list_type, the_task, tasks_found, project_name, profile_name)

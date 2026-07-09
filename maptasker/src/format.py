@@ -101,6 +101,24 @@ def format_html(
     return text_after
 
 
+# Wrap a label (e.g. "Task:", "Profile:", "Project:") with a native browser tooltip.
+def build_tooltip_span(label: str, tooltip_lines: list[str]) -> str:
+    """
+    Wrap a label in a <span title="..."> so hovering over it shows a tooltip.
+
+        :param label: the literal text to wrap (e.g. "Task:")
+        :param tooltip_lines: lines of plain text to join (newline-separated) into the tooltip.
+            Falsy lines are dropped. If the resulting list is empty, the label is returned unwrapped.
+        :return: the label wrapped in a <span title="..."> tag, or the bare label if no tooltip lines
+    """
+    lines = [line for line in tooltip_lines if line]
+    if not lines:
+        return label
+
+    tooltip_text = html.escape("\n".join(lines))
+    return f'<span title="{tooltip_text}">{label}</span>'
+
+
 """Convert html to text"""
 
 

@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "maptasker-gui",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": [
+        "-c",
+        "cd /Users/mikrubin/MapTasker_Dev && exec .venv/bin/python3 -m maptasker.main -file backup.xml -detail 3"
+      ],
+      "port": 8080
+    }
+  ]
+}

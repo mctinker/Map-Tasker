@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import re
 from typing import TYPE_CHECKING
 
-from nicegui import app, ui
+from nicegui import app, context, ui
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.guiutil2 import get_monospace_fonts, sort_languages_with_priority
@@ -184,7 +185,9 @@ class NiceGuiTextView:
                 ui.label(f"{self.title}").classes("text-orange-500 font-bold mr-4")
                 self.search_input = ui.input(placeholder="Search...").classes("w-48")
                 ui.button("Search", on_click=self.search_event).classes("bg-blue-600")
-                ui.button("Clear", on_click=lambda: self.search_input.set_value("")).classes("bg-blue-600")
+                ui.button("Clear", on_click=lambda: self.master_gui.event_handlers.clear_event()).classes(
+                    "bg-blue-600",
+                )
                 ui.separator().props("vertical")
                 ui.button("Top", on_click=lambda: self.scroll("top")).classes("bg-blue-600")
                 ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
@@ -252,6 +255,187 @@ class NiceGuiTextView:
 
         # Apply the fallback generation if the file does not exist
         self._process_fallback_data(the_data)
+
+    def search_event(self) -> None:
+        """Search for the input text inside the text views and display a clickable results popup."""
+        query = self.search_input.value.strip()
+        if not query:
+            ui.notify("Please enter a search term.", type="warning")
+            return
+
+        # Upgraded JavaScript engine targeting Quasar content nodes and penetrating Shadow Roots
+        js_code = f"""
+            const outerContainer = document.getElementById("c{self.scroll_area.id}");
+            if (!outerContainer) return [];
+
+            const container = outerContainer.querySelector('.q-scrollarea__content') || outerContainer;
+
+            // 1. Purge previous search highlights completely across Shadow boundaries
+            function clearPreviousHighlights(root) {{
+                const highlights = root.querySelectorAll ? root.querySelectorAll('.search-highlight') : [];
+                highlights.forEach(el => {{
+                    const textNode = document.createTextNode(el.textContent);
+                    el.parentNode.replaceChild(textNode, el);
+                }});
+                const children = root.querySelectorAll ? root.querySelectorAll('*') : [];
+                children.forEach(child => {{
+                    if (child.shadowRoot) {{
+                        clearPreviousHighlights(child.shadowRoot);
+                    }}
+                }});
+            }}
+            clearPreviousHighlights(container);
+
+            const searchTerm = {json.dumps(query.lower())};
+            const results = [];
+            let uniqueIdCounter = 0;
+
+            // 2. Recursive text node crawler that only COLLECTS matches (no DOM mutation).
+            //    Mutating the DOM (e.g. via surroundContents) while iterating a live
+            //    childNodes list causes the newly-inserted split nodes to be picked
+            //    back up by the same in-progress loop. On large documents with a
+            //    common search term this spirals into extremely expensive (sometimes
+            //    effectively endless) work and hangs/crashes the browser tab before
+            //    a response is ever sent back to Python. So: collect first, mutate later.
+            const matches = [];  // {{ node, index }}
+
+            function findTextNodes(node) {{
+                if (node.shadowRoot) {{
+                    findTextNodes(node.shadowRoot);
+                }}
+
+                if (node.nodeType === 3) {{
+                    const index = node.nodeValue.toLowerCase().indexOf(searchTerm);
+                    if (index !== -1 &&
+                        node.parentNode &&
+                        node.parentNode.tagName !== 'SCRIPT' &&
+                        node.parentNode.tagName !== 'STYLE') {{
+                        matches.push({{ node, index }});
+                    }}
+                }}
+
+                // Snapshot into a static array so later DOM mutations (done in the
+                // second pass below) can never feed back into this traversal.
+                if (node.childNodes && node.childNodes.length) {{
+                    for (const child of Array.from(node.childNodes)) {{
+                        findTextNodes(child);
+                    }}
+                }}
+            }}
+
+            findTextNodes(container);
+
+            // Cap the number of matches we actually highlight/report. A broad
+            // search term (e.g. "Task") against a large rendered document could
+            // otherwise still produce thousands of DOM mutations in the pass
+            // below, which is slow and unnecessary for a human skimming results.
+            const MAX_MATCHES = 200;
+            const truncated = matches.length > MAX_MATCHES;
+            const matchesToShow = truncated ? matches.slice(0, MAX_MATCHES) : matches;
+
+            // 3. Second pass: now that traversal is fully finished, apply the
+            //    highlight to each collected match. Each match's Text node is
+            //    still valid because no mutation happened during collection.
+            for (const {{ node, index }} of matchesToShow) {{
+                const parent = node.parentNode;
+                if (!parent) continue;
+
+                if (!parent.id) {{
+                    parent.id = "search_target_" + (++uniqueIdCounter);
+                }}
+
+                const span = document.createElement('span');
+                span.className = 'search-highlight';
+                span.style.backgroundColor = '#ffd941';
+                span.style.color = '#000000';
+                span.style.fontWeight = 'bold';
+                span.style.display = 'inline';
+
+                const range = document.createRange();
+                range.setStart(node, index);
+                range.setEnd(node, index + {len(query)});
+                range.surroundContents(span);
+
+                const lineSnippet = parent.textContent.trim().substring(0, 100);
+
+                results.push({{
+                    elementId: parent.id,
+                    text: lineSnippet
+                }});
+            }}
+
+            return {{ results: results, totalMatches: matches.length, truncated: truncated }};
+        """
+
+        client = context.client
+
+        async def execute_search() -> None:
+            with self.scroll_area:
+                # Await the execution of our DOM analyzer script block
+                search_result = await client.run_javascript(js_code)
+                found_items = search_result.get("results", [])
+                total_matches = search_result.get("totalMatches", len(found_items))
+                was_truncated = search_result.get("truncated", False)
+
+                if not found_items:
+                    ui.notify(f"No matches found for: '{query}'", type="negative")
+                    return  # Debugging output
+
+                if was_truncated:
+                    ui.notify(
+                        f"Showing first {len(found_items)} of {total_matches} matches for: '{query}'",
+                        type="warning",
+                    )
+
+                # 3. Create the interactive Search Results Modal Popup Window
+                with ui.dialog() as results_dialog, ui.card().classes("w-[750px] max-w-full p-6"):
+                    header_text = (
+                        f"Search Results for '{query}' ({len(found_items)} of {total_matches} matches)"
+                        if was_truncated
+                        else f"Search Results for '{query}' ({len(found_items)} matches)"
+                    )
+                    ui.label(header_text).classes(
+                        "text-lg font-bold text-blue-600 mb-2",
+                    )
+                    ui.label(
+                        "Click on a row index line number to jump directly to that match block placement:",
+                    ).classes("text-xs text-gray-500 italic mb-4")
+
+                    # Create a clear scroll area container for the results rows list matching the active theme font
+                    with ui.scroll_area().classes("w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded"):  # noqa: SIM117
+                        with ui.column().classes("w-full gap-1"):
+                            for idx, item in enumerate(found_items, start=1):
+                                # Localized function referencing the cross-linked runtime element reference
+                                def make_jump_callback(target_id: str = item["elementId"]) -> None:
+                                    return lambda: (
+                                        results_dialog.close(),
+                                        client.run_javascript(f"""
+                                            const el = document.getElementById("{target_id}");
+                                            if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                                        """),
+                                    )
+
+                                with ui.row().classes(
+                                    "w-full items-center py-1 border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-950 px-2 rounded transition-colors",
+                                ):
+                                    # Active click hotlink index line label
+                                    ui.link(f"Line #{idx}", "#").on("click", make_jump_callback()).classes(
+                                        "text-blue-600 dark:text-blue-400 font-bold font-mono text-sm mr-4 shrink-0 decoration-dotted hover:underline",
+                                    )
+                                    # Text context content preview box
+                                    ui.label(item["text"]).classes(
+                                        "text-sm font-mono truncate text-gray-800 dark:text-gray-200",
+                                    )
+
+                    # Footer window management close control
+                    with ui.row().classes("w-full justify-end mt-4"):
+                        ui.button("Close Results Window", on_click=results_dialog.close).classes(
+                            "bg-red-500 text-white px-4",
+                        )
+
+                results_dialog.open()
+
+        self._search = asyncio.create_task(execute_search())
 
     def extract_first_font_name(self: MyGui, text: str) -> str:
         """
@@ -405,10 +589,6 @@ class NiceGuiTextView:
         final_html = re.sub(r"(<br\s*/?>\s*){2,}", "<br>", final_html)
 
         self.html_display.content = final_html
-
-    def search_event(self: MyGui) -> None:
-        """Search for the input text in the displayed content."""
-        ui.notify(f"Searching for: {self.search_input.value}", type="info")
 
     def scroll(self, direction: str) -> None:
         if direction == "top":
@@ -759,7 +939,7 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
     # =========================================================================
-    with ui.left_drawer(fixed=True).classes(
+    with ui.left_drawer(value=True, fixed=True).classes(
         "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
     ) as self.gui_left_drawer:
         ui.label("Display Options").classes("text-lg font-bold mb-2 gap-y-0 m-0 p-0 leading-none")
@@ -770,41 +950,47 @@ def initialize_screen(self: MyGui) -> None:
             .select(
                 options=["0", "1", "2", "3", "4", "5"],
                 value=str(self.display_detail_level),
-                label="Detail Level",
+                label=translate_string("Detail Level"),
                 on_change=self.event_handlers.detail_selected_event,
             )
-            .tooltip("0 = least detail, 5 = most detail.")
+            .tooltip(translate_string("0 = least detail, 5 = most detail."))
             .classes("w-full")
             .props("dense")
         )
 
         # Core Feature Checkboxes
         self.everything_checkbox = ui.checkbox(
-            "Just Display Everything!",
+            translate_string("Just Display Everything!"),
             on_change=self.event_handlers.everything_event,
         )
 
         self.conditions_checkbox = ui.checkbox(
-            "Display Conditions",
+            translate_string("Display Conditions"),
             on_change=self.event_handlers.condition_event,
         )
 
-        self.taskernet_checkbox = ui.checkbox("Display TaskerNet Info", on_change=self.event_handlers.taskernet_event)
+        self.taskernet_checkbox = ui.checkbox(
+            translate_string("Display TaskerNet Info"),
+            on_change=self.event_handlers.taskernet_event,
+        )
 
         self.preferences_checkbox = ui.checkbox(
-            "Display Tasker Preferences",
+            translate_string("Display Tasker Preferences"),
             on_change=self.event_handlers.preferences_event,
         )
 
         self.twisty_checkbox = ui.checkbox(
-            "Hide Task Details Under Twisty",
+            translate_string("Hide Task Details Under Twisty"),
             on_change=self.event_handlers.twisty_event,
         )
 
-        self.directory_checkbox = ui.checkbox("Display Directory", on_change=self.event_handlers.directory_event)
+        self.directory_checkbox = ui.checkbox(
+            translate_string("Display Directory"),
+            on_change=self.event_handlers.directory_event,
+        )
 
         self.pretty_checkbox = ui.checkbox(
-            "Display Prettier Output",
+            translate_string("Display Prettier Output"),
             on_change=self.event_handlers.pretty_event,
         )
 
@@ -818,7 +1004,7 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
-    with ui.right_drawer(fixed=True).classes(
+    with ui.right_drawer(value=True, fixed=True).classes(
         "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
     ) as self.gui_right_drawer:
         ui.label("Actions & Control").classes("text-lg font-bold mb-2 self-center")
@@ -859,7 +1045,7 @@ def initialize_screen(self: MyGui) -> None:
         ui.label("Application Settings").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         _create_settings_buttons_section(self)
 
-        ui.label("Help & Information").classes(
+        ui.label(translate_string("Help & Information")).classes(
             "text-xs font-bold uppercase text-gray-400 mt-4 gap-w-0 m-0 p-0 leading-none self-center",
         )
         _create_help_options_section(self)
@@ -869,7 +1055,7 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     with ui.column().classes("p-6 w-full max-w-full mx-auto") as self.gui_main_column:
         with ui.row().classes("gap-4 mb-6") as self.gui_view_toolbar:
-            self.current_file = ui.label("No file loaded").classes("text-gray-500 italic")
+            self.current_file = ui.label(translate_string("No file loaded")).classes("text-gray-500 italic")
 
         with ui.tabs().classes("w-full") as self.gui_main_tabs_container:
             self.tab_specific_name = ui.tab(translate_string("Specific Name"), icon="filter_list")

@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from maptasker.src import tasks
 from maptasker.src.dirout import add_directory_item
-from maptasker.src.format import format_html
+from maptasker.src.format import build_tooltip_span, format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.globalvr import output_variables
 from maptasker.src.guiutils import get_taskid_from_unnamed_task
@@ -370,11 +370,26 @@ def get_extra_and_output_project(
     # Make the Project name bold, italcize and/or highlighted if requested
     project_name_altered = add_name_attribute(project_name)
 
+    # Add a tooltip to the "Project:" label listing the Profiles that belong to it.
+    pids = project.find("pids")
+    profile_names = []
+    if pids is not None and pids.text:
+        all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
+        profile_names = [
+            all_profiles[pid]["name"]
+            for pid in pids.text.split(",")
+            if pid in all_profiles and all_profiles[pid]["name"]
+        ]
+    project_label = build_tooltip_span(
+        "Project:",
+        [f"Profiles: {', '.join(profile_names)}"] if profile_names else [],
+    )
+
     # Get the name in a format with proper HTML code wrapped around it
     project_name_details = format_html(
         "project_color",
         "",
-        f"Project: {project_name_altered}",
+        f"{project_label} {project_name_altered}",
         True,
     )
 

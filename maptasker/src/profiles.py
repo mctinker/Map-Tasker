@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from maptasker.src import condition, tasks
 from maptasker.src.actione import fix_json
 from maptasker.src.dirout import add_directory_item
-from maptasker.src.format import format_html
+from maptasker.src.format import build_tooltip_span, format_html
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
@@ -84,11 +84,15 @@ def get_profile_tasks(
 # Get a specific Profile's name
 def get_profile_name(
     profile: defusedxml.ElementTree,
+    project_name: str = "",
+    task_names: list[str] | None = None,
 ) -> tuple[str, str]:
     """
     Get a specific Profile's name
 
         :param profile: xml element pointing to the Profile
+        :param project_name: name of the Project this Profile belongs to (for the "Profile:" tooltip)
+        :param task_names: names of the Tasks this Profile references (for the "Profile:" tooltip)
         :return: Profile name with appropriate html and the profile name itself
     """
     # If we don't have the name, then set it to 'No Profile'
@@ -108,11 +112,19 @@ def get_profile_name(
             all_but_the_name = altered_profile_name[pos:]
             altered_profile_name = f"<em>{just_the_name}</em>{all_but_the_name}"
 
+    # Add a tooltip to the "Profile:" label showing the owning Project and this Profile's Tasks.
+    tooltip_lines = []
+    if project_name:
+        tooltip_lines.append(f"Project: {project_name}")
+    if task_names:
+        tooltip_lines.append(f"Tasks: {', '.join(task_names)}")
+    profile_label = build_tooltip_span("Profile:", tooltip_lines)
+
     # Add html color and font for Profile name
     profile_name_with_html = format_html(
         "profile_color",
         "",
-        f"Profile: {altered_profile_name} ",
+        f"{profile_label} {altered_profile_name} ",
         True,
     )
 
@@ -354,12 +366,16 @@ def conditions_to_name(
 # Get the Profile's key attributes: limit, launcher task, run conditions
 def build_profile_line(
     profile: defusedxml.ElementTree,
+    project_name: str = "",
+    task_names: list[str] | None = None,
 ) -> str:
     """
     Get the Profile's key attributes: limit, launcher task, run conditions and output it
 
         :param project: the Project xml element
         :param profile: the Profile xml element
+        :param project_name: name of the Project this Profile belongs to (for the "Profile:" tooltip)
+        :param task_names: names of the Tasks this Profile references (for the "Profile:" tooltip)
         :return: Profile name
     """
 
@@ -395,7 +411,7 @@ def build_profile_line(
         flags = format_html("launcher_task_color", "", f" flags: {flags.text}", True) if flags is not None else ""
 
     # Get the Profile name
-    profile_name_with_html, profile_name = get_profile_name(profile)
+    profile_name_with_html, profile_name = get_profile_name(profile, project_name, task_names)
     unmodified_profile_name = profile_name
 
     # Handle directory hyperlink
@@ -503,7 +519,9 @@ def do_profile(
     )
 
     # Examine Profile attributes and output Profile line
-    profile_name = build_profile_line(profile)
+    # Pull the clean Task name (drop the html/markup) off the front of each Task's output line.
+    task_names_for_tooltip = [task["name"].split("&nbsp;")[0] for task in list_of_tasks if task.get("name")]
+    profile_name = build_profile_line(profile, project_name, task_names_for_tooltip)
 
     # Process Profile Properties
     if PrimeItems.program_arguments["display_detail_level"] > 2:
