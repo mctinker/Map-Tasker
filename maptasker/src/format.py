@@ -3,6 +3,7 @@
 import html
 import re
 from html.parser import HTMLParser
+from itertools import zip_longest
 
 from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
@@ -101,22 +102,59 @@ def format_html(
     return text_after
 
 
-# Wrap a label (e.g. "Task:", "Profile:", "Project:") with a native browser tooltip.
+# Wrap a label (e.g. "Task:", "Profile:", "Project:") with a fast-appearing CSS tooltip.
 def build_tooltip_span(label: str, tooltip_lines: list[str]) -> str:
     """
-    Wrap a label in a <span title="..."> so hovering over it shows a tooltip.
+    Wrap a label in a <span class="hover-tooltip" data-tooltip="..."> so hovering over it shows
+    a tooltip. This uses a custom CSS tooltip (see add_css()) rather than the native "title"
+    attribute, since browsers impose a multi-second delay before showing native tooltips that
+    can't be shortened via HTML/CSS.
 
         :param label: the literal text to wrap (e.g. "Task:")
         :param tooltip_lines: lines of plain text to join (newline-separated) into the tooltip.
             Falsy lines are dropped. If the resulting list is empty, the label is returned unwrapped.
-        :return: the label wrapped in a <span title="..."> tag, or the bare label if no tooltip lines
+        :return: the label wrapped in a <span class="hover-tooltip" data-tooltip="..."> tag,
+            or the bare label if no tooltip lines
     """
     lines = [line for line in tooltip_lines if line]
     if not lines:
         return label
 
-    tooltip_text = html.escape("\n".join(lines))
-    return f'<span title="{tooltip_text}">{label}</span>'
+    # Use the "&#10;" entity rather than a raw newline so the tag doesn't get split
+    # across multiple lines when the output is later read back in line-by-line
+    # (e.g. by guimap.py's Map-view parser). Browsers resolve the entity back to a
+    # real line break for the CSS "white-space: pre" tooltip in add_css().
+    tooltip_text = "&#10;".join(html.escape(line) for line in lines)
+    return f'<span class="hover-tooltip" data-tooltip="{tooltip_text}">{label}</span>'
+
+
+# Build monospace-aligned, two-column lines (e.g. Profiles next to Tasks) for build_tooltip_span().
+def build_two_column_tooltip_lines(
+    left_header: str,
+    left_items: list[str],
+    right_header: str,
+    right_items: list[str],
+) -> list[str]:
+    """
+    Lay out two lists side by side, one item per line, as plain-text lines suitable for
+    build_tooltip_span(). Relies on the tooltip being rendered in a monospace font
+    (see the ".hover-tooltip" CSS rule in add_css()) so the columns actually line up.
+
+        :param left_header: header for the left column (e.g. "Profiles:")
+        :param left_items: left column's items, one per line
+        :param right_header: header for the right column (e.g. "Tasks (sorted):")
+        :param right_items: right column's items, one per line
+        :return: list of pre-formatted two-column lines, or [] if both columns are empty
+    """
+    if not left_items and not right_items:
+        return []
+
+    col_width = max([len(left_header), *(len(item) for item in left_items)]) + 3
+    lines = [f"{left_header:<{col_width}}{right_header}"]
+    lines.extend(
+        f"{left:<{col_width}}{right}" for left, right in zip_longest(left_items, right_items, fillvalue="")
+    )
+    return lines
 
 
 """Convert html to text"""

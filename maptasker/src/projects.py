@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 from maptasker.src import tasks
 from maptasker.src.dirout import add_directory_item
-from maptasker.src.format import build_tooltip_span, format_html
+from maptasker.src.format import build_tooltip_span, build_two_column_tooltip_lines, format_html
 from maptasker.src.getids import get_ids
 from maptasker.src.globalvr import output_variables
 from maptasker.src.guiutils import get_taskid_from_unnamed_task
@@ -370,7 +370,8 @@ def get_extra_and_output_project(
     # Make the Project name bold, italcize and/or highlighted if requested
     project_name_altered = add_name_attribute(project_name)
 
-    # Add a tooltip to the "Project:" label listing the Profiles that belong to it.
+    # Add a 2-up tooltip to the "Project:" label: Profiles in this Project on the left,
+    # all of this Project's Tasks (sorted) on the right, one item per line in each column.
     pids = project.find("pids")
     profile_names = []
     if pids is not None and pids.text:
@@ -380,9 +381,16 @@ def get_extra_and_output_project(
             for pid in pids.text.split(",")
             if pid in all_profiles and all_profiles[pid]["name"]
         ]
+
+    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    task_ids = get_ids(False, project, project_name, [])
+    task_names = sorted(
+        all_tasks[tid]["name"] for tid in task_ids if tid in all_tasks and all_tasks[tid]["name"]
+    )
+
     project_label = build_tooltip_span(
         "Project:",
-        [f"Profiles: {', '.join(profile_names)}"] if profile_names else [],
+        build_two_column_tooltip_lines("Profiles:", profile_names, "Tasks (sorted):", task_names),
     )
 
     # Get the name in a format with proper HTML code wrapped around it

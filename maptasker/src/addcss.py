@@ -89,6 +89,41 @@ def add_css() -> None:
     }
 </style>"""
 
+    # Fast-appearing tooltip used in place of the native "title" attribute, whose
+    # browser-imposed show delay (a second or more) can't be shortened via HTML/CSS.
+    tooltip = """
+<style>
+    .hover-tooltip {
+        position: relative;
+        cursor: help;
+    }
+    .hover-tooltip::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 0;
+        top: 100%;
+        white-space: pre;
+        font-family: "Courier New", Courier, monospace;
+        background: #333;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        line-height: 1.4;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.1s linear, visibility 0.1s linear;
+        pointer-events: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .hover-tooltip:hover::after {
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0.15s;
+    }
+</style>"""
+
     # Modsify the tabs with appropriate spacing.
     tabs = tabs.replace("xxx", SPACE_COUNT1[1])
     tabs = tabs.replace("yyy", SPACE_COUNT2[1])
@@ -107,3 +142,6 @@ def add_css() -> None:
 
     # Add image resize
     PrimeItems.output_lines.add_line_to_output(5, resize_image, FormatLine.dont_format_line)
+
+    # Add the fast-appearing hover tooltip
+    PrimeItems.output_lines.add_line_to_output(5, tooltip, FormatLine.dont_format_line)

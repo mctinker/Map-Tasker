@@ -212,6 +212,31 @@ def get_scene_elements(
     )
 
 
+# Get a simple list of the Scene's UI element names/types (e.g. for a tooltip).
+def get_scene_element_names(scene: defusedxml.ElementTree) -> list[str]:
+    """
+    Build a simple list of a Scene's UI element names/types.
+
+        :param scene: the Scene's xml element to go through.
+        :return: list of strings, one per element, like "'ElementName' (Type)" or just
+            "Type" if the element has no name. "PropertiesElement" and "lj" (compressed
+            Scene V2 JSON) are skipped since they don't represent a single named element.
+    """
+    element_names = []
+    for child in scene:
+        if child.tag in SCENE_TAGS_TO_IGNORE or child.tag in {"PropertiesElement", "lj"} or not tag_in_type(
+            child.tag,
+            True,
+        ):
+            continue
+        element_type = child.tag.split("Element")[0]
+        name_xml_element = child.find("Str")
+        name = name_xml_element.text if name_xml_element is not None and name_xml_element.text else ""
+        element_names.append(f"'{name}' ({element_type})" if name else element_type)
+
+    return element_names
+
+
 # Handle sub-lements of the element we are doing.
 def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> None:
     """

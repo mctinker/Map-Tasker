@@ -112,12 +112,14 @@ def get_profile_name(
             all_but_the_name = altered_profile_name[pos:]
             altered_profile_name = f"<em>{just_the_name}</em>{all_but_the_name}"
 
-    # Add a tooltip to the "Profile:" label showing the owning Project and this Profile's Tasks.
+    # Add a tooltip to the "Profile:" label showing the owning Project and this Profile's Tasks,
+    # one Task per line.
     tooltip_lines = []
     if project_name:
         tooltip_lines.append(f"Project: {project_name}")
     if task_names:
-        tooltip_lines.append(f"Tasks: {', '.join(task_names)}")
+        tooltip_lines.append("Tasks:")
+        tooltip_lines.extend(task_names)
     profile_label = build_tooltip_span("Profile:", tooltip_lines)
 
     # Add html color and font for Profile name

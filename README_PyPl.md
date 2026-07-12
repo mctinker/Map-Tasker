@@ -1,10 +1,23 @@
 # MapTasker
 
-## Display the Tasker Project/Profile/Task/Scene hierarchy on a desktop based on Tasker's backup or exported XML file (e.g. backup.xml)
+## Display the Tasker Project/Profile/Task/Scene hierarchy on in your browser based on Tasker's backup or exported XML file (e.g. backup.xml)
 
-This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on a MAC/PC/Linux/Win11 desktop.
+This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run in your default browser.
 
-An older version, which requires Python version 3.10 rather than 3.11 or higher, is available as version 2.6.3...
-    `pip install maptasker==2.6.3`
+## Installation:
+
+- via uv: `uv add maptasker`
+- via pip: `pip install maptasker`
+  
+NOTE: If MapTasker doesn't install on Windows 11, first install 'nicegui' and then install MapTasker.
+  
+## Updating MapTasker:
+
+MapTasker has a built-in auto-updater.  If a new version is available, a "New Version" button will appear allowing the user to install the new version and relaunch MapTasker.
+If the auto-updater does not work, then use one of the following:
+	
+via uv: `uv sync --upgrade-package maptasker`
+view pip: `pip install --upgrade maptasker`
+
 
 For further details, refer to [the project on Github.](https://github.com/mctinker/Map-Tasker)

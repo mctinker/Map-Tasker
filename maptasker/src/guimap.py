@@ -36,6 +36,20 @@ dir_headers = (
     "Scenes...........................",
 )
 
+# The "Project:"/"Profile:"/"Task:" hover tooltip (build_tooltip_span() in format.py) wraps the
+# label in its own nested <span class="hover-tooltip" data-tooltip="...">. The line-parsing logic
+# below (extract_working_text() et al.) locates label text by counting quote-delimited segments
+# after the outer color span, and only expects at most one nested <span class="..."> (used for
+# font-size classes). The tooltip span's extra data-tooltip attribute throws that count off, so
+# strip the tooltip wrapper back down to its bare label before this file's parser ever sees it.
+# The exported MapTasker.html itself is untouched, so the tooltip still works when opened in a browser.
+_HOVER_TOOLTIP_SPAN_RE = re.compile(r'<span class="hover-tooltip" data-tooltip="[^"]*">(.*?)</span>')
+
+
+def _strip_hover_tooltip_span(line: str) -> str:
+    """Unwrap build_tooltip_span()'s <span class="hover-tooltip" ...> back to its bare label text."""
+    return _HOVER_TOOLTIP_SPAN_RE.sub(r"\1", line)
+
 
 def process_label_html(lines: list, output_lines: dict, line_num: int, spacing: int) -> int:
     """
@@ -1363,7 +1377,7 @@ def parse_html() -> dict:
 
     # Read the mapped html file
     with open("MapTasker.html", encoding="utf8") as html:
-        lines = html.readlines()
+        lines = [_strip_hover_tooltip_span(line) for line in html.readlines()]
 
         # Establish base spacing
         spacing = 0

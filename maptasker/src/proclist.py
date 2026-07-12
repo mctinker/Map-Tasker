@@ -92,7 +92,10 @@ def format_task_or_scene(
         if project_name:
             tooltip_lines.append(f"Project: {project_name}")
         label = build_tooltip_span(list_type, tooltip_lines)
-    else:
+    elif list_type == "Scene:":
+        # This import must stay here to avoid circular import error.  Define it only when needed.
+        from maptasker.src.scenes import get_scene_element_names  # noqa: PLC0415
+
         # Get owning project for this Scene, if known, and add to the tooltip.
         tooltip_lines = []
         for project in PrimeItems.tasker_root_elements["all_projects"].values():
@@ -100,6 +103,26 @@ def format_task_or_scene(
             if scenes is not None and the_item in scenes.text:
                 tooltip_lines.append(f"Project: {project['name']}")
                 break
+
+        # Add the Scene's list of UI elements to the tooltip, one element per line.
+        scene_xml = PrimeItems.tasker_root_elements["all_scenes"].get(the_item, {}).get("xml")
+        if scene_xml is not None:
+            element_names = get_scene_element_names(scene_xml)
+            if element_names:
+                tooltip_lines.append("Elements:")
+                tooltip_lines.extend(element_names)
+
+        label = build_tooltip_span(list_type, tooltip_lines)
+    elif "&#45;&#45;Task:" in list_type:
+        # This is a Task embedded in a Scene (e.g. a Tap/Long Tap handler). scenes.py doesn't
+        # pass a project_name/profile_name in for these, so fall back to the Project currently
+        # being processed to show a tooltip for the "--Task:" label.
+        owning_project_name = project_name or (
+            PrimeItems.current_project["name"] if PrimeItems.current_project else ""
+        )
+        tooltip_lines = [f"Project: {owning_project_name}"] if owning_project_name else []
+        task_label = build_tooltip_span("&#45;&#45;Task:", tooltip_lines)
+        label = list_type.replace("&#45;&#45;Task:", task_label, 1)
 
     # Format the output line
     output_line = f"{label}&nbsp;{the_item_altered}"
