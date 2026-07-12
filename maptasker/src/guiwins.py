@@ -342,7 +342,12 @@ class NiceGuiTextView:
         """Wires up click-to-highlight for Diagram view connector spans.
 
         Clicking a connector span highlights every span sharing its data-connector-id and clears
-        any previously-highlighted connector; clicking empty space clears the highlight too.
+        any previously-highlighted connector; clicking empty space clears the highlight too. If
+        either end of the highlighted connector -- its topmost or bottommost cell, since a
+        connector's spans are emitted top-to-bottom in document order -- is scrolled out of the
+        visible area, a floating "Jump to Start"/"Jump to End" button appears so the user can
+        bring it into view without hunting for it manually; the button hides itself again once
+        the user scrolls that end into view (or clicks away).
         """
         # ui.run_javascript() needs an active NiceGUI "slot" to know which client to target.
         # This runs from a background asyncio task (self._task), after the `with self.scroll_area:`
@@ -355,17 +360,111 @@ class NiceGuiTextView:
                 const outerContainer = document.getElementById("c{self.scroll_area.id}");
                 if (!outerContainer || outerContainer.dataset.connectorClickWired) return;
                 outerContainer.dataset.connectorClickWired = "1";
+
+                // Quasar's own q-scroll-area styling sets "contain: strict" on outerContainer,
+                // which creates a new containing block for position:fixed descendants -- a button
+                // appended inside it would be clipped to and positioned relative to the scroll
+                // area's box instead of the viewport. Appending to document.body avoids that, at
+                // the cost of needing to clean up by hand: remove any leftover buttons from a
+                // previous Diagram view load first (clear()-ing the view's container doesn't touch
+                // elements parented directly under body).
+                document.querySelectorAll(".connector-jump-button").forEach((el) => el.remove());
+
+                function makeJumpButton(label, bottomOffset) {{
+                    const btn = document.createElement("button");
+                    btn.textContent = label;
+                    btn.className = "connector-jump-button";
+                    btn.style.bottom = bottomOffset + "px";
+                    btn.addEventListener("click", (event) => {{
+                        event.stopPropagation();
+                        const target = btn._jumpTarget;
+                        if (target) {{
+                            // A chunk currently skipped by content-visibility: auto (see
+                            // process_data()'s chunking) never got laid out, so its descendants'
+                            // getBoundingClientRect() is meaningless and scrollIntoView() would
+                            // land in the wrong place. Force that chunk to lay out for real first
+                            // -- it's the one we're about to scroll to anyway, so there's no
+                            // wasted work, and leaving it visible afterward is harmless.
+                            for (let a = target; a; a = a.parentElement) {{
+                                if (getComputedStyle(a).contentVisibility === "auto") {{
+                                    a.style.contentVisibility = "visible";
+                                }}
+                            }}
+                            // Instant, not smooth: the jump can cover tens of thousands of pixels
+                            // on a large diagram, where an animated scroll would be slow to land
+                            // and distracting rather than helpful.
+                            target.scrollIntoView({{block: "center", inline: "center", behavior: "auto"}});
+                            // Don't wait for the resulting "scroll" event to re-check visibility --
+                            // it fires asynchronously, and updateJumpButtons is hoisted so it's
+                            // already safe to call here even though it's defined further down.
+                            updateJumpButtons();
+                        }}
+                    }});
+                    document.body.appendChild(btn);
+                    return btn;
+                }}
+                const jumpEndBtn = makeJumpButton("Jump to End", 16);
+                const jumpStartBtn = makeJumpButton("Jump to Start", 60);
+
+                function isElementVisible(el, container) {{
+                    // A connector's horizontal run can be wider than the whole viewport, in which
+                    // case requiring it to fit entirely inside the container can never be
+                    // satisfied even right after successfully jumping to it. Its midpoint landing
+                    // inside the container is a better proxy for "the jump got you there".
+                    const er = el.getBoundingClientRect();
+                    const cr = container.getBoundingClientRect();
+                    const midX = er.left + er.width / 2;
+                    const midY = er.top + er.height / 2;
+                    return midX >= cr.left && midX <= cr.right && midY >= cr.top && midY <= cr.bottom;
+                }}
+
+                function positionJumpButtons() {{
+                    const rect = outerContainer.getBoundingClientRect();
+                    const viewportWidth = document.documentElement.clientWidth;
+                    const rightPx = Math.max(8, viewportWidth - rect.right + 16);
+                    jumpEndBtn.style.right = rightPx + "px";
+                    jumpStartBtn.style.right = rightPx + "px";
+                }}
+                positionJumpButtons();
+                window.addEventListener("resize", positionJumpButtons);
+
+                function updateJumpButtons() {{
+                    if (jumpEndBtn._jumpTarget && document.body.contains(jumpEndBtn._jumpTarget)
+                        && !isElementVisible(jumpEndBtn._jumpTarget, outerContainer)) {{
+                        jumpEndBtn.style.display = "block";
+                    }} else {{
+                        jumpEndBtn.style.display = "none";
+                    }}
+                    if (jumpStartBtn._jumpTarget && document.body.contains(jumpStartBtn._jumpTarget)
+                        && !isElementVisible(jumpStartBtn._jumpTarget, outerContainer)) {{
+                        jumpStartBtn.style.display = "block";
+                    }} else {{
+                        jumpStartBtn.style.display = "none";
+                    }}
+                }}
+
+                const scroller = outerContainer.querySelector(".q-scrollarea__container") || outerContainer;
+                scroller.addEventListener("scroll", updateJumpButtons);
+
                 outerContainer.addEventListener("click", (event) => {{
                     const target = event.target.closest(".connector");
                     outerContainer.querySelectorAll(".connector-highlight").forEach((el) => {{
                         el.classList.remove("connector-highlight");
                     }});
+                    jumpEndBtn._jumpTarget = null;
+                    jumpStartBtn._jumpTarget = null;
                     if (target) {{
                         const id = target.dataset.connectorId;
-                        outerContainer.querySelectorAll(`.connector[data-connector-id="${{id}}"]`).forEach((el) => {{
+                        const matches = outerContainer.querySelectorAll(`.connector[data-connector-id="${{id}}"]`);
+                        matches.forEach((el) => {{
                             el.classList.add("connector-highlight");
                         }});
+                        if (matches.length > 0) {{
+                            jumpStartBtn._jumpTarget = matches[0];
+                            jumpEndBtn._jumpTarget = matches[matches.length - 1];
+                        }}
                     }}
+                    updateJumpButtons();
                 }});
             """)
 
@@ -1018,6 +1117,23 @@ def initialize_screen(self: MyGui) -> None:
                 background-color: #facc15 !important;
                 color: #000000 !important;
                 font-weight: bold;
+            }
+            .connector-jump-button {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                padding: 8px 14px;
+                background-color: #2563eb;
+                color: #ffffff;
+                border: none;
+                border-radius: 6px;
+                font-size: 0.875rem;
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+            }
+            .connector-jump-button:hover {
+                background-color: #1d4ed8;
             }
         </style>
     """)

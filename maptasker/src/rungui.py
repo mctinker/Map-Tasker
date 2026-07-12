@@ -245,8 +245,8 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
                 100,  # Force an exit.
             )
 
-    logger.info("GUI closed. Processing arguments...")
-    print("MapTasker GUI closed. Processing arguments...")
+    logger.info("GUI closed. Cleaning up...")
+    print("MapTasker GUI closed. Cleaning up...")
 
     # 4. Retrieve the state created by the web browser session
     user_input = shared_state.get("user_input")
@@ -260,23 +260,14 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     if not PrimeItems.colors_to_use:
         PrimeItems.program_arguments = initialize_runtime_arguments()
 
-    # Do we already have the file object?
-    if value := user_input.file:
-        PrimeItems.file_to_get = value if isinstance(value, str) else value.name
+    # Move user_input values into our program_arguments dictionary and colors_to_use dictionary
+    capture_gui_state(user_input, {})
 
     # Hide the Ai key so when settings are saved, it isn't written to toml file.
     ai_apikey = getattr(user_input, "ai_apikey", None)
     if ai_apikey is not None and ai_apikey:
         PrimeItems.ai["api_key"] = ai_apikey
         PrimeItems.program_arguments["ai_apikey"] = "HIDDEN"
-
-    # Get the program arguments and save them in our dictionary
-    for value in ARGUMENT_NAMES:
-        with contextlib.suppress(AttributeError):
-            PrimeItems.program_arguments[value] = getattr(user_input, value)
-            logger.info(
-                f"GUI arg: {value} set to: {PrimeItems.program_arguments[value]}",
-            )
 
     # Convert display_detail_level to integer
     PrimeItems.program_arguments["display_detail_level"] = convert_to_integer(
@@ -288,24 +279,18 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         PrimeItems.program_arguments["indent"],
         4,
     )
-    # Get the font
-    if the_font := user_input.font:
-        PrimeItems.program_arguments["font"] = the_font
 
-    # If user selected the "Exit" button, call it quits.
-    user_exit = getattr(user_input, "exit", False)
-    if user_exit:
-        # Save the runtijme settings first.
-        _, _ = save_restore_args(
-            PrimeItems.program_arguments,
-            PrimeItems.colors_to_use,
-            to_save=True,
-        )
-        # Spit out the message and log it.
-        error_handler("Program exited. Goodbye.", 0)
+    # Save our runtime settings.
+    _, _ = save_restore_args(
+        PrimeItems.program_arguments,
+        PrimeItems.colors_to_use,
+        to_save=True,
+    )
+    # Spit out the message and log it.
+    error_handler("Program exited. Goodbye.", 0)
 
-        # Call it quits.
-        exit_program(0)
+    # Call it quits.
+    exit_program(0)
 
     # Return the program arguments and colors to use.
     return (PrimeItems.program_arguments, do_colors(user_input))

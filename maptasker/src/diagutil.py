@@ -212,7 +212,8 @@ def fix_icon(name: str) -> str:
     - Check each character in the name for icon characters
     - If an icon character is found, initialize Tkinter
     - Calculate the width and height of the icon character
-    - Return an empty string or a blank string trailer depending on if the icon is wider or taller
+    - Return a blank string trailer if the icon renders wider than it is tall (it'll occupy an
+      extra monospace column that len(name) doesn't account for), else no trailer
     """
     # We have at least one character that is probably an icon.
     for char in name:
@@ -223,7 +224,10 @@ def fix_icon(name: str) -> str:
                 "Courier New",
                 12,
             )
-            trailer = "" if char_dimension[0] > char_dimension[1] else blank
+            # A wide (width > height) icon renders across two monospace columns despite counting
+            # as a single character in len(name), which is what box_line_length is based on --
+            # add the missing column back so the box's right border still lines up.
+            trailer = blank if char_dimension[0] > char_dimension[1] else ""
             break
     return trailer
 
