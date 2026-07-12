@@ -78,6 +78,50 @@ HTML_REPLACEMENT_MAP = {
 }
 
 
+def _escape_html_text(text: str) -> str:
+    """Escape plain text for safe embedding in HTML (the Diagram file has no markup of its own)."""
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _connectors_by_line() -> dict[int, list[tuple[int, int, int]]]:
+    # FIX this
+    """Invert PrimeItems.diagram_connectors (id -> ranges) into line_num -> (start, end, id)."""
+    by_line: dict[int, list[tuple[int, int, int]]] = {}
+    for connector_id, ranges in getattr(PrimeItems, "diagram_connectors", {}).items():
+        for line_num, col_start, col_end in ranges:
+            by_line.setdefault(line_num, []).append((col_start, col_end, connector_id))
+    return by_line
+
+
+def _wrap_diagram_line(
+    line_num: int,
+    line: str,
+    connectors_by_line: dict[int, list[tuple[int, int, int]]],
+) -> str:
+    """Escape a Diagram line for HTML, wrapping each connector's characters in a clickable span."""
+    ranges = connectors_by_line.get(line_num)
+    if not ranges:
+        return _escape_html_text(line)
+
+    pieces = []
+    cursor = 0
+    for col_start, col_end, connector_id in sorted(ranges):
+        col_start = max(col_start, cursor)
+        if col_start >= col_end or col_start >= len(line):
+            continue
+        col_end = min(col_end, len(line))
+        if col_start > cursor:
+            pieces.append(_escape_html_text(line[cursor:col_start]))
+        pieces.append(
+            f'<span class="connector" data-connector-id="{connector_id}">'
+            f"{_escape_html_text(line[col_start:col_end])}</span>",
+        )
+        cursor = col_end
+    if cursor < len(line):
+        pieces.append(_escape_html_text(line[cursor:]))
+    return "".join(pieces)
+
+
 class NiceGuiTreeView:
     """Replaces CTkTreeview. Renders a hierarchical tree representation in the main view column."""
 
@@ -191,32 +235,34 @@ class NiceGuiTextView:
                 ui.separator().props("vertical")
                 ui.button("Top", on_click=lambda: self.scroll("top")).classes("bg-blue-600")
                 ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
+                ui.button("Toggle Wrap", on_click=self.toggle_wrap).classes("bg-blue-600")
 
-            if "Diagram" in self.title:
-                wrap_class = "whitespace-pre"
-                break_class = ""
-            else:
-                wrap_class = "whitespace-pre-wrap"
-                break_class = "break-words"
+            # "Diagram" view intentionally starts unwrapped so ASCII-art connectors stay aligned.
+            self.wrap_enabled = "Diagram" not in self.title
+            self.wrap_classes = "whitespace-pre-wrap break-words" if self.wrap_enabled else "whitespace-pre"
 
             self.scroll_area = (
                 ui
                 .scroll_area()
+                # min-w-0 keeps this a flex child that can't be stretched wider than its container by
+                # long unbreakable content; without it the default flex min-width:auto lets the box
+                # (and the whole page) grow past the viewport once the full content has streamed in.
                 .classes(
-                    f"w-full max-w-full block h-[70vh] border-2 border-gray-600 p-4 text-sm {wrap_class} {break_class}",
+                    f"w-full max-w-full min-w-0 block h-[70vh] border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
                 )
-                .style(f"width: 100%; max-w: 100%; font-family: '{self.master_gui.font}', monospace;")
+                .style(f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;")
             )
 
     async def process_data(self, the_data: dict | list) -> None:
         """Converts data to HTML chunks, preventing single-packet WebSocket buffer overruns."""
+        is_diagram = self.title.startswith("Diagram")
         html_style = f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;"
         if "Diagram" not in self.title:
             html_style += " word-break: break-word;"
 
         if self.title.startswith("Map"):
             file_to_read = os.path.join(os.getcwd(), "MapTasker.html")
-        elif self.title.startswith("Diagram"):
+        elif is_diagram:
             file_to_read = os.path.join(os.getcwd(), DIAGRAM_FILE)
         elif self.title.startswith("Misc"):
             with self.scroll_area:
@@ -227,10 +273,15 @@ class NiceGuiTextView:
         try:
             with open(file_to_read, encoding="utf-8") as f:
                 final_html = f.read()
-                final_html = HTML_OPTIMIZE_PATTERN.sub(
-                    lambda match: HTML_REPLACEMENT_MAP[match.group(0)],
-                    final_html,
-                )
+                # The diagram file is plain text (no HTML markup), and its line numbers must line
+                # up 1:1 with PrimeItems.diagram_connectors (recorded when the diagram was built) so
+                # clicking a connector highlights the right one -- so skip the HTML-specific/blank-line
+                # collapsing optimizations here; they aren't meaningful for plain text anyway.
+                if not is_diagram:
+                    final_html = HTML_OPTIMIZE_PATTERN.sub(
+                        lambda match: HTML_REPLACEMENT_MAP[match.group(0)],
+                        final_html,
+                    )
 
             extracted_font = self.extract_first_font_name(final_html)
             if extracted_font not in ("Font name not found", self.master_gui.font):
@@ -241,13 +292,44 @@ class NiceGuiTextView:
             html_lines = final_html.splitlines()
             if html_lines and html_lines[0].strip() == '<span class="normtab"></span><!doctype html>':
                 del html_lines[0]  # Remove the first line if it matches the unwanted header
-            chunk_size = 2000  # Number of lines per single WebSocket packet transaction block
+
+            connectors_by_line = _connectors_by_line() if is_diagram else None
+
+            # The Diagram view's click-to-highlight feature wraps every connector character in its
+            # own <span> (tens of thousands of them on a large diagram, since a run only merges
+            # with its neighbor when they're on the very same line -- see
+            # compute_diagram_connector_groups() in diagram.py). That many extra inline elements
+            # makes the browser's layout/paint work on scroll noticeably heavier. Chunking the
+            # Diagram view much more finely than other views, and marking each chunk
+            # content-visibility: auto, lets the browser skip layout and paint entirely for chunks
+            # that are scrolled out of view instead of doing that work for the whole document on
+            # every frame. contain-intrinsic-size reserves roughly the right amount of scrollbar
+            # space for an unrendered chunk so scrolling doesn't jump around as chunks pop in and
+            # out; it doesn't need to be exact, just close.
+            chunk_size = 150 if is_diagram else 2000
+            approx_px_per_line = 20
 
             with self.scroll_area:
                 for i in range(0, len(html_lines), chunk_size):
-                    chunk_content = "\n".join(html_lines[i : i + chunk_size])
-                    ui.html(chunk_content).classes("w-full block max-w-full").style(html_style)
+                    chunk_lines = html_lines[i : i + chunk_size]
+                    if connectors_by_line is not None:
+                        chunk_content = "\n".join(
+                            _wrap_diagram_line(i + offset, line, connectors_by_line)
+                            for offset, line in enumerate(chunk_lines)
+                        )
+                    else:
+                        chunk_content = "\n".join(chunk_lines)
+                    chunk_style = html_style
+                    if is_diagram:
+                        chunk_height = len(chunk_lines) * approx_px_per_line
+                        chunk_style += (
+                            f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
+                        )
+                    ui.html(chunk_content).classes("w-full block max-w-full").style(chunk_style)
                     await asyncio.sleep(0.01)  # Yields loop to keep WebSocket alive
+
+            if connectors_by_line:
+                self._enable_connector_highlighting()
             return  # noqa: TRY300
 
         except FileNotFoundError:
@@ -255,6 +337,37 @@ class NiceGuiTextView:
 
         # Apply the fallback generation if the file does not exist
         self._process_fallback_data(the_data)
+
+    def _enable_connector_highlighting(self) -> None:
+        """Wires up click-to-highlight for Diagram view connector spans.
+
+        Clicking a connector span highlights every span sharing its data-connector-id and clears
+        any previously-highlighted connector; clicking empty space clears the highlight too.
+        """
+        # ui.run_javascript() needs an active NiceGUI "slot" to know which client to target.
+        # This runs from a background asyncio task (self._task), after the `with self.scroll_area:`
+        # block used to stream in the chunks has already closed, so the slot stack is empty here --
+        # calling it unguarded raises RuntimeError (silently, since self._task is fire-and-forget)
+        # and the click handler never reaches the browser. Re-entering the scroll_area as a context
+        # manager restores the slot so the script actually gets sent.
+        with self.scroll_area:
+            ui.run_javascript(f"""
+                const outerContainer = document.getElementById("c{self.scroll_area.id}");
+                if (!outerContainer || outerContainer.dataset.connectorClickWired) return;
+                outerContainer.dataset.connectorClickWired = "1";
+                outerContainer.addEventListener("click", (event) => {{
+                    const target = event.target.closest(".connector");
+                    outerContainer.querySelectorAll(".connector-highlight").forEach((el) => {{
+                        el.classList.remove("connector-highlight");
+                    }});
+                    if (target) {{
+                        const id = target.dataset.connectorId;
+                        outerContainer.querySelectorAll(`.connector[data-connector-id="${{id}}"]`).forEach((el) => {{
+                            el.classList.add("connector-highlight");
+                        }});
+                    }}
+                }});
+            """)
 
     def search_event(self) -> None:
         """Search for the input text inside the text views and display a clickable results popup."""
@@ -598,6 +711,14 @@ class NiceGuiTextView:
             # Native NiceGUI scroll to bottom (100% progress)
             self.scroll_area.scroll_to(percent=1.0)
 
+    def toggle_wrap(self) -> None:
+        """Toggles word-wrap on/off for this view's content, replacing the exact prior classes."""
+        self.wrap_enabled = not self.wrap_enabled
+        new_classes = "whitespace-pre-wrap break-words" if self.wrap_enabled else "whitespace-pre"
+        self.scroll_area.classes(remove=self.wrap_classes, add=new_classes)
+        self.wrap_classes = new_classes
+        ui.notify(f"Word wrap {'enabled' if self.wrap_enabled else 'disabled'} for {self.title}.", type="info")
+
 
 # ==========================================
 # 4. INITIALIZATION & LAYOUT
@@ -858,6 +979,46 @@ def initialize_screen(self: MyGui) -> None:
                 font-size: 14px !important;
                 line-height: 1.4 !important;
             }
+
+            /* =========================================================================
+               MAP/DIAGRAM/TREE VIEW: KEEP THE GENERATED DIRECTORY TABLES WITHIN THE
+               SCROLL AREA. The exported HTML sizes table columns to fit their widest
+               unbroken cell (Task/Profile names are often one long unbroken word), which
+               is fine in a full-width standalone browser tab but overflows this narrow
+               embedded box. Force fixed column widths and let long names wrap instead.
+               (Set here rather than injected per-render, since ui.html() sanitizes
+               dynamic content client-side via DOMPurify and strips <style> tags.)
+               ========================================================================= */
+            .q-scrollarea table {
+                table-layout: fixed !important;
+                width: 100% !important;
+            }
+            .q-scrollarea table td,
+            .q-scrollarea table th {
+                overflow-wrap: anywhere !important;
+                word-break: break-word !important;
+                white-space: normal !important;
+            }
+            /* <pre> forces its own white-space:pre in the UA stylesheet, which wins over the
+               inherited whitespace-pre-wrap Tailwind class on the scroll area itself (e.g. the
+               AI-analysis prompt text embedded in the exported HTML). Force it to wrap too. */
+            .q-scrollarea pre {
+                white-space: pre-wrap !important;
+                overflow-wrap: anywhere !important;
+                word-break: break-word !important;
+            }
+
+            /* =========================================================================
+               DIAGRAM VIEW: CLICK-TO-HIGHLIGHT CONNECTOR LINES
+               ========================================================================= */
+            .connector {
+                cursor: pointer;
+            }
+            .connector-highlight {
+                background-color: #facc15 !important;
+                color: #000000 !important;
+                font-weight: bold;
+            }
         </style>
     """)
 
@@ -939,9 +1100,14 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
     # =========================================================================
-    with ui.left_drawer(value=True, fixed=True).classes(
-        "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
-    ) as self.gui_left_drawer:
+    with (
+        ui
+        .left_drawer(value=True, fixed=True)
+        .props("breakpoint=0")
+        .classes(
+            "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
+        ) as self.gui_left_drawer
+    ):
         ui.label("Display Options").classes("text-lg font-bold mb-2 gap-y-0 m-0 p-0 leading-none")
 
         # Detail level pulldown
@@ -1004,9 +1170,14 @@ def initialize_screen(self: MyGui) -> None:
     # =========================================================================
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
-    with ui.right_drawer(value=True, fixed=True).classes(
-        "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
-    ) as self.gui_right_drawer:
+    with (
+        ui
+        .right_drawer(value=True, fixed=True)
+        .props("breakpoint=0")
+        .classes(
+            "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
+        ) as self.gui_right_drawer
+    ):
         ui.label("Actions & Control").classes("text-lg font-bold mb-2 self-center")
 
         ui.label("Execution").classes("text-xs font-bold uppercase text-gray-400 mt-2 self-center")
@@ -1182,7 +1353,7 @@ def initialize_screen(self: MyGui) -> None:
                     self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug").classes("text-xs")
                     self.runtime_checkbox = ui.checkbox("Display Runtime Settings").classes("text-xs")
 
-        self.content_container = ui.column().classes("w-full max-w-full p-0 m-0 mt-6")
+        self.content_container = ui.column().classes("w-full max-w-full min-w-0 p-0 m-0 mt-6")
 
         with ui.dialog() as self.picker_dialog, ui.card().classes("p-4 items-center"):
             self.picker_title_label = ui.label("").classes("font-bold text-sm mb-2")

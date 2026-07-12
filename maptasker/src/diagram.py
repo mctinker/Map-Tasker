@@ -21,6 +21,7 @@ from bisect import bisect_left
 from typing import TYPE_CHECKING
 
 from maptasker.src.diagcnst import (
+    CONNECTOR_DIRECTIONS,
     angle,
     angle_elbow,
     bar,
@@ -716,6 +717,139 @@ def get_index_by_middle_char_position(
     return -1
 
 
+def find_diagram_connector_seed_cell(lines: list, row: int, col: int) -> tuple | None:
+    """
+    Locate the actual connector character for a recorded (row, col) seed in the final text.
+
+    A seed's row is exact (tracked through every line-count-changing pass), but its column can be
+    off by a little on rows where icon-alignment trimming or task_delimeter cleanup shifted
+    characters after the seed was recorded -- so search outward from the recorded column, on that
+    same row, for the nearest connector character.
+    """
+    if not (0 <= row < len(lines)):
+        return None
+    line = lines[row]
+    if 0 <= col < len(line) and line[col] in CONNECTOR_DIRECTIONS:
+        return (row, col)
+    for offset in range(1, 25):
+        for c in (col - offset, col + offset):
+            if 0 <= c < len(line) and line[c] in CONNECTOR_DIRECTIONS:
+                return (row, c)
+    return None
+
+
+def compute_diagram_connector_groups(lines: list, seeds: list) -> dict:
+    """
+    Identify every Diagram-view connector -- the lines, corners and arrows joining a "calls" Task
+    to its "called by" Task -- directly from the final rendered text, growing each one out from a
+    seed cell recorded while it was drawn (see draw_arrows_to_called_task()).
+
+    Earlier approaches tried to track every column a connector owns while it was being drawn, but
+    several later passes (gap/missing-bar cleanup, icon-alignment trimming, project-spacer
+    insertion) rewrite characters on the same lines without updating that bookkeeping, so the
+    recorded columns drift out of sync with what's actually on screen. Growing connectors from a
+    seed on the finished text instead can't drift, since there's nothing left to happen to it
+    afterward -- the seed only needs to land somewhere on the connector, not trace its whole path.
+
+    A plain flood fill by character identity alone doesn't work here either: ordinary tree/outline
+    hierarchy guide lines reuse these same box-drawing characters, and an outer connector's
+    horizontal run can pass directly alongside an unrelated inner connector's (or a guide line's)
+    vertical run. CONNECTOR_DIRECTIONS records which side(s) of each character continue a
+    connector's path, so two cells only join if each is actually reaching toward the other (e.g. a
+    straight run never reaches sideways into a bar it merely passes next to) -- and growth only
+    starts from a known-good seed, so unrelated guide lines never get pulled in at all.
+
+    Two more gaps in a straight run need bridging past the same way:
+
+    - fill_line_with_arrows() only overwrites blank cells, so when one connector's run crosses
+      another's, whichever was drawn first is left sitting, untouched, in the middle of the second
+      one's straight run (e.g. a foreign down_arrow marking where an unrelated connector's own
+      vertical descent ends, stranded mid-dash). That foreign cell doesn't reach back (its own
+      directions don't point the right way), which would otherwise split the crossed run in two
+      right where a user is likely to click.
+    - A vertical descent can also pass behind a multi-line Task description that a text-cleanup
+      pass left with genuinely blank cells in the connector's column instead of bar characters
+      (nothing to reach back at all, since there's nothing there).
+
+    Either way, what should be one continuous run gets interrupted by a short stretch of cells
+    that aren't a continuation themselves -- so a cell that fails the direct check looks a few
+    cells further out along the same direction for where its own line resumes, bridging over
+    whatever's in between (foreign character or blank) without ever visiting/claiming it, leaving
+    any foreign cells free to belong only to their own connector's group.
+
+    Returns a dict of {group_id: [(line_num, col_start, col_end), ...]}, matching the structure the
+    GUI Diagram view (guiwins.py) expects in PrimeItems.diagram_connectors.
+    """
+    # How many cells of interruption (foreign connector characters and/or blanks) a straight run
+    # can bridge over before giving up and treating the run as genuinely ended.
+    max_bridge = 4
+
+    def reachable_neighbors(r: int, c: int) -> list:
+        found = []
+        for dr, dc in CONNECTOR_DIRECTIONS[lines[r][c]]:
+            nr, nc = r + dr, c + dc
+            for _ in range(max_bridge + 1):
+                if not (0 <= nr < len(lines)) or not (0 <= nc < len(lines[nr])):
+                    break
+                nchar = lines[nr][nc]
+                if nchar in CONNECTOR_DIRECTIONS and (-dr, -dc) in CONNECTOR_DIRECTIONS[nchar]:
+                    found.append((nr, nc))
+                    break
+                # Not a continuation -- keep looking past it only if it's something a real,
+                # unrelated line (box border, task text, ...) would never sit on top of.
+                if nchar not in CONNECTOR_DIRECTIONS and nchar != " ":
+                    break
+                nr, nc = nr + dr, nc + dc
+        return found
+
+    visited: set = set()
+    groups: dict = {}
+    group_id = 0
+
+    for row, col in seeds:
+        seed_cell = find_diagram_connector_seed_cell(lines, row, col)
+        if seed_cell is None or seed_cell in visited:
+            continue
+
+        # Flood-fill this connector's connected cells, following only the directions each
+        # character actually continues the path in.
+        cells = []
+        stack = [seed_cell]
+        visited.add(seed_cell)
+        while stack:
+            r, c = stack.pop()
+            cells.append((r, c))
+            for nr, nc in reachable_neighbors(r, c):
+                if (nr, nc) in visited:
+                    continue
+                visited.add((nr, nc))
+                stack.append((nr, nc))
+
+        groups[group_id] = cells
+        group_id += 1
+
+    # Compact each group's cells into per-row (line_num, col_start, col_end) ranges.
+    ranges_by_group: dict = {}
+    for gid, cells in groups.items():
+        by_row: dict = {}
+        for r, c in cells:
+            by_row.setdefault(r, []).append(c)
+        ranges = []
+        for r, cols in by_row.items():
+            cols.sort()
+            start = prev = cols[0]
+            for col in cols[1:]:
+                if col == prev + 1:
+                    prev = col
+                    continue
+                ranges.append((r, start, prev + 1))
+                start = prev = col
+            ranges.append((r, start, prev + 1))
+        ranges_by_group[gid] = ranges
+
+    return ranges_by_group
+
+
 # Add up and down arrows to the connection points.
 def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
     """
@@ -763,6 +897,11 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
         + right_arrow_corner_down
         + output_lines[line_to_modify][called_task_position:]
     )
+    # Extra seed for the GUI's click-to-highlight feature, redundant with the one recorded in
+    # draw_arrows_to_called_task(): this corner is a second guaranteed-good anchor into the same
+    # connector, so the connector still gets a working seed even if one of the two is ever thrown
+    # off (e.g. by an unrelated bug in a later cleanup pass). See compute_diagram_connector_groups().
+    PrimeItems.diagram_connector_seeds.append((line_to_modify, called_task_position))
 
     # Add left arrows to called Task line.  First find next available blank line.
     line_to_modify1 = called_line_num - called_line_index
@@ -793,6 +932,8 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
         + left_arrow_corner_down
         + output_lines[line_to_modify1][caller_task_position:]
     )
+    # Extra seed -- see the matching comment above for right_arrow_corner_down.
+    PrimeItems.diagram_connector_seeds.append((line_to_modify1, caller_task_position))
 
     # Return the top-most modified output line hnumber.
     return line_to_modify, line_to_modify1
@@ -865,6 +1006,12 @@ def draw_arrows_to_called_task(
         # Find the first free line above the called Task
         start_line = line_to_modify1
         line_count = line_to_modify - start_line
+
+    # Record a seed for the GUI's click-to-highlight feature: output_lines[start_line] always gets
+    # upper_corner_arrow (a non-bar connector character) at up_down_location below, in the loop's
+    # x == 0 case, so this cell is guaranteed to survive remove_empty_strings() (which only drops
+    # lines that are nothing but bar/space/backslash). See compute_diagram_connector_groups().
+    PrimeItems.diagram_connector_seeds.append((start_line, up_down_location))
 
     # Now traverse the output list from the calling/called Task to the called/calling Task,
     # inserting a up/down/corner arrow along the way.
@@ -1356,6 +1503,10 @@ def handle_calls(output_lines: list, progress: dict) -> None:
         sorted(call_table.items(), key=lambda item: item[1]["up_down_location"]),
     )
 
+    # Seeds for the GUI Diagram view's click-to-highlight feature -- see
+    # draw_arrows_to_called_task() and compute_diagram_connector_groups().
+    PrimeItems.diagram_connector_seeds = []
+
     # Now traverse the call table and add arrows to the output lines.
     called_task_lookup = {}
     for connector in call_table.values():
@@ -1597,7 +1748,18 @@ def build_network_map(data: dict, progress: dict) -> None:
 
     PrimeItems.netmap_output = handle_calls(PrimeItems.netmap_output, progress)
 
-    # Remove lines that only contain bars ( | )
+    # Remove lines that only contain bars ( | ). This shifts every subsequent line number, so
+    # remap the GUI Diagram view's connector seeds (see draw_arrows_to_called_task()) along with it.
+    old_to_new_row = {}
+    new_row = 0
+    for old_row, removal_line in enumerate(PrimeItems.netmap_output):
+        if all(char in (bar, " ", "\\") for char in removal_line):
+            continue
+        old_to_new_row[old_row] = new_row
+        new_row += 1
+    PrimeItems.diagram_connector_seeds = [
+        (old_to_new_row[row], col) for row, col in PrimeItems.diagram_connector_seeds if row in old_to_new_row
+    ]
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
 
     # Translate the output lines if needed
@@ -1664,6 +1826,14 @@ def network_map(network: dict) -> None:
             if PrimeItems.program_arguments["language"] not in ("Arabic", "English")
             else "Project:"
         )
+        # Collect the exact lines as they're written to DIAGRAM_FILE (spacer lines included, icons
+        # trimmed), so PrimeItems.diagram_connectors can be computed directly from what the GUI
+        # Diagram view will actually display -- see compute_diagram_connector_groups(). Track how
+        # the netmap_output index (num) maps to the final line number too, since the spacer lines
+        # written between projects shift every subsequent line -- needed to keep the connector
+        # seeds (recorded in netmap_output's coordinates) in sync with final_lines.
+        final_lines = []
+        netmap_to_file_line = {}
         with open(str(output_dir), "w", encoding="utf-8") as mapfile:
             for num, line in enumerate(PrimeItems.netmap_output):
                 if (
@@ -1680,12 +1850,26 @@ def network_map(network: dict) -> None:
                         spacer = "\n"
                     mapfile.write(spacer)
                     mapfile.write(spacer)
+                    final_lines.append(spacer.rstrip("\n"))
+                    final_lines.append(spacer.rstrip("\n"))
                 if project_translated in line:
                     first_project = False
 
+                netmap_to_file_line[num] = len(final_lines)
                 line = remove_icon(line)
                 mapfile.write(f"{line}\n")
+                # A handful of netmap_output entries (e.g. the header hint) carry an embedded "\n"
+                # of their own, which becomes two physical lines once written -- split the same way
+                # here so final_lines stays row-for-row aligned with the file.
+                final_lines.extend(line.split("\n"))
             mapfile.close()
+
+        remapped_seeds = [
+            (netmap_to_file_line[row], col)
+            for row, col in PrimeItems.diagram_connector_seeds
+            if row in netmap_to_file_line
+        ]
+        PrimeItems.diagram_connectors = compute_diagram_connector_groups(final_lines, remapped_seeds)
 
         # Cleanup
         PrimeItems.netmap_output = []

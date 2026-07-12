@@ -412,8 +412,6 @@ def get_extra_and_output_project(
 
     # Are we looking for a specific Project?
     if PrimeItems.program_arguments["single_project_name"]:
-        # if project_name != PrimeItems.program_arguments["single_project_name"]:
-        #     return True
         # We found our single Project
         PrimeItems.found_named_items["single_project_found"] = True
         # Clear the output and just put out our Project.

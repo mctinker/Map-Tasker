@@ -1279,6 +1279,11 @@ class MapTaskerEventHandlers:
                     }});
                 }}
                 clearHighlights(container);
+
+                // Also turn off any Diagram-view connector highlighting left by clicking a connector.
+                container.querySelectorAll('.connector-highlight').forEach(el => {{
+                    el.classList.remove('connector-highlight');
+                }});
             """)
 
         ui.notify(f"Cleared search highlights in {view_name}.", type="info")

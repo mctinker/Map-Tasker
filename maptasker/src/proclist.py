@@ -83,6 +83,7 @@ def format_task_or_scene(
         )
 
     # Add a tooltip to the "Task:" label showing the owning Profile/Project, if known.
+    # FIX Modify to add more details to the tooltip.
     label = list_type
     if list_type == "Task:":
         tooltip_lines = []
@@ -91,6 +92,14 @@ def format_task_or_scene(
         if project_name:
             tooltip_lines.append(f"Project: {project_name}")
         label = build_tooltip_span(list_type, tooltip_lines)
+    else:
+        # Get owning project for this Scene, if known, and add to the tooltip.
+        tooltip_lines = []
+        for project in PrimeItems.tasker_root_elements["all_projects"].values():
+            scenes = project["xml"].find("scenes")
+            if scenes is not None and the_item in scenes.text:
+                tooltip_lines.append(f"Project: {project['name']}")
+                break
 
     # Format the output line
     output_line = f"{label}&nbsp;{the_item_altered}"
