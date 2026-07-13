@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [11.0.0b2] 07-Jul-2026
+## [11.0.0b2] 07-Jul-2026 MAJOR CHANGE...read carefully
 
 ### Added
 
@@ -11,7 +11,6 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: GUI support via web browser interface (only), removes reliance on desktop.
-- Changed: Hover over Projects/Profiles/Tasks/Scenes in the Map view have no effect (hover info removed)
 - Changed: Message window has been replaced with 5-second message popups.
 - Changed: Batch mode and all associated runtime options are removed.  The GUI mode is all that is now supported.
 - Changed: 'Display Configuration Outline', 'Run and Exit', and 'Run' buttons have been removed from the GUI since they are no longer relevant.
@@ -23,14 +22,19 @@ All notable changes to this project will be documented in this file!
 
 ### Known Issue
 
-- The GUI window positioning on startup could be wrong if running under an older version of Parallels Desktop. Make certain Parallels' settings for Full Screen 'Scale to fit screen' is set to 'Keep ratio' if this option is available.
+- It is unlikely but possible to have a pervious browser task preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
+you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
+lsof -i :8080
+For each PID listed in the output from the above terminal command, issue the following:
+kill -9 pid_number
+...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
 
 ## Older History Logs
 
 ## [10.2.7] 09-Jun-2026
 
 - Added: Tasker version 6.7.4-beta is supported.
-- Changed: Updated the AI list of avaiable models.
+- Changed: Updated the AI list of available models.
 - Changed: Optimized the 'Diagram' view performance.
 - Changed: Only check for a new version of MapTasker once a day for improved startup performance.
 - Fixed: The Task name for tasks with too many actions is displayed too large in the Map view.
@@ -52,9 +56,9 @@ All notable changes to this project will be documented in this file!
 - Fixed: Task name for 'Task with too many actions' in Map view is in bold by mistake.
 - Fixed: Dynamic module loading doesn't work if 'pip' is only available via 'uv'.
 - Fixed: Changing the language causes the AI model pulldown list to be updated twice rather than just once.
-- Fixed: Inline youtubew/dropbox videos are enabled.
+- Fixed: Inline youtube/dropbox videos are enabled.
 - Fixed: Search hits in the Map and Diagram views don't completely highlight the full matching string.
-- Fixed: Program errore in guiwins.py when clicking on a connection in the Diagram view in a language other than English.
+- Fixed: Program error in guiwins.py when clicking on a connection in the Diagram view in a language other than English.
 - Fixed: Program error in userintr.py when selecting the "Clear" from the Diagram view.
 
 ## [10.2.3-10.2.4] 07-Apr-2026
@@ -72,7 +76,7 @@ To take full advantage of this, it is best to completely uninstall MapTasker and
 delete it completely and re-create it, and then reinstall MapTasker.
 - Fixed: OpenAI's 'o4-mini' model is incorrectly listed as '04-mini'.
 - Fixed: Tasker Project/Profile/Task is not found when selecting the 'Run Analysis' button even though it exists.
-- Fixed: Regardless of the AI model selected, OpenAI is unnessarily being loaded.
+- Fixed: Regardless of the AI model selected, OpenAI is unnecessarily being loaded.
 - Fixed: Unnamed Task directory hotlink entries do not work in the Map view if using a language other than English.
 - Fixed: Hotlinks in TaskerNet descriptions are broken.  The text appears twice and the link doesn't work.
 
@@ -101,11 +105,11 @@ delete it completely and re-create it, and then reinstall MapTasker.
 
 ## [10.0.6] 08-Feb-2026
 
-- Added: Multilanguage support in Map view.
+- Added: Multilingual support in Map view.
 - Changed: The 'Next' and 'Previous' buttons now keep the next or previous item in the middle of the view.
 - Fixed: Task action limit gets reset to 100 in the GUI when changing to another language.
-- Fixed: Clicking on a Task, in the Map view, inadvertantly jumps to the 'Launcher Task' line if there is one rather than to the Task.
-- Fixed: If highlighting Tasker objects (e.g. selecting 'Bold') in trhe Map view, then hotlinks to Tasker objects would result in the error message 'Could not find ...'.
+- Fixed: Clicking on a Task, in the Map view, inadvertently jumps to the 'Launcher Task' line if there is one rather than to the Task.
+- Fixed: If highlighting Tasker objects (e.g. selecting 'Bold') in the Map view, then hotlinks to Tasker objects would result in the error message 'Could not find ...'.
 - Fixed: The Diagram view boxes for 'No Profile' tasks are not the proper length if the language is other than English.
 
 ## [10.0.5] 29-Jan-2026
@@ -127,7 +131,7 @@ delete it completely and re-create it, and then reinstall MapTasker.
 - Fixed: Program error in Diagram view.
 - Fixed: Program error when setting the view limit with a language other than English.
 - Fixed: Changing language sets all of the selected Projects/Profiles/Tasks to 'None' in the pulldown menus even though a single item may have been selected.
-- Fixed: The GUI single item selection section of labels is overlayed when changing language.
+- Fixed: The GUI single item selection section of labels is overlaid when changing language.
 - Fixed: The tab names in the GUI are note getting translated.
 - Fixed: Multiple rows of Scenes in the Diagram view are mis-aligned and in the wrong color.
 
@@ -143,7 +147,7 @@ delete it completely and re-create it, and then reinstall MapTasker.
 
 ## [10.0.0-10.0.1] 15-Dec-2025
 
-- Added: GUI Multilinqual support for: French, German, Hindi, Japanese, Korean, Simplified and Traditional Chinese, Spanish, Portuguese, and Russian.
+- Added: GUI Multilingual support for: French, German, Hindi, Japanese, Korean, Simplified and Traditional Chinese, Spanish, Portuguese, and Russian.
 - Changed: Code optimizations
 - Fixed: Program error when clicking on the GUI 'Report an Issue' button.
 

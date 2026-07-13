@@ -36,6 +36,7 @@ from maptasker.src.sysconst import (
     CHANGELOG_FILE,
     CHANGELOG_URL,
     ERROR_FILE,
+    LLAMA_MODELS,
     MODEL_GROUPS,
     NOW_TIME,
     UNNAMED_ITEM,
@@ -50,6 +51,23 @@ if TYPE_CHECKING:
 # ==========================================
 # 2. DYNAMIC COMPONENT UPDATERS
 # ==========================================
+def update_analysis_button_color(gui: "MyGui") -> None:
+    """Colors the 'Run Analysis' button green when either:
+      - a prompt, AI model, and API key are all set, or
+      - a prompt and a LLAMA_MODELS model are set with no API key (local Llama models run
+        without one).
+    Red otherwise. "None" is the dropdown's own placeholder for "nothing selected", so it counts
+    as not having a model even though it's a non-empty string.
+    """
+    has_key = bool(getattr(gui, "ai_apikey", None))
+    has_model = bool(getattr(gui, "ai_model", None)) and gui.ai_model != "None"
+    has_prompt = bool(getattr(gui, "ai_prompt", None))
+    is_llama_model = has_model and gui.ai_model in LLAMA_MODELS
+
+    ready = (has_key and has_model and has_prompt) or (has_prompt and is_llama_model and not has_key)
+    gui.analysis_button.props(f"color={'green' if ready else 'red'}")
+
+
 def display_model_pulldown(gui_arg: any, *args: dict, **kwargs) -> None:  # noqa: ANN003, ARG001
     """Displays the AI model selection dropdown list.
 
@@ -119,8 +137,7 @@ def display_model_pulldown(gui_arg: any, *args: dict, **kwargs) -> None:  # noqa
         ).classes("w-64")
 
         # Updates NiceGUI visual rendering colors reactively
-        has_all = bool(gui_instance.ai_apikey and gui_instance.ai_model and gui_instance.ai_prompt)
-        gui_instance.analysis_button.props(f"color={'green' if has_all else 'red'}")
+        update_analysis_button_color(gui_instance)
 
 
 def prefix_and_sort(strings: list[str], name: str) -> list[str]:
@@ -406,7 +423,9 @@ def display_selected_object_labels(self: "MyGui") -> None:
         # Display Model & Key tracking summaries
         # Use the raw model string or cleaned display model cleanly
         short_model_name = self.ai_model if self.ai_model else "None"
-        ui.label(f"{getattr(self, 'ai_name', '')} API Key: {key_to_display}, Model: {short_model_name}").classes(
+        self.ai_apikey_and_model_lbl = ui.label(
+            f"{getattr(self, 'ai_name', '')} API Key: {key_to_display}, Model: {short_model_name}",
+        ).classes(
             "text-sm mt-4",
         )
 
@@ -609,12 +628,24 @@ def clear_android_buttons(self: "MyGui") -> None:
     # 4. Recreate the backup button
     # (Note: Ensure display_backup_button is also updated for NiceGUI,
     # particularly how it handles the Hex color codes)
-    self.get_backup_button = self.display_backup_button(
-        "Get XML from Android Device",
-        "#246FB6",
-        "#6563ff",
-        self.event_handlers.get_xml_from_android_event,
-    )
+    # Re-enter the row it originally lived in (see _create_file_and_message_buttons_section in
+    # guiwins.py) -- display_backup_button() builds the button with no container of its own, so
+    # without this it would attach to whatever the default slot is during this event callback
+    # instead of staying under "File Operations".
+    with self.android_button_row:
+        self.get_backup_button = self.display_backup_button(
+            "Get XML from Android Device",
+            "#246FB6",
+            "#6563ff",
+            self.event_handlers.get_xml_from_android_event,
+        )
+
+    # The "?" button (self.android_query_button, see _create_file_and_message_buttons_section in
+    # guiwins.py) is never deleted above, so re-creating get_backup_button just appended it after
+    # the "?" button -- move() with no args re-appends an element to the end of its current
+    # parent, putting the "?" button back on the right where it started.
+    if getattr(self, "android_query_button", None):
+        self.android_query_button.move()
 
 
 # Build a list of Profiles that are under the given project, and all of their (Tasks) children.
@@ -1014,10 +1045,11 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
         Returns:
         - None
     """
+    from maptasker.src.userintr import MyGui  # noqa: PLC0415
+
     logger.info("Displaying messages from last run.")
-    gui = self.gui
-    if not isinstance(gui, bool):
-        gui = self
+    gui = self if isinstance(self, MyGui) else self.gui
+
     analysis_response = ""
     error_msg = ""
 

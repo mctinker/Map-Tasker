@@ -77,7 +77,7 @@ def event_handler(mock_gui_instance):
 # ==========================================
 def test_html_optimize_pattern_substitution():
     """Validates module-level O(N) single-pass regex compilation constraints."""
-    from maptasker.src.guiwins import HTML_OPTIMIZE_PATTERN, HTML_REPLACEMENT_MAP
+    from maptasker.src.guiwins import HTML_OPTIMIZE_PATTERN, HTML_REPLACEMENT_MAP  # noqa: PLC0415
 
     raw_html = '<h2>MapTasker</h2>\n\n<h2><span class="normtab"></span>Directory</h2>'
     optimized = HTML_OPTIMIZE_PATTERN.sub(
@@ -99,7 +99,7 @@ def test_font_extraction_regex():
     # (Falls back to 'Courier' if the system configuration is unexpected)
     try:
         system_mono_font = font.Font(family="Courier").actual("family")
-    except Exception:
+    except Exception:  # noqa: BLE001
         system_mono_font = "Courier"
     finally:
         root.destroy()  # Always clean up the Tkinter instance to free resources

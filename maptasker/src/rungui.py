@@ -22,6 +22,7 @@ from nicegui import core, ui
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
+from maptasker.src.guiwins import NiceGuiTextView, inject_shared_head_styles
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
@@ -184,6 +185,41 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         app_lock["is_built"] = True
         if restart:
             ui.notify("Application refreshed. Please re-enter your inputs.", color="orange", position="bottom")
+
+    # 2b. Pop-out page for the Map and Diagram views, opened in their own browser window/tab
+    # (see MapTaskerEventHandlers.view_event in userintr.py) so they no longer replace the
+    # main window's content. Reuses the single shared MyGui instance (PrimeItems.mygui) rather
+    # than building a new one, since this is a single-user, single-server-process desktop app.
+    @ui.page("/popout/{view_type}")
+    def popout_view(view_type: str) -> None:
+        gui = PrimeItems.mygui
+        if gui is None or view_type not in ("map", "diagram"):
+            ui.label(
+                "No data available. Please generate this view from the main MapTasker window first.",
+            ).classes("text-red-500 text-lg m-8")
+            return
+
+        window_title = f"{view_type.capitalize()} View"
+        ui.page_title(f"MapTasker - {window_title}")
+
+        # Each @ui.page is its own independent document, so the main window's CSS (injected
+        # once via initialize_screen() -> inject_shared_head_styles()) doesn't carry over here.
+        # Without this, the Diagram view's connector click handler still fires but has no
+        # .connector-highlight rule to apply, so nothing visibly highlights.
+        inject_shared_head_styles()
+
+        # NiceGUI wraps every page's content in a padded ".nicegui-content" div; strip that
+        # padding here so the view below can actually reach the browser's full width/height
+        # instead of being inset by it.
+        ui.query(".nicegui-content").classes(replace="w-full h-screen p-0 m-0 gap-0")
+
+        popout_container = ui.column().classes("w-full h-screen")
+        gui.textview = NiceGuiTextView(
+            gui,
+            title=window_title,
+            the_data={} if view_type == "map" else [],
+            container=popout_container,
+        )
 
     logger.info("Starting NiceGUI server mainloop")
 

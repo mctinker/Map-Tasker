@@ -17,7 +17,6 @@ from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.guimap import parse_html
 from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.guiutils import (
     add_logo,
@@ -37,6 +36,7 @@ from maptasker.src.guiutils import (
     reload_gui,
     set_ai_key,
     set_tasker_object_names,
+    update_analysis_button_color,
     update_tasker_object_menus,
     valid_item,
     validate_or_filelist_xml,
@@ -859,34 +859,34 @@ class MyGui:
                         if name_entered not in self.specific_project_optionmenu.options:
                             self.specific_project_optionmenu.options.append(name_entered)
                         self.specific_project_optionmenu.value = name_entered
-                        self.specific_profile_optionmenu.value = "None"
-                        self.specific_task_optionmenu.value = "None"
+                        self.specific_profile_optionmenu.value = "Profile: None"
+                        self.specific_task_optionmenu.value = "Task: None"
                         translation_proj = translate_string("Project to Analyze:")
                         self.ai_project_label.text = f"{translation_proj} {name_entered}"
-                        self.ai_profile_label.text = "None"
-                        self.ai_task_label.text = "None"
+                        self.ai_profile_label.text = "Profile: None"
+                        self.ai_task_label.text = "Task: None"
                     case "Profile":
                         self.single_profile_name = name_entered
                         if name_entered not in self.specific_profile_optionmenu.options:
                             self.specific_profile_optionmenu.options.append(name_entered)
                         self.specific_profile_optionmenu.value = name_entered
-                        self.specific_project_optionmenu.value = "None"
-                        self.specific_task_optionmenu.value = "None"
+                        self.specific_project_optionmenu.value = "Project: None"
+                        self.specific_task_optionmenu.value = "Task: None"
                         translation_prof = translate_string("Profile to Analyze:")
                         self.ai_profile_label.text = f"{translation_prof} {name_entered}"
-                        self.ai_task_label.text = "None"
-                        self.ai_project_label.text = "None"
+                        self.ai_task_label.text = "Task: None"
+                        self.ai_project_label.text = "Project: None"
                     case "Task":
                         self.single_task_name = name_entered
                         if name_entered not in self.specific_task_optionmenu.options:
                             self.specific_task_optionmenu.options.append(name_entered)
                         self.specific_task_optionmenu.value = name_entered
-                        self.specific_project_optionmenu.value = "None"
-                        self.specific_profile_optionmenu.value = "None"
+                        self.specific_project_optionmenu.value = "Project: None"
+                        self.specific_profile_optionmenu.value = "Profile: None"
                         translation_task = translate_string("Task to Analyze:")
                         self.ai_task_label.text = f"{translation_task} {name_entered}"
-                        self.ai_project_label.text = "None"
-                        self.ai_profile_label.text = "None"
+                        self.ai_project_label.text = "Project: None"
+                        self.ai_profile_label.text = "Profile: None"
                     case _:
                         pass
             finally:
@@ -997,6 +997,17 @@ class MyGui:
         )
 
 
+def _open_popout_window(path: str) -> None:
+    """Opens a Map/Diagram popout window and remembers it in the browser so 'Close Tabs On Exit'
+    (see get_rid_of_windows_and_exit in guiwins.py) can close it later -- window.open()'s return
+    value is otherwise discarded and there'd be no handle left to close it with.
+    """
+    ui.run_javascript(
+        "window.mapTaskerPopouts = window.mapTaskerPopouts || []; "
+        f"window.mapTaskerPopouts.push(window.open('{path}', '_blank'));",
+    )
+
+
 class MapTaskerEventHandlers:
     """
     Handles all UI interactions (button clicks, dropdown changes, toggles).
@@ -1082,7 +1093,6 @@ class MapTaskerEventHandlers:
                 return
 
             # Now process the data for display in the gui
-            map_data = parse_html()
             output_length = len(PrimeItems.output_lines.output_lines)
 
             # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
@@ -1102,12 +1112,8 @@ class MapTaskerEventHandlers:
             #     )
             #     return
 
-            # Define the view and display the map.
-            gui.textview = NiceGuiTextView(
-                gui,
-                title=window_title,
-                the_data=map_data,
-            )
+            # Display the map in its own browser window/tab rather than the main window.
+            _open_popout_window("/popout/map")
 
             # Check for hard stop limit and notify user if output was truncated
             if output_length > gui.view_limit:
@@ -1115,7 +1121,7 @@ class MapTaskerEventHandlers:
                     f"Map view truncated {output_length} lines to {gui.view_limit} lines due to view limit.",
                     "Orange",
                 )
-            gui.display_message_box("Map View displayed.", "Green")
+            gui.display_message_box("Map View opened in a new browser window.", "Green")
 
         # Setup diagram view.
         elif view_type in ("diagram", "misc"):
@@ -1130,11 +1136,9 @@ class MapTaskerEventHandlers:
                     # Offload the configuration outliner to an IO-bound thread safely
                     await run.io_bound(outline_the_configuration)
 
-                    gui.textview = NiceGuiTextView(
-                        gui,
-                        title=window_title,
-                        the_data=[],
-                    )
+                    # Display the diagram in its own browser window/tab rather than the main window.
+                    _open_popout_window("/popout/diagram")
+                    gui.display_message_box("Diagram View opened in a new browser window.", "Green")
                 else:
                     gui.display_message_box("No XML data loaded! Please select a valid XML file first.", "Orange")
 
@@ -1219,9 +1223,6 @@ class MapTaskerEventHandlers:
         _ = get_api_key()
         _ = set_ai_key(self.gui, self.gui.ai_model)
 
-        # Update has_model tracking flag context-conditional status
-        self.gui.has_model = bool(self.gui.ai_model) and self.gui.ai_model != "None"
-
         # 2. Force the Dropdown value to stay matched with its prefixed display options list
         # The lookup restoration and explicit .update() refresh cycle is only required for components like
         # dropdowns/comboboxes (ui.select) where the programmatically assigned value gets mutated away from the
@@ -1242,8 +1243,12 @@ class MapTaskerEventHandlers:
                     self.gui.is_updating = False
 
         # Updates NiceGUI visual rendering colors reactively
-        has_all = bool(self.gui.ai_apikey and self.gui.ai_model and self.gui.ai_prompt)
-        self.gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
+        update_analysis_button_color(self.gui)
+        ai_apikey = "Set" if getattr(self.gui, "ai_apikey") else "Not Set"
+        self.gui.ai_apikey_and_model_lbl.text = (
+            f"{getattr(self.gui, 'ai_name', '')} API Key: {ai_apikey}, Model: {self.gui.ai_model}"
+        )
+        self.gui.ai_apikey_and_model_lbl.update()
 
     # ==========================================
     # 4. TEXT VIEW CONTROLS
@@ -1708,9 +1713,6 @@ class MapTaskerEventHandlers:
         elif name_entered == the_view.ai_prompt:
             the_view.display_message_box("Prompt did not change.", "Orange")
 
-            # UPDATE HAS_PROMPT TRACKING FLAG ---
-            the_view.has_prompt = bool(the_view.ai_prompt)
-
         # Valid response
         else:
             the_view.ai_prompt = name_entered
@@ -1720,14 +1722,10 @@ class MapTaskerEventHandlers:
                 "Green",
             )
 
-            # UPDATE HAS_PROMPT TRACKING FLAG ---
-            the_view.has_prompt = bool(the_view.ai_prompt)
-
             display_selected_object_labels(the_view)
 
         # Updates NiceGUI visual rendering colors reactively
-        has_all = bool(the_view.ai_apikey and the_view.ai_model and the_view.ai_prompt)
-        the_view.analysis_button.props(f"color={'green' if has_all else 'red'}")
+        update_analysis_button_color(the_view)
 
     def extended_models_event(self) -> None:
         """
@@ -2219,7 +2217,7 @@ class MapTaskerEventHandlers:
             "ppp": ("Profiles Per Line Help", PPP_HELP_TEXT),
             "apikey": ("API Key Help", APIKEY_HELP_TEXT),
         }
-
+        query_name = query_name.value if isinstance(query_name, Event) else str(query_name).lower()
         title, help_text = help_texts.get(
             query_name,
             ("", "No help available for this query."),
@@ -2541,11 +2539,9 @@ class MapTaskerEventHandlers:
                 # Update state tracking if the cleared key belonged to the active model
                 PrimeItems.ai[clear] = ""
                 set_ai_key(gui, gui.ai_model)
-                gui.has_key = bool(getattr(gui, "ai_apikey", None))
 
                 # Force dynamic button styling update
-                has_all = bool(gui.ai_apikey and gui.ai_model and gui.ai_prompt)
-                gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
+                update_analysis_button_color(gui)
             return
 
         # 3. GET THE RETURNED API KEYS
@@ -2595,7 +2591,6 @@ class MapTaskerEventHandlers:
 
             # Refresh keys on the GUI instance and update context-conditional state flags
             set_ai_key(gui, gui.ai_model)
-            gui.has_key = bool(getattr(gui, "ai_apikey", None))
 
             # Redisplay the UI dependencies
             display_analyze_button(gui, 13, first_time=False)
@@ -2607,12 +2602,7 @@ class MapTaskerEventHandlers:
         dialog_container.close()
 
         # Updates NiceGUI visual rendering colors reactively
-        has_all = bool(gui.ai_apikey and gui.ai_model and gui.ai_prompt)
-        gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
-
-        # Updates NiceGUI visual rendering colors reactively
-        has_all = bool(gui.ai_apikey and gui.ai_model and gui.ai_prompt)
-        gui.analysis_button.props(f"color={'green' if has_all else 'red'}")
+        update_analysis_button_color(gui)
 
     def everything_event(self) -> None:
         """

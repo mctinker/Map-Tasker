@@ -83,7 +83,6 @@ def format_task_or_scene(
         )
 
     # Add a tooltip to the "Task:" label showing the owning Profile/Project, if known.
-    # FIX Modify to add more details to the tooltip.
     label = list_type
     if list_type == "Task:":
         tooltip_lines = []
@@ -117,9 +116,7 @@ def format_task_or_scene(
         # This is a Task embedded in a Scene (e.g. a Tap/Long Tap handler). scenes.py doesn't
         # pass a project_name/profile_name in for these, so fall back to the Project currently
         # being processed to show a tooltip for the "--Task:" label.
-        owning_project_name = project_name or (
-            PrimeItems.current_project["name"] if PrimeItems.current_project else ""
-        )
+        owning_project_name = project_name or (PrimeItems.current_project["name"] if PrimeItems.current_project else "")
         tooltip_lines = [f"Project: {owning_project_name}"] if owning_project_name else []
         task_label = build_tooltip_span("&#45;&#45;Task:", tooltip_lines)
         label = list_type.replace("&#45;&#45;Task:", task_label, 1)

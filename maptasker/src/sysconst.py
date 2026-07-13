@@ -17,7 +17,7 @@ import darkdetect
 
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
-VERSION = "11.0.0b4"
+VERSION = "11.0.0"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -115,6 +115,7 @@ ARGUMENT_NAMES = {
     "ai_apikey_window_position": "API Key Options Window Position",
     "appearance_mode": "Appearance Mode",
     "bold": "Bold Names",
+    "close_tabs_on_exit": "Close Tabs on Exit",
     "color_window_position": "Last Color Window Position",
     "conditions": "Display Project/Profile/Task Conditions",
     "debug": "Debug Mode",

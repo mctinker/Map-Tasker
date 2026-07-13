@@ -116,6 +116,11 @@ def display_debug_info() -> None:
     color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
     # Go through each color
     for key, value in PrimeItems.colors_to_use.items():
+        if key not in TYPES_OF_COLOR_NAMES:
+            logger.debug(
+                f"MapTasker Error ... Color {key} not found in TYPES_OF_COLOR_NAMES!  Probably a settings error.  Skipping this color.",
+            )
+            continue
         # Highlight background color.  Otherwise it won't be visible
         if key == "background_color":
             value = f"<mark>{value} (highlighted for visibility)</mark>"  # noqa: PLW2901

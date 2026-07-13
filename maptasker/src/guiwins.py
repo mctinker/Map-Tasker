@@ -84,7 +84,6 @@ def _escape_html_text(text: str) -> str:
 
 
 def _connectors_by_line() -> dict[int, list[tuple[int, int, int]]]:
-    # FIX this
     """Invert PrimeItems.diagram_connectors (id -> ranges) into line_num -> (start, end, id)."""
     by_line: dict[int, list[tuple[int, int, int]]] = {}
     for connector_id, ranges in getattr(PrimeItems, "diagram_connectors", {}).items():
@@ -106,10 +105,10 @@ def _wrap_diagram_line(
     pieces = []
     cursor = 0
     for col_start, col_end, connector_id in sorted(ranges):
-        col_start = max(col_start, cursor)
+        col_start = max(col_start, cursor)  # noqa: PLW2901
         if col_start >= col_end or col_start >= len(line):
             continue
-        col_end = min(col_end, len(line))
+        col_end = min(col_end, len(line))  # noqa: PLW2901
         if col_start > cursor:
             pieces.append(_escape_html_text(line[cursor:col_start]))
         pieces.append(
@@ -204,11 +203,23 @@ class NiceGuiTreeView:
 class NiceGuiTextView:
     """Replaces CTkTextview. Handles rendering MapTasker data using HTML."""
 
-    def __init__(self, master_gui: MyGui, title: str, the_data: list | dict) -> None:
-        """Initialize the NiceGuiTextView."""
+    def __init__(
+        self,
+        master_gui: MyGui,
+        title: str,
+        the_data: list | dict,
+        container: ui.column | None = None,
+    ) -> None:
+        """Initialize the NiceGuiTextView.
+
+        If `container` is given, the view is built inside it directly instead of the
+        master GUI's main content_container -- used to render into a separate popped-out
+        browser window/tab without disturbing the main window's layout.
+        """
         self.master_gui = master_gui
         self.title = title
         self.is_map = isinstance(the_data, dict)
+        self.external_container = container
         self.build_ui()
         # Schedule the coroutine into the active event loop safely
         self._task = asyncio.create_task(self.process_data(the_data))
@@ -216,7 +227,16 @@ class NiceGuiTextView:
     def build_ui(self) -> None:
         """Builds the UI layout for the various text views, including toolbar and scrollable display area."""
 
-        if hasattr(self.master_gui, "content_container") and self.master_gui.content_container:
+        # A popped-out view (its own browser window/tab, see rungui.py's "/popout/{view_type}"
+        # page) has the whole viewport to itself, so its scroll area flex-fills the remaining
+        # height after the toolbar instead of the fixed 70vh used when embedded alongside the
+        # rest of the main window's layout.
+        is_popout = self.external_container is not None
+
+        if is_popout:
+            container_context = self.external_container
+            container_context.classes("w-full h-screen flex flex-col p-0 m-0 gap-0")
+        elif hasattr(self.master_gui, "content_container") and self.master_gui.content_container:
             self.master_gui.content_container.clear()
             container_context = self.master_gui.content_container
         else:
@@ -225,11 +245,11 @@ class NiceGuiTextView:
         # Set the main container to a vertical layout with full width and height
         with container_context:
             # Toolbar
-            with ui.row().classes("w-full items-center gap-2 p-2 mb-2") as self.gui_toolbar:
+            with ui.row().classes("w-full items-center gap-2 p-2 mb-2 shrink-0") as self.gui_toolbar:
                 ui.label(f"{self.title}").classes("text-orange-500 font-bold mr-4")
                 self.search_input = ui.input(placeholder="Search...").classes("w-48")
                 ui.button("Search", on_click=self.search_event).classes("bg-blue-600")
-                ui.button("Clear", on_click=lambda: self.master_gui.event_handlers.clear_event()).classes(
+                ui.button("Clear", on_click=self.master_gui.event_handlers.clear_event).classes(
                     "bg-blue-600",
                 )
                 ui.separator().props("vertical")
@@ -238,8 +258,20 @@ class NiceGuiTextView:
                 ui.button("Toggle Wrap", on_click=self.toggle_wrap).classes("bg-blue-600")
 
             # "Diagram" view intentionally starts unwrapped so ASCII-art connectors stay aligned.
+            is_diagram = self.title.startswith("Diagram")
             self.wrap_enabled = "Diagram" not in self.title
             self.wrap_classes = "whitespace-pre-wrap break-words" if self.wrap_enabled else "whitespace-pre"
+
+            # min-h-0 lets this flex item shrink below its content's intrinsic size -- without it
+            # a flex column's default min-height:auto would keep growing the scroll area (and the
+            # page) to fit all the streamed-in content instead of scrolling internally.
+            scroll_height_classes = "flex-1 min-h-0" if is_popout else "h-[70vh]"
+
+            # Tailwind's text-sm utility (below) pairs a 14px font with a 20px line-height --
+            # comfortable for prose, but visibly loose for a dense box-drawn diagram. Tighten it
+            # for the Diagram view only; keep process_data()'s approx_px_per_line chunk-height
+            # estimate in sync with this so scrolling doesn't jump around as chunks pop in.
+            line_height_style = " line-height: 1.2;" if is_diagram else ""
 
             self.scroll_area = (
                 ui
@@ -248,9 +280,13 @@ class NiceGuiTextView:
                 # long unbreakable content; without it the default flex min-width:auto lets the box
                 # (and the whole page) grow past the viewport once the full content has streamed in.
                 .classes(
-                    f"w-full max-w-full min-w-0 block h-[70vh] border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
+                    f"w-full max-w-full min-w-0 block {scroll_height_classes} "
+                    f"border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
                 )
-                .style(f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;")
+                .style(
+                    f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;"
+                    f"{line_height_style}",
+                )
             )
 
     async def process_data(self, the_data: dict | list) -> None:
@@ -307,7 +343,9 @@ class NiceGuiTextView:
             # space for an unrendered chunk so scrolling doesn't jump around as chunks pop in and
             # out; it doesn't need to be exact, just close.
             chunk_size = 150 if is_diagram else 2000
-            approx_px_per_line = 20
+            # text-sm is 14px; at the Diagram view's tightened line-height (1.2, set in build_ui)
+            # that's ~17px per line instead of Tailwind's default ~20px.
+            approx_px_per_line = 17 if is_diagram else 20
 
             with self.scroll_area:
                 for i in range(0, len(html_lines), chunk_size):
@@ -322,9 +360,7 @@ class NiceGuiTextView:
                     chunk_style = html_style
                     if is_diagram:
                         chunk_height = len(chunk_lines) * approx_px_per_line
-                        chunk_style += (
-                            f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
-                        )
+                        chunk_style += f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
                     ui.html(chunk_content).classes("w-full block max-w-full").style(chunk_style)
                     await asyncio.sleep(0.01)  # Yields loop to keep WebSocket alive
 
@@ -509,33 +545,80 @@ class NiceGuiTextView:
             //    common search term this spirals into extremely expensive (sometimes
             //    effectively endless) work and hangs/crashes the browser tab before
             //    a response is ever sent back to Python. So: collect first, mutate later.
-            const matches = [];  // {{ node, index }}
+            //
+            //    The Map/Diagram/Misc views stream many lines into one element per CHUNK
+            //    (joined by literal "\\n", relying on white-space:pre to render them as
+            //    separate visual lines -- see process_data() in guiwins.py), not one
+            //    element per line. That means a match's immediate parentNode is a whole
+            //    chunk (or, in the Diagram view, sometimes just a connector <span>
+            //    covering a few characters), not a single line -- so parent.textContent
+            //    can't be used to recover "the line the match is on". Instead, build a
+            //    linear transcript of the whole container's text up front, recording
+            //    each text node's starting offset within it, so each match's line number
+            //    and line text can be derived from where its offset falls between
+            //    newlines in that transcript.
+            const textNodes = [];  // {{ node, start }}
+            let fullText = '';
 
-            function findTextNodes(node) {{
+            function collectTextNodes(node) {{
                 if (node.shadowRoot) {{
-                    findTextNodes(node.shadowRoot);
+                    collectTextNodes(node.shadowRoot);
                 }}
 
                 if (node.nodeType === 3) {{
-                    const index = node.nodeValue.toLowerCase().indexOf(searchTerm);
-                    if (index !== -1 &&
-                        node.parentNode &&
+                    if (node.parentNode &&
                         node.parentNode.tagName !== 'SCRIPT' &&
                         node.parentNode.tagName !== 'STYLE') {{
-                        matches.push({{ node, index }});
+                        textNodes.push({{ node, start: fullText.length }});
+                        fullText += node.nodeValue;
                     }}
+                }} else if (node.nodeType === 1 && node.tagName === 'BR') {{
+                    // The Diagram view is plain text with literal "\\n" line breaks, but the
+                    // Map/Misc/Tree views are real HTML that marks line breaks with <br>
+                    // elements instead -- treat each one as a line break in the transcript
+                    // too, so line numbers/text line up correctly there as well.
+                    fullText += '\\n';
                 }}
 
                 // Snapshot into a static array so later DOM mutations (done in the
                 // second pass below) can never feed back into this traversal.
                 if (node.childNodes && node.childNodes.length) {{
                     for (const child of Array.from(node.childNodes)) {{
-                        findTextNodes(child);
+                        collectTextNodes(child);
                     }}
                 }}
             }}
 
-            findTextNodes(container);
+            collectTextNodes(container);
+
+            // Map a global offset into fullText -> 0-based line number, via the offset of
+            // every line start (binary search since a large diagram can have many lines).
+            const lineStarts = [0];
+            for (let i = 0; i < fullText.length; i++) {{
+                if (fullText[i] === '\\n') lineStarts.push(i + 1);
+            }}
+            function lineNumberForOffset(offset) {{
+                let lo = 0, hi = lineStarts.length - 1;
+                while (lo < hi) {{
+                    const mid = (lo + hi + 1) >> 1;
+                    if (lineStarts[mid] <= offset) lo = mid; else hi = mid - 1;
+                }}
+                return lo;
+            }}
+            function lineTextForOffset(offset) {{
+                const ln = lineNumberForOffset(offset);
+                const start = lineStarts[ln];
+                const end = ln + 1 < lineStarts.length ? lineStarts[ln + 1] - 1 : fullText.length;
+                return fullText.substring(start, end);
+            }}
+
+            const matches = [];  // {{ node, index, globalOffset }}
+            for (const {{ node, start }} of textNodes) {{
+                const index = node.nodeValue.toLowerCase().indexOf(searchTerm);
+                if (index !== -1) {{
+                    matches.push({{ node, index, globalOffset: start + index }});
+                }}
+            }}
 
             // Cap the number of matches we actually highlight/report. A broad
             // search term (e.g. "Task") against a large rendered document could
@@ -548,16 +631,10 @@ class NiceGuiTextView:
             // 3. Second pass: now that traversal is fully finished, apply the
             //    highlight to each collected match. Each match's Text node is
             //    still valid because no mutation happened during collection.
-            for (const {{ node, index }} of matchesToShow) {{
-                const parent = node.parentNode;
-                if (!parent) continue;
-
-                if (!parent.id) {{
-                    parent.id = "search_target_" + (++uniqueIdCounter);
-                }}
-
+            for (const {{ node, index, globalOffset }} of matchesToShow) {{
                 const span = document.createElement('span');
                 span.className = 'search-highlight';
+                span.id = "search_target_" + (++uniqueIdCounter);
                 span.style.backgroundColor = '#ffd941';
                 span.style.color = '#000000';
                 span.style.fontWeight = 'bold';
@@ -568,11 +645,10 @@ class NiceGuiTextView:
                 range.setEnd(node, index + {len(query)});
                 range.surroundContents(span);
 
-                const lineSnippet = parent.textContent.trim().substring(0, 100);
-
                 results.push({{
-                    elementId: parent.id,
-                    text: lineSnippet
+                    elementId: span.id,
+                    text: lineTextForOffset(globalOffset).trim().substring(0, 100),
+                    lineNumber: lineNumberForOffset(globalOffset) + 1,
                 }});
             }}
 
@@ -616,7 +692,7 @@ class NiceGuiTextView:
                     # Create a clear scroll area container for the results rows list matching the active theme font
                     with ui.scroll_area().classes("w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded"):  # noqa: SIM117
                         with ui.column().classes("w-full gap-1"):
-                            for idx, item in enumerate(found_items, start=1):
+                            for item in found_items:
                                 # Localized function referencing the cross-linked runtime element reference
                                 def make_jump_callback(target_id: str = item["elementId"]) -> None:
                                     return lambda: (
@@ -631,7 +707,10 @@ class NiceGuiTextView:
                                     "w-full items-center py-1 border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-950 px-2 rounded transition-colors",
                                 ):
                                     # Active click hotlink index line label
-                                    ui.link(f"Line #{idx}", "#").on("click", make_jump_callback()).classes(
+                                    ui.link(f"Line #{item['lineNumber']}", "#").on(
+                                        "click",
+                                        make_jump_callback(),
+                                    ).classes(
                                         "text-blue-600 dark:text-blue-400 font-bold font-mono text-sm mr-4 shrink-0 decoration-dotted hover:underline",
                                     )
                                     # Text context content preview box
@@ -756,7 +835,7 @@ class NiceGuiTextView:
                     line_html = "<div>"
                     for t_idx, text_segment in enumerate(text_list):
                         if '"""' in str(text_segment):
-                            text_segment = str(text_segment).replace('"""', "")
+                            text_segment = str(text_segment).replace('"""', "")  # noqa: PLW2901
                         safe_text = escape_text_except_html(str(text_segment))
                         color = color_list[t_idx] if t_idx < len(color_list) else "inherit"
                         line_html += f"<span style='color: {color};'>{safe_text}</span>"
@@ -770,11 +849,11 @@ class NiceGuiTextView:
                     html_builder.append("<div>&nbsp;</div>")
                     continue
                 if "<br><br>" in line:
-                    line = line.replace("<br><br>", "")
+                    line = line.replace("<br><br>", "")  # noqa: PLW2901
                 if '"""' in line:
                     if line in {"<div>  </tr>\n</div>", "<div>\n</div>"}:
                         continue
-                    line = line.replace('"""', "")
+                    line = line.replace('"""', "")  # noqa: PLW2901
 
                 if "<style>" in line:
                     in_style_block = True
@@ -907,6 +986,7 @@ def _initialize_feature_flags(self: MyGui) -> None:
     self.save = False
     self.checked_ffmpeg = False
     self.have_ffmpeg = False
+    self.close_tabs_on_exit = False
 
 
 def _initialize_window_positions(self: MyGui) -> None:
@@ -950,11 +1030,16 @@ def _initialize_runtime_options(self: MyGui) -> None:
 # =========================================================================
 # Initialize the GUI screen layout using NiceGUI with split sidebars and main content area.
 # =========================================================================
-def initialize_screen(self: MyGui) -> None:
-    """Initializes the main GUI screen layout using NiceGUI with split sidebars."""
-    logger.info("Building UI Layout...")
+def inject_shared_head_styles() -> None:
+    """Injects the CSS shared by every page of the app (scrollbar theming, light-mode overrides,
+    Map/Diagram/Tree table layout, and the Diagram view's click-to-highlight connector styling).
 
-    # Inject an ultra-high-contrast scrollbar theme block targeting drawers and view scroll areas
+    ui.add_head_html() only affects the page it's called from -- each NiceGUI @ui.page is its own
+    independent document. Call this from every page function (the main window's initialize_screen()
+    and the "/popout/{view_type}" route in rungui.py), or a popped-out window renders Diagram
+    connectors that respond to clicks (the JS wiring is unaffected) but never visibly highlight,
+    since the .connector-highlight rule defined here would simply be missing from that page.
+    """
     ui.add_head_html("""
         <style>
             /* Force scrollbar tracks to be visible on our target components */
@@ -1138,6 +1223,13 @@ def initialize_screen(self: MyGui) -> None:
         </style>
     """)
 
+
+def initialize_screen(self: MyGui) -> None:
+    """Initializes the main GUI screen layout using NiceGUI with split sidebars."""
+    logger.info("Building UI Layout...")
+
+    inject_shared_head_styles()
+
     # =========================================================================
     # 1. HEADER
     # =========================================================================
@@ -1319,6 +1411,16 @@ def initialize_screen(self: MyGui) -> None:
             "w-full bg-red-600 text-white mt-2 justify-center",
         )
 
+        self.close_tabs_on_exit_checkbox = (
+            ui.checkbox("Close Tabs On Exit").bind_value(self, "close_tabs_on_exit").classes("text-xs mt-1")
+        )
+        with self.close_tabs_on_exit_checkbox:
+            ui.tooltip(
+                "When enabled, clicking 'Exit' also closes the main MapTasker window and any "
+                "Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker "
+                "but leaves those windows/tabs open.",
+            ).style("white-space: pre-line")
+
         ui.label("File Operations").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         _create_file_and_message_buttons_section(self)
 
@@ -1464,10 +1566,12 @@ def initialize_screen(self: MyGui) -> None:
                 _create_analyze_tab_content(self, ui.tab_panel(self.tab_analyze))
 
             # --- TAB 4: DEBUG (MINIMIZED SPACING) ---
-            with ui.tab_panel(self.tab_debug).classes("p-2 m-0") as self.gui_debug_panel:
+            with ui.tab_panel(self.tab_debug).classes("p-2 m-0") as self.gui_debug_panel:  # noqa: SIM117
                 with ui.column().classes("gap-1"):
                     self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug").classes("text-xs")
-                    self.runtime_checkbox = ui.checkbox("Display Runtime Settings").classes("text-xs")
+                    self.runtime_checkbox = (
+                        ui.checkbox("Display Runtime Settings").bind_value(self, "runtime").classes("text-xs")
+                    )
 
         self.content_container = ui.column().classes("w-full max-w-full min-w-0 p-0 m-0 mt-6")
 
@@ -1480,15 +1584,28 @@ def initialize_screen(self: MyGui) -> None:
         self.gui_main_tabs_container.set_value = self.tab_to_use
 
 
-def get_rid_of_windows_and_exit(self: MyGui, delete_all: bool = True) -> None:
+def get_rid_of_windows_and_exit(self: MyGui, _delete_all: bool = True) -> None:
     """Shuts down the NiceGUI server and exits."""
+    if getattr(self, "close_tabs_on_exit", False):
+        # Close every Map/Diagram popout this window opened (tracked in window.mapTaskerPopouts,
+        # see _open_popout_window() in userintr.py), then this window itself. Browsers only allow
+        # script-driven window.close() on tabs/windows the script itself opened, so this window
+        # may refuse to close if it wasn't launched via window.open() -- that's an unavoidable
+        # browser security restriction, not a bug.
+        ui.run_javascript(
+            "(window.mapTaskerPopouts || []).forEach(w => { try { if (w && !w.closed) w.close(); } "
+            "catch (e) {} }); window.mapTaskerPopouts = []; window.close();",
+        )
     ui.notify("Shutting down MapTasker...", type="warning")
     app.shutdown()
 
 
 def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
     """Populates the 'Analyze' (AI) tab using NiceGUI and colors the analysis button contextually."""
-    from maptasker.src.guiutils import display_model_pulldown  # noqa: PLC0415  Avoid circular import
+    from maptasker.src.guiutils import (  # noqa: PLC0415  Avoid circular import
+        display_model_pulldown,
+        update_analysis_button_color,
+    )
 
     # Use the 'with' context manager to place elements inside the passed tab panel
     with tab:
@@ -1497,20 +1614,15 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
             self.show_apikeys_button = ui.button("Show/Edit API Key(s)", on_click=self.event_handlers.ai_apikey_event)
             self.change_prompt_button = ui.button("Change Prompt", on_click=self.event_handlers.ai_prompt_event)
 
-            # --- DYNAMIC ANALYSIS BUTTON COLORING LOGIC ---
-            # Determine if any required fields are empty/None
-            self.has_key = bool(getattr(self, "ai_apikey", None))
-            self.has_model = bool(getattr(self, "ai_model", "")) and getattr(self, "ai_model") != "None"
-            self.has_prompt = bool(getattr(self, "ai_prompt", ""))
-
-            # If everything is filled out, make it green. Otherwise, color it red.
-            analysis_btn_color = "green" if (self.has_key and self.has_model and self.has_prompt) else "red"
-
             self.analysis_button = ui.button(
                 "Run Analysis",
-                color=analysis_btn_color,
                 on_click=self.event_handlers.ai_analyze_event,
             )
+            update_analysis_button_color(self)
+            self.analysis_query_button = ui.button(
+                "?",
+                on_click=lambda: self.event_handlers.query_event("ai"),
+            ).classes("bg-blue-600 text-white min-w-[40px]")
 
         # 2. Model Selection Row
         with ui.row().classes("items-center gap-4"):
@@ -1768,7 +1880,11 @@ def _create_font_section(self: MyGui) -> None:
 def _create_file_and_message_buttons_section(self: MyGui) -> None:
     """Creates file actions, message configuration button rows, and dynamic android panel containers."""
     with self.gui_right_drawer:
-        with ui.row().classes("w-full items-center justify-center gap-4 mt-0"):
+        # Stored on self so clear_android_buttons() (guiutils.py) can re-enter this exact row
+        # when it deletes and recreates the button -- otherwise the recreated button attaches to
+        # whatever the default page slot happens to be during that event callback and ends up
+        # stranded at the bottom of the page instead of staying under "File Operations".
+        with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0") as self.android_button_row:
             # self.get_backup_button = self.display_backup_button(
             #     "Get XML from Android Device",
             #     "#246FB6",
@@ -1779,8 +1895,12 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
                 ui
                 .button("Get XML from Android Device", on_click=self.event_handlers.get_xml_from_android_event)
                 .style("background-color: #246FB6; border-color: #6563ff; border-width: 2px; color: white;")
-                .classes("mt-0 ml-0 font-bold w-full")
+                .classes("mt-0 ml-0 font-bold flex-grow text-xs")
             )
+            self.android_query_button = ui.button(
+                "?",
+                on_click=lambda: self.event_handlers.query_event("android"),
+            ).classes("bg-blue-600 text-white min-w-[40px] shrink-0")
         with self.get_backup_button:
             ui.tooltip(
                 "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n",
