@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [11.0.0b2] 07-Jul-2026 MAJOR CHANGE...read carefully
+## [11.0.0] 15-Jul-2026 >>>>>>>>> MAJOR CHANGE...read carefully <<<<<<<<<
 
 ### Added
 
@@ -18,11 +18,11 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed:
+- Fixed: N/A
 
 ### Known Issue
 
-- It is unlikely but possible to have a pervious browser task preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
+- It is unlikely but possible to have a previous browser task preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
 you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
 lsof -i :8080
 For each PID listed in the output from the above terminal command, issue the following:
