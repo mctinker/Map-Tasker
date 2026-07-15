@@ -147,24 +147,6 @@ VIEWLIMIT_HELP_TEXT = (
     "- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 )
 
-SEARCH_HELP_TEXT = (
-    "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the data.\n\n"
-    "It will only show the first 200 instances of the search string.\n\n"
-    "Click on the line number to go to that line in the text view box.\n\n"
-    "The 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\n"
-    "The accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\n"
-    "When the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\n"
-    "The 'Clear' button will clear the search results.\n\n"
-    "The 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
-)
-
-PPP_HELP_TEXT = (
-    "The 'Profiles Per Line' setting is used to control the number of Profiles to be displayed per line when diagramming the configuration.\n\n"
-    "The smaller the number, the narrower the diagram and vice versa.\n\n"
-    "Fewer Profiles per line may make it easier too view the diagram connectors that extend to the right, while at the same time the Diagram wil be longer.\n\n"
-    "Selecting a number will automatically re-generate the diagram with the new setting.\n\n"
-    "This setting is only valid for the currrent Diagram view, and will be reset back to the default value when the Diagram view is closed.\n\n"
-)
 APIKEY_HELP_TEXT = (
     "This menu is where you define your AI API keys for use by the AI 'Analyze' button.\n\n"
     "The keys are saved across sessions.\n\n"

@@ -17,7 +17,7 @@ import darkdetect
 
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
-VERSION = "11.0.0"
+VERSION = "11.0.1"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -101,25 +101,20 @@ TYPES_OF_COLORS = {
 
 # Runtime argument names/keywords that are used throughout the program and meant to be saved.
 ARGUMENT_NAMES = {
-    "ai_analysis_window_position": "Last Ai Analysis Window Position",
     "ai_analyze": "Analyze AI",
     "ai_apikey": "AI Api Key",
     "ai_model": "AI Model",
     "ai_model_extended_list": "AI Model Extended List",
     "ai_name": "Name of the AI",
-    "ai_popup_window_position": "Last Ai Popup Window Position",
     "ai_prompt": "AI Prompt",
     "android_file": "Android Backup File location on Android device",
     "android_ipaddr": "Android IP Address",
     "android_port": "Android Port Number",
-    "ai_apikey_window_position": "API Key Options Window Position",
     "appearance_mode": "Appearance Mode",
     "bold": "Bold Names",
     "close_tabs_on_exit": "Close Tabs on Exit",
-    "color_window_position": "Last Color Window Position",
     "conditions": "Display Project/Profile/Task Conditions",
     "debug": "Debug Mode",
-    "diagram_window_position": "Last Diagram Window Position",
     "directory": "Display Directory",
     "display_detail_level": "Display Level",
     "file": "Get backup file named",
@@ -131,11 +126,9 @@ ARGUMENT_NAMES = {
     "italicize": "Italicize Names",
     "list_unnamed_items": "List Unnamed Items",
     "view_limit": "View Limit",
-    "map_window_position": "Last Map Window Position",
-    "misc_window_position": "Last used Miscellaneous Window Position",
     "preferences": "Display Tasker Preferences",
     "pretty": "Display Prettier Output",
-    "progressbar_window_position": "Last Progressbar Window Position",
+    "profiles_per_line": "Profiles per Line in Diagram View",
     "rerun": "ReRun Program",
     "runtime": "Display Runtime Arguments/Settings",
     "single_profile_name": "Single Profile Name",
@@ -144,29 +137,13 @@ ARGUMENT_NAMES = {
     "tab_to_use": "Tab To Use",
     "task_action_warning_limit": "Task Action Warning Limit",
     "taskernet": "Display TaskerNet Info",
-    "tree_window_position": "Last Tree Window Position",
     "twisty": "Hide Task Details under Twisty",
     "underline": "Underline Names",
-    "window_position": "Last Window Position",
     "language": "Language",
 }
 
 # Window positions etc. that are to be pickled
-SYSTEM_ARGUMENTS = [
-    "window_position",
-    "tree_window_position",
-    "diagram_window_position",
-    "color_window_position",
-    "ai_popup_window_position",
-    "ai_analysis_window_position",
-    "ai_apikey_window_position",
-    "map_window_position",
-    "misc_window_position",
-    "progressbar_window_position",
-    "guiview",
-    "doing_diagram",
-    "rerun",
-]
+SYSTEM_ARGUMENTS = []
 
 # Debug stuff
 logger = logging.getLogger("MapTasker")

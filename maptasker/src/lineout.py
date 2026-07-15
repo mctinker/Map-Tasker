@@ -25,12 +25,23 @@ styling and structure based on the type of element being displayed. The output l
 are accumulated and ultimately used to generate the final HTML output file.
 """
 
+import re
+
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import format_html
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine, debug_out, logger
 from maptasker.src.xmldata import remove_html_tags
+
+# build_tooltip_span() (format.py) wraps a "Task:"/"Profile:"/etc. label in
+# <span class="hover-tooltip" data-tooltip="...">label</span> before it ever reaches
+# format_line_list_item() below. Its data-tooltip attribute routinely contains the text
+# "Project:"/"Profile:" (e.g. a Task's tooltip shows its owning Profile/Project), which
+# defeats format_line_list_item()'s plain substring/startswith dispatch checks -- a Task
+# line can get misrouted to handle_project() just because its tooltip mentions a Project.
+# Strip the wrapper before dispatch matching so the checks only ever see the real label.
+_HOVER_TOOLTIP_SPAN_RE = re.compile(r'<span class="hover-tooltip" data-tooltip="[^"]*">(.*?)</span>')
 
 
 # Class definition for our output lines
@@ -229,22 +240,34 @@ class LineOut:
         """
 
         font = PrimeItems.program_arguments["font"]
-        if "Project:" in element or "Project has no Profiles" in element:
+
+        # Dispatch on the label with any hover-tooltip wrapper stripped out (see
+        # _HOVER_TOOLTIP_SPAN_RE above) -- otherwise a Task's tooltip mentioning its
+        # Profile/Project can make these substring checks match the wrong branch,
+        # even though the actual element (still tooltip-wrapped) is what gets styled
+        # and returned below.
+        dispatch_text = _HOVER_TOOLTIP_SPAN_RE.sub(r"\1", element)
+
+        if "Project:" in dispatch_text or "Project has no Profiles" in dispatch_text:
             return self.handle_project(element)
 
-        if "Profile:" in element:
+        if "Profile:" in dispatch_text:
             return self.handle_profile(element)
 
-        if element.startswith("Task:") or "&#45;&#45;Task:" in element or "Task: Properties" in element:
+        if (
+            dispatch_text.startswith("Task:")
+            or "&#45;&#45;Task:" in dispatch_text
+            or "Task: Properties" in dispatch_text
+        ):
             return self.handle_task(element, font)
 
-        if element.startswith("Scene:"):
+        if dispatch_text.startswith("Scene:"):
             return self.handle_scene(element, font)
 
-        if "Action:" in element:
+        if "Action:" in dispatch_text:
             return self.handle_action(element)
 
-        if "TaskerNet " in element:
+        if "TaskerNet " in dispatch_text:
             return self.handle_taskernet(element)
 
         # Must be additional item
@@ -331,7 +354,11 @@ class LineOut:
         """
         directory = ""
         if PrimeItems.program_arguments["directory"] and PrimeItems.directory_items["current_item"]:
-            scene_name = f"scenes_{element.split('Scene:&nbsp;')[1]}"
+            # element's "Scene:" label may be wrapped in a hover-tooltip span (build_tooltip_span()
+            # in format.py), which puts a "</span>" between "Scene:" and "&nbsp;" and breaks a plain
+            # split on "Scene:&nbsp;" -- strip that wrapper first so this always finds the name.
+            unwrapped_element = _HOVER_TOOLTIP_SPAN_RE.sub(r"\1", element)
+            scene_name = f"scenes_{unwrapped_element.split('Scene:&nbsp;')[1]}"
             # Get rid of any name attributions
             if (
                 PrimeItems.program_arguments["bold"]

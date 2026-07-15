@@ -99,20 +99,6 @@ def decompress_gzip_json(b64_string: str) -> dict | str:
         return f"An error occurred: {e}"
 
 
-def print_formatted_json(data: str | dict | list) -> None:
-    """
-    Parses a Python object (dict or list) and prints it as a formatted JSON string.
-
-    Args:
-        data: The Python object (usually returned from decompress_gzip_json).
-    """
-    # Check if the data is already a string (like an error message) or actual JSON data
-    if isinstance(data, (dict, list)):
-        # sort_keys=True is optional, but helps keep output consistent
-        return json.dumps(data, indent=4, sort_keys=True)
-    return f"Data is not a valid JSON object/list: {data}"
-
-
 def process_recursive_json(data: str, indentation: str, current_depth: int = 0) -> None:
     """
     Recursively processes JSON data and adds it to PrimeItems output.
@@ -128,7 +114,7 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
                 # Print the key and indicate it's a nested object
                 PrimeItems.output_lines.add_line_to_output(
                     0,
-                    f"{blank * current_indent}{key}:\n",
+                    f"{blank * current_indent}{key}:",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
                 # Recursive call: increment depth
@@ -137,7 +123,7 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
                 # Print the key and indicate it's a list
                 PrimeItems.output_lines.add_line_to_output(
                     0,
-                    f"{blank * current_indent}{key}:\n",
+                    f"{blank * current_indent}{key}:",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
                 # Recursive call for each item in the list: increment depth
@@ -147,7 +133,7 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
                 # Base case: standard key-value pair
                 PrimeItems.output_lines.add_line_to_output(
                     0,
-                    f"{blank * current_indent}{key}: {value}\n",
+                    f"{blank * current_indent}{key}: {value}",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
     elif isinstance(data, list):
@@ -224,9 +210,13 @@ def get_scene_element_names(scene: defusedxml.ElementTree) -> list[str]:
     """
     element_names = []
     for child in scene:
-        if child.tag in SCENE_TAGS_TO_IGNORE or child.tag in {"PropertiesElement", "lj"} or not tag_in_type(
-            child.tag,
-            True,
+        if (
+            child.tag in SCENE_TAGS_TO_IGNORE
+            or child.tag in {"PropertiesElement", "lj"}
+            or not tag_in_type(
+                child.tag,
+                True,
+            )
         ):
             continue
         element_type = child.tag.split("Element")[0]

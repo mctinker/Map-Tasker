@@ -6,7 +6,7 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 import defusedxml
-from nicegui import run, ui
+from nicegui import app, run, ui
 
 # Keep your existing logic imports (e.g., from maptasker.src.aiutils import ...)
 from maptasker.src.aiutils import (
@@ -499,32 +499,6 @@ def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
     return unnamed_task.split(".")[1].strip()
 
 
-def reset_primeitems_single_names() -> None:
-    """
-    Reset the prime items related to single names.
-    """
-    PrimeItems.found_named_items = {
-        "single_project_found": False,
-        "single_profile_found": False,
-        "single_task_found": False,
-    }
-    PrimeItems.directory_items = {
-        "current_item": "",
-        "projects": [],
-        "profiles": [],
-        "tasks": [],
-        "scenes": [],
-    }
-    PrimeItems.program_arguments["single_project_name"] = ""
-    PrimeItems.program_arguments["single_profile_name"] = ""
-    PrimeItems.program_arguments["single_task_name"] = ""
-    PrimeItems.found_named_items = {
-        "single_project_found": False,
-        "single_profile_found": False,
-        "single_task_found": False,
-    }
-
-
 def display_current_file(self: "MyGui", file_name: str) -> None:
     """
     A function to display the current file as a label in the GUI toolbar row.
@@ -933,6 +907,10 @@ def valid_item(
     return any(root_element[item]["name"] == the_name for item in root_element)
 
 
+_LOGO_URL_PATH = "/assets_logos"
+_logo_static_files_mounted = False
+
+
 def add_logo(self: "MyGui", logo_name: str) -> None:
     """
     Add a logo to the screen dynamically via NiceGUI.
@@ -940,26 +918,35 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
     Instead of grid coordinates, layouts are handled naturally inside their parent panels
     (the sidebar drawer, the tab panel, etc.).
     """
-    # 1. Determine the path to the assets directory
+    global _logo_static_files_mounted  # noqa: PLW0603
+
+    # 1. Determine the path to the assets directory and serve it over HTTP.
+    # Browsers refuse to load "file://" URLs referenced from a page served over
+    # "http://", so ui.image() needs a URL NiceGUI actually serves -- mount the
+    # assets directory once (subsequent calls, e.g. once per flag, are no-ops).
     abspath = os.path.abspath(__file__)
     assets_dir = os.path.dirname(abspath).replace("src", "assets")
+    if not _logo_static_files_mounted:
+        app.add_static_files(_LOGO_URL_PATH, assets_dir)
+        _logo_static_files_mounted = True
 
     doing_flag = logo_name.startswith("flag")
 
     if doing_flag:
         language = logo_name.split("flag_")[1]
-        img_src = f"file://{assets_dir}/icons/{language}.png"
+        img_src = f"{_LOGO_URL_PATH}/icons/{language}.png"
         size_classes = "w-[25px] h-[16px]"
-        parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
+        # parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
+        parent = self.language_label
     elif logo_name == "maptasker":
-        light_src = f"file://{assets_dir}/maptasker_logo_light.png"
-        dark_src = f"file://{assets_dir}/maptasker_logo_dark.png"
+        light_src = f"{_LOGO_URL_PATH}/maptasker_logo_light.png"
+        dark_src = f"{_LOGO_URL_PATH}/maptasker_logo_dark.png"
         size_classes = "w-[190px] h-[50px]"
         parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
     elif logo_name == "coffee":
-        img_src = f"file://{assets_dir}/bmc-logo-no-background.png"
+        img_src = f"{_LOGO_URL_PATH}/bmc-logo-no-background.png"
         size_classes = "w-[36px] h-[54px]"
-        parent = self.tab_debug  # This works because tab_debug is a ui.tab_panel element
+        parent = self.gui_debug_panel  # tab_debug is the tab button, not its content panel
     else:
         if "rutroh_error" in globals():
             rutroh_error("Invalid logo type")

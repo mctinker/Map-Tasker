@@ -42,18 +42,6 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
     return dialog
 
 
-# 1. Ensure your window creation function allows easy access/closing
-def create_progressbar_window(title: str = "Processing Data...") -> tuple[ui.dialog, ui.linear_progress, ui.label]:
-    """Creates a modal with a progress bar and status text."""
-    with ui.dialog() as dialog, ui.card().classes("min-w-[400px] p-6 items-center"):
-        status_label = ui.label(title).classes("text-lg mb-4 font-bold")
-        # show_value=False keeps it clean, or True to show percentage
-        progress = ui.linear_progress(value=0.0, show_value=True).classes("w-full")
-
-    dialog.open()
-    return dialog, progress, status_label
-
-
 # ==========================================
 # 3. VIEWS (Tree and Text)
 # ==========================================
@@ -242,13 +230,23 @@ class NiceGuiTextView:
         else:
             container_context = ui.column()
 
+        # "Diagram" view intentionally starts unwrapped so ASCII-art connectors stay aligned.
+        is_diagram = self.title.startswith("Diagram")
+
         # Set the main container to a vertical layout with full width and height
         with container_context:
             # Toolbar
             with ui.row().classes("w-full items-center gap-2 p-2 mb-2 shrink-0") as self.gui_toolbar:
                 ui.label(f"{self.title}").classes("text-orange-500 font-bold mr-4")
                 self.search_input = ui.input(placeholder="Search...").classes("w-48")
-                ui.button("Search", on_click=self.search_event).classes("bg-blue-600")
+                search_button = ui.button("Search", on_click=self.search_event).classes("bg-blue-600")
+                with search_button:
+                    ui.tooltip(
+                        "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\n"
+                        "It will only show the first 200 instances of the search string.\n\n"
+                        "Click on the line number to go to that line in the text view box.\n\n"
+                        "The 'Clear' button will clear the search results.\n\n",
+                    ).style("white-space: pre-line")
                 ui.button("Clear", on_click=self.master_gui.event_handlers.clear_event).classes(
                     "bg-blue-600",
                 )
@@ -256,9 +254,15 @@ class NiceGuiTextView:
                 ui.button("Top", on_click=lambda: self.scroll("top")).classes("bg-blue-600")
                 ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
                 ui.button("Toggle Wrap", on_click=self.toggle_wrap).classes("bg-blue-600")
+                if is_diagram:
+                    ui.separator().props("vertical")
+                    ui.select(
+                        options=[str(n) for n in range(11)],
+                        value=str(self.master_gui.profiles_per_line),
+                        label="Profiles Per Line",
+                        on_change=self._profiles_per_line_selected,
+                    ).classes("w-40").props("dense")
 
-            # "Diagram" view intentionally starts unwrapped so ASCII-art connectors stay aligned.
-            is_diagram = self.title.startswith("Diagram")
             self.wrap_enabled = "Diagram" not in self.title
             self.wrap_classes = "whitespace-pre-wrap break-words" if self.wrap_enabled else "whitespace-pre"
 
@@ -290,7 +294,16 @@ class NiceGuiTextView:
             )
 
     async def process_data(self, the_data: dict | list) -> None:
-        """Converts data to HTML chunks, preventing single-packet WebSocket buffer overruns."""
+        """Converts data to HTML chunks, preventing single-packet WebSocket buffer overruns.
+
+        All ui.html() calls below pass sanitize=False: the content is this program's own
+        MapTasker.html/diagram output, not untrusted input. NiceGUI's default client-side
+        sanitizer (the browser's Sanitizer API) strips "id", "class", and "data-*" attributes,
+        which silently breaks in-page #fragment hyperlinks (e.g. the "Task ... has too many
+        actions" links) and the Diagram view's click-to-highlight connectors -- their <a href>
+        source tags survive sanitizing, but the <a id="..."> targets and .connector/
+        data-connector-id spans they depend on do not.
+        """
         is_diagram = self.title.startswith("Diagram")
         html_style = f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;"
         if "Diagram" not in self.title:
@@ -303,7 +316,7 @@ class NiceGuiTextView:
         elif self.title.startswith("Misc"):
             with self.scroll_area:
                 content_str = "\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data)
-                ui.html(f"<pre style='{html_style}'>{content_str}</pre>")
+                ui.html(f"<pre style='{html_style}'>{content_str}</pre>", sanitize=False)
             return
 
         try:
@@ -361,7 +374,7 @@ class NiceGuiTextView:
                     if is_diagram:
                         chunk_height = len(chunk_lines) * approx_px_per_line
                         chunk_style += f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
-                    ui.html(chunk_content).classes("w-full block max-w-full").style(chunk_style)
+                    ui.html(chunk_content, sanitize=False).classes("w-full block max-w-full").style(chunk_style)
                     await asyncio.sleep(0.01)  # Yields loop to keep WebSocket alive
 
             if connectors_by_line:
@@ -897,6 +910,19 @@ class NiceGuiTextView:
         self.wrap_classes = new_classes
         ui.notify(f"Word wrap {'enabled' if self.wrap_enabled else 'disabled'} for {self.title}.", type="info")
 
+    def _profiles_per_line_selected(self, event: object) -> None:
+        """Fires when the Diagram view's 'Profiles Per Line' pulldown selection changes."""
+        new_value = int(event.value if hasattr(event, "value") else event)
+        if new_value != self.master_gui.profiles_per_line:
+            asyncio.create_task(self.master_gui.event_handlers.profiles_per_line_event(new_value))
+
+    def reload_diagram(self) -> None:
+        """Clears and re-streams the Diagram view's content in place after it has been
+        regenerated (e.g. after the 'Profiles Per Line' pulldown changes the diagram's layout).
+        """
+        self.scroll_area.clear()
+        self._task = asyncio.create_task(self.process_data([]))
+
 
 # ==========================================
 # 4. INITIALIZATION & LAYOUT
@@ -908,7 +934,6 @@ def initialize_gui(self: MyGui) -> None:
     _initialize_android_settings(self)
     _initialize_display_settings(self)
     _initialize_feature_flags(self)
-    _initialize_window_positions(self)
     _initialize_data_structures(self)
     _initialize_runtime_options(self)
 
@@ -987,20 +1012,6 @@ def _initialize_feature_flags(self: MyGui) -> None:
     self.checked_ffmpeg = False
     self.have_ffmpeg = False
     self.close_tabs_on_exit = False
-
-
-def _initialize_window_positions(self: MyGui) -> None:
-    """Initializes variables for storing window positions."""
-    self.ai_analysis_window_position = ""
-    self.ai_apikey_window_position = ""
-    self.ai_popup_window_position = ""
-    self.color_window_position = ""
-    self.diagram_window_position = ""
-    self.map_window_position = ""
-    self.misc_window_position = ""
-    # self.progressbar_window_position = "" # Uncomment if you decide to use this
-    self.tree_window_position = ""
-    self.window_position = None  # This one is generic, consider if it's needed
 
 
 def _initialize_data_structures(self: MyGui) -> None:
@@ -1316,6 +1327,10 @@ def initialize_screen(self: MyGui) -> None:
             "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
         ) as self.gui_left_drawer
     ):
+        from maptasker.src.guiutils import add_logo  # noqa: PLC0415  Avoid circular import
+
+        add_logo(self, "maptasker")
+
         ui.label("Display Options").classes("text-lg font-bold mb-2 gap-y-0 m-0 p-0 leading-none")
 
         # Detail level pulldown
@@ -1573,6 +1588,8 @@ def initialize_screen(self: MyGui) -> None:
                         ui.checkbox("Display Runtime Settings").bind_value(self, "runtime").classes("text-xs")
                     )
 
+            add_logo(self, "coffee")
+
         self.content_container = ui.column().classes("w-full max-w-full min-w-0 p-0 m-0 mt-6")
 
         with ui.dialog() as self.picker_dialog, ui.card().classes("p-4 items-center"):
@@ -1757,20 +1774,23 @@ def _create_indentation_section(self: MyGui) -> None:
 
 def _create_language_selection_section(self: MyGui) -> None:
     """Creates the language selection dropdown in the NiceGUI sidebar."""
-    self.language_label = ui.label("Language:").classes(
+    self.language_label = ui.label("Language:  ").classes(
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
     # This returns a list of English language keys, e.g., ["English", "German", "French"]
     languages = sort_languages_with_priority(PrimeItems.languages.keys())
 
-    # Do not translate the initial value here. Keep it in English
-    # so it perfectly matches one of the options inside the 'languages' list.
-    initial_language = self.language
+    # ui.select's "value" (what on_change reports, and what must be assigned to select
+    # a specific entry) is always the dict KEY, never the displayed label -- so map each
+    # English key to its translated display label (e.g. "German" -> "Deutsch") here. That
+    # keeps the value side in English (matching self.language / PrimeItems.languages) while
+    # still showing the user their language's own name instead of always English.
+    language_options = {language: translate_string(language) for language in languages}
 
     self.language_optionmenu = ui.select(
-        options=languages,
-        value=initial_language,
+        options=language_options,
+        value=self.language,
         on_change=self.event_handlers.language_selected_event,
     ).classes("w-full")
 

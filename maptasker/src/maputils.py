@@ -24,7 +24,6 @@ from zoneinfo import (
 
 import defusedxml.ElementTree as et  # noqa: N813
 import requests
-import webcolors
 from deep_translator import GoogleTranslator
 from requests.exceptions import ConnectionError  # noqa: A004
 
@@ -260,21 +259,6 @@ def pretty(d: dict, indent: int = 0) -> None:
             print("\t" * (indent + 1) + str(value))
 
 
-def append_item_to_list(item: str, lst: list = []) -> list:  # noqa: B006
-    """
-    Append the given item to the list and return the list.
-
-    Args:
-        item: The item to append to the list.
-        lst: The list to append to. Defaults to an empty list.
-
-    Returns:
-        The list with the item appended.
-    """
-    lst.append(item)
-    return lst
-
-
 def find_all_positions(string: str, substring: str, start_position: int = 0) -> list:
     """
     Finds all positions of a substring in a string.
@@ -322,8 +306,12 @@ def display_task_warnings() -> None:
     for task_name, value in PrimeItems.task_action_warnings.items():
         # Build the hotlink to the Task.
         href_name = _fix_hyperlink_name(task_name)
-        # Build the hyperelink reference
-        href = f"<a href=#tasks_{href_name}>{task_name}</a>"
+        # Build the hyperelink reference.  The explicit color/underline is needed because this
+        # link sits inside a "trailing_comments_color" span: NiceGUI's Map view runs on Tailwind,
+        # whose CSS reset makes <a> inherit the parent span's color/text-decoration instead of
+        # the browser's default link styling, so without this it renders as plain, unclickable-
+        # looking text (it's still a real, working link either way).
+        href = f'<a href=#tasks_{href_name} style="color: #3399ff; text-decoration: underline;">{task_name}</a>'
 
         # Add the warning to the list.
         warnings.append(f"{task_translated} {href} {has_translated} {value['count']} {actions_translated}")
@@ -401,23 +389,6 @@ def clear_tasker_data() -> None:
     PrimeItems.tasker_root_elements["all_scenes"].clear()
 
 
-def get_first_substring_match(main_string: str, substrings: list) -> str | None:
-    """
-    Checks if any of the substrings in a list are present in a given string.
-
-    Args:
-      main_string: The string to search within.
-      substrings: A list of strings to search for.
-
-    Returns:
-      The first substring found in the main string, or None if no match is found.
-    """
-    for sub in substrings:
-        if sub in main_string:
-            return sub
-    return None
-
-
 def count_unique_substring(string_list: list, substring: str) -> int:
     """
     Counts the number of strings in a list that contain a given substring,
@@ -489,27 +460,6 @@ def find_owning_project(profile_name: str) -> str:
     return ""
 
 
-def find_task_pattern(text: str) -> bool:
-    r"""
-    Checks if the pattern 'xTask x has x actions\n' exists in the given string.
-
-    Args:
-        text (str): The string to search within.
-
-    Returns:
-        bool: True if the pattern is found, False otherwise.
-    """
-    # The '.*?' matches any character (except newline) zero or more times, non-greedily.
-    # We use re.DOTALL to make '.' match newlines as well, in case 'x' spans multiple lines,
-    # though your specific pattern has a newline character.
-    # The '\n' at the end of the pattern matches a literal newline character.
-    pattern = f".*?{translate_string('Task')} .*? {translate_string('has')} .*? {translate_string('actions')}\n"
-
-    # re.search() scans through the string looking for the first location
-    # where the regular expression pattern produces a match.
-    return bool(re.search(pattern, text, re.DOTALL))
-
-
 def close_logfile() -> None:
     """Close the log file(s)"""
     for handler in logger.handlers[:]:  # Iterate over a copy to avoid issues during modification
@@ -548,71 +498,6 @@ def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
     except ValueError:
         logger.debug("Invalid hex color input: " + hex_color)
         return False
-
-
-def get_rgb_from_color_input(color_input: str) -> tuple[int, int, int]:
-    """
-    Converts a color input (either name or hex) to an RGB tuple.
-
-    Args:
-        color_input (str): The color name (e.g., "blue") or hex value (e.g., "#ffffe0").
-
-    Returns:
-        tuple[int, int, int]: An RGB tuple (R, G, B) where each component is 0-255.
-
-    Raises:
-        ValueError: If the color_input is not a valid color name or hex code.
-    """
-    color_input = color_input.strip()
-    if color_input.startswith("#") or (color_input.isdigit and len(color_input) == 6):
-        return hex_to_rgb(color_input)
-
-    try:
-        # webcolors.name_to_rgb expects a lowercase name
-        return webcolors.name_to_rgb(color_input.lower())
-    except ValueError:
-        logger.debug(f"Invalid color input: {color_input}")
-        return False
-
-
-def is_color_dark(color_input: str, luminance_threshold: float = 0.5) -> bool:
-    """
-    Determines if a given color is darker than it is light based on its perceived luminance.
-
-    Args:
-        color_input (str): The color name (e.g., "blue") or hex value (e.g., "#ffffe0").
-        luminance_threshold (float): A value between 0.0 and 1.0 (inclusive)
-                                     where 0.0 is black and 1.0 is white.
-                                     Colors with luminance below this threshold are
-                                     considered 'dark'. Default is 0.5.
-
-    Returns:
-        bool: True if the color is darker than the threshold, False otherwise.
-
-    Raises:
-        ValueError: If the color_input is invalid or the threshold is out of range.
-    """
-    if not (0.0 <= luminance_threshold <= 1.0):
-        logger.debug("luminance_threshold must be between 0.0 and 1.0.")
-        return False
-
-    r, g, b = get_rgb_from_color_input(color_input)
-
-    # Calculate perceived luminance (a common formula for sRGB)
-    # The components are first normalized to 0-1, then weighted.
-    # These weights account for human perception of brightness (green > red > blue).
-    normalized_r = r / 255.0
-    normalized_g = g / 255.0
-    normalized_b = b / 255.0
-
-    # Note: For strict WCAG (Web Content Accessibility Guidelines) luminance,
-    # a more complex gamma correction might be applied before weighting.
-    # However, this simpler weighted sum is generally sufficient for a "darker than light" check.
-    luminance = 0.299 * normalized_r + 0.587 * normalized_g + 0.114 * normalized_b
-
-    # print(f"Color: '{color_input}' (RGB: {r},{g},{b}) -> Luminance: {luminance:.4f}")
-
-    return luminance < luminance_threshold
 
 
 def append_to_filename(original_filename_with_type: str, text_to_append: str) -> str:

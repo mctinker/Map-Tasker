@@ -64,7 +64,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ## Program Dependencies
 
-### - Python version 3.12 or higher
+### - Python version 3.11 or higher
 
 ### - TKinter 8.6 or higher (see [Note 3](#3))
 
@@ -215,10 +215,6 @@ Further details are available in the "Notes" section of this README.
 **Q: Diagram connectors are misaligned for names in Chinese, Korean, or Japanese.**
 
 A: This is a known issue related to font metrics for these languages in the diagramming library.
-
-**Q: Why is there a hard stop at 20,000 lines of output?**
- 
- A: This is a limitation of the (NiceGUI) user interface.  Ongoing efforts are being made to remove this limitation.
 
 
 ## Notes

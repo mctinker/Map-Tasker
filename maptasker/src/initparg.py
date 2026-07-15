@@ -19,24 +19,19 @@ def initialize_runtime_arguments() -> dict:
     """
 
     return {
-        "ai_analysis_window_position": "",  # Last-used ai analysis window position
         "ai_analyze": False,  # Do local AI processing
         "ai_apikey": "",  # AI API key
-        "ai_apikey_window_position": "",  # Last-used APIKey Options window position
         "ai_model": "",  # AI model
         "ai_name": "",  # AI name
-        "ai_popup_window_position": "",  # Last-used ai popup window position (currently not used)
         "ai_prompt": "",  # AI prompt
         "android_file": ANDROID_FILE,
         "android_ipaddr": ANDROID_IPADDR,  # IP address of Android device
         "android_port": ANDROID_PORT,  # Port of Android device
         "appearance_mode": "system",  # Appearance mode: "system", "dark", or "light"
         "bold": False,  # Display Project/Profile?Task/Scene names in bold text
-        "color_window_position": "",  # Last-used color window position
         "conditions": False,  # Display Profile and Task conditions
         "debug": False,  # Run in debug mode (create log file)
         "doing_diagram": False,  # Use the GUI to get the diagram view
-        "diagram_window_position": "",  # Last-used diagram window position
         "directory": False,  # Display directory
         "display_detail_level": 4,  # Display detail level
         "fetched_backup_from_android": False,  # Backup file was fetched from Android device
@@ -51,11 +46,9 @@ def initialize_runtime_arguments() -> dict:
         "language": "English",  # Language to use for the GUI
         "list_unnamed_items": False,  # List unnamed items
         "view_limit": 10000,  # Map view limit
-        "map_window_position": "",  # Last-used map window position
-        "misc_window_position": "",  # Misc window position
         "preferences": False,  # Display Tasker's preferences
         "pretty": False,  # Pretty up the output (takes many more output lines)
-        "progressbar_window_position": "",  # Last-used progressbar window position
+        "profiles_per_line": 6,  # Profiles per line in Diagram view
         "rerun": False,  # Is this a GUI re-run?
         "reset": False,  # Reset settings to default values
         "runtime": False,  # Display the runtime arguments/settings
@@ -65,8 +58,6 @@ def initialize_runtime_arguments() -> dict:
         "tab_to_use": None,  # Default GUI Tab to start
         "task_action_warning_limit": 100,  # Task action warning limit
         "taskernet": False,  # Display TaskerNet information
-        "tree_window_position": "",  # Last-used treeview window position
         "twisty": False,  # Add Task twisty "▶︎" clickable icons for Task details
         "underline": False,  # Underline Project/Profile?Task/Scene names
-        "window_position": "",  # Last-used window position
     }

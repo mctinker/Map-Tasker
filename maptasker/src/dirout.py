@@ -25,6 +25,12 @@ from maptasker.src.sysconst import (
 
 period = "."
 
+# The directory's <a> links sit inside a color-coded span (e.g. "profile_color"). NiceGUI's Map
+# view runs on Tailwind, whose CSS reset makes <a> inherit the parent span's color/text-decoration
+# instead of the browser's default link styling, so we set this explicitly (see maputils.py's
+# display_task_warnings() for the same fix applied to Task warning links).
+HOTLINK_STYLE = "color: #3399ff; text-decoration: underline;"
+
 
 # Search a list of lists for a given string.  Return True if found.
 def search_lists(search_string: str, list_of_lists: list) -> bool:
@@ -208,11 +214,11 @@ def do_trailing_matters() -> None:
     # Do the Configuration Variables
     if PrimeItems.program_arguments["display_detail_level"] == 4:
         trailing_matter.append(
-            "<a href=#unreferenced_variables>Unreferenced Global Variables</a>",
+            f'<a href=#unreferenced_variables style="{HOTLINK_STYLE}">Unreferenced Global Variables</a>',
         )
 
     # Add Grand Totals.
-    trailing_matter.append("<a href=#grand_totals>Grand Totals</a>")
+    trailing_matter.append(f'<a href=#grand_totals style="{HOTLINK_STYLE}">Grand Totals</a>')
 
     # Output the table
     output_table(trailing_matter, 4)
@@ -438,7 +444,7 @@ def do_tasker_element(name: str) -> None:
                 display_name = item[1].replace(">", "&gt;").replace("<", "&lt;")
                 # Append our hyperlink to this Project to the list
                 directory_hyperlinks.append(
-                    f"<a href=#{name}_{hyperlink_name}>{display_name}</a>",
+                    f'<a href=#{name}_{hyperlink_name} style="{HOTLINK_STYLE}">{display_name}</a>',
                 )
 
         if directory_hyperlinks:

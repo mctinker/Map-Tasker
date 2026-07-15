@@ -2,23 +2,24 @@
 
 All notable changes to this project will be documented in this file!
 
-## [11.0.0] 15-Jul-2026 >>>>>>>>> MAJOR CHANGE...read carefully <<<<<<<<<
+## [11.0.1] 15-Jul-2026
 
 ### Added
 
-- Added: Tasker version 6.7.6-beta is supported.
+- Added: 'Profiles Per Line' option has been added back into the Diagram view. 
 
 ### Changed
 
-- Changed: GUI support via web browser interface (only), removes reliance on desktop.
-- Changed: Message window has been replaced with 5-second message popups.
-- Changed: Batch mode and all associated runtime options are removed.  The GUI mode is all that is now supported.
-- Changed: 'Display Configuration Outline', 'Run and Exit', and 'Run' buttons have been removed from the GUI since they are no longer relevant.
-- Changed: Support for Python version 10 and older is dropped.
+- Changed: Code related to the old desktop-specific functions has been removed.
 
 ### Fixed
 
-- Fixed: N/A
+- Fixed: Task (names) with too many actions hotlinks do not work in the Map view.
+- Fixed: Version 2 Scene JSON data is being double-spaced rather than single-spaced in the Map view.
+- Fixed: The GUI icons are not appearing: coffee cup, language flag, etc.
+- Fixed: The seleceted language name does not appear in the GUI.
+- Fixed: Changing some colors did not change the output displayed colors (e.g. for Tasks).
+- Fixed: Directory entries in the Map view are incorrectly taking on the color of Profiles
 
 ### Known Issue
 
@@ -30,6 +31,16 @@ kill -9 pid_number
 ...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
 
 ## Older History Logs
+
+## [11.0.0] 15-Jul-2026
+926456
+
+- Added: Tasker version 6.7.6-beta is supported.
+- Changed: GUI support via web browser interface (only), removes reliance on desktop.
+- Changed: Message window has been replaced with 5-second message popups.
+- Changed: Batch mode and all associated runtime options are removed.  The GUI mode is all that is now supported.
+- Changed: 'Display Configuration Outline', 'Run and Exit', and 'Run' buttons have been removed from the GUI since they are no longer relevant.
+- Changed: Support for Python version 10 and older is dropped.
 
 ## [10.2.7] 09-Jun-2026
 

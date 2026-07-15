@@ -76,9 +76,9 @@ if TYPE_CHECKING:
     import defusedxml.ElementTree
 
 try:
-    profiles_per_line = PrimeItems.profiles_per_line
+    profiles_per_line = PrimeItems.program_arguments["profiles_per_line"]
 except (AttributeError, KeyError):
-    PrimeItems.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
+    PrimeItems.program_arguments["profiles_per_line"] = DIAGRAM_PROFILES_PER_LINE
 
 
 def flatten_with_quotes(string_list: list) -> str:
@@ -1472,6 +1472,13 @@ def handle_calls(output_lines: list, progress: dict) -> None:
     - Traverse the call table and add arrows to the output lines
     - Remove all icons from the names to ensure arrow alignment
     """
+    # Seeds for the GUI Diagram view's click-to-highlight feature -- see
+    # draw_arrows_to_called_task() and compute_diagram_connector_groups(). Set this
+    # unconditionally up front (rather than further down, past the exceeded_limit early
+    # return below) so build_network_map()'s later read of this attribute never sees it
+    # missing just because the map was too large to fully draw.
+    PrimeItems.diagram_connector_seeds = []
+
     # Go through the output and add blanks above the called tasks, one for each caller.
     output_lines = add_blanks_above_called_tasks(output_lines)
 
@@ -1502,10 +1509,6 @@ def handle_calls(output_lines: list, progress: dict) -> None:
     call_table = dict(
         sorted(call_table.items(), key=lambda item: item[1]["up_down_location"]),
     )
-
-    # Seeds for the GUI Diagram view's click-to-highlight feature -- see
-    # draw_arrows_to_called_task() and compute_diagram_connector_groups().
-    PrimeItems.diagram_connector_seeds = []
 
     # Now traverse the call table and add arrows to the output lines.
     called_task_lookup = {}
@@ -1551,7 +1554,9 @@ def build_profile_box(
     filler = f"{blank * 8}"
     profile_counter += 1
     # Only print the lines if we are at the profiles-per-line value.
-    if profile_counter > PrimeItems.profiles_per_line:  # profiles_per_line defined as global variable
+    if (
+        profile_counter > PrimeItems.program_arguments["profiles_per_line"]
+    ):  # profiles_per_line defined as global variable
         print_3_lines(output_profile_lines)
         profile_counter = 1
         print_tasks = True

@@ -79,8 +79,6 @@ from maptasker.src.userhelp import (
     BACKUP_HELP_TEXT,
     HELP,
     LISTFILES_HELP_TEXT,
-    PPP_HELP_TEXT,
-    SEARCH_HELP_TEXT,
     VIEW_HELP_TEXT,
     VIEWLIMIT_HELP_TEXT,
 )
@@ -607,22 +605,12 @@ class MyGui:
             "restore",
             "rerun",
             "reset",
-            "window_position",
             "Analyze",
             "ai_analyze",
-            "ai_analysis_window_position",
-            "ai_apikey_window_position",
             "ai_model",
             "ai_name",
-            "ai_popup_window_position",
             "ai_prompt",
-            "color_window_position",
-            "diagram_window_position",
-            "map_window_position",
-            "misc_window_position",
-            "progressbar_window_position",
             "tab_to_use",
-            "tree_window_position",
             "guiview",
             "fetched_backup_from_android",
         }
@@ -1052,22 +1040,6 @@ class MapTaskerEventHandlers:
             # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
             PrimeItems.output_lines.output_lines.clear()
             output_the_front_matter()
-            # # Clear the directory, grand totals, etc.
-            # PrimeItems.directory_items = {
-            #     "current_item": "",
-            #     "projects": [],
-            #     "profiles": [],
-            #     "tasks": [],
-            #     "scenes": [],
-            # }
-
-            # PrimeItems.grand_totals = {
-            #     "projects": 0,
-            #     "profiles": 0,
-            #     "unnamed_tasks": 0,
-            #     "named_tasks": 0,
-            #     "scenes": 0,
-            # }
             PrimeItems.task_action_warnings = {}
 
             try:
@@ -1135,6 +1107,20 @@ class MapTaskerEventHandlers:
 
                     # Offload the configuration outliner to an IO-bound thread safely
                     await run.io_bound(outline_the_configuration)
+
+                    # Check if an entry-point processing failure occurred (e.g. check_limit() in
+                    # diagram.py tripping the view_limit) during outline_the_configuration(). Unlike
+                    # the "map" branch above, this used to go unchecked: on failure, network_map()
+                    # (diagram.py) skips writing DIAGRAM_FILE and computing PrimeItems.diagram_connectors
+                    # entirely, so the popout below would silently reopen whatever stale diagram (and
+                    # stale/absent connector data) happened to already be on disk from an earlier,
+                    # successful run -- which looks like a normal diagram but whose connectors no
+                    # longer highlight anything when clicked, with no indication anything went wrong.
+                    if getattr(PrimeItems, "error_code", 0) > 0:
+                        gui.display_message_box(f"Diagram processing error: {PrimeItems.error_msg}", "Orange")
+                        PrimeItems.error_code = 0
+                        PrimeItems.error_msg = ""
+                        return
 
                     # Display the diagram in its own browser window/tab rather than the main window.
                     _open_popout_window("/popout/diagram")
@@ -1292,25 +1278,6 @@ class MapTaskerEventHandlers:
             """)
 
         ui.notify(f"Cleared search highlights in {view_name}.", type="info")
-
-    def topbottom_event(self, top: bool, _view_name: str = "mapview") -> None:
-        """Jumps the view to the top or bottom."""
-        direction = "top" if top else "bottom"
-
-        # Call the Javascript scroll function we built into the text view
-        if hasattr(self.gui, "textview"):
-            self.gui.textview.scroll(direction)
-
-    def wordwrap_event(self, view_name: str = "mapview") -> None:
-        """Toggles CSS word-wrapping on the HTML output."""
-        ui.notify(f"Toggling word wrap for {view_name}", type="info")
-
-        if hasattr(self.gui, "textview"):
-            # NiceGUI allows us to toggle Tailwind classes dynamically!
-            if "whitespace-pre" in self.gui.textview.scroll_area.classes:
-                self.gui.textview.scroll_area.classes(remove="whitespace-pre", add="whitespace-normal")
-            else:
-                self.gui.textview.scroll_area.classes(remove="whitespace-normal", add="whitespace-pre")
 
     # ==========================================
     # ANDROID XML BACKUP EVENT HANDLERS
@@ -1916,9 +1883,14 @@ class MapTaskerEventHandlers:
         if the_view.language == language:
             return
 
-        # Set the translation function in PrimeItems
+        # Set the translation function in PrimeItems. Pass the raw (English) selection
+        # as-is -- language_set_event() does its own translate_string(..., set_language=True)
+        # to switch locale, so pre-translating it here (with the *old* locale, before the
+        # switch) would double-translate it into a string that matches no known language
+        # key, causing language_set_event() to fall back to "English" and leaving the
+        # pulldown showing the wrong (or blank) selection.
         if hasattr(self, "language_set_event"):
-            self.language_set_event(translate_string(language))
+            self.language_set_event(language)
 
         # Reset selection checkboxes / extended list flags safely using the lock flag
         the_view.displaying_extended_list = None  # Force pulldown to be recreated.
@@ -2076,11 +2048,16 @@ class MapTaskerEventHandlers:
 
         language_translated = translate_string(language_to_use)
 
-        # 2. Change the menu dropdown value safely using the lock flag
+        # 2. Change the menu dropdown value safely using the lock flag. The dropdown's
+        # options are a {english_key: translated_label} dict (see
+        # _create_language_selection_section in guiwins.py), so its "value" must be the
+        # English key -- assigning the translated label here would match no option and
+        # leave the pulldown showing blank.
         if hasattr(the_view, "language_optionmenu") and the_view.language_optionmenu:
             try:
                 the_view.is_updating = True  # Engage the lock
-                the_view.language_optionmenu.value = language_translated
+                the_view.language_optionmenu.value = language_to_use
+                the_view.language_optionmenu.update()
                 PrimeItems.program_arguments["language"] = language_to_use
             finally:
                 the_view.is_updating = False  # Disengage the lock
@@ -2160,6 +2137,17 @@ class MapTaskerEventHandlers:
         # Reload the GUI by running a new process with the new program/version.
         reload_gui(the_view)
 
+    def coffee_event(self) -> None:
+        """Opens a web browser to the 'Buy Me A Coffee' page for support."""
+        the_view = self.gui
+        try:
+            webbrowser.open("https://www.buymeacoffee.com/mctinker", new=2)
+        except webbrowser.Error:
+            the_view.display_message_box(
+                "Error: Failed to open output in browser: your browser is not supported.",
+                "Red",
+            )
+
     def report_issue_event(self) -> None:
         """Opens a web browser and directs the user to create a new issue on GitHub for the Map-Tasker project.
         Parameters:
@@ -2213,8 +2201,6 @@ class MapTaskerEventHandlers:
             "help": ("", HELP),
             "android": ("Get XML From Android Device Help", BACKUP_HELP_TEXT),
             "listfile": ("List Android Files Help", LISTFILES_HELP_TEXT),
-            "search": ("Search Help", SEARCH_HELP_TEXT),
-            "ppp": ("Profiles Per Line Help", PPP_HELP_TEXT),
             "apikey": ("API Key Help", APIKEY_HELP_TEXT),
         }
         query_name = query_name.value if isinstance(query_name, Event) else str(query_name).lower()
@@ -2273,48 +2259,6 @@ class MapTaskerEventHandlers:
         text = translate_string("View Limit set to")
         guiview.display_message_box(f"{text} {display_value}.", "Green")
 
-    # Clear the message text box.
-    def clear_messages_event(self) -> None:
-        """
-        Clears the message box
-        Args:
-            None
-        Returns:
-            None
-        Processing Logic:
-            - Destroys the message box
-        """
-        the_view = self.gui
-        the_view.all_messages = {}
-
-    def colors_event(self, e: str) -> None:
-        """Fires whenever the user changes the dropdown category selection."""
-        color_selected_item = e.value if hasattr(e, "value") else e
-        if not color_selected_item:
-            return
-
-        the_view = self.gui
-        warning_check = ["Profile Conditions", "Action Conditions", "TaskerNet Information", "Tasker Preferences"]
-        check_against = [the_view.conditions, the_view.conditions, the_view.taskernet, the_view.preferences]
-
-        # Ensure the feature visibility flag is active before changing colors
-        with contextlib.suppress(Exception):
-            if PrimeItems.program_arguments["language"] != "english":
-                color_selected_item = translate_string(color_selected_item)
-            the_index = warning_check.index(color_selected_item)
-            if not check_against[the_index]:
-                the_output_message = color_selected_item.replace("Profile ", "").replace("Action ", "")
-                ui.notify(
-                    f"Display {the_output_message} is not set to display! Turn on Display {color_selected_item} first.",
-                    type="negative",
-                )
-                return
-
-        # Explicitly tell the user what they are altering
-        if hasattr(the_view, "color_change") and the_view.color_change:
-            the_view.color_change.set_text(f"Modifying color for: {color_selected_item}")
-            the_view.color_change.style("color: inherit;")
-
     def handle_color_pick_event(self, color_value: str) -> None:
         """Triggered automatically when a hex code or pop-up spectrum value updates."""
         the_view = self.gui
@@ -2335,18 +2279,42 @@ class MapTaskerEventHandlers:
             # Plug in the selected color for the selected named item
             the_view.event_handlers.extract_color_from_event(color_value, color_selected_item)
 
-            # --- DYNAMIC BACKGROUND LIVE REFRESH ---
+            # --- DYNAMIC LIVE REFRESH ---
+            # If a Map/Diagram view is currently rendered on screen, update it instantly rather
+            # than only taking effect the next time the view is (re)generated. Background gets
+            # its own path since it's a container style, not a CSS class add_css() (addcss.py)
+            # emits into the rendered HTML; every other category (Tasks, Projects, etc.) is
+            # rendered as `<span class="{css_class}">`, so overriding that class's color live
+            # (with !important, since it must beat the color already embedded in the loaded
+            # HTML's own <style> block) re-colors every matching element already on screen.
             if color_selected_item == "Background":
                 the_view.saved_background_color = make_hex_color(color_value)
-
-                # If a Map/Diagram view is currently rendered on screen, update its background instantly!
                 if hasattr(the_view, "textview") and the_view.textview:  # noqa: SIM102
-                    # Method A: Force styling directly onto the NiceGUI scroll_area container component
                     if hasattr(the_view.textview, "scroll_area") and the_view.textview.scroll_area:
                         the_view.textview.scroll_area.style(f"background-color: {color_value} !important;")
 
             else:
-                ui.notify("The change will take effect the next time you open the view.", color="green")
+                css_class = TYPES_OF_COLOR_NAMES.get(color_selected_item)
+                textview = getattr(the_view, "textview", None)
+                scroll_area = getattr(textview, "scroll_area", None) if textview else None
+                if css_class and scroll_area:
+                    with scroll_area:
+                        ui.run_javascript(
+                            f"""
+                            const container = document.getElementById("c{scroll_area.id}");
+                            if (container) {{
+                                let style = container.querySelector('style[data-live-color-override]');
+                                if (!style) {{
+                                    style = document.createElement('style');
+                                    style.setAttribute('data-live-color-override', '1');
+                                    container.appendChild(style);
+                                }}
+                                style.textContent += ".{css_class} {{ color: {color_value} !important; }}\\n";
+                            }}
+                            """,
+                        )
+                else:
+                    ui.notify("The change will take effect the next time you open the view.", color="green")
 
             # Update the visual status label text and text color instantly
             if hasattr(the_view, "color_change") and the_view.color_change:
@@ -2971,75 +2939,17 @@ class MapTaskerEventHandlers:
         view = getattr(self.gui, view_name)
         method(view, *args)
 
-    # Handlers for Search/Next/Prev/Clear/Toggle Word Wrap/Display Only ...for each view.
-    def diagram_display_only_event(self) -> None:  # noqa: D102
-        self._handle_event("display_only_event", "diagramview")
+    async def profiles_per_line_event(self, profiles_per_line: int) -> None:
+        """Sets gui.profiles_per_line to the newly selected value and regenerates/redisplays
+        the Diagram view (see NiceGuiTextView._profiles_per_line_selected in guiwins.py)."""
+        gui = self.gui
+        gui.profiles_per_line = profiles_per_line
+        PrimeItems.program_arguments["profiles_per_line"] = profiles_per_line
 
-    def analysis_display_only_event(self) -> None:  # noqa: D102
-        self._handle_event("display_only_event", "analysisview")
+        await run.io_bound(outline_the_configuration)
 
-    def map_display_only_event(self) -> None:  # noqa: D102
-        self._handle_event("display_only_event", "mapview")
-
-    def diagram_search_event(self) -> None:  # noqa: D102
-        self._handle_event("search_event", "diagramview")
-
-    def map_search_event(self) -> None:  # noqa: D102
-        self._handle_event("search_event", "mapview")
-
-    def analysis_search_event(self) -> None:  # noqa: D102
-        self._handle_event("search_event", "analysisview")
-
-    def diagram_search_here_event(self) -> None:  # noqa: D102
-        self._handle_event("search_here_event", "diagramview")
-
-    def map_search_here_event(self) -> None:  # noqa: D102
-        self._handle_event("search_here_event", "mapview")
-
-    def analysis_search_here_event(self) -> None:  # noqa: D102
-        self._handle_event("search_here_event", "analysisview")
-
-    def diagram_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
-        self._handle_event("nextprev_search_event", "diagramview", search_next)
-
-    def map_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
-        self._handle_event("nextprev_search_event", "mapview", search_next)
-
-    def analysis_nextprev_event(self, search_next: bool) -> None:  # noqa: D102
-        self._handle_event("nextprev_search_event", "analysisview", search_next)
-
-    def diagram_clear_event(self) -> None:  # noqa: D102
-        self._handle_event("clear_event", "diagramview")
-
-    def map_clear_event(self) -> None:  # noqa: D102
-        self._handle_event("clear_event", "mapview")
-
-    def analysis_clear_event(self) -> None:  # noqa: D102
-        self._handle_event("clear_event", "analysisview")
-
-    def diagram_wordwrap_event(self) -> None:  # noqa: D102
-        self._handle_event("wordwrap_event", "diagramview")
-
-    def map_wordwrap_event(self) -> None:  # noqa: D102
-        self._handle_event("wordwrap_event", "mapview")
-
-    def analysis_wordwrap_event(self) -> None:  # noqa: D102
-        self._handle_event("wordwrap_event", "analysisview")
-
-    def analysis_topbottom_event(self, top: bool) -> None:  # noqa: D102
-        self._handle_event("topbottom_event", "analysisview", top)
-
-    def map_topbottom_event(self, top: bool) -> None:  # noqa: D102
-        self._handle_event("topbottom_event", "mapview", top)
-
-    def diagram_topbottom_event(self, top: bool) -> None:  # noqa: D102
-        self._handle_event("topbottom_event", "diagramview", top)
-
-    def diagram_jump_topbottom_event(self, top: bool, connector: int) -> None:  # noqa: D102
-        self._handle_event("jump_topbottom_event", "diagramview", top, connector)
-
-    def profiles_per_line_event(self, profiles_per_line: str) -> None:  # noqa: D102
-        self._handle_event("profiles_level_event", "diagramview", profiles_per_line)
+        if getattr(gui, "textview", None) is not None and hasattr(gui.textview, "reload_diagram"):
+            gui.textview.reload_diagram()
 
     def ai_apikey_get_event(self, cancel: bool, clear: bool) -> None:  # noqa: D102
         self._handle_event("ai_apikey_process_event", "ai_apikey_window", cancel, clear)
