@@ -1107,7 +1107,7 @@ def reload_gui(self: object) -> None:
         None
     """
     # Save the last-used tab
-    self.tab_to_use = self.tabview.get()
+    self.tab_to_use = self.gui_main_tabs_container.value
 
     # Save the settings
     temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
@@ -1374,6 +1374,7 @@ def check_new_version(self: "MyGui") -> None:
                 .style("background-color: #246FB6; border-color: #79ff94; border-width: 1px; color: white;")
                 .classes("w-full text-xs")
             )
+            ui.update()  # Force NiceGUI to update the UI immediately
 
         self.message = self.message + "\n\n" + translate_string("A new version of MapTasker is available.")
 

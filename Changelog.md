@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [11.0.1] 15-Jul-2026
+## [11.0.1-11.0.2] 15-Jul-2026
 
 ### Added
 
@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: The seleceted language name does not appear in the GUI.
 - Fixed: Changing some colors did not change the output displayed colors (e.g. for Tasks).
 - Fixed: Directory entries in the Map view are incorrectly taking on the color of Profiles
+- Fixed: 'Upgrade to Latest Version' button causes a program error and the upgrade does not occur.
 
 ### Known Issue
 

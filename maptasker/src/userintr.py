@@ -1957,8 +1957,7 @@ class MapTaskerEventHandlers:
                 )
 
                 # Handle upgrade buttons checks
-                if hasattr(the_view, "check_new_version"):
-                    the_view.check_new_version()
+                check_new_version(the_view)
 
                 # Update the pull-down menus option items lists
                 if "list_tasker_objects" in globals():
@@ -2128,7 +2127,7 @@ class MapTaskerEventHandlers:
         Processing Logic:
             - Calls the update function.
             - Reruns the program to pick up the update."""
-        the_view = self.parent
+        the_view = self.gui
         update_maptasker()
         the_view.display_message_box("Program updated.  Restarting...", "Green")
         # Create the Change Log file to be read and displayed after a program update.
@@ -2921,6 +2920,32 @@ class MapTaskerEventHandlers:
             f"{text} {selected}.",
             "Green",
         )
+
+    # Display what is in the changelog for the new release.
+    def whatsnew_event(self) -> None:
+        """
+        Retrieves the latest changelog from the Map-Tasker GitHub repository and displays it in a popup window.
+
+        This function sends a GET request to the specified URL to retrieve the changelog in text format,
+        then displays it all at once in a single popup dialog (rather than one message box per line). The
+        changelog is displayed starting from the latest version until the "Older History" section is reached.
+
+        Parameters:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        number_of_versions = 11
+        changes = get_changelog_file(CHANGELOG_URL, "##", number_of_versions)
+
+        if changes:
+            summary = translate_string(f"End of changelog. The latest {number_of_versions - 1} versions displayed.")
+            message = "\n".join(changes) + f"\n\n{summary}"
+        else:
+            message = translate_string("An error occurred reading the changelog file.")
+
+        create_popup_window(translate_string("What's New?"), message, close_button=True)
 
     # Front-end event handlers
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:

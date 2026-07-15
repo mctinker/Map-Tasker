@@ -24,9 +24,9 @@ import sys
 # =========================================================================
 # >> NEW CODE TO FIX ModuleNotFoundError: No module named 'maptasker' <<
 # =========================================================================
-# Calculate the absolute path to the directory *containing* main.py,
-# which should be the root of your project where 'maptasker' resides.
-project_root_dir = os.path.dirname(os.path.abspath(__file__))
+# Calculate the absolute path to the directory *containing* the 'maptasker'
+# package (i.e. one level up from this file), which is the project root.
+project_root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Insert the project root path at the beginning of sys.path
 # This ensures Python can find the 'maptasker' package.

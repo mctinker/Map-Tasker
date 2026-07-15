@@ -122,7 +122,6 @@ def restart_program() -> None:
     Processing Logic:
         - Call ourselves and exit after the last call."""
 
-    # _ = mapit_all("")
     restart_program_subprocess()
     exit_program(0)  # This should never be called.
 

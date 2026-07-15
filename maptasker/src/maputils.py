@@ -7,6 +7,7 @@
 #                                                                                      #
 from __future__ import annotations
 
+import asyncio
 import ipaddress
 import json
 import os
@@ -15,6 +16,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime
 from zoneinfo import (
@@ -642,7 +644,27 @@ def restart_program_subprocess() -> None:
     subprocess.Popen(new_process_args)  # noqa: S603
     print("Restarting program.  Please stand by...")
     time.sleep(0.2)
-    sys.exit(0)  # Exit the current script cleanly
+
+    # If we're inside a running event loop (e.g. this was triggered from a NiceGUI
+    # button click), sys.exit() only raises SystemExit inside that task, which crashes
+    # the loop/uvicorn server with a messy traceback instead of cleanly ending the process.
+    # NiceGUI's core.stop_and_exit() is built for exactly this: it runs shutdown
+    # handlers/atexit callbacks and then hard-exits via os._exit().
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        sys.exit(0)  # Not in an event loop: plain, clean exit.
+    else:
+        from nicegui.core import stop_and_exit  # noqa: PLC0415
+
+        # stop_and_exit() blocks on asyncio.run_coroutine_threadsafe(...).result(),
+        # which needs the event loop's own thread free to run the scheduled coroutine.
+        # Calling it directly from here (already on the loop's thread, inside this
+        # button-click handler) deadlocks that wait for a full 30s, during which the
+        # old process still holds the port that the freshly-spawned new process is
+        # trying to bind to. NiceGUI itself always calls stop_and_exit() from a
+        # separate thread (see nicegui/server.py) for this exact reason.
+        threading.Thread(target=stop_and_exit, daemon=True).start()
 
 
 def make_hex_color(color_string: str) -> str:
