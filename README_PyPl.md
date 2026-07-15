@@ -16,7 +16,7 @@ NOTE: If MapTasker doesn't install on Windows 11, first install 'nicegui' and th
 MapTasker has a built-in auto-updater.  If a new version is available, a "New Version" button will appear allowing the user to install the new version and relaunch MapTasker.
 If the auto-updater does not work, then use one of the following:
 	
-- via uv: `uv sync --upgrade-package maptasker`
+- via uv: `uv pip install --upgrade maptasker`
 - via pip: `pip install --upgrade maptasker`
 
 The older desktop version is available if needed:
