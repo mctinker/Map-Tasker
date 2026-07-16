@@ -45,6 +45,7 @@ class Local_File_Picker(ui.dialog):
                 ui.button("Cancel", on_click=self.close).props("outline")
                 ui.button("Ok", on_click=self._handle_ok)
         self.update_grid()
+        self.open()
 
     def add_drives_toggle(self):
         if platform.system() == "Windows":

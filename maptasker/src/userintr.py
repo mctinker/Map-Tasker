@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, context, run, ui
 
+from maptasker.src import taskedit
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
@@ -44,6 +45,8 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins import (
     NiceGuiTextView,
     NiceGuiTreeView,
+    build_add_task_dialog,
+    build_edit_task_dialog,
     create_popup_window,
     initialize_gui,
     initialize_screen,
@@ -989,6 +992,8 @@ def _open_popout_window(path: str) -> None:
     """Opens a Map/Diagram popout window and remembers it in the browser so 'Close Tabs On Exit'
     (see get_rid_of_windows_and_exit in guiwins.py) can close it later -- window.open()'s return
     value is otherwise discarded and there'd be no handle left to close it with.
+    The actual data display is done in rungui.py with a call to NiceGuiTextView() to display the data
+    in a new window.  This function just opens the new window and remembers it in the browser.
     """
     ui.run_javascript(
         "window.mapTaskerPopouts = window.mapTaskerPopouts || []; "
@@ -1070,20 +1075,6 @@ class MapTaskerEventHandlers:
             # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
             PrimeItems.output_lines.output_lines.clear()
 
-            # Check if too much data to display
-            # map_length = len(map_data)
-            # if map_length > gui.view_limit:
-            #     text1 = translate_string("Too much data to display (Size=")
-            #     text2 = translate_string("View Limit=")
-            #     text3 = translate_string(
-            #         "Select a larger 'View Limit' or a single Project / Profile / Task and try again.",
-            #     )
-            #     gui.display_message_box(
-            #         f"{text1}{map_length}, {text2}{gui.view_limit}).  {text3}",
-            #         "Orange",
-            #     )
-            #     return
-
             # Display the map in its own browser window/tab rather than the main window.
             _open_popout_window("/popout/map")
 
@@ -1158,10 +1149,18 @@ class MapTaskerEventHandlers:
             )
 
     def clear_view_event(self: "MapTaskerEventHandlers") -> None:
-        """Clears the current view and resets the textview."""
+        """Clears the current view and resets the textview, closing any open Map/Diagram popout tabs."""
         if hasattr(self.gui, "content_container") and self.gui.content_container:
             self.gui.content_container.clear()
-            ui.notify("View cleared.", type="info", position="bottom")
+
+        # Close every Map/Diagram popout window this window opened (tracked in
+        # window.mapTaskerPopouts, see _open_popout_window() above). Mirrors the cleanup done by
+        # get_rid_of_windows_and_exit() in guiwins.py, but without shutting the server down.
+        ui.run_javascript(
+            "(window.mapTaskerPopouts || []).forEach(w => { try { if (w && !w.closed) w.close(); } "
+            "catch (e) {} }); window.mapTaskerPopouts = [];",
+        )
+        ui.notify("View cleared.", type="info", position="bottom")
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
@@ -1496,6 +1495,134 @@ class MapTaskerEventHandlers:
         if hasattr(self.gui, "is_updating") and self.gui.is_updating:
             return  # Skip processing if we're in the middle of an update
         self.process_single_name_event("Task", name_selected)
+
+    def open_edit_task_dialog_event(self) -> None:
+        """Opens the Edit Task dialog for the currently selected single Task name."""
+        the_view = self.gui
+        task_name = getattr(the_view, "single_task_name", "")
+        if not task_name:
+            ui.notify("Select a single Task first (Task pulldown above).", type="warning")
+            return
+
+        edited_task = taskedit.load_task_for_edit(task_name)
+        if edited_task is None:
+            ui.notify(f"Could not find Task '{task_name}'.", type="negative")
+            return
+
+        build_edit_task_dialog(the_view, edited_task)
+
+    def save_edited_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Edit Task dialog's field values, then writes the
+        edited Task out as a standalone .tsk.xml file. Dialog stays open on any error
+        so the user's in-progress edits aren't lost.
+        """
+        arg_values = {}
+        for key, widget in field_refs.items():
+            if key in ("name", "priority", "save_path"):
+                continue
+            value = widget.value
+            arg_values[key] = "1" if value is True else "0" if value is False else str(value)
+
+        errors = taskedit.apply_edits_to_task(
+            edited_task,
+            field_refs["name"].value,
+            field_refs["priority"].value,
+            arg_values,
+        )
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        save_path = field_refs["save_path"].value
+        try:
+            taskedit.write_standalone_task_xml(edited_task, save_path)
+        except OSError as e:
+            ui.notify(f"Could not save file: {e}", type="negative")
+            return
+
+        ui.notify(f"Saved to {save_path}", type="positive")
+        dialog.close()
+
+    def open_add_task_dialog_event(self) -> None:
+        """Opens the Add Task dialog for a brand-new Task."""
+        new_task = taskedit.create_new_task("", "100")
+        if isinstance(new_task, str):
+            ui.notify(new_task, type="warning")
+            return
+
+        build_add_task_dialog(self.gui, new_task)
+
+    def add_action_to_new_task_event(self, edited_task: taskedit.EditableTask, action_key: str) -> None:
+        """Synthesizes and appends a new action to the in-progress new Task."""
+        result = taskedit.add_action_to_task(edited_task, action_key)
+        if isinstance(result, list):
+            for error in result:
+                ui.notify(error, type="negative")
+
+    def remove_action_from_new_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
+        """Removes an action from the in-progress new Task and renumbers the rest."""
+        taskedit.remove_action_from_task(edited_task, act_number)
+
+    def save_new_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Add Task dialog's field values, then writes the
+        new Task out as a standalone .tsk.xml file. Dialog stays open on any error
+        so the user's in-progress work isn't lost.
+        """
+        if not edited_task.actions:
+            ui.notify("This Task has no actions yet.", type="warning")
+
+        name_value = field_refs["name"].value.strip()
+        save_path = field_refs["save_path"].value.strip()
+
+        name_conflict_errors = []
+        if taskedit.task_name_exists(name_value):
+            name_conflict_errors.append(
+                f"A Task named '{name_value}' already exists in this backup. Choose a different name.",
+            )
+        if taskedit.save_path_exists(save_path):
+            name_conflict_errors.append(f"A file already exists at '{save_path}'. Choose a different name or location.")
+        if name_conflict_errors:
+            for error in name_conflict_errors:
+                ui.notify(error, type="negative")
+            return
+
+        arg_values = {}
+        for key, widget in field_refs.items():
+            if key in ("name", "priority", "save_path"):
+                continue
+            value = widget.value
+            arg_values[key] = "1" if value is True else "0" if value is False else str(value)
+
+        errors = taskedit.apply_edits_to_task(
+            edited_task,
+            name_value,
+            field_refs["priority"].value,
+            arg_values,
+        )
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        try:
+            taskedit.write_standalone_task_xml(edited_task, save_path)
+        except OSError as e:
+            ui.notify(f"Could not save file: {e}", type="negative")
+            return
+
+        ui.notify(f"Saved to {save_path}", type="positive")
+        dialog.close()
 
     # Define the asynchronous callback for the button
     async def getxml_event(self) -> None:

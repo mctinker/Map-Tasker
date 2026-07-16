@@ -1,6 +1,6 @@
 [project]
 name = "maptasker"
-version = "11.0.2"
+version = "11.0.3"
 description = "Utility to display your entire Android 'Tasker' configuration in your browser."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
@@ -160,7 +160,7 @@ multiline-quotes = 'double'
 
 [tool.ruff.mccabe]
 # Unlike Flake8, default to a complexity level of 15.
-max-complexity = 15
+max-complexity = 20
 
 [tool.ruff.per-file-ignores]
 # https://beta.ruff.rs/docs/rules/

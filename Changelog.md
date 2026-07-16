@@ -2,25 +2,20 @@
 
 All notable changes to this project will be documented in this file!
 
-## [11.0.1-11.0.2] 15-Jul-2026
+## [11.0.3] ??-Jul-2026  # FIX
 
 ### Added
 
-- Added: 'Profiles Per Line' option has been added back into the Diagram view. 
+- Added: Searching for a string will highjlight the selected match in a different color from the other matching strings.
 
 ### Changed
 
-- Changed: Code related to the old desktop-specific functions has been removed.
+- Changed: The 'Top' and 'Bottom' button now resets the display to column one regardless of the scroll position.
+- Changed: The 'Clear' view button now closes all open Map and Diagram views/tabs. 
 
 ### Fixed
 
-- Fixed: Task (names) with too many actions hotlinks do not work in the Map view.
-- Fixed: Version 2 Scene JSON data is being double-spaced rather than single-spaced in the Map view.
-- Fixed: The GUI icons are not appearing: coffee cup, language flag, etc.
-- Fixed: The seleceted language name does not appear in the GUI.
-- Fixed: Changing some colors did not change the output displayed colors (e.g. for Tasks).
-- Fixed: Directory entries in the Map view are incorrectly taking on the color of Profiles
-- Fixed: 'Upgrade to Latest Version' button causes a program error and the upgrade does not occur.
+- Fixed: Program error 'tomli failure' in getputer when selecting 'Upgrade to New Release' button.
 
 ### Known Issue
 
@@ -32,6 +27,18 @@ kill -9 pid_number
 ...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
 
 ## Older History Logs
+
+## [11.0.1-11.0.2] 15-Jul-2026
+
+- Added: 'Profiles Per Line' option has been added back into the Diagram view. 
+- Changed: Code related to the old desktop-specific functions has been removed.
+- Fixed: Task (names) with too many actions hotlinks do not work in the Map view.
+- Fixed: Version 2 Scene JSON data is being double-spaced rather than single-spaced in the Map view.
+- Fixed: The GUI icons are not appearing: coffee cup, language flag, etc.
+- Fixed: The seleceted language name does not appear in the GUI.
+- Fixed: Changing some colors did not change the output displayed colors (e.g. for Tasks).
+- Fixed: Directory entries in the Map view are incorrectly taking on the color of Profiles
+- Fixed: 'Upgrade to Latest Version' button causes a program error and the upgrade does not occur.
 
 ## [11.0.0] 15-Jul-2026
 926456

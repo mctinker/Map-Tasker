@@ -316,6 +316,14 @@ def build_action_codes_from_json(build_it_all: bool = False) -> None:
     except FileNotFoundError:
         logger.error("arg_specs missing!")
 
+    # Get the map of Tasker action category codes to their display names (used by Add Task's picker).
+    try:
+        with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
+            for description in json.load(file):
+                PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
+    except FileNotFoundError:
+        logger.error("category_descriptions missing!")
+
     # If building it all, then get the map of all Tasker task action codes and their arguments, states, and events.
     if build_it_all:
         # Only do these imports if building the entire dictionary from scratch.

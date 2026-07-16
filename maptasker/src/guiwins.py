@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import app, context, ui
 
+from maptasker.src import taskedit
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.guiutil2 import get_monospace_fonts, sort_languages_with_priority
 from maptasker.src.maputil2 import translate_string
@@ -40,6 +41,191 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
 
     dialog.open()
     return dialog
+
+
+def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> None:
+    """Builds and opens the Edit Task dialog (Phase 1: name/priority and the values of
+    an action's existing arguments -- see taskedit.py for what's editable and why).
+
+    Built fresh each call rather than reused, since its content is entirely different
+    per Task. Field widgets are kept in a plain dict (matching this file's existing
+    ad-hoc widget-ref pattern) and read at Save time rather than using NiceGUI bindings.
+    """
+    task_name = edited_task.task_element.findtext("nme", "")
+    field_refs: dict = {}
+
+    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
+        ui.label(f"Edit Task: {task_name}").classes("text-xl font-bold text-blue-600")
+
+        with ui.row().classes("w-full gap-4"):
+            field_refs["name"] = ui.input("Task Name", value=task_name).classes("flex-1")
+            field_refs["priority"] = ui.input(
+                "Priority",
+                value=edited_task.task_element.findtext("pri", ""),
+            ).classes("w-32")
+
+        with ui.scroll_area().classes("w-full h-96 border rounded p-2"):
+            for action in edited_task.actions:
+                with ui.expansion(f"{action.act_number}: {action.action_name}").classes("w-full"):
+                    if not action.args:
+                        ui.label("No editable arguments.").classes("text-xs text-gray-500 italic")
+                    for arg in action.args:
+                        key = taskedit.arg_key(action.act_number, arg.arg_id)
+                        with ui.row().classes("w-full items-center gap-2"):
+                            if arg.widget_kind == "checkbox":
+                                field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
+                            elif arg.widget_kind == "dropdown":
+                                options = arg.dropdown_options or []
+                                try:
+                                    current_label = options[int(arg.current_value)]
+                                except (ValueError, IndexError):
+                                    current_label = options[0] if options else ""
+                                field_refs[key] = (
+                                    ui.select(options, value=current_label, label=arg.arg_name).classes("flex-1")
+                                )
+                            elif arg.widget_kind in ("text", "raw_fallback"):
+                                field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
+                                if arg.readonly_note:
+                                    ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+                            else:  # readonly
+                                ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
+                                if arg.readonly_note:
+                                    ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+
+        field_refs["save_path"] = ui.input(
+            "Save as",
+            value=taskedit.default_save_path(task_name),
+        ).classes("w-full mt-2")
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(
+                "Save",
+                on_click=lambda: self.event_handlers.save_edited_task_event(edited_task, field_refs, dialog),
+            ).classes("bg-blue-600")
+
+    dialog.open()
+
+
+def build_add_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> None:
+    """Builds and opens the Add Task dialog: create a new Task, search/filter actions
+    by name or category to add to it, edit their synthesized default argument values,
+    remove any if needed, then save as a standalone .tsk.xml -- see taskedit.py for
+    what's addable and why (roughly 3 in 4 action types; the rest need an App/Icon
+    picker or are third-party plugin configs with no generic default, and show up
+    greyed out with a reason instead of being clickable).
+
+    Both the action picker and the "added so far" list are rebuilt (not just
+    appended to) after every Add/Remove, since removing an action renumbers every
+    action after it -- their field_refs keys (which embed act_number) would
+    otherwise go stale.
+    """
+    field_refs: dict = {}
+    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
+
+    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
+        ui.label("Add Task").classes("text-xl font-bold text-blue-600")
+
+        last_auto_path = {"value": taskedit.default_save_path("")}
+
+        def sync_save_path(_e=None) -> None:
+            # Keep "Save as" in sync with the Task Name as the user types, so the
+            # file actually lands under the name they gave the task -- but only
+            # while it still holds what we last auto-computed; if the user has
+            # since edited it manually, leave their edit alone. (Can't tell "manual
+            # edit" apart via save_path's own on_change: NiceGUI fires that for
+            # programmatic value sets too, so it would trip on the very first sync.)
+            if field_refs["save_path"].value == last_auto_path["value"]:
+                new_path = taskedit.default_save_path(field_refs["name"].value)
+                field_refs["save_path"].value = new_path
+                last_auto_path["value"] = new_path
+
+        with ui.row().classes("w-full gap-4"):
+            field_refs["name"] = ui.input("Task Name", value="", on_change=sync_save_path).classes("flex-1")
+            field_refs["priority"] = ui.input("Priority", value="100").classes("w-32")
+
+        ui.label("Add an action").classes("text-sm font-bold mt-2")
+        with ui.row().classes("w-full gap-4"):
+            search_input = ui.input("Search actions").classes("flex-1")
+            category_select = ui.select(["All", *category_names], value="All").classes("w-48")
+
+        picker_container = ui.column().classes("w-full")
+        ui.label("Actions in this Task").classes("text-sm font-bold mt-2")
+        added_container = ui.column().classes("w-full")
+
+        def render_added_actions() -> None:
+            # Rebuild from scratch -- a Remove renumbers every action after it, so
+            # stale act*_arg* keys must not survive into the next Save.
+            for key in [k for k in field_refs if k.startswith("act")]:
+                del field_refs[key]
+            added_container.clear()
+            with added_container:
+                if not edited_task.actions:
+                    ui.label("No actions added yet.").classes("text-xs text-gray-500 italic")
+                for action in edited_task.actions:
+                    with ui.expansion(f"{action.act_number}: {action.action_name}").classes("w-full"):
+                        for arg in action.args:
+                            key = taskedit.arg_key(action.act_number, arg.arg_id)
+                            with ui.row().classes("w-full items-center gap-2"):
+                                if arg.widget_kind == "checkbox":
+                                    field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
+                                elif arg.widget_kind == "dropdown":
+                                    options = arg.dropdown_options or []
+                                    try:
+                                        current_label = options[int(arg.current_value)]
+                                    except (ValueError, IndexError):
+                                        current_label = options[0] if options else ""
+                                    field_refs[key] = (
+                                        ui.select(options, value=current_label, label=arg.arg_name).classes("flex-1")
+                                    )
+                                else:  # "text" or "raw_fallback"
+                                    field_refs[key] = (
+                                        ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
+                                    )
+                        ui.button(
+                            "Remove",
+                            on_click=lambda n=action.act_number: (
+                                self.event_handlers.remove_action_from_new_task_event(edited_task, n),
+                                render_added_actions(),
+                            ),
+                        ).props("flat color=red dense")
+
+        def refresh_picker(_e=None) -> None:
+            picker_container.clear()
+            rows = taskedit.search_addable_actions(search_input.value, category_select.value)
+            with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
+                for row in rows:
+                    if row["addable"]:
+                        ui.button(
+                            f"{row['name']} ({row['category_name']})",
+                            on_click=lambda r=row: (
+                                self.event_handlers.add_action_to_new_task_event(edited_task, r["action_key"]),
+                                render_added_actions(),
+                            ),
+                        ).props("flat align=left dense").classes("w-full justify-start")
+                    else:
+                        with ui.column().classes("w-full gap-0"):
+                            ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
+                            ui.label(row["reason"]).classes("text-xs text-gray-500 italic")
+
+        search_input.on_value_change(refresh_picker)
+        category_select.on_value_change(refresh_picker)
+        refresh_picker()
+        render_added_actions()
+
+        field_refs["save_path"] = ui.input(
+            "Save as",
+            value=last_auto_path["value"],
+        ).classes("w-full mt-2")
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(
+                "Save",
+                on_click=lambda: self.event_handlers.save_new_task_event(edited_task, field_refs, dialog),
+            ).classes("bg-blue-600")
+
+    dialog.open()
 
 
 # ==========================================
@@ -262,6 +448,7 @@ class NiceGuiTextView:
                         label="Profiles Per Line",
                         on_change=self._profiles_per_line_selected,
                     ).classes("w-40").props("dense")
+                    self.diagram_message_label = ui.label("").classes("text-orange-400 italic ml-4")
 
             self.wrap_enabled = "Diagram" not in self.title
             self.wrap_classes = "whitespace-pre-wrap break-words" if self.wrap_enabled else "whitespace-pre"
@@ -348,13 +535,18 @@ class NiceGuiTextView:
             # own <span> (tens of thousands of them on a large diagram, since a run only merges
             # with its neighbor when they're on the very same line -- see
             # compute_diagram_connector_groups() in diagram.py). That many extra inline elements
-            # makes the browser's layout/paint work on scroll noticeably heavier. Chunking the
-            # Diagram view much more finely than other views, and marking each chunk
-            # content-visibility: auto, lets the browser skip layout and paint entirely for chunks
-            # that are scrolled out of view instead of doing that work for the whole document on
-            # every frame. contain-intrinsic-size reserves roughly the right amount of scrollbar
-            # space for an unrendered chunk so scrolling doesn't jump around as chunks pop in and
-            # out; it doesn't need to be exact, just close.
+            # makes the browser's layout/paint work on scroll noticeably heavier, so the Diagram
+            # view is chunked much more finely than other views. Every view's chunks are marked
+            # content-visibility: auto though, which lets the browser skip layout and paint
+            # entirely for chunks that are scrolled out of view instead of doing that work for the
+            # whole document on every frame -- on a very large Map view that's the difference
+            # between laying out the whole document up front and only what's on screen.
+            # contain-intrinsic-size reserves roughly the right amount of scrollbar space for an
+            # unrendered chunk so scrolling doesn't jump around as chunks pop in and out; it
+            # doesn't need to be exact, just close. For the Map/Misc views this estimate is fuzzier
+            # than for Diagram's plain monospace text, since long lines there can word-wrap
+            # (word-break: break-word, set above) into more than one visual line -- a minor
+            # scrollbar jitter, not a correctness issue.
             chunk_size = 150 if is_diagram else 2000
             # text-sm is 14px; at the Diagram view's tightened line-height (1.2, set in build_ui)
             # that's ~17px per line instead of Tailwind's default ~20px.
@@ -370,15 +562,18 @@ class NiceGuiTextView:
                         )
                     else:
                         chunk_content = "\n".join(chunk_lines)
-                    chunk_style = html_style
-                    if is_diagram:
-                        chunk_height = len(chunk_lines) * approx_px_per_line
-                        chunk_style += f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
+                    chunk_height = len(chunk_lines) * approx_px_per_line
+                    chunk_style = (
+                        html_style
+                        + f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
+                    )
                     ui.html(chunk_content, sanitize=False).classes("w-full block max-w-full").style(chunk_style)
                     await asyncio.sleep(0.01)  # Yields loop to keep WebSocket alive
 
             if connectors_by_line:
                 self._enable_connector_highlighting()
+                if hasattr(self, "diagram_message_label"):
+                    self.diagram_message_label.set_text("Click on connector to highlight")
             return  # noqa: TRY300
 
         except FileNotFoundError:
@@ -711,8 +906,30 @@ class NiceGuiTextView:
                                     return lambda: (
                                         results_dialog.close(),
                                         client.run_javascript(f"""
+                                            // Restore any previously-clicked match back to the standard
+                                            // highlight color before marking the newly-clicked one, so
+                                            // only the match the user just jumped to stands out.
+                                            document.querySelectorAll('.search-highlight-active').forEach(el => {{
+                                                el.classList.remove('search-highlight-active');
+                                                el.style.backgroundColor = '#ffd941';
+                                                el.style.color = '#000000';
+                                            }});
                                             const el = document.getElementById("{target_id}");
-                                            if (el) el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                                            if (el) {{
+                                                // As in the Diagram connector jump buttons: a chunk
+                                                // skipped by content-visibility: auto was never laid
+                                                // out, so scrollIntoView() on a descendant of it lands
+                                                // in the wrong place until it's forced to render.
+                                                for (let a = el; a; a = a.parentElement) {{
+                                                    if (getComputedStyle(a).contentVisibility === "auto") {{
+                                                        a.style.contentVisibility = "visible";
+                                                    }}
+                                                }}
+                                                el.classList.add('search-highlight-active');
+                                                el.style.backgroundColor = '#ff5722';
+                                                el.style.color = '#ffffff';
+                                                el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                                            }}
                                         """),
                                     )
 
@@ -895,6 +1112,13 @@ class NiceGuiTextView:
         self.html_display.content = final_html
 
     def scroll(self, direction: str) -> None:
+        """Manages the scroll position of the view's content area based on the specified direction ('top' or 'bottom').
+
+        Also resets horizontal scroll back to column 1, since the view may have been scrolled
+        sideways (e.g. via the search feature or a wide diagram) before Top/Bottom is clicked.
+        """
+        # Reset horizontal scroll back to the leftmost column regardless of direction.
+        self.scroll_area.scroll_to(percent=0.0, axis="horizontal")
         if direction == "top":
             # Native NiceGUI scroll to top (0% progress)
             self.scroll_area.scroll_to(percent=0.0)
@@ -1523,6 +1747,14 @@ def initialize_screen(self: MyGui) -> None:
                     translate_string("List Unnamed Items"),
                     on_change=self.event_handlers.list_unnamed_items_event,
                 ).classes("mt-1 text-xs")
+                self.edit_task_button = ui.button(
+                    translate_string("Edit Task"),
+                    on_click=self.event_handlers.open_edit_task_dialog_event,
+                ).classes("w-64 mt-2 bg-blue-500")
+                self.add_task_button = ui.button(
+                    translate_string("Add Task"),
+                    on_click=self.event_handlers.open_add_task_dialog_event,
+                ).classes("w-64 mt-2 bg-blue-500")
 
             # --- TAB 2: COLORS (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_colors).classes("p-2 m-0") as self.gui_color_panel:

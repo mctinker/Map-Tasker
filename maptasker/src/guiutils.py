@@ -1107,7 +1107,7 @@ def reload_gui(self: object) -> None:
         None
     """
     # Save the last-used tab
-    self.tab_to_use = self.gui_main_tabs_container.value
+    self.tab_to_use = self.gui_main_tabs_container.value.label if hasattr(self, "gui_main_tabs_container") else None
 
     # Save the settings
     temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}

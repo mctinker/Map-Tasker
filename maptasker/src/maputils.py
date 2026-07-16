@@ -475,33 +475,6 @@ def exit_program(return_code: int = 0) -> None:
     sys.exit(return_code)
 
 
-def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
-    """
-    Converts a hexadecimal color string (e.g., '#RRGGBB' or 'RRGGBB') to an RGB tuple.
-
-    Args:
-        hex_color (str): The hexadecimal color string.
-
-    Returns:
-        tuple[int, int, int]: An RGB tuple (R, G, B) where each component is 0-255.
-
-    Raises:
-        ValueError: If the hex color string is malformed.
-    """
-    hex_color = hex_color.lstrip("#")
-    if len(hex_color) != 6:
-        return False
-    try:
-        r = int(hex_color[0:2], 16)
-        g = int(hex_color[2:4], 16)
-        b = int(hex_color[4:6], 16)
-        return (r, g, b)  # noqa: TRY300
-
-    except ValueError:
-        logger.debug("Invalid hex color input: " + hex_color)
-        return False
-
-
 def append_to_filename(original_filename_with_type: str, text_to_append: str) -> str:
     """
     Appends a text string to the filename part of a given filename, preserving the file type.
