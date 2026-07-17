@@ -273,11 +273,17 @@ def _build_editable_args(
     return editable_args
 
 
-def _find_int_element(action_element: defusedxml.ElementTree.Element, the_arg: str) -> defusedxml.ElementTree.Element | None:
+def _find_int_element(
+    action_element: defusedxml.ElementTree.Element,
+    the_arg: str,
+) -> defusedxml.ElementTree.Element | None:
     return action_element.find(f"./Int[@sr='{the_arg}']")
 
 
-def _find_str_element(action_element: defusedxml.ElementTree.Element, the_arg: str) -> defusedxml.ElementTree.Element | None:
+def _find_str_element(
+    action_element: defusedxml.ElementTree.Element,
+    the_arg: str,
+) -> defusedxml.ElementTree.Element | None:
     return next(
         (child for child in action_element.findall("Str") if child.attrib.get("sr") == the_arg),
         None,
@@ -299,7 +305,7 @@ def _readonly_arg(arg, note: str) -> EditableArg:
 
 def _lookup_key(arg) -> str | None:
     """If this arg's eval is ['prefix', 'l', lookupkey], return the lookup key."""
-    if isinstance(arg.arg_eval, list) and len(arg.arg_eval) > 2 and arg.arg_eval[1] == "l":  # noqa: PLR2004
+    if isinstance(arg.arg_eval, list) and len(arg.arg_eval) > 2 and arg.arg_eval[1] == "l":
         return arg.arg_eval[2]
     return None
 
@@ -644,9 +650,10 @@ def save_path_exists(output_path: str) -> bool:
     return bool(output_path) and os.path.exists(output_path)
 
 
-def write_standalone_task_xml(edited_task: EditableTask, output_path: str) -> None:
-    """Write the edited Task as a standalone TaskerData/Task XML file, matching
-    Tasker's own single-task export/import format. Raises OSError on failure.
+def render_standalone_task_xml(edited_task: EditableTask) -> str:
+    """Render the edited Task as a standalone TaskerData/Task XML string, matching
+    Tasker's own single-task export/import format. Shared by write_standalone_task_xml
+    (local file) and save_task_to_android (posted to the Android device).
     """
     tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
     task_copy = copy.deepcopy(edited_task.task_element)
@@ -658,7 +665,57 @@ def write_standalone_task_xml(edited_task: EditableTask, output_path: str) -> No
     root.append(task_copy)
     ETW.indent(root, space="\t")
 
+    return XML_DECLARATION + ETW.tostring(root, encoding="unicode") + "\n"
+
+
+def write_standalone_task_xml(edited_task: EditableTask, output_path: str) -> None:
+    """Write the edited Task as a standalone TaskerData/Task XML file, matching
+    Tasker's own single-task export/import format. Raises OSError on failure.
+    """
     with open(output_path, "w", encoding="utf-8") as out_file:
-        out_file.write(XML_DECLARATION)
-        out_file.write(ETW.tostring(root, encoding="unicode"))
-        out_file.write("\n")
+        out_file.write(render_standalone_task_xml(edited_task))
+
+
+def save_task_to_android(
+    edited_task: EditableTask,
+    ip_address: str,
+    ip_port: str,
+    task_name: str,
+) -> tuple[int, str]:
+    """Import the edited Task, rendered as standalone XML, onto the Android device
+    via the Tasker HTTP API's POST /api/import endpoint (Params/Body: Task XML;
+    Response: task object). Every request to this API must carry an
+    'Authorization: <key>' header, so this first calls GET /api/auth (see
+    maputil2.get_android_auth_key) to obtain that key.
+
+    Returns (0, task_name) on success, or (return_code, error_message).
+    """
+    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from maptasker.src.maputil2 import get_android_auth_key, http_post_request  # noqa: PLC0415
+
+    ip_address = ip_address.strip()
+    ip_port = ip_port.strip()
+    if not ip_address or not ip_port:
+        return 8, "Android IP address and port are required."
+
+    return_code, auth_key = get_android_auth_key(ip_address, ip_port)
+    if return_code != 0:
+        return return_code, auth_key
+
+    xml_text = render_standalone_task_xml(edited_task)
+
+    # api/import imports directly into Tasker
+    # api/tasks runs an existing task by name, but doesn't import a new one
+    # /api/file reads/writes files on the device, but doesn't import into Tasker
+    return_code, response = http_post_request(
+        ip_address,
+        ip_port,
+        "",
+        "api/import",
+        "",
+        xml_text.encode("utf-8"),
+        auth_key,
+    )
+    if return_code != 0:
+        return return_code, str(response)
+    return 0, task_name

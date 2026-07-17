@@ -47,6 +47,7 @@ from maptasker.src.guiwins import (
     NiceGuiTreeView,
     build_add_task_dialog,
     build_edit_task_dialog,
+    build_save_to_android_dialog,
     create_popup_window,
     initialize_gui,
     initialize_screen,
@@ -1548,6 +1549,73 @@ class MapTaskerEventHandlers:
 
         ui.notify(f"Saved to {save_path}", type="positive")
         dialog.close()
+
+    def open_save_to_android_dialog_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Opens the IP/port prompt for importing this Task into Tasker on the Android device."""
+        build_save_to_android_dialog(self.gui, edited_task, field_refs, parent_dialog)
+
+    async def save_task_to_android_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        android_field_refs: dict,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the parent dialog's field values (same as a local
+        Save), pings the Android device to confirm it's reachable (same check
+        fetch_backup_event uses), and then imports the edited Task into Tasker on
+        the device. The android prompt dialog stays open on any error so the
+        user's connection details aren't lost; on success both it and the parent
+        Edit/Add Task dialog are closed.
+        """
+        arg_values = {}
+        for key, widget in field_refs.items():
+            if key in ("name", "priority", "save_path"):
+                continue
+            value = widget.value
+            arg_values[key] = "1" if value is True else "0" if value is False else str(value)
+
+        errors = taskedit.apply_edits_to_task(
+            edited_task,
+            field_refs["name"].value,
+            field_refs["priority"].value,
+            arg_values,
+        )
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        ip_address = android_field_refs["ip_address"].value.strip()
+        ip_port = android_field_refs["ip_port"].value.strip()
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+
+        task_name = field_refs["name"].value.strip()
+        return_code, result = taskedit.save_task_to_android(
+            edited_task,
+            ip_address,
+            ip_port,
+            task_name,
+        )
+        if return_code != 0:
+            ui.notify(f"Could not save to Android device: {result}", type="negative")
+            return
+
+        # Remember the connection details for next time, same as the Get XML dialog does.
+        self.gui.android_ipaddr = ip_address
+        self.gui.android_port = ip_port
+
+        ui.notify(f"Saved '{result}' to {self.gui.android_ipaddr}", type="positive")
+        android_dialog.close()
+        parent_dialog.close()
 
     def open_add_task_dialog_event(self) -> None:
         """Opens the Add Task dialog for a brand-new Task."""

@@ -148,6 +148,130 @@ def http_request(
     )
 
 
+# Get an API key from the Tasker HTTP API (GET /api/auth), needed to authenticate
+# every other request against it -- see http_post_request's auth_key param.
+def get_android_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
+    """
+    GET /api/auth from the Tasker HTTP API to obtain the API key used to
+    authenticate subsequent requests. Tasker responds with a JSON auth object:
+    {"key": "...", "authorized": true|false}. The key is sent back as a raw
+    'Authorization' header value (no "Bearer " prefix) on later requests.
+        :param ip_address: IP address of the Android device
+        :param ip_port: port the Tasker HTTP API is listening on
+        :return: return code (0 on success), and either the API key or an error message
+    """
+    http = "http://" if "http://" not in ip_address else ""
+    url = f"{http}{ip_address}:{ip_port}/api/auth"
+    print("bingo getting auth key url:", url)
+
+    error_message = ""
+    response = ""
+
+    with suppress_stdout():
+        try:
+            response = requests.get(url, timeout=5)
+            print("bingo response:", response, "content:", response.content)
+        except InvalidSchema:
+            error_message = f"Request failed for url: {url} .  Invalid url!"
+        except ConnectionError:
+            error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
+        except Timeout:
+            error_message = f"Request failed for url: {url} .  Timeout error."
+        except Exception as e:  # noqa: BLE001
+            error_message = f"Request failed for url: {url}, error: {e} ."
+
+    if error_message:
+        logger.debug(error_message)
+        print("bingo error", error_message)
+        return 8, error_message
+
+    if not response or response.status_code != 200:
+        status = response.status_code if response else "no response"
+        return 8, f"Request failed for url: {url} ...with status code {status}"
+
+    try:
+        auth_object = response.json()
+    except ValueError:
+        return 8, f"Auth response from {url} was not valid JSON: {response.content!r}"
+
+    if not auth_object.get("authorized"):
+        return 8, "Android device did not authorize this connection."
+
+    key = auth_object.get("key", "")
+    if not key:
+        return 8, "Auth response did not include an API key."
+    print("bingo auth key=", key)
+    return 0, key
+
+
+# Issue HTTP Request to post/save something to the Android device.
+def http_post_request(
+    ip_address: str,
+    ip_port: str,
+    file_location: str,
+    request_name: str,
+    request_parm: str,
+    file_content: bytes,
+    auth_key: str = "",
+) -> tuple[int, object]:
+    """
+    Issue HTTP POST request to write a file (e.g. a standalone Task .tsk.xml) to the
+    Android device, via the Tasker HTTP API.
+        :param ip_address: IP address of the Android device
+        :param ip_port: port the Android device's Tasker HTTP API is listening on
+        :param file_location: path (directory + filename) to write on the Android device
+        :param request_name: the Tasker HTTP API endpoint to target (e.g. "api/import")
+        :param request_parm: any additional query string to append to the URL
+        :param file_content: raw bytes of the file to post as the request body
+        :param auth_key: API key from get_android_auth_key(), sent as the raw
+        'Authorization' header value (no "Bearer " prefix)
+        :return: return code, response: either a text string with an error message or
+        the contents of the response
+    """
+    # Build the URL the same way http_request() does.
+    http = "http://" if "http://" not in ip_address else ""
+    url = f"{http}{ip_address}:{ip_port}/{request_name}{file_location}{request_parm}"
+    print("bingo url:", url)
+    headers = {"Authorization": auth_key} if auth_key else None
+
+    # Make the request.
+    error_message = ""
+    response = ""
+
+    with suppress_stdout():  # Suppress any errors (system IMK)
+        try:
+            response = requests.post(url, data=file_content, headers=headers, timeout=10)
+        except InvalidSchema:
+            error_message = f"Request failed for url: {url} .  Invalid url!"
+        except ConnectionError:
+            error_message = f"Request failed for url: {url} .  Connection error! Unable to post XML to Android device."
+        except Timeout:
+            error_message = f"Request failed for url: {url} .  Timeout error.  Or perhaps the profile 'MapTasker List' has not been imported into Tasker on the Android device!"
+        except Exception as e:  # noqa: BLE001
+            error_message = f"Request failed for url: {url}, error: {e} ."
+
+    # If we have an error message, return as error.
+    if error_message:
+        logger.debug(error_message)
+        return 8, error_message
+
+    # Check the response status code.  200 is good!
+    if response and response.status_code == 200:
+        print("bingo good return code")
+        return 0, response.content
+
+    if response and response.status_code == 401:
+        return 8, "Android device rejected the API key (401 Unauthorized)."
+
+    if response and response.status_code == 404:
+        return 6, "Directory " + file_location + " not found."
+
+    return (
+        8,
+        f"Request failed for url: {url} ...with status code {response.status_code}",
+    )
+
+
 # Log the arguments
 def log_startup_values() -> None:
     """

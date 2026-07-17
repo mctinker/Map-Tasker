@@ -80,8 +80,8 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                     current_label = options[int(arg.current_value)]
                                 except (ValueError, IndexError):
                                     current_label = options[0] if options else ""
-                                field_refs[key] = (
-                                    ui.select(options, value=current_label, label=arg.arg_name).classes("flex-1")
+                                field_refs[key] = ui.select(options, value=current_label, label=arg.arg_name).classes(
+                                    "flex-1",
                                 )
                             elif arg.widget_kind in ("text", "raw_fallback"):
                                 field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
@@ -100,11 +100,63 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button("Cancel", on_click=dialog.close).props("outline")
             ui.button(
+                "Save To Android",
+                on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
+                    edited_task,
+                    field_refs,
+                    dialog,
+                ),
+            ).props("outline")
+            ui.button(
                 "Save",
                 on_click=lambda: self.event_handlers.save_edited_task_event(edited_task, field_refs, dialog),
             ).classes("bg-blue-600")
 
     dialog.open()
+
+
+def build_save_to_android_dialog(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    field_refs: dict,
+    parent_dialog: ui.dialog,
+) -> None:
+    """Prompts for the Android device's IP address and port, then imports the
+    current Task (name/priority/args as they stand in the parent dialog's fields)
+    directly into Tasker on the device via its HTTP API's POST /api/import
+    endpoint -- see taskedit.save_task_to_android. On success both this prompt and
+    the parent (Edit/Add Task) dialog are closed.
+    """
+    default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
+    default_port = getattr(self, "android_port", "") or "1821"
+
+    with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
+        ui.label("Save Task To Android Device").classes("text-lg font-bold text-blue-600")
+        android_field_refs = {
+            "ip_address": ui.input("Android IP Address", value=default_ip).classes("w-full"),
+            "ip_port": ui.input("Port", value=default_port).classes("w-full"),
+        }
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=android_dialog.close).props("outline")
+            save_to_android = ui.button(
+                "Save",
+                on_click=lambda: self.event_handlers.save_task_to_android_event(
+                    edited_task,
+                    field_refs,
+                    android_field_refs,
+                    android_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-blue-600")
+            with save_to_android:
+                ui.tooltip(
+                    "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\n"
+                    "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
+                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task."
+                    "and its own actions will determine where it is saved on the device.",
+                ).style("white-space: pre-line")
+
+    android_dialog.open()
 
 
 def build_add_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> None:
@@ -175,13 +227,13 @@ def build_add_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> No
                                         current_label = options[int(arg.current_value)]
                                     except (ValueError, IndexError):
                                         current_label = options[0] if options else ""
-                                    field_refs[key] = (
-                                        ui.select(options, value=current_label, label=arg.arg_name).classes("flex-1")
-                                    )
+                                    field_refs[key] = ui.select(
+                                        options,
+                                        value=current_label,
+                                        label=arg.arg_name,
+                                    ).classes("flex-1")
                                 else:  # "text" or "raw_fallback"
-                                    field_refs[key] = (
-                                        ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
-                                    )
+                                    field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
                         ui.button(
                             "Remove",
                             on_click=lambda n=action.act_number: (
@@ -220,6 +272,14 @@ def build_add_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> No
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(
+                "Save To Android",
+                on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
+                    edited_task,
+                    field_refs,
+                    dialog,
+                ),
+            ).props("outline")
             ui.button(
                 "Save",
                 on_click=lambda: self.event_handlers.save_new_task_event(edited_task, field_refs, dialog),
@@ -564,8 +624,7 @@ class NiceGuiTextView:
                         chunk_content = "\n".join(chunk_lines)
                     chunk_height = len(chunk_lines) * approx_px_per_line
                     chunk_style = (
-                        html_style
-                        + f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
+                        html_style + f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
                     )
                     ui.html(chunk_content, sanitize=False).classes("w-full block max-w-full").style(chunk_style)
                     await asyncio.sleep(0.01)  # Yields loop to keep WebSocket alive
