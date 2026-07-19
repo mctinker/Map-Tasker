@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, context, run, ui
 
-from maptasker.src import taskedit
+from maptasker.src import profedit, taskedit
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
@@ -46,7 +46,9 @@ from maptasker.src.guiwins import (
     NiceGuiTextView,
     NiceGuiTreeView,
     build_add_task_dialog,
+    build_edit_profile_dialog,
     build_edit_task_dialog,
+    build_save_profile_to_android_dialog,
     build_save_to_android_dialog,
     create_popup_window,
     initialize_gui,
@@ -197,6 +199,9 @@ class MyGui:
         self.android_ipaddr = ""
         self.android_port = ""
         self.android_file = ""
+        self.android_auth_key = ""  # Cached Tasker HTTP API key for Save To Android (see save_task_to_android_event).
+        self.android_auth_key_ipaddr = ""
+        self.android_auth_key_port = ""
         if self.first_time:
             self.all_messages = {}
         self.color_lookup = {}  # Setup default dictionary as empty list
@@ -1036,6 +1041,10 @@ class MapTaskerEventHandlers:
 
         # Map view
         if view_type == "map":
+            if PrimeItems.xml_root is None:
+                gui.display_message_box("No XML data loaded! Please select a valid XML file first.", "Orange")
+                return
+
             ui.notify(f"Loading {window_title}.  Please stand by ...", type="info", timeout=1000)
             ui.update()  # Force immediate UI update to show notification
 
@@ -1547,6 +1556,8 @@ class MapTaskerEventHandlers:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
 
+        taskedit.apply_edited_task_to_live_tree(edited_task)
+
         ui.notify(f"Saved to {save_path}", type="positive")
         dialog.close()
 
@@ -1598,22 +1609,259 @@ class MapTaskerEventHandlers:
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
 
+        # Reuse a cached API key for this same device -- skips its GET /api/auth
+        # confirmation prompt. taskedit.save_task_to_android falls back to fetching
+        # a fresh one (and retries) if the device has since rejected it.
+        cached_key = (
+            getattr(self.gui, "android_auth_key", "")
+            if getattr(self.gui, "android_auth_key_ipaddr", "") == ip_address
+            and getattr(self.gui, "android_auth_key_port", "") == ip_port
+            else ""
+        )
+
         task_name = field_refs["name"].value.strip()
-        return_code, result = taskedit.save_task_to_android(
+        return_code, result, auth_key = taskedit.save_task_to_android(
             edited_task,
             ip_address,
             ip_port,
             task_name,
+            cached_key,
         )
         if return_code != 0:
             ui.notify(f"Could not save to Android device: {result}", type="negative")
             return
 
+        # Cache the auth key (keyed to this ip/port) so the next save skips the
+        # device's connection-authorization prompt entirely.
+        self.gui.android_auth_key = auth_key
+        self.gui.android_auth_key_ipaddr = ip_address
+        self.gui.android_auth_key_port = ip_port
+
         # Remember the connection details for next time, same as the Get XML dialog does.
         self.gui.android_ipaddr = ip_address
         self.gui.android_port = ip_port
 
-        ui.notify(f"Saved '{result}' to {self.gui.android_ipaddr}", type="positive")
+        # No-op for a brand-new Task (Add Task) that was never registered onto the
+        # live tree in the first place -- see taskedit.apply_edited_task_to_live_tree.
+        taskedit.apply_edited_task_to_live_tree(edited_task)
+
+        # api/import's 200 response doesn't guarantee Tasker actually committed the
+        # Task, so confirm via GET /api/tasks before declaring success. If that
+        # check fails, fall back to writing the Task's XML directly onto the
+        # device under /Tasker/tasks instead of leaving the user with nothing.
+        if taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key):
+            ui.notify("Task Uploaded to Tasker", type="positive")
+        else:
+            fallback_code, fallback_result = taskedit.save_task_to_android_directory(
+                edited_task,
+                ip_address,
+                ip_port,
+                task_name,
+            )
+            if fallback_code == 0:
+                ui.notify("Unable to upload Task to Tasker.  Saved to /Tasker/tasks.", type="warning")
+            else:
+                ui.notify(
+                    f"Unable to upload Task to Tasker, and failed to save to /Tasker/tasks: {fallback_result}",
+                    type="negative",
+                )
+
+        android_dialog.close()
+        parent_dialog.close()
+
+    def open_edit_profile_dialog_event(self) -> None:
+        """Opens the Edit Profile dialog for the currently selected single Profile name."""
+        the_view = self.gui
+        profile_name = getattr(the_view, "single_profile_name", "")
+        if not profile_name:
+            ui.notify("Select a single Profile first (Profile pulldown above).", type="warning")
+            return
+
+        edited_profile = profedit.load_profile_for_edit(profile_name)
+        if edited_profile is None:
+            ui.notify(f"Could not find Profile '{profile_name}'.", type="negative")
+            return
+
+        build_edit_profile_dialog(the_view, edited_profile)
+
+    def link_task_to_profile_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        link_type: str,
+        task_name: str,
+    ) -> None:
+        """Links an existing Task (by name) to the Profile as its Entry or Exit Task."""
+        if not task_name:
+            ui.notify("Choose a Task first.", type="warning")
+            return
+        resolved = taskedit.resolve_task_by_name(task_name)
+        if resolved is None:
+            ui.notify(f"Could not find Task '{task_name}'.", type="negative")
+            return
+        task_id, _ = resolved
+        profedit.link_task_to_profile(edited_profile, task_id, link_type)
+
+    def unlink_task_from_profile_event(self, edited_profile: profedit.EditableProfile, link_type: str) -> None:
+        """Unlinks the Profile's current Entry or Exit Task."""
+        profedit.unlink_task_from_profile(edited_profile, link_type)
+
+    def add_condition_to_profile_event(self, edited_profile: profedit.EditableProfile, cond_type: str) -> None:
+        """Adds a new condition (Time/Day/App/Loc) to the Profile being edited."""
+        if not cond_type:
+            ui.notify("Choose a condition type first.", type="warning")
+            return
+        result = profedit.add_condition_to_profile(edited_profile, cond_type)
+        if isinstance(result, list):
+            for error in result:
+                ui.notify(error, type="negative")
+
+    def remove_condition_from_profile_event(self, edited_profile: profedit.EditableProfile, cond_index: int) -> None:
+        """Removes a condition from the Profile being edited and renumbers the rest."""
+        profedit.remove_condition_from_profile(edited_profile, cond_index)
+
+    def add_app_entry_event(self, edited_profile: profedit.EditableProfile, cond_index: int) -> None:
+        """Adds a blank app entry to an App condition being edited."""
+        condition = profedit.find_condition(edited_profile, cond_index)
+        if condition is not None:
+            profedit.add_app_entry(condition)
+
+    def remove_app_entry_event(self, edited_profile: profedit.EditableProfile, cond_index: int, entry_index: int) -> None:
+        """Removes one app entry from an App condition being edited."""
+        condition = profedit.find_condition(edited_profile, cond_index)
+        if condition is not None:
+            profedit.remove_app_entry(condition, entry_index)
+
+    def save_edited_profile_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Edit Profile dialog's field values, then writes
+        the edited Profile out as a standalone .prf.xml file. Dialog stays open on
+        any error so the user's in-progress edits aren't lost.
+        """
+        condition_values = {}
+        for key, widget in field_refs.items():
+            if not key.startswith("cond"):
+                continue
+            value = widget.value
+            condition_values[key] = "1" if value is True else "0" if value is False else str(value)
+
+        errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        save_path = field_refs["save_path"].value
+        try:
+            profedit.write_standalone_profile_xml(edited_profile, save_path)
+        except OSError as e:
+            ui.notify(f"Could not save file: {e}", type="negative")
+            return
+
+        profedit.apply_edited_profile_to_live_tree(edited_profile)
+
+        ui.notify(f"Saved to {save_path}", type="positive")
+        dialog.close()
+
+    def open_save_profile_to_android_dialog_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Opens the IP/port prompt for importing this Profile into Tasker on the Android device."""
+        build_save_profile_to_android_dialog(self.gui, edited_profile, field_refs, parent_dialog)
+
+    async def save_profile_to_android_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        android_field_refs: dict,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the parent dialog's field values (same as a local
+        Save), pings the Android device to confirm it's reachable, and then imports
+        the edited Profile (plus its linked Entry/Exit Task(s)) into Tasker on the
+        device. Mirrors save_task_to_android_event exactly.
+        """
+        condition_values = {}
+        for key, widget in field_refs.items():
+            if not key.startswith("cond"):
+                continue
+            value = widget.value
+            condition_values[key] = "1" if value is True else "0" if value is False else str(value)
+
+        errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        ip_address = android_field_refs["ip_address"].value.strip()
+        ip_port = android_field_refs["ip_port"].value.strip()
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+
+        # Reuse a cached API key for this same device -- skips its GET /api/auth
+        # confirmation prompt. profedit.save_profile_to_android falls back to
+        # fetching a fresh one (and retries) if the device has since rejected it.
+        cached_key = (
+            getattr(self.gui, "android_auth_key", "")
+            if getattr(self.gui, "android_auth_key_ipaddr", "") == ip_address
+            and getattr(self.gui, "android_auth_key_port", "") == ip_port
+            else ""
+        )
+
+        profile_name = field_refs["name"].value.strip()
+        return_code, result, auth_key = profedit.save_profile_to_android(
+            edited_profile,
+            ip_address,
+            ip_port,
+            profile_name,
+            cached_key,
+        )
+        if return_code != 0:
+            ui.notify(f"Could not save to Android device: {result}", type="negative")
+            return
+
+        # Cache the auth key (keyed to this ip/port) so the next save skips the
+        # device's connection-authorization prompt entirely.
+        self.gui.android_auth_key = auth_key
+        self.gui.android_auth_key_ipaddr = ip_address
+        self.gui.android_auth_key_port = ip_port
+
+        # Remember the connection details for next time, same as the Get XML dialog does.
+        self.gui.android_ipaddr = ip_address
+        self.gui.android_port = ip_port
+
+        profedit.apply_edited_profile_to_live_tree(edited_profile)
+
+        # api/import's 200 response doesn't guarantee Tasker actually committed the
+        # Profile, so confirm via GET /api/profiles before declaring success. If
+        # that check fails, fall back to writing the Profile's XML directly onto
+        # the device under /Tasker/profiles instead of leaving the user with nothing.
+        if profedit.verify_profile_on_android(ip_address, ip_port, profile_name, auth_key):
+            ui.notify("Profile Uploaded to Tasker", type="positive")
+        else:
+            fallback_code, fallback_result = profedit.save_profile_to_android_directory(
+                edited_profile,
+                ip_address,
+                ip_port,
+                profile_name,
+            )
+            if fallback_code == 0:
+                ui.notify("Unable to upload Profile to Tasker.  Saved to /Tasker/profiles.", type="warning")
+            else:
+                ui.notify(
+                    f"Unable to upload Profile to Tasker, and failed to save to /Tasker/profiles: {fallback_result}",
+                    type="negative",
+                )
+
         android_dialog.close()
         parent_dialog.close()
 
@@ -1636,6 +1884,23 @@ class MapTaskerEventHandlers:
     def remove_action_from_new_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
         """Removes an action from the in-progress new Task and renumbers the rest."""
         taskedit.remove_action_from_task(edited_task, act_number)
+
+    def delete_action_in_edit_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
+        """Removes an action from an existing Task being edited and renumbers the rest."""
+        taskedit.remove_action_from_task(edited_task, act_number)
+
+    def copy_action_in_edit_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
+        """Duplicates an action (inserted right after the original) in a Task being edited."""
+        taskedit.copy_action_in_task(edited_task, act_number)
+
+    def move_action_in_edit_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        act_number: int,
+        new_position: int,
+    ) -> None:
+        """Moves an action to a new position among a Task's other actions."""
+        taskedit.move_action_in_task(edited_task, act_number, new_position)
 
     def save_new_task_event(
         self,
@@ -1688,6 +1953,8 @@ class MapTaskerEventHandlers:
         except OSError as e:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
+
+        taskedit.register_new_task(edited_task, name_value)
 
         ui.notify(f"Saved to {save_path}", type="positive")
         dialog.close()

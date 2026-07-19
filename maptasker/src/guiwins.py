@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import app, context, ui
 
-from maptasker.src import taskedit
+from maptasker.src import profedit, taskedit
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.guiutil2 import get_monospace_fonts, sort_languages_with_priority
 from maptasker.src.maputil2 import translate_string
@@ -44,8 +44,9 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
 
 
 def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> None:
-    """Builds and opens the Edit Task dialog (Phase 1: name/priority and the values of
-    an action's existing arguments -- see taskedit.py for what's editable and why).
+    """Builds and opens the Edit Task dialog (Phase 1: name/priority, per-action
+    Copy/Move/Delete, and the values of an action's existing arguments -- see
+    taskedit.py for what's editable and why).
 
     Built fresh each call rather than reused, since its content is entirely different
     per Task. Field widgets are kept in a plain dict (matching this file's existing
@@ -64,33 +65,79 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                 value=edited_task.task_element.findtext("pri", ""),
             ).classes("w-32")
 
-        with ui.scroll_area().classes("w-full h-96 border rounded p-2"):
-            for action in edited_task.actions:
-                with ui.expansion(f"{action.act_number}: {action.action_name}").classes("w-full"):
-                    if not action.args:
-                        ui.label("No editable arguments.").classes("text-xs text-gray-500 italic")
-                    for arg in action.args:
-                        key = taskedit.arg_key(action.act_number, arg.arg_id)
-                        with ui.row().classes("w-full items-center gap-2"):
-                            if arg.widget_kind == "checkbox":
-                                field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
-                            elif arg.widget_kind == "dropdown":
-                                options = arg.dropdown_options or []
-                                try:
-                                    current_label = options[int(arg.current_value)]
-                                except (ValueError, IndexError):
-                                    current_label = options[0] if options else ""
-                                field_refs[key] = ui.select(options, value=current_label, label=arg.arg_name).classes(
-                                    "flex-1",
-                                )
-                            elif arg.widget_kind in ("text", "raw_fallback"):
-                                field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
-                                if arg.readonly_note:
-                                    ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
-                            else:  # readonly
-                                ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
-                                if arg.readonly_note:
-                                    ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+        actions_container = ui.column().classes("w-full")
+
+        def render_actions() -> None:
+            # Rebuild from scratch -- Copy/Move/Delete all renumber every action, so
+            # stale act*_arg* keys must not survive into the next Save.
+            for key in [k for k in field_refs if k.startswith("act")]:
+                del field_refs[key]
+            actions_container.clear()
+            with actions_container, ui.scroll_area().classes("w-full h-96 border rounded p-2"):
+                if not edited_task.actions:
+                    ui.label("No actions in this Task.").classes("text-xs text-gray-500 italic")
+                last_position = len(edited_task.actions) - 1
+                for action in edited_task.actions:
+                    with ui.expansion(f"{action.act_number}: {action.action_name}").classes("w-full"):
+                        with ui.row().classes("w-full items-center gap-2 mb-2"):
+                            ui.button(
+                                "Copy",
+                                on_click=lambda n=action.act_number: (
+                                    self.event_handlers.copy_action_in_edit_task_event(edited_task, n),
+                                    render_actions(),
+                                ),
+                            ).props("flat color=blue dense")
+                            move_to_input = ui.number(
+                                "Move to #",
+                                value=action.act_number,
+                                min=0,
+                                max=last_position,
+                            ).classes("w-24").props("dense")
+                            ui.button(
+                                "Move",
+                                on_click=lambda n=action.act_number, target=move_to_input: (
+                                    self.event_handlers.move_action_in_edit_task_event(
+                                        edited_task,
+                                        n,
+                                        int(target.value) if target.value is not None else n,
+                                    ),
+                                    render_actions(),
+                                ),
+                            ).props("flat color=orange dense")
+                            ui.button(
+                                "Delete",
+                                on_click=lambda n=action.act_number: (
+                                    self.event_handlers.delete_action_in_edit_task_event(edited_task, n),
+                                    render_actions(),
+                                ),
+                            ).props("flat color=red dense")
+
+                        if not action.args:
+                            ui.label("No editable arguments.").classes("text-xs text-gray-500 italic")
+                        for arg in action.args:
+                            key = taskedit.arg_key(action.act_number, arg.arg_id)
+                            with ui.row().classes("w-full items-center gap-2"):
+                                if arg.widget_kind == "checkbox":
+                                    field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
+                                elif arg.widget_kind == "dropdown":
+                                    options = arg.dropdown_options or []
+                                    try:
+                                        current_label = options[int(arg.current_value)]
+                                    except (ValueError, IndexError):
+                                        current_label = options[0] if options else ""
+                                    field_refs[key] = ui.select(options, value=current_label, label=arg.arg_name).classes(
+                                        "flex-1",
+                                    )
+                                elif arg.widget_kind in ("text", "raw_fallback"):
+                                    field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
+                                    if arg.readonly_note:
+                                        ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+                                else:  # readonly
+                                    ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
+                                    if arg.readonly_note:
+                                        ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+
+        render_actions()
 
         field_refs["save_path"] = ui.input(
             "Save as",
@@ -154,6 +201,276 @@ def build_save_to_android_dialog(
                     "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                     "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task."
                     "and its own actions will determine where it is saved on the device.",
+                ).style("white-space: pre-line")
+
+    android_dialog.open()
+
+
+def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfile) -> None:
+    """Builds and opens the Edit Profile dialog: Rename, Entry/Exit Task
+    Link/Unlink (Phase 1); per-condition Add/Edit/Delete for the flat condition
+    types -- Time, Day, App, Loc (Phase 2); and editing a State/Event
+    condition's plugin/built-in arguments (Phase 3, reusing the same arg-widget
+    rendering as Task Action editing). State/Event conditions can be deleted but
+    not added from scratch yet -- see profedit.py.
+
+    Built fresh each call rather than reused, since its content is entirely different
+    per Profile. Field widgets are kept in a plain dict (matching this file's existing
+    ad-hoc widget-ref pattern) and read at Save time rather than using NiceGUI bindings.
+    """
+    profile_name = edited_profile.profile_element.findtext("nme", "")
+    field_refs: dict = {}
+
+    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
+        ui.label(f"Edit Profile: {profile_name}").classes("text-xl font-bold text-blue-600")
+
+        field_refs["name"] = ui.input("Profile Name", value=profile_name).classes("w-full")
+
+        tasks_container = ui.column().classes("w-full")
+
+        def render_task_links() -> None:
+            # Rebuild from scratch so the Link/Unlink controls always reflect the
+            # profile's current entry_task_id/exit_task_id after a Link or Unlink.
+            tasks_container.clear()
+            all_tasks_by_name = PrimeItems.tasker_root_elements.get("all_tasks_by_name", {})
+            task_names = sorted(all_tasks_by_name)
+            with tasks_container:
+                for link_type, task_id in (
+                    ("Entry", edited_profile.entry_task_id),
+                    ("Exit", edited_profile.exit_task_id),
+                ):
+                    with ui.row().classes("w-full items-center gap-2 mt-2"):
+                        current_name = (
+                            next(
+                                (name for name, entry in all_tasks_by_name.items() if entry["id"] == task_id),
+                                "",
+                            )
+                            if task_id
+                            else ""
+                        )
+                        ui.label(f"{link_type} Task:").classes("font-bold w-24")
+                        if current_name:
+                            ui.label(current_name).classes("flex-1")
+                            ui.button(
+                                "Unlink",
+                                on_click=lambda lt=link_type: (
+                                    self.event_handlers.unlink_task_from_profile_event(edited_profile, lt),
+                                    render_task_links(),
+                                ),
+                            ).props("flat color=red dense")
+                        else:
+                            picker = ui.select(task_names, label="Choose a Task").classes("flex-1").props("dense")
+                            ui.button(
+                                "Link",
+                                on_click=lambda lt=link_type, p=picker: (
+                                    self.event_handlers.link_task_to_profile_event(edited_profile, lt, p.value),
+                                    render_task_links(),
+                                ),
+                            ).props("flat color=blue dense")
+
+        render_task_links()
+
+        ui.label("Conditions").classes("text-sm font-bold mt-4")
+        conditions_container = ui.column().classes("w-full")
+
+        def render_conditions() -> None:
+            # Rebuild from scratch -- Add/Delete Condition and an App condition's
+            # Add/Remove App Entry all change what field_refs keys are valid, so
+            # stale cond*_* keys must not survive into the next Save.
+            for key in [k for k in field_refs if k.startswith("cond")]:
+                del field_refs[key]
+            conditions_container.clear()
+            with conditions_container:
+                if not edited_profile.conditions:
+                    ui.label("No conditions on this Profile.").classes("text-xs text-gray-500 italic")
+                for condition in edited_profile.conditions:
+                    header = f"{condition.cond_index}: {profedit.get_condition_display_name(condition)}"
+                    with ui.expansion(header).classes("w-full"):
+                        ui.button(
+                            "Delete Condition",
+                            on_click=lambda ci=condition.cond_index: (
+                                self.event_handlers.remove_condition_from_profile_event(edited_profile, ci),
+                                render_conditions(),
+                            ),
+                        ).props("flat color=red dense").classes("mb-2")
+
+                        if condition.cond_type in ("State", "Event"):
+                            if not condition.args:
+                                ui.label(
+                                    "No editable arguments (code not mapped, or this condition has none).",
+                                ).classes("text-xs text-gray-500 italic")
+                            for arg in condition.args:
+                                key = profedit.condition_arg_key(condition.cond_index, arg.arg_id)
+                                with ui.row().classes("w-full items-center gap-2"):
+                                    if arg.widget_kind == "checkbox":
+                                        field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
+                                    elif arg.widget_kind == "dropdown":
+                                        options = arg.dropdown_options or []
+                                        try:
+                                            current_label = options[int(arg.current_value)]
+                                        except (ValueError, IndexError):
+                                            current_label = options[0] if options else ""
+                                        field_refs[key] = ui.select(
+                                            options,
+                                            value=current_label,
+                                            label=arg.arg_name,
+                                        ).classes("flex-1")
+                                    elif arg.widget_kind in ("text", "raw_fallback"):
+                                        field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes(
+                                            "flex-1",
+                                        )
+                                        if arg.readonly_note:
+                                            ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+                                    else:  # readonly
+                                        ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes(
+                                            "flex-1",
+                                        )
+                                        if arg.readonly_note:
+                                            ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+
+                        elif condition.cond_type == "Time":
+                            values = profedit.get_time_field_values(condition)
+                            with ui.row().classes("w-full gap-2"):
+                                for key, label in (
+                                    ("fh", "From Hour"),
+                                    ("fm", "From Minute"),
+                                    ("th", "To Hour"),
+                                    ("tm", "To Minute"),
+                                ):
+                                    field_refs[profedit.condition_field_key(condition.cond_index, key)] = ui.input(
+                                        label,
+                                        value=values[key],
+                                    ).classes("flex-1")
+
+                        elif condition.cond_type == "Loc":
+                            values = profedit.get_loc_field_values(condition)
+                            with ui.row().classes("w-full gap-2"):
+                                for key, label in (
+                                    ("lat", "Latitude"),
+                                    ("long", "Longitude"),
+                                    ("rad", "Radius (m)"),
+                                ):
+                                    field_refs[profedit.condition_field_key(condition.cond_index, key)] = ui.input(
+                                        label,
+                                        value=values[key],
+                                    ).classes("flex-1")
+
+                        elif condition.cond_type == "Day":
+                            selected = set(profedit.get_day_selected_weekdays(condition))
+                            with ui.row().classes("w-full gap-2 flex-wrap"):
+                                for day_number in range(1, 8):
+                                    field_refs[
+                                        profedit.condition_field_key(condition.cond_index, f"wday{day_number}")
+                                    ] = ui.checkbox(
+                                        profedit.WEEKDAY_NAMES[day_number],
+                                        value=day_number in selected,
+                                    )
+
+                        elif condition.cond_type == "App":
+                            for entry_index, entry in enumerate(profedit.get_app_entries(condition)):
+                                with ui.row().classes("w-full items-center gap-2"):
+                                    field_refs[
+                                        profedit.condition_field_key(condition.cond_index, f"app{entry_index}_pkg")
+                                    ] = ui.input("Package", value=entry["pkg"]).classes("flex-1")
+                                    field_refs[
+                                        profedit.condition_field_key(condition.cond_index, f"app{entry_index}_label")
+                                    ] = ui.input("Label", value=entry["label"]).classes("flex-1")
+                                    field_refs[
+                                        profedit.condition_field_key(condition.cond_index, f"app{entry_index}_cls")
+                                    ] = ui.input("Class (optional)", value=entry["cls"]).classes("flex-1")
+                                    ui.button(
+                                        "Remove",
+                                        on_click=lambda ci=condition.cond_index, ei=entry_index: (
+                                            self.event_handlers.remove_app_entry_event(edited_profile, ci, ei),
+                                            render_conditions(),
+                                        ),
+                                    ).props("flat color=red dense")
+                            ui.button(
+                                "Add App Entry",
+                                on_click=lambda ci=condition.cond_index: (
+                                    self.event_handlers.add_app_entry_event(edited_profile, ci),
+                                    render_conditions(),
+                                ),
+                            ).props("flat color=blue dense")
+
+                with ui.row().classes("w-full items-center gap-2 mt-2"):
+                    add_type_picker = (
+                        ui.select(list(profedit.CONDITION_TYPES_ADDABLE), label="Condition Type")
+                        .classes("w-48")
+                        .props("dense")
+                    )
+                    ui.button(
+                        "Add Condition",
+                        on_click=lambda picker=add_type_picker: (
+                            self.event_handlers.add_condition_to_profile_event(edited_profile, picker.value),
+                            render_conditions(),
+                        ),
+                    ).props("flat color=blue dense")
+
+        render_conditions()
+
+        field_refs["save_path"] = ui.input(
+            "Save as",
+            value=profedit.default_save_path(profile_name),
+        ).classes("w-full mt-2")
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(
+                "Save To Android",
+                on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
+                    edited_profile,
+                    field_refs,
+                    dialog,
+                ),
+            ).props("outline")
+            ui.button(
+                "Save",
+                on_click=lambda: self.event_handlers.save_edited_profile_event(edited_profile, field_refs, dialog),
+            ).classes("bg-blue-600")
+
+    dialog.open()
+
+
+def build_save_profile_to_android_dialog(
+    self: MyGui,
+    edited_profile: profedit.EditableProfile,
+    field_refs: dict,
+    parent_dialog: ui.dialog,
+) -> None:
+    """Prompts for the Android device's IP address and port, then imports the
+    current Profile (name as it stands in the parent dialog's fields, plus its
+    linked Entry/Exit Task(s)) directly into Tasker on the device via its HTTP
+    API's POST /api/import endpoint -- see profedit.save_profile_to_android. On
+    success both this prompt and the parent Edit Profile dialog are closed.
+    """
+    default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
+    default_port = getattr(self, "android_port", "") or "1821"
+
+    with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
+        ui.label("Save Profile To Android Device").classes("text-lg font-bold text-blue-600")
+        android_field_refs = {
+            "ip_address": ui.input("Android IP Address", value=default_ip).classes("w-full"),
+            "ip_port": ui.input("Port", value=default_port).classes("w-full"),
+        }
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=android_dialog.close).props("outline")
+            save_to_android = ui.button(
+                "Save",
+                on_click=lambda: self.event_handlers.save_profile_to_android_event(
+                    edited_profile,
+                    field_refs,
+                    android_field_refs,
+                    android_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-blue-600")
+            with save_to_android:
+                ui.tooltip(
+                    "This will save the Profile, and its linked Entry/Exit Task(s), directly into Tasker "
+                    "running on the Android device running the Tasker server.\n\n"
+                    "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
+                    "You will be prompted twice for authorization to write to Tasker on the Android device.",
                 ).style("white-space: pre-line")
 
     android_dialog.open()
@@ -500,6 +817,8 @@ class NiceGuiTextView:
                 ui.button("Top", on_click=lambda: self.scroll("top")).classes("bg-blue-600")
                 ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
                 ui.button("Toggle Wrap", on_click=self.toggle_wrap).classes("bg-blue-600")
+                if self.is_map:
+                    self.map_message_label = ui.label(PrimeItems.view_limit_msg).classes("text-orange-400 italic ml-4")
                 if is_diagram:
                     ui.separator().props("vertical")
                     ui.select(
@@ -1267,6 +1586,9 @@ def _initialize_android_settings(self: MyGui) -> None:
     self.android_ipaddr = ""
     self.android_port = ""
     self.fetched_backup_from_android = False
+    self.android_auth_key = ""  # Cached Tasker HTTP API key for Save To Android (see save_task_to_android_event).
+    self.android_auth_key_ipaddr = ""
+    self.android_auth_key_port = ""
 
 
 def _initialize_display_settings(self: MyGui) -> None:
@@ -1484,6 +1806,20 @@ def inject_shared_head_styles() -> None:
                 white-space: pre-wrap !important;
                 overflow-wrap: anywhere !important;
                 word-break: break-word !important;
+            }
+            /* Quasar's own QScrollArea stylesheet gives its internal content wrapper
+               (".q-scrollarea__content", not directly reachable via ui.scroll_area().classes())
+               "min-width: 100%" but no max-width -- so any wide-enough descendant (a table
+               whose fixed-width rule above is only 100% of THIS already-oversized box, a long
+               line that slips past a narrower fix, etc.) is free to stretch it past the visible
+               area. Quasar then just lets you scroll to it horizontally instead of clipping,
+               which is indistinguishable from "wrap isn't working". Cap it at 100% -- but only
+               while word wrap is on (the "whitespace-pre-wrap" Tailwind class toggled by Toggle
+               Wrap lives on the very same .q-scrollarea element, so it doubles as the switch
+               here): wrap-off views (Diagram's ASCII art by default) still need to grow past the
+               viewport and rely on that same horizontal scrollbar on purpose. */
+            .q-scrollarea.whitespace-pre-wrap .q-scrollarea__content {
+                max-width: 100% !important;
             }
 
             /* =========================================================================
@@ -1806,10 +2142,15 @@ def initialize_screen(self: MyGui) -> None:
                     translate_string("List Unnamed Items"),
                     on_change=self.event_handlers.list_unnamed_items_event,
                 ).classes("mt-1 text-xs")
-                self.edit_task_button = ui.button(
-                    translate_string("Edit Task"),
-                    on_click=self.event_handlers.open_edit_task_dialog_event,
-                ).classes("w-64 mt-2 bg-blue-500")
+                with ui.row().classes("gap-2 m-0 p-0"):
+                    self.edit_profile_button = ui.button(
+                        translate_string("Edit Profile"),
+                        on_click=self.event_handlers.open_edit_profile_dialog_event,
+                    ).classes("w-64 mt-2 bg-blue-500")
+                    self.edit_task_button = ui.button(
+                        translate_string("Edit Task"),
+                        on_click=self.event_handlers.open_edit_task_dialog_event,
+                    ).classes("w-64 mt-2 bg-blue-500")
                 self.add_task_button = ui.button(
                     translate_string("Add Task"),
                     on_click=self.event_handlers.open_add_task_dialog_event,

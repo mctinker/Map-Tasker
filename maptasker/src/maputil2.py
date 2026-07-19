@@ -97,6 +97,7 @@ def http_request(
     file_location: str,
     request_name: str,
     request_parm: str,
+    auth_key: str = "",
 ) -> tuple[int, object]:
     """
     Issue HTTP Request to get the backup XML file from the Android device.
@@ -104,6 +105,9 @@ def http_request(
     https://taskernet.com/shares/?user=AS35m8ne7oO4s%2BaDx%2FwlzjdFTfVMWstg1ay5AkpiNdrLoSXEZdFfw1IpXiyJCVLNW0yn&id=Project%3AHttp+Server+Example
         :param backup_file_http: the port to use for the Android device's Tasker server
         :param backup_file_location: location of
+        :param auth_key: API key from get_android_auth_key(), sent as the raw
+        'Authorization' header value (no "Bearer " prefix) -- required by the
+        newer 'api/*' endpoints (e.g. api/tasks), unused by the plain 'file' one
         :return: return code, response: eitherr text string with error message or the
         contents of the backup file
     """
@@ -112,6 +116,7 @@ def http_request(
     # Something like: 192.168.0.210:1821/file/path/to/backup.xml?download=1
     http = "http://" if "http://" not in ip_address else ""
     url = f"{http}{ip_address}:{ip_port}/{request_name}{file_location}{request_parm}"
+    headers = {"Authorization": auth_key} if auth_key else None
 
     # Make the request.
     error_message = ""
@@ -119,7 +124,7 @@ def http_request(
 
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
-            response = requests.get(url, timeout=5)
+            response = requests.get(url, headers=headers, timeout=5)
         except InvalidSchema:
             error_message = f"Request failed for url: {url} .  Invalid url!"
         except ConnectionError:
@@ -261,7 +266,10 @@ def http_post_request(
         return 0, response.content
 
     if response and response.status_code == 401:
-        return 8, "Android device rejected the API key (401 Unauthorized)."
+        # Distinct code (not the generic 8) so callers holding a cached auth_key
+        # can tell "key was rejected" apart from other failures and retry with a
+        # freshly-fetched key (see taskedit.save_task_to_android).
+        return 9, "Android device rejected the API key (401 Unauthorized)."
 
     if response and response.status_code == 404:
         return 6, "Directory " + file_location + " not found."

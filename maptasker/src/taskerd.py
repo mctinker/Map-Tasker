@@ -154,6 +154,12 @@ def get_the_xml_data() -> bool:
             # Direct update to the dictionary reference
             profile["name"] = current_name
 
+    # Get Profiles by name (mirrors all_tasks_by_name below) -- profedit.py's
+    # Edit Profile feature resolves a Profile by its displayed name through this.
+    PrimeItems.tasker_root_elements["all_profiles_by_name"] = {
+        profile["name"]: {"xml": profile["xml"], "id": key} for key, profile in all_profiles.items()
+    }
+
     # Get Tasks by name and handle Tasks with no name.
     PrimeItems.tasker_root_elements["all_tasks_by_name"] = {}
     _get_first_action = get_first_action

@@ -1,0 +1,789 @@
+"""profedit: build an editable model of a Profile and save it as a standalone .prf.xml file.
+
+Edit Profile:
+  Phase 1: rename a Profile, and link/unlink its Entry (mid0) and Exit (mid1)
+  Tasks by an existing Task's name.
+  Phase 2: add/edit/delete conditions of the flat, well-known-field-set types
+  (Time, Day, App, Loc).
+  Phase 3: edit State/Event conditions' plugin/built-in arguments -- these reuse
+  the exact same Bundle/Int/Str argument structure as Task Actions (see
+  condition.py's condition_state/condition_event, which look up action_codes the
+  same way Task Actions do, just with a different code suffix: "s" for State,
+  "e" for Event, vs Task Actions' "t"), so this reuses taskedit.py's arg-editing
+  machinery (build_editable_args/validate_arg_values/apply_arg_values) directly
+  rather than duplicating it. Adding a brand-new State/Event condition from
+  scratch is not supported -- unlike Task Actions, there's no code picker for
+  them yet (see CONDITION_TYPES_ADDABLE); they can be edited and deleted, but
+  only ones already present in the loaded backup.
+
+Never touches PrimeItems.xml_tree -- all edits happen on a deep copy, and the
+only output is a new standalone file (or, via Save To Android, a POST to the
+Tasker HTTP API), mirroring taskedit.py's Task-editing design 1:1.
+"""
+
+from __future__ import annotations
+
+import copy
+import json
+import os
+import re
+import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import defusedxml.ElementTree
+
+from maptasker.src import taskedit
+from maptasker.src.actionc import action_codes
+from maptasker.src.primitem import PrimeItems
+
+XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
+
+# Condition types that can be added from scratch (Time/Day/App/Loc have simple,
+# well-known field sets; State/Event would need a code picker like Task Actions'
+# classify_action_addability/list_addable_actions -- not implemented yet).
+CONDITION_TYPES_ADDABLE = ("Time", "Day", "App", "Loc")
+# Every condition type this codebase recognizes (see condition.py's parse_profile_condition).
+_CONDITION_TAGS = ("Time", "Day", "State", "Event", "App", "Loc")
+# Profile children that are metadata, not conditions -- mirrors condition.py's
+# ignore_items, but Share/limit are added explicitly rather than relying on
+# document-order luck (see that function's own docstring caveat: without those
+# two in the skip list, a Share or limit element appearing *after* a real
+# condition in a given backup could get miscounted as one there).
+_PROFILE_METADATA_TAGS = {"cdate", "edate", "flags", "id", "ProfileVariable", "nme", "pri", "Share", "limit"}
+
+# 1=Sunday..7=Saturday, matching condition.py's own condition_day -- index 0 is
+# unused (the day numbers are 1-based) so the GUI can index this directly by day number.
+WEEKDAY_NAMES = (None, "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+_APP_ENTRY_TAG_RE = re.compile(r"^(cls|label|pkg)(\d+)$")
+# State conditions look their code up as "{code}s", Event conditions as "{code}e"
+# (see condition.py's condition_state/condition_event) -- Task Actions use "t".
+_CONDITION_CODE_SUFFIX = {"State": "s", "Event": "e"}
+
+
+@dataclass
+class EditableCondition:
+    """One condition element (Time/Day/State/Event/App/Loc), in Profile document order.
+
+    cond_index tracks its position among conditions only (-> sr="conN"), not its
+    position among the Profile's other (non-condition) children.
+
+    args is only populated for State/Event conditions (their plugin/built-in
+    arguments, via taskedit.EditableArg -- see _build_condition_args); it's
+    empty for the other types, which use their own dedicated field
+    get/validate/write functions instead (get_time_field_values etc.).
+    """
+
+    cond_index: int
+    cond_type: str
+    condition_element: defusedxml.ElementTree.Element
+    args: list[taskedit.EditableArg] = field(default_factory=list)
+
+
+@dataclass
+class EditableProfile:
+    """A deep-copied Profile element, its editable-condition model, and its
+    linked Entry/Exit Task ids.
+    """
+
+    profile_id: str
+    profile_element: defusedxml.ElementTree.Element
+    conditions: list[EditableCondition] = field(default_factory=list)
+    entry_task_id: str = ""
+    exit_task_id: str = ""
+
+
+def resolve_profile_by_name(
+    profile_name: str,
+) -> tuple[str, defusedxml.ElementTree.Element] | None:
+    """Look up a Profile's id and live XML element by its displayed name.
+
+    Returns (profile_id, live_element), or None if not found. Callers must not
+    mutate the returned element directly -- go through load_profile_for_edit() instead.
+    """
+    entry = PrimeItems.tasker_root_elements.get("all_profiles_by_name", {}).get(profile_name)
+    if entry is None:
+        return None
+    return entry["id"], entry["xml"]
+
+
+def load_profile_for_edit(profile_name: str) -> EditableProfile | None:
+    """Resolve a Profile by name, deep-copy it, and build its editable-condition
+    model plus its Entry/Exit Task ids.
+
+    This is the one point of contact with the live tree -- everything downstream
+    (including Save) operates on the copy, so the in-memory backup is never touched.
+    """
+    resolved = resolve_profile_by_name(profile_name)
+    if resolved is None:
+        return None
+    profile_id, live_element = resolved
+    profile_copy = copy.deepcopy(live_element)
+    return EditableProfile(
+        profile_id=profile_id,
+        profile_element=profile_copy,
+        conditions=_build_editable_conditions(profile_copy),
+        entry_task_id=profile_copy.findtext("mid0", ""),
+        exit_task_id=profile_copy.findtext("mid1", ""),
+    )
+
+
+def _build_editable_conditions(profile_copy: defusedxml.ElementTree.Element) -> list[EditableCondition]:
+    """Find the Profile's condition children (Time/Day/State/Event/App/Loc), in
+    document order, skipping Profile metadata -- see _PROFILE_METADATA_TAGS and
+    condition.py's parse_profile_condition, which this mirrors (built explicitly
+    here rather than reusing that function's own iteration, whose "AND"-joining
+    isn't quite what a structured per-condition list needs).
+    """
+    conditions = []
+    cond_index = 0
+    for child in profile_copy:
+        if child.tag in _PROFILE_METADATA_TAGS or "mid" in child.tag or child.tag not in _CONDITION_TAGS:
+            continue
+        conditions.append(
+            EditableCondition(
+                cond_index=cond_index,
+                cond_type=child.tag,
+                condition_element=child,
+                args=_build_condition_args(child, child.tag) if child.tag in _CONDITION_CODE_SUFFIX else [],
+            ),
+        )
+        cond_index += 1
+    return conditions
+
+
+def _build_condition_args(
+    condition_element: defusedxml.ElementTree.Element,
+    cond_type: str,
+) -> list[taskedit.EditableArg]:
+    """Builds the editable-arg model for a State or Event condition's
+    plugin/built-in configuration -- see the module docstring for why this
+    reuses taskedit.build_editable_args directly. Returns [] if the condition's
+    code isn't in action_codes (not yet mapped -- mirrors
+    taskedit._build_editable_action's same fallback for an Action).
+    """
+    suffix = _CONDITION_CODE_SUFFIX[cond_type]
+    code_element = condition_element.find("code")
+    code = code_element.text if code_element is not None else ""
+
+    action_code = action_codes.get(f"{code}{suffix}")
+    if action_code is None:
+        return []
+
+    effective_args = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
+    return taskedit.build_editable_args(condition_element, effective_args)
+
+
+def get_condition_display_name(condition: EditableCondition) -> str:
+    """A short human-readable label for a condition's expansion header in the
+    GUI, e.g. "Event: HTTP Request Received" instead of just "Event". Falls back
+    to a "not mapped" note if the code isn't in action_codes (see
+    _build_condition_args); other condition types just return their bare type name.
+    """
+    if condition.cond_type not in _CONDITION_CODE_SUFFIX:
+        return condition.cond_type
+
+    suffix = _CONDITION_CODE_SUFFIX[condition.cond_type]
+    code_element = condition.condition_element.find("code")
+    code = code_element.text if code_element is not None else ""
+    action_code = action_codes.get(f"{code}{suffix}")
+    if action_code is None:
+        return f"{condition.cond_type} (code {code} not mapped)"
+    return f"{condition.cond_type}: {action_code.name}"
+
+
+def condition_arg_key(cond_index: int, arg_id: str) -> str:
+    """Key format shared with the dialog builder for a State/Event condition's
+    arg_values dict lookups -- mirrors taskedit.arg_key's act{N}_arg{id} format.
+    """
+    return f"cond{cond_index}_arg{arg_id}"
+
+
+def find_condition(edited_profile: EditableProfile, cond_index: int) -> EditableCondition | None:
+    """Look up a condition by its current cond_index -- a small convenience for
+    event handlers that only have the index (from a button click), not the object.
+    """
+    return next((c for c in edited_profile.conditions if c.cond_index == cond_index), None)
+
+
+def _renumber_conditions(edited_profile: EditableProfile) -> None:
+    """Renumber every condition's sr="conN" (and its cond_index) to match its
+    current position in edited_profile.conditions -- shared by
+    add_condition_to_profile/remove_condition_from_profile.
+    """
+    for new_index, condition in enumerate(edited_profile.conditions):
+        condition.condition_element.set("sr", f"con{new_index}")
+        condition.cond_index = new_index
+
+
+def remove_condition_from_profile(edited_profile: EditableProfile, cond_index: int) -> None:
+    """Remove a condition (by its current cond_index) from both the XML and the
+    model, then renumber every remaining condition's sr="conN" contiguously from
+    0 in their current order. Works for any condition type, including the
+    not-yet-editable State/Event ones.
+    """
+    target = find_condition(edited_profile, cond_index)
+    if target is None:
+        return
+
+    edited_profile.profile_element.remove(target.condition_element)
+    edited_profile.conditions = [c for c in edited_profile.conditions if c is not target]
+
+    _renumber_conditions(edited_profile)
+
+
+def add_condition_to_profile(edited_profile: EditableProfile, cond_type: str) -> EditableCondition | list[str]:
+    """Synthesize a bare condition element of the given type (Time, Day, App, or
+    Loc only -- see CONDITION_TYPES_ADDABLE) with sensible defaults, append it
+    to the Profile, and add it to the model.
+
+    Returns the new condition, or a list of error messages if cond_type isn't
+    one of the addable types.
+    """
+    if cond_type not in CONDITION_TYPES_ADDABLE:
+        return [f"Adding a '{cond_type}' condition isn't supported yet."]
+
+    element_cls = type(edited_profile.profile_element)
+    cond_index = len(edited_profile.conditions)
+    condition_element = element_cls(cond_type, {"sr": f"con{cond_index}", "ve": "2"})
+
+    if cond_type == "Time":
+        for tag in ("fh", "fm", "th", "tm"):
+            child = element_cls(tag)
+            child.text = "0"
+            condition_element.append(child)
+    elif cond_type == "App":
+        flags_child = element_cls("flags")
+        flags_child.text = "2"
+        condition_element.append(flags_child)
+    elif cond_type == "Loc":
+        for tag in ("lat", "long", "rad"):
+            child = element_cls(tag)
+            child.text = ""
+            condition_element.append(child)
+    # Day starts with no weekdays selected -- the user checks some, then Saves.
+
+    edited_profile.profile_element.append(condition_element)
+
+    new_condition = EditableCondition(
+        cond_index=cond_index,
+        cond_type=cond_type,
+        condition_element=condition_element,
+    )
+    edited_profile.conditions.append(new_condition)
+
+    _renumber_conditions(edited_profile)
+    return new_condition
+
+
+def link_task_to_profile(edited_profile: EditableProfile, task_id: str, link_type: str) -> None:
+    """Sets the Profile's Entry (mid0) or Exit (mid1) Task reference to task_id,
+    replacing whatever was linked there before. link_type is "Entry" or "Exit",
+    matching profiles.py's own tag-based discriminator (mid1=Exit, anything else
+    matching "mid" i.e. mid0=Entry).
+    """
+    tag = "mid1" if link_type == "Exit" else "mid0"
+    _set_child_text(edited_profile.profile_element, tag, task_id)
+    if link_type == "Exit":
+        edited_profile.exit_task_id = task_id
+    else:
+        edited_profile.entry_task_id = task_id
+
+
+def unlink_task_from_profile(edited_profile: EditableProfile, link_type: str) -> None:
+    """Removes the Profile's Entry (mid0) or Exit (mid1) Task reference entirely --
+    unlinks the Task from this Profile without deleting the Task itself (Tasks are
+    independently addressable and may still be referenced elsewhere).
+    """
+    tag = "mid1" if link_type == "Exit" else "mid0"
+    child = edited_profile.profile_element.find(tag)
+    if child is not None:
+        edited_profile.profile_element.remove(child)
+    if link_type == "Exit":
+        edited_profile.exit_task_id = ""
+    else:
+        edited_profile.entry_task_id = ""
+
+
+def apply_edits_to_profile(
+    edited_profile: EditableProfile,
+    name_value: str,
+    condition_values: dict[str, str],
+) -> list[str]:
+    """Validate all fields, and only if everything's valid, mutate the profile copy.
+
+    All-or-nothing: on any validation error, nothing is mutated and the list of
+    error messages is returned. Whole-condition Add/Delete
+    (add_condition_to_profile/remove_condition_from_profile), Task linking
+    (link_task_to_profile/unlink_task_from_profile), and an App condition's
+    entry count (add_app_entry/remove_app_entry) are all applied immediately
+    when clicked, not staged here -- this only covers the name and each
+    condition's field *values*, keyed condition_field_key(cond_index, ...) (or,
+    for State/Event, condition_arg_key(cond_index, arg_id)).
+    """
+    errors = []
+
+    name_value = name_value.strip()
+    if not name_value:
+        errors.append("Profile name cannot be empty.")
+
+    # Validate every condition's pending values before mutating anything.
+    pending: dict[int, tuple[str, object]] = {}
+    for condition in edited_profile.conditions:
+        if condition.cond_type == "Time":
+            values = {key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _TIME_FIELDS}
+            field_errors = _validate_time_field_values(values)
+            errors.extend(field_errors)
+            if not field_errors:
+                pending[condition.cond_index] = ("Time", values)
+
+        elif condition.cond_type == "Loc":
+            values = {key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _LOC_FIELDS}
+            field_errors = _validate_loc_field_values(values)
+            errors.extend(field_errors)
+            if not field_errors:
+                pending[condition.cond_index] = ("Loc", values)
+
+        elif condition.cond_type == "Day":
+            selected = [
+                day
+                for day in range(1, 8)
+                if condition_values.get(condition_field_key(condition.cond_index, f"wday{day}")) in ("1", "true", "True")
+            ]
+            pending[condition.cond_index] = ("Day", selected)
+
+        elif condition.cond_type == "App":
+            entries = [
+                {
+                    key: condition_values.get(condition_field_key(condition.cond_index, f"app{i}_{key}"), "")
+                    for key in ("pkg", "label", "cls")
+                }
+                for i in range(len(get_app_entries(condition)))
+            ]
+            field_errors = _validate_app_entries(entries)
+            errors.extend(field_errors)
+            if not field_errors:
+                pending[condition.cond_index] = ("App", entries)
+
+        elif condition.cond_type in _CONDITION_CODE_SUFFIX and condition.args:
+            field_errors = taskedit.validate_arg_values(
+                condition.args,
+                lambda arg, ci=condition.cond_index: condition_arg_key(ci, arg.arg_id),
+                condition_values,
+            )
+            errors.extend(f"{error} ({condition.cond_type} condition {condition.cond_index})" for error in field_errors)
+            if not field_errors:
+                pending[condition.cond_index] = ("StateEvent", None)
+
+    if errors:
+        return errors
+
+    _set_child_text(edited_profile.profile_element, "nme", name_value)
+
+    for condition in edited_profile.conditions:
+        update = pending.get(condition.cond_index)
+        if update is None:
+            continue
+        cond_type, payload = update
+        if cond_type == "Time":
+            _write_time_field_values(condition, payload)
+        elif cond_type == "Loc":
+            _write_loc_field_values(condition, payload)
+        elif cond_type == "Day":
+            _write_day_selected_weekdays(condition, payload)
+        elif cond_type == "App":
+            _write_app_entries(condition, payload)
+        elif cond_type == "StateEvent":
+            taskedit.apply_arg_values(
+                condition.args,
+                lambda arg, ci=condition.cond_index: condition_arg_key(ci, arg.arg_id),
+                condition_values,
+            )
+
+    return []
+
+
+def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
+    child = parent.find(tag)
+    if child is None:
+        # Match parent's actual Element class (see render_standalone_profile_xml) --
+        # ETW.SubElement() would build a stdlib-class child and fail parent.append().
+        child = type(parent)(tag)
+        parent.append(child)
+    child.text = text
+
+
+def condition_field_key(cond_index: int, field_name: str) -> str:
+    """Key format shared with the dialog builder for condition_values dict lookups."""
+    return f"cond{cond_index}_{field_name}"
+
+
+# --- Time condition (fields: fh/fm=From Hour/Minute, th/tm=To Hour/Minute) ---
+# rep/repval (repeat interval), fromvar/tovar (variable-based alternative to
+# fh/fm/th/tm), and cname (condition name) exist in the XML but aren't edited by
+# Phase 2 -- left untouched if already present.
+_TIME_FIELDS = ("fh", "fm", "th", "tm")
+
+
+def get_time_field_values(condition: EditableCondition) -> dict[str, str]:
+    """Reads a Time condition's From/To hour+minute fields for display."""
+    element = condition.condition_element
+    return {key: element.findtext(key, "0") for key in _TIME_FIELDS}
+
+
+def _validate_time_field_values(values: dict[str, str]) -> list[str]:
+    labels_and_max = {"fh": ("From Hour", 23), "fm": ("From Minute", 59), "th": ("To Hour", 23), "tm": ("To Minute", 59)}
+    errors = []
+    for key, (label, max_value) in labels_and_max.items():
+        raw = values.get(key, "").strip()
+        if not raw.isdigit():
+            errors.append(f"'{label}' must be a whole number.")
+        elif int(raw) > max_value:
+            errors.append(f"'{label}' must be between 0 and {max_value}.")
+    return errors
+
+
+def _write_time_field_values(condition: EditableCondition, values: dict[str, str]) -> None:
+    for key in _TIME_FIELDS:
+        _set_child_text(condition.condition_element, key, str(int(values[key].strip())))
+
+
+# --- Loc condition (fields: lat/long=latitude/longitude in decimal degrees, rad=radius in meters) ---
+_LOC_FIELDS = ("lat", "long", "rad")
+
+
+def get_loc_field_values(condition: EditableCondition) -> dict[str, str]:
+    """Reads a Loc condition's latitude/longitude/radius fields for display."""
+    element = condition.condition_element
+    return {key: element.findtext(key, "") for key in _LOC_FIELDS}
+
+
+def _validate_loc_field_values(values: dict[str, str]) -> list[str]:
+    labels = {"lat": "Latitude", "long": "Longitude", "rad": "Radius"}
+    errors = []
+    for key, label in labels.items():
+        raw = values.get(key, "").strip()
+        if not raw:
+            errors.append(f"'{label}' cannot be empty.")
+            continue
+        try:
+            number = float(raw)
+        except ValueError:
+            errors.append(f"'{label}' must be a number.")
+            continue
+        if key == "rad" and number < 0:
+            errors.append("'Radius' must not be negative.")
+    return errors
+
+
+def _write_loc_field_values(condition: EditableCondition, values: dict[str, str]) -> None:
+    for key in _LOC_FIELDS:
+        _set_child_text(condition.condition_element, key, values[key].strip())
+
+
+# --- Day condition (weekday selection: 1=Sunday..7=Saturday, matching condition.py's
+# own condition_day) -- day-of-month (mdayN), month (mnthN), and cname (condition
+# name) exist in the XML but aren't edited by Phase 2 -- left untouched if present.
+def get_day_selected_weekdays(condition: EditableCondition) -> list[int]:
+    """Reads a Day condition's selected weekdays for display."""
+    selected = []
+    for child in condition.condition_element:
+        if child.tag.startswith("wday") and child.text:
+            try:
+                selected.append(int(child.text))
+            except ValueError:
+                continue
+    return sorted(set(selected))
+
+
+def _write_day_selected_weekdays(condition: EditableCondition, selected: list[int]) -> None:
+    element = condition.condition_element
+    for child in [c for c in element if c.tag.startswith("wday")]:
+        element.remove(child)
+
+    element_cls = type(element)
+    for index, day_number in enumerate(sorted(set(selected))):
+        child = element_cls(f"wday{index}")
+        child.text = str(day_number)
+        element.append(child)
+
+
+# --- App condition (repeatable app entries: clsN=Activity class, labelN=display
+# name, pkgN=package name, matched by index N) -- flags (match state, e.g. "any
+# state" vs specific) exists in the XML but isn't edited by Phase 2.
+def get_app_entries(condition: EditableCondition) -> list[dict[str, str]]:
+    """Reads an App condition's list of app entries (matched clsN/labelN/pkgN
+    triples, by index) for display.
+    """
+    element = condition.condition_element
+    entries: dict[int, dict[str, str]] = {}
+    for child in element:
+        match = _APP_ENTRY_TAG_RE.match(child.tag)
+        if match:
+            prefix, index = match.group(1), int(match.group(2))
+            entries.setdefault(index, {"cls": "", "label": "", "pkg": ""})[prefix] = child.text or ""
+    return [entries[index] for index in sorted(entries)]
+
+
+def _validate_app_entries(entries: list[dict[str, str]]) -> list[str]:
+    return [f"App entry {i + 1} needs a Package name." for i, entry in enumerate(entries) if not entry.get("pkg", "").strip()]
+
+
+def _write_app_entries(condition: EditableCondition, entries: list[dict[str, str]]) -> None:
+    element = condition.condition_element
+    for child in [c for c in element if _APP_ENTRY_TAG_RE.match(c.tag)]:
+        element.remove(child)
+
+    element_cls = type(element)
+    for index, entry in enumerate(entries):
+        for prefix in ("cls", "label", "pkg"):
+            child = element_cls(f"{prefix}{index}")
+            child.text = entry.get(prefix, "").strip()
+            element.append(child)
+
+
+def add_app_entry(condition: EditableCondition) -> None:
+    """Appends a blank app entry (pkg/label/cls all empty) to an App condition.
+
+    Applied immediately (not staged like the field values above), since it
+    changes the entry count -- the Save-time condition_values keys the GUI
+    builds for this condition depend on that count matching what's rendered.
+    """
+    entries = get_app_entries(condition)
+    entries.append({"pkg": "", "label": "", "cls": ""})
+    _write_app_entries(condition, entries)
+
+
+def remove_app_entry(condition: EditableCondition, entry_index: int) -> None:
+    """Removes one app entry (by its position) from an App condition. Applied
+    immediately, same reasoning as add_app_entry.
+    """
+    entries = get_app_entries(condition)
+    if 0 <= entry_index < len(entries):
+        del entries[entry_index]
+    _write_app_entries(condition, entries)
+
+
+def sanitize_filename(name: str) -> str:
+    """Strip characters illegal in filenames from a Profile name (minimal, not a full slugify)."""
+    return re.sub(r'[\\/:*?"<>|]', "_", name).strip() or "profile"
+
+
+def default_save_path(profile_name: str) -> str:
+    """Default standalone-export path: {current runtime directory}/{sanitized name}.prf.xml."""
+    return os.path.join(os.getcwd(), f"{sanitize_filename(profile_name)}.prf.xml")
+
+
+def profile_name_exists(name: str) -> bool:
+    """Whether a Profile with this name already exists in the currently loaded backup."""
+    return name.strip() in PrimeItems.tasker_root_elements.get("all_profiles_by_name", {})
+
+
+def save_path_exists(output_path: str) -> bool:
+    """Whether a file already sits at this save path (would be silently overwritten)."""
+    return bool(output_path) and os.path.exists(output_path)
+
+
+def render_standalone_profile_xml(edited_profile: EditableProfile) -> str:
+    """Render the edited Profile as a standalone TaskerData/Profile[/Task...] XML
+    string. Unlike a Task, a Profile's own XML only *references* its Entry/Exit
+    Tasks by id (mid0/mid1) -- it isn't meaningful to Tasker on its own without
+    them, so this bundles in the current (unedited) live copies of whichever of
+    those Tasks are still linked, matching the shape Tasker's own single-Profile
+    export produces: a Profile element followed by its Task element(s), as
+    siblings under one TaskerData root.
+    """
+    tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
+    profile_copy = copy.deepcopy(edited_profile.profile_element)
+    # The parsed tree's Element class isn't necessarily xml.etree.ElementTree's own
+    # C-accelerated Element (defusedxml's hardened XMLParser forces the pure-Python
+    # implementation) -- ET.Element()/.append() enforce an exact type match, so build
+    # the wrapper using the same class the parsed elements actually are.
+    element_cls = type(profile_copy)
+    root = element_cls("TaskerData", {"sr": "", "dvi": "1", "tv": tv})
+    root.append(profile_copy)
+
+    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    # A Profile can legitimately use the same Task for both Entry and Exit --
+    # dict.fromkeys() dedupes while preserving order, so it's only bundled once.
+    linked_task_ids = dict.fromkeys(
+        task_id for task_id in (edited_profile.entry_task_id, edited_profile.exit_task_id) if task_id
+    )
+    for task_id in linked_task_ids:
+        task_entry = all_tasks.get(task_id)
+        if task_entry is not None:
+            root.append(copy.deepcopy(task_entry["xml"]))
+
+    ETW.indent(root, space="\t")
+    return XML_DECLARATION + ETW.tostring(root, encoding="unicode") + "\n"
+
+
+def write_standalone_profile_xml(edited_profile: EditableProfile, output_path: str) -> None:
+    """Write the edited Profile (plus its linked Task(s)) as a standalone XML file.
+    Raises OSError on failure.
+    """
+    with open(output_path, "w", encoding="utf-8") as out_file:
+        out_file.write(render_standalone_profile_xml(edited_profile))
+
+
+def save_profile_to_android(
+    edited_profile: EditableProfile,
+    ip_address: str,
+    ip_port: str,
+    profile_name: str,
+    auth_key: str = "",
+) -> tuple[int, str, str]:
+    """Import the edited Profile (plus its linked Task(s)), rendered as standalone
+    XML, onto the Android device via the Tasker HTTP API's POST /api/import
+    endpoint. Mirrors taskedit.save_task_to_android exactly, including the
+    auth-key caching/retry-on-401 behavior -- see that function's docstring.
+
+    Returns (0, profile_name, auth_key_used) on success, or
+    (return_code, error_message, "") on failure.
+    """
+    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from maptasker.src.maputil2 import get_android_auth_key, http_post_request  # noqa: PLC0415
+
+    ip_address = ip_address.strip()
+    ip_port = ip_port.strip()
+    if not ip_address or not ip_port:
+        return 8, "Android IP address and port are required.", ""
+
+    had_cached_key = bool(auth_key)
+    if not auth_key:
+        return_code, auth_key = get_android_auth_key(ip_address, ip_port)
+        if return_code != 0:
+            return return_code, auth_key, ""
+
+    xml_text = render_standalone_profile_xml(edited_profile)
+
+    return_code, response = http_post_request(
+        ip_address,
+        ip_port,
+        "",
+        "api/import",
+        "",
+        xml_text.encode("utf-8"),
+        auth_key,
+    )
+
+    if return_code == 9 and had_cached_key:  # noqa: PLR2004
+        # Cached key was rejected -- get a fresh one (device prompts once more) and retry.
+        return_code, auth_key = get_android_auth_key(ip_address, ip_port)
+        if return_code != 0:
+            return return_code, auth_key, ""
+        return_code, response = http_post_request(
+            ip_address,
+            ip_port,
+            "",
+            "api/import",
+            "",
+            xml_text.encode("utf-8"),
+            auth_key,
+        )
+
+    if return_code != 0:
+        return return_code, str(response), ""
+    return 0, profile_name, auth_key
+
+
+def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, auth_key: str) -> bool:
+    """Confirms the Profile actually landed in Tasker after a save_profile_to_android
+    import, via the Tasker HTTP API's GET /api/profiles?name=<profile_name> (Response:
+    profile objects -- a JSON array of {"name": ..., "enabled": ..., "active": ...},
+    filtered to Profiles matching the given name). Mirrors taskedit.verify_task_on_android.
+
+    Returns True if the GET succeeded and returned at least one Profile named
+    profile_name, False otherwise.
+    """
+    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from urllib.parse import quote  # noqa: PLC0415
+
+    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
+
+    return_code, response = http_request(
+        ip_address.strip(),
+        ip_port.strip(),
+        "",
+        "api/profiles",
+        f"?name={quote(profile_name)}",
+        auth_key,
+    )
+    if return_code != 0:
+        return False
+
+    try:
+        profiles = json.loads(response)
+    except (ValueError, TypeError):
+        return False
+
+    return any(profile.get("name") == profile_name for profile in profiles)
+
+
+def save_profile_to_android_directory(
+    edited_profile: EditableProfile,
+    ip_address: str,
+    ip_port: str,
+    profile_name: str,
+) -> tuple[int, str]:
+    """Fallback for save_profile_to_android when verify_profile_on_android can't
+    confirm the import landed: mirrors taskedit.save_task_to_android_directory --
+    same custom GET-action approach on the 'MapTasker List' Tasker profile, writing
+    under /Tasker/profiles instead of /Tasker/tasks.
+
+    NOTE: requires a matching 'saveprofile' action to be added to the 'MapTasker
+    List' Tasker profile on the device -- see taskedit.save_task_to_android_directory's
+    'savetask' note; neither exists there yet.
+
+    Returns (0, file_location) on success, or (return_code, error_message).
+    """
+    # Lazy imports to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from base64 import b64encode  # noqa: PLC0415
+    from urllib.parse import quote  # noqa: PLC0415
+
+    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
+
+    xml_text = render_standalone_profile_xml(edited_profile)
+    file_location = f"/Tasker/profiles/{sanitize_filename(profile_name)}.prf.xml"
+    encoded_content = quote(b64encode(xml_text.encode("utf-8")).decode("ascii"))
+
+    return_code, response = http_request(
+        ip_address.strip(),
+        ip_port.strip(),
+        file_location,
+        "saveprofile",
+        f"?content={encoded_content}",
+    )
+    if return_code != 0:
+        return return_code, str(response)
+    return 0, file_location
+
+
+def apply_edited_profile_to_live_tree(edited_profile: EditableProfile) -> None:
+    """Writes an edited Profile's changes back into the in-memory backup's
+    Profile tables (all_profiles, all_profiles_by_name) so views generated from
+    them -- Map, Diagram, Tree -- reflect the edit right away instead of the
+    Profile's original, unedited content. Mirrors taskedit.apply_edited_task_to_live_tree
+    exactly (same id-keyed object swap; the actual XML tree's document structure
+    doesn't need touching since every view reads Profile content through these
+    tables, not by re-walking the tree for it).
+
+    No-op if the Profile's id isn't registered (shouldn't happen in Phase 1 --
+    there's no "Add Profile" yet -- kept for parity with the Task version and as
+    a guard against a future Add Profile feature saving before registering).
+    """
+    all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
+    entry = all_profiles.get(edited_profile.profile_id)
+    if entry is None:
+        return
+
+    old_name = entry["name"]
+    new_name = edited_profile.profile_element.findtext("nme", "") or old_name
+
+    all_profiles[edited_profile.profile_id] = {"xml": edited_profile.profile_element, "name": new_name}
+
+    all_profiles_by_name = PrimeItems.tasker_root_elements.setdefault("all_profiles_by_name", {})
+    if old_name in all_profiles_by_name and old_name != new_name:
+        del all_profiles_by_name[old_name]
+    all_profiles_by_name[new_name] = {"xml": edited_profile.profile_element, "id": edited_profile.profile_id}

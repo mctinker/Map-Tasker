@@ -156,6 +156,8 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
     """
     logger.info(f"Function Entry: write_out_the_file dir:{my_output_dir}")
     output_file = f"{my_output_dir}{my_file_name}"
+    # Clear any stale message from a previous run -- only set again below if this run also hits the limit.
+    PrimeItems.view_limit_msg = ""
     with open(output_file, "w", encoding="utf-8") as out_file:
         # Output the rest that is in our output queue
         _output_directory = output_directory  # Localize for speed
@@ -165,8 +167,25 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
             if num > PrimeItems.view_limit:
                 msg_text = f"MapTasker: view limit reached, stopping output to file:  output={len(PrimeItems.output_lines.output_lines)}, hardstop_limit={PrimeItems.view_limit}"
                 # print(msg_text)
-                out_file.write(f"{msg_text}</span></body></html>")  # Close out the html file
+                # Breaking out mid-loop can leave something the last item opened still
+                # unclosed (a <span> deliberately left open by format_html(end_span=False)
+                # for a later item to close, or an in-progress <table>/<tr>/<td>/<details>
+                # from the "too many actions" twisty -- see this function's own <details>
+                # handling below). Left unclosed, the browser's own auto-close-at-EOF
+                # behavior can end up laying the message out inside an unconstrained table,
+                # which ignores the container's width regardless of word wrap. Closing tags
+                # with no matching open tag are simply ignored, so it's safe to always close
+                # all of them here before starting a fresh, guaranteed-clean block for the
+                # message -- wrapped so it always wraps/constrains to the container's width
+                # without hardcoding white-space, so it still respects the Toggle Wrap setting
+                # like every other line.
+                out_file.write(
+                    "</span></td></tr></table></details>"
+                    f'<div style="max-width: 100%; overflow-wrap: anywhere; word-break: break-word;">{msg_text}</div>'
+                    "</body></html>",
+                )
                 logger.info(msg_text)
+                PrimeItems.view_limit_msg = msg_text  # Read by the Map view's message field (see guiwins.NiceGuiTextView).
                 break  # Don't output more than the view limit
 
             # Check to see if this is where the directory is to go in the Output directory.

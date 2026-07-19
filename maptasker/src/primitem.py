@@ -86,6 +86,7 @@ class PrimeItems:
     displaying_named_tasks_not_in_profile = False
     error_code = 0
     error_msg = ""
+    view_limit_msg = ""  # Set by bildhtml.write_out_the_file when output hits view_limit; read by the Map view's message field.
     found_named_items: ClassVar[dict] = {
         "single_project_found": False,
         "single_profile_found": False,
@@ -108,6 +109,7 @@ class PrimeItems:
     tasker_root_elements: ClassVar[dict] = {
         "all_projects": [],
         "all_profiles": {},
+        "all_profiles_by_name": {},
         "all_scenes": {},
         "all_tasks": {},
         "all_tasks_by_name": {},
@@ -211,6 +213,7 @@ class PrimeItemsReset:
         PrimeItems.tasker_root_elements = {
             "all_projects": [],
             "all_profiles": {},
+            "all_profiles_by_name": {},
             "all_scenes": {},
             "all_tasks": {},
             "all_tasks_by_name": {},
@@ -231,6 +234,7 @@ class PrimeItemsReset:
         PrimeItems.current_project = ""
         PrimeItems.error_code = 0
         PrimeItems.error_msg = ""
+        PrimeItems.view_limit_msg = ""
         PrimeItems.tkroot = None
         PrimeItems.ai = {
             "do_ai": False,

@@ -14,10 +14,12 @@ either; a new Task exists only in memory until saved.
 from __future__ import annotations
 
 import copy
+import json
 import os
 import re
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -177,11 +179,23 @@ def add_action_to_task(edited_task: EditableTask, action_key: str) -> EditableAc
     return new_action
 
 
+def _renumber_actions(edited_task: EditableTask) -> None:
+    """Renumber every action's sr="actN" (and its act_number) to match its current
+    position in edited_task.actions -- shared by remove/copy/move so the model and
+    the XML always agree on order. XML child order is irrelevant to Tasker; it
+    orders Actions by the numeric suffix of sr="actN", not document order (Tasker
+    itself writes them out-of-order in the file -- see _build_editable_actions), so
+    this is the only bookkeeping a reorder needs.
+    """
+    for new_number, action in enumerate(edited_task.actions):
+        action.action_element.set("sr", f"act{new_number}")
+        action.act_number = new_number
+
+
 def remove_action_from_task(edited_task: EditableTask, act_number: int) -> None:
     """Remove an action (by its current act_number) from both the XML and the
     model, then renumber every remaining action's sr="actN" contiguously from 0 in
-    their current order (append order, already correct -- actions are never
-    reordered, only appended/removed).
+    their current order.
     """
     target = next((a for a in edited_task.actions if a.act_number == act_number), None)
     if target is None:
@@ -190,9 +204,80 @@ def remove_action_from_task(edited_task: EditableTask, act_number: int) -> None:
     edited_task.task_element.remove(target.action_element)
     edited_task.actions = [a for a in edited_task.actions if a is not target]
 
-    for new_number, action in enumerate(edited_task.actions):
-        action.action_element.set("sr", f"act{new_number}")
-        action.act_number = new_number
+    _renumber_actions(edited_task)
+
+
+def copy_action_in_task(edited_task: EditableTask, act_number: int) -> EditableAction | None:
+    """Duplicate the action currently numbered act_number, inserting the copy
+    immediately after it in the model, then renumber every action's sr="actN" to
+    match (XML child order doesn't matter -- see _renumber_actions).
+
+    Returns the new (copied) action, or None if act_number wasn't found.
+    """
+    source_index = next((i for i, a in enumerate(edited_task.actions) if a.act_number == act_number), None)
+    if source_index is None:
+        return None
+
+    source = edited_task.actions[source_index]
+    new_element = copy.deepcopy(source.action_element)
+    edited_task.task_element.append(new_element)
+
+    new_action = _build_editable_action(new_element, source.act_number)
+    edited_task.actions.insert(source_index + 1, new_action)
+
+    _renumber_actions(edited_task)
+    return new_action
+
+
+def move_action_in_task(edited_task: EditableTask, act_number: int, new_position: int) -> bool:
+    """Move the action currently numbered act_number to new_position (0-based,
+    among the task's other actions), then renumber every action's sr="actN" to
+    match (XML child order doesn't matter -- see _renumber_actions).
+
+    new_position is clamped to a valid index. Returns True if the move was
+    performed, False if act_number wasn't found.
+    """
+    source_index = next((i for i, a in enumerate(edited_task.actions) if a.act_number == act_number), None)
+    if source_index is None:
+        return False
+
+    new_position = max(0, min(new_position, len(edited_task.actions) - 1))
+    action = edited_task.actions.pop(source_index)
+    edited_task.actions.insert(new_position, action)
+
+    _renumber_actions(edited_task)
+    return True
+
+
+def _build_editable_action(action_element: defusedxml.ElementTree.Element, act_number: int) -> EditableAction:
+    """Build a single EditableAction bound to an already-in-the-tree Action element.
+
+    Shared by _build_editable_actions (initial load) and copy_action_in_task (a
+    freshly-deep-copied element), so a copy's args are bound to its own Int/Str
+    elements rather than the source action's.
+    """
+    code_element = action_element.find("code")
+    code = code_element.text if code_element is not None else ""
+
+    action_code = action_codes.get(f"{code}t")
+    if action_code is None:
+        return EditableAction(
+            action_element=action_element,
+            act_number=act_number,
+            code=code,
+            action_name=f"Code {code} not yet mapped",
+            args=[],
+        )
+
+    effective_args = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
+
+    return EditableAction(
+        action_element=action_element,
+        act_number=act_number,
+        code=code,
+        action_name=action_code.name,
+        args=build_editable_args(action_element, effective_args),
+    )
 
 
 def _build_editable_actions(task_copy: defusedxml.ElementTree.Element) -> list[EditableAction]:
@@ -206,38 +291,7 @@ def _build_editable_actions(task_copy: defusedxml.ElementTree.Element) -> list[E
     actions = task_copy.findall("Action")
     shell_sort(actions, True, False)
 
-    editable_actions = []
-    for action_element in actions:
-        code_element = action_element.find("code")
-        code = code_element.text if code_element is not None else ""
-        act_number = _action_number(action_element)
-
-        action_code = action_codes.get(f"{code}t")
-        if action_code is None:
-            editable_actions.append(
-                EditableAction(
-                    action_element=action_element,
-                    act_number=act_number,
-                    code=code,
-                    action_name=f"Code {code} not yet mapped",
-                    args=[],
-                ),
-            )
-            continue
-
-        effective_args = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
-
-        editable_actions.append(
-            EditableAction(
-                action_element=action_element,
-                act_number=act_number,
-                code=code,
-                action_name=action_code.name,
-                args=_build_editable_args(action_element, effective_args),
-            ),
-        )
-
-    return editable_actions
+    return [_build_editable_action(action_element, _action_number(action_element)) for action_element in actions]
 
 
 def _action_number(action_element: defusedxml.ElementTree.Element) -> int:
@@ -247,12 +301,18 @@ def _action_number(action_element: defusedxml.ElementTree.Element) -> int:
     return int(match.group()) if match else 0
 
 
-def _build_editable_args(
+def build_editable_args(
     action_element: defusedxml.ElementTree.Element,
     effective_args: list,
 ) -> list[EditableArg]:
     """Classify each of an action's defined arguments into a widget kind, bound to
     whatever Int/Str element already exists in the XML for it (never synthesized).
+
+    Public (not underscore-prefixed): this only depends on the Bundle/Int/Str
+    argument structure, not specifically on being a Task Action -- Profile
+    State/Event conditions use the exact same structure (see condition.py's
+    condition_state/condition_event), so profedit.py reuses this directly rather
+    than duplicating it.
     """
     editable_args = []
     for arg in effective_args:
@@ -544,6 +604,61 @@ def arg_key(act_number: int, arg_id: str) -> str:
     return f"act{act_number}_arg{arg_id}"
 
 
+def validate_arg_values(
+    args: list[EditableArg],
+    key_for_arg: Callable[[EditableArg], str],
+    arg_values: dict[str, str],
+) -> list[str]:
+    """Validates a set of args' pending values (only plain-number "text"+"Int"
+    non-variable args need it -- checkboxes/dropdowns/Str can't fail this way).
+
+    Public (not underscore-prefixed) and parameterized by key_for_arg rather
+    than hardcoding arg_key's act{N}_arg{id} format: Profile State/Event
+    conditions share this exact same arg model (see build_editable_args) but key
+    their pending values as cond{N}_arg{id} instead -- see
+    profedit.condition_arg_key.
+    """
+    errors = []
+    for arg in args:
+        if arg.widget_kind != "text" or arg.backing_tag != "Int" or arg.is_var:
+            continue
+        value = arg_values.get(key_for_arg(arg), "")
+        if value and not value.lstrip("-").isdigit():
+            errors.append(f"'{arg.arg_name}' must be a whole number.")
+    return errors
+
+
+def apply_arg_values(
+    args: list[EditableArg],
+    key_for_arg: Callable[[EditableArg], str],
+    arg_values: dict[str, str],
+) -> None:
+    """Applies a set of args' pending values onto their backing XML elements.
+    Caller must have already validated via validate_arg_values -- this assumes
+    every numeric value present is well-formed.
+    """
+    for arg in args:
+        if arg.widget_kind == "readonly" or arg.element is None:
+            continue
+        key = key_for_arg(arg)
+        if key not in arg_values:
+            continue
+        value = arg_values[key]
+
+        if arg.widget_kind == "checkbox":
+            arg.element.set("val", "1" if value in ("1", "true", "True") else "0")
+        elif arg.widget_kind == "dropdown":
+            index = arg.dropdown_options.index(value) if value in arg.dropdown_options else 0
+            arg.element.set("val", str(index))
+        elif arg.backing_tag == "Int" and arg.is_var:
+            var_element = arg.element.find("var")
+            var_element.text = value
+        elif arg.backing_tag == "Int":
+            arg.element.set("val", value)
+        elif arg.backing_tag == "Str":
+            arg.element.text = value
+
+
 def apply_edits_to_task(
     edited_task: EditableTask,
     name_value: str,
@@ -566,13 +681,12 @@ def apply_edits_to_task(
         errors.append("Priority must be a non-negative whole number.")
 
     for action in edited_task.actions:
-        for arg in action.args:
-            if arg.widget_kind != "text" or arg.backing_tag != "Int" or arg.is_var:
-                continue
-            key = arg_key(action.act_number, arg.arg_id)
-            value = arg_values.get(key, "")
-            if value and not value.lstrip("-").isdigit():
-                errors.append(f"'{arg.arg_name}' (Action {action.act_number}) must be a whole number.")
+        action_errors = validate_arg_values(
+            action.args,
+            lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id),
+            arg_values,
+        )
+        errors.extend(f"{error} (Action {action.act_number})" for error in action_errors)
 
     if errors:
         return errors
@@ -582,26 +696,11 @@ def apply_edits_to_task(
         _set_child_text(edited_task.task_element, "pri", priority_value)
 
     for action in edited_task.actions:
-        for arg in action.args:
-            if arg.widget_kind == "readonly" or arg.element is None:
-                continue
-            key = arg_key(action.act_number, arg.arg_id)
-            if key not in arg_values:
-                continue
-            value = arg_values[key]
-
-            if arg.widget_kind == "checkbox":
-                arg.element.set("val", "1" if value in ("1", "true", "True") else "0")
-            elif arg.widget_kind == "dropdown":
-                index = arg.dropdown_options.index(value) if value in arg.dropdown_options else 0
-                arg.element.set("val", str(index))
-            elif arg.backing_tag == "Int" and arg.is_var:
-                var_element = arg.element.find("var")
-                var_element.text = value
-            elif arg.backing_tag == "Int":
-                arg.element.set("val", value)
-            elif arg.backing_tag == "Str":
-                arg.element.text = value
+        apply_arg_values(
+            action.args,
+            lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id),
+            arg_values,
+        )
 
     return []
 
@@ -616,28 +715,20 @@ def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str)
     child.text = text
 
 
-def _loaded_backup_dir() -> str:
-    """Directory of the currently-loaded backup file, always absolute.
-
-    PrimeItems.file_to_get is sometimes a path string and sometimes an open file
-    object depending on how it was set -- handle both, mirroring frontmtr.py. Always
-    resolve to an absolute path (falling back to the current directory if there's no
-    file loaded) so a save never silently lands in whatever directory the process
-    happens to be running from.
-    """
-    file_to_get = PrimeItems.file_to_get
-    path = file_to_get if isinstance(file_to_get, str) else getattr(file_to_get, "name", "")
-    return os.path.dirname(os.path.abspath(path)) if path else os.getcwd()
-
-
 def sanitize_filename(name: str) -> str:
     """Strip characters illegal in filenames from a Task name (minimal, not a full slugify)."""
     return re.sub(r'[\\/:*?"<>|]', "_", name).strip() or "task"
 
 
 def default_save_path(task_name: str) -> str:
-    """Default standalone-export path: {loaded backup's directory}/{sanitized name}.tsk.xml."""
-    return os.path.join(_loaded_backup_dir(), f"{sanitize_filename(task_name)}.tsk.xml")
+    """Default standalone-export path: {current runtime directory}/{sanitized name}.tsk.xml.
+
+    Uses os.getcwd() (the directory the app is running from) rather than the
+    loaded backup file's directory -- the backup is typically picked from the
+    user's home directory (see Local_File_Picker("~", ...) in userintr.py), which
+    isn't necessarily where a Task should land.
+    """
+    return os.path.join(os.getcwd(), f"{sanitize_filename(task_name)}.tsk.xml")
 
 
 def task_name_exists(name: str) -> bool:
@@ -681,14 +772,20 @@ def save_task_to_android(
     ip_address: str,
     ip_port: str,
     task_name: str,
-) -> tuple[int, str]:
+    auth_key: str = "",
+) -> tuple[int, str, str]:
     """Import the edited Task, rendered as standalone XML, onto the Android device
     via the Tasker HTTP API's POST /api/import endpoint (Params/Body: Task XML;
     Response: task object). Every request to this API must carry an
-    'Authorization: <key>' header, so this first calls GET /api/auth (see
-    maputil2.get_android_auth_key) to obtain that key.
+    'Authorization: <key>' header.
 
-    Returns (0, task_name) on success, or (return_code, error_message).
+    Pass a previously-cached auth_key (see maputil2.get_android_auth_key) to skip
+    that device's GET /api/auth confirmation prompt. If the device rejects a
+    cached key (401), this falls back to fetching a fresh one and retries once --
+    the cached key may have expired or been revoked on the device.
+
+    Returns (0, task_name, auth_key_used) on success, so the caller can cache
+    auth_key_used for next time, or (return_code, error_message, "") on failure.
     """
     # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
     from maptasker.src.maputil2 import get_android_auth_key, http_post_request  # noqa: PLC0415
@@ -696,17 +793,20 @@ def save_task_to_android(
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
     if not ip_address or not ip_port:
-        return 8, "Android IP address and port are required."
+        return 8, "Android IP address and port are required.", ""
 
-    return_code, auth_key = get_android_auth_key(ip_address, ip_port)
-    if return_code != 0:
-        return return_code, auth_key
+    had_cached_key = bool(auth_key)
+    if not auth_key:
+        return_code, auth_key = get_android_auth_key(ip_address, ip_port)
+        if return_code != 0:
+            return return_code, auth_key, ""
 
     xml_text = render_standalone_task_xml(edited_task)
 
     # api/import imports directly into Tasker
     # api/tasks runs an existing task by name, but doesn't import a new one
     # /api/file reads/writes files on the device, but doesn't import into Tasker
+    # FIX Try just a file write to /api/file and then a /api/import of that file, instead of sending the whole XML in the POST body.
     return_code, response = http_post_request(
         ip_address,
         ip_port,
@@ -716,6 +816,156 @@ def save_task_to_android(
         xml_text.encode("utf-8"),
         auth_key,
     )
+
+    if return_code == 9 and had_cached_key:  # noqa: PLR2004
+        # Cached key was rejected -- get a fresh one (device prompts once more) and retry.
+        return_code, auth_key = get_android_auth_key(ip_address, ip_port)
+        if return_code != 0:
+            return return_code, auth_key, ""
+        return_code, response = http_post_request(
+            ip_address,
+            ip_port,
+            "",
+            "api/import",
+            "",
+            xml_text.encode("utf-8"),
+            auth_key,
+        )
+
+    if return_code != 0:
+        return return_code, str(response), ""
+    return 0, task_name, auth_key
+
+
+def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_key: str) -> bool:
+    """Confirms the Task actually landed in Tasker after a save_task_to_android
+    import, via the Tasker HTTP API's GET /api/tasks?name=<task_name> (Response:
+    task objects -- a JSON array of {"name": ..., "running": ...}, filtered to
+    Tasks matching the given name). api/import's own 200 response doesn't
+    guarantee Tasker committed the Task, so this re-checks by name -- see
+    save_task_to_android_directory for the fallback when this fails.
+
+    Returns True if the GET succeeded and returned at least one Task named
+    task_name, False otherwise.
+    """
+    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from urllib.parse import quote  # noqa: PLC0415
+
+    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
+
+    return_code, response = http_request(
+        ip_address.strip(),
+        ip_port.strip(),
+        "",
+        "api/tasks",
+        f"?name={quote(task_name)}",
+        auth_key,
+    )
+    if return_code != 0:
+        return False
+
+    try:
+        tasks = json.loads(response)
+    except (ValueError, TypeError):
+        return False
+
+    return any(task.get("name") == task_name for task in tasks)
+
+
+def save_task_to_android_directory(
+    edited_task: EditableTask,
+    ip_address: str,
+    ip_port: str,
+    task_name: str,
+) -> tuple[int, str]:
+    """Fallback for save_task_to_android when verify_task_on_android can't confirm
+    the import landed in Tasker: asks the custom 'MapTasker List' Tasker profile
+    already running on the device -- the same one guiutils.ping_android_device and
+    getbakup.get_backup_file rely on for the 'maplist'/'file' actions -- to write
+    the Task's standalone XML onto the device under /Tasker/tasks, via a new
+    'savetask' action.
+
+    Unlike the official api/* HTTP API, this custom profile's actions are plain
+    GETs with no Authorization header (see maputil2.http_request), and a GET has
+    no body -- so the XML is passed base64-encoded in the query string for the
+    profile's action to decode and write out.
+
+    NOTE: requires a matching 'savetask' action to be added to the 'MapTasker
+    List' Tasker profile on the device -- see maplist/file for the existing
+    pattern to follow. It does not exist yet.
+
+    Returns (0, file_location) on success, or (return_code, error_message).
+    """
+    # Lazy imports to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from base64 import b64encode  # noqa: PLC0415
+    from urllib.parse import quote  # noqa: PLC0415
+
+    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
+
+    xml_text = render_standalone_task_xml(edited_task)
+    file_location = f"/Tasker/tasks/{sanitize_filename(task_name)}.tsk.xml"
+    encoded_content = quote(b64encode(xml_text.encode("utf-8")).decode("ascii"))
+
+    return_code, response = http_request(
+        ip_address.strip(),
+        ip_port.strip(),
+        file_location,
+        "savetask",
+        f"?content={encoded_content}",
+    )
     if return_code != 0:
         return return_code, str(response)
-    return 0, task_name
+    return 0, file_location
+
+
+def register_new_task(edited_task: EditableTask, task_name: str) -> None:
+    """Adds a just-saved new Task to the in-memory backup's Task tables (all_tasks,
+    all_tasks_by_name) so it behaves like any other Task loaded from the backup --
+    e.g. so it shows up in the Edit Task picker (guiutils.py reads
+    all_tasks_by_name for that list) and so a second Add Task with the same name
+    is caught by task_name_exists(). Call once, right after the standalone
+    .tsk.xml write succeeds -- see userintr.save_new_task_event.
+    """
+    PrimeItems.tasker_root_elements["all_tasks"][edited_task.task_id] = {
+        "xml": edited_task.task_element,
+        "name": task_name,
+    }
+    PrimeItems.tasker_root_elements["all_tasks_by_name"][task_name] = {
+        "xml": edited_task.task_element,
+        "id": edited_task.task_id,
+    }
+
+
+def apply_edited_task_to_live_tree(edited_task: EditableTask) -> None:
+    """Writes an edited (pre-existing) Task's changes back into the in-memory
+    backup's Task tables (all_tasks, all_tasks_by_name) so views generated from
+    them -- Map, Diagram, Tree -- reflect the edit right away instead of the
+    Task's original, unedited content. load_task_for_edit/apply_edits_to_task
+    only ever mutate a deep copy (never PrimeItems.xml_root or these tables
+    directly -- see load_task_for_edit), so without this, Save only ever produces
+    a standalone file and the rest of the app keeps showing the old version.
+
+    Same all_tasks[id]["xml"]-swap approach as register_new_task, so it's
+    consistent with however that Task already got into the tables; the actual
+    XML tree's document structure (e.g. which Project/Profile a live Task
+    element sits under) doesn't need touching since every view reads Task
+    content through these tables, not by re-walking the tree for it.
+
+    No-op if the Task's id isn't registered yet (e.g. a brand-new Task from Add
+    Task, saved via Save To Android before ever reaching register_new_task) --
+    call once, right after a successful Save (local or to Android).
+    """
+    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    entry = all_tasks.get(edited_task.task_id)
+    if entry is None:
+        return
+
+    old_name = entry["name"]
+    new_name = edited_task.task_element.findtext("nme", "") or old_name
+
+    all_tasks[edited_task.task_id] = {"xml": edited_task.task_element, "name": new_name}
+
+    all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
+    if old_name in all_tasks_by_name and old_name != new_name:
+        del all_tasks_by_name[old_name]
+    all_tasks_by_name[new_name] = {"xml": edited_task.task_element, "id": edited_task.task_id}
