@@ -151,20 +151,7 @@ def add_action_to_task(edited_task: EditableTask, action_key: str) -> EditableAc
     code_element.text = code
     action_element.append(code_element)
 
-    args = []
-    for arg in effective_args:
-        editable_arg = _build_default_arg(arg)
-        if editable_arg is None:
-            continue  # Output Variables Bundle, or an unsupported category (shouldn't occur here).
-
-        if editable_arg.backing_tag == "Int":
-            element = element_cls("Int", {"sr": f"arg{arg.arg_id}", "val": editable_arg.current_value or "0"})
-        else:  # "Str"
-            element = element_cls("Str", {"sr": f"arg{arg.arg_id}", "ve": "3"})
-            element.text = ""
-        action_element.append(element)
-        editable_arg.element = element
-        args.append(editable_arg)
+    args = build_synthesized_args(element_cls, action_element, effective_args)
 
     edited_task.task_element.append(action_element)
 
@@ -247,6 +234,35 @@ def move_action_in_task(edited_task: EditableTask, act_number: int, new_position
 
     _renumber_actions(edited_task)
     return True
+
+
+def is_action_enabled(action: EditableAction) -> bool:
+    """Whether this Action is enabled -- mirrors action.py's own display logic,
+    which treats an <on> child as "disabled" (Tasker always writes it as
+    <on>false</on> when present) and its absence as "enabled". Same shape as
+    profedit.is_profile_enabled for a Profile's <limit>.
+    """
+    on = action.action_element.find("on")
+    return on is None or on.text != "false"
+
+
+def set_action_enabled(edited_task: EditableTask, act_number: int, enabled: bool) -> None:
+    """Enables or disables the action currently numbered act_number by removing/
+    setting its <on> child -- applied immediately (not staged), same as
+    profedit.set_profile_enabled. Takes act_number rather than an EditableAction
+    (and looks it up itself), matching remove/copy/move_action_in_task's own
+    calling convention -- the GUI's per-action buttons only close over act_number.
+    """
+    action = next((a for a in edited_task.actions if a.act_number == act_number), None)
+    if action is None:
+        return
+
+    if enabled:
+        on = action.action_element.find("on")
+        if on is not None:
+            action.action_element.remove(on)
+    else:
+        _set_child_text(action.action_element, "on", "false")
 
 
 def _build_editable_action(action_element: defusedxml.ElementTree.Element, act_number: int) -> EditableAction:
@@ -353,7 +369,7 @@ def _find_str_element(
 def _readonly_arg(arg, note: str) -> EditableArg:
     return EditableArg(
         arg_id=arg.arg_id,
-        arg_name=arg.arg_name,
+        arg_name=_display_arg_name(arg),
         widget_kind="readonly",
         backing_tag="",
         is_var=False,
@@ -368,6 +384,25 @@ def _lookup_key(arg) -> str | None:
     if isinstance(arg.arg_eval, list) and len(arg.arg_eval) > 2 and arg.arg_eval[1] == "l":
         return arg.arg_eval[2]
     return None
+
+
+def _display_arg_name(arg) -> str:
+    """The label to show for this arg in the GUI: arg.arg_name if it's set,
+    else derived from arg.arg_eval's first entry (arg_eval[0] for a list --
+    e.g. ["Priority=", "l", "4s"] -- or arg_eval itself for a plain string --
+    e.g. "Level=") with a leading ", " and trailing "=" stripped, e.g.
+    "Priority=" -> "Priority", ", To=" -> "To". Falls back to "" (unlabeled,
+    same as before) if arg_name is blank and arg_eval is empty/absent too.
+    """
+    if arg.arg_name:
+        return arg.arg_name
+
+    first_entry = arg.arg_eval[0] if isinstance(arg.arg_eval, list) else arg.arg_eval
+    if not first_entry:
+        return ""
+
+    first_entry = first_entry.removeprefix(", ")
+    return first_entry.removesuffix("=")
 
 
 def _classify_arg_widget(arg) -> tuple[str, str, list[str] | None]:
@@ -401,7 +436,7 @@ def _build_boolean_arg(action_element: defusedxml.ElementTree.Element, the_arg: 
     widget_kind, backing_tag, _ = _classify_arg_widget(arg)
     return EditableArg(
         arg_id=arg.arg_id,
-        arg_name=arg.arg_name,
+        arg_name=_display_arg_name(arg),
         widget_kind=widget_kind,
         backing_tag=backing_tag,
         is_var=False,
@@ -426,7 +461,7 @@ def _build_int_arg(action_element: defusedxml.ElementTree.Element, the_arg: str,
             # A formula, not an index -- can't safely represent it as a dropdown.
             return EditableArg(
                 arg_id=arg.arg_id,
-                arg_name=arg.arg_name,
+                arg_name=_display_arg_name(arg),
                 widget_kind="raw_fallback",
                 backing_tag="Int",
                 is_var=True,
@@ -436,7 +471,7 @@ def _build_int_arg(action_element: defusedxml.ElementTree.Element, the_arg: str,
             )
         return EditableArg(
             arg_id=arg.arg_id,
-            arg_name=arg.arg_name,
+            arg_name=_display_arg_name(arg),
             widget_kind="dropdown",
             backing_tag="Int",
             is_var=False,
@@ -447,7 +482,7 @@ def _build_int_arg(action_element: defusedxml.ElementTree.Element, the_arg: str,
 
     return EditableArg(
         arg_id=arg.arg_id,
-        arg_name=arg.arg_name,
+        arg_name=_display_arg_name(arg),
         widget_kind="text",
         backing_tag=backing_tag,
         is_var=is_var,
@@ -464,7 +499,7 @@ def _build_string_arg(action_element: defusedxml.ElementTree.Element, the_arg: s
     widget_kind, backing_tag, _ = _classify_arg_widget(arg)
     return EditableArg(
         arg_id=arg.arg_id,
-        arg_name=arg.arg_name,
+        arg_name=_display_arg_name(arg),
         widget_kind=widget_kind,
         backing_tag=backing_tag,
         is_var=False,
@@ -499,7 +534,7 @@ def _build_default_arg(arg) -> EditableArg | None:
 
     return EditableArg(
         arg_id=arg.arg_id,
-        arg_name=arg.arg_name,
+        arg_name=_display_arg_name(arg),
         widget_kind=widget_kind,
         backing_tag=backing_tag,
         is_var=False,
@@ -507,6 +542,41 @@ def _build_default_arg(arg) -> EditableArg | None:
         current_value=current_value,
         dropdown_options=dropdown_options,
     )
+
+
+def build_synthesized_args(
+    element_cls: type,
+    container_element: defusedxml.ElementTree.Element,
+    effective_args: list,
+) -> list[EditableArg]:
+    """Synthesizes default Int/Str XML elements for a set of ArgumentCode
+    definitions, appends them to container_element, and returns their bound
+    EditableArgs.
+
+    Public (not underscore-prefixed): shared by add_action_to_task (a new Task
+    Action) and profedit.add_event_condition_to_profile (a new Profile Event
+    condition) -- both build brand-new elements from the exact same Bundle/
+    Int/Str argument shape (see build_editable_args' own docstring on why
+    Profile conditions reuse this machinery). Skips any arg _build_default_arg
+    returns None for (the informational 'Output Variables' Bundle hint, or an
+    unsupported category -- shouldn't occur on an addable action/event; see
+    classify_action_addability).
+    """
+    args = []
+    for arg in effective_args:
+        editable_arg = _build_default_arg(arg)
+        if editable_arg is None:
+            continue
+
+        if editable_arg.backing_tag == "Int":
+            element = element_cls("Int", {"sr": f"arg{arg.arg_id}", "val": editable_arg.current_value or "0"})
+        else:  # "Str"
+            element = element_cls("Str", {"sr": f"arg{arg.arg_id}", "ve": "3"})
+            element.text = ""
+        container_element.append(element)
+        editable_arg.element = element
+        args.append(editable_arg)
+    return args
 
 
 _SAFE_CATEGORIES = ("Int", "Str", "String", "Boolean")
@@ -919,12 +989,15 @@ def save_task_to_android_directory(
 
 
 def register_new_task(edited_task: EditableTask, task_name: str) -> None:
-    """Adds a just-saved new Task to the in-memory backup's Task tables (all_tasks,
+    """Adds a new Task to the in-memory backup's Task tables (all_tasks,
     all_tasks_by_name) so it behaves like any other Task loaded from the backup --
     e.g. so it shows up in the Edit Task picker (guiutils.py reads
     all_tasks_by_name for that list) and so a second Add Task with the same name
-    is caught by task_name_exists(). Call once, right after the standalone
-    .tsk.xml write succeeds -- see userintr.save_new_task_event.
+    is caught by task_name_exists(). Call once: right after the standalone
+    .tsk.xml write succeeds (see userintr.save_new_task_event), for a
+    keep-without-saving-to-disk Ok without one (see userintr.keep_new_task_event),
+    or after a successful Save To Android import (see
+    userintr.save_task_to_android_event's is_new_task branch).
     """
     PrimeItems.tasker_root_elements["all_tasks"][edited_task.task_id] = {
         "xml": edited_task.task_element,

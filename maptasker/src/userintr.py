@@ -34,6 +34,7 @@ from maptasker.src.guiutils import (
     get_xml,
     list_tasker_objects,
     ping_android_device,
+    refresh_tasker_object_pulldowns,
     reload_gui,
     set_ai_key,
     set_tasker_object_names,
@@ -45,6 +46,7 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins import (
     NiceGuiTextView,
     NiceGuiTreeView,
+    build_add_profile_dialog,
     build_add_task_dialog,
     build_edit_profile_dialog,
     build_edit_task_dialog,
@@ -1007,6 +1009,55 @@ def _open_popout_window(path: str) -> None:
     )
 
 
+def _task_arg_values(field_refs: dict) -> dict[str, str]:
+    """Snapshots field_refs' action-argument widgets into the string-keyed dict
+    taskedit.apply_edits_to_task expects -- shared by every Task-editing entry
+    point (Save, Save To Android, Ok, and Add Task's own Save/Ok), which all
+    read the same live NiceGUI widget values the same way.
+    """
+    arg_values = {}
+    for key, widget in field_refs.items():
+        if key in ("name", "priority", "save_path"):
+            continue
+        value = widget.value
+        arg_values[key] = "1" if value is True else "0" if value is False else str(value)
+    return arg_values
+
+
+def _profile_condition_values(field_refs: dict) -> dict[str, str]:
+    """Snapshots field_refs' condition-field widgets into the string-keyed dict
+    profedit.apply_edits_to_profile expects -- shared by every Profile-editing
+    entry point (Save, Save To Android, Ok), same reasoning as _task_arg_values.
+    """
+    condition_values = {}
+    for key, widget in field_refs.items():
+        if not key.startswith("cond"):
+            continue
+        value = widget.value
+        condition_values[key] = "1" if value is True else "0" if value is False else str(value)
+    return condition_values
+
+
+def _link_pending_task_pickers(edited_profile: profedit.EditableProfile, field_refs: dict) -> None:
+    """Links in whatever's currently picked in the Entry/Exit "Choose a Task"
+    dropdown even if the user never clicked its separate "Link" button --
+    picking a Task in that dropdown reads as "done" to a user, so Save/Ok/
+    Save To Android shouldn't silently discard it and then complain the
+    Entry/Exit Task is missing (see profedit.validate_new_profile_requirements)
+    just because the extra confirmation click didn't happen. field_refs only
+    has "{entry,exit}_task_picker" while that Task is still unlinked (see
+    guiwins._build_profile_editor_body) -- already-linked ones have nothing to do here.
+    """
+    for link_type in ("Entry", "Exit"):
+        picker = field_refs.get(f"{link_type.lower()}_task_picker")
+        if picker is None or not picker.value:
+            continue
+        resolved = taskedit.resolve_task_by_name(picker.value)
+        if resolved is not None:
+            task_id, _ = resolved
+            profedit.link_task_to_profile(edited_profile, task_id, link_type)
+
+
 class MapTaskerEventHandlers:
     """
     Handles all UI interactions (button clicks, dropdown changes, toggles).
@@ -1531,12 +1582,7 @@ class MapTaskerEventHandlers:
         edited Task out as a standalone .tsk.xml file. Dialog stays open on any error
         so the user's in-progress edits aren't lost.
         """
-        arg_values = {}
-        for key, widget in field_refs.items():
-            if key in ("name", "priority", "save_path"):
-                continue
-            value = widget.value
-            arg_values[key] = "1" if value is True else "0" if value is False else str(value)
+        arg_values = _task_arg_values(field_refs)
 
         errors = taskedit.apply_edits_to_task(
             edited_task,
@@ -1561,36 +1607,19 @@ class MapTaskerEventHandlers:
         ui.notify(f"Saved to {save_path}", type="positive")
         dialog.close()
 
-    def open_save_to_android_dialog_event(
+    def keep_edited_task_event(
         self,
         edited_task: taskedit.EditableTask,
         field_refs: dict,
-        parent_dialog: ui.dialog,
+        dialog: ui.dialog,
     ) -> None:
-        """Opens the IP/port prompt for importing this Task into Tasker on the Android device."""
-        build_save_to_android_dialog(self.gui, edited_task, field_refs, parent_dialog)
-
-    async def save_task_to_android_event(
-        self,
-        edited_task: taskedit.EditableTask,
-        field_refs: dict,
-        android_field_refs: dict,
-        android_dialog: ui.dialog,
-        parent_dialog: ui.dialog,
-    ) -> None:
-        """Validates and applies the parent dialog's field values (same as a local
-        Save), pings the Android device to confirm it's reachable (same check
-        fetch_backup_event uses), and then imports the edited Task into Tasker on
-        the device. The android prompt dialog stays open on any error so the
-        user's connection details aren't lost; on success both it and the parent
-        Edit/Add Task dialog are closed.
+        """Validates and applies the Edit Task dialog's field values into the live
+        in-memory backup (same as Save's apply_edited_task_to_live_tree), without
+        writing a standalone file or touching Android, then closes the dialog --
+        backs the "Ok" button, which keeps the edit for this session only. Dialog
+        stays open on any error so the user's in-progress edits aren't lost.
         """
-        arg_values = {}
-        for key, widget in field_refs.items():
-            if key in ("name", "priority", "save_path"):
-                continue
-            value = widget.value
-            arg_values[key] = "1" if value is True else "0" if value is False else str(value)
+        arg_values = _task_arg_values(field_refs)
 
         errors = taskedit.apply_edits_to_task(
             edited_task,
@@ -1601,6 +1630,66 @@ class MapTaskerEventHandlers:
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
+            return
+
+        taskedit.apply_edited_task_to_live_tree(edited_task)
+
+        ui.notify("Changes kept.", type="positive")
+        dialog.close()
+
+    def open_save_to_android_dialog_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        parent_dialog: ui.dialog,
+        on_created: Callable[[str], None] | None = None,
+    ) -> None:
+        """Opens the IP/port prompt for importing this Task into Tasker on the Android device."""
+        build_save_to_android_dialog(self.gui, edited_task, field_refs, parent_dialog, on_created)
+
+    async def save_task_to_android_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        android_field_refs: dict,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+        on_created: Callable[[str], None] | None = None,
+    ) -> None:
+        """Validates and applies the parent dialog's field values (same as a local
+        Save), pings the Android device to confirm it's reachable (same check
+        fetch_backup_event uses), and then imports the edited Task into Tasker on
+        the device. The android prompt dialog stays open on any error so the
+        user's connection details aren't lost; on success both it and the parent
+        Edit/Add Task dialog are closed.
+
+        on_created, if given, is called with the new Task's id once it's
+        registered -- see build_add_task_dialog's on_task_created.
+        """
+        # A brand-new Task (Add Task) was never registered onto the live tree in
+        # the first place -- computed before anything below can change task_id,
+        # so it stays accurate for the registration step at the end.
+        is_new_task = edited_task.task_id not in PrimeItems.tasker_root_elements.get("all_tasks", {})
+
+        arg_values = _task_arg_values(field_refs)
+
+        errors = taskedit.apply_edits_to_task(
+            edited_task,
+            field_refs["name"].value,
+            field_refs["priority"].value,
+            arg_values,
+        )
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        if is_new_task and taskedit.task_name_exists(field_refs["name"].value.strip()):
+            ui.notify(
+                f"A Task named '{field_refs['name'].value.strip()}' already exists in this backup. "
+                "Choose a different name.",
+                type="negative",
+            )
             return
 
         ip_address = android_field_refs["ip_address"].value.strip()
@@ -1641,9 +1730,13 @@ class MapTaskerEventHandlers:
         self.gui.android_ipaddr = ip_address
         self.gui.android_port = ip_port
 
-        # No-op for a brand-new Task (Add Task) that was never registered onto the
-        # live tree in the first place -- see taskedit.apply_edited_task_to_live_tree.
-        taskedit.apply_edited_task_to_live_tree(edited_task)
+        if is_new_task:
+            taskedit.register_new_task(edited_task, task_name)
+            if on_created is not None:
+                on_created(edited_task.task_id)
+        else:
+            taskedit.apply_edited_task_to_live_tree(edited_task)
+        refresh_tasker_object_pulldowns(self.gui)
 
         # api/import's 200 response doesn't guarantee Tasker actually committed the
         # Task, so confirm via GET /api/tasks before declaring success. If that
@@ -1684,6 +1777,15 @@ class MapTaskerEventHandlers:
 
         build_edit_profile_dialog(the_view, edited_profile)
 
+    def open_add_profile_dialog_event(self) -> None:
+        """Opens the Add Profile dialog for a brand-new Profile."""
+        new_profile = profedit.create_new_profile("")
+        if isinstance(new_profile, str):
+            ui.notify(new_profile, type="warning")
+            return
+
+        build_add_profile_dialog(self.gui, new_profile)
+
     def link_task_to_profile_event(
         self,
         edited_profile: profedit.EditableProfile,
@@ -1705,6 +1807,34 @@ class MapTaskerEventHandlers:
         """Unlinks the Profile's current Entry or Exit Task."""
         profedit.unlink_task_from_profile(edited_profile, link_type)
 
+    def open_add_task_for_profile_link_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        link_type: str,
+        on_linked: Callable[[], None],
+    ) -> None:
+        """Opens the Add Task dialog nested inside Edit/Add Profile's Entry/Exit
+        Task picker -- the alternative to link_task_to_profile_event picking an
+        existing Task. On successful creation (Ok/Save/Save To Android in that
+        nested dialog), the new Task is linked in as this Profile's Entry/Exit
+        Task and on_linked (the picker's own render_task_links) is called to
+        refresh the display -- see build_add_task_dialog's on_task_created.
+        """
+        new_task = taskedit.create_new_task("", "100")
+        if isinstance(new_task, str):
+            ui.notify(new_task, type="warning")
+            return
+
+        def link_new_task(task_id: str) -> None:
+            profedit.link_task_to_profile(edited_profile, task_id, link_type)
+            on_linked()
+
+        build_add_task_dialog(self.gui, new_task, on_task_created=link_new_task)
+
+    def set_profile_enabled_event(self, edited_profile: profedit.EditableProfile, enabled: bool) -> None:
+        """Enables or disables the Profile being edited."""
+        profedit.set_profile_enabled(edited_profile, enabled)
+
     def add_condition_to_profile_event(self, edited_profile: profedit.EditableProfile, cond_type: str) -> None:
         """Adds a new condition (Time/Day/App/Loc) to the Profile being edited."""
         if not cond_type:
@@ -1718,6 +1848,26 @@ class MapTaskerEventHandlers:
     def remove_condition_from_profile_event(self, edited_profile: profedit.EditableProfile, cond_index: int) -> None:
         """Removes a condition from the Profile being edited and renumbers the rest."""
         profedit.remove_condition_from_profile(edited_profile, cond_index)
+
+    def add_event_condition_to_profile_event(self, edited_profile: profedit.EditableProfile, event_key: str) -> None:
+        """Synthesizes and appends a new Event condition to the Profile being edited."""
+        if not event_key:
+            ui.notify("Choose an Event type first.", type="warning")
+            return
+        result = profedit.add_event_condition_to_profile(edited_profile, event_key)
+        if isinstance(result, list):
+            for error in result:
+                ui.notify(error, type="negative")
+
+    def add_state_condition_to_profile_event(self, edited_profile: profedit.EditableProfile, state_key: str) -> None:
+        """Synthesizes and appends a new State condition to the Profile being edited."""
+        if not state_key:
+            ui.notify("Choose a State type first.", type="warning")
+            return
+        result = profedit.add_state_condition_to_profile(edited_profile, state_key)
+        if isinstance(result, list):
+            for error in result:
+                ui.notify(error, type="negative")
 
     def add_app_entry_event(self, edited_profile: profedit.EditableProfile, cond_index: int) -> None:
         """Adds a blank app entry to an App condition being edited."""
@@ -1741,12 +1891,8 @@ class MapTaskerEventHandlers:
         the edited Profile out as a standalone .prf.xml file. Dialog stays open on
         any error so the user's in-progress edits aren't lost.
         """
-        condition_values = {}
-        for key, widget in field_refs.items():
-            if not key.startswith("cond"):
-                continue
-            value = widget.value
-            condition_values[key] = "1" if value is True else "0" if value is False else str(value)
+        _link_pending_task_pickers(edited_profile, field_refs)
+        condition_values = _profile_condition_values(field_refs)
 
         errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
         if errors:
@@ -1764,6 +1910,139 @@ class MapTaskerEventHandlers:
         profedit.apply_edited_profile_to_live_tree(edited_profile)
 
         ui.notify(f"Saved to {save_path}", type="positive")
+        dialog.close()
+
+    def keep_edited_profile_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Edit Profile dialog's field values into the
+        live in-memory backup (same as Save's apply_edited_profile_to_live_tree),
+        without writing a standalone file or touching Android, then closes the
+        dialog -- backs the "Ok" button, which keeps the edit for this session
+        only. Dialog stays open on any error so the user's in-progress edits aren't lost.
+        """
+        _link_pending_task_pickers(edited_profile, field_refs)
+        condition_values = _profile_condition_values(field_refs)
+
+        errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        profedit.apply_edited_profile_to_live_tree(edited_profile)
+
+        ui.notify("Changes kept.", type="positive")
+        dialog.close()
+
+    def save_new_profile_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Add Profile dialog's field values, then writes
+        the new Profile out as a standalone .prf.xml file. Mirrors
+        save_new_task_event exactly. Dialog stays open on any error so the user's
+        in-progress work isn't lost.
+        """
+        _link_pending_task_pickers(edited_profile, field_refs)
+
+        name_value = field_refs["name"].value.strip()
+        save_path = field_refs["save_path"].value.strip()
+        project_name = field_refs["project_name"].value
+
+        name_conflict_errors = []
+        if profedit.profile_name_exists(name_value):
+            name_conflict_errors.append(
+                f"A Profile named '{name_value}' already exists in this backup. Choose a different name.",
+            )
+        if profedit.save_path_exists(save_path):
+            name_conflict_errors.append(f"A file already exists at '{save_path}'. Choose a different name or location.")
+        if not project_name:
+            name_conflict_errors.append(
+                "Choose a Project first -- a Profile has to belong to one to show up anywhere in the app.",
+            )
+        name_conflict_errors.extend(profedit.validate_new_profile_requirements(edited_profile))
+        if name_conflict_errors:
+            for error in name_conflict_errors:
+                ui.notify(error, type="negative")
+            return
+
+        condition_values = _profile_condition_values(field_refs)
+
+        errors = profedit.apply_edits_to_profile(edited_profile, name_value, condition_values)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        try:
+            profedit.write_standalone_profile_xml(edited_profile, save_path)
+        except OSError as e:
+            ui.notify(f"Could not save file: {e}", type="negative")
+            return
+
+        profedit.register_new_profile(edited_profile, name_value)
+        profedit.add_profile_to_project(edited_profile, project_name)
+        refresh_tasker_object_pulldowns(self.gui)
+
+        ui.notify(f"Saved to {save_path}", type="positive")
+        dialog.close()
+
+    def keep_new_profile_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Add Profile dialog's field values, then
+        registers the new Profile into the live in-memory backup (same as Save's
+        register_new_profile), without writing a standalone file, then closes the
+        dialog -- backs the "Ok" button, which keeps the new Profile for this
+        session only. Mirrors keep_new_task_event exactly. Dialog stays open on
+        any error so the user's in-progress work isn't lost. Still checks the
+        Profile name for a conflict and that a Project was chosen (needed for
+        live-tree registration and Project attachment to make sense -- see
+        profedit.add_profile_to_project) but not the save path, since no file
+        is written.
+        """
+        _link_pending_task_pickers(edited_profile, field_refs)
+
+        name_value = field_refs["name"].value.strip()
+        project_name = field_refs["project_name"].value
+
+        conflict_errors = []
+        if profedit.profile_name_exists(name_value):
+            conflict_errors.append(
+                f"A Profile named '{name_value}' already exists in this backup. Choose a different name.",
+            )
+        if not project_name:
+            conflict_errors.append(
+                "Choose a Project first -- a Profile has to belong to one to show up anywhere in the app.",
+            )
+        conflict_errors.extend(profedit.validate_new_profile_requirements(edited_profile))
+        if conflict_errors:
+            for error in conflict_errors:
+                ui.notify(error, type="negative")
+            return
+
+        condition_values = _profile_condition_values(field_refs)
+
+        errors = profedit.apply_edits_to_profile(edited_profile, name_value, condition_values)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        profedit.register_new_profile(edited_profile, name_value)
+        profedit.add_profile_to_project(edited_profile, project_name)
+        refresh_tasker_object_pulldowns(self.gui)
+
+        ui.notify("Profile kept.", type="positive")
         dialog.close()
 
     def open_save_profile_to_android_dialog_event(
@@ -1786,20 +2065,41 @@ class MapTaskerEventHandlers:
         """Validates and applies the parent dialog's field values (same as a local
         Save), pings the Android device to confirm it's reachable, and then imports
         the edited Profile (plus its linked Entry/Exit Task(s)) into Tasker on the
-        device. Mirrors save_task_to_android_event exactly.
+        device. Mirrors save_task_to_android_event, except a Profile also needs
+        registering into the live tree (see the is_new_profile branch below) --
+        Tasks don't need the Project-attachment step a Profile does.
         """
-        condition_values = {}
-        for key, widget in field_refs.items():
-            if not key.startswith("cond"):
-                continue
-            value = widget.value
-            condition_values[key] = "1" if value is True else "0" if value is False else str(value)
+        _link_pending_task_pickers(edited_profile, field_refs)
+        condition_values = _profile_condition_values(field_refs)
 
         errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
             return
+
+        # Add Profile's dialog (unlike Edit Profile's) has a "project_name" field --
+        # its presence is how this shared handler tells a brand-new, not-yet-registered
+        # Profile apart from one already in the backup, without threading an extra
+        # parameter through every caller.
+        is_new_profile = "project_name" in field_refs
+        project_name = field_refs["project_name"].value if is_new_profile else ""
+        if is_new_profile:
+            new_profile_errors = []
+            if profedit.profile_name_exists(field_refs["name"].value.strip()):
+                new_profile_errors.append(
+                    f"A Profile named '{field_refs['name'].value.strip()}' already exists in this backup. "
+                    "Choose a different name.",
+                )
+            if not project_name:
+                new_profile_errors.append(
+                    "Choose a Project first -- a Profile has to belong to one to show up anywhere in the app.",
+                )
+            new_profile_errors.extend(profedit.validate_new_profile_requirements(edited_profile))
+            if new_profile_errors:
+                for error in new_profile_errors:
+                    ui.notify(error, type="negative")
+                return
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
@@ -1839,7 +2139,12 @@ class MapTaskerEventHandlers:
         self.gui.android_ipaddr = ip_address
         self.gui.android_port = ip_port
 
-        profedit.apply_edited_profile_to_live_tree(edited_profile)
+        if is_new_profile:
+            profedit.register_new_profile(edited_profile, profile_name)
+            profedit.add_profile_to_project(edited_profile, project_name)
+        else:
+            profedit.apply_edited_profile_to_live_tree(edited_profile)
+        refresh_tasker_object_pulldowns(self.gui)
 
         # api/import's 200 response doesn't guarantee Tasker actually committed the
         # Profile, so confirm via GET /api/profiles before declaring success. If
@@ -1902,15 +2207,28 @@ class MapTaskerEventHandlers:
         """Moves an action to a new position among a Task's other actions."""
         taskedit.move_action_in_task(edited_task, act_number, new_position)
 
+    def set_action_enabled_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        act_number: int,
+        enabled: bool,
+    ) -> None:
+        """Enables or disables an action in a Task being edited."""
+        taskedit.set_action_enabled(edited_task, act_number, enabled)
+
     def save_new_task_event(
         self,
         edited_task: taskedit.EditableTask,
         field_refs: dict,
         dialog: ui.dialog,
+        on_created: Callable[[str], None] | None = None,
     ) -> None:
         """Validates and applies the Add Task dialog's field values, then writes the
         new Task out as a standalone .tsk.xml file. Dialog stays open on any error
         so the user's in-progress work isn't lost.
+
+        on_created, if given, is called with the new Task's id once it's
+        registered -- see build_add_task_dialog's on_task_created.
         """
         if not edited_task.actions:
             ui.notify("This Task has no actions yet.", type="warning")
@@ -1930,12 +2248,7 @@ class MapTaskerEventHandlers:
                 ui.notify(error, type="negative")
             return
 
-        arg_values = {}
-        for key, widget in field_refs.items():
-            if key in ("name", "priority", "save_path"):
-                continue
-            value = widget.value
-            arg_values[key] = "1" if value is True else "0" if value is False else str(value)
+        arg_values = _task_arg_values(field_refs)
 
         errors = taskedit.apply_edits_to_task(
             edited_task,
@@ -1955,8 +2268,63 @@ class MapTaskerEventHandlers:
             return
 
         taskedit.register_new_task(edited_task, name_value)
+        if on_created is not None:
+            on_created(edited_task.task_id)
+        refresh_tasker_object_pulldowns(self.gui)
 
         ui.notify(f"Saved to {save_path}", type="positive")
+        dialog.close()
+
+    def keep_new_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        dialog: ui.dialog,
+        on_created: Callable[[str], None] | None = None,
+    ) -> None:
+        """Validates and applies the Add Task dialog's field values, then registers
+        the new Task into the live in-memory backup (same as Save's
+        register_new_task), without writing a standalone file, then closes the
+        dialog -- backs the "Ok" button, which keeps the new Task for this
+        session only. Dialog stays open on any error so the user's in-progress
+        work isn't lost. Still checks the Task name for a conflict (needed for
+        live-tree registration to make sense) but not the save path, since no
+        file is written.
+
+        on_created, if given, is called with the new Task's id once it's
+        registered -- see build_add_task_dialog's on_task_created.
+        """
+        if not edited_task.actions:
+            ui.notify("This Task has no actions yet.", type="warning")
+
+        name_value = field_refs["name"].value.strip()
+
+        if taskedit.task_name_exists(name_value):
+            ui.notify(
+                f"A Task named '{name_value}' already exists in this backup. Choose a different name.",
+                type="negative",
+            )
+            return
+
+        arg_values = _task_arg_values(field_refs)
+
+        errors = taskedit.apply_edits_to_task(
+            edited_task,
+            name_value,
+            field_refs["priority"].value,
+            arg_values,
+        )
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        taskedit.register_new_task(edited_task, name_value)
+        if on_created is not None:
+            on_created(edited_task.task_id)
+        refresh_tasker_object_pulldowns(self.gui)
+
+        ui.notify("Task kept.", type="positive")
         dialog.close()
 
     # Define the asynchronous callback for the button

@@ -254,6 +254,28 @@ def list_tasker_objects(self) -> bool:  # noqa: ANN001
     if not self.load_xml():
         return False
 
+    return refresh_tasker_object_pulldowns(self)
+
+
+def refresh_tasker_object_pulldowns(self) -> bool:  # noqa: ANN001
+    """Recomputes the Project/Profile/Task pulldown option lists from whatever
+    is currently in PrimeItems.tasker_root_elements and pushes them into the
+    'Specific Name' tab's pulldown widgets.
+
+    This is list_tasker_objects' own tail, split out so callers that already
+    know the backup is loaded -- e.g. userintr.py's Add Profile/Add Task
+    handlers, right after registering a new Profile/Task into the live tree --
+    can refresh the pulldowns without going through list_tasker_objects' own
+    load_xml() gate first. That gate re-fetches from the file/Android whenever
+    self.android_ipaddr is set (see save_profile_to_android_event/
+    save_task_to_android_event, which cache that address "for next time"), so
+    calling list_tasker_objects itself right after a Save To Android would risk
+    clobbering the in-memory edits that call just made.
+
+    Returns:
+        bool: True if there was data to display, False otherwise (same
+        contract as list_tasker_objects).
+    """
     # Get all of the Tasker objects: Projects/Profiles/Tasks/Scenes
     return_code, projects_to_display, profiles_to_display, tasks_to_display = get_tasker_objects(self)
     if not return_code:

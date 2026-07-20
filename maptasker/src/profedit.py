@@ -1,8 +1,9 @@
 """profedit: build an editable model of a Profile and save it as a standalone .prf.xml file.
 
 Edit Profile:
-  Phase 1: rename a Profile, and link/unlink its Entry (mid0) and Exit (mid1)
-  Tasks by an existing Task's name.
+  Phase 1: rename a Profile, enable/disable it (<limit>true</limit> -- see
+  profiles.py's build_profile_line, which reads the same tag), and link/unlink
+  its Entry (mid0) and Exit (mid1) Tasks by an existing Task's name.
   Phase 2: add/edit/delete conditions of the flat, well-known-field-set types
   (Time, Day, App, Loc).
   Phase 3: edit State/Event conditions' plugin/built-in arguments -- these reuse
@@ -11,10 +12,16 @@ Edit Profile:
   same way Task Actions do, just with a different code suffix: "s" for State,
   "e" for Event, vs Task Actions' "t"), so this reuses taskedit.py's arg-editing
   machinery (build_editable_args/validate_arg_values/apply_arg_values) directly
-  rather than duplicating it. Adding a brand-new State/Event condition from
-  scratch is not supported -- unlike Task Actions, there's no code picker for
-  them yet (see CONDITION_TYPES_ADDABLE); they can be edited and deleted, but
-  only ones already present in the loaded backup.
+  rather than duplicating it. Adding a brand-new Event or State condition from
+  scratch is supported too (see list_addable_events/list_addable_states and
+  add_event_condition_to_profile/add_state_condition_to_profile, which mirror
+  taskedit.py's action code picker -- list_addable_actions/add_action_to_task --
+  exactly, since actionc.py's "...e"/"...s"-suffixed keys share the same
+  ActionCode/ArgumentCode shape as its "...t"-suffixed ones).
+
+Add Profile: create a brand-new Profile and populate it with conditions, same
+as Edit Profile's Phase 2/3 above -- see create_new_profile/register_new_profile,
+which mirror taskedit.py's create_new_task/register_new_task 1:1.
 
 Never touches PrimeItems.xml_tree -- all edits happen on a deep copy, and the
 only output is a new standalone file (or, via Save To Android, a POST to the
@@ -27,6 +34,7 @@ import copy
 import json
 import os
 import re
+import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
@@ -40,10 +48,16 @@ from maptasker.src.primitem import PrimeItems
 
 XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
 
-# Condition types that can be added from scratch (Time/Day/App/Loc have simple,
-# well-known field sets; State/Event would need a code picker like Task Actions'
-# classify_action_addability/list_addable_actions -- not implemented yet).
-CONDITION_TYPES_ADDABLE = ("Time", "Day", "App", "Loc")
+# Condition types offered in the GUI's "Condition Type" picker. Time/Day/App/Loc
+# have simple, well-known field sets, so add_condition_to_profile can add one
+# from just the type name. Event and State each need a second pick -- which
+# event/state code (see list_addable_events/list_addable_states) -- since their
+# fields depend on that choice, exactly like Task Actions' own code picker
+# (taskedit.classify_action_addability/list_addable_actions);
+# add_event_condition_to_profile/add_state_condition_to_profile handle it
+# separately, the GUI showing a second "Event Type"/"State Type" picker
+# alongside this one once "Event"/"State" is chosen (see build_edit_profile_dialog).
+CONDITION_TYPES_ADDABLE = ("Time", "Day", "App", "Loc", "Event", "State")
 # Every condition type this codebase recognizes (see condition.py's parse_profile_condition).
 _CONDITION_TAGS = ("Time", "Day", "State", "Event", "App", "Loc")
 # Profile children that are metadata, not conditions -- mirrors condition.py's
@@ -56,6 +70,17 @@ _PROFILE_METADATA_TAGS = {"cdate", "edate", "flags", "id", "ProfileVariable", "n
 # 1=Sunday..7=Saturday, matching condition.py's own condition_day -- index 0 is
 # unused (the day numbers are 1-based) so the GUI can index this directly by day number.
 WEEKDAY_NAMES = (None, "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+# 0=January..11=December, matching condition.py's own condition_day (months[int(child.text)],
+# no -1 -- unlike weekdays, months are 0-based), so index lines up directly with the mnthN value.
+MONTH_NAMES = (
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+)  # fmt: skip
+# Sentinel mdayN value Tasker uses for "Last day of the month" in its own Day
+# condition UI (day-of-month is otherwise 1-31) -- not something this codebase
+# had a prior reference for; verify against a real "last day of month" Tasker
+# export if one becomes available.
+DAY_OF_MONTH_LAST_DAY = 32
 _APP_ENTRY_TAG_RE = re.compile(r"^(cls|label|pkg)(\d+)$")
 # State conditions look their code up as "{code}s", Event conditions as "{code}e"
 # (see condition.py's condition_state/condition_event) -- Task Actions use "t".
@@ -127,6 +152,36 @@ def load_profile_for_edit(profile_name: str) -> EditableProfile | None:
         entry_task_id=profile_copy.findtext("mid0", ""),
         exit_task_id=profile_copy.findtext("mid1", ""),
     )
+
+
+def create_new_profile(name: str) -> EditableProfile | str:
+    """Build a brand-new Profile element, not tied to any existing one, ready
+    for conditions to be added to it -- the Profile counterpart of
+    taskedit.create_new_task. Returns an error message string if no backup is
+    loaded (needed both to generate a collision-free id and to source the
+    correct Element class -- see taskedit.create_new_task's identical note).
+    """
+    if PrimeItems.xml_root is None:
+        return "Load a Tasker backup file first (Add Profile needs it to generate a unique Profile ID)."
+
+    existing_ids = [int(k) for k in PrimeItems.tasker_root_elements.get("all_profiles", {}) if k.isdigit()]
+    new_id = max(existing_ids, default=0) + 1
+
+    element_cls = type(PrimeItems.xml_root)
+    profile_element = element_cls("Profile", {"sr": f"prof{new_id}", "ve": "2"})
+
+    now_millis = str(int(time.time() * 1000))
+    for tag, text in (
+        ("cdate", now_millis),
+        ("edate", now_millis),
+        ("id", str(new_id)),
+        ("nme", name.strip()),
+    ):
+        child = element_cls(tag)
+        child.text = text
+        profile_element.append(child)
+
+    return EditableProfile(profile_id=str(new_id), profile_element=profile_element, conditions=[])
 
 
 def _build_editable_conditions(profile_copy: defusedxml.ElementTree.Element) -> list[EditableCondition]:
@@ -239,10 +294,14 @@ def add_condition_to_profile(edited_profile: EditableProfile, cond_type: str) ->
     to the Profile, and add it to the model.
 
     Returns the new condition, or a list of error messages if cond_type isn't
-    one of the addable types.
+    one of the addable types. Event and State, though also in
+    CONDITION_TYPES_ADDABLE, are rejected here -- each needs a specific
+    event/state code, which only add_event_condition_to_profile/
+    add_state_condition_to_profile take; this is just defense in depth, since
+    the GUI's "Condition Type" picker routes those picks there instead of here.
     """
-    if cond_type not in CONDITION_TYPES_ADDABLE:
-        return [f"Adding a '{cond_type}' condition isn't supported yet."]
+    if cond_type not in CONDITION_TYPES_ADDABLE or cond_type in ("Event", "State"):
+        return [f"Adding a '{cond_type}' condition isn't supported here."]
 
     element_cls = type(edited_profile.profile_element)
     cond_index = len(edited_profile.conditions)
@@ -277,6 +336,137 @@ def add_condition_to_profile(edited_profile: EditableProfile, cond_type: str) ->
     return new_condition
 
 
+_ADDABLE_CONDITION_CODES_CACHE: dict[str, list[dict]] = {}
+
+
+def _list_addable_condition_codes(suffix: str) -> list[dict]:
+    """All real numeric Profile-condition entries for a given actionc.py key
+    suffix -- "e" for Event (e.g. "1000e"), "s" for State (e.g. "100s") --
+    matching condition.py's condition_event/condition_state, whose own
+    f"{code}{suffix}" lookups this mirrors -- with their addability, memoized
+    per suffix like taskedit.list_addable_actions (same underlying static
+    data). Reuses taskedit.classify_action_addability as-is: it's keyed by the
+    raw action_codes key regardless of the t/s/e suffix, and its one hardcoded
+    special case ("37t", the Task-only "If" action) never matches an event/state key.
+    """
+    cached = _ADDABLE_CONDITION_CODES_CACHE.get(suffix)
+    if cached is not None:
+        return cached
+
+    rows = []
+    for key, action_code in action_codes.items():
+        if not (key.endswith(suffix) and key[:-1].isdigit()):
+            continue  # Not a real numeric code for this condition type (e.g. a Task-action entry).
+        addable, reason = taskedit.classify_action_addability(key)
+        category_code = action_code.category
+        category_name = "Uncategorized"
+        if category_code and category_code.isdigit():
+            category_name = PrimeItems.tasker_category_descriptions.get(int(category_code), "Uncategorized")
+        rows.append(
+            {
+                "condition_key": key,
+                "code": key[:-1],
+                "name": action_code.name,
+                "category_name": category_name,
+                "addable": addable,
+                "reason": reason,
+            },
+        )
+    rows.sort(key=lambda row: row["name"])
+    _ADDABLE_CONDITION_CODES_CACHE[suffix] = rows
+    return rows
+
+
+def list_addable_events() -> list[dict]:
+    """All real numeric Profile-Event condition entries (actionc.py keys ending
+    in "e") with their addability -- see _list_addable_condition_codes.
+    """
+    return _list_addable_condition_codes("e")
+
+
+def list_addable_states() -> list[dict]:
+    """All real numeric Profile-State condition entries (actionc.py keys ending
+    in "s") with their addability -- see _list_addable_condition_codes.
+    """
+    return _list_addable_condition_codes("s")
+
+
+def _add_code_condition_to_profile(
+    edited_profile: EditableProfile,
+    cond_type: str,
+    condition_key: str,
+    *,
+    include_pri: bool,
+) -> EditableCondition | list[str]:
+    """Synthesize a brand-new Event or State condition element from an
+    actionc.py condition key (e.g. "1000e" or "100s", see
+    list_addable_events/list_addable_states), append it to the Profile, and
+    add it to the model -- the Event/State counterpart of
+    add_condition_to_profile's Time/Day/App/Loc handling, kept separate
+    because their own fields (arbitrary Int/Str args) depend on which code was
+    picked, exactly like taskedit.add_action_to_task for a Task Action; this
+    reuses that same Bundle/Int/Str synthesis (taskedit.build_synthesized_args)
+    directly. include_pri writes <pri>0</pri> for Event (matching every real
+    Event condition's own shape -- see condition.py's condition_event, which
+    always reads a pri element); State conditions have no such element (see
+    condition.py's condition_state).
+
+    Re-checks addability even though the UI shouldn't offer a non-addable
+    code -- defense in depth, matching apply_edits_to_profile's list[str]
+    errors convention.
+
+    Returns the new condition, or a list of error messages if condition_key
+    isn't a real, addable code.
+    """
+    addable, reason = taskedit.classify_action_addability(condition_key)
+    if not addable:
+        return [reason or f"'{condition_key}' is not addable."]
+
+    action_code = action_codes[condition_key]
+    effective_args = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
+
+    cond_index = len(edited_profile.conditions)
+    element_cls = type(edited_profile.profile_element)
+
+    condition_element = element_cls(cond_type, {"sr": f"con{cond_index}", "ve": "2"})
+    code_element = element_cls("code")
+    code_element.text = condition_key[:-1]
+    condition_element.append(code_element)
+    if include_pri:
+        pri_element = element_cls("pri")
+        pri_element.text = "0"
+        condition_element.append(pri_element)
+
+    args = taskedit.build_synthesized_args(element_cls, condition_element, effective_args)
+
+    edited_profile.profile_element.append(condition_element)
+
+    new_condition = EditableCondition(
+        cond_index=cond_index,
+        cond_type=cond_type,
+        condition_element=condition_element,
+        args=args,
+    )
+    edited_profile.conditions.append(new_condition)
+
+    _renumber_conditions(edited_profile)
+    return new_condition
+
+
+def add_event_condition_to_profile(edited_profile: EditableProfile, event_key: str) -> EditableCondition | list[str]:
+    """Add a new Event condition from an actionc.py event key (e.g. "1000e") --
+    see _add_code_condition_to_profile.
+    """
+    return _add_code_condition_to_profile(edited_profile, "Event", event_key, include_pri=True)
+
+
+def add_state_condition_to_profile(edited_profile: EditableProfile, state_key: str) -> EditableCondition | list[str]:
+    """Add a new State condition from an actionc.py state key (e.g. "100s") --
+    see _add_code_condition_to_profile.
+    """
+    return _add_code_condition_to_profile(edited_profile, "State", state_key, include_pri=False)
+
+
 def link_task_to_profile(edited_profile: EditableProfile, task_id: str, link_type: str) -> None:
     """Sets the Profile's Entry (mid0) or Exit (mid1) Task reference to task_id,
     replacing whatever was linked there before. link_type is "Entry" or "Exit",
@@ -304,6 +494,28 @@ def unlink_task_from_profile(edited_profile: EditableProfile, link_type: str) ->
         edited_profile.exit_task_id = ""
     else:
         edited_profile.entry_task_id = ""
+
+
+def is_profile_enabled(edited_profile: EditableProfile) -> bool:
+    """Whether this Profile is enabled -- mirrors profiles.py's own
+    build_profile_line, which treats a <limit>true</limit> child as "disabled"
+    and its absence (or any other text) as "enabled".
+    """
+    limit = edited_profile.profile_element.find("limit")
+    return limit is None or limit.text != "true"
+
+
+def set_profile_enabled(edited_profile: EditableProfile, enabled: bool) -> None:
+    """Enables or disables the Profile by removing/setting its <limit> child --
+    applied immediately (not staged), same as link_task_to_profile/
+    unlink_task_from_profile above.
+    """
+    if enabled:
+        limit = edited_profile.profile_element.find("limit")
+        if limit is not None:
+            edited_profile.profile_element.remove(limit)
+    else:
+        _set_child_text(edited_profile.profile_element, "limit", "true")
 
 
 def apply_edits_to_profile(
@@ -346,12 +558,22 @@ def apply_edits_to_profile(
                 pending[condition.cond_index] = ("Loc", values)
 
         elif condition.cond_type == "Day":
-            selected = [
+            selected_weekdays = [
                 day
                 for day in range(1, 8)
                 if condition_values.get(condition_field_key(condition.cond_index, f"wday{day}")) in ("1", "true", "True")
             ]
-            pending[condition.cond_index] = ("Day", selected)
+            selected_months = [
+                month
+                for month in range(12)
+                if condition_values.get(condition_field_key(condition.cond_index, f"mnth{month}")) in ("1", "true", "True")
+            ]
+            selected_month_days = [
+                day
+                for day in (*range(1, 32), DAY_OF_MONTH_LAST_DAY)
+                if condition_values.get(condition_field_key(condition.cond_index, f"mday{day}")) in ("1", "true", "True")
+            ]
+            pending[condition.cond_index] = ("Day", (selected_weekdays, selected_months, selected_month_days))
 
         elif condition.cond_type == "App":
             entries = [
@@ -391,7 +613,10 @@ def apply_edits_to_profile(
         elif cond_type == "Loc":
             _write_loc_field_values(condition, payload)
         elif cond_type == "Day":
-            _write_day_selected_weekdays(condition, payload)
+            weekdays, months, month_days = payload
+            _write_day_selected_weekdays(condition, weekdays)
+            _write_day_selected_months(condition, months)
+            _write_day_selected_month_days(condition, month_days)
         elif cond_type == "App":
             _write_app_entries(condition, payload)
         elif cond_type == "StateEvent":
@@ -419,34 +644,138 @@ def condition_field_key(cond_index: int, field_name: str) -> str:
     return f"cond{cond_index}_{field_name}"
 
 
-# --- Time condition (fields: fh/fm=From Hour/Minute, th/tm=To Hour/Minute) ---
-# rep/repval (repeat interval), fromvar/tovar (variable-based alternative to
-# fh/fm/th/tm), and cname (condition name) exist in the XML but aren't edited by
-# Phase 2 -- left untouched if already present.
-_TIME_FIELDS = ("fh", "fm", "th", "tm")
+# --- Time condition (fields: fh/fm=From Hour/Minute, th/tm=To Hour/Minute,
+# packaged for the GUI as a single Start Time / End Time each. Each of those can
+# hold EITHER a literal "hh:mm AM/PM" 12-hour time OR a "%variable" reference
+# (Tasker's own Time condition UI offers the same either/or choice, backed by
+# fromvar/tovar -- see condition.py's condition_time, whose
+# from_time-vs-from_variable branching this mirrors) -- a %-prefixed value is
+# stored in fromvar/tovar instead, and whichever form isn't in use is removed so
+# the condition isn't left with both a literal time and a variable set at once.
+# The XML itself (fh/fm/th/tm) always stores 24-hour hour/minute -- the
+# AM/PM-suffixed form is purely a GUI display/entry convenience, converted at the
+# boundary (get_time_field_values / _write_time_or_var). rep/repval (repeat
+# interval, "Every" in the GUI) is also editable here. cname (condition name)
+# exists in the XML but isn't edited here -- left untouched if already present.
+_TIME_FIELDS = ("start_time", "end_time", "rep_unit", "rep_value")
+# 12-hour clock: hour 1-12 (optionally zero-padded), minute 00-59, AM/PM suffix
+# (with or without a space before it, either case) -- e.g. "8:05am", "08:05 AM".
+_TIME_HHMM_RE = re.compile(r"^(0?[1-9]|1[0-2]):([0-5]\d)\s*([AaPp][Mm])$")
+_TIME_VAR_RE = re.compile(r"^%\S+$")
+
+
+def _int_or_zero(text: str | None) -> int:
+    try:
+        return int(text)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _format_12_hour(hour_24: int, minute: int) -> str:
+    """Formats a 24-hour hour/minute pair as a 12-hour "hh:mm AM/PM" string."""
+    period = "AM" if hour_24 < 12 else "PM"  # noqa: PLR2004
+    hour_12 = hour_24 % 12 or 12
+    return f"{hour_12:02d}:{minute:02d} {period}"
+
+
+def _classify_time_or_var(raw: str) -> tuple[str, str] | None:
+    """Classifies a Start/End Time field's raw input as either a literal
+    12-hour "hh:mm AM/PM" time or a "%variable" reference -- also the point
+    where a valid time of day is enforced (hour 1-12, minute 00-59, a
+    recognizable AM/PM suffix). Returns ("time", "hh:mm AM/PM") normalized to
+    a zero-padded hour and upper-case suffix, ("var", "%name"), or None if raw
+    is neither.
+    """
+    raw = raw.strip()
+    if raw.startswith("%"):
+        return ("var", raw) if _TIME_VAR_RE.match(raw) else None
+    match = _TIME_HHMM_RE.match(raw)
+    if not match:
+        return None
+    hour, minute, period = match.groups()
+    return ("time", f"{int(hour):02d}:{minute} {period.upper()}")
 
 
 def get_time_field_values(condition: EditableCondition) -> dict[str, str]:
-    """Reads a Time condition's From/To hour+minute fields for display."""
+    """Reads a Time condition's Start/End time and repeat-interval ("Every")
+    fields for display. start_time/end_time are either "hh:mm AM/PM" 12-hour
+    strings (built from fh/fm and th/tm) or, if fromvar/tovar is set instead,
+    that variable's name verbatim (e.g. "%myTimeVar"). rep_unit is "Minutes" if
+    rep == "2", else "Hours" (matching condition.py's own condition_time);
+    rep_value is the raw repval text, or "" if there's no repeat set.
+    """
     element = condition.condition_element
-    return {key: element.findtext(key, "0") for key in _TIME_FIELDS}
+
+    def start_or_end(var_tag: str, hour_tag: str, minute_tag: str) -> str:
+        variable = element.findtext(var_tag, "")
+        if variable:
+            return variable
+        hour, minute = _int_or_zero(element.findtext(hour_tag)), _int_or_zero(element.findtext(minute_tag))
+        return _format_12_hour(hour, minute)
+
+    return {
+        "start_time": start_or_end("fromvar", "fh", "fm"),
+        "end_time": start_or_end("tovar", "th", "tm"),
+        "rep_unit": "Minutes" if element.findtext("rep", "") == "2" else "Hours",
+        "rep_value": element.findtext("repval", "") or "",
+    }
 
 
 def _validate_time_field_values(values: dict[str, str]) -> list[str]:
-    labels_and_max = {"fh": ("From Hour", 23), "fm": ("From Minute", 59), "th": ("To Hour", 23), "tm": ("To Minute", 59)}
     errors = []
-    for key, (label, max_value) in labels_and_max.items():
-        raw = values.get(key, "").strip()
-        if not raw.isdigit():
-            errors.append(f"'{label}' must be a whole number.")
-        elif int(raw) > max_value:
-            errors.append(f"'{label}' must be between 0 and {max_value}.")
+    for key, label in (("start_time", "Start Time"), ("end_time", "End Time")):
+        if _classify_time_or_var(values.get(key, "")) is None:
+            errors.append(f"'{label}' must be a valid time of day (hh:mm AM/PM) or a %variable.")
+
+    rep_value_raw = values.get("rep_value", "").strip()
+    if rep_value_raw:
+        if not rep_value_raw.isdigit() or int(rep_value_raw) <= 0:
+            errors.append("'Every' must be a positive whole number, or blank for no repeat.")
+        if values.get("rep_unit", "") not in ("Hours", "Minutes"):
+            errors.append("'Every' unit must be Hours or Minutes.")
+
     return errors
 
 
+def _write_time_or_var(
+    element: defusedxml.ElementTree.Element,
+    raw_value: str,
+    var_tag: str,
+    hour_tag: str,
+    minute_tag: str,
+) -> None:
+    kind, parsed = _classify_time_or_var(raw_value)
+    if kind == "var":
+        _set_child_text(element, var_tag, parsed)
+        for tag in (hour_tag, minute_tag):
+            child = element.find(tag)
+            if child is not None:
+                element.remove(child)
+    else:
+        hhmm, period = parsed.rsplit(" ", 1)
+        hour_12, minute = (int(part) for part in hhmm.split(":"))
+        hour_24 = (hour_12 % 12) + (12 if period == "PM" else 0)
+        _set_child_text(element, hour_tag, str(hour_24))
+        _set_child_text(element, minute_tag, str(minute))
+        var_child = element.find(var_tag)
+        if var_child is not None:
+            element.remove(var_child)
+
+
 def _write_time_field_values(condition: EditableCondition, values: dict[str, str]) -> None:
-    for key in _TIME_FIELDS:
-        _set_child_text(condition.condition_element, key, str(int(values[key].strip())))
+    element = condition.condition_element
+    _write_time_or_var(element, values["start_time"], "fromvar", "fh", "fm")
+    _write_time_or_var(element, values["end_time"], "tovar", "th", "tm")
+
+    rep_value_raw = values.get("rep_value", "").strip()
+    if rep_value_raw:
+        _set_child_text(element, "rep", "2" if values.get("rep_unit") == "Minutes" else "1")
+        _set_child_text(element, "repval", str(int(rep_value_raw)))
+    else:
+        for tag in ("rep", "repval"):
+            child = element.find(tag)
+            if child is not None:
+                element.remove(child)
 
 
 # --- Loc condition (fields: lat/long=latitude/longitude in decimal degrees, rad=radius in meters) ---
@@ -482,14 +811,18 @@ def _write_loc_field_values(condition: EditableCondition, values: dict[str, str]
         _set_child_text(condition.condition_element, key, values[key].strip())
 
 
-# --- Day condition (weekday selection: 1=Sunday..7=Saturday, matching condition.py's
-# own condition_day) -- day-of-month (mdayN), month (mnthN), and cname (condition
-# name) exist in the XML but aren't edited by Phase 2 -- left untouched if present.
-def get_day_selected_weekdays(condition: EditableCondition) -> list[int]:
-    """Reads a Day condition's selected weekdays for display."""
+# --- Day condition: three independent sub-selections -- Week-Day (wdayN,
+# 1=Sunday..7=Saturday), Month (mnthN, 0=January..11=December), and Day of Month
+# (mdayN, 1-31 or DAY_OF_MONTH_LAST_DAY) -- matching condition.py's own
+# condition_day. cname (condition name) exists in the XML but isn't edited here
+# -- left untouched if present. All three follow the same shape: a tag-prefix
+# family of sequentially-indexed elements (mdayN's N is just its position, not
+# its value -- see the real "18"/"21" example this mirrors) whose text holds the
+# actual selected value, so a single generic helper pair backs all three.
+def _get_day_selected_values(condition: EditableCondition, tag_prefix: str) -> list[int]:
     selected = []
     for child in condition.condition_element:
-        if child.tag.startswith("wday") and child.text:
+        if child.tag.startswith(tag_prefix) and child.text:
             try:
                 selected.append(int(child.text))
             except ValueError:
@@ -497,16 +830,45 @@ def get_day_selected_weekdays(condition: EditableCondition) -> list[int]:
     return sorted(set(selected))
 
 
-def _write_day_selected_weekdays(condition: EditableCondition, selected: list[int]) -> None:
+def _write_day_selected_values(condition: EditableCondition, tag_prefix: str, selected: list[int]) -> None:
     element = condition.condition_element
-    for child in [c for c in element if c.tag.startswith("wday")]:
+    for child in [c for c in element if c.tag.startswith(tag_prefix)]:
         element.remove(child)
 
     element_cls = type(element)
-    for index, day_number in enumerate(sorted(set(selected))):
-        child = element_cls(f"wday{index}")
-        child.text = str(day_number)
+    for index, value in enumerate(sorted(set(selected))):
+        child = element_cls(f"{tag_prefix}{index}")
+        child.text = str(value)
         element.append(child)
+
+
+def get_day_selected_weekdays(condition: EditableCondition) -> list[int]:
+    """Reads a Day condition's selected weekdays (1=Sunday..7=Saturday) for display."""
+    return _get_day_selected_values(condition, "wday")
+
+
+def _write_day_selected_weekdays(condition: EditableCondition, selected: list[int]) -> None:
+    _write_day_selected_values(condition, "wday", selected)
+
+
+def get_day_selected_months(condition: EditableCondition) -> list[int]:
+    """Reads a Day condition's selected months (0=January..11=December) for display."""
+    return _get_day_selected_values(condition, "mnth")
+
+
+def _write_day_selected_months(condition: EditableCondition, selected: list[int]) -> None:
+    _write_day_selected_values(condition, "mnth", selected)
+
+
+def get_day_selected_month_days(condition: EditableCondition) -> list[int]:
+    """Reads a Day condition's selected days-of-month (1-31, or
+    DAY_OF_MONTH_LAST_DAY for "Last Day Of Month") for display.
+    """
+    return _get_day_selected_values(condition, "mday")
+
+
+def _write_day_selected_month_days(condition: EditableCondition, selected: list[int]) -> None:
+    _write_day_selected_values(condition, "mday", selected)
 
 
 # --- App condition (repeatable app entries: clsN=Activity class, labelN=display
@@ -760,18 +1122,93 @@ def save_profile_to_android_directory(
     return 0, file_location
 
 
-def apply_edited_profile_to_live_tree(edited_profile: EditableProfile) -> None:
-    """Writes an edited Profile's changes back into the in-memory backup's
-    Profile tables (all_profiles, all_profiles_by_name) so views generated from
-    them -- Map, Diagram, Tree -- reflect the edit right away instead of the
-    Profile's original, unedited content. Mirrors taskedit.apply_edited_task_to_live_tree
-    exactly (same id-keyed object swap; the actual XML tree's document structure
-    doesn't need touching since every view reads Profile content through these
-    tables, not by re-walking the tree for it).
+def register_new_profile(edited_profile: EditableProfile, profile_name: str) -> None:
+    """Adds a new Profile to the in-memory backup's Profile tables (all_profiles,
+    all_profiles_by_name) so it behaves like any other Profile loaded from the
+    backup -- e.g. so it shows up in the Edit Profile picker and so a second Add
+    Profile with the same name is caught by profile_name_exists(). Mirrors
+    taskedit.register_new_task exactly. Call once, always paired with
+    add_profile_to_project (this alone doesn't make the Profile visible in the
+    Project/Profile/Task pulldowns, Map, Diagram, or Tree views -- see that
+    function's own docstring): right after the standalone .prf.xml write
+    succeeds (see userintr.save_new_profile_event), for a
+    keep-without-saving-to-disk Ok without one (see userintr.keep_new_profile_event),
+    or after a successful Save To Android import (see
+    userintr.save_profile_to_android_event's is_new_profile branch).
+    """
+    PrimeItems.tasker_root_elements["all_profiles"][edited_profile.profile_id] = {
+        "xml": edited_profile.profile_element,
+        "name": profile_name,
+    }
+    PrimeItems.tasker_root_elements["all_profiles_by_name"][profile_name] = {
+        "xml": edited_profile.profile_element,
+        "id": edited_profile.profile_id,
+    }
 
-    No-op if the Profile's id isn't registered (shouldn't happen in Phase 1 --
-    there's no "Add Profile" yet -- kept for parity with the Task version and as
-    a guard against a future Add Profile feature saving before registering).
+
+def add_profile_to_project(edited_profile: EditableProfile, project_name: str) -> None:
+    """Attaches a newly-registered Profile to a Project by appending its id to
+    that Project's <pids> element -- the actual mechanism Tasker (and every
+    view this app generates) uses to know which Profiles belong to which
+    Project: getids.get_ids reads exactly this element, and both
+    userintr.build_the_tree (the GUI's Project/Profile/Task pulldowns) and
+    projects.process_project_profiles (Map/Diagram/Tree output) call it the
+    same way. Without this, register_new_profile alone leaves a Profile
+    sitting only in the all_profiles/all_profiles_by_name lookup tables,
+    which nothing else walks directly -- so it exists, but is invisible
+    everywhere in the app except Edit Profile's own picker (which does read
+    all_profiles_by_name).
+
+    Mutates the Project's XML element in place (not a copy, unlike Profile
+    editing's own deep-copy-then-apply flow) -- PrimeItems.tasker_root_elements
+    already holds the live Project table, so this takes effect immediately for
+    every other view in the same session. No-op if project_name isn't a known
+    Project (defense in depth; the GUI should only offer real Project names).
+    """
+    project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+    if project_entry is None:
+        return
+
+    project_element = project_entry["xml"]
+    pids_element = project_element.find("pids")
+    existing_ids = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
+    if edited_profile.profile_id not in existing_ids:
+        existing_ids.append(edited_profile.profile_id)
+    _set_child_text(project_element, "pids", ",".join(existing_ids))
+
+
+def validate_new_profile_requirements(edited_profile: EditableProfile) -> list[str]:
+    """Checks the two things a brand-new Profile (Add Profile) must have before
+    it can be saved/kept/uploaded: an Entry Task and at least one condition --
+    without either, it's a Profile with nothing to run and/or nothing to
+    trigger it, i.e. exactly the state create_new_profile leaves a fresh
+    Profile in before the user has done anything with it.
+
+    Only for adding a Profile from scratch -- not applied when editing an
+    existing one (build_edit_profile_dialog), since an already-saved Profile
+    that happens to be missing one of these should still be freely editable.
+    """
+    errors = []
+    if not edited_profile.entry_task_id:
+        errors.append("Add an Entry Task before saving -- a Profile needs one to run anything.")
+    if not edited_profile.conditions:
+        errors.append("Add at least one condition before saving -- a Profile needs one to trigger it.")
+    return errors
+
+
+def apply_edited_profile_to_live_tree(edited_profile: EditableProfile) -> None:
+    """Writes an edited (pre-existing) Profile's changes back into the in-memory
+    backup's Profile tables (all_profiles, all_profiles_by_name) so views
+    generated from them -- Map, Diagram, Tree -- reflect the edit right away
+    instead of the Profile's original, unedited content. Mirrors
+    taskedit.apply_edited_task_to_live_tree exactly (same id-keyed object swap;
+    the actual XML tree's document structure doesn't need touching since every
+    view reads Profile content through these tables, not by re-walking the tree for it).
+
+    No-op if the Profile's id isn't registered -- e.g. a brand-new Profile
+    (Add Profile) whose Save To Android succeeded without going through
+    register_new_profile first; same as apply_edited_task_to_live_tree's
+    identical no-op for a brand-new Task.
     """
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
     entry = all_profiles.get(edited_profile.profile_id)
