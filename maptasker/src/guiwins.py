@@ -45,9 +45,11 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
 
 
 def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> None:
-    """Builds and opens the Edit Task dialog (Phase 1: name/priority, per-action
-    Copy/Move/Delete, and the values of an action's existing arguments -- see
-    taskedit.py for what's editable and why).
+    """Builds and opens the Edit Task dialog (Phase 1: name/priority; an "Add an
+    action" search/filter picker -- the same one Add Task uses -- that can insert
+    the new action before/after any existing one or at the end, not just append;
+    per-action Copy/Move/Delete; and the values of an action's existing arguments
+    -- see taskedit.py for what's editable and why).
 
     Built fresh each call rather than reused, since its content is entirely different
     per Task. Field widgets are kept in a plain dict (matching this file's existing
@@ -55,6 +57,14 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
     """
     task_name = edited_task.task_element.findtext("nme", "")
     field_refs: dict = {}
+    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
+    # Maps each "Position" dropdown label to the act_number to insert at (None
+    # for "At the End") -- kept out-of-band rather than as the ui.select's own
+    # value/options dict, since "Before N" and "After N-1" resolve to the exact
+    # same act_number and a dict's keys (which NiceGUI's dict-options form uses
+    # as the value) must be unique, but the two need to stay distinct, readable
+    # menu entries.
+    position_labels: dict[str, int | None] = {}
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label(f"Edit Task: {task_name}").classes("text-xl font-bold text-blue-600")
@@ -66,7 +76,57 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                 value=edited_task.task_element.findtext("pri", ""),
             ).classes("w-32")
 
+        ui.label("Add an action").classes("text-sm font-bold mt-2")
+        with ui.row().classes("w-full gap-4"):
+            search_input = ui.input("Search actions").classes("flex-1")
+            category_select = ui.select(["All", *category_names], value="All").classes("w-48")
+        position_select = ui.select([], label="Position", with_input=True).classes("w-full").props("dense")
+
+        picker_container = ui.column().classes("w-full")
+        ui.label("Actions in this Task").classes("text-sm font-bold mt-2")
         actions_container = ui.column().classes("w-full")
+
+        def refresh_position_options() -> None:
+            # Rebuilt after every Add/Copy/Move/Delete -- act_numbers and names
+            # shift, so stale labels would insert at the wrong spot.
+            position_labels.clear()
+            options = []
+            for action in edited_task.actions:
+                before_label = f"Before {action.act_number}: {action.action_name}"
+                after_label = f"After {action.act_number}: {action.action_name}"
+                position_labels[before_label] = action.act_number
+                position_labels[after_label] = action.act_number + 1
+                options.extend((before_label, after_label))
+            options.append("At the End")
+            position_labels["At the End"] = None
+            previous = position_select.value
+            position_select.set_options(options, value=previous if previous in options else "At the End")
+
+        def refresh_picker(_e=None) -> None:
+            picker_container.clear()
+            rows = taskedit.search_addable_actions(search_input.value, category_select.value)
+            with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
+                for row in rows:
+                    if row["addable"]:
+                        ui.button(
+                            f"{row['name']} ({row['category_name']})",
+                            on_click=lambda r=row: (
+                                self.event_handlers.add_action_to_edit_task_event(
+                                    edited_task,
+                                    r["action_key"],
+                                    position_labels.get(position_select.value),
+                                ),
+                                render_actions(),
+                                refresh_position_options(),
+                            ),
+                        ).props("flat align=left dense").classes("w-full justify-start")
+                    else:
+                        with ui.column().classes("w-full gap-0"):
+                            ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
+                            ui.label(row["reason"]).classes("text-xs text-gray-500 italic")
+
+        search_input.on_value_change(refresh_picker)
+        category_select.on_value_change(refresh_picker)
 
         def render_actions() -> None:
             # Rebuild from scratch -- Copy/Move/Delete all renumber every action, so
@@ -86,14 +146,20 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                 on_click=lambda n=action.act_number: (
                                     self.event_handlers.copy_action_in_edit_task_event(edited_task, n),
                                     render_actions(),
+                                    refresh_position_options(),
                                 ),
                             ).props("flat color=blue dense")
-                            move_to_input = ui.number(
-                                "Move to #",
-                                value=action.act_number,
-                                min=0,
-                                max=last_position,
-                            ).classes("w-24").props("dense")
+                            move_to_input = (
+                                ui
+                                .number(
+                                    "Move to #",
+                                    value=action.act_number,
+                                    min=0,
+                                    max=last_position,
+                                )
+                                .classes("w-24")
+                                .props("dense")
+                            )
                             ui.button(
                                 "Move",
                                 on_click=lambda n=action.act_number, target=move_to_input: (
@@ -103,6 +169,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                         int(target.value) if target.value is not None else n,
                                     ),
                                     render_actions(),
+                                    refresh_position_options(),
                                 ),
                             ).props("flat color=orange dense")
                             ui.button(
@@ -110,6 +177,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                 on_click=lambda n=action.act_number: (
                                     self.event_handlers.delete_action_in_edit_task_event(edited_task, n),
                                     render_actions(),
+                                    refresh_position_options(),
                                 ),
                             ).props("flat color=red dense")
 
@@ -140,7 +208,9 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                         current_label = options[int(arg.current_value)]
                                     except (ValueError, IndexError):
                                         current_label = options[0] if options else ""
-                                    field_refs[key] = ui.select(options, value=current_label, label=arg.arg_name).classes(
+                                    field_refs[key] = ui.select(
+                                        options, value=current_label, label=arg.arg_name
+                                    ).classes(
                                         "flex-1",
                                     )
                                 elif arg.widget_kind in ("text", "raw_fallback"):
@@ -152,6 +222,8 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                     if arg.readonly_note:
                                         ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
 
+        refresh_picker()
+        refresh_position_options()
         render_actions()
 
         field_refs["save_path"] = ui.input(
@@ -173,10 +245,17 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                     dialog,
                 ),
             ).props("outline")
-            ui.button(
+            task_save = ui.button(
                 "Save",
                 on_click=lambda: self.event_handlers.save_edited_task_event(edited_task, field_refs, dialog),
             ).classes("bg-blue-600")
+            with task_save:
+                ui.tooltip(
+                    "This will save the Task directly to your current drive.\n\n"
+                    "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
+                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task."
+                    "and its own actions will determine where it is saved on the device.",
+                ).style("white-space: pre-line")
 
     dialog.open()
 
@@ -324,7 +403,12 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                             ),
                         ).props("flat color=red dense")
                     else:
-                        picker = ui.select(task_names, label="Choose a Task").classes("flex-1").props("dense")
+                        picker = (
+                            ui
+                            .select(task_names, label="Choose a Task", with_input=True)
+                            .classes("flex-1")
+                            .props("dense")
+                        )
                         # Registered under a fixed key (not cleared/rebuilt like the cond*
                         # keys) so Save/Ok/Save To Android can link in whatever's currently
                         # picked here even if the user never clicked "Link" separately --
@@ -462,7 +546,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                 value=text_initial(rep_value_key, values["rep_value"]),
                             ).classes("w-24")
                             field_refs[rep_unit_key] = (
-                                ui.select(
+                                ui
+                                .select(
                                     ["Hours", "Minutes"],
                                     value=text_initial(rep_unit_key, values["rep_unit"]),
                                 )
@@ -587,7 +672,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
 
             with ui.row().classes("w-full items-center gap-2 mt-2"):
                 add_type_picker = (
-                    ui.select(list(profedit.CONDITION_TYPES_ADDABLE), label="Condition Type")
+                    ui
+                    .select(list(profedit.CONDITION_TYPES_ADDABLE), label="Condition Type")
                     .classes("w-48")
                     .props("dense")
                 )
@@ -772,7 +858,7 @@ def build_add_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfi
         # which Project this new Profile belongs to; see profedit.add_profile_to_project,
         # applied at Ok/Save time alongside register_new_profile.
         project_names = sorted(PrimeItems.tasker_root_elements.get("all_projects", {}))
-        field_refs["project_name"] = ui.select(project_names, label="Project").classes("w-full")
+        field_refs["project_name"] = ui.select(project_names, label="Project", with_input=True).classes("w-full")
 
         _build_profile_editor_body(self, edited_profile, field_refs)
 
@@ -2459,6 +2545,7 @@ def initialize_screen(self: MyGui) -> None:
                                 self.event_handlers.single_project_name_event(e.value) if e.value else None
                             ),
                             label=translate_string("Project"),
+                            with_input=True,
                         )
                         .classes("w-64 mb-0")
                         .props("dense")
@@ -2472,6 +2559,7 @@ def initialize_screen(self: MyGui) -> None:
                                 self.event_handlers.single_profile_name_event(e.value) if e.value else None
                             ),
                             label=translate_string("Profile"),
+                            with_input=True,
                         )
                         .classes("w-64 mb-0")
                         .props("dense")
@@ -2485,6 +2573,7 @@ def initialize_screen(self: MyGui) -> None:
                                 self.event_handlers.single_task_name_event(e.value) if e.value else None
                             ),
                             label=translate_string("Task"),
+                            with_input=True,
                         )
                         .classes("w-64 mb-0")
                         .props("dense")

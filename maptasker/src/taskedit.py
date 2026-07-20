@@ -129,8 +129,19 @@ def create_new_task(name: str, priority: str) -> EditableTask | str:
     return EditableTask(task_id=str(new_id), task_element=task_element, actions=[])
 
 
-def add_action_to_task(edited_task: EditableTask, action_key: str) -> EditableAction | list[str]:
-    """Synthesize a new Action element from scratch and append it to the task.
+def add_action_to_task(
+    edited_task: EditableTask,
+    action_key: str,
+    position: int | None = None,
+) -> EditableAction | list[str]:
+    """Synthesize a new Action element from scratch and add it to the task --
+    appended at the end by default (position=None), or inserted at `position`
+    (0-based, among the task's other actions -- clamped to a valid index) if
+    given, so a caller can place it before or after a specific existing
+    action instead of always at the end. See build_edit_task_dialog's own
+    "Add an action" section, which offers exactly that choice; Add Task's
+    picker always appends (position=None) since there's nothing to insert
+    relative to until the user's already added something.
 
     Re-checks addability even though the UI shouldn't offer a non-addable action --
     defense in depth, matching apply_edits_to_task's list[str]-errors convention.
@@ -162,7 +173,11 @@ def add_action_to_task(edited_task: EditableTask, action_key: str) -> EditableAc
         action_name=action_code.name,
         args=args,
     )
-    edited_task.actions.append(new_action)
+    if position is None:
+        edited_task.actions.append(new_action)
+    else:
+        edited_task.actions.insert(max(0, min(position, len(edited_task.actions))), new_action)
+        _renumber_actions(edited_task)
     return new_action
 
 

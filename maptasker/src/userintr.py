@@ -160,6 +160,19 @@ class MyGui:
         # See if we have a changelog, and get it if we do.  This must go before 'self.process_current_messages()' call.
         check_for_changelog(self)
 
+        # Populate the Target specific item if we have a single Project, Profile, or Task name set.
+        if (
+            PrimeItems.tasker_root_elements["all_projects"]
+            or PrimeItems.tasker_root_elements["all_profiles"]
+            or PrimeItems.tasker_root_elements["all_tasks"]
+        ):
+            refresh_tasker_object_pulldowns(self)
+        # No data, but we have a file to get.
+        elif PrimeItems.file_to_get:
+            return_code = get_xml(self.debug, self.appearance_mode)
+            if return_code == 0:
+                refresh_tasker_object_pulldowns(self)
+
         # See if we have any carryover error messages from the AI run.
         # Note: this must go after the settings restoration.
         display_error_file_and_ai_response(self)
@@ -1875,7 +1888,12 @@ class MapTaskerEventHandlers:
         if condition is not None:
             profedit.add_app_entry(condition)
 
-    def remove_app_entry_event(self, edited_profile: profedit.EditableProfile, cond_index: int, entry_index: int) -> None:
+    def remove_app_entry_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        cond_index: int,
+        entry_index: int,
+    ) -> None:
         """Removes one app entry from an App condition being edited."""
         condition = profedit.find_condition(edited_profile, cond_index)
         if condition is not None:
@@ -2193,6 +2211,22 @@ class MapTaskerEventHandlers:
     def delete_action_in_edit_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
         """Removes an action from an existing Task being edited and renumbers the rest."""
         taskedit.remove_action_from_task(edited_task, act_number)
+
+    def add_action_to_edit_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        action_key: str,
+        position: int | None,
+    ) -> None:
+        """Synthesizes and inserts a new action into a Task being edited, at
+        `position` (before/after a specific existing action) or at the end if
+        None -- see taskedit.add_action_to_task and build_edit_task_dialog's
+        "Add an action" Position picker.
+        """
+        result = taskedit.add_action_to_task(edited_task, action_key, position)
+        if isinstance(result, list):
+            for error in result:
+                ui.notify(error, type="negative")
 
     def copy_action_in_edit_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
         """Duplicates an action (inserted right after the original) in a Task being edited."""
