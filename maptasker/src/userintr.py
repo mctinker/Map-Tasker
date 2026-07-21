@@ -58,7 +58,7 @@ from maptasker.src.guiwins import (
 )
 from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
-from maptasker.src.maputil2 import log_startup_values, translate_string
+from maptasker.src.maputil2 import log_startup_values, translate_string, write_full_backup_to_current_file
 from maptasker.src.maputil3 import validate_xml_file
 from maptasker.src.maputils import (
     append_to_filename,
@@ -167,8 +167,17 @@ class MyGui:
             or PrimeItems.tasker_root_elements["all_tasks"]
         ):
             refresh_tasker_object_pulldowns(self)
-        # No data, but we have a file to get.
-        elif PrimeItems.file_to_get:
+        # No data, but we have a file to get -- either a real file object already set by the
+        # Android/CLI load paths (PrimeItems.file_to_get), or, failing that, the plain filename
+        # restored settings put on self.file purely to show "Current File" in the toolbar (see
+        # display_and_set_file): that display never itself populates PrimeItems.file_to_get, so
+        # without this fallback the toolbar can show a Current File while PrimeItems.xml_root
+        # stays None -- e.g. no single Project/Profile/Task name was saved to restore (the one
+        # other path that syncs PrimeItems.file_to_get, via process_single_name_restore) -- and
+        # anything that checks xml_root directly (like Add Task) wrongly reports no file loaded.
+        elif PrimeItems.file_to_get or self.file:
+            if not PrimeItems.file_to_get:
+                PrimeItems.file_to_get = self.file
             return_code = get_xml(self.debug, self.appearance_mode)
             if return_code == 0:
                 refresh_tasker_object_pulldowns(self)
@@ -1030,11 +1039,131 @@ def _task_arg_values(field_refs: dict) -> dict[str, str]:
     """
     arg_values = {}
     for key, widget in field_refs.items():
-        if key in ("name", "priority", "save_path"):
+        if key in ("name", "priority", "save_path", "target_project_name"):
             continue
         value = widget.value
         arg_values[key] = "1" if value is True else "0" if value is False else str(value)
     return arg_values
+
+
+def _reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool, str]:
+    """After Save To Current File writes a new, timestamped copy of the backup
+    (see maputil2.write_full_backup_to_current_file -- the original file it
+    was loaded from is never touched), switches the app over to that copy so
+    it -- not the untouched original -- becomes "the current file" for any
+    further editing/saving: re-parses it through the same load path
+    open_and_get_backup_xml_file uses (open() the file, then
+    taskerd.get_the_xml_data()), updates the Current File display, and
+    refreshes the Project/Profile/Task pulldowns from the freshly loaded data.
+
+    Returns (True, "") on success, or (False, error_message) if the reload
+    itself fails -- the copy was still written to disk either way; only the
+    app's in-memory state failed to switch over to it.
+    """
+    try:
+        PrimeItems.file_to_get = open(new_file_path, encoding="utf-8")
+    except OSError as e:
+        return False, str(e)
+
+    PrimeItems.program_arguments["file"] = new_file_path
+    return_code = get_the_xml_data()
+    if return_code != 0:
+        return False, f"Failed to load '{new_file_path}' (code {return_code})."
+
+    gui.file = new_file_path
+    display_current_file(gui, new_file_path)
+    refresh_tasker_object_pulldowns(gui)
+    return True, ""
+
+
+def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict) -> bool:
+    """Validates and applies an existing Task's field values into the live
+    in-memory backup -- the shared body of keep_edited_task_event ("Ok") and
+    save_edited_task_to_current_file_event ("Save To Current File"), which
+    differ only in what happens after this succeeds. Any error is already
+    notified to the user; returns False so the caller knows to stop there.
+    """
+    arg_values = _task_arg_values(field_refs)
+    errors = taskedit.apply_edits_to_task(
+        edited_task,
+        field_refs["name"].value,
+        field_refs["priority"].value,
+        arg_values,
+    )
+    if errors:
+        for error in errors:
+            ui.notify(error, type="negative")
+        return False
+    taskedit.apply_edited_task_to_live_tree(edited_task)
+    return True
+
+
+def _validate_and_apply_new_task(
+    edited_task: taskedit.EditableTask,
+    field_refs: dict,
+    *,
+    check_save_path: bool = False,
+) -> tuple[bool, str]:
+    """Validates a brand-new Task's Name (and, if check_save_path, its Save
+    path) for conflicts, then applies its field values -- the shared
+    validation+apply step of every Add Task success path (Ok, Save, Save To
+    Current File), before each goes on to do its own thing with the result
+    (see _finish_new_task). Returns (True, name_value) on success, or
+    (False, "") if anything failed (errors already notified).
+    """
+    if not edited_task.actions:
+        ui.notify("This Task has no actions yet.", type="warning")
+
+    name_value = field_refs["name"].value.strip()
+    conflict_errors = []
+    if taskedit.task_name_exists(name_value):
+        conflict_errors.append(f"A Task named '{name_value}' already exists in this backup. Choose a different name.")
+    if check_save_path:
+        save_path = field_refs["save_path"].value.strip()
+        if taskedit.save_path_exists(save_path):
+            conflict_errors.append(f"A file already exists at '{save_path}'. Choose a different name or location.")
+    if conflict_errors:
+        for error in conflict_errors:
+            ui.notify(error, type="negative")
+        return False, ""
+
+    arg_values = _task_arg_values(field_refs)
+    errors = taskedit.apply_edits_to_task(edited_task, name_value, field_refs["priority"].value, arg_values)
+    if errors:
+        for error in errors:
+            ui.notify(error, type="negative")
+        return False, ""
+
+    return True, name_value
+
+
+def _finish_new_task(
+    gui: MyGui,
+    edited_task: taskedit.EditableTask,
+    name_value: str,
+    on_created: Callable[[str], None] | None,
+    field_refs: dict | None = None,
+) -> None:
+    """Registers a validated, applied new Task into the live in-memory backup,
+    fires on_created (see build_add_task_dialog), attaches it to the target
+    Project's <tids> if one was required and selected before the top-level
+    "Add Task" dialog opened (field_refs["target_project_name"] -- see
+    userintr.open_add_task_dialog_event and profedit.add_task_to_project;
+    empty for the nested-in-Profile-edit Add Task flow, which doesn't attach
+    to a Project at all), and refreshes the Project/Profile/Task pulldowns --
+    the common tail of every Add Task success path, run once
+    _validate_and_apply_new_task has succeeded (and, for Save, only after its
+    standalone file write has too).
+    """
+    taskedit.register_new_task(edited_task, name_value)
+    if on_created is not None:
+        on_created(edited_task.task_id)
+
+    target_project_name = field_refs.get("target_project_name") if field_refs else None
+    if target_project_name:
+        profedit.add_task_to_project(edited_task.task_id, target_project_name)
+
+    refresh_tasker_object_pulldowns(gui)
 
 
 def _profile_condition_values(field_refs: dict) -> dict[str, str]:
@@ -1069,6 +1198,89 @@ def _link_pending_task_pickers(edited_profile: profedit.EditableProfile, field_r
         if resolved is not None:
             task_id, _ = resolved
             profedit.link_task_to_profile(edited_profile, task_id, link_type)
+
+
+def _apply_edited_profile(edited_profile: profedit.EditableProfile, field_refs: dict) -> bool:
+    """Validates and applies an existing Profile's field values into the live
+    in-memory backup -- the shared body of keep_edited_profile_event ("Ok")
+    and save_edited_profile_to_current_file_event ("Save To Current File"),
+    which differ only in what happens after this succeeds. Any error is
+    already notified to the user; returns False so the caller knows to stop there.
+    """
+    _link_pending_task_pickers(edited_profile, field_refs)
+    condition_values = _profile_condition_values(field_refs)
+    errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
+    if errors:
+        for error in errors:
+            ui.notify(error, type="negative")
+        return False
+    profedit.apply_edited_profile_to_live_tree(edited_profile)
+    return True
+
+
+def _validate_and_apply_new_profile(
+    edited_profile: profedit.EditableProfile,
+    field_refs: dict,
+    *,
+    check_save_path: bool = False,
+) -> tuple[bool, str, str]:
+    """Validates a brand-new Profile's Name and Project (and, if
+    check_save_path, its Save path) for conflicts, then applies its field
+    values -- the shared validation+apply step of every Add Profile success
+    path (Ok, Save, Save To Current File), before each goes on to do its own
+    thing with the result (see _finish_new_profile). Returns
+    (True, name_value, project_name) on success, or (False, "", "") if
+    anything failed (errors already notified).
+    """
+    _link_pending_task_pickers(edited_profile, field_refs)
+
+    name_value = field_refs["name"].value.strip()
+    project_name = field_refs["project_name"].value
+
+    conflict_errors = []
+    if profedit.profile_name_exists(name_value):
+        conflict_errors.append(
+            f"A Profile named '{name_value}' already exists in this backup. Choose a different name.",
+        )
+    if check_save_path:
+        save_path = field_refs["save_path"].value.strip()
+        if profedit.save_path_exists(save_path):
+            conflict_errors.append(f"A file already exists at '{save_path}'. Choose a different name or location.")
+    if not project_name:
+        conflict_errors.append(
+            "Choose a Project first -- a Profile has to belong to one to show up anywhere in the app.",
+        )
+    conflict_errors.extend(profedit.validate_new_profile_requirements(edited_profile))
+    if conflict_errors:
+        for error in conflict_errors:
+            ui.notify(error, type="negative")
+        return False, "", ""
+
+    condition_values = _profile_condition_values(field_refs)
+    errors = profedit.apply_edits_to_profile(edited_profile, name_value, condition_values)
+    if errors:
+        for error in errors:
+            ui.notify(error, type="negative")
+        return False, "", ""
+
+    return True, name_value, project_name
+
+
+def _finish_new_profile(
+    gui: MyGui,
+    edited_profile: profedit.EditableProfile,
+    name_value: str,
+    project_name: str,
+) -> None:
+    """Registers a validated, applied new Profile into the live in-memory
+    backup, attaches it to its Project, and refreshes the Project/Profile/
+    Task pulldowns -- the common tail of every Add Profile success path, run
+    once _validate_and_apply_new_profile has succeeded (and, for Save, only
+    after its standalone file write has too).
+    """
+    profedit.register_new_profile(edited_profile, name_value)
+    profedit.add_profile_to_project(edited_profile, project_name)
+    refresh_tasker_object_pulldowns(gui)
 
 
 class MapTaskerEventHandlers:
@@ -1632,22 +1844,37 @@ class MapTaskerEventHandlers:
         backs the "Ok" button, which keeps the edit for this session only. Dialog
         stays open on any error so the user's in-progress edits aren't lost.
         """
-        arg_values = _task_arg_values(field_refs)
-
-        errors = taskedit.apply_edits_to_task(
-            edited_task,
-            field_refs["name"].value,
-            field_refs["priority"].value,
-            arg_values,
-        )
-        if errors:
-            for error in errors:
-                ui.notify(error, type="negative")
+        if not _apply_edited_task(edited_task, field_refs):
             return
-
-        taskedit.apply_edited_task_to_live_tree(edited_task)
-
         ui.notify("Changes kept.", type="positive")
+        dialog.close()
+
+    def save_edited_task_to_current_file_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Edit Task dialog's field values (same as
+        Ok), then writes the *entire* current backup -- not just this Task --
+        out to a new, timestamped copy of whatever file it was loaded from
+        (see maputil2.write_full_backup_to_current_file) and switches the app
+        over to that copy (see _reload_saved_copy_and_refresh) -- the original
+        file is left untouched. Backs the "Save To Current File" button.
+        Dialog stays open on any error so the user's in-progress edits aren't
+        lost.
+        """
+        if not _apply_edited_task(edited_task, field_refs):
+            return
+        success, result = write_full_backup_to_current_file()
+        if not success:
+            ui.notify(f"Could not save to current file: {result}", type="negative")
+            return
+        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        if not reload_ok:
+            ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
+            return
+        ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
     def open_save_to_android_dialog_event(
@@ -1942,18 +2169,37 @@ class MapTaskerEventHandlers:
         dialog -- backs the "Ok" button, which keeps the edit for this session
         only. Dialog stays open on any error so the user's in-progress edits aren't lost.
         """
-        _link_pending_task_pickers(edited_profile, field_refs)
-        condition_values = _profile_condition_values(field_refs)
-
-        errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
-        if errors:
-            for error in errors:
-                ui.notify(error, type="negative")
+        if not _apply_edited_profile(edited_profile, field_refs):
             return
-
-        profedit.apply_edited_profile_to_live_tree(edited_profile)
-
         ui.notify("Changes kept.", type="positive")
+        dialog.close()
+
+    def save_edited_profile_to_current_file_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Edit Profile dialog's field values (same as
+        Ok), then writes the *entire* current backup -- not just this Profile
+        -- out to a new, timestamped copy of whatever file it was loaded from
+        (see maputil2.write_full_backup_to_current_file) and switches the app
+        over to that copy (see _reload_saved_copy_and_refresh) -- the original
+        file is left untouched. Backs the "Save To Current File" button.
+        Dialog stays open on any error so the user's in-progress edits aren't
+        lost.
+        """
+        if not _apply_edited_profile(edited_profile, field_refs):
+            return
+        success, result = write_full_backup_to_current_file()
+        if not success:
+            ui.notify(f"Could not save to current file: {result}", type="negative")
+            return
+        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        if not reload_ok:
+            ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
+            return
+        ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
     def save_new_profile_event(
@@ -1967,46 +2213,18 @@ class MapTaskerEventHandlers:
         save_new_task_event exactly. Dialog stays open on any error so the user's
         in-progress work isn't lost.
         """
-        _link_pending_task_pickers(edited_profile, field_refs)
+        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs, check_save_path=True)
+        if not ok:
+            return
 
-        name_value = field_refs["name"].value.strip()
         save_path = field_refs["save_path"].value.strip()
-        project_name = field_refs["project_name"].value
-
-        name_conflict_errors = []
-        if profedit.profile_name_exists(name_value):
-            name_conflict_errors.append(
-                f"A Profile named '{name_value}' already exists in this backup. Choose a different name.",
-            )
-        if profedit.save_path_exists(save_path):
-            name_conflict_errors.append(f"A file already exists at '{save_path}'. Choose a different name or location.")
-        if not project_name:
-            name_conflict_errors.append(
-                "Choose a Project first -- a Profile has to belong to one to show up anywhere in the app.",
-            )
-        name_conflict_errors.extend(profedit.validate_new_profile_requirements(edited_profile))
-        if name_conflict_errors:
-            for error in name_conflict_errors:
-                ui.notify(error, type="negative")
-            return
-
-        condition_values = _profile_condition_values(field_refs)
-
-        errors = profedit.apply_edits_to_profile(edited_profile, name_value, condition_values)
-        if errors:
-            for error in errors:
-                ui.notify(error, type="negative")
-            return
-
         try:
             profedit.write_standalone_profile_xml(edited_profile, save_path)
         except OSError as e:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
 
-        profedit.register_new_profile(edited_profile, name_value)
-        profedit.add_profile_to_project(edited_profile, project_name)
-        refresh_tasker_object_pulldowns(self.gui)
+        _finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
         ui.notify(f"Saved to {save_path}", type="positive")
         dialog.close()
@@ -2028,39 +2246,48 @@ class MapTaskerEventHandlers:
         profedit.add_profile_to_project) but not the save path, since no file
         is written.
         """
-        _link_pending_task_pickers(edited_profile, field_refs)
-
-        name_value = field_refs["name"].value.strip()
-        project_name = field_refs["project_name"].value
-
-        conflict_errors = []
-        if profedit.profile_name_exists(name_value):
-            conflict_errors.append(
-                f"A Profile named '{name_value}' already exists in this backup. Choose a different name.",
-            )
-        if not project_name:
-            conflict_errors.append(
-                "Choose a Project first -- a Profile has to belong to one to show up anywhere in the app.",
-            )
-        conflict_errors.extend(profedit.validate_new_profile_requirements(edited_profile))
-        if conflict_errors:
-            for error in conflict_errors:
-                ui.notify(error, type="negative")
+        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs)
+        if not ok:
             return
 
-        condition_values = _profile_condition_values(field_refs)
-
-        errors = profedit.apply_edits_to_profile(edited_profile, name_value, condition_values)
-        if errors:
-            for error in errors:
-                ui.notify(error, type="negative")
-            return
-
-        profedit.register_new_profile(edited_profile, name_value)
-        profedit.add_profile_to_project(edited_profile, project_name)
-        refresh_tasker_object_pulldowns(self.gui)
+        _finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
         ui.notify("Profile kept.", type="positive")
+        dialog.close()
+
+    def save_new_profile_to_current_file_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Add Profile dialog's field values,
+        registers the new Profile into the live in-memory backup and attaches
+        it to its Project, then writes the *entire* current backup out to a
+        new, timestamped copy of whatever file it was loaded from (see
+        maputil2.write_full_backup_to_current_file) and switches the app over
+        to that copy (see _reload_saved_copy_and_refresh) -- the original file
+        is left untouched -- unlike Save, which exports just this one Profile
+        as a standalone file. Backs the "Save To Current File" button. Dialog
+        stays open on any error so the user's in-progress work isn't lost; a
+        failed disk write is reported but doesn't undo the registration
+        already done (same as Ok, which never touches disk at all).
+        """
+        ok, name_value, project_name = _validate_and_apply_new_profile(edited_profile, field_refs)
+        if not ok:
+            return
+
+        _finish_new_profile(self.gui, edited_profile, name_value, project_name)
+
+        success, result = write_full_backup_to_current_file()
+        if not success:
+            ui.notify(f"Could not save to current file: {result}", type="negative")
+            return
+        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        if not reload_ok:
+            ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
+            return
+        ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
     def open_save_profile_to_android_dialog_event(
@@ -2189,13 +2416,37 @@ class MapTaskerEventHandlers:
         parent_dialog.close()
 
     def open_add_task_dialog_event(self) -> None:
-        """Opens the Add Task dialog for a brand-new Task."""
+        """Opens the Add Task dialog for a brand-new Task, attached to the
+        currently selected single Project (see the Project pulldown in the
+        Specific Name tab). A Project must already be selected -- the new
+        Task is attached directly to it (added to its <tids>, see
+        _finish_new_task) rather than through a Profile, so there's no other
+        way to know which Project it belongs to.
+        """
+        the_view = self.gui
+        project_name = getattr(the_view, "single_project_name", "")
+        if not project_name:
+            ui.notify("Select a single Project first (Project pulldown above).", type="warning")
+            return
+
+        # The toolbar's "Current File" only means a filename is known (see
+        # display_and_set_file) -- it doesn't guarantee the backup has actually been
+        # parsed into PrimeItems.xml_root yet (see the same self-healing load in
+        # MyGui.__init__). Load it now rather than let create_new_task below
+        # confusingly report "no file loaded" while a file is plainly shown.
+        if PrimeItems.xml_root is None:
+            if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
+                PrimeItems.file_to_get = the_view.file
+            if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
+                ui.notify("No backup file is currently loaded. Use 'Get Local XML' first.", type="warning")
+                return
+
         new_task = taskedit.create_new_task("", "100")
         if isinstance(new_task, str):
             ui.notify(new_task, type="warning")
             return
 
-        build_add_task_dialog(self.gui, new_task)
+        build_add_task_dialog(self.gui, new_task, target_project_name=project_name)
 
     def add_action_to_new_task_event(self, edited_task: taskedit.EditableTask, action_key: str) -> None:
         """Synthesizes and appends a new action to the in-progress new Task."""
@@ -2264,47 +2515,18 @@ class MapTaskerEventHandlers:
         on_created, if given, is called with the new Task's id once it's
         registered -- see build_add_task_dialog's on_task_created.
         """
-        if not edited_task.actions:
-            ui.notify("This Task has no actions yet.", type="warning")
+        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs, check_save_path=True)
+        if not ok:
+            return
 
-        name_value = field_refs["name"].value.strip()
         save_path = field_refs["save_path"].value.strip()
-
-        name_conflict_errors = []
-        if taskedit.task_name_exists(name_value):
-            name_conflict_errors.append(
-                f"A Task named '{name_value}' already exists in this backup. Choose a different name.",
-            )
-        if taskedit.save_path_exists(save_path):
-            name_conflict_errors.append(f"A file already exists at '{save_path}'. Choose a different name or location.")
-        if name_conflict_errors:
-            for error in name_conflict_errors:
-                ui.notify(error, type="negative")
-            return
-
-        arg_values = _task_arg_values(field_refs)
-
-        errors = taskedit.apply_edits_to_task(
-            edited_task,
-            name_value,
-            field_refs["priority"].value,
-            arg_values,
-        )
-        if errors:
-            for error in errors:
-                ui.notify(error, type="negative")
-            return
-
         try:
             taskedit.write_standalone_task_xml(edited_task, save_path)
         except OSError as e:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
 
-        taskedit.register_new_task(edited_task, name_value)
-        if on_created is not None:
-            on_created(edited_task.task_id)
-        refresh_tasker_object_pulldowns(self.gui)
+        _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
         ui.notify(f"Saved to {save_path}", type="positive")
         dialog.close()
@@ -2328,37 +2550,51 @@ class MapTaskerEventHandlers:
         on_created, if given, is called with the new Task's id once it's
         registered -- see build_add_task_dialog's on_task_created.
         """
-        if not edited_task.actions:
-            ui.notify("This Task has no actions yet.", type="warning")
-
-        name_value = field_refs["name"].value.strip()
-
-        if taskedit.task_name_exists(name_value):
-            ui.notify(
-                f"A Task named '{name_value}' already exists in this backup. Choose a different name.",
-                type="negative",
-            )
+        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs)
+        if not ok:
             return
 
-        arg_values = _task_arg_values(field_refs)
-
-        errors = taskedit.apply_edits_to_task(
-            edited_task,
-            name_value,
-            field_refs["priority"].value,
-            arg_values,
-        )
-        if errors:
-            for error in errors:
-                ui.notify(error, type="negative")
-            return
-
-        taskedit.register_new_task(edited_task, name_value)
-        if on_created is not None:
-            on_created(edited_task.task_id)
-        refresh_tasker_object_pulldowns(self.gui)
+        _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
         ui.notify("Task kept.", type="positive")
+        dialog.close()
+
+    def save_new_task_to_current_file_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        dialog: ui.dialog,
+        on_created: Callable[[str], None] | None = None,
+    ) -> None:
+        """Validates and applies the Add Task dialog's field values, registers
+        the new Task into the live in-memory backup, then writes the *entire*
+        current backup out to a new, timestamped copy of whatever file it was
+        loaded from (see maputil2.write_full_backup_to_current_file) and
+        switches the app over to that copy (see
+        _reload_saved_copy_and_refresh) -- the original file is left
+        untouched -- unlike Save, which exports just this one Task as a
+        standalone file. Backs the "Save To Current File" button. Dialog
+        stays open on any error so the user's in-progress work isn't lost; a
+        failed disk write is reported but doesn't undo the registration
+        already done (same as Ok, which never touches disk at all).
+        """
+        ok, name_value = _validate_and_apply_new_task(edited_task, field_refs)
+        if not ok:
+            return
+
+        _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
+
+        success, result = write_full_backup_to_current_file()
+        if not success:
+            ui.notify(f"Could not save to current file: {result}", type="negative")
+            return
+
+        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        if not reload_ok:
+            ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
+            return
+
+        ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
     # Define the asynchronous callback for the button

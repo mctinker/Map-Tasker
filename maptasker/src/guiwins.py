@@ -209,7 +209,9 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                     except (ValueError, IndexError):
                                         current_label = options[0] if options else ""
                                     field_refs[key] = ui.select(
-                                        options, value=current_label, label=arg.arg_name
+                                        options,
+                                        value=current_label,
+                                        label=arg.arg_name,
                                     ).classes(
                                         "flex-1",
                                     )
@@ -238,6 +240,14 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                 on_click=lambda: self.event_handlers.keep_edited_task_event(edited_task, field_refs, dialog),
             ).props("outline")
             ui.button(
+                "Save To Current File",
+                on_click=lambda: self.event_handlers.save_edited_task_to_current_file_event(
+                    edited_task,
+                    field_refs,
+                    dialog,
+                ),
+            ).props("outline")
+            ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
                     edited_task,
@@ -246,7 +256,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                 ),
             ).props("outline")
             task_save = ui.button(
-                "Save",
+                "Save Single Task",
                 on_click=lambda: self.event_handlers.save_edited_task_event(edited_task, field_refs, dialog),
             ).classes("bg-blue-600")
             with task_save:
@@ -765,6 +775,14 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
                 on_click=lambda: self.event_handlers.keep_edited_profile_event(edited_profile, field_refs, dialog),
             ).props("outline")
             ui.button(
+                "Save To Current File",
+                on_click=lambda: self.event_handlers.save_edited_profile_to_current_file_event(
+                    edited_profile,
+                    field_refs,
+                    dialog,
+                ),
+            ).props("outline")
+            ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
                     edited_profile,
@@ -773,7 +791,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
                 ),
             ).props("outline")
             ui.button(
-                "Save",
+                "Save Single Profile",
                 on_click=lambda: self.event_handlers.save_edited_profile_event(edited_profile, field_refs, dialog),
             ).classes("bg-blue-600")
 
@@ -839,7 +857,7 @@ def build_add_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfi
 
         last_auto_path = {"value": profedit.default_save_path("")}
 
-        def sync_save_path(_e=None) -> None:
+        def sync_save_path(_e: object = None) -> None:
             # Keep "Save as" in sync with the Profile Name as the user types --
             # see build_add_task_dialog's identical sync_save_path for why this
             # only overwrites the path while it still holds what was last auto-computed.
@@ -874,6 +892,14 @@ def build_add_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfi
                 on_click=lambda: self.event_handlers.keep_new_profile_event(edited_profile, field_refs, dialog),
             ).props("outline")
             ui.button(
+                "Save To Current File",
+                on_click=lambda: self.event_handlers.save_new_profile_to_current_file_event(
+                    edited_profile,
+                    field_refs,
+                    dialog,
+                ),
+            ).props("outline")
+            ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
                     edited_profile,
@@ -882,7 +908,7 @@ def build_add_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfi
                 ),
             ).props("outline")
             ui.button(
-                "Save",
+                "Save Single Profile",
                 on_click=lambda: self.event_handlers.save_new_profile_event(edited_profile, field_refs, dialog),
             ).classes("bg-blue-600")
 
@@ -893,6 +919,7 @@ def build_add_task_dialog(
     self: MyGui,
     edited_task: taskedit.EditableTask,
     on_task_created: Callable[[str], None] | None = None,
+    target_project_name: str = "",
 ) -> None:
     """Builds and opens the Add Task dialog: create a new Task, search/filter actions
     by name or category to add to it, edit their synthesized default argument values,
@@ -912,8 +939,16 @@ def build_add_task_dialog(
     as a Profile's Entry/Exit Task the moment it exists, without this dialog
     (or its Save/Ok/Save To Android handlers) needing to know anything about
     Profiles itself.
+
+    target_project_name is the single Project the top-level "Add Task" button
+    requires be selected before this dialog opens (see
+    userintr.open_add_task_dialog_event) -- stored in field_refs (not a widget;
+    there's nothing here for the user to change) purely so _finish_new_task can
+    read it back and add the new Task's id to that Project's <tids> once it's
+    registered. Left "" for open_add_task_for_profile_link_event's nested
+    dialog, which doesn't attach to a Project at all.
     """
-    field_refs: dict = {}
+    field_refs: dict = {"target_project_name": target_project_name}
     category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
@@ -932,6 +967,9 @@ def build_add_task_dialog(
                 new_path = taskedit.default_save_path(field_refs["name"].value)
                 field_refs["save_path"].value = new_path
                 last_auto_path["value"] = new_path
+
+        if target_project_name:
+            ui.label(f"Adding to Project: {target_project_name}").classes("text-sm text-gray-500 italic")
 
         with ui.row().classes("w-full gap-4"):
             field_refs["name"] = ui.input("Task Name", value="", on_change=sync_save_path).classes("flex-1")
@@ -1023,6 +1061,15 @@ def build_add_task_dialog(
                 ),
             ).props("outline")
             ui.button(
+                "Save To Current File",
+                on_click=lambda: self.event_handlers.save_new_task_to_current_file_event(
+                    edited_task,
+                    field_refs,
+                    dialog,
+                    on_created=on_task_created,
+                ),
+            ).props("outline")
+            ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
                     edited_task,
@@ -1032,7 +1079,7 @@ def build_add_task_dialog(
                 ),
             ).props("outline")
             ui.button(
-                "Save",
+                "Save Single Task",
                 on_click=lambda: self.event_handlers.save_new_task_event(
                     edited_task,
                     field_refs,
@@ -1131,7 +1178,7 @@ class NiceGuiTreeView:
             container_context = ui.column()  # Fallback context if called standalone
 
         # 2. Render the layout inside the main application body container
-        with container_context:
+        with container_context:  # noqa: SIM117
             with ui.card().classes("w-full max-w-full mx-auto p-6 shadow-md border-2 border-gray-300"):
                 # Header row with title and navigation hints
                 with ui.row().classes("items-center justify-between w-full border-b pb-3 mb-4"):

@@ -467,6 +467,35 @@ def add_state_condition_to_profile(edited_profile: EditableProfile, state_key: s
     return _add_code_condition_to_profile(edited_profile, "State", state_key, include_pri=False)
 
 
+def _set_profile_task_link(profile_element: defusedxml.ElementTree.Element, tag: str, task_id: str) -> None:
+    """Sets a Profile's mid0 (Entry Task) or mid1 (Exit Task) child to task_id,
+    inserting a brand-new one in the position real Tasker backups always use --
+    before <nme> -- rather than _set_child_text's default of appending at the
+    very end.
+
+    profiles.get_profile_tasks walks a Profile's children looking for "mid*"
+    tags and stops as soon as it hits <nme>, on the assumption that any
+    mid0/mid1 already appeared by then -- true of every Profile Tasker itself
+    ever writes (mid0/mid1 always precede <nme> there). But a Profile only
+    gets <nme> appended once, at creation (create_new_profile), while its
+    Entry/Exit Task is often linked in afterward -- appending mid0/mid1 after
+    an already-present <nme> would make that walk stop before ever reaching
+    it, silently dropping the Task from the Map view's Task list and Directory
+    (see dirout.add_directory_item, called from within that same walk).
+    """
+    child = profile_element.find(tag)
+    if child is not None:
+        child.text = task_id
+        return
+    child = type(profile_element)(tag)
+    child.text = task_id
+    nme_element = profile_element.find("nme")
+    if nme_element is not None:
+        profile_element.insert(list(profile_element).index(nme_element), child)
+    else:
+        profile_element.append(child)
+
+
 def link_task_to_profile(edited_profile: EditableProfile, task_id: str, link_type: str) -> None:
     """Sets the Profile's Entry (mid0) or Exit (mid1) Task reference to task_id,
     replacing whatever was linked there before. link_type is "Entry" or "Exit",
@@ -474,7 +503,7 @@ def link_task_to_profile(edited_profile: EditableProfile, task_id: str, link_typ
     matching "mid" i.e. mid0=Entry).
     """
     tag = "mid1" if link_type == "Exit" else "mid0"
-    _set_child_text(edited_profile.profile_element, tag, task_id)
+    _set_profile_task_link(edited_profile.profile_element, tag, task_id)
     if link_type == "Exit":
         edited_profile.exit_task_id = task_id
     else:
@@ -1175,6 +1204,40 @@ def add_profile_to_project(edited_profile: EditableProfile, project_name: str) -
     if edited_profile.profile_id not in existing_ids:
         existing_ids.append(edited_profile.profile_id)
     _set_child_text(project_element, "pids", ",".join(existing_ids))
+
+
+def add_task_to_project(task_id: str, project_name: str) -> None:
+    """Attaches a newly-registered Task to a Project by appending its id to that
+    Project's <tids> element -- the <pids>/<tids> counterpart of
+    add_profile_to_project, for Tasks instead of Profiles. Call once, right
+    after taskedit.register_new_task, for the top-level "Add Task" button
+    (see userintr.open_add_task_dialog_event, which requires a single Project
+    already be selected, and userintr._finish_new_task, which calls this with
+    it).
+
+    Real Tasker backups list every Task belonging to a Project in <tids> --
+    and several of this app's own features assume that's always true for a
+    Project-owned Task: dirout.check_task's single-Task-selected filter checks
+    the owning Project's <tids>, and projects.do_tasks_in_project's "Tasks not
+    in any Profile" listing walks <tids> directly. Without this, a brand-new
+    Task would have no <tids> entry anywhere, silently breaking both:
+    selecting it as the single Task to display would leave the Map view's
+    Directory "Tasks" section empty.
+
+    Mutates the Project's XML element in place, same as add_profile_to_project.
+    No-op if project_name isn't a known Project (defense in depth; the GUI
+    should only offer real Project names).
+    """
+    project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+    if project_entry is None:
+        return
+
+    project_element = project_entry["xml"]
+    tids_element = project_element.find("tids")
+    existing_ids = tids_element.text.split(",") if tids_element is not None and tids_element.text else []
+    if task_id not in existing_ids:
+        existing_ids.append(task_id)
+    _set_child_text(project_element, "tids", ",".join(existing_ids))
 
 
 def validate_new_profile_requirements(edited_profile: EditableProfile) -> list[str]:

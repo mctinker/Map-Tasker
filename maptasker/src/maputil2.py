@@ -6,11 +6,14 @@ These are functions pulled out of maputils, guiwins and guiutils that would othe
 import error.
 """
 
+import copy
 import os
 import re
 import sys
+import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from collections.abc import Generator
 from contextlib import contextmanager
+from datetime import datetime
 
 import requests
 from requests.exceptions import ConnectionError, InvalidSchema, Timeout
@@ -334,3 +337,106 @@ def translate_string(text: str, set_language: bool = False) -> str:
             T.set_language(text)
             return PrimeItems._(text)
     return text
+
+
+# ==========================================
+# 4. FULL BACKUP WRITE-BACK
+# ==========================================
+_XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
+
+
+def write_full_backup_to_current_file() -> tuple[bool, str]:
+    """Writes the entire current Tasker backup -- every Project, Profile, Task,
+    Scene, everything -- out to a brand-new, timestamped copy of whatever file
+    it was loaded from (PrimeItems.file_to_get), e.g. backup.xml ->
+    backup_20260721_143005.xml, with the current in-memory state -- including
+    any Task/Profile edits made through Edit/Add Task/Profile -- applied to
+    that copy. Backs the "Save To Current File" button in those dialogs (see
+    userintr.py's save_*_to_current_file_event handlers, which then switch the
+    app over to the new copy -- see userintr._reload_saved_copy_and_refresh --
+    so it becomes "the current file" for any further editing/saving), as
+    opposed to their "Save"/"Save Single Task/Profile" button, which exports
+    just the one Task/Profile as a standalone file instead.
+
+    The original file is deliberately never opened for writing -- only read,
+    via the deep copy below -- so it's left exactly as it was; every "Save To
+    Current File" click produces a new, independent snapshot alongside it
+    rather than mutating it in place.
+
+    A Project edit (e.g. profedit.add_profile_to_project's <pids> update)
+    already lands directly on the live tree -- taskerd.move_xml_to_table never
+    deep-copies, so all_projects[name]["xml"] IS the tree's own element, same
+    object. Profile and Task edits don't: taskedit.py/profedit.py's own module
+    docstrings describe deliberately never touching PrimeItems.xml_tree,
+    always working on a deep copy that only gets reconciled into the
+    all_profiles/all_tasks lookup tables afterward (see
+    apply_edited_profile_to_live_tree/register_new_profile/
+    apply_edited_task_to_live_tree/register_new_task) -- so naively
+    re-serializing PrimeItems.xml_root as-is would silently omit every
+    Task/Profile edit. This reconciles the two: starting from a deep copy of
+    the original tree (preserving Scenes, Settings, and anything else this
+    app doesn't track in a table of its own), it splices in each
+    all_profiles/all_tasks entry's *current* element in place of whatever the
+    tree's own same-id child holds (or appends it, for one added via Add
+    Task/Add Profile that never existed in the original file at all).
+
+    Returns (True, new_file_path) on success, or (False, error_message) if
+    there's no current file to copy from, or the write itself fails.
+    """
+    file_to_get = PrimeItems.file_to_get
+    # PrimeItems.file_to_get is sometimes an open file object (.name is its path) and
+    # sometimes just the path itself as a plain string (e.g. getxml_event's own direct
+    # assignment, or the self-healing load in userintr.open_add_task_dialog_event/
+    # MyGui.__init__) -- getattr(..., "name", file_to_get) handles both, matching the
+    # same pattern already used for this ambiguity elsewhere (see userintr.py's
+    # check_name error path).
+    file_path = getattr(file_to_get, "name", file_to_get) if file_to_get else ""
+    if not file_path or not isinstance(file_path, str):
+        return False, "No backup file is currently loaded to save back to."
+
+    if PrimeItems.xml_root is None:
+        return False, "No backup data is currently loaded."
+
+    root_copy = copy.deepcopy(PrimeItems.xml_root)
+
+    for tag, table_name in (("Profile", "all_profiles"), ("Task", "all_tasks")):
+        existing_by_id = {}
+        last_index_of_tag = -1
+        for index, child in enumerate(root_copy):
+            if child.tag != tag:
+                continue
+            last_index_of_tag = index
+            id_element = child.find("id")
+            if id_element is not None and id_element.text:
+                existing_by_id[id_element.text] = child
+
+        for item_id, entry in PrimeItems.tasker_root_elements.get(table_name, {}).items():
+            current_element = copy.deepcopy(entry["xml"])
+            old_element = existing_by_id.get(item_id)
+            if old_element is not None:
+                index = list(root_copy).index(old_element)
+                root_copy.remove(old_element)
+                root_copy.insert(index, current_element)
+            else:
+                # Brand-new Profile/Task (e.g. from Add Profile/Add Task): insert it
+                # next to its own kind rather than at the very end of the file, so the
+                # top-level <Setting>/<Profile>/<Project>/<Scene>/<Task>/<Variable>
+                # grouping that real Tasker backups always use stays intact.
+                insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(root_copy)
+                root_copy.insert(insert_at, current_element)
+                last_index_of_tag = insert_at
+
+    ETW.indent(root_copy, space="\t")
+    xml_text = _XML_DECLARATION + ETW.tostring(root_copy, encoding="unicode") + "\n"
+
+    base_path, extension = os.path.splitext(file_path)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # noqa: DTZ005
+    new_file_path = f"{base_path}_{timestamp}{extension}"
+
+    try:
+        with open(new_file_path, "w", encoding="utf-8") as out_file:
+            out_file.write(xml_text)
+    except OSError as e:
+        return False, str(e)
+
+    return True, new_file_path
