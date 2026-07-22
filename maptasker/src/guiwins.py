@@ -842,15 +842,32 @@ def build_save_profile_to_android_dialog(
     android_dialog.open()
 
 
-def build_add_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfile) -> None:
+def build_add_profile_dialog(
+    self: MyGui,
+    edited_profile: profedit.EditableProfile,
+    target_project_name: str = "",
+) -> None:
     """Builds and opens the Add Profile dialog: create a new Profile, then the
     exact same Enabled/Disabled toggle, Entry/Exit Task Link/Unlink, and
     per-condition Add/Edit/Delete as Edit Profile (see
     _build_profile_editor_body, shared by both), plus the same Cancel/Ok/Save
     To Android/Save button row -- mirrors build_add_task_dialog's relationship
     to build_edit_task_dialog.
+
+    target_project_name is the single Project the top-level "Add Profile"
+    button requires be selected before this dialog opens (see
+    userintr.open_add_profile_dialog_event) -- stored in field_refs (not a
+    widget; there's nothing here for the user to change) purely so
+    _validate_and_apply_new_profile/save_profile_to_android_event can read it
+    back and attach the new Profile to that Project (see
+    profedit.add_profile_to_project) once it's registered. A Profile only
+    shows up in the Project/Profile/Task pulldowns, Map, Diagram, or Tree
+    views if some Project's <pids> element lists its id (see
+    userintr.build_the_tree/projects.process_project_profiles, both driven by
+    getids.get_ids -- not by the all_profiles lookup table register_new_profile
+    populates), which is why a Project is required at all.
     """
-    field_refs: dict = {}
+    field_refs: dict = {"target_project_name": target_project_name}
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label("Add Profile").classes("text-xl font-bold text-blue-600")
@@ -866,17 +883,10 @@ def build_add_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfi
                 field_refs["save_path"].value = new_path
                 last_auto_path["value"] = new_path
 
-        field_refs["name"] = ui.input("Profile Name", value="", on_change=sync_save_path).classes("w-full")
+        if target_project_name:
+            ui.label(f"Adding to Project: {target_project_name}").classes("text-sm text-gray-500 italic")
 
-        # A Profile only shows up in the Project/Profile/Task pulldowns, Map, Diagram,
-        # or Tree views if some Project's <pids> element lists its id (see
-        # userintr.build_the_tree/projects.process_project_profiles, both driven by
-        # getids.get_ids -- not by the all_profiles lookup table register_new_profile
-        # populates) -- so unlike Edit Profile, Add Profile needs the user to pick
-        # which Project this new Profile belongs to; see profedit.add_profile_to_project,
-        # applied at Ok/Save time alongside register_new_profile.
-        project_names = sorted(PrimeItems.tasker_root_elements.get("all_projects", {}))
-        field_refs["project_name"] = ui.select(project_names, label="Project", with_input=True).classes("w-full")
+        field_refs["name"] = ui.input("Profile Name", value="", on_change=sync_save_path).classes("w-full")
 
         _build_profile_editor_body(self, edited_profile, field_refs)
 

@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file!
 
-## [11.0.3] ??-Jul-2026  # FIX
+## [12.0.0b1] 22-Jul-2026  MAJOR UPDATE
 
 ### Added
 
-- Added: Searching for a string will highjlight the selected match in a different color from the other matching strings.
+- Added: You can now add and edit Profiles and Tasks from the GUI, with various save options (see caveats)
+- Added: Searching for a string will highlight the selected match in a different color from the other matching strings.
 
 ### Changed
 
@@ -16,6 +17,8 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Program error 'tomli failure' in getputer when selecting 'Upgrade to New Release' button.
+- Fixed: Saved file in settings is not reloaded properly on startup.
+- Fixed: Single Project/Profile/Task saved setting is not properly restored on startup.
 
 ### Known Issue
 

@@ -69,6 +69,41 @@ class EditableTask:
     actions: list[EditableAction] = field(default_factory=list)
 
 
+# The "If" action (code 37) has no Bundle/Int/Str args of its own -- its condition
+# lives in a sibling <ConditionList sr="if"><Condition sr="c0" ve="3"><lhs/><op/>
+# <rhs/></Condition></ConditionList>, e.g.:
+#   <Action sr="act1" ve="7"><code>37</code>
+#     <ConditionList sr="if"><Condition sr="c0" ve="3">
+#       <lhs>%awcomm</lhs><op>2</op><rhs>&lt;aid_vol_down&gt;</rhs>
+#     </Condition></ConditionList>
+#   </Action>
+# action.py's evaluate_condition already reads these same 12 op codes purely for
+# display; this is the write-side (label <-> code) mapping for the Operator
+# dropdown _build_if_condition_args/apply_arg_values build and write. Codes 8/9
+# ("=(Numeric)"/"!=(Numeric)") are kept distinct from 0/1 -- both display as "="/
+# "!=" in action.py's own read-only table, but they're written differently by real
+# Tasker (all four appear in real backups), so collapsing them would silently
+# change an edited action's meaning.
+IF_ACTION_KEY = "37t"
+IF_CONDITION_OPERATORS: tuple[tuple[str, str], ...] = (
+    ("0", "="),
+    ("1", "!="),
+    ("2", "~ (Matches)"),
+    ("3", "!~ (Doesn't Match)"),
+    ("4", "~R (Matches Regex)"),
+    ("5", "!~R (Doesn't Match Regex)"),
+    ("6", "<"),
+    ("7", ">"),
+    ("8", "= (Numeric)"),
+    ("9", "!= (Numeric)"),
+    ("12", "Is Set"),
+    ("13", "Not Set"),
+)
+_IF_CONDITION_OPERATOR_LABELS = [label for _, label in IF_CONDITION_OPERATORS]
+_IF_CONDITION_CODE_TO_INDEX = {code: i for i, (code, _label) in enumerate(IF_CONDITION_OPERATORS)}
+_IF_CONDITION_LABEL_TO_CODE = {label: code for code, label in IF_CONDITION_OPERATORS}
+
+
 def resolve_task_by_name(task_name: str) -> tuple[str, defusedxml.ElementTree.Element] | None:
     """Look up a Task's id and live XML element by its displayed name.
 
@@ -162,7 +197,10 @@ def add_action_to_task(
     code_element.text = code
     action_element.append(code_element)
 
-    args = build_synthesized_args(element_cls, action_element, effective_args)
+    if action_key == IF_ACTION_KEY:
+        args = _synthesize_if_condition(element_cls, action_element)
+    else:
+        args = build_synthesized_args(element_cls, action_element, effective_args)
 
     edited_task.task_element.append(action_element)
 
@@ -300,6 +338,15 @@ def _build_editable_action(action_element: defusedxml.ElementTree.Element, act_n
             args=[],
         )
 
+    if f"{code}t" == IF_ACTION_KEY:
+        return EditableAction(
+            action_element=action_element,
+            act_number=act_number,
+            code=code,
+            action_name=action_code.name,
+            args=_build_if_action_args(action_element),
+        )
+
     effective_args = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
 
     return EditableAction(
@@ -392,6 +439,120 @@ def _readonly_arg(arg, note: str) -> EditableArg:
         current_value="",
         readonly_note=note,
     )
+
+
+def _readonly_note_arg(note: str) -> EditableArg:
+    """Same shape as _readonly_arg, but for a synthetic note with no backing
+    ArgumentCode (see _build_if_action_args' multi-condition case)."""
+    return EditableArg(
+        arg_id="if_note",
+        arg_name="Condition",
+        widget_kind="readonly",
+        backing_tag="",
+        is_var=False,
+        element=None,
+        current_value="",
+        readonly_note=note,
+    )
+
+
+def _build_if_condition_args(condition_element: defusedxml.ElementTree.Element) -> list[EditableArg]:
+    """Builds the three editable fields (Target, Operator, Value) for an 'If'
+    action's single Condition test, bound directly to its existing <lhs>/<op>/
+    <rhs> elements -- the write-side counterpart of action.py's evaluate_condition,
+    which reads these same three elements for display. Shared by
+    _synthesize_if_condition (a brand-new Condition, Add Task) and
+    _build_if_action_args (an existing one, Edit Task).
+
+    The Operator field is a "dropdown" widget_kind so it renders exactly like any
+    other lookup-backed Int dropdown (see guiwins.py's generic arg rendering) --
+    current_value is the *index* into IF_CONDITION_OPERATORS, matching that same
+    convention -- but its backing_tag is the custom "IfOp" rather than "Int",
+    since apply_arg_values has to write the selected op *code* as this element's
+    text, not an index as a val attribute (see apply_arg_values' own IfOp branch).
+    """
+    lhs_element = condition_element.find("lhs")
+    op_element = condition_element.find("op")
+    rhs_element = condition_element.find("rhs")
+
+    op_code = op_element.text if op_element is not None and op_element.text else "0"
+    op_index = _IF_CONDITION_CODE_TO_INDEX.get(op_code, 0)
+
+    return [
+        EditableArg(
+            arg_id="if_lhs",
+            arg_name="Target",
+            widget_kind="text",
+            backing_tag="Str",
+            is_var=False,
+            element=lhs_element,
+            current_value=lhs_element.text if lhs_element is not None and lhs_element.text else "",
+        ),
+        EditableArg(
+            arg_id="if_op",
+            arg_name="Operator",
+            widget_kind="dropdown",
+            backing_tag="IfOp",
+            is_var=False,
+            element=op_element,
+            current_value=str(op_index),
+            dropdown_options=list(_IF_CONDITION_OPERATOR_LABELS),
+        ),
+        EditableArg(
+            arg_id="if_rhs",
+            arg_name="Value",
+            widget_kind="text",
+            backing_tag="Str",
+            is_var=False,
+            element=rhs_element,
+            current_value=rhs_element.text if rhs_element is not None and rhs_element.text else "",
+        ),
+    ]
+
+
+def _build_if_action_args(action_element: defusedxml.ElementTree.Element) -> list[EditableArg]:
+    """Builds an existing 'If' action's editable Target/Operator/Value fields from
+    its <ConditionList>/<Condition>. Falls back to a single read-only note if there
+    isn't exactly one Condition (no ConditionList at all, or more than one chained
+    with AND/OR) -- editing a multi-condition If isn't supported yet, and silently
+    editing just the first Condition would drop the rest on save.
+    """
+    condition_list = action_element.find("ConditionList")
+    if condition_list is None:
+        return [_readonly_note_arg("This 'If' action has no condition to edit.")]
+
+    conditions = condition_list.findall("Condition")
+    if len(conditions) != 1:
+        return [
+            _readonly_note_arg(
+                f"This 'If' action has {len(conditions)} chained conditions -- editing "
+                "multi-condition If actions isn't supported by this tool yet.",
+            ),
+        ]
+
+    return _build_if_condition_args(conditions[0])
+
+
+def _synthesize_if_condition(
+    element_cls: type,
+    action_element: defusedxml.ElementTree.Element,
+) -> list[EditableArg]:
+    """Builds a brand-new, single-Condition <ConditionList sr="if"> for an 'If'
+    action (code 37) and appends it to action_element -- the Add Task counterpart
+    of _build_if_action_args, mirroring the real XML shape documented at
+    IF_CONDITION_OPERATORS. Defaults to an empty comparison (lhs="", op="0" i.e.
+    "=", rhs="") for the user to fill in.
+    """
+    condition_list = element_cls("ConditionList", {"sr": "if"})
+    condition = element_cls("Condition", {"sr": "c0", "ve": "3"})
+    for tag in ("lhs", "op", "rhs"):
+        child = element_cls(tag)
+        child.text = "0" if tag == "op" else ""
+        condition.append(child)
+    condition_list.append(condition)
+    action_element.append(condition_list)
+
+    return _build_if_condition_args(condition)
 
 
 def _lookup_key(arg) -> str | None:
@@ -604,12 +765,13 @@ def classify_action_addability(action_key: str) -> tuple[bool, str]:
     Only args that are plain numbers/text/checkboxes, or the informational 'Output
     Variables' Bundle hint, can be safely synthesized; anything else (App/Icon/Image
     pickers, or a Bundle that's actually an opaque third-party plugin payload) has no
-    generic default. Code '37' (If) is excluded separately -- its real condition
-    lives in a sibling <ConditionList> this tool doesn't build.
+    generic default. Code '37' (If) has no args at all (action_codes["37t"].args ==
+    []) and would otherwise fall through the "not effective_args" case below as
+    addable -- it gets its own synthesizer instead (see add_action_to_task's
+    IF_ACTION_KEY branch and _synthesize_if_condition), building its
+    <ConditionList>/<Condition> from IF_CONDITION_OPERATORS rather than the generic
+    Bundle/Int/Str model, so it's left to fall through here too.
     """
-    if action_key == "37t":
-        return False, "The 'If' action's condition can't be built by this tool yet."
-
     action_code = action_codes[action_key]
     if action_code.redirect:
         target = action_codes.get(action_code.redirect)
@@ -732,6 +894,12 @@ def apply_arg_values(
 
         if arg.widget_kind == "checkbox":
             arg.element.set("val", "1" if value in ("1", "true", "True") else "0")
+        elif arg.widget_kind == "dropdown" and arg.backing_tag == "IfOp":
+            # An "If" action's Operator (see _build_if_condition_args): unlike a
+            # lookup-backed Int dropdown, the element this writes to (<op>) holds
+            # Tasker's own op *code* as its text, not this dropdown's own option
+            # index as a val attribute.
+            arg.element.text = _IF_CONDITION_LABEL_TO_CODE.get(value, "0")
         elif arg.widget_kind == "dropdown":
             index = arg.dropdown_options.index(value) if value in arg.dropdown_options else 0
             arg.element.set("val", str(index))
@@ -891,7 +1059,7 @@ def save_task_to_android(
     # api/import imports directly into Tasker
     # api/tasks runs an existing task by name, but doesn't import a new one
     # /api/file reads/writes files on the device, but doesn't import into Tasker
-    # FIX Try just a file write to /api/file and then a /api/import of that file, instead of sending the whole XML in the POST body.
+    # Try just a file write to /api/file and then a /api/import of that file, instead of sending the whole XML in the POST body.
     return_code, response = http_post_request(
         ip_address,
         ip_port,
@@ -902,7 +1070,7 @@ def save_task_to_android(
         auth_key,
     )
 
-    if return_code == 9 and had_cached_key:  # noqa: PLR2004
+    if return_code == 9 and had_cached_key:
         # Cached key was rejected -- get a fresh one (device prompts once more) and retry.
         return_code, auth_key = get_android_auth_key(ip_address, ip_port)
         if return_code != 0:

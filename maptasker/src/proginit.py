@@ -133,6 +133,15 @@ def open_and_get_backup_xml_file() -> dict:
     # Reset the file name
     PrimeItems.file_to_get = None
 
+    # Reset any error left over from an earlier, unrelated failed load attempt (e.g. a
+    # missing file from a previous session) -- error_handler sets PrimeItems.error_code
+    # but nothing ever clears it back to 0 on success, so get_data_and_output_intro's own
+    # "if PrimeItems.error_code > 0: return PrimeItems.error_code" check would otherwise
+    # keep rejecting every subsequent load (even a brand new, valid file the user just
+    # picked via "Get Local XML File") with that stale error, forever.
+    PrimeItems.error_code = 0
+    PrimeItems.error_msg = ""
+
     # Get current directory
     dir_path = Path.cwd()
     logger.info(f"dir_path: {dir_path}")
@@ -148,7 +157,7 @@ def open_and_get_backup_xml_file() -> dict:
             # PrimeItems.file_to_get is now an open file object that can be read from.
         except FileNotFoundError:
             file_not_found = filename
-            error_handler(f"XML file {file_not_found} not found.", 5)
+            error_handler(f"XML file {file_not_found} not found.", 6)
         except PermissionError:
             error_handler(f"XML file {filename} not accessible.", 100)
             prompt_for_backup_file(dir_path)

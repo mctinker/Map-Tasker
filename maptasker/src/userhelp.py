@@ -45,7 +45,7 @@ INFO_TEXT = (
     "* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n"
     "* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n"
     "* Get XML from Android Device: fetch the backup/exported "
-    "XML file from Androiddevice.  You will be asked for the IP address and port number for your"
+    "XML file from Android device.  You will be asked for the IP address and port number for your"
     " Android device, as well as the file location on the device.\n\n"
     "* Specific Name tab: enter a single, specific named item to display...\n"
     "   - Project Name: enter a specific Project to display.\n"

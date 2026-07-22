@@ -346,8 +346,9 @@ def _list_addable_condition_codes(suffix: str) -> list[dict]:
     f"{code}{suffix}" lookups this mirrors -- with their addability, memoized
     per suffix like taskedit.list_addable_actions (same underlying static
     data). Reuses taskedit.classify_action_addability as-is: it's keyed by the
-    raw action_codes key regardless of the t/s/e suffix, and its one hardcoded
-    special case ("37t", the Task-only "If" action) never matches an event/state key.
+    raw action_codes key regardless of the t/s/e suffix, and its own special
+    handling for the Task-only "If" action (see taskedit.IF_ACTION_KEY) is
+    keyed on the literal "37t" suffix, which never matches an event/state key.
     """
     cached = _ADDABLE_CONDITION_CODES_CACHE.get(suffix)
     if cached is not None:

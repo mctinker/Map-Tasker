@@ -503,8 +503,39 @@ class MyGui:
                 front_error = f'Error: Trying to validate "{the_name}" {element_name}'
 
                 if not _prime.file_to_get:
-                    error_message = [f'{front_error}, but the "Cancel" was selected!\n']
-                    set_tasker_object_names(self)
+                    # self.file already being set (as opposed to empty, which is what sends
+                    # valid_item to prompt_and_get_file's interactive picker in the first
+                    # place) means a filename WAS known -- e.g. restored from a previous
+                    # session's saved settings -- but proginit.open_and_get_backup_xml_file
+                    # still couldn't open it (its own FileNotFoundError branch already
+                    # printed/logged the specific path), not that anyone clicked "Cancel".
+                    if self.file:
+                        error_message = [
+                            f"{front_error}, but the backup file '{self.file}' could not be found.\n",
+                            f"The {element_name} selection has been cleared.\n",
+                        ]
+                    else:
+                        error_message = [f'{front_error}, but the "Cancel" was selected!\n']
+
+                    # Clear the stale single-item names up front (not just in the shared
+                    # tail below) and reset all three pulldowns to "None" directly --
+                    # set_tasker_object_names only acts on whichever single_*_name is still
+                    # set, so once we've cleared them here it would be a no-op and leave the
+                    # pulldowns showing the now-invalid name. Guarded by is_updating: setting
+                    # a NiceGUI select's .value fires its on_change (single_project_name_event
+                    # etc.), which would otherwise re-enter check_name for the same name, fail
+                    # valid_item the same way, and recurse into this same branch forever --
+                    # single_project_name_event/single_profile_name_event/single_task_name_event
+                    # already no-op while self.is_updating is True specifically to guard
+                    # against this.
+                    self.single_project_name = self.single_profile_name = self.single_task_name = ""
+                    try:
+                        self.is_updating = True
+                        self.specific_project_optionmenu.value = "None"
+                        self.specific_profile_optionmenu.value = "None"
+                        self.specific_task_optionmenu.value = "None"
+                    finally:
+                        self.is_updating = False
                 else:
                     # Optimized attribute fetch
                     file_name = getattr(_prime.file_to_get, "name", _prime.file_to_get)
@@ -874,25 +905,44 @@ class MyGui:
                 # 1. Engage the lock to silence NiceGUI event triggers
                 self.is_updating = True
 
+                # The three pulldowns' own populated option lists (see
+                # guiutils.get_tasker_objects/build_profiles) use different
+                # conventions per item type: Project/Profile options are
+                # prefixed ("Project: Base", "Profile: X" -- build_the_tree's
+                # own "Project:"/build_profiles' own "Profile: " head text),
+                # while Task options are the raw name with no prefix at all
+                # (get_tasker_objects builds tasks_to_display straight from
+                # all_tasks_by_name's keys). "None" itself is always
+                # unprefixed. A pulldown's .value has to match one of its own
+                # .options verbatim or NiceGUI can't find anything to render
+                # as selected and falls back to showing just that pulldown's
+                # label ("Project"/"Profile"/"Task") -- which is exactly what
+                # setting bare name_entered (no prefix) for Project/Profile,
+                # or a "Task: "/"Profile: "-prefixed "None" for the other two,
+                # used to produce here.
+                project_head = translate_string("Project:")
+                profile_head = translate_string("Profile: ")
                 match my_name:
                     case "Project":
                         self.single_project_name = name_entered
-                        if name_entered not in self.specific_project_optionmenu.options:
-                            self.specific_project_optionmenu.options.append(name_entered)
-                        self.specific_project_optionmenu.value = name_entered
-                        self.specific_profile_optionmenu.value = "Profile: None"
-                        self.specific_task_optionmenu.value = "Task: None"
+                        display_value = f"{project_head} {name_entered}"
+                        if display_value not in self.specific_project_optionmenu.options:
+                            self.specific_project_optionmenu.options.append(display_value)
+                        self.specific_project_optionmenu.value = display_value
+                        self.specific_profile_optionmenu.value = "None"
+                        self.specific_task_optionmenu.value = "None"
                         translation_proj = translate_string("Project to Analyze:")
                         self.ai_project_label.text = f"{translation_proj} {name_entered}"
                         self.ai_profile_label.text = "Profile: None"
                         self.ai_task_label.text = "Task: None"
                     case "Profile":
                         self.single_profile_name = name_entered
-                        if name_entered not in self.specific_profile_optionmenu.options:
-                            self.specific_profile_optionmenu.options.append(name_entered)
-                        self.specific_profile_optionmenu.value = name_entered
-                        self.specific_project_optionmenu.value = "Project: None"
-                        self.specific_task_optionmenu.value = "Task: None"
+                        display_value = f"{profile_head}{name_entered}"
+                        if display_value not in self.specific_profile_optionmenu.options:
+                            self.specific_profile_optionmenu.options.append(display_value)
+                        self.specific_profile_optionmenu.value = display_value
+                        self.specific_project_optionmenu.value = "None"
+                        self.specific_task_optionmenu.value = "None"
                         translation_prof = translate_string("Profile to Analyze:")
                         self.ai_profile_label.text = f"{translation_prof} {name_entered}"
                         self.ai_task_label.text = "Task: None"
@@ -902,8 +952,8 @@ class MyGui:
                         if name_entered not in self.specific_task_optionmenu.options:
                             self.specific_task_optionmenu.options.append(name_entered)
                         self.specific_task_optionmenu.value = name_entered
-                        self.specific_project_optionmenu.value = "Project: None"
-                        self.specific_profile_optionmenu.value = "Profile: None"
+                        self.specific_project_optionmenu.value = "None"
+                        self.specific_profile_optionmenu.value = "None"
                         translation_task = translate_string("Task to Analyze:")
                         self.ai_task_label.text = f"{translation_task} {name_entered}"
                         self.ai_project_label.text = "Project: None"
@@ -1029,6 +1079,32 @@ def _open_popout_window(path: str) -> None:
         "window.mapTaskerPopouts = window.mapTaskerPopouts || []; "
         f"window.mapTaskerPopouts.push(window.open('{path}', '_blank'));",
     )
+
+
+def _confirmed_single_project_name(gui: MyGui) -> str:
+    """Returns gui.single_project_name, but only if the Specific Name tab's own
+    Project pulldown currently lists it among its options -- not just because
+    the cached attribute happens to be set.
+
+    gui.single_project_name can be set (e.g. restored from a previous
+    session's saved settings, via process_single_name_restore) before that
+    pulldown's own options list has been populated with real Project names --
+    it starts as a placeholder ["None"] and only gets replaced once
+    refresh_tasker_object_pulldowns runs, which happens *after* settings
+    restore in MyGui.__init__. The pulldown then keeps showing nothing/"None"
+    selected even though the cached name is still set underneath, silently
+    satisfying the Add Task/Add Profile "select a Project first" gate despite
+    the user seeing no selection at all in that pulldown. Requiring the name
+    to actually appear in the pulldown's current options closes that gap.
+    """
+    name = getattr(gui, "single_project_name", "")
+    if not name:
+        return ""
+    widget = getattr(gui, "specific_project_optionmenu", None)
+    options = getattr(widget, "options", None) if widget is not None else None
+    if options is not None and name not in options and f"Project: {name}" not in options:
+        return ""
+    return name
 
 
 def _task_arg_values(field_refs: dict) -> dict[str, str]:
@@ -1235,7 +1311,7 @@ def _validate_and_apply_new_profile(
     _link_pending_task_pickers(edited_profile, field_refs)
 
     name_value = field_refs["name"].value.strip()
-    project_name = field_refs["project_name"].value
+    project_name = field_refs.get("target_project_name", "")
 
     conflict_errors = []
     if profedit.profile_name_exists(name_value):
@@ -1314,6 +1390,21 @@ class MapTaskerEventHandlers:
 
         # Plug all of our settings back into PrimeItems.program_arguments
         capture_gui_state(gui, {})
+
+        # Start this view generation with a clean slate: found_named_items only ever
+        # gets set to True (projects.py/profiles.py/tasks.py, once
+        # process_projects_and_their_profiles/its callees find the single Project/
+        # Profile/Task being searched for) -- it's never reset back afterward, since
+        # it's meant to stop searching further *within a single run*, not carry over
+        # between separate ones. Left stale from an earlier view, a second Map/
+        # Diagram/Tree for the same single item (e.g. right after editing it and
+        # clicking Ok) would look like it was "already found" and get skipped
+        # entirely, even though this run never actually found it yet.
+        PrimeItems.found_named_items = {
+            "single_project_found": False,
+            "single_profile_found": False,
+            "single_task_found": False,
+        }
 
         # Map view
         if view_type == "map":
@@ -2018,13 +2109,36 @@ class MapTaskerEventHandlers:
         build_edit_profile_dialog(the_view, edited_profile)
 
     def open_add_profile_dialog_event(self) -> None:
-        """Opens the Add Profile dialog for a brand-new Profile."""
+        """Opens the Add Profile dialog for a brand-new Profile, attached to the
+        currently selected single Project (see the Project pulldown in the
+        Specific Name tab, mirrors open_add_task_dialog_event exactly). A
+        Project must already be selected -- the new Profile is attached
+        directly to it (added to its <pids>, see profedit.add_profile_to_project)
+        rather than picked from within the dialog, so there's no other way to
+        know which Project it belongs to.
+        """
+        the_view = self.gui
+        project_name = _confirmed_single_project_name(the_view)
+        if not project_name:
+            ui.notify("Select a single Project first (Project pulldown above).", type="warning")
+            return
+
+        # See open_add_task_dialog_event's identical self-healing load: the toolbar's
+        # "Current File" only means a filename is known, not that it's been parsed
+        # into PrimeItems.xml_root yet.
+        if PrimeItems.xml_root is None:
+            if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
+                PrimeItems.file_to_get = the_view.file
+            if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
+                ui.notify("No backup file is currently loaded. Use 'Get Local XML' first.", type="warning")
+                return
+
         new_profile = profedit.create_new_profile("")
         if isinstance(new_profile, str):
             ui.notify(new_profile, type="warning")
             return
 
-        build_add_profile_dialog(self.gui, new_profile)
+        build_add_profile_dialog(self.gui, new_profile, target_project_name=project_name)
 
     def link_task_to_profile_event(
         self,
@@ -2323,12 +2437,12 @@ class MapTaskerEventHandlers:
                 ui.notify(error, type="negative")
             return
 
-        # Add Profile's dialog (unlike Edit Profile's) has a "project_name" field --
-        # its presence is how this shared handler tells a brand-new, not-yet-registered
-        # Profile apart from one already in the backup, without threading an extra
-        # parameter through every caller.
-        is_new_profile = "project_name" in field_refs
-        project_name = field_refs["project_name"].value if is_new_profile else ""
+        # Add Profile's dialog (unlike Edit Profile's) has a "target_project_name"
+        # entry -- its presence is how this shared handler tells a brand-new,
+        # not-yet-registered Profile apart from one already in the backup, without
+        # threading an extra parameter through every caller.
+        is_new_profile = "target_project_name" in field_refs
+        project_name = field_refs.get("target_project_name", "") if is_new_profile else ""
         if is_new_profile:
             new_profile_errors = []
             if profedit.profile_name_exists(field_refs["name"].value.strip()):
@@ -2424,7 +2538,7 @@ class MapTaskerEventHandlers:
         way to know which Project it belongs to.
         """
         the_view = self.gui
-        project_name = getattr(the_view, "single_project_name", "")
+        project_name = _confirmed_single_project_name(the_view)
         if not project_name:
             ui.notify("Select a single Project first (Project pulldown above).", type="warning")
             return
@@ -3046,8 +3160,16 @@ class MapTaskerEventHandlers:
                 if hasattr(self, "tasklimit_event"):
                     self.tasklimit_event(the_view.task_action_warning_limit)
 
-                # Reset the single item object tracking names
-                set_tasker_object_names(the_view)
+                # Reset the single item object tracking names. Guarded the same way as
+                # check_name's identical call: setting a pulldown's .value fires its
+                # on_change (single_project_name_event etc.), which re-enters check_name --
+                # harmless if that validates fine, but an infinite loop if it doesn't (e.g.
+                # a restored single_project_name pointing at a file that no longer exists).
+                try:
+                    the_view.is_updating = True
+                    set_tasker_object_names(the_view)
+                finally:
+                    the_view.is_updating = False
 
                 # Reset single item dropdown select lists
                 update_tasker_object_menus(
@@ -3312,7 +3434,7 @@ class MapTaskerEventHandlers:
             changes = get_changelog_file(CHANGELOG_URL, "##", 11)
             # Bypass the version number and transl;ate the rest of the help text.
             temp = help_text.find("Help\n\n")
-            help_text = translate_string(help_text[temp:])
+            help_text = f"{help_text[:temp]}\n\n" + translate_string(help_text[temp:])
             help_text = help_text + "\n".join(changes)
 
         # Create the dialog container on the main thread

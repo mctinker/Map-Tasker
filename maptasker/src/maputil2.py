@@ -170,15 +170,13 @@ def get_android_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
     """
     http = "http://" if "http://" not in ip_address else ""
     url = f"{http}{ip_address}:{ip_port}/api/auth"
-    print("bingo getting auth key url:", url)
 
     error_message = ""
     response = ""
 
     with suppress_stdout():
         try:
-            response = requests.get(url, timeout=5)
-            print("bingo response:", response, "content:", response.content)
+            response = requests.get(url, timeout=8)
         except InvalidSchema:
             error_message = f"Request failed for url: {url} .  Invalid url!"
         except ConnectionError:
@@ -190,7 +188,6 @@ def get_android_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
 
     if error_message:
         logger.debug(error_message)
-        print("bingo error", error_message)
         return 8, error_message
 
     if not response or response.status_code != 200:
@@ -208,7 +205,6 @@ def get_android_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
     key = auth_object.get("key", "")
     if not key:
         return 8, "Auth response did not include an API key."
-    print("bingo auth key=", key)
     return 0, key
 
 
@@ -239,7 +235,6 @@ def http_post_request(
     # Build the URL the same way http_request() does.
     http = "http://" if "http://" not in ip_address else ""
     url = f"{http}{ip_address}:{ip_port}/{request_name}{file_location}{request_parm}"
-    print("bingo url:", url)
     headers = {"Authorization": auth_key} if auth_key else None
 
     # Make the request.
@@ -265,7 +260,6 @@ def http_post_request(
 
     # Check the response status code.  200 is good!
     if response and response.status_code == 200:
-        print("bingo good return code")
         return 0, response.content
 
     if response and response.status_code == 401:
@@ -343,6 +337,10 @@ def translate_string(text: str, set_language: bool = False) -> str:
 # 4. FULL BACKUP WRITE-BACK
 # ==========================================
 _XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
+# Matches the "_YYYYMMDD_HHMMSS" suffix write_full_backup_to_current_file appends to
+# a filename's base (before the extension) -- used to strip a pre-existing one before
+# appending the current timestamp, rather than stacking a new suffix on every save.
+_TIMESTAMP_SUFFIX_RE = re.compile(r"_\d{8}_\d{6}$")
 
 
 def write_full_backup_to_current_file() -> tuple[bool, str]:
@@ -351,7 +349,13 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     it was loaded from (PrimeItems.file_to_get), e.g. backup.xml ->
     backup_20260721_143005.xml, with the current in-memory state -- including
     any Task/Profile edits made through Edit/Add Task/Profile -- applied to
-    that copy. Backs the "Save To Current File" button in those dialogs (see
+    that copy. If that file is itself an earlier such copy (its name already
+    ends in a "_YYYYMMDD_HHMMSS" this same scheme produced -- see
+    _TIMESTAMP_SUFFIX_RE), the new timestamp replaces the old one instead of
+    stacking another suffix on top, so repeated saves stay
+    backup_20260721_143005.xml -> backup_20260721_150112.xml rather than
+    growing a new suffix each time. Backs the "Save To Current File" button in
+    those dialogs (see
     userintr.py's save_*_to_current_file_event handlers, which then switch the
     app over to the new copy -- see userintr._reload_saved_copy_and_refresh --
     so it becomes "the current file" for any further editing/saving), as
@@ -430,6 +434,11 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     xml_text = _XML_DECLARATION + ETW.tostring(root_copy, encoding="unicode") + "\n"
 
     base_path, extension = os.path.splitext(file_path)
+    # If the file we're copying from is itself an earlier "Save To Current File"
+    # copy (i.e. its name already ends in a timestamp this same scheme produced),
+    # replace that timestamp instead of appending another one -- otherwise every
+    # save would tack on yet another suffix (backup_20260101_120000_20260101_130000...).
+    base_path = _TIMESTAMP_SUFFIX_RE.sub("", base_path)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # noqa: DTZ005
     new_file_path = f"{base_path}_{timestamp}{extension}"
 
