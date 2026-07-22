@@ -397,7 +397,7 @@ def build_editable_args(
         the_arg = f"arg{arg.arg_id}"
         category = PrimeItems.tasker_arg_specs.get(arg.arg_type, "")
 
-        if category == "Boolean":
+        if category == "Boolean" or _is_checkbox_arg_eval(arg.arg_eval):
             editable_args.append(_build_boolean_arg(action_element, the_arg, arg))
         elif category == "Int":
             editable_args.append(_build_int_arg(action_element, the_arg, arg))
@@ -562,6 +562,21 @@ def _lookup_key(arg) -> str | None:
     return None
 
 
+def _is_checkbox_arg_eval(arg_eval) -> bool:
+    """True when arg_eval marks a boolean 'selected' arg via actionc.py's "e"
+    evaluation marker (["e", "name"] or ["", "e", "name"] -- see the evalargs
+    legend at the top of actionc.py). This overrides the arg's declared
+    arg_type/category: these are always backed by an <Int> element and edited
+    as a checkbox, regardless of whether the action table lists the arg as
+    Int, String, or Boolean.
+    """
+    if not isinstance(arg_eval, list):
+        return False
+    if len(arg_eval) > 2 and arg_eval[1] == "e":
+        return True
+    return len(arg_eval) > 1 and arg_eval[0] == "e"
+
+
 def _display_arg_name(arg) -> str:
     """The label to show for this arg in the GUI: arg.arg_name if it's set,
     else derived from arg.arg_eval's first entry (arg_eval[0] for a list --
@@ -569,9 +584,17 @@ def _display_arg_name(arg) -> str:
     e.g. "Level=") with a leading ", " and trailing "=" stripped, e.g.
     "Priority=" -> "Priority", ", To=" -> "To". Falls back to "" (unlabeled,
     same as before) if arg_name is blank and arg_eval is empty/absent too.
+
+    Special case: when arg_name is blank and arg_eval is a list marking an
+    'event' arg (["", "e", "Name"] or ["e", "Name"]), the name sits right
+    after the "e" marker rather than in the first entry.
     """
     if arg.arg_name:
         return arg.arg_name
+
+    if _is_checkbox_arg_eval(arg.arg_eval):
+        name_index = 2 if len(arg.arg_eval) > 2 and arg.arg_eval[1] == "e" else 1
+        return arg.arg_eval[name_index].removeprefix(", ").removesuffix("=")
 
     first_entry = arg.arg_eval[0] if isinstance(arg.arg_eval, list) else arg.arg_eval
     if not first_entry:
@@ -590,6 +613,9 @@ def _classify_arg_widget(arg) -> tuple[str, str, list[str] | None]:
     (e.g. a var-backed Int downgrading a dropdown to raw_fallback) stay in the
     individual _build_*_arg functions rather than here.
     """
+    if _is_checkbox_arg_eval(arg.arg_eval):
+        return "checkbox", "Int", None
+
     category = PrimeItems.tasker_arg_specs.get(arg.arg_type, "")
 
     if category == "Boolean":

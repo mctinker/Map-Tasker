@@ -2734,10 +2734,10 @@ def initialize_screen(self: MyGui) -> None:
             ui.button("Cancel", on_click=self.picker_dialog.close).classes("mt-4 w-full bg-gray-500 text-white")
 
     if self.tab_to_use:
-        self.gui_main_tabs_container.set_value = self.tab_to_use
+        self.gui_main_tabs_container.set_value(self.tab_to_use)
 
 
-def get_rid_of_windows_and_exit(self: MyGui, _delete_all: bool = True) -> None:
+async def get_rid_of_windows_and_exit(self: MyGui, _delete_all: bool = True) -> None:
     """Shuts down the NiceGUI server and exits."""
     if getattr(self, "close_tabs_on_exit", False):
         # Close every Map/Diagram popout this window opened (tracked in window.mapTaskerPopouts,
@@ -2745,10 +2745,19 @@ def get_rid_of_windows_and_exit(self: MyGui, _delete_all: bool = True) -> None:
         # script-driven window.close() on tabs/windows the script itself opened, so this window
         # may refuse to close if it wasn't launched via window.open() -- that's an unavoidable
         # browser security restriction, not a bug.
-        ui.run_javascript(
-            "(window.mapTaskerPopouts || []).forEach(w => { try { if (w && !w.closed) w.close(); } "
-            "catch (e) {} }); window.mapTaskerPopouts = []; window.close();",
-        )
+        # Must be awaited: run_javascript() only sends its payload once the event loop gets a
+        # chance to run the background task it schedules -- and app.shutdown() below tears down
+        # that same event loop. Without awaiting, shutdown can win the race and the browser never
+        # receives the command, so the tabs are left open. window.close()-ing this tab itself may
+        # tear down the connection before a response comes back, hence the timeout/suppress.
+        try:
+            await ui.run_javascript(
+                "(window.mapTaskerPopouts || []).forEach(w => { try { if (w && !w.closed) w.close(); } "
+                "catch (e) {} }); window.mapTaskerPopouts = []; window.close();",
+                timeout=2.0,
+            )
+        except Exception:  # noqa: BLE001
+            pass
     ui.notify("Shutting down MapTasker...", type="warning")
     app.shutdown()
 

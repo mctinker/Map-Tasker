@@ -336,9 +336,13 @@ class MyGui:
                 display_current_file(self, none_translated)
             return False
 
-        # Good return from getting the XML
-        if PrimeItems.file_to_get.name:
-            self.display_and_set_file(PrimeItems.file_to_get.name)
+        # Good return from getting the XML. PrimeItems.file_to_get is sometimes an open
+        # file object (.name is its path) and sometimes a plain string path/filename
+        # (e.g. restored from CLI args or settings) -- see maputil2.py's identical
+        # getattr(..., "name", ...) handling.
+        file_name = getattr(PrimeItems.file_to_get, "name", PrimeItems.file_to_get)
+        if file_name:
+            self.display_and_set_file(file_name)
             self.android_file = self.android_ipaddr = self.android_port = ""
             clear_android_buttons(self)
             self.display_message_box(
