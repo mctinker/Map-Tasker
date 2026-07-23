@@ -85,6 +85,25 @@ class EditableTask:
 # Tasker (all four appear in real backups), so collapsing them would silently
 # change an edited action's meaning.
 IF_ACTION_KEY = "37t"
+ELSE_ACTION_KEY = "43t"
+END_IF_ACTION_KEY = "38t"
+IF_ACTION_CODE = IF_ACTION_KEY[:-1]
+ELSE_ACTION_CODE = ELSE_ACTION_KEY[:-1]
+END_IF_ACTION_CODE = END_IF_ACTION_KEY[:-1]
+
+# The choices build_if_variant_dialog offers when the user picks the "If"
+# action, mapped to the arg-less follower actions to insert right after it
+# (both Else and End If have args=[] in actionc.py, so add_action_to_task can
+# always synthesize them).
+PERFORM_TASK_ACTION_CODE = "130"  # "Perform Task" (action_codes["130t"])
+PERFORM_TASK_NAME_ARG_ID = "0"  # its "Name" arg
+
+IF_BLOCK_VARIANTS: tuple[str, ...] = ("If", "If, End If", "If, Else, End If")
+_IF_BLOCK_FOLLOWERS: dict[str, tuple[str, ...]] = {
+    "If": (),
+    "If, End If": (END_IF_ACTION_KEY,),
+    "If, Else, End If": (ELSE_ACTION_KEY, END_IF_ACTION_KEY),
+}
 IF_CONDITION_OPERATORS: tuple[tuple[str, str], ...] = (
     ("0", "="),
     ("1", "!="),
@@ -219,6 +238,57 @@ def add_action_to_task(
     return new_action
 
 
+def add_if_block_to_task(
+    edited_task: EditableTask,
+    variant: str,
+    position: int | None = None,
+) -> EditableAction | list[str]:
+    """Insert an "If" action plus whatever companions the chosen variant calls
+    for (see IF_BLOCK_VARIANTS): nothing extra for "If", an "End If" after it
+    for "If, End If", or an "Else" then an "End If" for "If, Else, End If" --
+    all as consecutive actions starting at `position` (same semantics as
+    add_action_to_task's: None appends at the end).
+
+    Returns the "If" action itself on success (the companions need no further
+    attention -- they're arg-less), or a list of error strings, matching
+    add_action_to_task's convention.
+    """
+    if_action = add_action_to_task(edited_task, IF_ACTION_KEY, position)
+    if isinstance(if_action, list):
+        return if_action
+
+    insert_at = edited_task.actions.index(if_action) + 1
+    for follower_key in _IF_BLOCK_FOLLOWERS.get(variant, ()):
+        follower = add_action_to_task(edited_task, follower_key, insert_at)
+        if isinstance(follower, list):
+            return follower
+        insert_at += 1
+    return if_action
+
+
+def action_display_levels(actions: list[EditableAction]) -> list[int]:
+    """Per-action If-nesting depth for indenting a Task's action list in the
+    Add/Edit Task dialogs: every action after an "If" sits one level deeper;
+    "Else" and "End If" render at their encapsulating "If"'s own level, with
+    "End If" also popping back out so anything after it returns to the outer
+    level. Nested "If"s stack a level each. An unbalanced "Else"/"End If"
+    clamps at level 0 rather than going negative -- a Task's actions are free
+    text as far as Tasker is concerned, so malformed nesting must still render.
+    """
+    levels = []
+    depth = 0
+    for action in actions:
+        if action.code in (ELSE_ACTION_CODE, END_IF_ACTION_CODE):
+            levels.append(max(depth - 1, 0))
+        else:
+            levels.append(depth)
+        if action.code == IF_ACTION_CODE:
+            depth += 1
+        elif action.code == END_IF_ACTION_CODE:
+            depth = max(depth - 1, 0)
+    return levels
+
+
 def _renumber_actions(edited_task: EditableTask) -> None:
     """Renumber every action's sr="actN" (and its act_number) to match its current
     position in edited_task.actions -- shared by remove/copy/move so the model and
@@ -316,6 +386,47 @@ def set_action_enabled(edited_task: EditableTask, act_number: int, enabled: bool
             action.action_element.remove(on)
     else:
         _set_child_text(action.action_element, "on", "false")
+
+
+def action_can_fail(action: EditableAction) -> bool:
+    """Whether Tasker considers this action able to fail (actionc.py's canfail
+    flag) -- only such actions get the 'Continue Task After Error' checkbox;
+    the flag is meaningless on ones that can't error.
+    """
+    action_code = action_codes.get(f"{action.code}t")
+    return action_code is not None and action_code.canfail == "True"
+
+
+def action_continues_after_error(action: EditableAction) -> bool:
+    """Whether this action carries <se>false</se> ('Continue Task After
+    Error') -- the same child action.py's get_extra_stuff reads for display.
+    No <se> (or any other text) means Tasker's default: stop the Task on error.
+    """
+    se = action.action_element.find("se")
+    return se is not None and se.text == "false"
+
+
+def set_action_continue_after_error(
+    edited_task: EditableTask,
+    act_number: int,
+    continue_after_error: bool,
+) -> None:
+    """Sets or clears an action's <se>false</se> by writing/removing the <se>
+    child -- applied immediately (not staged), same convention as
+    set_action_enabled's <on> handling: Tasker omits the element entirely for
+    the default (stop on error), so unchecking removes it rather than writing
+    <se>true</se>.
+    """
+    action = next((a for a in edited_task.actions if a.act_number == act_number), None)
+    if action is None:
+        return
+
+    if continue_after_error:
+        _set_child_text(action.action_element, "se", "false")
+    else:
+        se = action.action_element.find("se")
+        if se is not None:
+            action.action_element.remove(se)
 
 
 def _build_editable_action(action_element: defusedxml.ElementTree.Element, act_number: int) -> EditableAction:
@@ -693,6 +804,30 @@ def _build_int_arg(action_element: defusedxml.ElementTree.Element, the_arg: str,
     )
 
 
+def is_perform_task_name_arg(action_code: str, arg) -> bool:
+    """Whether this arg is the 'Perform Task' action's Name field (code 130,
+    arg_id 0) -- the one field guiwins.py's Add/Edit Task dialogs offer an
+    extra Task-picker dropdown alongside (see get_all_task_names), as a
+    fill-in convenience for its ordinary text field. Public (not
+    underscore-prefixed): guiwins.py calls this directly to decide when to
+    render that picker.
+
+    Safe to gate purely on the numeric code text: no Profile State/Event
+    condition defines code 130 (checked against actionc.py), so this can't
+    misfire on the same machinery profedit.py reuses (build_editable_args/
+    build_synthesized_args) for those.
+    """
+    return action_code == PERFORM_TASK_ACTION_CODE and arg.arg_id == PERFORM_TASK_NAME_ARG_ID
+
+
+def get_all_task_names() -> list[str]:
+    """Every Task name in the currently loaded backup, sorted -- the options
+    offered by the 'Perform Task' action's Name picker (see
+    is_perform_task_name_arg). Same source task_name_exists reads.
+    """
+    return sorted(PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}))
+
+
 def _build_string_arg(action_element: defusedxml.ElementTree.Element, the_arg: str, arg) -> EditableArg:
     str_element = _find_str_element(action_element, the_arg)
     if str_element is None:
@@ -877,6 +1012,36 @@ def arg_key(act_number: int, arg_id: str) -> str:
     return f"act{act_number}_arg{arg_id}"
 
 
+def label_key(act_number: int) -> str:
+    """Key format shared with the dialog builder for an action's Label field --
+    lives in the same arg_values dict as arg_key's entries (can't collide:
+    arg keys always continue "arg{id}" after the underscore).
+    """
+    return f"act{act_number}_label"
+
+
+def get_action_label(action: EditableAction) -> str:
+    """The action's current <label> text, "" if it has none -- the same child
+    action.py's get_label_disabled_condition reads for display.
+    """
+    return action.action_element.findtext("label") or ""
+
+
+def _apply_action_label(action: EditableAction, label_text: str) -> None:
+    """Sets the action's <label> child, or removes it when the pending text is
+    empty/whitespace -- clearing the field in the dialog un-labels the action
+    rather than leaving an empty <label/> behind (Tasker omits the element
+    entirely for unlabeled actions).
+    """
+    label_text = label_text.strip()
+    if label_text:
+        _set_child_text(action.action_element, "label", label_text)
+        return
+    label_element = action.action_element.find("label")
+    if label_element is not None:
+        action.action_element.remove(label_element)
+
+
 def validate_arg_values(
     args: list[EditableArg],
     key_for_arg: Callable[[EditableArg], str],
@@ -899,6 +1064,178 @@ def validate_arg_values(
         if value and not value.lstrip("-").isdigit():
             errors.append(f"'{arg.arg_name}' must be a whole number.")
     return errors
+
+
+# A Tasker variable name (the part after '%'): 3+ letters/digits/underscores,
+# not starting or ending with an underscore.
+_IF_VARIABLE_NAME_RE = re.compile(r"^(?!_)[A-Za-z0-9_]{3,}(?<!_)$")
+
+# Operator labels (see IF_CONDITION_OPERATORS) that test mere existence, so the
+# Value field is legitimately empty.
+_IF_NO_VALUE_OPERATORS = ("Is Set", "Not Set")
+
+
+def validate_if_condition_values(
+    action: EditableAction,
+    key_for_arg: Callable[[EditableArg], str],
+    arg_values: dict[str, str],
+) -> list[str]:
+    """Validates an 'If' action's pending Target/Operator/Value field values:
+
+    1. Target must be set: plain alphanumeric text, or a %variable.
+    2. Unless the Operator is 'Is Set'/'Not Set' (which test existence alone),
+       Value must be set to alphanumeric text.
+    3. A %variable Target must name a valid Tasker variable: 3 or more
+       letters/digits/underscores after the '%', not starting or ending
+       with '_'.
+
+    No-op for an If whose condition isn't editable (no/multiple Conditions --
+    see _build_if_action_args' read-only fallback). Falls back to an arg's
+    current value when its key isn't in arg_values, matching apply_arg_values'
+    leave-untouched convention.
+    """
+    args_by_id = {arg.arg_id: arg for arg in action.args}
+    if not {"if_lhs", "if_op", "if_rhs"} <= args_by_id.keys():
+        return []
+
+    lhs_arg, op_arg, rhs_arg = args_by_id["if_lhs"], args_by_id["if_op"], args_by_id["if_rhs"]
+    target = arg_values.get(key_for_arg(lhs_arg), lhs_arg.current_value).strip()
+    value = arg_values.get(key_for_arg(rhs_arg), rhs_arg.current_value).strip()
+
+    # The dialog's dropdown delivers the operator as its label; the fallback
+    # current_value is an index into the same label list.
+    operator_label = arg_values.get(key_for_arg(op_arg))
+    if operator_label is None:
+        try:
+            operator_label = op_arg.dropdown_options[int(op_arg.current_value)]
+        except (TypeError, ValueError, IndexError):
+            operator_label = _IF_CONDITION_OPERATOR_LABELS[0]
+
+    return validate_condition_fields(target, operator_label, value)
+
+
+def validate_condition_fields(target: str, operator_label: str, value: str) -> list[str]:
+    """The If-condition field rules, shared by the 'If' action's own condition
+    (validate_if_condition_values) and a per-action If condition
+    (set_action_condition):
+
+    1. Target must be set: plain alphanumeric text, or a %variable naming a
+       valid Tasker variable (3+ letters/digits/underscores after the '%',
+       not starting or ending with '_').
+    2. Unless the Operator tests existence alone ('Is Set'/'Not Set'), Value
+       must be set to alphanumeric text.
+    """
+    target = target.strip()
+    value = value.strip()
+
+    errors = []
+    if not target:
+        errors.append("The If condition's Target must be set.")
+    elif target.startswith("%"):
+        if not _IF_VARIABLE_NAME_RE.match(target[1:]):
+            errors.append(
+                f"The If condition's Target '{target}' is not a valid variable: the name after '%' "
+                "must be 3 or more letters, digits, or underscores, and cannot start or end with '_'.",
+            )
+    elif not target.isalnum():
+        errors.append(f"The If condition's Target '{target}' must be alphanumeric, or a %variable.")
+
+    if operator_label not in _IF_NO_VALUE_OPERATORS:
+        if not value:
+            errors.append(f"The If condition's Value must be set when the Operator is '{operator_label}'.")
+        elif not value.isalnum():
+            errors.append(f"The If condition's Value '{value}' must be alphanumeric.")
+
+    return errors
+
+
+def action_condition_count(action: EditableAction) -> int:
+    """How many <Condition>s this action's <ConditionList> holds (0 if none) --
+    1 is the editable case for the per-action "If" checkbox; more means a
+    chained AND/OR condition this tool won't clobber (same stance as
+    _build_if_action_args' multi-condition fallback).
+    """
+    condition_list = action.action_element.find("ConditionList")
+    return 0 if condition_list is None else len(condition_list.findall("Condition"))
+
+
+def action_has_condition(action: EditableAction) -> bool:
+    """Whether this action carries a per-action If condition."""
+    return action_condition_count(action) > 0
+
+
+def get_action_condition_values(action: EditableAction) -> tuple[str, str, str]:
+    """(Target, Operator label, Value) of the action's first If condition, or
+    ("", "=", "") when it has none -- prefill for the per-action If prompt.
+    """
+    condition_list = action.action_element.find("ConditionList")
+    condition = condition_list.find("Condition") if condition_list is not None else None
+    if condition is None:
+        return "", IF_CONDITION_OPERATORS[0][1], ""
+
+    op_code = condition.findtext("op") or "0"
+    op_label = IF_CONDITION_OPERATORS[_IF_CONDITION_CODE_TO_INDEX.get(op_code, 0)][1]
+    return condition.findtext("lhs") or "", op_label, condition.findtext("rhs") or ""
+
+
+def set_action_condition(
+    edited_task: EditableTask,
+    act_number: int,
+    target: str,
+    operator_label: str,
+    value: str,
+) -> list[str]:
+    """Validates and writes a per-action If condition (the <ConditionList
+    sr="if"> Tasker allows on any action), replacing whatever single-condition
+    list the action already had. Returns [] on success, else the validation
+    errors (see validate_condition_fields) with nothing mutated -- same
+    convention as apply_edits_to_task.
+
+    Refuses the 'If' action itself: its ConditionList IS the action (edited
+    via its own Target/Operator/Value arg fields, which are bound to those
+    same elements -- replacing them here would orphan the args).
+    """
+    action = next((a for a in edited_task.actions if a.act_number == act_number), None)
+    if action is None:
+        return [f"Action {act_number} no longer exists."]
+    if action.code == IF_ACTION_CODE:
+        return ["Use the If action's own Target/Operator/Value fields instead."]
+
+    errors = validate_condition_fields(target, operator_label, value)
+    if errors:
+        return errors
+
+    existing = action.action_element.find("ConditionList")
+    if existing is not None:
+        action.action_element.remove(existing)
+
+    element_cls = type(action.action_element)
+    condition_list = element_cls("ConditionList", {"sr": "if"})
+    condition = element_cls("Condition", {"sr": "c0", "ve": "3"})
+    for tag, text in (
+        ("lhs", target.strip()),
+        ("op", _IF_CONDITION_LABEL_TO_CODE.get(operator_label, "0")),
+        ("rhs", value.strip()),
+    ):
+        child = element_cls(tag)
+        child.text = text
+        condition.append(child)
+    condition_list.append(condition)
+    action.action_element.append(condition_list)
+    return []
+
+
+def remove_action_condition(edited_task: EditableTask, act_number: int) -> None:
+    """Removes an action's per-action If condition, if any -- backs unchecking
+    the "If" checkbox. Same 'If'-action guard as set_action_condition.
+    """
+    action = next((a for a in edited_task.actions if a.act_number == act_number), None)
+    if action is None or action.code == IF_ACTION_CODE:
+        return
+
+    condition_list = action.action_element.find("ConditionList")
+    if condition_list is not None:
+        action.action_element.remove(condition_list)
 
 
 def apply_arg_values(
@@ -960,11 +1297,10 @@ def apply_edits_to_task(
         errors.append("Priority must be a non-negative whole number.")
 
     for action in edited_task.actions:
-        action_errors = validate_arg_values(
-            action.args,
-            lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id),
-            arg_values,
-        )
+        key_for_arg = lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id)  # noqa: E731
+        action_errors = validate_arg_values(action.args, key_for_arg, arg_values)
+        if action.code == IF_ACTION_CODE:
+            action_errors.extend(validate_if_condition_values(action, key_for_arg, arg_values))
         errors.extend(f"{error} (Action {action.act_number})" for error in action_errors)
 
     if errors:
@@ -980,6 +1316,8 @@ def apply_edits_to_task(
             lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id),
             arg_values,
         )
+        if (pending_label := arg_values.get(label_key(action.act_number))) is not None:
+            _apply_action_label(action, pending_label)
 
     return []
 

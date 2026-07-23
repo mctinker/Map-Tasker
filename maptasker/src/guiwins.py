@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import app, context, ui
 
-from maptasker.src import profedit, taskedit
+from maptasker.src import profedit, projedit, taskedit
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.guiutil2 import get_monospace_fonts, sort_languages_with_priority
 from maptasker.src.maputil2 import translate_string
@@ -44,6 +44,231 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
     return dialog
 
 
+def _refresh_position_options(
+    edited_task: taskedit.EditableTask,
+    position_select: ui.select,
+    position_labels: dict[str, int | None],
+) -> None:
+    """Rebuilds an Add/Edit Task dialog's "Position" dropdown from the task's
+    current actions -- called after every Add/Copy/Move/Delete/Remove, since
+    act_numbers and names shift and stale labels would insert at the wrong
+    spot. Keeps the user's current choice if it still exists, else falls back
+    to "At the End". position_labels maps each label to the act_number to
+    insert at (None for "At the End") -- see build_edit_task_dialog's note on
+    why that map is kept out-of-band.
+    """
+    position_labels.clear()
+    options = []
+    for action in edited_task.actions:
+        before_label = f"Before {action.act_number}: {action.action_name}"
+        after_label = f"After {action.act_number}: {action.action_name}"
+        position_labels[before_label] = action.act_number
+        position_labels[after_label] = action.act_number + 1
+        options.extend((before_label, after_label))
+    options.append("At the End")
+    position_labels["At the End"] = None
+    previous = position_select.value
+    position_select.set_options(options, value=previous if previous in options else "At the End")
+
+
+def _action_indent_spaces(self: MyGui) -> int:
+    """The user's "If/Then/Else Indentation Amount" setting as an int (default
+    4) -- the same amount the Map view indents If blocks by. Restored settings
+    can hold it as a string, hence the coercion.
+    """
+    try:
+        return int(getattr(self, "indent", 4) or 4)
+    except (TypeError, ValueError):
+        return 4
+
+
+def _dropdown_current_label(arg: taskedit.EditableArg) -> str:
+    """The option to preselect for a dropdown arg: current_value is the index
+    into dropdown_options (If Operator, Int lookups -- every dropdown in this
+    codebase).
+    """
+    options = arg.dropdown_options or []
+    try:
+        return options[int(arg.current_value)]
+    except (ValueError, IndexError):
+        return options[0] if options else ""
+
+
+def _render_task_name_field(
+    self: MyGui,
+    action: taskedit.EditableAction,
+    arg: taskedit.EditableArg,
+    key: str,
+    field_refs: dict,
+) -> None:
+    """Renders the 'Perform Task' action's Name field: an ordinary text input
+    the user can key any string into, plus a companion "Pick a Task" dropdown
+    that -- when an option is chosen -- overwrites the text input with that
+    Task's name. Either/or: whichever the user touches last is what's saved,
+    since Save only ever reads the text input's own field_refs entry (this
+    dropdown is deliberately never added to field_refs, so _task_arg_values
+    can't see it).
+
+    A plain ui.select with Quasar's "new-value-mode" was tried first so a
+    single widget could both pick and free-type, but it only accepts a typed
+    value when the user presses Enter -- clicking away (the far more likely
+    action) silently reverts the field to its first option, which is exactly
+    the "grabs the first task" bug this two-widget design avoids entirely.
+    """
+    field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
+
+    task_names = taskedit.get_all_task_names()
+    if not task_names:
+        return
+
+    def fill_in_picked_task(e) -> None:
+        if e.value:
+            field_refs[key].value = e.value
+
+    ui.select(
+        task_names,
+        label="Pick a Task",
+        with_input=True,
+        on_change=fill_in_picked_task,
+    ).classes("flex-1").props("dense")
+
+
+def build_action_condition_dialog(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    act_number: int,
+    checkbox: ui.checkbox,
+    condition_cache: dict[int, tuple[str, str, str]],
+) -> None:
+    """Prompts for a per-action If condition (Target/Operator/Value) when the
+    action's "If" checkbox is checked -- see _render_action_condition_checkbox.
+    Prefills from the values cached by the last uncheck (so toggling off and
+    on edits rather than starts over), else from the action's current XML. Ok
+    validates and writes the <ConditionList> (dialog stays open on errors);
+    Cancel unchecks the checkbox, adding nothing.
+    """
+    action = next((a for a in edited_task.actions if a.act_number == act_number), None)
+    if action is None:
+        return
+
+    prefill = condition_cache.get(act_number) or taskedit.get_action_condition_values(action)
+    operator_labels = [label for _code, label in taskedit.IF_CONDITION_OPERATORS]
+
+    with ui.dialog() as condition_dialog, ui.card().classes("min-w-[400px] p-6"):
+        ui.label(f"If Condition -- {act_number}: {action.action_name}").classes("text-lg font-bold text-blue-600")
+        target_input = ui.input("Target", value=prefill[0]).classes("w-full")
+        operator_select = ui.select(
+            operator_labels,
+            value=prefill[1] if prefill[1] in operator_labels else operator_labels[0],
+            label="Operator",
+        ).classes("w-full")
+        value_input = ui.input("Value", value=prefill[2]).classes("w-full")
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(
+                "Cancel",
+                on_click=lambda: (condition_dialog.close(), checkbox.set_value(False)),
+            ).props("outline")
+            ui.button(
+                "Ok",
+                on_click=lambda: self.event_handlers.set_action_condition_event(
+                    edited_task,
+                    act_number,
+                    target_input,
+                    operator_select,
+                    value_input,
+                    condition_dialog,
+                    checkbox,
+                ),
+            ).classes("bg-blue-600")
+
+    condition_dialog.open()
+
+
+def _render_action_condition_checkbox(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    action: taskedit.EditableAction,
+    condition_cache: dict[int, tuple[str, str, str]],
+) -> None:
+    """Renders an action's per-action "If" checkbox in the Add/Edit Task action
+    lists (every action except the 'If' action itself -- callers skip that).
+    Checked state mirrors whether the action currently has a <ConditionList>;
+    checking prompts for the condition (build_action_condition_dialog),
+    unchecking removes it (stashing its values in condition_cache so a
+    re-check prefills them). An action with multiple chained conditions gets a
+    read-only note instead -- replacing those from this single-condition
+    prompt would silently drop the rest.
+    """
+    condition_count = taskedit.action_condition_count(action)
+    if condition_count > 1:
+        ui.label(
+            f"Has {condition_count} chained If conditions -- not editable here.",
+        ).classes("text-xs text-gray-500 italic")
+        return
+
+    target, operator_label, value = taskedit.get_action_condition_values(action)
+    text = f"If: {target} {operator_label} {value}".rstrip() if condition_count else "If"
+    checkbox = ui.checkbox(text, value=condition_count == 1).props("dense")
+
+    def on_toggle(e, act_number=action.act_number, cb=checkbox) -> None:
+        if e.value:
+            build_action_condition_dialog(self, edited_task, act_number, cb, condition_cache)
+            return
+        current = next((a for a in edited_task.actions if a.act_number == act_number), None)
+        if current is not None and taskedit.action_has_condition(current):
+            condition_cache[act_number] = taskedit.get_action_condition_values(current)
+        self.event_handlers.remove_action_condition_event(edited_task, act_number)
+        cb.set_text("If")
+
+    checkbox.on_value_change(on_toggle)
+
+
+def _render_continue_after_error_checkbox(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    action: taskedit.EditableAction,
+) -> None:
+    """Renders an action's 'Continue Task After Error' checkbox in the Add/Edit
+    Task action lists -- only for actions Tasker considers able to fail
+    (actionc.py's canfail flag, see taskedit.action_can_fail). Checked writes
+    <se>false</se> on the action; unchecking removes the element (Tasker's
+    stop-on-error default). Applied immediately, same as the Enabled switch.
+    """
+    if not taskedit.action_can_fail(action):
+        return
+
+    ui.checkbox(
+        "Continue Task After Error",
+        value=taskedit.action_continues_after_error(action),
+        on_change=lambda e, n=action.act_number: self.event_handlers.set_action_continue_after_error_event(
+            edited_task,
+            n,
+            e.value,
+        ),
+    ).props("dense")
+
+
+def build_if_variant_dialog(on_choice: Callable[[str], None]) -> None:
+    """Prompts for how much of an If block to insert when the user picks the
+    "If" action in an Add/Edit Task action picker: just the "If", "If" plus a
+    matching "End If", or a full "If"/"Else"/"End If" skeleton -- see
+    taskedit.IF_BLOCK_VARIANTS/add_if_block_to_task. Fires on_choice(variant)
+    only when one is clicked; Cancel inserts nothing.
+    """
+    with ui.dialog() as variant_dialog, ui.card().classes("min-w-[300px] p-6"):
+        ui.label("Add 'If' Action").classes("text-lg font-bold text-blue-600")
+        ui.label("Insert just the 'If', or a complete block?").classes("text-sm mb-2")
+        for variant in taskedit.IF_BLOCK_VARIANTS:
+            ui.button(
+                variant,
+                on_click=lambda v=variant: (variant_dialog.close(), on_choice(v)),
+            ).classes("w-full")
+        with ui.row().classes("w-full justify-end mt-2"):
+            ui.button("Cancel", on_click=variant_dialog.close).props("outline")
+
+    variant_dialog.open()
+
+
 def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> None:
     """Builds and opens the Edit Task dialog (Phase 1: name/priority; an "Add an
     action" search/filter picker -- the same one Add Task uses -- that can insert
@@ -57,6 +282,9 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
     """
     task_name = edited_task.task_element.findtext("nme", "")
     field_refs: dict = {}
+    # Last-known per-action If condition values, keyed by act_number -- lets an
+    # uncheck/re-check of the "If" checkbox edit instead of starting over.
+    condition_cache: dict[int, tuple[str, str, str]] = {}
     category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
     # Maps each "Position" dropdown label to the act_number to insert at (None
     # for "At the End") -- kept out-of-band rather than as the ui.select's own
@@ -85,22 +313,51 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
         picker_container = ui.column().classes("w-full")
         ui.label("Actions in this Task").classes("text-sm font-bold mt-2")
         actions_container = ui.column().classes("w-full")
+        # act_number of the action most recently added in this dialog session --
+        # render_actions highlights it so it's easy to spot in a long list.
+        last_added_act_number: int | None = None
+
+        def clear_last_added() -> None:
+            # Copy/Move/Delete all renumber the list, so a stale act_number here
+            # would risk highlighting the wrong action -- drop the highlight
+            # instead of letting it follow whatever action inherits the number.
+            nonlocal last_added_act_number
+            last_added_act_number = None
 
         def refresh_position_options() -> None:
-            # Rebuilt after every Add/Copy/Move/Delete -- act_numbers and names
-            # shift, so stale labels would insert at the wrong spot.
-            position_labels.clear()
-            options = []
-            for action in edited_task.actions:
-                before_label = f"Before {action.act_number}: {action.action_name}"
-                after_label = f"After {action.act_number}: {action.action_name}"
-                position_labels[before_label] = action.act_number
-                position_labels[after_label] = action.act_number + 1
-                options.extend((before_label, after_label))
-            options.append("At the End")
-            position_labels["At the End"] = None
-            previous = position_select.value
-            position_select.set_options(options, value=previous if previous in options else "At the End")
+            _refresh_position_options(edited_task, position_select, position_labels)
+
+        def add_picked_action(action_key: str) -> None:
+            nonlocal last_added_act_number
+            # "If" gets an extra prompt (just the If, or a whole If/Else/End If
+            # block?) before anything is inserted; every other action goes in
+            # directly. Position is resolved when the choice lands, not at
+            # picker-click time -- same value, and the variant dialog is modal.
+            if action_key == taskedit.IF_ACTION_KEY:
+
+                def _add_if_block(variant: str) -> None:
+                    nonlocal last_added_act_number
+                    act_number = self.event_handlers.add_if_block_to_edit_task_event(
+                        edited_task,
+                        variant,
+                        position_labels.get(position_select.value),
+                    )
+                    if act_number is not None:
+                        last_added_act_number = act_number
+                    render_actions()
+                    refresh_position_options()
+
+                build_if_variant_dialog(_add_if_block)
+                return
+            act_number = self.event_handlers.add_action_to_edit_task_event(
+                edited_task,
+                action_key,
+                position_labels.get(position_select.value),
+            )
+            if act_number is not None:
+                last_added_act_number = act_number
+            render_actions()
+            refresh_position_options()
 
         def refresh_picker(_e=None) -> None:
             picker_container.clear()
@@ -110,15 +367,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                     if row["addable"]:
                         ui.button(
                             f"{row['name']} ({row['category_name']})",
-                            on_click=lambda r=row: (
-                                self.event_handlers.add_action_to_edit_task_event(
-                                    edited_task,
-                                    r["action_key"],
-                                    position_labels.get(position_select.value),
-                                ),
-                                render_actions(),
-                                refresh_position_options(),
-                            ),
+                            on_click=lambda r=row: add_picked_action(r["action_key"]),
                         ).props("flat align=left dense").classes("w-full justify-start")
                     else:
                         with ui.column().classes("w-full gap-0"):
@@ -138,12 +387,24 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                 if not edited_task.actions:
                     ui.label("No actions in this Task.").classes("text-xs text-gray-500 italic")
                 last_position = len(edited_task.actions) - 1
-                for action in edited_task.actions:
-                    with ui.expansion(f"{action.act_number}: {action.action_name}").classes("w-full"):
+                indent_spaces = _action_indent_spaces(self)
+                display_levels = taskedit.action_display_levels(edited_task.actions)
+                for action, nest_level in zip(edited_task.actions, display_levels, strict=True):
+                    # Indent with non-breaking spaces -- plain ones collapse in the rendered header.
+                    indent_pad = "\u00a0" * (indent_spaces * nest_level)
+                    is_last_added = action.act_number == last_added_act_number
+                    header = f"{indent_pad}{action.act_number}: {action.action_name}"
+                    if is_last_added:
+                        header += "  \u2190 just added"
+                    action_expansion = ui.expansion(header, value=is_last_added).classes("w-full")
+                    if is_last_added:
+                        action_expansion.classes("bg-amber-100 dark:bg-amber-900 border-2 border-amber-400 rounded")
+                    with action_expansion:
                         with ui.row().classes("w-full items-center gap-2 mb-2"):
                             ui.button(
                                 "Copy",
                                 on_click=lambda n=action.act_number: (
+                                    clear_last_added(),
                                     self.event_handlers.copy_action_in_edit_task_event(edited_task, n),
                                     render_actions(),
                                     refresh_position_options(),
@@ -163,6 +424,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                             ui.button(
                                 "Move",
                                 on_click=lambda n=action.act_number, target=move_to_input: (
+                                    clear_last_added(),
                                     self.event_handlers.move_action_in_edit_task_event(
                                         edited_task,
                                         n,
@@ -175,6 +437,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                             ui.button(
                                 "Delete",
                                 on_click=lambda n=action.act_number: (
+                                    clear_last_added(),
                                     self.event_handlers.delete_action_in_edit_task_event(edited_task, n),
                                     render_actions(),
                                     refresh_position_options(),
@@ -195,6 +458,15 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                             backward=lambda v: "Enabled" if v else "Disabled",
                         )
 
+                        field_refs[taskedit.label_key(action.act_number)] = ui.input(
+                            "Label",
+                            value=taskedit.get_action_label(action),
+                        ).classes("w-full")
+
+                        if action.code != taskedit.IF_ACTION_CODE:
+                            _render_action_condition_checkbox(self, edited_task, action, condition_cache)
+                        _render_continue_after_error_checkbox(self, edited_task, action)
+
                         if not action.args:
                             ui.label("No editable arguments.").classes("text-xs text-gray-500 italic")
                         for arg in action.args:
@@ -204,17 +476,15 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                     field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
                                 elif arg.widget_kind == "dropdown":
                                     options = arg.dropdown_options or []
-                                    try:
-                                        current_label = options[int(arg.current_value)]
-                                    except (ValueError, IndexError):
-                                        current_label = options[0] if options else ""
                                     field_refs[key] = ui.select(
                                         options,
-                                        value=current_label,
+                                        value=_dropdown_current_label(arg),
                                         label=arg.arg_name,
                                     ).classes(
                                         "flex-1",
                                     )
+                                elif taskedit.is_perform_task_name_arg(action.code, arg):
+                                    _render_task_name_field(self, action, arg, key, field_refs)
                                 elif arg.widget_kind in ("text", "raw_fallback"):
                                     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
                                     if arg.readonly_note:
@@ -842,6 +1112,95 @@ def build_save_profile_to_android_dialog(
     android_dialog.open()
 
 
+def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
+    """Builds and opens the Add Project dialog: create a brand-new Project with
+    just a name -- unlike Add Profile/Add Task, there's no parent to attach to
+    (a Project is the top of the hierarchy) and no Save/Save To Android
+    surface (see projedit.py's module docstring for why).
+    """
+    field_refs: dict = {}
+
+    with ui.dialog() as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+        ui.label("Add Project").classes("text-xl font-bold text-blue-600")
+
+        field_refs["name"] = ui.input("Project Name", value="").classes("w-full")
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(
+                "Ok",
+                on_click=lambda: self.event_handlers.keep_new_project_event(edited_project, field_refs, dialog),
+            ).classes("bg-blue-600")
+
+    dialog.open()
+
+
+def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
+    """Builds and opens the Edit Project dialog: Rename the Project, or delete
+    it -- with a choice of what happens to the Profiles/Tasks it owns, see
+    build_delete_project_dialog.
+    """
+    project_name = edited_project.project_name
+    field_refs: dict = {}
+
+    with ui.dialog() as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+        ui.label(f"Edit Project: {project_name}").classes("text-xl font-bold text-blue-600")
+
+        field_refs["name"] = ui.input("Project Name", value=project_name).classes("w-full")
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(
+                "Delete Project",
+                on_click=lambda: self.event_handlers.delete_project_event(edited_project, dialog),
+            ).classes("bg-red-500 text-white")
+            ui.button(
+                "Rename",
+                on_click=lambda: self.event_handlers.rename_project_event(edited_project, field_refs, dialog),
+            ).classes("bg-blue-600")
+
+    dialog.open()
+
+
+def build_delete_project_dialog(
+    self: MyGui,
+    edited_project: projedit.EditableProject,
+    parent_dialog: ui.dialog,
+) -> None:
+    """Confirms deletion of a Project, offering a choice for what happens to
+    the Profiles/Tasks it owns: moved into "Base" (Keep Contents) or deleted
+    along with it (Delete Contents) -- see projedit.delete_project. Shown
+    before anything is mutated; the Profile/Task counts are read live so they
+    can't go stale between opening Edit Project and clicking Delete.
+    """
+    project_name = edited_project.project_name
+    profile_count, task_count = projedit.count_project_contents(project_name)
+
+    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+        ui.label(f"Delete Project '{project_name}'").classes("text-lg font-bold text-red-600")
+        ui.label(f"It owns {profile_count} Profile(s) and {task_count} Task(s).").classes("mt-1")
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=confirm_dialog.close).props("outline")
+            ui.button(
+                "Keep Contents",
+                on_click=lambda: self.event_handlers.keep_contents_delete_project_event(
+                    project_name,
+                    confirm_dialog,
+                    parent_dialog,
+                ),
+            ).props("outline")
+            ui.button(
+                "Delete Contents",
+                on_click=lambda: self.event_handlers.delete_contents_delete_project_event(
+                    project_name,
+                    confirm_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-red-500 text-white")
+
+    confirm_dialog.open()
+
+
 def build_add_profile_dialog(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
@@ -960,6 +1319,10 @@ def build_add_task_dialog(
     """
     field_refs: dict = {"target_project_name": target_project_name}
     category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
+    # Same out-of-band Position-label -> act_number map as build_edit_task_dialog's.
+    position_labels: dict[str, int | None] = {}
+    # Same per-action If condition value cache as build_edit_task_dialog's.
+    condition_cache: dict[int, tuple[str, str, str]] = {}
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label("Add Task").classes("text-xl font-bold text-blue-600")
@@ -989,10 +1352,24 @@ def build_add_task_dialog(
         with ui.row().classes("w-full gap-4"):
             search_input = ui.input("Search actions").classes("flex-1")
             category_select = ui.select(["All", *category_names], value="All").classes("w-48")
+        position_select = ui.select([], label="Position", with_input=True).classes("w-full").props("dense")
 
         picker_container = ui.column().classes("w-full")
         ui.label("Actions in this Task").classes("text-sm font-bold mt-2")
         added_container = ui.column().classes("w-full")
+        # act_number of the action most recently added in this dialog session --
+        # render_added_actions highlights it so it's easy to spot in a long list.
+        last_added_act_number: int | None = None
+
+        def clear_last_added() -> None:
+            # Remove renumbers the list, so a stale act_number here would risk
+            # highlighting the wrong action -- drop the highlight instead of
+            # letting it follow whatever action inherits the number.
+            nonlocal last_added_act_number
+            last_added_act_number = None
+
+        def refresh_position_options() -> None:
+            _refresh_position_options(edited_task, position_select, position_labels)
 
         def render_added_actions() -> None:
             # Rebuild from scratch -- a Remove renumbers every action after it, so
@@ -1003,8 +1380,26 @@ def build_add_task_dialog(
             with added_container:
                 if not edited_task.actions:
                     ui.label("No actions added yet.").classes("text-xs text-gray-500 italic")
-                for action in edited_task.actions:
-                    with ui.expansion(f"{action.act_number}: {action.action_name}").classes("w-full"):
+                indent_spaces = _action_indent_spaces(self)
+                display_levels = taskedit.action_display_levels(edited_task.actions)
+                for action, nest_level in zip(edited_task.actions, display_levels, strict=True):
+                    # Indent with non-breaking spaces -- plain ones collapse in the rendered header.
+                    indent_pad = "\u00a0" * (indent_spaces * nest_level)
+                    is_last_added = action.act_number == last_added_act_number
+                    header = f"{indent_pad}{action.act_number}: {action.action_name}"
+                    if is_last_added:
+                        header += "  \u2190 just added"
+                    action_expansion = ui.expansion(header, value=is_last_added).classes("w-full")
+                    if is_last_added:
+                        action_expansion.classes("bg-amber-100 dark:bg-amber-900 border-2 border-amber-400 rounded")
+                    with action_expansion:
+                        field_refs[taskedit.label_key(action.act_number)] = ui.input(
+                            "Label",
+                            value=taskedit.get_action_label(action),
+                        ).classes("w-full")
+                        if action.code != taskedit.IF_ACTION_CODE:
+                            _render_action_condition_checkbox(self, edited_task, action, condition_cache)
+                        _render_continue_after_error_checkbox(self, edited_task, action)
                         for arg in action.args:
                             key = taskedit.arg_key(action.act_number, arg.arg_id)
                             with ui.row().classes("w-full items-center gap-2"):
@@ -1012,24 +1407,54 @@ def build_add_task_dialog(
                                     field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
                                 elif arg.widget_kind == "dropdown":
                                     options = arg.dropdown_options or []
-                                    try:
-                                        current_label = options[int(arg.current_value)]
-                                    except (ValueError, IndexError):
-                                        current_label = options[0] if options else ""
                                     field_refs[key] = ui.select(
                                         options,
-                                        value=current_label,
+                                        value=_dropdown_current_label(arg),
                                         label=arg.arg_name,
                                     ).classes("flex-1")
+                                elif taskedit.is_perform_task_name_arg(action.code, arg):
+                                    _render_task_name_field(self, action, arg, key, field_refs)
                                 else:  # "text" or "raw_fallback"
                                     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
                         ui.button(
                             "Remove",
                             on_click=lambda n=action.act_number: (
+                                clear_last_added(),
                                 self.event_handlers.remove_action_from_new_task_event(edited_task, n),
                                 render_added_actions(),
+                                refresh_position_options(),
                             ),
                         ).props("flat color=red dense")
+
+        def add_picked_action(action_key: str) -> None:
+            nonlocal last_added_act_number
+            # Same "If" block prompt and Position handling as
+            # build_edit_task_dialog's picker.
+            if action_key == taskedit.IF_ACTION_KEY:
+
+                def _add_if_block(variant: str) -> None:
+                    nonlocal last_added_act_number
+                    act_number = self.event_handlers.add_if_block_to_new_task_event(
+                        edited_task,
+                        variant,
+                        position_labels.get(position_select.value),
+                    )
+                    if act_number is not None:
+                        last_added_act_number = act_number
+                    render_added_actions()
+                    refresh_position_options()
+
+                build_if_variant_dialog(_add_if_block)
+                return
+            act_number = self.event_handlers.add_action_to_new_task_event(
+                edited_task,
+                action_key,
+                position_labels.get(position_select.value),
+            )
+            if act_number is not None:
+                last_added_act_number = act_number
+            render_added_actions()
+            refresh_position_options()
 
         def refresh_picker(_e=None) -> None:
             picker_container.clear()
@@ -1039,10 +1464,7 @@ def build_add_task_dialog(
                     if row["addable"]:
                         ui.button(
                             f"{row['name']} ({row['category_name']})",
-                            on_click=lambda r=row: (
-                                self.event_handlers.add_action_to_new_task_event(edited_task, r["action_key"]),
-                                render_added_actions(),
-                            ),
+                            on_click=lambda r=row: add_picked_action(r["action_key"]),
                         ).props("flat align=left dense").classes("w-full justify-start")
                     else:
                         with ui.column().classes("w-full gap-0"):
@@ -1052,6 +1474,7 @@ def build_add_task_dialog(
         search_input.on_value_change(refresh_picker)
         category_select.on_value_change(refresh_picker)
         refresh_picker()
+        refresh_position_options()
         render_added_actions()
 
         field_refs["save_path"] = ui.input(
@@ -2642,18 +3065,27 @@ def initialize_screen(self: MyGui) -> None:
                     on_change=self.event_handlers.list_unnamed_items_event,
                 ).classes("mt-1 text-xs")
                 with ui.row().classes("gap-2 m-0 p-0"):
+                    self.edit_project_button = ui.button(
+                        translate_string("Edit Project"),
+                        on_click=self.event_handlers.open_edit_project_dialog_event,
+                    ).classes("w-64 mt-2 bg-blue-500")
+                    self.add_project_button = ui.button(
+                        translate_string("Add Project"),
+                        on_click=self.event_handlers.open_add_project_dialog_event,
+                    ).classes("w-64 mt-2 bg-blue-500")
+                with ui.row().classes("gap-2 m-0 p-0"):
                     self.edit_profile_button = ui.button(
                         translate_string("Edit Profile"),
                         on_click=self.event_handlers.open_edit_profile_dialog_event,
                     ).classes("w-64 mt-2 bg-blue-500")
-                    self.edit_task_button = ui.button(
-                        translate_string("Edit Task"),
-                        on_click=self.event_handlers.open_edit_task_dialog_event,
-                    ).classes("w-64 mt-2 bg-blue-500")
-                with ui.row().classes("gap-2 m-0 p-0"):
                     self.add_profile_button = ui.button(
                         translate_string("Add Profile"),
                         on_click=self.event_handlers.open_add_profile_dialog_event,
+                    ).classes("w-64 mt-2 bg-blue-500")
+                with ui.row().classes("gap-2 m-0 p-0"):
+                    self.edit_task_button = ui.button(
+                        translate_string("Edit Task"),
+                        on_click=self.event_handlers.open_edit_task_dialog_event,
                     ).classes("w-64 mt-2 bg-blue-500")
                     self.add_task_button = ui.button(
                         translate_string("Add Task"),

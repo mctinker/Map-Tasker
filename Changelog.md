@@ -2,23 +2,27 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.0.0b1] 22-Jul-2026  MAJOR UPDATE
+## [12.0.0b2] ??-Jul-2026  # FIX
 
 ### Added
 
-- Added: You can now add and edit Profiles and Tasks from the GUI, with various save options (see caveats)
-- Added: Searching for a string will highlight the selected match in a different color from the other matching strings.
+- Added: 'Add/Edit Project' functions are now available.
+- Added: Add/Edit Task: All actions edited or added can now include a label.
+- Added: Add/Edit Task: 'If' action logic enhanced to include 'End If' and 'Else, End If' options.
+- Added: Add/Edit Task: Action indentation within 'If' 'End If' actions.
+- Added: Add/Edit Task: If statement validation before saving the Task.
+- Added: Add/Edit Task: Add an 'If' checkbox to all Task actions to set a condition for that action.
+- Added: Add/Edit Task: Added 'Conitnue Task After Error' to those Tasks that can fail.
+- Added: Add/Edit Task: 'Perform Task' action now optionally allows for the selection of the Task name from a list of all Tasks.
 
 ### Changed
 
-- Changed: The 'Top' and 'Bottom' button now resets the display to column one regardless of the scroll position.
-- Changed: The 'Clear' view button now closes all open Map and Diagram views/tabs. 
+- Changed: The most recent Task action added is highlighted to distinquish it from all of the other actions.
+- Changed: The current Task action being added now prompts for the arguments immeidately.
 
 ### Fixed
 
-- Fixed: Program error 'tomli failure' in getputer when selecting 'Upgrade to New Release' button.
-- Fixed: Saved file in settings is not reloaded properly on startup.
-- Fixed: Single Project/Profile/Task saved setting is not properly restored on startup.
+- Fixed: Error displayed: 'Error: Trying to validate "{task_name}" Task but it was not found in {current file}! All Projects, Profiles and Tasks will be displayed.'
 
 ### Known Issue
 
@@ -28,6 +32,16 @@ lsof -i :8080
 For each PID listed in the output from the above terminal command, issue the following:
 kill -9 pid_number
 ...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
+
+## [12.0.0b1] 22-Jul-2026  MAJOR UPDATE
+
+- Added: You can now add and edit Profiles and Tasks from the GUI, with various save options (see caveats)
+- Added: Searching for a string will highlight the selected match in a different color from the other matching strings.
+- Changed: The 'Top' and 'Bottom' button now resets the display to column one regardless of the scroll position.
+- Changed: The 'Clear' view button now closes all open Map and Diagram views/tabs. 
+- Fixed: Program error 'tomli failure' in getputer when selecting 'Upgrade to New Release' button.
+- Fixed: Saved file in settings is not reloaded properly on startup.
+- Fixed: Single Project/Profile/Task saved setting is not properly restored on startup.
 
 ## Older History Logs
 

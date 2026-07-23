@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, context, run, ui
 
-from maptasker.src import profedit, taskedit
+from maptasker.src import profedit, projedit, taskedit
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
@@ -47,8 +47,11 @@ from maptasker.src.guiwins import (
     NiceGuiTextView,
     NiceGuiTreeView,
     build_add_profile_dialog,
+    build_add_project_dialog,
     build_add_task_dialog,
+    build_delete_project_dialog,
     build_edit_profile_dialog,
+    build_edit_project_dialog,
     build_edit_task_dialog,
     build_save_profile_to_android_dialog,
     build_save_to_android_dialog,
@@ -463,10 +466,18 @@ class MyGui:
         return tree_data
 
     # Validate name entered
-    def check_name(self: "MyGui", the_name: str, element_name: str) -> bool:
+    def check_name(self: "MyGui", the_name: str, element_name: str, *, quiet_if_missing: bool = False) -> bool:
         """
         Optimized name validity check.
         Uses truth tables for exclusivity and minimized translation overhead.
+
+        quiet_if_missing=True reports any failure as a small message-box toast
+        instead of the full-screen "Misc View" error -- for callers validating a
+        *restored* selection rather than one the user just picked (see
+        process_single_name_restore): a single Project/Profile/Task name saved
+        last session may legitimately no longer exist, most commonly a Task/
+        Profile added via the Add dialog's "Ok" (kept in memory only, never
+        written to the backup file) that a restart has since discarded.
         """
         # 1. Local caching for speed
         _translate = translate_string
@@ -550,11 +561,23 @@ class MyGui:
 
         # 5. Handle Errors
         if error_message:
-            self.textview = NiceGuiTextView(
-                self,
-                title="Misc View",
-                the_data=error_message,
-            )
+            if quiet_if_missing:
+                # A restored-from-settings name that's gone is routine, not an
+                # emergency: e.g. a Task added last session with "Ok" was only
+                # ever registered in memory, so this session's file doesn't
+                # have it. Toast and clear rather than throwing up the
+                # full-screen error view.
+                self.display_message_box(
+                    f'The saved {element_name} selection "{the_name}" was not found in the current file '
+                    f"(it may have been added last session but never saved). The selection has been cleared.",
+                    "Orange",
+                )
+            else:
+                self.textview = NiceGuiTextView(
+                    self,
+                    title="Misc View",
+                    the_data=error_message,
+                )
             self.single_project_name = self.single_profile_name = self.single_task_name = ""
             return False
 
@@ -902,7 +925,7 @@ class MyGui:
         # Validate the name by using the existing XML or reading it in.
         # We will prompt user for XML file if it hasn't already been loaded.
         name_entered = name_entered.strip()
-        if name_entered and self.check_name(name_entered, my_name):
+        if name_entered and self.check_name(name_entered, my_name, quiet_if_missing=True):
             self.single_project_name = self.single_profile_name = self.single_task_name = ""
 
             try:
@@ -1361,6 +1384,37 @@ def _finish_new_profile(
     profedit.register_new_profile(edited_profile, name_value)
     profedit.add_profile_to_project(edited_profile, project_name)
     refresh_tasker_object_pulldowns(gui)
+
+
+def _finish_new_project(gui: MyGui, edited_project: projedit.EditableProject) -> None:
+    """Registers a validated, applied new Project into the live in-memory
+    backup and refreshes the Project/Profile/Task pulldowns -- the Add
+    Project counterpart of _finish_new_profile. No Project-attachment step
+    (unlike _finish_new_profile's add_profile_to_project) -- a Project has no
+    parent of its own.
+    """
+    projedit.register_new_project(edited_project)
+    refresh_tasker_object_pulldowns(gui)
+
+
+def _reset_specific_name_selection(gui: MyGui) -> None:
+    """Clears the single Project/Profile/Task selection and resets all three
+    'Specific Name' pulldowns to "None" -- for when a Rename/Delete Project
+    changes or removes the currently-selected name out from under them.
+    Mirrors the identical guarded reset in process_single_name_restore's
+    invalid-name branch (userintr.py:538-545): the is_updating guard stops
+    setting .value here from re-entering single_project_name_event/
+    single_profile_name_event/single_task_name_event for a name that no
+    longer resolves to anything.
+    """
+    gui.single_project_name = gui.single_profile_name = gui.single_task_name = ""
+    try:
+        gui.is_updating = True
+        gui.specific_project_optionmenu.value = "None"
+        gui.specific_profile_optionmenu.value = "None"
+        gui.specific_task_optionmenu.value = "None"
+    finally:
+        gui.is_updating = False
 
 
 class MapTaskerEventHandlers:
@@ -2097,6 +2151,165 @@ class MapTaskerEventHandlers:
         android_dialog.close()
         parent_dialog.close()
 
+    def open_add_project_dialog_event(self) -> None:
+        """Opens the Add Project dialog for a brand-new Project. Unlike Add
+        Profile/Add Task, there's no "select a parent first" gate -- a
+        Project is the top of the hierarchy, so there's nothing to attach it to.
+        """
+        the_view = self.gui
+        # See open_add_task_dialog_event's identical self-healing load: the toolbar's
+        # "Current File" only means a filename is known, not that it's been parsed
+        # into PrimeItems.xml_root yet.
+        if PrimeItems.xml_root is None:
+            if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
+                PrimeItems.file_to_get = the_view.file
+            if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
+                ui.notify("No backup file is currently loaded. Use 'Get Local XML' first.", type="warning")
+                return
+
+        new_project = projedit.create_new_project("")
+        if isinstance(new_project, str):
+            ui.notify(new_project, type="warning")
+            return
+
+        build_add_project_dialog(self.gui, new_project)
+
+    def keep_new_project_event(
+        self,
+        edited_project: projedit.EditableProject,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Add Project dialog's Name field, registers
+        the new Project into the live in-memory backup, then closes the
+        dialog -- the Add Project dialog's only save action (no standalone
+        file or Save To Android surface, see projedit.py's module docstring).
+        Dialog stays open on any error so the user's in-progress work isn't lost.
+        """
+        name_value = field_refs["name"].value.strip()
+        if projedit.project_name_exists(name_value):
+            ui.notify(
+                f"A Project named '{name_value}' already exists in this backup. Choose a different name.",
+                type="negative",
+            )
+            return
+
+        errors = projedit.apply_edits_to_project(edited_project, name_value)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        _finish_new_project(self.gui, edited_project)
+
+        ui.notify("Project added.", type="positive")
+        dialog.close()
+
+    def open_edit_project_dialog_event(self) -> None:
+        """Opens the Edit Project dialog for the currently selected single Project name."""
+        the_view = self.gui
+        project_name = _confirmed_single_project_name(the_view)
+        if not project_name:
+            ui.notify("Select a single Project first (Project pulldown above).", type="warning")
+            return
+
+        edited_project = projedit.load_project_for_edit(project_name)
+        if edited_project is None:
+            ui.notify(f"Could not find Project '{project_name}'.", type="negative")
+            return
+
+        build_edit_project_dialog(the_view, edited_project)
+
+    def rename_project_event(
+        self,
+        edited_project: projedit.EditableProject,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Edit Project dialog's Name field, renames
+        the Project in the live in-memory backup (moving its all_projects
+        entry to the new name -- see projedit.rename_project_in_live_tree),
+        then closes the dialog. Dialog stays open on any error so the user's
+        in-progress edit isn't lost.
+        """
+        old_name = edited_project.project_name
+        name_value = field_refs["name"].value.strip()
+
+        errors = projedit.apply_edits_to_project(edited_project, name_value)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        projedit.rename_project_in_live_tree(old_name, edited_project)
+        refresh_tasker_object_pulldowns(self.gui)
+        _reset_specific_name_selection(self.gui)
+
+        ui.notify(f"Renamed to '{name_value}'.", type="positive")
+        dialog.close()
+
+    def delete_project_event(self, edited_project: projedit.EditableProject, dialog: ui.dialog) -> None:
+        """Opens the Delete Project confirmation dialog (Keep Contents / Delete
+        Contents), nested inside Edit Project -- see build_delete_project_dialog.
+        """
+        build_delete_project_dialog(self.gui, edited_project, dialog)
+
+    def keep_contents_delete_project_event(
+        self,
+        project_name: str,
+        confirm_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Deletes the Project, moving its Profiles/Tasks into 'Base'. Backs
+        the confirmation dialog's "Keep Contents" button.
+        """
+        self._finish_delete_project(project_name, keep_contents=True, confirm_dialog=confirm_dialog, parent_dialog=parent_dialog)
+
+    def delete_contents_delete_project_event(
+        self,
+        project_name: str,
+        confirm_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Deletes the Project and everything it owns. Backs the confirmation
+        dialog's "Delete Contents" button.
+        """
+        self._finish_delete_project(project_name, keep_contents=False, confirm_dialog=confirm_dialog, parent_dialog=parent_dialog)
+
+    def _finish_delete_project(
+        self,
+        project_name: str,
+        *,
+        keep_contents: bool,
+        confirm_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Shared tail of keep_contents_delete_project_event/
+        delete_contents_delete_project_event: applies projedit.delete_project,
+        refreshes the pulldowns, resets the (now possibly stale) single-name
+        selection, and closes both dialogs. Both dialogs stay open on error
+        (e.g. "Base" with keep_contents) so nothing is lost/hidden.
+        """
+        errors = projedit.delete_project(project_name, keep_contents=keep_contents)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        refresh_tasker_object_pulldowns(self.gui)
+        _reset_specific_name_selection(self.gui)
+
+        if keep_contents:
+            ui.notify(
+                f"Deleted '{project_name}'. Its Profiles and Tasks were moved to '{projedit.BASE_PROJECT_NAME}'.",
+                type="positive",
+            )
+        else:
+            ui.notify(f"Deleted '{project_name}' and everything it owned.", type="positive")
+
+        confirm_dialog.close()
+        parent_dialog.close()
+
     def open_edit_profile_dialog_event(self) -> None:
         """Opens the Edit Profile dialog for the currently selected single Profile name."""
         the_view = self.gui
@@ -2370,7 +2583,10 @@ class MapTaskerEventHandlers:
 
         _finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
-        ui.notify("Profile kept.", type="positive")
+        ui.notify(
+            "Profile kept for this session only -- use 'Save To Current File' to keep it permanently.",
+            type="positive",
+        )
         dialog.close()
 
     def save_new_profile_to_current_file_event(
@@ -2566,12 +2782,47 @@ class MapTaskerEventHandlers:
 
         build_add_task_dialog(self.gui, new_task, target_project_name=project_name)
 
-    def add_action_to_new_task_event(self, edited_task: taskedit.EditableTask, action_key: str) -> None:
-        """Synthesizes and appends a new action to the in-progress new Task."""
-        result = taskedit.add_action_to_task(edited_task, action_key)
+    def add_action_to_new_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        action_key: str,
+        position: int | None = None,
+    ) -> int | None:
+        """Synthesizes and inserts a new action into the in-progress new Task,
+        at `position` (before/after a specific already-added action) or at the
+        end if None -- see build_add_task_dialog's "Position" picker, same as
+        add_action_to_edit_task_event's.
+
+        Returns the new action's act_number (so the dialog can highlight it as
+        the most recently added), or None if it failed.
+        """
+        result = taskedit.add_action_to_task(edited_task, action_key, position)
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
+            return None
+        return result.act_number
+
+    def add_if_block_to_new_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        variant: str,
+        position: int | None = None,
+    ) -> int | None:
+        """Inserts an "If" action -- plus the "Else"/"End If" companions the
+        chosen variant calls for (see guiwins.build_if_variant_dialog) -- as
+        consecutive actions into the in-progress new Task, at `position` or at
+        the end if None.
+
+        Returns the new "If" action's act_number (so the dialog can highlight
+        it as the most recently added), or None if it failed.
+        """
+        result = taskedit.add_if_block_to_task(edited_task, variant, position)
+        if isinstance(result, list):
+            for error in result:
+                ui.notify(error, type="negative")
+            return None
+        return result.act_number
 
     def remove_action_from_new_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
         """Removes an action from the in-progress new Task and renumbers the rest."""
@@ -2586,16 +2837,42 @@ class MapTaskerEventHandlers:
         edited_task: taskedit.EditableTask,
         action_key: str,
         position: int | None,
-    ) -> None:
+    ) -> int | None:
         """Synthesizes and inserts a new action into a Task being edited, at
         `position` (before/after a specific existing action) or at the end if
         None -- see taskedit.add_action_to_task and build_edit_task_dialog's
         "Add an action" Position picker.
+
+        Returns the new action's act_number (so the dialog can highlight it as
+        the most recently added), or None if it failed.
         """
         result = taskedit.add_action_to_task(edited_task, action_key, position)
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
+            return None
+        return result.act_number
+
+    def add_if_block_to_edit_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        variant: str,
+        position: int | None,
+    ) -> int | None:
+        """Inserts an "If" action -- plus the "Else"/"End If" companions the
+        chosen variant calls for (see guiwins.build_if_variant_dialog) -- as
+        consecutive actions into a Task being edited, at `position` or at the
+        end if None (same semantics as add_action_to_edit_task_event's).
+
+        Returns the new "If" action's act_number (so the dialog can highlight
+        it as the most recently added), or None if it failed.
+        """
+        result = taskedit.add_if_block_to_task(edited_task, variant, position)
+        if isinstance(result, list):
+            for error in result:
+                ui.notify(error, type="negative")
+            return None
+        return result.act_number
 
     def copy_action_in_edit_task_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
         """Duplicates an action (inserted right after the original) in a Task being edited."""
@@ -2618,6 +2895,52 @@ class MapTaskerEventHandlers:
     ) -> None:
         """Enables or disables an action in a Task being edited."""
         taskedit.set_action_enabled(edited_task, act_number, enabled)
+
+    def set_action_continue_after_error_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        act_number: int,
+        continue_after_error: bool,
+    ) -> None:
+        """Sets or clears an action's <se>false</se> ('Continue Task After
+        Error') -- backs the checkbox of the same name (see
+        guiwins._render_continue_after_error_checkbox).
+        """
+        taskedit.set_action_continue_after_error(edited_task, act_number, continue_after_error)
+
+    def set_action_condition_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        act_number: int,
+        target_input: ui.input,
+        operator_select: ui.select,
+        value_input: ui.input,
+        condition_dialog: ui.dialog,
+        checkbox: ui.checkbox,
+    ) -> None:
+        """Validates and writes a per-action If condition from the prompt's
+        field values (see guiwins.build_action_condition_dialog), updates the
+        "If" checkbox's text to show it, then closes the prompt. The prompt
+        stays open on any validation error so the user can correct the fields.
+        """
+        target = target_input.value or ""
+        operator_label = operator_select.value or ""
+        value = value_input.value or ""
+        errors = taskedit.set_action_condition(edited_task, act_number, target, operator_label, value)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        checkbox.set_text(f"If: {target.strip()} {operator_label} {value.strip()}".rstrip())
+        ui.notify("If condition set.", type="positive")
+        condition_dialog.close()
+
+    def remove_action_condition_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
+        """Removes an action's per-action If condition -- backs unchecking the
+        "If" checkbox (idempotent; a no-op if the action has none).
+        """
+        taskedit.remove_action_condition(edited_task, act_number)
 
     def save_new_task_event(
         self,
@@ -2674,7 +2997,10 @@ class MapTaskerEventHandlers:
 
         _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
-        ui.notify("Task kept.", type="positive")
+        ui.notify(
+            "Task kept for this session only -- use 'Save To Current File' to keep it permanently.",
+            type="positive",
+        )
         dialog.close()
 
     def save_new_task_to_current_file_event(
