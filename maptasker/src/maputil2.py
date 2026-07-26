@@ -10,6 +10,7 @@ import copy
 import os
 import re
 import sys
+import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -123,7 +124,7 @@ def http_request(
 
     # Make the request.
     error_message = ""
-    response = ""
+    response = None
 
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
@@ -142,18 +143,105 @@ def http_request(
         logger.debug(error_message)
         return 8, error_message
 
+    # Test "response is not None", never "if response": requests.Response.__bool__ returns
+    # .ok, so a Response carrying any status >= 400 is falsy.  Truth-testing it would make
+    # the 404 branch below unreachable and would send every error status to the generic
+    # message at the bottom.
+    if response is None:
+        return 8, f"Request failed for url: {url} ...no response from the Android device."
+
     # Check the response status code.  200 is good!
-    if response and response.status_code == 200:
+    if response.status_code == 200:
         # Return the contents of the file.
         return 0, response.content
 
-    if response and response.status_code == 404:
+    if response.status_code == 404:
         return 6, "File " + file_location + " not found."
 
     return (
         8,
         f"Request failed for url: {url} ...with status code {response.status_code}",
     )
+
+
+# Tasker's /api/auth does not answer deterministically: on a device that is set up
+# correctly and reachable, it still returns 403 {"authorized": false} for roughly half
+# of all requests, then authorizes the very next identical request.  Measured against a
+# real device, a single retry was always enough, so 3 attempts leaves margin without
+# making a genuinely-unreachable device wait long.  Without this, every save-to-Android
+# was a coin flip that failed before the import was ever attempted -- which is why the
+# import-level fallbacks (taskedit.save_task_to_android_directory and friends) could
+# never help: there was no request to retry, only a key that was never obtained.
+AUTH_KEY_MAX_ATTEMPTS = 3
+AUTH_KEY_RETRY_SECONDS = 0.5
+
+
+def _request_android_auth_key(url: str) -> tuple[int, str, bool]:
+    """Make a single GET /api/auth attempt.
+
+    Returns (return_code, key_or_error_message, retryable), where 'retryable' marks the
+    failures that a further identical attempt could plausibly resolve -- see the
+    AUTH_KEY_MAX_ATTEMPTS comment above.  A malformed URL or a well-formed response that
+    simply has no key in it will never change, so those are reported immediately.
+    """
+    error_message = ""
+    retryable = True
+    response = None
+
+    with suppress_stdout():
+        try:
+            response = requests.get(url, timeout=8)
+        except InvalidSchema:
+            error_message = f"Request failed for url: {url} .  Invalid url!"
+            retryable = False  # a bad URL is a bad URL, no matter how often we ask
+        except ConnectionError:
+            error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
+        except Timeout:
+            error_message = f"Request failed for url: {url} .  Timeout error."
+        except Exception as e:  # noqa: BLE001
+            error_message = f"Request failed for url: {url}, error: {e} ."
+
+    if error_message:
+        logger.debug(error_message)
+        return 8, error_message, retryable
+
+    # "response is not None", never "if response" -- see the note in http_request(): a
+    # Response with any status >= 400 is falsy, so truth-testing it reported every real
+    # HTTP error as the useless "status code no response".
+    if response is None:
+        return 8, f"Request failed for url: {url} ...no response from the Android device.", True
+
+    # Parse the body before checking the status.  Tasker answers an unauthorized device
+    # with 403 *and* a perfectly clear {"authorized": false} payload, so reading the body
+    # first lets us report why the connection was refused instead of a bare status code.
+    try:
+        auth_object = response.json()
+    except ValueError:
+        auth_object = None
+
+    # "is False", not "not ...": only an explicit {"authorized": false} means the device
+    # refused us.  A body that merely lacks the field (e.g. the "{}" of a 500) must fall
+    # through to the status check below rather than be misreported as a refusal.
+    if auth_object is not None and auth_object.get("authorized") is False:
+        return (
+            8,
+            (
+                "Android device did not authorize this connection.  Approve MapTasker's "
+                "connection request on the device, and confirm Tasker's HTTP server allows external access."
+            ),
+            True,  # the intermittent case this whole retry loop exists for
+        )
+
+    if response.status_code != 200:
+        return 8, f"Request failed for url: {url} ...with status code {response.status_code}", True
+
+    if auth_object is None:
+        return 8, f"Auth response from {url} was not valid JSON: {response.content!r}", False
+
+    key = auth_object.get("key", "")
+    if not key:
+        return 8, "Auth response did not include an API key.", False
+    return 0, key, False
 
 
 # Get an API key from the Tasker HTTP API (GET /api/auth), needed to authenticate
@@ -164,6 +252,10 @@ def get_android_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
     authenticate subsequent requests. Tasker responds with a JSON auth object:
     {"key": "...", "authorized": true|false}. The key is sent back as a raw
     'Authorization' header value (no "Bearer " prefix) on later requests.
+
+    Retries up to AUTH_KEY_MAX_ATTEMPTS times, because Tasker refuses authorization
+    intermittently even when everything is configured correctly -- see that constant's
+    comment.  The last failure's message is what the caller gets.
         :param ip_address: IP address of the Android device
         :param ip_port: port the Tasker HTTP API is listening on
         :return: return code (0 on success), and either the API key or an error message
@@ -171,41 +263,20 @@ def get_android_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
     http = "http://" if "http://" not in ip_address else ""
     url = f"{http}{ip_address}:{ip_port}/api/auth"
 
-    error_message = ""
-    response = ""
+    return_code, result, retryable = 8, "", False
+    for attempt in range(1, AUTH_KEY_MAX_ATTEMPTS + 1):
+        return_code, result, retryable = _request_android_auth_key(url)
+        if return_code == 0:
+            if attempt > 1:
+                logger.info(f"Android auth key obtained on attempt {attempt} of {AUTH_KEY_MAX_ATTEMPTS}.")
+            return return_code, result
+        if not retryable:
+            break
+        if attempt < AUTH_KEY_MAX_ATTEMPTS:
+            logger.debug(f"Android auth attempt {attempt} of {AUTH_KEY_MAX_ATTEMPTS} failed: {result}  Retrying.")
+            time.sleep(AUTH_KEY_RETRY_SECONDS)
 
-    with suppress_stdout():
-        try:
-            response = requests.get(url, timeout=8)
-        except InvalidSchema:
-            error_message = f"Request failed for url: {url} .  Invalid url!"
-        except ConnectionError:
-            error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
-        except Timeout:
-            error_message = f"Request failed for url: {url} .  Timeout error."
-        except Exception as e:  # noqa: BLE001
-            error_message = f"Request failed for url: {url}, error: {e} ."
-
-    if error_message:
-        logger.debug(error_message)
-        return 8, error_message
-
-    if not response or response.status_code != 200:
-        status = response.status_code if response else "no response"
-        return 8, f"Request failed for url: {url} ...with status code {status}"
-
-    try:
-        auth_object = response.json()
-    except ValueError:
-        return 8, f"Auth response from {url} was not valid JSON: {response.content!r}"
-
-    if not auth_object.get("authorized"):
-        return 8, "Android device did not authorize this connection."
-
-    key = auth_object.get("key", "")
-    if not key:
-        return 8, "Auth response did not include an API key."
-    return 0, key
+    return return_code, result
 
 
 # Issue HTTP Request to post/save something to the Android device.
@@ -239,11 +310,11 @@ def http_post_request(
 
     # Make the request.
     error_message = ""
-    response = ""
+    response = None
 
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
-            response = requests.post(url, data=file_content, headers=headers, timeout=10)
+            response = requests.post(url, data=file_content, headers=headers, timeout=15)
         except InvalidSchema:
             error_message = f"Request failed for url: {url} .  Invalid url!"
         except ConnectionError:
@@ -258,17 +329,25 @@ def http_post_request(
         logger.debug(error_message)
         return 8, error_message
 
+    # Test "response is not None", never "if response": requests.Response.__bool__ returns
+    # .ok, so a Response carrying any status >= 400 is falsy.  Truth-testing it made both
+    # branches below unreachable -- 401 never produced return code 9, which silently
+    # disabled the retry-with-a-fresh-key logic in taskedit.save_task_to_android and
+    # profedit.save_profile_to_android that depends on seeing that 9.
+    if response is None:
+        return 8, f"Request failed for url: {url} ...no response from the Android device."
+
     # Check the response status code.  200 is good!
-    if response and response.status_code == 200:
+    if response.status_code == 200:
         return 0, response.content
 
-    if response and response.status_code == 401:
+    if response.status_code == 401:
         # Distinct code (not the generic 8) so callers holding a cached auth_key
         # can tell "key was rejected" apart from other failures and retry with a
         # freshly-fetched key (see taskedit.save_task_to_android).
         return 9, "Android device rejected the API key (401 Unauthorized)."
 
-    if response and response.status_code == 404:
+    if response.status_code == 404:
         return 6, "Directory " + file_location + " not found."
 
     return (
@@ -298,9 +377,17 @@ def setup_logging() -> None:
     """
     # Add the date and time to the log filename.
     file_name = f"maptasker_{NOW_TIME.month}-{NOW_TIME.day}-{NOW_TIME.year}_{NOW_TIME.hour}-{NOW_TIME.minute}-{NOW_TIME.second}.log"
+    # filemode MUST be "a", not "w".  ui.run() (rungui.process_gui) builds uvicorn's Config, whose
+    # __init__ calls logging.config.dictConfig().  That starts with _clearExistingHandlers(), which
+    # closes every handler already attached -- including the root FileHandler installed below.  A
+    # closed FileHandler opened with mode "w" is never reopened: FileHandler.emit() deliberately
+    # drops the record rather than truncate the file (CPython issue #42378), so every MapTasker log
+    # entry after the GUI starts would silently vanish.  Mode "a" lets the handler reopen itself on
+    # the next emit.  The filename above is unique per run (down to the second), so appending never
+    # appends to a previous run's log.
     logging.basicConfig(
         filename=file_name,
-        filemode="w",
+        filemode="a",
         format="%(asctime)s,%(msecs)d %(levelname)s %(name)s %(funcName)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         level=logging.DEBUG,
@@ -359,7 +446,7 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     userintr.py's save_*_to_current_file_event handlers, which then switch the
     app over to the new copy -- see userintr._reload_saved_copy_and_refresh --
     so it becomes "the current file" for any further editing/saving), as
-    opposed to their "Save"/"Save Single Task/Profile" button, which exports
+    opposed to their "Save"/"Export Task/Profile" button, which exports
     just the one Task/Profile as a standalone file instead.
 
     The original file is deliberately never opened for writing -- only read,

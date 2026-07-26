@@ -6,7 +6,6 @@ import asyncio
 import json
 import os
 import re
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from nicegui import app, context, ui
@@ -19,6 +18,8 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_FILE, DIAGRAM_PROFILES_PER_LINE, logger
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from maptasker.src.userintr import MyGui
 
 
@@ -517,7 +518,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                     dialog,
                 ),
             ).props("outline")
-            ui.button(
+            task_to_android = ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
                     edited_task,
@@ -525,16 +526,23 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                     dialog,
                 ),
             ).props("outline")
+            with task_to_android:
+                ui.tooltip(
+                    "This will save the Task directly into the active Tasker session on your Android device.\n\n"
+                    "Tasker version 6.2 or greater is required for this to work."
+                    "The Android device must be on the same network, and the IP Address and Port\n"
+                    "must match the Android device's Tasker server settings.\n\n"
+                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task "
+                    "will be loaded directly into the active Tasker session.\n\n"
+                    "You must exit and restart Tasker to see the new Task in the Tasker UI.",
+                ).style("white-space: pre-line")
             task_save = ui.button(
-                "Save Single Task",
+                "Export Task",
                 on_click=lambda: self.event_handlers.save_edited_task_event(edited_task, field_refs, dialog),
             ).classes("bg-blue-600")
             with task_save:
                 ui.tooltip(
-                    "This will save the Task directly to your current drive.\n\n"
-                    "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task."
-                    "and its own actions will determine where it is saved on the device.",
+                    "This will save the Task directly to your current drive.\n\n",
                 ).style("white-space: pre-line")
 
     dialog.open()
@@ -1052,7 +1060,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
                     dialog,
                 ),
             ).props("outline")
-            ui.button(
+            profile_to_android = ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
                     edited_profile,
@@ -1060,8 +1068,18 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
                     dialog,
                 ),
             ).props("outline")
+            with profile_to_android:
+                ui.tooltip(
+                    "This will save the Profile directly into the active Tasker session on your Android device.\n\n"
+                    "Tasker version 6.2 or greater is required for this to work."
+                    "The Android device must be on the same network, and the IP Address and Port\n"
+                    "must match the Android device's Tasker server settings.\n\n"
+                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the "
+                    "Profile will be loaded directly into the active Tasker session.\n\n"
+                    "You must exit and restart Tasker to see the new Profile in the Tasker UI.",
+                ).style("white-space: pre-line")
             ui.button(
-                "Save Single Profile",
+                "Export Profile",
                 on_click=lambda: self.event_handlers.save_edited_profile_event(edited_profile, field_refs, dialog),
             ).classes("bg-blue-600")
 
@@ -1136,9 +1154,10 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
 
 
 def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
-    """Builds and opens the Edit Project dialog: Rename the Project, or delete
-    it -- with a choice of what happens to the Profiles/Tasks it owns, see
-    build_delete_project_dialog.
+    """Builds and opens the Edit Project dialog: Rename the Project, delete it
+    -- with a choice of what happens to the Profiles/Tasks it owns, see
+    build_delete_project_dialog -- or save it, and everything it owns, as one
+    standalone .prj.xml file (see projedit.write_standalone_project_xml).
     """
     project_name = edited_project.project_name
     field_refs: dict = {}
@@ -1147,6 +1166,11 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
         ui.label(f"Edit Project: {project_name}").classes("text-xl font-bold text-blue-600")
 
         field_refs["name"] = ui.input("Project Name", value=project_name).classes("w-full")
+
+        field_refs["project_save_path"] = ui.input(
+            "Save as",
+            value=projedit.default_project_save_path(project_name),
+        ).classes("w-full mt-2")
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button("Cancel", on_click=dialog.close).props("outline")
@@ -1158,6 +1182,14 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
                 "Rename",
                 on_click=lambda: self.event_handlers.rename_project_event(edited_project, field_refs, dialog),
             ).classes("bg-blue-600")
+            save_single_project = ui.button(
+                "Export Project",
+                on_click=lambda: self.event_handlers.save_project_event(edited_project, field_refs, dialog),
+            ).classes("bg-blue-600")
+            with save_single_project:
+                ui.tooltip(
+                    "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file.",
+                )
 
     dialog.open()
 
@@ -1268,7 +1300,7 @@ def build_add_profile_dialog(
                     dialog,
                 ),
             ).props("outline")
-            ui.button(
+            profile_to_android = ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
                     edited_profile,
@@ -1276,8 +1308,18 @@ def build_add_profile_dialog(
                     dialog,
                 ),
             ).props("outline")
+            with profile_to_android:
+                ui.tooltip(
+                    "This will save the Profile directly into the active Tasker session on your Android device.\n\n"
+                    "Tasker version 6.2 or greater is required for this to work."
+                    "The Android device must be on the same network, and the IP Address and Port\n"
+                    "must match the Android device's Tasker server settings.\n\n"
+                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the "
+                    "Profile will be loaded directly into the active Tasker session.\n\n"
+                    "You must exit and restart Tasker to see the new Profile in the Tasker UI.",
+                ).style("white-space: pre-line")
             ui.button(
-                "Save Single Profile",
+                "Export Profile",
                 on_click=lambda: self.event_handlers.save_new_profile_event(edited_profile, field_refs, dialog),
             ).classes("bg-blue-600")
 
@@ -1512,7 +1554,7 @@ def build_add_task_dialog(
                 ),
             ).props("outline")
             ui.button(
-                "Save Single Task",
+                "Export Task",
                 on_click=lambda: self.event_handlers.save_new_task_event(
                     edited_task,
                     field_refs,

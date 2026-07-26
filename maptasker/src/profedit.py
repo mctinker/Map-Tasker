@@ -39,6 +39,8 @@ import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/s
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from maptasker.src.maputil2 import http_post_request
+
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
@@ -574,14 +576,18 @@ def apply_edits_to_profile(
     pending: dict[int, tuple[str, object]] = {}
     for condition in edited_profile.conditions:
         if condition.cond_type == "Time":
-            values = {key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _TIME_FIELDS}
+            values = {
+                key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _TIME_FIELDS
+            }
             field_errors = _validate_time_field_values(values)
             errors.extend(field_errors)
             if not field_errors:
                 pending[condition.cond_index] = ("Time", values)
 
         elif condition.cond_type == "Loc":
-            values = {key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _LOC_FIELDS}
+            values = {
+                key: condition_values.get(condition_field_key(condition.cond_index, key), "") for key in _LOC_FIELDS
+            }
             field_errors = _validate_loc_field_values(values)
             errors.extend(field_errors)
             if not field_errors:
@@ -591,17 +597,20 @@ def apply_edits_to_profile(
             selected_weekdays = [
                 day
                 for day in range(1, 8)
-                if condition_values.get(condition_field_key(condition.cond_index, f"wday{day}")) in ("1", "true", "True")
+                if condition_values.get(condition_field_key(condition.cond_index, f"wday{day}"))
+                in ("1", "true", "True")
             ]
             selected_months = [
                 month
                 for month in range(12)
-                if condition_values.get(condition_field_key(condition.cond_index, f"mnth{month}")) in ("1", "true", "True")
+                if condition_values.get(condition_field_key(condition.cond_index, f"mnth{month}"))
+                in ("1", "true", "True")
             ]
             selected_month_days = [
                 day
                 for day in (*range(1, 32), DAY_OF_MONTH_LAST_DAY)
-                if condition_values.get(condition_field_key(condition.cond_index, f"mday{day}")) in ("1", "true", "True")
+                if condition_values.get(condition_field_key(condition.cond_index, f"mday{day}"))
+                in ("1", "true", "True")
             ]
             pending[condition.cond_index] = ("Day", (selected_weekdays, selected_months, selected_month_days))
 
@@ -703,7 +712,7 @@ def _int_or_zero(text: str | None) -> int:
 
 def _format_12_hour(hour_24: int, minute: int) -> str:
     """Formats a 24-hour hour/minute pair as a 12-hour "hh:mm AM/PM" string."""
-    period = "AM" if hour_24 < 12 else "PM"  # noqa: PLR2004
+    period = "AM" if hour_24 < 12 else "PM"
     hour_12 = hour_24 % 12 or 12
     return f"{hour_12:02d}:{minute:02d} {period}"
 
@@ -919,7 +928,11 @@ def get_app_entries(condition: EditableCondition) -> list[dict[str, str]]:
 
 
 def _validate_app_entries(entries: list[dict[str, str]]) -> list[str]:
-    return [f"App entry {i + 1} needs a Package name." for i, entry in enumerate(entries) if not entry.get("pkg", "").strip()]
+    return [
+        f"App entry {i + 1} needs a Package name."
+        for i, entry in enumerate(entries)
+        if not entry.get("pkg", "").strip()
+    ]
 
 
 def _write_app_entries(condition: EditableCondition, entries: list[dict[str, str]]) -> None:
@@ -1060,7 +1073,7 @@ def save_profile_to_android(
         auth_key,
     )
 
-    if return_code == 9 and had_cached_key:  # noqa: PLR2004
+    if return_code == 9 and had_cached_key:
         # Cached key was rejected -- get a fresh one (device prompts once more) and retry.
         return_code, auth_key = get_android_auth_key(ip_address, ip_port)
         if return_code != 0:
@@ -1118,38 +1131,43 @@ def save_profile_to_android_directory(
     ip_address: str,
     ip_port: str,
     profile_name: str,
+    auth_key: str = "",
 ) -> tuple[int, str]:
     """Fallback for save_profile_to_android when verify_profile_on_android can't
-    confirm the import landed: mirrors taskedit.save_task_to_android_directory --
-    same custom GET-action approach on the 'MapTasker List' Tasker profile, writing
-    under /Tasker/profiles instead of /Tasker/tasks.
+    confirm the import landed in Tasker: retries the same POST /api/import once
+    more, rather than falling back to a different endpoint. api/import is the only
+    documented way to actually get a Profile into Tasker over HTTP -- /api/file
+    only supports GET/DELETE (no way to write a file with it), and even if it
+    did, Tasker doesn't watch that directory for files to auto-import -- so a
+    second attempt at the real thing is the only fallback that can plausibly
+    help, e.g. if the first POST/GET-verify pair hit a transient network blip.
+    Mirrors taskedit.save_task_to_android_directory.
 
-    NOTE: requires a matching 'saveprofile' action to be added to the 'MapTasker
-    List' Tasker profile on the device -- see taskedit.save_task_to_android_directory's
-    'savetask' note; neither exists there yet.
+    The name is now a misnomer (nothing is written to a directory), kept only
+    because userintr's Save-Profile-to-Android handler calls it by this name.
 
-    Returns (0, file_location) on success, or (return_code, error_message).
+    Returns (0, profile_name) on success, or (return_code, error_message).
     """
-    # Lazy imports to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from base64 import b64encode  # noqa: PLC0415
-    from urllib.parse import quote  # noqa: PLC0415
-
-    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
+    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from maptasker.src.maputil2 import http_post_request  # noqa: PLC0415
 
     xml_text = render_standalone_profile_xml(edited_profile)
-    file_location = f"/Tasker/profiles/{sanitize_filename(profile_name)}.prf.xml"
-    encoded_content = quote(b64encode(xml_text.encode("utf-8")).decode("ascii"))
 
-    return_code, response = http_request(
+    # file_location is "" so this reproduces save_profile_to_android's request byte for
+    # byte -- a retry that posted to a different URL would not be testing the same thing.
+    return_code, response = http_post_request(
         ip_address.strip(),
         ip_port.strip(),
-        file_location,
-        "saveprofile",
-        f"?content={encoded_content}",
+        "",
+        "api/import",
+        "",
+        xml_text.encode("utf-8"),
+        auth_key,
     )
     if return_code != 0:
         return return_code, str(response)
-    return 0, file_location
+
+    return 0, profile_name
 
 
 def register_new_profile(edited_profile: EditableProfile, profile_name: str) -> None:

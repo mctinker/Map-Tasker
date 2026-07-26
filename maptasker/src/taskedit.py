@@ -1297,7 +1297,7 @@ def apply_edits_to_task(
         errors.append("Priority must be a non-negative whole number.")
 
     for action in edited_task.actions:
-        key_for_arg = lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id)  # noqa: E731
+        key_for_arg = lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id)
         action_errors = validate_arg_values(action.args, key_for_arg, arg_values)
         if action.code == IF_ACTION_CODE:
             action_errors.extend(validate_if_condition_values(action, key_for_arg, arg_values))
@@ -1448,6 +1448,8 @@ def save_task_to_android(
             xml_text.encode("utf-8"),
             auth_key,
         )
+        if return_code != 0:
+            return return_code, str(response), ""
 
     if return_code != 0:
         return return_code, str(response), ""
@@ -1483,6 +1485,8 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
 
     try:
         tasks = json.loads(response)
+        if not tasks:
+            return False
     except (ValueError, TypeError):
         return False
 
@@ -1494,45 +1498,42 @@ def save_task_to_android_directory(
     ip_address: str,
     ip_port: str,
     task_name: str,
+    auth_key: str = "",
 ) -> tuple[int, str]:
     """Fallback for save_task_to_android when verify_task_on_android can't confirm
-    the import landed in Tasker: asks the custom 'MapTasker List' Tasker profile
-    already running on the device -- the same one guiutils.ping_android_device and
-    getbakup.get_backup_file rely on for the 'maplist'/'file' actions -- to write
-    the Task's standalone XML onto the device under /Tasker/tasks, via a new
-    'savetask' action.
+    the import landed in Tasker: retries the same POST /api/import once more,
+    rather than falling back to a different endpoint. api/import is the only
+    documented way to actually get a Task into Tasker over HTTP -- /api/file
+    only supports GET/DELETE (no way to write a file with it), and even if it
+    did, Tasker doesn't watch that directory for files to auto-import -- so a
+    second attempt at the real thing is the only fallback that can plausibly
+    help, e.g. if the first POST/GET-verify pair hit a transient network blip.
 
-    Unlike the official api/* HTTP API, this custom profile's actions are plain
-    GETs with no Authorization header (see maputil2.http_request), and a GET has
-    no body -- so the XML is passed base64-encoded in the query string for the
-    profile's action to decode and write out.
-
-    NOTE: requires a matching 'savetask' action to be added to the 'MapTasker
-    List' Tasker profile on the device -- see maplist/file for the existing
-    pattern to follow. It does not exist yet.
-
-    Returns (0, file_location) on success, or (return_code, error_message).
+    Returns (0, task_name) on success, or (return_code, error_message) on failure.
     """
-    # Lazy imports to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from base64 import b64encode  # noqa: PLC0415
-    from urllib.parse import quote  # noqa: PLC0415
-
-    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
+    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from maptasker.src.maputil2 import http_post_request  # noqa: PLC0415
 
     xml_text = render_standalone_task_xml(edited_task)
-    file_location = f"/Tasker/tasks/{sanitize_filename(task_name)}.tsk.xml"
-    encoded_content = quote(b64encode(xml_text.encode("utf-8")).decode("ascii"))
 
-    return_code, response = http_request(
+    # file_location is "" so this reproduces save_task_to_android's request byte for byte
+    # -- a retry that posted to a different URL would not be testing the same thing.
+    # It used to pass "/Tasker/tasks/<name>.tsk.xml" here, left over from when this
+    # function tried to write a file; http_post_request appends that to the endpoint, so
+    # the "retry" actually POSTed to /api/import/Tasker/tasks/<name>.tsk.xml, which Tasker
+    # has no route for -- meaning this fallback could never have succeeded.
+    return_code, response = http_post_request(
         ip_address.strip(),
         ip_port.strip(),
-        file_location,
-        "savetask",
-        f"?content={encoded_content}",
+        "",
+        "api/import",
+        "",
+        xml_text.encode("utf-8"),
+        auth_key,
     )
     if return_code != 0:
         return return_code, str(response)
-    return 0, file_location
+    return 0, task_name
 
 
 def register_new_task(edited_task: EditableTask, task_name: str) -> None:

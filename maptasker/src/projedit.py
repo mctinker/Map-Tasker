@@ -2,10 +2,8 @@
 
 Unlike a Profile or Task, a Project has no content of its own to author --
 just a name and the Profiles/Tasks attached to it via <pids>/<tids> (see
-profedit.add_profile_to_project/add_task_to_project). So there's no
-standalone-file-export or Save-To-Android surface here, unlike
-profedit.py/taskedit.py -- Add/Rename apply straight to the live in-memory
-backup, same as every other in-app edit.
+profedit.add_profile_to_project/add_task_to_project) -- Add/Rename apply
+straight to the live in-memory backup, same as every other in-app edit.
 
 Delete needs its own care: a Project's <pids>/<tids> is the only place that
 lists which Profiles/Tasks belong to it (getids.get_ids, and every view --
@@ -17,23 +15,31 @@ move_project_contents_to_base) -- either way, nothing is left orphaned.
 Never touches PrimeItems.xml_tree -- edits happen on a deep copy (Add/Rename)
 or directly on the live tasker_root_elements tables (Delete, same as every
 other table mutation in profedit.py/taskedit.py), mirroring their design.
+
+render_standalone_project_xml/write_standalone_project_xml don't add any new
+editable field -- they just export a Project's *existing* <pids>/<tids>
+contents (every Profile/Task it owns) as one standalone file, the way
+Tasker's own Project export does -- see build_edit_project_dialog's "Save
+Single Project" button.
 """
 
 from __future__ import annotations
 
+import copy
+import os
 import re
+import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-import copy
-
 from maptasker.src.primitem import PrimeItems
 
 BASE_PROJECT_NAME = "Base"
 _PROJECT_SR_RE = re.compile(r"^proj(\d+)$")
+_XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
 
 
 @dataclass
@@ -189,6 +195,76 @@ def count_project_contents(project_name: str) -> tuple[int, int]:
     if live_element is None:
         return 0, 0
     return len(_project_child_ids(live_element, "pids")), len(_project_child_ids(live_element, "tids"))
+
+
+def sanitize_filename(name: str) -> str:
+    """Strip characters illegal in filenames from a Project name (minimal, not a full slugify).
+
+    Mirrors profedit.sanitize_filename/taskedit.sanitize_filename exactly -- kept as its own
+    copy rather than a shared import since each already stands alone with its own
+    type-appropriate fallback ("project" here vs. "profile"/"task").
+    """
+    return re.sub(r'[\\/:*?"<>|]', "_", name).strip() or "project"
+
+
+def default_project_save_path(project_name: str) -> str:
+    """Default standalone-export path: {current runtime directory}/{sanitized name}.prj.xml."""
+    return os.path.join(os.getcwd(), f"{sanitize_filename(project_name)}.prj.xml")
+
+
+def render_standalone_project_xml(project_name: str) -> str:
+    """Render a Project as a standalone TaskerData/Project[/Profile...][/Task...]
+    XML string -- the Project element followed by every Profile and Task it
+    owns (per its live <pids>/<tids>), matching the shape Tasker's own Project
+    export produces. Mirrors profedit.render_standalone_profile_xml's
+    TaskerData-wrapping approach, just scoped to a whole Project's contents
+    instead of one Profile's linked Entry/Exit Task(s).
+
+    Raises ValueError if project_name isn't a currently-loaded Project.
+    """
+    project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+    if project_entry is None:
+        msg = f"Project '{project_name}' no longer exists in this backup."
+        raise ValueError(msg)
+
+    project_element = project_entry["xml"]
+    tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
+    project_copy = copy.deepcopy(project_element)
+    # Match the parsed tree's actual Element class (see profedit.render_standalone_profile_xml's
+    # identical note) -- defusedxml's hardened parser isn't necessarily xml.etree's own
+    # C-accelerated Element, and ET.Element()/.append() enforce an exact type match.
+    element_cls = type(project_copy)
+    root = element_cls("TaskerData", {"sr": "", "dvi": "1", "tv": tv})
+
+    # Element order matters here -- matched against this repo's own sample .prj.xml files
+    # (Tasker's actual single-Project export format): every Profile first, then the Project
+    # element itself, then every Task -- not Project-first, which is what you'd expect from
+    # <pids>/<tids> being *inside* <Project>.
+    all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
+    for profile_id in _project_child_ids(project_element, "pids"):
+        profile_entry = all_profiles.get(profile_id)
+        if profile_entry is not None:
+            root.append(copy.deepcopy(profile_entry["xml"]))
+
+    root.append(project_copy)
+
+    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    for task_id in _project_child_ids(project_element, "tids"):
+        task_entry = all_tasks.get(task_id)
+        if task_entry is not None:
+            root.append(copy.deepcopy(task_entry["xml"]))
+
+    ETW.indent(root, space="\t")
+    return _XML_DECLARATION + ETW.tostring(root, encoding="unicode") + "\n"
+
+
+def write_standalone_project_xml(project_name: str, output_path: str) -> None:
+    """Write a Project (plus every Profile/Task it owns) as a standalone XML
+    file. Raises OSError on failure, ValueError if the Project no longer exists.
+    """
+    rendered = render_standalone_project_xml(project_name)
+    with open(output_path, "w", encoding="utf-8") as out_file:
+        out_file.write(rendered)
 
 
 def delete_profiles_and_tasks_of_project(project_name: str) -> None:

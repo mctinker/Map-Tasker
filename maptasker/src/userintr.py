@@ -259,8 +259,6 @@ class MyGui:
         # Translate the color to a Tailwind/NiceGUI equivalent if needed
         # We can push it to the UI log, or show a toast notification
         ui.notify(message, type="positive" if color.lower() == "green" else "negative")
-        if hasattr(self, "log_output"):
-            self.log_output.push(message)
 
     # Load the XML if not already loaded.
     def load_xml(self) -> bool:
@@ -2129,8 +2127,9 @@ class MapTaskerEventHandlers:
 
         # api/import's 200 response doesn't guarantee Tasker actually committed the
         # Task, so confirm via GET /api/tasks before declaring success. If that
-        # check fails, fall back to writing the Task's XML directly onto the
-        # device under /Tasker/tasks instead of leaving the user with nothing.
+        # check fails, retry the same api/import once more (see
+        # taskedit.save_task_to_android_directory's docstring for why a retry,
+        # not a different endpoint, is the only fallback that can plausibly help).
         if taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key):
             ui.notify("Task Uploaded to Tasker", type="positive")
         else:
@@ -2139,12 +2138,13 @@ class MapTaskerEventHandlers:
                 ip_address,
                 ip_port,
                 task_name,
+                auth_key,
             )
             if fallback_code == 0:
-                ui.notify("Unable to upload Task to Tasker.  Saved to /Tasker/tasks.", type="warning")
+                ui.notify("Task Uploaded to Tasker.", type="positive")
             else:
                 ui.notify(
-                    f"Unable to upload Task to Tasker, and failed to save to /Tasker/tasks: {fallback_result}",
+                    f"Unable to upload Task to Tasker: {fallback_result}",
                     type="negative",
                 )
 
@@ -2248,6 +2248,33 @@ class MapTaskerEventHandlers:
         ui.notify(f"Renamed to '{name_value}'.", type="positive")
         dialog.close()
 
+    def save_project_event(
+        self,
+        edited_project: projedit.EditableProject,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Writes the Project -- every Profile and Task it owns -- out as a
+        standalone .prj.xml file (see projedit.write_standalone_project_xml).
+        Backs the "Export Project" button.
+
+        Exports under the Project's current, already-applied name
+        (edited_project.project_name) regardless of any not-yet-applied edit
+        sitting in the Name field -- unlike Rename, this is a read-only export
+        and deliberately doesn't also rename the live Project as a side
+        effect; use "Rename" first if the new name should carry through.
+        Dialog stays open on any error so the user's in-progress edit isn't lost.
+        """
+        save_path = field_refs["project_save_path"].value.strip()
+        try:
+            projedit.write_standalone_project_xml(edited_project.project_name, save_path)
+        except (OSError, ValueError) as e:
+            ui.notify(f"Could not save file: {e}", type="negative")
+            return
+
+        ui.notify(f"Saved Project '{edited_project.project_name}' to {save_path}", type="positive")
+        dialog.close()
+
     def delete_project_event(self, edited_project: projedit.EditableProject, dialog: ui.dialog) -> None:
         """Opens the Delete Project confirmation dialog (Keep Contents / Delete
         Contents), nested inside Edit Project -- see build_delete_project_dialog.
@@ -2263,7 +2290,9 @@ class MapTaskerEventHandlers:
         """Deletes the Project, moving its Profiles/Tasks into 'Base'. Backs
         the confirmation dialog's "Keep Contents" button.
         """
-        self._finish_delete_project(project_name, keep_contents=True, confirm_dialog=confirm_dialog, parent_dialog=parent_dialog)
+        self._finish_delete_project(
+            project_name, keep_contents=True, confirm_dialog=confirm_dialog, parent_dialog=parent_dialog
+        )
 
     def delete_contents_delete_project_event(
         self,
@@ -2274,7 +2303,9 @@ class MapTaskerEventHandlers:
         """Deletes the Project and everything it owns. Backs the confirmation
         dialog's "Delete Contents" button.
         """
-        self._finish_delete_project(project_name, keep_contents=False, confirm_dialog=confirm_dialog, parent_dialog=parent_dialog)
+        self._finish_delete_project(
+            project_name, keep_contents=False, confirm_dialog=confirm_dialog, parent_dialog=parent_dialog
+        )
 
     def _finish_delete_project(
         self,
@@ -2726,9 +2757,10 @@ class MapTaskerEventHandlers:
         refresh_tasker_object_pulldowns(self.gui)
 
         # api/import's 200 response doesn't guarantee Tasker actually committed the
-        # Profile, so confirm via GET /api/profiles before declaring success. If
-        # that check fails, fall back to writing the Profile's XML directly onto
-        # the device under /Tasker/profiles instead of leaving the user with nothing.
+        # Profile, so confirm via GET /api/profiles before declaring success. If that
+        # check fails, retry the same api/import once more (see
+        # profedit.save_profile_to_android_directory's docstring for why a retry,
+        # not a different endpoint, is the only fallback that can plausibly help).
         if profedit.verify_profile_on_android(ip_address, ip_port, profile_name, auth_key):
             ui.notify("Profile Uploaded to Tasker", type="positive")
         else:
@@ -2737,12 +2769,13 @@ class MapTaskerEventHandlers:
                 ip_address,
                 ip_port,
                 profile_name,
+                auth_key,
             )
             if fallback_code == 0:
-                ui.notify("Unable to upload Profile to Tasker.  Saved to /Tasker/profiles.", type="warning")
+                ui.notify("Profile Uploaded to Tasker.", type="positive")
             else:
                 ui.notify(
-                    f"Unable to upload Profile to Tasker, and failed to save to /Tasker/profiles: {fallback_result}",
+                    f"Unable to upload Profile to Tasker: {fallback_result}",
                     type="negative",
                 )
 

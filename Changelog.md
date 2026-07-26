@@ -19,10 +19,12 @@ All notable changes to this project will be documented in this file!
 
 - Changed: The most recent Task action added is highlighted to distinquish it from all of the other actions.
 - Changed: The current Task action being added now prompts for the arguments immeidately.
+- Changed: 'Save Single Task' button renamed to 'Export Task', and 'Save Single Profile' to 'Export Profile'.
 
 ### Fixed
 
 - Fixed: Error displayed: 'Error: Trying to validate "{task_name}" Task but it was not found in {current file}! All Projects, Profiles and Tasks will be displayed.'
+- Fixed: 'Save to Android' could often fail.
 
 ### Known Issue
 

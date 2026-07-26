@@ -35,7 +35,7 @@ from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.getids import get_ids
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import FormatLine, logger
+from maptasker.src.sysconst import FormatLine, logger, logging
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldata import rewrite_xml
 
@@ -464,9 +464,13 @@ def find_owning_project(profile_name: str) -> str:
 
 def close_logfile() -> None:
     """Close the log file(s)"""
-    for handler in logger.handlers[:]:  # Iterate over a copy to avoid issues during modification
-        handler.close()  # Close the stream associated with the handler
-        logger.removeHandler(handler)  # Remove the handler from the logger
+    # The FileHandler lives on the ROOT logger, not on "MapTasker": maputil2.setup_logging() installs
+    # it via logging.basicConfig(), and our logger simply propagates up to it.  Iterating
+    # logger.handlers here would walk an empty list and close nothing at all.
+    for target in (logger, logging.root):
+        for handler in target.handlers[:]:  # Iterate over a copy to avoid issues during modification
+            handler.close()  # Close the stream associated with the handler
+            target.removeHandler(handler)  # Remove the handler from the logger
 
 
 def exit_program(return_code: int = 0) -> None:
