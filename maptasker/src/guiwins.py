@@ -1070,13 +1070,12 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             ).props("outline")
             with profile_to_android:
                 ui.tooltip(
-                    "This will save the Profile directly into the active Tasker session on your Android device.\n\n"
-                    "Tasker version 6.2 or greater is required for this to work."
-                    "The Android device must be on the same network, and the IP Address and Port\n"
-                    "must match the Android device's Tasker server settings.\n\n"
-                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the "
-                    "Profile will be loaded directly into the active Tasker session.\n\n"
-                    "You must exit and restart Tasker to see the new Profile in the Tasker UI.",
+                    "This will write the Profile as a standalone file onto your Android device, "
+                    "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
+                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                    "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
+                    "The Android device must be on the same network, and the IP Address and Port must "
+                    "match its Tasker server settings. No authorization prompt is needed for this.",
                 ).style("white-space: pre-line")
             ui.button(
                 "Export Profile",
@@ -1092,11 +1091,13 @@ def build_save_profile_to_android_dialog(
     field_refs: dict,
     parent_dialog: ui.dialog,
 ) -> None:
-    """Prompts for the Android device's IP address and port, then imports the
-    current Profile (name as it stands in the parent dialog's fields, plus its
-    linked Entry/Exit Task(s)) directly into Tasker on the device via its HTTP
-    API's POST /api/import endpoint -- see profedit.save_profile_to_android. On
-    success both this prompt and the parent (Edit/Add Profile) dialog are closed.
+    """Prompts for the Android device's IP address and port, then writes the
+    current Profile (name as it stands in the parent dialog's fields) as a
+    standalone .prf.xml file onto the device's storage under /Tasker/profiles,
+    via the Tasker HTTP Server Example's /upload endpoint -- see
+    profedit.save_profile_to_android. This does not import it into Tasker's
+    live configuration. On success both this prompt and the parent (Edit/Add
+    Profile) dialog are closed.
     """
     default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
     default_port = getattr(self, "android_port", "") or "1821"
@@ -1121,10 +1122,10 @@ def build_save_profile_to_android_dialog(
             ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
-                    "This will save the Profile, and its linked Entry/Exit Task(s), directly into Tasker "
-                    "running on the Android device running the Tasker server.\n\n"
+                    "This will write the Profile as a standalone file onto the Android device, "
+                    "under /Tasker/profiles.\n\n"
                     "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                    "You will be prompted twice for authorization to write to Tasker on the Android device.",
+                    "No authorization prompt is needed for this.",
                 ).style("white-space: pre-line")
 
     android_dialog.open()
@@ -1133,8 +1134,11 @@ def build_save_profile_to_android_dialog(
 def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
     """Builds and opens the Add Project dialog: create a brand-new Project with
     just a name -- unlike Add Profile/Add Task, there's no parent to attach to
-    (a Project is the top of the hierarchy) and no Save/Save To Android
-    surface (see projedit.py's module docstring for why).
+    (a Project is the top of the hierarchy) and no Save/Save To Android surface,
+    since a brand-new Project has no Profiles/Tasks attached to it yet -- both
+    Save actions export a Project's *existing* <pids>/<tids> contents (see
+    projedit.py's module docstring), so there is nothing to export until it's
+    been created and has something attached (see build_edit_project_dialog).
     """
     field_refs: dict = {}
 
@@ -1157,7 +1161,11 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
     """Builds and opens the Edit Project dialog: Rename the Project, delete it
     -- with a choice of what happens to the Profiles/Tasks it owns, see
     build_delete_project_dialog -- or save it, and everything it owns, as one
-    standalone .prj.xml file (see projedit.write_standalone_project_xml).
+    standalone .prj.xml file, either locally (projedit.write_standalone_project_xml)
+    or onto the Android device under /Tasker/projects (projedit.save_project_to_android,
+    see build_save_project_to_android_dialog). Unlike Add Project, there IS content to
+    save here -- an already-registered Project has whatever Profiles/Tasks are attached
+    to it, which is exactly why Add Project has no equivalent button (see its docstring).
     """
     project_name = edited_project.project_name
     field_refs: dict = {}
@@ -1182,6 +1190,23 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
                 "Rename",
                 on_click=lambda: self.event_handlers.rename_project_event(edited_project, field_refs, dialog),
             ).classes("bg-blue-600")
+            project_to_android = ui.button(
+                "Save To Android",
+                on_click=lambda: self.event_handlers.open_save_project_to_android_dialog_event(
+                    edited_project,
+                    dialog,
+                ),
+            ).props("outline")
+            with project_to_android:
+                ui.tooltip(
+                    "This will write the Project, and everything in it -- every Profile and Task -- as a "
+                    "standalone file onto your Android device, under /Tasker/projects -- it does not import "
+                    "it into Tasker's live configuration.\n\n"
+                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                    "device, with the server running.\n\n"
+                    "The Android device must be on the same network, and the IP Address and Port must "
+                    "match its Tasker server settings. No authorization prompt is needed for this.",
+                ).style("white-space: pre-line")
             save_single_project = ui.button(
                 "Export Project",
                 on_click=lambda: self.event_handlers.save_project_event(edited_project, field_refs, dialog),
@@ -1192,6 +1217,51 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
                 )
 
     dialog.open()
+
+
+def build_save_project_to_android_dialog(
+    self: MyGui,
+    edited_project: projedit.EditableProject,
+    parent_dialog: ui.dialog,
+) -> None:
+    """Prompts for the Android device's IP address and port, then writes the
+    Project -- under its current, already-applied name (edited_project.project_name,
+    same convention as save_project_event's local export; a not-yet-applied Rename
+    edit doesn't carry through) -- as a standalone .prj.xml file onto the device's
+    storage under /Tasker/projects, via the Tasker HTTP Server Example's /upload
+    endpoint -- see projedit.save_project_to_android. This does not import it into
+    Tasker's live configuration. On success both this prompt and the parent (Edit
+    Project) dialog are closed.
+    """
+    default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
+    default_port = getattr(self, "android_port", "") or "1821"
+
+    with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
+        ui.label("Save Project To Android Device").classes("text-lg font-bold text-blue-600")
+        android_field_refs = {
+            "ip_address": ui.input("Android IP Address", value=default_ip).classes("w-full"),
+            "ip_port": ui.input("Port", value=default_port).classes("w-full"),
+        }
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=android_dialog.close).props("outline")
+            save_to_android = ui.button(
+                "Save",
+                on_click=lambda: self.event_handlers.save_project_to_android_event(
+                    edited_project,
+                    android_field_refs,
+                    android_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-blue-600")
+            with save_to_android:
+                ui.tooltip(
+                    "This will write the Project, and everything in it, as a standalone file onto the "
+                    "Android device, under /Tasker/projects.\n\n"
+                    "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
+                    "No authorization prompt is needed for this.",
+                ).style("white-space: pre-line")
+
+    android_dialog.open()
 
 
 def build_delete_project_dialog(
@@ -1310,13 +1380,12 @@ def build_add_profile_dialog(
             ).props("outline")
             with profile_to_android:
                 ui.tooltip(
-                    "This will save the Profile directly into the active Tasker session on your Android device.\n\n"
-                    "Tasker version 6.2 or greater is required for this to work."
-                    "The Android device must be on the same network, and the IP Address and Port\n"
-                    "must match the Android device's Tasker server settings.\n\n"
-                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the "
-                    "Profile will be loaded directly into the active Tasker session.\n\n"
-                    "You must exit and restart Tasker to see the new Profile in the Tasker UI.",
+                    "This will write the Profile as a standalone file onto your Android device, "
+                    "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
+                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                    "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
+                    "The Android device must be on the same network, and the IP Address and Port must "
+                    "match its Tasker server settings. No authorization prompt is needed for this.",
                 ).style("white-space: pre-line")
             ui.button(
                 "Export Profile",

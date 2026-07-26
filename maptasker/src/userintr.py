@@ -54,6 +54,7 @@ from maptasker.src.guiwins import (
     build_edit_project_dialog,
     build_edit_task_dialog,
     build_save_profile_to_android_dialog,
+    build_save_project_to_android_dialog,
     build_save_to_android_dialog,
     create_popup_window,
     initialize_gui,
@@ -2673,11 +2674,13 @@ class MapTaskerEventHandlers:
         parent_dialog: ui.dialog,
     ) -> None:
         """Validates and applies the parent dialog's field values (same as a local
-        Save), pings the Android device to confirm it's reachable, and then imports
-        the edited Profile (plus its linked Entry/Exit Task(s)) into Tasker on the
-        device. Mirrors save_task_to_android_event, except a Profile also needs
-        registering into the live tree (see the is_new_profile branch below) --
-        Tasks don't need the Project-attachment step a Profile does.
+        Save), pings the Android device to confirm it's reachable, and then writes
+        the edited Profile onto the device's storage under /Tasker/profiles (see
+        profedit.save_profile_to_android -- this is a file write, not a live import
+        into Tasker, unlike save_task_to_android_event's api/import; /upload needs
+        no auth key, so there's no cached-key handling here the way that one has).
+        A Profile also needs registering into the live tree (see the is_new_profile
+        branch below) -- Tasks don't need the Project-attachment step a Profile does.
         """
         _link_pending_task_pickers(edited_profile, field_refs)
         condition_values = _profile_condition_values(field_refs)
@@ -2717,33 +2720,11 @@ class MapTaskerEventHandlers:
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
 
-        # Reuse a cached API key for this same device -- skips its GET /api/auth
-        # confirmation prompt. profedit.save_profile_to_android falls back to
-        # fetching a fresh one (and retries) if the device has since rejected it.
-        cached_key = (
-            getattr(self.gui, "android_auth_key", "")
-            if getattr(self.gui, "android_auth_key_ipaddr", "") == ip_address
-            and getattr(self.gui, "android_auth_key_port", "") == ip_port
-            else ""
-        )
-
         profile_name = field_refs["name"].value.strip()
-        return_code, result, auth_key = profedit.save_profile_to_android(
-            edited_profile,
-            ip_address,
-            ip_port,
-            profile_name,
-            cached_key,
-        )
+        return_code, result = profedit.save_profile_to_android(edited_profile, ip_address, ip_port, profile_name)
         if return_code != 0:
             ui.notify(f"Could not save to Android device: {result}", type="negative")
             return
-
-        # Cache the auth key (keyed to this ip/port) so the next save skips the
-        # device's connection-authorization prompt entirely.
-        self.gui.android_auth_key = auth_key
-        self.gui.android_auth_key_ipaddr = ip_address
-        self.gui.android_auth_key_port = ip_port
 
         # Remember the connection details for next time, same as the Get XML dialog does.
         self.gui.android_ipaddr = ip_address
@@ -2756,29 +2737,48 @@ class MapTaskerEventHandlers:
             profedit.apply_edited_profile_to_live_tree(edited_profile)
         refresh_tasker_object_pulldowns(self.gui)
 
-        # api/import's 200 response doesn't guarantee Tasker actually committed the
-        # Profile, so confirm via GET /api/profiles before declaring success. If that
-        # check fails, retry the same api/import once more (see
-        # profedit.save_profile_to_android_directory's docstring for why a retry,
-        # not a different endpoint, is the only fallback that can plausibly help).
-        if profedit.verify_profile_on_android(ip_address, ip_port, profile_name, auth_key):
-            ui.notify("Profile Uploaded to Tasker", type="positive")
-        else:
-            fallback_code, fallback_result = profedit.save_profile_to_android_directory(
-                edited_profile,
-                ip_address,
-                ip_port,
-                profile_name,
-                auth_key,
-            )
-            if fallback_code == 0:
-                ui.notify("Profile Uploaded to Tasker.", type="positive")
-            else:
-                ui.notify(
-                    f"Unable to upload Profile to Tasker: {fallback_result}",
-                    type="negative",
-                )
+        ui.notify(f"Profile saved to Android device at {result}", type="positive")
+        android_dialog.close()
+        parent_dialog.close()
 
+    def open_save_project_to_android_dialog_event(
+        self,
+        edited_project: projedit.EditableProject,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Opens the IP/port prompt for writing this Project onto the Android device."""
+        build_save_project_to_android_dialog(self.gui, edited_project, parent_dialog)
+
+    async def save_project_to_android_event(
+        self,
+        edited_project: projedit.EditableProject,
+        android_field_refs: dict,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Pings the Android device to confirm it's reachable, then writes the
+        Project -- every Profile and Task it owns -- onto the device's storage
+        under /Tasker/projects (see projedit.save_project_to_android). Unlike
+        save_profile_to_android_event, there's no field-edit/apply step first --
+        a Project has no separate editable model, and this exports under its
+        current, already-applied name, same as save_project_event's local export.
+        """
+        ip_address = android_field_refs["ip_address"].value.strip()
+        ip_port = android_field_refs["ip_port"].value.strip()
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+
+        return_code, result = projedit.save_project_to_android(edited_project.project_name, ip_address, ip_port)
+        if return_code != 0:
+            ui.notify(f"Could not save to Android device: {result}", type="negative")
+            return
+
+        # Remember the connection details for next time, same as the Get XML dialog does.
+        self.gui.android_ipaddr = ip_address
+        self.gui.android_port = ip_port
+
+        ui.notify(f"Project saved to Android device at {result}", type="positive")
         android_dialog.close()
         parent_dialog.close()
 

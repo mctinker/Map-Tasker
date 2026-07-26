@@ -24,14 +24,14 @@ as Edit Profile's Phase 2/3 above -- see create_new_profile/register_new_profile
 which mirror taskedit.py's create_new_task/register_new_task 1:1.
 
 Never touches PrimeItems.xml_tree -- all edits happen on a deep copy, and the
-only output is a new standalone file (or, via Save To Android, a POST to the
-Tasker HTTP API), mirroring taskedit.py's Task-editing design 1:1.
+only output is a new standalone file -- either written locally, or, via Save To
+Android, uploaded onto the device's storage under /Tasker/profiles (see
+save_profile_to_android) -- mirroring taskedit.py's Task-editing design 1:1.
 """
 
 from __future__ import annotations
 
 import copy
-import json
 import os
 import re
 import time
@@ -47,6 +47,7 @@ if TYPE_CHECKING:
 from maptasker.src import taskedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.projedit import touch_project_mdate
 
 XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
 
@@ -162,12 +163,15 @@ def create_new_profile(name: str) -> EditableProfile | str:
     taskedit.create_new_task. Returns an error message string if no backup is
     loaded (needed both to generate a collision-free id and to source the
     correct Element class -- see taskedit.create_new_task's identical note).
+
+    Id comes from taskedit.next_unique_task_or_profile_id, not just this
+    backup's existing Profile ids -- see that function's docstring for why a
+    new Profile and a new Task must draw from one shared counter.
     """
     if PrimeItems.xml_root is None:
         return "Load a Tasker backup file first (Add Profile needs it to generate a unique Profile ID)."
 
-    existing_ids = [int(k) for k in PrimeItems.tasker_root_elements.get("all_profiles", {}) if k.isdigit()]
-    new_id = max(existing_ids, default=0) + 1
+    new_id = taskedit.next_unique_task_or_profile_id()
 
     element_cls = type(PrimeItems.xml_root)
     profile_element = element_cls("Profile", {"sr": f"prof{new_id}", "ve": "2"})
@@ -1037,137 +1041,44 @@ def save_profile_to_android(
     ip_address: str,
     ip_port: str,
     profile_name: str,
-    auth_key: str = "",
-) -> tuple[int, str, str]:
-    """Import the edited Profile (plus its linked Task(s)), rendered as standalone
-    XML, onto the Android device via the Tasker HTTP API's POST /api/import
-    endpoint. Mirrors taskedit.save_task_to_android exactly, including the
-    auth-key caching/retry-on-401 behavior -- see that function's docstring.
+) -> tuple[int, str]:
+    """Writes the edited Profile, rendered as standalone XML, onto the Android
+    device's storage under /Tasker/profiles, via the Tasker HTTP Server Example's
+    POST /upload endpoint (see maputil2.http_upload_request) -- this does NOT import
+    into Tasker's live configuration. Tasker does not watch that directory for files
+    to auto-import; this only places a standalone .prf.xml file where the user (or
+    their own device-side automation) can pick it up. Mirrors
+    projedit.save_project_to_android exactly.
 
-    Returns (0, profile_name, auth_key_used) on success, or
-    (return_code, error_message, "") on failure.
+    /upload answers 200 even for a nonexistent/bogus location -- it silently creates
+    missing folders and never reports failure at the HTTP layer -- so a 200 alone
+    proves nothing. This reads the file back afterward and compares its bytes to what
+    was sent before calling it a success.
+
+    Returns (0, device_file_path) on success, or (return_code, error_message).
     """
     # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import get_android_auth_key, http_post_request  # noqa: PLC0415
+    from maptasker.src.maputil2 import http_request, http_upload_request  # noqa: PLC0415
 
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
     if not ip_address or not ip_port:
-        return 8, "Android IP address and port are required.", ""
+        return 8, "Android IP address and port are required."
 
-    had_cached_key = bool(auth_key)
-    if not auth_key:
-        return_code, auth_key = get_android_auth_key(ip_address, ip_port)
-        if return_code != 0:
-            return return_code, auth_key, ""
+    xml_bytes = render_standalone_profile_xml(edited_profile).encode("utf-8")
+    filename = f"{sanitize_filename(profile_name)}.prf.xml"
+    location = "Tasker/profiles"
 
-    xml_text = render_standalone_profile_xml(edited_profile)
-
-    return_code, response = http_post_request(
-        ip_address,
-        ip_port,
-        "",
-        "api/import",
-        "",
-        xml_text.encode("utf-8"),
-        auth_key,
-    )
-
-    if return_code == 9 and had_cached_key:
-        # Cached key was rejected -- get a fresh one (device prompts once more) and retry.
-        return_code, auth_key = get_android_auth_key(ip_address, ip_port)
-        if return_code != 0:
-            return return_code, auth_key, ""
-        return_code, response = http_post_request(
-            ip_address,
-            ip_port,
-            "",
-            "api/import",
-            "",
-            xml_text.encode("utf-8"),
-            auth_key,
-        )
-
-    if return_code != 0:
-        return return_code, str(response), ""
-    return 0, profile_name, auth_key
-
-
-def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, auth_key: str) -> bool:
-    """Confirms the Profile actually landed in Tasker after a save_profile_to_android
-    import, via the Tasker HTTP API's GET /api/profiles?name=<profile_name> (Response:
-    profile objects -- a JSON array of {"name": ..., "enabled": ..., "active": ...},
-    filtered to Profiles matching the given name). Mirrors taskedit.verify_task_on_android.
-
-    Returns True if the GET succeeded and returned at least one Profile named
-    profile_name, False otherwise.
-    """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from urllib.parse import quote  # noqa: PLC0415
-
-    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
-
-    return_code, response = http_request(
-        ip_address.strip(),
-        ip_port.strip(),
-        "",
-        "api/profiles",
-        f"?name={quote(profile_name)}",
-        auth_key,
-    )
-    if return_code != 0:
-        return False
-
-    try:
-        profiles = json.loads(response)
-    except (ValueError, TypeError):
-        return False
-
-    return any(profile.get("name") == profile_name for profile in profiles)
-
-
-def save_profile_to_android_directory(
-    edited_profile: EditableProfile,
-    ip_address: str,
-    ip_port: str,
-    profile_name: str,
-    auth_key: str = "",
-) -> tuple[int, str]:
-    """Fallback for save_profile_to_android when verify_profile_on_android can't
-    confirm the import landed in Tasker: retries the same POST /api/import once
-    more, rather than falling back to a different endpoint. api/import is the only
-    documented way to actually get a Profile into Tasker over HTTP -- /api/file
-    only supports GET/DELETE (no way to write a file with it), and even if it
-    did, Tasker doesn't watch that directory for files to auto-import -- so a
-    second attempt at the real thing is the only fallback that can plausibly
-    help, e.g. if the first POST/GET-verify pair hit a transient network blip.
-    Mirrors taskedit.save_task_to_android_directory.
-
-    The name is now a misnomer (nothing is written to a directory), kept only
-    because userintr's Save-Profile-to-Android handler calls it by this name.
-
-    Returns (0, profile_name) on success, or (return_code, error_message).
-    """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_post_request  # noqa: PLC0415
-
-    xml_text = render_standalone_profile_xml(edited_profile)
-
-    # file_location is "" so this reproduces save_profile_to_android's request byte for
-    # byte -- a retry that posted to a different URL would not be testing the same thing.
-    return_code, response = http_post_request(
-        ip_address.strip(),
-        ip_port.strip(),
-        "",
-        "api/import",
-        "",
-        xml_text.encode("utf-8"),
-        auth_key,
-    )
+    return_code, response = http_upload_request(ip_address, ip_port, location, filename, xml_bytes)
     if return_code != 0:
         return return_code, str(response)
 
-    return 0, profile_name
+    device_path = f"/{location}/{filename}"
+    verify_code, verify_content = http_request(ip_address, ip_port, device_path, "file", "")
+    if verify_code != 0 or verify_content != xml_bytes:
+        return 8, f"Uploaded to {device_path}, but could not confirm it landed correctly."
+
+    return 0, device_path
 
 
 def register_new_profile(edited_profile: EditableProfile, profile_name: str) -> None:
@@ -1207,6 +1118,17 @@ def add_profile_to_project(edited_profile: EditableProfile, project_name: str) -
     everywhere in the app except Edit Profile's own picker (which does read
     all_profiles_by_name).
 
+    Also registers the Profile's Entry/Exit Task(s) (<mid0>/<mid1>) into the
+    Project's own <tids> via add_task_to_project -- see that function's
+    docstring for what breaks (the Map view's Directory "Tasks" section,
+    dirout.check_task's single-Task filter, projects.do_tasks_in_project) when
+    a Project-linked Task has no <tids> entry anywhere. Real Tasker backups
+    *can* have a Profile's Task "owned" (per <tids>) by a completely different
+    Project (confirmed in this repo's own sample backup -- see
+    projedit.render_standalone_project_xml's docstring), but there's no reason
+    for MapTasker's own Add Profile flow to create that same inconsistency for
+    Profiles it registers itself.
+
     Mutates the Project's XML element in place (not a copy, unlike Profile
     editing's own deep-copy-then-apply flow) -- PrimeItems.tasker_root_elements
     already holds the live Project table, so this takes effect immediately for
@@ -1223,6 +1145,12 @@ def add_profile_to_project(edited_profile: EditableProfile, project_name: str) -
     if edited_profile.profile_id not in existing_ids:
         existing_ids.append(edited_profile.profile_id)
     _set_child_text(project_element, "pids", ",".join(existing_ids))
+
+    for task_id in (edited_profile.entry_task_id, edited_profile.exit_task_id):
+        if task_id:
+            add_task_to_project(task_id, project_name)
+
+    touch_project_mdate(project_element)
 
 
 def add_task_to_project(task_id: str, project_name: str) -> None:
@@ -1243,7 +1171,8 @@ def add_task_to_project(task_id: str, project_name: str) -> None:
     selecting it as the single Task to display would leave the Map view's
     Directory "Tasks" section empty.
 
-    Mutates the Project's XML element in place, same as add_profile_to_project.
+    Mutates the Project's XML element in place, same as add_profile_to_project,
+    and likewise stamps its <mdate> (see projedit.touch_project_mdate).
     No-op if project_name isn't a known Project (defense in depth; the GUI
     should only offer real Project names).
     """
@@ -1257,6 +1186,7 @@ def add_task_to_project(task_id: str, project_name: str) -> None:
     if task_id not in existing_ids:
         existing_ids.append(task_id)
     _set_child_text(project_element, "tids", ",".join(existing_ids))
+    touch_project_mdate(project_element)
 
 
 def validate_new_profile_requirements(edited_profile: EditableProfile) -> list[str]:

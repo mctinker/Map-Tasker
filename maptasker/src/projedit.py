@@ -17,10 +17,18 @@ or directly on the live tasker_root_elements tables (Delete, same as every
 other table mutation in profedit.py/taskedit.py), mirroring their design.
 
 render_standalone_project_xml/write_standalone_project_xml don't add any new
-editable field -- they just export a Project's *existing* <pids>/<tids>
-contents (every Profile/Task it owns) as one standalone file, the way
-Tasker's own Project export does -- see build_edit_project_dialog's "Save
-Single Project" button.
+editable field -- they just export a Project's existing Profiles (its <pids>)
+plus every Task those Profiles actually use, as one standalone file, the way
+Tasker's own Project export does -- see build_edit_project_dialog's "Export
+Project" button. Note this is not simply the Project's own <tids>: a Profile's
+Entry/Exit Task can be "owned" (per <tids>) by a completely different Project,
+so render_standalone_project_xml resolves Tasks the same ownership-independent
+way profiles.get_profile_tasks does for the Map/Diagram/Tree views -- see that
+function's own comment for a real example from this repo's sample data.
+save_project_to_android reuses the same render, writing the result onto the
+device's storage under /Tasker/projects instead of locally -- see that
+function's docstring, and profedit.save_profile_to_android which it mirrors,
+for why this does not import into Tasker's live configuration.
 """
 
 from __future__ import annotations
@@ -28,6 +36,8 @@ from __future__ import annotations
 import copy
 import os
 import re
+import time
+import uuid
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -77,27 +87,48 @@ def load_project_for_edit(project_name: str) -> EditableProject | None:
 def create_new_project(name: str) -> EditableProject | str:
     """Build a brand-new Project element, not tied to any existing one. Returns
     an error message string if no backup is loaded (needed to source the
-    correct Element class -- see profedit.create_new_profile's identical note;
-    unlike a Profile/Task, a Project has no numeric <id> child to generate --
-    all_projects is keyed by name -- so the new element's own sr="projN"
-    attribute is only for internal uniqueness, not read by anything else).
+    correct Element class -- see profedit.create_new_profile's identical note).
+    all_projects is keyed by name, not by <id>, so the new element's own
+    sr="projN" attribute (below) is a *separate*, internal-only counter for
+    just that attribute -- unrelated to the <id> child this function also sets.
+
+    <id> is a UUID, not a small integer -- matching every real Project in this
+    repo's own sample backup, all 78 of which use UUIDs, never small integers
+    (unlike Task/Profile, whose <id> is a shared-counter integer -- see
+    taskedit.next_unique_task_or_profile_id). This isn't just fidelity to
+    Tasker's own format: it's what makes a new Project's <id> unconditionally
+    collision-free against every Task/Profile <id> too, since a UUID string can
+    never equal a small integer's string form.
+
+    Sets <cdate> and <mdate> to the same creation timestamp -- real Tasker
+    Projects use <mdate> for their last-modified time, not <edate> the way
+    Task/Profile do (confirmed against this repo's own sample backup: every
+    Project has <cdate>+<mdate>, none has <edate>) -- see _touch_mdate, called
+    by every function that mutates a Project afterward, for how it's kept current.
     """
     if PrimeItems.xml_root is None:
         return "Load a Tasker backup file first (Add Project needs it to generate a unique Project ID)."
 
-    existing_ids = [
+    existing_sr_ids = [
         int(match.group(1))
         for entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values()
         if (match := _PROJECT_SR_RE.match(entry["xml"].attrib.get("sr", "")))
     ]
-    new_id = max(existing_ids, default=0) + 1
+    new_sr_id = max(existing_sr_ids, default=0) + 1
 
     element_cls = type(PrimeItems.xml_root)
-    project_element = element_cls("Project", {"sr": f"proj{new_id}"})
+    project_element = element_cls("Project", {"sr": f"proj{new_sr_id}"})
 
-    name_child = element_cls("name")
-    name_child.text = name.strip()
-    project_element.append(name_child)
+    now_millis = str(int(time.time() * 1000))
+    for tag, text in (
+        ("cdate", now_millis),
+        ("id", str(uuid.uuid4())),
+        ("mdate", now_millis),
+        ("name", name.strip()),
+    ):
+        child = element_cls(tag)
+        child.text = text
+        project_element.append(child)
 
     return EditableProject(project_name=name.strip(), project_element=project_element)
 
@@ -127,6 +158,7 @@ def apply_edits_to_project(edited_project: EditableProject, new_name: str) -> li
         return errors
 
     _set_child_text(edited_project.project_element, "name", new_name)
+    touch_project_mdate(edited_project.project_element)
     # Keep project_name in sync with the applied <name> -- register_new_project
     # keys all_projects by it, so a brand-new Project (created with name "")
     # would otherwise be registered under "" and show up nameless in the
@@ -143,6 +175,20 @@ def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str)
         child = type(parent)(tag)
         parent.append(child)
     child.text = text
+
+
+def touch_project_mdate(project_element: defusedxml.ElementTree.Element) -> None:
+    """Stamps a Project's <mdate> with the current time -- real Tasker Projects
+    use <mdate> for "last modified", not <edate> the way Task/Profile do (see
+    create_new_project's docstring for the confirmation). Call this from
+    anything that mutates an already-registered Project's element:
+    apply_edits_to_project (Rename), and profedit.add_profile_to_project/
+    add_task_to_project (Add Profile/Add Task attaching to this Project) --
+    imported there rather than duplicated the way _set_child_text is per-module,
+    since unlike that one-line body, "how the timestamp is formatted" is worth
+    keeping in one place.
+    """
+    _set_child_text(project_element, "mdate", str(int(time.time() * 1000)))
 
 
 def register_new_project(edited_project: EditableProject) -> None:
@@ -214,11 +260,14 @@ def default_project_save_path(project_name: str) -> str:
 
 def render_standalone_project_xml(project_name: str) -> str:
     """Render a Project as a standalone TaskerData/Project[/Profile...][/Task...]
-    XML string -- the Project element followed by every Profile and Task it
-    owns (per its live <pids>/<tids>), matching the shape Tasker's own Project
-    export produces. Mirrors profedit.render_standalone_profile_xml's
-    TaskerData-wrapping approach, just scoped to a whole Project's contents
-    instead of one Profile's linked Entry/Exit Task(s).
+    XML string -- the Project element followed by every Profile it owns and every
+    Task those Profiles use, matching the shape Tasker's own Project export
+    produces. Mirrors profedit.render_standalone_profile_xml's TaskerData-wrapping
+    approach, just scoped to a whole Project's contents instead of one Profile's
+    linked Entry/Exit Task(s).
+
+    Deliberately does NOT recurse into Tasks a bundled Task calls via "Perform
+    Task" -- only Tasks the Project's own Profiles link to directly.
 
     Raises ValueError if project_name isn't a currently-loaded Project.
     """
@@ -241,7 +290,8 @@ def render_standalone_project_xml(project_name: str) -> str:
     # element itself, then every Task -- not Project-first, which is what you'd expect from
     # <pids>/<tids> being *inside* <Project>.
     all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
-    for profile_id in _project_child_ids(project_element, "pids"):
+    profile_ids = _project_child_ids(project_element, "pids")
+    for profile_id in profile_ids:
         profile_entry = all_profiles.get(profile_id)
         if profile_entry is not None:
             root.append(copy.deepcopy(profile_entry["xml"]))
@@ -249,7 +299,26 @@ def render_standalone_project_xml(project_name: str) -> str:
     root.append(project_copy)
 
     all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
-    for task_id in _project_child_ids(project_element, "tids"):
+    # A Project's own <tids> only lists Tasks created *directly* inside it (no attached
+    # Profile) -- a Profile's Entry/Exit Task (<mid0>/<mid1>) is looked up globally by id
+    # and can belong to a completely different Project's own <tids>.  Confirmed against a
+    # real backup: a Profile owned by "Test" here had Entry Tasks whose own <tids>
+    # membership was "Base" and "Adaptive Brightness Quick Setting".  Restricting to the
+    # Project's own <tids> (the old behavior) silently dropped every such Task from the
+    # export -- see profiles.get_profile_tasks, which resolves mid0/mid1 the same
+    # ownership-independent way for the Map/Diagram/Tree views.
+    task_ids = list(_project_child_ids(project_element, "tids"))
+    seen_task_ids = set(task_ids)
+    for profile_id in profile_ids:
+        profile_entry = all_profiles.get(profile_id)
+        if profile_entry is None:
+            continue
+        for child in profile_entry["xml"]:
+            if "mid" in child.tag and child.text and child.text not in seen_task_ids:
+                seen_task_ids.add(child.text)
+                task_ids.append(child.text)
+
+    for task_id in task_ids:
         task_entry = all_tasks.get(task_id)
         if task_entry is not None:
             root.append(copy.deepcopy(task_entry["xml"]))
@@ -265,6 +334,46 @@ def write_standalone_project_xml(project_name: str, output_path: str) -> None:
     rendered = render_standalone_project_xml(project_name)
     with open(output_path, "w", encoding="utf-8") as out_file:
         out_file.write(rendered)
+
+
+def save_project_to_android(project_name: str, ip_address: str, ip_port: str) -> tuple[int, str]:
+    """Writes the Project -- every Profile and Task it owns -- onto the Android
+    device's storage under /Tasker/projects, via the same POST /upload mechanism
+    as profedit.save_profile_to_android (see that function's docstring for why a
+    readback-verify is required, and why this does not touch Tasker's live
+    configuration). Mirrors it exactly, except a Project has no separate "edited"
+    model to render from -- render_standalone_project_xml reads the live
+    all_projects/all_profiles/all_tasks tables directly by name, same as
+    write_standalone_project_xml (the local-file "Export Project" button).
+
+    Returns (0, device_file_path) on success, or (return_code, error_message).
+    """
+    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from maptasker.src.maputil2 import http_request, http_upload_request  # noqa: PLC0415
+
+    ip_address = ip_address.strip()
+    ip_port = ip_port.strip()
+    if not ip_address or not ip_port:
+        return 8, "Android IP address and port are required."
+
+    try:
+        xml_bytes = render_standalone_project_xml(project_name).encode("utf-8")
+    except ValueError as e:
+        return 8, str(e)
+
+    filename = f"{sanitize_filename(project_name)}.prj.xml"
+    location = "Tasker/projects"
+
+    return_code, response = http_upload_request(ip_address, ip_port, location, filename, xml_bytes)
+    if return_code != 0:
+        return return_code, str(response)
+
+    device_path = f"/{location}/{filename}"
+    verify_code, verify_content = http_request(ip_address, ip_port, device_path, "file", "")
+    if verify_code != 0 or verify_content != xml_bytes:
+        return 8, f"Uploaded to {device_path}, but could not confirm it landed correctly."
+
+    return 0, device_path
 
 
 def delete_profiles_and_tasks_of_project(project_name: str) -> None:

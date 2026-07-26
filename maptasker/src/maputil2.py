@@ -356,6 +356,73 @@ def http_post_request(
     )
 
 
+# Issue HTTP Request to write a raw file onto the Android device's storage (NOT into
+# Tasker's live configuration -- see profedit.save_profile_to_android/
+# projedit.save_project_to_android, the only two callers).
+def http_upload_request(
+    ip_address: str,
+    ip_port: str,
+    location: str,
+    filename: str,
+    file_content: bytes,
+) -> tuple[int, str]:
+    """
+    POST file_content to the Tasker HTTP Server Example's /upload endpoint, writing it
+    to <location>/<filename> on the device's storage (e.g. location="Tasker/profiles").
+    This is the same endpoint the server's own sample page (served at "/") uses for its
+    "Select an image"/"Select a video" uploads -- the multipart field's *name* attribute
+    is itself the destination filename, not a fixed key like "file".
+
+    Unlike api/import or api/file, /upload takes no Authorization header. It also does
+    not validate `location` -- confirmed against a real device: posting to a nonexistent
+    nested folder silently creates it, and the endpoint answers 200 "OK" regardless.  A
+    return code of 0 here means only that the HTTP round-trip completed; it is not
+    evidence the content is well-formed or ended up where intended.  Callers must read
+    the file back (see http_request's "file" request_name) to actually confirm the
+    write, which is exactly what both current callers do.
+        :param ip_address: IP address of the Android device
+        :param ip_port: port the Android device's Tasker HTTP server is listening on
+        :param location: destination folder on the device, no leading slash (e.g. "Tasker/profiles")
+        :param filename: destination filename within that folder
+        :param file_content: raw bytes to write
+        :return: return code (0 on success), and "" or an error message
+    """
+    http = "http://" if "http://" not in ip_address else ""
+    url = f"{http}{ip_address}:{ip_port}/upload"
+
+    error_message = ""
+    response = None
+
+    with suppress_stdout():  # Suppress any errors (system IMK)
+        try:
+            response = requests.post(
+                url,
+                params={"location": location},
+                files={filename: (filename, file_content, "application/octet-stream")},
+                timeout=15,
+            )
+        except InvalidSchema:
+            error_message = f"Request failed for url: {url} .  Invalid url!"
+        except ConnectionError:
+            error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
+        except Timeout:
+            error_message = f"Request failed for url: {url} .  Timeout error."
+        except Exception as e:  # noqa: BLE001
+            error_message = f"Request failed for url: {url}, error: {e} ."
+
+    if error_message:
+        logger.debug(error_message)
+        return 8, error_message
+
+    if response is None:
+        return 8, f"Request failed for url: {url} ...no response from the Android device."
+
+    if response.status_code != 200:
+        return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
+
+    return 0, ""
+
+
 # Log the arguments
 def log_startup_values() -> None:
     """

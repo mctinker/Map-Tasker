@@ -153,6 +153,31 @@ def load_task_for_edit(task_name: str) -> EditableTask | None:
     )
 
 
+def next_unique_task_or_profile_id() -> int:
+    """Computes the next id safe to assign to a brand-new Task or Profile.
+
+    Real Tasker backups keep Task and Profile ids collision-free with each other
+    -- confirmed empirically against this repo's own sample backup (zero overlap
+    across 792 Task ids and 267 Profile ids) -- which strongly suggests Tasker
+    draws both from one running counter, not two independent ones. Drawing from
+    the union of both tables here, rather than each type's own table alone (the
+    previous behavior of create_new_task/profedit.create_new_profile), guarantees
+    they can never hand out the same id to a Task and a Profile even if both
+    tables happen to share the same current max.
+
+    Does NOT need to consider all_projects: real Tasker Project ids are UUIDs
+    (see projedit.create_new_project), a completely different format that can't
+    collide with a small integer by construction.
+    """
+    existing_ids = [
+        int(k)
+        for table_name in ("all_tasks", "all_profiles")
+        for k in PrimeItems.tasker_root_elements.get(table_name, {})
+        if k.isdigit()
+    ]
+    return max(existing_ids, default=0) + 1
+
+
 def create_new_task(name: str, priority: str) -> EditableTask | str:
     """Build a brand-new Task element, not tied to any existing one, ready for
     actions to be added to it. Returns an error message string if no backup is
@@ -162,8 +187,7 @@ def create_new_task(name: str, priority: str) -> EditableTask | str:
     if PrimeItems.xml_root is None:
         return "Load a Tasker backup file first (Add Task needs it to generate a unique Task ID)."
 
-    existing_ids = [int(k) for k in PrimeItems.tasker_root_elements.get("all_tasks", {}) if k.isdigit()]
-    new_id = max(existing_ids, default=0) + 1
+    new_id = next_unique_task_or_profile_id()
 
     element_cls = type(PrimeItems.xml_root)
     task_element = element_cls("Task", {"sr": f"task{new_id}"})
