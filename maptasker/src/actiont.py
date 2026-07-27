@@ -64,6 +64,7 @@ lookup_values = {
         "Zoom Out",
     ],
     "57": ["All", "Portrait", "Landscape"],
+    "5s": ["Any", "No", "Yes"],
     "64": [
         "Disable Compass",
         "Disable Rotation Gestures",

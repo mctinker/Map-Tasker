@@ -164,6 +164,33 @@ def http_request(
     )
 
 
+def file_exists_on_android(ip_address: str, ip_port: str, device_path: str) -> bool | None:
+    """Whether a file already sits at device_path on the Android device.
+
+    Answers the question http_upload_request cannot: /upload silently overwrites
+    whatever is already at its destination and reports 200 either way (see its
+    docstring), so the only way to know a save would clobber something is to read
+    the path back first. Uses the same plain 'file' GET the post-upload verify
+    does, which needs no auth key.
+
+    Deliberately tri-state rather than a plain bool -- the three outcomes are
+    genuinely different and the caller must not conflate them:
+        True  -- 200, a file is there and would be overwritten
+        False -- 404, nothing there, safe to write
+        None  -- any other failure (device unreachable, timeout, server error);
+                 existence is *unknown*, so callers should not claim the path is
+                 free. Returning False here would silently skip the overwrite
+                 prompt on exactly the flaky-connection case where a user most
+                 wants it; the caller decides whether to proceed or warn.
+    """
+    return_code, _ = http_request(ip_address, ip_port, device_path, "file", "")
+    if return_code == 0:
+        return True
+    if return_code == 6:  # 404 -- not found
+        return False
+    return None
+
+
 # Tasker's /api/auth does not answer deterministically: on a device that is set up
 # correctly and reachable, it still returns 403 {"authorized": false} for roughly half
 # of all requests, then authorizes the very next identical request.  Measured against a
@@ -521,22 +548,34 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     Current File" click produces a new, independent snapshot alongside it
     rather than mutating it in place.
 
-    A Project edit (e.g. profedit.add_profile_to_project's <pids> update)
-    already lands directly on the live tree -- taskerd.move_xml_to_table never
-    deep-copies, so all_projects[name]["xml"] IS the tree's own element, same
-    object. Profile and Task edits don't: taskedit.py/profedit.py's own module
-    docstrings describe deliberately never touching PrimeItems.xml_tree,
-    always working on a deep copy that only gets reconciled into the
-    all_profiles/all_tasks lookup tables afterward (see
-    apply_edited_profile_to_live_tree/register_new_profile/
-    apply_edited_task_to_live_tree/register_new_task) -- so naively
-    re-serializing PrimeItems.xml_root as-is would silently omit every
-    Task/Profile edit. This reconciles the two: starting from a deep copy of
-    the original tree (preserving Scenes, Settings, and anything else this
-    app doesn't track in a table of its own), it splices in each
-    all_profiles/all_tasks entry's *current* element in place of whatever the
-    tree's own same-id child holds (or appends it, for one added via Add
-    Task/Add Profile that never existed in the original file at all).
+    An edit to a Project that already existed when the backup was loaded (e.g.
+    profedit.add_profile_to_project's <pids> update) lands directly on the live
+    tree -- taskerd.move_xml_to_table never deep-copies, so all_projects[name]
+    ["xml"] IS the tree's own element, same object -- and needs no reconciling.
+    A brand-new Project from Add Project is different: projedit.create_new_project
+    builds a standalone element that all_projects only learns about via
+    register_new_project, and it is never appended anywhere in PrimeItems.xml_root
+    -- so deep-copying the tree, on its own, would silently omit it entirely from
+    the saved file (confirmed: the Profile attached to it still saved correctly,
+    since Profile reconciliation already existed below, but the Project itself
+    vanished -- exactly the "new Project can't be found" symptom this fixes).
+    Profile and Task edits have the identical problem in the ordinary (not just
+    brand-new) case: taskedit.py/profedit.py's own module docstrings describe
+    deliberately never touching PrimeItems.xml_tree, always working on a deep
+    copy that only gets reconciled into the all_profiles/all_tasks lookup tables
+    afterward (see apply_edited_profile_to_live_tree/register_new_profile/
+    apply_edited_task_to_live_tree/register_new_task).
+
+    This reconciles all three: starting from a deep copy of the original tree
+    (preserving Scenes, Settings, and anything else this app doesn't track in a
+    table of its own), it splices in each all_projects/all_profiles/all_tasks
+    entry's *current* element in place of whatever the tree's own matching child
+    holds (or appends it, for one added via Add Project/Add Profile/Add Task
+    that never existed in the original file at all). Project is matched by
+    <name> rather than <id> -- unlike all_profiles/all_tasks, all_projects is
+    keyed by name, not id (taskerd.move_xml_to_table(..., get_id=False, "name")),
+    so matching it by <id> the same way would never find an existing Project at
+    all and duplicate every one of them into the output on every single save.
 
     Returns (True, new_file_path) on success, or (False, error_message) if
     there's no current file to copy from, or the write itself fails.
@@ -557,27 +596,50 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
 
     root_copy = copy.deepcopy(PrimeItems.xml_root)
 
-    for tag, table_name in (("Profile", "all_profiles"), ("Task", "all_tasks")):
+    def _element_id_key(element: ETW.Element) -> str | None:
+        # Always the element's own <id> child -- never a table's dict key. all_profiles/
+        # all_tasks happen to be keyed by <id> already (stable across a rename -- only
+        # <nme> changes), but all_projects is keyed by <name>, which a Rename DOES change.
+        # Matching Projects by name broke exactly that case: renaming "Test" to "Zz" left
+        # root_copy's still-"Test"-named element unmatched (orphaned, never removed) while
+        # the renamed copy got appended as a *second* Project -- both under different names,
+        # so the "old name is gone" and "no duplicates" checks both failed even though no id
+        # was reused. <id> doesn't change across a Rename (only <name> does), so matching on
+        # it correctly finds and replaces the old element for every case: an untouched
+        # pre-existing Project/Profile/Task (self-match, effectively a no-op), a renamed one
+        # (finds the old element despite the name change), and a brand-new one (id was never
+        # seen before, correctly falls through to "append").
+        id_element = element.find("id")
+        if id_element is None or not id_element.text or not id_element.text.strip():
+            return None
+        return id_element.text.strip()
+
+    for tag, table_name in (("Project", "all_projects"), ("Profile", "all_profiles"), ("Task", "all_tasks")):
         existing_by_id = {}
         last_index_of_tag = -1
         for index, child in enumerate(root_copy):
             if child.tag != tag:
                 continue
             last_index_of_tag = index
-            id_element = child.find("id")
-            if id_element is not None and id_element.text:
-                existing_by_id[id_element.text] = child
+            child_id = _element_id_key(child)
+            if child_id is not None:
+                existing_by_id[child_id] = child
 
-        for item_id, entry in PrimeItems.tasker_root_elements.get(table_name, {}).items():
+        for entry in PrimeItems.tasker_root_elements.get(table_name, {}).values():
             current_element = copy.deepcopy(entry["xml"])
-            old_element = existing_by_id.get(item_id)
+            current_id = _element_id_key(current_element)
+            old_element = existing_by_id.get(current_id) if current_id is not None else None
             if old_element is not None:
                 index = list(root_copy).index(old_element)
                 root_copy.remove(old_element)
                 root_copy.insert(index, current_element)
             else:
-                # Brand-new Profile/Task (e.g. from Add Profile/Add Task): insert it
-                # next to its own kind rather than at the very end of the file, so the
+                # Brand-new Project/Profile/Task (e.g. from Add Project/Add Profile/
+                # Add Task), or one with no <id> at all (never seen in practice --
+                # every Project/Profile/Task in this repo's own sample backup has one --
+                # but handled the same safe way rather than risking two different
+                # id-less elements colliding on a shared None key): insert it next to
+                # its own kind rather than at the very end of the file, so the
                 # top-level <Setting>/<Profile>/<Project>/<Scene>/<Task>/<Variable>
                 # grouping that real Tasker backups always use stays intact.
                 insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(root_copy)

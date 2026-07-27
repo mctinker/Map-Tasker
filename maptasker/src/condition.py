@@ -189,6 +189,8 @@ def condition_state(
         evaluated_results = {}
         _extract_condition(evaluated_results, "0", "", the_item)
         condition_chunks.append(f", Condition(s): {evaluated_results['arg0']['value']}")
+        # FIX
+        condition_chunks[-1] = condition_chunks[-1].replace("&nbsp;&nbsp;", "  ")
 
     # Collapse chunks
     the_output_condition = "".join(condition_chunks)

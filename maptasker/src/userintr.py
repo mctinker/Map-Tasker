@@ -36,6 +36,7 @@ from maptasker.src.guiutils import (
     ping_android_device,
     refresh_tasker_object_pulldowns,
     reload_gui,
+    select_pulldown_option,
     set_ai_key,
     set_tasker_object_names,
     update_analysis_button_color,
@@ -49,10 +50,12 @@ from maptasker.src.guiwins import (
     build_add_profile_dialog,
     build_add_project_dialog,
     build_add_task_dialog,
+    build_delete_profile_dialog,
     build_delete_project_dialog,
     build_edit_profile_dialog,
     build_edit_project_dialog,
     build_edit_task_dialog,
+    build_overwrite_confirm_dialog,
     build_save_profile_to_android_dialog,
     build_save_project_to_android_dialog,
     build_save_to_android_dialog,
@@ -62,7 +65,12 @@ from maptasker.src.guiwins import (
 )
 from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
-from maptasker.src.maputil2 import log_startup_values, translate_string, write_full_backup_to_current_file
+from maptasker.src.maputil2 import (
+    file_exists_on_android,
+    log_startup_values,
+    translate_string,
+    write_full_backup_to_current_file,
+)
 from maptasker.src.maputil3 import validate_xml_file
 from maptasker.src.maputils import (
     append_to_filename,
@@ -1267,6 +1275,14 @@ def _finish_new_task(
 
     refresh_tasker_object_pulldowns(gui)
 
+    # Only for the top-level Add Task flow (target_project_name set, see
+    # open_add_task_dialog_event) -- the nested Entry/Exit Task picker inside
+    # Add/Edit Profile (open_add_task_for_profile_link_event) never sets it,
+    # and selecting the new Task as the app-wide single-Task filter there
+    # would be a surprising side effect of just picking an Entry/Exit Task.
+    if target_project_name:
+        select_pulldown_option(gui.specific_task_optionmenu, name_value)
+
 
 def _profile_condition_values(field_refs: dict) -> dict[str, str]:
     """Snapshots field_refs' condition-field widgets into the string-keyed dict
@@ -1384,6 +1400,10 @@ def _finish_new_profile(
     profedit.add_profile_to_project(edited_profile, project_name)
     refresh_tasker_object_pulldowns(gui)
 
+    # Select the new Profile as the app-wide single-Profile filter and show it
+    # in the pulldown -- also clears any stale single Project/Task selection.
+    select_pulldown_option(gui.specific_profile_optionmenu, name_value)
+
 
 def _finish_new_project(gui: MyGui, edited_project: projedit.EditableProject) -> None:
     """Registers a validated, applied new Project into the live in-memory
@@ -1394,6 +1414,10 @@ def _finish_new_project(gui: MyGui, edited_project: projedit.EditableProject) ->
     """
     projedit.register_new_project(edited_project)
     refresh_tasker_object_pulldowns(gui)
+
+    # Select the new Project as the app-wide single-Project filter and show it
+    # in the pulldown -- also clears any stale single Profile/Task selection.
+    select_pulldown_option(gui.specific_project_optionmenu, edited_project.project_name)
 
 
 def _reset_specific_name_selection(gui: MyGui) -> None:
@@ -1969,16 +1993,25 @@ class MapTaskerEventHandlers:
             return
 
         save_path = field_refs["save_path"].value
-        try:
-            taskedit.write_standalone_task_xml(edited_task, save_path)
-        except OSError as e:
-            ui.notify(f"Could not save file: {e}", type="negative")
+
+        def _write() -> None:
+            try:
+                taskedit.write_standalone_task_xml(edited_task, save_path)
+            except OSError as e:
+                ui.notify(f"Could not save file: {e}", type="negative")
+                return
+
+            taskedit.apply_edited_task_to_live_tree(edited_task)
+
+            ui.notify(f"Saved to {save_path}", type="positive")
+            dialog.close()
+
+        # Unlike Add Task's Save, this export had no up-front save_path_exists
+        # check (see _validate_and_apply_new_task) -- confirm rather than clobber.
+        if taskedit.save_path_exists(save_path):
+            build_overwrite_confirm_dialog(f"'{save_path}'", _write)
             return
-
-        taskedit.apply_edited_task_to_live_tree(edited_task)
-
-        ui.notify(f"Saved to {save_path}", type="positive")
-        dialog.close()
+        _write()
 
     def keep_edited_task_event(
         self,
@@ -2249,6 +2282,54 @@ class MapTaskerEventHandlers:
         ui.notify(f"Renamed to '{name_value}'.", type="positive")
         dialog.close()
 
+    def save_project_to_current_file_event(
+        self,
+        edited_project: projedit.EditableProject,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Edit Project dialog's Name field (same as
+        Rename), then writes the *entire* current backup -- not just this
+        Project -- out to a new, timestamped copy of whatever file it was
+        loaded from (see maputil2.write_full_backup_to_current_file) and
+        switches the app over to that copy (see _reload_saved_copy_and_refresh)
+        -- the original file is left untouched. Mirrors
+        save_edited_profile_to_current_file_event/
+        save_edited_task_to_current_file_event. Backs the "Save To Current
+        File" button. Dialog stays open on any error so the user's
+        in-progress edit isn't lost.
+
+        Also resets the single-name selection like Rename does (rather than
+        relying solely on _reload_saved_copy_and_refresh's pulldown-options
+        refresh): a Project's identity is its name (see
+        rename_project_in_live_tree), so a rename here -- unlike a Profile/
+        Task edit -- can leave the Project pulldown's .value pointing at a
+        name that no longer exists.
+        """
+        old_name = edited_project.project_name
+        name_value = field_refs["name"].value.strip()
+
+        errors = projedit.apply_edits_to_project(edited_project, name_value)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        projedit.rename_project_in_live_tree(old_name, edited_project)
+
+        success, result = write_full_backup_to_current_file()
+        if not success:
+            ui.notify(f"Could not save to current file: {result}", type="negative")
+            return
+        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        if not reload_ok:
+            ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
+            return
+
+        _reset_specific_name_selection(self.gui)
+        ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
+        dialog.close()
+
     def save_project_event(
         self,
         edited_project: projedit.EditableProject,
@@ -2267,14 +2348,21 @@ class MapTaskerEventHandlers:
         Dialog stays open on any error so the user's in-progress edit isn't lost.
         """
         save_path = field_refs["project_save_path"].value.strip()
-        try:
-            projedit.write_standalone_project_xml(edited_project.project_name, save_path)
-        except (OSError, ValueError) as e:
-            ui.notify(f"Could not save file: {e}", type="negative")
-            return
 
-        ui.notify(f"Saved Project '{edited_project.project_name}' to {save_path}", type="positive")
-        dialog.close()
+        def _write() -> None:
+            try:
+                projedit.write_standalone_project_xml(edited_project.project_name, save_path)
+            except (OSError, ValueError) as e:
+                ui.notify(f"Could not save file: {e}", type="negative")
+                return
+
+            ui.notify(f"Saved Project '{edited_project.project_name}' to {save_path}", type="positive")
+            dialog.close()
+
+        if projedit.save_path_exists(save_path):
+            build_overwrite_confirm_dialog(f"'{save_path}'", _write)
+            return
+        _write()
 
     def delete_project_event(self, edited_project: projedit.EditableProject, dialog: ui.dialog) -> None:
         """Opens the Delete Project confirmation dialog (Keep Contents / Delete
@@ -2356,6 +2444,41 @@ class MapTaskerEventHandlers:
             return
 
         build_edit_profile_dialog(the_view, edited_profile)
+
+    def delete_profile_event(self, edited_profile: profedit.EditableProfile, dialog: ui.dialog) -> None:
+        """Opens the Delete Profile confirmation dialog, nested inside Edit
+        Profile -- see build_delete_profile_dialog. Mirrors delete_project_event.
+        """
+        build_delete_profile_dialog(self.gui, edited_profile, dialog)
+
+    def confirm_delete_profile_event(
+        self,
+        profile_name: str,
+        confirm_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Deletes the Profile -- and only the Profile, its Entry/Exit Tasks are
+        kept (see profedit.delete_profile) -- then refreshes the pulldowns,
+        resets the now-stale single-name selection, and closes both dialogs.
+        Backs the confirmation dialog's "Delete Profile" button; mirrors
+        _finish_delete_project. Both dialogs stay open on error so nothing is lost.
+
+        The selection reset is required, not cosmetic: the Profile pulldown is
+        still pointing at the name just deleted, and leaving it there would let
+        Edit Profile reopen on a Profile that no longer resolves.
+        """
+        errors = profedit.delete_profile(profile_name)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        refresh_tasker_object_pulldowns(self.gui)
+        _reset_specific_name_selection(self.gui)
+
+        ui.notify(f"Deleted Profile '{profile_name}'. Its Tasks were kept.", type="positive")
+        confirm_dialog.close()
+        parent_dialog.close()
 
     def open_add_profile_dialog_event(self) -> None:
         """Opens the Add Profile dialog for a brand-new Profile, attached to the
@@ -2509,16 +2632,25 @@ class MapTaskerEventHandlers:
             return
 
         save_path = field_refs["save_path"].value
-        try:
-            profedit.write_standalone_profile_xml(edited_profile, save_path)
-        except OSError as e:
-            ui.notify(f"Could not save file: {e}", type="negative")
+
+        def _write() -> None:
+            try:
+                profedit.write_standalone_profile_xml(edited_profile, save_path)
+            except OSError as e:
+                ui.notify(f"Could not save file: {e}", type="negative")
+                return
+
+            profedit.apply_edited_profile_to_live_tree(edited_profile)
+
+            ui.notify(f"Saved to {save_path}", type="positive")
+            dialog.close()
+
+        # Unlike Add Profile's Save, this export had no up-front save_path_exists
+        # check (see _validate_and_apply_new_profile) -- confirm rather than clobber.
+        if profedit.save_path_exists(save_path):
+            build_overwrite_confirm_dialog(f"'{save_path}'", _write)
             return
-
-        profedit.apply_edited_profile_to_live_tree(edited_profile)
-
-        ui.notify(f"Saved to {save_path}", type="positive")
-        dialog.close()
+        _write()
 
     def keep_edited_profile_event(
         self,
@@ -2721,25 +2853,39 @@ class MapTaskerEventHandlers:
             return
 
         profile_name = field_refs["name"].value.strip()
-        return_code, result = profedit.save_profile_to_android(edited_profile, ip_address, ip_port, profile_name)
-        if return_code != 0:
-            ui.notify(f"Could not save to Android device: {result}", type="negative")
+
+        def _upload() -> None:
+            return_code, result = profedit.save_profile_to_android(edited_profile, ip_address, ip_port, profile_name)
+            if return_code != 0:
+                ui.notify(f"Could not save to Android device: {result}", type="negative")
+                return
+
+            # Remember the connection details for next time, same as the Get XML dialog does.
+            self.gui.android_ipaddr = ip_address
+            self.gui.android_port = ip_port
+
+            if is_new_profile:
+                profedit.register_new_profile(edited_profile, profile_name)
+                profedit.add_profile_to_project(edited_profile, project_name)
+            else:
+                profedit.apply_edited_profile_to_live_tree(edited_profile)
+            refresh_tasker_object_pulldowns(self.gui)
+
+            ui.notify(f"Profile saved to Android device at {result}", type="positive")
+            android_dialog.close()
+            parent_dialog.close()
+
+        # See save_project_to_android_event's identical check -- /upload clobbers silently.
+        device_path = profedit.android_profile_path(profile_name)
+        exists = file_exists_on_android(ip_address, ip_port, device_path)
+        if exists is not False:
+            build_overwrite_confirm_dialog(
+                f"'{device_path}' on the Android device",
+                _upload,
+                unknown=exists is None,
+            )
             return
-
-        # Remember the connection details for next time, same as the Get XML dialog does.
-        self.gui.android_ipaddr = ip_address
-        self.gui.android_port = ip_port
-
-        if is_new_profile:
-            profedit.register_new_profile(edited_profile, profile_name)
-            profedit.add_profile_to_project(edited_profile, project_name)
-        else:
-            profedit.apply_edited_profile_to_live_tree(edited_profile)
-        refresh_tasker_object_pulldowns(self.gui)
-
-        ui.notify(f"Profile saved to Android device at {result}", type="positive")
-        android_dialog.close()
-        parent_dialog.close()
+        _upload()
 
     def open_save_project_to_android_dialog_event(
         self,
@@ -2769,18 +2915,33 @@ class MapTaskerEventHandlers:
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
 
-        return_code, result = projedit.save_project_to_android(edited_project.project_name, ip_address, ip_port)
-        if return_code != 0:
-            ui.notify(f"Could not save to Android device: {result}", type="negative")
+        def _upload() -> None:
+            return_code, result = projedit.save_project_to_android(edited_project.project_name, ip_address, ip_port)
+            if return_code != 0:
+                ui.notify(f"Could not save to Android device: {result}", type="negative")
+                return
+
+            # Remember the connection details for next time, same as the Get XML dialog does.
+            self.gui.android_ipaddr = ip_address
+            self.gui.android_port = ip_port
+
+            ui.notify(f"Project saved to Android device at {result}", type="positive")
+            android_dialog.close()
+            parent_dialog.close()
+
+        # /upload overwrites silently and answers 200 either way, so the only way to
+        # know is to read the destination back first -- see maputil2.file_exists_on_android
+        # (None = couldn't tell, which still prompts rather than risking a silent clobber).
+        device_path = projedit.android_project_path(edited_project.project_name)
+        exists = file_exists_on_android(ip_address, ip_port, device_path)
+        if exists is not False:
+            build_overwrite_confirm_dialog(
+                f"'{device_path}' on the Android device",
+                _upload,
+                unknown=exists is None,
+            )
             return
-
-        # Remember the connection details for next time, same as the Get XML dialog does.
-        self.gui.android_ipaddr = ip_address
-        self.gui.android_port = ip_port
-
-        ui.notify(f"Project saved to Android device at {result}", type="positive")
-        android_dialog.close()
-        parent_dialog.close()
+        _upload()
 
     def open_add_task_dialog_event(self) -> None:
         """Opens the Add Task dialog for a brand-new Task, attached to the
@@ -3567,14 +3728,18 @@ class MapTaskerEventHandlers:
                         ("ai_task_optionmenu", the_view.single_task_name),
                     ]
 
-                # Batch update the dropdown values safely under the state lock
+                # Batch update the dropdown values safely under the state lock.
+                # Via select_pulldown_option, since a Project's option is
+                # "Project: <name>" and a Profile's "Profile: <name>", not the
+                # bare name held in single_project_name/single_profile_name --
+                # assigning the bare name would leave the pulldown blank.
                 try:
                     the_view.is_updating = True  # Engage the lock
                     for attr_name, target_value in menu_updates:
                         if hasattr(the_view, attr_name):
                             menu_widget = getattr(the_view, attr_name)
                             if menu_widget:
-                                menu_widget.value = target_value
+                                select_pulldown_option(menu_widget, target_value)
                 finally:
                     the_view.is_updating = False  # Always disengage the lock
 

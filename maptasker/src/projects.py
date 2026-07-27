@@ -155,7 +155,7 @@ def process_projects_and_their_profiles(
 # ################################################################################
 # Identify and format launcher Task for Project
 # ################################################################################
-def get_launcher_task(project: defusedxml.ElementTree, project_name: str) -> str:
+def get_launcher_task(project: defusedxml.ElementTree, _project_name: str) -> str:
     """
     If Project has a launcher Task, get it and format it for output
         :param project: xml element of Project we are processing
@@ -384,9 +384,7 @@ def get_extra_and_output_project(
 
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
     task_ids = get_ids(False, project, project_name, [])
-    task_names = sorted(
-        all_tasks[tid]["name"] for tid in task_ids if tid in all_tasks and all_tasks[tid]["name"]
-    )
+    task_names = sorted(all_tasks[tid]["name"] for tid in task_ids if tid in all_tasks and all_tasks[tid]["name"])
 
     project_label = build_tooltip_span(
         "Project:",

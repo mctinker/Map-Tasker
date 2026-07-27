@@ -48,8 +48,21 @@ if TYPE_CHECKING:
 from maptasker.src.primitem import PrimeItems
 
 BASE_PROJECT_NAME = "Base"
+# Destination folder on the Android device for Save To Android -- see android_project_path.
+ANDROID_PROJECT_LOCATION = "Tasker/projects"
+# Project children Tasker's own single-Project export leaves out, so
+# render_standalone_project_xml's output matches what Tasker itself produces.
+# Derived by diffing every Tasker-produced .prj.xml in this repo's sample data
+# against the same Project in a full backup: all four omit exactly these three,
+# consistently, and add nothing of their own.
+#
+# None of them is referenced from within an exported file, so dropping them costs
+# nothing: <pids>/<tids> point *outward* at Profile/Task ids and no element points
+# back at the Project, <clr> is the Project's UI tab colour, and <mdate> is a
+# last-modified stamp the importing device restamps anyway. <cdate> is deliberately
+# NOT here -- Tasker keeps it in exports.
+EXPORT_OMITTED_PROJECT_TAGS = ("clr", "id", "mdate")
 _PROJECT_SR_RE = re.compile(r"^proj(\d+)$")
-_XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
 
 
 @dataclass
@@ -117,7 +130,7 @@ def create_new_project(name: str) -> EditableProject | str:
     new_sr_id = max(existing_sr_ids, default=0) + 1
 
     element_cls = type(PrimeItems.xml_root)
-    project_element = element_cls("Project", {"sr": f"proj{new_sr_id}"})
+    project_element = element_cls("Project", {"sr": f"proj{new_sr_id}", "ve": "2"})
 
     now_millis = str(int(time.time() * 1000))
     for tag, text in (
@@ -258,6 +271,29 @@ def default_project_save_path(project_name: str) -> str:
     return os.path.join(os.getcwd(), f"{sanitize_filename(project_name)}.prj.xml")
 
 
+def save_path_exists(output_path: str) -> bool:
+    """Whether a file already sits at this save path (would be silently overwritten).
+    Mirrors profedit.save_path_exists/taskedit.save_path_exists.
+    """
+    return bool(output_path) and os.path.exists(output_path)
+
+
+def android_project_path(project_name: str) -> str:
+    """The absolute path a Save To Android of this Project would write to on the
+    device. Single source of truth for that path -- save_project_to_android
+    writes here, and the GUI's overwrite check reads it back through
+    maputil2.file_exists_on_android, so the two must never drift apart.
+
+    Note the path is derived from the *sanitized* name, so two differently-named
+    Projects can map to the same file (e.g. "Home/Work" and "Home_Work" both
+    become "Home_Work.prj.xml"), and a name that is empty or entirely illegal
+    characters falls back to "project.prj.xml" -- the overwrite prompt this
+    feeds is the only thing standing between those collisions and silent data
+    loss, since /upload itself reports success either way.
+    """
+    return f"/{ANDROID_PROJECT_LOCATION}/{sanitize_filename(project_name)}.prj.xml"
+
+
 def render_standalone_project_xml(project_name: str) -> str:
     """Render a Project as a standalone TaskerData/Project[/Profile...][/Task...]
     XML string -- the Project element followed by every Profile it owns and every
@@ -279,6 +315,56 @@ def render_standalone_project_xml(project_name: str) -> str:
     project_element = project_entry["xml"]
     tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
     project_copy = copy.deepcopy(project_element)
+    # Match Tasker's own single-Project export, which drops these three (see
+    # EXPORT_OMITTED_PROJECT_TAGS). Safe to mutate here because project_copy is a deep
+    # copy -- the live tree keeps all three, and the pids/tids reads below deliberately
+    # go through project_element (the live one), so they are unaffected regardless.
+    #
+    # Only the *Project's* children are stripped. The bundled Profiles and Tasks keep
+    # theirs: <pids>/<tids> and each Profile's <mid0>/<mid1> resolve by exactly those
+    # ids, so stripping those would break every link in the exported file.
+    for tag in EXPORT_OMITTED_PROJECT_TAGS:
+        child = project_copy.find(tag)
+        if child is not None:
+            project_copy.remove(child)
+
+    # Renumber the Project to sr="proj0". The sr attribute is a per-document 0-based
+    # serial index, not a stable identity: backup.xml's 78 Projects carry exactly
+    # proj0..proj77, and every Tasker-produced .prj.xml in this repo's sample data uses
+    # proj0 -- all six of them -- because a standalone export holds exactly one Project,
+    # which is therefore index 0.
+    #
+    # Without this the export inherits whatever index the Project happened to hold in
+    # the backup it came from (create_new_project hands a brand-new Project max+1, so a
+    # Project added to a 78-Project backup gets proj78). Tasker's importer then looks for
+    # the Project at index 0, finds nothing there, and fails the whole import with
+    # "no Project found" -- the Project element is plainly present in the file, just
+    # filed under an index that only meant anything inside its original backup.
+    #
+    # Only the Project is renumbered: genuine exports keep their Profiles' and Tasks'
+    # original sr values (e.g. Chat_GPT.prj.xml ships prof590 and task242, not prof0/
+    # task0), since those are resolved by <id> through <pids>/<tids> rather than by index.
+    project_copy.set("sr", "proj0")
+
+    # Emit <pids> before <tids>, the order real Tasker Projects use (their simple
+    # metadata children run alphabetically: cdate, clr, id, mdate, name, pids, scenes,
+    # tids -- so pids naturally precedes tids in every backup-sourced Project).
+    #
+    # A Project built in-app can end up the other way round: <tids> and <pids> are
+    # created lazily by profedit.add_task_to_project/add_profile_to_project, each
+    # appending its element the first time it is needed, so adding a Task before a
+    # Profile leaves tids first and the export inherits that order. Normalizing here
+    # rather than at creation time keeps this a property of the exported document,
+    # which is what has to match Tasker's format -- and costs nothing when the order
+    # is already right, which it is for every Project read from a backup.
+    pids_element = project_copy.find("pids")
+    tids_element = project_copy.find("tids")
+    if pids_element is not None and tids_element is not None:
+        children = list(project_copy)
+        if children.index(pids_element) > children.index(tids_element):
+            project_copy.remove(pids_element)
+            project_copy.insert(list(project_copy).index(tids_element), pids_element)
+
     # Match the parsed tree's actual Element class (see profedit.render_standalone_profile_xml's
     # identical note) -- defusedxml's hardened parser isn't necessarily xml.etree's own
     # C-accelerated Element, and ET.Element()/.append() enforce an exact type match.
@@ -324,7 +410,8 @@ def render_standalone_project_xml(project_name: str) -> str:
             root.append(copy.deepcopy(task_entry["xml"]))
 
     ETW.indent(root, space="\t")
-    return _XML_DECLARATION + ETW.tostring(root, encoding="unicode") + "\n"
+    # No <?xml ...?> declaration -- see profedit.render_standalone_profile_xml.
+    return ETW.tostring(root, encoding="unicode") + "\n"
 
 
 def write_standalone_project_xml(project_name: str, output_path: str) -> None:
@@ -361,14 +448,13 @@ def save_project_to_android(project_name: str, ip_address: str, ip_port: str) ->
     except ValueError as e:
         return 8, str(e)
 
-    filename = f"{sanitize_filename(project_name)}.prj.xml"
-    location = "Tasker/projects"
+    device_path = android_project_path(project_name)
+    filename = device_path.rsplit("/", 1)[-1]
 
-    return_code, response = http_upload_request(ip_address, ip_port, location, filename, xml_bytes)
+    return_code, response = http_upload_request(ip_address, ip_port, ANDROID_PROJECT_LOCATION, filename, xml_bytes)
     if return_code != 0:
         return return_code, str(response)
 
-    device_path = f"/{location}/{filename}"
     verify_code, verify_content = http_request(ip_address, ip_port, device_path, "file", "")
     if verify_code != 0 or verify_content != xml_bytes:
         return 8, f"Uploaded to {device_path}, but could not confirm it landed correctly."

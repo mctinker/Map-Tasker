@@ -713,6 +713,40 @@ def build_profiles(
     return profile_list
 
 
+def select_pulldown_option(optionmenu: ui.select, name: str) -> None:
+    """Points a 'Specific Name' pulldown at the option for `name`.
+
+    Has to resolve `name` to the actual option string rather than assign it
+    directly: the Project and Profile lists don't hold bare names -- each
+    Project is "Project: <name>" (userintr.MyGui.build_the_tree) and each
+    Profile "Profile: <name>" (build_profiles above), both built through
+    translate_string, so the exact prefix depends on the current language.
+    Assigning the bare name leaves the pulldown *blank*, since NiceGUI won't
+    display a value that isn't one of its options. Task names have no prefix
+    at all (get_tasker_objects reads all_tasks_by_name directly), hence the
+    exact-match check first, which also keeps a name that itself contains
+    ": " from being mis-split.
+
+    Note this assignment fires the widget's on_change unless the caller has
+    set self.is_updating (see userintr.single_project_name_event and friends) --
+    which is what makes it double as "select this, as if the user picked it"
+    for the Add Project/Profile/Task flows, and why the restore paths that
+    only want to *display* a name keep their existing is_updating guard.
+
+    No-op if nothing matches -- better to leave the previous selection showing
+    than to blank the pulldown with a value it can't render.
+    """
+    options = list(optionmenu.options or [])
+    if name in options:
+        optionmenu.value = name
+        return
+    # Split off the "<type>: " prefix only (maxsplit=1), so a name with its own
+    # ": " in it still compares whole.
+    match = next((option for option in options if option.split(": ", 1)[-1] == name), None)
+    if match is not None:
+        optionmenu.value = match
+
+
 def set_tasker_object_names(self: object) -> None:
     """Set names to display in pulldown menus based on current tasker object names."""
     # Translate the default values if possible
@@ -750,8 +784,9 @@ def _set_single_project_name(self: object, defaults: dict) -> None:
     text = f"{defaults['display_only']}{translate_string('Project')}"
     self.specific_name_msg = f"{text} '{self.single_project_name}'"
     try:
-        # NiceGUI uses .value instead of .set()
-        self.specific_project_optionmenu.value = self.single_project_name
+        # NiceGUI uses .value instead of .set() -- via select_pulldown_option,
+        # since the option is "Project: <name>", not the bare name.
+        select_pulldown_option(self.specific_project_optionmenu, self.single_project_name)
     except AttributeError:
         return
 
@@ -764,7 +799,8 @@ def _set_single_profile_name(self: object, defaults: dict) -> None:
     # Note: Fixed a missing opening single quote before the profile name from the original code
     self.specific_name_msg = f"{defaults['display_only']}{translate_string('Profile')} '{self.single_profile_name}'"
     try:
-        self.specific_profile_optionmenu.value = self.single_profile_name
+        # The option is "Profile: <name>", not the bare name -- see select_pulldown_option.
+        select_pulldown_option(self.specific_profile_optionmenu, self.single_profile_name)
     except AttributeError:
         return
 
@@ -776,7 +812,9 @@ def _set_single_task_name(self: object, defaults: dict) -> None:
     """Handles setting names when a single task name is available."""
     self.specific_name_msg = f"{defaults['display_only']}{translate_string('Task')} '{self.single_task_name}'"
     try:
-        self.specific_task_optionmenu.value = self.single_task_name
+        # Task options are bare names, but go through the same helper so an
+        # unmatched name no-ops rather than blanking the pulldown.
+        select_pulldown_option(self.specific_task_optionmenu, self.single_task_name)
     except AttributeError:
         return
 

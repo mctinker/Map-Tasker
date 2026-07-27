@@ -49,7 +49,6 @@ from maptasker.src.actionc import action_codes
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
 
-XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
 
 # Condition types offered in the GUI's "Condition Type" picker. Time/Day/App/Loc
 # have simple, well-known field sets, so add_condition_to_profile can add one
@@ -61,6 +60,8 @@ XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>
 # separately, the GUI showing a second "Event Type"/"State Type" picker
 # alongside this one once "Event"/"State" is chosen (see build_edit_profile_dialog).
 CONDITION_TYPES_ADDABLE = ("Time", "Day", "App", "Loc", "Event", "State")
+# Destination folder on the Android device for Save To Android -- see android_profile_path.
+ANDROID_PROFILE_LOCATION = "Tasker/profiles"
 # Every condition type this codebase recognizes (see condition.py's parse_profile_condition).
 _CONDITION_TAGS = ("Time", "Day", "State", "Event", "App", "Loc")
 # Profile children that are metadata, not conditions -- mirrors condition.py's
@@ -69,6 +70,9 @@ _CONDITION_TAGS = ("Time", "Day", "State", "Event", "App", "Loc")
 # two in the skip list, a Share or limit element appearing *after* a real
 # condition in a given backup could get miscounted as one there).
 _PROFILE_METADATA_TAGS = {"cdate", "edate", "flags", "id", "ProfileVariable", "nme", "pri", "Share", "limit"}
+# <flags> value given to a Profile created by Add Profile -- see create_new_profile
+# for the evidence behind 10 (bits 1+3) and what bit 1 means.
+NEW_PROFILE_FLAGS = "10"
 
 # 1=Sunday..7=Saturday, matching condition.py's own condition_day -- index 0 is
 # unused (the day numbers are 1-based) so the GUI can index this directly by day number.
@@ -167,6 +171,24 @@ def create_new_profile(name: str) -> EditableProfile | str:
     Id comes from taskedit.next_unique_task_or_profile_id, not just this
     backup's existing Profile ids -- see that function's docstring for why a
     new Profile and a new Task must draw from one shared counter.
+
+    <flags> is a bitfield every real Tasker Profile carries; 10 (bits 1+3) is
+    the overwhelming default -- 74% of the 1,565 Profiles across this repo's
+    sample backups, with the next most common (2) at 14%. Bit 1 specifically
+    marks a Profile as part of the live, installed configuration: comparing
+    the same Profile between a full backup and a standalone .prj.xml/.prf.xml
+    export shows the two differing by exactly that bit (set in the backup,
+    cleared in the export) in 53 of the 54 Profiles whose flags differ at all,
+    across 120 file-pair comparisons with no contradictions. Tasker omits the
+    element entirely when the value would be 0, which is why an exported
+    Profile whose live value was 2 has no <flags> at all. Bits 0/3/4/5 are
+    stable per-Profile settings with no other XML representation, so there's
+    nothing to derive them from -- hence a fixed sensible default rather than
+    anything computed.
+
+    Child order matches real Profiles, whose metadata children are
+    alphabetical (cdate, edate, flags, id, limit, mid0, nme) before the
+    condition elements -- same convention as create_new_project's.
     """
     if PrimeItems.xml_root is None:
         return "Load a Tasker backup file first (Add Profile needs it to generate a unique Profile ID)."
@@ -180,6 +202,7 @@ def create_new_profile(name: str) -> EditableProfile | str:
     for tag, text in (
         ("cdate", now_millis),
         ("edate", now_millis),
+        ("flags", NEW_PROFILE_FLAGS),
         ("id", str(new_id)),
         ("nme", name.strip()),
     ):
@@ -984,6 +1007,15 @@ def default_save_path(profile_name: str) -> str:
     return os.path.join(os.getcwd(), f"{sanitize_filename(profile_name)}.prf.xml")
 
 
+def android_profile_path(profile_name: str) -> str:
+    """The absolute path a Save To Android of this Profile would write to on the
+    device -- single source of truth for that path, mirroring
+    projedit.android_project_path (see it for the sanitized-name collision
+    caveat the overwrite prompt exists to catch).
+    """
+    return f"/{ANDROID_PROFILE_LOCATION}/{sanitize_filename(profile_name)}.prf.xml"
+
+
 def profile_name_exists(name: str) -> bool:
     """Whether a Profile with this name already exists in the currently loaded backup."""
     return name.strip() in PrimeItems.tasker_root_elements.get("all_profiles_by_name", {})
@@ -1025,7 +1057,11 @@ def render_standalone_profile_xml(edited_profile: EditableProfile) -> str:
             root.append(copy.deepcopy(task_entry["xml"]))
 
     ETW.indent(root, space="\t")
-    return XML_DECLARATION + ETW.tostring(root, encoding="unicode") + "\n"
+    # No <?xml ...?> declaration -- the standalone exports and the Save To Android
+    # upload deliberately start straight at <TaskerData>. (The full-backup write in
+    # maputil2.write_full_backup_to_current_file still emits one; that produces a
+    # whole backup file, not a standalone export.)
+    return ETW.tostring(root, encoding="unicode") + "\n"
 
 
 def write_standalone_profile_xml(edited_profile: EditableProfile, output_path: str) -> None:
@@ -1066,14 +1102,13 @@ def save_profile_to_android(
         return 8, "Android IP address and port are required."
 
     xml_bytes = render_standalone_profile_xml(edited_profile).encode("utf-8")
-    filename = f"{sanitize_filename(profile_name)}.prf.xml"
-    location = "Tasker/profiles"
+    device_path = android_profile_path(profile_name)
+    filename = device_path.rsplit("/", 1)[-1]
 
-    return_code, response = http_upload_request(ip_address, ip_port, location, filename, xml_bytes)
+    return_code, response = http_upload_request(ip_address, ip_port, ANDROID_PROFILE_LOCATION, filename, xml_bytes)
     if return_code != 0:
         return return_code, str(response)
 
-    device_path = f"/{location}/{filename}"
     verify_code, verify_content = http_request(ip_address, ip_port, device_path, "file", "")
     if verify_code != 0 or verify_content != xml_bytes:
         return 8, f"Uploaded to {device_path}, but could not confirm it landed correctly."
@@ -1187,6 +1222,69 @@ def add_task_to_project(task_id: str, project_name: str) -> None:
         existing_ids.append(task_id)
     _set_child_text(project_element, "tids", ",".join(existing_ids))
     touch_project_mdate(project_element)
+
+
+def count_profile_tasks(profile_name: str) -> int:
+    """How many distinct Tasks this Profile links as its Entry/Exit Task -- for
+    the delete confirmation's "these will be kept" line, so the user can see
+    exactly what is *not* being deleted. Read live at prompt time so it can't go
+    stale between opening Edit Profile and clicking Delete (same reasoning as
+    projedit.count_project_contents).
+    """
+    resolved = resolve_profile_by_name(profile_name)
+    if resolved is None:
+        return 0
+    _, live_element = resolved
+    # dict.fromkeys dedupes while preserving order -- a Profile may legitimately
+    # use the same Task for both Entry and Exit (see render_standalone_profile_xml).
+    return len(dict.fromkeys(child.text for child in live_element if "mid" in child.tag and child.text))
+
+
+def delete_profile(profile_name: str) -> list[str]:
+    """Deletes a Profile and nothing else -- its Entry/Exit Tasks are deliberately
+    left alone. Returns [] on success, else a list of error strings (mirrors
+    projedit.delete_project's convention), mutating nothing on error.
+
+    Unlike deleting a Project, there is no "keep contents"/"delete contents"
+    choice to make: a Task linked by a Profile is never *owned* by it. Ownership
+    lives in the Project's <tids> (see add_task_to_project), and the same Task can
+    be the Entry Task of a Profile in a completely different Project (see
+    projedit.render_standalone_project_xml's note on a real case in this repo's
+    sample data). Deleting the Tasks here could therefore rip a Task out from
+    under an unrelated Profile, so this only ever removes the Profile itself --
+    the Tasks stay in their Project's <tids> and remain visible everywhere.
+
+    Three things have to happen together, or the backup is left inconsistent:
+    drop the Profile from both lookup tables (all_profiles is keyed by id,
+    all_profiles_by_name by name -- see register_new_profile, which populates
+    both), and unlink it from whichever Project's <pids> lists it. That last one
+    is what actually removes it from the GUI pulldowns, Map, Diagram and Tree
+    views, none of which read the lookup tables directly -- they walk <pids> via
+    getids.get_ids (see add_profile_to_project's docstring, the mirror image of
+    this).
+
+    Scans every Project's <pids> rather than assuming a single owner: nothing in
+    the format prevents two Projects from listing the same Profile id, and
+    leaving a dangling id behind would make the Profile appear to still exist in
+    whichever view walked that Project.
+    """
+    resolved = resolve_profile_by_name(profile_name)
+    if resolved is None:
+        return [f"Profile '{profile_name}' no longer exists."]
+    profile_id, _ = resolved
+
+    for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+        project_element = project_entry["xml"]
+        pids_element = project_element.find("pids")
+        existing_ids = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
+        if profile_id not in existing_ids:
+            continue
+        _set_child_text(project_element, "pids", ",".join(i for i in existing_ids if i != profile_id))
+        touch_project_mdate(project_element)
+
+    PrimeItems.tasker_root_elements.get("all_profiles", {}).pop(profile_id, None)
+    PrimeItems.tasker_root_elements.get("all_profiles_by_name", {}).pop(profile_name, None)
+    return []
 
 
 def validate_new_profile_requirements(edited_profile: EditableProfile) -> list[str]:

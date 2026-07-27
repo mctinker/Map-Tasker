@@ -31,7 +31,6 @@ from maptasker.src.actiont import lookup_values
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 
-XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?>\n'
 
 
 @dataclass
@@ -1397,7 +1396,8 @@ def render_standalone_task_xml(edited_task: EditableTask) -> str:
     root.append(task_copy)
     ETW.indent(root, space="\t")
 
-    return XML_DECLARATION + ETW.tostring(root, encoding="unicode") + "\n"
+    # No <?xml ...?> declaration -- see profedit.render_standalone_profile_xml.
+    return ETW.tostring(root, encoding="unicode") + "\n"
 
 
 def write_standalone_task_xml(edited_task: EditableTask, output_path: str) -> None:

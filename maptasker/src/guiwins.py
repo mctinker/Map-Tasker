@@ -1048,6 +1048,15 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button("Cancel", on_click=dialog.close).props("outline")
+            delete_profile_button = ui.button(
+                "Delete Profile",
+                on_click=lambda: self.event_handlers.delete_profile_event(edited_profile, dialog),
+            ).classes("bg-red-500 text-white")
+            with delete_profile_button:
+                ui.tooltip(
+                    "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by "
+                    "the Project, not by the Profile, and the same Task can be used by other Profiles.",
+                )
             ui.button(
                 "Ok",
                 on_click=lambda: self.event_handlers.keep_edited_profile_event(edited_profile, field_refs, dialog),
@@ -1190,6 +1199,14 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
                 "Rename",
                 on_click=lambda: self.event_handlers.rename_project_event(edited_project, field_refs, dialog),
             ).classes("bg-blue-600")
+            ui.button(
+                "Save To Current File",
+                on_click=lambda: self.event_handlers.save_project_to_current_file_event(
+                    edited_project,
+                    field_refs,
+                    dialog,
+                ),
+            ).props("outline")
             project_to_android = ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_project_to_android_dialog_event(
@@ -1262,6 +1279,90 @@ def build_save_project_to_android_dialog(
                 ).style("white-space: pre-line")
 
     android_dialog.open()
+
+
+def build_overwrite_confirm_dialog(
+    what_exists: str,
+    on_confirm: Callable[[], None],
+    *,
+    unknown: bool = False,
+) -> None:
+    """Confirms overwriting something that is already there, before anything is
+    written. Backs every Save/Export path that would otherwise clobber a file
+    silently -- the local standalone exports and the Save To Android uploads
+    (see userintr's save_* handlers).
+
+    what_exists describes the thing in the user's terms (a full path); on_confirm
+    performs the write and is called only if they choose "Overwrite". Cancel
+    closes this dialog and leaves the parent Edit/Add dialog open, so nothing
+    in progress is lost -- same convention as build_delete_project_dialog.
+
+    unknown=True switches the wording for the case where existence could not be
+    determined at all (maputil2.file_exists_on_android returning None -- device
+    unreachable mid-check). That is deliberately still a prompt rather than a
+    silent write: the honest statement is "this might overwrite something", and
+    the user is the one who knows whether that matters.
+    """
+    title = "Could not check destination" if unknown else "Already exists"
+    body = (
+        f"Could not confirm whether {what_exists} already exists. Saving may overwrite it."
+        if unknown
+        else f"{what_exists} already exists and will be replaced."
+    )
+
+    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+        ui.label(title).classes("text-lg font-bold text-orange-600")
+        ui.label(body).classes("mt-1 break-all")
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=confirm_dialog.close).props("outline")
+
+            def _confirm() -> None:
+                # Close first: on_confirm may open its own dialog (or close the
+                # parent), and leaving this one stacked on top would hide it.
+                confirm_dialog.close()
+                on_confirm()
+
+            ui.button("Overwrite", on_click=_confirm).classes("bg-orange-600 text-white")
+
+    confirm_dialog.open()
+
+
+def build_delete_profile_dialog(
+    self: MyGui,
+    edited_profile: profedit.EditableProfile,
+    parent_dialog: ui.dialog,
+) -> None:
+    """Confirms deletion of a Profile. Unlike build_delete_project_dialog there is
+    no Keep/Delete Contents choice -- a Profile doesn't own its Entry/Exit Tasks
+    (see profedit.delete_profile), so they are always kept, and the dialog says so
+    explicitly rather than leaving the user to guess what "delete" reaches.
+
+    The linked-Task count is read live so it can't go stale between opening Edit
+    Profile and clicking Delete, same as build_delete_project_dialog's counts.
+    """
+    profile_name = edited_profile.profile_element.findtext("nme", "")
+    task_count = profedit.count_profile_tasks(profile_name)
+
+    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+        ui.label(f"Delete Profile '{profile_name}'").classes("text-lg font-bold text-red-600")
+        if task_count:
+            ui.label(
+                f"Its {task_count} linked Task(s) will be kept -- they belong to the Project, not to this Profile.",
+            ).classes("mt-1")
+        else:
+            ui.label("It has no linked Tasks.").classes("mt-1")
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=confirm_dialog.close).props("outline")
+            ui.button(
+                "Delete Profile",
+                on_click=lambda: self.event_handlers.confirm_delete_profile_event(
+                    profile_name,
+                    confirm_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-red-500 text-white")
+
+    confirm_dialog.open()
 
 
 def build_delete_project_dialog(
