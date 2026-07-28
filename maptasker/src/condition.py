@@ -175,8 +175,10 @@ def condition_state(
         if is_pretty and "Configuration Parameter(s):" in state:
             state = _reformat_html(state)
 
+        state = state.replace("&nbsp;&nbsp;", "  ")
+
         state = state.replace("\n", spaces)
-        condition_chunks.append(f"State: {state}")
+        condition_chunks.append(f"State: {state}  ")
 
         if is_inverted:
             condition_chunks.append(" <em>[inverted]</em>")
@@ -189,8 +191,6 @@ def condition_state(
         evaluated_results = {}
         _extract_condition(evaluated_results, "0", "", the_item)
         condition_chunks.append(f", Condition(s): {evaluated_results['arg0']['value']}")
-        # FIX
-        condition_chunks[-1] = condition_chunks[-1].replace("&nbsp;&nbsp;", "  ")
 
     # Collapse chunks
     the_output_condition = "".join(condition_chunks)

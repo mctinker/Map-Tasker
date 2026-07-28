@@ -39,8 +39,6 @@ import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/s
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from maptasker.src.maputil2 import http_post_request
-
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
@@ -48,7 +46,6 @@ from maptasker.src import taskedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
-
 
 # Condition types offered in the GUI's "Condition Type" picker. Time/Day/App/Loc
 # have simple, well-known field sets, so add_condition_to_profile can add one
@@ -1334,3 +1331,76 @@ def apply_edited_profile_to_live_tree(edited_profile: EditableProfile) -> None:
     if old_name in all_profiles_by_name and old_name != new_name:
         del all_profiles_by_name[old_name]
     all_profiles_by_name[new_name] = {"xml": edited_profile.profile_element, "id": edited_profile.profile_id}
+
+
+def apply_profile_rename(edited_profile: EditableProfile, new_name: str) -> list[str]:
+    """Validate a new Profile name on its own and, only if valid, write it into
+    the Profile copy's <nme>. Returns [] on success, else the error messages,
+    mutating nothing on error. Mirrors taskedit.apply_task_rename exactly.
+
+    One field, and -- unlike apply_edits_to_profile, which validates the whole
+    dialog and deliberately says nothing about other Profiles' names -- a rename
+    has to range over them, since two Profiles sharing a name would collide on
+    the all_profiles_by_name key (see rename_profile_in_live_tree) and make the
+    Profile pulldown ambiguous.
+
+    A no-op rename (new_name unchanged) is allowed through -- a Profile isn't a
+    conflict with itself.
+    """
+    new_name = new_name.strip()
+    current_name = edited_profile.profile_element.findtext("nme", "")
+
+    errors = []
+    if not new_name:
+        errors.append("Profile name cannot be empty.")
+    elif new_name != current_name and profile_name_exists(new_name):
+        errors.append(f"A Profile named '{new_name}' already exists in this backup. Choose a different name.")
+
+    if errors:
+        return errors
+
+    _set_child_text(edited_profile.profile_element, "nme", new_name)
+    return []
+
+
+def rename_profile_in_live_tree(edited_profile: EditableProfile) -> str:
+    """Renames an already-registered Profile in the in-memory backup: stamps the
+    new <nme> onto the element the Profile tables actually point at, and moves its
+    all_profiles_by_name entry to the new key (all_profiles is keyed by id, which
+    a rename doesn't change -- see register_new_profile). Returns the previous
+    name ("" if the Profile isn't registered, in which case nothing is done --
+    defense in depth; the GUI only ever passes a Profile just loaded via
+    load_profile_for_edit). Mirrors taskedit.rename_task_in_live_tree.
+
+    Renames in place rather than swapping the edited copy into the tables the way
+    apply_edited_profile_to_live_tree does, for the same reason as its Task
+    counterpart: that swap is right for Ok/Save, which commit the whole dialog,
+    but the copy also carries every change this dialog applies the moment it's
+    clicked rather than at Save time -- condition Add/Delete, Entry/Exit Task
+    Link/Unlink, an App condition's entry count (see apply_edits_to_profile's
+    docstring for that list) -- so swapping it in would quietly commit all of
+    that as a side effect of renaming.
+
+    The element written to is whatever all_profiles holds -- for a Profile straight
+    from the backup that IS the live tree's own element (taskerd.move_xml_to_table
+    never deep-copies), and for one already committed via Ok it's that earlier
+    copy. Either way it's the object maputil2.write_full_backup_to_current_file
+    splices into the saved file, so the new name survives a save; updating only
+    the table's "name" field would leave the written XML carrying the old one.
+    """
+    all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
+    entry = all_profiles.get(edited_profile.profile_id)
+    if entry is None:
+        return ""
+
+    old_name = entry["name"]
+    new_name = edited_profile.profile_element.findtext("nme", "") or old_name
+    live_element = entry["xml"]
+    _set_child_text(live_element, "nme", new_name)
+    entry["name"] = new_name
+
+    all_profiles_by_name = PrimeItems.tasker_root_elements.setdefault("all_profiles_by_name", {})
+    if old_name in all_profiles_by_name and old_name != new_name:
+        del all_profiles_by_name[old_name]
+    all_profiles_by_name[new_name] = {"xml": live_element, "id": edited_profile.profile_id}
+    return old_name

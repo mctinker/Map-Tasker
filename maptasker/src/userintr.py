@@ -52,10 +52,12 @@ from maptasker.src.guiwins import (
     build_add_task_dialog,
     build_delete_profile_dialog,
     build_delete_project_dialog,
+    build_delete_task_dialog,
     build_edit_profile_dialog,
     build_edit_project_dialog,
     build_edit_task_dialog,
     build_overwrite_confirm_dialog,
+    build_rename_dialog,
     build_save_profile_to_android_dialog,
     build_save_project_to_android_dialog,
     build_save_to_android_dialog,
@@ -1420,10 +1422,42 @@ def _finish_new_project(gui: MyGui, edited_project: projedit.EditableProject) ->
     select_pulldown_option(gui.specific_project_optionmenu, edited_project.project_name)
 
 
+def _element_is_live(element: object) -> bool:
+    """Whether a NiceGUI element can still be safely interacted with -- it hasn't
+    been deleted, and the client (the browser page) it was built for is still
+    around.
+
+    Needed because this app keeps references to elements across events: gui.textview
+    holds the rendered Map/Diagram/Tree view, and anything reaching into it later
+    (live re-colouring in handle_color_pick_event, un-highlighting in
+    clear_search_event) is one step removed from whether that view still exists.
+    Two things invalidate it -- "Clear" deletes the rendered view's elements (see
+    clear_view_event), and a browser reload replaces the client outright -- and
+    neither clears the attribute, so a plain truthiness check on it passes while the
+    element underneath is dead. Using one then raises RuntimeError("The client this
+    element belongs to has been deleted.") from inside NiceGUI's own element.client,
+    which reaches the user as a console traceback rather than anything actionable.
+
+    element.client raises rather than returning None once the client has been
+    garbage-collected, so that access is what has to be guarded; is_deleted covers
+    the other case, where the element itself was deleted but its client is still
+    alive (exactly what "Clear" leaves behind).
+    """
+    if not element or getattr(element, "is_deleted", False):
+        return False
+    try:
+        client = element.client
+    except RuntimeError:
+        return False
+    return not getattr(client, "is_deleted", False)
+
+
 def _reset_specific_name_selection(gui: MyGui) -> None:
     """Clears the single Project/Profile/Task selection and resets all three
-    'Specific Name' pulldowns to "None" -- for when a Rename/Delete Project
-    changes or removes the currently-selected name out from under them.
+    'Specific Name' pulldowns to "None" -- for when a Delete removes the
+    currently-selected name out from under them. Anything that merely *renames*
+    it uses _select_renamed_item instead: the object is still there, so it stays
+    selected under its new name.
     Mirrors the identical guarded reset in process_single_name_restore's
     invalid-name branch (userintr.py:538-545): the is_updating guard stops
     setting .value here from re-entering single_project_name_event/
@@ -1438,6 +1472,100 @@ def _reset_specific_name_selection(gui: MyGui) -> None:
         gui.specific_task_optionmenu.value = "None"
     finally:
         gui.is_updating = False
+
+
+def _pulldown_option_for_name(optionmenu: ui.select, item_type: str, new_name: str) -> str:
+    """The exact option string this 'Specific Name' pulldown lists for a
+    Project/Profile/Task called new_name -- what its .value has to be set to for
+    the selection to actually show.
+
+    The three pulldowns don't label their entries the same way. The Task one
+    lists plain names (guiutils.get_tasker_objects builds it straight from
+    all_tasks_by_name's keys), but the Project and Profile ones list them
+    prefixed with the item type -- "Project: $NewProject1", "Profile: My
+    Profile" -- built by MyGui.build_the_tree and guiutils.build_profiles
+    respectively. Assigning the bare name to those two sets a value that isn't
+    among the select's options, and NiceGUI then renders nothing at all, leaving
+    just the widget's own "Project"/"Profile" label showing as though nothing
+    were selected. (process_single_name_event strips that same prefix back off
+    when the user picks one by hand, which is the mirror image of this.)
+
+    Resolved against the widget's live options rather than by rebuilding the
+    prefix here, so it stays right whatever those two functions do with it --
+    including translation (both build their heads through translate_string).
+    Exact match first, then the translated "<type>: <name>" form, then any
+    option whose tail is exactly ": <name>". Falls back to the bare name if the
+    options don't have it at all -- no worse than not looking.
+    """
+    options = [option for option in (getattr(optionmenu, "options", None) or []) if isinstance(option, str)]
+    if new_name in options:
+        return new_name
+
+    prefixed = f"{translate_string(f'{item_type}:')} {new_name}"
+    if prefixed in options:
+        return prefixed
+
+    tail = f": {new_name}"
+    return next((option for option in options if option.endswith(tail)), new_name)
+
+
+def _select_renamed_item(gui: MyGui, item_type: str, new_name: str) -> None:
+    """Makes a just-renamed Project/Profile/Task the current single item and
+    points its 'Specific Name' pulldown at the new name -- the Rename
+    counterpart to _reset_specific_name_selection, which the rename handlers
+    used to call. Clearing the selection was only ever right because the
+    pulldown still held the *old* name; the object itself is still there and
+    still the one the user is working on, so following the rename is the
+    better answer than dropping the selection on the floor.
+
+    Also called by the three Save To Current File handlers, which apply the
+    Name field the same way "Ok" does and then rebuild the pulldowns by
+    re-parsing the file they just wrote -- so they must re-select *after* that
+    reload, and with the name that was actually applied. A save that didn't
+    change the name re-selects the same name, which is a harmless no-op.
+
+    item_type is "Project"/"Profile"/"Task", matching process_name_event's own
+    vocabulary and the specific_{project,profile,task}_optionmenu attribute names.
+
+    Two steps, in this order:
+
+    1. Point the pulldown at the new name -- as the option string that pulldown
+       actually lists it under, which for Project/Profile is not the bare name
+       (see _pulldown_option_for_name). It has to be set directly -- nothing
+       else does it (process_name_event only ever resets the *other* two, since
+       normally the user picking the name is what set this one). Guarded by
+       is_updating for the usual reason (see _reset_specific_name_selection):
+       assigning .value fires the select's on_change, which would re-enter
+       single_*_name_event for the name we're about to hand to
+       process_name_event anyway. The option lists must already have been
+       rebuilt (refresh_tasker_object_pulldowns) or the new name isn't among
+       this select's options yet and the assignment shows blank.
+
+    2. Run the rename through process_name_event, exactly as if the user had
+       just picked the new name from that pulldown -- it re-validates the name,
+       sets single_{project,profile,task}_name plus the matching
+       PrimeItems.program_arguments entry that the Map/Diagram/Tree runs read,
+       clears the other two selections (single-item selection is mutually
+       exclusive), and refreshes the "Display only ..." label.
+
+    No-op if the pulldown widget doesn't exist yet (defense in depth -- by the
+    time an Edit dialog is open the 'Specific Name' tab has long been built).
+    """
+    optionmenu = getattr(gui, f"specific_{item_type.lower()}_optionmenu", None)
+    if optionmenu is None:
+        return
+
+    try:
+        gui.is_updating = True
+        optionmenu.value = _pulldown_option_for_name(optionmenu, item_type, new_name)
+        optionmenu.update()
+    finally:
+        gui.is_updating = False
+
+    # The bare name, not the pulldown's prefixed label -- process_name_event
+    # stores it in single_{project,profile,task}_name/PrimeItems.program_arguments,
+    # where every consumer expects the name on its own.
+    gui.event_handlers.process_name_event(item_type, new_name)
 
 
 class MapTaskerEventHandlers:
@@ -1610,6 +1738,14 @@ class MapTaskerEventHandlers:
         """Clears the current view and resets the textview, closing any open Map/Diagram popout tabs."""
         if hasattr(self.gui, "content_container") and self.gui.content_container:
             self.gui.content_container.clear()
+
+        # Drop the reference to the view that was just deleted along with those
+        # elements. Everything that reaches back into a rendered view guards on this
+        # attribute being truthy (handle_color_pick_event's live re-colouring,
+        # clear_search_event's un-highlighting), so leaving the dead object here
+        # left them all working on elements that no longer exist. Back to False,
+        # the same "no view rendered" state MyGui starts in (see guiwins.py).
+        self.gui.textview = False
 
         # Close every Map/Diagram popout window this window opened (tracked in
         # window.mapTaskerPopouts, see _open_popout_window() above). Mirrors the cleanup done by
@@ -1969,6 +2105,116 @@ class MapTaskerEventHandlers:
 
         build_edit_task_dialog(the_view, edited_task)
 
+    def rename_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        title_label: ui.label,
+    ) -> None:
+        """Opens the Rename prompt for this Task, nested inside Edit Task -- see
+        build_rename_dialog. Backs the "Rename" button; mirrors
+        rename_profile_event/rename_project_event. The dialog's own Name field
+        is read-only, so the prompt is where the new name comes from.
+        """
+        build_rename_dialog(
+            self.gui,
+            "Task",
+            edited_task.task_element.findtext("nme", ""),
+            lambda new_name, rename_dialog: self.confirm_rename_task_event(
+                edited_task,
+                field_refs,
+                title_label,
+                new_name,
+                rename_dialog,
+            ),
+        )
+
+    def confirm_rename_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        title_label: ui.label,
+        new_name: str,
+        rename_dialog: ui.dialog,
+    ) -> None:
+        """Validates the name typed into the Rename prompt and, if it's good,
+        renames the Task in the live in-memory backup right away (see
+        taskedit.rename_task_in_live_tree), then refreshes the pulldowns and
+        re-selects the Task under its new name, so it stays the current single
+        Task and its pulldown follows the rename (see _select_renamed_item).
+        Backs the prompt's "Rename" button; mirrors
+        confirm_rename_profile_event. The prompt stays open on any error, with
+        what was typed still in it to fix.
+
+        Renames *only* the name, and leaves the Edit Task dialog open: it holds
+        far more in-progress state than a name (every action's arguments, plus
+        any action Add/Copy/Move/Delete already applied to the working copy),
+        and closing here would throw the argument edits away. So Rename is a
+        self-contained commit of one field the user can keep editing around --
+        the title, the read-only Name field and the default export path are all
+        brought up to date, and everything else stays pending until Ok/Save.
+        """
+        errors = taskedit.apply_task_rename(edited_task, new_name)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        old_name = taskedit.rename_task_in_live_tree(edited_task)
+        refresh_tasker_object_pulldowns(self.gui)
+        _select_renamed_item(self.gui, "Task", new_name)
+
+        title_label.set_text(f"Edit Task: {new_name}")
+        # Ok/Save still read this field and apply whatever is in it, so leaving
+        # the pre-rename name sitting there would let the next Ok rename the
+        # Task straight back.
+        field_refs["name"].value = new_name
+        # Only re-derive the export path if it's still the one this dialog
+        # defaulted to for the old name -- a path the user typed themselves is
+        # their choice and shouldn't be silently rewritten by a rename.
+        save_path_field = field_refs.get("save_path")
+        if save_path_field is not None and save_path_field.value == taskedit.default_save_path(old_name):
+            save_path_field.value = taskedit.default_save_path(new_name)
+
+        ui.notify(f"Renamed to '{new_name}'.", type="positive")
+        rename_dialog.close()
+
+    def delete_task_event(self, edited_task: taskedit.EditableTask, dialog: ui.dialog) -> None:
+        """Opens the Delete Task confirmation dialog, nested inside Edit Task --
+        see build_delete_task_dialog. Mirrors delete_profile_event/delete_project_event.
+        """
+        build_delete_task_dialog(self.gui, edited_task, dialog)
+
+    def confirm_delete_task_event(
+        self,
+        task_name: str,
+        confirm_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Deletes the Task, along with every reference to it from the Projects
+        that own it and the Profiles that run it (see taskedit.delete_task) --
+        then refreshes the pulldowns, resets the now-stale single-name selection,
+        and closes both dialogs. Backs the confirmation dialog's "Delete Task"
+        button; mirrors confirm_delete_profile_event. Both dialogs stay open on
+        error so nothing is lost.
+
+        The selection reset is required, not cosmetic: the Task pulldown is still
+        pointing at the name just deleted, and leaving it there would let Edit
+        Task reopen on a Task that no longer resolves.
+        """
+        errors = taskedit.delete_task(task_name)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        refresh_tasker_object_pulldowns(self.gui)
+        _reset_specific_name_selection(self.gui)
+
+        ui.notify(f"Deleted Task '{task_name}'.", type="positive")
+        confirm_dialog.close()
+        parent_dialog.close()
+
     def save_edited_task_event(
         self,
         edited_task: taskedit.EditableTask,
@@ -2044,6 +2290,12 @@ class MapTaskerEventHandlers:
         file is left untouched. Backs the "Save To Current File" button.
         Dialog stays open on any error so the user's in-progress edits aren't
         lost.
+
+        The Name field is applied here just as "Ok" applies it, so this can be a
+        rename too -- and the reload rebuilds the pulldowns from the file, which
+        would leave the Task pulldown on the old name. Re-selects the Task under
+        whatever name was actually applied, after the reload, the same way the
+        Rename button does (see _select_renamed_item).
         """
         if not _apply_edited_task(edited_task, field_refs):
             return
@@ -2055,6 +2307,11 @@ class MapTaskerEventHandlers:
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
+        # Read back off the element rather than the Name field: this is the name
+        # apply_edits_to_task actually wrote (stripped), i.e. the one now in the
+        # reloaded tables and the pulldown's options.
+        if applied_name := edited_task.task_element.findtext("nme", ""):
+            _select_renamed_item(self.gui, "Task", applied_name)
         ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
@@ -2257,19 +2514,49 @@ class MapTaskerEventHandlers:
     def rename_project_event(
         self,
         edited_project: projedit.EditableProject,
-        field_refs: dict,
         dialog: ui.dialog,
     ) -> None:
-        """Validates and applies the Edit Project dialog's Name field, renames
-        the Project in the live in-memory backup (moving its all_projects
-        entry to the new name -- see projedit.rename_project_in_live_tree),
-        then closes the dialog. Dialog stays open on any error so the user's
-        in-progress edit isn't lost.
+        """Opens the Rename prompt for this Project, nested inside Edit Project
+        -- see build_rename_dialog. Backs the "Rename" button; mirrors
+        rename_task_event/rename_profile_event. The dialog's own Name field is
+        read-only, so the prompt is where the new name comes from.
+        """
+        build_rename_dialog(
+            self.gui,
+            "Project",
+            edited_project.project_name,
+            lambda new_name, rename_dialog: self.confirm_rename_project_event(
+                edited_project,
+                new_name,
+                rename_dialog,
+                dialog,
+            ),
+        )
+
+    def confirm_rename_project_event(
+        self,
+        edited_project: projedit.EditableProject,
+        new_name: str,
+        rename_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Validates the name typed into the Rename prompt and applies it,
+        renaming the Project in the live in-memory backup (moving its
+        all_projects entry to the new name -- see
+        projedit.rename_project_in_live_tree), making it the current single
+        Project under that name (see _select_renamed_item), then closing both
+        the prompt and the Edit Project dialog. The prompt stays open on any
+        error, with what was typed still in it to fix.
+
+        Closes the Edit Project dialog on success, unlike its Task/Profile
+        counterparts, which keep theirs open: those hold a dialog full of
+        in-progress editing a rename shouldn't discard, whereas Edit Project's
+        remaining content is derived from the name (its title and its "Save as"
+        path), and this is the behavior that button has always had.
         """
         old_name = edited_project.project_name
-        name_value = field_refs["name"].value.strip()
 
-        errors = projedit.apply_edits_to_project(edited_project, name_value)
+        errors = projedit.apply_edits_to_project(edited_project, new_name)
         if errors:
             for error in errors:
                 ui.notify(error, type="negative")
@@ -2277,10 +2564,11 @@ class MapTaskerEventHandlers:
 
         projedit.rename_project_in_live_tree(old_name, edited_project)
         refresh_tasker_object_pulldowns(self.gui)
-        _reset_specific_name_selection(self.gui)
+        _select_renamed_item(self.gui, "Project", new_name)
 
-        ui.notify(f"Renamed to '{name_value}'.", type="positive")
-        dialog.close()
+        ui.notify(f"Renamed to '{new_name}'.", type="positive")
+        rename_dialog.close()
+        parent_dialog.close()
 
     def save_project_to_current_file_event(
         self,
@@ -2299,12 +2587,15 @@ class MapTaskerEventHandlers:
         File" button. Dialog stays open on any error so the user's
         in-progress edit isn't lost.
 
-        Also resets the single-name selection like Rename does (rather than
-        relying solely on _reload_saved_copy_and_refresh's pulldown-options
-        refresh): a Project's identity is its name (see
-        rename_project_in_live_tree), so a rename here -- unlike a Profile/
-        Task edit -- can leave the Project pulldown's .value pointing at a
-        name that no longer exists.
+        Follows the rename the same way the Rename button does
+        (_select_renamed_item), so the Project stays selected under its new
+        name -- but only after the reload, never before: this path replaces
+        every table wholesale by re-parsing the file it just wrote (see
+        _reload_saved_copy_and_refresh), so a selection made beforehand would
+        be pointing at state that no longer exists a moment later. Re-selecting
+        matters most here of the three: a Project's identity is its name (see
+        rename_project_in_live_tree), so a rename through this button would
+        otherwise leave the Project pulldown's .value on a name that's gone.
         """
         old_name = edited_project.project_name
         name_value = field_refs["name"].value.strip()
@@ -2326,7 +2617,7 @@ class MapTaskerEventHandlers:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
 
-        _reset_specific_name_selection(self.gui)
+        _select_renamed_item(self.gui, "Project", name_value)
         ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
@@ -2444,6 +2735,71 @@ class MapTaskerEventHandlers:
             return
 
         build_edit_profile_dialog(the_view, edited_profile)
+
+    def rename_profile_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        title_label: ui.label,
+    ) -> None:
+        """Opens the Rename prompt for this Profile, nested inside Edit Profile
+        -- see build_rename_dialog. Backs the "Rename" button; mirrors
+        rename_task_event. The dialog's own Name field is read-only, so the
+        prompt is where the new name comes from.
+        """
+        build_rename_dialog(
+            self.gui,
+            "Profile",
+            edited_profile.profile_element.findtext("nme", ""),
+            lambda new_name, rename_dialog: self.confirm_rename_profile_event(
+                edited_profile,
+                field_refs,
+                title_label,
+                new_name,
+                rename_dialog,
+            ),
+        )
+
+    def confirm_rename_profile_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        title_label: ui.label,
+        new_name: str,
+        rename_dialog: ui.dialog,
+    ) -> None:
+        """Validates the name typed into the Rename prompt and, if it's good,
+        renames the Profile in the live in-memory backup right away (see
+        profedit.rename_profile_in_live_tree), then refreshes the pulldowns and
+        re-selects the Profile under its new name, so it stays the current
+        single Profile and its pulldown follows the rename (see
+        _select_renamed_item). Backs the prompt's "Rename" button; mirrors
+        confirm_rename_task_event exactly, including leaving the Edit Profile
+        dialog open and renaming *only* the name, so the conditions and
+        Entry/Exit Task links still being edited stay pending until Ok/Save.
+        """
+        errors = profedit.apply_profile_rename(edited_profile, new_name)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        old_name = profedit.rename_profile_in_live_tree(edited_profile)
+        refresh_tasker_object_pulldowns(self.gui)
+        _select_renamed_item(self.gui, "Profile", new_name)
+
+        title_label.set_text(f"Edit Profile: {new_name}")
+        # Keeps Ok/Save from re-applying the pre-rename name -- see
+        # confirm_rename_task_event's identical note.
+        field_refs["name"].value = new_name
+        # Only re-derive the export path if it's still this dialog's default for
+        # the old name -- see confirm_rename_task_event's identical guard.
+        save_path_field = field_refs.get("save_path")
+        if save_path_field is not None and save_path_field.value == profedit.default_save_path(old_name):
+            save_path_field.value = profedit.default_save_path(new_name)
+
+        ui.notify(f"Renamed to '{new_name}'.", type="positive")
+        rename_dialog.close()
 
     def delete_profile_event(self, edited_profile: profedit.EditableProfile, dialog: ui.dialog) -> None:
         """Opens the Delete Profile confirmation dialog, nested inside Edit
@@ -2683,6 +3039,10 @@ class MapTaskerEventHandlers:
         file is left untouched. Backs the "Save To Current File" button.
         Dialog stays open on any error so the user's in-progress edits aren't
         lost.
+
+        Re-selects the Profile under whatever name was actually applied, after
+        the reload -- same reasoning as
+        save_edited_task_to_current_file_event's.
         """
         if not _apply_edited_profile(edited_profile, field_refs):
             return
@@ -2694,6 +3054,8 @@ class MapTaskerEventHandlers:
         if not reload_ok:
             ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
             return
+        if applied_name := edited_profile.profile_element.findtext("nme", ""):
+            _select_renamed_item(self.gui, "Profile", applied_name)
         ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
         dialog.close()
 
@@ -4036,17 +4398,26 @@ class MapTaskerEventHandlers:
             # rendered as `<span class="{css_class}">`, so overriding that class's color live
             # (with !important, since it must beat the color already embedded in the loaded
             # HTML's own <style> block) re-colors every matching element already on screen.
+            # Both branches reach into the *rendered* view, which may well not be
+            # there any more -- "Clear" deletes it (clear_view_event) and a browser
+            # reload replaces its client -- so the element is checked for life
+            # rather than mere existence; see _element_is_live for what touching a
+            # dead one does. Nothing is lost when it's gone: the colour has already
+            # been recorded above and the next view generated picks it up.
+            textview = getattr(the_view, "textview", None)
+            scroll_area = getattr(textview, "scroll_area", None) if textview else None
+            view_is_live = _element_is_live(scroll_area)
+
             if color_selected_item == "Background":
                 the_view.saved_background_color = make_hex_color(color_value)
-                if hasattr(the_view, "textview") and the_view.textview:  # noqa: SIM102
-                    if hasattr(the_view.textview, "scroll_area") and the_view.textview.scroll_area:
-                        the_view.textview.scroll_area.style(f"background-color: {color_value} !important;")
+                if view_is_live:
+                    scroll_area.style(f"background-color: {color_value} !important;")
+                else:
+                    ui.notify("The change will take effect the next time you open the view.", color="green")
 
             else:
                 css_class = TYPES_OF_COLOR_NAMES.get(color_selected_item)
-                textview = getattr(the_view, "textview", None)
-                scroll_area = getattr(textview, "scroll_area", None) if textview else None
-                if css_class and scroll_area:
+                if css_class and view_is_live:
                     with scroll_area:
                         ui.run_javascript(
                             f"""

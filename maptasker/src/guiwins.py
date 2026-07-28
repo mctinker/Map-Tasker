@@ -275,7 +275,10 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
     action" search/filter picker -- the same one Add Task uses -- that can insert
     the new action before/after any existing one or at the end, not just append;
     per-action Copy/Move/Delete; and the values of an action's existing arguments
-    -- see taskedit.py for what's editable and why).
+    -- see taskedit.py for what's editable and why). The Task Name field itself is
+    read-only: Rename prompts for a new one and applies it on its own, immediately
+    (see build_rename_dialog); Delete Task removes the Task and every reference to
+    it (see build_delete_task_dialog).
 
     Built fresh each call rather than reused, since its content is entirely different
     per Task. Field widgets are kept in a plain dict (matching this file's existing
@@ -296,10 +299,18 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
     position_labels: dict[str, int | None] = {}
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
-        ui.label(f"Edit Task: {task_name}").classes("text-xl font-bold text-blue-600")
+        # Kept as a local (not in field_refs -- _task_arg_values reads .value off
+        # every entry there, which a ui.label doesn't have) so Rename can retitle
+        # the still-open dialog: see rename_task_event.
+        title_label = ui.label(f"Edit Task: {task_name}").classes("text-xl font-bold text-blue-600")
 
         with ui.row().classes("w-full gap-4"):
-            field_refs["name"] = ui.input("Task Name", value=task_name).classes("flex-1")
+            # Read-only: an existing Task is renamed only through the Rename
+            # button's prompt (build_rename_dialog), which is the one path that
+            # rejects a name another Task already has. Rename writes the new
+            # name back into this field so Ok/Save, which still read it, don't
+            # apply the pre-rename name over the top.
+            field_refs["name"] = ui.input("Task Name", value=task_name).props("readonly").classes("flex-1")
             field_refs["priority"] = ui.input(
                 "Priority",
                 value=edited_task.task_element.findtext("pri", ""),
@@ -506,11 +517,31 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button("Cancel", on_click=dialog.close).props("outline")
+            delete_task_button = ui.button(
+                "Delete Task",
+                on_click=lambda: self.event_handlers.delete_task_event(edited_task, dialog),
+            ).classes("bg-red-500 text-white")
+            with delete_task_button:
+                ui.tooltip(
+                    "Deletes this Task and every reference to it: it is removed from the Tasks of every "
+                    "Project that owns it, and from any Profile that runs it as its Entry/Exit Task. "
+                    "The Profiles themselves are kept.",
+                )
+            rename_task_button = ui.button(
+                "Rename",
+                on_click=lambda: self.event_handlers.rename_task_event(edited_task, field_refs, title_label),
+            ).classes("bg-blue-600")
+            with rename_task_button:
+                ui.tooltip(
+                    "Prompts for a new name and applies just that to the loaded backup, right now. "
+                    "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
+                    "open so you can carry on editing.",
+                )
             ui.button(
                 "Ok",
                 on_click=lambda: self.event_handlers.keep_edited_task_event(edited_task, field_refs, dialog),
             ).props("outline")
-            ui.button(
+            task_to_current_file = ui.button(
                 "Save To Current File",
                 on_click=lambda: self.event_handlers.save_edited_task_to_current_file_event(
                     edited_task,
@@ -518,6 +549,17 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                     dialog,
                 ),
             ).props("outline")
+            with task_to_current_file:
+                ui.tooltip(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- "
+                    "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ).style("white-space: pre-line")
             task_to_android = ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
@@ -1022,10 +1064,12 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
 
 
 def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProfile) -> None:
-    """Builds and opens the Edit Profile dialog: Rename, Enabled/Disabled toggle,
-    Entry/Exit Task Link/Unlink, and per-condition Add/Edit/Delete (see
-    _build_profile_editor_body for the shared body this and build_add_profile_dialog
-    both render).
+    """Builds and opens the Edit Profile dialog: Rename (the Name field is
+    read-only -- Rename prompts for a new one and applies it on its own,
+    immediately; see build_rename_dialog), Delete Profile, Enabled/Disabled
+    toggle, Entry/Exit Task Link/Unlink, and per-condition Add/Edit/Delete
+    (see _build_profile_editor_body for the shared body this and
+    build_add_profile_dialog both render).
 
     Built fresh each call rather than reused, since its content is entirely different
     per Profile. Field widgets are kept in a plain dict (matching this file's existing
@@ -1035,9 +1079,14 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
     field_refs: dict = {}
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
-        ui.label(f"Edit Profile: {profile_name}").classes("text-xl font-bold text-blue-600")
+        # Kept as a local (not in field_refs, which is scanned by key for widgets
+        # to read .value off) so Rename can retitle the still-open dialog --
+        # see build_edit_task_dialog's identical note and rename_profile_event.
+        title_label = ui.label(f"Edit Profile: {profile_name}").classes("text-xl font-bold text-blue-600")
 
-        field_refs["name"] = ui.input("Profile Name", value=profile_name).classes("w-full")
+        # Read-only -- renamed only through the Rename button's prompt; see
+        # build_edit_task_dialog's identical Name field for why.
+        field_refs["name"] = ui.input("Profile Name", value=profile_name).props("readonly").classes("w-full")
 
         _build_profile_editor_body(self, edited_profile, field_refs)
 
@@ -1057,11 +1106,21 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
                     "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by "
                     "the Project, not by the Profile, and the same Task can be used by other Profiles.",
                 )
+            rename_profile_button = ui.button(
+                "Rename",
+                on_click=lambda: self.event_handlers.rename_profile_event(edited_profile, field_refs, title_label),
+            ).classes("bg-blue-600")
+            with rename_profile_button:
+                ui.tooltip(
+                    "Prompts for a new name and applies just that to the loaded backup, right now. "
+                    "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
+                    "open so you can carry on editing.",
+                )
             ui.button(
                 "Ok",
                 on_click=lambda: self.event_handlers.keep_edited_profile_event(edited_profile, field_refs, dialog),
             ).props("outline")
-            ui.button(
+            profile_to_current_file = ui.button(
                 "Save To Current File",
                 on_click=lambda: self.event_handlers.save_edited_profile_to_current_file_event(
                     edited_profile,
@@ -1069,6 +1128,17 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
                     dialog,
                 ),
             ).props("outline")
+            with profile_to_current_file:
+                ui.tooltip(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- "
+                    "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ).style("white-space: pre-line")
             profile_to_android = ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
@@ -1167,8 +1237,9 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
 
 
 def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
-    """Builds and opens the Edit Project dialog: Rename the Project, delete it
-    -- with a choice of what happens to the Profiles/Tasks it owns, see
+    """Builds and opens the Edit Project dialog: Rename the Project (the Name
+    field is read-only -- Rename prompts for the new one, see build_rename_dialog),
+    delete it -- with a choice of what happens to the Profiles/Tasks it owns, see
     build_delete_project_dialog -- or save it, and everything it owns, as one
     standalone .prj.xml file, either locally (projedit.write_standalone_project_xml)
     or onto the Android device under /Tasker/projects (projedit.save_project_to_android,
@@ -1182,7 +1253,9 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
     with ui.dialog() as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"Edit Project: {project_name}").classes("text-xl font-bold text-blue-600")
 
-        field_refs["name"] = ui.input("Project Name", value=project_name).classes("w-full")
+        # Read-only -- renamed only through the Rename button's prompt; see
+        # build_edit_task_dialog's identical Name field for why.
+        field_refs["name"] = ui.input("Project Name", value=project_name).props("readonly").classes("w-full")
 
         field_refs["project_save_path"] = ui.input(
             "Save as",
@@ -1195,11 +1268,16 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
                 "Delete Project",
                 on_click=lambda: self.event_handlers.delete_project_event(edited_project, dialog),
             ).classes("bg-red-500 text-white")
-            ui.button(
+            rename_project_button = ui.button(
                 "Rename",
-                on_click=lambda: self.event_handlers.rename_project_event(edited_project, field_refs, dialog),
+                on_click=lambda: self.event_handlers.rename_project_event(edited_project, dialog),
             ).classes("bg-blue-600")
-            ui.button(
+            with rename_project_button:
+                ui.tooltip(
+                    "Prompts for a new name and applies it to the loaded backup, right now. "
+                    "The Project Name field above is read-only -- this is the only way to change it.",
+                )
+            project_to_current_file = ui.button(
                 "Save To Current File",
                 on_click=lambda: self.event_handlers.save_project_to_current_file_event(
                     edited_project,
@@ -1207,6 +1285,17 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
                     dialog,
                 ),
             ).props("outline")
+            with project_to_current_file:
+                ui.tooltip(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- "
+                    "including every edit made anywhere in this session.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ).style("white-space: pre-line")
             project_to_android = ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_project_to_android_dialog_event(
@@ -1327,6 +1416,45 @@ def build_overwrite_confirm_dialog(
     confirm_dialog.open()
 
 
+def build_rename_dialog(
+    self: MyGui,  # noqa: ARG001
+    item_type: str,
+    current_name: str,
+    on_rename: Callable[[str, ui.dialog], None],
+) -> None:
+    """Prompts for a new name for a Project/Profile/Task, opened by the "Rename"
+    button in that item's Edit dialog.
+
+    The Edit dialogs' own Name field is read-only (see build_edit_task_dialog),
+    so this prompt is the only place an existing item's name can be typed. That
+    makes a rename an explicit, separately-confirmed action instead of a side
+    effect of Ok/Save, and it routes every rename through the one path that
+    checks the new name doesn't collide with another item's -- see
+    taskedit.apply_task_rename/profedit.apply_profile_rename/
+    projedit.apply_edits_to_project; Ok/Save's own apply_edits_to_task/
+    apply_edits_to_profile deliberately don't look at other items' names, so
+    typing into the old editable field could quietly produce two Tasks sharing
+    one name.
+
+    on_rename receives the typed name and this dialog, and owns closing it --
+    only on success, so a rejected name (empty, or already taken) leaves the
+    prompt open with the text still there to fix. Cancel closes just this
+    prompt and leaves the parent Edit dialog exactly as it was, same convention
+    as build_delete_profile_dialog.
+    """
+    with ui.dialog() as rename_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+        ui.label(f"Rename {item_type} '{current_name}'").classes("text-lg font-bold text-blue-600")
+        name_input = ui.input("New name", value=current_name).classes("w-full")
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=rename_dialog.close).props("outline")
+            ui.button(
+                "Rename",
+                on_click=lambda: on_rename(name_input.value.strip(), rename_dialog),
+            ).classes("bg-blue-600")
+
+    rename_dialog.open()
+
+
 def build_delete_profile_dialog(
     self: MyGui,
     edited_profile: profedit.EditableProfile,
@@ -1357,6 +1485,43 @@ def build_delete_profile_dialog(
                 "Delete Profile",
                 on_click=lambda: self.event_handlers.confirm_delete_profile_event(
                     profile_name,
+                    confirm_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-red-500 text-white")
+
+    confirm_dialog.open()
+
+
+def build_delete_task_dialog(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    parent_dialog: ui.dialog,
+) -> None:
+    """Confirms deletion of a Task. Like build_delete_profile_dialog there is no
+    Keep/Delete Contents choice -- a Task owns nothing below it -- but unlike a
+    Profile, other things point *at* a Task, so the dialog spells out exactly
+    which references go away with it (see taskedit.delete_task): the owning
+    Project(s)' Task list, and the Entry/Exit link of any Profile that runs it.
+
+    The reference counts are read live so they can't go stale between opening
+    Edit Task and clicking Delete, same as the Profile/Project dialogs' counts.
+    """
+    task_name = edited_task.task_element.findtext("nme", "")
+    project_count, profile_count = taskedit.count_task_references(task_name)
+
+    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+        ui.label(f"Delete Task '{task_name}'").classes("text-lg font-bold text-red-600")
+        ui.label(
+            f"It will be removed from {project_count} Project(s) and unlinked from "
+            f"{profile_count} Profile(s) that run it. Those Profiles themselves are kept.",
+        ).classes("mt-1")
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button("Cancel", on_click=confirm_dialog.close).props("outline")
+            ui.button(
+                "Delete Task",
+                on_click=lambda: self.event_handlers.confirm_delete_task_event(
+                    task_name,
                     confirm_dialog,
                     parent_dialog,
                 ),
@@ -1463,7 +1628,7 @@ def build_add_profile_dialog(
                 "Ok",
                 on_click=lambda: self.event_handlers.keep_new_profile_event(edited_profile, field_refs, dialog),
             ).props("outline")
-            ui.button(
+            new_profile_to_current_file = ui.button(
                 "Save To Current File",
                 on_click=lambda: self.event_handlers.save_new_profile_to_current_file_event(
                     edited_profile,
@@ -1471,6 +1636,17 @@ def build_add_profile_dialog(
                     dialog,
                 ),
             ).props("outline")
+            with new_profile_to_current_file:
+                ui.tooltip(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
+                    "with the new Profile added to its Project, the same way 'Ok' adds it.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ).style("white-space: pre-line")
             profile_to_android = ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
@@ -1705,7 +1881,7 @@ def build_add_task_dialog(
                     on_created=on_task_created,
                 ),
             ).props("outline")
-            ui.button(
+            new_task_to_current_file = ui.button(
                 "Save To Current File",
                 on_click=lambda: self.event_handlers.save_new_task_to_current_file_event(
                     edited_task,
@@ -1714,6 +1890,17 @@ def build_add_task_dialog(
                     on_created=on_task_created,
                 ),
             ).props("outline")
+            with new_task_to_current_file:
+                ui.tooltip(
+                    "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
+                    "with the new Task added to it, the same way 'Ok' adds it.\n"
+                    "It is written to a new, timestamped copy of the file currently loaded: "
+                    "backup.xml becomes backup_20260728_143005.xml.\n"
+                    "The file you loaded is never written to, so it is left exactly as it was.\n"
+                    "The app then switches to the new copy, which becomes the current file for any further "
+                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                    "This writes to this computer only -- nothing is sent to your Android device.",
+                ).style("white-space: pre-line")
             ui.button(
                 "Save To Android",
                 on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(

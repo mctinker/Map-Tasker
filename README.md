@@ -23,7 +23,7 @@
 
 # MapTasker
 
-## Display the Tasker Project(s), Profile(s), Task(s), and Scene(s) hierarchy in your browser based on Tasker's backup or exported XML file
+## Display/Edit the Tasker Project(s), Profile(s), Task(s), and Scene(s) in your browser based on Tasker's backup or exported XML file
 
 Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
@@ -37,7 +37,7 @@ This is an application in support of [Tasker](https://tasker.joaoapps.com/) that
 
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, and my phone was too small to navigate over my Projects, Profiles, Tasks and Scenes.  So I wrote a Python program to provide a complete map of my entire configuration in my web browser based on my Tasker backup XML file that I saved to my local desktop drive.
 
-Over time, I refined the map by providing many additional options.
+Over time, I refined the map by providing many additional options, including the ability to edit Tasker objects.
 
 The Tasker backup or other Tasker exported XML can either be manually uploaded to your PC/Mac/Linux/cloud drive, or this program can retrieve it directly from your Android device (see [Note 2](#2)).
 
@@ -61,6 +61,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.
 - Automatic update detection and optional installation of new versions.
 - Enhanced search capabilities.
+- Add and Edit Projects, Profiles, and Tasks
 
 ## Program Dependencies
 
@@ -216,6 +217,9 @@ Further details are available in the "Notes" section of this README.
 
 A: This is a known issue related to font metrics for these languages in the diagramming library.
 
+**Q: Why are some Task actions and Profile states/events not available for edit/addition?
+
+A: In some cases, these actions, events, or states require information that is only available on Android and/or within Tasker, itself.  Allowing an edit for these would result in an incomplete Task or Profile, causing a Tasker failure. 
 
 ## Notes
 
@@ -266,8 +270,8 @@ Llama based models are supported via [Ollama](https://ollama.com/), which you mu
 The supporting AI modules are not installed by default when MapTasker is installed.  Instead, they are dynamically installed upon first-use of the specific AI request.  In this way, if you do not plan to use AI, then you do not incur the overhead.
 
 
-### 6
-**Optional Inline Videos:**
+<!-- ### 6
+**Optional Inline Videos:** -->
 Currently not functional.
 <!-- 'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
 
@@ -326,6 +330,8 @@ MP4 videos are played directly from their source. -->
 - [x] Properly handle Task anchors with embedded HTML
 
 - [x] Multilingual Support
+
+- [x] Edit Support
 
 - [ ] Support additional plugins
 
@@ -387,6 +393,7 @@ We appreciate your help in making MapTasker better!
 ## Known Issues
 
 - Diagram connectors are misaligned if names are in Chinese, Korean or Japanese.
+- Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device.
 
 ## Contributions
 

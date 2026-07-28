@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.0.0b2] ??-Jul-2026  # FIX
+## [12.0.0] 28-Jul-2026  MAJOR UPDATE >>> EDIT FUNCTIONS
+
+- Added: Add Project/Profile/Task and Edit Project/Profile/Task
+- Added: Save Project/Profile/Task to Android, to the current file, or Export as a file to local drive.
+
+## Changes since Version 12.0.0b1 (Beta)
 
 ### Added
 
@@ -12,20 +17,24 @@ All notable changes to this project will be documented in this file!
 - Added: Add/Edit Task: Action indentation within 'If' 'End If' actions.
 - Added: Add/Edit Task: If statement validation before saving the Task.
 - Added: Add/Edit Task: Add an 'If' checkbox to all Task actions to set a condition for that action.
-- Added: Add/Edit Task: Added 'Conitnue Task After Error' to those Tasks that can fail.
+- Added: Add/Edit Task: Added 'Continue Task After Error' to those Tasks that can fail.
 - Added: Add/Edit Task: 'Perform Task' action now optionally allows for the selection of the Task name from a list of all Tasks.
+- Added: Add/Edit Task: 'Delete Task' and 'Rename' have been added to the Edit Task panel.
+- Added: Add/Edit Profile: 'Rename' has been added to the Edit Profile panel.
 
 ### Changed
 
 - Changed: The most recent Task action added is highlighted to distinquish it from all of the other actions.
 - Changed: The current Task action being added now prompts for the arguments immeidately.
 - Changed: 'Save Single Task' button renamed to 'Export Task', and 'Save Single Profile' to 'Export Profile'.
-- Changed: Project and Profile 'Save to Android' now saves the Project/Profile only to /Tasker/projects and /Tasker/projects, respectfully, on the Android device, since these can't be directly inserted into Tasker.
+- Changed: 'Save to Android' now saves the Project/Profile only to /Tasker/projects and /Tasker/projects, respectfully, on the Android device, since these can't be directly inserted into Tasker.
 
 ### Fixed
 
+- Fixed: Error 'The client this element belongs to has been deleted.' when setting a color after clearing the view.
 - Fixed: Error displayed: 'Error: Trying to validate "{task_name}" Task but it was not found in {current file}! All Projects, Profiles and Tasks will be displayed.'
 - Fixed: 'Save to Android' could often fail.
+- Fixed: State conditions are displaying without a space between it and its parameters in the Map view.
 
 ### Known Issue
 
@@ -35,6 +44,7 @@ lsof -i :8080
 For each PID listed in the output from the above terminal command, issue the following:
 kill -9 pid_number
 ...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
+- Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
 
 ## [12.0.0b1] 22-Jul-2026  MAJOR UPDATE
 

@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 from maptasker.src.actionc import action_codes
 from maptasker.src.actiont import lookup_values
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.projedit import touch_project_mdate
 from maptasker.src.shelsort import shell_sort
 
 
@@ -1345,6 +1346,80 @@ def apply_edits_to_task(
     return []
 
 
+def apply_task_rename(edited_task: EditableTask, new_name: str) -> list[str]:
+    """Validate a new Task name on its own and, only if valid, write it into the
+    Task copy's <nme>. Returns [] on success, else the error messages, mutating
+    nothing on error.
+
+    Mirrors projedit.apply_edits_to_project's shape rather than
+    apply_edits_to_task's: one field, and -- unlike that one, which validates
+    the whole dialog and deliberately says nothing about other Tasks' names --
+    a rename has to range over them, since two Tasks sharing a name would
+    collide on the all_tasks_by_name key (see rename_task_in_live_tree) and
+    make the Task pulldown ambiguous.
+
+    A no-op rename (new_name unchanged) is allowed through -- a Task isn't a
+    conflict with itself.
+    """
+    new_name = new_name.strip()
+    current_name = edited_task.task_element.findtext("nme", "")
+
+    errors = []
+    if not new_name:
+        errors.append("Task name cannot be empty.")
+    elif new_name != current_name and task_name_exists(new_name):
+        errors.append(f"A Task named '{new_name}' already exists in this backup. Choose a different name.")
+
+    if errors:
+        return errors
+
+    _set_child_text(edited_task.task_element, "nme", new_name)
+    return []
+
+
+def rename_task_in_live_tree(edited_task: EditableTask) -> str:
+    """Renames an already-registered Task in the in-memory backup: stamps the new
+    <nme> onto the element the Task tables actually point at, and moves its
+    all_tasks_by_name entry to the new key (all_tasks is keyed by id, which a
+    rename doesn't change -- see register_new_task). Returns the previous name
+    ("" if the Task isn't registered, in which case nothing is done -- defense in
+    depth; the GUI only ever passes a Task just loaded via load_task_for_edit).
+
+    Deliberately renames in place instead of swapping the edited copy into the
+    tables the way apply_edited_task_to_live_tree does. That swap is right for Ok/
+    Save, which commit the whole dialog, but wrong for Rename: the copy also
+    carries any action Add/Copy/Move/Delete already performed in the dialog (those
+    mutate it as they're clicked, unlike the argument fields, which are only read
+    at Ok/Save time), so swapping it in would quietly commit that half-finished
+    action editing as a side effect of renaming. Touching only <nme> keeps Rename
+    to exactly what it says, and leaves everything else pending until the user
+    commits it.
+
+    The element written to is whatever all_tasks holds -- for a Task straight from
+    the backup that IS the live tree's own element (taskerd.move_xml_to_table never
+    deep-copies), and for one already committed via Ok it's that earlier copy.
+    Either way it's the object maputil2.write_full_backup_to_current_file splices
+    into the saved file, so the new name survives a save; updating only the table's
+    "name" field would leave the written XML still carrying the old one.
+    """
+    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    entry = all_tasks.get(edited_task.task_id)
+    if entry is None:
+        return ""
+
+    old_name = entry["name"]
+    new_name = edited_task.task_element.findtext("nme", "") or old_name
+    live_element = entry["xml"]
+    _set_child_text(live_element, "nme", new_name)
+    entry["name"] = new_name
+
+    all_tasks_by_name = PrimeItems.tasker_root_elements.setdefault("all_tasks_by_name", {})
+    if old_name in all_tasks_by_name and old_name != new_name:
+        del all_tasks_by_name[old_name]
+    all_tasks_by_name[new_name] = {"xml": live_element, "id": edited_task.task_id}
+    return old_name
+
+
 def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
     child = parent.find(tag)
     if child is None:
@@ -1614,3 +1689,95 @@ def apply_edited_task_to_live_tree(edited_task: EditableTask) -> None:
     if old_name in all_tasks_by_name and old_name != new_name:
         del all_tasks_by_name[old_name]
     all_tasks_by_name[new_name] = {"xml": edited_task.task_element, "id": edited_task.task_id}
+
+
+def _project_task_ids(project_element: defusedxml.ElementTree.Element) -> list[str]:
+    """A Project's <tids> as a list of Task ids ([] if it owns none) -- the read
+    half of profedit.add_task_to_project's append-dedup, shared by
+    count_task_references and delete_task.
+    """
+    tids_element = project_element.find("tids")
+    return tids_element.text.split(",") if tids_element is not None and tids_element.text else []
+
+
+def count_task_references(task_name: str) -> tuple[int, int]:
+    """How many Projects own this Task (list it in their <tids>) and how many
+    Profiles link it as their Entry/Exit Task (<mid0>/<mid1>) -- for the Delete
+    confirmation dialog, so the user can see what deleting it reaches before
+    anything is mutated.
+
+    Read live at prompt time so the counts can't go stale between opening Edit
+    Task and clicking Delete (same reasoning as profedit.count_profile_tasks
+    and projedit.count_project_contents).
+    """
+    resolved = resolve_task_by_name(task_name)
+    if resolved is None:
+        return 0, 0
+    task_id, _ = resolved
+
+    project_count = sum(
+        1
+        for entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values()
+        if task_id in _project_task_ids(entry["xml"])
+    )
+    profile_count = sum(
+        1
+        for entry in PrimeItems.tasker_root_elements.get("all_profiles", {}).values()
+        if any("mid" in child.tag and child.text == task_id for child in entry["xml"])
+    )
+    return project_count, profile_count
+
+
+def delete_task(task_name: str) -> list[str]:
+    """Deletes a Task and every reference to it. Returns [] on success, else a
+    list of error strings (mirrors profedit.delete_profile/projedit.delete_project's
+    convention), mutating nothing on error.
+
+    Three things have to happen together, or the backup is left inconsistent:
+    drop the Task from both lookup tables (all_tasks is keyed by id,
+    all_tasks_by_name by name -- see register_new_task, which populates both),
+    unlink it from every Project's <tids>, and unlink it from any Profile that
+    names it as its Entry/Exit Task.
+
+    The <tids> half is what actually removes it from the Map/Diagram/Tree views
+    and the "Tasks not in any Profile" listing, none of which read the lookup
+    tables to find a Project's Tasks -- they walk <tids> (see
+    profedit.add_task_to_project, the mirror image of this, and
+    projects.do_tasks_in_project). Every Project is scanned rather than assuming
+    a single owner: nothing in the format prevents two Projects from listing the
+    same Task id, and a leftover id would make the Task appear to still exist in
+    whichever view walked that Project.
+
+    The <mid0>/<mid1> half matters for the same reason unlink_task_from_profile
+    exists, plus one of its own: ids are handed out as max-in-use + 1 (see
+    next_unique_task_or_profile_id), so deleting the highest-numbered Task frees
+    its id for the next Add Task -- a Profile still holding the old id would then
+    silently point at a completely unrelated new Task. Only the reference is
+    removed; the Profile itself is kept (deleting Profiles is Edit Profile's job).
+
+    Tasks referenced by *name* from another Task's "Perform Task" action are
+    deliberately not rewritten -- that's a plain string argument the user may
+    well want to repoint at a replacement Task, and silently editing other Tasks'
+    actions here would be a much wider mutation than "delete this Task".
+    """
+    resolved = resolve_task_by_name(task_name)
+    if resolved is None:
+        return [f"Task '{task_name}' no longer exists."]
+    task_id, _ = resolved
+
+    for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+        project_element = project_entry["xml"]
+        existing_ids = _project_task_ids(project_element)
+        if task_id not in existing_ids:
+            continue
+        _set_child_text(project_element, "tids", ",".join(i for i in existing_ids if i != task_id))
+        touch_project_mdate(project_element)
+
+    for profile_entry in PrimeItems.tasker_root_elements.get("all_profiles", {}).values():
+        profile_element = profile_entry["xml"]
+        for child in [c for c in profile_element if "mid" in c.tag and c.text == task_id]:
+            profile_element.remove(child)
+
+    PrimeItems.tasker_root_elements.get("all_tasks", {}).pop(task_id, None)
+    PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}).pop(task_name, None)
+    return []
