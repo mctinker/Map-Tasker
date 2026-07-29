@@ -16,6 +16,7 @@ import math
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
+    HOTLINK_STYLE,
     NORMAL_TAB,
     TABLE_BACKGROUND_COLOR,
     TABLE_BORDER,
@@ -24,12 +25,6 @@ from maptasker.src.sysconst import (
 )
 
 period = "."
-
-# The directory's <a> links sit inside a color-coded span (e.g. "profile_color"). NiceGUI's Map
-# view runs on Tailwind, whose CSS reset makes <a> inherit the parent span's color/text-decoration
-# instead of the browser's default link styling, so we set this explicitly (see maputils.py's
-# display_task_warnings() for the same fix applied to Task warning links).
-HOTLINK_STYLE = "color: #3399ff; text-decoration: underline;"
 
 
 # Search a list of lists for a given string.  Return True if found.

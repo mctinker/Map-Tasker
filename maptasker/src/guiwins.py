@@ -249,6 +249,25 @@ def _render_continue_after_error_checkbox(
     ).props("dense")
 
 
+def _render_plugin_configuration_warning(element: object, name: str) -> None:
+    """Renders the standing "configure this in Tasker" warning on an action's or a
+    condition's own panel, for a third-party plugin whose payload this tool can't
+    edit -- nothing at all for anything else (see
+    taskedit.tasker_configuration_warning). Shown in all three action/condition
+    lists (Edit Task, Add Task, Edit Profile's State/Event conditions), whether the
+    item was just added from bundle.py or read from the loaded backup.
+    """
+    warning = taskedit.tasker_configuration_warning(element, name)
+    if not warning:
+        return
+
+    with ui.row().classes(
+        "w-full items-center gap-2 p-2 mb-1 rounded bg-amber-100 dark:bg-amber-900 border border-amber-400",
+    ):
+        ui.icon("warning").classes("text-amber-700 dark:text-amber-300")
+        ui.label(warning).classes("text-xs text-amber-900 dark:text-amber-100")
+
+
 def build_if_variant_dialog(on_choice: Callable[[str], None]) -> None:
     """Prompts for how much of an If block to insert when the user picks the
     "If" action in an Add/Edit Task action picker: just the "If", "If" plus a
@@ -478,6 +497,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                         if action.code != taskedit.IF_ACTION_CODE:
                             _render_action_condition_checkbox(self, edited_task, action, condition_cache)
                         _render_continue_after_error_checkbox(self, edited_task, action)
+                        _render_plugin_configuration_warning(action.action_element, action.action_name)
 
                         if not action.args:
                             ui.label("No editable arguments.").classes("text-xs text-gray-500 italic")
@@ -813,6 +833,10 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     ).props("flat color=red dense").classes("mb-2")
 
                     if condition.cond_type in ("State", "Event"):
+                        _render_plugin_configuration_warning(
+                            condition.condition_element,
+                            profedit.get_condition_display_name(condition),
+                        )
                         if not condition.args:
                             ui.label(
                                 "No editable arguments (code not mapped, or this condition has none).",
@@ -1659,7 +1683,7 @@ def build_add_profile_dialog(
                 ui.tooltip(
                     "This will write the Profile as a standalone file onto your Android device, "
                     "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
-                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                    "The 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android "
                     "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
                     "The Android device must be on the same network, and the IP Address and Port must "
                     "match its Tasker server settings. No authorization prompt is needed for this.",
@@ -1788,6 +1812,7 @@ def build_add_task_dialog(
                         if action.code != taskedit.IF_ACTION_CODE:
                             _render_action_condition_checkbox(self, edited_task, action, condition_cache)
                         _render_continue_after_error_checkbox(self, edited_task, action)
+                        _render_plugin_configuration_warning(action.action_element, action.action_name)
                         for arg in action.args:
                             key = taskedit.arg_key(action.act_number, arg.arg_id)
                             with ui.row().classes("w-full items-center gap-2"):
@@ -1802,6 +1827,15 @@ def build_add_task_dialog(
                                     ).classes("flex-1")
                                 elif taskedit.is_perform_task_name_arg(action.code, arg):
                                     _render_task_name_field(self, action, arg, key, field_refs)
+                                elif arg.widget_kind == "readonly":
+                                    # A newly-added plugin action's payload (see
+                                    # taskedit._synthesize_bundle_arg): not editable here,
+                                    # and apply_arg_values skips it, so never a field_ref.
+                                    ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes(
+                                        "flex-1",
+                                    )
+                                    if arg.readonly_note:
+                                        ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
                                 else:  # "text" or "raw_fallback"
                                     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
                         ui.button(

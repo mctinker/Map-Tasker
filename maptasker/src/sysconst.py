@@ -227,6 +227,18 @@ NORMAL_TAB = '<span class="normtab"></span>'
 # Disabled Profile and Task indicator
 DISABLED = " [&#9940;&nbsp;DISABLED]"  # &#9940 = "⛔"
 
+# Styling every <a> we emit has to carry itself, because a link in our output always sits inside a
+# color-coded span (e.g. "profile_color", or a TaskerNet description's inline color/decoration) and
+# NiceGUI's Map view runs on Tailwind, whose CSS reset is:
+#     a { color: inherit; -webkit-text-decoration: inherit; text-decoration: inherit; }
+# That hands the anchor the surrounding span's color and its "text-decoration: none", so an
+# unstyled link renders identically to the text around it -- still clickable, but with nothing to
+# show it is a link. The standalone MapTasker.html file has no Tailwind, so the browser's own link
+# styling applies there and the same markup looks fine, which is what makes this easy to miss.
+# Shared by the directory hotlinks (dirout.py), the Task warning links (maputils.py) and the links
+# embedded in TaskerNet descriptions and Task action labels (format.py).
+HOTLINK_STYLE = "color: #3399ff; text-decoration: underline;"
+
 # Set up background color and border for tables
 TABLE_BACKGROUND_COLOR = "DarkSteelBlue" if darkdetect.isDark() else "PaleTurquois"
 TABLE_BORDER_COLOR = "DarkSlateGrey" if darkdetect.isDark() else "LightGrey"

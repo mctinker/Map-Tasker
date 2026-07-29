@@ -1158,6 +1158,20 @@ def _task_arg_values(field_refs: dict) -> dict[str, str]:
     return arg_values
 
 
+def _notify_if_plugin_needs_configuration(element: object, name: str) -> None:
+    """Warns, as a just-added Action/Event/State goes in, that it is a third-party
+    plugin whose own configuration can only be set inside Tasker -- see
+    taskedit.tasker_configuration_warning, which decides whether one is warranted
+    (nothing is shown for anything that isn't a plugin). The item's own panel in
+    the dialog carries the same warning standing (guiwins.
+    _render_plugin_configuration_warning); this is the moment-of-adding nudge, so
+    it isn't missed in a long action list.
+    """
+    warning = taskedit.tasker_configuration_warning(element, name)
+    if warning:
+        ui.notify(warning, type="warning", multi_line=True, timeout=8000)
+
+
 def _reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool, str]:
     """After Save To Current File writes a new, timestamped copy of the backup
     (see maputil2.write_full_backup_to_current_file -- the original file it
@@ -2940,6 +2954,8 @@ class MapTaskerEventHandlers:
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
+            return
+        _notify_if_plugin_needs_configuration(result.condition_element, profedit.get_condition_display_name(result))
 
     def add_state_condition_to_profile_event(self, edited_profile: profedit.EditableProfile, state_key: str) -> None:
         """Synthesizes and appends a new State condition to the Profile being edited."""
@@ -2950,6 +2966,8 @@ class MapTaskerEventHandlers:
         if isinstance(result, list):
             for error in result:
                 ui.notify(error, type="negative")
+            return
+        _notify_if_plugin_needs_configuration(result.condition_element, profedit.get_condition_display_name(result))
 
     def add_app_entry_event(self, edited_profile: profedit.EditableProfile, cond_index: int) -> None:
         """Adds a blank app entry to an App condition being edited."""
@@ -3357,6 +3375,7 @@ class MapTaskerEventHandlers:
             for error in result:
                 ui.notify(error, type="negative")
             return None
+        _notify_if_plugin_needs_configuration(result.action_element, result.action_name)
         return result.act_number
 
     def add_if_block_to_new_task_event(
@@ -3407,6 +3426,7 @@ class MapTaskerEventHandlers:
             for error in result:
                 ui.notify(error, type="negative")
             return None
+        _notify_if_plugin_needs_configuration(result.action_element, result.action_name)
         return result.act_number
 
     def add_if_block_to_edit_task_event(

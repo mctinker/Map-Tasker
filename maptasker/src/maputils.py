@@ -35,7 +35,7 @@ from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.getids import get_ids
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import FormatLine, logger, logging
+from maptasker.src.sysconst import HOTLINK_STYLE, FormatLine, logger, logging
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldata import rewrite_xml
 
@@ -309,11 +309,9 @@ def display_task_warnings() -> None:
         # Build the hotlink to the Task.
         href_name = _fix_hyperlink_name(task_name)
         # Build the hyperelink reference.  The explicit color/underline is needed because this
-        # link sits inside a "trailing_comments_color" span: NiceGUI's Map view runs on Tailwind,
-        # whose CSS reset makes <a> inherit the parent span's color/text-decoration instead of
-        # the browser's default link styling, so without this it renders as plain, unclickable-
-        # looking text (it's still a real, working link either way).
-        href = f'<a href=#tasks_{href_name} style="color: #3399ff; text-decoration: underline;">{task_name}</a>'
+        # link sits inside a "trailing_comments_color" span -- see sysconst.HOTLINK_STYLE for
+        # why an unstyled <a> disappears into its surroundings in the Map view.
+        href = f'<a href=#tasks_{href_name} style="{HOTLINK_STYLE}">{task_name}</a>'
 
         # Add the warning to the list.
         warnings.append(f"{task_translated} {href} {has_translated} {value['count']} {actions_translated}")

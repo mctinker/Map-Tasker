@@ -2,14 +2,35 @@
 
 All notable changes to this project will be documented in this file!
 
+## [12.0.1] ??-Jul-2026  # FIX
+
+### Added
+
+- Added:
+
+### Changed
+
+- Changed:
+
+### Fixed
+
+- Fixed: TaskerNet descriptions with html hotlinks are not 'hot'.
+- Fixed: 'Add/Edit': Task actions, Profile states, and Profile events that were unsupported due to missing XML 'Bundle' statements are now supported.  Now supports an additional 144 Task actions and 56 Event/State conditions.
+
+### Known Issue
+
+- It is unlikely but possible to have a previous browser task preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
+you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
+lsof -i :8080
+For each PID listed in the output from the above terminal command, issue the following:
+kill -9 pid_number
+...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
+- Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
+
 ## [12.0.0] 28-Jul-2026  MAJOR UPDATE >>> EDIT FUNCTIONS
 
 - Added: Add Project/Profile/Task and Edit Project/Profile/Task
 - Added: Save Project/Profile/Task to Android, to the current file, or Export as a file to local drive.
-
-## Changes since Version 12.0.0b1 (Beta)
-
-### Added
 
 - Added: 'Add/Edit Project' functions are now available.
 - Added: Add/Edit Task: All actions edited or added can now include a label.
@@ -21,30 +42,15 @@ All notable changes to this project will be documented in this file!
 - Added: Add/Edit Task: 'Perform Task' action now optionally allows for the selection of the Task name from a list of all Tasks.
 - Added: Add/Edit Task: 'Delete Task' and 'Rename' have been added to the Edit Task panel.
 - Added: Add/Edit Profile: 'Rename' has been added to the Edit Profile panel.
-
-### Changed
-
 - Changed: The most recent Task action added is highlighted to distinquish it from all of the other actions.
 - Changed: The current Task action being added now prompts for the arguments immeidately.
 - Changed: 'Save Single Task' button renamed to 'Export Task', and 'Save Single Profile' to 'Export Profile'.
 - Changed: 'Save to Android' now saves the Project/Profile only to /Tasker/projects and /Tasker/projects, respectfully, on the Android device, since these can't be directly inserted into Tasker.
-
-### Fixed
-
+- Fixed: Links in TaskerNet descriptions (and Task action labels) were not identifiable as hotlinks in the Map view, and now open in a new browser tab.
 - Fixed: Error 'The client this element belongs to has been deleted.' when setting a color after clearing the view.
 - Fixed: Error displayed: 'Error: Trying to validate "{task_name}" Task but it was not found in {current file}! All Projects, Profiles and Tasks will be displayed.'
 - Fixed: 'Save to Android' could often fail.
 - Fixed: State conditions are displaying without a space between it and its parameters in the Map view.
-
-### Known Issue
-
-- It is unlikely but possible to have a previous browser task preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
-you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
-lsof -i :8080
-For each PID listed in the output from the above terminal command, issue the following:
-kill -9 pid_number
-...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
-- Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
 
 ## [12.0.0b1] 22-Jul-2026  MAJOR UPDATE
 

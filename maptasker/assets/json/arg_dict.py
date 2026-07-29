@@ -6012,7 +6012,15 @@ from collections import namedtuple
     ),
     "5s": ActionCode(
         redirect="",
-        args=[],
+        args=[
+            ArgumentCode(arg_id="0", arg_required=False, arg_name="", arg_type="1", arg_eval="Title="),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Location="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Description="),
+            ArgumentCode(arg_id="3", arg_required=False, arg_name="", arg_type="1", arg_eval=[", Mode=", "l", "5s"]),
+            ArgumentCode(arg_id="4", arg_required=False, arg_name="", arg_type="1", arg_eval=", Calendar="),
+            ArgumentCode(arg_id="5", arg_required=False, arg_name="", arg_type="0", arg_eval=", Start Early (Minutes)="),
+            ArgumentCode(arg_id="6", arg_required=False, arg_name="", arg_type="0", arg_eval=", End Late (Minutes)="),
+        ],
         name="Calendar Entry",
         category="",
         canfail="",

@@ -7,7 +7,7 @@ from itertools import zip_longest
 
 from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import pattern2, pattern8, pattern9, pattern10, pattern15
+from maptasker.src.sysconst import HOTLINK_STYLE, pattern2, pattern8, pattern9, pattern10, pattern15
 
 
 # Given a line in the output queue, reformat it before writing to file
@@ -749,9 +749,21 @@ def format_label(lbl: str) -> str:
                 css_styles += ";font-weight: bold;"
             if lbl_style.get("is_table_cell"):
                 css_styles += ";is_table;"
-            # Add default link styling if is_link is True. The text-decoration is already handled by the underline check.
+            # Style the link explicitly rather than leaving it to the browser's default: the
+            # anchor is about to be wrapped in a span carrying this segment's color and
+            # "text-decoration: none", and the Map view's Tailwind reset makes an <a> inherit
+            # both, which renders the link exactly like the text around it -- see
+            # sysconst.HOTLINK_STYLE. Same styling the directory and Task warning links use, so
+            # every hotlink in the output looks the same.
+            #
+            # An external link also opens in a new tab: in the Map view the output is rendered
+            # inside the running app's own page, so following a TaskerNet link in place would
+            # navigate away from MapTasker itself. In-page targets (href="#...", e.g. the
+            # directory's own anchors) deliberately stay in this tab -- that is the whole point
+            # of them.
             if lbl_link:
-                lbl_text = f'<a href="{lbl_href}">{lbl_text}</a>'
+                new_tab = "" if str(lbl_href).startswith("#") else ' target="_blank" rel="noopener noreferrer"'
+                lbl_text = f'<a href="{lbl_href}" style="{HOTLINK_STYLE}"{new_tab}>{lbl_text}</a>'
 
             css_styles = css_styles.replace(";;", ";")
 

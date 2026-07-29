@@ -430,6 +430,14 @@ def start_up() -> dict:
     build_all = False
     build_action_codes_from_json(build_it_all=build_all)
     if build_all:
+        # Only do these imports if building the entire dictionary from scratch.
+        from maptasker.src.bldargs import build_arguments  # noqa: PLC0415
+        from maptasker.src.bldbndle import build_bundles  # noqa: PLC0415
+
+        # Build the <Bundle> dictionary ('bundle.py') from the backup xml.
+        build_bundles()
+        # Add any arguments the backup xml uses that 'actionc.py' doesn't declare.
+        build_arguments()
         exit_program(0)
     # END OF DEVELOPMENT CODE
 
