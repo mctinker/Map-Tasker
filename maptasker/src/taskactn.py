@@ -187,6 +187,17 @@ def get_task_actions_and_output(
         elif UNNAMED in the_item and ("Entry Task" in the_item or "Exit" in the_item):
             PrimeItems.task_count_unnamed += 1
 
+        # Still no Task?  The unnamed Task's name in the output line can carry display-only
+        # markup that defeats the name lookup above: 'pretty' inserts '<br>' in front of the
+        # '[' in a name like 'Media Control Cmd=Play [Simula....799 (Unnamed)' (see
+        # tasks.do_single_task).  Every unnamed Task name ends in '.{task id} (Unnamed)',
+        # so fall back to finding the Task by its ID.
+        if the_task is None and UNNAMED in task_name and "." in task_name:
+            task_id = get_taskid_from_unnamed_task(task_name)
+            if task_info := PrimeItems.tasker_root_elements["all_tasks"].get(task_id):
+                the_task = task_info["xml"]
+                task_name = task_info["name"]
+
         # Keep tabs on the tasks processed so far.
         if task_id not in tasks_found:
             tasks_found.append(task_id)

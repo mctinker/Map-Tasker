@@ -6,8 +6,6 @@
 #            italisized.  Also used for some utility functions.                        #
 #                                                                                      #
 
-import tkinter as tk
-
 from maptasker.src.primitem import PrimeItems
 
 
@@ -46,18 +44,3 @@ def add_name_attribute(name: str) -> str:
         end_underline = "</u>"
 
     return f"{underline}{highlight}{bold}{italicize}{name}{end_italicize}{end_bold}{end_highlight}{end_underline}"
-
-
-# Get Tkinter (can only get it once)
-def get_tk() -> None:
-    """
-    Initialize tkinter root window
-    Args:
-        None
-    Returns:
-        None
-    - Check if PrimeItems.tkroot already exists
-    - If not, initialize new Tkinter root window object and assign to PrimeItems.tkroot
-    - Return PrimeItems.tkroot"""
-    if PrimeItems.tkroot is None:
-        PrimeItems.tkroot = tk.Tk()

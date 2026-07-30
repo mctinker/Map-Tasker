@@ -3,6 +3,7 @@
 import contextlib
 import pickle
 import sys
+import time
 import webbrowser
 from collections.abc import Callable
 from typing import TYPE_CHECKING
@@ -20,11 +21,14 @@ from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.guiutils import (
+    SINGLE_ITEM_LABELS,
     add_logo,
     build_profiles,
     check_for_changelog,
     check_new_version,
     clear_android_buttons,
+    clear_single_item_names,
+    clear_single_item_view_names,
     create_changelog,
     display_analyze_button,
     display_current_file,
@@ -36,6 +40,7 @@ from maptasker.src.guiutils import (
     ping_android_device,
     refresh_tasker_object_pulldowns,
     reload_gui,
+    reset_single_item_pulldowns,
     select_pulldown_option,
     set_ai_key,
     set_tasker_object_names,
@@ -62,8 +67,11 @@ from maptasker.src.guiwins import (
     build_save_project_to_android_dialog,
     build_save_to_android_dialog,
     create_popup_window,
+    element_is_live,
+    forget_views,
     initialize_gui,
     initialize_screen,
+    live_views,
 )
 from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
@@ -83,7 +91,12 @@ from maptasker.src.maputils import (
     update_maptasker,
 )
 from maptasker.src.outline import outline_the_configuration
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import (
+    PrimeItems,
+    initial_directory_items,
+    initial_found_named_items,
+    initial_grand_totals,
+)
 from maptasker.src.rungui import capture_gui_state
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
@@ -229,6 +242,7 @@ class MyGui:
         self.single_project_name = ""
         self.single_profile_name = ""
         self.single_task_name = ""
+        self.single_scene_name = ""
         self.file = ""
         self.appearance_mode = "system"
 
@@ -504,11 +518,7 @@ class MyGui:
         # 3. Optimized Mutual Exclusivity Check
         # Instead of nested elifs, we check the 'truthiness' count
         else:
-            names = [
-                ("Project", self.single_project_name),
-                ("Profile", self.single_profile_name),
-                ("Task", self.single_task_name),
-            ]
+            names = [(label, getattr(self, f"single_{label.lower()}_name", "")) for label in SINGLE_ITEM_LABELS]
             # Count how many single_xxx_name names are set
             active_names = [n for n in names if n[1]]
 
@@ -518,7 +528,7 @@ class MyGui:
                 error_message = [
                     "Error:\n\n",
                     f"You have entered both a {n1[0]} and a {n2[0]} name!\n",
-                    f"(Project {n1[1]} and Profile {n2[1]})\n",
+                    f"({n1[0]} {n1[1]} and {n2[0]} {n2[1]})\n",
                     "Try again and only select one.\n",
                 ]
 
@@ -542,22 +552,19 @@ class MyGui:
                         error_message = [f'{front_error}, but the "Cancel" was selected!\n']
 
                     # Clear the stale single-item names up front (not just in the shared
-                    # tail below) and reset all three pulldowns to "None" directly --
+                    # tail below) and reset every pulldown to "None" directly --
                     # set_tasker_object_names only acts on whichever single_*_name is still
                     # set, so once we've cleared them here it would be a no-op and leave the
                     # pulldowns showing the now-invalid name. Guarded by is_updating: setting
                     # a NiceGUI select's .value fires its on_change (single_project_name_event
                     # etc.), which would otherwise re-enter check_name for the same name, fail
                     # valid_item the same way, and recurse into this same branch forever --
-                    # single_project_name_event/single_profile_name_event/single_task_name_event
-                    # already no-op while self.is_updating is True specifically to guard
-                    # against this.
-                    self.single_project_name = self.single_profile_name = self.single_task_name = ""
+                    # the single_xxx_name_event handlers already no-op while
+                    # self.is_updating is True specifically to guard against this.
+                    clear_single_item_view_names(self)
                     try:
                         self.is_updating = True
-                        self.specific_project_optionmenu.value = "None"
-                        self.specific_profile_optionmenu.value = "None"
-                        self.specific_task_optionmenu.value = "None"
+                        reset_single_item_pulldowns(self)
                     finally:
                         self.is_updating = False
                 else:
@@ -587,7 +594,7 @@ class MyGui:
                     title="Misc View",
                     the_data=error_message,
                 )
-            self.single_project_name = self.single_profile_name = self.single_task_name = ""
+            clear_single_item_view_names(self)
             return False
 
         # 6. Success Logic (Minimized translations)
@@ -804,6 +811,7 @@ class MyGui:
                 value,
             ),
             "single_task_name": lambda: self.process_single_name_restore("Task", value),
+            "single_scene_name": lambda: self.process_single_name_restore("Scene", value),
             "task_action_warning_limit": lambda: self.tasklimit_set(value),
             "taskernet": lambda: self.select_deselect_checkbox(
                 self.taskernet_checkbox,
@@ -935,67 +943,55 @@ class MyGui:
         # We will prompt user for XML file if it hasn't already been loaded.
         name_entered = name_entered.strip()
         if name_entered and self.check_name(name_entered, my_name, quiet_if_missing=True):
-            self.single_project_name = self.single_profile_name = self.single_task_name = ""
+            # View-only: PrimeItems.program_arguments still holds the name being
+            # restored, so it must not be cleared here.
+            clear_single_item_view_names(self)
 
             try:
                 # 1. Engage the lock to silence NiceGUI event triggers
                 self.is_updating = True
 
-                # The three pulldowns' own populated option lists (see
+                # The pulldowns' own populated option lists (see
                 # guiutils.get_tasker_objects/build_profiles) use different
                 # conventions per item type: Project/Profile options are
                 # prefixed ("Project: Base", "Profile: X" -- build_the_tree's
                 # own "Project:"/build_profiles' own "Profile: " head text),
-                # while Task options are the raw name with no prefix at all
-                # (get_tasker_objects builds tasks_to_display straight from
-                # all_tasks_by_name's keys). "None" itself is always
-                # unprefixed. A pulldown's .value has to match one of its own
-                # .options verbatim or NiceGUI can't find anything to render
+                # while Task and Scene options are the raw name with no prefix
+                # at all (get_tasker_objects builds those straight from
+                # all_tasks_by_name's / all_scenes' keys). "None" itself is
+                # always unprefixed. A pulldown's .value has to match one of its
+                # own .options verbatim or NiceGUI can't find anything to render
                 # as selected and falls back to showing just that pulldown's
-                # label ("Project"/"Profile"/"Task") -- which is exactly what
-                # setting bare name_entered (no prefix) for Project/Profile,
-                # or a "Task: "/"Profile: "-prefixed "None" for the other two,
+                # label ("Project"/"Profile"/"Task"/"Scene") -- which is exactly
+                # what setting bare name_entered (no prefix) for Project/Profile,
+                # or a "Task: "/"Profile: "-prefixed "None" for the others,
                 # used to produce here.
-                project_head = translate_string("Project:")
-                profile_head = translate_string("Profile: ")
-                match my_name:
-                    case "Project":
-                        self.single_project_name = name_entered
-                        display_value = f"{project_head} {name_entered}"
-                        if display_value not in self.specific_project_optionmenu.options:
-                            self.specific_project_optionmenu.options.append(display_value)
-                        self.specific_project_optionmenu.value = display_value
-                        self.specific_profile_optionmenu.value = "None"
-                        self.specific_task_optionmenu.value = "None"
-                        translation_proj = translate_string("Project to Analyze:")
-                        self.ai_project_label.text = f"{translation_proj} {name_entered}"
-                        self.ai_profile_label.text = "Profile: None"
-                        self.ai_task_label.text = "Task: None"
-                    case "Profile":
-                        self.single_profile_name = name_entered
-                        display_value = f"{profile_head}{name_entered}"
-                        if display_value not in self.specific_profile_optionmenu.options:
-                            self.specific_profile_optionmenu.options.append(display_value)
-                        self.specific_profile_optionmenu.value = display_value
-                        self.specific_project_optionmenu.value = "None"
-                        self.specific_task_optionmenu.value = "None"
-                        translation_prof = translate_string("Profile to Analyze:")
-                        self.ai_profile_label.text = f"{translation_prof} {name_entered}"
-                        self.ai_task_label.text = "Task: None"
-                        self.ai_project_label.text = "Project: None"
-                    case "Task":
-                        self.single_task_name = name_entered
-                        if name_entered not in self.specific_task_optionmenu.options:
-                            self.specific_task_optionmenu.options.append(name_entered)
-                        self.specific_task_optionmenu.value = name_entered
-                        self.specific_project_optionmenu.value = "None"
-                        self.specific_profile_optionmenu.value = "None"
-                        translation_task = translate_string("Task to Analyze:")
-                        self.ai_task_label.text = f"{translation_task} {name_entered}"
-                        self.ai_project_label.text = "Project: None"
-                        self.ai_profile_label.text = "Profile: None"
-                    case _:
-                        pass
+                option_heads = {
+                    "Project": f"{translate_string('Project:')} ",
+                    "Profile": translate_string("Profile: "),
+                }
+                if my_name in SINGLE_ITEM_LABELS:
+                    setattr(self, f"single_{my_name.lower()}_name", name_entered)
+
+                    # Select it in its own pulldown, adding the option if the live tree
+                    # has it but the pulldown list hasn't been rebuilt yet.
+                    display_value = f"{option_heads.get(my_name, '')}{name_entered}"
+                    optionmenu = getattr(self, f"specific_{my_name.lower()}_optionmenu")
+                    if display_value not in optionmenu.options:
+                        optionmenu.options.append(display_value)
+                    optionmenu.value = display_value
+                    reset_single_item_pulldowns(self, except_for=my_name)
+
+                    # Update the Analyze tab's labels: the restored item shows its name,
+                    # the rest show "None".
+                    for label in SINGLE_ITEM_LABELS:
+                        ai_label = getattr(self, f"ai_{label.lower()}_label", None)
+                        if ai_label is None:
+                            continue
+                        if label == my_name:
+                            ai_label.text = f"{translate_string(f'{label} to Analyze:')} {name_entered}"
+                        else:
+                            ai_label.text = f"{label}: None"
             finally:
                 # 2. Always release the lock so user interaction still works
                 self.is_updating = False
@@ -1089,7 +1085,7 @@ class MyGui:
             text = translate_string("saved as")
             self.display_message_box(
                 f"{ANALYSIS_FILE} {text} {new_file_name}",
-                "turquoise",
+                "green",
             )
             analysis_response = f"Analysis Response saved in file: {new_file_name}\n\n" + analysis_response.replace(
                 ANALYSIS_FILE,
@@ -1104,16 +1100,36 @@ class MyGui:
         )
 
 
-def _open_popout_window(path: str) -> None:
+def _open_popout_window(path: str, new_window: bool = False) -> None:
     """Opens a Map/Diagram popout window and remembers it in the browser so 'Close Tabs On Exit'
     (see get_rid_of_windows_and_exit in guiwins.py) can close it later -- window.open()'s return
     value is otherwise discarded and there'd be no handle left to close it with.
     The actual data display is done in rungui.py with a call to NiceGuiTextView() to display the data
     in a new window.  This function just opens the new window and remembers it in the browser.
+
+    Each view gets a stable window name so a second Map/Diagram request re-navigates -- and
+    therefore reloads -- the tab that view already has open, rather than spawning another one.
+    That is what makes a regenerated view (say, after the font was changed) actually replace
+    what the user is looking at: with '_blank', the browser suppresses the new popup whenever
+    it decides this doesn't count as a user gesture -- and it often doesn't, since this runs
+    from a server-pushed script after the view has been built, not inline in the click -- which
+    would silently leave the previous, stale tab on screen as the only Map view in sight.
+
+    `new_window` (the "Open View In New Window" option) trades that reliability for being able
+    to compare views side by side: a name nothing has claimed yet behaves exactly like '_blank',
+    so every request is a fresh popup the browser is free to suppress. Each popout reads the
+    generated file once, on load, so the windows left open do keep showing what they were built
+    with rather than all changing together.
     """
+    view_name = path.rsplit("/", 1)[-1]
+    window_name = f"maptasker_{view_name}_{time.time_ns()}" if new_window else f"maptasker_{view_name}"
     ui.run_javascript(
         "window.mapTaskerPopouts = window.mapTaskerPopouts || []; "
-        f"window.mapTaskerPopouts.push(window.open('{path}', '_blank'));",
+        f"const popout = window.open('{path}', '{window_name}'); "
+        "if (popout) { "
+        "  if (!window.mapTaskerPopouts.includes(popout)) window.mapTaskerPopouts.push(popout); "
+        "  try { popout.focus(); } catch (e) {} "
+        "}",
     )
 
 
@@ -1436,36 +1452,6 @@ def _finish_new_project(gui: MyGui, edited_project: projedit.EditableProject) ->
     select_pulldown_option(gui.specific_project_optionmenu, edited_project.project_name)
 
 
-def _element_is_live(element: object) -> bool:
-    """Whether a NiceGUI element can still be safely interacted with -- it hasn't
-    been deleted, and the client (the browser page) it was built for is still
-    around.
-
-    Needed because this app keeps references to elements across events: gui.textview
-    holds the rendered Map/Diagram/Tree view, and anything reaching into it later
-    (live re-colouring in handle_color_pick_event, un-highlighting in
-    clear_search_event) is one step removed from whether that view still exists.
-    Two things invalidate it -- "Clear" deletes the rendered view's elements (see
-    clear_view_event), and a browser reload replaces the client outright -- and
-    neither clears the attribute, so a plain truthiness check on it passes while the
-    element underneath is dead. Using one then raises RuntimeError("The client this
-    element belongs to has been deleted.") from inside NiceGUI's own element.client,
-    which reaches the user as a console traceback rather than anything actionable.
-
-    element.client raises rather than returning None once the client has been
-    garbage-collected, so that access is what has to be guarded; is_deleted covers
-    the other case, where the element itself was deleted but its client is still
-    alive (exactly what "Clear" leaves behind).
-    """
-    if not element or getattr(element, "is_deleted", False):
-        return False
-    try:
-        client = element.client
-    except RuntimeError:
-        return False
-    return not getattr(client, "is_deleted", False)
-
-
 def _reset_specific_name_selection(gui: MyGui) -> None:
     """Clears the single Project/Profile/Task selection and resets all three
     'Specific Name' pulldowns to "None" -- for when a Delete removes the
@@ -1473,17 +1459,14 @@ def _reset_specific_name_selection(gui: MyGui) -> None:
     it uses _select_renamed_item instead: the object is still there, so it stays
     selected under its new name.
     Mirrors the identical guarded reset in process_single_name_restore's
-    invalid-name branch (userintr.py:538-545): the is_updating guard stops
-    setting .value here from re-entering single_project_name_event/
-    single_profile_name_event/single_task_name_event for a name that no
-    longer resolves to anything.
+    invalid-name branch: the is_updating guard stops setting .value here from
+    re-entering the single_xxx_name_event handlers for a name that no longer
+    resolves to anything.
     """
-    gui.single_project_name = gui.single_profile_name = gui.single_task_name = ""
+    clear_single_item_view_names(gui)
     try:
         gui.is_updating = True
-        gui.specific_project_optionmenu.value = "None"
-        gui.specific_profile_optionmenu.value = "None"
-        gui.specific_task_optionmenu.value = "None"
+        reset_single_item_pulldowns(gui)
     finally:
         gui.is_updating = False
 
@@ -1615,19 +1598,35 @@ class MapTaskerEventHandlers:
         capture_gui_state(gui, {})
 
         # Start this view generation with a clean slate: found_named_items only ever
-        # gets set to True (projects.py/profiles.py/tasks.py, once
+        # gets set to True (projects.py/profiles.py/tasks.py/scenes.py, once
         # process_projects_and_their_profiles/its callees find the single Project/
-        # Profile/Task being searched for) -- it's never reset back afterward, since
-        # it's meant to stop searching further *within a single run*, not carry over
-        # between separate ones. Left stale from an earlier view, a second Map/
+        # Profile/Task/Scene being searched for) -- it's never reset back afterward,
+        # since it's meant to stop searching further *within a single run*, not carry
+        # over between separate ones. Left stale from an earlier view, a second Map/
         # Diagram/Tree for the same single item (e.g. right after editing it and
         # clicking Ok) would look like it was "already found" and get skipped
         # entirely, even though this run never actually found it yet.
-        PrimeItems.found_named_items = {
-            "single_project_found": False,
-            "single_profile_found": False,
-            "single_task_found": False,
-        }
+        # Built from primitem.SINGLE_ITEM_SELECTORS rather than written out here, so a
+        # newly added single item can't be left out of the reset.
+        PrimeItems.found_named_items = initial_found_named_items()
+
+        # Same reasoning for the directory and the running totals -- both accumulate
+        # across a single run and are never emptied at the end of one:
+        #
+        #  - directory_items: add_directory_item only records a name it hasn't seen, and
+        #    sets directory_items["current_item"] (which is what makes lineout emit the
+        #    "<a id=...>" anchor the directory hyperlink jumps to) *only* on that first
+        #    sighting.  Left populated from an earlier view, every name looks
+        #    already-seen, so the second view's hyperlinks point at anchors that were
+        #    never written -- clicking a directory entry then goes nowhere.
+        #  - grand_totals: straight "+=" accumulation, so a second view reports doubled
+        #    Project/Profile/Task/Scene counts.
+        #
+        # Single Project/Profile/Task views happened to escape the directory half of
+        # this because they route through lineout.refresh_our_output, which rebuilds
+        # both dicts mid-run; a single Scene never calls it, which is how this surfaced.
+        PrimeItems.directory_items = initial_directory_items()
+        PrimeItems.grand_totals = initial_grand_totals()
 
         # Map view
         if view_type == "map":
@@ -1676,7 +1675,7 @@ class MapTaskerEventHandlers:
             PrimeItems.output_lines.output_lines.clear()
 
             # Display the map in its own browser window/tab rather than the main window.
-            _open_popout_window("/popout/map")
+            _open_popout_window("/popout/map", getattr(gui, "open_view_in_new_window", False))
 
             # Check for hard stop limit and notify user if output was truncated
             if output_length > gui.view_limit:
@@ -1714,7 +1713,7 @@ class MapTaskerEventHandlers:
                         return
 
                     # Display the diagram in its own browser window/tab rather than the main window.
-                    _open_popout_window("/popout/diagram")
+                    _open_popout_window("/popout/diagram", getattr(gui, "open_view_in_new_window", False))
                     gui.display_message_box("Diagram View opened in a new browser window.", "Green")
                 else:
                     gui.display_message_box("No XML data loaded! Please select a valid XML file first.", "Orange")
@@ -1753,13 +1752,14 @@ class MapTaskerEventHandlers:
         if hasattr(self.gui, "content_container") and self.gui.content_container:
             self.gui.content_container.clear()
 
-        # Drop the reference to the view that was just deleted along with those
-        # elements. Everything that reaches back into a rendered view guards on this
-        # attribute being truthy (handle_color_pick_event's live re-colouring,
-        # clear_search_event's un-highlighting), so leaving the dead object here
-        # left them all working on elements that no longer exist. Back to False,
-        # the same "no view rendered" state MyGui starts in (see guiwins.py).
-        self.gui.textview = False
+        # Drop the references to the views that were just deleted along with those
+        # elements. Everything that reaches back into a rendered view guards on those
+        # references (handle_color_pick_event's live re-colouring, clear_event's
+        # un-highlighting), so leaving the dead objects here left them all working on
+        # elements that no longer exist. Back to the "no view rendered" state MyGui
+        # starts in (see guiwins.py). The popouts are closed just below, which is what
+        # invalidates the views rendered into them too.
+        forget_views(self.gui)
 
         # Close every Map/Diagram popout window this window opened (tracked in
         # window.mapTaskerPopouts, see _open_popout_window() above). Mirrors the cleanup done by
@@ -1849,10 +1849,13 @@ class MapTaskerEventHandlers:
 
     def clear_event(self, view_name: str = "mapview") -> None:
         """Clears the search input and un-highlights all matches left by search_event."""
-        textview = getattr(self.gui, "textview", None)
-        if not textview:
-            return
+        # Every open view, not just the newest: with "Open View In New Window" several
+        # Map/Diagram windows can be up at once, each with its own highlighted matches.
+        for textview in live_views(self.gui):
+            self._clear_one_view(textview)
 
+    def _clear_one_view(self, textview: object) -> None:
+        """Clears one rendered view's search box and un-highlights its matches."""
         if hasattr(textview, "search_input"):
             textview.search_input.set_value("")
 
@@ -2011,36 +2014,21 @@ class MapTaskerEventHandlers:
         none_translated = translate_string("None")
         name_entered = name_entered.replace(f"{my_name_translated}: ", "")
 
-        if name_entered in ["No projects found", "No profiles found", "No tasks found"]:
+        if name_entered in ["No projects found", "No profiles found", "No tasks found", "No scenes found"]:
             the_view.display_message_box("Selection ignored.", "Orange")
             name_entered = "None"
         else:
             if the_view.check_name(name_entered, my_name):
-                # First set the names all to 'empty
-                the_view.single_project_name = ""
-                the_view.single_profile_name = ""
-                the_view.single_task_name = ""
-                # Clear out the current values
-                the_view.is_updating = True
-                if my_name != "Project":
-                    the_view.specific_project_optionmenu.value = "None"
-                    the_view.specific_project_optionmenu.update()
-                if my_name != "Profile":
-                    the_view.specific_profile_optionmenu.value = "None"
-                    the_view.specific_profile_optionmenu.update()
-                if my_name != "Task":
-                    the_view.specific_task_optionmenu.value = "None"
-                    the_view.specific_task_optionmenu.update()
+                # The selections are mutually exclusive: clear every single_xxx_name
+                # (on the view and in program_arguments) and every found-flag, then set
+                # just the one the user picked, below.
+                clear_single_item_names(the_view)
 
-                PrimeItems.program_arguments["single_project_name"] = ""
-                PrimeItems.program_arguments["single_profile_name"] = ""
-                PrimeItems.program_arguments["single_task_name"] = ""
-                PrimeItems.found_named_items["single_project_name"] = False
-                PrimeItems.found_named_items["single_profile_name"] = False
-                PrimeItems.found_named_items["single_task_name"] = False
-                PrimeItems.found_named_items["single_project_found"] = False
-                PrimeItems.found_named_items["single_profile_found"] = False
-                PrimeItems.found_named_items["single_task_found"] = False
+                # Reset every pulldown except the one just picked from.  is_updating
+                # must be set first -- assigning .value fires the on_change handlers.
+                the_view.is_updating = True
+                reset_single_item_pulldowns(the_view, except_for=my_name)
+
                 # Save the name in mygui signle_xxx_name.
                 name_entered = "" if name_entered == none_translated else name_entered
 
@@ -2103,6 +2091,12 @@ class MapTaskerEventHandlers:
         if hasattr(self.gui, "is_updating") and self.gui.is_updating:
             return  # Skip processing if we're in the middle of an update
         self.process_single_name_event("Task", name_selected)
+
+    def single_scene_name_event(self, name_selected: str) -> None:
+        """Generates a single Scene name event."""
+        if hasattr(self.gui, "is_updating") and self.gui.is_updating:
+            return  # Skip processing if we're in the middle of an update
+        self.process_single_name_event("Scene", name_selected)
 
     def open_edit_task_dialog_event(self) -> None:
         """Opens the Edit Task dialog for the currently selected single Task name."""
@@ -2685,7 +2679,10 @@ class MapTaskerEventHandlers:
         the confirmation dialog's "Keep Contents" button.
         """
         self._finish_delete_project(
-            project_name, keep_contents=True, confirm_dialog=confirm_dialog, parent_dialog=parent_dialog
+            project_name,
+            keep_contents=True,
+            confirm_dialog=confirm_dialog,
+            parent_dialog=parent_dialog,
         )
 
     def delete_contents_delete_project_event(
@@ -2698,7 +2695,10 @@ class MapTaskerEventHandlers:
         dialog's "Delete Contents" button.
         """
         self._finish_delete_project(
-            project_name, keep_contents=False, confirm_dialog=confirm_dialog, parent_dialog=parent_dialog
+            project_name,
+            keep_contents=False,
+            confirm_dialog=confirm_dialog,
+            parent_dialog=parent_dialog,
         )
 
     def _finish_delete_project(
@@ -3651,9 +3651,7 @@ class MapTaskerEventHandlers:
             )
 
             clear_tasker_data()
-            gui.single_project_name = ""
-            gui.single_profile_name = ""
-            gui.single_task_name = ""
+            clear_single_item_view_names(gui)
             gui.specific_name_msg = ""
             # Indicate that we have note yet gotten the file.
             PrimeItems.program_arguments["file"] = ""
@@ -3665,10 +3663,8 @@ class MapTaskerEventHandlers:
             program_args["android_ipaddr"] = ""
             program_args["android_port"] = ""
 
-            # Empty the pulldown menus for Project, Profile, and Task selections
-            gui.specific_project_optionmenu.value = "None"
-            gui.specific_profile_optionmenu.value = "None"
-            gui.specific_task_optionmenu.value = "None"
+            # Empty the pulldown menus for Project, Profile, Task and Scene selections
+            reset_single_item_pulldowns(gui)
 
             # UPDATE THE XML BUTTON COLOR & STOP BLINKING
             if hasattr(gui, "get_xml_button"):
@@ -4094,21 +4090,14 @@ class MapTaskerEventHandlers:
                 # Map menu attributes to their target values for a clean batch update
                 menu_updates = []
 
-                if the_view.single_project_name:
-                    menu_updates = [
-                        ("specific_project_optionmenu", the_view.single_project_name),
-                        ("ai_project_optionmenu", the_view.single_project_name),
-                    ]
-                elif the_view.single_profile_name:
-                    menu_updates = [
-                        ("specific_profile_optionmenu", the_view.single_profile_name),
-                        ("ai_profile_optionmenu", the_view.single_profile_name),
-                    ]
-                elif the_view.single_task_name:
-                    menu_updates = [
-                        ("specific_task_optionmenu", the_view.single_task_name),
-                        ("ai_task_optionmenu", the_view.single_task_name),
-                    ]
+                for label in SINGLE_ITEM_LABELS:
+                    name = getattr(the_view, f"single_{label.lower()}_name", "")
+                    if name:
+                        menu_updates = [
+                            (f"specific_{label.lower()}_optionmenu", name),
+                            (f"ai_{label.lower()}_optionmenu", name),
+                        ]
+                        break
 
                 # Batch update the dropdown values safely under the state lock.
                 # Via select_pulldown_option, since a Project's option is
@@ -4418,26 +4407,30 @@ class MapTaskerEventHandlers:
             # rendered as `<span class="{css_class}">`, so overriding that class's color live
             # (with !important, since it must beat the color already embedded in the loaded
             # HTML's own <style> block) re-colors every matching element already on screen.
-            # Both branches reach into the *rendered* view, which may well not be
-            # there any more -- "Clear" deletes it (clear_view_event) and a browser
-            # reload replaces its client -- so the element is checked for life
-            # rather than mere existence; see _element_is_live for what touching a
-            # dead one does. Nothing is lost when it's gone: the colour has already
+            # Both branches reach into the *rendered* views, which may well not be
+            # there any more -- "Clear" deletes them (clear_view_event) and a browser
+            # reload replaces their client -- so each element is checked for life
+            # rather than mere existence; see element_is_live for what touching a
+            # dead one does. Nothing is lost when they're gone: the colour has already
             # been recorded above and the next view generated picks it up.
-            textview = getattr(the_view, "textview", None)
-            scroll_area = getattr(textview, "scroll_area", None) if textview else None
-            view_is_live = _element_is_live(scroll_area)
+            # Every open view gets re-coloured, since "Open View In New Window" can
+            # leave several Map/Diagram windows on screen at once.
+            scroll_areas = [
+                scroll_area
+                for scroll_area in (getattr(view, "scroll_area", None) for view in live_views(the_view))
+                if element_is_live(scroll_area)
+            ]
 
             if color_selected_item == "Background":
                 the_view.saved_background_color = make_hex_color(color_value)
-                if view_is_live:
+                for scroll_area in scroll_areas:
                     scroll_area.style(f"background-color: {color_value} !important;")
-                else:
+                if not scroll_areas:
                     ui.notify("The change will take effect the next time you open the view.", color="green")
 
             else:
                 css_class = TYPES_OF_COLOR_NAMES.get(color_selected_item)
-                if css_class and view_is_live:
+                for scroll_area in scroll_areas if css_class else []:
                     with scroll_area:
                         ui.run_javascript(
                             f"""
@@ -4453,7 +4446,7 @@ class MapTaskerEventHandlers:
                             }}
                             """,
                         )
-                else:
+                if not (css_class and scroll_areas):
                     ui.notify("The change will take effect the next time you open the view.", color="green")
 
             # Update the visual status label text and text color instantly
@@ -4544,7 +4537,7 @@ class MapTaskerEventHandlers:
         if gui.single_profile_name == translate_string("None or unnamed!"):
             gui.single_profile_name = ""
         # Do we have a single item identified?
-        if gui.single_project_name or gui.single_profile_name or gui.single_task_name:
+        if any(getattr(gui, f"single_{label.lower()}_name", "") for label in SINGLE_ITEM_LABELS):
             gui.ai_analyze = True
             text1 = translate_string("Running")
             text2 = translate_string("analysis with model")
@@ -5114,8 +5107,10 @@ class MapTaskerEventHandlers:
 
         await run.io_bound(outline_the_configuration)
 
-        if getattr(gui, "textview", None) is not None and hasattr(gui.textview, "reload_diagram"):
-            gui.textview.reload_diagram()
+        # Reload every open Diagram view -- "Open View In New Window" can leave more than one up.
+        for view in live_views(gui):
+            if hasattr(view, "reload_diagram"):
+                view.reload_diagram()
 
     def ai_apikey_get_event(self, cancel: bool, clear: bool) -> None:  # noqa: D102
         self._handle_event("ai_apikey_process_event", "ai_apikey_window", cancel, clear)

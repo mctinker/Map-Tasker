@@ -720,8 +720,19 @@ def process_project_scenes(
     if scene_names is not None:
         scene_list = scene_names.split(",")
 
+        # Only doing a single Scene?  Narrow this Project's list down to just that one.
+        # We only get here for the Project that owns it (process_projects skips the
+        # rest), so a miss here means the name isn't a Scene of this Project at all.
+        if single_scene_name := PrimeItems.program_arguments["single_scene_name"]:
+            scene_list = [scene for scene in scene_list if scene == single_scene_name]
+            if not scene_list:
+                return False
+            PrimeItems.found_named_items["single_scene_found"] = True
+
         # If we have at least one Scene, process it
         if scene_list[0]:
+            # Count what we are actually going to output, which is not necessarily
+            # everything the Project lists -- see the single-Scene filter above.
             PrimeItems.scene_count = len(scene_list)
             process_list(
                 "Scene:",

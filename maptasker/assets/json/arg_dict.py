@@ -86,6 +86,8 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval="Timeout="),
             ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ",Structure Output (JSON, etc)"]),
         ],
@@ -257,6 +259,8 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ", Structure Output (JSON, etc)"]),
         ],
         name="AutoShare Process Text",
@@ -267,6 +271,8 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", "Structure Output (JSON (etc)"]),
         ],
         name="AutoWear State",
@@ -987,6 +993,8 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ", Structure Output (JSON, etc)"]),
         ],
         name="AutoNotification Intercept",
@@ -1116,6 +1124,7 @@ from collections import namedtuple
             ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval=", MAC="),
             ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", IP"),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Active=", "l", "160"]),
+            ArgumentCode(arg_id="4", arg_required=False, arg_name="", arg_type="0", arg_eval=", Arg 4="),
         ],
         name="Wifi Connected",
         category="",
@@ -1226,6 +1235,8 @@ from collections import namedtuple
     "1664218170e": ActionCode(
         redirect="",
         args=[
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="5", arg_eval=["", "e", ", Structure Output (JSON, etc)"]),
         ],
         name="AutoVoice Natural Language",
@@ -1236,6 +1247,8 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ", Structure Output (JSON, etc)"]),
         ],
         name="Join",
@@ -1270,6 +1283,9 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
+            ArgumentCode(arg_id="3", arg_required=False, arg_name="", arg_type="0", arg_eval=", Arg 3="),
         ],
         name="SharpTools Thing",
         category="",
@@ -1451,6 +1467,8 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ", Structure Output (JSON, etc)"]),
         ],
         name="AutoNotification",
@@ -1513,6 +1531,8 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval=""),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="1", arg_eval=["", "e", ", Structure Output (JSON, etc)"]),
         ],
         name="AutoWear Command/Command Filter",
@@ -1592,6 +1612,8 @@ from collections import namedtuple
     "18927444e": ActionCode(
         redirect="",
         args=[
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="5", arg_eval=["", "e", ", Structure Output (JSON, etc)"]),
         ],
         name="AutoApps Command",
@@ -1694,6 +1716,8 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval="Device IDs/Names="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="0", arg_eval=", Arg 2="),
+            ArgumentCode(arg_id="3", arg_required=False, arg_name="", arg_type="0", arg_eval=", Arg 3="),
         ],
         name="Matter Light (Experimental)",
         category="",
@@ -1712,7 +1736,9 @@ from collections import namedtuple
     ),
     "193s": ActionCode(
         redirect="",
-        args=[],
+        args=[
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+        ],
         name="Matter Light",
         category="",
         canfail="",
@@ -1851,7 +1877,9 @@ from collections import namedtuple
     ),
     "2003e": ActionCode(
         redirect="",
-        args=[],
+        args=[
+            ArgumentCode(arg_id="0", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 0="),
+        ],
         name="Missed Call",
         category="",
         canfail="",
@@ -2107,7 +2135,12 @@ from collections import namedtuple
     ),
     "2088e": ActionCode(
         redirect="",
-        args=[],
+        args=[
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="0", arg_eval=", Arg 2="),
+            ArgumentCode(arg_id="3", arg_required=False, arg_name="", arg_type="0", arg_eval=", Arg 3="),
+            ArgumentCode(arg_id="4", arg_required=False, arg_name="", arg_type="0", arg_eval=", Arg 4="),
+        ],
         name="Any Sensor",
         category="",
         canfail="",
@@ -2156,6 +2189,7 @@ from collections import namedtuple
             ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="1", arg_eval="Component="),
             ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Variables="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=["", "e", ", Last Variable Is Array"]),
+            ArgumentCode(arg_id="4", arg_required=False, arg_name="", arg_type="0", arg_eval=", Arg 4="),
         ],
         name="Command",
         category="",
@@ -2172,6 +2206,7 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="2", arg_eval="Command="),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
         ],
         name="Assistant Action",
         category="",
@@ -2179,7 +2214,9 @@ from collections import namedtuple
     ),
     "2094e": ActionCode(
         redirect="",
-        args=[],
+        args=[
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+        ],
         name="Call Screened",
         category="",
         canfail="",
@@ -4364,6 +4401,8 @@ from collections import namedtuple
     "41628340e": ActionCode(
         redirect="",
         args=[
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="5", arg_eval=["", "e", ", Structure Output (JSON, etc)"]),
         ],
         name="AutoVoice Intercept",
@@ -5877,6 +5916,8 @@ from collections import namedtuple
     "580953799e": ActionCode(
         redirect="",
         args=[
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
             ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="5", arg_eval=["", "e", ", Structure Output (JSON, etc)"]),
         ],
         name="AutoShare",
@@ -6292,6 +6333,9 @@ from collections import namedtuple
         redirect="",
         args=[
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="5", arg_eval="Gesture"),
+            ArgumentCode(arg_id="1", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 1="),
+            ArgumentCode(arg_id="2", arg_required=False, arg_name="", arg_type="1", arg_eval=", Arg 2="),
+            ArgumentCode(arg_id="3", arg_required=False, arg_name="", arg_type="0", arg_eval=", Arg 3="),
         ],
         name="Fingerprint Gesture",
         category="",

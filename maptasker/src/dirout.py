@@ -258,6 +258,10 @@ def check_scene(item: str) -> bool:
         Returns:20.
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
+    # Single Scene?  Only that one Scene gets a hyperlink.
+    if single_scene_name := PrimeItems.program_arguments["single_scene_name"]:
+        return item[1] == single_scene_name
+
     # Single Project?
     _find_task_in_project = find_task_in_project
     if PrimeItems.program_arguments["single_project_name"]:
@@ -353,7 +357,8 @@ def check_profile(item: str) -> bool:
         and item[1] != PrimeItems.program_arguments["single_profile_name"]
     ):
         return False
-    return not PrimeItems.program_arguments["single_task_name"]
+    # No Profiles are displayed for a single Task or a single Scene, so don't link any.
+    return not (PrimeItems.program_arguments["single_task_name"] or PrimeItems.program_arguments["single_scene_name"])
 
 
 # Doing Project hyperlinks.  Make sure it is okay to do this Project hyperlink.
@@ -381,6 +386,13 @@ def check_project(item: str) -> bool:
     # Single Task?
     elif PrimeItems.program_arguments["single_task_name"]:
         return False
+    # Single Scene?  Only the Project that owns it is displayed, so only it gets a link.
+    # Checked against this Project's own <scenes> list rather than through
+    # maputils.find_owning_project_for_scene: dirout sits below maputils in the import
+    # graph (maputils -> taskerd -> profiles -> dirout), and we already have the XML.
+    elif single_scene_name := PrimeItems.program_arguments["single_scene_name"]:
+        scenes = project.find("scenes")
+        return scenes is not None and scenes.text is not None and single_scene_name in scenes.text.split(",")
     return True
 
 

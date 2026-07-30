@@ -18,7 +18,7 @@ from maptasker.src.getids import get_ids
 from maptasker.src.globalvr import output_variables
 from maptasker.src.guiutils import get_taskid_from_unnamed_task
 from maptasker.src.kidapp import get_kid_app
-from maptasker.src.maputils import find_owning_profile, find_owning_project
+from maptasker.src.maputils import find_owning_profile, find_owning_project, find_owning_project_for_scene
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import process_list
@@ -32,6 +32,35 @@ from maptasker.src.twisty import add_twisty, remove_twisty
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
+
+
+# Output a single Scene that no Project claims
+def output_orphan_single_scene() -> None:
+    """
+    Output the single Scene being asked for when no Project lists it.
+
+    Scenes are normally reached through their owning Project's <scenes> element.  A
+    Scene that is in the backup but in no Project's list would otherwise fall through
+    every path in process_projects_and_their_profiles and be reported as "not found",
+    which is misleading -- it exists, it is just unclaimed.  Output it on its own.
+
+    Does nothing if we are not doing a single Scene, if it has already been found and
+    output, or if the name really isn't in the backup.
+
+    Returns:
+        None
+    """
+    single_scene_name = PrimeItems.program_arguments["single_scene_name"]
+    if (
+        not single_scene_name
+        or PrimeItems.found_named_items["single_scene_found"]
+        or single_scene_name not in PrimeItems.tasker_root_elements["all_scenes"]
+    ):
+        return
+
+    PrimeItems.found_named_items["single_scene_found"] = True
+    PrimeItems.grand_totals["scenes"] += 1
+    process_list("Scene:", [single_scene_name], "", [])
 
 
 # process_projects: go through all Projects Profiles...and output them
@@ -131,17 +160,28 @@ def process_projects_and_their_profiles(
     elif PrimeItems.tasker_root_elements["all_scenes"]:
         scene_list = []
         found_tasks = []
+        single_scene_name = PrimeItems.program_arguments["single_scene_name"]
         for scene in PrimeItems.tasker_root_elements["all_scenes"]:
-            scene_list.append(
-                PrimeItems.tasker_root_elements["all_scenes"][scene]["name"],
-            )
+            scene_name = PrimeItems.tasker_root_elements["all_scenes"][scene]["name"]
+            # Only after a single Scene?  Skip everything else.
+            if single_scene_name and scene_name != single_scene_name:
+                continue
+            scene_list.append(scene_name)
             PrimeItems.grand_totals["scenes"] += 1
-        process_list(
-            "Scene:",
-            scene_list,
-            "",
-            found_tasks,
-        )
+        if scene_list:
+            if single_scene_name:
+                PrimeItems.found_named_items["single_scene_found"] = True
+            process_list(
+                "Scene:",
+                scene_list,
+                "",
+                found_tasks,
+            )
+
+    # A single Scene that no Project lists still exists in all_scenes -- output it on
+    # its own rather than reporting it as not found.  (The branch above covers a backup
+    # with no Projects at all; this covers an orphan Scene in a backup that has them.)
+    output_orphan_single_scene()
 
     # Restore the single Project name saved at beginning
     PrimeItems.program_arguments["single_project_name"] = single_project_name
@@ -250,10 +290,7 @@ def do_tasks_in_project(
     # Go through all Tasks in Project
     for the_id in task_ids:
         # We have a Task in Project that has yet to be output?
-        if the_id not in found_tasks and (
-            not PrimeItems.found_named_items["single_profile_found"]
-            and not PrimeItems.found_named_items["single_task_found"]
-        ):
+        if the_id not in found_tasks and not is_single_task_or_profile_found():
             # Flag that we have Tasks that are not in any Profile, and bump the count.
             have_tasks_not_in_profile = True
             PrimeItems.task_count_no_profile = PrimeItems.task_count_no_profile + 1
@@ -262,12 +299,7 @@ def do_tasks_in_project(
 
             # Only print the Task header if there are Tasks not found in any Profile,
             # and we are not looking for a single item
-            if (
-                output_the_heading
-                and task_ids
-                and not (PrimeItems.found_named_items["single_profile_found"])
-                and not (PrimeItems.found_named_items["single_task_found"])
-            ):
+            if output_the_heading and task_ids and not is_single_task_or_profile_found():
                 _task_not_in_profile_heading(project_name)
 
                 output_the_heading = False
@@ -521,13 +553,17 @@ def finish_up(
     # Close Profile list
     PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
-    # Process any Tasks in Project not associated with any Profile
-    task_ids = get_ids(False, project, project_name, [])
-    tasks_not_in_profile = tasks_not_in_profiles(
-        task_ids,
-        found_tasks,
-        project_name,
-    )
+    # Process any Tasks in Project not associated with any Profile.
+    # Skipped when we are only after a single Scene: the Project's loose Tasks are not
+    # part of the Scene, and this runs before process_project_scenes below has had a
+    # chance to set the single_scene_found flag that would otherwise suppress them.
+    if not PrimeItems.program_arguments["single_scene_name"]:
+        task_ids = get_ids(False, project, project_name, [])
+        tasks_not_in_profile = tasks_not_in_profiles(
+            task_ids,
+            found_tasks,
+            project_name,
+        )
 
     # Find the Scenes for this Project <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     # ...only if not doing a single Task
@@ -565,9 +601,13 @@ def finish_up(
 # Return the flags for single-task-found and single-profile-found
 def is_single_task_or_profile_found() -> bool:
     """
-    Check if a single task or profile is found and return a boolean value.
+    Check if a single task, profile or Scene is found and return a boolean value.
     """
-    return PrimeItems.found_named_items["single_task_found"] or PrimeItems.found_named_items["single_profile_found"]
+    return (
+        PrimeItems.found_named_items["single_task_found"]
+        or PrimeItems.found_named_items["single_profile_found"]
+        or PrimeItems.found_named_items["single_scene_found"]
+    )
 
 
 # Retrieves profile IDs for a given project and project name, excluding projects without profiles.
@@ -614,12 +654,13 @@ def add_no_profiles_line_to_output() -> None:
 # Determine if we are doing a single Project or Profile or Task
 def is_single_project_or_profile_or_task_found() -> bool:
     """
-    Check if a single project, profile, or task is found and return a boolean.
+    Check if a single project, profile, task or Scene is found and return a boolean.
     """
     return (
         PrimeItems.found_named_items["single_project_found"]
         or PrimeItems.found_named_items["single_profile_found"]
         or PrimeItems.found_named_items["single_task_found"]
+        or PrimeItems.found_named_items["single_scene_found"]
     )
 
 
@@ -751,12 +792,22 @@ def process_projects(
     _process_project_profiles = process_project_profiles
     _finish_up = finish_up
     _is_single_project_or_profile_or_task_found = is_single_project_or_profile_or_task_found
+
+    # Doing a single Scene?  Work out which Project owns it once, up front, so the loop
+    # below can skip straight past every other Project.
+    single_scene_name = PrimeItems.program_arguments["single_scene_name"]
+    scene_owning_project = find_owning_project_for_scene(single_scene_name) if single_scene_name else ""
+
     for project_name in PrimeItems.tasker_root_elements["all_projects"]:
         # Ignore this project if we are looking for a specific one and this isn't it.
         if (
             PrimeItems.program_arguments["single_project_name"]
             and PrimeItems.program_arguments["single_project_name"] != project_name
         ):
+            continue
+
+        # Likewise if we only want the one Project that owns the single Scene.
+        if single_scene_name and project_name != scene_owning_project:
             continue
 
         # Point to the Project XML element <Project sr=...>
@@ -777,19 +828,22 @@ def process_projects(
         if have_project_wanted:
             continue
 
-        # Process all of the Profiles for this Project
-        (
-            _,
-            our_task_element,
-            profile_count,
-        ) = _process_project_profiles(
-            project,
-            project_name,
-            projects_without_profiles,
-            found_tasks,
-            our_task_element,
-            profile_count,
-        )
+        # Process all of the Profiles for this Project.
+        # Skipped entirely when we only want a single Scene: a Scene belongs to the
+        # Project, not to any Profile, so none of them are part of what was asked for.
+        if not single_scene_name:
+            (
+                _,
+                our_task_element,
+                profile_count,
+            ) = _process_project_profiles(
+                project,
+                project_name,
+                projects_without_profiles,
+                found_tasks,
+                our_task_element,
+                profile_count,
+            )
 
         # Finish the output for this Project
         _finish_up(

@@ -10,11 +10,10 @@
 import argparse
 import textwrap
 from argparse import ArgumentParser
-from tkinter import font
 
 from maptasker.src.error import error_handler
+from maptasker.src.mapfonts import get_monospaced_fonts
 from maptasker.src.maputils import validate_ip_address, validate_port
-from maptasker.src.nameattr import get_tk
 from maptasker.src.sysconst import (
     ANTHROPIC_MODELS,
     DEEPSEEK_MODELS,
@@ -128,11 +127,8 @@ def font_validation(x: str) -> str:
     - If not valid, raise error
     - Otherwise return input font name"""
     valid_fonts = ["Courier"]
-    # Get our Tkinter window
-    get_tk()
-    # Get all monospace ("f"=fixed) fonts
-    fonts = [font.Font(family=f) for f in font.families()]
-    valid_fonts.extend(f.actual("family") for f in fonts if f.metrics("fixed"))
+    # Get all monospaced fonts installed on this system.
+    valid_fonts.extend(f for f in get_monospaced_fonts() if f not in valid_fonts)
     if x != "help" and x not in valid_fonts:
         msg = f"Invalid or non-monospace font name '{x}'."
         error_handler(msg, 7)
@@ -437,7 +433,7 @@ def runtime_parser() -> None:
         default=False,
     )
 
-    # Group project, profile and task = name ... together as exclusive arguments
+    # Group project, profile, task and scene = name ... together as exclusive arguments
     single_group = parser.add_mutually_exclusive_group()
     single_group.add_argument(
         "-project",
@@ -459,6 +455,13 @@ def runtime_parser() -> None:
         required=False,
         type=str,
         help='Display the details for a single Task only (forces minimum of "-detail 3").',
+    )
+    single_group.add_argument(
+        "-scene",
+        nargs=1,
+        required=False,
+        type=str,
+        help='Display the details for a single Scene only (forces minimum of "-detail 3").',
     )
 
     # Reset arguments

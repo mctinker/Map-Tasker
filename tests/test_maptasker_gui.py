@@ -13,12 +13,11 @@ The tests cover a range of scenarios, including:
 - Color attribution mapping and event handling.
 """
 
-import tkinter as tk
-from tkinter import font
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from maptasker.src.guiwins import NiceGuiTextView
+from maptasker.src.mapfonts import get_monospaced_fonts
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
 
@@ -90,19 +89,13 @@ def test_html_optimize_pattern_substitution():
 
 
 def test_font_extraction_regex():
-    """Tests Font Name Identification using a dynamic system font retrieved via Tkinter."""
-    # 1. Initialize a hidden Tkinter root window to access system font metrics
-    root = tk.Tk()
-    root.withdraw()  # Keeps the GUI window from physically popping up
-
-    # 2. Grab a verified standard monospaced font family name from the local system
+    """Tests Font Name Identification using a dynamic system font retrieved from the OS."""
+    # 1. Grab a verified standard monospaced font family name from the local system
     # (Falls back to 'Courier' if the system configuration is unexpected)
     try:
-        system_mono_font = font.Font(family="Courier").actual("family")
+        system_mono_font = get_monospaced_fonts()[0]
     except Exception:  # noqa: BLE001
         system_mono_font = "Courier"
-    finally:
-        root.destroy()  # Always clean up the Tkinter instance to free resources
 
     # 3. Unbind the method from the class context so we can test it standalone
     view_instance = MagicMock()

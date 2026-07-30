@@ -34,6 +34,7 @@ import defusedxml.ElementTree  # Need for type hints
 from maptasker.src.diagram import network_map
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
+from maptasker.src.maputils import find_owning_project_for_scene
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.sysconst import FormatLine
@@ -555,6 +556,11 @@ def fix_project_name_for_single_name() -> None:
 
     This function checks if the single profile name is valid by calling the `check_for_single_name` function with the `single_profile_name` parameter set to `PrimeItems.program_arguments["single_profile_name"]` and the `do_pids` parameter set to `True`. If the single profile name is not valid, it calls the `check_for_single_name` function again with the `single_task_name` parameter set to `PrimeItems.program_arguments["single_task_name"]` and the `do_pids` parameter set to `False`.
 
+    A single Scene can't go through check_for_single_name at all: Scenes are not in a
+    Project's <pids>/<tids>, so there is nothing for get_ids to match.  Its owning
+    Project comes from the Project's <scenes> list instead -- see
+    maputils.find_owning_project_for_scene.
+
     Parameters:
         None
 
@@ -565,12 +571,13 @@ def fix_project_name_for_single_name() -> None:
         PrimeItems.tasker_root_elements["all_profiles"],
         PrimeItems.program_arguments["single_profile_name"],
         do_pids=True,
+    ) and not check_for_single_name(
+        PrimeItems.tasker_root_elements["all_tasks"],
+        PrimeItems.program_arguments["single_task_name"],
+        do_pids=False,
     ):
-        _ = check_for_single_name(
-            PrimeItems.tasker_root_elements["all_tasks"],
-            PrimeItems.program_arguments["single_task_name"],
-            do_pids=False,
-        )
+        if scene_name := PrimeItems.program_arguments["single_scene_name"]:
+            PrimeItems.program_arguments["single_project_name"] = find_owning_project_for_scene(scene_name)
 
 
 # Outline the Tasker Configuration

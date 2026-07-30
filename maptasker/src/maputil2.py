@@ -23,9 +23,6 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, NOW_TIME, logger, logging
 from maptasker.src.translator import T
 
-# Removed tkinter and customtkinter imports!
-
-
 # ==========================================
 # 1. TEXT & DATA PARSING
 # ==========================================

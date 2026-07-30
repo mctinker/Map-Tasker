@@ -193,9 +193,7 @@ def build_bundles(xml_file: str = "", output_file: str = "") -> int:
     if not xml_file:
         # Prefer a backup.xml in the current directory, else fall back to the project root.
         xml_file = (
-            DEFAULT_XML_FILE
-            if os.path.isfile(DEFAULT_XML_FILE)
-            else os.path.join(project_root, DEFAULT_XML_FILE)
+            DEFAULT_XML_FILE if os.path.isfile(DEFAULT_XML_FILE) else os.path.join(project_root, DEFAULT_XML_FILE)
         )
     if not output_file:
         output_file = os.path.join(

@@ -91,6 +91,9 @@ def add_css() -> None:
 
     # Fast-appearing tooltip used in place of the native "title" attribute, whose
     # browser-imposed show delay (a second or more) can't be shortened via HTML/CSS.
+    # "fff" is substituted below with the font to use -- the tooltip has to render in the
+    # same monospaced font as the rest of the output, since build_two_column_tooltip_lines()
+    # (format.py) pads its columns by character count and relies on that to line up.
     tooltip = """
 <style>
     .hover-tooltip {
@@ -103,7 +106,7 @@ def add_css() -> None:
         left: 0;
         top: 100%;
         white-space: pre;
-        font-family: "Courier New", Courier, monospace;
+        font-family:fff, monospace;
         background: #333;
         color: #fff;
         padding: 6px 10px;
@@ -143,5 +146,6 @@ def add_css() -> None:
     # Add image resize
     PrimeItems.output_lines.add_line_to_output(5, resize_image, FormatLine.dont_format_line)
 
-    # Add the fast-appearing hover tooltip
+    # Add the fast-appearing hover tooltip, rendered in the font the user selected.
+    tooltip = tooltip.replace("fff", PrimeItems.program_arguments["font"])
     PrimeItems.output_lines.add_line_to_output(5, tooltip, FormatLine.dont_format_line)

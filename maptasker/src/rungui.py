@@ -134,7 +134,6 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     Processing Logic:
         - Import MyGui if use_gui is True.
         - Set flag to indicate GUI usage.
-        - Delete previous Tkinter window if it exists.
         - Display GUI and get user input.
         - Initialize runtime arguments if not already set.
         - If user clicks "Exit" button, save settings and exit program.
@@ -153,11 +152,6 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         from maptasker.src.userintr import MyGui  # noqa: PLC0415
 
     PrimeItems.program_arguments["gui"] = True
-
-    # Get rid of any previous Tkinter window
-    if PrimeItems.tkroot is not None:
-        del PrimeItems.tkroot
-        PrimeItems.tkroot = None
 
     # 1. Create a dictionary to hold our UI instance so we can retrieve it after the server closes
     shared_state = {}

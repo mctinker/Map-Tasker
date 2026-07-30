@@ -57,17 +57,15 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
 - Save and restore runtime settings.
 - Identify Tasks that have too many 'actions', and which should potentially be broken up into multiple Tasks.
-- Ai Analysis option to analyze a specific Project, Profile or Task using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models.
+- Ai Analysis option to analyze a specific Project, Profile, Task or Scene using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models.
 - Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.
 - Automatic update detection and optional installation of new versions.
 - Enhanced search capabilities.
-- Add and Edit Projects, Profiles, and Tasks
+- Add and Edit Projects, Profiles, and Tasks (see [Note 6](#6))
 
 ## Program Dependencies
 
 ### - Python version 3.11 or higher
-
-### - TKinter 8.6 or higher (see [Note 3](#3))
 
 ### - Tasker full or partial XML file: backup.xml or other Tasker exported XML file
 
@@ -182,19 +180,6 @@ The software is provided "AS IS", without warranty of any kind. For the full lic
 
 ## Troubleshooting and FAQ
 
-**Q: I'm having trouble with Tkinter versioning, especially on macOS with Brew.**
-
-A: Tkinter 8.6 or higher is required.
-
-    - The simplest solution is often to use the [standard Python release download](https://www.python.org) which usually includes a compatible Tcl/Tk.
-    - To check your Tkinter version, run: `python -m tkinter`
-    - If using Brew and encountering issues:
-        - You might need to uninstall Python, install `tcl-tk@8` via Brew, and then reinstall Python.
-        - For `pyenv` users:
-            - Python 3.12 should be upgraded to the latest 3.12.x: `pyenv install 3.12:latest`.
-            - Python 3.13 generally works with newer Tcl/Tk versions.
-    - The "Notes" section of this README contains further details, particularly regarding Tkinter installation complexities.
-
 **Q: The `MapTasker_Map.txt` diagram looks misaligned in Notepad on Windows.**
 
 A: Notepad may not handle spacing correctly for this file.
@@ -241,21 +226,7 @@ To retrieve the Tasker XML file directly:
 - The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) must be imported into Tasker for the 'List XML Files' button in the GUI. You can [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
 - Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
 
-### 3
-**Tkinter Installation:**
-
-The most direct and simple solution for Tkinter compatibility is to get and use the [standard Python release download](https://www.python.org). If using package managers like Brew or version managers like `pyenv`, specific steps might be needed if Tkinter version issues (requiring 8.6+) arise:
-
-- To determine your Tkinter version: `'python -m tkinter'`
-- General Brew troubleshooting for Tkinter:
-  - Uninstall Python.
-  - `brew install tcl-tk@8`
-  - Reinstall Python.
-- For `pyenv` users with Tcl/Tk version 9 conflicts:
-  - Python 3.11: `brew uninstall tcl-tk`, `pyenv uninstall 3.11.xx`, `brew install tcl-tk@8`, `pyenv install 3.11:latest`.
-  - Python 3.12: Upgrade to the latest 3.12.x: `pyenv install 3.12:latest`.
-  - Python 3.13: Generally compatible with Tcl/Tk version 9.
-- If still having issues, [refer to this StackOverflow post.](https://shorturl.at/iAIRX)
+<!-- ### 3 -->
 
 ### 4
 **TBD:**
@@ -263,16 +234,51 @@ The most direct and simple solution for Tkinter compatibility is to get and use 
 ### 5
 **AI Support**
 
-Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile or Task only. Support is available for server-based OpenAi (ChatGPT), Gemini, and Anthropic, as well as local-based Llama models.
+Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile, Task, or Scene only. Support is available for server-based OpenAi (ChatGPT), Gemini, and Anthropic, as well as local-based Llama models.
 
 Llama based models are supported via [Ollama](https://ollama.com/), which you must manually download, install and run it once to set up the server on your desktop.  MapTasker will dynamically load the Llama models for you if not already loaded.
 
 The supporting AI modules are not installed by default when MapTasker is installed.  Instead, they are dynamically installed upon first-use of the specific AI request.  In this way, if you do not plan to use AI, then you do not incur the overhead.
 
 
+### 6
+**MapTasker Editing Caveats**
+
+- Not all edits are available
+   Certain Task actions and Profile states and event may have arguments that can only be determined under Android and/or within Tasker.  In this case, they are not (yet) available to be added/edited.
+   
+- Extra Arguments in Tasks
+	In some cases, you will be prompted for action arguments that do not appear when adding the same under Tasker.  From what I can tell, this is due to the fact that Tasker's argument definition specifications support older versions of Tasker, in which such arguments are still supported.  For example, the 'Flash' action prompts for a 'Title' under MapTasker, but the current beta 6.5.6 of Tasker does not.  In this case, Tasker should just ignore this argument when it is found in the action.
+	
+- Save Tasks to Android (Tasker import) --> Requires Tasker 6.2 or higher.
+	This function actually loads the item into the pre-existing Tasker session on your Android device.  Since there is no 'Refresh View' in Tasker, it may be necessary to exit and restart Tasker to actually see the added Task.
+	If Tasker is not running, you will be notified with an error message in the GUI.
+	The current implementation saves the Task under the 'Base' (Home) Project.
+	
+- Single Object Edit
+	All edits work off a single Project, Profile, or Task, which must be preselected before the edit can occur.  Adding a Task requires a single Project to be selected.  Likewise for adding Profiles.
+
+- Profile State and Event conditions
+	Adding a State or Event condition is a 2-to-3 step process.  First you must add the State or Condition, and then once added, select it to add/modify it's arguments. 
+
+- Save to Current File
+	This command makes a copy of your current file and updates the copy.  It then reads back the modified copy which becomes your new 'current file'.  The original is never changed.
+	
+- Edit Options
+	'Cancel' just cancels Task action edits and Profile state/event edits.  
+	'Ok': make the change in memory only.
+	'Rename' and 'Delete' are self explanatory.
+	'Save to Android': saves Tasks to the current Tasker session.  Saves Profiles and Projects to /Tasker/profiles and /Tasker/projects, respectively.  
+	'Save to Current File': see 6, above.  
+	'Export': Save as the single Project, Profile or Task to the current directory with the given name.
+	
+- Validation and Defaults
+	MapTasker does not do any extensive validation of arguments.  Additionally, default settings for arguments are not all populated.	
+	
+- Remember, this is NOT Tasker.  So the look and feel will be somewhat different.  It may feel a little clunky at first.  Suggestions are welcome.
 <!-- ### 6
 **Optional Inline Videos:** -->
-Currently not functional.
+
 <!-- 'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
 
 The direct playing of YouTube videos is not supported on Windows due to a dependency issue.  Therefore, 'ffmpeg' is not required for Windows users.
@@ -393,7 +399,7 @@ We appreciate your help in making MapTasker better!
 ## Known Issues
 
 - Diagram connectors are misaligned if names are in Chinese, Korean or Japanese.
-- Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device.
+- Not all Task actions and Profile state/event editing are supported, since some require information which is only available on an Android device.
 
 ## Contributions
 
@@ -401,12 +407,10 @@ We appreciate your help in making MapTasker better!
 
 [©Connor Talbot 2021 for Clippy](https://github.com/con-dog/clippy)
 
-[Tom Schimansky for CustomTkinter](https://github.com/TomSchimansky/CustomTkinter)
-
-[Akash Bora for CTkColorPicker and XYFrame](https://github.com/Akascape/CTkColorPicker)
-
 [Ollama](https://ollama.com/), [OpenAi](https://openai.com/), [Claude AI](https://claude.ai), [Gemini AI](https://gemini.google.com/), [DeepSeek AI](https://chat.deepseek.com/)
 
 [Anonyo Noor for cria](https://github.com/leftmove/cria)
+
+[NiceGui](https://nicegui.io/)
 
 [!["Buy Me A Coffee"](/documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)

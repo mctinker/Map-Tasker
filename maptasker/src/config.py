@@ -16,6 +16,14 @@ CONTINUE_LIMIT = 75
 # Monospace fonts work best for if/then/else/end indentation alignment
 OUTPUT_FONT = "Courier"  # OS X Default monospace font
 
+# Whether the GUI's "Font To Use In Output" list offers every installed font, with the
+# monospaced ones sorted to the top and marked as such, or only the monospaced ones.
+# Set this to False to go back to offering monospaced fonts alone -- it is the single
+# switch for that behavior, and nothing else needs changing.
+# Note that a proportional font will not hold the Diagram's box-drawing connectors or the
+# output's indentation in alignment; that is the trade-off this opens up.
+INCLUDE_PROPORTIONAL_FONTS = True
+
 # Graphical User Interface (True) vs. CLI Command Line Interface (False)
 GUI = False
 # Light vs Dark Mode (refer to colrmode.py to hardcode the output colors)

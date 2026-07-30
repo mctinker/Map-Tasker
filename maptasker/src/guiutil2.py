@@ -5,14 +5,15 @@ These are pure Python functions pulled out to avoid circular imports.
 """
 
 import os
-import tkinter as tk
-import tkinter.font as tkfont
 
 import requests
 
 # import re
 # import requests
+from maptasker.src.config import INCLUDE_PROPORTIONAL_FONTS
 from maptasker.src.error import rutroh_error
+from maptasker.src.mapfonts import get_font_choices as get_font_selections
+from maptasker.src.mapfonts import get_monospaced_fonts
 
 # from maptasker.src.maputil2 import translate_string
 # from maptasker.src.maputils import make_hex_color
@@ -158,30 +159,23 @@ def get_changelog_file(url: str, delimiter: str, n: int) -> list:
 
 
 def get_monospace_fonts() -> list[str]:
-    """Queries the OS via Tkinter to retrieve available monospaced fonts."""
-    # Create a hidden root window to initialize the font subsystem
-    root = tk.Tk()
-    root.withdraw()
+    """Queries the OS font files to retrieve the available monospaced fonts."""
+    try:
+        # mapfonts reads the installed font files directly and supplies its own
+        # fallback list if none of them turn out to be monospaced.
+        return get_monospaced_fonts()
+    except Exception as e:  # noqa: BLE001
+        rutroh_error(f"Unable to retrieve the system monospaced fonts: {e}")
+        return ["Courier New", "Courier"]
 
-    mono_fonts = []
-    # Get all unique families available on the system
-    all_fonts = sorted(set(tkfont.families()))
 
-    for f in all_fonts:
-        try:
-            # Create a font object and check if it has fixed-width properties
-            current_font = tkfont.Font(family=f, size=12)
-            if current_font.metrics("fixed"):
-                mono_fonts.append(f)
-        except Exception as e:  # noqa: BLE001
-            rutroh_error(f"Unable to create font object for {f}: {e}")
-            continue
+def get_font_choices() -> dict[str, str]:
+    """Returns the {font name: label to show} choices for the GUI's font pulldown.
 
-    # Clean up the hidden tkinter root instance
-    root.destroy()
-
-    # Fallback default values if the system returns an empty list
-    if not mono_fonts:
-        mono_fonts = ["Courier New", "Courier"]
-
-    return mono_fonts
+    Which fonts are offered is governed by config.INCLUDE_PROPORTIONAL_FONTS.
+    """
+    try:
+        return get_font_selections(INCLUDE_PROPORTIONAL_FONTS)
+    except Exception as e:  # noqa: BLE001
+        rutroh_error(f"Unable to retrieve the system fonts: {e}")
+        return {"Courier New": "Courier New", "Courier": "Courier"}

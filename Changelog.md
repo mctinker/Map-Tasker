@@ -6,16 +6,24 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added:
+- Added: Display a single Scene.  A single Scene can also be fed to the Ai analysis.
+- Added: Displaying the Map view in an additional tab beyond the first one is now an option: 'Open View in New Window'
+- Added: Proportional fonts are now selectable.
 
 ### Changed
 
-- Changed:
+- Changed: A single Scene forces a minimum display detail level of 3, since the Scene's elements are not displayed below that level.
+- Changed: Updated the README file to reflect the recent enhancements.
+- Changed: Removed dependency on Tkinter and webcolors
 
 ### Fixed
 
+- Fixed: The Scene tooltip's "Project:" line could name the wrong Project when one Scene's name was a substring of another's (e.g. 'Main' matching the Project that owns 'MainMenu').
+- Fixed: A single Profile or Project that was not found reported itself as a missing 'Task' in the error message.
 - Fixed: TaskerNet descriptions with html hotlinks are not 'hot'.
-- Fixed: 'Add/Edit': Task actions, Profile states, and Profile events that were unsupported due to missing XML 'Bundle' statements are now supported.  Now supports an additional 144 Task actions and 56 Event/State conditions.
+- Fixed: 'Add/Edit': An additional 144 Task actions and 56 Event/State conditions are now supported.
+- Fixed: Getting the error 'No Task found!!!' printed in the console when selecting an unnamed Task to display.
+- Fixed: Selected font not used when rendering the Map view.
 
 ### Known Issue
 

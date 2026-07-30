@@ -54,6 +54,7 @@ def initialize_runtime_arguments() -> dict:
         "runtime": False,  # Display the runtime arguments/settings
         "single_profile_name": "",  # Display single Profile name only
         "single_project_name": "",  # Display single Project name only
+        "single_scene_name": "",  # Display single Scene name only
         "single_task_name": "",  # Display single Task name only
         "tab_to_use": None,  # Default GUI Tab to start
         "task_action_warning_limit": 100,  # Task action warning limit

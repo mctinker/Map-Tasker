@@ -73,7 +73,9 @@ def get_backup_arguments(xml_file: str) -> dict:
             if sr.startswith("arg") and sr[len("arg") :].isdigit():
                 tallies[key][sr[len("arg") :]][child.tag] += 1
 
-    return {key: {arg_id: tags.most_common(1)[0][0] for arg_id, tags in slots.items()} for key, slots in tallies.items()}
+    return {
+        key: {arg_id: tags.most_common(1)[0][0] for arg_id, tags in slots.items()} for key, slots in tallies.items()
+    }
 
 
 def find_missing_arguments(harvested: dict) -> dict:

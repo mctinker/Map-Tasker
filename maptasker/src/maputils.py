@@ -460,6 +460,31 @@ def find_owning_project(profile_name: str) -> str:
     return ""
 
 
+# Find owning Project given a Scene name
+def find_owning_project_for_scene(scene_name: str) -> str:
+    """
+    Find the owning Project given a Scene name.
+
+    Scenes are not in a Project's <pids>/<tids> the way Profiles and Tasks are, so this
+    can't go through get_ids like find_owning_project/find_owning_profile do.  Instead a
+    Project lists its Scenes by *name* in its <scenes> element, as a comma-separated
+    list (see scenes.process_project_scenes).
+
+    Args:
+        scene_name (str): The Scene name.
+
+    Returns:
+        str: The owning Project name, or an empty string if no Project lists this Scene.
+    """
+    for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
+        scenes = project_value["xml"].find("scenes")
+        # Split on the comma rather than testing "in scenes.text": a plain substring test
+        # matches Scene "Main" against a Project that only owns "MainMenu".
+        if scenes is not None and scenes.text and scene_name in scenes.text.split(","):
+            return project_name
+    return ""
+
+
 def close_logfile() -> None:
     """Close the log file(s)"""
     # The FileHandler lives on the ROOT logger, not on "MapTasker": maputil2.setup_logging() installs

@@ -11,14 +11,10 @@ import json
 import os
 import platform
 import sys
-
-# import tkinter as tk
 from collections import namedtuple
 from json import dumps, loads
 from pathlib import Path
-from tkinter import TkVersion, messagebox
 
-# importing askopenfile (from class filedialog) and messagebox functions
 import maptasker.src.progargs as get_arguments
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE, GUI
@@ -238,7 +234,7 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         # and not running from the GUI.
         if not PrimeItems.file_to_get and run_counter < 1 and not GUI:
             msg = translate_string("Locate the Tasker XML file to use to map your Tasker environment")
-            messagebox.showinfo("MapTasker", msg)
+            print(f"MapTasker: {msg}")
 
         # Open and read the file...
         open_and_get_backup_xml_file()
@@ -259,19 +255,17 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
     return return_code
 
 
-# Make sure we have the appropriate version of Python and Tkinter
+# Make sure we have the appropriate version of Python
 def check_versions() -> None:
     """
-    Checks the Python and Tkinter versions
+    Checks the Python version
     Args:
         None: No arguments
     Returns:
         None: Does not return anything
     - It gets the Python version and splits it into major, minor, and patch numbers
     - It checks if the major version is less than 3 or the major is 3 and minor is less than 11
-    - It gets the Tkinter version and splits it into major and minor
-    - It checks if the major is less than 8 or the major is 8 and minor is less than 6
-    - If either check fails, it logs and prints an error message and exits
+    - If the check fails, it logs and prints an error message and exits
     """
     msg = ""
     version = sys.version
@@ -279,13 +273,6 @@ def check_versions() -> None:
     major, minor, _ = (int(x, 10) for x in version[0].split("."))
     if major < 3 or (major == 3 and minor < 11):
         msg = f"Python version {sys.version} is not supported.  Please use Python 3.11 or greater."
-    version = str(TkVersion)
-    major, minor = version.split(".")
-    if int(major) < 8 or (int(major) == 8 and int(minor) < 6):
-        msg = (
-            f"{msg}  Tcl/tk (Tkinter) version {TkVersion} is not supported.  Please use Tkinter version 8.6 or greater."
-        )
-        logger.error(msg)
     if msg:
         logger.error("MapTasker", msg)
         print(msg)
@@ -422,7 +409,7 @@ def start_up() -> dict:
         PrimeItems.slash = "/"
         PrimeItems.windows_system = False
 
-    # Validate runtime versions for python and tkinter
+    # Validate the runtime version of python
     check_versions()
 
     # NOTE: FOR DEVELOPMENT ONLY!!! 'BUILD_ALL = TRUE' ONLY WITH NEW UPDATE OF TASKER!  See acmerge.py

@@ -27,7 +27,7 @@ from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import http_request, translate_string
 from maptasker.src.maputil3 import validate_xml_file
 from maptasker.src.maputils import get_pypi_version, restart_program_subprocess
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.sysconst import (
@@ -216,13 +216,11 @@ def get_extended_ai_model_list() -> list:
 
 def update_tasker_object_menus(self: "MyGui", get_data: bool = False, reset_single_names: bool = False) -> None:
     """
-    Updates the Project, Profile, and Task dropdowns in the 'Specific Name' tab.
+    Updates the Project, Profile, Task and Scene dropdowns in the 'Specific Name' tab.
     """
     if get_data:
         if reset_single_names:
-            self.single_project_name = ""
-            self.single_profile_name = ""
-            self.single_task_name = ""
+            clear_single_item_view_names(self)
         return_code = list_tasker_objects(self)
         if not return_code:
             return
@@ -277,7 +275,13 @@ def refresh_tasker_object_pulldowns(self) -> bool:  # noqa: ANN001
         contract as list_tasker_objects).
     """
     # Get all of the Tasker objects: Projects/Profiles/Tasks/Scenes
-    return_code, projects_to_display, profiles_to_display, tasks_to_display = get_tasker_objects(self)
+    (
+        return_code,
+        projects_to_display,
+        profiles_to_display,
+        tasks_to_display,
+        scenes_to_display,
+    ) = get_tasker_objects(self)
     if not return_code:
         return False
 
@@ -296,6 +300,7 @@ def refresh_tasker_object_pulldowns(self) -> bool:  # noqa: ANN001
         profiles_to_display.sort()
         profiles_to_display.insert(0, none_translated)
     tasks_to_display.insert(0, none_translated)
+    scenes_to_display.insert(0, none_translated)
 
     # Display the object pulldowns in 'Specific Name' tab
     if not projects_to_display:  # If no Projects to display
@@ -304,11 +309,13 @@ def refresh_tasker_object_pulldowns(self) -> bool:  # noqa: ANN001
         self.specific_project_optionmenu,
         self.specific_profile_optionmenu,
         self.specific_task_optionmenu,
+        self.specific_scene_optionmenu,
     ) = display_object_pulldowns(
         self,
         projects_to_display,
         profiles_to_display,
         tasks_to_display,
+        scenes_to_display,
     )
     return True
 
@@ -318,9 +325,10 @@ def display_object_pulldowns(
     projects_to_display: list,
     profiles_to_display: list,
     tasks_to_display: list,
+    scenes_to_display: list,
 ) -> tuple:
     """
-    Updates the pulldown menus for selecting projects, profiles, and tasks.
+    Updates the pulldown menus for selecting projects, profiles, tasks and Scenes.
     """
 
     # Just update the options for the widgets we created in guiwins.py
@@ -329,6 +337,7 @@ def display_object_pulldowns(
         self.specific_project_optionmenu.options = projects_to_display
         self.specific_profile_optionmenu.options = profiles_to_display
         self.specific_task_optionmenu.options = tasks_to_display
+        self.specific_scene_optionmenu.options = scenes_to_display
 
         # 2. FIX: REMOVED .clear() AND .on() LOOPS HERE!
         # The event listeners are already bound via 'on_change=' during initialization.
@@ -338,14 +347,20 @@ def display_object_pulldowns(
         self.specific_project_optionmenu.update()
         self.specific_profile_optionmenu.update()
         self.specific_task_optionmenu.update()
+        self.specific_scene_optionmenu.update()
 
-    return self.specific_project_optionmenu, self.specific_profile_optionmenu, self.specific_task_optionmenu
+    return (
+        self.specific_project_optionmenu,
+        self.specific_profile_optionmenu,
+        self.specific_task_optionmenu,
+        self.specific_scene_optionmenu,
+    )
 
 
 # Get all Projects, Profiles and Tasks to display
 def get_tasker_objects(self) -> tuple:  # noqa: ANN001
     """
-    Retrieves the projects, profiles, and tasks available in the XML file.
+    Retrieves the projects, profiles, tasks and Scenes available in the XML file.
 
     Returns:
         tuple: A tuple containing the following:
@@ -353,6 +368,7 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
             - list: A list of project names.
             - list: A list of profile names to display.
             - list: A list of task names to display.
+            - list: A list of Scene names to display.
     """
     projects_to_display = []
     profiles = []
@@ -401,7 +417,13 @@ def get_tasker_objects(self) -> tuple:  # noqa: ANN001
             tasks_to_display = list(set(new_task_list))
         tasks_to_display.sort()
 
-    return True, projects_to_display, profiles_to_display, tasks_to_display
+    # Build the list of Scene names.  all_scenes is keyed by Scene name (see
+    # taskerd.get_the_xml_data), so its keys are the list -- no prefix, like Tasks.
+    scenes_to_display = sorted(PrimeItems.tasker_root_elements["all_scenes"])
+    if not scenes_to_display:
+        scenes_to_display = [translate_string("No scenes found")]
+
+    return True, projects_to_display, profiles_to_display, tasks_to_display, scenes_to_display
 
 
 def display_selected_object_labels(self: "MyGui") -> None:
@@ -424,15 +446,18 @@ def display_selected_object_labels(self: "MyGui") -> None:
             model_to_display = self.ai_model
 
     none_translated = translate_string("None")
-    project_to_display = self.single_project_name if self.single_project_name else none_translated
-    profile_to_display = self.single_profile_name if self.single_profile_name else none_translated
-    task_to_display = self.single_task_name if self.single_task_name else none_translated
-    if project_to_display is not None and project_to_display != "None":
-        self.currently_selected_label.set_text("Current Project selection: " + project_to_display)
-    elif profile_to_display is not None and profile_to_display != "None":
-        self.currently_selected_label.set_text("Current Profile selection: " + profile_to_display)
-    elif task_to_display is not None and task_to_display != "None":
-        self.currently_selected_label.set_text("Current Task selection: " + task_to_display)
+    to_display = {
+        label: getattr(self, f"single_{label.lower()}_name", "") or none_translated for label in SINGLE_ITEM_LABELS
+    }
+    project_to_display = to_display["Project"]
+    profile_to_display = to_display["Profile"]
+    task_to_display = to_display["Task"]
+    scene_to_display = to_display["Scene"]
+    for label in SINGLE_ITEM_LABELS:
+        value = to_display[label]
+        if value is not None and value != "None":
+            self.currently_selected_label.set_text(f"Current {label} selection: {value}")
+            break
 
     # 2. Render the "Analyze" Tab panel context natively
     with self.tab_analyze:
@@ -441,6 +466,7 @@ def display_selected_object_labels(self: "MyGui") -> None:
         self.ai_project_label = None
         self.ai_profile_label = None
         self.ai_task_label = None
+        self.ai_scene_label = None
 
         # Display Model & Key tracking summaries
         # Use the raw model string or cleaned display model cleanly
@@ -472,6 +498,9 @@ def display_selected_object_labels(self: "MyGui") -> None:
 
         translation_task = translate_string("Task to Analyze:")
         self.ai_task_label = ui.label(f"{translation_task} {task_to_display}").classes("text-sm mt-1")
+
+        translation_scene = translate_string("Scene to Analyze:")
+        self.ai_scene_label = ui.label(f"{translation_scene} {scene_to_display}").classes("text-sm mt-1")
 
         # Display Prompt configurations
         display_prompt = translate_string(self.ai_prompt)
@@ -747,6 +776,60 @@ def select_pulldown_option(optionmenu: ui.select, name: str) -> None:
         optionmenu.value = match
 
 
+# The single-named-item labels, in the same order as primitem.SINGLE_ITEM_SELECTORS.
+# Everything the GUI needs per item derives from its label: the MyGui attribute holding
+# the current selection is "single_<label>_name", and its 'Specific Name' pulldown widget
+# is "specific_<label>_optionmenu".
+SINGLE_ITEM_LABELS = tuple(label for _, _, label in SINGLE_ITEM_SELECTORS)
+
+
+def clear_single_item_view_names(self: object) -> None:
+    """Clear every single_xxx_name on the view, leaving PrimeItems alone.
+
+    For callers that only need the GUI's own idea of the current selection reset -- most
+    importantly the restore-from-saved-settings path, where PrimeItems.program_arguments
+    still holds the name being restored and must not be wiped.
+
+    Kept table-driven off SINGLE_ITEM_SELECTORS so adding a fifth single item is a
+    one-line change there rather than another hand-written block here.
+    """
+    for _, _, label in SINGLE_ITEM_SELECTORS:
+        setattr(self, f"single_{label.lower()}_name", "")
+
+
+def clear_single_item_names(self: object) -> None:
+    """Clear every single_xxx_name -- on the view and in PrimeItems.program_arguments --
+    along with every found-flag.
+
+    The 'Specific Name' selections are mutually exclusive, so anything about to set one
+    of them clears all of them first.
+    """
+    clear_single_item_view_names(self)
+    for name_key, found_key, _ in SINGLE_ITEM_SELECTORS:
+        PrimeItems.program_arguments[name_key] = ""
+        PrimeItems.found_named_items[found_key] = False
+
+
+def reset_single_item_pulldowns(self: object, except_for: str = "") -> None:
+    """Set every 'Specific Name' pulldown back to "None", optionally leaving one alone.
+
+    Args:
+        self: the MyGui view.
+        except_for: label ("Project"/"Profile"/"Task"/"Scene") of the one pulldown to
+            leave untouched -- normally whichever one the user just picked from.
+
+    The caller must have set self.is_updating first: assigning a NiceGUI select's .value
+    fires its on_change, which would re-enter the single_xxx_name_event handlers.
+    """
+    for label in SINGLE_ITEM_LABELS:
+        if label == except_for:
+            continue
+        optionmenu = getattr(self, f"specific_{label.lower()}_optionmenu", None)
+        if optionmenu is not None:
+            optionmenu.value = "None"
+            optionmenu.update()
+
+
 def set_tasker_object_names(self: object) -> None:
     """Set names to display in pulldown menus based on current tasker object names."""
     # Translate the default values if possible
@@ -755,71 +838,45 @@ def set_tasker_object_names(self: object) -> None:
     display_only_text = PrimeItems._(display_only_text) if hasattr(PrimeItems, "_") else display_only_text
 
     defaults = {
-        "project": self.single_project_name if self.single_project_name else none_text,
-        "profile": self.single_profile_name if self.single_profile_name else none_text,
-        "task": self.single_task_name if self.single_task_name else none_text,
-        "display_only": f"{display_only_text} ",
+        label.lower(): getattr(self, f"single_{label.lower()}_name", "") or none_text for label in SINGLE_ITEM_LABELS
     }
+    defaults["display_only"] = f"{display_only_text} "
 
-    # Map attribute presence to corresponding function
-    handlers = (
-        (self.single_project_name, _set_single_project_name),
-        (self.single_profile_name, _set_single_profile_name),
-        (self.single_task_name, _set_single_task_name),
-    )
-
-    # Go through handlers and call the appropriate function for a single named item
-    for attr_value, func in handlers:
-        if attr_value:
-            # We have a single-named item. Set values and return
-            func(self, defaults)
+    # Whichever single item is set wins -- they are mutually exclusive.
+    for label in SINGLE_ITEM_LABELS:
+        if name := getattr(self, f"single_{label.lower()}_name", ""):
+            _set_single_item_name(self, label, name, defaults)
             return
 
     # No single item selected. Set the defaults.
     _set_default_names(self, defaults)
 
 
-def _set_single_project_name(self: object, defaults: dict) -> None:
-    """Handles setting names when a single project name is available."""
-    text = f"{defaults['display_only']}{translate_string('Project')}"
-    self.specific_name_msg = f"{text} '{self.single_project_name}'"
+def _set_single_item_name(self: object, label: str, name: str, defaults: dict) -> None:
+    """Select `name` in its own pulldown and put every other one back to its default.
+
+    Args:
+        self: the MyGui view.
+        label: "Project" / "Profile" / "Task" / "Scene".
+        name: the currently selected name for that item.
+        defaults: per-item display values, keyed by lowercased label, plus "display_only".
+
+    Project and Profile options carry a translated "<type>: " prefix while Task and
+    Scene options are bare names (see get_tasker_objects), which is why the selection
+    goes through select_pulldown_option rather than assigning .value: it matches either
+    form, and no-ops rather than blanking the pulldown when nothing matches.
+    """
+    self.specific_name_msg = f"{defaults['display_only']}{translate_string(label)} '{name}'"
     try:
-        # NiceGUI uses .value instead of .set() -- via select_pulldown_option,
-        # since the option is "Project: <name>", not the bare name.
-        select_pulldown_option(self.specific_project_optionmenu, self.single_project_name)
+        select_pulldown_option(getattr(self, f"specific_{label.lower()}_optionmenu"), name)
     except AttributeError:
         return
 
-    self.specific_profile_optionmenu.value = defaults["profile"]
-    self.specific_task_optionmenu.value = defaults["task"]
-
-
-def _set_single_profile_name(self: object, defaults: dict) -> None:
-    """Handles setting names when a single profile name is available."""
-    # Note: Fixed a missing opening single quote before the profile name from the original code
-    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Profile')} '{self.single_profile_name}'"
-    try:
-        # The option is "Profile: <name>", not the bare name -- see select_pulldown_option.
-        select_pulldown_option(self.specific_profile_optionmenu, self.single_profile_name)
-    except AttributeError:
-        return
-
-    self.specific_project_optionmenu.value = defaults["project"]
-    self.specific_task_optionmenu.value = defaults["task"]
-
-
-def _set_single_task_name(self: object, defaults: dict) -> None:
-    """Handles setting names when a single task name is available."""
-    self.specific_name_msg = f"{defaults['display_only']}{translate_string('Task')} '{self.single_task_name}'"
-    try:
-        # Task options are bare names, but go through the same helper so an
-        # unmatched name no-ops rather than blanking the pulldown.
-        select_pulldown_option(self.specific_task_optionmenu, self.single_task_name)
-    except AttributeError:
-        return
-
-    self.specific_project_optionmenu.value = defaults["project"]
-    self.specific_profile_optionmenu.value = defaults["profile"]
+    for other in SINGLE_ITEM_LABELS:
+        if other == label:
+            continue
+        if (optionmenu := getattr(self, f"specific_{other.lower()}_optionmenu", None)) is not None:
+            optionmenu.value = defaults[other.lower()]
 
 
 def _set_default_names(self: object, defaults: dict) -> None:
@@ -827,27 +884,25 @@ def _set_default_names(self: object, defaults: dict) -> None:
     self.specific_name_msg = ""
     try:
         none_text = PrimeItems._("None") if hasattr(PrimeItems, "_") else "None"
-        project_text = defaults["project"]
-        profile_text = defaults["profile"]
-        task_text = defaults["task"]
 
-        self.specific_project_optionmenu.value = project_text
-
-        # NiceGUI updates available options by changing the .options list directly
-        if not PrimeItems.tasker_root_elements.get("all_projects"):
-            self.specific_project_optionmenu.options = [none_text]
-            self.specific_project_optionmenu.value = none_text
-
-        if not PrimeItems.tasker_root_elements.get("all_profiles"):
-            self.specific_profile_optionmenu.options = [none_text]
-            self.specific_profile_optionmenu.value = none_text
-
-        if not PrimeItems.tasker_root_elements.get("all_tasks"):
-            self.specific_task_optionmenu.options = [none_text]
-            self.specific_task_optionmenu.value = none_text
-
-        self.specific_profile_optionmenu.value = profile_text
-        self.specific_task_optionmenu.value = task_text
+        # The tasker_root_elements key backing each pulldown.  When a backup has none
+        # of a given item, its pulldown collapses to just "None" -- otherwise it would
+        # keep offering names from a previously loaded file.
+        for label, root_key in (
+            ("Project", "all_projects"),
+            ("Profile", "all_profiles"),
+            ("Task", "all_tasks"),
+            ("Scene", "all_scenes"),
+        ):
+            optionmenu = getattr(self, f"specific_{label.lower()}_optionmenu", None)
+            if optionmenu is None:
+                continue
+            if not PrimeItems.tasker_root_elements.get(root_key):
+                # NiceGUI updates available options by changing the .options list directly
+                optionmenu.options = [none_text]
+                optionmenu.value = none_text
+            else:
+                optionmenu.value = defaults[label.lower()]
     except AttributeError:
         pass
 
@@ -861,7 +916,9 @@ def display_analyze_button(self: "MyGui", _row: int, first_time: bool) -> None:
         self.ai_model = ""
 
     # Highlight the button if we have everything to run the Analysis.
-    if is_valid_ai_config(self) and (self.single_task_name or self.single_profile_name or self.single_project_name):
+    if is_valid_ai_config(self) and any(
+        getattr(self, f"single_{label.lower()}_name", "") for label in SINGLE_ITEM_LABELS
+    ):
         # Make it pink
         bg_color = "#f55dff"
         text_color = "#FFFFFF"
@@ -952,6 +1009,7 @@ def valid_item(
         "Project": PrimeItems.tasker_root_elements["all_projects"],
         "Profile": PrimeItems.tasker_root_elements["all_profiles"],
         "Task": PrimeItems.tasker_root_elements["all_tasks"],
+        "Scene": PrimeItems.tasker_root_elements["all_scenes"],
     }
     root_element = root_element_choices[element_name]
 
@@ -1292,7 +1350,7 @@ def validate_or_filelist_xml(
                 "text-xs font-bold text-purple-600 mt-1 self-start",
             )
 
-            # Custom Tkinter OptionMenu transforms to a reactive NiceGUI ui.select dropdown
+            # OptionMenu transforms to a reactive NiceGUI ui.select dropdown
             self.filelist_option = ui.select(
                 options=filelist,
                 label=translate_string("Available Android Backups"),

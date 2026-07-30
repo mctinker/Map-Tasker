@@ -13,6 +13,7 @@ import defusedxml
 
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import build_tooltip_span
+from maptasker.src.maputils import find_owning_project_for_scene
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
@@ -97,11 +98,8 @@ def format_task_or_scene(
 
         # Get owning project for this Scene, if known, and add to the tooltip.
         tooltip_lines = []
-        for project in PrimeItems.tasker_root_elements["all_projects"].values():
-            scenes = project["xml"].find("scenes")
-            if scenes is not None and the_item in scenes.text:
-                tooltip_lines.append(f"Project: {project['name']}")
-                break
+        if owning_project := find_owning_project_for_scene(the_item):
+            tooltip_lines.append(f"Project: {owning_project}")
 
         # Add the Scene's list of UI elements to the tooltip, one element per line.
         scene_xml = PrimeItems.tasker_root_elements["all_scenes"].get(the_item, {}).get("xml")

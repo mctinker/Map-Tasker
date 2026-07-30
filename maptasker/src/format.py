@@ -151,9 +151,7 @@ def build_two_column_tooltip_lines(
 
     col_width = max([len(left_header), *(len(item) for item in left_items)]) + 3
     lines = [f"{left_header:<{col_width}}{right_header}"]
-    lines.extend(
-        f"{left:<{col_width}}{right}" for left, right in zip_longest(left_items, right_items, fillvalue="")
-    )
+    lines.extend(f"{left:<{col_width}}{right}" for left, right in zip_longest(left_items, right_items, fillvalue=""))
     return lines
 
 

@@ -17,7 +17,7 @@ from maptasker.src.guiwins import create_popup_window
 from maptasker.src.guiwins import create_popup_window as popupwindow
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputil3 import ensure_and_import
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, get_single_item_requested
 from maptasker.src.sysconst import (
     ANALYSIS_FILE,
     DEEPSEEK_MODELS,
@@ -536,20 +536,13 @@ def gemini_ai(query: str, ai_object: str, item: str) -> None:
 # Determine the Tasker single-named object name (Task, Profile or Project) and item name.
 def get_ai_object() -> tuple:
     """
-    Determine the Tasker single-named object name (Task, Profile, or Project) and item name.
+    Determine the Tasker single-named object name (Task, Profile, Project or Scene) and
+    item name.
 
     Returns:
         tuple: A tuple containing the AI object type and its name.
     """
-    options = {
-        "single_task_name": "Task",
-        "single_profile_name": "Profile",
-        "single_project_name": "Project",
-    }
-    return next(
-        ((obj, PrimeItems.program_arguments[key]) for key, obj in options.items() if PrimeItems.program_arguments[key]),
-        ("", ""),
-    )
+    return get_single_item_requested()
 
 
 # Default AI prompt..

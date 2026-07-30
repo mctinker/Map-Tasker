@@ -12,7 +12,7 @@ from nicegui import app, context, ui
 
 from maptasker.src import profedit, projedit, taskedit
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.guiutil2 import get_monospace_fonts, sort_languages_with_priority
+from maptasker.src.guiutil2 import get_font_choices, sort_languages_with_priority
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_FILE, DIAGRAM_PROFILES_PER_LINE, logger
@@ -131,7 +131,9 @@ def _render_task_name_field(
         label="Pick a Task",
         with_input=True,
         on_change=fill_in_picked_task,
-    ).classes("flex-1").props("dense")
+    ).classes(
+        "flex-1",
+    ).props("dense")
 
 
 def build_action_condition_dialog(
@@ -2024,6 +2026,74 @@ def _wrap_diagram_line(
     return "".join(pieces)
 
 
+# ##################################################################################
+# The rendered-view registry
+# ##################################################################################
+def element_is_live(element: object) -> bool:
+    """Whether a NiceGUI element can still be safely interacted with -- it hasn't
+    been deleted, and the client (the browser page) it was built for is still
+    around.
+
+    Needed because this app keeps references to elements across events: the rendered
+    Map/Diagram/Tree views outlive the event that built them, and anything reaching
+    into one later (live re-colouring in handle_color_pick_event, un-highlighting in
+    clear_event) is one step removed from whether that view still exists. Three things
+    invalidate it -- "Clear" deletes the rendered view's elements (see clear_view_event),
+    a browser reload replaces the client outright, and closing a popout tab takes its
+    client with it -- and none of them clears the reference, so a plain truthiness check
+    passes while the element underneath is dead. Using one then raises
+    RuntimeError("The client this element belongs to has been deleted.") from inside
+    NiceGUI's own element.client, which reaches the user as a console traceback rather
+    than anything actionable.
+
+    element.client raises rather than returning None once the client has been
+    garbage-collected, so that access is what has to be guarded; is_deleted covers
+    the other case, where the element itself was deleted but its client is still
+    alive (exactly what "Clear" leaves behind).
+    """
+    if not element or getattr(element, "is_deleted", False):
+        return False
+    try:
+        client = element.client
+    except RuntimeError:
+        return False
+    return not getattr(client, "is_deleted", False)
+
+
+def view_is_live(view: object) -> bool:
+    """Whether a rendered view is still on a page we can safely touch."""
+    if not view:
+        return False
+    # The text views hang everything off a scroll_area; the tree view off a tree.
+    return element_is_live(getattr(view, "scroll_area", None) or getattr(view, "tree", None))
+
+
+def register_view(master_gui: MyGui, view: object) -> None:
+    """Record a freshly rendered view as the current one, and add it to the live set.
+
+    `master_gui.textview` stays the most recent view, which is what the single-view
+    callers want. `master_gui.textviews` additionally keeps every view still open, so
+    that with "Open View In New Window" enabled -- where several Map/Diagram tabs can
+    be on screen at once -- the handlers that reach back into a rendered view can
+    reach all of them rather than only the newest.
+    """
+    master_gui.textviews = [*live_views(master_gui), view]
+    master_gui.textview = view
+
+
+def live_views(master_gui: MyGui) -> list:
+    """Every rendered view still safe to touch, oldest first, pruning any that died."""
+    views = [view for view in getattr(master_gui, "textviews", None) or [] if view_is_live(view)]
+    master_gui.textviews = views
+    return views
+
+
+def forget_views(master_gui: MyGui) -> None:
+    """Drop every rendered-view reference -- for when they've all just been deleted."""
+    master_gui.textviews = []
+    master_gui.textview = False
+
+
 class NiceGuiTreeView:
     """Replaces CTkTreeview. Renders a hierarchical tree representation in the main view column."""
 
@@ -2032,6 +2102,7 @@ class NiceGuiTreeView:
         self.master_gui = master_gui
         self.title = title
         self.build_ui(items)
+        register_view(master_gui, self)
 
     def build_ui(self, items: list) -> None:
         """Build the base UI layout for the Tree view inside the main content container slot."""
@@ -2124,6 +2195,7 @@ class NiceGuiTextView:
         self.is_map = isinstance(the_data, dict)
         self.external_container = container
         self.build_ui()
+        register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
         self._task = asyncio.create_task(self.process_data(the_data))
 
@@ -2628,7 +2700,9 @@ class NiceGuiTextView:
                     ).classes("text-xs text-gray-500 italic mb-4")
 
                     # Create a clear scroll area container for the results rows list matching the active theme font
-                    with ui.scroll_area().classes("w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded"):  # noqa: SIM117
+                    with ui.scroll_area().classes(
+                        "w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded",
+                    ):
                         with ui.column().classes("w-full gap-1"):
                             for item in found_items:
                                 # Localized function referencing the cross-linked runtime element reference
@@ -2917,6 +2991,8 @@ def _initialize_gui_settings(self: MyGui) -> None:
     self.language = "English"
     self.initialization = True
     self.textview = False
+    # Every rendered view still open, newest last -- see register_view().
+    self.textviews = []
 
 
 def _initialize_ai_settings(self: MyGui) -> None:
@@ -2969,6 +3045,7 @@ def _initialize_feature_flags(self: MyGui) -> None:
     self.checked_ffmpeg = False
     self.have_ffmpeg = False
     self.close_tabs_on_exit = False
+    self.open_view_in_new_window = False
 
 
 def _initialize_data_structures(self: MyGui) -> None:
@@ -2978,6 +3055,7 @@ def _initialize_data_structures(self: MyGui) -> None:
     self.named_item = None  # Consider if this should be initialized to a specific type
     self.single_profile_name = None
     self.single_project_name = None
+    self.single_scene_name = None
     self.single_task_name = None
     self.tab_to_use = None  # Consider if this should be initialized to a default tab
     self.check_boxes = []
@@ -3263,8 +3341,9 @@ def initialize_screen(self: MyGui) -> None:
                     widget.style(f"background-color: {bg} !important; color: {fg} !important;")
 
             # --- 6. CRITICAL FIX: Force the text view's gui_toolbar color update ---
-            textview = getattr(self, "textview", None)
-            if textview:
+            # Every open view, not just the newest: "Open View In New Window" can leave
+            # several Map/Diagram tabs on screen, and they all have to follow the theme.
+            for textview in live_views(self):
                 scroll_area = getattr(textview, "scroll_area", None)
                 if scroll_area:
                     scroll_area.style(f"background-color: {bg} !important;")
@@ -3407,6 +3486,20 @@ def initialize_screen(self: MyGui) -> None:
                 "but leaves those windows/tabs open.",
             ).style("white-space: pre-line")
 
+        self.open_view_in_new_window_checkbox = (
+            ui.checkbox("Open View In New Window")
+            .bind_value(self, "open_view_in_new_window")
+            .classes("text-xs mt-1")
+        )
+        with self.open_view_in_new_window_checkbox:
+            ui.tooltip(
+                "When enabled, each Map/Diagram request opens in its own new window/tab, so you can "
+                "keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses "
+                "that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you "
+                "want to compare: a brand new window/tab is the one your browser may block, since "
+                "it gets opened once the view has finished building rather than the instant you click.",
+            ).style("white-space: pre-line")
+
         ui.label("File Operations").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
         _create_file_and_message_buttons_section(self)
 
@@ -3443,13 +3536,15 @@ def initialize_screen(self: MyGui) -> None:
         ) as self.gui_tab_panels:
             # --- TAB 1: SPECIFIC NAME (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_specific_name).classes("p-2 m-0") as self.gui_tasker_object_panel:
-                ui.label(translate_string("Target specific Projects, Profiles, or Tasks.   (Select only one)")).classes(
+                ui.label(
+                    translate_string("Target specific Projects, Profiles, Tasks or Scenes.   (Select only one)"),
+                ).classes(
                     "text-base mb-1",
                 )
                 self.currently_selected_label = ui.label("").classes("text-xs mb-2 text-gray-500 italic")
 
-                # Wrap the pulldowns in a tight column with minimal vertical gap
-                with ui.column().classes("gap-1 w-full m-0 p-0"):
+                # Wrap the pulldowns in a tight row so Project/Profile/Task/Scene sit side by side
+                with ui.row().classes("gap-2 w-full m-0 p-0 items-start"):
                     self.specific_project_optionmenu = (
                         ui
                         .select(
@@ -3460,7 +3555,7 @@ def initialize_screen(self: MyGui) -> None:
                             label=translate_string("Project"),
                             with_input=True,
                         )
-                        .classes("w-64 mb-0")
+                        .classes("w-48 mb-0")
                         .props("dense")
                     )
 
@@ -3474,7 +3569,7 @@ def initialize_screen(self: MyGui) -> None:
                             label=translate_string("Profile"),
                             with_input=True,
                         )
-                        .classes("w-64 mb-0")
+                        .classes("w-48 mb-0")
                         .props("dense")
                     )
 
@@ -3488,7 +3583,21 @@ def initialize_screen(self: MyGui) -> None:
                             label=translate_string("Task"),
                             with_input=True,
                         )
-                        .classes("w-64 mb-0")
+                        .classes("w-48 mb-0")
+                        .props("dense")
+                    )
+
+                    self.specific_scene_optionmenu = (
+                        ui
+                        .select(
+                            ["None"],
+                            on_change=lambda e: (
+                                self.event_handlers.single_scene_name_event(e.value) if e.value else None
+                            ),
+                            label=translate_string("Scene"),
+                            with_input=True,
+                        )
+                        .classes("w-48 mb-0")
                         .props("dense")
                     )
 
@@ -3737,7 +3846,6 @@ def _create_task_action_limit_section(self: MyGui) -> None:
     )
 
     # 2. NiceGUI Slider
-    # CustomTkinter uses 'command=', NiceGUI uses 'on_change='
     # NiceGUI handles styling with Tailwind (e.g., track color tints via accent)
     self.task_action_limit = ui.slider(
         min=10,
@@ -3766,7 +3874,6 @@ def _create_indentation_section(self: MyGui) -> None:
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
-    # CustomTkinter's option menu transforms into ui.select
     self.indent_option = ui.select(
         options=["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
         value="4",  # Default initial value matching your original comments
@@ -3812,7 +3919,6 @@ def _create_view_limit_section(self: MyGui) -> None:
     )
 
     with ui.row().classes("w-full items-center gap-2"):
-        # CustomTkinter's option menu becomes a ui.select dropdown
         temp_view_limit = getattr(self, "view_limit", "10000")
         if temp_view_limit == 9999999:
             self.view_limit = "Unlimited"
@@ -3877,31 +3983,43 @@ def _create_settings_buttons_section(self: MyGui) -> None:
 
 
 def _create_font_section(self: MyGui) -> None:
-    """Creates the monospaced font selection dropdown inside the content container."""
+    """Creates the font selection dropdown inside the content container."""
     self.font_label = ui.label("Font To Use In Output:").classes(
         "text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 m-0 p-0 leading-none",
     )
 
+    # {font name: label shown}, so the label can mark a font as monospaced while the
+    # value carried by the pulldown stays the plain name the output has to reference.
     if not PrimeItems.mono_fonts:
-        font_items = get_monospace_fonts()
+        font_items = get_font_choices()
         PrimeItems.mono_fonts = font_items
     else:
         font_items = PrimeItems.mono_fonts
 
-    default_font = [value for value in font_items if "Courier" in value]
-    self.default_font = default_font[0] if default_font else font_items[0]
+    font_names = list(font_items)
+    default_font = [name for name in font_names if "Courier" in name]
+    self.default_font = default_font[0] if default_font else font_names[0]
+
+    # Show the font actually in effect. It comes from the restored settings and, now that
+    # proportional fonts can be offered too, may be anything -- but a font that has since
+    # been uninstalled is no longer among the choices, and selecting one that isn't there
+    # leaves the pulldown blank.
+    current_font = self.font if self.font in font_items else self.default_font
 
     # ui.select manages choices natively
     self.font_optionmenu = ui.select(
         options=font_items,
-        value=font_items[0] if font_items else self.default_font,
+        value=current_font,
         on_change=self.event_handlers.font_event,
     ).classes("w-64")
     with self.font_optionmenu:
         ui.tooltip(
-            "This is a list of all of the monospaced fonts available on your system.\n\n"
+            "This is a list of all of the fonts available on your system, monospaced ones first "
+            "and marked as such.\n\n"
             "The font selected will be used in all output.\n\n"
-            "'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment.",
+            "'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector "
+            "alignment. A font that is not monospaced will not hold the Diagram's connectors or the "
+            "output's indentation in line.",
         ).style(
             "white-space: pre-line;",
         )  # Ensures newlines render properly in the tooltip

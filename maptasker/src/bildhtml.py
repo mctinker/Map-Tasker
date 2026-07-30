@@ -22,7 +22,12 @@ from maptasker.src.maputils import (
     live_translate_text,
     restart_program_subprocess,
 )
-from maptasker.src.primitem import PrimeItems, PrimeItemsReset
+from maptasker.src.primitem import (
+    PrimeItems,
+    PrimeItemsReset,
+    get_single_item_not_found,
+    is_single_item_found,
+)
 from maptasker.src.sysconst import (
     NORMAL_TAB,
     Colors,
@@ -185,7 +190,9 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
                     "</body></html>",
                 )
                 logger.info(msg_text)
-                PrimeItems.view_limit_msg = msg_text  # Read by the Map view's message field (see guiwins.NiceGuiTextView).
+                PrimeItems.view_limit_msg = (
+                    msg_text  # Read by the Map view's message field (see guiwins.NiceGuiTextView).
+                )
                 break  # Don't output more than the view limit
 
             # Check to see if this is where the directory is to go in the Output directory.
@@ -247,6 +254,12 @@ def output_grand_totals() -> None:
         grand_total_named_tasks = 1
         grand_total_profiles = 1
     grand_total_scenes = PrimeItems.grand_totals["scenes"]
+    # A single Scene: the one Scene, under its one owning Project, and no Profiles.
+    # (An orphan Scene -- see projects.output_orphan_single_scene -- has no Project.)
+    if PrimeItems.program_arguments["single_scene_name"]:
+        grand_total_projects = min(grand_total_projects, 1)
+        grand_total_profiles = 0
+        grand_total_scenes = 1
     # If doing a directory, then add id to hyperlink to.
     if PrimeItems.program_arguments["directory"]:
         PrimeItems.output_lines.add_line_to_output(
@@ -294,27 +307,15 @@ def display_output(my_output_dir: str, my_file_name: str) -> None:
 
 
 # We've displayed Projects etc.. Now display the back matter
-def display_back_matter(
-    program_arguments: dict,
-    single_project_name: str,
-    single_profile_name: str,
-    single_task_name: str,
-    single_project_found: bool,
-    single_profile_found: bool,
-    single_task_found: bool,
-) -> None:
+def display_back_matter() -> None:
     # Display global variables
     """
     Displays back matter and finalizes HTML output
 
-    Args:
-        program_arguments: Program arguments
-        single_project_name: Name of single project to display
-        single_profile_name: Name of single profile to display
-        single_task_name: Name of single task to display
-        single_project_found: Boolean if single project was found
-        single_profile_found: Boolean if single profile was found
-        single_task_found: Boolean if single task was found
+    Reads the single-named-item state (which Project/Profile/Task/Scene was asked for,
+    and which was found) straight off PrimeItems rather than taking it as parameters --
+    there are four such items now, and this function already reaches into PrimeItems for
+    everything else it needs.
 
     Returns:
         None
@@ -331,6 +332,7 @@ def display_back_matter(
         - Clean up memory
         - Display output file in browser
     """
+    program_arguments = PrimeItems.program_arguments
     if program_arguments["display_detail_level"] >= DISPLAY_DETAIL_LEVEL_all_variables:
         output_variables("Unreferenced Global Variables", "")
 
@@ -341,16 +343,13 @@ def display_back_matter(
     output_grand_totals()
 
     # If doing a single named item and the item was not found, clean up and exit
-    if (
-        (single_task_name and not single_task_found)
-        or (single_profile_name and not single_profile_found)
-        or (single_project_name and not single_project_found)
-    ):
-        if PrimeItems.program_arguments["guiview"]:
+    missing_label, missing_name = get_single_item_not_found()
+    if missing_label:
+        if program_arguments["guiview"]:
             PrimeItems.error_code = 1
             PrimeItems.error_msg = live_translate_text("Error: Single item specified but not found!  Try again.")
             return
-        clean_up_and_exit("Task", single_task_name)
+        clean_up_and_exit(missing_label, missing_name)
 
     # Display warning for Task with too many actions
     if (
@@ -393,9 +392,6 @@ def process_unique_situations(
     projects_with_no_tasks: list,
     projects_without_profiles: list,
     found_tasks: list,
-    single_project_name: str,
-    single_profile_name: str,
-    single_task_name: str,
 ) -> None:
     # Don't do anything if we are looking for a specific named item
     """
@@ -404,21 +400,14 @@ def process_unique_situations(
         projects_with_no_tasks: list - List of projects with no tasks
         projects_without_profiles: list - List of projects without profiles
         found_tasks: list - List of found tasks
-        single_project_name: str - Name of single project to look for
-        single_profile_name: str - Name of single profile to look for
-        single_task_name: str - Name of single task to look for
     Returns:
         None: Does not return anything
     Processing Logic:
-        - Check if looking for a specific named item
+        - Check if looking for a specific named item (see is_single_item_found)
         - Get and output tasks not called by any profile
         - Get and output projects that don't have any tasks or profiles
     """
-    if (
-        (single_task_name and PrimeItems.found_named_items["single_task_found"])
-        or (single_project_name and PrimeItems.found_named_items["single_project_found"])
-        or (single_profile_name and PrimeItems.found_named_items["single_profile_found"])
-    ):
+    if is_single_item_found():
         return
 
     # Get and output all Tasks not called by any Profile
@@ -487,39 +476,34 @@ def clean_up_memory() -> None:
 
 
 # Check if doing a single item and if not found, then clean up and exit
-def check_single_item(
-    single_project_name: str,
-    single_project_found: bool,
-    single_profile_name: str,
-    single_profile_found: bool,
-) -> None:
+def check_single_item() -> None:
     """
-    Check if doing a single item and if not found, then clean up and exit
-        Args:
-            single_project_name (str): name of single Project to find, or empty
-            single_project_found (bool): True if single Project was found
-            single_profile_name (str): name of single Profile to find, or empty
-            single_profile_found (bool): True if single Profile was found
+    Check if doing a single container item (Project or Profile) and if it was not found,
+    then clean up and exit.
+
+    Only the container items are checked here, since a miss on one of those means
+    nothing at all could be rendered.  A missing single Task is caught later, by
+    display_back_matter, once the totals have been output.
+
+    Reads the requested names and found-flags off PrimeItems rather than taking them as
+    parameters -- see display_back_matter for the same reasoning.
 
         Returns:
             None: nothing
     """
-    # If only doing a single named Project and didn't find it, clean up and exit
-    if single_project_name and not single_project_found:
+    for name_key, found_key, label in (
+        ("single_project_name", "single_project_found", "Project"),
+        ("single_profile_name", "single_profile_found", "Profile"),
+    ):
+        name = PrimeItems.program_arguments[name_key]
+        if not name or PrimeItems.found_named_items[found_key]:
+            continue
         if PrimeItems.program_arguments["gui"]:
             PrimeItems.error_code = 1
-            PrimeItems.error_msg = f"Project {single_project_name} was not found."
+            PrimeItems.error_msg = f"{label} {name} was not found."
             return
-        clean_up_and_exit("Project", single_project_name)
-
-    # If only doing a single named Profile and didn't find it, clean up and exit
-    if single_profile_name and not single_profile_found:
-        if PrimeItems.program_arguments["gui"]:
-            PrimeItems.error_code = 1
-            PrimeItems.error_msg = f"Profile {single_profile_name} was not found."
-            return
-        rutroh_error(f"The Profile '{single_profile_name}' was not found.")
-        clean_up_and_exit("Profile", single_profile_name)
+        rutroh_error(f"The {label} '{name}' was not found.")
+        clean_up_and_exit(label, name)
 
 
 # Do the cleanup stuff: check for single name, do unique situations, and display
@@ -541,28 +525,16 @@ def final_processing(
         None
 
     Processing Logic:
-        - Store single item details in local variables
-        - Check if only looking for a single Project/Profile/Task
+        - Check if only looking for a single Project/Profile/Task/Scene
         - Turn off directory temporarily to avoid duplicates
         - Get list of tasks not called by profiles and projects without profiles/tasks
         - Restore original directory setting
         - Display back matter after processing projects, profiles, tasks, scenes
     """
     program_arguments = PrimeItems.program_arguments
-    single_project_name = program_arguments["single_project_name"]
-    single_profile_name = program_arguments["single_profile_name"]
-    single_task_name = program_arguments["single_task_name"]
-    single_project_found = PrimeItems.found_named_items["single_project_found"]
-    single_profile_found = PrimeItems.found_named_items["single_profile_found"]
-    single_task_found = PrimeItems.found_named_items["single_task_found"]
 
-    # See if we are only looking for a single Project/Profile/Task
-    check_single_item(
-        single_project_name,
-        single_project_found,
-        single_profile_name,
-        single_profile_found,
-    )
+    # See if we are only looking for a single Project/Profile and it wasn't found
+    check_single_item()
 
     # Turn off the directory temporarily so we don't get duplicates
     temp_dir = program_arguments["directory"]
@@ -574,21 +546,10 @@ def final_processing(
         projects_with_no_tasks,
         projects_without_profiles,
         found_tasks,
-        single_project_name,
-        single_profile_name,
-        single_task_name,
     )
 
     # Restore the directory setting for the final directory of Totals
     program_arguments["directory"] = temp_dir
 
     # Display the trailer stuff, after Projects/Profiles/Tasks/Scenes and print the output.
-    display_back_matter(
-        program_arguments,
-        single_project_name,
-        single_profile_name,
-        single_task_name,
-        single_project_found,
-        single_profile_found,
-        single_task_found,
-    )
+    display_back_matter()

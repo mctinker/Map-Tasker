@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import re
 from string import printable
-from tkinter import font
 
 from maptasker.src.diagcnst import (
     angle,
@@ -29,8 +28,8 @@ from maptasker.src.diagcnst import (
     task_delimeter,
     up_arrow,
 )
+from maptasker.src.mapfonts import is_double_width
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.nameattr import get_tk
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import icon_pattern
 
@@ -116,6 +115,11 @@ def print_all(lines: list) -> None:
         add_output_line(line)
 
 
+# Chinese/Japanese/Korean characters.  These are double-width too, but print_box
+# compensates for them separately, so fix_icon must leave them alone.
+cjk_pattern = re.compile(r"[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]")
+
+
 def count_cjk_characters(string: str) -> int:
     """
     Count the number of Chinese/Japanese/Korean characters in a string.
@@ -126,7 +130,7 @@ def count_cjk_characters(string: str) -> int:
     Returns:
         int: The number of Chinese characters in the string.
     """
-    return len(re.findall(r"[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]", string))
+    return len(cjk_pattern.findall(string))
 
 
 # Given a text string and title, enclose them in a box and print the box.
@@ -174,33 +178,6 @@ def print_box(name: str, title: str, indent: int) -> None:
     print_3_lines(box)
 
 
-# Get the dimensions of a text string using tkinter to calculate the width needed.
-def width_and_height_calculator_in_pixel(
-    txt: str,
-    fontname: str,
-    fontsize: int,
-) -> list:
-    """
-    Calculates the width and height of the given text in pixels.
-
-    Args:
-        txt: The text to calculate the width and height for.
-        fontname: The name of the font to be used.
-        fontsize: The size of the font in points.
-
-    Returns:
-        A list containing the width and height of the text in pixels.
-
-    Examples:
-        >>> width_and_height_calculator_in_pixel("Hello", "Arial", 12)
-        [30, 16]
-    """
-    # Get the Tkinter window
-    get_tk()
-    the_font = font.Font(family=fontname, size=fontsize)
-    return [the_font.measure(txt), the_font.metrics("linespace")]
-
-
 # We have an icon in our name.  Remove any padding as necessary
 def fix_icon(name: str) -> str:
     """
@@ -210,24 +187,20 @@ def fix_icon(name: str) -> str:
     Returns:
         trailer: The fixed name string with icons handled
     - Check each character in the name for icon characters
-    - If an icon character is found, initialize Tkinter
-    - Calculate the width and height of the icon character
-    - Return a blank string trailer if the icon renders wider than it is tall (it'll occupy an
+    - If an icon character is found, determine how many columns it renders across
+    - Return a blank string trailer if the icon is double-width (it'll occupy an
       extra monospace column that len(name) doesn't account for), else no trailer
     """
+    trailer = ""
     # We have at least one character that is probably an icon.
     for char in name:
-        if char.strip() and set(char).difference(printable):
-            # We have the icon.
-            char_dimension = width_and_height_calculator_in_pixel(
-                char,
-                "Courier New",
-                12,
-            )
-            # A wide (width > height) icon renders across two monospace columns despite counting
+        # CJK characters are double-width as well, but print_box already widens the box
+        # for them, so counting them here too would overshoot.
+        if char.strip() and set(char).difference(printable) and not cjk_pattern.match(char):
+            # A double-width icon renders across two monospace columns despite counting
             # as a single character in len(name), which is what box_line_length is based on --
             # add the missing column back so the box's right border still lines up.
-            trailer = blank if char_dimension[0] > char_dimension[1] else ""
+            trailer = blank if is_double_width(char) else ""
             break
     return trailer
 

@@ -163,6 +163,9 @@ def get_single_name(program_arguments: dict, args: list) -> None:
     the_name = getattr(args, "task")  # Display single task
     if the_name is not None:
         program_arguments["single_task_name"] = the_name[0]
+    the_name = getattr(args, "scene")  # Display single Scene
+    if the_name is not None:
+        program_arguments["single_scene_name"] = the_name[0]
 
 
 def get_android_settings(program_arguments: dict, args: list) -> None:
@@ -398,7 +401,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
     We're running a unit test. Get the unit test arguments and create the arg namespace
             :return: args Namespace with arguments from run_test.py
     """
-    single_names = ["project", "profile", "task"]
+    single_names = ["project", "profile", "task", "scene"]
 
     class Namespace:
         def __init__(self: object, **kwargs: tuple) -> None:
@@ -456,6 +459,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
         project=None,
         reset=False,
         runtime=False,
+        scene=None,
         task=None,
         taskernet=False,
         twisty=False,
@@ -506,6 +510,14 @@ def validate_arguments() -> None:
         message = "Twisty disabled since the display level is not 3 or above."
         print(f"{Colors.Yellow}{message}")
         logger.info(message)
+
+    # A single Scene below detail level 3 is just the Scene's name: scenes.get_details
+    # only outputs the Scene's elements above level 2.  Bump it, as '-scene' advertises.
+    if program_arguments["display_detail_level"] < 3 and program_arguments["single_scene_name"]:
+        message = "Display level set to 3: a single Scene needs level 3 or above to show its elements."
+        print(f"{Colors.Yellow}{message}")
+        logger.info(message)
+        program_arguments["display_detail_level"] = 3
 
 
 # Get the program arguments from command line or via unit test (e.g. python mapit.py -x)

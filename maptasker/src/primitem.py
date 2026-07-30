@@ -19,7 +19,7 @@
 #  colors_to_use = colors to use in the output
 #  tasker_root_elements = root elements for all Projects/Profiles/Tasks/Scenes
 #  output_lines = class for all lines added to output thus far
-#  found_named_items = names/found-flags for single (if any) Project/Profile/Task
+#  found_named_items = names/found-flags for single (if any) Project/Profile/Task/Scene
 #  file_to_get = file object/name of Tasker backup file to read and parse
 #  grand_totals = Total count of Projects/Profiles/Named Tasks Unnamed Task etc.
 #  task_count_for_profile = number of Tasks in the specific Profile for Project
@@ -31,13 +31,12 @@
 #    for the directory
 #  name_list = list of names of Projects/Profiles/Tasks/Scenes found thus far
 #  displaying_named_tasks_not_in_profile = True if we are displaying False if not
-#  mono_fonts = dictionary of monospace fonts from TkInter
+#  mono_fonts = the font pulldown's choices, {font name: label shown}
 #  grand_totals = used for trcaking number of Projects/Profiles/Tasks/Scenes
 #  tasker_root_elements points to our root xml for Projects/Profiles/Tasks/Scenes
 #  directories = points to our directory items if we are displaying a directory
 #  variables = Tasker variables.
 #  current_project = current Project being processed
-#  tkroot = root for Tkinter (can only get it once)
 #  last_run = date of last run (set by restore_settings)
 #  slash = backslash for Windows or forward slash for OS X and Linux.
 #
@@ -54,6 +53,87 @@ from maptasker.src.sysconst import (
     NOW_TIME,
     OPENAI_MODELS,
 )
+
+# The single-named-item selectors: display only this one Project, or Profile, or Task,
+# or Scene.  Each entry maps the program_arguments key holding the requested name to its
+# found_named_items flag and the label used in messages.  Adding a fifth single item
+# starts here -- found_named_items and its reset are both built off this tuple, and
+# get_single_item_requested/get_single_item_not_found/is_single_item_found below walk it.
+SINGLE_ITEM_SELECTORS = (
+    ("single_project_name", "single_project_found", "Project"),
+    ("single_profile_name", "single_profile_found", "Profile"),
+    ("single_task_name", "single_task_found", "Task"),
+    ("single_scene_name", "single_scene_found", "Scene"),
+)
+
+
+def initial_found_named_items() -> dict:
+    """
+    Build a fresh found_named_items dictionary, every flag False.
+
+    Returns:
+        dict: {"single_project_found": False, ...} -- one entry per single item.
+    """
+    return {found_key: False for _, found_key, _ in SINGLE_ITEM_SELECTORS}
+
+
+# The next two are functions rather than module-level constants on purpose: each caller
+# needs its *own* dictionary (and, for directory_items, its own lists), since these get
+# mutated in place -- appended to and cleared -- throughout a run.  A shared constant
+# would alias every "reset" back onto the same object.
+def initial_grand_totals() -> dict:
+    """
+    Build a fresh grand_totals dictionary, every count zero.
+
+    Returns:
+        dict: the running Project/Profile/Task/Scene counts for a run.
+    """
+    return {
+        "projects": 0,
+        "profiles": 0,
+        "unnamed_tasks": 0,
+        "named_tasks": 0,
+        "scenes": 0,
+    }
+
+
+def initial_directory_items() -> dict:
+    """
+    Build a fresh directory_items dictionary, every hyperlink list empty.
+
+    Returns:
+        dict: the per-item-type directory hyperlink lists for a run.
+    """
+    return {
+        "current_item": "",
+        "projects": [],
+        "profiles": [],
+        "tasks": [],
+        "scenes": [],
+    }
+
+
+def initial_tasker_root_elements() -> dict:
+    """
+    Build an empty tasker_root_elements dictionary -- no Tasker objects loaded.
+
+    This is the "nothing loaded yet" shape.  taskerd.get_the_xml_data builds the same
+    set of keys with the parsed XML in them, so a key added here needs adding there too;
+    maputils.clear_tasker_data also names a subset of them when emptying the tree
+    in place.
+
+    Returns:
+        dict: the root xml element tables for all Projects/Profiles/Tasks/Scenes.
+    """
+    return {
+        "all_projects": {},
+        "all_profiles": {},
+        "all_profiles_by_name": {},
+        "all_scenes": {},
+        "all_tasks": {},
+        "all_tasks_by_name": {},
+        "all_services": [],
+    }
 
 
 class PrimeItems:
@@ -89,40 +169,15 @@ class PrimeItems:
     view_limit_msg = (
         ""  # Set by bildhtml.write_out_the_file when output hits view_limit; read by the Map view's message field.
     )
-    found_named_items: ClassVar[dict] = {
-        "single_project_found": False,
-        "single_profile_found": False,
-        "single_task_found": False,
-    }
-    grand_totals: ClassVar[dict] = {
-        "projects": 0,
-        "profiles": 0,
-        "unnamed_tasks": 0,
-        "named_tasks": 0,
-        "scenes": 0,
-    }
-    directory_items: ClassVar[dict] = {
-        "current_item": "",
-        "projects": [],
-        "profiles": [],
-        "tasks": [],
-        "scenes": [],
-    }
-    tasker_root_elements: ClassVar[dict] = {
-        "all_projects": {},
-        "all_profiles": {},
-        "all_profiles_by_name": {},
-        "all_scenes": {},
-        "all_tasks": {},
-        "all_tasks_by_name": {},
-        "all_services": [],
-    }
+    found_named_items: ClassVar[dict] = initial_found_named_items()
+    grand_totals: ClassVar[dict] = initial_grand_totals()
+    directory_items: ClassVar[dict] = initial_directory_items()
+    tasker_root_elements: ClassVar[dict] = initial_tasker_root_elements()
     directories: ClassVar[list] = []
     variables: ClassVar[dict] = {}
     current_project = ""
-    tkroot = None
     last_run = NOW_TIME
-    mono_fonts: ClassVar[tuple] = [], []
+    mono_fonts: ClassVar[dict] = {}
     slash = "/"
     task_action_warnings: ClassVar[dict] = {}
     task_count_unnamed = 0
@@ -193,34 +248,10 @@ class PrimeItemsReset:
             - Initializes tasker_root_elements dictionary
             - Sets other attributes like xml_tree, program_arguments etc to empty values
         """
-        PrimeItems.found_named_items = {
-            "single_project_found": False,
-            "single_profile_found": False,
-            "single_task_found": False,
-        }
-        PrimeItems.grand_totals = {
-            "projects": 0,
-            "profiles": 0,
-            "unnamed_tasks": 0,
-            "named_tasks": 0,
-            "scenes": 0,
-        }
-        PrimeItems.directory_items = {
-            "current_item": "",
-            "projects": [],
-            "profiles": [],
-            "tasks": [],
-            "scenes": [],
-        }
-        PrimeItems.tasker_root_elements = {
-            "all_projects": {},
-            "all_profiles": {},
-            "all_profiles_by_name": {},
-            "all_scenes": {},
-            "all_tasks": {},
-            "all_tasks_by_name": {},
-            "all_services": [],
-        }
+        PrimeItems.found_named_items = initial_found_named_items()
+        PrimeItems.grand_totals = initial_grand_totals()
+        PrimeItems.directory_items = initial_directory_items()
+        PrimeItems.tasker_root_elements = initial_tasker_root_elements()
         PrimeItems.directories = []
         PrimeItems.xml_tree = None
         PrimeItems.xml_root = None
@@ -237,7 +268,6 @@ class PrimeItemsReset:
         PrimeItems.error_code = 0
         PrimeItems.error_msg = ""
         PrimeItems.view_limit_msg = ""
-        PrimeItems.tkroot = None
         PrimeItems.ai = {
             "do_ai": False,
             "ai_name": "",
@@ -255,3 +285,50 @@ class PrimeItemsReset:
             "llama_models": LLAMA_MODELS,
         }
         PrimeItems.task_action_warnings = {}
+
+
+# Return the single named item being asked for, if any.
+def get_single_item_requested() -> tuple[str, str]:
+    """
+    Return the single named item the user asked to display, if any.
+
+    Returns:
+        tuple[str, str]: (label, name) -- e.g. ("Task", "My Task") -- for whichever
+            single_xxx_name is set, or ("", "") if we are displaying everything.
+    """
+    for name_key, _, label in SINGLE_ITEM_SELECTORS:
+        if PrimeItems.program_arguments.get(name_key):
+            return label, PrimeItems.program_arguments[name_key]
+    return "", ""
+
+
+# Return the single named item that was asked for but never found, if any.
+def get_single_item_not_found() -> tuple[str, str]:
+    """
+    Return the single named item that was requested but never found while building the
+    output.
+
+    Returns:
+        tuple[str, str]: (label, name) of the missing item, or ("", "") if nothing is
+            missing -- either because no single item was requested, or because the one
+            that was requested turned up.
+    """
+    for name_key, found_key, label in SINGLE_ITEM_SELECTORS:
+        name = PrimeItems.program_arguments.get(name_key)
+        if name and not PrimeItems.found_named_items.get(found_key):
+            return label, name
+    return "", ""
+
+
+# Return True if a single named item was asked for and it was found.
+def is_single_item_found() -> bool:
+    """
+    Return True if a single named item was requested and has been found.
+
+    Returns:
+        bool: True if any requested single item's found-flag is set.
+    """
+    return any(
+        PrimeItems.program_arguments.get(name_key) and PrimeItems.found_named_items.get(found_key)
+        for name_key, found_key, _ in SINGLE_ITEM_SELECTORS
+    )
