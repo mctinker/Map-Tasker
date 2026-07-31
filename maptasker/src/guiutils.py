@@ -51,21 +51,51 @@ if TYPE_CHECKING:
 # ==========================================
 # 2. DYNAMIC COMPONENT UPDATERS
 # ==========================================
+def is_ollama_model(gui: "MyGui") -> bool:
+    """True if the selected model is a local Ollama (LLAMA group) model, which runs without an API key.
+
+    The model name is checked three ways, since it can arrive from either the built-in list or
+    the extended list of models actually installed under Ollama:
+      - the provider prefix the dropdown was built with ("LLAMA: llama3.2" -> ai_name "LLAMA"),
+      - the built-in LLAMA_MODELS list, and
+      - whatever Ollama reported as installed (PrimeItems.ai["llama_models"]), whose entries carry
+        a " (installed)" suffix that has to come off before comparing.
+    """
+    model = (getattr(gui, "ai_model", "") or "").replace(" (installed)", "").strip()
+    if not model or model == "None":
+        return False
+
+    # The dropdown prefixes every model with its provider group, and ai_model_selected_event
+    # stashes that prefix in ai_name -- the most reliable signal when one is present.
+    if (getattr(gui, "ai_name", "") or "").upper() in ("LLAMA", "OLLAMA"):
+        return True
+
+    installed = {item.replace(" (installed)", "").strip() for item in PrimeItems.ai.get("llama_models", [])}
+    return model in set(LLAMA_MODELS) | installed
+
+
 def update_analysis_button_color(gui: "MyGui") -> None:
-    """Colors the 'Run Analysis' button green when either:
-      - a prompt, AI model, and API key are all set, or
-      - a prompt and a LLAMA_MODELS model are set with no API key (local Llama models run
-        without one).
+    """Colors the 'Run Analysis' button green once everything ai_analyze_event needs is in place:
+      - a prompt,
+      - a single Tasker object (Project, Profile, Task or Scene) selected, and
+      - a model that is either a local Ollama model (no API key needed) or a cloud model whose
+        API key is set.
     Red otherwise. "None" is the dropdown's own placeholder for "nothing selected", so it counts
     as not having a model even though it's a non-empty string.
     """
-    has_key = bool(getattr(gui, "ai_apikey", None))
+    # Called from several state-change paths, some of which can run before the button exists.
+    button = getattr(gui, "analysis_button", None)
+    if button is None:
+        return
+
     has_model = bool(getattr(gui, "ai_model", None)) and gui.ai_model != "None"
     has_prompt = bool(getattr(gui, "ai_prompt", None))
-    is_llama_model = has_model and gui.ai_model in LLAMA_MODELS
+    # "Hidden" is the placeholder shown in place of a real key, not a key.
+    has_key = bool(getattr(gui, "ai_apikey", None)) and gui.ai_apikey != "Hidden"
+    has_single_item = any(getattr(gui, f"single_{label.lower()}_name", "") for label in SINGLE_ITEM_LABELS)
 
-    ready = (has_key and has_model and has_prompt) or (has_prompt and is_llama_model and not has_key)
-    gui.analysis_button.props(f"color={'green' if ready else 'red'}")
+    ready = has_prompt and has_single_item and has_model and (is_ollama_model(gui) or has_key)
+    button.props(f"color={'green' if ready else 'red'}")
 
 
 def display_model_pulldown(gui_arg: any, *args: dict, **kwargs) -> None:  # noqa: ANN003, ARG001
@@ -524,6 +554,10 @@ def display_selected_object_labels(self: "MyGui") -> None:
             with self.tab_specific_name:
                 self.specific_name_msg_label = ui.label(name_to_display).classes("text-xs ml-2 mt-2 text-left")
         self.tab_specific_name.update()  # Force NiceGUI to re-render the tab context immediately
+
+    # Recolor 'Run Analysis' from the same state these labels just displayed.  The button is built
+    # with the tab, before restored settings land, so its initial color can be stale.
+    update_analysis_button_color(self)
 
     ui.update()  # Ensure the entire GUI context is refreshed after updates
 

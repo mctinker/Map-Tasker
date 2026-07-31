@@ -2,19 +2,21 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.0.1] ??-Jul-2026  # FIX
+## [12.0.1] 31-Jul-2026
 
 ### Added
 
 - Added: Display a single Scene.  A single Scene can also be fed to the Ai analysis.
 - Added: Displaying the Map view in an additional tab beyond the first one is now an option: 'Open View in New Window'
-- Added: Proportional fonts are now selectable.
+- Added: Proportional as well as monospaced fonts are now selectable.
 
 ### Changed
 
 - Changed: A single Scene forces a minimum display detail level of 3, since the Scene's elements are not displayed below that level.
 - Changed: Updated the README file to reflect the recent enhancements.
-- Changed: Removed dependency on Tkinter and webcolors
+- Changed: Removed dependency on Tkinter and webcolors.
+- Changed: The 'Specific Name' tab has been reorganized so buttons are adjacent.
+- Changed: Help information and the README file have been updated based on changes.
 
 ### Fixed
 
@@ -23,7 +25,10 @@ All notable changes to this project will be documented in this file!
 - Fixed: TaskerNet descriptions with html hotlinks are not 'hot'.
 - Fixed: 'Add/Edit': An additional 144 Task actions and 56 Event/State conditions are now supported.
 - Fixed: Getting the error 'No Task found!!!' printed in the console when selecting an unnamed Task to display.
-- Fixed: Selected font not used when rendering the Map view.
+- Fixed: The selected font is not used when rendering the Map and Diagram views.
+- Fixed: Port 8080 bind error with 'prot already in use' message.
+- FIxed: Multiple instances clobbers the saved settings file.
+- Fixed: Map view heading incorrectly says 'AI Analysis Results'.
 
 ### Known Issue
 

@@ -245,26 +245,33 @@ The supporting AI modules are not installed by default when MapTasker is install
 **MapTasker Editing Caveats**
 
 - Not all edits are available
+
    Certain Task actions and Profile states and event may have arguments that can only be determined under Android and/or within Tasker.  In this case, they are not (yet) available to be added/edited.
    
 - Extra Arguments in Tasks
+
 	In some cases, you will be prompted for action arguments that do not appear when adding the same under Tasker.  From what I can tell, this is due to the fact that Tasker's argument definition specifications support older versions of Tasker, in which such arguments are still supported.  For example, the 'Flash' action prompts for a 'Title' under MapTasker, but the current beta 6.5.6 of Tasker does not.  In this case, Tasker should just ignore this argument when it is found in the action.
 	
 - Save Tasks to Android (Tasker import) --> Requires Tasker 6.2 or higher.
+
 	This function actually loads the item into the pre-existing Tasker session on your Android device.  Since there is no 'Refresh View' in Tasker, it may be necessary to exit and restart Tasker to actually see the added Task.
 	If Tasker is not running, you will be notified with an error message in the GUI.
 	The current implementation saves the Task under the 'Base' (Home) Project.
 	
 - Single Object Edit
+
 	All edits work off a single Project, Profile, or Task, which must be preselected before the edit can occur.  Adding a Task requires a single Project to be selected.  Likewise for adding Profiles.
 
 - Profile State and Event conditions
+
 	Adding a State or Event condition is a 2-to-3 step process.  First you must add the State or Condition, and then once added, select it to add/modify it's arguments. 
 
 - Save to Current File
+
 	This command makes a copy of your current file and updates the copy.  It then reads back the modified copy which becomes your new 'current file'.  The original is never changed.
 	
 - Edit Options
+
 	'Cancel' just cancels Task action edits and Profile state/event edits.  
 	'Ok': make the change in memory only.
 	'Rename' and 'Delete' are self explanatory.
@@ -273,6 +280,7 @@ The supporting AI modules are not installed by default when MapTasker is install
 	'Export': Save as the single Project, Profile or Task to the current directory with the given name.
 	
 - Validation and Defaults
+
 	MapTasker does not do any extensive validation of arguments.  Additionally, default settings for arguments are not all populated.	
 	
 - Remember, this is NOT Tasker.  So the look and feel will be somewhat different.  It may feel a little clunky at first.  Suggestions are welcome.

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import socket
 from typing import TYPE_CHECKING, Any
 
 from nicegui import core, ui
@@ -30,6 +31,42 @@ from maptasker.src.sysconst import ARGUMENT_NAMES, logger
 
 if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
+
+
+# The port ui.run() gets.  DEFAULT_PORT is NiceGUI's own default and stays the port we use
+# whenever it is free, so the GUI keeps showing up at the same familiar URL.
+DEFAULT_PORT = 8080
+LAST_FALLBACK_PORT = 8099
+
+
+# ################################################################################
+# Find a free port for the GUI's web server to listen on
+# ################################################################################
+def get_open_port(host: str = "127.0.0.1") -> int:
+    """Return DEFAULT_PORT if it is free, otherwise the next free port above it.
+
+    Do NOT hand ui.run() port=0 hoping for an OS-assigned port: NiceGUI's ui_run does
+    'port = port or 8080', so 0 (falsy) silently becomes 8080 and a second instance dies
+    with 'address already in use' before its window ever opens.
+
+    Args:
+        host: the interface ui.run() will bind to.  A port is only really free for the
+            interface being bound, so test the same one.
+
+    Returns:
+        int: a port nothing else is currently listening on.
+    """
+    for port in range(DEFAULT_PORT, LAST_FALLBACK_PORT + 1):
+        with contextlib.suppress(OSError), socket.socket(socket.AF_INET, socket.SOCK_STREAM) as test_socket:
+            # Actually bind it: asking the OS is the only reliable answer, and binding
+            # catches a port blocked by something other than a listener as well.
+            test_socket.bind((host, port))
+            return port
+
+    # Every candidate is taken.  Hand back the default and let ui.run's OSError handler
+    # below report the conflict rather than failing here with a less specific message.
+    logger.error(f"No open port found between {DEFAULT_PORT} and {LAST_FALLBACK_PORT}.")
+    return DEFAULT_PORT
 
 
 # ################################################################################
@@ -260,7 +297,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
             host="127.0.0.1",
             # storage_secret="maptasker_gui_storage",  # Only needed if using either app.storage.user or app.storage.browser
             title="MapTasker",
-            port=0,  # Use 0 to automatically avoid port conflicts
+            port=get_open_port(),  # Avoid a port conflict with another instance already running
             dark=None,
             show=True,
             cache_control_directives="no-store, no-cache, must-revalidate",  # Forces immediate network state clears

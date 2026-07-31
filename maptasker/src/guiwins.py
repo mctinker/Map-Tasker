@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import os
 import re
@@ -2278,7 +2279,11 @@ class NiceGuiTextView:
                     f"border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
                 )
                 .style(
-                    f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;"
+                    # The font the output was generated with, which process_data() then
+                    # reconciles against the file it actually reads. Deliberately not
+                    # master_gui.font -- see the note there on why that can be stale.
+                    f"width: 100%; max-width: 100%; "
+                    f"font-family: '{PrimeItems.program_arguments['font']}', monospace;"
                     f"{line_height_style}",
                 )
             )
@@ -2295,8 +2300,10 @@ class NiceGuiTextView:
         data-connector-id spans they depend on do not.
         """
         is_diagram = self.title.startswith("Diagram")
-        html_style = f"width: 100%; max-width: 100%; font-family: '{self.master_gui.font}', monospace;"
-        if "Diagram" not in self.title:
+        # Starting point, used as-is by the Misc view (which has no generated file behind it).
+        # The file-backed views replace this below with the font their file actually carries.
+        html_style = f"width: 100%; max-width: 100%; font-family: '{PrimeItems.program_arguments['font']}', monospace;"
+        if not is_diagram:
             html_style += " word-break: break-word;"
 
         if self.title.startswith("Map"):
@@ -2322,9 +2329,31 @@ class NiceGuiTextView:
                         final_html,
                     )
 
+            # Render in whatever font the file we just read was actually generated with,
+            # rather than overriding it with the GUI's current selection.
+            #
+            # This used to rewrite the file's font-family to self.master_gui.font. That is
+            # only right while the two agree -- and the popout page resolves its gui through
+            # PrimeItems.mygui, which is simply the most recently constructed MyGui, so a
+            # main window that got rebuilt (a reload, a reconnect, a second window) leaves a
+            # .font behind that never generated anything. Rewriting to it then replaced a
+            # correct font with a stale one, which is why the saved MapTasker.html could show
+            # the selected font while the Map view of that very same file did not.
+            #
+            # Reading the font back out of the file removes the disagreement outright: the
+            # view can only ever show what the output it is displaying was built with. The
+            # Diagram file is plain text with no CSS of its own, hence the fallback to the
+            # font that generated this run.
             extracted_font = self.extract_first_font_name(final_html)
-            if extracted_font not in ("Font name not found", self.master_gui.font):
-                final_html = final_html.replace(f"font-family:{extracted_font}", f"font-family:{self.master_gui.font}")
+            view_font = (
+                extracted_font if extracted_font != "Font name not found" else PrimeItems.program_arguments["font"]
+            )
+            html_style = f"width: 100%; max-width: 100%; font-family: '{view_font}', monospace;"
+            if not is_diagram:
+                html_style += " word-break: break-word;"
+            # build_ui() styled the scroll area before this file had been read, so bring it
+            # into step now that the font it is actually holding is known.
+            self.scroll_area.style(f"font-family: '{view_font}', monospace;")
 
             # --- STREAMING CHUNK ENGINE ---
             # Slice the giant HTML text by lines and push them in digestible blocks
@@ -3451,14 +3480,14 @@ def initialize_screen(self: MyGui) -> None:
             "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
         ) as self.gui_right_drawer
     ):
-        ui.label("Actions & Control").classes("text-lg font-bold mb-2 self-center")
+        ui.label(translate_string("Actions & Control")).classes("text-lg font-bold mb-2 self-center")
 
-        ui.label("Execution").classes("text-xs font-bold uppercase text-gray-400 mt-2 self-center")
+        ui.label(translate_string("Execution")).classes("text-xs font-bold uppercase text-gray-400 mt-2 self-center")
         get_file_color = "green" if PrimeItems.file_to_get else "red"
         blink_class = "" if PrimeItems.file_to_get else " animate-pulse"
 
         self.get_xml_button = ui.button(
-            "Get Local XML File",
+            translate_string("Get Local XML File"),
             color=get_file_color,
             on_click=self.event_handlers.getxml_event,
             icon="folder",
@@ -3469,7 +3498,7 @@ def initialize_screen(self: MyGui) -> None:
             ).style("white-space: pre-line")
 
         self.exit_button = ui.button(
-            "Exit",
+            translate_string("Exit"),
             color="orange",
             on_click=lambda: get_rid_of_windows_and_exit(self),
         ).classes(
@@ -3477,7 +3506,10 @@ def initialize_screen(self: MyGui) -> None:
         )
 
         self.close_tabs_on_exit_checkbox = (
-            ui.checkbox("Close Tabs On Exit").bind_value(self, "close_tabs_on_exit").classes("text-xs mt-1")
+            ui
+            .checkbox(translate_string("Close Tabs On Exit"))
+            .bind_value(self, "close_tabs_on_exit")
+            .classes("text-xs mt-1")
         )
         with self.close_tabs_on_exit_checkbox:
             ui.tooltip(
@@ -3487,7 +3519,8 @@ def initialize_screen(self: MyGui) -> None:
             ).style("white-space: pre-line")
 
         self.open_view_in_new_window_checkbox = (
-            ui.checkbox("Open View In New Window")
+            ui
+            .checkbox(translate_string("Open View In New Window"))
             .bind_value(self, "open_view_in_new_window")
             .classes("text-xs mt-1")
         )
@@ -3500,17 +3533,29 @@ def initialize_screen(self: MyGui) -> None:
                 "it gets opened once the view has finished building rather than the instant you click.",
             ).style("white-space: pre-line")
 
-        ui.label("File Operations").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
+        ui.label(translate_string("File Operations")).classes(
+            "text-xs font-bold uppercase text-gray-400 mt-4 self-center"
+        )
         _create_file_and_message_buttons_section(self)
 
-        ui.label("Display Views").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
+        ui.label(translate_string("Display Views")).classes(
+            "text-xs font-bold uppercase text-gray-400 mt-4 self-center"
+        )
         with ui.row().classes("w-full justify-center gap-2 gap-y-0 mt-1"):
-            ui.button("Map", on_click=lambda: self.event_handlers.view_event("map")).classes("bg-blue-500")
-            ui.button("Diagram", on_click=lambda: self.event_handlers.view_event("diagram")).classes("bg-blue-500")
-            ui.button("Tree", on_click=lambda: self.event_handlers.view_event("tree")).classes("bg-blue-500")
-        ui.button("Clear", on_click=self.event_handlers.clear_view_event).classes("bg-blue-500")
+            ui.button(translate_string("Map"), on_click=lambda: self.event_handlers.view_event("map")).classes(
+                "bg-blue-500"
+            )
+            ui.button(translate_string("Diagram"), on_click=lambda: self.event_handlers.view_event("diagram")).classes(
+                "bg-blue-500"
+            )
+            ui.button(translate_string("Tree"), on_click=lambda: self.event_handlers.view_event("tree")).classes(
+                "bg-blue-500"
+            )
+        ui.button(translate_string("Clear"), on_click=self.event_handlers.clear_view_event).classes("bg-blue-500")
 
-        ui.label("Application Settings").classes("text-xs font-bold uppercase text-gray-400 mt-4 self-center")
+        ui.label(translate_string("Application Settings")).classes(
+            "text-xs font-bold uppercase text-gray-400 mt-4 self-center"
+        )
         _create_settings_buttons_section(self)
 
         ui.label(translate_string("Help & Information")).classes(
@@ -3544,11 +3589,12 @@ def initialize_screen(self: MyGui) -> None:
                 self.currently_selected_label = ui.label("").classes("text-xs mb-2 text-gray-500 italic")
 
                 # Wrap the pulldowns in a tight row so Project/Profile/Task/Scene sit side by side
+                none_translatesd = translate_string("None")
                 with ui.row().classes("gap-2 w-full m-0 p-0 items-start"):
                     self.specific_project_optionmenu = (
                         ui
                         .select(
-                            ["None"],
+                            [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_project_name_event(e.value) if e.value else None
                             ),
@@ -3562,7 +3608,7 @@ def initialize_screen(self: MyGui) -> None:
                     self.specific_profile_optionmenu = (
                         ui
                         .select(
-                            ["None"],
+                            [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_profile_name_event(e.value) if e.value else None
                             ),
@@ -3576,7 +3622,7 @@ def initialize_screen(self: MyGui) -> None:
                     self.specific_task_optionmenu = (
                         ui
                         .select(
-                            ["None"],
+                            [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_task_name_event(e.value) if e.value else None
                             ),
@@ -3590,7 +3636,7 @@ def initialize_screen(self: MyGui) -> None:
                     self.specific_scene_optionmenu = (
                         ui
                         .select(
-                            ["None"],
+                            [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_scene_name_event(e.value) if e.value else None
                             ),
@@ -3636,13 +3682,15 @@ def initialize_screen(self: MyGui) -> None:
 
             # --- TAB 2: COLORS (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_colors).classes("p-2 m-0") as self.gui_color_panel:
-                ui.label("Theme Configuration").classes("text-base mb-1")
+                ui.label(translate_string("Theme Configuration")).classes("text-base mb-1")
                 ui.button(
-                    "Reset to Default Colors",
+                    translate_string("Reset to Default Colors"),
                     on_click=self.event_handlers.color_reset_event,
                 ).classes("bg-blue-500 text-xs py-1")
 
-                self.color_change = ui.label("Select a category to modify its color.").classes("text-xs mt-2")
+                self.color_change = ui.label(translate_string("Select a category to modify its color.")).classes(
+                    "text-xs mt-2",
+                )
 
                 with ui.column().classes("gap-1 w-full mt-1"):
                     self.color_objects_options = (
@@ -3668,7 +3716,7 @@ def initialize_screen(self: MyGui) -> None:
                                 "Heading",
                             ],
                             value="Projects",
-                            label="Select Category to Colorize",
+                            label=translate_string("Select Category to Colorize"),
                         )
                         .classes("w-64 mb-0")
                         .props("dense")
@@ -3677,7 +3725,7 @@ def initialize_screen(self: MyGui) -> None:
                     self.color_picker_input = (
                         ui
                         .color_input(
-                            label="Choose Hex Color",
+                            label=translate_string("Choose Hex Color"),
                             value="#3f99ff",
                             on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value),
                         )
@@ -3687,7 +3735,7 @@ def initialize_screen(self: MyGui) -> None:
 
             # --- TAB 3: ANALYZE (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_analyze).classes("p-2 m-0") as self.gui_ai_panel:
-                ui.label("AI Analysis").classes("text-base mb-2")
+                ui.label(translate_string("AI Analysis")).classes("text-base mb-2")
                 _create_analyze_tab_content(self, ui.tab_panel(self.tab_analyze))
 
             # --- TAB 4: DEBUG (MINIMIZED SPACING) ---
@@ -3724,14 +3772,12 @@ async def get_rid_of_windows_and_exit(self: MyGui, _delete_all: bool = True) -> 
         # that same event loop. Without awaiting, shutdown can win the race and the browser never
         # receives the command, so the tabs are left open. window.close()-ing this tab itself may
         # tear down the connection before a response comes back, hence the timeout/suppress.
-        try:
+        with contextlib.suppress(Exception):
             await ui.run_javascript(
                 "(window.mapTaskerPopouts || []).forEach(w => { try { if (w && !w.closed) w.close(); } "
                 "catch (e) {} }); window.mapTaskerPopouts = []; window.close();",
                 timeout=2.0,
             )
-        except Exception:  # noqa: BLE001
-            pass
     ui.notify("Shutting down MapTasker...", type="warning")
     app.shutdown()
 
@@ -3797,7 +3843,7 @@ def _create_name_display_options_section(self: MyGui) -> None:
     # 1. Create the Section Label with an inline native tooltip
     self.display_names_label = (
         ui
-        .label("Project/Profile/Task/Scene Names:")
+        .label(translate_string("Project/Profile/Task/Scene Names:"))
         .classes("text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 leading-none")
         .tooltip("Add highlighting to Project, Profile and Task names in the output.")
     )
@@ -3870,7 +3916,7 @@ def _create_task_action_limit_section(self: MyGui) -> None:
 
 def _create_indentation_section(self: MyGui) -> None:
     """Creates the If/Then/Else indentation dropdown options in the NiceGUI sidebar."""
-    self.indent_label = ui.label("If/Then/Else Indentation Amount:").classes(
+    self.indent_label = ui.label(translate_string("If/Then/Else Indentation Amount:")).classes(
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
@@ -3891,7 +3937,7 @@ def _create_indentation_section(self: MyGui) -> None:
 
 def _create_language_selection_section(self: MyGui) -> None:
     """Creates the language selection dropdown in the NiceGUI sidebar."""
-    self.language_label = ui.label("Language:  ").classes(
+    self.language_label = ui.label(translate_string("Language:  ")).classes(
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
@@ -3914,7 +3960,7 @@ def _create_language_selection_section(self: MyGui) -> None:
 
 def _create_view_limit_section(self: MyGui) -> None:
     """Creates the view limit dropdown in the sidebar drawer."""
-    self.viewlimit_label = ui.label("View Limit:").classes(
+    self.viewlimit_label = ui.label(translate_string("View Limit:")).classes(
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
@@ -3950,7 +3996,10 @@ def _create_settings_buttons_section(self: MyGui) -> None:
 
     # 1. Sidebar Buttons (Master: self.gui_left_drawer)
     with self.gui_left_drawer:
-        self.reset_button = ui.button("Reset Options", on_click=handlers.reset_settings_event).classes(
+        self.reset_button = ui.button(
+            translate_string("Reset Options"),
+            on_click=handlers.reset_settings_event,
+        ).classes(
             "w-full bg-blue-600 text-white mt-2",
         )
         # Nest the tooltip explicitly inside the button context
@@ -3964,15 +4013,24 @@ def _create_settings_buttons_section(self: MyGui) -> None:
 
     # 2. Main Window Buttons Layout Area
     with ui.row().classes("w-full gap-2 mt-0 justify-center"):
-        self.save_settings_button = ui.button("Save Settings", on_click=handlers.save_settings_event).classes(
+        self.save_settings_button = ui.button(
+            translate_string("Save Settings"),
+            on_click=handlers.save_settings_event,
+        ).classes(
             "bg-indigo-600 text-white justify-center",
         )
 
-        self.restore_settings_button = ui.button("Restore Settings", on_click=handlers.restore_settings_event).classes(
+        self.restore_settings_button = ui.button(
+            translate_string("Restore Settings"),
+            on_click=handlers.restore_settings_event,
+        ).classes(
             "bg-indigo-600 text-white justify-center",
         )
 
-        self.report_issue_button = ui.button("Report Issue", on_click=handlers.report_issue_event).classes(
+        self.report_issue_button = ui.button(
+            translate_string("Report Issue"),
+            on_click=handlers.report_issue_event,
+        ).classes(
             "bg-gray-600 text-white justify-center",
         )
         with self.report_issue_button:
@@ -3984,7 +4042,7 @@ def _create_settings_buttons_section(self: MyGui) -> None:
 
 def _create_font_section(self: MyGui) -> None:
     """Creates the font selection dropdown inside the content container."""
-    self.font_label = ui.label("Font To Use In Output:").classes(
+    self.font_label = ui.label(translate_string("Font To Use In Output:")).classes(
         "text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 m-0 p-0 leading-none",
     )
 
@@ -4041,7 +4099,10 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
             # )
             self.get_backup_button = (
                 ui
-                .button("Get XML from Android Device", on_click=self.event_handlers.get_xml_from_android_event)
+                .button(
+                    translate_string("Get XML from Android Device"),
+                    on_click=self.event_handlers.get_xml_from_android_event,
+                )
                 .style("background-color: #246FB6; border-color: #6563ff; border-width: 2px; color: white;")
                 .classes("mt-0 ml-0 font-bold flex-grow text-xs")
             )
@@ -4051,7 +4112,9 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
             ).classes("bg-blue-600 text-white min-w-[40px] shrink-0")
         with self.get_backup_button:
             ui.tooltip(
-                "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n",
+                translate_string(
+                    "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n",
+                ),
             ).style("white-space: pre-line")
 
         # The container panels stay bound right here under the button setup
@@ -4067,11 +4130,14 @@ def _create_help_options_section(self: MyGui) -> None:
 
     # 1. Specialized Help Buttons Row
     with ui.row().classes("w-full gap-2 mt-0 self_center justify-center"):
-        self.display_help_button = ui.button("Display Help", on_click=lambda: handlers.query_event("help")).classes(
+        self.display_help_button = ui.button(
+            translate_string("Display Help"),
+            on_click=lambda: handlers.query_event("help"),
+        ).classes(
             "bg-blue-600 text-white",
         )
 
         self.get_android_help_button = ui.button(
-            "Get Android Help",
+            translate_string("Get Android Help"),
             on_click=lambda: handlers.query_event("android"),
         ).classes("bg-blue-600 text-white")

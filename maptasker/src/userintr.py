@@ -647,6 +647,12 @@ class MyGui:
 
         # Display completion
         self.display_message_box("Settings restored.\n", "Green")
+
+        # Recolor 'Run Analysis' now that every setting is in.  Doing it mid-loop isn't enough:
+        # ARGUMENT_NAMES restores ai_model well before single_xxx_name, so any refresh triggered
+        # by an earlier key still sees no object selected and leaves the button red.
+        update_analysis_button_color(self)
+
         self.extract_in_progress = False
 
     def extract_colors(self) -> None:
@@ -1148,15 +1154,30 @@ def _confirmed_single_project_name(gui: MyGui) -> str:
     satisfying the Add Task/Add Profile "select a Project first" gate despite
     the user seeing no selection at all in that pulldown. Requiring the name
     to actually appear in the pulldown's current options closes that gap.
+
+    Each Project option is f"{translate_string('Project:')} {name}" (see
+    MyGui.build_the_tree), so its prefix is whatever the current language calls
+    a Project -- "Projekt: " in German, "Projet: " in French, "プロジェクト： "
+    in Japanese. This gate used to look for a hardcoded "Project: ", which
+    matched nothing in any other language, so it closed on a Project that was
+    plainly selected and Edit Project/Add Profile/Add Task refused to open.
+
+    The option is rebuilt through translate_string here rather than parsed
+    apart, because parsing means picking a separator and the separator is
+    itself translated -- Japanese uses a fullwidth '：', so splitting on ": "
+    silently fails for exactly the languages this is meant to fix.
     """
     name = getattr(gui, "single_project_name", "")
     if not name:
         return ""
     widget = getattr(gui, "specific_project_optionmenu", None)
     options = getattr(widget, "options", None) if widget is not None else None
-    if options is not None and name not in options and f"Project: {name}" not in options:
-        return ""
-    return name
+    # No pulldown yet is not evidence of a bad name -- only a populated list is.
+    if options is None:
+        return name
+    # Bare name covers the pulldown's unprefixed form; the second is how the
+    # Project list itself is built.
+    return name if name in options or f"{translate_string('Project:')} {name}" in options else ""
 
 
 def _task_arg_values(field_refs: dict) -> dict[str, str]:
@@ -2054,6 +2075,10 @@ class MapTaskerEventHandlers:
                 reset_single_names=False,
             )
             display_analyze_button(the_view, 13, first_time=False)
+
+            # The 'Run Analysis' button goes green only once a single object is selected, so it
+            # has to be recolored whenever that selection changes.
+            update_analysis_button_color(the_view)
 
             the_view.is_updating = False
 
@@ -4573,7 +4598,14 @@ class MapTaskerEventHandlers:
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # Ok, run the analysis.  Await the execution of map_ai() so control doesn't leak early!
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            await map_ai()
+            try:
+                await map_ai()
+            finally:
+                # The analysis is over, so stop saying it is running.  map_ai clears its own
+                # PrimeItems copy of the flag; this is the view's, which every later save and
+                # every rerun copies back into PrimeItems (see rungui.process_gui).  In a
+                # 'finally' because an analysis that failed is just as over as one that worked.
+                gui.ai_analyze = False
 
             # Display messages from the AI run.
             display_error_file_and_ai_response(self)

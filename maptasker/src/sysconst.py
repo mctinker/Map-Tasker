@@ -147,6 +147,14 @@ ARGUMENT_NAMES = {
 # Window positions etc. that are to be pickled
 SYSTEM_ARGUMENTS = []
 
+# Arguments that describe what THIS run is doing rather than what the user prefers.  They
+# are saved (they are in ARGUMENT_NAMES) but always as the value below, and are forced back
+# to it on restore: carrying one into the next session makes the program believe it is in
+# the middle of something it is not.  'ai_analyze' is the case in point -- left true, every
+# later run thinks an AI analysis is under way and, for instance, stamps "Ai Analysis Run"
+# on the output heading (see frontmtr).
+TRANSIENT_ARGUMENTS = {"ai_analyze": False}
+
 # Debug stuff
 logger = logging.getLogger("MapTasker")
 debug_out = False  # Prints the line to be added to the output

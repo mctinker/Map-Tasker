@@ -7,13 +7,20 @@
 #                                                                                      #
 from __future__ import annotations
 
+import contextlib
 import os
 import pickle
+import tempfile
 import tomllib
 from datetime import timedelta
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import tomli_w
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from typing import BinaryIO
 
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
@@ -27,10 +34,53 @@ from maptasker.src.sysconst import (
     NOW_TIME,
     SYSTEM_ARGUMENTS,
     SYSTEM_SETTINGS_FILE,
+    TRANSIENT_ARGUMENTS,
     logger,
 )
 
 twenty_four_hours_ago = NOW_TIME - timedelta(hours=25)
+
+
+# Write a settings file in one indivisible step
+def write_atomically(target_file: str, write_settings: Callable[[BinaryIO], None]) -> None:
+    """Write a settings file via a temporary file, then swap it into place with os.replace().
+
+    Writing straight to the settings file leaves a window -- two of them, in the case of the
+    TOML file, which used to be truncated ('wb') and then reopened to be appended to ('ab') --
+    in which what is on disk is empty or half-written.  Any read landing in that window
+    (another MapTasker instance starting up, since every run saves settings) gets no
+    'program_arguments' table and silently falls back to defaults, and a crash inside the
+    window loses the user's settings for good.
+
+    os.replace() is atomic on POSIX and Windows, so a reader sees either the complete old
+    file or the complete new one -- never a partial one.  If write_settings raises, the
+    temporary file is discarded and the previous settings file is left untouched.
+
+    Args:
+        target_file: path of the settings file to end up with.
+        write_settings: called with the open binary temp file; does the actual writing.
+    """
+    target = Path(target_file)
+    # The temp file must share a filesystem with the target for os.replace to be atomic,
+    # so put it in the same directory rather than the system temp area.
+    temp_fd, temp_name = tempfile.mkstemp(dir=target.parent or Path(), prefix=f".{target.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(temp_fd, "wb") as temp_file:
+            write_settings(temp_file)
+            # Flush all the way to disk before the swap: os.replace only orders the rename,
+            # not the data behind it.
+            temp_file.flush()
+            os.fsync(temp_file.fileno())
+        # Replacing the file replaces its permissions too, and mkstemp deliberately makes
+        # owner-only (0600) files.  Carry the existing file's mode over so saving settings
+        # doesn't quietly change who can read them.
+        with contextlib.suppress(OSError):
+            os.chmod(temp_name, target.stat().st_mode & 0o7777)
+        os.replace(temp_name, target)
+    except BaseException:
+        with contextlib.suppress(OSError):
+            os.unlink(temp_name)
+        raise
 
 
 # Settings file is corrupt.  Let user know and reset colors to use and program arguments
@@ -86,6 +136,13 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     # Make sure apikey is hidden
     program_arguments["ai_apikey"] = "Hidden"
 
+    # Never persist what this particular run happens to be doing.  The AI analysis save
+    # below happens while ai_analyze is still true (ai_analyze_event saves right before it
+    # runs the analysis), so without this the flag would stay true in the settings file for
+    # every session that follows.
+    for argument, resting_value in TRANSIENT_ARGUMENTS.items():
+        program_arguments[argument] = resting_value
+
     # Force file object into a dictionary for json encoding
     try:
         if not isinstance(program_arguments["file"], str):
@@ -127,41 +184,29 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
         else:
             user_args[argument] = program_arguments[argument]
 
-    # Save dictionaries
+    # Save dictionaries.  The guidance goes in the same write as everything else: two
+    # separate writes is exactly what used to leave a guidance-only file on disk for any
+    # reader (or crash) that landed between them.
     settings = {
-        "program_arguments": user_args,
-        "colors_to_use": colors_to_use,
+        **guidance,
+        "program_arguments": dict(sorted(user_args.items())),  # Sort the program args first.
+        "colors_to_use": dict(sorted(colors_to_use.items())),  # Sort the colors next.
         "last_run": PrimeItems.last_run,
     }
 
-    # Write out the guidance for the file.
-    logger.info("Saving settings file...")
-    with open(new_file, "wb") as settings_file:
-        tomli_w.dump(guidance, settings_file)
-        # settings_file.close()
-
-    # Write out the user program arguments in TOML format.  Open in binary append format (ab).
-    logger.info("Saving program args and colors file...")
-    with open(new_file, "ab") as settings_file:
-        settings["program_arguments"] = dict(
-            sorted(user_args.items()),
-        )  # Sort the program args first.
-        settings["colors_to_use"] = dict(
-            sorted(colors_to_use.items()),
-        )  # Sort the colors first.
-        try:
-            tomli_w.dump(settings, settings_file)
-        except TypeError as e:
-            logger.debug(f"getputer tomli failure: {e}")
-            print(f"getputer tomli failure: {e}...one or more settings is 'None'!")
-        # settings_file.close()
+    # Write out the guidance, user program arguments and colors in TOML format.
+    logger.info("Saving settings file with program args and colors...")
+    try:
+        write_atomically(new_file, lambda settings_file: tomli_w.dump(settings, settings_file))
+    except TypeError as e:
+        # The previous settings file is still intact -- write_atomically threw away the
+        # partial one -- so the user loses this save, not everything saved before it.
+        logger.debug(f"getputer tomli failure: {e}")
+        print(f"getputer tomli failure: {e}...one or more settings is 'None'!")
 
     # Write out the system program arguments (e.g. window positions) in PICKLE format.
     logger.info("Saving system args file...")
-    with open(SYSTEM_SETTINGS_FILE, "wb") as settings_file:
-        # dump information to that file
-        pickle.dump(sys_args, settings_file)
-        # settings_file.close()
+    write_atomically(SYSTEM_SETTINGS_FILE, lambda settings_file: pickle.dump(sys_args, settings_file))
 
 
 # Read the TOML file and return the settings.
@@ -206,6 +251,11 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
                 if program_arguments["debug"]:
                     log_startup_values()
             except KeyError:
+                # A settings file with no [program_arguments] table at all.  Saves are
+                # atomic now, so this is either a hand-edited file or one left half-written
+                # by a version from before that -- worth saying so rather than quietly
+                # coming up with defaults and then saving them back over the file.
+                logger.error(f"No [program_arguments] found in {new_file}.  Falling back to default settings.")
                 program_arguments = initialize_runtime_arguments()
             try:
                 PrimeItems.last_run = settings["last_run"]  # Get the last run date
@@ -251,10 +301,23 @@ def read_arguments(
 
     # Read the window positions from the PICKLE file
     if os.path.isfile(sys_file):
-        with open(sys_file, "rb") as sys_settings_file:
-            sys_args = pickle.load(sys_settings_file)  # noqa: S301
+        try:
+            with open(sys_file, "rb") as sys_settings_file:
+                sys_args = pickle.load(sys_settings_file)  # noqa: S301
+        except (pickle.UnpicklingError, EOFError, AttributeError, ImportError, IndexError) as e:
+            # Only window positions and the like live here, so a damaged file is no reason
+            # to refuse to start -- carry on with the defaults already in program_arguments.
+            logger.error(f"Could not read {sys_file}: {e}.  Using default window positions.")
+        else:
             for key, value in sys_args.items():
                 program_arguments[key] = value
+
+    # A run always starts out not doing any of the transient things, whatever a settings
+    # file written by an older version (or edited by hand) claims.
+    for argument, resting_value in TRANSIENT_ARGUMENTS.items():
+        if isinstance(program_arguments, dict) and program_arguments.get(argument) != resting_value:
+            logger.info(f"Ignoring saved '{argument}' and starting at {resting_value}.")
+            program_arguments[argument] = resting_value
 
     return program_arguments, colors_to_use
 
