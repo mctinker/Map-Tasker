@@ -1,6 +1,6 @@
 [project]
 name = "maptasker"
-version = "12.0.1"
+version = "12.0.2"
 description = "Utility to display your entire Android 'Tasker' configuration in your browser."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
@@ -84,6 +84,7 @@ packages = ["maptasker"]
 test = ["pytest>=7.3.2", "pytest-mock"]
 dev = [
     "black>=26.5.1",
+    "deep-translator>=1.11.4",
     "pip-autoremove>=0.10.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",

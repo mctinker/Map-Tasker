@@ -378,7 +378,7 @@ msgid "Display only Project"
 msgstr "僅顯示項目"
 msgid "None"
 msgstr "沒有任何"
-msgid "Display all Projects, Profiles, and Tasks."
+msgid "Display all Projects, Profiles, Tasks, and Scenes."
 msgstr "顯示所有項目、配置文件和任務。"
 msgid "Display all"
 msgstr "顯示全部"
@@ -607,14 +607,7 @@ msgid "The 'Search' button will search for and highlight every instance of the s
 msgstr "“搜索”按鈕將從數據頂部開始搜索並突出顯示在搜索框中輸入的字符串的每個實例。 \n\n“在此處搜索”按鈕將從當前屏幕開始搜索並突出顯示在搜索框中輸入的字符串的每個實例。 \n\n將鼠標懸停在任何突出顯示的匹配字符串上以查看所有匹配項。 \n\n“下一個”和“上一個”按鈕將嘗試使搜索字符串的下一個和上一個出現在文本視圖框中可見，並以不同的顏色突出顯示它們。 \n\n使搜索字符串可見的準確性並不總是完美的，並且不受此程序的控制。 \n\n當到達文本視圖框的末尾或開頭時，搜索將停止，並且將顯示一條消息幾秒鐘。 \n\n“清除”按鈕將清除搜索結果。 \n\n“僅顯示”按鈕將僅在其他窗口中顯示搜索結果中的匹配項。 \n\n"
 msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nIn order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running on your Android device.  This profile can be found at the following URL:\n\n    https://t.ly/8vI1f\n\n"
 msgstr "單擊此按鈕將導致以下操作：\n\n- IP 地址將用於 ping Android 設備。 \n\n- IP 地址和端口號將用於查詢 Android 設備並獲取在 Tasker 文件夾中找到的可用 XML 文件的列表。 \n\n- 找到的 XML 文件列表將顯示在下拉菜單中，您可以從中選擇要使用的文件。 \n\n- 選擇 XML 文件後，將獲取該文件並驗證其是否有效一旦您隨後單擊“運行”或“重新運行”按鈕，XML 將用作程序的輸入。 \n\n為了使其正常工作，您必須已將“MapTasker List”配置文件導入到 Android 設備上運行的 Tasker 中。  可以在以下 URL 找到此配置文件：\n\n https://t.ly/8vI1f\n\n"
-msgid "Help\n\nMapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to either report a bug or request a new feature ( [Feature Request] )\n\n* Appearance Mode: Dark, Light, or System default.\n\n* Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Clear Messages: Clear any messages in the textbox.\n\n* Font To Use: Change the monospace font used for the output.\n\n* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Androiddevice.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n* ReRun: Run multiple times (each time with new settings) without exiting, displaying the results in the browser.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   (These three are exclusive: enter one only)\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile or Task against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n- If you receive any of the following the runtime errors, you can ignore them:\n      '[CATransaction synchronize] called within transaction'.\n      'IMKClient Stall detected...'.\n\n- Drag the window to expand the text as desired.\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "幫助\n\nMapTasker 根據您上傳的 Tasker XML 文件（例如“backup.xml”）顯示您的 Android Tasker 配置。顯示內容可以選擇包括所有項目、配置文件、任務及其操作、配置文件/任務條件以及其他配置文件/任務相關信息。 \n\n* 顯示選項為：\n 級別 0：僅顯示第一個任務操作，僅適用於未命名的任務（無提示）。 \n 級別 1 = 僅顯示未知任務的所有任務操作詳細信息（默認）。 \n 級別 2 = 顯示每個任務的完整任務操作名稱。 \n 級別 3 = 顯示每個帶有操作的任務的完整任務操作詳細信息詳細信息。 \n 級別 4 = 顯示級別 3 加上項目的全局變量。 \n\n 級別 5 = 顯示級別 4 加上場景參數詳細信息。 \n\n* 僅顯示所有內容：打開條件、TaskerNet 信息、首選項、漂亮輸出、目錄和配置大綱的顯示。 \n\n* 顯示條件：打開配置文件和任務條件的顯示。 \n\n* 顯示 TaskerNet 信息 - 如果可用，顯示 TaskerNet 發布信息。 \n\n* 顯示Tasker 首選項 - 顯示 Tasker 的系統首選項。 \n\n* 在 Twisty 下隱藏任務詳細信息：隱藏 ► 中的任務信息並單擊顯示。 \n\n* 在開頭顯示超鏈接目錄。 \n\n* 顯示項目/配置文件/任務/場景的配置大綱和地圖。 \n\n* 顯示更漂亮的輸出：通過為所有內容添加換行符和縮進，使輸出更易於閱讀參數。 \n\n* 項目/配置文件/任務/場景名稱選項，用於斜體、粗體、下劃線和/或突出顯示其名稱。 \n\n* 任務操作限制：如果任務的操作數量超過指定數量，則顯示警告。 \n\n* If/Then/Else 任務操作的縮進量。 \n\n* 保存設置 - 保存這些設置以供以後使用。 \n\n* 恢復設置 - 從以前保存的恢復設置\n\n* 報告問題 - 這會將您的瀏覽器帶到問題報告站點，您可以使用它來報告錯誤或請求新功能 ( [功能請求] )\n\n* 外觀模式：深色、淺色或系統默認設置。 \n\n* 視圖：直接在 GUI 中顯示項目、配置文件、任務和場景的配置圖、圖表或樹視圖。 \n\n* 視圖限制：控制生成問題時使用的處理時間量視圖。 \n\n* 重置選項：清除所有內容並重新開始。 \n\n* 清除消息：清除文本框中的所有消息。 \n\n* 要使用的字體：更改用於輸出的等寬字體。 \n\n* 顯示輪廓：顯示項目/配置文件/任務/場景配置輪廓。 \n\n* 從 Android 設備獲取 XML：從 Android 設備獲取備份/導出的 XML 文件。  系統將要求您提供 Android 設備的 IP 地址和端口號，以及設備上的文件位置。 \n\n* 獲取本地 XML：從本地驅動器獲取備份/導出的 XML 文件。 \n\n* 運行並退出：使用提供的設置運行程序，在 Web 瀏覽器中顯示結果，然後退出。 \n* 重新運行：運行多次（每次使用新設置）而不退出，在瀏覽器中顯示結果。 \n\n* 特定名稱選項卡：輸入要顯示的單個特定命名項目...\n - 項目名稱：輸入要顯示的特定項目。 \n - 配置文件名稱：輸入要顯示的特定配置文件。 \n - 任務名稱：輸入要顯示的特定任務。 \n（這三個是唯一的：僅輸入一個）\n\n* 顏色選項卡：為顯示的各種元素選擇顏色。 \n（例如項目、配置文件、任務等的顏色）。 \n\n* 分析選項卡：針對項目、配置文件或任務運行分析Ai 模型。 \n\n* 調試選項卡：顯示運行時設置選項並打開調試模式。 \n\n* 退出：退出程序（退出）。 \n\n注意：\n\n- 一旦您點擊“運行並退出”或“重新運行”按鈕，系統將提示您識別 Tasker XML 文件（如果您尚未這樣做）。 \n\n- 如果您收到以下任何運行時錯誤，您可以忽略它們：\n '[CATransaction \n\n“檢測到 IMKClient 停止...”。 \n\n- 拖動窗口以根據需要展開文本。 \n\n- 在 https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md 查看整個更改日誌歷史記錄\n\n- 更改外觀模式會將用於輸出的顏色更改為其默認值。 \n\n"
-msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
-msgstr "“分析”選項卡用於使用本地 llama 模型或基於服務器的 Open AI、Claude 或 DeepSeek 模型對您的配置文件運行 Ai 分析。 \n\n需要執行以下步驟才能針對您的配置文件運行 AI。 \n\n1- 如果使用基於服務器的 AI，您必須擁有提供商提供的有效 API 密鑰（例如 OpenAI）。  您可以使用“顯示/編輯 API 密鑰”按鈕輸入您的密鑰。 \n\n2- 默認提示為：“建議性能和可讀性改進：（您的項目/配置文件/任務）”，並且前面自動顯示：“在 Tasker 中給出以下（項目/配置文件/任務），”。  如果修改提示，則僅修改“建議改進...”部分。 \n\n3- 選擇要使用的模型。 \n\n o 所選模型將確定使用哪個 AI 執行分析。 \n\n4- 單擊“運行分析”按鈕。  輸入所有必要的數據後，它將變成粉紅色。 \n\n o 如果您尚未選擇模型、提示或單個項目、配置文件或任務或有效的 API 密鑰，系統將提示您先這樣做。 \n\n o 該過程可能需要一些時間並在後台運行。  結果將顯示在單獨的窗口中。 \n\n o 分析開始後，尚未加載到計算機上的本地模型將在後台加載。 \n\n您指定的 api-keys（如果有）、模型、選定的項目、配置文件或任務以及 Ai 提示都將跨會話保存。 \n\n“重新運行”功能將在幕後使用，在新窗口中顯示分析結果。 \n\n"
-msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nAll view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n\nThe Map View has the following behavior:\n\n - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
-msgstr "直接在 GUI 中顯示配置的“地圖”、“圖表”或“樹”視圖。 \n\n必須首先從本地驅動器或 Android 設備獲取 XML，視圖才能工作。 \n\n所有視圖窗口都可以根據需要拉伸和移動。  重新運行特定視圖命令以使用新的大小和位置刷新視圖。 \n\n如果已獲取 XML，則它將用作視圖的輸入。  點擊“重置”按鈕將清除視圖數據。 \n\n非常大的配置將導致地圖和圖表的運行時間延長。  為了獲得最佳性能，請選擇要映射的單個項目或配置文件。 \n\n\n地圖視圖具有以下行為:\n\n - 雖然不直接調用瀏覽器，但可以通過打開本地“MapTasker.html”文件在瀏覽器中顯示地圖。 \n\n - “顯示配置大綱”設置將被忽略，因為它在地圖視圖中不起作用。 \n\n - 使用目錄超鏈接向上一級或兩級將導致生成新地圖視圖。 \n\n\n圖表視圖具有以下行為:\n\n - 只能顯示項目和配置文件。將不會顯示僅包含單個任務或場景的 XML。 \n\n - 單擊水平連接器以突出顯示圖表中的整個連接。 \n\n\n樹視圖具有以下行為：\n\n- 滾動超出屏幕底部的巨大配置尚無法完整查看。 \n\n- 只能顯示項目。將不會顯示僅包含單個配置文件或任務或場景的 XML。 \n\n- 無論單個名稱設置如何，都會顯示所有項目、配置文件、任務和場景。 \n\n"
-msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, no output map will be generated.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
-msgstr "“視圖限制”是一種控制生成視圖時使用的處理時間量的方法。 \n\n- 數字表示要生成的輸出行的相對數量。 \n\n- 限制越大，允許映射的輸出就越大。  生成的輸出越多，處理時間就越長。 \n\n- 非常大的配置將生成非常大的輸出映射，並導致更長的處理時間。  在較舊的設備上，這可能需要 30 秒或更長時間。 \n\n- 通過設置限制，您可以通過不允許更長的持續時間來控制映射配置時使用的處理時間。 \n\n- 如果計算映射時達到限制，則不會生成輸出映射。 \n\n- 您可以嘗試此設置，看看哪個設置最適合您的使用案例。 \n\n- 選擇單個項目、配置文件或任務是限制處理時間的另一種方法。 \n\n"
+
 msgid "API Key Help"
 msgstr "API 密鑰幫助"
 msgid "Profiles Per Line Help"
@@ -860,3 +853,639 @@ msgid "光"
 msgstr "Light"
 msgid "系統"
 msgstr "System"
+
+msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
+msgstr "針對特定項目、設定檔、任務或場景。 （僅選擇一項）"
+
+msgid "Rename"
+msgstr "重新命名"
+
+msgid "Export Project"
+msgstr "出口項目"
+
+msgid "Export Profile"
+msgstr "出口概況"
+
+msgid "Export Task"
+msgstr "匯出任務"
+
+msgid "Save"
+msgstr "節省"
+
+msgid "Overwrite"
+msgstr "覆蓋"
+
+msgid "Delete Project"
+msgstr "刪除項目"
+
+msgid "Delete Profile"
+msgstr "刪除個人資料"
+
+msgid "Delete Task"
+msgstr "刪除任務"
+
+msgid "Its"
+msgstr "它是"
+
+msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
+msgstr "連結的任務將被保留—它們屬於項目，而不屬於此配置檔案。"
+
+msgid "It has no linked Tasks."
+msgstr "它沒有連結的任務。"
+
+msgid "It will be removed from"
+msgstr "它將被刪除"
+
+msgid "Project(s) and unlinked from"
+msgstr "項目並取消鏈接"
+
+msgid "Profile(s) that run it. Those Profiles themselves are kept."
+msgstr "運行它的設定檔。這些設定檔本身被保留。"
+
+msgid "Keep Contents"
+msgstr "保留內容"
+
+msgid "Delete Contents"
+msgstr "刪除內容"
+
+msgid "Adding to Project:"
+msgstr "新增到項目："
+
+msgid "Save To Current File"
+msgstr "儲存到目前文件"
+
+msgid "Add Project"
+msgstr "新增項目"
+
+msgid "Add Profile"
+msgstr "新增個人資料"
+
+msgid "Add Task"
+msgstr "新增任務"
+
+msgid "Add an action"
+msgstr "增加一個動作"
+
+msgid "Actions in this Task"
+msgstr "此任務中的操作"
+
+msgid "No actions added yet."
+msgstr "尚未新增任何操作。"
+
+msgid "Actions & Control"
+msgstr "動作與控制"
+
+msgid "Display Conditions"
+msgstr "顯示條件"
+
+msgid "Task Action Limit:"
+msgstr "任務動作限制："
+
+msgid "Theme Configuration"
+msgstr "主題配置"
+
+msgid "Select a category to modify its color."
+msgstr "選擇一個類別以修改其顏色。"
+
+msgid "Select Category to Colorize"
+msgstr "選擇要著色的類別"
+
+msgid "Choose Hex Color"
+msgstr "選擇十六進位顏色"
+
+msgid "Open View In New Window"
+msgstr "在新視窗中開啟視圖"
+
+msgid "Close Tabs On Exit"
+msgstr "退出時關閉選項卡"
+
+msgid "Edit Project"
+msgstr "編輯項目"
+
+msgid "Edit Profile"
+msgstr "編輯個人資料"
+
+msgid "Edit Task"
+msgstr "編輯任務"
+
+msgid "Scene"
+msgstr "場景"
+
+msgid "Execution"
+msgstr "執行"
+
+msgid "File Operations"
+msgstr "文件操作"
+
+msgid "Display Views"
+msgstr "顯示視圖"
+
+msgid "Application Settings"
+msgstr "應用程式設定"
+
+msgid "Help & Information"
+msgstr "幫助和資訊"
+
+msgid "0 = least detail, 5 = most detail."
+msgstr "0 = 最不詳細，5 = 最詳細。"
+
+msgid "AI Analysis"
+msgstr "人工智慧分析"
+
+msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
+msgstr "分析正在後台運行。\n\n完成後，結果將顯示在新視窗中。\n\n請稍等..."
+
+msgid "Android Get XML Port Number"
+msgstr "Android 取得 XML 連接埠號"
+
+msgid "Android device at"
+msgstr "Android 裝置位於"
+
+msgid "Available Android Backups"
+msgstr "可用的 Android 備份"
+
+msgid "CAVEATS"
+msgstr "注意事項"
+
+msgid "Cancel Entry"
+msgstr "取消參賽"
+
+msgid "Check your IP/Port and verify the Tasker HTTP server is running"
+msgstr "檢查您的 IP/連接埠並驗證 Tasker HTTP 伺服器正在執行"
+
+msgid "Close"
+msgstr "關閉"
+
+msgid "Detail Level"
+msgstr "細節等級"
+
+msgid "Error"
+msgstr "錯誤"
+
+msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
+msgstr "從 Android 裝置取得 XML。\n\n您必須與 Android 裝置位於同一網絡，且該裝置必須正在運作並已連線。\n\n"
+
+msgid "Get Local XML File"
+msgstr "取得本機 XML 文件"
+
+msgid "It owns"
+msgstr "它擁有"
+
+msgid "No Profiles Found"
+msgstr "未找到個人資料"
+
+msgid "No file loaded"
+msgstr "沒有載入文件"
+
+msgid "No scenes found"
+msgstr "未找到場景"
+
+msgid "No tasks found"
+msgstr "沒有找到任務"
+
+msgid "None or unnamed!"
+msgstr "無或無名！"
+
+msgid "Profile(s) and"
+msgstr "個人資料和"
+
+msgid "Save To Android"
+msgstr "儲存到安卓"
+
+msgid "Scene to Analyze:"
+msgstr "場景分析："
+
+msgid "Scene:"
+msgstr "場景："
+
+msgid "Select XML From Android Device:"
+msgstr "從 Android 裝置選擇 XML："
+
+msgid "Task(s)."
+msgstr "任務。"
+
+msgid "Unnamed Task"
+msgstr "未命名任務"
+
+msgid "Update Available!"
+msgstr "更新可用！"
+
+msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
+msgstr "YouTube 直接串流媒體需要第三方 API 令牌。將目標曲目下載到本地即可查看。"
+
+msgid "is unreachable"
+msgstr "無法到達"
+
+msgid "'Cancel' button selected. No change to the API keys!"
+msgstr "選擇“取消”按鈕。 API 金鑰沒有變化！"
+
+msgid ".or."
+msgstr "。或者。"
+
+msgid "1-TCP/IP Address:"
+msgstr "1-TCP/IP 位址："
+
+msgid "2-Port Number:"
+msgstr "2 連接埠號碼："
+
+msgid "3-File Location:"
+msgstr "3-文件位置："
+
+msgid "AI Model"
+msgstr "人工智慧模型"
+
+msgid "Add 'If' Action"
+msgstr "新增“如果”操作"
+
+msgid "Add App Entry"
+msgstr "新增應用程式入口"
+
+msgid "Add Condition"
+msgstr "新增條件"
+
+msgid "All"
+msgstr "全部"
+
+msgid "Android IP Address"
+msgstr "安卓IP位址"
+
+msgid "Android configuration details matched successfully!"
+msgstr "Android配置詳情匹配成功！"
+
+msgid "Changes kept."
+msgstr "保留更改。"
+
+msgid "Choose a State type first."
+msgstr "首先選擇狀態類型。"
+
+msgid "Choose a Task"
+msgstr "選擇任務"
+
+msgid "Choose a Task first."
+msgstr "首先選擇一個任務。"
+
+msgid "Choose a condition type first."
+msgstr "首先選擇條件類型。"
+
+msgid "Choose an Event type first."
+msgstr "首先選擇事件類型。"
+
+msgid "Class (optional)"
+msgstr "班級（可選）"
+
+msgid "Cleared the search highlights."
+msgstr "清除搜尋突出顯示。"
+
+msgid "Click Here to Set XML Details"
+msgstr "按一下此處設定 XML 詳細信息"
+
+msgid "Click arrows to expand/collapse details."
+msgstr "按一下箭頭可展開/折疊詳細資訊。"
+
+msgid "Click on a row index line number to jump directly to that match block placement:"
+msgstr "按一下行索引行號可直接跳到該符合區塊位置："
+
+msgid "Click on connector to highlight"
+msgstr "按一下連接器以突出顯示"
+
+msgid "Condition Type"
+msgstr "條件類型"
+
+msgid "Conditions"
+msgstr "狀況"
+
+msgid "Configure Android Connection:"
+msgstr "設定安卓連線："
+
+msgid "Continue Task After Error"
+msgstr "錯誤後繼續執行任務"
+
+msgid "Copy"
+msgstr "複製"
+
+msgid "Dark Mode"
+msgstr "深色模式"
+
+msgid "Day of Month"
+msgstr "每月的某一天"
+
+msgid "Delete"
+msgstr "刪除"
+
+msgid "Delete Condition"
+msgstr "刪除條件"
+
+msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
+msgstr "僅刪除此設定檔。它的進入/退出任務被保留——任務由專案擁有，而不是由配置檔案擁有，並且相同的任務可以由其他配置檔案使用。"
+
+msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
+msgstr "刪除此任務以及對它的所有引用：它從擁有它的每個項目的任務中以及從將其作為其進入/退出任務運行的任何配置文件中刪除。設定檔本身被保留。"
+
+msgid "Diagram View opened in a new browser window."
+msgstr "圖表視圖在新的瀏覽器視窗中開啟。"
+
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+msgstr "顯示所有可用型號的擴充清單。\n\n注意：如果沒有為 OpenAI 或 Gemini 設定 API 金鑰，\n      然後是各自的預設型號列表\n      將顯示AI提供者。\n\n注意：並非所有模型都經過驗證且\n      一個或多個可能會傳回分析錯誤。\n\n注意：首次啟用此選項將\n      強制安裝以下模組\n      以及它們的所有依賴項：\n      google-genai、anthropic、openai、ollama"
+
+msgid "End Time"
+msgstr "結束時間"
+
+msgid "Event Type"
+msgstr "事件類型"
+
+msgid "Every"
+msgstr "每一個"
+
+msgid "File path saved successfully!"
+msgstr "文件路徑儲存成功！"
+
+msgid "File selection canceled."
+msgstr "文件選擇已取消。"
+
+msgid "If"
+msgstr "如果"
+
+msgid "If condition set."
+msgstr "如果條件成立。"
+
+msgid "Insert just the 'If', or a complete block?"
+msgstr "只插入“If”，還是插入一個完整的區塊？"
+
+msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
+msgstr "指定的視圖類型無效。使用“地圖”、“圖表”或“樹”。"
+
+msgid "Label"
+msgstr "標籤"
+
+msgid "Last Day Of Month"
+msgstr "每月最後一天"
+
+msgid "Link"
+msgstr "關聯"
+
+msgid "List Files Selected"
+msgstr "列出選定的文件"
+
+msgid "List XML Files"
+msgstr "列出 XML 文件"
+
+msgid "Map View opened in a new browser window."
+msgstr "地圖視圖在新的瀏覽器視窗中開啟。"
+
+msgid "Map view creation skipped: No valid XML source found or action canceled."
+msgstr "已跳過地圖視圖建立：未找到有效的 XML 來源或操作已取消。"
+
+msgid "Month"
+msgstr "月"
+
+msgid "Move"
+msgstr "移動"
+
+msgid "Move to #"
+msgstr "移至#"
+
+msgid "New name"
+msgstr "新名稱"
+
+msgid "No Profile Tasks Found"
+msgstr "未找到設定檔任務"
+
+msgid "No XML data loaded! Please Get XML from Android or Local drive first."
+msgstr "未載入 XML 資料！請先從 Android 或本機磁碟機取得 XML。"
+
+msgid "No XML data loaded! Please select a valid XML file first."
+msgstr "未載入 XML 資料！請先選擇一個有效的 XML 檔案。"
+
+msgid "No actions in this Task."
+msgstr "此任務中沒有任何操作。"
+
+msgid "No backup file is currently loaded. Use 'Get Local XML' first."
+msgstr "目前未載入備份檔案。首先使用「取得本機 XML」。"
+
+msgid "No conditions on this Profile."
+msgstr "此設定檔沒有任何條件。"
+
+msgid "No editable arguments (code not mapped, or this condition has none)."
+msgstr "沒有可編輯的參數（程式碼未映射，或此條件沒有）。"
+
+msgid "No editable arguments."
+msgstr "沒有可編輯的參數。"
+
+msgid "Not configured..."
+msgstr "未配置..."
+
+msgid "Odd"
+msgstr "奇怪的"
+
+msgid "Ok"
+msgstr "好的"
+
+msgid "Operator"
+msgstr "操作員"
+
+msgid "Package"
+msgstr "包裹"
+
+msgid "Pick a Task"
+msgstr "選擇一個任務"
+
+msgid "Please enter a search term."
+msgstr "請輸入搜尋詞。"
+
+msgid "Port"
+msgstr "港口"
+
+msgid "Position"
+msgstr "位置"
+
+msgid "Priority"
+msgstr "優先事項"
+
+msgid "Profile Name"
+msgstr "個人資料名稱"
+
+msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "僅此會話保留設定檔 - 使用「儲存到目前檔案」將其永久保留。"
+
+msgid "Profiles Per Line"
+msgstr "每條線的輪廓"
+
+msgid "Project Name"
+msgstr "項目名稱"
+
+msgid "Project added."
+msgstr "項目已新增。"
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
+msgstr "立即提示輸入新名稱並將其套用至載入的備份。上面的項目名稱欄位是唯讀的——這是更改它的唯一方法。"
+
+msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
+msgstr "立即提示輸入新名稱並將其套用至載入的備份。此對話方塊中的其他所有內容都將保持待定狀態，直到確定/儲存為止，並且該對話方塊保持開啟狀態，以便您可以繼續編輯。"
+
+msgid "Remove"
+msgstr "消除"
+
+msgid "Save Profile To Android Device"
+msgstr "將設定檔儲存到 Android 設備"
+
+msgid "Save Project To Android Device"
+msgstr "將項目儲存到 Android 設備"
+
+msgid "Save Task To Android Device"
+msgstr "將任務儲存到 Android 設備"
+
+msgid "Save as"
+msgstr "另存為"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "儲存整個備份 - 其中的每個項目、設定檔和任務，而不僅僅是此設定檔 - 套用此對話方塊的編輯後，將保留相同的「確定」。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "儲存整個備份 - 其中的每個項目、設定檔和任務，而不僅僅是此項目 - 包括此會話中任何位置所做的每個編輯。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "儲存整個備份 - 其中的每個項目、設定檔和任務，而不僅僅是此任務 - 套用此對話方塊的編輯後，將保留相同的「確定」。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "保存整個備份——其中的每個項目、設定檔和任務，而不僅僅是這個——並將新設定檔添加到其專案中，與「確定」添加它的方式相同。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "保存整個備份——其中的每個項目、設定檔和任務，而不僅僅是這個——並添加新任務，與「確定」添加它的方式相同。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
+
+msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
+msgstr "將此項目及其中的所有內容（每個設定檔和任務）儲存為一個獨立檔案。"
+
+msgid "Search actions"
+msgstr "搜尋操作"
+
+msgid "Search..."
+msgstr "搜尋..."
+
+msgid "Select a single Profile first (Profile pulldown above)."
+msgstr "首先選擇一個設定檔（上面的設定檔下拉式選單）。"
+
+msgid "Select a single Project first (Project pulldown above)."
+msgstr "首先選擇一個項目（上面的項目下拉式選單）。"
+
+msgid "Select a single Task first (Task pulldown above)."
+msgstr "首先選擇一個任務（上面的任務下拉式選單）。"
+
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "選擇發出警告之前任務中的操作數。\n此警告出現在配置輸出底部附近，\n旨在幫助識別過於複雜的任務\n並且可能應該分解為多個任務。\n設定“100”表示沒有限制。"
+
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
+msgstr "設定 If/Then/Else 區塊的縮排量。\n\n預設值為“4”。\n\n這會影響地圖和圖表視圖中輸出的格式。"
+
+msgid "Settings Reset!"
+msgstr "設定重置！"
+
+msgid "Shutting down MapTasker..."
+msgstr "正在關閉 MapTasker..."
+
+msgid "Start Time"
+msgstr "開始時間"
+
+msgid "Starting AI Analysis..."
+msgstr "開始人工智慧分析..."
+
+msgid "State Type"
+msgstr "狀態類型"
+
+msgid "Submit"
+msgstr "提交"
+
+msgid "Target"
+msgstr "目標"
+
+msgid "Task Name"
+msgstr "任務名稱"
+
+msgid "Task Uploaded to Tasker"
+msgstr "任務已上傳至Tasker"
+
+msgid "Task Uploaded to Tasker."
+msgstr "任務已上傳至 Tasker。"
+
+msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "僅為本次會話保留的任務 - 使用「儲存到目前檔案」將其永久保留。"
+
+msgid "The 'Misc' view is running in the background.  Please stand by..."
+msgstr "“雜項”視圖在背景執行。  請稍等..."
+
+msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
+msgstr "「搜尋」按鈕將從資料頂部開始搜尋並反白在搜尋框中輸入的不區分大小寫字串的每個實例。\n\n它只會顯示搜尋字串的前 200 個實例。\n\n按一下行號可前往文字檢視方塊中的該行。\n\n“清除”按鈕將清除搜尋結果。\n\n"
+
+msgid "The change will take effect the next time you open the view."
+msgstr "變更將在您下次開啟視圖時生效。"
+
+msgid "This Task has no actions yet."
+msgstr "此任務還沒有任何操作。"
+
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "這是系統上可用的所有字體的列表，首先是等寬字體並進行了標記。\n\n所選字體將用於所有輸出。\n\n強烈建議圖表使用“Courier”或“Courier New”，以確保連接器正確對齊。非等寬字體將無法使圖表的連接器或輸出的縮排保持一致。"
+
+msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
+msgstr "這會將任務直接儲存到執行 Tasker 伺服器的 Android 裝置上執行的 Tasker 中。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n系統將提示您兩次授權在 Android 裝置上寫入 Tasker，並且 Task. 及其自身的操作將決定其在裝置上的保存位置。"
+
+msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
+msgstr "這會將任務直接儲存到 Android 裝置上的活動 Tasker 工作階段。\n\n需要 Tasker 版本 6.2 或更高版本才能運作。 Android 裝置必須位於同一網路上，且 IP 位址和連接埠\n必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n系統將提示您兩次授權在 Android 裝置上寫入 Tasker，並且任務將直接載入到活動的 Tasker 工作階段。\n\n您必須退出並重新啟動 Tasker 才能在 Tasker UI 中看到新任務。"
+
+msgid "This will save the Task directly to your current drive.\n\n"
+msgstr "這會將任務直接儲存到您目前的磁碟機。\n\n"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "這會將設定檔作為獨立檔案寫入 Android 裝置的 /Tasker/profiles 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n為此不需要授權提示。"
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "這會將設定檔作為獨立檔案寫入您的 Android 裝置上的 /Tasker/profiles 下——它不會將其匯入到 Tasker 的即時配置中。\n\n「Http 伺服器範例」Tasker 專案 (http://spoo.me/http_svr_example) 必須在 Android 裝置上安裝並激活，且伺服器正在執行（請參閱自述文件的直接 XML 檢索說明）。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。為此不需要授權提示。"
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "這會將設定檔作為獨立檔案寫入您的 Android 裝置上的 /Tasker/profiles 下——它不會將其匯入到 Tasker 的即時配置中。\n\n「Http 伺服器範例」Tasker 專案必須在 Android 裝置上安裝並處於作用中狀態，且伺服器正在執行（請參閱自述文件的直接 XML 檢索說明）。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。為此不需要授權提示。"
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "這會將專案及其中的所有內容（每個設定檔和任務）作為獨立檔案寫入 Android 裝置上的 /Tasker/projects 下，但不會將其匯入到 Tasker 的即時設定中。\n\n必須在 Android 裝置上安裝並啟動「Http 伺服器範例」Tasker 項目，且伺服器正在運行。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。為此不需要授權提示。"
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "這會將專案及其中的所有內容作為獨立檔案寫入 Android 裝置的 /Tasker/projects 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n為此不需要授權提示。"
+
+msgid "Toggle Wrap"
+msgstr "切換包裹"
+
+msgid "Unlink"
+msgstr "取消連結"
+
+msgid "Value"
+msgstr "價值"
+
+msgid "View cleared."
+msgstr "視圖已清除。"
+
+msgid "Week-Day"
+msgstr "工作日"
+
+msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
+msgstr "啟用後，按一下「退出」也會關閉 MapTasker 主視窗及其開啟的任何地圖/圖表視窗/標籤。\n\n停用時，「退出」會關閉 MapTasker，但使這些視窗/選項卡保持開啟。"
+
+msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
+msgstr "啟用後，每個地圖/圖表請求都會在自己的新視窗/選項卡中打開，因此您可以將較早的請求與它放在一起進行比較。\n\n停用後，請求會重複使用該視圖的現有視窗/選項卡，取代其中的內容。\n\n除非您想進行比較，否則請將其關閉：您的瀏覽器可能會阻止一個全新的視窗/選項卡，因為它會在視圖完成建置後打開，而不是在您單擊時立即打開。"
+
+msgid "hh:mm AM/PM or %variable"
+msgstr "hh:mm AM/PM 或%變量"
+
+msgid "Close Results Window"
+msgstr "關閉結果視窗"
+
+msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
+msgstr "直接在 GUI 中顯示配置的「地圖」、「圖表」或「樹」視圖。\n\n必須先從本機磁碟機或 Android 裝置取得 XML，視圖才能正常運作。\n\n如果已取得 XML，它將用作視圖的輸入。  點擊“清除”按鈕將清除視圖資料。\n\n非常大的配置將導致地圖和圖表的運行時間延長。  為了獲得最佳效能，請選擇要對應的單一項目或設定檔。\n\n（可選）使用「查看限制」設定來限制要處理的資料量。  限制越大，允許映射的輸出就越大。  產生的輸出越多，處理時間就越長。\n\n\n圖表視圖具有以下行為：\n\n - 只能顯示項目和設定檔。僅包含單一任務或場景的 XML 將不會顯示。\n\n - 按一下水平連接器以突出顯示圖中的整個連接。\n\n\n樹視圖具有以下行為：\n\n- 只能顯示項目。僅包含單一設定檔、任務或場景的 XML 將不會顯示。\n\n- 無論單一名稱設定如何，都會顯示所有項目、設定檔、任務和場景。\n\n"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "MapTasker 根据您上传的 Tasker XML 文件（例如“backup.xml”）显示您的 Android Tasker 配置。顯示將可選地包括所有項目、設定檔、任務及其操作、設定檔/任務條件和其他設定檔/任務相關資訊。\n\n加载 XML 文件后，您可以选择编辑项目、配置文件、任务和场景。\n\n* 顯示選項有：\n    等級 0：僅顯示第一個任務操作，僅適用於未命名的任務（靜默）。\n    等級 1 = 僅顯示未知任務的所有任務操作詳細資訊（預設）。\n    等級 2 = 顯示每個任務的完整任務操作名稱。\n    等級 3 = 顯示每個任務的完整任務操作詳細資訊以及操作詳細資訊。\n    等級 4 = 顯示等級 3 加上項目的全域變數。\n\n    等級 5 = 顯示等級 4 加上場景參數詳細資訊。\n\n* 仅显示所有内容：打开条件、TaskerNet 信息、首选项、漂亮输出、目录和配置大纲的显示。\n\n* 显示条件：打开配置文件和任务条件的显示。\n\n* 顯示 TaskerNet 資訊 - 如果可用，顯示 TaskerNet 發佈資訊。\n\n* 显示 Tasker 首选项 - 显示 Tasker 的系统首选项。\n\n* 在 Twisty 下隱藏任務詳細資料：將 ► 內的任務資訊隱藏，然後按一下顯示。\n\n* 在開頭顯示超連結目錄。\n\n* 顯示更漂亮的輸出：透過為所有參數添加換行符和縮進，使輸出更易於閱讀。\n\n* 項目/設定檔/任務/場景名稱選項可將其名稱設定為斜體、粗體、底線和/或反白顯示。\n\n* 任务操作限制：如果任务的操作数量超过指定数量，则显示警告。\n\n* If/Then/Else 任務操作的縮排量。\n\n* 語言：選擇輸出所使用的語言。  預設為英語。\n\n* 要使用的字體：變更用於輸出的等寬字體。\n\n* 視圖限制：控制產生視圖時所使用的處理時間量。\n\n* 重置選項：清除所有內容並重新開始。\n\n* 取得本機 XML 檔案：從本機磁碟機取得備份/匯出的 XML 檔案。\n\n* 儲存設定 - 儲存這些設定以供日後使用。\n\n* 恢复设置 - 从以前保存的会话中恢复设置。\n\n* 顯示檢視：直接在 GUI 中顯示項目、設定檔、任務和場景的設定圖、圖表或樹狀視圖。\n\n* 從 Android 裝置取得 XML：從 Android 裝置取得備份/匯出的 XML 檔案。  系統會要求您提供 Android 裝置的 IP 位址和連接埠號，以及裝置上的檔案位置。\n\n* 特定名稱標籤：輸入要顯示的單一特定命名項目...\n   - 項目名稱：輸入要顯示的特定項目。\n   - 設定檔名稱：輸入要顯示的特定設定檔。\n   - 任務名稱：輸入要顯示的特定任務。\n   - 場景名稱：輸入要顯示的特定場景。  其所屬項目的標題和\n                 显示场景的元素（以及这些元素调用的任何任务）；\n                 專案的設定檔及其其他場景不是。\n   （這四項是唯一的：只輸入一項）\n\n   直接在 GUI 中新增和編輯項目、設定檔和任務，並具有各種儲存選項。\n\n* 顏色標籤：為顯示的各種元素選擇顏色。\n              （例如項目、設定檔、任務等的顏色）。\n\n* 分析標籤：針對 Ai 模型執行專案、設定檔、任務或場景的分析。\n\n* 偵錯選項卡：顯示運行時設定選項並開啟偵錯模式。\n\n* 退出：退出程序（退出）。\n\n注意事項：\n\n- 在 https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md 查看整個變更日誌歷史記錄\n\n- 變更外觀模式會將用於輸出的顏色變更為其預設值。\n\n"
+
+msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+msgstr "「視圖限制」是一種控制產生視圖時所使用的處理時間量的方法。\n\n- 數字表示要產生的輸出行的相對數量。\n\n- 限制越大，允許映射的輸出就越大。  產生的輸出越多，處理時間就越長。\n\n- 非常大的配置將產生非常大的輸出圖並導致更長的處理時間。  在較舊的設備上，這可能需要長達 30 秒或更長時間。\n\n- 透過設定限制，您可以透過不允許更長的持續時間來控制映射配置時使用的處理時間。\n\n- 如果計算地圖時達到限制，輸出將停止。\n\n- 您可以嘗試此設置，看看哪種設置最適合您的使用案例。\n\n- 選擇單一項目、設定檔或任務是限制處理時間的另一種方法。\n\n"
+
+msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
+msgstr "「分析」標籤用於使用本地 llama 模型或基於伺服器的 Open AI、Claude 或 DeepSeek 模型對您的個人資料執行 Ai 分析。\n\n為了針對您的個人資料執行 AI，需要執行以下步驟。\n\n1- 如果使用基於伺服器的 AI，您必須擁有提供者提供的有效 API 金鑰（例如 OpenAI）。  您可以使用「顯示/編輯 API 金鑰」按鈕輸入您的金鑰。\n\n2- 預設提示為：“建議效能和可讀性改進：（您的專案/設定檔/任務）”，並自動前面加上：“在 Tasker 中給出以下（專案/設定檔/任務），”。  如果修改提示，您只需修改“建議改進...”部分。\n\n3- 選擇您要使用的型號。\n\n   o 所選模型將決定使用哪一個 AI 進行分析。\n\n4- 點選“運行分析”按鈕。  輸入所有必要的數據後，它將變為綠色。\n\n   o 如果您尚未選擇模型、提示或單一專案、設定檔或任務或有效的 API 金鑰，系統將提示您先進行選擇。\n\n   o 過程可能需要一些時間並在背景運行。  結果將顯示在單獨的視窗中。\n\n   o 分析開始後，尚未載入到電腦上的本機模型將在背景載入。\n\n您指定的 api-keys（如果有）、模型、選定的項目、設定檔或任務以及 Ai 提示都會跨會話儲存。\n\n「重新運行」功能將在幕後使用，在新視窗中顯示分析結果。\n\n"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- If you want to use the 'List XML Files' option, then you must also import the following profile into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "需要執行以下步驟才能直接從 Android 裝置取得 Tasker XML 檔案。\n\n1- 此裝置和 Android 裝置必須位於同一命名網路上。\n\n2- 必須在 Android 裝置上安裝並啟動 Tasker 專案「HTTP 伺服器範例」或相同功能（伺服器必須正在執行）：\n\n    https://tinyurl.com/4p5cz8sv\n\n3- 如果您想使用「列出 XML 檔案」選項，則還必須將下列設定檔匯入 Android 設備，並確保啟用匯入的設定檔「MapTasker List」：\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\n系統會要求您提供 Android 裝置的 IP 位址、連接埠號碼以及 Android 裝置上的檔案位置。  提供了預設值，其中...\n\n‘192.168.0.210’是預設IP位址，\n\n「1821」是 Android 裝置上執行的 Tasker HTTP 伺服器範例的預設連接埠號\n\n“/Tasker/configs/user/backup.xml”是預設檔案位置。  如果您不知道檔案位置並且已經輸入了 IP 位址和端口，則可以選擇「列出 XML 檔案」按鈕來取得 Android 裝置上可用 XML 檔案的清單以供選擇。\n\n使用注意事項：\n\nIP 位址和連接埠可以透過在 Android 裝置上安裝上述 URL 中的「HTTP 伺服器範例」項目來取得。然後執行名為「Update GD HTTP Info」的任務來取得 Android 通知：\n\nHTTP 伺服器資訊\n伺服器資訊已更新 {\"device name\":\"http://192.168.0.49:1821\"}\n\n- 若要取得 XML 文件，請按一下按鈕\n\n “從 Android 裝置取得 XML”\n\n然後修改此按鈕下方輸入欄位中顯示的預設值，然後按一下「輸入並按一下此處設定 XML 詳細資料」或「列出 XML 檔案」按鈕。\n\n- 點擊任一按鈕都會對 Android 裝置執行 ping 操作以查看是否可用。  如果裝置無法存取，則 ping 將在 10 秒後逾時。  確保 IP 位址正確。\n\n按一下「取消輸入」按鈕可退出此取得程序。\n\n"

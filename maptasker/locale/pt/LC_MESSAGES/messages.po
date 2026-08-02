@@ -377,7 +377,7 @@ msgid "Display only Project"
 msgstr "Exibir apenas projeto"
 msgid "None"
 msgstr "Nenhum"
-msgid "Display all Projects, Profiles, and Tasks."
+msgid "Display all Projects, Profiles, Tasks, and Scenes."
 msgstr "Exibir todos os projetos, perfis e tarefas."
 msgid "Display all"
 msgstr "Exibir tudo"
@@ -606,14 +606,7 @@ msgid "The 'Search' button will search for and highlight every instance of the s
 msgstr "O botão 'Pesquisar' pesquisará e destacará cada instância da string inserida na caixa de pesquisa, começando na parte superior dos dados.\n\nO botão 'Pesquisar aqui' pesquisará e destacará cada instância da string inserida na caixa de pesquisa, começando na tela atual.\n\nPasse o mouse sobre qualquer uma das strings correspondentes destacadas para ver todas as correspondências.\n\nOs botões 'Próximo' e 'Anterior' tentarão tornar a ocorrência seguinte e anterior da string de pesquisa visível na caixa de visualização de texto, e destaque-os em uma cor diferente.\n\nA precisão de tornar a string de pesquisa visível nem sempre é perfeita e está fora do controle deste programa.\n\nQuando o final ou o início da caixa de visualização de texto for alcançado, a pesquisa será interrompida e uma mensagem será exibida por vários segundos.\n\nO botão 'Limpar' limpará os resultados da pesquisa.\n\nO botão 'Exibir apenas' exibirá em uma janela diversa APENAS as correspondências dos resultados da pesquisa.\n\n"
 msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nIn order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running on your Android device.  This profile can be found at the following URL:\n\n    https://t.ly/8vI1f\n\n"
 msgstr "Clicar neste botão resultará nas seguintes ações:\n\n- O endereço IP será usado para executar ping no dispositivo Android.\n\n- O endereço IP e o número da porta serão usados para consultar o dispositivo Android e obter uma lista de arquivos XML disponíveis encontrados na pasta Tasker.\n\n- A lista de arquivos XML encontrados será apresentada em um menu suspenso no qual você pode selecionar aquele que deseja usar.\n\n- Depois de selecionar o arquivo XML, ele será buscado e verificado como XML válido que é então usado como entrada para o programa quando você clica posteriormente no botão 'Executar' ou 'ReExecutar'.\n\nPara que isso funcione, você DEVE já ter importado o perfil 'MapTasker List' para o Tasker em execução no seu dispositivo Android.  Este perfil pode ser encontrado no seguinte URL:\n\n https://t.ly/8vI1f\n\n"
-msgid "Help\n\nMapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to either report a bug or request a new feature ( [Feature Request] )\n\n* Appearance Mode: Dark, Light, or System default.\n\n* Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Clear Messages: Clear any messages in the textbox.\n\n* Font To Use: Change the monospace font used for the output.\n\n* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Androiddevice.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n* ReRun: Run multiple times (each time with new settings) without exiting, displaying the results in the browser.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   (These three are exclusive: enter one only)\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile or Task against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n- If you receive any of the following the runtime errors, you can ignore them:\n      '[CATransaction synchronize] called within transaction'.\n      'IMKClient Stall detected...'.\n\n- Drag the window to expand the text as desired.\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "Ajuda\n\nO MapTasker exibe a configuração do Android Tasker com base no arquivo XML do Tasker carregado (por exemplo, 'backup.xml'). A exibição incluirá opcionalmente todos os projetos, perfis, tarefas e suas ações, condições de perfil/tarefa e outras informações relacionadas ao perfil/tarefa.\n\n* As opções de exibição são:\n Nível 0: exibir apenas a primeira ação da tarefa, apenas para tarefas sem nome (silencioso).\n Nível 1 = exibir todos os detalhes da ação da tarefa somente para tarefas desconhecidas (padrão).\n Nível 2 = exibir o nome completo da ação da tarefa em cada tarefa.\n Nível 3 = exibir detalhes completos da ação da tarefa em cada tarefa com ação detalhes.\n Nível 4 = nível de exibição de 3 mais as variáveis globais do projeto.\n\n Nível 5 = nível de exibição de 4 mais detalhes do argumento da cena.\n\n* Apenas exibir tudo: ativa a exibição de condições, informações do TaskerNet, preferências, saída bonita, diretório e esboço de configuração.\n\n* Condições de exibição: ativa a exibição de condições de perfil e tarefa.\n\n* Exibir informações do TaskerNet: se disponível, exibe informações de publicação do TaskerNet.\n\n* Exibir Preferências do Tasker: exibe as preferências do sistema do Tasker.\n\n* Oculte os detalhes da tarefa em Twisty: oculte as informações da tarefa em ► e clique para exibir.\n\n* Exiba o diretório de hiperlinks no início.\n\n* Exiba o esboço da configuração e o mapa de seus projetos/perfis/tarefas/cenas.\n\n* Exiba uma saída mais bonita: torne a saída mais legível adicionando novas linhas e recuo para todos os argumentos.\n\n* Opções de nomes de projeto/perfil/tarefa/cena para colocar em itálico, negrito, sublinhado e/ou destacar seus nomes.\n\n* Limite de ação da tarefa: exibe um aviso se a tarefa tiver mais do que o número especificado de ações.\n\n* Quantidade de recuo para ações de tarefa If/Then/Else.\n\n* Salvar configurações: salve essas configurações para uso posterior.\n\n* Restaurar configurações: restaure as configurações de uma sessão salva anteriormente.\n\n* Relatar problema: isso irá abra seu navegador para o site de relatório de problemas e você pode usá-lo para relatar um bug ou solicitar um novo recurso ( [Solicitação de recurso] ).\n\n* Modo de aparência: escuro, claro ou padrão do sistema.\n\n* Visualizações: exibe sua configuração de mapa, diagrama ou visualização em árvore de seus projetos, perfis, tarefas e cenas diretamente na GUI.\n\n* Limite de visualização: controle a quantidade de tempo de processamento usado ao gerar a visualização.\n\n* Opções de redefinição: limpar tudo e comece de novo.\n\n* Limpar mensagens: limpe todas as mensagens na caixa de texto.\n\n* Fonte a ser usada: altere a fonte monoespaçada usada para a saída.\n\n* Esboço de exibição: exiba o esboço de configuração de projetos/perfis/tarefas/cenas.\n\n* Obtenha XML do dispositivo Android: busque o arquivo XML de backup/exportado do dispositivo Android.  Será solicitado o endereço IP e o número da porta do seu dispositivo Android, bem como o local do arquivo no dispositivo.\n\n* Obter XML local: busque o arquivo XML de backup/exportado da sua unidade local.\n\n* Executar e sair: execute o programa com as configurações fornecidas, exiba os resultados no navegador da Web e saia.\n* Executar novamente: execute várias vezes (cada vez com novas configurações) sem sair, exibindo os resultados no navegador.\n\n* Nome específico guia: insira um único item com nome específico para exibir...\n - Nome do projeto: insira um projeto específico para exibir.\n - Nome do perfil: insira um perfil específico para exibir.\n - Nome da tarefa: insira uma tarefa específica para exibir.\n (Esses três são exclusivos: insira apenas um)\n\n* Guia Cores: selecione cores para vários elementos da exibição.\n (por exemplo, cor para projetos, perfis, tarefas, etc.).\n\n* Guia Analisar: execute a análise para um projeto, Perfil ou tarefa em um modelo Ai.\n\n* Guia Depurar: exibe a opção Configurações de tempo de execução e ativa o modo de depuração.\n\n* Sair: sai do programa (sair).\n\nObservações:\n\n- Você será solicitado a identificar o arquivo XML do Tasker assim que clicar no botão 'Executar e sair' ou 'Reexecutar', caso ainda não tenha feito isso.\n\n- Se você receber algum dos seguintes erros de tempo de execução, poderá ignorar eles:\n '[CATransactionsync] chamado dentro da transação'.\n 'IMKClient Stall detectado...'.\n\n- Arraste a janela para expandir o texto conforme desejado.\n\n- Veja todo o histórico do log de alterações em https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Alterar o modo de aparência alterará as cores usadas para a saída para seus valores padrão.\n\n"
-msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
-msgstr "A guia Analisar é usada para executar a análise de IA em seu perfil, usando o modelo de lhama local ou os modelos Open AI, Claude ou DeepSeek baseados em servidor.\n\nAs etapas a seguir são necessárias para executar a IA em seu perfil.\n\n1- Se estiver usando uma IA baseada em servidor, você deve ter uma chave de API válida do provedor (por exemplo, OpenAI).  Você pode usar o botão 'Mostrar/Editar chaves de API' para inserir suas chaves.\n\n2- O prompt padrão é: 'sugerir melhorias no desempenho e na legibilidade: (seu projeto/perfil/tarefa)' e é automaticamente precedido por: 'Dado o seguinte (projeto/perfil/tarefa) no Tasker, '.  Se modificar o prompt, você estará modificando apenas a parte 'sugerir melhorias...'.\n\n3- Selecione o modelo que deseja usar.\n\n o O modelo selecionado determinará com qual IA a análise será realizada.\n\n4- Clique no botão 'Executar análise'.  Ele ficará rosa quando todos os dados necessários forem inseridos.\n\n o Se você ainda não selecionou um modelo, prompt ou projeto único, perfil ou tarefa, ou chave de API válida, você será solicitado a fazer isso primeiro.\n\n o O processo pode levar algum tempo e ser executado em segundo plano.  Os resultados aparecerão em uma janela separada.\n\n o Os modelos locais ainda não carregados em seu computador serão carregados em segundo plano assim que a análise começar.\n\nSuas chaves de API designadas (se houver), modelo, projeto, perfil ou tarefa selecionado e prompt Ai serão todos salvos nas sessões.\n\nO recurso 'Reexecutar' será usado nos bastidores para exibir os resultados da análise em uma nova janela.\n\n"
-msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nAll view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n\nThe Map View has the following behavior:\n\n - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
-msgstr "Exiba a visualização 'Mapa', 'Diagrama' ou 'Árvore' da sua configuração diretamente na GUI.\n\nO XML deve primeiro ser obtido da unidade local ou do dispositivo Android para que as visualizações funcionem.\n\nTodas as janelas de visualização podem ser ampliadas e movidas conforme necessário.  Execute novamente o comando de visualização específico para atualizar a visualização com o novo tamanho e posição.\n\nSe o XML já tiver sido obtido, ele será usado como entrada para a visualização.  Clicar no botão 'Redefinir' limpará os dados de visualização.\n\nConfigurações muito grandes incorrerão em tempos de execução estendidos para Mapas e Diagramas.  Para obter melhor desempenho, selecione um único projeto ou perfil para mapear.\n\n\nA visualização do mapa tem o seguinte comportamento:\n\n - Embora o navegador não seja invocado diretamente, o mapa pode ser exibido no navegador abrindo o arquivo local 'MapTasker.html'.\n\n - A configuração 'Exibir esboço da configuração' é ignorada, pois não funciona na visualização do mapa.\n\n - Subir um ou dois níveis usando o hiperlink do diretório resultará na geração de um novo mapa. view.\n\n\nA Visualização em Diagrama tem o seguinte comportamento:\n\n - Somente Projetos e Perfis podem ser exibidos. O XML que consiste em apenas uma única tarefa ou cena não será exibido.\n\n - Clique em um conector horizontal para destacar toda a conexão no diagrama.\n\n\nA visualização em árvore tem o seguinte comportamento:\n\n- Configurações enormes que rolam além da parte inferior da tela ainda não podem ser visualizadas por completo.\n\n- Apenas projetos podem ser exibidos. O XML que consiste em apenas um único perfil, tarefa ou cena não será exibido.\n\n- Todos os projetos, perfis, tarefas e cenas são exibidos independentemente da configuração de nome único.\n\n"
-msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, no output map will be generated.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
-msgstr "O 'Limite de Visualização' é um meio de controlar a quantidade de tempo de processamento usado ao gerar a visualização.\n\n- Os números representam a quantidade relativa de linhas de saída a serem geradas.\n\n- Quanto maior o limite, maior será a saída que poderá ser mapeada.  Quanto mais saída for gerada, maior será o tempo de processamento.\n\n- Configurações muito grandes gerarão mapas de saída muito grandes e causarão maior tempo de processamento.  Em dispositivos mais antigos, isso pode levar até 30 segundos ou mais.\n\n- Ao definir um limite, você pode controlar o tempo de processamento usado ao mapear uma configuração, não permitindo durações mais longas.\n\n- Se o limite for atingido durante o cálculo do mapa, nenhum mapa de saída será gerado.\n\n- Você pode experimentar essa configuração para ver qual configuração é melhor para seu caso de uso.\n\n- Selecionar um único projeto, perfil ou tarefa é outra maneira de limitar o tempo de processamento.\n\n"
+
 msgid "API Key Help"
 msgstr "Ajuda da chave de API"
 msgid "Profiles Per Line Help"
@@ -941,3 +934,639 @@ msgid "Luz"
 msgstr "Light"
 msgid "Sistema"
 msgstr "System"
+
+msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
+msgstr "Direcione projetos, perfis, tarefas ou cenas específicas. (Selecione apenas um)"
+
+msgid "Rename"
+msgstr "Renomear"
+
+msgid "Export Project"
+msgstr "Exportar projeto"
+
+msgid "Export Profile"
+msgstr "Exportar perfil"
+
+msgid "Export Task"
+msgstr "Tarefa de exportação"
+
+msgid "Save"
+msgstr "Salvar"
+
+msgid "Overwrite"
+msgstr "Substituir"
+
+msgid "Delete Project"
+msgstr "Excluir projeto"
+
+msgid "Delete Profile"
+msgstr "Excluir perfil"
+
+msgid "Delete Task"
+msgstr "Excluir tarefa"
+
+msgid "Its"
+msgstr "Isso é"
+
+msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
+msgstr "As tarefas vinculadas serão mantidas - elas pertencem ao projeto, não a este perfil."
+
+msgid "It has no linked Tasks."
+msgstr "Não possui tarefas vinculadas."
+
+msgid "It will be removed from"
+msgstr "Ele será removido de"
+
+msgid "Project(s) and unlinked from"
+msgstr "Projeto(s) e desvinculados de"
+
+msgid "Profile(s) that run it. Those Profiles themselves are kept."
+msgstr "Perfil(s) que o executam. Esses próprios perfis são mantidos."
+
+msgid "Keep Contents"
+msgstr "Manter o conteúdo"
+
+msgid "Delete Contents"
+msgstr "Excluir conteúdo"
+
+msgid "Adding to Project:"
+msgstr "Adicionando ao projeto:"
+
+msgid "Save To Current File"
+msgstr "Salvar no arquivo atual"
+
+msgid "Add Project"
+msgstr "Adicionar projeto"
+
+msgid "Add Profile"
+msgstr "Adicionar perfil"
+
+msgid "Add Task"
+msgstr "Adicionar tarefa"
+
+msgid "Add an action"
+msgstr "Adicione uma ação"
+
+msgid "Actions in this Task"
+msgstr "Ações nesta tarefa"
+
+msgid "No actions added yet."
+msgstr "Nenhuma ação adicionada ainda."
+
+msgid "Actions & Control"
+msgstr "Ações e Controle"
+
+msgid "Display Conditions"
+msgstr "Condições de exibição"
+
+msgid "Task Action Limit:"
+msgstr "Limite de ação da tarefa:"
+
+msgid "Theme Configuration"
+msgstr "Configuração do tema"
+
+msgid "Select a category to modify its color."
+msgstr "Selecione uma categoria para modificar sua cor."
+
+msgid "Select Category to Colorize"
+msgstr "Selecione a categoria para colorir"
+
+msgid "Choose Hex Color"
+msgstr "Escolha a cor hexadecimal"
+
+msgid "Open View In New Window"
+msgstr "Abrir visualização em nova janela"
+
+msgid "Close Tabs On Exit"
+msgstr "Fechar guias ao sair"
+
+msgid "Edit Project"
+msgstr "Editar projeto"
+
+msgid "Edit Profile"
+msgstr "Editar perfil"
+
+msgid "Edit Task"
+msgstr "Editar tarefa"
+
+msgid "Scene"
+msgstr "Cena"
+
+msgid "Execution"
+msgstr "Execução"
+
+msgid "File Operations"
+msgstr "Operações de arquivo"
+
+msgid "Display Views"
+msgstr "Exibir visualizações"
+
+msgid "Application Settings"
+msgstr "Configurações do aplicativo"
+
+msgid "Help & Information"
+msgstr "Ajuda e informações"
+
+msgid "0 = least detail, 5 = most detail."
+msgstr "0 = menos detalhes, 5 = mais detalhes."
+
+msgid "AI Analysis"
+msgstr "Análise de IA"
+
+msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
+msgstr "A análise está sendo executada em segundo plano.\n\nDepois de concluído, os resultados aparecerão em uma nova janela.\n\nPor favor, aguarde..."
+
+msgid "Android Get XML Port Number"
+msgstr "Android obtém número de porta XML"
+
+msgid "Android device at"
+msgstr "Dispositivo Android em"
+
+msgid "Available Android Backups"
+msgstr "Backups Android disponíveis"
+
+msgid "CAVEATS"
+msgstr "ADVERTÊNCIAS"
+
+msgid "Cancel Entry"
+msgstr "Cancelar entrada"
+
+msgid "Check your IP/Port and verify the Tasker HTTP server is running"
+msgstr "Verifique seu IP/Porta e verifique se o servidor HTTP Tasker está em execução"
+
+msgid "Close"
+msgstr "Fechar"
+
+msgid "Detail Level"
+msgstr "Nível de detalhe"
+
+msgid "Error"
+msgstr "Erro"
+
+msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
+msgstr "Busque XML de um dispositivo Android.\n\nVocê deve estar na mesma rede que o dispositivo Android e o dispositivo deve estar em execução e conectado.\n\n"
+
+msgid "Get Local XML File"
+msgstr "Obtenha o arquivo XML local"
+
+msgid "It owns"
+msgstr "Ele possui"
+
+msgid "No Profile Tasks Found"
+msgstr "Nenhuma tarefa de perfil encontrada"
+
+msgid "No Profiles Found"
+msgstr "Nenhum perfil encontrado"
+
+msgid "No file loaded"
+msgstr "Nenhum arquivo carregado"
+
+msgid "No scenes found"
+msgstr "Nenhuma cena encontrada"
+
+msgid "No tasks found"
+msgstr "Nenhuma tarefa encontrada"
+
+msgid "None or unnamed!"
+msgstr "Nenhum ou sem nome!"
+
+msgid "Profile(s) and"
+msgstr "Perfil(ões) e"
+
+msgid "Save To Android"
+msgstr "Salvar no Android"
+
+msgid "Scene to Analyze:"
+msgstr "Cena a analisar:"
+
+msgid "Scene:"
+msgstr "Cena:"
+
+msgid "Select XML From Android Device:"
+msgstr "Selecione XML do dispositivo Android:"
+
+msgid "Task(s)."
+msgstr "Tarefas)."
+
+msgid "Unnamed Task"
+msgstr "Tarefa Sem Nome"
+
+msgid "Update Available!"
+msgstr "Atualização disponível!"
+
+msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
+msgstr "A transmissão direta do YouTube requer tokens de API de terceiros. Baixe a faixa alvo localmente para visualizar."
+
+msgid "is unreachable"
+msgstr "é inacessível"
+
+msgid "'Cancel' button selected. No change to the API keys!"
+msgstr "Botão 'Cancelar' selecionado. Nenhuma alteração nas chaves de API!"
+
+msgid ".or."
+msgstr ".ou."
+
+msgid "1-TCP/IP Address:"
+msgstr "1-Endereço TCP/IP:"
+
+msgid "2-Port Number:"
+msgstr "Número de 2 portas:"
+
+msgid "3-File Location:"
+msgstr "3-Localização do arquivo:"
+
+msgid "AI Model"
+msgstr "Modelo de IA"
+
+msgid "Add 'If' Action"
+msgstr "Adicionar ação 'Se'"
+
+msgid "Add App Entry"
+msgstr "Adicionar entrada de aplicativo"
+
+msgid "Add Condition"
+msgstr "Adicionar condição"
+
+msgid "All"
+msgstr "Todos"
+
+msgid "Android IP Address"
+msgstr "Endereço IP do Android"
+
+msgid "Android configuration details matched successfully!"
+msgstr "Detalhes de configuração do Android correspondidos com sucesso!"
+
+msgid "Changes kept."
+msgstr "Mudanças mantidas."
+
+msgid "Choose a State type first."
+msgstr "Escolha um tipo de estado primeiro."
+
+msgid "Choose a Task"
+msgstr "Escolha uma tarefa"
+
+msgid "Choose a Task first."
+msgstr "Escolha uma tarefa primeiro."
+
+msgid "Choose a condition type first."
+msgstr "Escolha um tipo de condição primeiro."
+
+msgid "Choose an Event type first."
+msgstr "Escolha um tipo de evento primeiro."
+
+msgid "Class (optional)"
+msgstr "Classe (opcional)"
+
+msgid "Cleared the search highlights."
+msgstr "Limpei os destaques da pesquisa."
+
+msgid "Click Here to Set XML Details"
+msgstr "Clique aqui para definir detalhes XML"
+
+msgid "Click arrows to expand/collapse details."
+msgstr "Clique nas setas para expandir/recolher detalhes."
+
+msgid "Click on a row index line number to jump directly to that match block placement:"
+msgstr "Clique no número da linha do índice de uma linha para ir diretamente para o posicionamento do bloco correspondente:"
+
+msgid "Click on connector to highlight"
+msgstr "Clique no conector para destacar"
+
+msgid "Close Results Window"
+msgstr "Fechar janela de resultados"
+
+msgid "Condition Type"
+msgstr "Tipo de condição"
+
+msgid "Conditions"
+msgstr "Condições"
+
+msgid "Configure Android Connection:"
+msgstr "Configurar conexão Android:"
+
+msgid "Continue Task After Error"
+msgstr "Continuar tarefa após erro"
+
+msgid "Copy"
+msgstr "Cópia"
+
+msgid "Dark Mode"
+msgstr "Modo escuro"
+
+msgid "Day of Month"
+msgstr "Dia do Mês"
+
+msgid "Delete"
+msgstr "Excluir"
+
+msgid "Delete Condition"
+msgstr "Excluir condição"
+
+msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
+msgstr "Exclui apenas este perfil. Suas Tarefas de Entrada/Saída são mantidas - uma Tarefa é de propriedade do Projeto, não do Perfil, e a mesma Tarefa pode ser usada por outros Perfis."
+
+msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
+msgstr "Exclui esta Tarefa e todas as referências a ela: ela é removida das Tarefas de cada Projeto que a possui e de qualquer Perfil que a executa como sua Tarefa de Entrada/Saída. Os próprios perfis são mantidos."
+
+msgid "Diagram View opened in a new browser window."
+msgstr "Visualização de diagrama aberta em uma nova janela do navegador."
+
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+msgstr "Exiba uma lista estendida de TODOS os modelos disponíveis.\n\nObservação: se a chave API não estiver definida para OpenAI ou Gemini,\n      então a lista de modelos padrão para o respectivo\n      O provedor de IA será exibido.\n\nNota: Nem todos os modelos foram validados e\n      um ou mais podem retornar um erro na análise.\n\nNota: Ativar esta opção pela primeira vez irá\n      forçar a instalação dos seguintes módulos\n      e todas as suas dependências:\n      google-genai, antrópico, openai, ollama"
+
+msgid "End Time"
+msgstr "Hora de término"
+
+msgid "Event Type"
+msgstr "Tipo de Evento"
+
+msgid "Every"
+msgstr "Todo"
+
+msgid "File path saved successfully!"
+msgstr "Caminho do arquivo salvo com sucesso!"
+
+msgid "File selection canceled."
+msgstr "Seleção de arquivo cancelada."
+
+msgid "If"
+msgstr "Se"
+
+msgid "If condition set."
+msgstr "Se a condição for definida."
+
+msgid "Insert just the 'If', or a complete block?"
+msgstr "Insira apenas o 'If' ou um bloco completo?"
+
+msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
+msgstr "Tipo de visualização inválido especificado. Use 'mapa', 'diagrama' ou 'árvore'."
+
+msgid "Label"
+msgstr "Rótulo"
+
+msgid "Last Day Of Month"
+msgstr "Último dia do mês"
+
+msgid "Link"
+msgstr "Link"
+
+msgid "List Files Selected"
+msgstr "Listar arquivos selecionados"
+
+msgid "List XML Files"
+msgstr "Listar arquivos XML"
+
+msgid "Map View opened in a new browser window."
+msgstr "Visualização de mapa aberta em uma nova janela do navegador."
+
+msgid "Map view creation skipped: No valid XML source found or action canceled."
+msgstr "Criação de visualização de mapa ignorada: nenhuma fonte XML válida encontrada ou ação cancelada."
+
+msgid "Month"
+msgstr "Mês"
+
+msgid "Move"
+msgstr "Mover"
+
+msgid "Move to #"
+msgstr "Mover para #"
+
+msgid "New name"
+msgstr "Novo nome"
+
+msgid "No XML data loaded! Please Get XML from Android or Local drive first."
+msgstr "Nenhum dado XML carregado! Obtenha primeiro o XML do Android ou da unidade local."
+
+msgid "No XML data loaded! Please select a valid XML file first."
+msgstr "Nenhum dado XML carregado! Selecione primeiro um arquivo XML válido."
+
+msgid "No actions in this Task."
+msgstr "Nenhuma ação nesta tarefa."
+
+msgid "No backup file is currently loaded. Use 'Get Local XML' first."
+msgstr "Nenhum arquivo de backup está carregado no momento. Use 'Obter XML local' primeiro."
+
+msgid "No conditions on this Profile."
+msgstr "Não há condições neste perfil."
+
+msgid "No editable arguments (code not mapped, or this condition has none)."
+msgstr "Nenhum argumento editável (código não mapeado ou esta condição não possui nenhum)."
+
+msgid "No editable arguments."
+msgstr "Sem argumentos editáveis."
+
+msgid "Not configured..."
+msgstr "Não configurado..."
+
+msgid "Odd"
+msgstr "Chance"
+
+msgid "Ok"
+msgstr "OK"
+
+msgid "Operator"
+msgstr "Operador"
+
+msgid "Package"
+msgstr "Pacote"
+
+msgid "Pick a Task"
+msgstr "Escolha uma tarefa"
+
+msgid "Please enter a search term."
+msgstr "Insira um termo de pesquisa."
+
+msgid "Port"
+msgstr "Porta"
+
+msgid "Position"
+msgstr "Posição"
+
+msgid "Priority"
+msgstr "Prioridade"
+
+msgid "Profile Name"
+msgstr "Nome do perfil"
+
+msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "Perfil mantido apenas para esta sessão – use 'Salvar no arquivo atual' para mantê-lo permanentemente."
+
+msgid "Profiles Per Line"
+msgstr "Perfis por linha"
+
+msgid "Project Name"
+msgstr "Nome do Projeto"
+
+msgid "Project added."
+msgstr "Projeto adicionado."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
+msgstr "Solicita um novo nome e aplica-o ao backup carregado, agora mesmo. O campo Nome do Projeto acima é somente leitura – esta é a única maneira de alterá-lo."
+
+msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
+msgstr "Solicita um novo nome e aplica exatamente isso ao backup carregado, agora mesmo. Todo o resto nesta caixa de diálogo permanece pendente até Ok/Salvar, e a caixa de diálogo permanece aberta para que você possa continuar a edição."
+
+msgid "Remove"
+msgstr "Remover"
+
+msgid "Save Profile To Android Device"
+msgstr "Salvar perfil no dispositivo Android"
+
+msgid "Save Project To Android Device"
+msgstr "Salvar projeto no dispositivo Android"
+
+msgid "Save Task To Android Device"
+msgstr "Salvar tarefa no dispositivo Android"
+
+msgid "Save as"
+msgstr "Salvar como"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Salva todo o backup - cada projeto, perfil e tarefa nele, não apenas este perfil - com as edições desta caixa de diálogo aplicadas, as mesmas que 'Ok' manteriam.\nEle é gravado em uma nova cópia com carimbo de data e hora do arquivo atualmente carregado: backup.xml torna-se backup_20260728_143005.xml.\nO arquivo que você carregou nunca é gravado, então ele é deixado exatamente como estava.\nO aplicativo então muda para a nova cópia, que se torna o arquivo atual para qualquer edição e salvamento posterior; salvar novamente substitui o carimbo de data/hora em vez de adicionar um segundo.\nIsso grava apenas neste computador – nada é enviado para o seu dispositivo Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Salva todo o backup – todos os projetos, perfis e tarefas nele contidos, não apenas este projeto – incluindo todas as edições feitas em qualquer lugar desta sessão.\nEle é gravado em uma nova cópia com carimbo de data e hora do arquivo atualmente carregado: backup.xml torna-se backup_20260728_143005.xml.\nO arquivo que você carregou nunca é gravado, então ele é deixado exatamente como estava.\nO aplicativo então muda para a nova cópia, que se torna o arquivo atual para qualquer edição e salvamento posterior; salvar novamente substitui o carimbo de data/hora em vez de adicionar um segundo.\nIsso grava apenas neste computador – nada é enviado para o seu dispositivo Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Salva todo o backup - cada projeto, perfil e tarefa nele, não apenas esta tarefa - com as edições desta caixa de diálogo aplicadas, as mesmas que 'Ok' manteriam.\nEle é gravado em uma nova cópia com carimbo de data e hora do arquivo atualmente carregado: backup.xml torna-se backup_20260728_143005.xml.\nO arquivo que você carregou nunca é gravado, então ele é deixado exatamente como estava.\nO aplicativo então muda para a nova cópia, que se torna o arquivo atual para qualquer edição e salvamento posterior; salvar novamente substitui o carimbo de data/hora em vez de adicionar um segundo.\nIsso grava apenas neste computador – nada é enviado para o seu dispositivo Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Salva todo o backup - cada projeto, perfil e tarefa nele, não apenas este - com o novo perfil adicionado ao seu projeto, da mesma forma que 'Ok' o adiciona.\nEle é gravado em uma nova cópia com carimbo de data e hora do arquivo atualmente carregado: backup.xml torna-se backup_20260728_143005.xml.\nO arquivo que você carregou nunca é gravado, então ele é deixado exatamente como estava.\nO aplicativo então muda para a nova cópia, que se torna o arquivo atual para qualquer edição e salvamento posterior; salvar novamente substitui o carimbo de data/hora em vez de adicionar um segundo.\nIsso grava apenas neste computador – nada é enviado para o seu dispositivo Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Salva o backup inteiro - todos os projetos, perfis e tarefas nele contidos, não apenas este - com a nova tarefa adicionada a ele, da mesma forma que 'Ok' a adiciona.\nEle é gravado em uma nova cópia com carimbo de data e hora do arquivo atualmente carregado: backup.xml torna-se backup_20260728_143005.xml.\nO arquivo que você carregou nunca é gravado, então ele é deixado exatamente como estava.\nO aplicativo então muda para a nova cópia, que se torna o arquivo atual para qualquer edição e salvamento posterior; salvar novamente substitui o carimbo de data/hora em vez de adicionar um segundo.\nIsso grava apenas neste computador – nada é enviado para o seu dispositivo Android."
+
+msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
+msgstr "Salva este projeto e tudo nele - cada perfil e tarefa - como um arquivo independente."
+
+msgid "Search actions"
+msgstr "Ações de pesquisa"
+
+msgid "Search..."
+msgstr "Procurar..."
+
+msgid "Select a single Profile first (Profile pulldown above)."
+msgstr "Selecione primeiro um único perfil (menu suspenso Perfil acima)."
+
+msgid "Select a single Project first (Project pulldown above)."
+msgstr "Selecione um único projeto primeiro (menu suspenso Projeto acima)."
+
+msgid "Select a single Task first (Task pulldown above)."
+msgstr "Selecione uma única tarefa primeiro (menu suspenso de tarefas acima)."
+
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "Selecione quantas ações em uma tarefa antes de emitir um aviso.\nO aviso aparece próximo à parte inferior da saída de configuração,\ne tem como objetivo ajudar a identificar tarefas que são muito complexas\ne que deveria potencialmente ser dividido em múltiplas tarefas.\nUma configuração de '100' significa que não há limite."
+
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
+msgstr "Defina a quantidade de recuo para blocos If/Then/Else.\n\nO padrão é '4'.\n\nIsto afeta como a saída é formatada nas visualizações Mapa e Diagrama."
+
+msgid "Settings Reset!"
+msgstr "Configurações redefinidas!"
+
+msgid "Shutting down MapTasker..."
+msgstr "Desligando o MapTasker..."
+
+msgid "Start Time"
+msgstr "Hora de início"
+
+msgid "Starting AI Analysis..."
+msgstr "Iniciando análise de IA..."
+
+msgid "State Type"
+msgstr "Tipo de estado"
+
+msgid "Submit"
+msgstr "Enviar"
+
+msgid "Target"
+msgstr "Alvo"
+
+msgid "Task Name"
+msgstr "Nome da tarefa"
+
+msgid "Task Uploaded to Tasker"
+msgstr "Tarefa enviada para Tasker"
+
+msgid "Task Uploaded to Tasker."
+msgstr "Tarefa enviada para Tasker."
+
+msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "Tarefa mantida apenas para esta sessão – use 'Salvar no arquivo atual' para mantê-la permanentemente."
+
+msgid "The 'Misc' view is running in the background.  Please stand by..."
+msgstr "A visualização 'Diversos' está sendo executada em segundo plano.  Por favor, aguarde..."
+
+msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
+msgstr "O botão 'Pesquisar' irá procurar e destacar cada instância da string que não diferencia maiúsculas de minúsculas inserida na caixa de pesquisa, começando na parte superior dos dados.\n\nEle mostrará apenas as primeiras 200 instâncias da string de pesquisa.\n\nClique no número da linha para ir para essa linha na caixa de visualização de texto.\n\nO botão 'Limpar' limpará os resultados da pesquisa.\n\n"
+
+msgid "The change will take effect the next time you open the view."
+msgstr "A alteração entrará em vigor na próxima vez que você abrir a visualização."
+
+msgid "This Task has no actions yet."
+msgstr "Esta tarefa ainda não possui ações."
+
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "Esta é uma lista de todas as fontes disponíveis em seu sistema, primeiro as monoespaçadas e marcadas como tal.\n\nA fonte selecionada será usada em todas as saídas.\n\n'Courier' ou 'Courier New' é altamente recomendado para diagramas para garantir o alinhamento adequado do conector. Uma fonte que não seja monoespaçada não manterá os conectores do diagrama ou o recuo da saída alinhados."
+
+msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
+msgstr "Isso salvará a tarefa diretamente no Tasker em execução no dispositivo Android que executa o servidor Tasker.\n\nO endereço IP e a porta devem corresponder às configurações do servidor Tasker do dispositivo Android.\n\nVocê será solicitado duas vezes a autorizar a gravação no Tasker no dispositivo Android, e o Task.e suas próprias ações determinarão onde ele será salvo no dispositivo."
+
+msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
+msgstr "Isso salvará a tarefa diretamente na sessão ativa do Tasker em seu dispositivo Android.\n\nTasker versão 6.2 ou superior é necessário para que isso funcione. O dispositivo Android deve estar na mesma rede e o endereço IP e a porta\ndeve corresponder às configurações do servidor Tasker do dispositivo Android.\n\nVocê será solicitado duas vezes a autorizar a gravação no Tasker no dispositivo Android, e a tarefa será carregada diretamente na sessão ativa do Tasker.\n\nVocê deve sair e reiniciar o Tasker para ver a nova tarefa na UI do Tasker."
+
+msgid "This will save the Task directly to your current drive.\n\n"
+msgstr "Isso salvará a tarefa diretamente em sua unidade atual.\n\n"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Isso gravará o perfil como um arquivo independente no dispositivo Android, em /Tasker/profiles.\n\nO endereço IP e a porta devem corresponder às configurações do servidor Tasker do dispositivo Android.\n\nNenhum prompt de autorização é necessário para isso."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Isso gravará o perfil como um arquivo independente em seu dispositivo Android, em /Tasker/profiles - ele não o importa para a configuração ativa do Tasker.\n\nO projeto Tasker 'Exemplo de servidor HTTP' (http://spoo.me/http_svr_example) deve estar instalado e ativo no dispositivo Android, com o servidor em execução (consulte as notas de recuperação direta de XML do README).\n\nO dispositivo Android deve estar na mesma rede e o endereço IP e a porta devem corresponder às configurações do servidor Tasker. Nenhum prompt de autorização é necessário para isso."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Isso gravará o perfil como um arquivo independente em seu dispositivo Android, em /Tasker/profiles - ele não o importa para a configuração ativa do Tasker.\n\nO projeto Tasker 'Exemplo de servidor HTTP' deve estar instalado e ativo no dispositivo Android, com o servidor em execução (consulte as notas de recuperação direta de XML do README).\n\nO dispositivo Android deve estar na mesma rede e o endereço IP e a porta devem corresponder às configurações do servidor Tasker. Nenhum prompt de autorização é necessário para isso."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Isso escreverá o projeto e tudo nele - cada perfil e tarefa - como um arquivo independente em seu dispositivo Android, em /Tasker/projects - não o importa para a configuração ativa do Tasker.\n\nO projeto Tasker 'Exemplo de servidor HTTP' deve estar instalado e ativo no dispositivo Android, com o servidor em execução.\n\nO dispositivo Android deve estar na mesma rede e o endereço IP e a porta devem corresponder às configurações do servidor Tasker. Nenhum prompt de autorização é necessário para isso."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Isso gravará o projeto e tudo nele como um arquivo independente no dispositivo Android, em /Tasker/projects.\n\nO endereço IP e a porta devem corresponder às configurações do servidor Tasker do dispositivo Android.\n\nNenhum prompt de autorização é necessário para isso."
+
+msgid "Toggle Wrap"
+msgstr "Alternar envoltório"
+
+msgid "Unlink"
+msgstr "Desvincular"
+
+msgid "Value"
+msgstr "Valor"
+
+msgid "View cleared."
+msgstr "Visualização limpa."
+
+msgid "Week-Day"
+msgstr "Dia da semana"
+
+msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
+msgstr "Quando ativado, clicar em 'Sair' também fecha a janela principal do MapTasker e quaisquer janelas/guias de Mapa/Diagrama que ele abriu.\n\nQuando desativado, 'Sair' desliga o MapTasker, mas deixa essas janelas/guias abertas."
+
+msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
+msgstr "Quando ativado, cada solicitação de Mapa/Diagrama abre em sua própria nova janela/guia, para que você possa manter as anteriores ao lado para comparar.\n\nQuando desabilitada, uma solicitação reutiliza a janela/guia existente daquela visualização, substituindo o que está nela.\n\nDeixe-o desativado, a menos que queira comparar: uma nova janela/guia é aquela que seu navegador pode bloquear, pois ela é aberta assim que a visualização termina de ser construída, e não no instante em que você clica."
+
+msgid "hh:mm AM/PM or %variable"
+msgstr "hh:mm AM/PM ou %variável"
+
+msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
+msgstr "Exiba a visualização 'Mapa', 'Diagrama' ou 'Árvore' de sua configuração diretamente na GUI.\n\nO XML deve primeiro ser obtido da unidade local ou do dispositivo Android para que as visualizações funcionem.\n\nSe o XML já tiver sido obtido, ele será usado como entrada para a visualização.  Clicar no botão 'Limpar' limpará os dados da visualização.\n\nConfigurações muito grandes incorrerão em tempos de execução estendidos para Mapas e Diagramas.  Para melhor desempenho, selecione um único Projeto ou Perfil para mapear.\n\nOpcionalmente, limite a quantidade de dados a serem processados ​​usando a configuração 'Limite de visualização'.  Quanto maior o limite, maior será a saída que poderá ser mapeada.  Quanto mais saída for gerada, maior será o tempo de processamento.\n\n\nA Visualização de Diagrama tem o seguinte comportamento:\n\n - Somente Projetos e Perfis podem ser exibidos. O XML que consiste em apenas uma única tarefa ou cena não será exibido.\n\n - Clique em um conector horizontal para destacar toda a conexão no diagrama.\n\n\nA Vista em Árvore tem o seguinte comportamento:\n\n- Somente Projetos podem ser exibidos. O XML que consiste apenas em um único perfil, tarefa ou cena não será exibido.\n\n- Todos os projetos, perfis, tarefas e cenas são exibidos independentemente da configuração de nome único.\n\n"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "MapTasker exibe a configuração do Android Tasker com base no arquivo XML do Tasker carregado (por exemplo, 'backup.xml'). A exibição incluirá opcionalmente todos os projetos, perfis, tarefas e suas ações, condições do perfil/tarefa e outras informações relacionadas ao perfil/tarefa.\n\nDepois que o arquivo XML for carregado, você poderá editar opcionalmente seus projetos, perfis, tarefas e cenas.\n\n*As opções de exibição são:\n    Nível 0: exibe apenas a primeira ação da Tarefa, somente para Tarefas sem nome (silêncio).\n    Nível 1 = exibe todos os detalhes da ação da tarefa somente para tarefas desconhecidas (padrão).\n    Nível 2 = exibe o nome completo da ação da tarefa em cada tarefa.\n    Nível 3 = exibe detalhes completos da ação da tarefa em cada tarefa com detalhes da ação.\n    Nível 4 = nível de exibição 3 mais variáveis ​​globais do Projeto.\n\n    Nível 5 = nível de exibição 4 mais detalhes do argumento da cena.\n\n* Apenas exibir tudo: ativa a exibição de condições, informações do TaskerNet, preferências, saída bonita, diretório e esboço de configuração.\n\n* Condições de exibição: ative a exibição das condições do perfil e da tarefa.\n\n* Exibir informações do TaskerNet - Se disponível, exibe informações de publicação do TaskerNet.\n\n* Exibir preferências do Tasker - exibe as preferências do sistema do Tasker.\n\n* Ocultar detalhes da tarefa em Twisty: oculte as informações da tarefa em ► e clique para exibir.\n\n* Exibir diretório de hiperlinks no início.\n\n* Exibir saída mais bonita: torne a saída mais legível adicionando novas linhas e recuo para todos os argumentos.\n\n* Opções de nomes de projeto/perfil/tarefa/cena para colocar em itálico, negrito, sublinhado e/ou destacar seus nomes.\n\n* Limite de ação da tarefa: exibe um aviso se a tarefa tiver mais do que o número especificado de ações.\n\n* Quantidade de recuo para ações de tarefa If/Then/Else.\n\n* Idioma: Selecione o idioma a ser usado para a saída.  O padrão é inglês.\n\n* Fonte a ser usada: Altere a fonte monoespaçada usada para a saída.\n\n* Limite de visualização: controle a quantidade de tempo de processamento usado ao gerar a visualização.\n\n* Opções de redefinição: limpe tudo e comece de novo.\n\n* Obter arquivo XML local: busque o arquivo XML de backup/exportado de sua unidade local.\n\n* Salvar configurações - Salve essas configurações para uso posterior.\n\n* Restaurar configurações - Restaure as configurações de uma sessão salva anteriormente.\n\n* Exibir visualizações: exiba sua configuração de mapa, diagrama ou visualização em árvore de seus projetos, perfis, tarefas e cenas diretamente na GUI.\n\n* Obtenha XML do dispositivo Android: busque o arquivo XML de backup/exportado do dispositivo Android.  Será solicitado o endereço IP e o número da porta do seu dispositivo Android, bem como a localização do arquivo no dispositivo.\n\n* Guia Nome Específico: insira um item com nome único e específico para exibir...\n   - Nome do Projeto: insira um Projeto específico para exibir.\n   - Nome do perfil: insira um perfil específico para exibir.\n   - Nome da tarefa: insira uma tarefa específica para exibir.\n   - Nome da cena: insira uma cena específica para exibir.  Seu título de projeto proprietário e o\n                 Os elementos da cena (além de quaisquer tarefas que esses elementos invocam) são exibidos;\n                 os perfis do projeto e suas outras cenas não.\n   (Estes quatro são exclusivos: insira apenas um)\n\n   Adicione e edite projetos, perfis e tarefas diretamente na GUI, com várias opções de salvamento.\n\n* Guia Cores: selecione cores para vários elementos da tela.\n              (por exemplo, cor para projetos, perfis, tarefas, etc.).\n\n* Guia Analisar: execute a análise de um projeto, perfil, tarefa ou cena em um modelo Ai.\n\n* Guia Debug: opção Exibir configurações de tempo de execução e ativar o modo de depuração.\n\n* Sair: Sai do programa (sair).\n\nNotas:\n\n- Veja todo o histórico do log de alterações em https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Alterar o modo de aparência alterará as cores usadas na saída para seus valores padrão.\n\n"
+
+msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+msgstr "O 'Limite de visualização' é um meio de controlar a quantidade de tempo de processamento usado ao gerar a visualização.\n\n- Os números representam a quantidade relativa de linhas de saída a serem geradas.\n\n- Quanto maior o limite, maior será a saída que poderá ser mapeada.  Quanto mais saída for gerada, maior será o tempo de processamento.\n\n- Configurações muito grandes gerarão mapas de saída muito grandes e causarão maior tempo de processamento.  Em dispositivos mais antigos, isso pode levar até 30 segundos ou mais.\n\n- Ao definir um limite, você pode controlar o tempo de processamento usado ao mapear uma configuração, não permitindo durações mais longas.\n\n- Se o limite for atingido no cálculo do mapa, a saída irá parar aí.\n\n- Você pode experimentar essa configuração para ver qual configuração é melhor para seu caso de uso.\n\n- Selecionar um único Projeto, Perfil ou Tarefa é outro meio de limitar o tempo de processamento.\n\n"
+
+msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
+msgstr "A guia Analisar é usada para executar a análise Ai em seu perfil, usando o modelo lhama local ou os modelos Open AI, Claude ou DeepSeek baseados em servidor.\n\nAs etapas a seguir são necessárias para executar a IA em seu perfil.\n\n1- Se estiver usando uma IA baseada em servidor, você deve ter uma chave de API válida do provedor (por exemplo, OpenAI).  Você pode usar o botão 'Mostrar/Editar chave(s) de API' para inserir sua(s) chave(s).\n\n2- O prompt padrão é: 'sugerir melhorias no desempenho e legibilidade: (seu projeto/perfil/tarefa)', e é automaticamente precedido por: 'Dado o seguinte (Projeto/Perfil/Tarefa) no Tasker, '.  Se modificar o prompt, você estará modificando apenas a parte 'sugerir melhorias...'.\n\n3- Selecione o modelo que deseja utilizar.\n\n   o O modelo selecionado determinará com qual IA a análise será realizada.\n\n4- Clique no botão 'Executar Análise'.  Ficará verde quando todos os dados necessários forem inseridos.\n\n   o Se você ainda não selecionou um modelo, prompt ou projeto único, perfil ou tarefa, ou chave de API válida, você será solicitado a fazer isso primeiro.\n\n   o O processo pode levar algum tempo e ser executado em segundo plano.  Os resultados aparecerão em uma janela separada.\n\n   o Os modelos locais ainda não carregados no seu computador serão carregados em segundo plano assim que a análise começar.\n\nSuas chaves de API designadas (se houver), modelo, projeto, perfil ou tarefa selecionado e prompt Ai serão salvos entre as sessões.\n\nO recurso ‘Reexecutar’ será usado secretamente para exibir os resultados da análise em uma nova janela.\n\n"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- If you want to use the 'List XML Files' option, then you must also import the following profile into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "As etapas a seguir são necessárias para buscar um arquivo XML Tasker diretamente do seu dispositivo Android.\n\n1- Este dispositivo e o dispositivo Android devem estar na mesma rede nomeada.\n\n2- O Projeto Tasker 'Exemplo de Servidor HTTP' ou função idêntica deve estar instalado e ativo no dispositivo Android (o servidor deve estar rodando):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- Se você quiser usar a opção ‘Listar arquivos XML’, então você também deve importar o seguinte perfil para o dispositivo Android e certificar-se de que o perfil importado ‘MapTasker List’ esteja habilitado:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nSerá solicitado o endereço IP, o número da porta do seu dispositivo Android, bem como a localização do arquivo no dispositivo Android.  Os valores padrão são fornecidos, onde...\n\n'192.168.0.210' é o endereço IP padrão,\n\n'1821' é o número da porta padrão para o exemplo de servidor HTTP Tasker em execução no seu dispositivo Android\n\n'/Tasker/configs/user/backup.xml' é o local do arquivo padrão.  Se você não sabe a localização do arquivo e já inseriu seu endereço IP e porta, você pode selecionar o botão ‘Listar arquivos XML’ para obter uma lista de arquivos XML disponíveis em seu dispositivo Android para seleção.\n\nNotas de uso:\n\nO endereço IP e a porta podem ser obtidos instalando o projeto 'Exemplo de servidor HTTP' do URL acima em seu dispositivo Android. Em seguida, execute a tarefa chamada 'Atualizar informações HTTP do GD' para receber a notificação do Android:\n\nInformações do servidor HTTP\nInformações do servidor atualizadas {\"nome do dispositivo\":\"http://192.168.0.49:1821\"}\n\n- Para buscar o arquivo XML, clique no botão\n\n 'Obter XML do dispositivo Android'\n\nEm seguida, modifique os valores padrão apresentados nos campos de entrada abaixo deste botão e, a seguir, clique no botão 'Enter e clique aqui para definir detalhes XML' ou 'Listar arquivos XML'.\n\n- Apertar qualquer um dos botões fará um ping no dispositivo Android para ver se ele está disponível.  O ping atingirá o tempo limite após 10 segundos se o dispositivo não estiver acessível.  Certifique-se de que o endereço IP esteja correto.\n\nClique no botão 'Cancelar entrada' para sair deste processo de busca.\n\n"

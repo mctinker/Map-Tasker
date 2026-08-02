@@ -377,7 +377,7 @@ msgid "Display only Project"
 msgstr "ફક્ત પ્રોજેક્ટ દર્શાવો"
 msgid "None"
 msgstr "કોઈ નહિ"
-msgid "Display all Projects, Profiles, and Tasks."
+msgid "Display all Projects, Profiles, Tasks, and Scenes."
 msgstr "બધા પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ અને કાર્યો દર્શાવો."
 msgid "Display all"
 msgstr "બધા દર્શાવો"
@@ -604,14 +604,7 @@ msgid "The 'Search' button will search for and highlight every instance of the s
 msgstr "'શોધ' બટન ડેટાની ટોચ પર શરૂ કરીને, શોધ બોક્સમાં દાખલ કરેલ સ્ટ્રિંગના દરેક ઉદાહરણને શોધશે અને હાઇલાઇટ કરશે.\n\n'અહીં શોધો' બટન વર્તમાન સ્ક્રીનથી શરૂ કરીને, શોધ બૉક્સમાં દાખલ કરેલ સ્ટ્રિંગના દરેક ઉદાહરણને શોધશે અને હાઇલાઇટ કરશે.\n\nતમામ મેચિંગ સ્ટ્રિંગ જોવા માટે હાઇલાઇટ કરેલા કોઈપણ પર હૉવર કરો અને મેચિંગ સ્ટ્રિંગ\n\n'. 'પહેલાં' બટનો ટેક્સ્ટ વ્યૂ બૉક્સમાં શોધ સ્ટ્રિંગની આગલી અને પાછલી ઘટનાને દૃશ્યક્ષમ બનાવવાનો પ્રયાસ કરશે, અને તેને અલગ રંગમાં પ્રકાશિત કરશે.\n\nસર્ચ સ્ટ્રિંગને દૃશ્યક્ષમ બનાવવાની સચોટતા હંમેશા સંપૂર્ણ હોતી નથી અને તે આ પ્રોગ્રામના નિયંત્રણની બહાર હોય છે.\n\nજ્યારે ટેક્સ્ટ વ્યૂ બૉક્સનો અંત અથવા પ્રારંભ થાય છે, ત્યારે ઘણા બધા સંદેશા પ્રદર્શિત કરવામાં આવશે. 'સાફ કરો' બટન શોધ પરિણામોને સાફ કરશે.\n\n'માત્ર પ્રદર્શિત કરો' બટન પરચુરણ વિંડોમાં ફક્ત શોધ પરિણામોમાંથી મેળ દર્શાવશે.\n\n"
 msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nIn order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running on your Android device.  This profile can be found at the following URL:\n\n    https://t.ly/8vI1f\n\n"
 msgstr "આ બટનને ક્લિક કરવાથી નીચેની ક્રિયાઓ થશે:\n\n- IP સરનામુંનો ઉપયોગ Android ઉપકરણને પિંગ કરવા માટે કરવામાં આવશે.\n\n- IP સરનામું અને પોર્ટ નંબરનો ઉપયોગ Android ઉપકરણને ક્વેરી કરવા અને Tasker ફોલ્ડરમાં મળેલી ઉપલબ્ધ XML ફાઇલોની સૂચિ મેળવવા માટે કરવામાં આવશે.\n\n- મળી આવેલી XML ફાઇલોની સૂચિ પુલડાઉન મેનૂમાં રજૂ કરવામાં આવશે. એકવાર તમે જેમાંથી તમે પસંદ કરવા માંગો છો તે પસંદ કરી શકો છો. XML ફાઇલ, તે માન્ય XML તરીકે લાવવામાં આવશે અને ચકાસવામાં આવશે જે પછી તમે 'રન' અથવા 'રીરન' બટન પર ક્લિક કરો પછી પ્રોગ્રામમાં ઇનપુટ તરીકે ઉપયોગમાં લેવાય છે.\n\nઆ કામ કરવા માટે, તમારે તમારા Android ઉપકરણ પર ચાલતા Taskerમાં 'MapTasker સૂચિ' પ્રોફાઇલ પહેલેથી જ આયાત કરવી આવશ્યક છે.  આ પ્રોફાઇલ નીચેના URL પર મળી શકે છે:\n\n https://t.ly/8vI1f\n\n"
-msgid "Help\n\nMapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to either report a bug or request a new feature ( [Feature Request] )\n\n* Appearance Mode: Dark, Light, or System default.\n\n* Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Clear Messages: Clear any messages in the textbox.\n\n* Font To Use: Change the monospace font used for the output.\n\n* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Androiddevice.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n* ReRun: Run multiple times (each time with new settings) without exiting, displaying the results in the browser.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   (These three are exclusive: enter one only)\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile or Task against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n- If you receive any of the following the runtime errors, you can ignore them:\n      '[CATransaction synchronize] called within transaction'.\n      'IMKClient Stall detected...'.\n\n- Drag the window to expand the text as desired.\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "હેલ્પ\n\nMapTasker તમારી અપલોડ કરેલી Tasker XML ફાઇલ (દા.ત. 'backup.xml')ના આધારે તમારું Android Tasker ગોઠવણી દર્શાવે છે. ડિસ્પ્લેમાં વૈકલ્પિક રીતે તમામ પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, ટાસ્ક્સ અને તેમની ક્રિયાઓ, પ્રોફાઇલ/ટાસ્ક શરતો અને અન્ય પ્રોફાઇલ/ટાસ્ક સંબંધિત માહિતી શામેલ હશે.\n\n* ડિસ્પ્લે વિકલ્પો છે:\n લેવલ 0: ફર્સ્ટ ટાસ્ક એક્શન પ્રદર્શિત કરો, માત્ર નામ વગરના કાર્યો માટે (શાંત).\n લેવલ 1 = બધી ટાસ્ક ક્રિયાની વિગતો પ્રદર્શિત કરો (અજાણ્યા ટાસ્ક 2 માટે સંપૂર્ણ વિગતો દર્શાવો). દરેક કાર્ય પર નામ.\n સ્તર 3 = ક્રિયા વિગતો સાથે દરેક કાર્ય પર સંપૂર્ણ કાર્ય ક્રિયા વિગતો પ્રદર્શિત કરો.\n સ્તર 4 = 3 વત્તા પ્રોજેક્ટના વૈશ્વિક ચલોનું પ્રદર્શન સ્તર.\n\n સ્તર 5 = 4 પ્લસ દ્રશ્ય દલીલ વિગતોનું પ્રદર્શન સ્તર.\n\n* ફક્ત બધું જ પ્રદર્શિત કરો: શરતોનું પ્રદર્શન ચાલુ કરો, ટાસ્કર, પ્રીપુટ, આઉટપુટ ડિરેક્ટરી, પ્રીપ્યુટેશન રૂપરેખા.\n\n* ડિસ્પ્લે શરતો: પ્રોફાઇલ અને કાર્ય શરતોનું પ્રદર્શન ચાલુ કરો.\n\n* TaskerNet માહિતી પ્રદર્શિત કરો - જો ઉપલબ્ધ હોય, તો TaskerNet પ્રકાશન માહિતી પ્રદર્શિત કરો.\n\n* Tasker Preferences - Tasker ની સિસ્ટમ પસંદગીઓ પ્રદર્શિત કરો.\n\n* Tasker ની સિસ્ટમ પસંદગીઓ છુપાવો. શરૂઆતમાં હાઇપરલિંક્સની ડિસ્પ્લે ડાયરેક્ટરી.\n\n* તમારા પ્રોજેક્ટ્સ/પ્રોફાઇલ્સ/ટાસ્ક્સ/સીન્સનો રૂપરેખાંકન રૂપરેખા અને નકશો પ્રદર્શિત કરો.\n\n* સુંદર આઉટપુટ પ્રદર્શિત કરો: તમામ દલીલો માટે નવી લાઇન અને ઇન્ડેન્ટેશન ઉમેરીને આઉટપુટને વધુ માનવ-વાંચી શકાય તેવું બનાવો.\n\n* પ્રોજેક્ટ/પ્રોફાઇલ/ટાસ્ક/ટાસ્ક, અથવા જૂના વિકલ્પોની નીચે, પ્રોજેક્ટ/પ્રોફાઇલ/ટાસ્ક અને જૂના વિકલ્પો તેમના નામો પ્રકાશિત કરો.\n\n* કાર્ય ક્રિયા મર્યાદા: જો કાર્યમાં નિર્દિષ્ટ સંખ્યા કરતા વધુ ક્રિયાઓ હોય તો ચેતવણી પ્રદર્શિત કરો.\n\n* જો/તો/અન્ય કાર્ય ક્રિયાઓ માટે ઇન્ડેન્ટેશન રકમ.\n\n* સેટિંગ્સ સાચવો - પછીના ઉપયોગ માટે આ સેટિંગ્સ સાચવો.\n\n* સેટિંગ્સ પુનઃસ્થાપિત કરો - અગાઉના સત્રમાંથી પુનઃસ્થાપિત કરો -\n\n* પુનઃસ્થાપિત કરો. આ તમારા બ્રાઉઝરને સમસ્યાની જાણ કરવાની સાઇટ પર લાવશે, અને તમે આનો ઉપયોગ કાં તો બગની જાણ કરવા અથવા નવી સુવિધાની વિનંતી કરવા માટે કરી શકો છો ( [સુવિધા વિનંતી] )\n\n* દેખાવ મોડ: ડાર્ક, લાઇટ અથવા સિસ્ટમ ડિફૉલ્ટ.\n\n* દૃશ્યો: તમારા પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ અને SUI\n* માં સીધા જ તમારા રૂપરેખાંકન નકશા, ડાયાગ્રામ અથવા ટ્રી વ્યૂ પ્રદર્શિત કરો. મર્યાદા: વ્યુ જનરેટ કરતી વખતે વપરાતા પ્રોસેસિંગ સમયની માત્રાને નિયંત્રિત કરો.\n\n* રીસેટ વિકલ્પો: બધું સાફ કરો અને નવેસરથી પ્રારંભ કરો.\n\n* સંદેશાઓ સાફ કરો: ટેક્સ્ટબોક્સમાં કોઈપણ સંદેશાઓ સાફ કરો.\n\n* ઉપયોગ કરવા માટેનો ફોન્ટ: આઉટપુટ માટે ઉપયોગમાં લેવાતા મોનોસ્પેસ ફોન્ટ બદલો. રૂપરેખા.\n\n* Android ઉપકરણમાંથી XML મેળવો: Android ઉપકરણમાંથી બેકઅપ/નિકાસ કરેલ XML ફાઇલ મેળવો.  તમને તમારા Android ઉપકરણ માટે IP સરનામું અને પોર્ટ નંબર તેમજ ઉપકરણ પર ફાઇલ સ્થાન માટે પૂછવામાં આવશે.\n\n* સ્થાનિક XML મેળવો: તમારી સ્થાનિક ડ્રાઇવમાંથી બૅકઅપ/નિકાસ કરેલ XML ફાઇલ મેળવો.\n\n* ચલાવો અને બહાર નીકળો: પ્રદાન કરેલ સેટિંગ્સ સાથે પ્રોગ્રામ ચલાવો, વેબ બ્રાઉઝરમાં પરિણામો પ્રદર્શિત કરો અને પછી બહાર નીકળો.\n* પુનઃ-રન કરો (બહુવિધ સમય પ્રદર્શિત કર્યા વિના, એક્સ્પોર્ટ ટાઇમ્સ સાથે એક્સપોર્ટ કરો) બ્રાઉઝરમાં.\n\n* ચોક્કસ નામ ટૅબ: પ્રદર્શિત કરવા માટે એક, વિશિષ્ટ નામવાળી આઇટમ દાખલ કરો...\n - પ્રોજેક્ટનું નામ: પ્રદર્શિત કરવા માટે ચોક્કસ પ્રોજેક્ટ દાખલ કરો.\n - પ્રોફાઇલ નામ: પ્રદર્શિત કરવા માટે ચોક્કસ પ્રોફાઇલ દાખલ કરો.\n - કાર્યનું નામ: પ્રદર્શિત કરવા માટે ચોક્કસ કાર્ય દાખલ કરો.\n (આ ત્રણ વિશિષ્ટ છે: ફક્ત એક જ દાખલ કરો)\n\n વિવિધ ઘટકોના ડિસ્પ્લે માટે રંગ પસંદ કરો. (દા.ત. પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, ટાસ્ક્સ વગેરે માટેનો રંગ).\n\n* વિશ્લેષણ ટેબ: પ્રોજેક્ટ, પ્રોફાઇલ અથવા ટાસ્ક માટે Ai મોડેલ સામે વિશ્લેષણ ચલાવો.\n\n* ડીબગ ટૅબ: રનટાઇમ સેટિંગ્સ વિકલ્પ દર્શાવો અને ડીબગ મોડ ચાલુ કરો.\n\n* બહાર નીકળો: પ્રોગ્રામમાંથી બહાર નીકળો.\n\n-તમે બહાર નીકળો. એકવાર તમે 'રન અને એક્ઝિટ' અથવા 'રીરન' બટન દબાવો, જો તમે હજી સુધી તેમ ન કર્યું હોય તો તમારી ટાસ્કર XML ફાઇલને ઓળખવા માટે.\n\n- જો તમને નીચેનામાંથી કોઈ રનટાઈમ ભૂલો મળે, તો તમે તેને અવગણી શકો છો:\n '[CATtransaction synchronize] કહેવાય છે વ્યવહારની અંદર'.\n 'IMKClient\n\n' વિન્ડો શોધી કાઢવામાં આવી છે અને ટેક્સ્ટ expand... ઇચ્છિત.\n\n- https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md પર સમગ્ર ફેરફાર લોગ ઇતિહાસ જુઓ\n\n- દેખાવ મોડ બદલવાથી આઉટપુટ માટે ઉપયોગમાં લેવાતા રંગો તેમના ડિફોલ્ટ મૂલ્યોમાં બદલાઈ જશે.\n\n"
-msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
-msgstr "વિશ્લેષણ ટૅબનો ઉપયોગ તમારી પ્રોફાઇલ પર Ai પૃથ્થકરણ ચલાવવા માટે થાય છે, કાં તો સ્થાનિક લામા મોડલ અથવા સર્વર-આધારિત ઓપન AI, ક્લાઉડ અથવા ડીપસીક મૉડલનો ઉપયોગ કરીને.\n\nતમારી પ્રોફાઇલ સામે AI ચલાવવા માટે નીચેના પગલાં જરૂરી છે.\n\n1- જો સર્વર-આધારિત AIનો ઉપયોગ કરો છો, તો તમારી પાસે Open AI કી. (Open AI કી) હોવી આવશ્યક છે.  તમે તમારી કી દાખલ કરવા માટે 'API કી(ઓ) બતાવો/સંપાદિત કરો' બટનનો ઉપયોગ કરી શકો છો.\n\n2- ડિફોલ્ટ પ્રોમ્પ્ટ છે: 'પ્રદર્શન અને વાંચનીયતામાં સુધારાઓ સૂચવો: (તમારો પ્રોજેક્ટ/પ્રોફાઇલ/ટાસ્ક)', અને આપમેળે આનાથી આગળ આવે છે: 'ટાસ્કરમાં નીચે આપેલ (પ્રોજેક્ટ/પ્રોફાઇલ/ટાસ્ક)'.  જો પ્રોમ્પ્ટને સંશોધિત કરી રહ્યાં હોવ, તો તમે માત્ર 'સુધારણા સૂચવો...' ભાગમાં ફેરફાર કરી રહ્યાં છો.\n\n3- તમે ઉપયોગ કરવા માંગો છો તે મોડેલ પસંદ કરો.\n\n o પસંદ કરેલ મોડેલ નક્કી કરશે કે વિશ્લેષણ કયા AI સાથે કરવામાં આવશે.\n\n4- 'વિશ્લેષણ ચલાવો' બટનને ક્લિક કરો.  જ્યારે તમામ જરૂરી ડેટા દાખલ કરવામાં આવશે ત્યારે તે ગુલાબી થઈ જશે.\n\n o જો તમે હજી સુધી કોઈ મોડેલ, પ્રોમ્પ્ટ અથવા સિંગલ પ્રોજેક્ટ, પ્રોફાઇલ અથવા ટાસ્ક અથવા માન્ય API કી પસંદ કરી નથી, તો તમને પહેલા આમ કરવા માટે સંકેત આપવામાં આવશે.\n\n o પ્રક્રિયા થોડો સમય લઈ શકે છે અને પૃષ્ઠભૂમિમાં ચાલે છે.  પરિણામો એક અલગ વિન્ડોમાં દેખાશે.\n\n o વિશ્લેષણ શરૂ થયા પછી તમારા કમ્પ્યુટર પર હજી સુધી લોડ ન થયેલા સ્થાનિક મોડલ પૃષ્ઠભૂમિમાં લોડ થશે.\n\nતમારી નિયુક્ત એપીઆઈ-કી (જો કોઈ હોય તો), મોડેલ, પસંદ કરેલ પ્રોજેક્ટ, પ્રોફાઇલ અથવા કાર્ય અને એઆઈ પ્રોમ્પ્ટ તમામ સત્રોમાં સાચવવામાં આવશે.\n\nપરિણામોના 'રીરન' ફીચરને પ્રદર્શિત કરવા-પ્રદર્શિત કરવા માટે 'રીરન' ફીચર હેઠળ ઉપયોગ કરવામાં આવશે. નવી વિન્ડો.\n\n"
-msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nAll view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n\nThe Map View has the following behavior:\n\n - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
-msgstr "તમારા રૂપરેખાંકનનું 'નકશો', 'ડાયાગ્રામ' અથવા 'ટ્રી' દૃશ્ય સીધા જ GUI ની અંદર પ્રદર્શિત કરો.\n\nદૃશ્ય કાર્ય કરવા માટે XML સૌપ્રથમ સ્થાનિક ડ્રાઇવ અથવા Android ઉપકરણમાંથી મેળવવું આવશ્યક છે.\n\nબધી વ્યૂ વિન્ડોને જરૂર મુજબ ખેંચી અને ખસેડી શકાય છે.  નવા કદ અને સ્થિતિ સાથે દૃશ્યને તાજું કરવા માટે ચોક્કસ દૃશ્ય આદેશને ફરીથી ચલાવો.\n\nજો XML પહેલેથી જ આનયન કરવામાં આવ્યું હોય, તો તેનો ઉપયોગ દૃશ્યના ઇનપુટ તરીકે કરવામાં આવશે.  'રીસેટ' બટનને દબાવવાથી વ્યુ ડેટા સાફ થઈ જશે.\n\nખૂબ મોટી ગોઠવણીઓ નકશા અને આકૃતિઓ માટે વિસ્તૃત રન ટાઈમ ભોગવશે.  શ્રેષ્ઠ પ્રદર્શન માટે, નકશા કરવા માટે એક જ પ્રોજેક્ટ અથવા પ્રોફાઇલ પસંદ કરો.\n\n\nનકશા દૃશ્યમાં નીચેની વર્તણૂક છે:\n\n - જ્યારે બ્રાઉઝરને સીધું જ બોલાવવામાં આવતું નથી, ત્યારે સ્થાનિક 'MapTasker.html' ફાઇલ ખોલીને બ્રાઉઝરમાં નકશો પ્રદર્શિત કરી શકાય છે.\n\n - 'ડિસ્પ્લે કન્ફિગરેશન આઉટલાઈન' સેટિંગને અવગણવામાં આવતી નથી કારણ કે તે બે જોવાનું કામ કરતું નથી. ડાયરેક્ટરી હાયપરલિંકનો ઉપયોગ કરીને સ્તરો નવા નકશા દૃશ્યના નિર્માણમાં પરિણમશે.\n\n\nડાયાગ્રામ વ્યૂમાં નીચેની વર્તણૂક છે:\n\n - ફક્ત પ્રોજેક્ટ્સ અને પ્રોફાઇલ્સ જ પ્રદર્શિત થઈ શકે છે. માત્ર એક જ કાર્ય અથવા દ્રશ્યનો સમાવેશ કરતું XML પ્રદર્શિત થશે નહીં.\n\n - ડાયાગ્રામમાં સમગ્ર કનેક્શનને હાઇલાઇટ કરવા માટે આડા કનેક્ટર પર ક્લિક કરો.\n\n\nટ્રી વ્યૂમાં નીચેનું વર્તન છે:\n\n- વિશાળ રૂપરેખાંકનો કે જે સ્ક્રીનના તળિયેથી આગળ સ્ક્રોલ કરે છે તે સંપૂર્ણ રીતે જોઈ શકાતા નથી- માત્ર પ્રોજેક્ટ જ પ્રદર્શિત કરી શકાય છે.\n. ફક્ત એક જ પ્રોફાઇલ અથવા કાર્ય અથવા દ્રશ્યનો સમાવેશ કરતી XML પ્રદર્શિત કરવામાં આવશે નહીં.\n\n- બધા પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, કાર્યો અને દ્રશ્યો એક નામની સેટિંગને ધ્યાનમાં લીધા વિના પ્રદર્શિત થાય છે.\n\n"
-msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, no output map will be generated.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
-msgstr "'વ્યૂ લિમિટ' એ વ્યુ જનરેટ કરતી વખતે વપરાતા પ્રોસેસિંગ સમયની માત્રાને નિયંત્રિત કરવાનો એક માધ્યમ છે.\n\n- સંખ્યાઓ જનરેટ કરવાની આઉટપુટ લાઇનની સંબંધિત રકમનું પ્રતિનિધિત્વ કરે છે.\n\n- મર્યાદા જેટલી મોટી હશે, તેટલું મોટું આઉટપુટ કે જેને મેપ કરવાની મંજૂરી આપવામાં આવશે.  જેટલો વધુ આઉટપુટ જનરેટ થશે, તેટલો પ્રોસેસિંગ સમય વધારે છે.\n\n- ખૂબ મોટી રૂપરેખાંકનો ખૂબ મોટા આઉટપુટ નકશા જનરેટ કરશે અને વધુ પ્રોસેસિંગ સમયનું કારણ બનશે.  જૂના ઉપકરણો પર, આમાં 30 સેકન્ડ કે તેથી વધુ સમય લાગી શકે છે.\n\n- મર્યાદા સેટ કરીને, તમે લાંબા સમયની મંજૂરી આપીને રૂપરેખાંકનને મેપ કરતી વખતે ઉપયોગમાં લેવાતા પ્રક્રિયા સમયને નિયંત્રિત કરી શકો છો.\n\n- જો નકશાની ગણતરી કરતી વખતે મર્યાદા હિટ થઈ જાય, તો કોઈ આઉટપુટ નકશો જનરેટ કરવામાં આવશે નહીં.\n\n- તમે તમારા સિંગલ કેસનો ઉપયોગ કરવા માટે આ સેટિંગ પસંદ કરી શકો છો. પ્રોફાઇલ અથવા ટાસ્ક એ પ્રોસેસિંગ સમયને મર્યાદિત કરવા માટેનું બીજું માધ્યમ છે.\n\n"
+
 msgid "API Key Help"
 msgstr "API કી મદદ"
 msgid "Profiles Per Line Help"
@@ -967,3 +960,642 @@ msgid "પ્રકાશ"
 msgstr "Light"
 msgid "સિસ્ટમ"
 msgstr "System"
+
+msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
+msgstr "ચોક્કસ પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, કાર્યો અથવા દ્રશ્યોને લક્ષ્યાંકિત કરો. (માત્ર એક પસંદ કરો)"
+
+msgid "Rename"
+msgstr "નામ બદલો"
+
+msgid "Export Project"
+msgstr "નિકાસ પ્રોજેક્ટ"
+
+msgid "Export Profile"
+msgstr "નિકાસ પ્રોફાઇલ"
+
+msgid "Export Task"
+msgstr "નિકાસ કાર્ય"
+
+msgid "Save"
+msgstr "સાચવો"
+
+msgid "Overwrite"
+msgstr "ઓવરરાઇટ કરો"
+
+msgid "Delete Project"
+msgstr "પ્રોજેક્ટ કાઢી નાખો"
+
+msgid "Delete Profile"
+msgstr "પ્રોફાઇલ કાઢી નાખો"
+
+msgid "Delete Task"
+msgstr "કાર્ય કાઢી નાખો"
+
+msgid "Its"
+msgstr "તેના"
+
+msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
+msgstr "લિંક કરેલ કાર્ય(ઓ) રાખવામાં આવશે -- તે પ્રોજેક્ટના છે, આ પ્રોફાઇલના નહીં."
+
+msgid "It has no linked Tasks."
+msgstr "તેમાં કોઈ લિંક કરેલ કાર્યો નથી."
+
+msgid "It will be removed from"
+msgstr "તેમાંથી દૂર કરવામાં આવશે"
+
+msgid "Project(s) and unlinked from"
+msgstr "પ્રોજેક્ટ(ઓ) અને તેનાથી અનલિંક કરેલ છે"
+
+msgid "Profile(s) that run it. Those Profiles themselves are kept."
+msgstr "પ્રોફાઇલ(ઓ) જે તેને ચલાવે છે. તે પ્રોફાઇલ્સ પોતે જ રાખવામાં આવે છે."
+
+msgid "Keep Contents"
+msgstr "સામગ્રી રાખો"
+
+msgid "Delete Contents"
+msgstr "સામગ્રી કાઢી નાખો"
+
+msgid "Adding to Project:"
+msgstr "પ્રોજેક્ટમાં ઉમેરો:"
+
+msgid "Save To Current File"
+msgstr "વર્તમાન ફાઇલમાં સાચવો"
+
+msgid "Add Project"
+msgstr "પ્રોજેક્ટ ઉમેરો"
+
+msgid "Add Profile"
+msgstr "પ્રોફાઇલ ઉમેરો"
+
+msgid "Add Task"
+msgstr "કાર્ય ઉમેરો"
+
+msgid "Add an action"
+msgstr "ક્રિયા ઉમેરો"
+
+msgid "Actions in this Task"
+msgstr "આ કાર્યમાં ક્રિયાઓ"
+
+msgid "No actions added yet."
+msgstr "હજી સુધી કોઈ ક્રિયાઓ ઉમેરવામાં આવી નથી."
+
+msgid "Actions & Control"
+msgstr "ક્રિયાઓ અને નિયંત્રણ"
+
+msgid "Display Conditions"
+msgstr "ડિસ્પ્લે શરતો"
+
+msgid "Task Action Limit:"
+msgstr "કાર્ય ક્રિયા મર્યાદા:"
+
+msgid "Theme Configuration"
+msgstr "થીમ રૂપરેખાંકન"
+
+msgid "Select a category to modify its color."
+msgstr "તેના રંગમાં ફેરફાર કરવા માટે શ્રેણી પસંદ કરો."
+
+msgid "Select Category to Colorize"
+msgstr "રંગીન કરવા માટે શ્રેણી પસંદ કરો"
+
+msgid "Choose Hex Color"
+msgstr "હેક્સ કલર પસંદ કરો"
+
+msgid "Open View In New Window"
+msgstr "નવી વિન્ડોમાં વ્યુ ખોલો"
+
+msgid "Close Tabs On Exit"
+msgstr "બહાર નીકળવા પર ટૅબ્સ બંધ કરો"
+
+msgid "Edit Project"
+msgstr "પ્રોજેક્ટ સંપાદિત કરો"
+
+msgid "Edit Profile"
+msgstr "પ્રોફાઇલ સંપાદિત કરો"
+
+msgid "Edit Task"
+msgstr "કાર્ય સંપાદિત કરો"
+
+msgid "Scene"
+msgstr "દ્રશ્ય"
+
+msgid "Execution"
+msgstr "અમલ"
+
+msgid "File Operations"
+msgstr "ફાઇલ કામગીરી"
+
+msgid "Display Views"
+msgstr "દૃશ્યો દર્શાવો"
+
+msgid "Application Settings"
+msgstr "એપ્લિકેશન સેટિંગ્સ"
+
+msgid "Help & Information"
+msgstr "મદદ અને માહિતી"
+
+msgid "0 = least detail, 5 = most detail."
+msgstr "0 = ઓછામાં ઓછી વિગત, 5 = સૌથી વધુ વિગત."
+
+msgid "AI Analysis"
+msgstr "AI વિશ્લેષણ"
+
+msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
+msgstr "પૃષ્ઠભૂમિમાં વિશ્લેષણ ચાલી રહ્યું છે.\n\nએકવાર પૂર્ણ થયા પછી, પરિણામો નવી વિંડોમાં દેખાશે.\n\nમહેરબાની કરીને ઊભા રહો..."
+
+msgid "Android Get XML Port Number"
+msgstr "Android મેળવો XML પોર્ટ નંબર"
+
+msgid "Android device at"
+msgstr "પર Android ઉપકરણ"
+
+msgid "Available Android Backups"
+msgstr "ઉપલબ્ધ Android બેકઅપ્સ"
+
+msgid "CAVEATS"
+msgstr "ચેતવણીઓ"
+
+msgid "Cancel Entry"
+msgstr "પ્રવેશ રદ કરો"
+
+msgid "Check your IP/Port and verify the Tasker HTTP server is running"
+msgstr "તમારું IP/પોર્ટ તપાસો અને ચકાસો કે Tasker HTTP સર્વર ચાલી રહ્યું છે"
+
+msgid "Close"
+msgstr "બંધ કરો"
+
+msgid "Detail Level"
+msgstr "વિગતવાર સ્તર"
+
+msgid "Error"
+msgstr "ભૂલ"
+
+msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
+msgstr "Android ઉપકરણમાંથી XML મેળવો.\n\nતમે Android ઉપકરણ જેવા જ નેટવર્ક પર હોવ અને ઉપકરણ ચાલતું અને કનેક્ટેડ હોવું જોઈએ.\n\n"
+
+msgid "Get Local XML File"
+msgstr "સ્થાનિક XML ફાઇલ મેળવો"
+
+msgid "It owns"
+msgstr "તે માલિક છે"
+
+msgid "No Profile Tasks Found"
+msgstr "કોઈ પ્રોફાઇલ કાર્યો મળ્યાં નથી"
+
+msgid "No Profiles Found"
+msgstr "કોઈ પ્રોફાઇલ મળી નથી"
+
+msgid "No file loaded"
+msgstr "કોઈ ફાઇલ લોડ થઈ નથી"
+
+msgid "No scenes found"
+msgstr "કોઈ દ્રશ્યો મળ્યા નથી"
+
+msgid "No tasks found"
+msgstr "કોઈ કાર્યો મળ્યાં નથી"
+
+msgid "None or unnamed!"
+msgstr "કોઈ નહીં કે નામ વગરનું!"
+
+msgid "Profile(s) and"
+msgstr "પ્રોફાઇલ(ઓ) અને"
+
+msgid "Prompt:"
+msgstr "પ્રોમ્પ્ટ:"
+
+msgid "Save To Android"
+msgstr "Android પર સાચવો"
+
+msgid "Scene to Analyze:"
+msgstr "વિશ્લેષણ કરવા માટેનું દ્રશ્ય:"
+
+msgid "Scene:"
+msgstr "દ્રશ્ય:"
+
+msgid "Select XML From Android Device:"
+msgstr "Android ઉપકરણમાંથી XML પસંદ કરો:"
+
+msgid "Task(s)."
+msgstr "કાર્ય(ઓ)."
+
+msgid "Unnamed Task"
+msgstr "અનામી કાર્ય"
+
+msgid "Update Available!"
+msgstr "અપડેટ ઉપલબ્ધ છે!"
+
+msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
+msgstr "YouTube ડાયરેક્ટ સ્ટ્રીમિંગ માટે તૃતીય-પક્ષ API ટોકન્સની જરૂર છે. જોવા માટે સ્થાનિક રીતે લક્ષ્ય ટ્રેક ડાઉનલોડ કરો."
+
+msgid "is unreachable"
+msgstr "અગમ્ય છે"
+
+msgid "'Cancel' button selected. No change to the API keys!"
+msgstr "'રદ કરો' બટન પસંદ કર્યું. API કીમાં કોઈ ફેરફાર નથી!"
+
+msgid ".or."
+msgstr ".અથવા"
+
+msgid "1-TCP/IP Address:"
+msgstr "1-TCP/IP સરનામું:"
+
+msgid "2-Port Number:"
+msgstr "2-પોર્ટ નંબર:"
+
+msgid "3-File Location:"
+msgstr "3-ફાઈલ સ્થાન:"
+
+msgid "AI Model"
+msgstr "AI મોડલ"
+
+msgid "Add 'If' Action"
+msgstr "'જો' ક્રિયા ઉમેરો"
+
+msgid "Add App Entry"
+msgstr "એપ્લિકેશન એન્ટ્રી ઉમેરો"
+
+msgid "Add Condition"
+msgstr "શરત ઉમેરો"
+
+msgid "All"
+msgstr "બધા"
+
+msgid "Android IP Address"
+msgstr "Android IP સરનામું"
+
+msgid "Android configuration details matched successfully!"
+msgstr "Android ગોઠવણી વિગતો સફળતાપૂર્વક મેળ ખાય છે!"
+
+msgid "Changes kept."
+msgstr "ફેરફારો રાખ્યા."
+
+msgid "Choose a State type first."
+msgstr "પ્રથમ રાજ્ય પ્રકાર પસંદ કરો."
+
+msgid "Choose a Task"
+msgstr "એક કાર્ય પસંદ કરો"
+
+msgid "Choose a Task first."
+msgstr "પહેલા એક કાર્ય પસંદ કરો."
+
+msgid "Choose a condition type first."
+msgstr "પ્રથમ શરત પ્રકાર પસંદ કરો."
+
+msgid "Choose an Event type first."
+msgstr "પ્રથમ ઇવેન્ટ પ્રકાર પસંદ કરો."
+
+msgid "Class (optional)"
+msgstr "વર્ગ (વૈકલ્પિક)"
+
+msgid "Cleared the search highlights."
+msgstr "શોધ હાઇલાઇટ્સ સાફ કરી."
+
+msgid "Click Here to Set XML Details"
+msgstr "XML વિગતો સેટ કરવા માટે અહીં ક્લિક કરો"
+
+msgid "Click arrows to expand/collapse details."
+msgstr "વિગતોને વિસ્તૃત/સંકુચિત કરવા માટે તીરો પર ક્લિક કરો."
+
+msgid "Click on a row index line number to jump directly to that match block placement:"
+msgstr "તે મેચ બ્લોક પ્લેસમેન્ટ પર સીધા જ જવા માટે પંક્તિ ઇન્ડેક્સ લાઇન નંબર પર ક્લિક કરો:"
+
+msgid "Click on connector to highlight"
+msgstr "હાઇલાઇટ કરવા માટે કનેક્ટર પર ક્લિક કરો"
+
+msgid "Close Results Window"
+msgstr "પરિણામો વિન્ડો બંધ કરો"
+
+msgid "Condition Type"
+msgstr "સ્થિતિનો પ્રકાર"
+
+msgid "Conditions"
+msgstr "શરતો"
+
+msgid "Configure Android Connection:"
+msgstr "એન્ડ્રોઇડ કનેક્શન ગોઠવો:"
+
+msgid "Continue Task After Error"
+msgstr "ભૂલ પછી કાર્ય ચાલુ રાખો"
+
+msgid "Copy"
+msgstr "નકલ કરો"
+
+msgid "Dark Mode"
+msgstr "ડાર્ક મોડ"
+
+msgid "Day of Month"
+msgstr "મહિનાનો દિવસ"
+
+msgid "Delete"
+msgstr "કાઢી નાખો"
+
+msgid "Delete Condition"
+msgstr "શરત કાઢી નાખો"
+
+msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
+msgstr "માત્ર આ પ્રોફાઇલ કાઢી નાખે છે. તેની એન્ટ્રી/એક્ઝિટ ટાસ્ક રાખવામાં આવે છે -- એક ટાસ્ક પ્રોજેકટની માલિકીની છે, પ્રોફાઈલની નહીં, અને તે જ ટાસ્કનો ઉપયોગ અન્ય પ્રોફાઈલ દ્વારા કરી શકાય છે."
+
+msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
+msgstr "આ કાર્ય અને તેના પ્રત્યેક સંદર્ભને કાઢી નાખે છે: તે દરેક પ્રોજેક્ટના કાર્યોમાંથી દૂર કરવામાં આવે છે જે તેની માલિકી ધરાવે છે, અને કોઈપણ પ્રોફાઇલમાંથી જે તેને તેના એન્ટ્રી/એક્ઝિટ ટાસ્ક તરીકે ચલાવે છે. પ્રોફાઇલ્સ પોતે જ રાખવામાં આવે છે."
+
+msgid "Diagram View opened in a new browser window."
+msgstr "ડાયાગ્રામ વ્યૂ નવી બ્રાઉઝર વિન્ડોમાં ખુલે છે."
+
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+msgstr "બધા ઉપલબ્ધ મોડલ્સની વિસ્તૃત સૂચિ પ્રદર્શિત કરો.\n\nનોંધ: જો OpenAI અથવા Gemini માટે API કી સેટ કરેલ નથી,\n      પછી સંબંધિત માટે મૂળભૂત મોડલ યાદી\n      AI પ્રદાતા પ્રદર્શિત થશે.\n\nનોંધ: બધા મોડલ માન્ય કરવામાં આવ્યા નથી અને\n      એક અથવા વધુ વિશ્લેષણ પર ભૂલ પરત કરી શકે છે.\n\nનોંધ: આ વિકલ્પને પ્રથમ વખત સક્ષમ કરવાથી થશે\n      નીચેના મોડ્યુલોના ઇન્સ્ટોલેશન માટે દબાણ કરો\n      અને તેમની તમામ અવલંબન:\n      google-genai, anthropic, openai, ollama"
+
+msgid "End Time"
+msgstr "સમાપ્તિ સમય"
+
+msgid "Event Type"
+msgstr "ઇવેન્ટનો પ્રકાર"
+
+msgid "Every"
+msgstr "દરેક"
+
+msgid "File path saved successfully!"
+msgstr "ફાઇલ પાથ સફળતાપૂર્વક સાચવ્યો!"
+
+msgid "File selection canceled."
+msgstr "ફાઇલ પસંદગી રદ કરી."
+
+msgid "If"
+msgstr "જો"
+
+msgid "If condition set."
+msgstr "જો શરત સેટ છે."
+
+msgid "Insert just the 'If', or a complete block?"
+msgstr "ફક્ત 'જો' અથવા સંપૂર્ણ બ્લોક દાખલ કરો?"
+
+msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
+msgstr "અમાન્ય દૃશ્ય પ્રકાર ઉલ્લેખિત. 'નકશો', 'ડાયાગ્રામ' અથવા 'ટ્રી'નો ઉપયોગ કરો."
+
+msgid "Label"
+msgstr "લેબલ"
+
+msgid "Last Day Of Month"
+msgstr "મહિનાનો છેલ્લો દિવસ"
+
+msgid "Link"
+msgstr "લિંક"
+
+msgid "List Files Selected"
+msgstr "પસંદ કરેલી ફાઇલોની સૂચિ"
+
+msgid "List XML Files"
+msgstr "XML ફાઇલોની સૂચિ બનાવો"
+
+msgid "Map View opened in a new browser window."
+msgstr "નકશો દૃશ્ય નવી બ્રાઉઝર વિન્ડોમાં ખુલ્યું."
+
+msgid "Map view creation skipped: No valid XML source found or action canceled."
+msgstr "નકશો દૃશ્ય બનાવટ છોડવામાં આવી: કોઈ માન્ય XML સ્રોત મળ્યો નથી અથવા ક્રિયા રદ કરવામાં આવી નથી."
+
+msgid "Month"
+msgstr "મહિનો"
+
+msgid "Move"
+msgstr "ચાલ"
+
+msgid "Move to #"
+msgstr "# પર ખસેડો"
+
+msgid "New name"
+msgstr "નવું નામ"
+
+msgid "No XML data loaded! Please Get XML from Android or Local drive first."
+msgstr "કોઈ XML ડેટા લોડ થયો નથી! કૃપા કરીને પહેલા એન્ડ્રોઇડ અથવા લોકલ ડ્રાઇવમાંથી XML મેળવો."
+
+msgid "No XML data loaded! Please select a valid XML file first."
+msgstr "કોઈ XML ડેટા લોડ થયો નથી! કૃપા કરીને પહેલા માન્ય XML ફાઇલ પસંદ કરો."
+
+msgid "No actions in this Task."
+msgstr "આ કાર્યમાં કોઈ ક્રિયાઓ નથી."
+
+msgid "No backup file is currently loaded. Use 'Get Local XML' first."
+msgstr "હાલમાં કોઈ બેકઅપ ફાઈલ લોડ થયેલ નથી. પહેલા 'Get Local XML' નો ઉપયોગ કરો."
+
+msgid "No conditions on this Profile."
+msgstr "આ પ્રોફાઇલ પર કોઈ શરતો નથી."
+
+msgid "No editable arguments (code not mapped, or this condition has none)."
+msgstr "કોઈ સંપાદનયોગ્ય દલીલો નથી (કોડ મેપ થયેલ નથી, અથવા આ શરતમાં કોઈ નથી)."
+
+msgid "No editable arguments."
+msgstr "કોઈ સંપાદનયોગ્ય દલીલો નથી."
+
+msgid "Not configured..."
+msgstr "ગોઠવેલ નથી..."
+
+msgid "Odd"
+msgstr "વિષમ"
+
+msgid "Ok"
+msgstr "ઓકે"
+
+msgid "Operator"
+msgstr "ઓપરેટર"
+
+msgid "Package"
+msgstr "પેકેજ"
+
+msgid "Pick a Task"
+msgstr "એક કાર્ય ચૂંટો"
+
+msgid "Please enter a search term."
+msgstr "કૃપા કરીને શોધ શબ્દ દાખલ કરો."
+
+msgid "Port"
+msgstr "બંદર"
+
+msgid "Position"
+msgstr "પદ"
+
+msgid "Priority"
+msgstr "પ્રાથમિકતા"
+
+msgid "Profile Name"
+msgstr "પ્રોફાઇલ નામ"
+
+msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "પ્રોફાઇલ ફક્ત આ સત્ર માટે રાખવામાં આવી છે -- તેને કાયમી રાખવા માટે 'વર્તમાન ફાઇલમાં સાચવો' નો ઉપયોગ કરો."
+
+msgid "Profiles Per Line"
+msgstr "પ્રતિ લાઇન પ્રોફાઇલ્સ"
+
+msgid "Project Name"
+msgstr "પ્રોજેક્ટનું નામ"
+
+msgid "Project added."
+msgstr "પ્રોજેક્ટ ઉમેર્યો."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
+msgstr "નવા નામ માટે સંકેત આપે છે અને તેને લોડ કરેલા બેકઅપ પર લાગુ કરે છે. ઉપરોક્ત પ્રોજેક્ટ નામ ફીલ્ડ ફક્ત વાંચવા માટે છે -- તેને બદલવાનો આ એકમાત્ર રસ્તો છે."
+
+msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
+msgstr "નવા નામ માટે સંકેત આપે છે અને હમણાં જ લોડ કરેલા બેકઅપ પર લાગુ થાય છે. આ સંવાદમાં બીજું બધું ઓકે/સેવ ન થાય ત્યાં સુધી બાકી રહે છે, અને સંવાદ ખુલ્લો રહે છે જેથી કરીને તમે સંપાદન ચાલુ રાખી શકો."
+
+msgid "Remove"
+msgstr "દૂર કરો"
+
+msgid "Save Profile To Android Device"
+msgstr "Android ઉપકરણ પર પ્રોફાઇલ સાચવો"
+
+msgid "Save Project To Android Device"
+msgstr "Android ઉપકરણ પર પ્રોજેક્ટ સાચવો"
+
+msgid "Save Task To Android Device"
+msgstr "Android ઉપકરણ પર કાર્ય સાચવો"
+
+msgid "Save as"
+msgstr "તરીકે સાચવો"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "આખા બેકઅપને સાચવે છે -- તેમાં દરેક પ્રોજેક્ટ, પ્રોફાઇલ અને ટાસ્ક, માત્ર આ પ્રોફાઇલ જ નહીં -- આ સંવાદના સંપાદનો લાગુ કરવા સાથે, તે જ 'ઓકે' રાખશે.\nતે હાલમાં લોડ કરેલી ફાઇલની નવી, ટાઇમસ્ટેમ્પ્ડ કોપી પર લખાયેલ છે: backup.xml એ backup_20260728_143005.xml બની જાય છે.\nતમે જે ફાઇલ લોડ કરી છે તે ક્યારેય લખવામાં આવતી નથી, તેથી તે જેવી હતી તેવી જ છોડી દેવામાં આવે છે.\nએપ્લિકેશન પછી નવી નકલ પર સ્વિચ કરે છે, જે કોઈપણ વધુ સંપાદન અને બચત માટે વર્તમાન ફાઇલ બની જાય છે; ફરીથી બચત એ બીજી ઉમેરવાને બદલે ટાઇમસ્ટેમ્પને બદલે છે.\nઆ ફક્ત આ કમ્પ્યુટર પર લખે છે -- તમારા Android ઉપકરણ પર કંઈ મોકલવામાં આવતું નથી."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "સમગ્ર બેકઅપ સાચવે છે -- તેમાં દરેક પ્રોજેક્ટ, પ્રોફાઇલ અને કાર્ય, માત્ર આ પ્રોજેક્ટ જ નહીં -- આ સત્રમાં ગમે ત્યાં કરવામાં આવેલ દરેક સંપાદન સહિત.\nતે હાલમાં લોડ કરેલી ફાઇલની નવી, ટાઇમસ્ટેમ્પ્ડ કોપી પર લખાયેલ છે: backup.xml એ backup_20260728_143005.xml બની જાય છે.\nતમે જે ફાઇલ લોડ કરી છે તે ક્યારેય લખવામાં આવતી નથી, તેથી તે જેવી હતી તેવી જ છોડી દેવામાં આવે છે.\nએપ્લિકેશન પછી નવી નકલ પર સ્વિચ કરે છે, જે કોઈપણ વધુ સંપાદન અને બચત માટે વર્તમાન ફાઇલ બની જાય છે; ફરીથી બચત એ બીજી ઉમેરવાને બદલે ટાઇમસ્ટેમ્પને બદલે છે.\nઆ ફક્ત આ કમ્પ્યુટર પર લખે છે -- તમારા Android ઉપકરણ પર કંઈ મોકલવામાં આવતું નથી."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "આખા બેકઅપને સાચવે છે -- તેમાં દરેક પ્રોજેક્ટ, પ્રોફાઇલ અને કાર્ય, માત્ર આ કાર્ય જ નહીં -- આ સંવાદના સંપાદનો લાગુ કરવા સાથે, તે જ 'ઓકે' રાખશે.\nતે હાલમાં લોડ કરેલી ફાઇલની નવી, ટાઇમસ્ટેમ્પ્ડ કોપી પર લખાયેલ છે: backup.xml એ backup_20260728_143005.xml બની જાય છે.\nતમે જે ફાઇલ લોડ કરી છે તે ક્યારેય લખવામાં આવતી નથી, તેથી તે જેવી હતી તેવી જ છોડી દેવામાં આવે છે.\nએપ્લિકેશન પછી નવી નકલ પર સ્વિચ કરે છે, જે કોઈપણ વધુ સંપાદન અને બચત માટે વર્તમાન ફાઇલ બની જાય છે; ફરીથી બચત એ બીજી ઉમેરવાને બદલે ટાઇમસ્ટેમ્પને બદલે છે.\nઆ ફક્ત આ કમ્પ્યુટર પર લખે છે -- તમારા Android ઉપકરણ પર કંઈ મોકલવામાં આવતું નથી."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "આખા બેકઅપને સાચવે છે -- તેમાં દરેક પ્રોજેક્ટ, પ્રોફાઇલ અને ટાસ્ક, માત્ર આ જ નહીં -- તેના પ્રોજેક્ટમાં નવી પ્રોફાઇલ ઉમેરવા સાથે, તે જ રીતે 'ઓકે' તેને ઉમેરે છે.\nતે હાલમાં લોડ કરેલી ફાઇલની નવી, ટાઇમસ્ટેમ્પ્ડ કોપી પર લખાયેલ છે: backup.xml એ backup_20260728_143005.xml બની જાય છે.\nતમે જે ફાઇલ લોડ કરી છે તે ક્યારેય લખવામાં આવતી નથી, તેથી તે જેવી હતી તેવી જ છોડી દેવામાં આવે છે.\nએપ્લિકેશન પછી નવી નકલ પર સ્વિચ કરે છે, જે કોઈપણ વધુ સંપાદન અને બચત માટે વર્તમાન ફાઇલ બની જાય છે; ફરીથી બચત એ બીજી ઉમેરવાને બદલે ટાઇમસ્ટેમ્પને બદલે છે.\nઆ ફક્ત આ કમ્પ્યુટર પર લખે છે -- તમારા Android ઉપકરણ પર કંઈ મોકલવામાં આવતું નથી."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "આખા બેકઅપને સાચવે છે -- તેમાં દરેક પ્રોજેક્ટ, પ્રોફાઇલ અને ટાસ્ક, માત્ર આ જ નહીં -- તેમાં ઉમેરવામાં આવેલા નવા ટાસ્ક સાથે, તે જ રીતે 'ઓકે' તેને ઉમેરે છે.\nતે હાલમાં લોડ કરેલી ફાઇલની નવી, ટાઇમસ્ટેમ્પ્ડ કોપી પર લખાયેલ છે: backup.xml એ backup_20260728_143005.xml બની જાય છે.\nતમે જે ફાઇલ લોડ કરી છે તે ક્યારેય લખવામાં આવતી નથી, તેથી તે જેવી હતી તેવી જ છોડી દેવામાં આવે છે.\nએપ્લિકેશન પછી નવી નકલ પર સ્વિચ કરે છે, જે કોઈપણ વધુ સંપાદન અને બચત માટે વર્તમાન ફાઇલ બની જાય છે; ફરીથી બચત એ બીજી ઉમેરવાને બદલે ટાઇમસ્ટેમ્પને બદલે છે.\nઆ ફક્ત આ કમ્પ્યુટર પર લખે છે -- તમારા Android ઉપકરણ પર કંઈ મોકલવામાં આવતું નથી."
+
+msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
+msgstr "આ પ્રોજેક્ટ અને તેમાંની દરેક વસ્તુ -- દરેક પ્રોફાઇલ અને કાર્ય -- એક સ્વતંત્ર ફાઇલ તરીકે સાચવે છે."
+
+msgid "Search actions"
+msgstr "શોધ ક્રિયાઓ"
+
+msgid "Search..."
+msgstr "શોધો..."
+
+msgid "Select a single Profile first (Profile pulldown above)."
+msgstr "પહેલા એક જ પ્રોફાઇલ પસંદ કરો (પ્રોફાઇલ ઉપર પુલડાઉન)."
+
+msgid "Select a single Project first (Project pulldown above)."
+msgstr "પ્રથમ એક પ્રોજેક્ટ પસંદ કરો (ઉપર પ્રોજેક્ટ પુલડાઉન)."
+
+msgid "Select a single Task first (Task pulldown above)."
+msgstr "પ્રથમ એક કાર્ય પસંદ કરો (ઉપર પુલડાઉન કાર્ય)."
+
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "ચેતવણી જારી કરતા પહેલા કાર્યમાં કેટલી ક્રિયાઓ છે તે પસંદ કરો.\nચેતવણી રૂપરેખાંકન આઉટપુટના તળિયે દેખાય છે,\nઅને ખૂબ જટિલ હોય તેવા કાર્યોને ઓળખવામાં મદદ કરવાનો હેતુ છે\nઅને જે સંભવિતપણે બહુવિધ કાર્યોમાં વિભાજિત થવું જોઈએ.\n'100' નું સેટિંગ એટલે કે કોઈ મર્યાદા નથી."
+
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
+msgstr "If/then/Else બ્લોક્સ માટે ઇન્ડેન્ટેશન રકમ સેટ કરો.\n\nડિફોલ્ટ '4' છે.\n\nઆ નકશા અને ડાયાગ્રામ દૃશ્યોમાં આઉટપુટ કેવી રીતે ફોર્મેટ થાય છે તેના પર અસર કરે છે."
+
+msgid "Settings Reset!"
+msgstr "સેટિંગ્સ રીસેટ!"
+
+msgid "Shutting down MapTasker..."
+msgstr "MapTasker બંધ કરી રહ્યું છે..."
+
+msgid "Start Time"
+msgstr "પ્રારંભ સમય"
+
+msgid "Starting AI Analysis..."
+msgstr "AI વિશ્લેષણ શરૂ કરી રહ્યાં છીએ..."
+
+msgid "State Type"
+msgstr "રાજ્યનો પ્રકાર"
+
+msgid "Submit"
+msgstr "સબમિટ કરો"
+
+msgid "Target"
+msgstr "લક્ષ્ય"
+
+msgid "Task Name"
+msgstr "કાર્યનું નામ"
+
+msgid "Task Uploaded to Tasker"
+msgstr "કાર્ય Tasker પર અપલોડ કર્યું"
+
+msgid "Task Uploaded to Tasker."
+msgstr "કાર્ય Tasker પર અપલોડ કર્યું."
+
+msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "કાર્ય ફક્ત આ સત્ર માટે રાખવામાં આવ્યું છે -- તેને કાયમી રાખવા માટે 'વર્તમાન ફાઇલમાં સાચવો' નો ઉપયોગ કરો."
+
+msgid "The 'Misc' view is running in the background.  Please stand by..."
+msgstr "પૃષ્ઠભૂમિમાં 'Misc' દૃશ્ય ચાલી રહ્યું છે.  મહેરબાની કરીને ઊભા રહો..."
+
+msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
+msgstr "'શોધ' બટન સર્ચ બોક્સમાં દાખલ કરેલ કેસ-અસંવેદનશીલ સ્ટ્રિંગના દરેક ઉદાહરણને શોધશે અને હાઇલાઇટ કરશે, ડેટાની ટોચથી શરૂ થશે.\n\nતે શોધ સ્ટ્રિંગના માત્ર પ્રથમ 200 ઉદાહરણો જ બતાવશે.\n\nટેક્સ્ટ વ્યૂ બોક્સમાં તે લાઇન પર જવા માટે લાઇન નંબર પર ક્લિક કરો.\n\n'ક્લિયર' બટન શોધ પરિણામોને સાફ કરશે.\n\n"
+
+msgid "The change will take effect the next time you open the view."
+msgstr "જ્યારે તમે આગલી વખતે વ્યુ ખોલશો ત્યારે ફેરફાર પ્રભાવી થશે."
+
+msgid "This Task has no actions yet."
+msgstr "આ કાર્યમાં હજી સુધી કોઈ ક્રિયાઓ નથી."
+
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "આ તમારી સિસ્ટમ પર ઉપલબ્ધ તમામ ફોન્ટ્સની યાદી છે, જે પહેલા મોનોસ્પેસ કરેલ છે અને આ રીતે ચિહ્નિત થયેલ છે.\n\nપસંદ કરેલ ફોન્ટ તમામ આઉટપુટમાં ઉપયોગમાં લેવાશે.\n\nયોગ્ય કનેક્ટર સંરેખણ સુનિશ્ચિત કરવા માટે આકૃતિઓ માટે 'કુરીયર' અથવા 'કુરીયર ન્યૂ'ની ખૂબ ભલામણ કરવામાં આવે છે. એક ફોન્ટ કે જે મોનોસ્પેસ નથી તે ડાયાગ્રામના કનેક્ટર્સ અથવા આઉટપુટના ઇન્ડેન્ટેશનને લીટીમાં રાખશે નહીં."
+
+msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
+msgstr "આ ટાસ્કર સર્વર ચલાવતા એન્ડ્રોઇડ ડિવાઇસ પર ચાલતા ટાસ્કરમાં સીધા જ ટાસ્કને સેવ કરશે.\n\nIP સરનામું અને પોર્ટ Android ઉપકરણના Tasker સર્વર સેટિંગ્સ સાથે મેળ ખાતા હોવા જોઈએ.\n\nતમને Android ઉપકરણ પર Tasker પર લખવા માટે અધિકૃતતા માટે બે વાર સંકેત આપવામાં આવશે, અને Task.અને તેની પોતાની ક્રિયાઓ નિર્ધારિત કરશે કે તે ઉપકરણ પર ક્યાં સાચવવામાં આવે છે."
+
+msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
+msgstr "આ કાર્યને તમારા Android ઉપકરણ પરના સક્રિય ટાસ્કર સત્રમાં સીધા જ સાચવશે.\n\nઆ કામ કરવા માટે ટાસ્કર વર્ઝન 6.2 અથવા તેનાથી વધુ જરૂરી છે. Android ઉપકરણ સમાન નેટવર્ક પર હોવું જોઈએ, અને IP સરનામું અને પોર્ટ\nAndroid ઉપકરણની Tasker સર્વર સેટિંગ્સ સાથે મેળ ખાતી હોવી જોઈએ.\n\nતમને Android ઉપકરણ પર Tasker પર લખવા માટે અધિકૃતતા માટે બે વાર સંકેત આપવામાં આવશે, અને કાર્ય સીધા સક્રિય Tasker સત્રમાં લોડ કરવામાં આવશે.\n\nતમારે Tasker UI માં નવું કાર્ય જોવા માટે બહાર નીકળવું અને ફરીથી શરૂ કરવું આવશ્યક છે."
+
+msgid "This will save the Task directly to your current drive.\n\n"
+msgstr "આ કાર્યને સીધા તમારી વર્તમાન ડ્રાઇવમાં સાચવશે.\n\n"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "આ એન્ડ્રોઇડ ડિવાઇસ પર /Tasker/profiles હેઠળ પ્રોફાઇલને સ્ટેન્ડઅલોન ફાઇલ તરીકે લખશે.\n\nIP સરનામું અને પોર્ટ Android ઉપકરણના Tasker સર્વર સેટિંગ્સ સાથે મેળ ખાતા હોવા જોઈએ.\n\nઆ માટે કોઈ અધિકૃતતા પ્રોમ્પ્ટની જરૂર નથી."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "આ તમારા Android ઉપકરણ પર /Tasker/profiles હેઠળ પ્રોફાઇલને સ્ટેન્ડઅલોન ફાઇલ તરીકે લખશે -- તે તેને Taskerના લાઇવ કન્ફિગરેશનમાં આયાત કરતું નથી.\n\n'Http સર્વર ઉદાહરણ' ટાસ્કર પ્રોજેક્ટ (http://spoo.me/http_svr_example) એ એન્ડ્રોઇડ ઉપકરણ પર ઇન્સ્ટોલ અને સક્રિય હોવો જોઈએ, સર્વર ચાલતું હોય (README ની ડાયરેક્ટ XML પુનઃપ્રાપ્તિ નોંધો જુઓ).\n\nAndroid ઉપકરણ સમાન નેટવર્ક પર હોવું આવશ્યક છે, અને IP સરનામું અને પોર્ટ તેના ટાસ્કર સર્વર સેટિંગ્સ સાથે મેળ ખાતા હોવા જોઈએ. આ માટે કોઈ અધિકૃતતા પ્રોમ્પ્ટની જરૂર નથી."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "આ તમારા Android ઉપકરણ પર /Tasker/profiles હેઠળ પ્રોફાઇલને સ્ટેન્ડઅલોન ફાઇલ તરીકે લખશે -- તે તેને Taskerના લાઇવ કન્ફિગરેશનમાં આયાત કરતું નથી.\n\n'Http સર્વર ઉદાહરણ' ટાસ્કર પ્રોજેક્ટ એન્ડ્રોઇડ ઉપકરણ પર ઇન્સ્ટોલ અને સક્રિય હોવો જોઈએ, સર્વર ચાલતું હોય (README ની ડાયરેક્ટ XML પુનઃપ્રાપ્તિ નોંધો જુઓ).\n\nAndroid ઉપકરણ સમાન નેટવર્ક પર હોવું આવશ્યક છે, અને IP સરનામું અને પોર્ટ તેના ટાસ્કર સર્વર સેટિંગ્સ સાથે મેળ ખાતા હોવા જોઈએ. આ માટે કોઈ અધિકૃતતા પ્રોમ્પ્ટની જરૂર નથી."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "આ પ્રોજેક્ટ લખશે, અને તેમાંની દરેક વસ્તુ -- દરેક પ્રોફાઇલ અને ટાસ્ક -- તમારા Android ઉપકરણ પર એક સ્વતંત્ર ફાઇલ તરીકે, /Tasker/projects હેઠળ -- તે તેને Tasker ના લાઇવ રૂપરેખાંકનમાં આયાત કરતું નથી.\n\n'Http સર્વર ઉદાહરણ' ટાસ્કર પ્રોજેક્ટ Android ઉપકરણ પર ઇન્સ્ટોલ અને સક્રિય હોવો જોઈએ, જેમાં સર્વર ચાલતું હોય.\n\nAndroid ઉપકરણ સમાન નેટવર્ક પર હોવું આવશ્યક છે, અને IP સરનામું અને પોર્ટ તેના ટાસ્કર સર્વર સેટિંગ્સ સાથે મેળ ખાતા હોવા જોઈએ. આ માટે કોઈ અધિકૃતતા પ્રોમ્પ્ટની જરૂર નથી."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "આ પ્રોજેક્ટ લખશે, અને તેમાંની દરેક વસ્તુ, Android ઉપકરણ પર, /Tasker/projects હેઠળ એક એકલ ફાઇલ તરીકે.\n\nIP સરનામું અને પોર્ટ Android ઉપકરણના Tasker સર્વર સેટિંગ્સ સાથે મેળ ખાતા હોવા જોઈએ.\n\nઆ માટે કોઈ અધિકૃતતા પ્રોમ્પ્ટની જરૂર નથી."
+
+msgid "Toggle Wrap"
+msgstr "લપેટીને ટૉગલ કરો"
+
+msgid "Unlink"
+msgstr "અનલિંક કરો"
+
+msgid "Value"
+msgstr "મૂલ્ય"
+
+msgid "View cleared."
+msgstr "દૃશ્ય સાફ કર્યું."
+
+msgid "Week-Day"
+msgstr "સપ્તાહ-દિવસ"
+
+msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
+msgstr "જ્યારે સક્ષમ હોય, ત્યારે 'એક્ઝિટ' પર ક્લિક કરવાથી મુખ્ય MapTasker વિન્ડો અને કોઈપણ નકશા/ડાયાગ્રામ વિન્ડો/ટેબ્સ તે ખોલવામાં આવે છે.\n\nજ્યારે અક્ષમ હોય, ત્યારે 'એક્ઝિટ' MapTasker બંધ કરે છે પરંતુ તે વિન્ડો/ટેબ્સને ખુલ્લું રાખે છે."
+
+msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
+msgstr "જ્યારે સક્ષમ હોય, ત્યારે દરેક નકશો/ડાયાગ્રામ વિનંતી તેની પોતાની નવી વિન્ડો/ટૅબમાં ખુલે છે, જેથી તમે સરખામણી કરવા માટે અગાઉની વિનંતીઓને તેની સાથે રાખી શકો.\n\nજ્યારે અક્ષમ હોય, ત્યારે વિનંતી તે દૃશ્યની હાલની વિન્ડો/ટેબનો પુનઃઉપયોગ કરે છે, તેમાં જે છે તેને બદલીને.\n\nજ્યાં સુધી તમે સરખામણી કરવા માંગતા ન હોવ ત્યાં સુધી તેને છોડી દો: તદ્દન નવી વિન્ડો/ટેબ એ છે કે જે તમારું બ્રાઉઝર અવરોધિત કરી શકે છે, કારણ કે તમે ઝટપટ ક્લિક કરો તેના બદલે દૃશ્ય નિર્માણ પૂર્ણ થઈ જાય તે પછી તે ખુલે છે."
+
+msgid "hh:mm AM/PM or %variable"
+msgstr "hh:mm AM/PM અથવા % ચલ"
+
+msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
+msgstr "સીધા GUI ની અંદર તમારા રૂપરેખાંકનનું 'નકશો', 'ડાયાગ્રામ' અથવા 'ટ્રી' દૃશ્ય પ્રદર્શિત કરો.\n\nદૃશ્યો કાર્ય કરવા માટે XML પ્રથમ સ્થાનિક ડ્રાઇવ અથવા Android ઉપકરણમાંથી મેળવવી આવશ્યક છે.\n\nજો XML પહેલેથી જ આનયન કરવામાં આવ્યું હોય, તો તેનો ઉપયોગ વ્યૂમાં ઇનપુટ તરીકે કરવામાં આવશે.  'ક્લિયર' બટન દબાવવાથી વ્યુ ડેટા સાફ થઈ જશે.\n\nખૂબ મોટા રૂપરેખાંકનો નકશા અને આકૃતિઓ માટે વિસ્તૃત રન ટાઈમ ભોગવશે.  શ્રેષ્ઠ પ્રદર્શન માટે, મેપ કરવા માટે એક પ્રોજેક્ટ અથવા પ્રોફાઇલ પસંદ કરો.\n\nવૈકલ્પિક રીતે, 'જુઓ મર્યાદા' સેટિંગનો ઉપયોગ કરીને પ્રક્રિયા કરવાના ડેટાની માત્રાને મર્યાદિત કરો.  મર્યાદા જેટલી મોટી હશે, તેટલું મોટું આઉટપુટ કે જેને મેપ કરવાની મંજૂરી આપવામાં આવશે.  જેટલો વધુ આઉટપુટ જનરેટ થાય છે, તેટલો પ્રોસેસિંગ સમય વધારે છે.\n\n\nડાયાગ્રામ વ્યૂમાં નીચેની વર્તણૂક છે:\n\n - ફક્ત પ્રોજેક્ટ્સ અને પ્રોફાઇલ્સ પ્રદર્શિત કરી શકાય છે. માત્ર એક જ કાર્ય અથવા દ્રશ્યનો સમાવેશ કરતું XML પ્રદર્શિત કરવામાં આવશે નહીં.\n\n - ડાયાગ્રામમાં સમગ્ર કનેક્શનને હાઇલાઇટ કરવા માટે આડા કનેક્ટર પર ક્લિક કરો.\n\n\nટ્રી વ્યુમાં નીચેની વર્તણૂક છે:\n\n- ફક્ત પ્રોજેક્ટ્સ પ્રદર્શિત કરી શકાય છે. માત્ર એક જ પ્રોફાઇલ અથવા કાર્ય અથવા દ્રશ્યનો સમાવેશ કરતી XML પ્રદર્શિત કરવામાં આવશે નહીં.\n\n- સિંગલ નેમ સેટિંગને ધ્યાનમાં લીધા વિના તમામ પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, ટાસ્ક્સ અને સીન્સ પ્રદર્શિત થાય છે.\n\n"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "MapTasker તમારી અપલોડ કરેલી Tasker XML ફાઇલ (દા.ત. 'backup.xml')ના આધારે તમારું એન્ડ્રોઇડ ટાસ્કર કન્ફિગરેશન દર્શાવે છે. ડિસ્પ્લેમાં વૈકલ્પિક રીતે તમામ પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, ટાસ્ક્સ અને તેમની ક્રિયાઓ, પ્રોફાઇલ/ટાસ્ક શરતો અને અન્ય પ્રોફાઇલ/ટાસ્ક સંબંધિત માહિતી શામેલ હશે.\n\nએકવાર XML ફાઇલ લોડ થઈ જાય, પછી તમે વૈકલ્પિક રીતે તમારા પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, કાર્યો અને દ્રશ્યોને સંપાદિત કરી શકો છો.\n\n* પ્રદર્શન વિકલ્પો છે:\n    સ્તર 0: પ્રથમ કાર્ય ક્રિયા પ્રદર્શિત કરો, ફક્ત નામ વગરના કાર્યો માટે (શાંત).\n    સ્તર 1 = અજ્ઞાત કાર્યો માટે જ તમામ કાર્ય ક્રિયા વિગતો દર્શાવો (ડિફૉલ્ટ).\n    સ્તર 2 = દરેક કાર્ય પર સંપૂર્ણ કાર્ય ક્રિયા નામ દર્શાવો.\n    સ્તર 3 = ક્રિયા વિગતો સાથે દરેક કાર્ય પર સંપૂર્ણ કાર્ય ક્રિયા વિગતો દર્શાવો.\n    સ્તર 4 = 3 વત્તા પ્રોજેક્ટના વૈશ્વિક ચલોનું પ્રદર્શન સ્તર.\n\n    સ્તર 5 = 4 વત્તા દ્રશ્ય દલીલ વિગતોનું પ્રદર્શન સ્તર.\n\n* ફક્ત બધું જ પ્રદર્શિત કરો: શરતો, TaskerNet માહિતી, પસંદગીઓ, સુંદર આઉટપુટ, ડિરેક્ટરી અને રૂપરેખાંકન રૂપરેખાનું પ્રદર્શન ચાલુ કરો.\n\n* ડિસ્પ્લે શરતો: પ્રોફાઇલ અને ટાસ્ક શરતોનું પ્રદર્શન ચાલુ કરો.\n\n* TaskerNet માહિતી દર્શાવો - જો ઉપલબ્ધ હોય, તો TaskerNet પ્રકાશન માહિતી પ્રદર્શિત કરો.\n\n* ડિસ્પ્લે ટાસ્કર પસંદગીઓ - ટાસ્કરની સિસ્ટમ પસંદગીઓ દર્શાવો.\n\n* Twisty હેઠળ કાર્ય વિગતો છુપાવો: ► અંદર કાર્ય માહિતી છુપાવો અને પ્રદર્શિત કરવા માટે ક્લિક કરો.\n\n* શરૂઆતમાં હાઇપરલિંક્સની ડિરેક્ટરી દર્શાવો.\n\n* સુંદર આઉટપુટ દર્શાવો: તમામ દલીલો માટે નવી લાઇન અને ઇન્ડેન્ટેશન ઉમેરીને આઉટપુટને વધુ માનવ-વાંચી શકાય તેવું બનાવો.\n\n* પ્રોજેક્ટ/પ્રોફાઇલ/ટાસ્ક/સીન નેમ્સના વિકલ્પો ઇટાલિક, બોલ્ડ, અન્ડરલાઇન અને/અથવા તેમના નામોને હાઇલાઇટ કરવા માટે.\n\n* કાર્ય ક્રિયા મર્યાદા: જો કાર્યમાં નિર્દિષ્ટ સંખ્યા કરતા વધુ ક્રિયાઓ હોય તો ચેતવણી પ્રદર્શિત કરો.\n\n* જો/તો/અન્ય કાર્ય ક્રિયાઓ માટે ઇન્ડેન્ટેશન રકમ.\n\n* ભાષા: આઉટપુટ માટે ઉપયોગમાં લેવાતી ભાષા પસંદ કરો.  મૂળભૂત અંગ્રેજી છે.\n\n* ઉપયોગ કરવા માટે ફોન્ટ: આઉટપુટ માટે ઉપયોગમાં લેવાતા મોનોસ્પેસ ફોન્ટ બદલો.\n\n* દૃશ્ય મર્યાદા: વ્યુ જનરેટ કરતી વખતે ઉપયોગમાં લેવાતા પ્રોસેસિંગ સમયની માત્રાને નિયંત્રિત કરો.\n\n* રીસેટ વિકલ્પો: બધું સાફ કરો અને નવેસરથી પ્રારંભ કરો.\n\n* સ્થાનિક XML ફાઇલ મેળવો: તમારી સ્થાનિક ડ્રાઇવમાંથી બેકઅપ/નિકાસ કરાયેલ XML ફાઇલ મેળવો.\n\n* સેટિંગ્સ સાચવો - પછીના ઉપયોગ માટે આ સેટિંગ્સને સાચવો.\n\n* પુનઃસ્થાપિત સેટિંગ્સ - અગાઉ સાચવેલા સત્રમાંથી સેટિંગ્સ પુનઃસ્થાપિત કરો.\n\n* પ્રદર્શિત દૃશ્યો: તમારા રૂપરેખાંકન નકશા, ડાયાગ્રામ અથવા તમારા પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, કાર્યો અને દ્રશ્યો સીધા જ GUI માં પ્રદર્શિત કરો.\n\n* Android ઉપકરણમાંથી XML મેળવો: Android ઉપકરણમાંથી બેકઅપ/નિકાસ કરેલ XML ફાઇલ મેળવો.  તમને તમારા Android ઉપકરણ માટે IP સરનામું અને પોર્ટ નંબર તેમજ ઉપકરણ પરની ફાઇલ સ્થાન માટે પૂછવામાં આવશે.\n\n* વિશિષ્ટ નામ ટૅબ: પ્રદર્શિત કરવા માટે એક, વિશિષ્ટ નામવાળી આઇટમ દાખલ કરો...\n   - પ્રોજેક્ટનું નામ: પ્રદર્શિત કરવા માટે ચોક્કસ પ્રોજેક્ટ દાખલ કરો.\n   - પ્રોફાઇલ નામ: પ્રદર્શિત કરવા માટે ચોક્કસ પ્રોફાઇલ દાખલ કરો.\n   - કાર્યનું નામ: પ્રદર્શિત કરવા માટે ચોક્કસ કાર્ય દાખલ કરો.\n   - દ્રશ્યનું નામ: પ્રદર્શિત કરવા માટે ચોક્કસ દ્રશ્ય દાખલ કરો.  તેની માલિકીના પ્રોજેક્ટનું મથાળું અને ધ\n                 દ્રશ્યના ઘટકો (વત્તા કોઈપણ કાર્યો જે તે તત્વોને બોલાવે છે) પ્રદર્શિત થાય છે;\n                 પ્રોજેક્ટની રૂપરેખાઓ અને તેના અન્ય દ્રશ્યો નથી.\n   (આ ચાર વિશિષ્ટ છે: ફક્ત એક જ દાખલ કરો)\n\n   વિવિધ સેવ વિકલ્પો સાથે સીધા જ GUI માં પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ અને કાર્યો ઉમેરો અને સંપાદિત કરો.\n\n* રંગો ટેબ: ડિસ્પ્લેના વિવિધ ઘટકો માટે રંગો પસંદ કરો.\n              (દા.ત. પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, ટાસ્ક વગેરે માટેનો રંગ).\n\n* વિશ્લેષણ ટેબ: એઆઈ મોડેલ સામે પ્રોજેક્ટ, પ્રોફાઇલ, કાર્ય અથવા દ્રશ્ય માટે વિશ્લેષણ ચલાવો.\n\n* ડીબગ ટેબ: રનટાઇમ સેટિંગ્સ વિકલ્પ દર્શાવો અને ડીબગ મોડ ચાલુ કરો.\n\n* બહાર નીકળો: પ્રોગ્રામમાંથી બહાર નીકળો (બહાર નીકળો).\n\nનોંધો:\n\n- https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md પર સમગ્ર ફેરફાર લોગ ઇતિહાસ જુઓ\n\n- દેખાવ મોડ બદલવાથી આઉટપુટ માટે ઉપયોગમાં લેવાતા રંગો તેમના ડિફોલ્ટ મૂલ્યોમાં બદલાશે.\n\n"
+
+msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+msgstr "'વ્યૂ લિમિટ' એ વ્યુ જનરેટ કરતી વખતે ઉપયોગમાં લેવાતા પ્રોસેસિંગ સમયની માત્રાને નિયંત્રિત કરવાનું એક માધ્યમ છે.\n\n- સંખ્યાઓ જનરેટ કરવાની આઉટપુટ લાઇનની સંબંધિત રકમનું પ્રતિનિધિત્વ કરે છે.\n\n- મર્યાદા જેટલી મોટી હશે, તેટલું મોટું આઉટપુટ કે જેને મેપ કરવાની મંજૂરી આપવામાં આવશે.  જેટલો વધુ આઉટપુટ જનરેટ થાય છે, તેટલો પ્રોસેસિંગ સમય વધારે છે.\n\n- ખૂબ મોટી રૂપરેખાંકનો ખૂબ મોટા આઉટપુટ નકશાઓ જનરેટ કરશે અને વધુ પ્રોસેસિંગ સમયનું કારણ બનશે.  જૂના ઉપકરણો પર, આમાં 30 સેકન્ડ કે તેથી વધુ સમય લાગી શકે છે.\n\n- મર્યાદા સુયોજિત કરીને, તમે લાંબા સમયની મંજૂરી ન આપીને રૂપરેખાંકનને મેપ કરતી વખતે ઉપયોગમાં લેવાતા પ્રોસેસિંગ સમયને નિયંત્રિત કરી શકો છો.\n\n- જો નકશાની ગણતરી કરતી વખતે મર્યાદા હિટ થાય છે, તો આઉટપુટ ત્યાં બંધ થઈ જશે.\n\n- તમારા ઉપયોગના કેસ માટે કઈ સેટિંગ શ્રેષ્ઠ છે તે જોવા માટે તમે આ સેટિંગ સાથે પ્રયોગ કરી શકો છો.\n\n- એક પ્રોજેક્ટ, પ્રોફાઇલ અથવા કાર્ય પસંદ કરવું એ પ્રક્રિયાના સમયને મર્યાદિત કરવા માટેનું બીજું માધ્યમ છે.\n\n"
+
+msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
+msgstr "વિશ્લેષણ ટેબનો ઉપયોગ તમારી પ્રોફાઇલ પર Ai વિશ્લેષણ ચલાવવા માટે થાય છે, ક્યાં તો સ્થાનિક લામા મોડલ અથવા સર્વર-આધારિત ઓપન AI, ક્લાઉડ અથવા ડીપસીક મોડલ્સનો ઉપયોગ કરીને.\n\nતમારી પ્રોફાઇલ સામે AI ચલાવવા માટે નીચેના પગલાં જરૂરી છે.\n\n1- જો સર્વર-આધારિત AI નો ઉપયોગ કરો છો, તો તમારી પાસે પ્રદાતાની માન્ય API કી હોવી આવશ્યક છે (દા.ત. OpenAI).  તમે તમારી કી દાખલ કરવા માટે 'API કી(ઓ) બતાવો/સંપાદિત કરો' બટનનો ઉપયોગ કરી શકો છો.\n\n2- ડિફૉલ્ટ પ્રોમ્પ્ટ છે: 'પ્રદર્શન અને વાંચનીયતામાં સુધારાઓનું સૂચન કરો: (તમારો પ્રોજેક્ટ/પ્રોફાઇલ/ટાસ્ક)', અને આપમેળે આનાથી આગળ આવે છે: 'ટાસ્કરમાં નીચે આપેલ (પ્રોજેક્ટ/પ્રોફાઇલ/ટાસ્ક)'.  જો પ્રોમ્પ્ટને સંશોધિત કરી રહ્યાં છો, તો તમે ફક્ત 'સુધારણા સૂચવો...' ભાગમાં ફેરફાર કરી રહ્યાં છો.\n\n3- તમે ઉપયોગ કરવા માંગો છો તે મોડેલ પસંદ કરો.\n\n   o પસંદ કરેલ મોડેલ નક્કી કરશે કે કયા AI સાથે વિશ્લેષણ કરવામાં આવશે.\n\n4- 'રન એનાલિસિસ' બટન પર ક્લિક કરો.  જ્યારે તમામ જરૂરી ડેટા દાખલ કરવામાં આવશે ત્યારે તે લીલો થઈ જશે.\n\n   o જો તમે હજુ સુધી કોઈ મોડેલ, પ્રોમ્પ્ટ અથવા સિંગલ પ્રોજેક્ટ, પ્રોફાઇલ અથવા ટાસ્ક અથવા માન્ય API કી પસંદ કરી નથી, તો તમને પહેલા આમ કરવા માટે સંકેત આપવામાં આવશે.\n\n   o પ્રક્રિયા થોડો સમય લઈ શકે છે અને પૃષ્ઠભૂમિમાં ચાલે છે.  પરિણામો એક અલગ વિંડોમાં દેખાશે.\n\n   o તમારા કમ્પ્યુટર પર હજી સુધી લોડ થયેલ ન હોય તેવા સ્થાનિક મોડલ્સ એકવાર વિશ્લેષણ શરૂ થયા પછી પૃષ્ઠભૂમિમાં લોડ કરવામાં આવશે.\n\nતમારી નિયુક્ત એપીઆઈ-કી (જો કોઈ હોય તો), મોડેલ, પસંદ કરેલ પ્રોજેક્ટ, પ્રોફાઇલ અથવા ટાસ્ક અને એઆઈ પ્રોમ્પ્ટ બધા સત્રોમાં સાચવવામાં આવશે.\n\nવિશ્લેષણના પરિણામોને નવી વિંડોમાં પ્રદર્શિત કરવા માટે 'રીરન' સુવિધાનો ઉપયોગ કવર હેઠળ કરવામાં આવશે.\n\n"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- If you want to use the 'List XML Files' option, then you must also import the following profile into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "તમારા Android ઉપકરણમાંથી સીધા જ Tasker XML ફાઇલ મેળવવા માટે નીચેના પગલાં આવશ્યક છે.\n\n1- આ ઉપકરણ અને Android ઉપકરણ બંને એક જ નામના નેટવર્ક પર હોવા જોઈએ.\n\n2- ટાસ્કર પ્રોજેક્ટ 'HTTP સર્વર ઉદાહરણ' અથવા સમાન કાર્ય Android ઉપકરણ પર ઇન્સ્ટોલ અને સક્રિય હોવું આવશ્યક છે (સર્વર ચાલતું હોવું જોઈએ):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- જો તમે 'List XML Files' વિકલ્પનો ઉપયોગ કરવા માંગો છો, તો તમારે Android ઉપકરણમાં નીચેની પ્રોફાઇલ પણ આયાત કરવી પડશે અને ખાતરી કરો કે આયાતી પ્રોફાઇલ 'MapTasker List' સક્ષમ છે:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nતમને IP સરનામું, તમારા Android ઉપકરણ માટે પોર્ટ નંબર, તેમજ Android ઉપકરણ પર ફાઇલ સ્થાન માટે પૂછવામાં આવશે.  ડિફૉલ્ટ મૂલ્યો પૂરા પાડવામાં આવે છે, જ્યાં...\n\n'192.168.0.210' એ ડિફોલ્ટ IP સરનામું છે,\n\nતમારા Android ઉપકરણ પર ચાલતા Tasker HTTP સર્વર ઉદાહરણ માટે '1821' એ ડિફોલ્ટ પોર્ટ નંબર છે\n\n'/Tasker/configs/user/backup.xml' એ ડિફૉલ્ટ ફાઇલ સ્થાન છે.  જો તમને ફાઇલનું સ્થાન ખબર નથી અને તમે તમારું IP સરનામું અને પોર્ટ પહેલેથી જ દાખલ કર્યું છે, તો તમે પસંદગી માટે તમારા Android ઉપકરણ પર ઉપલબ્ધ XML ફાઇલોની સૂચિ મેળવવા માટે 'XML ફાઇલોની સૂચિ' બટનને પસંદ કરી શકો છો.\n\nઉપયોગ નોંધો:\n\nIP સરનામું અને પોર્ટ તમારા Android ઉપકરણ પર ઉપરના URL પરથી 'HTTP સર્વર ઉદાહરણ' પ્રોજેક્ટ ઇન્સ્ટોલ કરીને મેળવી શકાય છે. પછી એન્ડ્રોઇડ સૂચના મેળવવા માટે 'અપડેટ GD HTTP માહિતી' નામનું કાર્ય ચલાવો:\n\nHTTP સર્વર માહિતી\nસર્વર માહિતી અપડેટ કરેલ {\"device name\":\"http://192.168.0.49:1821\"}\n\n- XML ફાઇલ મેળવવા માટે, બટન પર ક્લિક કરો\n\n 'Android ઉપકરણમાંથી XML મેળવો'\n\nપછી આ બટનની નીચે ઇનપુટ ફીલ્ડ્સમાં પ્રસ્તુત ડિફૉલ્ટ મૂલ્યોને સંશોધિત કરો, અને પછી 'Enter and Click Here to Set XML વિગતો' અથવા 'XML ફાઇલોની સૂચિ' બટન પર ક્લિક કરો.\n\n- કોઈપણ બટનને દબાવવાથી Android ઉપકરણ ઉપલબ્ધ છે કે કેમ તે જોવા માટે તેને પિંગ કરશે.  જો ઉપકરણ પહોંચી ન શકે તો પિંગ 10 સેકન્ડ પછી સમય સમાપ્ત થઈ જશે.  ખાતરી કરો કે IP સરનામું સાચું છે.\n\nઆ ફેચ પ્રક્રિયામાંથી પાછા આવવા માટે 'કેન્સલ એન્ટ્રી' બટન પર ક્લિક કરો.\n\n"

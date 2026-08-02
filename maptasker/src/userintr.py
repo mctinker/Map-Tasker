@@ -36,6 +36,7 @@ from maptasker.src.guiutils import (
     display_model_pulldown,
     display_selected_object_labels,
     get_xml,
+    is_no_selection,
     list_tasker_objects,
     ping_android_device,
     refresh_tasker_object_pulldowns,
@@ -72,6 +73,7 @@ from maptasker.src.guiwins import (
     initialize_gui,
     initialize_screen,
     live_views,
+    set_document_language_js,
 )
 from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
@@ -99,6 +101,7 @@ from maptasker.src.primitem import (
 )
 from maptasker.src.rungui import capture_gui_state
 from maptasker.src.sysconst import (
+    ALL_OBJECTS_MESSAGE,
     ANALYSIS_FILE,
     ARGUMENT_NAMES,
     CHANGELOG_URL,
@@ -108,6 +111,7 @@ from maptasker.src.sysconst import (
     logger,
 )
 from maptasker.src.taskerd import get_the_xml_data
+from maptasker.src.translator import T
 from maptasker.src.userhelp import (
     AI_HELP_TEXT,
     APIKEY_HELP_TEXT,
@@ -122,7 +126,29 @@ if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
 
 
-all_objects = "Display all Projects, Profiles, and Tasks."
+all_objects = ALL_OBJECTS_MESSAGE
+
+
+def _single_item_selection_message(gui: "MyGui", item_type: str, name_entered: str) -> str:
+    """The 'Specific Name' tab's summary line for the selection just made.
+
+    Choosing "None" does not mean "display only the item called None" -- it means that item
+    is no longer being filtered on.  The four selectors are mutually exclusive, so clearing
+    one normally leaves nothing selected anywhere; confirm that rather than assume it, and
+    if some other item is somehow still set, report that one instead of claiming everything
+    is on display.
+    """
+    display_only = translate_string("Display only")
+    if not is_no_selection(name_entered):
+        return f"{display_only} {translate_string(item_type)} '{name_entered}'."
+
+    # Nothing selected for this item -- make sure that holds for every other one too.
+    for label in SINGLE_ITEM_LABELS:
+        still_selected = getattr(gui, f"single_{label.lower()}_name", "")
+        if not is_no_selection(still_selected):
+            return f"{display_only} {translate_string(label)} '{still_selected}'."
+
+    return translate_string(ALL_OBJECTS_MESSAGE)
 
 
 # We'll use a class to maintain your state, just like before,
@@ -157,6 +183,14 @@ class MyGui:
         initialize_gui(self)
         self.set_defaults()
         PrimeItems.mygui = self
+
+        # 1a. Install the saved language's translation *before* any of the layout exists.
+        # Every label, button, tab title and tooltip is run through translate_string() at
+        # the moment it is created, so a language restored further down (restore_settings_event
+        # -> extract_settings -> language_set_event) arrives too late to affect anything
+        # already built -- which is the entire window.  That left a non-English startup GUI
+        # sitting in English until the user re-picked their language from the pulldown.
+        self.set_startup_language()
 
         # 2. Attach Event Handlers
         self.event_handlers = MapTaskerEventHandlers(self)
@@ -278,6 +312,31 @@ class MyGui:
         ):  # single_name_status may not be defined yet.
             self.single_name_status(all_objects, "#3f99ff")
 
+    def set_startup_language(self: "MyGui") -> None:
+        """Establish the translation function for the saved language before the GUI is built.
+
+        The settings file has already been read by the time the GUI is created (runcli.process_cli
+        calls restore_arguments() before process_gui()), so the user's language is sitting in
+        PrimeItems.program_arguments.  Load its gettext catalog now so that initialize_screen()
+        builds every widget with its text already translated.  language_set_event() still runs
+        later, during the normal settings restoration, to set the flag logo and the language
+        pulldown; this only front-runs the part it needs before the layout exists.
+        """
+        # A reset run deliberately ignores the saved settings, so it starts out in English.
+        if PrimeItems.program_arguments.get("reset"):
+            return
+
+        language = PrimeItems.program_arguments.get("language") or "English"
+        # The saved value is the English language name ("German"); anything else (a hand-edited
+        # settings file, or a translated name written by an older version) is not something
+        # set_language can resolve, so leave the default English in place.
+        if language not in PrimeItems.languages:
+            logger.warning(f"Saved language '{language}' is not recognized.  Using English.")
+            return
+
+        self.language = language
+        T.set_language(language)
+
     # Utility functions
     def display_message_box(self: "MyGui", message: str, color: str) -> None:
         """Replaces your custom textbox message logging with NiceGUI notifications/logs."""
@@ -352,11 +411,11 @@ class MyGui:
         if return_code > 0:
             none_translated = translate_string("None")
             if return_code == 6:
-                self.display_message_box("Cancel button pressed.\n", "Orange")
+                self.display_message_box(translate_string("Cancel button pressed.\n"), "Orange")
                 display_current_file(self, none_translated)
             else:
                 self.display_message_box(
-                    "Click 'Get Local XML' to try a different XML file.",
+                    translate_string("Click 'Get Local XML' to try a different XML file."),
                     "Red",
                 )
                 display_current_file(self, none_translated)
@@ -372,7 +431,7 @@ class MyGui:
             self.android_file = self.android_ipaddr = self.android_port = ""
             clear_android_buttons(self)
             self.display_message_box(
-                "'Get XML From Android' settings cleared.",
+                translate_string("'Get XML From Android' settings cleared."),
                 "Green",
             )
         return True
@@ -571,8 +630,7 @@ class MyGui:
                     # Optimized attribute fetch
                     file_name = getattr(_prime.file_to_get, "name", _prime.file_to_get)
                     error_message = [
-                        f"{front_error} but it was not found in {file_name}! "
-                        "All Projects, Profiles and Tasks will be displayed.\n",
+                        f"{front_error} but it was not found in {file_name}! All Projects, Profiles and Tasks will be displayed.\n",
                     ]
 
         # 5. Handle Errors
@@ -646,7 +704,7 @@ class MyGui:
         self.extract_colors()
 
         # Display completion
-        self.display_message_box("Settings restored.\n", "Green")
+        self.display_message_box(translate_string("Settings restored.\n"), "Green")
 
         # Recolor 'Run Analysis' now that every setting is in.  Doing it mid-loop isn't enough:
         # ARGUMENT_NAMES restores ai_model well before single_xxx_name, so any refresh triggered
@@ -1023,7 +1081,7 @@ class MyGui:
 
         # 2. Update the tracking text label directly
         if hasattr(self, "task_action_label") and self.task_action_label:
-            self.task_action_label.text = f"Task Action Limit: {limit_int}"
+            self.task_action_label.text = f"{translate_string('Task Action Limit:')} {limit_int}"
 
         # 3. Update the NiceGUI slider's current knob placement value SAFELY using the lock flag
         if hasattr(self, "task_action_limit") and self.task_action_limit:
@@ -1166,7 +1224,7 @@ def _confirmed_single_project_name(gui: MyGui) -> str:
     apart, because parsing means picking a separator and the separator is
     itself translated -- Japanese uses a fullwidth '：', so splitting on ": "
     silently fails for exactly the languages this is meant to fix.
-    """
+    """  # noqa: RUF002
     name = getattr(gui, "single_project_name", "")
     if not name:
         return ""
@@ -1275,7 +1333,7 @@ def _validate_and_apply_new_task(
     (False, "") if anything failed (errors already notified).
     """
     if not edited_task.actions:
-        ui.notify("This Task has no actions yet.", type="warning")
+        ui.notify(translate_string("This Task has no actions yet."), type="warning")
 
     name_value = field_refs["name"].value.strip()
     conflict_errors = []
@@ -1652,7 +1710,7 @@ class MapTaskerEventHandlers:
         # Map view
         if view_type == "map":
             if PrimeItems.xml_root is None:
-                gui.display_message_box("No XML data loaded! Please select a valid XML file first.", "Orange")
+                gui.display_message_box(translate_string("No XML data loaded! Please select a valid XML file first."), "Orange")
                 return
 
             ui.notify(f"Loading {window_title}.  Please stand by ...", type="info", timeout=1000)
@@ -1675,7 +1733,7 @@ class MapTaskerEventHandlers:
                 error_code_extracted = e.code if hasattr(e, "code") else 6
                 if error_code_extracted == 6:
                     gui.display_message_box(
-                        "Map view creation skipped: No valid XML source found or action canceled.",
+                        translate_string("Map view creation skipped: No valid XML source found or action canceled."),
                         "Orange",
                     )
                 else:
@@ -1704,7 +1762,7 @@ class MapTaskerEventHandlers:
                     f"Map view truncated {output_length} lines to {gui.view_limit} lines due to view limit.",
                     "Orange",
                 )
-            gui.display_message_box("Map View opened in a new browser window.", "Green")
+            gui.display_message_box(translate_string("Map View opened in a new browser window."), "Green")
 
         # Setup diagram view.
         elif view_type in ("diagram", "misc"):
@@ -1712,7 +1770,7 @@ class MapTaskerEventHandlers:
             if view_type == "diagram":
                 if PrimeItems.tasker_root_elements["all_projects"] or PrimeItems.tasker_root_elements["all_profiles"]:
                     gui.display_message_box(
-                        "The 'Diagram' view is running in the background.  Please stand by...",
+                        translate_string("The 'Diagram' view is running in the background.  Please stand by..."),
                         "Green",
                     )
 
@@ -1735,13 +1793,13 @@ class MapTaskerEventHandlers:
 
                     # Display the diagram in its own browser window/tab rather than the main window.
                     _open_popout_window("/popout/diagram", getattr(gui, "open_view_in_new_window", False))
-                    gui.display_message_box("Diagram View opened in a new browser window.", "Green")
+                    gui.display_message_box(translate_string("Diagram View opened in a new browser window."), "Green")
                 else:
-                    gui.display_message_box("No XML data loaded! Please select a valid XML file first.", "Orange")
+                    gui.display_message_box(translate_string("No XML data loaded! Please select a valid XML file first."), "Orange")
 
             else:
                 gui.display_message_box(
-                    "The 'Misc' view is running in the background.  Please stand by...",
+                    translate_string("The 'Misc' view is running in the background.  Please stand by..."),
                     "LimeGreen",
                 )
                 gui.textview = NiceGuiTextView(
@@ -1755,16 +1813,16 @@ class MapTaskerEventHandlers:
             if tree_data:
                 gui.textview = NiceGuiTreeView(gui, "Tree View", items=tree_data)
             else:
-                gui.display_message_box("No Project(s) Found in XML!", "Red")
+                gui.display_message_box(translate_string("No Project(s) Found in XML!"), "Red")
                 return
         else:
             ui.notify(
-                "No XML data loaded! Please Get XML from Android or Local drive first.",
+                translate_string("No XML data loaded! Please Get XML from Android or Local drive first."),
                 type="warning",
                 position="top",
             )
             gui.display_message_box(
-                "Invalid view type specified. Use 'map', 'diagram', or 'tree'.",
+                translate_string("Invalid view type specified. Use 'map', 'diagram', or 'tree'."),
                 "Red",
             )
 
@@ -1789,7 +1847,7 @@ class MapTaskerEventHandlers:
             "(window.mapTaskerPopouts || []).forEach(w => { try { if (w && !w.closed) w.close(); } "
             "catch (e) {} }); window.mapTaskerPopouts = [];",
         )
-        ui.notify("View cleared.", type="info", position="bottom")
+        ui.notify(translate_string("View cleared."), type="info", position="bottom")
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
@@ -1868,7 +1926,7 @@ class MapTaskerEventHandlers:
     # 4. TEXT VIEW CONTROLS
     # ==========================================
 
-    def clear_event(self, view_name: str = "mapview") -> None:
+    def clear_event(self, _view_name: str = "mapview") -> None:
         """Clears the search input and un-highlights all matches left by search_event."""
         # Every open view, not just the newest: with "Open View In New Window" several
         # Map/Diagram windows can be up at once, each with its own highlighted matches.
@@ -1908,7 +1966,7 @@ class MapTaskerEventHandlers:
                 }});
             """)
 
-        ui.notify(f"Cleared search highlights in {view_name}.", type="info")
+        ui.notify(translate_string("Cleared the search highlights."), type="info")
 
     # ==========================================
     # ANDROID XML BACKUP EVENT HANDLERS
@@ -1938,18 +1996,18 @@ class MapTaskerEventHandlers:
 
         # 3. Mount text input fields and control action items into the view hierarchy
         with gui.android_container:
-            ui.label("Configure Android Connection:").classes("text-sm font-bold text-blue-500 mb-1 self-start")
+            ui.label(translate_string("Configure Android Connection:")).classes("text-sm font-bold text-blue-500 mb-1 self-start")
 
             # Form Fields
-            gui.ip_entry = ui.input(label="1-TCP/IP Address:", value=android_ipaddr).classes("w-full q-py-none")
-            gui.port_entry = ui.input(label="2-Port Number:", value=android_port).classes("w-full q-py-none")
-            gui.file_entry = ui.input(label="3-File Location:", value=android_file).classes("w-full q-py-none")
+            gui.ip_entry = ui.input(label=translate_string("1-TCP/IP Address:"), value=android_ipaddr).classes("w-full q-py-none")
+            gui.port_entry = ui.input(label=translate_string("2-Port Number:"), value=android_port).classes("w-full q-py-none")
+            gui.file_entry = ui.input(label=translate_string("3-File Location:"), value=android_file).classes("w-full q-py-none")
 
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
                 gui.list_files_button = (
                     ui
-                    .button("List XML Files", on_click=gui.event_handlers.list_files_event)
+                    .button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
                     .style("background-color: #D62CFF; color: white;")
                     .classes("flex-grow text-xs")
                 )
@@ -1963,11 +2021,11 @@ class MapTaskerEventHandlers:
 
             # Inline Button Row 2 (.or. Separator and Cancel Action)
             with ui.row().classes("w-full items-center justify-center gap-2 mt-1"):
-                gui.label_or = ui.label(".or.").classes("text-xs text-gray-400 italic")
+                gui.label_or = ui.label(translate_string(".or.")).classes("text-xs text-gray-400 italic")
 
                 # Close button clears the contents and re-hides the panel drawer clean
                 ui.button(
-                    "Cancel Entry",
+                    translate_string("Cancel Entry"),
                     on_click=lambda: (
                         gui.android_container.clear(),
                         gui.android_container.classes(add="hidden"),
@@ -1977,7 +2035,7 @@ class MapTaskerEventHandlers:
             # Master Set XML Backup execution button
             gui.get_backup_button = (
                 ui
-                .button("Click Here to Set XML Details", on_click=gui.event_handlers.fetch_backup_event)
+                .button(translate_string("Click Here to Set XML Details"), on_click=gui.event_handlers.fetch_backup_event)
                 .style("background-color: #D62CFF; color: white;")
                 .classes("w-full mt-3 font-bold text-xs py-2")
             )
@@ -1993,7 +2051,7 @@ class MapTaskerEventHandlers:
 
         # NiceGUI uses direct text assignment to change the displayed button label
         if hasattr(the_view, "list_files_button") and the_view.list_files_button:
-            the_view.list_files_button.set_text("List Files Selected")
+            the_view.list_files_button.set_text(translate_string("List Files Selected"))
 
         # Trigger the fetch execution routing
         if hasattr(the_view.event_handlers, "fetch_backup_event"):
@@ -2003,7 +2061,7 @@ class MapTaskerEventHandlers:
     def reset_settings_event(self: "MyGui") -> None:
         """Reset everything back to defaults."""
         self.set_defaults()
-        ui.notify("Settings Reset!", type="warning")
+        ui.notify(translate_string("Settings Reset!"), type="warning")
 
     # Process single name selection/event
     def process_name_event(
@@ -2032,11 +2090,10 @@ class MapTaskerEventHandlers:
 
         # Handle translation of item first
         my_name_translated = translate_string(my_name)
-        none_translated = translate_string("None")
         name_entered = name_entered.replace(f"{my_name_translated}: ", "")
 
         if name_entered in ["No projects found", "No profiles found", "No tasks found", "No scenes found"]:
-            the_view.display_message_box("Selection ignored.", "Orange")
+            the_view.display_message_box(translate_string("Selection ignored."), "Orange")
             name_entered = "None"
         else:
             if the_view.check_name(name_entered, my_name):
@@ -2050,8 +2107,9 @@ class MapTaskerEventHandlers:
                 the_view.is_updating = True
                 reset_single_item_pulldowns(the_view, except_for=my_name)
 
-                # Save the name in mygui signle_xxx_name.
-                name_entered = "" if name_entered == none_translated else name_entered
+                # Save the name in mygui signle_xxx_name.  Every form of "nothing selected"
+                # stores as empty, so nothing downstream has to know about the others.
+                name_entered = "" if is_no_selection(name_entered) else name_entered
 
                 # Now save the name where it counts: the_view andf PrimeItems.program_arguments for use in mapit_all.
                 setattr(the_view, f"single_{my_name.lower()}_name", name_entered)
@@ -2059,13 +2117,9 @@ class MapTaskerEventHandlers:
                 # Assign it to the dictionary
                 PrimeItems.program_arguments[key_name] = name_entered
 
-                text1 = translate_string("Display only")
-                text2 = translate_string("Display all")
-                name_entered = PrimeItems._(name_entered) if hasattr(PrimeItems, "_") else name_entered
-                if name_entered:
-                    the_view.specific_name_msg = f"{text1} {my_name_translated} '{name_entered}'."
-                else:
-                    the_view.specific_name_msg = f"{text2} {my_name_translated}."
+                # Built after the name is stored, so the "is anything still selected?" check
+                # sees this selection too.
+                the_view.specific_name_msg = _single_item_selection_message(the_view, my_name, name_entered)
             else:
                 the_view.single_name_msg = all_objects
             # Update the pulldown menus.
@@ -2128,7 +2182,7 @@ class MapTaskerEventHandlers:
         the_view = self.gui
         task_name = getattr(the_view, "single_task_name", "")
         if not task_name:
-            ui.notify("Select a single Task first (Task pulldown above).", type="warning")
+            ui.notify(translate_string("Select a single Task first (Task pulldown above)."), type="warning")
             return
 
         edited_task = taskedit.load_task_for_edit(task_name)
@@ -2306,7 +2360,7 @@ class MapTaskerEventHandlers:
         """
         if not _apply_edited_task(edited_task, field_refs):
             return
-        ui.notify("Changes kept.", type="positive")
+        ui.notify(translate_string("Changes kept."), type="positive")
         dialog.close()
 
     def save_edited_task_to_current_file_event(
@@ -2455,7 +2509,7 @@ class MapTaskerEventHandlers:
         # taskedit.save_task_to_android_directory's docstring for why a retry,
         # not a different endpoint, is the only fallback that can plausibly help).
         if taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key):
-            ui.notify("Task Uploaded to Tasker", type="positive")
+            ui.notify(translate_string("Task Uploaded to Tasker"), type="positive")
         else:
             fallback_code, fallback_result = taskedit.save_task_to_android_directory(
                 edited_task,
@@ -2465,7 +2519,7 @@ class MapTaskerEventHandlers:
                 auth_key,
             )
             if fallback_code == 0:
-                ui.notify("Task Uploaded to Tasker.", type="positive")
+                ui.notify(translate_string("Task Uploaded to Tasker."), type="positive")
             else:
                 ui.notify(
                     f"Unable to upload Task to Tasker: {fallback_result}",
@@ -2488,7 +2542,7 @@ class MapTaskerEventHandlers:
             if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
-                ui.notify("No backup file is currently loaded. Use 'Get Local XML' first.", type="warning")
+                ui.notify(translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning")
                 return
 
         new_project = projedit.create_new_project("")
@@ -2526,7 +2580,7 @@ class MapTaskerEventHandlers:
 
         _finish_new_project(self.gui, edited_project)
 
-        ui.notify("Project added.", type="positive")
+        ui.notify(translate_string("Project added."), type="positive")
         dialog.close()
 
     def open_edit_project_dialog_event(self) -> None:
@@ -2534,7 +2588,7 @@ class MapTaskerEventHandlers:
         the_view = self.gui
         project_name = _confirmed_single_project_name(the_view)
         if not project_name:
-            ui.notify("Select a single Project first (Project pulldown above).", type="warning")
+            ui.notify(translate_string("Select a single Project first (Project pulldown above)."), type="warning")
             return
 
         edited_project = projedit.load_project_for_edit(project_name)
@@ -2765,7 +2819,7 @@ class MapTaskerEventHandlers:
         the_view = self.gui
         profile_name = getattr(the_view, "single_profile_name", "")
         if not profile_name:
-            ui.notify("Select a single Profile first (Profile pulldown above).", type="warning")
+            ui.notify(translate_string("Select a single Profile first (Profile pulldown above)."), type="warning")
             return
 
         edited_profile = profedit.load_profile_for_edit(profile_name)
@@ -2827,7 +2881,7 @@ class MapTaskerEventHandlers:
         refresh_tasker_object_pulldowns(self.gui)
         _select_renamed_item(self.gui, "Profile", new_name)
 
-        title_label.set_text(f"Edit Profile: {new_name}")
+        title_label.set_text(f"{T.translate_string('Edit Profile')}: {new_name}")
         # Keeps Ok/Save from re-applying the pre-rename name -- see
         # confirm_rename_task_event's identical note.
         field_refs["name"].value = new_name
@@ -2887,7 +2941,7 @@ class MapTaskerEventHandlers:
         the_view = self.gui
         project_name = _confirmed_single_project_name(the_view)
         if not project_name:
-            ui.notify("Select a single Project first (Project pulldown above).", type="warning")
+            ui.notify(translate_string("Select a single Project first (Project pulldown above)."), type="warning")
             return
 
         # See open_add_task_dialog_event's identical self-healing load: the toolbar's
@@ -2897,7 +2951,7 @@ class MapTaskerEventHandlers:
             if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
-                ui.notify("No backup file is currently loaded. Use 'Get Local XML' first.", type="warning")
+                ui.notify(translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning")
                 return
 
         new_profile = profedit.create_new_profile("")
@@ -2915,7 +2969,7 @@ class MapTaskerEventHandlers:
     ) -> None:
         """Links an existing Task (by name) to the Profile as its Entry or Exit Task."""
         if not task_name:
-            ui.notify("Choose a Task first.", type="warning")
+            ui.notify(translate_string("Choose a Task first."), type="warning")
             return
         resolved = taskedit.resolve_task_by_name(task_name)
         if resolved is None:
@@ -2959,7 +3013,7 @@ class MapTaskerEventHandlers:
     def add_condition_to_profile_event(self, edited_profile: profedit.EditableProfile, cond_type: str) -> None:
         """Adds a new condition (Time/Day/App/Loc) to the Profile being edited."""
         if not cond_type:
-            ui.notify("Choose a condition type first.", type="warning")
+            ui.notify(translate_string("Choose a condition type first."), type="warning")
             return
         result = profedit.add_condition_to_profile(edited_profile, cond_type)
         if isinstance(result, list):
@@ -2973,7 +3027,7 @@ class MapTaskerEventHandlers:
     def add_event_condition_to_profile_event(self, edited_profile: profedit.EditableProfile, event_key: str) -> None:
         """Synthesizes and appends a new Event condition to the Profile being edited."""
         if not event_key:
-            ui.notify("Choose an Event type first.", type="warning")
+            ui.notify(translate_string("Choose an Event type first."), type="warning")
             return
         result = profedit.add_event_condition_to_profile(edited_profile, event_key)
         if isinstance(result, list):
@@ -2985,7 +3039,7 @@ class MapTaskerEventHandlers:
     def add_state_condition_to_profile_event(self, edited_profile: profedit.EditableProfile, state_key: str) -> None:
         """Synthesizes and appends a new State condition to the Profile being edited."""
         if not state_key:
-            ui.notify("Choose a State type first.", type="warning")
+            ui.notify(translate_string("Choose a State type first."), type="warning")
             return
         result = profedit.add_state_condition_to_profile(edited_profile, state_key)
         if isinstance(result, list):
@@ -3065,7 +3119,7 @@ class MapTaskerEventHandlers:
         """
         if not _apply_edited_profile(edited_profile, field_refs):
             return
-        ui.notify("Changes kept.", type="positive")
+        ui.notify(translate_string("Changes kept."), type="positive")
         dialog.close()
 
     def save_edited_profile_to_current_file_event(
@@ -3153,7 +3207,7 @@ class MapTaskerEventHandlers:
         _finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
         ui.notify(
-            "Profile kept for this session only -- use 'Save To Current File' to keep it permanently.",
+            translate_string("Profile kept for this session only -- use 'Save To Current File' to keep it permanently."),
             type="positive",
         )
         dialog.close()
@@ -3359,7 +3413,7 @@ class MapTaskerEventHandlers:
         the_view = self.gui
         project_name = _confirmed_single_project_name(the_view)
         if not project_name:
-            ui.notify("Select a single Project first (Project pulldown above).", type="warning")
+            ui.notify(translate_string("Select a single Project first (Project pulldown above)."), type="warning")
             return
 
         # The toolbar's "Current File" only means a filename is known (see
@@ -3371,7 +3425,7 @@ class MapTaskerEventHandlers:
             if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
-                ui.notify("No backup file is currently loaded. Use 'Get Local XML' first.", type="warning")
+                ui.notify(translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning")
                 return
 
         new_task = taskedit.create_new_task("", "100")
@@ -3534,7 +3588,7 @@ class MapTaskerEventHandlers:
             return
 
         checkbox.set_text(f"If: {target.strip()} {operator_label} {value.strip()}".rstrip())
-        ui.notify("If condition set.", type="positive")
+        ui.notify(translate_string("If condition set."), type="positive")
         condition_dialog.close()
 
     def remove_action_condition_event(self, edited_task: taskedit.EditableTask, act_number: int) -> None:
@@ -3599,7 +3653,7 @@ class MapTaskerEventHandlers:
         _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
         ui.notify(
-            "Task kept for this session only -- use 'Save To Current File' to keep it permanently.",
+            translate_string("Task kept for this session only -- use 'Save To Current File' to keep it permanently."),
             type="positive",
         )
         dialog.close()
@@ -3666,7 +3720,7 @@ class MapTaskerEventHandlers:
             # Update the UI to reflect the saved variable
             gui.current_file.text = f"Saved Variable: {AppState.selected_file_path}"
             gui.current_file.classes(replace="text-green-600 font-bold")
-            ui.notify("File path saved successfully!", type="positive")
+            ui.notify(translate_string("File path saved successfully!"), type="positive")
 
             # Let everyone knmow which file we are working with
             PrimeItems.file_to_get = (
@@ -3704,7 +3758,7 @@ class MapTaskerEventHandlers:
 
         else:
             # Handle the case where the user hit "Cancel" or closed the dialog
-            ui.notify("File selection canceled.", type="warning")
+            ui.notify(translate_string("File selection canceled."), type="warning")
 
     # Process the 'Restore Settings' checkbox
     def restore_settings_event(self) -> None:
@@ -3743,7 +3797,7 @@ class MapTaskerEventHandlers:
 
         # If no colors restored, let user know.
         if not the_view.color_lookup:
-            the_view.display_message_box("Colors set to defaults.", "Green")
+            the_view.display_message_box(translate_string("Colors set to defaults."), "Green")
 
         # Restore progargs values
         if temp_args or the_view.color_lookup:
@@ -3752,7 +3806,7 @@ class MapTaskerEventHandlers:
 
         # No arguments mean no settings.
         else:  # Empty?
-            the_view.display_message_box("No settings file found.", "Orange")
+            the_view.display_message_box(translate_string("No settings file found."), "Orange")
 
         # Save our background color for later reuse
         the_view.saved_background_color = make_hex_color(the_view.color_lookup.get("background_color"))
@@ -3804,8 +3858,8 @@ class MapTaskerEventHandlers:
 
             # Actions Row
             with ui.row().classes("w-full justify-end gap-2"):
-                ui.button("Cancel", on_click=lambda: dialog.submit(None)).classes("bg-gray-400 text-white")
-                ui.button("Submit", on_click=lambda: dialog.submit(prompt_input.value)).classes(
+                ui.button(translate_string("Cancel"), on_click=lambda: dialog.submit(None)).classes("bg-gray-400 text-white")
+                ui.button(translate_string("Submit"), on_click=lambda: dialog.submit(prompt_input.value)).classes(
                     "bg-blue-600 text-white",
                 )
 
@@ -3815,11 +3869,11 @@ class MapTaskerEventHandlers:
         # 3. Handle the resulting inputs identically to your original logic
         # Canceled? (User clicked Cancel or closed the modal backdrop)
         if name_entered is None:
-            the_view.display_message_box("Prompt change canceled.", "Orange")
+            the_view.display_message_box(translate_string("Prompt change canceled."), "Orange")
 
         # The same?
         elif name_entered == the_view.ai_prompt:
-            the_view.display_message_box("Prompt did not change.", "Orange")
+            the_view.display_message_box(translate_string("Prompt did not change."), "Orange")
 
         # Valid response
         else:
@@ -4193,6 +4247,18 @@ class MapTaskerEventHandlers:
 
         language_translated = translate_string(language_to_use)
 
+        # Re-stamp the live document's language.  Switching language rebuilds the layout but
+        # not the document, so the lang attribute baked in at page build (see
+        # document_language_html in guiwins.py) would still name the previous language --
+        # and a browser that trusts it could decide the newly translated UI needs
+        # translating.  Only possible once a client is connected, which is not the case
+        # during the startup settings restore that also lands here.
+        with contextlib.suppress(Exception):
+            if PrimeItems.mygui is not None and context.client.has_socket_connection:
+                ui.run_javascript(
+                    set_document_language_js(PrimeItems.languages.get(language_to_use, "en")),
+                )
+
         # 2. Change the menu dropdown value safely using the lock flag. The dropdown's
         # options are a {english_key: translated_label} dict (see
         # _create_language_selection_section in guiwins.py), so its "value" must be the
@@ -4229,7 +4295,7 @@ class MapTaskerEventHandlers:
         the_view.task_action_warning_limit = value
 
         if hasattr(the_view, "task_action_label") and the_view.task_action_label:
-            the_view.task_action_label.text = f"Task Action Limit: {value}"
+            the_view.task_action_label.text = f"{translate_string('Task Action Limit:')} {value}"
 
         # 2. Update the NiceGUI slider's current knob placement value SAFELY using the lock flag
         if hasattr(the_view, "task_action_limit") and the_view.task_action_limit:
@@ -4261,7 +4327,7 @@ class MapTaskerEventHandlers:
             the_view.color_lookup,
             to_save=True,
         )
-        the_view.display_message_box("Settings saved.", "Green")
+        the_view.display_message_box(translate_string("Settings saved."), "Green")
 
     # The Upgrade Version button has been pressed.
     def upgrade_event(self) -> None:
@@ -4275,7 +4341,7 @@ class MapTaskerEventHandlers:
             - Reruns the program to pick up the update."""
         the_view = self.gui
         update_maptasker()
-        the_view.display_message_box("Program updated.  Restarting...", "Green")
+        the_view.display_message_box(translate_string("Program updated.  Restarting..."), "Green")
         # Create the Change Log file to be read and displayed after a program update.
         create_changelog()
 
@@ -4289,7 +4355,7 @@ class MapTaskerEventHandlers:
             webbrowser.open("https://www.buymeacoffee.com/mctinker", new=2)
         except webbrowser.Error:
             the_view.display_message_box(
-                "Error: Failed to open output in browser: your browser is not supported.",
+                translate_string("Error: Failed to open output in browser: your browser is not supported."),
                 "Red",
             )
 
@@ -4315,7 +4381,7 @@ class MapTaskerEventHandlers:
             webbrowser.open(f"https:{PrimeItems.slash * 2}{url}", new=2)
         except webbrowser.Error:
             the_view.display_message_box(
-                "Error: Failed to open output in browser: your browser is not supported.",
+                translate_string("Error: Failed to open output in browser: your browser is not supported."),
                 "Red",
             )
             return
@@ -4451,7 +4517,7 @@ class MapTaskerEventHandlers:
                 for scroll_area in scroll_areas:
                     scroll_area.style(f"background-color: {color_value} !important;")
                 if not scroll_areas:
-                    ui.notify("The change will take effect the next time you open the view.", color="green")
+                    ui.notify(translate_string("The change will take effect the next time you open the view."), color="green")
 
             else:
                 css_class = TYPES_OF_COLOR_NAMES.get(color_selected_item)
@@ -4472,7 +4538,7 @@ class MapTaskerEventHandlers:
                             """,
                         )
                 if not (css_class and scroll_areas):
-                    ui.notify("The change will take effect the next time you open the view.", color="green")
+                    ui.notify(translate_string("The change will take effect the next time you open the view."), color="green")
 
             # Update the visual status label text and text color instantly
             if hasattr(the_view, "color_change") and the_view.color_change:
@@ -4517,7 +4583,7 @@ class MapTaskerEventHandlers:
         the_view.saved_background_color = make_hex_color(PrimeItems.colors_to_use.get("background_color"))
         the_view.color_lookup = {}
         the_view.display_message_box(
-            "Tasker items set back to their default colors.",
+            translate_string("Tasker items set back to their default colors."),
             "Green",
         )
 
@@ -4539,12 +4605,12 @@ class MapTaskerEventHandlers:
         Returns:
             None
         """
-        ui.notify("Starting AI Analysis...", type="info")
+        ui.notify(translate_string("Starting AI Analysis..."), type="info")
         gui = self.gui
 
         # Validate the model
         if gui.ai_model in ("None", ""):
-            gui.display_message_box("No model selected.", "Orange")
+            gui.display_message_box(translate_string("No model selected."), "Orange")
             return
 
         # Set the AI API key based on the model selected.
@@ -4617,13 +4683,13 @@ class MapTaskerEventHandlers:
             and not PrimeItems.tasker_root_elements["all_tasks"]
         ):
             gui.display_message_box(
-                "No projects, profiles, or tasks have been loaded!  Load some XML and try again.",
+                translate_string("No projects, profiles, or tasks have been loaded!  Load some XML and try again."),
                 "Orange",
             )
         # No single item has been selected.
         else:
             gui.display_message_box(
-                "Single Project/Profile/Task has not been selected!  Select only one and try again.",
+                translate_string("Single Project/Profile/Task has not been selected!  Select only one and try again."),
                 "Orange",
             )
             # Get the Profile or Task to analyze
@@ -4650,7 +4716,7 @@ class MapTaskerEventHandlers:
         # 1. Handle Cancel Event
         if cancel:
             gui.display_message_box(
-                "'Cancel' button selected. No change to the API keys!",
+                translate_string("'Cancel' button selected. No change to the API keys!"),
                 "Orange",
             )
             dialog_container.close()  # Routes down to the inner dialog element cleanly
@@ -4729,7 +4795,7 @@ class MapTaskerEventHandlers:
             display_analyze_button(gui, 13, first_time=False)
             display_selected_object_labels(gui)
         else:
-            gui.display_message_box("No API keys changed.", "LimeGreen")
+            gui.display_message_box(translate_string("No API keys changed."), "LimeGreen")
 
         # 6. Close the window view
         dialog_container.close()
@@ -4885,7 +4951,7 @@ class MapTaskerEventHandlers:
         # 2. Check if detail level is too low to support twisties
         if mygui.twisty and int(mygui.display_detail_level) < all_parameters_threshold:
             mygui.display_message_box(
-                "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!",
+                translate_string("This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!"),
                 "Red",
             )
 
@@ -4898,7 +4964,7 @@ class MapTaskerEventHandlers:
         # 3. Check to see if we are doing everything (they are mutually exclusive)
         if mygui.twisty and mygui.everything:
             mygui.display_message_box(
-                "'Twisty' and 'Everything' are mutually exclusive.  Unchecking 'Twisty'.",
+                translate_string("'Twisty' and 'Everything' are mutually exclusive.  Unchecking 'Twisty'."),
                 "Orange",
             )
 
@@ -5059,7 +5125,7 @@ class MapTaskerEventHandlers:
         if hasattr(self, "_display_backup_summary"):
             self._display_backup_summary()
         else:
-            gui.display_message_box("Android configuration details matched successfully!", "Green")
+            gui.display_message_box(translate_string("Android configuration details matched successfully!"), "Green")
 
     # List unnamed Items checkbox event
     def list_unnamed_items_event(self) -> None:

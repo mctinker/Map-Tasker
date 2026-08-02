@@ -377,7 +377,7 @@ msgid "Display only Project"
 msgstr "표시 전용 프로젝트"
 msgid "None"
 msgstr "없음"
-msgid "Display all Projects, Profiles, and Tasks."
+msgid "Display all Projects, Profiles, Tasks, and Scenes."
 msgstr "모든 프로젝트, 프로필 및 작업을 표시합니다."
 msgid "Display all"
 msgstr "모두 표시"
@@ -606,14 +606,7 @@ msgid "The 'Search' button will search for and highlight every instance of the s
 msgstr "'검색' 버튼은 데이터 상단부터 검색 상자에 입력된 문자열의 모든 인스턴스를 검색하고 강조 표시합니다.\n\n'여기 검색' 버튼은 현재 화면부터 시작하여 검색 상자에 입력된 문자열의 모든 인스턴스를 검색하고 강조 표시합니다.\n\n모든 일치 항목을 보려면 강조 표시된 일치 문자열 위로 마우스를 가져가세요.\n\n'다음' 및 '이전' 버튼은 검색 문자열의 다음 및 이전 항목을 텍스트 보기 상자에 표시하고 강조 표시합니다. 다른 색상으로 표시됩니다.\n\n검색 문자열을 표시하는 정확도가 항상 완벽한 것은 아니며 이 프로그램의 제어 범위를 벗어납니다.\n\n텍스트 보기 상자의 끝이나 시작 부분에 도달하면 검색이 중지되고 메시지가 몇 초 동안 표시됩니다.\n\n'지우기' 버튼을 누르면 검색 결과가 지워집니다.\n\n'표시 전용' 버튼은 검색 결과에서 일치하는 항목만 기타 창에 표시됩니다.\n\n"
 msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nIn order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running on your Android device.  This profile can be found at the following URL:\n\n    https://t.ly/8vI1f\n\n"
 msgstr "이 버튼을 클릭하면 다음 작업이 수행됩니다.\n\n- IP 주소는 Android 장치를 ping하는 데 사용됩니다.\n\n- IP 주소와 포트 번호는 Android 장치를 쿼리하고 Tasker 폴더에서 사용 가능한 XML 파일 목록을 가져오는 데 사용됩니다.\n\n- 발견된 XML 파일 목록은 사용하려는 파일을 선택할 수 있는 풀다운 메뉴에 표시됩니다.\n\n- XML 파일을 선택하면 해당 파일을 가져와서 유효한 것으로 확인합니다. 나중에 '실행' 또는 '재실행' 버튼을 클릭하면 프로그램에 대한 입력으로 사용되는 XML입니다.\n\n이 작업을 수행하려면 이미 'MapTasker 목록' 프로필을 Android 기기에서 실행 중인 Tasker로 가져와야 합니다.  이 프로필은 다음 URL에서 찾을 수 있습니다.\n\n https://t.ly/8vI1f\n\n"
-msgid "Help\n\nMapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to either report a bug or request a new feature ( [Feature Request] )\n\n* Appearance Mode: Dark, Light, or System default.\n\n* Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Clear Messages: Clear any messages in the textbox.\n\n* Font To Use: Change the monospace font used for the output.\n\n* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Androiddevice.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n* ReRun: Run multiple times (each time with new settings) without exiting, displaying the results in the browser.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   (These three are exclusive: enter one only)\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile or Task against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n- If you receive any of the following the runtime errors, you can ignore them:\n      '[CATransaction synchronize] called within transaction'.\n      'IMKClient Stall detected...'.\n\n- Drag the window to expand the text as desired.\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "도움말\n\nMapTasker는 업로드된 Tasker XML 파일(예: 'backup.xml')을 기반으로 Android Tasker 구성을 표시합니다. 표시에는 선택적으로 모든 프로젝트, 프로필, 작업 및 해당 작업, 프로필/작업 조건 및 기타 프로필/작업 관련 정보가 포함됩니다.\n\n* 표시 옵션은 다음과 같습니다.\n 레벨 0: 이름이 없는 작업에 대해서만 첫 번째 작업 작업만 표시(자동).\n 레벨 1 = 알 수 없는 작업에 대해서만 모든 작업 작업 세부 정보 표시(기본값).\n 레벨 2 = 모든 작업에 전체 작업 작업 이름 표시\n 레벨 3 = 작업이 있는 모든 작업에 대한 전체 작업 작업 세부 정보 표시 세부 정보.\n 레벨 4 = 표시 레벨 3과 프로젝트의 전역 변수.\n\n 레벨 5 = 표시 레벨 4와 장면 인수 세부 정보.\n\n* Just Display Everything: 조건, TaskerNet 정보, 기본 설정, 예쁜 출력, 디렉터리 및 구성 개요 표시를 켭니다.\n\n* 표시 조건: 프로필 및 작업 조건 표시를 켭니다.\n\n* TaskerNet 정보 표시 - 가능한 경우 TaskerNet 게시 정보를 표시합니다.\n\n* 표시 Tasker 기본 설정 - Tasker의 시스템 기본 설정을 표시합니다.\n\n* Twisty에서 작업 세부 정보 숨기기: ► 내에서 작업 정보를 숨기고 클릭하여 표시합니다.\n\n* 시작 시 하이퍼링크 디렉터리를 표시합니다.\n\n* 프로젝트/프로필/작업/장면의 구성 개요 및 맵을 표시합니다.\n\n* 더 예쁜 출력 표시: 모든 인수에 새 줄과 들여쓰기를 추가하여 출력을 사람이 더 읽기 쉽게 만듭니다.\n\n* 프로젝트/프로필/작업/장면 이름 옵션을 사용하여 이름을 기울임꼴, 굵게, 밑줄 및/또는 강조 표시합니다.\n\n* 작업 작업 제한: 작업에 지정된 작업 수보다 많은 경우 경고를 표시합니다.\n\n* If/Then/Else 작업 작업의 들여쓰기 양.\n\n* 설정 저장 - 나중에 사용할 수 있도록 이 설정을 저장합니다.\n\n* 설정 복원 - 이전에 저장한 세션에서 설정을 복원합니다.\n\n* 문제 보고 - 이렇게 하면 문제가 발생합니다. 브라우저를 문제 보고 사이트로 연결하면 이를 사용하여 버그를 보고하거나 새 기능([기능 요청])을 요청할 수 있습니다.\n\n* 모양 모드: 어두움, 밝음 또는 시스템 기본값.\n\n* 보기: GUI에서 직접 프로젝트, 프로필, 작업 및 장면의 구성 맵, 다이어그램 또는 트리 보기를 표시합니다.\n\n* 보기 제한: 보기를 생성할 때 사용되는 처리 시간을 제어합니다.\n\n* 옵션 재설정: 모든 내용을 지우고 시작합니다. anew.\n\n* 메시지 지우기: 텍스트 상자의 모든 메시지를 지웁니다.\n\n* 사용할 글꼴: 출력에 사용되는 고정폭 글꼴을 변경합니다.\n\n* 표시 개요: 프로젝트/프로필/작업/장면 구성 개요를 표시합니다.\n\n* Android 장치에서 XML 가져오기: Android 장치에서 백업/내보낸 XML 파일을 가져옵니다.  Android 기기의 IP 주소와 포트 번호, 기기의 파일 위치를 묻는 메시지가 표시됩니다.\n\n* 로컬 XML 가져오기: 로컬 드라이브에서 백업/내보낸 XML 파일을 가져옵니다.\n\n* 실행 및 종료: 제공된 설정으로 프로그램을 실행하고 웹 브라우저에 결과를 표시한 다음 종료합니다.\n* 재실행: 종료하지 않고(새 설정으로 매번) 여러 번 실행하여 브라우저에 결과를 표시합니다.\n\n* 특정 이름 탭: a를 입력합니다. 표시할 특정 명명된 항목...\n - 프로젝트 이름: 표시할 특정 프로젝트를 입력합니다.\n - 프로필 이름: 표시할 특정 프로필을 입력합니다.\n - 작업 이름: 표시할 특정 작업을 입력합니다.\n (이 세 가지는 제외됩니다. 하나만 입력하세요.)\n\n* 색상 탭: 디스플레이의 다양한 요소에 대한 색상을 선택합니다.\n(예: 프로젝트, 프로필, 작업 등에 대한 색상).\n\n* 분석 탭: 프로젝트, 프로필 또는 작업에 대한 분석을 실행합니다. Ai 모델에 대한 작업.\n\n* 디버그 탭: 런타임 설정 옵션을 표시하고 디버그 모드를 켭니다.\n\n* 종료: 프로그램을 종료합니다(종료).\n\n참고:\n\n- 아직 수행하지 않은 경우 '실행 및 종료' 또는 '재실행' 버튼을 누르면 Tasker XML 파일을 식별하라는 메시지가 표시됩니다.\n\n- 다음과 같은 런타임 오류가 나타나면 무시할 수 있습니다.\n '[CATransaction 동기화]가 트랜잭션 내에서 호출되었습니다.\n 'IMKClient 정지가 감지되었습니다...'.\n\n- 창을 드래그하여 원하는 대로 텍스트를 확장합니다.\n\n- https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md에서 전체 변경 로그 기록을 봅니다.\n\n- 표시 모드를 변경하면 출력에 사용되는 색상이 기본값으로 변경됩니다.\n\n"
-msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
-msgstr "분석 탭은 로컬 라마 모델이나 서버 기반 Open AI, Claude 또는 DeepSeek 모델을 사용하여 프로필에서 Ai 분석을 실행하는 데 사용됩니다.\n\n프로필에 대해 AI를 실행하려면 다음 단계가 필요합니다.\n\n1- 서버 기반 AI를 사용하는 경우 공급자(예: OpenAI)로부터 유효한 API 키가 있어야 합니다.  'API 키 표시/편집' 버튼을 사용하여 키를 입력할 수 있습니다.\n\n2- 기본 프롬프트는 '성능 및 가독성 개선 제안: (프로젝트/프로필/작업)'이며 자동으로 앞에 'Tasker에서 다음 (프로젝트/프로필/작업)이 제공됨'이 표시됩니다.  프롬프트를 수정하는 경우 '개선 사항 제안...' 부분만 수정하는 것입니다.\n\n3- 사용하려는 모델을 선택합니다.\n\n o 선택한 모델에 따라 분석을 수행할 AI가 결정됩니다.\n\n4- '분석 실행' 버튼을 클릭합니다.  필요한 데이터가 모두 입력되면 분홍색으로 변합니다.\n\n o 모델, 프롬프트 또는 단일 프로젝트, 프로필 또는 작업 또는 유효한 API 키를 아직 선택하지 않은 경우 먼저 선택하라는 메시지가 표시됩니다.\n\n o 프로세스는 시간이 걸릴 수 있으며 백그라운드에서 실행될 수 있습니다.  결과는 별도의 창에 표시됩니다.\n\n o 아직 컴퓨터에 로드되지 않은 로컬 모델은 분석이 시작되면 백그라운드에 로드됩니다.\n\n지정된 API 키(있는 경우), 모델, 선택한 프로젝트, 프로필 또는 작업 및 Ai 프롬프트는 모두 세션 전반에 걸쳐 저장됩니다.\n\n'재실행' 기능은 내부적으로 새 창에 분석 결과를 표시하는 데 사용됩니다.\n\n"
-msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nAll view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n\nThe Map View has the following behavior:\n\n - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
-msgstr "GUI 내에서 구성의 '지도', '다이어그램' 또는 '트리' 보기를 직접 표시하십시오.\n\n보기가 작동하려면 먼저 로컬 드라이브 또는 Android 장치에서 XML을 가져와야 합니다.\n\n모든 보기 창은 필요에 따라 늘리거나 이동할 수 있습니다.  특정 보기 명령을 다시 실행하여 새 크기와 위치로 보기를 새로 고치십시오.\n\nXML을 이미 가져온 경우 보기에 대한 입력으로 사용됩니다.  '재설정' 버튼을 누르면 보기 데이터가 지워집니다.\n\n매우 큰 구성으로 인해 지도 및 다이어그램의 실행 시간이 연장됩니다.  최상의 성능을 위해 매핑할 단일 프로젝트 또는 프로필을 선택하십시오.\n\n\n맵 보기의 동작은 다음과 같습니다.\n\n - 브라우저가 직접 호출되지 않는 동안 로컬 'MapTasker.html' 파일을 열어 브라우저에 지도를 표시할 수 있습니다.\n\n - '구성 개요 표시' 설정은 지도 보기에서 작동하지 않으므로 무시됩니다.\n\n - 디렉토리 하이퍼링크를 사용하여 한 단계 또는 두 단계 위로 올라가면 새 지도가 생성됩니다. 보기.\n\n\n다이어그램 보기의 동작은 다음과 같습니다.\n\n - 프로젝트 및 프로필만 표시할 수 있습니다. 단일 작업 또는 장면으로만 구성된 XML은 표시되지 않습니다.\n\n - 다이어그램에서 전체 연결을 강조 표시하려면 수평 커넥터를 클릭하십시오.\n\n\n트리 보기에는 다음 동작이 있습니다.\n\n- 화면 하단 너머로 스크롤되는 거대한 구성은 아직 전체를 볼 수 없습니다.\n\n- 프로젝트만 표시할 수 있습니다. 단일 프로필, 작업 또는 장면으로만 구성된 XML은 표시되지 않습니다.\n\n- 단일 이름 설정에 관계없이 모든 프로젝트, 프로필, 작업 및 장면이 표시됩니다.\n\n"
-msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, no output map will be generated.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
-msgstr "'뷰 제한'은 뷰를 생성할 때 사용되는 처리 시간을 제어하는 ​​수단입니다.\n\n- 숫자는 생성될 출력 라인의 상대적 양을 나타냅니다.\n\n- 제한이 클수록 매핑이 허용되는 출력도 커집니다.  생성되는 출력이 많을수록 처리 시간이 길어집니다.\n\n- 매우 큰 구성은 매우 큰 출력 맵을 생성하고 처리 시간이 길어집니다.  구형 장치에서는 이 작업에 최대 30초 이상이 소요될 수 있습니다.\n\n- 제한을 설정하면 더 긴 기간을 허용하지 않음으로써 구성을 매핑할 때 사용되는 처리 시간을 제어할 수 있습니다.\n\n- 맵을 계산할 때 제한에 도달하면 출력 맵이 생성되지 않습니다.\n\n- 이 설정을 실험하여 사용 사례에 가장 적합한 설정이 무엇인지 확인할 수 있습니다.\n\n- 단일 프로젝트, 프로필 또는 작업을 선택하는 것도 처리 시간을 제한하는 또 다른 방법입니다.\n\n"
+
 msgid "API Key Help"
 msgstr "API 키 도움말"
 msgid "Profiles Per Line Help"
@@ -945,3 +938,639 @@ msgid "빛"
 msgstr "Light"
 msgid "체계"
 msgstr "System"
+
+msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
+msgstr "특정 프로젝트, 프로필, 작업 또는 장면을 타겟팅합니다. (한 가지만 선택하세요)"
+
+msgid "Rename"
+msgstr "이름 바꾸기"
+
+msgid "Export Project"
+msgstr "프로젝트 내보내기"
+
+msgid "Export Profile"
+msgstr "프로필 내보내기"
+
+msgid "Export Task"
+msgstr "작업 내보내기"
+
+msgid "Save"
+msgstr "구하다"
+
+msgid "Overwrite"
+msgstr "덮어쓰기"
+
+msgid "Delete Project"
+msgstr "프로젝트 삭제"
+
+msgid "Delete Profile"
+msgstr "프로필 삭제"
+
+msgid "Delete Task"
+msgstr "작업 삭제"
+
+msgid "Its"
+msgstr "그것은"
+
+msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
+msgstr "연결된 작업은 유지됩니다. 이 작업은 이 프로필이 아닌 프로젝트에 속합니다."
+
+msgid "It has no linked Tasks."
+msgstr "연결된 작업이 없습니다."
+
+msgid "It will be removed from"
+msgstr "다음에서 제거됩니다."
+
+msgid "Project(s) and unlinked from"
+msgstr "프로젝트 및 연결 해제됨"
+
+msgid "Profile(s) that run it. Those Profiles themselves are kept."
+msgstr "이를 실행하는 프로필입니다. 해당 프로필 자체는 유지됩니다."
+
+msgid "Keep Contents"
+msgstr "콘텐츠 보관"
+
+msgid "Delete Contents"
+msgstr "콘텐츠 삭제"
+
+msgid "Adding to Project:"
+msgstr "프로젝트에 추가:"
+
+msgid "Save To Current File"
+msgstr "현재 파일에 저장"
+
+msgid "Add Project"
+msgstr "프로젝트 추가"
+
+msgid "Add Profile"
+msgstr "프로필 추가"
+
+msgid "Add Task"
+msgstr "작업 추가"
+
+msgid "Add an action"
+msgstr "작업 추가"
+
+msgid "Actions in this Task"
+msgstr "이 작업의 작업"
+
+msgid "No actions added yet."
+msgstr "아직 추가된 작업이 없습니다."
+
+msgid "Actions & Control"
+msgstr "작업 및 제어"
+
+msgid "Display Conditions"
+msgstr "표시 조건"
+
+msgid "Task Action Limit:"
+msgstr "작업 작업 제한:"
+
+msgid "Theme Configuration"
+msgstr "테마 구성"
+
+msgid "Select a category to modify its color."
+msgstr "색상을 수정하려면 카테고리를 선택하세요."
+
+msgid "Select Category to Colorize"
+msgstr "색상화할 카테고리 선택"
+
+msgid "Choose Hex Color"
+msgstr "16진수 색상 선택"
+
+msgid "Open View In New Window"
+msgstr "새 창에서 보기 열기"
+
+msgid "Close Tabs On Exit"
+msgstr "종료 시 탭 닫기"
+
+msgid "Edit Project"
+msgstr "프로젝트 편집"
+
+msgid "Edit Profile"
+msgstr "프로필 편집"
+
+msgid "Edit Task"
+msgstr "작업 편집"
+
+msgid "Scene"
+msgstr "장면"
+
+msgid "Execution"
+msgstr "실행"
+
+msgid "File Operations"
+msgstr "파일 작업"
+
+msgid "Display Views"
+msgstr "디스플레이 뷰"
+
+msgid "Application Settings"
+msgstr "애플리케이션 설정"
+
+msgid "Help & Information"
+msgstr "도움말 및 정보"
+
+msgid "0 = least detail, 5 = most detail."
+msgstr "0 = 최소 상세, 5 = 최대 상세."
+
+msgid "AI Analysis"
+msgstr "AI 분석"
+
+msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
+msgstr "분석이 백그라운드에서 실행 중입니다.\n\n완료되면 결과가 새 창에 표시됩니다.\n\n기다려주세요..."
+
+msgid "Android Get XML Port Number"
+msgstr "Android XML 포트 번호 가져오기"
+
+msgid "Android device at"
+msgstr "Android 기기:"
+
+msgid "Available Android Backups"
+msgstr "사용 가능한 Android 백업"
+
+msgid "CAVEATS"
+msgstr "주의 사항"
+
+msgid "Cancel Entry"
+msgstr "참가 취소"
+
+msgid "Check your IP/Port and verify the Tasker HTTP server is running"
+msgstr "IP/포트를 확인하고 Tasker HTTP 서버가 실행 중인지 확인하세요."
+
+msgid "Close"
+msgstr "닫다"
+
+msgid "Detail Level"
+msgstr "상세 수준"
+
+msgid "Error"
+msgstr "오류"
+
+msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
+msgstr "Android 기기에서 XML을 가져옵니다.\n\nAndroid 기기와 동일한 네트워크에 있어야 하며, 기기가 실행 중이고 연결되어 있어야 합니다.\n\n"
+
+msgid "Get Local XML File"
+msgstr "로컬 XML 파일 가져오기"
+
+msgid "It owns"
+msgstr "그것은 소유"
+
+msgid "No Profile Tasks Found"
+msgstr "프로필 작업을 찾을 수 없습니다."
+
+msgid "No Profiles Found"
+msgstr "프로필을 찾을 수 없습니다"
+
+msgid "No file loaded"
+msgstr "로드된 파일이 없습니다."
+
+msgid "No scenes found"
+msgstr "장면을 찾을 수 없습니다"
+
+msgid "No tasks found"
+msgstr "작업을 찾을 수 없습니다."
+
+msgid "None or unnamed!"
+msgstr "없음 또는 이름 없음!"
+
+msgid "Profile(s) and"
+msgstr "프로필 및"
+
+msgid "Save To Android"
+msgstr "안드로이드에 저장"
+
+msgid "Scene to Analyze:"
+msgstr "분석할 장면:"
+
+msgid "Scene:"
+msgstr "장면:"
+
+msgid "Select XML From Android Device:"
+msgstr "Android 장치에서 XML 선택:"
+
+msgid "Task(s)."
+msgstr "작업."
+
+msgid "Unnamed Task"
+msgstr "이름이 없는 작업"
+
+msgid "Update Available!"
+msgstr "업데이트 가능!"
+
+msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
+msgstr "YouTube 직접 스트리밍에는 타사 API 토큰이 필요합니다. 보려면 대상 트랙을 로컬로 다운로드하세요."
+
+msgid "is unreachable"
+msgstr "연결할 수 없습니다"
+
+msgid "'Cancel' button selected. No change to the API keys!"
+msgstr "'취소' 버튼이 선택되었습니다. API 키는 변경되지 않습니다!"
+
+msgid ".or."
+msgstr ".또는."
+
+msgid "1-TCP/IP Address:"
+msgstr "1-TCP/IP 주소:"
+
+msgid "2-Port Number:"
+msgstr "2-포트 번호:"
+
+msgid "3-File Location:"
+msgstr "3-파일 위치:"
+
+msgid "AI Model"
+msgstr "AI 모델"
+
+msgid "Add 'If' Action"
+msgstr "'만약' 액션 추가"
+
+msgid "Add App Entry"
+msgstr "앱 항목 추가"
+
+msgid "Add Condition"
+msgstr "조건 추가"
+
+msgid "All"
+msgstr "모두"
+
+msgid "Android IP Address"
+msgstr "안드로이드 IP 주소"
+
+msgid "Android configuration details matched successfully!"
+msgstr "Android 구성 세부정보가 성공적으로 일치했습니다!"
+
+msgid "Changes kept."
+msgstr "변경사항이 유지되었습니다."
+
+msgid "Choose a State type first."
+msgstr "먼저 상태 유형을 선택하세요."
+
+msgid "Choose a Task"
+msgstr "작업을 선택하세요"
+
+msgid "Choose a Task first."
+msgstr "먼저 작업을 선택하세요."
+
+msgid "Choose a condition type first."
+msgstr "먼저 조건 유형을 선택하세요."
+
+msgid "Choose an Event type first."
+msgstr "먼저 이벤트 유형을 선택하세요."
+
+msgid "Class (optional)"
+msgstr "수업(선택사항)"
+
+msgid "Cleared the search highlights."
+msgstr "검색 하이라이트를 지웠습니다."
+
+msgid "Click Here to Set XML Details"
+msgstr "XML 세부정보를 설정하려면 여기를 클릭하세요."
+
+msgid "Click arrows to expand/collapse details."
+msgstr "세부정보를 확장/축소하려면 화살표를 클릭하세요."
+
+msgid "Click on a row index line number to jump directly to that match block placement:"
+msgstr "해당 일치 블록 배치로 직접 이동하려면 행 인덱스 줄 번호를 클릭하세요."
+
+msgid "Click on connector to highlight"
+msgstr "강조표시하려면 커넥터를 클릭하세요."
+
+msgid "Close Results Window"
+msgstr "결과 창 닫기"
+
+msgid "Condition Type"
+msgstr "조건 유형"
+
+msgid "Conditions"
+msgstr "정황"
+
+msgid "Configure Android Connection:"
+msgstr "Android 연결 구성:"
+
+msgid "Continue Task After Error"
+msgstr "오류 후 작업 계속"
+
+msgid "Copy"
+msgstr "복사"
+
+msgid "Dark Mode"
+msgstr "다크 모드"
+
+msgid "Day of Month"
+msgstr "월의 일"
+
+msgid "Delete"
+msgstr "삭제"
+
+msgid "Delete Condition"
+msgstr "조건 삭제"
+
+msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
+msgstr "이 프로필만 삭제합니다. 해당 작업의 시작/종료 작업은 유지됩니다. 작업은 프로필이 아닌 프로젝트에서 소유하며 동일한 작업을 다른 프로필에서 사용할 수 있습니다."
+
+msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
+msgstr "이 태스크와 이에 대한 모든 참조를 삭제합니다. 태스크를 소유한 모든 프로젝트의 태스크와 이를 시작/종료 태스크로 실행하는 모든 프로필에서 제거됩니다. 프로필 자체는 유지됩니다."
+
+msgid "Diagram View opened in a new browser window."
+msgstr "새 브라우저 창에서 다이어그램 보기가 열렸습니다."
+
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+msgstr "사용 가능한 모든 모델의 확장 목록을 표시합니다.\n\n참고: OpenAI 또는 Gemini에 API 키가 설정되지 않은 경우\n      그런 다음 해당 모델에 대한 기본 모델 목록\n      AI 제공자가 표시됩니다.\n\n참고: 모든 모델이 검증된 것은 아니며\n      하나 이상이 분석 시 오류를 반환할 수 있습니다.\n\n참고: 이 옵션을 처음 활성화하면\n      다음 모듈을 강제로 설치하십시오.\n      그리고 모든 종속성:\n      google-genai, 인류학, openai, ollama"
+
+msgid "End Time"
+msgstr "종료 시간"
+
+msgid "Event Type"
+msgstr "이벤트 유형"
+
+msgid "Every"
+msgstr "모든"
+
+msgid "File path saved successfully!"
+msgstr "파일 경로가 성공적으로 저장되었습니다!"
+
+msgid "File selection canceled."
+msgstr "파일 선택이 취소되었습니다."
+
+msgid "If"
+msgstr "만약에"
+
+msgid "If condition set."
+msgstr "조건이 설정된 경우."
+
+msgid "Insert just the 'If', or a complete block?"
+msgstr "'If'만 삽입하시겠습니까, 아니면 전체 블록을 삽입하시겠습니까?"
+
+msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
+msgstr "잘못된 보기 유형이 지정되었습니다. '지도', '다이어그램', '트리'를 사용하세요."
+
+msgid "Label"
+msgstr "상표"
+
+msgid "Last Day Of Month"
+msgstr "매월 마지막 날"
+
+msgid "Link"
+msgstr "링크"
+
+msgid "List Files Selected"
+msgstr "선택한 파일 나열"
+
+msgid "List XML Files"
+msgstr "XML 파일 나열"
+
+msgid "Map View opened in a new browser window."
+msgstr "지도 보기가 새 브라우저 창에서 열렸습니다."
+
+msgid "Map view creation skipped: No valid XML source found or action canceled."
+msgstr "지도 보기 생성을 건너뛰었습니다. 유효한 XML 소스가 없거나 작업이 취소되었습니다."
+
+msgid "Month"
+msgstr "월"
+
+msgid "Move"
+msgstr "이동하다"
+
+msgid "Move to #"
+msgstr "#으로 이동"
+
+msgid "New name"
+msgstr "새 이름"
+
+msgid "No XML data loaded! Please Get XML from Android or Local drive first."
+msgstr "XML 데이터가 로드되지 않았습니다! 먼저 Android 또는 로컬 드라이브에서 XML을 가져오세요."
+
+msgid "No XML data loaded! Please select a valid XML file first."
+msgstr "XML 데이터가 로드되지 않았습니다! 먼저 유효한 XML 파일을 선택하세요."
+
+msgid "No actions in this Task."
+msgstr "이 작업에는 작업이 없습니다."
+
+msgid "No backup file is currently loaded. Use 'Get Local XML' first."
+msgstr "현재 로드된 백업 파일이 없습니다. 먼저 '로컬 XML 가져오기'를 사용하세요."
+
+msgid "No conditions on this Profile."
+msgstr "이 프로필에는 조건이 없습니다."
+
+msgid "No editable arguments (code not mapped, or this condition has none)."
+msgstr "편집 가능한 인수가 없습니다(코드가 매핑되지 않았거나 이 조건에 없음)."
+
+msgid "No editable arguments."
+msgstr "편집 가능한 인수가 없습니다."
+
+msgid "Not configured..."
+msgstr "구성되지 않았습니다..."
+
+msgid "Odd"
+msgstr "이상한"
+
+msgid "Ok"
+msgstr "좋아요"
+
+msgid "Operator"
+msgstr "연산자"
+
+msgid "Package"
+msgstr "패키지"
+
+msgid "Pick a Task"
+msgstr "작업 선택"
+
+msgid "Please enter a search term."
+msgstr "검색어를 입력해주세요."
+
+msgid "Port"
+msgstr "포트"
+
+msgid "Position"
+msgstr "위치"
+
+msgid "Priority"
+msgstr "우선 사항"
+
+msgid "Profile Name"
+msgstr "프로필 이름"
+
+msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "프로필은 이 세션 동안만 보관됩니다. 영구적으로 보관하려면 '현재 파일에 저장'을 사용하세요."
+
+msgid "Profiles Per Line"
+msgstr "라인당 프로필"
+
+msgid "Project Name"
+msgstr "프로젝트 이름"
+
+msgid "Project added."
+msgstr "프로젝트가 추가되었습니다."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
+msgstr "새 이름을 묻는 메시지를 표시하고 지금 바로 로드된 백업에 적용합니다. 위의 프로젝트 이름 필드는 읽기 전용이므로 변경할 수 있는 유일한 방법입니다."
+
+msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
+msgstr "새 이름을 묻는 메시지를 표시하고 바로 지금 로드된 백업에 해당 이름을 적용합니다. 이 대화 상자의 다른 모든 내용은 확인/저장할 때까지 보류 상태로 유지되며 편집을 계속할 수 있도록 대화 상자는 계속 열려 있습니다."
+
+msgid "Remove"
+msgstr "제거하다"
+
+msgid "Save Profile To Android Device"
+msgstr "Android 장치에 프로필 저장"
+
+msgid "Save Project To Android Device"
+msgstr "Android 장치에 프로젝트 저장"
+
+msgid "Save Task To Android Device"
+msgstr "Android 장치에 작업 저장"
+
+msgid "Save as"
+msgstr "다른 이름으로 저장"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "전체 백업(이 프로필뿐만 아니라 그 안의 모든 프로젝트, 프로필 및 작업)을 저장합니다. 이 대화 상자의 편집 내용이 적용되면 '확인'을 누른 것과 동일한 내용이 유지됩니다.\n현재 로드된 파일의 새로운 타임스탬프 복사본에 기록됩니다. backup.xml은 backup_20260728_143005.xml이 됩니다.\n로드한 파일은 기록되지 않으므로 그대로 유지됩니다.\n그런 다음 앱은 추가 편집 및 저장을 위해 현재 파일이 되는 새 복사본으로 전환합니다. 다시 저장하면 두 번째 타임스탬프를 추가하는 대신 타임스탬프가 대체됩니다.\n이 컴퓨터에만 기록됩니다. Android 기기에는 아무 것도 전송되지 않습니다."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "이 세션에서 수행된 모든 편집 내용을 포함하여 이 프로젝트뿐만 아니라 해당 프로젝트에 포함된 모든 프로젝트, 프로필 및 작업 등 전체 백업을 저장합니다.\n현재 로드된 파일의 새로운 타임스탬프 복사본에 기록됩니다. backup.xml은 backup_20260728_143005.xml이 됩니다.\n로드한 파일은 기록되지 않으므로 그대로 유지됩니다.\n그런 다음 앱은 추가 편집 및 저장을 위해 현재 파일이 되는 새 복사본으로 전환합니다. 다시 저장하면 두 번째 타임스탬프를 추가하는 대신 타임스탬프가 대체됩니다.\n이 컴퓨터에만 기록됩니다. Android 기기에는 아무 것도 전송되지 않습니다."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "전체 백업(이 작업뿐만 아니라 포함된 모든 프로젝트, 프로필 및 작업)을 저장합니다. 이 대화 상자의 편집 내용이 적용되면 '확인'을 누른 것과 동일한 내용이 유지됩니다.\n현재 로드된 파일의 새로운 타임스탬프 복사본에 기록됩니다. backup.xml은 backup_20260728_143005.xml이 됩니다.\n로드한 파일은 기록되지 않으므로 그대로 유지됩니다.\n그런 다음 앱은 추가 편집 및 저장을 위해 현재 파일이 되는 새 복사본으로 전환합니다. 다시 저장하면 두 번째 타임스탬프를 추가하는 대신 타임스탬프가 대체됩니다.\n이 컴퓨터에만 기록됩니다. Android 기기에는 아무 것도 전송되지 않습니다."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "전체 백업(이 프로젝트뿐만 아니라 그 안의 모든 프로젝트, 프로필 및 작업)을 '확인'을 통해 추가하는 것과 같은 방식으로 프로젝트에 새 프로필이 추가되어 저장됩니다.\n현재 로드된 파일의 새로운 타임스탬프 복사본에 기록됩니다. backup.xml은 backup_20260728_143005.xml이 됩니다.\n로드한 파일은 기록되지 않으므로 그대로 유지됩니다.\n그런 다음 앱은 추가 편집 및 저장을 위해 현재 파일이 되는 새 복사본으로 전환합니다. 다시 저장하면 두 번째 타임스탬프를 추가하는 대신 타임스탬프가 대체됩니다.\n이 컴퓨터에만 기록됩니다. Android 기기에는 아무 것도 전송되지 않습니다."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "'확인'을 눌러 추가하는 것과 같은 방식으로 새 작업이 추가된 전체 백업(이 백업뿐만 아니라 그 안의 모든 프로젝트, 프로필 및 작업)을 저장합니다.\n현재 로드된 파일의 새로운 타임스탬프 복사본에 기록됩니다. backup.xml은 backup_20260728_143005.xml이 됩니다.\n로드한 파일은 기록되지 않으므로 그대로 유지됩니다.\n그런 다음 앱은 추가 편집 및 저장을 위해 현재 파일이 되는 새 복사본으로 전환합니다. 다시 저장하면 두 번째 타임스탬프를 추가하는 대신 타임스탬프가 대체됩니다.\n이 컴퓨터에만 기록됩니다. Android 기기에는 아무 것도 전송되지 않습니다."
+
+msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
+msgstr "이 프로젝트와 그 안의 모든 것, 즉 모든 프로필과 작업을 하나의 독립형 파일로 저장합니다."
+
+msgid "Search actions"
+msgstr "검색 작업"
+
+msgid "Search..."
+msgstr "찾다..."
+
+msgid "Select a single Profile first (Profile pulldown above)."
+msgstr "먼저 단일 프로필을 선택합니다(위의 프로필 풀다운)."
+
+msgid "Select a single Project first (Project pulldown above)."
+msgstr "먼저 단일 프로젝트를 선택합니다(위의 프로젝트 풀다운)."
+
+msgid "Select a single Task first (Task pulldown above)."
+msgstr "먼저 하나의 작업을 선택하세요(위의 작업 풀다운)."
+
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "경고를 발행하기 전에 태스크에서 수행할 작업 수를 선택합니다.\n구성 출력 하단 근처에 경고가 나타납니다.\n너무 복잡한 작업을 식별하는 데 도움을 주기 위한 것입니다.\n잠재적으로 여러 작업으로 나누어야 합니다.\n'100'으로 설정하면 제한이 없음을 의미합니다."
+
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
+msgstr "If/Then/Else 블록의 들여쓰기 양을 설정합니다.\n\n기본값은 '4'입니다.\n\n이는 맵 및 다이어그램 보기에서 출력 형식이 지정되는 방식에 영향을 줍니다."
+
+msgid "Settings Reset!"
+msgstr "설정 재설정!"
+
+msgid "Shutting down MapTasker..."
+msgstr "맵태스커 종료 중..."
+
+msgid "Start Time"
+msgstr "시작 시간"
+
+msgid "Starting AI Analysis..."
+msgstr "AI 분석 시작 중..."
+
+msgid "State Type"
+msgstr "상태 유형"
+
+msgid "Submit"
+msgstr "제출하다"
+
+msgid "Target"
+msgstr "목표"
+
+msgid "Task Name"
+msgstr "작업 이름"
+
+msgid "Task Uploaded to Tasker"
+msgstr "Tasker에 작업이 업로드됨"
+
+msgid "Task Uploaded to Tasker."
+msgstr "Tasker에 작업이 업로드되었습니다."
+
+msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "작업은 이 세션 동안만 보관됩니다. 영구적으로 보관하려면 '현재 파일에 저장'을 사용하세요."
+
+msgid "The 'Misc' view is running in the background.  Please stand by..."
+msgstr "'기타' 보기가 백그라운드에서 실행 중입니다.  기다려주세요..."
+
+msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
+msgstr "'검색' 버튼은 데이터 상단부터 시작하여 검색창에 입력된 대소문자를 구분하지 않는 문자열의 모든 인스턴스를 검색하고 강조 표시합니다.\n\n검색 문자열의 처음 200개 인스턴스만 표시됩니다.\n\n텍스트 보기 상자에서 해당 줄로 이동하려면 줄 번호를 클릭하세요.\n\n'지우기' 버튼을 누르면 검색 결과가 지워집니다.\n\n"
+
+msgid "The change will take effect the next time you open the view."
+msgstr "변경 사항은 다음에 뷰를 열 때 적용됩니다."
+
+msgid "This Task has no actions yet."
+msgstr "이 작업에는 아직 작업이 없습니다."
+
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "이것은 시스템에서 사용할 수 있는 모든 글꼴 목록입니다(고정 폭 글꼴부터 시작하여 그렇게 표시됨).\n\n선택한 글꼴이 모든 출력에 사용됩니다.\n\n올바른 커넥터 정렬을 보장하려면 다이어그램에 'Courier' 또는 'Courier New'를 적극 권장합니다. 고정 폭이 아닌 글꼴은 다이어그램의 커넥터나 출력의 들여쓰기를 한 줄에 유지하지 않습니다."
+
+msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
+msgstr "이렇게 하면 Tasker 서버를 실행하는 Android 장치에서 실행되는 Tasker에 작업이 직접 저장됩니다.\n\nIP 주소와 포트는 Android 장치의 Tasker 서버 설정과 일치해야 합니다.\n\nAndroid 기기에서 Tasker에 쓰기 권한을 부여하라는 메시지가 두 번 표시되며 Task.와 자체 작업에 따라 기기에서 저장되는 위치가 결정됩니다."
+
+msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
+msgstr "이렇게 하면 작업이 Android 장치의 활성 Tasker 세션에 직접 저장됩니다.\n\n이 기능이 작동하려면 Tasker 버전 6.2 이상이 필요합니다. Android 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트\nAndroid 기기의 Tasker 서버 설정과 일치해야 합니다.\n\nAndroid 기기에서 Tasker에 쓰기 권한을 부여하라는 메시지가 두 번 표시되며 작업은 활성 Tasker 세션에 직접 로드됩니다.\n\nTasker UI에서 새 작업을 보려면 Tasker를 종료하고 다시 시작해야 합니다."
+
+msgid "This will save the Task directly to your current drive.\n\n"
+msgstr "이렇게 하면 작업이 현재 드라이브에 직접 저장됩니다.\n\n"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "그러면 프로필이 Android 기기의 /Tasker/profiles 아래에 독립 실행형 파일로 기록됩니다.\n\nIP 주소와 포트는 Android 장치의 Tasker 서버 설정과 일치해야 합니다.\n\n이를 위해서는 승인 프롬프트가 필요하지 않습니다."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "이렇게 하면 프로필이 Android 기기의 /Tasker/profiles 아래에 독립 실행형 파일로 기록됩니다. 이를 Tasker의 라이브 구성으로 가져오지는 않습니다.\n\n'Http Server 예제' Tasker 프로젝트(http://spoo.me/http_svr_example) 는 서버가 실행 중인 Android 장치에 설치되고 활성화되어야 합니다(README의 Direct XML Retrieval 참고 사항 참조).\n\nAndroid 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트는 Tasker 서버 설정과 일치해야 합니다. 이를 위해서는 승인 프롬프트가 필요하지 않습니다."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "이렇게 하면 프로필이 Android 기기의 /Tasker/profiles 아래에 독립 실행형 파일로 기록됩니다. 이를 Tasker의 라이브 구성으로 가져오지는 않습니다.\n\n'Http Server 예제' Tasker 프로젝트는 서버가 실행 중인 Android 장치에 설치되고 활성화되어야 합니다(README의 Direct XML Retrieval 참고 사항 참조).\n\nAndroid 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트는 Tasker 서버 설정과 일치해야 합니다. 이를 위해서는 승인 프롬프트가 필요하지 않습니다."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "이렇게 하면 프로젝트와 그 안의 모든 것(모든 프로필 및 작업)이 Android 기기의 /Tasker/projects 아래에 독립 실행형 파일로 기록됩니다. Tasker의 라이브 구성으로 가져오지는 않습니다.\n\n'Http Server 예제' Tasker 프로젝트는 서버가 실행 중인 Android 장치에 설치되고 활성화되어야 합니다.\n\nAndroid 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트는 Tasker 서버 설정과 일치해야 합니다. 이를 위해서는 승인 프롬프트가 필요하지 않습니다."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "그러면 프로젝트와 그 안의 모든 항목이 Android 기기의 /Tasker/projects 아래에 독립 실행형 파일로 기록됩니다.\n\nIP 주소와 포트는 Android 장치의 Tasker 서버 설정과 일치해야 합니다.\n\n이를 위해서는 승인 프롬프트가 필요하지 않습니다."
+
+msgid "Toggle Wrap"
+msgstr "전환 전환"
+
+msgid "Unlink"
+msgstr "풀리다"
+
+msgid "Value"
+msgstr "값"
+
+msgid "View cleared."
+msgstr "보기가 삭제되었습니다."
+
+msgid "Week-Day"
+msgstr "주일"
+
+msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
+msgstr "활성화되면 '종료'를 클릭하면 기본 MapTasker 창과 열려 있는 모든 맵/다이어그램 창/탭도 닫힙니다.\n\n비활성화되면 '종료'는 MapTasker를 종료하지만 해당 창/탭은 열어 둡니다."
+
+msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
+msgstr "활성화되면 각 맵/다이어그램 요청이 자체 새 창/탭에서 열리므로 이전 요청을 나란히 유지하여 비교할 수 있습니다.\n\n비활성화되면 요청은 해당 보기의 기존 창/탭을 재사용하여 그 안에 있는 내용을 바꿉니다.\n\n비교하고 싶지 않다면 그대로 두십시오. 완전히 새로운 창/탭은 클릭하는 순간이 아니라 보기 작성이 완료되면 열리므로 브라우저가 차단할 수 있는 창/탭입니다."
+
+msgid "hh:mm AM/PM or %variable"
+msgstr "hh:mm AM/PM 또는 %변수"
+
+msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
+msgstr "GUI 내에서 직접 구성의 '지도', '다이어그램' 또는 '트리' 보기를 표시합니다.\n\n뷰가 작동하려면 먼저 로컬 드라이브나 Android 장치에서 XML을 가져와야 합니다.\n\nXML을 이미 가져온 경우 뷰에 대한 입력으로 사용됩니다.  '지우기' 버튼을 누르면 보기 데이터가 지워집니다.\n\n매우 큰 구성으로 인해 맵 및 다이어그램의 실행 시간이 연장됩니다.  최상의 성능을 위해서는 매핑할 단일 프로젝트 또는 프로필을 선택하세요.\n\n선택적으로 '보기 제한' 설정을 사용하여 처리할 데이터의 양을 제한합니다.  제한이 클수록 매핑할 수 있는 출력도 커집니다.  생성되는 출력이 많을수록 처리 시간이 길어집니다.\n\n\n다이어그램 보기에는 다음과 같은 동작이 있습니다.\n\n - 프로젝트와 프로필만 표시할 수 있습니다. 단일 태스크 또는 장면으로만 구성된 XML은 표시되지 않습니다.\n\n - 다이어그램에서 전체 연결을 강조 표시하려면 수평 커넥터를 클릭하세요.\n\n\n트리 보기에는 다음과 같은 동작이 있습니다.\n\n- 프로젝트만 표시할 수 있습니다. 단일 프로필, 작업 또는 장면으로만 구성된 XML은 표시되지 않습니다.\n\n- 단일 이름 설정에 관계없이 모든 프로젝트, 프로필, 작업 및 장면이 표시됩니다.\n\n"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "MapTasker는 업로드된 Tasker XML 파일(예: 'backup.xml')을 기반으로 Android Tasker 구성을 표시합니다. 디스플레이에는 선택적으로 모든 프로젝트, 프로필, 작업 및 해당 작업, 프로필/작업 조건 및 기타 프로필/작업 관련 정보가 포함됩니다.\n\nXML 파일이 로드되면 선택적으로 프로젝트, 프로필, 작업 및 장면을 편집할 수 있습니다.\n\n* 표시 옵션은 다음과 같습니다.\n    수준 0: 첫 번째 작업 작업만 표시하고 이름이 지정되지 않은 작업에 대해서만 표시합니다(자동).\n    수준 1 = 알 수 없는 작업에 대한 모든 작업 세부 정보만 표시합니다(기본값).\n    레벨 2 = 모든 태스크에 전체 태스크 작업 이름을 표시합니다.\n    레벨 3 = 작업 세부 정보와 함께 모든 작업에 대한 전체 작업 작업 세부 정보를 표시합니다.\n    레벨 4 = 표시 레벨 3과 프로젝트의 전역 변수.\n\n    수준 5 = 표시 수준 4와 장면 인수 세부정보.\n\n* Just Display Everything: 조건, TaskerNet 정보, 기본 설정, 예쁜 출력, 디렉터리 및 구성 개요 표시를 켭니다.\n\n* 표시 조건: 프로필 및 작업 조건 표시를 켭니다.\n\n* TaskerNet 정보 표시 - 가능한 경우 TaskerNet 게시 정보를 표시합니다.\n\n* Tasker 기본 설정 표시 - Tasker의 시스템 기본 설정을 표시합니다.\n\n* Twisty에서 작업 세부 정보 숨기기: ► 내에서 작업 정보를 숨기고 클릭하여 표시합니다.\n\n* 시작 시 하이퍼링크의 디렉토리를 표시합니다.\n\n* 더 예쁜 출력 표시: 모든 인수에 줄 바꿈과 들여쓰기를 추가하여 출력을 사람이 더 읽기 쉽게 만듭니다.\n\n* 프로젝트/프로필/작업/장면 이름 옵션을 사용하여 이름을 이탤릭체, 굵게, 밑줄 및/또는 강조 표시할 수 있습니다.\n\n* 작업 작업 제한: 작업에 지정된 작업 수보다 많은 경우 경고를 표시합니다.\n\n* If/Then/Else 작업 동작의 들여쓰기 크기입니다.\n\n* 언어: 출력에 사용할 언어를 선택합니다.  기본값은 영어입니다.\n\n* 사용할 글꼴: 출력에 사용되는 모노스페이스 글꼴을 변경합니다.\n\n* 보기 제한: 보기 생성 시 사용되는 처리 시간을 제어합니다.\n\n* 재설정 옵션: 모든 것을 지우고 새로 시작하세요.\n\n* 로컬 XML 파일 가져오기: 로컬 드라이브에서 백업/내보낸 XML 파일을 가져옵니다.\n\n* 설정 저장 - 나중에 사용할 수 있도록 이 설정을 저장합니다.\n\n* 설정 복원 - 이전에 저장한 세션에서 설정을 복원합니다.\n\n* 디스플레이 보기: 프로젝트, 프로필, 작업 및 장면의 구성 지도, 다이어그램 또는 트리 보기를 GUI에 직접 표시합니다.\n\n* Android 장치에서 XML 가져오기: Android 장치에서 백업/내보낸 XML 파일을 가져옵니다.  Android 장치의 IP 주소와 포트 번호는 물론 장치의 파일 위치를 묻는 메시지가 표시됩니다.\n\n* 특정 이름 탭: 표시할 특정 이름의 단일 항목을 입력합니다...\n   - 프로젝트 이름: 표시할 특정 프로젝트를 입력합니다.\n   - 프로필 이름: 표시할 특정 프로필을 입력합니다.\n   - 작업 이름: 표시할 특정 작업을 입력합니다.\n   - 장면 이름: 표시할 특정 장면을 입력합니다.  소유한 프로젝트의 제목과\n                 장면의 요소(및 해당 요소가 호출하는 모든 작업)가 표시됩니다.\n                 프로젝트의 프로필과 다른 장면은 그렇지 않습니다.\n   (이 4개는 제외됩니다. 하나만 입력하세요)\n\n   다양한 저장 옵션을 사용하여 GUI에서 직접 프로젝트, 프로필 및 작업을 추가하고 편집합니다.\n\n* 색상 탭: 디스플레이의 다양한 요소에 대한 색상을 선택합니다.\n              (예: 프로젝트, 프로필, 작업 등의 색상)\n\n* 분석 탭: Ai 모델에 대해 프로젝트, 프로필, 작업 또는 장면에 대한 분석을 실행합니다.\n\n* 디버그 탭: 런타임 설정 옵션을 표시하고 디버그 모드를 켭니다.\n\n* 종료: 프로그램을 종료(quit)합니다.\n\n참고:\n\n- https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md 에서 전체 변경 로그 기록을 확인하세요.\n\n- 모양 모드를 변경하면 출력에 사용되는 색상이 기본값으로 변경됩니다.\n\n"
+
+msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+msgstr "'View Limit'은 뷰를 생성할 때 사용되는 처리 시간을 제어하는 ​​수단입니다.\n\n- 숫자는 생성될 출력 라인의 상대적인 양을 나타냅니다.\n\n- 제한이 클수록 매핑할 수 있는 출력도 커집니다.  생성되는 출력이 많을수록 처리 시간이 길어집니다.\n\n- 매우 큰 구성은 매우 큰 출력 맵을 생성하고 처리 시간이 길어집니다.  이전 장치에서는 이 작업에 최대 30초 이상이 걸릴 수 있습니다.\n\n- 제한을 설정하면 더 긴 기간을 허용하지 않고 구성을 매핑할 때 사용되는 처리 시간을 제어할 수 있습니다.\n\n- 지도 계산 시 한계에 도달하면 출력이 거기서 중지됩니다.\n\n- 이 설정을 실험하여 사용 사례에 가장 적합한 설정을 확인할 수 있습니다.\n\n- 단일 프로젝트, 프로필 또는 작업을 선택하는 것은 처리 시간을 제한하는 또 다른 방법입니다.\n\n"
+
+msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
+msgstr "분석 탭은 로컬 라마 모델이나 서버 기반 Open AI, Claude 또는 DeepSeek 모델을 사용하여 프로필에서 Ai 분석을 실행하는 데 사용됩니다.\n\n귀하의 프로필에 대해 AI를 실행하려면 다음 단계가 필요합니다.\n\n1- 서버 기반 AI를 사용하는 경우 공급자(예: OpenAI)로부터 유효한 API 키가 있어야 합니다.  'API 키 표시/편집' 버튼을 사용하여 키를 입력할 수 있습니다.\n\n2- 기본 프롬프트는 '성능 및 가독성 개선 제안: (프로젝트/프로필/작업)'이며 자동으로 앞에 'Tasker에서 다음 (프로젝트/프로필/작업)이 제공됩니다.  프롬프트를 수정하는 경우 '개선 사항 제안...' 부분만 수정됩니다.\n\n3- 사용하려는 모델을 선택하십시오.\n\n   o 선택한 모델에 따라 분석을 수행할 AI가 결정됩니다.\n\n4- '분석 실행' 버튼을 클릭하세요.  필요한 데이터가 모두 입력되면 녹색으로 변합니다.\n\n   o 아직 모델, 프롬프트, 단일 프로젝트, 프로필, 작업, 유효한 API 키를 선택하지 않은 경우 먼저 선택하라는 메시지가 표시됩니다.\n\n   o 프로세스는 다소 시간이 걸릴 수 있으며 백그라운드에서 실행됩니다.  결과는 별도의 창에 표시됩니다.\n\n   o 아직 컴퓨터에 로드되지 않은 로컬 모델은 분석이 시작되면 백그라운드에 로드됩니다.\n\n지정된 API 키(있는 경우), 모델, 선택한 프로젝트, 프로필 또는 작업 및 Ai 프롬프트가 모두 세션 전반에 걸쳐 저장됩니다.\n\n'재실행' 기능은 내부적으로 새 창에 분석 결과를 표시하는 데 사용됩니다.\n\n"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- If you want to use the 'List XML Files' option, then you must also import the following profile into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "Android 장치에서 Tasker XML 파일을 직접 가져오려면 다음 단계가 필요합니다.\n\n1- 이 장치와 Android 장치는 모두 동일한 이름의 네트워크에 있어야 합니다.\n\n2- Tasker 프로젝트 'HTTP 서버 예제' 또는 동일한 기능이 Android 장치에 설치되고 활성화되어야 합니다(서버가 실행 중이어야 함).\n\n    https://tinyurl.com/4p5cz8sv\n\n3- 'List XML Files' 옵션을 사용하려면 다음 프로필도 Android 장치로 가져와야 하며 가져온 프로필 'MapTasker List'가 활성화되어 있는지 확인해야 합니다.\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nAndroid 장치의 IP 주소, 포트 번호, Android 장치의 파일 위치를 묻는 메시지가 표시됩니다.  기본값이 제공됩니다. 여기서...\n\n'192.168.0.210'은 기본 IP 주소이며,\n\n'1821'은 Android 기기에서 실행되는 Tasker HTTP Server 예제의 기본 포트 번호입니다.\n\n'/Tasker/configs/user/backup.xml'이 기본 파일 위치입니다.  파일 위치를 모르고 IP 주소와 포트를 이미 입력한 경우 'XML 파일 목록' 버튼을 선택하여 Android 장치에서 선택할 수 있는 XML 파일 목록을 가져올 수 있습니다.\n\n사용법 참고 사항:\n\nIP 주소와 포트는 위 URL의 'HTTP 서버 예제' 프로젝트를 안드로이드 기기에 설치하면 얻을 수 있습니다. 그런 다음 'GD HTTP 정보 업데이트'라는 작업을 실행하여 Android 알림을 받습니다.\n\nHTTP 서버 정보\n서버 정보가 업데이트되었습니다. {\"장치 이름\":\"http://192.168.0.49:1821\"}\n\n- XML 파일을 가져오려면 버튼을 클릭하세요.\n\n 'Android 장치에서 XML 가져오기'\n\n그런 다음 이 버튼 아래 입력 필드에 표시된 기본값을 수정한 다음 'XML 세부 정보를 설정하려면 입력하고 여기를 클릭하세요' 또는 'XML 파일 나열' 버튼을 클릭하세요.\n\n- 두 버튼 중 하나를 누르면 Android 기기에 핑을 보내 사용 가능한지 확인합니다.  장치에 연결할 수 없는 경우 10초 후에 핑이 시간 초과됩니다.  IP 주소가 올바른지 확인하세요.\n\n이 가져오기 프로세스를 취소하려면 '항목 취소' 버튼을 클릭하세요.\n\n"

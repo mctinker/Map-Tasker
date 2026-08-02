@@ -2,6 +2,7 @@
 
 from nicegui import ui
 
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 
 
@@ -21,7 +22,7 @@ class APIKeyDialog:
 
         # Build the layout inside the dialog
         with self.dialog, ui.card().classes("w-[700px] p-6 max-w-full"):
-            ui.label("API Key Options").classes("text-xl font-bold text-blue-600 mb-4")
+            ui.label(translate_string("API Key Options")).classes("text-xl font-bold text-blue-600 mb-4")
 
             # Form grid layout area (Labels, Inputs, and Clears)
             with ui.column().classes("w-full gap-4 mb-6"):
@@ -34,7 +35,7 @@ class APIKeyDialog:
             with ui.row().classes("w-full justify-end items-center gap-2 border-t pt-4"):
                 # OK Button
                 ui.button(
-                    "OK",
+                    translate_string("OK"),
                     on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(cancel=False, clear=""),
                 ).classes("bg-blue-600 text-white px-6")
 
@@ -45,7 +46,7 @@ class APIKeyDialog:
 
                 # Cancel Button
                 ui.button(
-                    "Cancel",
+                    translate_string("Cancel"),
                     on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(cancel=True, clear=""),
                 ).classes("bg-red-500 text-white px-6")
 
@@ -69,7 +70,7 @@ class APIKeyDialog:
             # Input field tied directly to dynamic object variable names
             # Using password mode keeps keys masked out securely on screen
             input_widget = (
-                ui.input(value=PrimeItems.ai.get(placeholder_key, ""), placeholder="Not configured...")
+                ui.input(value=PrimeItems.ai.get(placeholder_key, ""), placeholder=translate_string("Not configured..."))
                 .props("password clearable")
                 .classes("flex-grow")
             )
@@ -79,7 +80,7 @@ class APIKeyDialog:
 
             # Clear button action
             ui.button(
-                "Clear",
+                translate_string("Clear"),
                 on_click=lambda: self.my_gui.event_handlers.ai_apikey_get_event(
                     cancel=False,
                     clear=placeholder_key,

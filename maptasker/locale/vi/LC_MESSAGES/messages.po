@@ -377,7 +377,7 @@ msgid "Display only Project"
 msgstr "Chỉ hiển thị dự án"
 msgid "None"
 msgstr "Không có"
-msgid "Display all Projects, Profiles, and Tasks."
+msgid "Display all Projects, Profiles, Tasks, and Scenes."
 msgstr "Hiển thị tất cả Dự án, Hồ sơ và Nhiệm vụ."
 msgid "Display all"
 msgstr "Hiển thị tất cả"
@@ -604,14 +604,7 @@ msgid "The 'Search' button will search for and highlight every instance of the s
 msgstr "Nút 'Tìm kiếm' sẽ tìm kiếm và đánh dấu mọi phiên bản của chuỗi được nhập vào hộp tìm kiếm, bắt đầu từ đầu dữ liệu.\n\nNút 'Tìm kiếm tại đây' sẽ tìm kiếm và đánh dấu mọi phiên bản của chuỗi được nhập vào hộp tìm kiếm, bắt đầu từ màn hình hiện tại.\n\nDi chuột qua bất kỳ chuỗi phù hợp nào được đánh dấu để xem tất cả các kết quả khớp.\n\nCác nút 'Tiếp theo' và 'Trước' sẽ cố gắng hiển thị lần xuất hiện tiếp theo và trước đó của chuỗi tìm kiếm trong hộp xem văn bản và đánh dấu chúng trong một màu khác.\n\nĐộ chính xác của việc hiển thị chuỗi tìm kiếm không phải lúc nào cũng hoàn hảo và nằm ngoài tầm kiểm soát của chương trình này.\n\nKhi đến cuối hoặc đầu hộp xem văn bản, tìm kiếm sẽ dừng và một thông báo sẽ được hiển thị trong vài giây.\n\nNút 'Xóa' sẽ xóa kết quả tìm kiếm.\n\nNút 'Chỉ hiển thị' sẽ hiển thị trong một cửa sổ linh tinh CHỈ phù hợp với kết quả tìm kiếm.\n\n"
 msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nIn order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running on your Android device.  This profile can be found at the following URL:\n\n    https://t.ly/8vI1f\n\n"
 msgstr "Nhấp vào nút này sẽ dẫn đến các hành động sau:\n\n- Địa chỉ IP sẽ được sử dụng để ping thiết bị Android.\n\n- Địa chỉ IP và số cổng sẽ được sử dụng để truy vấn thiết bị Android và nhận danh sách các tệp XML có sẵn được tìm thấy trong thư mục Tasker.\n\n- Danh sách các tệp XML được tìm thấy sẽ được hiển thị trong menu kéo xuống mà từ đó bạn có thể chọn tệp bạn muốn sử dụng.\n\n- Khi bạn đã chọn tệp XML, nó sẽ được tìm nạp và xác minh là XML hợp lệ sau đó được sử dụng làm đầu vào cho chương trình sau khi bạn nhấp vào nút 'Chạy' hoặc 'Chạy lại'.\n\nĐể tính năng này hoạt động, bạn PHẢI nhập cấu hình 'Danh sách MapTasker' vào Tasker đang chạy trên thiết bị Android của bạn.  Hồ sơ này có thể được tìm thấy tại URL sau:\n\n https://t.ly/8vI1f\n\n"
-msgid "Help\n\nMapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to either report a bug or request a new feature ( [Feature Request] )\n\n* Appearance Mode: Dark, Light, or System default.\n\n* Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Clear Messages: Clear any messages in the textbox.\n\n* Font To Use: Change the monospace font used for the output.\n\n* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Androiddevice.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n* ReRun: Run multiple times (each time with new settings) without exiting, displaying the results in the browser.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   (These three are exclusive: enter one only)\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile or Task against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n- If you receive any of the following the runtime errors, you can ignore them:\n      '[CATransaction synchronize] called within transaction'.\n      'IMKClient Stall detected...'.\n\n- Drag the window to expand the text as desired.\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "Help\n\nMapTasker hiển thị cấu hình Android Tasker của bạn dựa trên tệp XML Tasker đã tải lên của bạn (ví dụ: 'backup.xml'). Màn hình sẽ tùy chọn bao gồm tất cả Dự án, Hồ sơ, Nhiệm vụ và hành động của chúng, điều kiện Hồ sơ/Nhiệm vụ và thông tin liên quan đến Hồ sơ/Nhiệm vụ khác.\n\n* Tùy chọn hiển thị là:\n Cấp 0: chỉ hiển thị hành động Nhiệm vụ đầu tiên, chỉ dành cho Nhiệm vụ chưa được đặt tên (im lặng).\n Cấp 1 = hiển thị tất cả chi tiết hành động Nhiệm vụ chỉ cho các Nhiệm vụ không xác định (mặc định).\n Cấp 2 = hiển thị đầy đủ tên hành động Nhiệm vụ trên mọi Nhiệm vụ.\n Cấp 3 = hiển thị đầy đủ chi tiết hành động Nhiệm vụ trên mọi Nhiệm vụ có hành động chi tiết.\n Cấp 4 = cấp độ hiển thị 3 cộng với các biến toàn cục của Dự án.\n\n Cấp 5 = cấp độ hiển thị 4 cộng với chi tiết đối số Cảnh.\n\n* Chỉ hiển thị mọi thứ: Bật hiển thị các điều kiện, thông tin TaskerNet, tùy chọn, đầu ra đẹp, thư mục và phác thảo cấu hình.\n\n* Điều kiện hiển thị: Bật hiển thị các điều kiện Cấu hình và Nhiệm vụ.\n\n* Hiển thị thông tin TaskerNet - Nếu có, hãy hiển thị thông tin xuất bản TaskerNet.\n\n* Display Tasker Tùy chọn - hiển thị Tùy chọn hệ thống của Tác vụ.\n\n* Ẩn Chi tiết Nhiệm vụ trong Twisty: ẩn thông tin Nhiệm vụ trong ► và nhấp để hiển thị.\n\n* Hiển thị Thư mục siêu liên kết ở đầu.\n\n* Hiển thị Cấu hình Cấu hình và Bản đồ của Dự án/Hồ sơ/Nhiệm vụ/Cảnh của bạn.\n\n* Hiển thị Đầu ra Đẹp hơn: Làm cho đầu ra dễ đọc hơn bằng cách thêm dòng mới và thụt lề cho tất cả các đối số.\n\n* Tùy chọn Dự án/Hồ sơ/Nhiệm vụ/Cảnh để in nghiêng, in đậm, gạch chân và/hoặc đánh dấu tên của chúng.\n\n* Giới hạn hành động tác vụ: hiển thị cảnh báo nếu Tác vụ có nhiều hơn số hành động được chỉ định.\n\n* Số lượng thụt lề cho các Tác vụ tác vụ If/Then/Else.\n\n* Lưu cài đặt - Lưu các cài đặt này để sử dụng sau.\n\n* Khôi phục cài đặt - Khôi phục cài đặt từ phiên đã lưu trước đó.\n\n* Báo cáo sự cố - Điều này sẽ xuất hiện trình duyệt của bạn tới trang web báo cáo sự cố và bạn có thể sử dụng điều này để báo cáo lỗi hoặc yêu cầu một tính năng mới ( [Yêu cầu tính năng] )\n\n* Chế độ hiển thị: Tối, Sáng hoặc Mặc định hệ thống.\n\n* Chế độ xem: Hiển thị chế độ xem Bản đồ, sơ đồ hoặc dạng cây cấu hình của Dự án, Hồ sơ, Nhiệm vụ và Cảnh của bạn trực tiếp trong GUI.\n\n* Giới hạn chế độ xem: Kiểm soát lượng thời gian xử lý được sử dụng khi tạo chế độ xem.\n\n* Đặt lại tùy chọn: Xóa mọi thứ và bắt đầu một lần nữa.\n\n* Xóa tin nhắn: Xóa mọi tin nhắn trong hộp văn bản.\n\n* Phông chữ để sử dụng: Thay đổi phông chữ đơn cách được sử dụng cho đầu ra.\n\n* Đường viền hiển thị: Hiển thị đường viền cấu hình Dự án/Hồ sơ/Nhiệm vụ/Cảnh.\n\n* Nhận XML từ Thiết bị Android: tìm nạp tệp XML sao lưu/đã xuất từ thiết bị Android.  Bạn sẽ được hỏi địa chỉ IP và số cổng cho thiết bị Android của mình cũng như vị trí tệp trên thiết bị.\n\n* Nhận XML cục bộ: tìm nạp tệp XML sao lưu/xuất từ ổ đĩa cục bộ của bạn.\n\n* Chạy và thoát: Chạy chương trình với cài đặt được cung cấp, hiển thị kết quả trong trình duyệt web rồi thoát.\n* Chạy lại: Chạy nhiều lần (mỗi lần với cài đặt mới) mà không thoát, hiển thị kết quả trong trình duyệt.\n\n* Tab Tên cụ thể: nhập một tên cụ thể mục được đặt tên để hiển thị...\n - Tên dự án: nhập một Dự án cụ thể để hiển thị.\n - Tên hồ sơ: nhập một Hồ sơ cụ thể để hiển thị.\n - Tên tác vụ: nhập một Nhiệm vụ cụ thể để hiển thị.\n (Ba cái này là độc quyền: chỉ nhập một)\n\n* Tab Màu: chọn màu cho các thành phần khác nhau của màn hình.\n (ví dụ: màu cho Dự án, Hồ sơ, Nhiệm vụ, v.v.).\n\n* Tab phân tích: Chạy phân tích cho một Dự án, Hồ sơ hoặc Nhiệm vụ đối với Ai model.\n\n* Tab gỡ lỗi: Hiển thị tùy chọn Cài đặt thời gian chạy và bật chế độ Gỡ lỗi.\n\n* Thoát: Thoát khỏi chương trình (thoát).\n\nLưu ý:\n\n- Bạn sẽ được nhắc xác định tệp XML tác vụ của mình sau khi nhấn nút 'Chạy và thoát' hoặc 'Chạy lại' nếu bạn chưa làm như vậy.\n\n- Nếu bạn nhận được bất kỳ lỗi thời gian chạy nào sau đây, bạn có thể bỏ qua chúng:\n '[Đồng bộ hóa CATransaction] được gọi bên trong giao dịch'.\n 'IMKClient Stall detect...'.\n\n- Kéo cửa sổ để mở rộng văn bản như mong muốn.\n\n- Xem toàn bộ lịch sử nhật ký thay đổi tại https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Thay đổi chế độ giao diện sẽ thay đổi màu được sử dụng cho đầu ra thành giá trị mặc định của chúng.\n\n"
-msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
-msgstr "Tab Phân tích được dùng để chạy phân tích Ai trên Hồ sơ của bạn, sử dụng mô hình llama cục bộ hoặc các mô hình Open AI, Claude hoặc DeepSeek dựa trên máy chủ.\n\nCác bước sau đây là bắt buộc để chạy AI dựa trên Hồ sơ của bạn.\n\n1- Nếu sử dụng AI dựa trên máy chủ, bạn phải có khóa API hợp lệ từ nhà cung cấp (ví dụ: OpenAI).  Bạn có thể sử dụng nút 'Hiển thị/Chỉnh sửa (các) Khóa API' để nhập (các) khóa của mình.\n\n2- Lời nhắc mặc định là: 'đề xuất cải tiến về hiệu suất và khả năng đọc: (dự án/hồ sơ/nhiệm vụ của bạn)' và tự động được bắt đầu bởi: 'Đưa ra (Dự án/Hồ sơ/Nhiệm vụ) sau đây trong Tasker, '.  Nếu sửa đổi lời nhắc, bạn chỉ sửa đổi phần 'đề xuất cải tiến...'.\n\n3- Chọn mô hình bạn muốn sử dụng.\n\n o Mô hình được chọn sẽ xác định AI sẽ được thực hiện phân tích.\n\n4- Nhấp vào nút 'Chạy Phân tích'.  Nó sẽ chuyển sang màu hồng khi tất cả dữ liệu cần thiết đã được nhập.\n\n o Nếu bạn chưa chọn một mô hình, lời nhắc hoặc một Dự án, Hồ sơ hoặc Nhiệm vụ hoặc khóa API hợp lệ thì bạn sẽ được nhắc làm như vậy trước.\n\n o Quá trình này có thể mất một chút thời gian và chạy ở chế độ nền.  Kết quả sẽ xuất hiện trong một cửa sổ riêng.\n\n o Các mô hình cục bộ chưa được tải vào máy tính của bạn sẽ được tải ở chế độ nền khi quá trình phân tích bắt đầu.\n\nCác khóa api được chỉ định của bạn (nếu có), mô hình, Dự án, Hồ sơ hoặc Nhiệm vụ đã chọn và lời nhắc Ai sẽ được lưu trong các phiên.\n\nTính năng 'Chạy lại' sẽ được sử dụng ẩn để hiển thị kết quả phân tích trong một cửa sổ mới.\n\n"
-msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nAll view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n\nThe Map View has the following behavior:\n\n - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
-msgstr "Hiển thị trực tiếp chế độ xem 'Bản đồ', 'Sơ đồ' hoặc 'Cây' cho cấu hình của bạn trong GUI.\n\nXML trước tiên phải được lấy từ ổ đĩa cục bộ hoặc thiết bị Android để các chế độ xem hoạt động.\n\nTất cả các cửa sổ xem có thể được kéo dài và di chuyển khi cần.  Chạy lại lệnh chế độ xem cụ thể để làm mới chế độ xem với kích thước và vị trí mới.\n\nNếu XML đã được tìm nạp, nó sẽ được sử dụng làm đầu vào cho chế độ xem.  Nhấn nút 'Đặt lại' sẽ xóa dữ liệu xem.\n\nCác cấu hình rất lớn sẽ phải chịu thời gian chạy kéo dài cho Bản đồ và Sơ đồ.  Để có hiệu suất tốt nhất, hãy chọn một Dự án hoặc Hồ sơ để lập bản đồ.\n\n\nChế độ xem Bản đồ có hành vi sau:\n\n - Trong khi trình duyệt không được gọi trực tiếp, bản đồ có thể được hiển thị trong trình duyệt bằng cách mở tệp 'MapTasker.html' cục bộ.\n\n - Cài đặt 'Đường viền cấu hình hiển thị' bị bỏ qua vì nó không hoạt động trong chế độ xem Bản đồ.\n\n - Việc tăng một hoặc hai cấp bằng cách sử dụng siêu liên kết thư mục sẽ tạo ra một bản đồ mới view.\n\n\nChế độ xem Sơ đồ có hành vi sau:\n\n - Chỉ có thể hiển thị Dự án và Hồ sơ. XML chỉ bao gồm một Nhiệm vụ hoặc Cảnh duy nhất sẽ không được hiển thị.\n\n - Nhấp vào một đầu nối ngang để đánh dấu toàn bộ kết nối trong sơ đồ.\n\n\nChế độ xem dạng cây có hành vi sau:\n\n- Các cấu hình lớn cuộn ra phía dưới cuối màn hình vẫn chưa thể xem được toàn bộ.\n\n- Chỉ có thể hiển thị Dự án. XML chỉ bao gồm một Cấu hình hoặc Nhiệm vụ hoặc Cảnh sẽ không được hiển thị.\n\n- Tất cả Dự án, Cấu hình, Nhiệm vụ và Cảnh được hiển thị bất kể cài đặt tên đơn lẻ.\n\n"
-msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, no output map will be generated.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
-msgstr "'Giới hạn chế độ xem' là một phương tiện để kiểm soát lượng thời gian xử lý được sử dụng khi tạo chế độ xem.\n\n- Các con số biểu thị số lượng dòng đầu ra tương đối sẽ được tạo.\n\n- Giới hạn càng lớn, đầu ra sẽ được phép ánh xạ càng lớn.  Càng tạo ra nhiều đầu ra thì thời gian xử lý càng lớn.\n\n- Cấu hình rất lớn sẽ tạo ra các bản đồ đầu ra rất lớn và sẽ gây ra thời gian xử lý lâu hơn.  Trên các thiết bị cũ hơn, quá trình này có thể mất tối đa 30 giây hoặc hơn.\n\n- Bằng cách đặt giới hạn, bạn có thể kiểm soát thời gian xử lý được sử dụng khi ánh xạ một cấu hình bằng cách không cho phép khoảng thời gian dài hơn.\n\n- Nếu đạt đến giới hạn khi tính toán bản đồ, sẽ không có bản đồ đầu ra nào được tạo.\n\n- Bạn có thể thử nghiệm cài đặt này để xem cài đặt nào phù hợp nhất cho trường hợp sử dụng của mình.\n\n- Chọn một Dự án, Hồ sơ hoặc Nhiệm vụ là một cách khác để giới hạn thời gian xử lý.\n\n"
+
 msgid "API Key Help"
 msgstr "Trợ giúp về khóa API"
 msgid "Profiles Per Line Help"
@@ -965,3 +958,642 @@ msgid "Ánh sáng"
 msgstr "Light"
 msgid "Hệ thống"
 msgstr "System"
+
+msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
+msgstr "Nhắm mục tiêu các Dự án, Hồ sơ, Nhiệm vụ hoặc Cảnh cụ thể. (Chỉ chọn một)"
+
+msgid "Rename"
+msgstr "Đổi tên"
+
+msgid "Export Project"
+msgstr "Dự án xuất khẩu"
+
+msgid "Export Profile"
+msgstr "Xuất hồ sơ"
+
+msgid "Export Task"
+msgstr "Nhiệm vụ xuất khẩu"
+
+msgid "Save"
+msgstr "Cứu"
+
+msgid "Overwrite"
+msgstr "Ghi đè"
+
+msgid "Delete Project"
+msgstr "Xóa dự án"
+
+msgid "Delete Profile"
+msgstr "Xóa hồ sơ"
+
+msgid "Delete Task"
+msgstr "Xóa tác vụ"
+
+msgid "Its"
+msgstr "Của nó"
+
+msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
+msgstr "(các) Nhiệm vụ được liên kết sẽ được giữ lại -- chúng thuộc về Dự án, không thuộc về Hồ sơ này."
+
+msgid "It has no linked Tasks."
+msgstr "Nó không có nhiệm vụ liên kết."
+
+msgid "It will be removed from"
+msgstr "Nó sẽ bị xóa khỏi"
+
+msgid "Project(s) and unlinked from"
+msgstr "(Các) dự án và đã hủy liên kết khỏi"
+
+msgid "Profile(s) that run it. Those Profiles themselves are kept."
+msgstr "(Các) hồ sơ chạy nó. Bản thân những Hồ sơ đó sẽ được lưu giữ."
+
+msgid "Keep Contents"
+msgstr "Giữ nội dung"
+
+msgid "Delete Contents"
+msgstr "Xóa nội dung"
+
+msgid "Adding to Project:"
+msgstr "Thêm vào dự án:"
+
+msgid "Save To Current File"
+msgstr "Lưu vào tập tin hiện tại"
+
+msgid "Add Project"
+msgstr "Thêm dự án"
+
+msgid "Add Profile"
+msgstr "Thêm hồ sơ"
+
+msgid "Add Task"
+msgstr "Thêm nhiệm vụ"
+
+msgid "Add an action"
+msgstr "Thêm một hành động"
+
+msgid "Actions in this Task"
+msgstr "Các hành động trong nhiệm vụ này"
+
+msgid "No actions added yet."
+msgstr "Chưa có hành động nào được thêm vào."
+
+msgid "Actions & Control"
+msgstr "Hành động & Kiểm soát"
+
+msgid "Display Conditions"
+msgstr "Điều kiện hiển thị"
+
+msgid "Task Action Limit:"
+msgstr "Giới hạn hành động nhiệm vụ:"
+
+msgid "Theme Configuration"
+msgstr "Cấu hình chủ đề"
+
+msgid "Select a category to modify its color."
+msgstr "Chọn một danh mục để sửa đổi màu sắc của nó."
+
+msgid "Select Category to Colorize"
+msgstr "Chọn danh mục để tô màu"
+
+msgid "Choose Hex Color"
+msgstr "Chọn màu lục giác"
+
+msgid "Open View In New Window"
+msgstr "Mở chế độ xem trong cửa sổ mới"
+
+msgid "Close Tabs On Exit"
+msgstr "Đóng các tab khi thoát"
+
+msgid "Edit Project"
+msgstr "Chỉnh sửa dự án"
+
+msgid "Edit Profile"
+msgstr "Chỉnh sửa hồ sơ"
+
+msgid "Edit Task"
+msgstr "Chỉnh sửa tác vụ"
+
+msgid "Scene"
+msgstr "Bối cảnh"
+
+msgid "Execution"
+msgstr "Thi hành"
+
+msgid "File Operations"
+msgstr "Hoạt động tập tin"
+
+msgid "Display Views"
+msgstr "Hiển thị lượt xem"
+
+msgid "Application Settings"
+msgstr "Cài đặt ứng dụng"
+
+msgid "Help & Information"
+msgstr "Trợ giúp & Thông tin"
+
+msgid "0 = least detail, 5 = most detail."
+msgstr "0 = chi tiết ít nhất, 5 = chi tiết nhất."
+
+msgid "AI Analysis"
+msgstr "Phân tích AI"
+
+msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
+msgstr "Phân tích đang chạy ở chế độ nền.\n\nSau khi hoàn tất, kết quả sẽ xuất hiện trong một cửa sổ mới.\n\nXin hãy đứng bên..."
+
+msgid "Android Get XML Port Number"
+msgstr "Android Nhận số cổng XML"
+
+msgid "Android device at"
+msgstr "Thiết bị Android tại"
+
+msgid "Available Android Backups"
+msgstr "Bản sao lưu Android có sẵn"
+
+msgid "CAVEATS"
+msgstr "LƯU Ý"
+
+msgid "Cancel Entry"
+msgstr "Hủy bỏ mục nhập"
+
+msgid "Check your IP/Port and verify the Tasker HTTP server is running"
+msgstr "Kiểm tra IP/Cổng của bạn và xác minh máy chủ HTTP Tasker đang chạy"
+
+msgid "Close"
+msgstr "Đóng"
+
+msgid "Detail Level"
+msgstr "Mức độ chi tiết"
+
+msgid "Error"
+msgstr "Lỗi"
+
+msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
+msgstr "Tìm nạp XML từ thiết bị Android.\n\nBạn phải ở cùng mạng với thiết bị Android và thiết bị phải đang chạy và được kết nối.\n\n"
+
+msgid "Get Local XML File"
+msgstr "Nhận tệp XML cục bộ"
+
+msgid "It owns"
+msgstr "Nó sở hữu"
+
+msgid "No Profile Tasks Found"
+msgstr "Không tìm thấy nhiệm vụ hồ sơ nào"
+
+msgid "No Profiles Found"
+msgstr "Không tìm thấy hồ sơ"
+
+msgid "No file loaded"
+msgstr "Không có tập tin nào được tải"
+
+msgid "No scenes found"
+msgstr "Không tìm thấy cảnh nào"
+
+msgid "No tasks found"
+msgstr "Không tìm thấy nhiệm vụ nào"
+
+msgid "None or unnamed!"
+msgstr "Không có hoặc không có tên!"
+
+msgid "Profile(s) and"
+msgstr "(Các) hồ sơ và"
+
+msgid "Prompt:"
+msgstr "Nhắc:"
+
+msgid "Save To Android"
+msgstr "Lưu vào Android"
+
+msgid "Scene to Analyze:"
+msgstr "Cảnh để phân tích:"
+
+msgid "Scene:"
+msgstr "Bối cảnh:"
+
+msgid "Select XML From Android Device:"
+msgstr "Chọn XML từ thiết bị Android:"
+
+msgid "Task(s)."
+msgstr "(Các) nhiệm vụ."
+
+msgid "Unnamed Task"
+msgstr "Nhiệm vụ không tên"
+
+msgid "Update Available!"
+msgstr "Cập nhật có sẵn!"
+
+msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
+msgstr "Tính năng phát trực tiếp trên YouTube yêu cầu mã thông báo API của bên thứ ba. Tải xuống bản nhạc mục tiêu cục bộ để xem."
+
+msgid "is unreachable"
+msgstr "không thể truy cập được"
+
+msgid "'Cancel' button selected. No change to the API keys!"
+msgstr "Nút 'Hủy' đã được chọn. Không có thay đổi nào đối với các khóa API!"
+
+msgid ".or."
+msgstr ".hoặc."
+
+msgid "1-TCP/IP Address:"
+msgstr "Địa chỉ 1-TCP/IP:"
+
+msgid "2-Port Number:"
+msgstr "Số 2 cổng:"
+
+msgid "3-File Location:"
+msgstr "Vị trí 3 tệp:"
+
+msgid "AI Model"
+msgstr "Mô hình AI"
+
+msgid "Add 'If' Action"
+msgstr "Thêm hành động 'Nếu'"
+
+msgid "Add App Entry"
+msgstr "Thêm mục nhập ứng dụng"
+
+msgid "Add Condition"
+msgstr "Thêm điều kiện"
+
+msgid "All"
+msgstr "Tất cả"
+
+msgid "Android IP Address"
+msgstr "Địa chỉ IP Android"
+
+msgid "Android configuration details matched successfully!"
+msgstr "Chi tiết cấu hình Android đã khớp thành công!"
+
+msgid "Changes kept."
+msgstr "Những thay đổi được giữ lại."
+
+msgid "Choose a State type first."
+msgstr "Trước tiên hãy chọn loại Bang."
+
+msgid "Choose a Task"
+msgstr "Chọn một nhiệm vụ"
+
+msgid "Choose a Task first."
+msgstr "Chọn một nhiệm vụ đầu tiên."
+
+msgid "Choose a condition type first."
+msgstr "Chọn một loại điều kiện đầu tiên."
+
+msgid "Choose an Event type first."
+msgstr "Trước tiên hãy chọn loại Sự kiện."
+
+msgid "Class (optional)"
+msgstr "Lớp (tùy chọn)"
+
+msgid "Cleared the search highlights."
+msgstr "Đã xóa phần nổi bật của tìm kiếm."
+
+msgid "Click Here to Set XML Details"
+msgstr "Bấm vào đây để đặt chi tiết XML"
+
+msgid "Click arrows to expand/collapse details."
+msgstr "Nhấp vào mũi tên để mở rộng/thu gọn chi tiết."
+
+msgid "Click on a row index line number to jump directly to that match block placement:"
+msgstr "Nhấp vào số dòng chỉ mục hàng để chuyển trực tiếp đến vị trí khối khớp đó:"
+
+msgid "Click on connector to highlight"
+msgstr "Nhấp vào trình kết nối để đánh dấu"
+
+msgid "Close Results Window"
+msgstr "Đóng cửa sổ kết quả"
+
+msgid "Condition Type"
+msgstr "Loại tình trạng"
+
+msgid "Conditions"
+msgstr "Điều kiện"
+
+msgid "Configure Android Connection:"
+msgstr "Định cấu hình kết nối Android:"
+
+msgid "Continue Task After Error"
+msgstr "Tiếp tục nhiệm vụ sau lỗi"
+
+msgid "Copy"
+msgstr "Sao chép"
+
+msgid "Dark Mode"
+msgstr "Chế độ tối"
+
+msgid "Day of Month"
+msgstr "Ngày trong tháng"
+
+msgid "Delete"
+msgstr "Xóa bỏ"
+
+msgid "Delete Condition"
+msgstr "Xóa điều kiện"
+
+msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
+msgstr "Chỉ xóa Hồ sơ này. Nhiệm vụ vào/ra của nó được giữ lại -- Nhiệm vụ được sở hữu bởi Dự án, không phải bởi Hồ sơ và cùng một Nhiệm vụ có thể được sử dụng bởi các Hồ sơ khác."
+
+msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
+msgstr "Xóa Nhiệm vụ này và mọi tham chiếu đến nó: nó bị xóa khỏi Nhiệm vụ của mọi Dự án sở hữu nó và khỏi bất kỳ Hồ sơ nào chạy nó dưới dạng Nhiệm vụ Đầu vào/Thoát của nó. Bản thân các Hồ sơ sẽ được lưu giữ."
+
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+msgstr "Hiển thị danh sách mở rộng TẤT CẢ các mẫu có sẵn.\n\nLưu ý: Nếu khóa API không được đặt cho OpenAI hoặc Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nLưu ý: Việc bật tùy chọn này lần đầu tiên sẽ\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+
+msgid "End Time"
+msgstr "Thời gian kết thúc"
+
+msgid "Event Type"
+msgstr "Loại sự kiện"
+
+msgid "Every"
+msgstr "Mọi"
+
+msgid "File path saved successfully!"
+msgstr "Đường dẫn tệp đã được lưu thành công!"
+
+msgid "File selection canceled."
+msgstr "Việc chọn tập tin đã bị hủy."
+
+msgid "If"
+msgstr "Nếu như"
+
+msgid "If condition set."
+msgstr "Nếu điều kiện được đặt."
+
+msgid "Insert just the 'If', or a complete block?"
+msgstr "Chỉ chèn 'Nếu' hoặc một khối hoàn chỉnh?"
+
+msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
+msgstr "Đã chỉ định loại chế độ xem không hợp lệ. Sử dụng 'bản đồ', 'sơ đồ' hoặc 'cây'."
+
+msgid "Label"
+msgstr "Nhãn"
+
+msgid "Last Day Of Month"
+msgstr "Ngày Cuối Cùng Của Tháng"
+
+msgid "Link"
+msgstr "liên kết"
+
+msgid "List Files Selected"
+msgstr "Liệt kê các tập tin đã chọn"
+
+msgid "List XML Files"
+msgstr "Liệt kê các tệp XML"
+
+msgid "Map View opened in a new browser window."
+msgstr "Chế độ xem bản đồ đã mở trong cửa sổ trình duyệt mới."
+
+msgid "Map view creation skipped: No valid XML source found or action canceled."
+msgstr "Việc tạo chế độ xem bản đồ bị bỏ qua: Không tìm thấy nguồn XML hợp lệ hoặc hành động bị hủy."
+
+msgid "Month"
+msgstr "Tháng"
+
+msgid "Move"
+msgstr "Di chuyển"
+
+msgid "Move to #"
+msgstr "Di chuyển đến #"
+
+msgid "New name"
+msgstr "Tên mới"
+
+msgid "No XML data loaded! Please Get XML from Android or Local drive first."
+msgstr "Không có dữ liệu XML nào được tải! Trước tiên hãy lấy XML từ Android hoặc ổ đĩa cục bộ."
+
+msgid "No XML data loaded! Please select a valid XML file first."
+msgstr "Không có dữ liệu XML nào được tải! Trước tiên hãy chọn một tệp XML hợp lệ."
+
+msgid "No actions in this Task."
+msgstr "Không có hành động nào trong Nhiệm vụ này."
+
+msgid "No backup file is currently loaded. Use 'Get Local XML' first."
+msgstr "Hiện tại không có tập tin sao lưu nào được tải. Trước tiên hãy sử dụng 'Nhận XML cục bộ'."
+
+msgid "No conditions on this Profile."
+msgstr "Không có điều kiện trên Hồ sơ này."
+
+msgid "No editable arguments (code not mapped, or this condition has none)."
+msgstr "Không có đối số có thể chỉnh sửa (mã không được ánh xạ hoặc điều kiện này không có)."
+
+msgid "No editable arguments."
+msgstr "Không có đối số có thể chỉnh sửa."
+
+msgid "Not configured..."
+msgstr "Chưa được định cấu hình..."
+
+msgid "Odd"
+msgstr "Số lẻ"
+
+msgid "Ok"
+msgstr "Được rồi"
+
+msgid "Operator"
+msgstr "Toán tử"
+
+msgid "Package"
+msgstr "Bưu kiện"
+
+msgid "Pick a Task"
+msgstr "Chọn một nhiệm vụ"
+
+msgid "Please enter a search term."
+msgstr "Vui lòng nhập cụm từ tìm kiếm."
+
+msgid "Port"
+msgstr "Cảng"
+
+msgid "Position"
+msgstr "Chức vụ"
+
+msgid "Priority"
+msgstr "Sự ưu tiên"
+
+msgid "Profile Name"
+msgstr "Tên hồ sơ"
+
+msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "Hồ sơ chỉ được lưu giữ cho phiên này -- hãy sử dụng 'Lưu vào tệp hiện tại' để lưu giữ hồ sơ đó vĩnh viễn."
+
+msgid "Profiles Per Line"
+msgstr "Hồ sơ trên mỗi dòng"
+
+msgid "Project Name"
+msgstr "Tên dự án"
+
+msgid "Project added."
+msgstr "Đã thêm dự án."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
+msgstr "Nhắc tên mới và áp dụng tên đó cho bản sao lưu đã tải ngay bây giờ. Trường Tên dự án ở trên ở dạng chỉ đọc -- đây là cách duy nhất để thay đổi trường này."
+
+msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
+msgstr "Nhắc tên mới và áp dụng tên đó cho bản sao lưu đã tải ngay bây giờ. Mọi thứ khác trong hộp thoại này vẫn đang chờ xử lý cho đến khi Ok/Save và hộp thoại vẫn mở để bạn có thể tiếp tục chỉnh sửa."
+
+msgid "Remove"
+msgstr "Di dời"
+
+msgid "Save Profile To Android Device"
+msgstr "Lưu hồ sơ vào thiết bị Android"
+
+msgid "Save Project To Android Device"
+msgstr "Lưu dự án vào thiết bị Android"
+
+msgid "Save Task To Android Device"
+msgstr "Lưu tác vụ vào thiết bị Android"
+
+msgid "Save as"
+msgstr "Lưu dưới dạng"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Lưu toàn bộ bản sao lưu -- mọi Dự án, Hồ sơ và Nhiệm vụ trong đó, không chỉ Hồ sơ này -- với các chỉnh sửa của hộp thoại này được áp dụng, những chỉnh sửa tương tự 'Ok' sẽ được giữ nguyên.\nNó được ghi vào một bản sao mới có dấu thời gian của tệp hiện được tải: backup.xml trở thành backup_20260728_143005.xml.\nTệp bạn đã tải không bao giờ được ghi vào nên nó vẫn được giữ nguyên như cũ.\nSau đó, ứng dụng sẽ chuyển sang bản sao mới, bản sao này sẽ trở thành tệp hiện tại để chỉnh sửa và lưu thêm; lưu lại sẽ thay thế dấu thời gian thay vì thêm dấu thời gian thứ hai.\nĐiều này chỉ ghi vào máy tính này -- không có gì được gửi tới thiết bị Android của bạn."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Lưu toàn bộ bản sao lưu -- mọi Dự án, Hồ sơ và Nhiệm vụ trong đó, không chỉ Dự án này -- bao gồm mọi chỉnh sửa được thực hiện ở bất kỳ đâu trong phiên này.\nNó được ghi vào một bản sao mới có dấu thời gian của tệp hiện được tải: backup.xml trở thành backup_20260728_143005.xml.\nTệp bạn đã tải không bao giờ được ghi vào nên nó vẫn được giữ nguyên như cũ.\nSau đó, ứng dụng sẽ chuyển sang bản sao mới, bản sao này sẽ trở thành tệp hiện tại để chỉnh sửa và lưu thêm; lưu lại sẽ thay thế dấu thời gian thay vì thêm dấu thời gian thứ hai.\nĐiều này chỉ ghi vào máy tính này -- không có gì được gửi tới thiết bị Android của bạn."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Lưu toàn bộ bản sao lưu -- mọi Dự án, Hồ sơ và Nhiệm vụ trong đó, không chỉ Nhiệm vụ này -- khi các chỉnh sửa của hộp thoại này được áp dụng, những chỉnh sửa tương tự 'Ok' sẽ được giữ nguyên.\nNó được ghi vào một bản sao mới có dấu thời gian của tệp hiện được tải: backup.xml trở thành backup_20260728_143005.xml.\nTệp bạn đã tải không bao giờ được ghi vào nên nó vẫn được giữ nguyên như cũ.\nSau đó, ứng dụng sẽ chuyển sang bản sao mới, bản sao này sẽ trở thành tệp hiện tại để chỉnh sửa và lưu thêm; lưu lại sẽ thay thế dấu thời gian thay vì thêm dấu thời gian thứ hai.\nĐiều này chỉ ghi vào máy tính này -- không có gì được gửi tới thiết bị Android của bạn."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Lưu toàn bộ bản sao lưu -- mọi Dự án, Hồ sơ và Nhiệm vụ trong đó, không chỉ bản sao lưu này -- với Hồ sơ mới được thêm vào Dự án của nó, giống như cách 'Ok' thêm nó.\nNó được ghi vào một bản sao mới có dấu thời gian của tệp hiện được tải: backup.xml trở thành backup_20260728_143005.xml.\nTệp bạn đã tải không bao giờ được ghi vào nên nó vẫn được giữ nguyên như cũ.\nSau đó, ứng dụng sẽ chuyển sang bản sao mới, bản sao này sẽ trở thành tệp hiện tại để chỉnh sửa và lưu thêm; lưu lại sẽ thay thế dấu thời gian thay vì thêm dấu thời gian thứ hai.\nĐiều này chỉ ghi vào máy tính này -- không có gì được gửi tới thiết bị Android của bạn."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Lưu toàn bộ bản sao lưu -- mọi Dự án, Hồ sơ và Nhiệm vụ trong đó, không chỉ bản sao lưu này -- với Nhiệm vụ mới được thêm vào đó, giống như cách 'Ok' thêm nó.\nNó được ghi vào một bản sao mới có dấu thời gian của tệp hiện được tải: backup.xml trở thành backup_20260728_143005.xml.\nTệp bạn đã tải không bao giờ được ghi vào nên nó vẫn được giữ nguyên như cũ.\nSau đó, ứng dụng sẽ chuyển sang bản sao mới, bản sao này sẽ trở thành tệp hiện tại để chỉnh sửa và lưu thêm; lưu lại sẽ thay thế dấu thời gian thay vì thêm dấu thời gian thứ hai.\nĐiều này chỉ ghi vào máy tính này -- không có gì được gửi tới thiết bị Android của bạn."
+
+msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
+msgstr "Lưu Dự án này và mọi thứ trong đó -- mọi Hồ sơ và Nhiệm vụ -- dưới dạng một tệp độc lập."
+
+msgid "Search actions"
+msgstr "Hành động tìm kiếm"
+
+msgid "Search..."
+msgstr "Tìm kiếm..."
+
+msgid "Select a single Profile first (Profile pulldown above)."
+msgstr "Trước tiên hãy chọn một Hồ sơ (Hồ sơ kéo xuống ở trên)."
+
+msgid "Select a single Project first (Project pulldown above)."
+msgstr "Trước tiên hãy chọn một Dự án (Dự án kéo xuống ở trên)."
+
+msgid "Select a single Task first (Task pulldown above)."
+msgstr "Trước tiên hãy chọn một Nhiệm vụ duy nhất (Kéo xuống nhiệm vụ ở trên)."
+
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "Chọn số lượng hành động trong một Nhiệm vụ trước khi đưa ra cảnh báo.\nCảnh báo xuất hiện gần cuối đầu ra cấu hình,\nvà nhằm giúp xác định các Nhiệm vụ quá phức tạp\nvà có khả năng được chia thành nhiều Nhiệm vụ.\nCài đặt '100' có nghĩa là không có giới hạn."
+
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
+msgstr "Đặt mức thụt lề cho các khối If/Then/Else.\n\nMặc định là '4'.\n\nĐiều này ảnh hưởng đến cách định dạng đầu ra trong chế độ xem Bản đồ và Sơ đồ."
+
+msgid "Settings Reset!"
+msgstr "Đặt lại cài đặt!"
+
+msgid "Shutting down MapTasker..."
+msgstr "Đang tắt MapTasker..."
+
+msgid "Start Time"
+msgstr "Thời gian bắt đầu"
+
+msgid "Starting AI Analysis..."
+msgstr "Đang bắt đầu phân tích AI..."
+
+msgid "State Type"
+msgstr "Loại trạng thái"
+
+msgid "Submit"
+msgstr "Nộp"
+
+msgid "Target"
+msgstr "Mục tiêu"
+
+msgid "Task Name"
+msgstr "Tên nhiệm vụ"
+
+msgid "Task Uploaded to Tasker"
+msgstr "Tác vụ được tải lên Tasker"
+
+msgid "Task Uploaded to Tasker."
+msgstr "Tác vụ được tải lên Tasker."
+
+msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "Nhiệm vụ chỉ được giữ cho phiên này -- sử dụng 'Lưu vào tệp hiện tại' để giữ nó vĩnh viễn."
+
+msgid "The 'Misc' view is running in the background.  Please stand by..."
+msgstr "Chế độ xem 'Khác' đang chạy ở chế độ nền.  Xin hãy đứng bên..."
+
+msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
+msgstr "Nút 'Tìm kiếm' sẽ tìm kiếm và đánh dấu mọi trường hợp của chuỗi không phân biệt chữ hoa chữ thường được nhập vào hộp tìm kiếm, bắt đầu từ đầu dữ liệu.\n\nNó sẽ chỉ hiển thị 200 trường hợp đầu tiên của chuỗi tìm kiếm.\n\nBấm vào số dòng để đi tới dòng đó trong hộp xem văn bản.\n\nNút 'Xóa' sẽ xóa kết quả tìm kiếm.\n\n"
+
+msgid "The change will take effect the next time you open the view."
+msgstr "Thay đổi sẽ có hiệu lực vào lần tiếp theo bạn mở chế độ xem."
+
+msgid "This Task has no actions yet."
+msgstr "Nhiệm vụ này chưa có hành động nào."
+
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "Đây là danh sách tất cả các phông chữ có sẵn trên hệ thống của bạn, các phông chữ đơn cách đầu tiên và được đánh dấu như vậy.\n\nPhông chữ được chọn sẽ được sử dụng trong tất cả đầu ra.\n\n'Courier' hoặc 'Courier New' rất được khuyến khích cho Sơ đồ để đảm bảo căn chỉnh đầu nối phù hợp. Phông chữ không cách đều sẽ không giữ được các đầu nối của Sơ đồ hoặc phần thụt đầu ra của đầu ra thẳng hàng."
+
+msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
+msgstr "Thao tác này sẽ lưu Tác vụ trực tiếp vào Tasker đang chạy trên thiết bị Android đang chạy máy chủ Tasker.\n\nĐịa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị Android.\n\nBạn sẽ được nhắc hai lần về việc ủy ​​quyền ghi vào Tasker trên thiết bị Android và Tác vụ cũng như các hành động của chính nó sẽ xác định nơi nó được lưu trên thiết bị."
+
+msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
+msgstr "Thao tác này sẽ lưu Tác vụ trực tiếp vào phiên Tác vụ đang hoạt động trên thiết bị Android của bạn.\n\nCần có phiên bản Tasker 6.2 trở lên để tính năng này hoạt động. Thiết bị Android phải nằm trên cùng một mạng cũng như Địa chỉ IP và Cổng\nphải phù hợp với cài đặt máy chủ Tasker của thiết bị Android.\n\nBạn sẽ được nhắc hai lần về việc ủy ​​quyền ghi vào Tác vụ trên thiết bị Android và Tác vụ sẽ được tải trực tiếp vào phiên Tác vụ đang hoạt động.\n\nBạn phải thoát và khởi động lại Tasker để xem Tác vụ mới trong Giao diện người dùng của Tasker."
+
+msgid "This will save the Task directly to your current drive.\n\n"
+msgstr "Điều này sẽ lưu Tác vụ trực tiếp vào ổ đĩa hiện tại của bạn.\n\n"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Thao tác này sẽ ghi Hồ sơ dưới dạng tệp độc lập vào thiết bị Android, trong /Tasker/profiles.\n\nĐịa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị Android.\n\nKhông cần có lời nhắc ủy quyền cho việc này."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Thao tác này sẽ ghi Hồ sơ dưới dạng tệp độc lập vào thiết bị Android của bạn, trong /Tasker/profiles -- nó không nhập hồ sơ vào cấu hình trực tiếp của Tasker.\n\nDự án tác vụ 'Ví dụ máy chủ http' (http://spoo.me/http_svr_example) phải được cài đặt và hoạt động trên thiết bị Android với máy chủ đang chạy (xem ghi chú Truy xuất XML trực tiếp của README).\n\nThiết bị Android phải nằm trên cùng một mạng, đồng thời Địa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị đó. Không cần có lời nhắc ủy quyền cho việc này."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Thao tác này sẽ ghi Hồ sơ dưới dạng tệp độc lập vào thiết bị Android của bạn, trong /Tasker/profiles -- nó không nhập hồ sơ vào cấu hình trực tiếp của Tasker.\n\nDự án tác vụ 'Ví dụ về máy chủ http' phải được cài đặt và hoạt động trên thiết bị Android, với máy chủ đang chạy (xem ghi chú Truy xuất XML trực tiếp của README).\n\nThiết bị Android phải nằm trên cùng một mạng, đồng thời Địa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị đó. Không cần có lời nhắc ủy quyền cho việc này."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Thao tác này sẽ ghi Dự án và mọi thứ trong đó -- mọi Hồ sơ và Nhiệm vụ -- dưới dạng một tệp độc lập trên thiết bị Android của bạn, trong /Tasker/projects -- nó không nhập dự án đó vào cấu hình trực tiếp của Tác vụ.\n\nDự án tác vụ 'Ví dụ về máy chủ http' phải được cài đặt và hoạt động trên thiết bị Android với máy chủ đang chạy.\n\nThiết bị Android phải nằm trên cùng một mạng, đồng thời Địa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị đó. Không cần có lời nhắc ủy quyền cho việc này."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Thao tác này sẽ ghi Dự án và mọi thứ trong đó dưới dạng một tệp độc lập trên thiết bị Android, trong /Tasker/projects.\n\nĐịa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị Android.\n\nKhông cần có lời nhắc ủy quyền cho việc này."
+
+msgid "Toggle Wrap"
+msgstr "Chuyển đổi gói"
+
+msgid "Unlink"
+msgstr "Hủy liên kết"
+
+msgid "Value"
+msgstr "Giá trị"
+
+msgid "View cleared."
+msgstr "Đã xóa lượt xem."
+
+msgid "Week-Day"
+msgstr "Ngày trong tuần"
+
+msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
+msgstr "Khi được bật, việc nhấp vào 'Thoát' cũng sẽ đóng cửa sổ MapTasker chính và mọi cửa sổ/tab Bản đồ/Sơ đồ mà nó đã mở.\n\nKhi bị tắt, 'Thoát' sẽ tắt MapTasker nhưng vẫn mở các cửa sổ/tab đó."
+
+msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
+msgstr "Khi được bật, mỗi yêu cầu Bản đồ/Sơ đồ sẽ mở trong cửa sổ/tab mới của riêng nó, do đó bạn có thể giữ những yêu cầu trước đó bên cạnh để so sánh.\n\nKhi bị tắt, yêu cầu sẽ sử dụng lại cửa sổ/tab hiện có của chế độ xem đó, thay thế nội dung trong đó.\n\nBỏ nó đi trừ khi bạn muốn so sánh: một cửa sổ/tab hoàn toàn mới là cửa sổ/tab mà trình duyệt của bạn có thể chặn vì nó được mở sau khi chế độ xem đã hoàn tất xây dựng chứ không phải ngay khi bạn nhấp vào."
+
+msgid "hh:mm AM/PM or %variable"
+msgstr "hh:mm AM/PM hoặc %biến"
+
+msgid "Diagram View opened in a new browser window."
+msgstr "Chế độ xem Sơ đồ đã mở trong cửa sổ trình duyệt mới."
+
+msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
+msgstr "Hiển thị chế độ xem 'Bản đồ', 'Sơ đồ' hoặc 'Cây' cho cấu hình của bạn trực tiếp trong GUI.\n\nTrước tiên, XML phải được lấy từ ổ đĩa cục bộ hoặc thiết bị Android để chế độ xem hoạt động.\n\nNếu XML đã được tìm nạp, nó sẽ được sử dụng làm đầu vào cho dạng xem.  Nhấn nút 'Xóa' sẽ xóa dữ liệu xem.\n\nCấu hình rất lớn sẽ phải chịu thời gian chạy kéo dài cho Bản đồ và Sơ đồ.  Để có hiệu suất tốt nhất, hãy chọn một Dự án hoặc Hồ sơ để lập bản đồ.\n\nTùy chọn, giới hạn lượng dữ liệu cần xử lý bằng cách sử dụng cài đặt 'Giới hạn chế độ xem'.  Giới hạn càng lớn thì đầu ra được phép ánh xạ càng lớn.  Càng tạo ra nhiều đầu ra thì thời gian xử lý càng lớn.\n\n\nChế độ xem Sơ đồ có hành vi sau:\n\n - Chỉ có thể hiển thị Dự án và Hồ sơ. XML chỉ bao gồm một Tác vụ hoặc Cảnh duy nhất sẽ không được hiển thị.\n\n - Click vào đầu nối ngang để bôi đen toàn bộ đầu nối trong sơ đồ.\n\n\nChế độ xem dạng cây có hành vi sau:\n\n- Chỉ có thể hiển thị Dự án. XML chỉ bao gồm một Cấu hình hoặc Nhiệm vụ hoặc Cảnh duy nhất sẽ không được hiển thị.\n\n- Tất cả Dự án, Hồ sơ, Nhiệm vụ và Cảnh đều được hiển thị bất kể cài đặt tên duy nhất.\n\n"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "MapTasker hiển thị cấu hình Android Tasker của bạn dựa trên tệp XML Tasker đã tải lên của bạn (ví dụ: 'backup.xml'). Màn hình sẽ tùy chọn bao gồm tất cả các Dự án, Hồ sơ, Nhiệm vụ và hành động của chúng, các điều kiện của Hồ sơ/Nhiệm vụ và các thông tin liên quan đến Hồ sơ/Nhiệm vụ khác.\n\nSau khi tệp XML được tải, bạn có thể tùy ý chỉnh sửa Dự án, Hồ sơ, Nhiệm vụ và Cảnh của mình.\n\n* Tùy chọn hiển thị là:\n    Cấp độ 0: chỉ hiển thị hành động Nhiệm vụ đầu tiên, chỉ dành cho Nhiệm vụ không tên (im lặng).\n    Cấp 1 = chỉ hiển thị tất cả chi tiết hành động Nhiệm vụ cho các Nhiệm vụ không xác định (mặc định).\n    Cấp độ 2 = hiển thị đầy đủ tên hành động Nhiệm vụ trên mỗi Nhiệm vụ.\n    Cấp độ 3 = hiển thị đầy đủ chi tiết hành động Nhiệm vụ trên mỗi Nhiệm vụ kèm theo chi tiết hành động.\n    Cấp 4 = cấp độ hiển thị 3 cộng với các biến toàn cục của Dự án.\n\n    Cấp 5 = cấp độ hiển thị 4 cộng với chi tiết đối số Cảnh.\n\n* Just Display Everything: Bật hiển thị các điều kiện, thông tin TaskerNet, tùy chọn, đầu ra đẹp, thư mục và sơ lược cấu hình.\n\n* Điều kiện hiển thị: Bật hiển thị điều kiện Profile và Task.\n\n* Hiển thị thông tin TaskerNet - Nếu có, hiển thị thông tin xuất bản TaskerNet.\n\n* Hiển thị Tùy chọn Tác vụ - hiển thị Tùy chọn hệ thống của Tác vụ.\n\n* Ẩn Chi tiết Nhiệm vụ trong Twisty: ẩn thông tin Nhiệm vụ trong ► và nhấp để hiển thị.\n\n* Hiển thị thư mục các siêu liên kết lúc đầu.\n\n* Hiển thị đầu ra đẹp hơn: Làm cho đầu ra dễ đọc hơn bằng cách thêm dòng mới và thụt lề cho tất cả các đối số.\n\n* Tùy chọn Tên dự án/Hồ sơ/Nhiệm vụ/Cảnh để in nghiêng, in đậm, gạch chân và/hoặc đánh dấu tên của chúng.\n\n* Giới hạn hành động nhiệm vụ: hiển thị cảnh báo nếu Nhiệm vụ có nhiều hơn số lượng hành động được chỉ định.\n\n* Số lượng thụt lề cho các Tác vụ Nếu/Thì/Khác.\n\n* Ngôn ngữ: Chọn ngôn ngữ sẽ được sử dụng cho đầu ra.  Mặc định là tiếng Anh.\n\n* Font To Use: Thay đổi phông chữ đơn cách được sử dụng cho đầu ra.\n\n* Giới hạn chế độ xem: Kiểm soát lượng thời gian xử lý được sử dụng khi tạo chế độ xem.\n\n* Tùy chọn đặt lại: Xóa mọi thứ và bắt đầu lại.\n\n* Nhận tệp XML cục bộ: tìm nạp tệp XML sao lưu/xuất từ ​​ổ đĩa cục bộ của bạn.\n\n* Lưu cài đặt - Lưu các cài đặt này để sử dụng sau.\n\n* Khôi phục cài đặt - Khôi phục cài đặt từ phiên đã lưu trước đó.\n\n* Hiển thị Chế độ xem: Hiển thị Bản đồ, Sơ đồ hoặc Chế độ xem dạng cây cấu hình của Dự án, Hồ sơ, Nhiệm vụ và Cảnh của bạn trực tiếp trong GUI.\n\n* Nhận XML từ thiết bị Android: tìm nạp tệp XML sao lưu/xuất từ ​​thiết bị Android.  Bạn sẽ được yêu cầu địa chỉ IP và số cổng cho thiết bị Android của mình cũng như vị trí tệp trên thiết bị.\n\n* Tab Tên cụ thể: nhập một mục có tên cụ thể để hiển thị...\n   - Project Name: nhập Project cụ thể cần hiển thị.\n   - Profile Name: nhập Profile cụ thể để hiển thị.\n   - Tên nhiệm vụ: nhập Nhiệm vụ cụ thể cần hiển thị.\n   - Scene Name: nhập Scene cụ thể cần hiển thị.  Tiêu đề của Dự án sở hữu nó và\n                 Các thành phần của Cảnh (cộng với bất kỳ Nhiệm vụ nào mà các thành phần đó gọi ra) được hiển thị;\n                 Hồ sơ Dự án và các Cảnh khác của nó thì không.\n   (Bốn cái này là độc quyền: chỉ nhập một)\n\n   Thêm và chỉnh sửa dự án, hồ sơ và nhiệm vụ trực tiếp trong GUI, với nhiều tùy chọn lưu khác nhau.\n\n* Tab Màu sắc: chọn màu cho các thành phần khác nhau của màn hình.\n              (ví dụ: màu cho Dự án, Hồ sơ, Nhiệm vụ, v.v.).\n\n* Tab Phân tích: Chạy phân tích cho Dự án, Hồ sơ, Nhiệm vụ hoặc Cảnh dựa trên mô hình Ai.\n\n* Tab gỡ lỗi: Hiển thị tùy chọn Cài đặt thời gian chạy và bật chế độ Gỡ lỗi.\n\n* Thoát: Thoát khỏi chương trình (thoát).\n\nGhi chú:\n\n- Xem toàn bộ lịch sử nhật ký thay đổi tại https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Thay đổi chế độ hiển thị sẽ thay đổi màu sắc được sử dụng cho đầu ra về giá trị mặc định.\n\n"
+
+msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+msgstr "'Giới hạn chế độ xem' là phương tiện để kiểm soát lượng thời gian xử lý được sử dụng khi tạo chế độ xem.\n\n- Các con số biểu thị số lượng dòng đầu ra tương đối được tạo ra.\n\n- Giới hạn càng lớn thì đầu ra được phép ánh xạ càng lớn.  Càng tạo ra nhiều đầu ra thì thời gian xử lý càng lớn.\n\n- Cấu hình rất lớn sẽ tạo ra bản đồ đầu ra rất lớn và sẽ gây ra thời gian xử lý lâu hơn.  Trên các thiết bị cũ hơn, quá trình này có thể mất tới 30 giây trở lên.\n\n- Bằng cách đặt giới hạn, bạn có thể kiểm soát thời gian xử lý được sử dụng khi ánh xạ cấu hình bằng cách không cho phép thời lượng dài hơn.\n\n- Nếu đạt đến giới hạn khi tính toán bản đồ, đầu ra sẽ dừng ở đó.\n\n- Bạn có thể thử nghiệm cài đặt này để xem cài đặt nào phù hợp nhất với trường hợp sử dụng của bạn.\n\n- Chọn một Dự án, Hồ sơ hoặc Nhiệm vụ là một phương tiện khác để hạn chế thời gian xử lý.\n\n"
+
+msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
+msgstr "Tab Phân tích được sử dụng để chạy phân tích Ai trên Hồ sơ của bạn, sử dụng mô hình llama cục bộ hoặc các mô hình Open AI, Claude hoặc DeepSeek dựa trên máy chủ.\n\nCần thực hiện các bước sau để chạy AI dựa trên Hồ sơ của bạn.\n\n1- Nếu sử dụng AI dựa trên máy chủ, bạn phải có khóa API hợp lệ từ nhà cung cấp (ví dụ: OpenAI).  Bạn có thể sử dụng nút 'Hiển thị/Chỉnh sửa (các) Khóa API' để nhập (các) khóa của mình.\n\n2- Lời nhắc mặc định là: 'đề xuất cải tiến về hiệu suất và khả năng đọc: (dự án/hồ sơ/nhiệm vụ của bạn)' và được tự động đặt trước: 'Đưa ra (Dự án/Hồ sơ/Nhiệm vụ) sau đây trong Tasker, '.  Nếu sửa đổi lời nhắc, bạn chỉ sửa đổi phần 'đề xuất cải tiến...'.\n\n3- Chọn kiểu máy bạn muốn sử dụng.\n\n   o Mô hình được chọn sẽ xác định AI sẽ được thực hiện phân tích.\n\n4- Nhấp vào nút 'Chạy Phân tích'.  Nó sẽ chuyển sang màu xanh khi tất cả dữ liệu cần thiết đã được nhập.\n\n   o Nếu bạn chưa chọn một mô hình, lời nhắc hoặc một Dự án, Hồ sơ hoặc Nhiệm vụ hoặc khóa API hợp lệ thì trước tiên bạn sẽ được nhắc làm như vậy.\n\n   o Quá trình này có thể mất một chút thời gian và chạy ở chế độ nền.  Kết quả sẽ xuất hiện trong một cửa sổ riêng biệt.\n\n   o Các mô hình cục bộ chưa được tải vào máy tính của bạn sẽ được tải ở chế độ nền khi quá trình phân tích bắt đầu.\n\nTất cả các khóa api được chỉ định của bạn (nếu có), mô hình, Dự án, Hồ sơ hoặc Nhiệm vụ đã chọn và lời nhắc Ai sẽ được lưu trong các phiên.\n\nTính năng 'Chạy lại' sẽ được sử dụng ngầm để hiển thị kết quả phân tích trong một cửa sổ mới.\n\n"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- If you want to use the 'List XML Files' option, then you must also import the following profile into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "Cần thực hiện các bước sau để tìm nạp tệp XML tác vụ trực tiếp từ thiết bị Android của bạn.\n\n1- Cả thiết bị này và thiết bị Android phải nằm trên cùng một mạng được đặt tên.\n\n2- Dự án tác vụ 'Ví dụ về máy chủ HTTP' hoặc chức năng tương tự phải được cài đặt và hoạt động trên thiết bị Android (máy chủ phải đang chạy):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- Nếu bạn muốn sử dụng tùy chọn 'Danh sách tệp XML' thì bạn cũng phải nhập cấu hình sau vào thiết bị Android và đảm bảo cấu hình đã nhập 'Danh sách MapTasker' được bật:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nBạn sẽ được hỏi địa chỉ IP, số cổng cho thiết bị Android của bạn cũng như vị trí tệp trên thiết bị Android.  Các giá trị mặc định được cung cấp, trong đó...\n\n'192.168.0.210' là địa chỉ IP mặc định,\n\n'1821' là số cổng mặc định cho Ví dụ về Máy chủ HTTP tác vụ đang chạy trên thiết bị Android của bạn\n\n'/Tasker/configs/user/backup.xml' là vị trí tệp mặc định.  Nếu bạn không biết vị trí tệp và đã nhập địa chỉ IP và cổng của mình thì bạn có thể chọn nút 'Liệt kê tệp XML' để nhận danh sách các tệp XML có sẵn trên thiết bị Android của mình để lựa chọn.\n\nGhi chú sử dụng:\n\nĐịa chỉ IP và cổng có thể được lấy bằng cách cài đặt dự án 'Ví dụ về máy chủ HTTP' từ URL trên trên thiết bị Android của bạn. Sau đó chạy tác vụ có tên 'Cập nhật thông tin HTTP GD' để nhận thông báo Android:\n\nThông tin máy chủ HTTP\nĐã cập nhật thông tin máy chủ {\"tên thiết bị:\"http://192.168.0.49:1821\"}\n\n- Để lấy file XML, nhấn vào nút\n\n 'Nhận XML từ thiết bị Android'\n\nSau đó sửa đổi các giá trị mặc định được trình bày trong các trường nhập bên dưới nút này, rồi nhấp vào nút 'Nhập và nhấp vào đây để đặt chi tiết XML' hoặc 'Liệt kê các tệp XML'.\n\n- Nhấn một trong hai nút sẽ ping thiết bị Android để xem nó có sẵn không.  Ping sẽ hết thời gian chờ sau 10 giây nếu không thể truy cập thiết bị.  Đảm bảo rằng địa chỉ IP là chính xác.\n\nNhấp vào nút 'Hủy mục nhập' để thoát khỏi quá trình tìm nạp này.\n\n"

@@ -377,7 +377,7 @@ msgid "Display only Project"
 msgstr "Εμφάνιση μόνο έργου"
 msgid "None"
 msgstr "Κανένας"
-msgid "Display all Projects, Profiles, and Tasks."
+msgid "Display all Projects, Profiles, Tasks, and Scenes."
 msgstr "Εμφάνιση όλων των έργων, των προφίλ και των εργασιών."
 msgid "Display all"
 msgstr "Εμφάνιση όλων"
@@ -604,14 +604,7 @@ msgid "The 'Search' button will search for and highlight every instance of the s
 msgstr "Το κουμπί 'Αναζήτηση' θα αναζητήσει και θα επισημάνει κάθε παρουσία της συμβολοσειράς που έχει εισαχθεί στο πλαίσιο αναζήτησης, ξεκινώντας από την κορυφή των δεδομένων.\n\nΤο κουμπί 'Αναζήτηση εδώ' θα αναζητήσει και θα επισημάνει κάθε παρουσία της συμβολοσειράς που έχει εισαχθεί στο πλαίσιο αναζήτησης, ξεκινώντας από την τρέχουσα οθόνη.\n\nΤοποθετήστε το δείκτη του ποντικιού πάνω από οποιαδήποτε από τις επισημασμένες συμβολοσειρές που ταιριάζουν με το 'P.Next' για να δείτε θα προσπαθήσει να κάνει ορατή την επόμενη και την προηγούμενη εμφάνιση της συμβολοσειράς αναζήτησης στο πλαίσιο προβολής κειμένου και να τις επισημάνει με διαφορετικό χρώμα.\n\nΗ ακρίβεια της ορατής της συμβολοσειράς αναζήτησης δεν είναι πάντα τέλεια και δεν βρίσκεται στον έλεγχο αυτού του προγράμματος.\n\nΌταν φτάσει στο τέλος ή στην αρχή του πλαισίου προβολής κειμένου, η αναζήτηση θα σταματήσει και θα εμφανιστεί ένα μήνυμα για αρκετά δευτερόλεπτα. Το κουμπί 'Εμφάνιση μόνο' θα εμφανίσει σε διάφορα παράθυρο ΜΟΝΟ τις αντιστοιχίσεις από τα αποτελέσματα αναζήτησης.\n\n"
 msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nIn order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running on your Android device.  This profile can be found at the following URL:\n\n    https://t.ly/8vI1f\n\n"
 msgstr "Κάνοντας κλικ σε αυτό το κουμπί θα προκύψουν οι ακόλουθες ενέργειες:\n\n- Η διεύθυνση IP θα χρησιμοποιηθεί για ping στη συσκευή Android.\n\n- Η διεύθυνση IP και ο αριθμός θύρας θα χρησιμοποιηθούν για να υποβάλετε ερωτήματα στη συσκευή Android και να λάβετε μια λίστα με τα διαθέσιμα αρχεία XML που βρίσκονται στο φάκελο Tasker.\n\n- Η λίστα των αρχείων XML που βρέθηκαν θα παρουσιαστεί σε ένα αναπτυσσόμενο μενού\n Αφού επιλέξετε το από το οποίο θέλετε να χρησιμοποιήσετε. αρχείο, θα ληφθεί και θα επαληθευτεί ως έγκυρο XML, το οποίο στη συνέχεια χρησιμοποιείται ως είσοδος στο πρόγραμμα μόλις κάνετε κλικ στο κουμπί 'Εκτέλεση' ή 'Επανεκτέλεση'.\n\nΓια να λειτουργήσει αυτό, ΠΡΕΠΕΙ να έχετε ήδη εισαγάγει το προφίλ 'Λίστα MapTasker' στο Tasker που εκτελείται στη συσκευή σας Android.  Αυτό το προφίλ βρίσκεται στην ακόλουθη διεύθυνση URL:\n\n https://t.ly/8vI1f\n\n"
-msgid "Help\n\nMapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to either report a bug or request a new feature ( [Feature Request] )\n\n* Appearance Mode: Dark, Light, or System default.\n\n* Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Clear Messages: Clear any messages in the textbox.\n\n* Font To Use: Change the monospace font used for the output.\n\n* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Androiddevice.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n* ReRun: Run multiple times (each time with new settings) without exiting, displaying the results in the browser.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   (These three are exclusive: enter one only)\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile or Task against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n- If you receive any of the following the runtime errors, you can ignore them:\n      '[CATransaction synchronize] called within transaction'.\n      'IMKClient Stall detected...'.\n\n- Drag the window to expand the text as desired.\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "Βοήθεια\n\nΤο MapTasker εμφανίζει τη διαμόρφωση του Android Tasker με βάση το μεταφορτωμένο αρχείο Tasker XML (π.χ. 'backup.xml'). Η οθόνη θα περιλαμβάνει προαιρετικά όλα τα Έργα, Προφίλ, Εργασίες και τις ενέργειές τους, Προφίλ/Συνθήκες Εργασίας και άλλες πληροφορίες που σχετίζονται με το Προφίλ/Εργασία.\n\n* Οι επιλογές εμφάνισης είναι:\n Επίπεδο 0: εμφάνιση πρώτης ενέργειας μόνο, μόνο για ανώνυμες Εργασίες (σιωπηλή).\n Επίπεδο 1 = εμφάνιση όλων των λεπτομερειών της ενέργειας Εργασίας για άγνωστες ενέργειες για άγνωστες Εργασίες\nde. Εργασία.\n Επίπεδο 3 = εμφάνιση πλήρους λεπτομερειών ενεργειών εργασίας σε κάθε Εργασία με λεπτομέρειες ενεργειών.\n Επίπεδο 4 = επίπεδο εμφάνισης 3 συν τις καθολικές μεταβλητές του Έργου.\n\n Επίπεδο 5 = επίπεδο εμφάνισης 4 συν τα στοιχεία του επιχειρήματος σκηνής.\n\n* Απλώς Εμφάνιση όλων: Ενεργοποιεί την εμφάνιση συνθηκών, πληροφοριών TaskerNet, προτιμήσεων, παραμετροποιήσεων, παραμετροποιήσεων και διαμόρφωσης εμφάνισης\n Ενεργοποιήστε την εμφάνιση των συνθηκών προφίλ και εργασιών.\n\n* Εμφάνιση πληροφοριών TaskerNet - Εάν είναι διαθέσιμες, εμφανίστε τις πληροφορίες δημοσίευσης του TaskerNet.\n\n* Εμφάνιση προτιμήσεων Tasker - εμφάνιση Προτιμήσεων συστήματος του Tasker.\n\n* Απόκρυψη λεπτομερειών εργασίας στην περιοχή Twisty: απόκρυψη πληροφοριών εργασίας στο ► και κάντε κλικ για εμφάνιση στην αρχή Εμφάνιση του Δικτύου\n\n* Διεύθυνση\n\n*. Περίγραμμα και χάρτης των Έργων/Προφίλ/Εργασιών/Σκηνών σας.\n\n* Εμφάνιση Ομορφότερης Έξοδος: Κάντε το αποτέλεσμα πιο ευανάγνωστο από τον άνθρωπο προσθέτοντας νέες γραμμές και εσοχές για όλα τα ορίσματα.\n\n* Επιλογές Project/Profile/Task/Scene Names για πλάγια, έντονη γραφή, υπογράμμιση και/ή προβολή των ονομάτων τους ifimit. η Εργασία έχει περισσότερες από τον καθορισμένο αριθμό ενεργειών.\n\n* Ποσό εσοχής για τις ενέργειες If/Then/Else.\n\n* Αποθήκευση ρυθμίσεων - Αποθηκεύστε αυτές τις ρυθμίσεις για μελλοντική χρήση.\n\n* Επαναφορά ρυθμίσεων - Επαναφέρετε τις ρυθμίσεις από μια προηγουμένως αποθηκευμένη περίοδο λειτουργίας.\n\n* Αναφέρετε ένα πρόβλημα και μπορείτε να αναφέρετε αυτό το πρόβλημα στο πρόγραμμα περιήγησής σας. νέα δυνατότητα ( [Αίτημα λειτουργίας] )\n\n* Λειτουργία εμφάνισης: Σκούρο, φωτεινό ή προεπιλογή συστήματος.\n\n* Προβολές: Εμφάνιση του χάρτη διαμόρφωσής σας, του διαγράμματος ή της δενδρικής προβολής των Έργων, των Προφίλ, των Εργασιών και των Σκηνών σας απευθείας στο GUI.\n\n* Όριο προβολής: Έλεγχος του χρόνου επεξεργασίας των επιλογών. Διαγράψτε τα πάντα και ξεκινήστε ξανά.\n\n* Εκκαθάριση μηνυμάτων: Διαγράψτε τυχόν μηνύματα στο πλαίσιο κειμένου.\n\n* Γραμματοσειρά προς χρήση: Αλλάξτε τη γραμματοσειρά monospace που χρησιμοποιείται για την έξοδο.\n\n* Περίγραμμα εμφάνισης: Εμφάνιση έργων/Προφίλ/Εργασιών/Σκηνών με το περίγραμμα διαμόρφωσης παραμέτρων.\n\n\n* Λήψη αντιγράφου ασφαλείας από το αρχείο Android/N*ex: Συσκευή Android.  Θα σας ζητηθεί η διεύθυνση IP και ο αριθμός θύρας για τη συσκευή σας Android, καθώς και η τοποθεσία του αρχείου στη συσκευή.\n\n* Λήψη Local XML: λάβετε το αντίγραφο ασφαλείας/εξαγόμενο αρχείο XML από την τοπική μονάδα δίσκου σας.\n\n* Εκτέλεση και έξοδος: Εκτελέστε το πρόγραμμα με τις παρεχόμενες ρυθμίσεις, εμφανίστε τα αποτελέσματα στο πρόγραμμα περιήγησης ιστού και, στη συνέχεια, πραγματοποιήστε έξοδο.\n* Επανεκτέλεση: επανεκτέλεση σε πολλές φορές (Επανάληψη χρόνου εκτέλεσης με πολλές φορές την εμφάνιση των ρυθμίσεων. Πρόγραμμα περιήγησης.\n\n* Ειδική καρτέλα Όνομα: εισαγάγετε ένα μεμονωμένο, συγκεκριμένο αντικείμενο για εμφάνιση...\n - Όνομα έργου: εισαγάγετε ένα συγκεκριμένο έργο για εμφάνιση.\n - Όνομα προφίλ: εισαγάγετε ένα συγκεκριμένο προφίλ για εμφάνιση.\n - Όνομα εργασίας: εισαγάγετε μια συγκεκριμένη Εργασία για εμφάνιση.\n (Αυτά τα τρία είναι αποκλειστικά: εισαγάγετε ένα.g μόνο. Έργα, Προφίλ, Εργασίες, κ.λπ.).\n\n* Καρτέλα Ανάλυση: Εκτελέστε την ανάλυση για ένα Έργο, Προφίλ ή Εργασία σε σχέση με ένα μοντέλο Ai.\n\n* Καρτέλα εντοπισμού σφαλμάτων: Εμφάνιση της επιλογής Ρυθμίσεις χρόνου εκτέλεσης και ενεργοποιήστε τη λειτουργία εντοπισμού σφαλμάτων.\n\n* Έξοδος: Έξοδος: Έξοδος από το πρόγραμμα (τερματισμός).\n\nΣημειώσεις στο αρχείο σας θα αναγνωριστεί μόλις:\n το κουμπί 'Εκτέλεση και Έξοδος' ή 'Επανεκτέλεση' εάν δεν το έχετε κάνει ακόμη.\n\n- Εάν λάβετε οποιοδήποτε από τα ακόλουθα σφάλματα χρόνου εκτέλεσης, μπορείτε να τα αγνοήσετε:\n 'Ο συγχρονισμός CATtransaction καλείται εντός της συναλλαγής'.\n 'Εντοπίστηκε στάθμευση IMKClient...'.\n\n- Σύρετε το παράθυρο.\n Προβολή ολόκληρου του κειμένου όπως επιθυμείτε. https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Η αλλαγή της λειτουργίας εμφάνισης θα αλλάξει τα χρώματα που χρησιμοποιούνται για την έξοδο στις προεπιλεγμένες τιμές τους.\n\n"
-msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
-msgstr "Η καρτέλα Analyze χρησιμοποιείται για την εκτέλεση της ανάλυσης Ai στο προφίλ σας, χρησιμοποιώντας είτε το τοπικό μοντέλο λάμα είτε τα μοντέλα Open AI, Claude ή DeepSeek που βασίζονται σε διακομιστή.\n\nΑπαιτούνται τα ακόλουθα βήματα για να εκτελεστεί το AI στο προφίλ σας.\n\n1- Εάν χρησιμοποιείτε AI που βασίζεται σε διακομιστή, πρέπει να έχετε έγκυρο κλειδί API. Open από τον πάροχο (AIe).  Μπορείτε να χρησιμοποιήσετε το κουμπί 'Εμφάνιση/Επεξεργασία κλειδιών API' για να εισαγάγετε τα κλειδιά σας.\n\n2- Η προεπιλεγμένη ερώτηση είναι: 'προτείνετε βελτιώσεις στην απόδοση και την αναγνωσιμότητα: (το έργο/το προφίλ/η εργασία σας)' και προηγείται αυτόματα από: 'Δεδομένων των ακόλουθων (Έργο/Προφίλ/Εργασία) στο Tasker, '.  Εάν τροποποιείτε το μήνυμα προτροπής, τροποποιείτε μόνο το τμήμα 'πρότεινε βελτιώσεις...'.\n\n3- Επιλέξτε το μοντέλο που θέλετε να χρησιμοποιήσετε.\n\n o Το επιλεγμένο μοντέλο θα καθορίσει με ποιο AI θα εκτελεστεί η ανάλυση.\n\n4- Κάντε κλικ στο κουμπί 'Εκτέλεση ανάλυσης'.  Θα γίνει ροζ όταν εισαγάγετε όλα τα απαραίτητα δεδομένα.\n\n o Εάν δεν έχετε επιλέξει ακόμη μοντέλο, προτροπή ή μεμονωμένο Έργο, Προφίλ ή Εργασία ή έγκυρο κλειδί API, τότε θα σας ζητηθεί να το κάνετε πρώτα.\n\n o Η διαδικασία ενδέχεται να διαρκέσει λίγο και να εκτελείται στο παρασκήνιο.  Τα αποτελέσματα θα εμφανιστούν σε ξεχωριστό παράθυρο.\n\n o Τα τοπικά μοντέλα που δεν έχουν φορτωθεί ακόμη στον υπολογιστή σας θα φορτωθούν στο παρασκήνιο μόλις ξεκινήσει η ανάλυση.\n\nΤα καθορισμένα πλήκτρα api (εάν υπάρχουν), το μοντέλο, το επιλεγμένο Έργο, το Προφίλ ή η Εργασία και η προτροπή Ai θα αποθηκευτούν σε όλες τις περιόδους σύνδεσης.\n\nΗ λειτουργία 'Επανάληψη' στην εμφάνιση των αποτελεσμάτων θα χρησιμοποιηθεί για τη λειτουργία 'Επανάληψη' της ανάλυσης. παράθυρο.\n\n"
-msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nAll view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n\nThe Map View has the following behavior:\n\n - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
-msgstr "Εμφανίστε την προβολή 'Χάρτης', 'Διάγραμμα' ή 'Δέντρο' της διαμόρφωσής σας απευθείας στο GUI.\n\nΗ XML πρέπει πρώτα να ληφθεί είτε από την τοπική μονάδα δίσκου είτε από τη συσκευή Android για να λειτουργήσουν οι προβολές.\n\nΌλα τα παράθυρα προβολής μπορούν να τεντωθούν και να μετακινηθούν ανάλογα με τις ανάγκες.  Εκτελέστε ξανά τη συγκεκριμένη εντολή προβολής για να ανανεώσετε την προβολή με το νέο μέγεθος και θέση.\n\nΕάν το XML έχει ήδη ανακτηθεί, θα χρησιμοποιηθεί ως είσοδος στην προβολή.  Πατώντας το κουμπί 'Επαναφορά' θα διαγραφούν τα δεδομένα προβολής.\n\nΟι πολύ μεγάλες διαμορφώσεις θα έχουν εκτεταμένους χρόνους εκτέλεσης για Χάρτες και Διαγράμματα.  Για βέλτιστη απόδοση, επιλέξτε ένα μεμονωμένο Έργο ή Προφίλ για αντιστοίχιση.\n\n\nΗ Προβολή χάρτη έχει την ακόλουθη συμπεριφορά:\n\n - Ενώ το πρόγραμμα περιήγησης δεν καλείται απευθείας, ο χάρτης μπορεί να εμφανιστεί στο πρόγραμμα περιήγησης ανοίγοντας το τοπικό αρχείο 'MapTasker.html'.\n\n - Η ρύθμιση 'Διάρθρωση παραμέτρων εμφάνισης' αγνοείται στα δύο επίπεδα ή δεν λειτουργεί με την προβολή χάρτη\n. Η υπερσύνδεση καταλόγου θα έχει ως αποτέλεσμα τη δημιουργία μιας νέας προβολής χάρτη.\n\n\nΗ προβολή διαγράμματος έχει την ακόλουθη συμπεριφορά:\n\n - Μπορούν να εμφανίζονται μόνο έργα και προφίλ. Το XML που αποτελείται μόνο από μία εργασία ή σκηνή δεν θα εμφανίζεται.\n\n - Κάντε κλικ σε μια οριζόντια σύνδεση για να επισημάνετε ολόκληρη τη σύνδεση στο διάγραμμα.\n\n\nΗ προβολή δέντρου έχει την ακόλουθη συμπεριφορά:\n\n- Τεράστιες διαμορφώσεις που πραγματοποιούν κύλιση πέρα ​​από το κάτω μέρος της οθόνης δεν είναι ορατές στο σύνολό τους.\n\n- Μπορούν ακόμη να εμφανιστούν μόνο τα έργα. Το XML που αποτελείται από ένα μόνο προφίλ ή εργασία ή σκηνή δεν θα εμφανίζεται.\n\n- Όλα τα έργα, τα προφίλ, οι εργασίες και οι σκηνές εμφανίζονται ανεξάρτητα από τη ρύθμιση ενός ονόματος.\n\n"
-msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, no output map will be generated.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
-msgstr "Το 'Όριο προβολής' είναι ένα μέσο για τον έλεγχο του χρόνου επεξεργασίας που χρησιμοποιείται κατά τη δημιουργία της προβολής.\n\n- Οι αριθμοί αντιπροσωπεύουν τη σχετική ποσότητα γραμμών εξόδου που θα δημιουργηθούν.\n\n- Όσο μεγαλύτερο είναι το όριο, τόσο μεγαλύτερη είναι η έξοδος που θα επιτρέπεται να αντιστοιχιστεί.  Όσο περισσότερα αποτελέσματα παράγονται, τόσο μεγαλύτερος είναι ο χρόνος επεξεργασίας.\n\n- Οι πολύ μεγάλες διαμορφώσεις θα δημιουργήσουν πολύ μεγάλους χάρτες εξόδου και θα προκαλέσουν μεγαλύτερο χρόνο επεξεργασίας.  Σε παλαιότερες συσκευές, αυτό μπορεί να διαρκέσει έως και 30 δευτερόλεπτα ή περισσότερο.\n\n- Ορίζοντας ένα όριο, μπορείτε να ελέγχετε τον χρόνο επεξεργασίας που χρησιμοποιείται κατά την αντιστοίχιση μιας διαμόρφωσης, μην επιτρέποντας μεγαλύτερες διάρκειες.\n\n- Εάν το όριο σημειωθεί κατά τον υπολογισμό του χάρτη, δεν θα δημιουργηθεί χάρτης εξόδου.\n\n- Μπορείτε να πειραματιστείτε με αυτήν τη ρύθμιση,\n Μπορείτε να πειραματιστείτε με αυτήν τη ρύθμιση για να δείτε ποια ρύθμιση χρήσης είναι καλύτερη\n. Το προφίλ ή η εργασία είναι ένα άλλο μέσο για τον περιορισμό του χρόνου επεξεργασίας.\n\n"
+
 msgid "API Key Help"
 msgstr "Βοήθεια κλειδιού API"
 msgid "Profiles Per Line Help"
@@ -967,3 +960,642 @@ msgid "Φως"
 msgstr "Light"
 msgid "Σύστημα"
 msgstr "System"
+
+msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
+msgstr "Στοχεύστε συγκεκριμένα έργα, προφίλ, εργασίες ή σκηνές. (Επιλέξτε μόνο ένα)"
+
+msgid "Rename"
+msgstr "Μετονομάζω"
+
+msgid "Export Project"
+msgstr "Έργο εξαγωγής"
+
+msgid "Export Profile"
+msgstr "Εξαγωγή προφίλ"
+
+msgid "Export Task"
+msgstr "Εξαγωγή Εργασίας"
+
+msgid "Save"
+msgstr "Εκτός"
+
+msgid "Overwrite"
+msgstr "Αντικατάσταση"
+
+msgid "Delete Project"
+msgstr "Διαγραφή έργου"
+
+msgid "Delete Profile"
+msgstr "Διαγραφή προφίλ"
+
+msgid "Delete Task"
+msgstr "Διαγραφή Εργασίας"
+
+msgid "Its"
+msgstr "Του"
+
+msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
+msgstr "Οι συνδεδεμένες εργασίες θα διατηρηθούν -- ανήκουν στο Έργο και όχι σε αυτό το Προφίλ."
+
+msgid "It has no linked Tasks."
+msgstr "Δεν έχει συνδεδεμένες εργασίες."
+
+msgid "It will be removed from"
+msgstr "Θα αφαιρεθεί από"
+
+msgid "Project(s) and unlinked from"
+msgstr "Έργα και αποσυνδέθηκαν από"
+
+msgid "Profile(s) that run it. Those Profiles themselves are kept."
+msgstr "Προφίλ(α) που το εκτελούν. Αυτά τα ίδια τα Προφίλ διατηρούνται."
+
+msgid "Keep Contents"
+msgstr "Διατηρήστε τα Περιεχόμενα"
+
+msgid "Delete Contents"
+msgstr "Διαγραφή Περιεχομένων"
+
+msgid "Adding to Project:"
+msgstr "Προσθήκη στο έργο:"
+
+msgid "Save To Current File"
+msgstr "Αποθήκευση στο τρέχον αρχείο"
+
+msgid "Add Project"
+msgstr "Προσθήκη έργου"
+
+msgid "Add Profile"
+msgstr "Προσθήκη προφίλ"
+
+msgid "Add Task"
+msgstr "Προσθήκη Εργασίας"
+
+msgid "Add an action"
+msgstr "Προσθέστε μια ενέργεια"
+
+msgid "Actions in this Task"
+msgstr "Ενέργειες σε αυτήν την Εργασία"
+
+msgid "No actions added yet."
+msgstr "Δεν έχουν προστεθεί ακόμη ενέργειες."
+
+msgid "Actions & Control"
+msgstr "Δράσεις & Έλεγχος"
+
+msgid "Display Conditions"
+msgstr "Συνθήκες εμφάνισης"
+
+msgid "Task Action Limit:"
+msgstr "Όριο ενεργειών εργασίας:"
+
+msgid "Theme Configuration"
+msgstr "Διαμόρφωση θέματος"
+
+msgid "Select a category to modify its color."
+msgstr "Επιλέξτε μια κατηγορία για να τροποποιήσετε το χρώμα της."
+
+msgid "Select Category to Colorize"
+msgstr "Επιλέξτε Κατηγορία για χρωματισμό"
+
+msgid "Choose Hex Color"
+msgstr "Επιλέξτε Hex Color"
+
+msgid "Open View In New Window"
+msgstr "Ανοίξτε την προβολή σε νέο παράθυρο"
+
+msgid "Close Tabs On Exit"
+msgstr "Κλείστε τις καρτέλες κατά την έξοδο"
+
+msgid "Edit Project"
+msgstr "Επεξεργασία έργου"
+
+msgid "Edit Profile"
+msgstr "Επεξεργασία προφίλ"
+
+msgid "Edit Task"
+msgstr "Επεξεργασία εργασίας"
+
+msgid "Scene"
+msgstr "Σκηνή"
+
+msgid "Execution"
+msgstr "Εκτέλεση"
+
+msgid "File Operations"
+msgstr "Λειτουργίες αρχείων"
+
+msgid "Display Views"
+msgstr "Προβολές εμφάνισης"
+
+msgid "Application Settings"
+msgstr "Ρυθμίσεις εφαρμογής"
+
+msgid "Help & Information"
+msgstr "Βοήθεια & Πληροφορίες"
+
+msgid "0 = least detail, 5 = most detail."
+msgstr "0 = ελάχιστη λεπτομέρεια, 5 = περισσότερες λεπτομέρειες."
+
+msgid "AI Analysis"
+msgstr "Ανάλυση AI"
+
+msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
+msgstr "Η ανάλυση εκτελείται στο παρασκήνιο.\n\nΜόλις ολοκληρωθούν, τα αποτελέσματα θα εμφανιστούν σε νέο παράθυρο.\n\nΠαρακαλώ μείνετε δίπλα..."
+
+msgid "Android Get XML Port Number"
+msgstr "Android Λήψη αριθμού θύρας XML"
+
+msgid "Android device at"
+msgstr "Συσκευή Android στο"
+
+msgid "Available Android Backups"
+msgstr "Διαθέσιμα αντίγραφα ασφαλείας Android"
+
+msgid "CAVEATS"
+msgstr "ΠΡΟΦΥΛΑΞΕΙΣ"
+
+msgid "Cancel Entry"
+msgstr "Ακύρωση Καταχώρισης"
+
+msgid "Check your IP/Port and verify the Tasker HTTP server is running"
+msgstr "Ελέγξτε την IP/Θύρα σας και βεβαιωθείτε ότι εκτελείται ο διακομιστής Tasker HTTP"
+
+msgid "Close"
+msgstr "Κοντά"
+
+msgid "Detail Level"
+msgstr "Επίπεδο λεπτομέρειας"
+
+msgid "Error"
+msgstr "Σφάλμα"
+
+msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
+msgstr "Λήψη XML από συσκευή Android.\n\nΠρέπει να είστε στο ίδιο δίκτυο με τη συσκευή Android και η συσκευή πρέπει να είναι σε λειτουργία και συνδεδεμένη.\n\n"
+
+msgid "Get Local XML File"
+msgstr "Λήψη τοπικού αρχείου XML"
+
+msgid "It owns"
+msgstr "Κατέχει"
+
+msgid "No Profile Tasks Found"
+msgstr "Δεν βρέθηκαν εργασίες προφίλ"
+
+msgid "No Profiles Found"
+msgstr "Δεν βρέθηκαν Προφίλ"
+
+msgid "No file loaded"
+msgstr "Δεν έχει φορτωθεί αρχείο"
+
+msgid "No scenes found"
+msgstr "Δεν βρέθηκαν σκηνές"
+
+msgid "No tasks found"
+msgstr "Δεν βρέθηκαν εργασίες"
+
+msgid "None or unnamed!"
+msgstr "Κανένα ή ανώνυμο!"
+
+msgid "Profile(s) and"
+msgstr "Προφίλ(α) και"
+
+msgid "Prompt:"
+msgstr "Ταχύς:"
+
+msgid "Save To Android"
+msgstr "Αποθήκευση στο Android"
+
+msgid "Scene to Analyze:"
+msgstr "Σκηνή προς ανάλυση:"
+
+msgid "Scene:"
+msgstr "Σκηνή:"
+
+msgid "Select XML From Android Device:"
+msgstr "Επιλέξτε XML από συσκευή Android:"
+
+msgid "Task(s)."
+msgstr "Εργασία(ες)."
+
+msgid "Unnamed Task"
+msgstr "Εργασία χωρίς όνομα"
+
+msgid "Update Available!"
+msgstr "Διαθέσιμη ενημέρωση!"
+
+msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
+msgstr "Η απευθείας ροή του YouTube απαιτεί διακριτικά API τρίτων. Κάντε λήψη του κομματιού προορισμού τοπικά για προβολή."
+
+msgid "is unreachable"
+msgstr "είναι απρόσιτη"
+
+msgid "'Cancel' button selected. No change to the API keys!"
+msgstr "Επιλέχθηκε το κουμπί \"Ακύρωση\". Καμία αλλαγή στα κλειδιά API!"
+
+msgid ".or."
+msgstr ".ή."
+
+msgid "1-TCP/IP Address:"
+msgstr "1-TCP/IP Διεύθυνση:"
+
+msgid "2-Port Number:"
+msgstr "2-Αριθμός θύρας:"
+
+msgid "3-File Location:"
+msgstr "3-Τοποθεσία αρχείου:"
+
+msgid "AI Model"
+msgstr "Μοντέλο AI"
+
+msgid "Add 'If' Action"
+msgstr "Προσθήκη ενέργειας \"Εάν\"."
+
+msgid "Add App Entry"
+msgstr "Προσθήκη καταχώρισης εφαρμογής"
+
+msgid "Add Condition"
+msgstr "Προσθήκη συνθήκης"
+
+msgid "All"
+msgstr "Ολοι"
+
+msgid "Android IP Address"
+msgstr "Διεύθυνση IP Android"
+
+msgid "Android configuration details matched successfully!"
+msgstr "Τα στοιχεία διαμόρφωσης Android αντιστοιχίστηκαν με επιτυχία!"
+
+msgid "Changes kept."
+msgstr "Διατηρήθηκαν οι αλλαγές."
+
+msgid "Choose a State type first."
+msgstr "Επιλέξτε πρώτα έναν τύπο κατάστασης."
+
+msgid "Choose a Task"
+msgstr "Επιλέξτε μια εργασία"
+
+msgid "Choose a Task first."
+msgstr "Επιλέξτε πρώτα μια εργασία."
+
+msgid "Choose a condition type first."
+msgstr "Επιλέξτε πρώτα έναν τύπο συνθήκης."
+
+msgid "Choose an Event type first."
+msgstr "Επιλέξτε πρώτα έναν τύπο συμβάντος."
+
+msgid "Class (optional)"
+msgstr "Τάξη (προαιρετικό)"
+
+msgid "Cleared the search highlights."
+msgstr "Διαγράφηκαν τα κυριότερα σημεία αναζήτησης."
+
+msgid "Click Here to Set XML Details"
+msgstr "Κάντε κλικ εδώ για να ορίσετε λεπτομέρειες XML"
+
+msgid "Click arrows to expand/collapse details."
+msgstr "Κάντε κλικ στα βέλη για ανάπτυξη/σύμπτυξη λεπτομερειών."
+
+msgid "Click on a row index line number to jump directly to that match block placement:"
+msgstr "Κάντε κλικ σε έναν αριθμό γραμμής ευρετηρίου σειράς για να μεταβείτε απευθείας σε αυτήν την τοποθέτηση μπλοκ αντιστοίχισης:"
+
+msgid "Click on connector to highlight"
+msgstr "Κάντε κλικ στο σύνδεσμο για να τονίσετε"
+
+msgid "Close Results Window"
+msgstr "Κλείσιμο παραθύρου αποτελεσμάτων"
+
+msgid "Condition Type"
+msgstr "Τύπος κατάστασης"
+
+msgid "Conditions"
+msgstr "Συνθήκες"
+
+msgid "Configure Android Connection:"
+msgstr "Διαμόρφωση σύνδεσης Android:"
+
+msgid "Continue Task After Error"
+msgstr "Συνέχεια εργασίας μετά από σφάλμα"
+
+msgid "Copy"
+msgstr "Αντίγραφο"
+
+msgid "Dark Mode"
+msgstr "Σκοτεινή λειτουργία"
+
+msgid "Day of Month"
+msgstr "Ημέρα του Μήνα"
+
+msgid "Delete"
+msgstr "Διαγράφω"
+
+msgid "Delete Condition"
+msgstr "Συνθήκη διαγραφής"
+
+msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
+msgstr "Διαγράφει μόνο αυτό το προφίλ. Οι Εργασίες Εισόδου/Εξόδου του διατηρούνται -- μια Εργασία ανήκει στο Έργο και όχι στο Προφίλ και η ίδια Εργασία μπορεί να χρησιμοποιηθεί από άλλα Προφίλ."
+
+msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
+msgstr "Διαγράφει αυτήν την Εργασία και κάθε αναφορά σε αυτήν: αφαιρείται από τις Εργασίες κάθε Έργου που την κατέχει και από οποιοδήποτε Προφίλ που την εκτελεί ως Εργασία Εισόδου/Εξόδου. Διατηρούνται τα ίδια τα Προφίλ."
+
+msgid "Diagram View opened in a new browser window."
+msgstr "Η προβολή διαγράμματος άνοιξε σε νέο παράθυρο του προγράμματος περιήγησης."
+
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+msgstr "Εμφανίστε μια εκτεταμένη λίστα με ΟΛΑ τα διαθέσιμα μοντέλα.\n\nΣημείωση: Εάν το κλειδί API δεν έχει οριστεί για OpenAI ή Gemini,\n      τότε η προεπιλεγμένη λίστα μοντέλων για το αντίστοιχο\n      Θα εμφανιστεί ο πάροχος AI.\n\nΣημείωση: Δεν έχουν επικυρωθεί όλα τα μοντέλα και\n      ένα ή περισσότερα μπορεί να εμφανίσουν σφάλμα στην ανάλυση.\n\nΣημείωση: Η ενεργοποίηση αυτής της επιλογής για πρώτη φορά θα γίνει\n      αναγκάστε την εγκατάσταση των ακόλουθων μονάδων\n      και όλες τις εξαρτήσεις τους:\n      google-genai, anthropic, openai, ollama"
+
+msgid "End Time"
+msgstr "Ώρα λήξης"
+
+msgid "Event Type"
+msgstr "Τύπος συμβάντος"
+
+msgid "Every"
+msgstr "Κάθε"
+
+msgid "File path saved successfully!"
+msgstr "Η διαδρομή αρχείου αποθηκεύτηκε με επιτυχία!"
+
+msgid "File selection canceled."
+msgstr "Η επιλογή αρχείου ακυρώθηκε."
+
+msgid "If"
+msgstr "Αν"
+
+msgid "If condition set."
+msgstr "Εάν τεθεί η συνθήκη."
+
+msgid "Insert just the 'If', or a complete block?"
+msgstr "Εισαγάγετε μόνο το 'Εάν' ή ένα πλήρες μπλοκ;"
+
+msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
+msgstr "Καθορίστηκε μη έγκυρος τύπος προβολής. Χρησιμοποιήστε «χάρτης», «διάγραμμα» ή «δέντρο»."
+
+msgid "Label"
+msgstr "Επιγραφή"
+
+msgid "Last Day Of Month"
+msgstr "Τελευταία μέρα του μήνα"
+
+msgid "Link"
+msgstr "Σύνδεσμος"
+
+msgid "List Files Selected"
+msgstr "Επιλεγμένα αρχεία λίστας"
+
+msgid "List XML Files"
+msgstr "Λίστα αρχείων XML"
+
+msgid "Map View opened in a new browser window."
+msgstr "Η προβολή χάρτη άνοιξε σε νέο παράθυρο του προγράμματος περιήγησης."
+
+msgid "Map view creation skipped: No valid XML source found or action canceled."
+msgstr "Παράβλεψη δημιουργίας προβολής χάρτη: Δεν βρέθηκε έγκυρη πηγή XML ή η ενέργεια ακυρώθηκε."
+
+msgid "Month"
+msgstr "Μήνας"
+
+msgid "Move"
+msgstr "Κίνηση"
+
+msgid "Move to #"
+msgstr "Μετακίνηση στο #"
+
+msgid "New name"
+msgstr "Νέο όνομα"
+
+msgid "No XML data loaded! Please Get XML from Android or Local drive first."
+msgstr "Δεν έχουν φορτωθεί δεδομένα XML! Λάβετε πρώτα XML από Android ή Local drive."
+
+msgid "No XML data loaded! Please select a valid XML file first."
+msgstr "Δεν έχουν φορτωθεί δεδομένα XML! Επιλέξτε πρώτα ένα έγκυρο αρχείο XML."
+
+msgid "No actions in this Task."
+msgstr "Δεν υπάρχουν ενέργειες σε αυτήν την Εργασία."
+
+msgid "No backup file is currently loaded. Use 'Get Local XML' first."
+msgstr "Δεν έχει φορτωθεί κανένα αρχείο αντιγράφου ασφαλείας αυτήν τη στιγμή. Χρησιμοποιήστε πρώτα το 'Get Local XML'."
+
+msgid "No conditions on this Profile."
+msgstr "Δεν υπάρχουν όροι σε αυτό το προφίλ."
+
+msgid "No editable arguments (code not mapped, or this condition has none)."
+msgstr "Δεν υπάρχουν επεξεργάσιμα ορίσματα (ο κώδικας δεν έχει αντιστοιχιστεί ή αυτή η συνθήκη δεν έχει κανένα)."
+
+msgid "No editable arguments."
+msgstr "Δεν υπάρχουν επεξεργάσιμα επιχειρήματα."
+
+msgid "Not configured..."
+msgstr "Δεν έχει ρυθμιστεί..."
+
+msgid "Odd"
+msgstr "Περιττός"
+
+msgid "Ok"
+msgstr "Εντάξει"
+
+msgid "Operator"
+msgstr "Χειριστής"
+
+msgid "Package"
+msgstr "Πακέτο"
+
+msgid "Pick a Task"
+msgstr "Επιλέξτε μια εργασία"
+
+msgid "Please enter a search term."
+msgstr "Εισαγάγετε έναν όρο αναζήτησης."
+
+msgid "Port"
+msgstr "Λιμάνι"
+
+msgid "Position"
+msgstr "Θέση"
+
+msgid "Priority"
+msgstr "Προτεραιότητα"
+
+msgid "Profile Name"
+msgstr "Όνομα προφίλ"
+
+msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "Το προφίλ διατηρείται μόνο για αυτήν τη συνεδρία -- χρησιμοποιήστε την επιλογή \"Αποθήκευση στο τρέχον αρχείο\" για να το διατηρήσετε μόνιμα."
+
+msgid "Profiles Per Line"
+msgstr "Προφίλ ανά γραμμή"
+
+msgid "Project Name"
+msgstr "Όνομα έργου"
+
+msgid "Project added."
+msgstr "Το έργο προστέθηκε."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
+msgstr "Ζητάει ένα νέο όνομα και το εφαρμόζει στο φορτωμένο αντίγραφο ασφαλείας, αυτή τη στιγμή. Το πεδίο Όνομα έργου παραπάνω είναι μόνο για ανάγνωση -- αυτός είναι ο μόνος τρόπος για να το αλλάξετε."
+
+msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
+msgstr "Ζητάει ένα νέο όνομα και το εφαρμόζει ακριβώς στο φορτωμένο αντίγραφο ασφαλείας, αυτή τη στιγμή. Όλα τα άλλα σε αυτό το παράθυρο διαλόγου παραμένουν σε εκκρεμότητα μέχρι το Ok/Save και το παράθυρο διαλόγου παραμένει ανοιχτό, ώστε να μπορείτε να συνεχίσετε την επεξεργασία."
+
+msgid "Remove"
+msgstr "Αφαιρώ"
+
+msgid "Save Profile To Android Device"
+msgstr "Αποθήκευση προφίλ σε συσκευή Android"
+
+msgid "Save Project To Android Device"
+msgstr "Αποθήκευση έργου σε συσκευή Android"
+
+msgid "Save Task To Android Device"
+msgstr "Αποθήκευση εργασίας σε συσκευή Android"
+
+msgid "Save as"
+msgstr "Αποθήκευση ως"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Αποθηκεύει ολόκληρο το αντίγραφο ασφαλείας -- κάθε Έργο, Προφίλ και Εργασία σε αυτό, όχι μόνο αυτό το Προφίλ -- με τις τροποποιήσεις αυτού του διαλόγου που εφαρμόζονται, οι ίδιες που θα διατηρούσε το \"Ok\".\nΓράφεται σε ένα νέο αντίγραφο με χρονική σήμανση του αρχείου που έχει φορτωθεί αυτήν τη στιγμή: το backup.xml γίνεται backup_20260728_143005.xml.\nΤο αρχείο που φορτώσατε δεν γράφεται ποτέ, επομένως μένει ακριβώς όπως ήταν.\nΣτη συνέχεια, η εφαρμογή μεταβαίνει στο νέο αντίγραφο, το οποίο γίνεται το τρέχον αρχείο για οποιαδήποτε περαιτέρω επεξεργασία και αποθήκευση. Η αποθήκευση ξανά αντικαθιστά τη χρονική σήμανση αντί για την προσθήκη δεύτερης.\nΑυτό γράφει μόνο σε αυτόν τον υπολογιστή -- δεν αποστέλλεται τίποτα στη συσκευή σας Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Αποθηκεύει ολόκληρο το αντίγραφο ασφαλείας -- κάθε Έργο, Προφίλ και Εργασία σε αυτό, όχι μόνο αυτό το Έργο -- συμπεριλαμβανομένης κάθε τροποποίησης που γίνεται οπουδήποτε σε αυτήν την περίοδο λειτουργίας.\nΓράφεται σε ένα νέο αντίγραφο με χρονική σήμανση του αρχείου που έχει φορτωθεί αυτήν τη στιγμή: το backup.xml γίνεται backup_20260728_143005.xml.\nΤο αρχείο που φορτώσατε δεν γράφεται ποτέ, επομένως μένει ακριβώς όπως ήταν.\nΣτη συνέχεια, η εφαρμογή μεταβαίνει στο νέο αντίγραφο, το οποίο γίνεται το τρέχον αρχείο για οποιαδήποτε περαιτέρω επεξεργασία και αποθήκευση. Η αποθήκευση ξανά αντικαθιστά τη χρονική σήμανση αντί για την προσθήκη δεύτερης.\nΑυτό γράφει μόνο σε αυτόν τον υπολογιστή -- δεν αποστέλλεται τίποτα στη συσκευή σας Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Αποθηκεύει ολόκληρο το αντίγραφο ασφαλείας -- κάθε Έργο, Προφίλ και Εργασία σε αυτό, όχι μόνο αυτή η Εργασία -- με τις τροποποιήσεις αυτού του διαλόγου που εφαρμόζονται, οι ίδιες που θα διατηρούσε το \"Ok\".\nΓράφεται σε ένα νέο αντίγραφο με χρονική σήμανση του αρχείου που έχει φορτωθεί αυτήν τη στιγμή: το backup.xml γίνεται backup_20260728_143005.xml.\nΤο αρχείο που φορτώσατε δεν γράφεται ποτέ, επομένως μένει ακριβώς όπως ήταν.\nΣτη συνέχεια, η εφαρμογή μεταβαίνει στο νέο αντίγραφο, το οποίο γίνεται το τρέχον αρχείο για οποιαδήποτε περαιτέρω επεξεργασία και αποθήκευση. Η αποθήκευση ξανά αντικαθιστά τη χρονική σήμανση αντί για την προσθήκη δεύτερης.\nΑυτό γράφει μόνο σε αυτόν τον υπολογιστή -- δεν αποστέλλεται τίποτα στη συσκευή σας Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Αποθηκεύει ολόκληρο το αντίγραφο ασφαλείας -- κάθε Έργο, Προφίλ και Εργασία σε αυτό, όχι μόνο αυτό -- με το νέο Προφίλ που προστίθεται στο Έργο του, με τον ίδιο τρόπο που το προσθέτει το \"Ok\".\nΓράφεται σε ένα νέο αντίγραφο με χρονική σήμανση του αρχείου που έχει φορτωθεί αυτήν τη στιγμή: το backup.xml γίνεται backup_20260728_143005.xml.\nΤο αρχείο που φορτώσατε δεν γράφεται ποτέ, επομένως μένει ακριβώς όπως ήταν.\nΣτη συνέχεια, η εφαρμογή μεταβαίνει στο νέο αντίγραφο, το οποίο γίνεται το τρέχον αρχείο για οποιαδήποτε περαιτέρω επεξεργασία και αποθήκευση. Η αποθήκευση ξανά αντικαθιστά τη χρονική σήμανση αντί για την προσθήκη δεύτερης.\nΑυτό γράφει μόνο σε αυτόν τον υπολογιστή -- δεν αποστέλλεται τίποτα στη συσκευή σας Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Αποθηκεύει ολόκληρο το αντίγραφο ασφαλείας -- κάθε Έργο, Προφίλ και Εργασία σε αυτό, όχι μόνο αυτό -- με την προσθήκη της νέας Εργασίας σε αυτό, με τον ίδιο τρόπο που το προσθέτει το \"Ok\".\nΓράφεται σε ένα νέο αντίγραφο με χρονική σήμανση του αρχείου που έχει φορτωθεί αυτήν τη στιγμή: το backup.xml γίνεται backup_20260728_143005.xml.\nΤο αρχείο που φορτώσατε δεν γράφεται ποτέ, επομένως μένει ακριβώς όπως ήταν.\nΣτη συνέχεια, η εφαρμογή μεταβαίνει στο νέο αντίγραφο, το οποίο γίνεται το τρέχον αρχείο για οποιαδήποτε περαιτέρω επεξεργασία και αποθήκευση. Η αποθήκευση ξανά αντικαθιστά τη χρονική σήμανση αντί για την προσθήκη δεύτερης.\nΑυτό γράφει μόνο σε αυτόν τον υπολογιστή -- δεν αποστέλλεται τίποτα στη συσκευή σας Android."
+
+msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
+msgstr "Αποθηκεύει αυτό το έργο και όλα όσα περιέχει -- κάθε Προφίλ και Εργασία -- ως ένα αυτόνομο αρχείο."
+
+msgid "Search actions"
+msgstr "Ενέργειες αναζήτησης"
+
+msgid "Search..."
+msgstr "Ερευνα..."
+
+msgid "Select a single Profile first (Profile pulldown above)."
+msgstr "Επιλέξτε πρώτα ένα μεμονωμένο προφίλ (αναπτυσσόμενο προφίλ παραπάνω)."
+
+msgid "Select a single Project first (Project pulldown above)."
+msgstr "Επιλέξτε πρώτα ένα μεμονωμένο έργο (αναπτυσσόμενο έργο παραπάνω)."
+
+msgid "Select a single Task first (Task pulldown above)."
+msgstr "Επιλέξτε πρώτα μια μεμονωμένη Εργασία (αναλυτικό στοιχείο Εργασίας παραπάνω)."
+
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "Επιλέξτε πόσες ενέργειες σε μια Εργασία πριν εκδώσετε μια προειδοποίηση.\nΗ προειδοποίηση εμφανίζεται κοντά στο κάτω μέρος της εξόδου διαμόρφωσης,\nκαι προορίζεται να βοηθήσει στον εντοπισμό εργασιών που είναι πολύ περίπλοκες\nκαι τα οποία θα πρέπει ενδεχομένως να χωριστούν σε πολλαπλές εργασίες.\nΗ ρύθμιση \"100\" σημαίνει ότι δεν υπάρχει όριο."
+
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
+msgstr "Ορίστε το ποσό εσοχής για τα μπλοκ If/Then/Else.\n\nΗ προεπιλογή είναι '4'.\n\nΑυτό επηρεάζει τον τρόπο με τον οποίο μορφοποιείται η έξοδος στις προβολές χάρτη και διαγράμματος."
+
+msgid "Settings Reset!"
+msgstr "Επαναφορά ρυθμίσεων!"
+
+msgid "Shutting down MapTasker..."
+msgstr "Τερματισμός λειτουργίας MapTasker..."
+
+msgid "Start Time"
+msgstr "Ώρα έναρξης"
+
+msgid "Starting AI Analysis..."
+msgstr "Έναρξη ανάλυσης AI..."
+
+msgid "State Type"
+msgstr "Τύπος κατάστασης"
+
+msgid "Submit"
+msgstr "Υποτάσσομαι"
+
+msgid "Target"
+msgstr "Στόχος"
+
+msgid "Task Name"
+msgstr "Όνομα εργασίας"
+
+msgid "Task Uploaded to Tasker"
+msgstr "Η εργασία μεταφορτώθηκε στο Tasker"
+
+msgid "Task Uploaded to Tasker."
+msgstr "Η εργασία μεταφορτώθηκε στο Tasker."
+
+msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "Εργασία που διατηρείται μόνο για αυτήν την περίοδο λειτουργίας -- χρησιμοποιήστε την \"Αποθήκευση στο τρέχον αρχείο\" για να τη διατηρήσετε μόνιμα."
+
+msgid "The 'Misc' view is running in the background.  Please stand by..."
+msgstr "Η προβολή \"Διάφορα\" εκτελείται στο παρασκήνιο.  Παρακαλώ μείνετε δίπλα..."
+
+msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
+msgstr "Το κουμπί \"Αναζήτηση\" θα αναζητήσει και θα επισημάνει κάθε εμφάνιση της συμβολοσειράς χωρίς διάκριση πεζών-κεφαλαίων που έχει εισαχθεί στο πλαίσιο αναζήτησης, ξεκινώντας από την κορυφή των δεδομένων.\n\nΘα εμφανίσει μόνο τις πρώτες 200 περιπτώσεις της συμβολοσειράς αναζήτησης.\n\nΚάντε κλικ στον αριθμό γραμμής για να μεταβείτε σε αυτήν τη γραμμή στο πλαίσιο προβολής κειμένου.\n\nΤο κουμπί \"Διαγραφή\" θα διαγράψει τα αποτελέσματα αναζήτησης.\n\n"
+
+msgid "The change will take effect the next time you open the view."
+msgstr "Η αλλαγή θα τεθεί σε ισχύ την επόμενη φορά που θα ανοίξετε την προβολή."
+
+msgid "This Task has no actions yet."
+msgstr "Αυτή η εργασία δεν έχει ακόμη ενέργειες."
+
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "Αυτή είναι μια λίστα με όλες τις γραμματοσειρές που είναι διαθέσιμες στο σύστημά σας, πρώτα με μονοδιάστημα και επισημασμένες ως τέτοιες.\n\nΗ επιλεγμένη γραμματοσειρά θα χρησιμοποιηθεί σε όλες τις εξόδους.\n\nΤο «Courier» ή το «Courier New» συνιστάται ιδιαίτερα για τα Διαγράμματα για να διασφαλιστεί η σωστή ευθυγράμμιση της σύνδεσης. Μια γραμματοσειρά που δεν είναι μονοδιάστατη δεν θα συγκρατεί τις υποδοχές του Διαγράμματος ή την εσοχή της εξόδου στη γραμμή."
+
+msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
+msgstr "Αυτό θα αποθηκεύσει το Task απευθείας στο Tasker που εκτελείται στη συσκευή Android που εκτελεί τον διακομιστή Tasker.\n\nΗ διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker της συσκευής Android.\n\nΘα σας ζητηθεί δύο φορές εξουσιοδότηση για να γράψετε στο Tasker στη συσκευή Android και το Task.και οι δικές του ενέργειες θα καθορίσουν πού θα αποθηκευτεί στη συσκευή."
+
+msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
+msgstr "Αυτό θα αποθηκεύσει το Task απευθείας στην ενεργή περίοδο λειτουργίας Tasker στη συσκευή σας Android.\n\nΓια να λειτουργήσει αυτό απαιτείται έκδοση Tasker 6.2 ή μεταγενέστερη. Η συσκευή Android πρέπει να βρίσκεται στο ίδιο δίκτυο και η διεύθυνση IP και η θύρα\nπρέπει να ταιριάζει με τις ρυθμίσεις διακομιστή Tasker της συσκευής Android.\n\nΘα σας ζητηθεί δύο φορές εξουσιοδότηση για να γράψετε στο Tasker στη συσκευή Android και η Εργασία θα φορτωθεί απευθείας στην ενεργή περίοδο λειτουργίας Tasker.\n\nΠρέπει να βγείτε και να επανεκκινήσετε το Tasker για να δείτε τη νέα Εργασία στο Tasker UI."
+
+msgid "This will save the Task directly to your current drive.\n\n"
+msgstr "Αυτό θα αποθηκεύσει το Task απευθείας στην τρέχουσα μονάδα δίσκου σας.\n\n"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Αυτό θα γράψει το Προφίλ ως αυτόνομο αρχείο στη συσκευή Android, κάτω από το /Tasker/profiles.\n\nΗ διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker της συσκευής Android.\n\nΔεν απαιτείται προτροπή εξουσιοδότησης για αυτό."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Αυτό θα γράψει το Προφίλ ως αυτόνομο αρχείο στη συσκευή σας Android, στην περιοχή /Tasker/profiles -- δεν το εισάγει στη ζωντανή διαμόρφωση του Tasker.\n\nΤο «Παράδειγμα διακομιστή Http» Tasker Project (http://spoo.me/http_svr_example) πρέπει να είναι εγκατεστημένο και ενεργό στη συσκευή Android, με τον διακομιστή να λειτουργεί (δείτε τις σημειώσεις για την άμεση ανάκτηση XML του README).\n\nΗ συσκευή Android πρέπει να βρίσκεται στο ίδιο δίκτυο και η διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker. Δεν απαιτείται προτροπή εξουσιοδότησης για αυτό."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Αυτό θα γράψει το Προφίλ ως αυτόνομο αρχείο στη συσκευή σας Android, στην περιοχή /Tasker/profiles -- δεν το εισάγει στη ζωντανή διαμόρφωση του Tasker.\n\nΤο «Παράδειγμα διακομιστή Http» Tasker Project πρέπει να είναι εγκατεστημένο και ενεργό στη συσκευή Android, με τον διακομιστή να λειτουργεί (δείτε τις σημειώσεις για την άμεση ανάκτηση XML της README).\n\nΗ συσκευή Android πρέπει να βρίσκεται στο ίδιο δίκτυο και η διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker. Δεν απαιτείται προτροπή εξουσιοδότησης για αυτό."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Αυτό θα γράψει το Έργο και όλα όσα περιέχει -- κάθε Προφίλ και Εργασία -- ως αυτόνομο αρχείο στη συσκευή σας Android, στο /Tasker/projects -- δεν το εισάγει στη ζωντανή διαμόρφωση του Tasker.\n\nΤο «Παράδειγμα διακομιστή Http» Tasker Project πρέπει να είναι εγκατεστημένο και ενεργό στη συσκευή Android, με τον διακομιστή να λειτουργεί.\n\nΗ συσκευή Android πρέπει να βρίσκεται στο ίδιο δίκτυο και η διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker. Δεν απαιτείται προτροπή εξουσιοδότησης για αυτό."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Αυτό θα γράψει το Έργο, και όλα όσα περιέχει, ως αυτόνομο αρχείο στη συσκευή Android, κάτω από το /Tasker/projects.\n\nΗ διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker της συσκευής Android.\n\nΔεν απαιτείται προτροπή εξουσιοδότησης για αυτό."
+
+msgid "Toggle Wrap"
+msgstr "Εναλλαγή Αναδίπλωσης"
+
+msgid "Unlink"
+msgstr "Αποσύνδεση"
+
+msgid "Value"
+msgstr "Αξία"
+
+msgid "View cleared."
+msgstr "Η προβολή διαγράφηκε."
+
+msgid "Week-Day"
+msgstr "Καθημερινή"
+
+msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
+msgstr "Όταν είναι ενεργοποιημένο, κάνοντας κλικ στο «Έξοδος» κλείνει επίσης το κύριο παράθυρο του MapTasker και τυχόν παράθυρα/καρτέλες Χάρτη/Διαγράμματα που άνοιξε.\n\nΌταν είναι απενεργοποιημένο, το 'Exit' κλείνει το MapTasker αλλά αφήνει ανοιχτά αυτά τα παράθυρα/καρτέλες."
+
+msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
+msgstr "Όταν είναι ενεργοποιημένο, κάθε αίτημα Χάρτη/Διάγραμμα ανοίγει στο δικό του νέο παράθυρο/καρτέλα, ώστε να μπορείτε να κρατάτε τα προηγούμενα μαζί του για σύγκριση.\n\nΌταν είναι απενεργοποιημένο, ένα αίτημα επαναχρησιμοποιεί το υπάρχον παράθυρο/καρτέλα αυτής της προβολής, αντικαθιστώντας ό,τι υπάρχει σε αυτήν.\n\nΑφήστε το εκτός αν θέλετε να συγκρίνετε: ένα ολοκαίνουργιο παράθυρο/καρτέλα είναι αυτό που μπορεί να αποκλείσει το πρόγραμμα περιήγησής σας, καθώς ανοίγει μόλις ολοκληρωθεί η δημιουργία της προβολής και όχι τη στιγμή που κάνετε κλικ."
+
+msgid "hh:mm AM/PM or %variable"
+msgstr "ωω:λλ ΠΜ/ΜΜ ή %μεταβλητή"
+
+msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
+msgstr "Εμφανίστε την προβολή \"Χάρτης\", \"Διάγραμμα\" ή \"Δέντρο\" της διαμόρφωσής σας απευθείας μέσα στο GUI.\n\nΗ XML πρέπει πρώτα να ληφθεί είτε από την τοπική μονάδα δίσκου είτε από τη συσκευή Android για να λειτουργήσουν οι προβολές.\n\nΕάν η XML έχει ήδη ληφθεί, θα χρησιμοποιηθεί ως είσοδος στην προβολή.  Πατώντας το κουμπί 'Clear' θα διαγραφούν τα δεδομένα προβολής.\n\nΟι πολύ μεγάλες διαμορφώσεις θα επιφέρουν εκτεταμένους χρόνους εκτέλεσης για Χάρτες και Διαγράμματα.  Για βέλτιστη απόδοση, επιλέξτε ένα έργο ή ένα προφίλ για αντιστοίχιση.\n\nΠροαιρετικά, περιορίστε τον όγκο των δεδομένων προς επεξεργασία χρησιμοποιώντας τη ρύθμιση «Προβολή ορίου».  Όσο μεγαλύτερο είναι το όριο, τόσο μεγαλύτερη είναι η έξοδος που θα επιτρέπεται να χαρτογραφηθεί.  Όσο περισσότερη παραγωγή παράγεται, τόσο μεγαλύτερος είναι ο χρόνος επεξεργασίας.\n\n\nΗ προβολή διαγράμματος έχει την ακόλουθη συμπεριφορά:\n\n - Μπορούν να εμφανίζονται μόνο Έργα και Προφίλ. Το XML που αποτελείται από μία μόνο εργασία ή σκηνή δεν θα εμφανίζεται.\n\n - Κάντε κλικ σε μια οριζόντια σύνδεση για να επισημάνετε ολόκληρη τη σύνδεση στο διάγραμμα.\n\n\nΗ προβολή δέντρου έχει την ακόλουθη συμπεριφορά:\n\n- Μπορούν να εμφανίζονται μόνο έργα. Το XML που αποτελείται από μόνο ένα προφίλ ή εργασία ή σκηνή δεν θα εμφανίζεται.\n\n- Όλα τα έργα, τα προφίλ, οι εργασίες και οι σκηνές εμφανίζονται ανεξάρτητα από τη ρύθμιση ενός ονόματος.\n\n"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "Το MapTasker εμφανίζει τη διαμόρφωση Android Tasker με βάση το μεταφορτωμένο αρχείο Tasker XML (π.χ. 'backup.xml'). Η οθόνη θα περιλαμβάνει προαιρετικά όλα τα Έργα, Προφίλ, Εργασίες και τις ενέργειές τους, Προφίλ/Συνθήκες Εργασίας και άλλες πληροφορίες σχετικές με το Προφίλ/Εργασία.\n\nΜόλις φορτωθεί το αρχείο XML, μπορείτε προαιρετικά να επεξεργαστείτε τα Έργα, τα Προφίλ, τις Εργασίες και τις Σκηνές σας.\n\n* Οι επιλογές εμφάνισης είναι:\n    Επίπεδο 0: εμφάνιση πρώτης ενέργειας μόνο για εργασίες, μόνο για εργασίες χωρίς όνομα (σιωπηλή).\n    Επίπεδο 1 = εμφάνιση όλων των λεπτομερειών ενεργειών Εργασίας μόνο για άγνωστες Εργασίες (προεπιλογή).\n    Επίπεδο 2 = εμφάνιση του πλήρους ονόματος της ενέργειας Εργασίας σε κάθε Εργασία.\n    Επίπεδο 3 = εμφάνιση πλήρων λεπτομερειών ενεργειών Εργασίας σε κάθε Εργασία με λεπτομέρειες ενεργειών.\n    Επίπεδο 4 = επίπεδο εμφάνισης 3 συν τις καθολικές μεταβλητές του Έργου.\n\n    Επίπεδο 5 = επίπεδο εμφάνισης 4 συν τις λεπτομέρειες του επιχειρήματος σκηνής.\n\n* Απλώς εμφανίστε τα πάντα: Ενεργοποιεί την εμφάνιση συνθηκών, πληροφοριών TaskerNet, προτιμήσεων, όμορφης εξόδου, καταλόγου και περίγραμμα διαμόρφωσης.\n\n* Συνθήκες εμφάνισης: Ενεργοποιήστε την εμφάνιση των συνθηκών προφίλ και εργασιών.\n\n* Εμφάνιση πληροφοριών TaskerNet - Εάν είναι διαθέσιμο, εμφανίστε πληροφορίες δημοσίευσης TaskerNet.\n\n* Εμφάνιση προτιμήσεων Tasker - εμφάνιση Προτιμήσεων συστήματος Tasker.\n\n* Απόκρυψη Στοιχείων Εργασίας κάτω από το Twisty: απόκρυψη πληροφοριών Εργασίας μέσα στο ► και κάντε κλικ για εμφάνιση.\n\n* Εμφάνιση καταλόγου υπερσυνδέσμων στην αρχή.\n\n* Εμφάνιση πιο όμορφης εξόδου: Κάντε την έξοδο πιο ευανάγνωστη από τον άνθρωπο προσθέτοντας νέες γραμμές και εσοχές για όλα τα ορίσματα.\n\n* Επιλογές Project/Profile/Task/Scene Names για πλάγια, έντονη γραφή, υπογράμμιση και/ή επισήμανση των ονομάτων τους.\n\n* Όριο ενεργειών εργασίας: εμφανίζει μια προειδοποίηση εάν η Εργασία έχει περισσότερες από τον καθορισμένο αριθμό ενεργειών.\n\n* Ποσό εσοχής για Ενέργειες Εργασίας Εάν/Τότε/Ελλά.\n\n* Γλώσσα: Επιλέξτε τη γλώσσα που θα χρησιμοποιηθεί για την έξοδο.  Η προεπιλογή είναι αγγλικά.\n\n* Γραμματοσειρά προς χρήση: Αλλάξτε τη γραμματοσειρά monospace που χρησιμοποιείται για την έξοδο.\n\n* Όριο προβολής: Ελέγξτε τον χρόνο επεξεργασίας που χρησιμοποιείται κατά τη δημιουργία της προβολής.\n\n* Επιλογές επαναφοράς: Διαγράψτε τα πάντα και ξεκινήστε ξανά.\n\n* Λήψη τοπικού αρχείου XML: ανακτήστε το αντίγραφο ασφαλείας/εξαγόμενο αρχείο XML από την τοπική μονάδα δίσκου σας.\n\n* Αποθήκευση ρυθμίσεων - Αποθηκεύστε αυτές τις ρυθμίσεις για μελλοντική χρήση.\n\n* Επαναφορά ρυθμίσεων - Επαναφέρετε τις ρυθμίσεις από μια προηγουμένως αποθηκευμένη περίοδο λειτουργίας.\n\n* Εμφάνιση προβολών: Εμφανίστε τη διαμόρφωση Χάρτη, Διάγραμμα ή Δενδρική προβολή των Έργων, των Προφίλ, των Εργασιών και των Σκηνών σας απευθείας στο GUI.\n\n* Λήψη XML από Συσκευή Android: λάβετε το αντίγραφο ασφαλείας/εξαγόμενο αρχείο XML από τη συσκευή Android.  Θα σας ζητηθεί η διεύθυνση IP και ο αριθμός θύρας για τη συσκευή σας Android, καθώς και η τοποθεσία του αρχείου στη συσκευή.\n\n* Καρτέλα Ειδικό Όνομα: πληκτρολογήστε ένα μεμονωμένο, συγκεκριμένο στοιχείο με όνομα για εμφάνιση...\n   - Όνομα έργου: εισάγετε ένα συγκεκριμένο έργο για εμφάνιση.\n   - Όνομα προφίλ: εισαγάγετε ένα συγκεκριμένο Προφίλ για εμφάνιση.\n   - Όνομα εργασίας: εισαγάγετε μια συγκεκριμένη εργασία για εμφάνιση.\n   - Όνομα σκηνής: εισάγετε μια συγκεκριμένη σκηνή για εμφάνιση.  Ο τίτλος του Έργου που κατέχει και το\n                 Εμφανίζονται τα στοιχεία της σκηνής (συν τυχόν Εργασίες που επικαλούνται αυτά τα στοιχεία).\n                 Τα Προφίλ του Έργου και οι άλλες σκηνές του δεν είναι.\n   (Αυτά τα τέσσερα είναι αποκλειστικά: εισάγετε μόνο ένα)\n\n   Προσθήκη και επεξεργασία έργων, προφίλ και εργασιών απευθείας στο GUI, με διάφορες επιλογές αποθήκευσης.\n\n* Καρτέλα Χρώματα: επιλέξτε χρώματα για διάφορα στοιχεία της οθόνης.\n              (π.χ. χρώμα για Έργα, Προφίλ, Εργασίες κ.λπ.).\n\n* Καρτέλα Analyze: Εκτελέστε την ανάλυση για ένα έργο, ένα προφίλ, μια εργασία ή μια σκηνή σε ένα μοντέλο Ai.\n\n* Καρτέλα εντοπισμού σφαλμάτων: Εμφανίστε την επιλογή Ρυθμίσεις χρόνου εκτέλεσης και ενεργοποιήστε τη λειτουργία εντοπισμού σφαλμάτων.\n\n* Έξοδος: Έξοδος από το πρόγραμμα (έξοδος).\n\nΣημειώσεις:\n\n- Δείτε ολόκληρο το ιστορικό καταγραφής αλλαγών στη διεύθυνση https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Η αλλαγή της λειτουργίας εμφάνισης θα αλλάξει τα χρώματα που χρησιμοποιούνται για την έξοδο στις προεπιλεγμένες τιμές τους.\n\n"
+
+msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+msgstr "Το \"Όριο προβολής\" είναι ένα μέσο για τον έλεγχο του χρόνου επεξεργασίας που χρησιμοποιείται κατά τη δημιουργία της προβολής.\n\n- Οι αριθμοί αντιπροσωπεύουν τη σχετική ποσότητα γραμμών εξόδου που θα δημιουργηθούν.\n\n- Όσο μεγαλύτερο είναι το όριο, τόσο μεγαλύτερη είναι η έξοδος που θα επιτρέπεται να χαρτογραφηθεί.  Όσο περισσότερη παραγωγή παράγεται, τόσο μεγαλύτερος είναι ο χρόνος επεξεργασίας.\n\n- Οι πολύ μεγάλες διαμορφώσεις θα δημιουργήσουν πολύ μεγάλους χάρτες εξόδου και θα προκαλέσουν μεγαλύτερο χρόνο επεξεργασίας.  Σε παλαιότερες συσκευές, αυτό μπορεί να διαρκέσει έως και 30 δευτερόλεπτα ή περισσότερο.\n\n- Ορίζοντας ένα όριο, μπορείτε να ελέγξετε τον χρόνο επεξεργασίας που χρησιμοποιείται κατά την αντιστοίχιση μιας διαμόρφωσης, μην επιτρέποντας μεγαλύτερες διάρκειες.\n\n- Εάν το όριο σημειωθεί κατά τον υπολογισμό του χάρτη, η έξοδος θα σταματήσει εκεί.\n\n- Μπορείτε να πειραματιστείτε με αυτήν τη ρύθμιση για να δείτε ποια ρύθμιση είναι η καλύτερη για την περίπτωση χρήσης σας.\n\n- Η επιλογή ενός μόνο Έργου, Προφίλ ή Εργασίας είναι ένα άλλο μέσο για τον περιορισμό του χρόνου επεξεργασίας.\n\n"
+
+msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
+msgstr "Η καρτέλα Ανάλυση χρησιμοποιείται για την εκτέλεση της ανάλυσης Ai στο Προφίλ σας, χρησιμοποιώντας είτε το τοπικό μοντέλο λάμα είτε τα μοντέλα Open AI, Claude ή DeepSeek που βασίζονται σε διακομιστή.\n\nΤα παρακάτω βήματα απαιτούνται για την εκτέλεση της τεχνητής νοημοσύνης στο προφίλ σας.\n\n1- Εάν χρησιμοποιείτε AI που βασίζεται σε διακομιστή, πρέπει να έχετε ένα έγκυρο κλειδί API από τον πάροχο (π.χ. OpenAI).  Μπορείτε να χρησιμοποιήσετε το κουμπί \"Εμφάνιση/Επεξεργασία κλειδιού(ων) API\" για να εισαγάγετε τα κλειδιά σας.\n\n2- Η προεπιλεγμένη προτροπή είναι: «πρότεινε βελτιώσεις στην απόδοση και την αναγνωσιμότητα: (το έργο/το προφίλ/η εργασία σου)» και προηγείται αυτόματα από: «Δεδομένων των ακόλουθων (Έργο/Προφίλ/Εργασία) στο Tasker, «.  Εάν τροποποιείτε το μήνυμα προτροπής, τροποποιείτε μόνο το τμήμα \"πρότεινε βελτιώσεις...\".\n\n3- Επιλέξτε το μοντέλο που θέλετε να χρησιμοποιήσετε.\n\n   o Το επιλεγμένο μοντέλο θα καθορίσει με ποιο AI θα γίνει η ανάλυση.\n\n4- Κάντε κλικ στο κουμπί «Εκτέλεση ανάλυσης».  Θα γίνει πράσινο όταν εισαχθούν όλα τα απαραίτητα δεδομένα.\n\n   o Εάν δεν έχετε επιλέξει ακόμη μοντέλο, προτροπή ή μεμονωμένο Έργο, Προφίλ ή Εργασία ή έγκυρο κλειδί API, τότε θα σας ζητηθεί να το κάνετε πρώτα.\n\n   o Η διαδικασία μπορεί να διαρκέσει λίγο και να εκτελείται στο παρασκήνιο.  Τα αποτελέσματα θα εμφανιστούν σε ξεχωριστό παράθυρο.\n\n   o Τα τοπικά μοντέλα που δεν έχουν ακόμη φορτωθεί στον υπολογιστή σας θα φορτωθούν στο παρασκήνιο μόλις ξεκινήσει η ανάλυση.\n\nΤα καθορισμένα κλειδιά api (εάν υπάρχουν), το μοντέλο, το επιλεγμένο έργο, το προφίλ ή η εργασία και το μήνυμα AI θα αποθηκευτούν σε όλες τις περιόδους λειτουργίας.\n\nΗ δυνατότητα «Επανάληψη» θα χρησιμοποιηθεί κάτω από τα εξώφυλλα για να εμφανιστούν τα αποτελέσματα της ανάλυσης σε νέο παράθυρο.\n\n"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- If you want to use the 'List XML Files' option, then you must also import the following profile into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "Τα παρακάτω βήματα απαιτούνται για να ανακτήσετε ένα αρχείο Tasker XML απευθείας από τη συσκευή σας Android.\n\n1- Τόσο αυτή η συσκευή όσο και η συσκευή Android πρέπει να βρίσκονται στο ίδιο δίκτυο.\n\n2- Το Tasker Project «Παράδειγμα διακομιστή HTTP» ή η ίδια λειτουργία πρέπει να είναι εγκατεστημένη και ενεργή στη συσκευή Android (ο διακομιστής πρέπει να εκτελείται):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- Εάν θέλετε να χρησιμοποιήσετε την επιλογή \"List XML Files\", τότε πρέπει επίσης να εισαγάγετε το ακόλουθο προφίλ στη συσκευή Android και να βεβαιωθείτε ότι το εισαγόμενο προφίλ \"MapTasker List\" είναι ενεργοποιημένο:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nΘα σας ζητηθεί η διεύθυνση IP, ο αριθμός θύρας για τη συσκευή σας Android, καθώς και η τοποθεσία του αρχείου στη συσκευή Android.  Οι προεπιλεγμένες τιμές παρέχονται, όπου...\n\nΤο '192.168.0.210' είναι η προεπιλεγμένη διεύθυνση IP,\n\nΤο '1821' είναι ο προεπιλεγμένος αριθμός θύρας για το Παράδειγμα διακομιστή Tasker HTTP που εκτελείται στη συσκευή σας Android\n\nΤο '/Tasker/configs/user/backup.xml' είναι η προεπιλεγμένη θέση αρχείου.  Εάν δεν γνωρίζετε τη θέση του αρχείου και έχετε ήδη εισαγάγει τη διεύθυνση IP και τη θύρα σας, τότε μπορείτε να επιλέξετε το κουμπί 'List XML Files' για να λάβετε μια λίστα με τα διαθέσιμα αρχεία XML στη συσκευή σας Android για επιλογή.\n\nΣημειώσεις χρήσης:\n\nΜπορείτε να λάβετε τη διεύθυνση IP και τη θύρα εγκαθιστώντας το έργο «Παράδειγμα διακομιστή HTTP» από την παραπάνω διεύθυνση URL στη συσκευή σας Android. Στη συνέχεια, εκτελέστε την εργασία με το όνομα \"Ενημέρωση πληροφοριών GD HTTP\" για να λάβετε την ειδοποίηση Android:\n\nΠληροφορίες διακομιστή HTTP\nΟι πληροφορίες διακομιστή ενημερώθηκαν {\"όνομα συσκευής\":\"http://192.168.0.49:1821\"}\n\n- Για να ανακτήσετε το αρχείο XML, κάντε κλικ στο κουμπί\n\n \"Λήψη XML από συσκευή Android\"\n\nΣτη συνέχεια, τροποποιήστε τις προεπιλεγμένες τιμές που παρουσιάζονται στα πεδία εισαγωγής κάτω από αυτό το κουμπί και, στη συνέχεια, κάντε κλικ στο κουμπί «Εισαγωγή και κάντε κλικ εδώ για να ορίσετε λεπτομέρειες XML» ή «Λίστα αρχείων XML».\n\n- Πατώντας οποιοδήποτε κουμπί θα πραγματοποιηθεί ping στη συσκευή Android για να δείτε εάν είναι διαθέσιμη.  Το ping θα λήξει μετά από 10 δευτερόλεπτα εάν η συσκευή δεν είναι προσβάσιμη.  Βεβαιωθείτε ότι η διεύθυνση IP είναι σωστή.\n\nΚάντε κλικ στο κουμπί \"Ακύρωση καταχώρισης\" για να αποχωρήσετε από αυτήν τη διαδικασία ανάκτησης.\n\n"

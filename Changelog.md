@@ -2,33 +2,19 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.0.1] 31-Jul-2026
+## [12.0.2] ??-Aug-2026  # FIX
 
 ### Added
 
-- Added: Display a single Scene.  A single Scene can also be fed to the Ai analysis.
-- Added: Displaying the Map view in an additional tab beyond the first one is now an option: 'Open View in New Window'
-- Added: Proportional as well as monospaced fonts are now selectable.
+- Added:
 
 ### Changed
 
-- Changed: A single Scene forces a minimum display detail level of 3, since the Scene's elements are not displayed below that level.
-- Changed: Updated the README file to reflect the recent enhancements.
-- Changed: Removed dependency on Tkinter and webcolors.
-- Changed: The 'Specific Name' tab has been reorganized so buttons are adjacent.
-- Changed: Help information and the README file have been updated based on changes.
+- Changed:
 
 ### Fixed
 
-- Fixed: The Scene tooltip's "Project:" line could name the wrong Project when one Scene's name was a substring of another's (e.g. 'Main' matching the Project that owns 'MainMenu').
-- Fixed: A single Profile or Project that was not found reported itself as a missing 'Task' in the error message.
-- Fixed: TaskerNet descriptions with html hotlinks are not 'hot'.
-- Fixed: 'Add/Edit': An additional 144 Task actions and 56 Event/State conditions are now supported.
-- Fixed: Getting the error 'No Task found!!!' printed in the console when selecting an unnamed Task to display.
-- Fixed: The selected font is not used when rendering the Map and Diagram views.
-- Fixed: Port 8080 bind error with 'prot already in use' message.
-- FIxed: Multiple instances clobbers the saved settings file.
-- Fixed: Map view heading incorrectly says 'AI Analysis Results'.
+- Fixed: Various GUI text translations are missing.
 
 ### Known Issue
 
@@ -39,6 +25,30 @@ For each PID listed in the output from the above terminal command, issue the fol
 kill -9 pid_number
 ...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
 - Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
+
+
+
+## Older History Logs
+
+## [12.0.1] 31-Jul-2026
+
+- Added: Display a single Scene.  A single Scene can also be fed to the Ai analysis.
+- Added: Displaying the Map view in an additional tab beyond the first one is now an option: 'Open View in New Window'
+- Added: Proportional as well as monospaced fonts are now selectable.
+- Changed: A single Scene forces a minimum display detail level of 3, since the Scene's elements are not displayed below that level.
+- Changed: Updated the README file to reflect the recent enhancements.
+- Changed: Removed dependency on Tkinter and webcolors.
+- Changed: The 'Specific Name' tab has been reorganized so buttons are adjacent.
+- Changed: Help information and the README file have been updated based on changes.
+- Fixed: The Scene tooltip's "Project:" line could name the wrong Project when one Scene's name was a substring of another's (e.g. 'Main' matching the Project that owns 'MainMenu').
+- Fixed: A single Profile or Project that was not found reported itself as a missing 'Task' in the error message.
+- Fixed: TaskerNet descriptions with html hotlinks are not 'hot'.
+- Fixed: 'Add/Edit': An additional 144 Task actions and 56 Event/State conditions are now supported.
+- Fixed: Getting the error 'No Task found!!!' printed in the console when selecting an unnamed Task to display.
+- Fixed: The selected font is not used when rendering the Map and Diagram views.
+- Fixed: Port 8080 bind error with 'prot already in use' message.
+- FIxed: Multiple instances clobbers the saved settings file.
+- Fixed: Map view heading incorrectly says 'AI Analysis Results'.
 
 ## [12.0.0] 28-Jul-2026  MAJOR UPDATE >>> EDIT FUNCTIONS
 
@@ -55,32 +65,18 @@ kill -9 pid_number
 - Added: Add/Edit Task: 'Perform Task' action now optionally allows for the selection of the Task name from a list of all Tasks.
 - Added: Add/Edit Task: 'Delete Task' and 'Rename' have been added to the Edit Task panel.
 - Added: Add/Edit Profile: 'Rename' has been added to the Edit Profile panel.
+- Added: Searching for a string will highlight the selected match in a different color from the other matching strings.
 - Changed: The most recent Task action added is highlighted to distinquish it from all of the other actions.
 - Changed: The current Task action being added now prompts for the arguments immeidately.
 - Changed: 'Save Single Task' button renamed to 'Export Task', and 'Save Single Profile' to 'Export Profile'.
 - Changed: 'Save to Android' now saves the Project/Profile only to /Tasker/projects and /Tasker/projects, respectfully, on the Android device, since these can't be directly inserted into Tasker.
+- Changed: The 'Top' and 'Bottom' button now resets the display to column one regardless of the scroll position.
+- Changed: The 'Clear' view button now closes all open Map and Diagram views/tabs. 
 - Fixed: Links in TaskerNet descriptions (and Task action labels) were not identifiable as hotlinks in the Map view, and now open in a new browser tab.
 - Fixed: Error 'The client this element belongs to has been deleted.' when setting a color after clearing the view.
 - Fixed: Error displayed: 'Error: Trying to validate "{task_name}" Task but it was not found in {current file}! All Projects, Profiles and Tasks will be displayed.'
 - Fixed: 'Save to Android' could often fail.
 - Fixed: State conditions are displaying without a space between it and its parameters in the Map view.
-
-## [12.0.0b1] 22-Jul-2026  MAJOR UPDATE
-
-- Added: You can now add and edit Profiles and Tasks from the GUI, with various save options (see caveats)
-- Added: Searching for a string will highlight the selected match in a different color from the other matching strings.
-- Changed: The 'Top' and 'Bottom' button now resets the display to column one regardless of the scroll position.
-- Changed: The 'Clear' view button now closes all open Map and Diagram views/tabs. 
-- Fixed: Program error 'tomli failure' in getputer when selecting 'Upgrade to New Release' button.
-- Fixed: Saved file in settings is not reloaded properly on startup.
-- Fixed: Single Project/Profile/Task saved setting is not properly restored on startup.
-
-## Older History Logs
-
-## [11.0.1-11.0.2] 15-Jul-2026
-
-- Added: 'Profiles Per Line' option has been added back into the Diagram view. 
-- Changed: Code related to the old desktop-specific functions has been removed.
 - Fixed: Task (names) with too many actions hotlinks do not work in the Map view.
 - Fixed: Version 2 Scene JSON data is being double-spaced rather than single-spaced in the Map view.
 - Fixed: The GUI icons are not appearing: coffee cup, language flag, etc.
@@ -88,6 +84,15 @@ kill -9 pid_number
 - Fixed: Changing some colors did not change the output displayed colors (e.g. for Tasks).
 - Fixed: Directory entries in the Map view are incorrectly taking on the color of Profiles
 - Fixed: 'Upgrade to Latest Version' button causes a program error and the upgrade does not occur.
+- Fixed: Program error 'tomli failure' in getputer when selecting 'Upgrade to New Release' button.
+- Fixed: Saved file in settings is not reloaded properly on startup.
+- Fixed: Single Project/Profile/Task saved setting is not properly restored on startup.
+
+## [11.0.1-11.0.2] 15-Jul-2026
+
+- Added: 'Profiles Per Line' option has been added back into the Diagram view. 
+- Changed: Code related to the old desktop-specific functions has been removed.
+
 
 ## [11.0.0] 15-Jul-2026
 926456

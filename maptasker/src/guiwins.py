@@ -40,7 +40,7 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
             # The 'w-full' ensures the text block utilizes 100% of the wider card frame
             ui.label(message).classes("mt-2 text-left whitespace-pre-line break-words w-full text-base")
         if close_button:
-            ui.button("Close", on_click=dialog.close).classes("mt-6 bg-red-500 text-white w-full")
+            ui.button(translate_string("Close"), on_click=dialog.close).classes("mt-6 bg-red-500 text-white w-full")
 
     dialog.open()
     return dialog
@@ -97,8 +97,8 @@ def _dropdown_current_label(arg: taskedit.EditableArg) -> str:
 
 
 def _render_task_name_field(
-    self: MyGui,
-    action: taskedit.EditableAction,
+    _self: MyGui,
+    _action: taskedit.EditableAction,
     arg: taskedit.EditableArg,
     key: str,
     field_refs: dict,
@@ -123,13 +123,13 @@ def _render_task_name_field(
     if not task_names:
         return
 
-    def fill_in_picked_task(e) -> None:
+    def fill_in_picked_task(e: ui.event) -> None:
         if e.value:
             field_refs[key].value = e.value
 
     ui.select(
         task_names,
-        label="Pick a Task",
+        label=translate_string("Pick a Task"),
         with_input=True,
         on_change=fill_in_picked_task,
     ).classes(
@@ -160,20 +160,20 @@ def build_action_condition_dialog(
 
     with ui.dialog() as condition_dialog, ui.card().classes("min-w-[400px] p-6"):
         ui.label(f"If Condition -- {act_number}: {action.action_name}").classes("text-lg font-bold text-blue-600")
-        target_input = ui.input("Target", value=prefill[0]).classes("w-full")
+        target_input = ui.input(translate_string("Target"), value=prefill[0]).classes("w-full")
         operator_select = ui.select(
             operator_labels,
             value=prefill[1] if prefill[1] in operator_labels else operator_labels[0],
-            label="Operator",
+            label=translate_string("Operator"),
         ).classes("w-full")
-        value_input = ui.input("Value", value=prefill[2]).classes("w-full")
+        value_input = ui.input(translate_string("Value"), value=prefill[2]).classes("w-full")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(
-                "Cancel",
+                translate_string("Cancel"),
                 on_click=lambda: (condition_dialog.close(), checkbox.set_value(False)),
             ).props("outline")
             ui.button(
-                "Ok",
+                translate_string("Ok"),
                 on_click=lambda: self.event_handlers.set_action_condition_event(
                     edited_task,
                     act_number,
@@ -214,7 +214,7 @@ def _render_action_condition_checkbox(
     text = f"If: {target} {operator_label} {value}".rstrip() if condition_count else "If"
     checkbox = ui.checkbox(text, value=condition_count == 1).props("dense")
 
-    def on_toggle(e, act_number=action.act_number, cb=checkbox) -> None:
+    def on_toggle(e: ui.event, act_number: str = action.act_number, cb: ui.checkbox = checkbox) -> None:
         if e.value:
             build_action_condition_dialog(self, edited_task, act_number, cb, condition_cache)
             return
@@ -222,7 +222,7 @@ def _render_action_condition_checkbox(
         if current is not None and taskedit.action_has_condition(current):
             condition_cache[act_number] = taskedit.get_action_condition_values(current)
         self.event_handlers.remove_action_condition_event(edited_task, act_number)
-        cb.set_text("If")
+        cb.set_text(translate_string("If"))
 
     checkbox.on_value_change(on_toggle)
 
@@ -242,7 +242,7 @@ def _render_continue_after_error_checkbox(
         return
 
     ui.checkbox(
-        "Continue Task After Error",
+        translate_string("Continue Task After Error"),
         value=taskedit.action_continues_after_error(action),
         on_change=lambda e, n=action.act_number: self.event_handlers.set_action_continue_after_error_event(
             edited_task,
@@ -279,15 +279,15 @@ def build_if_variant_dialog(on_choice: Callable[[str], None]) -> None:
     only when one is clicked; Cancel inserts nothing.
     """
     with ui.dialog() as variant_dialog, ui.card().classes("min-w-[300px] p-6"):
-        ui.label("Add 'If' Action").classes("text-lg font-bold text-blue-600")
-        ui.label("Insert just the 'If', or a complete block?").classes("text-sm mb-2")
+        ui.label(translate_string("Add 'If' Action")).classes("text-lg font-bold text-blue-600")
+        ui.label(translate_string("Insert just the 'If', or a complete block?")).classes("text-sm mb-2")
         for variant in taskedit.IF_BLOCK_VARIANTS:
             ui.button(
                 variant,
                 on_click=lambda v=variant: (variant_dialog.close(), on_choice(v)),
             ).classes("w-full")
         with ui.row().classes("w-full justify-end mt-2"):
-            ui.button("Cancel", on_click=variant_dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=variant_dialog.close).props("outline")
 
     variant_dialog.open()
 
@@ -324,7 +324,9 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
         # Kept as a local (not in field_refs -- _task_arg_values reads .value off
         # every entry there, which a ui.label doesn't have) so Rename can retitle
         # the still-open dialog: see rename_task_event.
-        title_label = ui.label(f"Edit Task: {task_name}").classes("text-xl font-bold text-blue-600")
+        title_label = ui.label(f"{translate_string('Edit Task')}: {task_name}").classes(
+            "text-xl font-bold text-blue-600"
+        )
 
         with ui.row().classes("w-full gap-4"):
             # Read-only: an existing Task is renamed only through the Rename
@@ -332,20 +334,20 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             # rejects a name another Task already has. Rename writes the new
             # name back into this field so Ok/Save, which still read it, don't
             # apply the pre-rename name over the top.
-            field_refs["name"] = ui.input("Task Name", value=task_name).props("readonly").classes("flex-1")
+            field_refs["name"] = ui.input(translate_string("Task Name"), value=task_name).props("readonly").classes("flex-1")
             field_refs["priority"] = ui.input(
-                "Priority",
+                translate_string("Priority"),
                 value=edited_task.task_element.findtext("pri", ""),
             ).classes("w-32")
 
-        ui.label("Add an action").classes("text-sm font-bold mt-2")
+        ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
         with ui.row().classes("w-full gap-4"):
-            search_input = ui.input("Search actions").classes("flex-1")
+            search_input = ui.input(translate_string("Search actions")).classes("flex-1")
             category_select = ui.select(["All", *category_names], value="All").classes("w-48")
-        position_select = ui.select([], label="Position", with_input=True).classes("w-full").props("dense")
+        position_select = ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
 
         picker_container = ui.column().classes("w-full")
-        ui.label("Actions in this Task").classes("text-sm font-bold mt-2")
+        ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
         actions_container = ui.column().classes("w-full")
         # act_number of the action most recently added in this dialog session --
         # render_actions highlights it so it's easy to spot in a long list.
@@ -393,7 +395,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             render_actions()
             refresh_position_options()
 
-        def refresh_picker(_e=None) -> None:
+        def refresh_picker(_e: ui.event | None = None) -> None:
             picker_container.clear()
             rows = taskedit.search_addable_actions(search_input.value, category_select.value)
             with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
@@ -419,7 +421,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             actions_container.clear()
             with actions_container, ui.scroll_area().classes("w-full h-96 border rounded p-2"):
                 if not edited_task.actions:
-                    ui.label("No actions in this Task.").classes("text-xs text-gray-500 italic")
+                    ui.label(translate_string("No actions in this Task.")).classes("text-xs text-gray-500 italic")
                 last_position = len(edited_task.actions) - 1
                 indent_spaces = _action_indent_spaces(self)
                 display_levels = taskedit.action_display_levels(edited_task.actions)
@@ -436,7 +438,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                     with action_expansion:
                         with ui.row().classes("w-full items-center gap-2 mb-2"):
                             ui.button(
-                                "Copy",
+                                translate_string("Copy"),
                                 on_click=lambda n=action.act_number: (
                                     clear_last_added(),
                                     self.event_handlers.copy_action_in_edit_task_event(edited_task, n),
@@ -447,7 +449,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                             move_to_input = (
                                 ui
                                 .number(
-                                    "Move to #",
+                                    translate_string("Move to #"),
                                     value=action.act_number,
                                     min=0,
                                     max=last_position,
@@ -456,7 +458,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                 .props("dense")
                             )
                             ui.button(
-                                "Move",
+                                translate_string("Move"),
                                 on_click=lambda n=action.act_number, target=move_to_input: (
                                     clear_last_added(),
                                     self.event_handlers.move_action_in_edit_task_event(
@@ -469,7 +471,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                 ),
                             ).props("flat color=orange dense")
                             ui.button(
-                                "Delete",
+                                translate_string("Delete"),
                                 on_click=lambda n=action.act_number: (
                                     clear_last_added(),
                                     self.event_handlers.delete_action_in_edit_task_event(edited_task, n),
@@ -493,7 +495,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                         )
 
                         field_refs[taskedit.label_key(action.act_number)] = ui.input(
-                            "Label",
+                            translate_string("Label"),
                             value=taskedit.get_action_label(action),
                         ).classes("w-full")
 
@@ -503,7 +505,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                         _render_plugin_configuration_warning(action.action_element, action.action_name)
 
                         if not action.args:
-                            ui.label("No editable arguments.").classes("text-xs text-gray-500 italic")
+                            ui.label(translate_string("No editable arguments.")).classes("text-xs text-gray-500 italic")
                         for arg in action.args:
                             key = taskedit.arg_key(action.act_number, arg.arg_id)
                             with ui.row().classes("w-full items-center gap-2"):
@@ -534,38 +536,38 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
         render_actions()
 
         field_refs["save_path"] = ui.input(
-            "Save as",
+            translate_string("Save as"),
             value=taskedit.default_save_path(task_name),
         ).classes("w-full mt-2")
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             delete_task_button = ui.button(
-                "Delete Task",
+                translate_string("Delete Task"),
                 on_click=lambda: self.event_handlers.delete_task_event(edited_task, dialog),
             ).classes("bg-red-500 text-white")
             with delete_task_button:
                 ui.tooltip(
-                    "Deletes this Task and every reference to it: it is removed from the Tasks of every "
-                    "Project that owns it, and from any Profile that runs it as its Entry/Exit Task. "
-                    "The Profiles themselves are kept.",
+                    translate_string("Deletes this Task and every reference to it: it is removed from the Tasks of every "
+                        "Project that owns it, and from any Profile that runs it as its Entry/Exit Task. "
+                        "The Profiles themselves are kept."),
                 )
             rename_task_button = ui.button(
-                "Rename",
+                translate_string("Rename"),
                 on_click=lambda: self.event_handlers.rename_task_event(edited_task, field_refs, title_label),
             ).classes("bg-blue-600")
             with rename_task_button:
                 ui.tooltip(
-                    "Prompts for a new name and applies just that to the loaded backup, right now. "
-                    "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
-                    "open so you can carry on editing.",
+                    translate_string("Prompts for a new name and applies just that to the loaded backup, right now. "
+                        "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
+                        "open so you can carry on editing."),
                 )
             ui.button(
-                "Ok",
+                translate_string("Ok"),
                 on_click=lambda: self.event_handlers.keep_edited_task_event(edited_task, field_refs, dialog),
             ).props("outline")
             task_to_current_file = ui.button(
-                "Save To Current File",
+                translate_string("Save To Current File"),
                 on_click=lambda: self.event_handlers.save_edited_task_to_current_file_event(
                     edited_task,
                     field_refs,
@@ -574,17 +576,17 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             ).props("outline")
             with task_to_current_file:
                 ui.tooltip(
-                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- "
-                    "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
-                    "It is written to a new, timestamped copy of the file currently loaded: "
-                    "backup.xml becomes backup_20260728_143005.xml.\n"
-                    "The file you loaded is never written to, so it is left exactly as it was.\n"
-                    "The app then switches to the new copy, which becomes the current file for any further "
-                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                    "This writes to this computer only -- nothing is sent to your Android device.",
+                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- "
+                        "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
+                        "It is written to a new, timestamped copy of the file currently loaded: "
+                        "backup.xml becomes backup_20260728_143005.xml.\n"
+                        "The file you loaded is never written to, so it is left exactly as it was.\n"
+                        "The app then switches to the new copy, which becomes the current file for any further "
+                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                        "This writes to this computer only -- nothing is sent to your Android device."),
                 ).style("white-space: pre-line")
             task_to_android = ui.button(
-                "Save To Android",
+                translate_string("Save To Android"),
                 on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
                     edited_task,
                     field_refs,
@@ -593,21 +595,21 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             ).props("outline")
             with task_to_android:
                 ui.tooltip(
-                    "This will save the Task directly into the active Tasker session on your Android device.\n\n"
-                    "Tasker version 6.2 or greater is required for this to work."
-                    "The Android device must be on the same network, and the IP Address and Port\n"
-                    "must match the Android device's Tasker server settings.\n\n"
-                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task "
-                    "will be loaded directly into the active Tasker session.\n\n"
-                    "You must exit and restart Tasker to see the new Task in the Tasker UI.",
+                    translate_string("This will save the Task directly into the active Tasker session on your Android device.\n\n"
+                        "Tasker version 6.2 or greater is required for this to work."
+                        "The Android device must be on the same network, and the IP Address and Port\n"
+                        "must match the Android device's Tasker server settings.\n\n"
+                        "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task "
+                        "will be loaded directly into the active Tasker session.\n\n"
+                        "You must exit and restart Tasker to see the new Task in the Tasker UI."),
                 ).style("white-space: pre-line")
             task_save = ui.button(
-                "Export Task",
+                translate_string("Export Task"),
                 on_click=lambda: self.event_handlers.save_edited_task_event(edited_task, field_refs, dialog),
             ).classes("bg-blue-600")
             with task_save:
                 ui.tooltip(
-                    "This will save the Task directly to your current drive.\n\n",
+                    translate_string("This will save the Task directly to your current drive.\n\n"),
                 ).style("white-space: pre-line")
 
     dialog.open()
@@ -633,15 +635,15 @@ def build_save_to_android_dialog(
     default_port = getattr(self, "android_port", "") or "1821"
 
     with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
-        ui.label("Save Task To Android Device").classes("text-lg font-bold text-blue-600")
+        ui.label(translate_string("Save Task To Android Device")).classes("text-lg font-bold text-blue-600")
         android_field_refs = {
-            "ip_address": ui.input("Android IP Address", value=default_ip).classes("w-full"),
-            "ip_port": ui.input("Port", value=default_port).classes("w-full"),
+            "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
+            "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
         }
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=android_dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
-                "Save",
+                translate_string("Save"),
                 on_click=lambda: self.event_handlers.save_task_to_android_event(
                     edited_task,
                     field_refs,
@@ -653,10 +655,10 @@ def build_save_to_android_dialog(
             ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
-                    "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\n"
-                    "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                    "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task."
-                    "and its own actions will determine where it is saved on the device.",
+                    translate_string("This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\n"
+                        "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
+                        "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task."
+                        "and its own actions will determine where it is saved on the device."),
                 ).style("white-space: pre-line")
 
     android_dialog.open()
@@ -749,7 +751,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     if current_name:
                         ui.label(current_name).classes("flex-1")
                         ui.button(
-                            "Unlink",
+                            translate_string("Unlink"),
                             on_click=lambda lt=link_type: (
                                 self.event_handlers.unlink_task_from_profile_event(edited_profile, lt),
                                 render_task_links(),
@@ -758,7 +760,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     else:
                         picker = (
                             ui
-                            .select(task_names, label="Choose a Task", with_input=True)
+                            .select(task_names, label=translate_string("Choose a Task"), with_input=True)
                             .classes("flex-1")
                             .props("dense")
                         )
@@ -768,7 +770,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         # see userintr._link_pending_task_pickers.
                         field_refs[f"{link_type.lower()}_task_picker"] = picker
                         ui.button(
-                            "Link",
+                            translate_string("Link"),
                             on_click=lambda lt=link_type, p=picker: (
                                 self.event_handlers.link_task_to_profile_event(edited_profile, lt, p.value),
                                 render_task_links(),
@@ -779,7 +781,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         # opens) and link it in as this Profile's Entry/Exit Task the
                         # moment it's created -- see open_add_task_for_profile_link_event.
                         ui.button(
-                            "Add Task",
+                            translate_string("Add Task"),
                             on_click=lambda lt=link_type: self.event_handlers.open_add_task_for_profile_link_event(
                                 edited_profile,
                                 lt,
@@ -789,7 +791,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
 
     render_task_links()
 
-    ui.label("Conditions").classes("text-sm font-bold mt-4")
+    ui.label(translate_string("Conditions")).classes("text-sm font-bold mt-4")
     conditions_container = ui.column().classes("w-full")
 
     def render_conditions() -> None:
@@ -823,12 +825,12 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
         conditions_container.clear()
         with conditions_container:
             if not edited_profile.conditions:
-                ui.label("No conditions on this Profile.").classes("text-xs text-gray-500 italic")
+                ui.label(translate_string("No conditions on this Profile.")).classes("text-xs text-gray-500 italic")
             for condition in edited_profile.conditions:
                 header = f"{condition.cond_index}: {profedit.get_condition_display_name(condition)}"
                 with ui.expansion(header).classes("w-full"):
                     ui.button(
-                        "Delete Condition",
+                        translate_string("Delete Condition"),
                         on_click=lambda ci=condition.cond_index: (
                             self.event_handlers.remove_condition_from_profile_event(edited_profile, ci),
                             render_conditions(),
@@ -842,7 +844,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         )
                         if not condition.args:
                             ui.label(
-                                "No editable arguments (code not mapped, or this condition has none).",
+                                translate_string("No editable arguments (code not mapped, or this condition has none)."),
                             ).classes("text-xs text-gray-500 italic")
                         for arg in condition.args:
                             key = profedit.condition_arg_key(condition.cond_index, arg.arg_id)
@@ -888,18 +890,18 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                             # %variable value (see profedit.get_time_field_values), only
                             # "hh:mm AM/PM", so this field needs to accept either form as free text.
                             field_refs[start_key] = ui.input(
-                                "Start Time",
+                                translate_string("Start Time"),
                                 value=text_initial(start_key, values["start_time"]),
-                                placeholder="hh:mm AM/PM or %variable",
+                                placeholder=translate_string("hh:mm AM/PM or %variable"),
                             ).classes("flex-1")
                             field_refs[end_key] = ui.input(
-                                "End Time",
+                                translate_string("End Time"),
                                 value=text_initial(end_key, values["end_time"]),
-                                placeholder="hh:mm AM/PM or %variable",
+                                placeholder=translate_string("hh:mm AM/PM or %variable"),
                             ).classes("flex-1")
                         with ui.row().classes("w-full gap-2 items-end mt-2"):
                             field_refs[rep_value_key] = ui.input(
-                                "Every",
+                                translate_string("Every"),
                                 value=text_initial(rep_value_key, values["rep_value"]),
                             ).classes("w-24")
                             field_refs[rep_unit_key] = (
@@ -929,7 +931,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     elif condition.cond_type == "Day":
                         weekday_checkboxes: dict[int, ui.checkbox] = {}
 
-                        ui.label("Week-Day").classes("text-xs font-bold text-gray-500")
+                        ui.label(translate_string("Week-Day")).classes("text-xs font-bold text-gray-500")
                         selected_weekdays = set(profedit.get_day_selected_weekdays(condition))
                         with ui.row().classes("w-full gap-2 flex-wrap"):
                             for day_number in range(1, 8):
@@ -942,25 +944,25 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                 field_refs[day_key] = checkbox
                         with ui.row().classes("w-full gap-2 mb-2"):
                             ui.button(
-                                "All",
+                                translate_string("All"),
                                 on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(
                                     boxes,
                                     set(range(1, 8)),
                                 ),
                             ).props("flat dense")
                             ui.button(
-                                "None",
+                                translate_string("None"),
                                 on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(boxes, set()),
                             ).props("flat dense")
                             ui.button(
-                                "Odd",
+                                translate_string("Odd"),
                                 on_click=lambda boxes=weekday_checkboxes: set_weekday_checkboxes(
                                     boxes,
                                     {1, 3, 5, 7},
                                 ),
                             ).props("flat dense")
 
-                        ui.label("Month").classes("text-xs font-bold text-gray-500")
+                        ui.label(translate_string("Month")).classes("text-xs font-bold text-gray-500")
                         selected_months = set(profedit.get_day_selected_months(condition))
                         with ui.row().classes("w-full gap-2 flex-wrap mb-2"):
                             for month_number in range(12):
@@ -970,7 +972,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                     value=checkbox_initial(month_key, month_number in selected_months),
                                 )
 
-                        ui.label("Day of Month").classes("text-xs font-bold text-gray-500")
+                        ui.label(translate_string("Day of Month")).classes("text-xs font-bold text-gray-500")
                         selected_month_days = set(profedit.get_day_selected_month_days(condition))
                         with ui.row().classes("w-full gap-2 flex-wrap"):
                             for day_of_month in range(1, 32):
@@ -984,7 +986,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                 f"mday{profedit.DAY_OF_MONTH_LAST_DAY}",
                             )
                             field_refs[last_day_key] = ui.checkbox(
-                                "Last Day Of Month",
+                                translate_string("Last Day Of Month"),
                                 value=checkbox_initial(
                                     last_day_key,
                                     profedit.DAY_OF_MONTH_LAST_DAY in selected_month_days,
@@ -1001,26 +1003,26 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                 )
                                 cls_key = profedit.condition_field_key(condition.cond_index, f"app{entry_index}_cls")
                                 field_refs[pkg_key] = ui.input(
-                                    "Package",
+                                    translate_string("Package"),
                                     value=text_initial(pkg_key, entry["pkg"]),
                                 ).classes("flex-1")
                                 field_refs[label_key] = ui.input(
-                                    "Label",
+                                    translate_string("Label"),
                                     value=text_initial(label_key, entry["label"]),
                                 ).classes("flex-1")
                                 field_refs[cls_key] = ui.input(
-                                    "Class (optional)",
+                                    translate_string("Class (optional)"),
                                     value=text_initial(cls_key, entry["cls"]),
                                 ).classes("flex-1")
                                 ui.button(
-                                    "Remove",
+                                    translate_string("Remove"),
                                     on_click=lambda ci=condition.cond_index, ei=entry_index: (
                                         self.event_handlers.remove_app_entry_event(edited_profile, ci, ei),
                                         render_conditions(),
                                     ),
                                 ).props("flat color=red dense")
                         ui.button(
-                            "Add App Entry",
+                            translate_string("Add App Entry"),
                             on_click=lambda ci=condition.cond_index: (
                                 self.event_handlers.add_app_entry_event(edited_profile, ci),
                                 render_conditions(),
@@ -1030,7 +1032,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
             with ui.row().classes("w-full items-center gap-2 mt-2"):
                 add_type_picker = (
                     ui
-                    .select(list(profedit.CONDITION_TYPES_ADDABLE), label="Condition Type")
+                    .select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
                     .classes("w-48")
                     .props("dense")
                 )
@@ -1050,7 +1052,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in event_rows
                 }
                 event_type_picker = (
-                    ui.select(event_options, label="Event Type", with_input=True).classes("flex-1").props("dense")
+                    ui.select(event_options, label=translate_string("Event Type"), with_input=True).classes("flex-1").props("dense")
                 )
                 _mark_unsupported_options(
                     event_type_picker,
@@ -1064,7 +1066,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in state_rows
                 }
                 state_type_picker = (
-                    ui.select(state_options, label="State Type", with_input=True).classes("flex-1").props("dense")
+                    ui.select(state_options, label=translate_string("State Type"), with_input=True).classes("flex-1").props("dense")
                 )
                 _mark_unsupported_options(
                     state_type_picker,
@@ -1085,7 +1087,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         self.event_handlers.add_condition_to_profile_event(edited_profile, type_picker.value)
                     render_conditions()
 
-                ui.button("Add Condition", on_click=add_condition_clicked).props("flat color=blue dense")
+                ui.button(translate_string("Add Condition"), on_click=add_condition_clicked).props("flat color=blue dense")
 
     render_conditions()
 
@@ -1113,42 +1115,42 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
 
         # Read-only -- renamed only through the Rename button's prompt; see
         # build_edit_task_dialog's identical Name field for why.
-        field_refs["name"] = ui.input("Profile Name", value=profile_name).props("readonly").classes("w-full")
+        field_refs["name"] = ui.input(translate_string("Profile Name"), value=profile_name).props("readonly").classes("w-full")
 
         _build_profile_editor_body(self, edited_profile, field_refs)
 
         field_refs["save_path"] = ui.input(
-            "Save as",
+            translate_string("Save as"),
             value=profedit.default_save_path(profile_name),
         ).classes("w-full mt-2")
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             delete_profile_button = ui.button(
-                "Delete Profile",
+                translate_string("Delete Profile"),
                 on_click=lambda: self.event_handlers.delete_profile_event(edited_profile, dialog),
             ).classes("bg-red-500 text-white")
             with delete_profile_button:
                 ui.tooltip(
-                    "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by "
-                    "the Project, not by the Profile, and the same Task can be used by other Profiles.",
+                    translate_string("Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by "
+                        "the Project, not by the Profile, and the same Task can be used by other Profiles."),
                 )
             rename_profile_button = ui.button(
-                "Rename",
+                translate_string("Rename"),
                 on_click=lambda: self.event_handlers.rename_profile_event(edited_profile, field_refs, title_label),
             ).classes("bg-blue-600")
             with rename_profile_button:
                 ui.tooltip(
-                    "Prompts for a new name and applies just that to the loaded backup, right now. "
-                    "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
-                    "open so you can carry on editing.",
+                    translate_string("Prompts for a new name and applies just that to the loaded backup, right now. "
+                        "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
+                        "open so you can carry on editing."),
                 )
             ui.button(
-                "Ok",
+                translate_string("Ok"),
                 on_click=lambda: self.event_handlers.keep_edited_profile_event(edited_profile, field_refs, dialog),
             ).props("outline")
             profile_to_current_file = ui.button(
-                "Save To Current File",
+                translate_string("Save To Current File"),
                 on_click=lambda: self.event_handlers.save_edited_profile_to_current_file_event(
                     edited_profile,
                     field_refs,
@@ -1157,17 +1159,17 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             ).props("outline")
             with profile_to_current_file:
                 ui.tooltip(
-                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- "
-                    "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
-                    "It is written to a new, timestamped copy of the file currently loaded: "
-                    "backup.xml becomes backup_20260728_143005.xml.\n"
-                    "The file you loaded is never written to, so it is left exactly as it was.\n"
-                    "The app then switches to the new copy, which becomes the current file for any further "
-                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                    "This writes to this computer only -- nothing is sent to your Android device.",
+                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- "
+                        "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
+                        "It is written to a new, timestamped copy of the file currently loaded: "
+                        "backup.xml becomes backup_20260728_143005.xml.\n"
+                        "The file you loaded is never written to, so it is left exactly as it was.\n"
+                        "The app then switches to the new copy, which becomes the current file for any further "
+                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                        "This writes to this computer only -- nothing is sent to your Android device."),
                 ).style("white-space: pre-line")
             profile_to_android = ui.button(
-                "Save To Android",
+                translate_string("Save To Android"),
                 on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
                     edited_profile,
                     field_refs,
@@ -1176,15 +1178,15 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             ).props("outline")
             with profile_to_android:
                 ui.tooltip(
-                    "This will write the Profile as a standalone file onto your Android device, "
-                    "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
-                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
-                    "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
-                    "The Android device must be on the same network, and the IP Address and Port must "
-                    "match its Tasker server settings. No authorization prompt is needed for this.",
+                    translate_string("This will write the Profile as a standalone file onto your Android device, "
+                        "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
+                        "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                        "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
+                        "The Android device must be on the same network, and the IP Address and Port must "
+                        "match its Tasker server settings. No authorization prompt is needed for this."),
                 ).style("white-space: pre-line")
             ui.button(
-                "Export Profile",
+                translate_string("Export Profile"),
                 on_click=lambda: self.event_handlers.save_edited_profile_event(edited_profile, field_refs, dialog),
             ).classes("bg-blue-600")
 
@@ -1209,15 +1211,15 @@ def build_save_profile_to_android_dialog(
     default_port = getattr(self, "android_port", "") or "1821"
 
     with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
-        ui.label("Save Profile To Android Device").classes("text-lg font-bold text-blue-600")
+        ui.label(translate_string("Save Profile To Android Device")).classes("text-lg font-bold text-blue-600")
         android_field_refs = {
-            "ip_address": ui.input("Android IP Address", value=default_ip).classes("w-full"),
-            "ip_port": ui.input("Port", value=default_port).classes("w-full"),
+            "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
+            "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
         }
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=android_dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
-                "Save",
+                translate_string("Save"),
                 on_click=lambda: self.event_handlers.save_profile_to_android_event(
                     edited_profile,
                     field_refs,
@@ -1228,10 +1230,10 @@ def build_save_profile_to_android_dialog(
             ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
-                    "This will write the Profile as a standalone file onto the Android device, "
-                    "under /Tasker/profiles.\n\n"
-                    "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                    "No authorization prompt is needed for this.",
+                    translate_string("This will write the Profile as a standalone file onto the Android device, "
+                        "under /Tasker/profiles.\n\n"
+                        "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
+                        "No authorization prompt is needed for this."),
                 ).style("white-space: pre-line")
 
     android_dialog.open()
@@ -1249,14 +1251,14 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
     field_refs: dict = {}
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
-        ui.label("Add Project").classes("text-xl font-bold text-blue-600")
+        ui.label(translate_string("Add Project")).classes("text-xl font-bold text-blue-600")
 
-        field_refs["name"] = ui.input("Project Name", value="").classes("w-full")
+        field_refs["name"] = ui.input(translate_string("Project Name"), value="").classes("w-full")
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             ui.button(
-                "Ok",
+                translate_string("Ok"),
                 on_click=lambda: self.event_handlers.keep_new_project_event(edited_project, field_refs, dialog),
             ).classes("bg-blue-600")
 
@@ -1278,34 +1280,34 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
     field_refs: dict = {}
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
-        ui.label(f"Edit Project: {project_name}").classes("text-xl font-bold text-blue-600")
+        ui.label(f"{translate_string('Edit Project')}: {project_name}").classes("text-xl font-bold text-blue-600")
 
         # Read-only -- renamed only through the Rename button's prompt; see
         # build_edit_task_dialog's identical Name field for why.
-        field_refs["name"] = ui.input("Project Name", value=project_name).props("readonly").classes("w-full")
+        field_refs["name"] = ui.input(translate_string("Project Name"), value=project_name).props("readonly").classes("w-full")
 
         field_refs["project_save_path"] = ui.input(
-            "Save as",
+            translate_string("Save as"),
             value=projedit.default_project_save_path(project_name),
         ).classes("w-full mt-2")
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             ui.button(
-                "Delete Project",
+                translate_string("Delete Project"),
                 on_click=lambda: self.event_handlers.delete_project_event(edited_project, dialog),
             ).classes("bg-red-500 text-white")
             rename_project_button = ui.button(
-                "Rename",
+                translate_string("Rename"),
                 on_click=lambda: self.event_handlers.rename_project_event(edited_project, dialog),
             ).classes("bg-blue-600")
             with rename_project_button:
                 ui.tooltip(
-                    "Prompts for a new name and applies it to the loaded backup, right now. "
-                    "The Project Name field above is read-only -- this is the only way to change it.",
+                    translate_string("Prompts for a new name and applies it to the loaded backup, right now. "
+                        "The Project Name field above is read-only -- this is the only way to change it."),
                 )
             project_to_current_file = ui.button(
-                "Save To Current File",
+                translate_string("Save To Current File"),
                 on_click=lambda: self.event_handlers.save_project_to_current_file_event(
                     edited_project,
                     field_refs,
@@ -1314,17 +1316,17 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
             ).props("outline")
             with project_to_current_file:
                 ui.tooltip(
-                    "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- "
-                    "including every edit made anywhere in this session.\n"
-                    "It is written to a new, timestamped copy of the file currently loaded: "
-                    "backup.xml becomes backup_20260728_143005.xml.\n"
-                    "The file you loaded is never written to, so it is left exactly as it was.\n"
-                    "The app then switches to the new copy, which becomes the current file for any further "
-                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                    "This writes to this computer only -- nothing is sent to your Android device.",
+                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- "
+                        "including every edit made anywhere in this session.\n"
+                        "It is written to a new, timestamped copy of the file currently loaded: "
+                        "backup.xml becomes backup_20260728_143005.xml.\n"
+                        "The file you loaded is never written to, so it is left exactly as it was.\n"
+                        "The app then switches to the new copy, which becomes the current file for any further "
+                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                        "This writes to this computer only -- nothing is sent to your Android device."),
                 ).style("white-space: pre-line")
             project_to_android = ui.button(
-                "Save To Android",
+                translate_string("Save To Android"),
                 on_click=lambda: self.event_handlers.open_save_project_to_android_dialog_event(
                     edited_project,
                     dialog,
@@ -1332,21 +1334,21 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
             ).props("outline")
             with project_to_android:
                 ui.tooltip(
-                    "This will write the Project, and everything in it -- every Profile and Task -- as a "
-                    "standalone file onto your Android device, under /Tasker/projects -- it does not import "
-                    "it into Tasker's live configuration.\n\n"
-                    "The 'Http Server Example' Tasker Project must be installed and active on the Android "
-                    "device, with the server running.\n\n"
-                    "The Android device must be on the same network, and the IP Address and Port must "
-                    "match its Tasker server settings. No authorization prompt is needed for this.",
+                    translate_string("This will write the Project, and everything in it -- every Profile and Task -- as a "
+                        "standalone file onto your Android device, under /Tasker/projects -- it does not import "
+                        "it into Tasker's live configuration.\n\n"
+                        "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                        "device, with the server running.\n\n"
+                        "The Android device must be on the same network, and the IP Address and Port must "
+                        "match its Tasker server settings. No authorization prompt is needed for this."),
                 ).style("white-space: pre-line")
             save_single_project = ui.button(
-                "Export Project",
+                translate_string("Export Project"),
                 on_click=lambda: self.event_handlers.save_project_event(edited_project, field_refs, dialog),
             ).classes("bg-blue-600")
             with save_single_project:
                 ui.tooltip(
-                    "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file.",
+                    translate_string("Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."),
                 )
 
     dialog.open()
@@ -1370,15 +1372,15 @@ def build_save_project_to_android_dialog(
     default_port = getattr(self, "android_port", "") or "1821"
 
     with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
-        ui.label("Save Project To Android Device").classes("text-lg font-bold text-blue-600")
+        ui.label(translate_string("Save Project To Android Device")).classes("text-lg font-bold text-blue-600")
         android_field_refs = {
-            "ip_address": ui.input("Android IP Address", value=default_ip).classes("w-full"),
-            "ip_port": ui.input("Port", value=default_port).classes("w-full"),
+            "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
+            "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
         }
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=android_dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
-                "Save",
+                translate_string("Save"),
                 on_click=lambda: self.event_handlers.save_project_to_android_event(
                     edited_project,
                     android_field_refs,
@@ -1388,10 +1390,10 @@ def build_save_project_to_android_dialog(
             ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
-                    "This will write the Project, and everything in it, as a standalone file onto the "
-                    "Android device, under /Tasker/projects.\n\n"
-                    "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                    "No authorization prompt is needed for this.",
+                    translate_string("This will write the Project, and everything in it, as a standalone file onto the "
+                        "Android device, under /Tasker/projects.\n\n"
+                        "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
+                        "No authorization prompt is needed for this."),
                 ).style("white-space: pre-line")
 
     android_dialog.open()
@@ -1430,7 +1432,7 @@ def build_overwrite_confirm_dialog(
         ui.label(title).classes("text-lg font-bold text-orange-600")
         ui.label(body).classes("mt-1 break-all")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=confirm_dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
 
             def _confirm() -> None:
                 # Close first: on_confirm may open its own dialog (or close the
@@ -1438,7 +1440,7 @@ def build_overwrite_confirm_dialog(
                 confirm_dialog.close()
                 on_confirm()
 
-            ui.button("Overwrite", on_click=_confirm).classes("bg-orange-600 text-white")
+            ui.button(translate_string("Overwrite"), on_click=_confirm).classes("bg-orange-600 text-white")
 
     confirm_dialog.open()
 
@@ -1470,12 +1472,14 @@ def build_rename_dialog(
     as build_delete_profile_dialog.
     """
     with ui.dialog() as rename_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
-        ui.label(f"Rename {item_type} '{current_name}'").classes("text-lg font-bold text-blue-600")
-        name_input = ui.input("New name", value=current_name).classes("w-full")
+        ui.label(f"{translate_string('Rename')} {translate_string(item_type)} '{current_name}'").classes(
+            "text-lg font-bold text-blue-600",
+        )
+        name_input = ui.input(translate_string("New name"), value=current_name).classes("w-full")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=rename_dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=rename_dialog.close).props("outline")
             ui.button(
-                "Rename",
+                translate_string("Rename"),
                 on_click=lambda: on_rename(name_input.value.strip(), rename_dialog),
             ).classes("bg-blue-600")
 
@@ -1499,17 +1503,17 @@ def build_delete_profile_dialog(
     task_count = profedit.count_profile_tasks(profile_name)
 
     with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
-        ui.label(f"Delete Profile '{profile_name}'").classes("text-lg font-bold text-red-600")
+        ui.label(f"{translate_string('Delete Profile')} '{profile_name}'").classes("text-lg font-bold text-red-600")
         if task_count:
             ui.label(
-                f"Its {task_count} linked Task(s) will be kept -- they belong to the Project, not to this Profile.",
+                f"{translate_string('Its')} {task_count} {translate_string('linked Task(s) will be kept -- they belong to the Project, not to this Profile.')}",
             ).classes("mt-1")
         else:
-            ui.label("It has no linked Tasks.").classes("mt-1")
+            ui.label(translate_string("It has no linked Tasks.")).classes("mt-1")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=confirm_dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(
-                "Delete Profile",
+                translate_string("Delete Profile"),
                 on_click=lambda: self.event_handlers.confirm_delete_profile_event(
                     profile_name,
                     confirm_dialog,
@@ -1538,15 +1542,15 @@ def build_delete_task_dialog(
     project_count, profile_count = taskedit.count_task_references(task_name)
 
     with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
-        ui.label(f"Delete Task '{task_name}'").classes("text-lg font-bold text-red-600")
+        ui.label(f"{translate_string('Delete Task')} '{task_name}'").classes("text-lg font-bold text-red-600")
         ui.label(
-            f"It will be removed from {project_count} Project(s) and unlinked from "
-            f"{profile_count} Profile(s) that run it. Those Profiles themselves are kept.",
+            f"{translate_string('It will be removed from')} {project_count} {translate_string('Project(s) and unlinked from')}"
+            f" {profile_count} {translate_string('Profile(s) that run it. Those Profiles themselves are kept.')}",
         ).classes("mt-1")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=confirm_dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(
-                "Delete Task",
+                translate_string("Delete Task"),
                 on_click=lambda: self.event_handlers.confirm_delete_task_event(
                     task_name,
                     confirm_dialog,
@@ -1572,12 +1576,14 @@ def build_delete_project_dialog(
     profile_count, task_count = projedit.count_project_contents(project_name)
 
     with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
-        ui.label(f"Delete Project '{project_name}'").classes("text-lg font-bold text-red-600")
-        ui.label(f"It owns {profile_count} Profile(s) and {task_count} Task(s).").classes("mt-1")
+        ui.label(f"{translate_string('Delete Project')} '{project_name}'").classes("text-lg font-bold text-red-600")
+        ui.label(
+            f"{translate_string('It owns')} {profile_count} {translate_string('Profile(s) and')} {task_count} {translate_string('Task(s).')}",
+        ).classes("mt-1")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=confirm_dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(
-                "Keep Contents",
+                translate_string("Keep Contents"),
                 on_click=lambda: self.event_handlers.keep_contents_delete_project_event(
                     project_name,
                     confirm_dialog,
@@ -1585,7 +1591,7 @@ def build_delete_project_dialog(
                 ),
             ).props("outline")
             ui.button(
-                "Delete Contents",
+                translate_string("Delete Contents"),
                 on_click=lambda: self.event_handlers.delete_contents_delete_project_event(
                     project_name,
                     confirm_dialog,
@@ -1624,7 +1630,7 @@ def build_add_profile_dialog(
     field_refs: dict = {"target_project_name": target_project_name}
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
-        ui.label("Add Profile").classes("text-xl font-bold text-blue-600")
+        ui.label(translate_string("Add Profile")).classes("text-xl font-bold text-blue-600")
 
         last_auto_path = {"value": profedit.default_save_path("")}
 
@@ -1638,25 +1644,27 @@ def build_add_profile_dialog(
                 last_auto_path["value"] = new_path
 
         if target_project_name:
-            ui.label(f"Adding to Project: {target_project_name}").classes("text-sm text-gray-500 italic")
+            ui.label(f"{translate_string('Adding to Project:')} {target_project_name}").classes(
+                "text-sm text-gray-500 italic",
+            )
 
-        field_refs["name"] = ui.input("Profile Name", value="", on_change=sync_save_path).classes("w-full")
+        field_refs["name"] = ui.input(translate_string("Profile Name"), value="", on_change=sync_save_path).classes("w-full")
 
         _build_profile_editor_body(self, edited_profile, field_refs)
 
         field_refs["save_path"] = ui.input(
-            "Save as",
+            translate_string("Save as"),
             value=last_auto_path["value"],
         ).classes("w-full mt-2")
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             ui.button(
-                "Ok",
+                translate_string("Ok"),
                 on_click=lambda: self.event_handlers.keep_new_profile_event(edited_profile, field_refs, dialog),
             ).props("outline")
             new_profile_to_current_file = ui.button(
-                "Save To Current File",
+                translate_string("Save To Current File"),
                 on_click=lambda: self.event_handlers.save_new_profile_to_current_file_event(
                     edited_profile,
                     field_refs,
@@ -1665,17 +1673,17 @@ def build_add_profile_dialog(
             ).props("outline")
             with new_profile_to_current_file:
                 ui.tooltip(
-                    "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
-                    "with the new Profile added to its Project, the same way 'Ok' adds it.\n"
-                    "It is written to a new, timestamped copy of the file currently loaded: "
-                    "backup.xml becomes backup_20260728_143005.xml.\n"
-                    "The file you loaded is never written to, so it is left exactly as it was.\n"
-                    "The app then switches to the new copy, which becomes the current file for any further "
-                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                    "This writes to this computer only -- nothing is sent to your Android device.",
+                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
+                        "with the new Profile added to its Project, the same way 'Ok' adds it.\n"
+                        "It is written to a new, timestamped copy of the file currently loaded: "
+                        "backup.xml becomes backup_20260728_143005.xml.\n"
+                        "The file you loaded is never written to, so it is left exactly as it was.\n"
+                        "The app then switches to the new copy, which becomes the current file for any further "
+                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                        "This writes to this computer only -- nothing is sent to your Android device."),
                 ).style("white-space: pre-line")
             profile_to_android = ui.button(
-                "Save To Android",
+                translate_string("Save To Android"),
                 on_click=lambda: self.event_handlers.open_save_profile_to_android_dialog_event(
                     edited_profile,
                     field_refs,
@@ -1684,15 +1692,15 @@ def build_add_profile_dialog(
             ).props("outline")
             with profile_to_android:
                 ui.tooltip(
-                    "This will write the Profile as a standalone file onto your Android device, "
-                    "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
-                    "The 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android "
-                    "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
-                    "The Android device must be on the same network, and the IP Address and Port must "
-                    "match its Tasker server settings. No authorization prompt is needed for this.",
+                    translate_string("This will write the Profile as a standalone file onto your Android device, "
+                        "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
+                        "The 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android "
+                        "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
+                        "The Android device must be on the same network, and the IP Address and Port must "
+                        "match its Tasker server settings. No authorization prompt is needed for this."),
                 ).style("white-space: pre-line")
             ui.button(
-                "Export Profile",
+                translate_string("Export Profile"),
                 on_click=lambda: self.event_handlers.save_new_profile_event(edited_profile, field_refs, dialog),
             ).classes("bg-blue-600")
 
@@ -1740,11 +1748,11 @@ def build_add_task_dialog(
     condition_cache: dict[int, tuple[str, str, str]] = {}
 
     with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
-        ui.label("Add Task").classes("text-xl font-bold text-blue-600")
+        ui.label(translate_string("Add Task")).classes("text-xl font-bold text-blue-600")
 
         last_auto_path = {"value": taskedit.default_save_path("")}
 
-        def sync_save_path(_e=None) -> None:
+        def sync_save_path(_e: ui.event | None = None) -> None:
             # Keep "Save as" in sync with the Task Name as the user types, so the
             # file actually lands under the name they gave the task -- but only
             # while it still holds what we last auto-computed; if the user has
@@ -1757,20 +1765,22 @@ def build_add_task_dialog(
                 last_auto_path["value"] = new_path
 
         if target_project_name:
-            ui.label(f"Adding to Project: {target_project_name}").classes("text-sm text-gray-500 italic")
+            ui.label(f"{translate_string('Adding to Project:')} {target_project_name}").classes(
+                "text-sm text-gray-500 italic",
+            )
 
         with ui.row().classes("w-full gap-4"):
-            field_refs["name"] = ui.input("Task Name", value="", on_change=sync_save_path).classes("flex-1")
-            field_refs["priority"] = ui.input("Priority", value="100").classes("w-32")
+            field_refs["name"] = ui.input(translate_string("Task Name"), value="", on_change=sync_save_path).classes("flex-1")
+            field_refs["priority"] = ui.input(translate_string("Priority"), value="100").classes("w-32")
 
-        ui.label("Add an action").classes("text-sm font-bold mt-2")
+        ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
         with ui.row().classes("w-full gap-4"):
-            search_input = ui.input("Search actions").classes("flex-1")
+            search_input = ui.input(translate_string("Search actions")).classes("flex-1")
             category_select = ui.select(["All", *category_names], value="All").classes("w-48")
-        position_select = ui.select([], label="Position", with_input=True).classes("w-full").props("dense")
+        position_select = ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
 
         picker_container = ui.column().classes("w-full")
-        ui.label("Actions in this Task").classes("text-sm font-bold mt-2")
+        ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
         added_container = ui.column().classes("w-full")
         # act_number of the action most recently added in this dialog session --
         # render_added_actions highlights it so it's easy to spot in a long list.
@@ -1794,7 +1804,7 @@ def build_add_task_dialog(
             added_container.clear()
             with added_container:
                 if not edited_task.actions:
-                    ui.label("No actions added yet.").classes("text-xs text-gray-500 italic")
+                    ui.label(translate_string("No actions added yet.")).classes("text-xs text-gray-500 italic")
                 indent_spaces = _action_indent_spaces(self)
                 display_levels = taskedit.action_display_levels(edited_task.actions)
                 for action, nest_level in zip(edited_task.actions, display_levels, strict=True):
@@ -1809,7 +1819,7 @@ def build_add_task_dialog(
                         action_expansion.classes("bg-amber-100 dark:bg-amber-900 border-2 border-amber-400 rounded")
                     with action_expansion:
                         field_refs[taskedit.label_key(action.act_number)] = ui.input(
-                            "Label",
+                            translate_string("Label"),
                             value=taskedit.get_action_label(action),
                         ).classes("w-full")
                         if action.code != taskedit.IF_ACTION_CODE:
@@ -1842,7 +1852,7 @@ def build_add_task_dialog(
                                 else:  # "text" or "raw_fallback"
                                     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
                         ui.button(
-                            "Remove",
+                            translate_string("Remove"),
                             on_click=lambda n=action.act_number: (
                                 clear_last_added(),
                                 self.event_handlers.remove_action_from_new_task_event(edited_task, n),
@@ -1881,7 +1891,7 @@ def build_add_task_dialog(
             render_added_actions()
             refresh_position_options()
 
-        def refresh_picker(_e=None) -> None:
+        def refresh_picker(_e: ui.event | None = None) -> None:
             picker_container.clear()
             rows = taskedit.search_addable_actions(search_input.value, category_select.value)
             with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
@@ -1903,14 +1913,14 @@ def build_add_task_dialog(
         render_added_actions()
 
         field_refs["save_path"] = ui.input(
-            "Save as",
+            translate_string("Save as"),
             value=last_auto_path["value"],
         ).classes("w-full mt-2")
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button("Cancel", on_click=dialog.close).props("outline")
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             ui.button(
-                "Ok",
+                translate_string("Ok"),
                 on_click=lambda: self.event_handlers.keep_new_task_event(
                     edited_task,
                     field_refs,
@@ -1919,7 +1929,7 @@ def build_add_task_dialog(
                 ),
             ).props("outline")
             new_task_to_current_file = ui.button(
-                "Save To Current File",
+                translate_string("Save To Current File"),
                 on_click=lambda: self.event_handlers.save_new_task_to_current_file_event(
                     edited_task,
                     field_refs,
@@ -1929,17 +1939,17 @@ def build_add_task_dialog(
             ).props("outline")
             with new_task_to_current_file:
                 ui.tooltip(
-                    "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
-                    "with the new Task added to it, the same way 'Ok' adds it.\n"
-                    "It is written to a new, timestamped copy of the file currently loaded: "
-                    "backup.xml becomes backup_20260728_143005.xml.\n"
-                    "The file you loaded is never written to, so it is left exactly as it was.\n"
-                    "The app then switches to the new copy, which becomes the current file for any further "
-                    "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                    "This writes to this computer only -- nothing is sent to your Android device.",
+                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
+                        "with the new Task added to it, the same way 'Ok' adds it.\n"
+                        "It is written to a new, timestamped copy of the file currently loaded: "
+                        "backup.xml becomes backup_20260728_143005.xml.\n"
+                        "The file you loaded is never written to, so it is left exactly as it was.\n"
+                        "The app then switches to the new copy, which becomes the current file for any further "
+                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                        "This writes to this computer only -- nothing is sent to your Android device."),
                 ).style("white-space: pre-line")
             ui.button(
-                "Save To Android",
+                translate_string("Save To Android"),
                 on_click=lambda: self.event_handlers.open_save_to_android_dialog_event(
                     edited_task,
                     field_refs,
@@ -1948,7 +1958,7 @@ def build_add_task_dialog(
                 ),
             ).props("outline")
             ui.button(
-                "Export Task",
+                translate_string("Export Task"),
                 on_click=lambda: self.event_handlers.save_new_task_event(
                     edited_task,
                     field_refs,
@@ -2121,7 +2131,7 @@ class NiceGuiTreeView:
                 # Header row with title and navigation hints
                 with ui.row().classes("items-center justify-between w-full border-b pb-3 mb-4"):
                     ui.label(f"{self.title}").classes("text-orange-500 font-bold text-lg")
-                    ui.label("Click arrows to expand/collapse details.").classes("text-xs text-gray-500 italic")
+                    ui.label(translate_string("Click arrows to expand/collapse details.")).classes("text-xs text-gray-500 italic")
 
                 # Convert MapTasker nested dictionary list nodes to NiceGUI tree notation
                 tree_data = self._format_data(items)
@@ -2226,22 +2236,22 @@ class NiceGuiTextView:
             # Toolbar
             with ui.row().classes("w-full items-center gap-2 p-2 mb-2 shrink-0") as self.gui_toolbar:
                 ui.label(f"{self.title}").classes("text-orange-500 font-bold mr-4")
-                self.search_input = ui.input(placeholder="Search...").classes("w-48")
-                search_button = ui.button("Search", on_click=self.search_event).classes("bg-blue-600")
+                self.search_input = ui.input(placeholder=translate_string("Search...")).classes("w-48")
+                search_button = ui.button(translate_string("Search"), on_click=self.search_event).classes("bg-blue-600")
                 with search_button:
                     ui.tooltip(
-                        "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\n"
-                        "It will only show the first 200 instances of the search string.\n\n"
-                        "Click on the line number to go to that line in the text view box.\n\n"
-                        "The 'Clear' button will clear the search results.\n\n",
+                        translate_string("The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\n"
+                            "It will only show the first 200 instances of the search string.\n\n"
+                            "Click on the line number to go to that line in the text view box.\n\n"
+                            "The 'Clear' button will clear the search results.\n\n"),
                     ).style("white-space: pre-line")
-                ui.button("Clear", on_click=self.master_gui.event_handlers.clear_event).classes(
+                ui.button(translate_string("Clear"), on_click=self.master_gui.event_handlers.clear_event).classes(
                     "bg-blue-600",
                 )
                 ui.separator().props("vertical")
-                ui.button("Top", on_click=lambda: self.scroll("top")).classes("bg-blue-600")
-                ui.button("Bottom", on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
-                ui.button("Toggle Wrap", on_click=self.toggle_wrap).classes("bg-blue-600")
+                ui.button(translate_string("Top"), on_click=lambda: self.scroll("top")).classes("bg-blue-600")
+                ui.button(translate_string("Bottom"), on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
+                ui.button(translate_string("Toggle Wrap"), on_click=self.toggle_wrap).classes("bg-blue-600")
                 if self.is_map:
                     self.map_message_label = ui.label(PrimeItems.view_limit_msg).classes("text-orange-400 italic ml-4")
                 if is_diagram:
@@ -2249,7 +2259,7 @@ class NiceGuiTextView:
                     ui.select(
                         options=[str(n) for n in range(11)],
                         value=str(self.master_gui.profiles_per_line),
-                        label="Profiles Per Line",
+                        label=translate_string("Profiles Per Line"),
                         on_change=self._profiles_per_line_selected,
                     ).classes("w-40").props("dense")
                     self.diagram_message_label = ui.label("").classes("text-orange-400 italic ml-4")
@@ -2404,7 +2414,7 @@ class NiceGuiTextView:
             if connectors_by_line:
                 self._enable_connector_highlighting()
                 if hasattr(self, "diagram_message_label"):
-                    self.diagram_message_label.set_text("Click on connector to highlight")
+                    self.diagram_message_label.set_text(translate_string("Click on connector to highlight"))
             return  # noqa: TRY300
 
         except FileNotFoundError:
@@ -2547,7 +2557,7 @@ class NiceGuiTextView:
         """Search for the input text inside the text views and display a clickable results popup."""
         query = self.search_input.value.strip()
         if not query:
-            ui.notify("Please enter a search term.", type="warning")
+            ui.notify(translate_string("Please enter a search term."), type="warning")
             return
 
         # Upgraded JavaScript engine targeting Quasar content nodes and penetrating Shadow Roots
@@ -2725,7 +2735,7 @@ class NiceGuiTextView:
                         "text-lg font-bold text-blue-600 mb-2",
                     )
                     ui.label(
-                        "Click on a row index line number to jump directly to that match block placement:",
+                        translate_string("Click on a row index line number to jump directly to that match block placement:"),
                     ).classes("text-xs text-gray-500 italic mb-4")
 
                     # Create a clear scroll area container for the results rows list matching the active theme font
@@ -2783,7 +2793,7 @@ class NiceGuiTextView:
 
                     # Footer window management close control
                     with ui.row().classes("w-full justify-end mt-4"):
-                        ui.button("Close Results Window", on_click=results_dialog.close).classes(
+                        ui.button(translate_string("Close Results Window"), on_click=results_dialog.close).classes(
                             "bg-red-500 text-white px-4",
                         )
 
@@ -3105,9 +3115,48 @@ def _initialize_runtime_options(self: MyGui) -> None:
 # =========================================================================
 # Initialize the GUI screen layout using NiceGUI with split sidebars and main content area.
 # =========================================================================
+def document_language_html() -> str:
+    """Head markup declaring the GUI's language and asking the browser not to translate it.
+
+    Without a lang attribute the browser sniffs the text instead.  With the GUI set to
+    German, Chrome detects German, sees a browser configured for English, and helpfully
+    translates the entire UI back to English -- undoing every translation MapTasker just
+    applied.  That is indistinguishable, on screen, from the translations having failed.
+
+    So state the language outright, and mark the UI as not-to-be-translated: the user
+    already chose their language in the sidebar, and that choice should win over the
+    browser's guess.  'translate="no"', the notranslate class and the google meta tag are
+    all listed because browsers vary in which one they honour.
+
+    Note the lang code is baked in when the page is built.  A language switched at runtime
+    rebuilds the layout but not the document, so language_set_event() updates the live
+    attributes itself -- see set_document_language_js().
+    """
+    lang_code = PrimeItems.languages.get(PrimeItems.program_arguments.get("language") or "English", "en")
+    return (
+        '<meta name="google" content="notranslate">'
+        f"<script>{set_document_language_js(lang_code)}</script>"
+    )
+
+
+def set_document_language_js(lang_code: str) -> str:
+    """The JavaScript that stamps a language onto the live document.
+
+    Shared by the initial page build and the runtime language switch so the two can never
+    drift apart.  The lang code comes from PrimeItems.languages, so it is always one of our
+    own short ISO codes -- never user text -- and is safe to interpolate.
+    """
+    return (
+        f'document.documentElement.lang = "{lang_code}";'
+        'document.documentElement.setAttribute("translate", "no");'
+        'document.documentElement.classList.add("notranslate");'
+    )
+
+
 def inject_shared_head_styles() -> None:
     """Injects the CSS shared by every page of the app (scrollbar theming, light-mode overrides,
-    Map/Diagram/Tree table layout, and the Diagram view's click-to-highlight connector styling).
+    Map/Diagram/Tree table layout, and the Diagram view's click-to-highlight connector styling),
+    plus the document's language declaration (see document_language_html).
 
     ui.add_head_html() only affects the page it's called from -- each NiceGUI @ui.page is its own
     independent document. Call this from every page function (the main window's initialize_screen()
@@ -3115,6 +3164,11 @@ def inject_shared_head_styles() -> None:
     connectors that respond to clicks (the JS wiring is unaffected) but never visibly highlight,
     since the .connector-highlight rule defined here would simply be missing from that page.
     """
+    # Every page needs this for the same reason it needs the CSS below: each @ui.page is its
+    # own document, so a popped-out Map/Diagram window would otherwise be left for the
+    # browser to sniff and translate on its own.
+    ui.add_head_html(document_language_html())
+
     ui.add_head_html("""
         <style>
             /* Force scrollbar tracks to be visible on our target components */
@@ -3393,7 +3447,7 @@ def initialize_screen(self: MyGui) -> None:
                 else:
                     view_toolbar.style("background-color: #00ffff !important; color: #000000 !important;")
 
-        ui.switch("Dark Mode", value=True, on_change=toggle_dark_mode)
+        ui.switch(translate_string("Dark Mode"), value=True, on_change=toggle_dark_mode)
 
     # =========================================================================
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
@@ -3410,7 +3464,7 @@ def initialize_screen(self: MyGui) -> None:
 
         add_logo(self, "maptasker")
 
-        ui.label("Display Options").classes("text-lg font-bold mb-2 gap-y-0 m-0 p-0 leading-none")
+        ui.label(translate_string("Display Options")).classes("text-lg font-bold mb-2 gap-y-0 m-0 p-0 leading-none")
 
         # Detail level pulldown
         self.sidebar_detail_option = (
@@ -3494,7 +3548,7 @@ def initialize_screen(self: MyGui) -> None:
         ).classes(f"w-full justify-center {blink_class}")
         with self.get_xml_button:
             ui.tooltip(
-                "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
+                translate_string("Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands."),
             ).style("white-space: pre-line")
 
         self.exit_button = ui.button(
@@ -3513,9 +3567,9 @@ def initialize_screen(self: MyGui) -> None:
         )
         with self.close_tabs_on_exit_checkbox:
             ui.tooltip(
-                "When enabled, clicking 'Exit' also closes the main MapTasker window and any "
-                "Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker "
-                "but leaves those windows/tabs open.",
+                translate_string("When enabled, clicking 'Exit' also closes the main MapTasker window and any "
+                    "Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker "
+                    "but leaves those windows/tabs open."),
             ).style("white-space: pre-line")
 
         self.open_view_in_new_window_checkbox = (
@@ -3526,35 +3580,35 @@ def initialize_screen(self: MyGui) -> None:
         )
         with self.open_view_in_new_window_checkbox:
             ui.tooltip(
-                "When enabled, each Map/Diagram request opens in its own new window/tab, so you can "
-                "keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses "
-                "that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you "
-                "want to compare: a brand new window/tab is the one your browser may block, since "
-                "it gets opened once the view has finished building rather than the instant you click.",
+                translate_string("When enabled, each Map/Diagram request opens in its own new window/tab, so you can "
+                    "keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses "
+                    "that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you "
+                    "want to compare: a brand new window/tab is the one your browser may block, since "
+                    "it gets opened once the view has finished building rather than the instant you click."),
             ).style("white-space: pre-line")
 
         ui.label(translate_string("File Operations")).classes(
-            "text-xs font-bold uppercase text-gray-400 mt-4 self-center"
+            "text-xs font-bold uppercase text-gray-400 mt-4 self-center",
         )
         _create_file_and_message_buttons_section(self)
 
         ui.label(translate_string("Display Views")).classes(
-            "text-xs font-bold uppercase text-gray-400 mt-4 self-center"
+            "text-xs font-bold uppercase text-gray-400 mt-4 self-center",
         )
         with ui.row().classes("w-full justify-center gap-2 gap-y-0 mt-1"):
             ui.button(translate_string("Map"), on_click=lambda: self.event_handlers.view_event("map")).classes(
-                "bg-blue-500"
+                "bg-blue-500",
             )
             ui.button(translate_string("Diagram"), on_click=lambda: self.event_handlers.view_event("diagram")).classes(
-                "bg-blue-500"
+                "bg-blue-500",
             )
             ui.button(translate_string("Tree"), on_click=lambda: self.event_handlers.view_event("tree")).classes(
-                "bg-blue-500"
+                "bg-blue-500",
             )
         ui.button(translate_string("Clear"), on_click=self.event_handlers.clear_view_event).classes("bg-blue-500")
 
         ui.label(translate_string("Application Settings")).classes(
-            "text-xs font-bold uppercase text-gray-400 mt-4 self-center"
+            "text-xs font-bold uppercase text-gray-400 mt-4 self-center",
         )
         _create_settings_buttons_section(self)
 
@@ -3582,7 +3636,7 @@ def initialize_screen(self: MyGui) -> None:
             # --- TAB 1: SPECIFIC NAME (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_specific_name).classes("p-2 m-0") as self.gui_tasker_object_panel:
                 ui.label(
-                    translate_string("Target specific Projects, Profiles, Tasks or Scenes.   (Select only one)"),
+                    translate_string("Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"),
                 ).classes(
                     "text-base mb-1",
                 )
@@ -3741,9 +3795,14 @@ def initialize_screen(self: MyGui) -> None:
             # --- TAB 4: DEBUG (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_debug).classes("p-2 m-0") as self.gui_debug_panel:  # noqa: SIM117
                 with ui.column().classes("gap-1"):
-                    self.debug_checkbox = ui.checkbox("Debug Mode").bind_value(self, "debug").classes("text-xs")
+                    self.debug_checkbox = (
+                        ui.checkbox(translate_string("Debug Mode")).bind_value(self, "debug").classes("text-xs")
+                    )
                     self.runtime_checkbox = (
-                        ui.checkbox("Display Runtime Settings").bind_value(self, "runtime").classes("text-xs")
+                        ui
+                        .checkbox(translate_string("Display Runtime Settings"))
+                        .bind_value(self, "runtime")
+                        .classes("text-xs")
                     )
 
             add_logo(self, "coffee")
@@ -3753,7 +3812,7 @@ def initialize_screen(self: MyGui) -> None:
         with ui.dialog() as self.picker_dialog, ui.card().classes("p-4 items-center"):
             self.picker_title_label = ui.label("").classes("font-bold text-sm mb-2")
             self.picker_engine = ui.color_picker()
-            ui.button("Cancel", on_click=self.picker_dialog.close).classes("mt-4 w-full bg-gray-500 text-white")
+            ui.button(translate_string("Cancel"), on_click=self.picker_dialog.close).classes("mt-4 w-full bg-gray-500 text-white")
 
     if self.tab_to_use:
         self.gui_main_tabs_container.set_value(self.tab_to_use)
@@ -3778,7 +3837,7 @@ async def get_rid_of_windows_and_exit(self: MyGui, _delete_all: bool = True) -> 
                 "catch (e) {} }); window.mapTaskerPopouts = []; window.close();",
                 timeout=2.0,
             )
-    ui.notify("Shutting down MapTasker...", type="warning")
+    ui.notify(translate_string("Shutting down MapTasker..."), type="warning")
     app.shutdown()
 
 
@@ -3793,11 +3852,11 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
     with tab:
         # 1. Action Buttons Row
         with ui.row().classes("items-center gap-4 mb-4"):
-            self.show_apikeys_button = ui.button("Show/Edit API Key(s)", on_click=self.event_handlers.ai_apikey_event)
-            self.change_prompt_button = ui.button("Change Prompt", on_click=self.event_handlers.ai_prompt_event)
+            self.show_apikeys_button = ui.button(translate_string("Show/Edit API Key(s)"), on_click=self.event_handlers.ai_apikey_event)
+            self.change_prompt_button = ui.button(translate_string("Change Prompt"), on_click=self.event_handlers.ai_prompt_event)
 
             self.analysis_button = ui.button(
-                "Run Analysis",
+                translate_string("Run Analysis"),
                 on_click=self.event_handlers.ai_analyze_event,
             )
             update_analysis_button_color(self)
@@ -3808,7 +3867,7 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
 
         # 2. Model Selection Row
         with ui.row().classes("items-center gap-4"):
-            self.model_to_use_label = ui.label("Model to Use:").classes("font-bold")
+            self.model_to_use_label = ui.label(translate_string("Model to Use:")).classes("font-bold")
 
             # Display the default model list
             display_model_pulldown(self)
@@ -3816,18 +3875,18 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
             # Extra model list checkbox with chained tooltip
             self.aimodel_extend_checkbox = (
                 ui
-                .checkbox("Extended", on_change=self.event_handlers.extended_models_event)
+                .checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
                 .tooltip(
-                    "Display an extended list of ALL available models.\n\n"
-                    "Note: If the API key is not set for OpenAI or Gemini,\n"
-                    "      then the default model list for the respective\n"
-                    "      AI provider will be displayed.\n\n"
-                    "Note: Not all models have been validated and\n"
-                    "      one or more may return an error on analysis.\n\n"
-                    "Note: Enabling this option for the first time will\n"
-                    "      force the installation of the following modules\n"
-                    "      and all of their dependencies:\n"
-                    "      google-genai, anthropic, openai, ollama",
+                    translate_string("Display an extended list of ALL available models.\n\n"
+                        "Note: If the API key is not set for OpenAI or Gemini,\n"
+                        "      then the default model list for the respective\n"
+                        "      AI provider will be displayed.\n\n"
+                        "Note: Not all models have been validated and\n"
+                        "      one or more may return an error on analysis.\n\n"
+                        "Note: Enabling this option for the first time will\n"
+                        "      force the installation of the following modules\n"
+                        "      and all of their dependencies:\n"
+                        "      google-genai, anthropic, openai, ollama"),
                 )
                 .style("white-space: pre-line")
             )  # Ensures the newline characters format correctly in HTML
@@ -3845,7 +3904,7 @@ def _create_name_display_options_section(self: MyGui) -> None:
         ui
         .label(translate_string("Project/Profile/Task/Scene Names:"))
         .classes("text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 leading-none")
-        .tooltip("Add highlighting to Project, Profile and Task names in the output.")
+        .tooltip(translate_string("Add highlighting to Project, Profile and Task names in the output."))
     )
 
     # 2. Define Checkbox Configurations
@@ -3853,17 +3912,17 @@ def _create_name_display_options_section(self: MyGui) -> None:
         (
             "bold_checkbox",
             handlers.names_bold_event,
-            "Bold",
+            translate_string("Bold"),
             "Bold and Italicize are mutually exclusive in the Map view.",
         ),
         (
             "italicize_checkbox",
             handlers.names_italicize_event,
-            "Italicize",
+            translate_string("Italicize"),
             "Italicize and Bold are mutually exclusive in the Map view.",
         ),
-        ("highlight_checkbox", handlers.names_highlight_event, "Highlight", None),
-        ("underline_checkbox", handlers.names_underline_event, "Underline", None),
+        ("highlight_checkbox", handlers.names_highlight_event, translate_string("Highlight"), None),
+        ("underline_checkbox", handlers.names_underline_event, translate_string("Underline"), None),
     ]
 
     # 3. Batch Creation inside a highly condensed 2-Column Grid Layout
@@ -3904,11 +3963,11 @@ def _create_task_action_limit_section(self: MyGui) -> None:
     )
     with self.task_action_limit:
         ui.tooltip(
-            "Select how many actions in a Task before issuing a warning.\n"
-            "The warning appears near the bottom of the configuration output,\n"
-            "and is intended to help identify Tasks that are too complex\n"
-            "and which should potentially be broken up into multiple Tasks.\n"
-            "A setting of '100' means there is no limit.",
+            translate_string("Select how many actions in a Task before issuing a warning.\n"
+                "The warning appears near the bottom of the configuration output,\n"
+                "and is intended to help identify Tasks that are too complex\n"
+                "and which should potentially be broken up into multiple Tasks.\n"
+                "A setting of '100' means there is no limit."),
         ).style(
             "white-space: pre-line",
         )  # Ensures the tooltip text respects newlines for better readability
@@ -3927,9 +3986,9 @@ def _create_indentation_section(self: MyGui) -> None:
     ).classes("w-full leading-none py-0 my-0 gap-y-0")
     with self.indent_option:
         ui.tooltip(
-            "Set the indentation amount for If/Then/Else blocks.\n\n"
-            "The default is '4'.\n\n"
-            "This affects how the output is formatted in the Map and Diagram views.",
+            translate_string("Set the indentation amount for If/Then/Else blocks.\n\n"
+                "The default is '4'.\n\n"
+                "This affects how the output is formatted in the Map and Diagram views."),
         ).style(
             "white-space: pre-line",
         )  # Ensures the tooltip text respects newlines for better readability
@@ -3937,7 +3996,7 @@ def _create_indentation_section(self: MyGui) -> None:
 
 def _create_language_selection_section(self: MyGui) -> None:
     """Creates the language selection dropdown in the NiceGUI sidebar."""
-    self.language_label = ui.label(translate_string("Language:  ")).classes(
+    self.language_label = ui.label(f"{translate_string('Language:')}").classes(
         "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
     )
 
@@ -3975,9 +4034,9 @@ def _create_view_limit_section(self: MyGui) -> None:
         ).classes("flex-grow")
         with self.viewlimit_optionmenu:
             ui.tooltip(
-                "Select the maximum number of items to display in the view to be allowed.\n\n"
-                "Anything over this amount will stop the generation of the view as a means to throttle the program.\n\n"
-                "Note: This is only for the 'Map' and 'Diagram' views, not the tree view.",
+                translate_string("Select the maximum number of items to display in the view to be allowed.\n\n"
+                    "Anything over this amount will stop the generation of the view as a means to throttle the program.\n\n"
+                    "Note: This is only for the 'Map' and 'Diagram' views, not the tree view."),
             ).style(
                 "white-space: pre-line",
             )  # Ensures the tooltip text respects newlines for better readability
@@ -4005,8 +4064,8 @@ def _create_settings_buttons_section(self: MyGui) -> None:
         # Nest the tooltip explicitly inside the button context
         with self.reset_button:
             ui.tooltip(
-                "Reset all of the options to their default values, including colors, font used, and other settings.\n\n"
-                "The currently loaded XML will be cleared out.",
+                translate_string("Reset all of the options to their default values, including colors, font used, and other settings.\n\n"
+                    "The currently loaded XML will be cleared out."),
             ).style(
                 "white-space: pre-line;",
             )  # Tells the web browser to render \n newlines!
@@ -4035,8 +4094,8 @@ def _create_settings_buttons_section(self: MyGui) -> None:
         )
         with self.report_issue_button:
             ui.tooltip(
-                "Report any issues and/or suggestions to the developer.\n\n"
-                "This will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue.",
+                translate_string("Report any issues and/or suggestions to the developer.\n\n"
+                    "This will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue."),
             ).style("white-space: pre-line;")
 
 
@@ -4072,12 +4131,12 @@ def _create_font_section(self: MyGui) -> None:
     ).classes("w-64")
     with self.font_optionmenu:
         ui.tooltip(
-            "This is a list of all of the fonts available on your system, monospaced ones first "
-            "and marked as such.\n\n"
-            "The font selected will be used in all output.\n\n"
-            "'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector "
-            "alignment. A font that is not monospaced will not hold the Diagram's connectors or the "
-            "output's indentation in line.",
+            translate_string("This is a list of all of the fonts available on your system, monospaced ones first "
+                "and marked as such.\n\n"
+                "The font selected will be used in all output.\n\n"
+                "'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector "
+                "alignment. A font that is not monospaced will not hold the Diagram's connectors or the "
+                "output's indentation in line."),
         ).style(
             "white-space: pre-line;",
         )  # Ensures newlines render properly in the tooltip

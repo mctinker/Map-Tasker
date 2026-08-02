@@ -17,7 +17,7 @@ import darkdetect
 
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
-VERSION = "12.0.1"
+VERSION = "12.0.2"
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"
@@ -146,6 +146,11 @@ ARGUMENT_NAMES = {
 
 # Window positions etc. that are to be pickled
 SYSTEM_ARGUMENTS = []
+
+# The 'Specific Name' tab's summary line when no single Project/Profile/Task/Scene is being
+# filtered on.  Shared so the message built when a selection is cleared and the one shown
+# when the tab is redrawn can't drift apart.
+ALL_OBJECTS_MESSAGE = "Display all Projects, Profiles, Tasks, and Scenes."
 
 # Arguments that describe what THIS run is doing rather than what the user prefers.  They
 # are saved (they are in ARGUMENT_NAMES) but always as the value below, and are forced back

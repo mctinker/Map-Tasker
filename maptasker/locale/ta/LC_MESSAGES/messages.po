@@ -377,7 +377,7 @@ msgid "Display only Project"
 msgstr "காட்சி மட்டும் திட்டம்"
 msgid "None"
 msgstr "இல்லை"
-msgid "Display all Projects, Profiles, and Tasks."
+msgid "Display all Projects, Profiles, Tasks, and Scenes."
 msgstr "அனைத்து திட்டப்பணிகள், சுயவிவரங்கள் மற்றும் பணிகளைக் காண்பி."
 msgid "Display all"
 msgstr "அனைத்தையும் காட்டு"
@@ -604,14 +604,7 @@ msgid "The 'Search' button will search for and highlight every instance of the s
 msgstr "'தேடல்' பொத்தான், தரவுகளின் மேல் தொடங்கி, தேடல் பெட்டியில் உள்ளிடப்பட்ட சரத்தின் ஒவ்வொரு நிகழ்வையும் தேடி, தனிப்படுத்திக் காட்டும்.\n\nதற்போதைய திரையில் தொடங்கி, தேடல் பெட்டியில் உள்ளிடப்பட்ட சரத்தின் ஒவ்வொரு நிகழ்வையும் 'இங்கே தேடு' பொத்தான் தேடி, தனிப்படுத்துகிறது. பொத்தான்கள் தேடல் சரத்தின் அடுத்த மற்றும் முந்தைய நிகழ்வை டெக்ஸ்ட் வியூ பாக்ஸில் பார்க்கவும், அவற்றை வேறு நிறத்தில் ஹைலைட் செய்யவும் முயற்சிக்கும்.\n\nதேடல் சரத்தை தெரியும்படி செய்யும் துல்லியம் எப்போதுமே சரியாக இருக்காது மற்றும் இந்த புரோகிராமின் கட்டுப்பாட்டில் இல்லை.\n\nடெக்ஸ்ட் வியூ பாக்ஸின் முடிவு அல்லது தொடக்கத்தை அடைந்ததும், தேடல் நின்றுவிடும். தேடல் பட்டன் Clear\n காட்டப்படும். முடிவுகள்.\n\n'டிஸ்பிளே மட்டும்' பொத்தான் இதர சாளரத்தில் தேடல் முடிவுகளில் உள்ள பொருத்தங்களை மட்டுமே காண்பிக்கும்.\n\n"
 msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nIn order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running on your Android device.  This profile can be found at the following URL:\n\n    https://t.ly/8vI1f\n\n"
 msgstr "இந்த பொத்தானைக் கிளிக் செய்வதன் மூலம் பின்வரும் செயல்கள் நடக்கும்:\n\n- Android சாதனத்தை பிங் செய்ய IP முகவரி பயன்படுத்தப்படும்.\n\n- IP முகவரி மற்றும் போர்ட் எண் ஆகியவை Android சாதனத்தை வினவவும் மற்றும் Tasker கோப்புறையில் கிடைக்கும் XML கோப்புகளின் பட்டியலைப் பெறவும் பயன்படுத்தப்படும்.\n\n- கண்டுபிடிக்கப்பட்ட XML கோப்புகளின் பட்டியல்,\n நீங்கள் பயன்படுத்த விரும்பும் ஒன்றைத் தேர்ந்தெடுக்கவும். XML கோப்பைத் தேர்ந்தெடுத்து, அது சரியான XML ஆகப் பெறப்பட்டு சரிபார்க்கப்படும், பின்னர் நீங்கள் 'ரன்' அல்லது 'ரீரன்' பொத்தானைக் கிளிக் செய்தவுடன், நிரலுக்கான உள்ளீடாகப் பயன்படுத்தப்படும்.\n\nஇது வேலை செய்ய, உங்கள் Android சாதனத்தில் இயங்கும் டாஸ்கரில் 'மேப்டாஸ்கர் பட்டியல்' சுயவிவரத்தை ஏற்கனவே இறக்குமதி செய்திருக்க வேண்டும்.  இந்த சுயவிவரத்தை பின்வரும் URL இல் காணலாம்:\n\n https://t.ly/8vI1f\n\n"
-msgid "Help\n\nMapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Configuration Outline and Map of your Projects/Profiles/Tasks/Scenes.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Report Issue - This will bring up your browser to the issue reporting site, and you can use this to either report a bug or request a new feature ( [Feature Request] )\n\n* Appearance Mode: Dark, Light, or System default.\n\n* Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Clear Messages: Clear any messages in the textbox.\n\n* Font To Use: Change the monospace font used for the output.\n\n* Display Outline: Display Projects/Profiles/Tasks/Scenes configuration outline.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Androiddevice.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Get Local XML: fetch the backup/exported XML file from your local drive.\n\n* Run and Exit: Run the program with the settings provided, display the results in the web browser and then exit.\n* ReRun: Run multiple times (each time with new settings) without exiting, displaying the results in the browser.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   (These three are exclusive: enter one only)\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile or Task against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- You will be prompted to identify your Tasker XML file once you hit the 'Run and Exit' or 'ReRun' button if you have not yet done so.\n\n- If you receive any of the following the runtime errors, you can ignore them:\n      '[CATransaction synchronize] called within transaction'.\n      'IMKClient Stall detected...'.\n\n- Drag the window to expand the text as desired.\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "உதவி\n\nநீங்கள் பதிவேற்றிய Tasker XML கோப்பின் அடிப்படையில் MapTasker உங்கள் Android Tasker உள்ளமைவைக் காட்டுகிறது (எ.கா. 'backup.xml'). காட்சியானது அனைத்து திட்டப்பணிகள், சுயவிவரங்கள், பணிகள் மற்றும் அவற்றின் செயல்கள், சுயவிவரம்/பணி நிபந்தனைகள் மற்றும் பிற சுயவிவரம்/பணி தொடர்பான தகவல்கள் ஆகியவற்றை விருப்பமாக உள்ளடக்கும்.\n\n* காட்சி விருப்பங்கள்:\n நிலை 0: முதல் பணிச் செயலை மட்டும், பெயரிடப்படாத பணிகளுக்கு மட்டும் (அமைதியாக) காட்டவும்.\n நிலை 1 = முழுப் பணியின் பெயர் 2 இல் காட்டப்படும். ஒவ்வொரு பணியும்.\n நிலை 3 = செயல் விவரங்களுடன் ஒவ்வொரு பணியிலும் முழுப் பணிச் செயல் விவரங்களைக் காட்டவும்.\n நிலை 4 = 3 மற்றும் திட்டத்தின் உலகளாவிய மாறிகளின் காட்சி நிலை.\n\n நிலை 5 = 4 மற்றும் காட்சி வாத விவரங்களின் காட்சி நிலை.\n\n* எல்லாவற்றையும் மட்டும் காட்டவும்: நிபந்தனைகள், டாஸ்கர்நெட் மற்றும் அவுட்புட் டைரக்டரி தகவல், அவுட்புட் டைரக்டரின் காட்சியை இயக்குகிறது. அவுட்லைன்.\n\n* காட்சி நிபந்தனைகள்: சுயவிவரம் மற்றும் பணி நிபந்தனைகளின் காட்சியை இயக்கவும்.\n\n* டாஸ்கர்நெட் தகவலைக் காட்சிப்படுத்தவும் - இருந்தால், டாஸ்கர்நெட் வெளியீட்டுத் தகவலைக் காண்பிக்கவும்.\n\n* டாஸ்கர் விருப்பத்தேர்வுகளைக் காட்டவும் - டாஸ்கரின் சிஸ்டம் விருப்பங்களைக் காண்பிக்கவும்.\n\n* டாஸ்க்கின் சிஸ்டம் விருப்பங்களைக் காட்டவும். தொடக்கத்தில் ஹைப்பர்லிங்க்களின் கோப்பகத்தைக் காட்டவும்.\n\n* உங்கள் திட்டங்கள்/சுயவிவரங்கள்/பணிகள்/காட்சிகளின் உள்ளமைவு அவுட்லைன் மற்றும் வரைபடத்தைக் காண்பி.\n\n* அழகான வெளியீட்டைக் காண்பி: எல்லா வாதங்களுக்கும் புதிய வரிகள் மற்றும் உள்தள்ளலைச் சேர்ப்பதன் மூலம் வெளியீட்டை மேலும் மனிதர்கள் படிக்கக்கூடியதாக ஆக்குங்கள்.\n\n* ப்ராஜெக்ட்/புரொஃபைல்/Task இன் கீழ் விருப்பங்கள் மற்றும்/அல்லது அவற்றின் பெயர்களை முன்னிலைப்படுத்தவும்.\n\n* பணி நடவடிக்கை வரம்பு: பணி குறிப்பிட்ட எண்ணிக்கையை விட அதிகமான செயல்களைக் கொண்டிருந்தால் எச்சரிக்கையைக் காட்டவும்.\n\n* என்றால்/பின்னர்/வேறு பணிச் செயல்களுக்கான உள்தள்ளல் அளவு.\n\n* அமைப்புகளைச் சேமி - இந்த அமைப்புகளைச் சேமி பின்னர் பயன்படுத்தவும்.\n\n* சேமித்த அமைப்புகளை மீட்டமை. சிக்கல் - இது உங்கள் உலாவியை சிக்கலைப் புகாரளிக்கும் தளத்திற்குக் கொண்டு வரும், மேலும் பிழையைப் புகாரளிக்க அல்லது புதிய அம்சத்தைக் கோர இதைப் பயன்படுத்தலாம் ( [அம்ச கோரிக்கை] )\n\n* தோற்ற முறை: டார்க், லைட் அல்லது சிஸ்டம் இயல்புநிலை.\n\n* பார்வைகள்: உங்கள் உள்ளமைவு வரைபடம், வரைபடம், அல்லது உங்கள் ப்ரோஜெக்ட், ப்ரோஜெக்ட், ப்ரொஜெக்ட், ட்ரீ காட்சியில் நேரடியாக காட்சிப்படுத்தவும் வரைகலை திட்டங்கள்/சுயவிவரங்கள்/பணிகள்/காட்சிகள் உள்ளமைவு அவுட்லைன்.\n\n* Android சாதனத்திலிருந்து XML ஐப் பெறுங்கள்: Android சாதனத்திலிருந்து காப்புப்பிரதி/ஏற்றுமதி செய்யப்பட்ட XML கோப்பைப் பெறவும்.  உங்கள் Android சாதனத்திற்கான IP முகவரி மற்றும் போர்ட் எண் மற்றும் சாதனத்தில் உள்ள கோப்பு இருப்பிடம் ஆகியவை உங்களிடம் கேட்கப்படும்.\n\n* உள்ளூர் XML ஐப் பெறவும்: உங்கள் உள்ளூர் இயக்ககத்திலிருந்து காப்புப் பிரதி/ஏற்றுமதி செய்யப்பட்ட XML கோப்பைப் பெறவும்.\n\n* இயக்கவும் மற்றும் வெளியேறவும்: வழங்கப்பட்ட அமைப்புகளுடன் நிரலை இயக்கவும், பல முறை இணைய உலாவியில் முடிவுகளைக் காட்டி பின்னர் வெளியேறவும்.\n* மீண்டும் இயக்கவும். உலாவியில் முடிவுகளைக் காட்டுகிறது.\n\n* குறிப்பிட்ட பெயர் தாவல்: ஒரு ஒற்றை, குறிப்பிட்ட பெயரிடப்பட்ட உருப்படியை உள்ளிடவும்...\n - திட்டப் பெயர்: காட்ட ஒரு குறிப்பிட்ட திட்டத்தை உள்ளிடவும்.\n - சுயவிவரப் பெயர்: காட்ட ஒரு குறிப்பிட்ட சுயவிவரத்தை உள்ளிடவும்.\n - பணிப் பெயர்: காண்பிக்க ஒரு குறிப்பிட்ட பணியை உள்ளிடவும்.\n (இந்த மூன்றும் பிரத்தியேகமானது: வண்ணங்களைத் தேர்ந்தெடுக்கவும். திட்டங்கள், சுயவிவரங்கள், பணிகள் மற்றும் பலவற்றிற்கு).\n\n* பகுப்பாய்வு தாவல்: ஒரு திட்டம், சுயவிவரம் அல்லது பணிக்கான பகுப்பாய்வை Ai மாதிரிக்கு எதிராக இயக்கவும்.\n\n* பிழைத்திருத்த தாவல்: இயக்க நேர அமைப்புகளை காட்சிப்படுத்தவும் மற்றும் பிழைத்திருத்த பயன்முறையை இயக்கவும்.\n\n* வெளியேறு: நிரலிலிருந்து வெளியேறு (வெளியேறு) நீங்கள் இன்னும் அவ்வாறு செய்யவில்லை எனில் 'Run and Exit' அல்லது 'ReRun' பொத்தானை அழுத்தியதும் கோப்பு.\n\n- பின்வரும் இயக்க நேரப் பிழைகளில் ஏதேனும் ஒன்றைப் பெற்றால், அவற்றைப் புறக்கணிக்கலாம்:\n '[CATransaction synchronize] பரிவர்த்தனைக்குள் அழைக்கப்பட்டது'.\n 'IMK கிளையன்ட் ஸ்டால் கண்டறியப்பட்டது...'.\n\n- சாளரத்தை முழுவதுமாக இழுக்கவும். https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- தோற்றப் பயன்முறையை மாற்றுவது வெளியீட்டிற்குப் பயன்படுத்தப்படும் வண்ணங்களை அவற்றின் இயல்புநிலை மதிப்புகளுக்கு மாற்றும்.\n\n"
-msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn pink when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
-msgstr "உள்ளூர் லாமா மாடல் அல்லது சர்வர் அடிப்படையிலான Open AI, Claude அல்லது DeepSeek மாதிரிகளைப் பயன்படுத்தி உங்கள் சுயவிவரத்தில் Ai பகுப்பாய்வை இயக்க பகுப்பாய்வு தாவல் பயன்படுத்தப்படுகிறது.\n\nஉங்கள் சுயவிவரத்திற்கு எதிராக AI ஐ இயக்க பின்வரும் படிகள் தேவை.\n\n1- சேவையக அடிப்படையிலான AI ஐப் பயன்படுத்தினால், நீங்கள் சரியான API விசையை வழங்க வேண்டும்.  உங்கள் விசை(களை) உள்ளிட 'Show/Edit API Key(s)' பொத்தானைப் பயன்படுத்தலாம்.\n\n2- இயல்புநிலைத் தூண்டுதல்: 'செயல்திறன் மற்றும் வாசிப்புத்திறனில் மேம்பாடுகளைப் பரிந்துரைக்கவும்: (உங்கள் திட்டம்/சுயவிவரம்/பணி)', மேலும் இது தானாகவே முன்வைக்கப்படும்: 'பின்வரும் கொடுக்கப்பட்ட (திட்டம்/சுயவிவரம், Ta/Task' இல்)  கட்டளையை மாற்றினால், நீங்கள் 'மேம்பாடுகளைப் பரிந்துரைக்கவும்...' பகுதியை மட்டுமே மாற்றுகிறீர்கள்.\n\n3- நீங்கள் பயன்படுத்த விரும்பும் மாதிரியைத் தேர்ந்தெடுக்கவும்.\n\n o தேர்ந்தெடுக்கப்பட்ட மாதிரி எந்த AI மூலம் பகுப்பாய்வு செய்யப்பட வேண்டும் என்பதைத் தீர்மானிக்கும்.\n\n4- 'ரன் பகுப்பாய்வு' பொத்தானைக் கிளிக் செய்யவும்.  தேவையான எல்லா தரவையும் உள்ளிடும்போது அது இளஞ்சிவப்பு நிறமாக மாறும்.\n\n o நீங்கள் இன்னும் மாதிரி, ப்ராம்ட் அல்லது ஒற்றைத் திட்டம், சுயவிவரம் அல்லது பணி அல்லது சரியான API விசையைத் தேர்ந்தெடுக்கவில்லை என்றால், முதலில் அவ்வாறு செய்யும்படி நீங்கள் கேட்கப்படுவீர்கள்.\n\n o செயல்முறை சிறிது நேரம் ஆகலாம் மற்றும் பின்னணியில் இயங்கும்.  முடிவுகள் ஒரு தனி சாளரத்தில் தோன்றும்.\n\n o பகுப்பாய்வு தொடங்கியவுடன் உங்கள் கணினியில் இதுவரை ஏற்றப்படாத உள்ளூர் மாதிரிகள் பின்னணியில் ஏற்றப்படும்.\n\nஉங்கள் நியமிக்கப்பட்ட api-விசைகள் (ஏதேனும் இருந்தால்), மாதிரி, தேர்ந்தெடுக்கப்பட்ட திட்டம், சுயவிவரம் அல்லது Task மற்றும் Ai ப்ராம்ட் அனைத்தும் அமர்வுகள் முழுவதும் சேமிக்கப்படும்.\n\nபகுப்பாய்வின் கீழ் 'மீண்டும் இயக்கு' அம்சத்தின் கீழ் காட்சிப்படுத்தப்படும். சாளரம்.\n\n"
-msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nAll view windows can be stretched and moved as needed.  Rerun the specific view command to refresh the view with the new size and position.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Reset' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\n\nThe Map View has the following behavior:\n\n - While the browser is not invoked directly, the map can be displayed in the browser by opening the local 'MapTasker.html' file.\n\n - The 'Display Configuration Outline' setting is ignored since it does not work in the Map view.\n\n - Going up one or two levels using the directory hyperlink will result in the generation of a new map view.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Huge configurations that scroll beyond the bottom of the screen are not viewable in their entirety yet.\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
-msgstr "GUI க்குள் உங்கள் உள்ளமைவின் 'வரைபடம்', 'வரைபடம்' அல்லது 'மரம்' காட்சியை நேரடியாகக் காட்டவும்.\n\nகாட்சிகள் செயல்பட, XML முதலில் உள்ளூர் இயக்கி அல்லது Android சாதனத்திலிருந்து பெறப்பட வேண்டும்.\n\nஅனைத்து வியூ சாளரங்களையும் நீட்டி, தேவைக்கேற்ப நகர்த்தலாம்.  புதிய அளவு மற்றும் நிலையுடன் பார்வையைப் புதுப்பிக்க குறிப்பிட்ட காட்சி கட்டளையை மீண்டும் இயக்கவும்.\n\nஎக்ஸ்எம்எல் ஏற்கனவே எடுக்கப்பட்டிருந்தால், அது பார்வைக்கு உள்ளீடாகப் பயன்படுத்தப்படும்.  'ரீசெட்' பட்டனை அழுத்தினால், பார்வைத் தரவு அழிக்கப்படும்.\n\nமிகப் பெரிய உள்ளமைவுகள் வரைபடங்கள் மற்றும் வரைபடங்களுக்கான நீட்டிக்கப்பட்ட இயக்க நேரங்களைச் சந்திக்கும்.  சிறந்த செயல்திறனுக்காக, வரைபடத்திற்கு ஒரு திட்டம் அல்லது சுயவிவரத்தைத் தேர்ந்தெடுக்கவும்.\n\n\nவரைபடக் காட்சியில் பின்வரும் நடத்தை உள்ளது:\n\n - உலாவி நேரடியாக செயல்படுத்தப்படாத நிலையில், உள்ளூர் 'MapTasker.html' கோப்பைத் திறப்பதன் மூலம் வரைபடத்தை உலாவியில் காட்டலாம்.\n\n - 'Display - Configuration Outline' அமைப்பு புறக்கணிக்கப்படாமல் உள்ளது. டைரக்டரி ஹைப்பர்லிங்கைப் பயன்படுத்தி இரண்டு நிலைகள் புதிய வரைபடக் காட்சியை உருவாக்கும்.\n\n\nவரைபடக் காட்சியில் பின்வரும் நடத்தை உள்ளது:\n\n - திட்டங்கள் மற்றும் சுயவிவரங்கள் மட்டுமே காட்டப்படும். ஒரே ஒரு பணி அல்லது காட்சியைக் கொண்ட XML காட்டப்படாது.\n\n - வரைபடத்தில் உள்ள முழு இணைப்பையும் தனிப்படுத்த, கிடைமட்ட இணைப்பியைக் கிளிக் செய்யவும்.\n\n\nTree View பின்வரும் செயல்பாடுகளைக் கொண்டுள்ளது:\n\n- திரையின் அடிப்பகுதிக்கு அப்பால் ஸ்க்ரோல் செய்யும் பெரிய உள்ளமைவுகளை அவை முழுவதுமாகப் பார்க்க முடியாது\n- இன்னும் முழுமையாக காட்சிப்படுத்த முடியாது.\n.\n. ஒரே ஒரு சுயவிவரம் அல்லது பணி அல்லது காட்சியைக் கொண்ட XML காட்டப்படாது.\n\n- ஒரே பெயர் அமைப்பைப் பொருட்படுத்தாமல் அனைத்து திட்டப்பணிகள், சுயவிவரங்கள், பணிகள் மற்றும் காட்சிகள் காட்டப்படும்.\n\n"
-msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, no output map will be generated.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
-msgstr "'பார்வை வரம்பு' என்பது பார்வையை உருவாக்கும் போது பயன்படுத்தப்படும் செயலாக்க நேரத்தின் அளவைக் கட்டுப்படுத்துவதற்கான ஒரு வழிமுறையாகும்.\n\n- எண்கள் உருவாக்கப்பட வேண்டிய வெளியீட்டு வரிகளின் ஒப்பீட்டு அளவைக் குறிக்கும்.\n\n- பெரிய வரம்பு, பெரிய வெளியீட்டை வரைபடமாக்க அனுமதிக்கப்படும்.  அதிக வெளியீடு உருவாக்கப்படுவதால், செயலாக்க நேரம் அதிகமாகும்.\n\n- மிகப் பெரிய உள்ளமைவுகள் மிகப் பெரிய வெளியீட்டு வரைபடங்களை உருவாக்கும் மற்றும் அதிக செயலாக்க நேரத்தை ஏற்படுத்தும்.  பழைய சாதனங்களில், இதற்கு 30 வினாடிகள் அல்லது அதற்கு மேல் ஆகலாம்.\n\n- வரம்பை அமைப்பதன் மூலம், உள்ளமைவை மேப்பிங் செய்யும் போது பயன்படுத்தப்படும் செயலாக்க நேரத்தை அதிக நேரம் அனுமதிக்காமல் கட்டுப்படுத்தலாம்.\n\n- வரைபடத்தைக் கணக்கிடும் போது வரம்பு மீறப்பட்டால், வெளியீட்டு வரைபடம் உருவாக்கப்படாது.\n\n- எந்த ஒரு திட்ட அமைப்பைப் பயன்படுத்துவது என்பதை நீங்கள் தேர்வு செய்யலாம்.\n. அல்லது பணி என்பது செயலாக்க நேரத்தைக் கட்டுப்படுத்துவதற்கான மற்றொரு வழிமுறையாகும்.\n\n"
+
 msgid "API Key Help"
 msgstr "API முக்கிய உதவி"
 msgid "Profiles Per Line Help"
@@ -967,3 +960,642 @@ msgid "ஒளி"
 msgstr "Light"
 msgid "அமைப்பு"
 msgstr "System"
+
+msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
+msgstr "இலக்கு குறிப்பிட்ட திட்டங்கள், சுயவிவரங்கள், பணிகள் அல்லது காட்சிகள். (ஒன்றை மட்டும் தேர்ந்தெடுக்கவும்)"
+
+msgid "Rename"
+msgstr "மறுபெயரிடவும்"
+
+msgid "Export Project"
+msgstr "ஏற்றுமதி திட்டம்"
+
+msgid "Export Profile"
+msgstr "ஏற்றுமதி சுயவிவரம்"
+
+msgid "Export Task"
+msgstr "ஏற்றுமதி பணி"
+
+msgid "Save"
+msgstr "சேமிக்கவும்"
+
+msgid "Overwrite"
+msgstr "மேலெழுதவும்"
+
+msgid "Delete Project"
+msgstr "திட்டத்தை நீக்கு"
+
+msgid "Delete Profile"
+msgstr "சுயவிவரத்தை நீக்கு"
+
+msgid "Delete Task"
+msgstr "பணியை நீக்கு"
+
+msgid "Its"
+msgstr "அதன்"
+
+msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
+msgstr "இணைக்கப்பட்ட பணி(கள்) வைக்கப்படும் -- அவை திட்டத்திற்கு சொந்தமானவை, இந்த சுயவிவரத்திற்கு அல்ல."
+
+msgid "It has no linked Tasks."
+msgstr "இதில் இணைக்கப்பட்ட பணிகள் எதுவும் இல்லை."
+
+msgid "It will be removed from"
+msgstr "இது அகற்றப்படும்"
+
+msgid "Project(s) and unlinked from"
+msgstr "திட்டம்(கள்) மற்றும் இதிலிருந்து துண்டிக்கப்பட்டது"
+
+msgid "Profile(s) that run it. Those Profiles themselves are kept."
+msgstr "அதை இயக்கும் சுயவிவரம்(கள்). அந்த சுயவிவரங்கள் அப்படியே வைக்கப்பட்டுள்ளன."
+
+msgid "Keep Contents"
+msgstr "உள்ளடக்கங்களை வைத்திருங்கள்"
+
+msgid "Delete Contents"
+msgstr "உள்ளடக்கங்களை நீக்கு"
+
+msgid "Adding to Project:"
+msgstr "திட்டத்தில் சேர்த்தல்:"
+
+msgid "Save To Current File"
+msgstr "தற்போதைய கோப்பில் சேமிக்கவும்"
+
+msgid "Add Project"
+msgstr "திட்டத்தைச் சேர்க்கவும்"
+
+msgid "Add Profile"
+msgstr "சுயவிவரத்தைச் சேர்க்கவும்"
+
+msgid "Add Task"
+msgstr "பணியைச் சேர்க்கவும்"
+
+msgid "Add an action"
+msgstr "ஒரு செயலைச் சேர்க்கவும்"
+
+msgid "Actions in this Task"
+msgstr "இந்த பணியில் செயல்கள்"
+
+msgid "No actions added yet."
+msgstr "இன்னும் செயல்கள் எதுவும் சேர்க்கப்படவில்லை."
+
+msgid "Actions & Control"
+msgstr "செயல்கள் & கட்டுப்பாடு"
+
+msgid "Display Conditions"
+msgstr "காட்சி நிபந்தனைகள்"
+
+msgid "Task Action Limit:"
+msgstr "பணி நடவடிக்கை வரம்பு:"
+
+msgid "Theme Configuration"
+msgstr "தீம் கட்டமைப்பு"
+
+msgid "Select a category to modify its color."
+msgstr "அதன் நிறத்தை மாற்ற ஒரு வகையைத் தேர்ந்தெடுக்கவும்."
+
+msgid "Select Category to Colorize"
+msgstr "வண்ணமயமாக்க வகையைத் தேர்ந்தெடுக்கவும்"
+
+msgid "Choose Hex Color"
+msgstr "ஹெக்ஸ் நிறத்தைத் தேர்ந்தெடுக்கவும்"
+
+msgid "Open View In New Window"
+msgstr "புதிய சாளரத்தில் காட்சியைத் திறக்கவும்"
+
+msgid "Close Tabs On Exit"
+msgstr "வெளியேறும்போது தாவல்களை மூடு"
+
+msgid "Edit Project"
+msgstr "திட்டத்தை திருத்து"
+
+msgid "Edit Profile"
+msgstr "சுயவிவரத்தைத் திருத்து"
+
+msgid "Edit Task"
+msgstr "பணியைத் திருத்து"
+
+msgid "Scene"
+msgstr "காட்சி"
+
+msgid "Execution"
+msgstr "மரணதண்டனை"
+
+msgid "File Operations"
+msgstr "கோப்பு செயல்பாடுகள்"
+
+msgid "Display Views"
+msgstr "காட்சி காட்சிகள்"
+
+msgid "Application Settings"
+msgstr "பயன்பாட்டு அமைப்புகள்"
+
+msgid "Help & Information"
+msgstr "உதவி & தகவல்"
+
+msgid "0 = least detail, 5 = most detail."
+msgstr "0 = குறைந்த விவரம், 5 = மிக விவரம்."
+
+msgid "AI Analysis"
+msgstr "AI பகுப்பாய்வு"
+
+msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
+msgstr "பகுப்பாய்வு பின்னணியில் இயங்குகிறது.\n\nமுடிந்ததும், முடிவுகள் புதிய சாளரத்தில் தோன்றும்.\n\nதயவுசெய்து நிற்கவும்..."
+
+msgid "Android Get XML Port Number"
+msgstr "Android XML போர்ட் எண்ணைப் பெறுங்கள்"
+
+msgid "Android device at"
+msgstr "இல் Android சாதனம்"
+
+msgid "Available Android Backups"
+msgstr "Android காப்புப்பிரதிகள் உள்ளன"
+
+msgid "CAVEATS"
+msgstr "எச்சரிக்கைகள்"
+
+msgid "Cancel Entry"
+msgstr "நுழைவை ரத்துசெய்"
+
+msgid "Check your IP/Port and verify the Tasker HTTP server is running"
+msgstr "உங்கள் ஐபி/போர்ட்டைச் சரிபார்த்து, டாஸ்கர் HTTP சர்வர் இயங்குகிறதா என்பதைச் சரிபார்க்கவும்"
+
+msgid "Close"
+msgstr "மூடு"
+
+msgid "Detail Level"
+msgstr "விவர நிலை"
+
+msgid "Error"
+msgstr "பிழை"
+
+msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
+msgstr "Android சாதனத்திலிருந்து XML ஐப் பெறவும்.\n\nநீங்கள் ஆண்ட்ராய்டு சாதனம் உள்ள அதே நெட்வொர்க்கில் இருக்க வேண்டும், மேலும் சாதனம் இயங்கி இணைக்கப்பட்டிருக்க வேண்டும்.\n\n"
+
+msgid "Get Local XML File"
+msgstr "உள்ளூர் XML கோப்பைப் பெறுங்கள்"
+
+msgid "It owns"
+msgstr "அது சொந்தம்"
+
+msgid "No Profile Tasks Found"
+msgstr "சுயவிவரப் பணிகள் எதுவும் இல்லை"
+
+msgid "No Profiles Found"
+msgstr "சுயவிவரங்கள் எதுவும் இல்லை"
+
+msgid "No file loaded"
+msgstr "கோப்பு ஏற்றப்படவில்லை"
+
+msgid "No scenes found"
+msgstr "காட்சிகள் எதுவும் கிடைக்கவில்லை"
+
+msgid "No tasks found"
+msgstr "பணிகள் எதுவும் இல்லை"
+
+msgid "None or unnamed!"
+msgstr "எதுவும் இல்லை அல்லது பெயரிடப்படாதது!"
+
+msgid "Profile(s) and"
+msgstr "சுயவிவரம்(கள்) மற்றும்"
+
+msgid "Prompt:"
+msgstr "உடனடி:"
+
+msgid "Save To Android"
+msgstr "Android இல் சேமிக்கவும்"
+
+msgid "Scene to Analyze:"
+msgstr "பகுப்பாய்வு செய்ய வேண்டிய காட்சி:"
+
+msgid "Scene:"
+msgstr "காட்சி:"
+
+msgid "Select XML From Android Device:"
+msgstr "Android சாதனத்திலிருந்து XML ஐத் தேர்ந்தெடுக்கவும்:"
+
+msgid "Task(s)."
+msgstr "பணி(கள்)."
+
+msgid "Unnamed Task"
+msgstr "பெயரிடப்படாத பணி"
+
+msgid "Update Available!"
+msgstr "புதுப்பிப்பு கிடைக்கிறது!"
+
+msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
+msgstr "YouTube நேரடி ஸ்ட்ரீமிங்கிற்கு மூன்றாம் தரப்பு API டோக்கன்கள் தேவை. பார்க்க இலக்கு தடத்தை உள்நாட்டில் பதிவிறக்கவும்."
+
+msgid "is unreachable"
+msgstr "அடைய முடியாதது"
+
+msgid "'Cancel' button selected. No change to the API keys!"
+msgstr "'ரத்துசெய்' பொத்தான் தேர்ந்தெடுக்கப்பட்டது. API விசைகளில் மாற்றம் இல்லை!"
+
+msgid ".or."
+msgstr ".அல்லது."
+
+msgid "1-TCP/IP Address:"
+msgstr "1-TCP/IP முகவரி:"
+
+msgid "2-Port Number:"
+msgstr "2-போர்ட் எண்:"
+
+msgid "3-File Location:"
+msgstr "3-கோப்பு இடம்:"
+
+msgid "AI Model"
+msgstr "AI மாதிரி"
+
+msgid "Add 'If' Action"
+msgstr "'என்றால்' செயலைச் சேர்க்கவும்"
+
+msgid "Add App Entry"
+msgstr "பயன்பாட்டு உள்ளீட்டைச் சேர்க்கவும்"
+
+msgid "Add Condition"
+msgstr "நிபந்தனையைச் சேர்க்கவும்"
+
+msgid "All"
+msgstr "அனைத்து"
+
+msgid "Android IP Address"
+msgstr "ஆண்ட்ராய்டு ஐபி முகவரி"
+
+msgid "Android configuration details matched successfully!"
+msgstr "ஆண்ட்ராய்டு உள்ளமைவு விவரங்கள் வெற்றிகரமாக பொருந்தின!"
+
+msgid "Changes kept."
+msgstr "மாற்றங்கள் வைக்கப்பட்டன."
+
+msgid "Choose a State type first."
+msgstr "முதலில் மாநில வகையைத் தேர்ந்தெடுக்கவும்."
+
+msgid "Choose a Task"
+msgstr "ஒரு பணியைத் தேர்ந்தெடுக்கவும்"
+
+msgid "Choose a Task first."
+msgstr "முதலில் ஒரு பணியைத் தேர்ந்தெடுக்கவும்."
+
+msgid "Choose a condition type first."
+msgstr "முதலில் நிபந்தனை வகையைத் தேர்ந்தெடுக்கவும்."
+
+msgid "Choose an Event type first."
+msgstr "முதலில் ஒரு நிகழ்வு வகையைத் தேர்ந்தெடுக்கவும்."
+
+msgid "Class (optional)"
+msgstr "வகுப்பு (விரும்பினால்)"
+
+msgid "Cleared the search highlights."
+msgstr "தேடல் சிறப்பம்சங்கள் அழிக்கப்பட்டன."
+
+msgid "Click Here to Set XML Details"
+msgstr "XML விவரங்களை அமைக்க இங்கே கிளிக் செய்யவும்"
+
+msgid "Click arrows to expand/collapse details."
+msgstr "விவரங்களை விரிவாக்க/சுருக்க அம்புக்குறிகளைக் கிளிக் செய்யவும்."
+
+msgid "Click on a row index line number to jump directly to that match block placement:"
+msgstr "அந்த மேட்ச் பிளாக் பிளேஸ்மென்ட்டுக்கு நேரடியாகச் செல்ல, ஒரு வரிசை குறியீட்டு வரி எண்ணைக் கிளிக் செய்யவும்:"
+
+msgid "Click on connector to highlight"
+msgstr "ஹைலைட் செய்ய இணைப்பியைக் கிளிக் செய்யவும்"
+
+msgid "Close Results Window"
+msgstr "முடிவுகள் சாளரத்தை மூடு"
+
+msgid "Condition Type"
+msgstr "நிபந்தனை வகை"
+
+msgid "Conditions"
+msgstr "நிபந்தனைகள்"
+
+msgid "Configure Android Connection:"
+msgstr "Android இணைப்பை உள்ளமைக்கவும்:"
+
+msgid "Continue Task After Error"
+msgstr "பிழைக்குப் பிறகு பணியைத் தொடரவும்"
+
+msgid "Copy"
+msgstr "நகலெடுக்கவும்"
+
+msgid "Dark Mode"
+msgstr "இருண்ட பயன்முறை"
+
+msgid "Day of Month"
+msgstr "மாதத்தின் நாள்"
+
+msgid "Delete"
+msgstr "நீக்கு"
+
+msgid "Delete Condition"
+msgstr "நிபந்தனையை நீக்கு"
+
+msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
+msgstr "இந்த சுயவிவரத்தை மட்டும் நீக்குகிறது. அதன் நுழைவு/வெளியேறும் பணிகள் வைக்கப்படுகின்றன -- ஒரு பணியானது திட்டத்திற்குச் சொந்தமானது, சுயவிவரம் அல்ல, அதே பணியை மற்ற சுயவிவரங்களும் பயன்படுத்தலாம்."
+
+msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
+msgstr "இந்தப் பணியையும் அதற்கான ஒவ்வொரு குறிப்பையும் நீக்குகிறது: அதைச் சொந்தமாக வைத்திருக்கும் ஒவ்வொரு திட்டத்தின் பணிகளிலிருந்தும், அதன் நுழைவு/வெளியேறும் பணியாக இயங்கும் எந்த சுயவிவரத்திலிருந்தும் இது அகற்றப்படும். சுயவிவரங்கள் தாங்களாகவே வைக்கப்பட்டுள்ளன."
+
+msgid "Diagram View opened in a new browser window."
+msgstr "வரைபடக் காட்சி புதிய உலாவி சாளரத்தில் திறக்கப்பட்டது."
+
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+msgstr "கிடைக்கக்கூடிய அனைத்து மாடல்களின் நீட்டிக்கப்பட்ட பட்டியலைக் காண்பி.\n\nகுறிப்பு: OpenAI அல்லது ஜெமினிக்கு API விசை அமைக்கப்படவில்லை என்றால்,\n      பின்னர் அந்தந்த மாதிரியின் இயல்புநிலை மாதிரி பட்டியல்\n      AI வழங்குநர் காட்டப்படும்.\n\nகுறிப்பு: எல்லா மாடல்களும் சரிபார்க்கப்படவில்லை மற்றும்\n      ஒன்று அல்லது அதற்கு மேற்பட்டவை பகுப்பாய்வில் பிழையை அளிக்கலாம்.\n\nகுறிப்பு: முதல் முறையாக இந்த விருப்பத்தை இயக்குவது\n      பின்வரும் தொகுதிகளின் நிறுவலை கட்டாயப்படுத்தவும்\n      மற்றும் அவற்றின் அனைத்து சார்புகளும்:\n      google-genai, anthropic, openai, ollam"
+
+msgid "End Time"
+msgstr "முடிவு நேரம்"
+
+msgid "Event Type"
+msgstr "நிகழ்வு வகை"
+
+msgid "Every"
+msgstr "ஒவ்வொரு"
+
+msgid "File path saved successfully!"
+msgstr "கோப்பு பாதை வெற்றிகரமாக சேமிக்கப்பட்டது!"
+
+msgid "File selection canceled."
+msgstr "கோப்பு தேர்வு ரத்து செய்யப்பட்டது."
+
+msgid "If"
+msgstr "என்றால்"
+
+msgid "If condition set."
+msgstr "நிபந்தனை அமைக்கப்பட்டால்."
+
+msgid "Insert just the 'If', or a complete block?"
+msgstr "'If' ஐ மட்டும் செருகவா அல்லது முழுத் தொகுதியைச் செருகவா?"
+
+msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
+msgstr "தவறான காட்சி வகை குறிப்பிடப்பட்டுள்ளது. 'வரைபடம்', 'வரைபடம்' அல்லது 'மரம்' ஆகியவற்றைப் பயன்படுத்தவும்."
+
+msgid "Label"
+msgstr "லேபிள்"
+
+msgid "Last Day Of Month"
+msgstr "மாதத்தின் கடைசி நாள்"
+
+msgid "Link"
+msgstr "இணைப்பு"
+
+msgid "List Files Selected"
+msgstr "பட்டியல் கோப்புகள் தேர்ந்தெடுக்கப்பட்டன"
+
+msgid "List XML Files"
+msgstr "XML கோப்புகளை பட்டியலிடுங்கள்"
+
+msgid "Map View opened in a new browser window."
+msgstr "புதிய உலாவி சாளரத்தில் வரைபடக் காட்சி திறக்கப்பட்டது."
+
+msgid "Map view creation skipped: No valid XML source found or action canceled."
+msgstr "வரைபடக் காட்சி உருவாக்கம் தவிர்க்கப்பட்டது: சரியான XML ஆதாரம் எதுவும் இல்லை அல்லது செயல் ரத்துசெய்யப்பட்டது."
+
+msgid "Month"
+msgstr "மாதம்"
+
+msgid "Move"
+msgstr "நகர்த்தவும்"
+
+msgid "Move to #"
+msgstr "#க்கு நகர்த்து"
+
+msgid "New name"
+msgstr "புதிய பெயர்"
+
+msgid "No XML data loaded! Please Get XML from Android or Local drive first."
+msgstr "எக்ஸ்எம்எல் தரவு ஏற்றப்படவில்லை! முதலில் ஆண்ட்ராய்டு அல்லது லோக்கல் டிரைவிலிருந்து எக்ஸ்எம்எல்லைப் பெறவும்."
+
+msgid "No XML data loaded! Please select a valid XML file first."
+msgstr "எக்ஸ்எம்எல் தரவு ஏற்றப்படவில்லை! முதலில் சரியான XML கோப்பைத் தேர்ந்தெடுக்கவும்."
+
+msgid "No actions in this Task."
+msgstr "இந்தப் பணியில் எந்தச் செயல்களும் இல்லை."
+
+msgid "No backup file is currently loaded. Use 'Get Local XML' first."
+msgstr "எந்த காப்பு கோப்பும் தற்போது ஏற்றப்படவில்லை. முதலில் 'Get Local XML' ஐப் பயன்படுத்தவும்."
+
+msgid "No conditions on this Profile."
+msgstr "இந்த சுயவிவரத்தில் எந்த நிபந்தனையும் இல்லை."
+
+msgid "No editable arguments (code not mapped, or this condition has none)."
+msgstr "திருத்தக்கூடிய வாதங்கள் இல்லை (குறியீடு மேப் செய்யப்படவில்லை, அல்லது இந்த நிலையில் எதுவும் இல்லை)."
+
+msgid "No editable arguments."
+msgstr "திருத்தக்கூடிய வாதங்கள் இல்லை."
+
+msgid "Not configured..."
+msgstr "கட்டமைக்கப்படவில்லை..."
+
+msgid "Odd"
+msgstr "ஒற்றைப்படை"
+
+msgid "Ok"
+msgstr "சரி"
+
+msgid "Operator"
+msgstr "ஆபரேட்டர்"
+
+msgid "Package"
+msgstr "தொகுப்பு"
+
+msgid "Pick a Task"
+msgstr "ஒரு பணியைத் தேர்ந்தெடுக்கவும்"
+
+msgid "Please enter a search term."
+msgstr "தயவுசெய்து ஒரு தேடல் சொல்லை உள்ளிடவும்."
+
+msgid "Port"
+msgstr "துறைமுகம்"
+
+msgid "Position"
+msgstr "பதவி"
+
+msgid "Priority"
+msgstr "முன்னுரிமை"
+
+msgid "Profile Name"
+msgstr "சுயவிவரப் பெயர்"
+
+msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "இந்த அமர்விற்கு மட்டுமே சுயவிவரம் வைக்கப்பட்டுள்ளது -- அதை நிரந்தரமாக வைத்திருக்க, 'தற்போதைய கோப்பில் சேமி' என்பதைப் பயன்படுத்தவும்."
+
+msgid "Profiles Per Line"
+msgstr "ஒரு வரிக்கு சுயவிவரங்கள்"
+
+msgid "Project Name"
+msgstr "திட்டத்தின் பெயர்"
+
+msgid "Project added."
+msgstr "திட்டம் சேர்க்கப்பட்டது."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
+msgstr "ஒரு புதிய பெயரைக் கேட்கும் மற்றும் ஏற்றப்பட்ட காப்புப்பிரதிக்கு இப்போது அது பொருந்தும். மேலே உள்ள திட்டப் பெயர் புலம் படிக்க மட்டுமே -- இதை மாற்றுவதற்கான ஒரே வழி இதுதான்."
+
+msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
+msgstr "புதிய பெயரைக் கேட்கும் மற்றும் ஏற்றப்பட்ட காப்புப்பிரதிக்கு இப்போது பொருந்தும். இந்த உரையாடலில் உள்ள மற்ற அனைத்தும் சரி/சேமிக்கும் வரை நிலுவையில் இருக்கும், மேலும் உரையாடல் திறந்திருக்கும், எனவே நீங்கள் திருத்துவதைத் தொடரலாம்."
+
+msgid "Remove"
+msgstr "அகற்று"
+
+msgid "Save Profile To Android Device"
+msgstr "சுயவிவரத்தை Android சாதனத்தில் சேமிக்கவும்"
+
+msgid "Save Project To Android Device"
+msgstr "திட்டத்தை Android சாதனத்தில் சேமிக்கவும்"
+
+msgid "Save Task To Android Device"
+msgstr "Android சாதனத்தில் பணியைச் சேமிக்கவும்"
+
+msgid "Save as"
+msgstr "என சேமிக்கவும்"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "முழு காப்புப்பிரதியையும் சேமிக்கிறது -- இந்தச் சுயவிவரம் மட்டுமின்றி, அதில் உள்ள ஒவ்வொரு திட்டப்பணி, சுயவிவரம் மற்றும் பணி -- இந்த உரையாடலின் திருத்தங்கள் பயன்படுத்தப்பட்டால், அதே 'சரி' இருக்கும்.\nதற்போது ஏற்றப்பட்ட கோப்பின் புதிய, நேரமுத்திரை நகலில் இது எழுதப்பட்டுள்ளது: backup.xml backup_20260728_143005.xml ஆக மாறும்.\nநீங்கள் ஏற்றிய கோப்பு ஒருபோதும் எழுதப்படவில்லை, எனவே அது அப்படியே உள்ளது.\nபயன்பாடு புதிய நகலுக்கு மாறுகிறது, இது மேலும் எடிட்டிங் மற்றும் சேமிப்பிற்கான தற்போதைய கோப்பாக மாறும்; இரண்டாவது ஒன்றைச் சேர்ப்பதற்குப் பதிலாக மீண்டும் சேமிப்பது நேர முத்திரையை மாற்றுகிறது.\nஇது இந்தக் கணினிக்கு மட்டுமே எழுதும் -- உங்கள் Android சாதனத்திற்கு எதுவும் அனுப்பப்படவில்லை."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "இந்த அமர்வில் எங்கும் செய்யப்பட்ட ஒவ்வொரு திருத்தம் உட்பட, இந்தத் திட்டம் மட்டுமல்ல -- முழு காப்புப்பிரதியையும் -- அதில் உள்ள ஒவ்வொரு திட்டம், சுயவிவரம் மற்றும் பணியைச் சேமிக்கிறது.\nதற்போது ஏற்றப்பட்ட கோப்பின் புதிய, நேரமுத்திரை நகலில் இது எழுதப்பட்டுள்ளது: backup.xml backup_20260728_143005.xml ஆக மாறும்.\nநீங்கள் ஏற்றிய கோப்பு ஒருபோதும் எழுதப்படவில்லை, எனவே அது அப்படியே உள்ளது.\nபயன்பாடு புதிய நகலுக்கு மாறுகிறது, இது மேலும் எடிட்டிங் மற்றும் சேமிப்பிற்கான தற்போதைய கோப்பாக மாறும்; இரண்டாவது ஒன்றைச் சேர்ப்பதற்குப் பதிலாக மீண்டும் சேமிப்பது நேர முத்திரையை மாற்றுகிறது.\nஇது இந்தக் கணினிக்கு மட்டுமே எழுதும் -- உங்கள் Android சாதனத்திற்கு எதுவும் அனுப்பப்படவில்லை."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "முழு காப்புப்பிரதியையும் சேமிக்கிறது -- இதில் உள்ள ஒவ்வொரு திட்டப்பணி, சுயவிவரம் மற்றும் பணி, இந்த பணி மட்டுமல்ல -- இந்த உரையாடலின் திருத்தங்கள் பயன்படுத்தப்பட்டால், அதே 'சரி' இருக்கும்.\nதற்போது ஏற்றப்பட்ட கோப்பின் புதிய, நேரமுத்திரை நகலில் இது எழுதப்பட்டுள்ளது: backup.xml backup_20260728_143005.xml ஆக மாறும்.\nநீங்கள் ஏற்றிய கோப்பு ஒருபோதும் எழுதப்படவில்லை, எனவே அது அப்படியே உள்ளது.\nபயன்பாடு புதிய நகலுக்கு மாறுகிறது, இது மேலும் எடிட்டிங் மற்றும் சேமிப்பிற்கான தற்போதைய கோப்பாக மாறும்; இரண்டாவது ஒன்றைச் சேர்ப்பதற்குப் பதிலாக மீண்டும் சேமிப்பது நேர முத்திரையை மாற்றுகிறது.\nஇது இந்தக் கணினிக்கு மட்டுமே எழுதும் -- உங்கள் Android சாதனத்திற்கு எதுவும் அனுப்பப்படவில்லை."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "முழு காப்புப்பிரதியையும் சேமிக்கிறது -- இதில் உள்ள ஒவ்வொரு திட்டம், சுயவிவரம் மற்றும் பணி, இது மட்டும் அல்ல -- அதன் திட்டத்தில் சேர்க்கப்பட்ட புதிய சுயவிவரத்துடன், அதே வழியில் 'Ok' அதைச் சேர்க்கிறது.\nதற்போது ஏற்றப்பட்ட கோப்பின் புதிய, நேரமுத்திரை நகலில் இது எழுதப்பட்டுள்ளது: backup.xml backup_20260728_143005.xml ஆக மாறும்.\nநீங்கள் ஏற்றிய கோப்பு ஒருபோதும் எழுதப்படவில்லை, எனவே அது அப்படியே உள்ளது.\nபயன்பாடு புதிய நகலுக்கு மாறுகிறது, இது மேலும் எடிட்டிங் மற்றும் சேமிப்பிற்கான தற்போதைய கோப்பாக மாறும்; இரண்டாவது ஒன்றைச் சேர்ப்பதற்குப் பதிலாக மீண்டும் சேமிப்பது நேர முத்திரையை மாற்றுகிறது.\nஇது இந்தக் கணினிக்கு மட்டுமே எழுதும் -- உங்கள் Android சாதனத்திற்கு எதுவும் அனுப்பப்படவில்லை."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "முழு காப்புப்பிரதியையும் சேமிக்கிறது -- இதில் உள்ள ஒவ்வொரு திட்டம், சுயவிவரம் மற்றும் பணி, இது மட்டும் அல்ல -- புதிய பணியைச் சேர்த்தால், அதே வழியில் 'Ok' அதைச் சேர்க்கிறது.\nதற்போது ஏற்றப்பட்ட கோப்பின் புதிய, நேரமுத்திரை நகலில் இது எழுதப்பட்டுள்ளது: backup.xml backup_20260728_143005.xml ஆக மாறும்.\nநீங்கள் ஏற்றிய கோப்பு ஒருபோதும் எழுதப்படவில்லை, எனவே அது அப்படியே உள்ளது.\nபயன்பாடு புதிய நகலுக்கு மாறுகிறது, இது மேலும் எடிட்டிங் மற்றும் சேமிப்பிற்கான தற்போதைய கோப்பாக மாறும்; இரண்டாவது ஒன்றைச் சேர்ப்பதற்குப் பதிலாக மீண்டும் சேமிப்பது நேர முத்திரையை மாற்றுகிறது.\nஇது இந்தக் கணினிக்கு மட்டுமே எழுதும் -- உங்கள் Android சாதனத்திற்கு எதுவும் அனுப்பப்படவில்லை."
+
+msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
+msgstr "இந்தத் திட்டம் மற்றும் அதில் உள்ள அனைத்தையும் -- ஒவ்வொரு சுயவிவரம் மற்றும் பணி -- ஒரு முழுமையான கோப்பாக சேமிக்கிறது."
+
+msgid "Search actions"
+msgstr "தேடல் நடவடிக்கைகள்"
+
+msgid "Search..."
+msgstr "தேடு..."
+
+msgid "Select a single Profile first (Profile pulldown above)."
+msgstr "முதலில் ஒரு சுயவிவரத்தைத் தேர்ந்தெடுக்கவும் (சுயவிவரத்தை மேலே இழுத்தல்)."
+
+msgid "Select a single Project first (Project pulldown above)."
+msgstr "முதலில் ஒரு திட்டத்தைத் தேர்ந்தெடுக்கவும் (மேலே உள்ள திட்டம் இழுத்தல்)."
+
+msgid "Select a single Task first (Task pulldown above)."
+msgstr "முதலில் ஒரு பணியைத் தேர்ந்தெடுக்கவும் (மேலே உள்ள பணியை இழுக்கவும்)."
+
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "எச்சரிக்கையை வழங்குவதற்கு முன், பணியில் எத்தனை செயல்கள் உள்ளன என்பதைத் தேர்ந்தெடுக்கவும்.\nஉள்ளமைவு வெளியீட்டின் அடிப்பகுதியில் எச்சரிக்கை தோன்றும்,\nமற்றும் மிகவும் சிக்கலான பணிகளை அடையாளம் காண உதவும் நோக்கம் கொண்டது\nமேலும் இது பல பணிகளாகப் பிரிக்கப்படலாம்.\n'100' என்ற அமைப்பானது வரம்பு இல்லை."
+
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
+msgstr "If/Then/Else தொகுதிகளுக்கான உள்தள்ளல் அளவை அமைக்கவும்.\n\nஇயல்புநிலை '4' ஆகும்.\n\nஇது வரைபடம் மற்றும் வரைபடக் காட்சிகளில் வெளியீடு எவ்வாறு வடிவமைக்கப்படுகிறது என்பதைப் பாதிக்கிறது."
+
+msgid "Settings Reset!"
+msgstr "அமைப்புகள் மீட்டமை!"
+
+msgid "Shutting down MapTasker..."
+msgstr "MapTasker ஐ நிறுத்துகிறது..."
+
+msgid "Start Time"
+msgstr "தொடக்க நேரம்"
+
+msgid "Starting AI Analysis..."
+msgstr "AI பகுப்பாய்வைத் தொடங்குகிறது..."
+
+msgid "State Type"
+msgstr "மாநில வகை"
+
+msgid "Submit"
+msgstr "சமர்ப்பிக்கவும்"
+
+msgid "Target"
+msgstr "இலக்கு"
+
+msgid "Task Name"
+msgstr "பணி பெயர்"
+
+msgid "Task Uploaded to Tasker"
+msgstr "பணி டாஸ்கரில் பதிவேற்றப்பட்டது"
+
+msgid "Task Uploaded to Tasker."
+msgstr "பணி டாஸ்கரில் பதிவேற்றப்பட்டது."
+
+msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "இந்த அமர்விற்கு மட்டுமே பணி வைக்கப்பட்டுள்ளது -- அதை நிரந்தரமாக வைத்திருக்க, 'தற்போதைய கோப்பில் சேமி' என்பதைப் பயன்படுத்தவும்."
+
+msgid "The 'Misc' view is running in the background.  Please stand by..."
+msgstr "பின்னணியில் 'Misc' காட்சி இயங்குகிறது.  தயவுசெய்து நிற்கவும்..."
+
+msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
+msgstr "'தேடல்' பொத்தான், டேட்டாவின் மேற்பகுதியில் தொடங்கி, தேடல் பெட்டியில் உள்ளிடப்பட்டுள்ள கேஸ்-சென்சிட்டிவ் சரத்தின் ஒவ்வொரு நிகழ்வையும் தேடி, தனிப்படுத்திக் காட்டும்.\n\nஇது தேடல் சரத்தின் முதல் 200 நிகழ்வுகளை மட்டுமே காண்பிக்கும்.\n\nடெக்ஸ்ட் வியூ பாக்ஸில் அந்த வரிக்குச் செல்ல வரி எண்ணைக் கிளிக் செய்யவும்.\n\n'அழி' பொத்தான் தேடல் முடிவுகளை அழிக்கும்.\n\n"
+
+msgid "The change will take effect the next time you open the view."
+msgstr "அடுத்த முறை நீங்கள் பார்வையைத் திறக்கும்போது மாற்றம் நடைமுறைக்கு வரும்."
+
+msgid "This Task has no actions yet."
+msgstr "இந்தப் பணிக்கு இதுவரை எந்தச் செயல்களும் இல்லை."
+
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "இது உங்கள் கணினியில் கிடைக்கும் அனைத்து எழுத்துருக்களின் பட்டியலாகும், முதலில் மோனோஸ்பேஸ் செய்யப்பட்டவை மற்றும் அவ்வாறு குறிக்கப்பட்டவை.\n\nதேர்ந்தெடுக்கப்பட்ட எழுத்துரு அனைத்து வெளியீட்டிலும் பயன்படுத்தப்படும்.\n\n'கூரியர்' அல்லது 'கூரியர் புதியது' சரியான இணைப்பான் சீரமைப்பை உறுதிப்படுத்த வரைபடங்களுக்கு மிகவும் பரிந்துரைக்கப்படுகிறது. ஒற்றை இடைவெளி இல்லாத எழுத்துரு வரைபடத்தின் இணைப்பிகளையோ அல்லது வெளியீட்டின் உள்தள்ளலையோ வரிசையில் வைத்திருக்காது."
+
+msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
+msgstr "இது டாஸ்கர் சர்வரில் இயங்கும் ஆண்ட்ராய்டு சாதனத்தில் இயங்கும் டாஸ்கரில் நேரடியாகச் சேமிக்கும்.\n\nIP முகவரி மற்றும் போர்ட் ஆகியவை Android சாதனத்தின் Tasker சர்வர் அமைப்புகளுடன் பொருந்த வேண்டும்.\n\nஆண்ட்ராய்டு சாதனத்தில் டாஸ்கருக்கு எழுதுவதற்கான அங்கீகாரம் இருமுறை கேட்கப்படும், மேலும் Task.மற்றும் அதன் சொந்தச் செயல்கள் சாதனத்தில் எங்கே சேமிக்கப்படுகிறது என்பதைத் தீர்மானிக்கும்."
+
+msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
+msgstr "இது உங்கள் Android சாதனத்தில் செயலில் உள்ள Tasker அமர்வில் நேரடியாக பணியைச் சேமிக்கும்.\n\nஇது வேலை செய்ய Tasker பதிப்பு 6.2 அல்லது அதற்கு மேற்பட்டது தேவை. Android சாதனம் ஒரே நெட்வொர்க்கில் இருக்க வேண்டும், மேலும் IP முகவரி மற்றும் போர்ட்டில் இருக்க வேண்டும்\nAndroid சாதனத்தின் Tasker சர்வர் அமைப்புகளுடன் பொருந்த வேண்டும்.\n\nஆண்ட்ராய்டு சாதனத்தில் டாஸ்கருக்கு எழுதுவதற்கான அங்கீகாரம் இருமுறை கேட்கப்படும், மேலும் செயலில் உள்ள டாஸ்கர் அமர்வில் பணி நேரடியாக ஏற்றப்படும்.\n\nTasker UI இல் புதிய Taskஐப் பார்க்க, Tasker இலிருந்து வெளியேறி மறுதொடக்கம் செய்ய வேண்டும்."
+
+msgid "This will save the Task directly to your current drive.\n\n"
+msgstr "இது உங்கள் தற்போதைய இயக்ககத்தில் நேரடியாக பணியைச் சேமிக்கும்.\n\n"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "இது /Tasker/profiles என்பதன் கீழ், ஆண்ட்ராய்டு சாதனத்தில் சுயவிவரத்தை ஒரு தனியான கோப்பாக எழுதும்.\n\nIP முகவரி மற்றும் போர்ட் ஆகியவை Android சாதனத்தின் Tasker சர்வர் அமைப்புகளுடன் பொருந்த வேண்டும்.\n\nஇதற்கு எந்த அனுமதியும் தேவையில்லை."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "இது உங்கள் Android சாதனத்தில் /Tasker/profiles என்பதன் கீழ் சுயவிவரத்தை ஒரு முழுமையான கோப்பாக எழுதும் -- இது Tasker இன் நேரடி உள்ளமைவில் இறக்குமதி செய்யாது.\n\n'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) ஆண்ட்ராய்டு சாதனத்தில் நிறுவப்பட்டு செயலில் இருக்க வேண்டும், சர்வர் இயங்கும் (README இன் நேரடி XML மீட்டெடுப்பு குறிப்புகளைப் பார்க்கவும்).\n\nAndroid சாதனம் ஒரே நெட்வொர்க்கில் இருக்க வேண்டும், மேலும் IP முகவரி மற்றும் போர்ட் அதன் Tasker சேவையக அமைப்புகளுடன் பொருந்த வேண்டும். இதற்கு எந்த அனுமதியும் தேவையில்லை."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "இது உங்கள் Android சாதனத்தில் /Tasker/profiles என்பதன் கீழ் சுயவிவரத்தை ஒரு முழுமையான கோப்பாக எழுதும் -- இது Tasker இன் நேரடி உள்ளமைவில் இறக்குமதி செய்யாது.\n\n'Http Server Example' Tasker Project ஆனது Android சாதனத்தில் நிறுவப்பட்டு செயலில் இருக்க வேண்டும், சர்வர் இயங்கும் (README இன் நேரடி XML மீட்டெடுப்பு குறிப்புகளைப் பார்க்கவும்).\n\nAndroid சாதனம் ஒரே நெட்வொர்க்கில் இருக்க வேண்டும், மேலும் IP முகவரி மற்றும் போர்ட் அதன் Tasker சேவையக அமைப்புகளுடன் பொருந்த வேண்டும். இதற்கு எந்த அனுமதியும் தேவையில்லை."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "இது ப்ராஜெக்ட் மற்றும் அதிலுள்ள அனைத்தையும் -- ஒவ்வொரு சுயவிவரம் மற்றும் பணி -- உங்கள் Android சாதனத்தில், /Tasker/projects-ன் கீழ் ஒரு முழுமையான கோப்பாக எழுதும் -- இது Tasker இன் நேரடி உள்ளமைவில் இறக்குமதி செய்யாது.\n\n'Http Server Example' Tasker Project ஆனது ஆண்ட்ராய்டு சாதனத்தில், சர்வர் இயங்கும் நிலையில் நிறுவப்பட்டு செயலில் இருக்க வேண்டும்.\n\nAndroid சாதனம் ஒரே நெட்வொர்க்கில் இருக்க வேண்டும், மேலும் IP முகவரி மற்றும் போர்ட் அதன் Tasker சேவையக அமைப்புகளுடன் பொருந்த வேண்டும். இதற்கு எந்த அனுமதியும் தேவையில்லை."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "இது ப்ராஜெக்ட் மற்றும் அதிலுள்ள அனைத்தையும், ஆண்ட்ராய்ட் சாதனத்தில் /Tasker/projects இன் கீழ் ஒரு முழுமையான கோப்பாக எழுதும்.\n\nIP முகவரி மற்றும் போர்ட் ஆகியவை Android சாதனத்தின் Tasker சர்வர் அமைப்புகளுடன் பொருந்த வேண்டும்.\n\nஇதற்கு எந்த அனுமதியும் தேவையில்லை."
+
+msgid "Toggle Wrap"
+msgstr "மடக்கு நிலைமாற்று"
+
+msgid "Unlink"
+msgstr "இணைப்பை நீக்கவும்"
+
+msgid "Value"
+msgstr "மதிப்பு"
+
+msgid "View cleared."
+msgstr "பார்வை அழிக்கப்பட்டது."
+
+msgid "Week-Day"
+msgstr "வார-நாள்"
+
+msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
+msgstr "இயக்கப்படும் போது, ​​'வெளியேறு' என்பதைக் கிளிக் செய்வதன் மூலம், பிரதான MapTasker சாளரம் மற்றும் அது திறக்கப்பட்ட எந்த வரைபடம்/வரைபட சாளரங்கள்/தாவல்களும் மூடப்படும்.\n\nமுடக்கப்பட்டிருக்கும் போது, ​​'Exit' MapTasker ஐ மூடும், ஆனால் அந்த சாளரங்கள்/தாவல்களைத் திறந்துவிடும்."
+
+msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
+msgstr "இயக்கப்பட்டால், ஒவ்வொரு வரைபடம்/வரைபடக் கோரிக்கையும் அதன் சொந்த புதிய சாளரம்/தாவலில் திறக்கும், எனவே ஒப்பிடுவதற்கு முந்தையவற்றை அதனுடன் சேர்த்து வைக்கலாம்.\n\nமுடக்கப்பட்டிருக்கும் போது, ​​கோரிக்கையானது அந்த காட்சியின் தற்போதைய சாளரம்/தாவலை மீண்டும் பயன்படுத்துகிறது, அதில் உள்ளதை மாற்றுகிறது.\n\nநீங்கள் ஒப்பிட விரும்பாதவரை அதை விட்டுவிடுங்கள்: நீங்கள் கிளிக் செய்யும் உடனடிக்கு பதிலாக பார்வையை உருவாக்கி முடித்தவுடன் திறக்கப்படும் என்பதால், புத்தம் புதிய சாளரம்/தாவலை உங்கள் உலாவி தடுக்கலாம்."
+
+msgid "hh:mm AM/PM or %variable"
+msgstr "hh:mm AM/PM அல்லது % மாறி"
+
+msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
+msgstr "உங்கள் உள்ளமைவின் 'வரைபடம்', 'வரைபடம்' அல்லது 'மரம்' காட்சியை நேரடியாக GUI க்குள் காட்டவும்.\n\nபார்வைகள் செயல்பட, XML ஐ முதலில் லோக்கல் டிரைவ் அல்லது ஆண்ட்ராய்டு சாதனத்திலிருந்து பெற வேண்டும்.\n\nXML ஏற்கனவே எடுக்கப்பட்டிருந்தால், அது பார்வைக்கு உள்ளீடாகப் பயன்படுத்தப்படும்.  'தெளிவு' பொத்தானை அழுத்தினால் பார்வை தரவு அழிக்கப்படும்.\n\nமிகப் பெரிய உள்ளமைவுகள் வரைபடங்கள் மற்றும் வரைபடங்களுக்கான நீட்டிக்கப்பட்ட இயக்க நேரங்களைச் சந்திக்கும்.  சிறந்த செயல்திறனுக்காக, வரைபடத்திற்கு ஒரு திட்டம் அல்லது சுயவிவரத்தைத் தேர்ந்தெடுக்கவும்.\n\nவிருப்பமாக, 'காட்சி வரம்பு' அமைப்பைப் பயன்படுத்தி செயலாக்கப்பட வேண்டிய தரவின் அளவைக் கட்டுப்படுத்தவும்.  பெரிய வரம்பு, பெரிய வெளியீட்டை வரைபடமாக்க அனுமதிக்கப்படும்.  அதிக வெளியீடு உருவாக்கப்படுவதால், செயலாக்க நேரம் அதிகமாகும்.\n\n\nவரைபடக் காட்சி பின்வரும் நடத்தையைக் கொண்டுள்ளது:\n\n - திட்டங்கள் மற்றும் சுயவிவரங்கள் மட்டுமே காட்டப்படும். ஒரே ஒரு பணி அல்லது காட்சியைக் கொண்ட எக்ஸ்எம்எல் காட்டப்படாது.\n\n - வரைபடத்தில் முழு இணைப்பையும் முன்னிலைப்படுத்த, கிடைமட்ட இணைப்பியைக் கிளிக் செய்யவும்.\n\n\nமரக் காட்சி பின்வரும் நடத்தையைக் கொண்டுள்ளது:\n\n- திட்டங்கள் மட்டுமே காட்டப்படும். ஒரே ஒரு சுயவிவரம் அல்லது பணி அல்லது காட்சியைக் கொண்ட எக்ஸ்எம்எல் காட்டப்படாது.\n\n- அனைத்து திட்டங்கள், சுயவிவரங்கள், பணிகள் மற்றும் காட்சிகள் ஒற்றை பெயர் அமைப்பைப் பொருட்படுத்தாமல் காட்டப்படும்.\n\n"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "நீங்கள் பதிவேற்றிய Tasker XML கோப்பின் அடிப்படையில் MapTasker உங்கள் Android Tasker உள்ளமைவைக் காட்டுகிறது (எ.கா. 'backup.xml'). காட்சி விருப்பப்படி அனைத்து திட்டங்கள், சுயவிவரங்கள், பணிகள் மற்றும் அவற்றின் செயல்கள், சுயவிவரம்/பணி நிலைமைகள் மற்றும் பிற சுயவிவரம்/பணி தொடர்பான தகவல்கள் ஆகியவற்றை உள்ளடக்கும்.\n\nXML கோப்பு ஏற்றப்பட்டதும், உங்கள் திட்டங்கள், சுயவிவரங்கள், பணிகள் மற்றும் காட்சிகளை விருப்பமாகத் திருத்தலாம்.\n\n* காட்சி விருப்பங்கள்:\n    நிலை 0: முதல் பணி செயலை மட்டும், பெயரிடப்படாத பணிகளுக்கு மட்டும் (அமைதியாக) காட்டவும்.\n    நிலை 1 = அறியப்படாத பணிகளுக்கு மட்டும் (இயல்புநிலை) அனைத்து பணி நடவடிக்கை விவரங்களையும் காண்பி.\n    நிலை 2 = ஒவ்வொரு பணியிலும் முழுப் பணியின் பெயரைக் காட்டவும்.\n    நிலை 3 = செயல் விவரங்களுடன் ஒவ்வொரு பணியிலும் முழு பணி நடவடிக்கை விவரங்களைக் காட்டவும்.\n    நிலை 4 = 3 பிளஸ் திட்டத்தின் உலகளாவிய மாறிகளின் காட்சி நிலை.\n\n    நிலை 5 = காட்சி நிலை 4 மற்றும் காட்சி விவாத விவரங்கள்.\n\n* எல்லாவற்றையும் காண்பி: நிபந்தனைகள், டாஸ்கர்நெட் தகவல், விருப்பத்தேர்வுகள், அழகான வெளியீடு, அடைவு மற்றும் உள்ளமைவு அவுட்லைன் ஆகியவற்றின் காட்சியை இயக்குகிறது.\n\n* காட்சி நிபந்தனைகள்: சுயவிவரம் மற்றும் பணி நிபந்தனைகளின் காட்சியை இயக்கவும்.\n\n* TaskerNet தகவலைக் காட்டு - இருந்தால், TaskerNet வெளியீட்டுத் தகவலைக் காட்டவும்.\n\n* டாஸ்கர் விருப்பங்களைக் காண்பி - டாஸ்கரின் சிஸ்டம் விருப்பங்களைக் காட்டவும்.\n\n* ட்விஸ்டியின் கீழ் பணி விவரங்களை மறை: ►க்குள் பணித் தகவலை மறைத்து காட்ட கிளிக் செய்யவும்.\n\n* தொடக்கத்தில் ஹைப்பர்லிங்க் கோப்பகத்தைக் காண்பி.\n\n* அழகான வெளியீட்டைக் காண்பி: அனைத்து வாதங்களுக்கும் புதிய வரிகள் மற்றும் உள்தள்ளலைச் சேர்ப்பதன் மூலம் வெளியீட்டை மனிதர்கள் படிக்கக்கூடியதாக மாற்றவும்.\n\n* ப்ராஜெக்ட்/சுயவிவரம்/பணி/காட்சியின் பெயர்கள் சாய்வு, தடிமனான, அடிக்கோடிட்டு மற்றும்/அல்லது அவற்றின் பெயர்களை முன்னிலைப்படுத்துவதற்கான விருப்பங்கள்.\n\n* பணி நடவடிக்கை வரம்பு: பணி குறிப்பிட்ட எண்ணிக்கையை விட அதிகமான செயல்களைக் கொண்டிருந்தால் எச்சரிக்கையைக் காண்பிக்கவும்.\n\n* என்றால்/பிறகு/வேறு பணி செயல்களுக்கான உள்தள்ளல் தொகை.\n\n* மொழி: வெளியீட்டிற்குப் பயன்படுத்த வேண்டிய மொழியைத் தேர்ந்தெடுக்கவும்.  இயல்புநிலை ஆங்கிலம்.\n\n* பயன்படுத்த எழுத்துரு: வெளியீட்டிற்கு பயன்படுத்தப்படும் மோனோஸ்பேஸ் எழுத்துருவை மாற்றவும்.\n\n* பார்வை வரம்பு: பார்வையை உருவாக்கும் போது பயன்படுத்தப்படும் செயலாக்க நேரத்தைக் கட்டுப்படுத்தவும்.\n\n* விருப்பங்களை மீட்டமைக்கவும்: அனைத்தையும் அழித்துவிட்டு புதிதாகத் தொடங்கவும்.\n\n* உள்ளூர் XML கோப்பைப் பெறுங்கள்: உங்கள் உள்ளூர் இயக்ககத்தில் இருந்து காப்புப் பிரதி/ஏற்றுமதி செய்யப்பட்ட XML கோப்பைப் பெறவும்.\n\n* அமைப்புகளைச் சேமி - பின்னர் பயன்படுத்த இந்த அமைப்புகளைச் சேமிக்கவும்.\n\n* அமைப்புகளை மீட்டமை - முன்பு சேமித்த அமர்விலிருந்து அமைப்புகளை மீட்டமைக்கவும்.\n\n* காட்சி காட்சிகள்: உங்கள் திட்டப்பணிகள், சுயவிவரங்கள், பணிகள் மற்றும் காட்சிகளின் உள்ளமைவு வரைபடம், வரைபடம் அல்லது மரக் காட்சியை GUI இல் நேரடியாகக் காண்பிக்கவும்.\n\n* Android சாதனத்திலிருந்து XML ஐப் பெறுங்கள்: Android சாதனத்திலிருந்து காப்புப் பிரதி/ஏற்றுமதி செய்யப்பட்ட XML கோப்பைப் பெறவும்.  உங்கள் Android சாதனத்திற்கான IP முகவரி மற்றும் போர்ட் எண் மற்றும் சாதனத்தில் உள்ள கோப்பு இருப்பிடம் ஆகியவை உங்களிடம் கேட்கப்படும்.\n\n* குறிப்பிட்ட பெயர் தாவல்: காட்ட, ஒரு குறிப்பிட்ட பெயரிடப்பட்ட உருப்படியை உள்ளிடவும்...\n   - திட்டத்தின் பெயர்: காண்பிக்க ஒரு குறிப்பிட்ட திட்டத்தை உள்ளிடவும்.\n   - சுயவிவரப் பெயர்: காண்பிக்க ஒரு குறிப்பிட்ட சுயவிவரத்தை உள்ளிடவும்.\n   - பணியின் பெயர்: காண்பிக்க ஒரு குறிப்பிட்ட பணியை உள்ளிடவும்.\n   - காட்சி பெயர்: காட்ட ஒரு குறிப்பிட்ட காட்சியை உள்ளிடவும்.  அதன் சொந்த திட்டத்தின் தலைப்பு மற்றும்\n                 காட்சியின் கூறுகள் (மேலும் அந்த உறுப்புகள் செயல்படுத்தும் பணிகள்) காட்டப்படும்;\n                 திட்டத்தின் சுயவிவரங்கள் மற்றும் அதன் மற்ற காட்சிகள் இல்லை.\n   (இந்த நான்கு பிரத்தியேகமானவை: ஒன்றை மட்டும் உள்ளிடவும்)\n\n   பல்வேறு சேமிப்பு விருப்பங்களுடன் நேரடியாக GUI இல் திட்டங்கள், சுயவிவரங்கள் மற்றும் பணிகளைச் சேர்த்து திருத்தவும்.\n\n* நிறங்கள் தாவல்: காட்சியின் பல்வேறு கூறுகளுக்கு வண்ணங்களைத் தேர்ந்தெடுக்கவும்.\n              (எ.கா. திட்டங்கள், சுயவிவரங்கள், பணிகள் போன்றவற்றுக்கான வண்ணம்).\n\n* பகுப்பாய்வு தாவலை: ஒரு திட்டம், சுயவிவரம், பணி அல்லது காட்சிக்கான பகுப்பாய்வை Ai மாதிரிக்கு எதிராக இயக்கவும்.\n\n* பிழைத்திருத்த தாவல்: இயக்க நேர அமைப்புகள் விருப்பத்தைக் காட்டி, பிழைத்திருத்த பயன்முறையை இயக்கவும்.\n\n* வெளியேறு: நிரலிலிருந்து வெளியேறு (வெளியேறு).\n\nகுறிப்புகள்:\n\n- முழு மாற்ற பதிவு வரலாற்றையும் https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md இல் காண்க\n\n- தோற்றப் பயன்முறையை மாற்றுவது வெளியீட்டிற்குப் பயன்படுத்தப்படும் வண்ணங்களை அவற்றின் இயல்புநிலை மதிப்புகளுக்கு மாற்றும்.\n\n"
+
+msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+msgstr "'பார்வை வரம்பு' என்பது பார்வையை உருவாக்கும் போது பயன்படுத்தப்படும் செயலாக்க நேரத்தின் அளவைக் கட்டுப்படுத்துவதற்கான ஒரு வழிமுறையாகும்.\n\n- எண்கள் உருவாக்கப்பட வேண்டிய வெளியீட்டு வரிகளின் ஒப்பீட்டு அளவைக் குறிக்கின்றன.\n\n- பெரிய வரம்பு, பெரிய வெளியீட்டை வரைபடமாக்க அனுமதிக்கப்படும்.  அதிக வெளியீடு உருவாக்கப்படுவதால், செயலாக்க நேரம் அதிகமாகும்.\n\n- மிகப் பெரிய உள்ளமைவுகள் மிகப் பெரிய வெளியீட்டு வரைபடங்களை உருவாக்கும் மற்றும் அதிக செயலாக்க நேரத்தை ஏற்படுத்தும்.  பழைய சாதனங்களில், இதற்கு 30 வினாடிகள் அல்லது அதற்கு மேல் ஆகலாம்.\n\n- வரம்பை அமைப்பதன் மூலம், நீண்ட காலங்களை அனுமதிக்காமல் உள்ளமைவை மேப்பிங் செய்யும் போது பயன்படுத்தப்படும் செயலாக்க நேரத்தை நீங்கள் கட்டுப்படுத்தலாம்.\n\n- வரைபடத்தைக் கணக்கிடும் போது வரம்பு எட்டப்பட்டால், வெளியீடு அங்கேயே நின்றுவிடும்.\n\n- உங்கள் பயன்பாட்டுக்கு எந்த அமைப்பு சிறந்தது என்பதைப் பார்க்க, இந்த அமைப்பைப் பயன்படுத்திப் பரிசோதனை செய்யலாம்.\n\n- ஒரு திட்டம், சுயவிவரம் அல்லது பணியைத் தேர்ந்தெடுப்பது செயலாக்க நேரத்தைக் கட்டுப்படுத்துவதற்கான மற்றொரு வழியாகும்.\n\n"
+
+msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
+msgstr "உள்ளூர் லாமா மாதிரி அல்லது சர்வர் அடிப்படையிலான Open AI, Claude அல்லது DeepSeek மாதிரிகளைப் பயன்படுத்தி, உங்கள் சுயவிவரத்தில் Ai பகுப்பாய்வை இயக்க பகுப்பாய்வு தாவல் பயன்படுத்தப்படுகிறது.\n\nஉங்கள் சுயவிவரத்திற்கு எதிராக AI ஐ இயக்க பின்வரும் படிகள் தேவை.\n\n1- சர்வர் அடிப்படையிலான AI ஐப் பயன்படுத்தினால், வழங்குநரிடமிருந்து (எ.கா. OpenAI) சரியான API விசை உங்களிடம் இருக்க வேண்டும்.  உங்கள் விசை(களை) உள்ளிட 'Show/Edit API Key(s)' பட்டனைப் பயன்படுத்தலாம்.\n\n2- இயல்புநிலை ப்ராம்ட்: 'செயல்திறன் மற்றும் வாசிப்புத்திறனில் மேம்பாடுகளைப் பரிந்துரைக்கவும்: (உங்கள் திட்டம்/சுயவிவரம்/பணி)', மேலும் தானாகவே முன்: 'டாஸ்கரில் பின்வரும் (திட்டம்/சுயவிவரம்/பணி) கொடுக்கப்பட்டுள்ளது, '.  அறிவிப்பை மாற்றினால், நீங்கள் 'மேம்பாடுகளை பரிந்துரை...' பகுதியை மட்டுமே மாற்றுகிறீர்கள்.\n\n3- நீங்கள் பயன்படுத்த விரும்பும் மாதிரியைத் தேர்ந்தெடுக்கவும்.\n\n   o தேர்ந்தெடுக்கப்பட்ட மாதிரி எந்த AI உடன் பகுப்பாய்வு செய்யப்பட வேண்டும் என்பதை தீர்மானிக்கும்.\n\n4- 'ரன் பகுப்பாய்வு' பொத்தானைக் கிளிக் செய்யவும்.  தேவையான எல்லா தரவையும் உள்ளிடும்போது அது பச்சை நிறமாக மாறும்.\n\n   நீங்கள் இன்னும் மாதிரி, ப்ராம்ட் அல்லது ஒற்றைத் திட்டம், சுயவிவரம் அல்லது பணி அல்லது சரியான API விசையைத் தேர்ந்தெடுக்கவில்லை என்றால், முதலில் அவ்வாறு செய்யும்படி நீங்கள் கேட்கப்படுவீர்கள்.\n\n   o செயல்முறை சிறிது நேரம் ஆகலாம் மற்றும் பின்னணியில் இயங்கும்.  முடிவுகள் ஒரு தனி சாளரத்தில் தோன்றும்.\n\n   o உங்கள் கணினியில் இன்னும் ஏற்றப்படாத உள்ளூர் மாதிரிகள் பகுப்பாய்வு தொடங்கியவுடன் பின்னணியில் ஏற்றப்படும்.\n\nஉங்கள் நியமிக்கப்பட்ட api-விசைகள் (ஏதேனும் இருந்தால்), மாதிரி, தேர்ந்தெடுக்கப்பட்ட திட்டம், சுயவிவரம் அல்லது பணி மற்றும் Ai ப்ராம்ட் அனைத்தும் அமர்வுகள் முழுவதும் சேமிக்கப்படும்.\n\nபகுப்பாய்வின் முடிவுகளை ஒரு புதிய சாளரத்தில் காண்பிக்க, 'மீண்டும் இயக்கு' அம்சம் அட்டையின் கீழ் பயன்படுத்தப்படும்.\n\n"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- If you want to use the 'List XML Files' option, then you must also import the following profile into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "உங்கள் Android சாதனத்திலிருந்து நேரடியாக Tasker XML கோப்பைப் பெற, பின்வரும் படிகள் தேவை.\n\n1- இந்தச் சாதனமும் Android சாதனமும் ஒரே பெயரிடப்பட்ட நெட்வொர்க்கில் இருக்க வேண்டும்.\n\n2- Tasker Project 'HTTP Server Example' அல்லது ஒரே மாதிரியான செயல்பாடு Android சாதனத்தில் நிறுவப்பட்டு செயலில் இருக்க வேண்டும் (சர்வர் இயங்க வேண்டும்):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- நீங்கள் 'பட்டியல் XML கோப்புகள்' விருப்பத்தைப் பயன்படுத்த விரும்பினால், பின்வரும் சுயவிவரத்தையும் Android சாதனத்தில் இறக்குமதி செய்து, இறக்குமதி செய்யப்பட்ட சுயவிவரம் 'MapTasker List' இயக்கப்பட்டுள்ளதா என்பதை உறுதிப்படுத்தவும்:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nIP முகவரி, உங்கள் Android சாதனத்திற்கான போர்ட் எண் மற்றும் Android சாதனத்தில் கோப்பு இருப்பிடம் ஆகியவை உங்களிடம் கேட்கப்படும்.  இயல்புநிலை மதிப்புகள் வழங்கப்படுகின்றன, எங்கே...\n\n'192.168.0.210' என்பது இயல்புநிலை IP முகவரி,\n\n'1821' என்பது உங்கள் Android சாதனத்தில் இயங்கும் Tasker HTTP சர்வர் எடுத்துக்காட்டுக்கான இயல்புநிலை போர்ட் எண்ணாகும்.\n\n'/Tasker/configs/user/backup.xml' என்பது இயல்புநிலை கோப்பு இடம்.  கோப்பின் இருப்பிடம் உங்களுக்குத் தெரியாமல், ஏற்கனவே உங்கள் IP முகவரி மற்றும் போர்ட்டை உள்ளிட்டிருந்தால், உங்கள் Android சாதனத்தில் உள்ள XML கோப்புகளின் பட்டியலைப் பெற, 'List XML Files' பொத்தானைத் தேர்ந்தெடுக்கலாம்.\n\nபயன்பாட்டு குறிப்புகள்:\n\nஉங்கள் Android சாதனத்தில் மேலே உள்ள URL இலிருந்து 'HTTP Server Example' திட்டத்தை நிறுவுவதன் மூலம் IP முகவரி மற்றும் போர்ட்டைப் பெறலாம். Android அறிவிப்பைப் பெற, 'GD HTTP தகவலைப் புதுப்பி' என்ற பணியை இயக்கவும்:\n\nHTTP சர்வர் தகவல்\nசேவையகத் தகவல் புதுப்பிக்கப்பட்டது {\"device name\":\"http://192.168.0.49:1821\"}\n\n- XML கோப்பைப் பெற, பொத்தானைக் கிளிக் செய்யவும்\n\n 'Android சாதனத்திலிருந்து XML ஐப் பெறுங்கள்'\n\nஇந்த பொத்தானுக்கு கீழே உள்ள உள்ளீட்டு புலங்களில் உள்ள இயல்புநிலை மதிப்புகளை மாற்றவும், பின்னர் 'எக்ஸ்எம்எல் விவரங்களை அமைக்க இங்கே கிளிக் செய்யவும்' அல்லது 'எக்ஸ்எம்எல் கோப்புகளை பட்டியலிடு' பொத்தானைக் கிளிக் செய்யவும்.\n\n- ஏதேனும் ஒரு பொத்தானை அழுத்தினால் அது கிடைக்கிறதா என்று பார்க்க Android சாதனத்தை பிங் செய்யும்.  சாதனத்தை அணுக முடியாவிட்டால் 10 வினாடிகளுக்குப் பிறகு பிங் காலாவதியாகும்.  ஐபி முகவரி சரியாக உள்ளதா என்பதை உறுதிப்படுத்தவும்.\n\nஇந்தப் பெறுதல் செயல்முறையிலிருந்து பின்வாங்க, 'உள்ளீட்டை ரத்துசெய்' பொத்தானைக் கிளிக் செய்யவும்.\n\n"

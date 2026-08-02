@@ -31,6 +31,7 @@ from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.sysconst import (
+    ALL_OBJECTS_MESSAGE,
     ANALYSIS_FILE,
     ARGUMENT_NAMES,
     CHANGELOG_FILE,
@@ -162,7 +163,7 @@ def display_model_pulldown(gui_arg: any, *args: dict, **kwargs) -> None:  # noqa
         gui_instance.ai_model_option = ui.select(
             options=display_models,
             value=current_model,
-            label="AI Model",
+            label=translate_string("AI Model"),
             on_change=gui_instance.event_handlers.ai_model_selected_event,
         ).classes("w-64")
 
@@ -483,11 +484,15 @@ def display_selected_object_labels(self: "MyGui") -> None:
     profile_to_display = to_display["Profile"]
     task_to_display = to_display["Task"]
     scene_to_display = to_display["Scene"]
-    for label in SINGLE_ITEM_LABELS:
-        value = to_display[label]
-        if value is not None and value != "None":
-            self.currently_selected_label.set_text(f"Current {label} selection: {value}")
-            break
+    # "Current <item> selection: ..." -- for whichever item is actually selected, and blank
+    # (as it starts out) when none is.  Both halves used to go wrong: the test was against
+    # the literal "None", so a translated "Keiner"/"Aucun" read as a real selection, and
+    # with nothing selected the loop simply fell through and left the previous item's name
+    # on screen -- still naming a Task moments after it was set back to None.
+    selected_label = next((label for label in SINGLE_ITEM_LABELS if not is_no_selection(to_display[label])), "")
+    self.currently_selected_label.set_text(
+        f"Current {selected_label} selection: {to_display[selected_label]}" if selected_label else "",
+    )
 
     # 2. Render the "Analyze" Tab panel context natively
     with self.tab_analyze:
@@ -545,7 +550,7 @@ def display_selected_object_labels(self: "MyGui") -> None:
     with self.tab_specific_name:
         # The following displays the selected Project/Profile/Task in the 'Specific Name' tab,
         # below the pulldown lists.  It is in addition to the 'Current (object) selection' above the pulldowns.
-        all_objects_text = translate_string("Display all Projects, Profiles, and Tasks.")
+        all_objects_text = translate_string(ALL_OBJECTS_MESSAGE)
         name_to_display = self.specific_name_msg if getattr(self, "specific_name_msg", None) else all_objects_text
 
         if hasattr(self, "specific_name_msg_label") and self.specific_name_msg_label:
@@ -692,8 +697,13 @@ def clear_android_buttons(self: "MyGui") -> None:
     # without this it would attach to whatever the default slot is during this event callback
     # instead of staying under "File Operations".
     with self.android_button_row:
+        # display_backup_button() hands its text straight to ui.button, so the translation
+        # has to happen here.  The button's original construction in guiwins.py does call
+        # translate_string; without the same call the rebuild silently reverted it to
+        # English -- and this runs during startup, so a non-English GUI came up with one
+        # English button sitting among translated ones.
         self.get_backup_button = self.display_backup_button(
-            "Get XML from Android Device",
+            translate_string("Get XML from Android Device"),
             "#246FB6",
             "#6563ff",
             self.event_handlers.get_xml_from_android_event,
@@ -817,6 +827,20 @@ def select_pulldown_option(optionmenu: ui.select, name: str) -> None:
 SINGLE_ITEM_LABELS = tuple(label for _, _, label in SINGLE_ITEM_SELECTORS)
 
 
+def is_no_selection(name: str) -> bool:
+    """True if `name` is the 'Specific Name' pulldowns' "nothing selected" entry rather
+    than the name of a real Tasker object.
+
+    That entry reaches callers in three forms, sometimes within the same session: empty
+    (how it is stored), the literal "None" (reset_single_item_pulldowns assigns that
+    string directly), and translate_string("None") -- "Keine", "Aucun" -- which is what
+    the option lists themselves are built with.  Code that compared against only one of
+    the three let the others through as if the user had picked an object actually named
+    "None", producing "Display only Task 'None'."
+    """
+    return not name or name in ("None", translate_string("None"))
+
+
 def clear_single_item_view_names(self: object) -> None:
     """Clear every single_xxx_name on the view, leaving PrimeItems alone.
 
@@ -876,9 +900,12 @@ def set_tasker_object_names(self: object) -> None:
     }
     defaults["display_only"] = f"{display_only_text} "
 
-    # Whichever single item is set wins -- they are mutually exclusive.
+    # Whichever single item is set wins -- they are mutually exclusive.  A stored "None"
+    # (from an older settings file, say) is not a selection, so it must not win here and
+    # get announced as 'Display only Task "None"'.
     for label in SINGLE_ITEM_LABELS:
-        if name := getattr(self, f"single_{label.lower()}_name", ""):
+        name = getattr(self, f"single_{label.lower()}_name", "")
+        if not is_no_selection(name):
             _set_single_item_name(self, label, name, defaults)
             return
 
