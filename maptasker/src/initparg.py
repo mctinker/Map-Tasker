@@ -45,6 +45,9 @@ def initialize_runtime_arguments() -> dict:
         "italicize": False,  # Italicise Project/Profile?Task/Scene names
         "language": "English",  # Language to use for the GUI
         "list_unnamed_items": False,  # List unnamed items
+        # Directory the last 'Get Local XML File' file came from.  Empty = start the file
+        # picker at the user's home directory.
+        "local_xml_directory": "",
         "view_limit": 10000,  # Map view limit
         "preferences": False,  # Display Tasker's preferences
         "pretty": False,  # Pretty up the output (takes many more output lines)

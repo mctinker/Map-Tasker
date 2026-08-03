@@ -126,6 +126,7 @@ ARGUMENT_NAMES = {
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
     "list_unnamed_items": "List Unnamed Items",
+    "local_xml_directory": "Default Directory For 'Get Local XML File'",
     "view_limit": "View Limit",
     "preferences": "Display Tasker Preferences",
     "pretty": "Display Prettier Output",

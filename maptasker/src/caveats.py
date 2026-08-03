@@ -31,13 +31,13 @@ def display_caveats() -> None:
     cav8 = "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
     cav9 = "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
     cav10 = "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
-    cav11 = """
-- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n
-   MacOS: 'brew install ffmpeg'\n
-   Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n
-   Windows via Winget: 'winget install ffmpeg'\n
-   Refer to
-"""
+    # cav11 = """
+    # - YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n
+    #   MacOS: 'brew install ffmpeg'\n
+    #   Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n
+    #   Windows via Winget: 'winget install ffmpeg'\n
+    #   Refer to
+    # """
 
     caveats = [
         format_html(
@@ -71,8 +71,8 @@ def display_caveats() -> None:
         PrimeItems.program_arguments["display_detail_level"] >= 4
     ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
         caveats.append(translate_string(cav10))
-    if PrimeItems.program_arguments["taskernet"]:
-        caveats.append(f"{cav11} https://www.ffmpeg.org/download.html\n")
+    # if PrimeItems.program_arguments["taskernet"]:
+    # caveats.append(f"{cav11} https://www.ffmpeg.org/download.html\n")
 
     # Start the output
     PrimeItems.output_lines.add_line_to_output(0, "<hr>", FormatLine.dont_format_line)

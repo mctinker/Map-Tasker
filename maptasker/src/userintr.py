@@ -6,6 +6,7 @@ import sys
 import time
 import webbrowser
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from nicegui import Event, context, run, ui
@@ -43,6 +44,7 @@ from maptasker.src.guiutils import (
     reload_gui,
     reset_single_item_pulldowns,
     select_pulldown_option,
+    selected_tab_name,
     set_ai_key,
     set_tasker_object_names,
     update_analysis_button_color,
@@ -127,6 +129,45 @@ if TYPE_CHECKING:
 
 
 all_objects = ALL_OBJECTS_MESSAGE
+
+
+def local_xml_start_directory(gui: "MyGui") -> str:
+    """The directory the 'Get Local XML File' picker should open in.
+
+    That is the directory the user last took an XML file from, so pulling in another file
+    from the same place doesn't mean walking down to it again every time.  Falls back to
+    the home directory when nothing has been picked yet, or when the remembered directory
+    is no longer there (renamed, deleted, or on a drive that isn't mounted any more) --
+    Local_File_Picker would otherwise come up empty on a path it can't list.
+
+        :param gui: the GUI object holding the remembered directory
+        :return: directory to start the file picker in ('~' if there is nothing usable)
+    """
+    saved_directory = getattr(gui, "local_xml_directory", "") or PrimeItems.program_arguments.get(
+        "local_xml_directory",
+        "",
+    )
+    if saved_directory and Path(saved_directory).expanduser().is_dir():
+        return saved_directory
+    return "~"
+
+
+def remember_local_xml_directory(gui: "MyGui", file_path: str) -> None:
+    """Make the directory an XML file was just picked from the default for the next pick.
+
+    Recorded in both places so it survives however the settings get written: the GUI's
+    'Save Settings' (and reload_gui) builds what it saves out of the view's attributes,
+    while a map run saves PrimeItems.program_arguments (see bildhtml).  'local_xml_directory'
+    is in ARGUMENT_NAMES, so it is carried across sessions in the settings file.
+
+        :param gui: the GUI object to record the directory on
+        :param file_path: the XML file the user just picked
+    """
+    if not file_path:
+        return
+    directory = str(Path(file_path).expanduser().parent)
+    gui.local_xml_directory = directory
+    PrimeItems.program_arguments["local_xml_directory"] = directory
 
 
 def _single_item_selection_message(gui: "MyGui", item_type: str, name_entered: str) -> str:
@@ -305,6 +346,9 @@ class MyGui:
         self.specific_name_msg = ""
         self.current_file_display_message = True
         self.list_unnamed_items = False
+        # Directory the 'Get Local XML File' picker opens in.  Empty = the home directory,
+        # until the user picks a file from somewhere else (see remember_local_xml_directory).
+        self.local_xml_directory = ""
 
         # Display current Items setting.
         with contextlib.suppress(
@@ -415,7 +459,7 @@ class MyGui:
                 display_current_file(self, none_translated)
             else:
                 self.display_message_box(
-                    translate_string("Click 'Get Local XML' to try a different XML file."),
+                    translate_string("Invalid XML!  Click 'Get Local XML File' to try a different XML file."),
                     "Red",
                 )
                 display_current_file(self, none_translated)
@@ -784,6 +828,9 @@ class MyGui:
             "tab_to_use",
             "guiview",
             "fetched_backup_from_android",
+            # Only consulted when the 'Get Local XML File' picker is opened -- there is no
+            # widget of its own to restore it into.
+            "local_xml_directory",
         }
         # Define what to do for each argument restored.
         set_to = translate_string("set to")
@@ -1710,7 +1757,9 @@ class MapTaskerEventHandlers:
         # Map view
         if view_type == "map":
             if PrimeItems.xml_root is None:
-                gui.display_message_box(translate_string("No XML data loaded! Please select a valid XML file first."), "Orange")
+                gui.display_message_box(
+                    translate_string("No XML data loaded! Please select a valid XML file first."), "Orange"
+                )
                 return
 
             ui.notify(f"Loading {window_title}.  Please stand by ...", type="info", timeout=1000)
@@ -1795,7 +1844,9 @@ class MapTaskerEventHandlers:
                     _open_popout_window("/popout/diagram", getattr(gui, "open_view_in_new_window", False))
                     gui.display_message_box(translate_string("Diagram View opened in a new browser window."), "Green")
                 else:
-                    gui.display_message_box(translate_string("No XML data loaded! Please select a valid XML file first."), "Orange")
+                    gui.display_message_box(
+                        translate_string("No XML data loaded! Please select a valid XML file first."), "Orange"
+                    )
 
             else:
                 gui.display_message_box(
@@ -1996,12 +2047,20 @@ class MapTaskerEventHandlers:
 
         # 3. Mount text input fields and control action items into the view hierarchy
         with gui.android_container:
-            ui.label(translate_string("Configure Android Connection:")).classes("text-sm font-bold text-blue-500 mb-1 self-start")
+            ui.label(translate_string("Configure Android Connection:")).classes(
+                "text-sm font-bold text-blue-500 mb-1 self-start"
+            )
 
             # Form Fields
-            gui.ip_entry = ui.input(label=translate_string("1-TCP/IP Address:"), value=android_ipaddr).classes("w-full q-py-none")
-            gui.port_entry = ui.input(label=translate_string("2-Port Number:"), value=android_port).classes("w-full q-py-none")
-            gui.file_entry = ui.input(label=translate_string("3-File Location:"), value=android_file).classes("w-full q-py-none")
+            gui.ip_entry = ui.input(label=translate_string("1-TCP/IP Address:"), value=android_ipaddr).classes(
+                "w-full q-py-none"
+            )
+            gui.port_entry = ui.input(label=translate_string("2-Port Number:"), value=android_port).classes(
+                "w-full q-py-none"
+            )
+            gui.file_entry = ui.input(label=translate_string("3-File Location:"), value=android_file).classes(
+                "w-full q-py-none"
+            )
 
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
@@ -2035,7 +2094,9 @@ class MapTaskerEventHandlers:
             # Master Set XML Backup execution button
             gui.get_backup_button = (
                 ui
-                .button(translate_string("Click Here to Set XML Details"), on_click=gui.event_handlers.fetch_backup_event)
+                .button(
+                    translate_string("Click Here to Set XML Details"), on_click=gui.event_handlers.fetch_backup_event
+                )
                 .style("background-color: #D62CFF; color: white;")
                 .classes("w-full mt-3 font-bold text-xs py-2")
             )
@@ -2542,7 +2603,9 @@ class MapTaskerEventHandlers:
             if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
-                ui.notify(translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning")
+                ui.notify(
+                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning"
+                )
                 return
 
         new_project = projedit.create_new_project("")
@@ -2951,7 +3014,9 @@ class MapTaskerEventHandlers:
             if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
-                ui.notify(translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning")
+                ui.notify(
+                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning"
+                )
                 return
 
         new_profile = profedit.create_new_profile("")
@@ -3207,7 +3272,9 @@ class MapTaskerEventHandlers:
         _finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
         ui.notify(
-            translate_string("Profile kept for this session only -- use 'Save To Current File' to keep it permanently."),
+            translate_string(
+                "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+            ),
             type="positive",
         )
         dialog.close()
@@ -3425,7 +3492,9 @@ class MapTaskerEventHandlers:
             if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
-                ui.notify(translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning")
+                ui.notify(
+                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning"
+                )
                 return
 
         new_task = taskedit.create_new_task("", "100")
@@ -3707,9 +3776,13 @@ class MapTaskerEventHandlers:
         gui = self.gui
         gui.content_container.clear()
 
-        # Open the file picker starting at the home directory ('~')
-        # The 'await' pauses this specific function until the user finishes picking a file
-        result = await Local_File_Picker("~", multiple=False)
+        # Open the file picker in the directory the last XML file was taken from, falling
+        # back to the home directory ('~').
+        # The 'await' pauses this specific function until the user finishes picking a file.
+        # The ceiling stays at home no matter where we start: Local_File_Picker's default
+        # upper_limit is whatever directory it opens in, which would leave the user unable
+        # to navigate up out of a remembered subdirectory.
+        result = await Local_File_Picker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
 
         # 3. Check if the user selected a file or canceled the dialog
         if result:
@@ -3728,6 +3801,9 @@ class MapTaskerEventHandlers:
                 if isinstance(AppState.selected_file_path, list)
                 else AppState.selected_file_path
             )
+
+            # Open the picker here next time.
+            remember_local_xml_directory(gui, PrimeItems.file_to_get)
 
             clear_tasker_data()
             clear_single_item_view_names(gui)
@@ -3858,7 +3934,9 @@ class MapTaskerEventHandlers:
 
             # Actions Row
             with ui.row().classes("w-full justify-end gap-2"):
-                ui.button(translate_string("Cancel"), on_click=lambda: dialog.submit(None)).classes("bg-gray-400 text-white")
+                ui.button(translate_string("Cancel"), on_click=lambda: dialog.submit(None)).classes(
+                    "bg-gray-400 text-white"
+                )
                 ui.button(translate_string("Submit"), on_click=lambda: dialog.submit(prompt_input.value)).classes(
                     "bg-blue-600 text-white",
                 )
@@ -4100,12 +4178,34 @@ class MapTaskerEventHandlers:
         def rebuild_layout() -> None:
             client = context.client
 
+            # Carry the tab the user is actually looking at across the rebuild.
+            #
+            # initialize_screen() re-selects self.tab_to_use, but nothing updates that when
+            # a tab is clicked -- it only ever holds what the settings file restored, or
+            # "Analyze" from the last analysis run (see analyze_event).  So a language
+            # switch used to land on whatever tab was saved rather than the one on screen.
+            # Read it off the live ui.tabs here, while the old layout is still standing.
+            selected_tab = selected_tab_name(the_view)
+            if selected_tab is not None:
+                the_view.tab_to_use = selected_tab
+
             # Remove previous top-level layout elements (header/drawer/footer). NiceGUI
             # moves those to be direct children of the q-layout (siblings of the page
             # container), so they must be torn down explicitly rather than via
             # `client.layout.clear()`, which would also destroy the page container itself.
+            #
+            # Skip anything already deleted.  Dialogs are siblings of the page container
+            # too -- create_popup_window() and friends only close() them, so every dialog
+            # ever opened is still sitting in this list -- and NiceGUI plants a hidden
+            # "canary" element for each one in whatever slot was active when the dialog
+            # was built (see Dialog.__init__), with a weakref.finalize that deletes the
+            # dialog once that canary is collected.  MapTasker's dialogs are built from
+            # drawer/content callbacks, so deleting a drawer below drops the canary's last
+            # reference and CPython runs the finalizer right there, mid-loop, taking those
+            # dialogs out of the list this loop is walking a snapshot of.  Deleting one a
+            # second time is what raised "ValueError: list.remove(x): x not in list".
             for child in list(client.layout.default_slot.children):
-                if child is not client.page_container:
+                if child is not client.page_container and not child.is_deleted:
                     child.delete()
 
             # Clear the actual page content (this is where the new elements get built).
@@ -4162,9 +4262,20 @@ class MapTaskerEventHandlers:
                 # Handle upgrade buttons checks
                 check_new_version(the_view)
 
-                # Update the pull-down menus option items lists
-                if "list_tasker_objects" in globals():
-                    list_tasker_objects(the_view)
+                # Update the pull-down menus option items lists.
+                #
+                # refresh_tasker_object_pulldowns, not list_tasker_objects: the latter
+                # gates on load_xml(), which with nothing loaded yet goes off and opens
+                # the file picker, and reports the user's not having picked one as a red
+                # "Cancel button pressed." toast -- on a language switch, where no file
+                # was ever asked for.  (It also re-fetches from the Android device
+                # whenever android_ipaddr is set, which is just as unwanted here.)  The
+                # pulldowns are all this needs, and refreshing them is exactly what the
+                # split-out tail does: it rebuilds the lists from whatever is already in
+                # PrimeItems.tasker_root_elements, filling in translated "No projects
+                # found" placeholders when that is empty -- which is the right answer for
+                # a relabel-everything pass anyway.
+                refresh_tasker_object_pulldowns(the_view)
 
                 # Map menu attributes to their target values for a clean batch update
                 menu_updates = []
@@ -4196,15 +4307,13 @@ class MapTaskerEventHandlers:
                 # Redo the contextual text labels values
                 display_selected_object_labels(the_view)
 
-                # Update text labels inside tabs directly by changing properties
-                if hasattr(the_view, "tab_specific_name") and the_view.tab_specific_name:
-                    the_view.tab_specific_name.text = translate_string("Specific Name")
-                if hasattr(the_view, "tab_colors") and the_view.tab_colors:
-                    the_view.tab_colors.text = translate_string("Colors")
-                if hasattr(the_view, "tab_analyze") and the_view.tab_analyze:
-                    the_view.tab_analyze.text = translate_string("Analyze")
-                if hasattr(the_view, "tab_debug") and the_view.tab_debug:
-                    the_view.tab_debug.text = translate_string("Debug")
+                # No tab relabelling here: initialize_screen() above rebuilt the tabs from
+                # scratch, translating each label as it went, so there is nothing left to
+                # restate.  What used to stand here assigned translate_string(...) to each
+                # tab's ".text", which a ui.tab does not have (its caption is ".label", see
+                # NiceGUI's LabelElement) -- so it set a stray attribute on the element and
+                # relabelled nothing.  It only ever looked like it worked because the real
+                # translation had already happened a few lines earlier.
 
                 # Forces the tab panel component container to process text and redraw updates
                 ui.update()
@@ -4517,7 +4626,9 @@ class MapTaskerEventHandlers:
                 for scroll_area in scroll_areas:
                     scroll_area.style(f"background-color: {color_value} !important;")
                 if not scroll_areas:
-                    ui.notify(translate_string("The change will take effect the next time you open the view."), color="green")
+                    ui.notify(
+                        translate_string("The change will take effect the next time you open the view."), color="green"
+                    )
 
             else:
                 css_class = TYPES_OF_COLOR_NAMES.get(color_selected_item)
@@ -4538,7 +4649,9 @@ class MapTaskerEventHandlers:
                             """,
                         )
                 if not (css_class and scroll_areas):
-                    ui.notify(translate_string("The change will take effect the next time you open the view."), color="green")
+                    ui.notify(
+                        translate_string("The change will take effect the next time you open the view."), color="green"
+                    )
 
             # Update the visual status label text and text color instantly
             if hasattr(the_view, "color_change") and the_view.color_change:
@@ -4951,7 +5064,9 @@ class MapTaskerEventHandlers:
         # 2. Check if detail level is too low to support twisties
         if mygui.twisty and int(mygui.display_detail_level) < all_parameters_threshold:
             mygui.display_message_box(
-                translate_string("This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!"),
+                translate_string(
+                    "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!"
+                ),
                 "Red",
             )
 

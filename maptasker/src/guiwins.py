@@ -13,6 +13,7 @@ from nicegui import app, context, ui
 
 from maptasker.src import profedit, projedit, taskedit
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src.format import css_color
 from maptasker.src.guiutil2 import get_font_choices, sort_languages_with_priority
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
@@ -1993,6 +1994,12 @@ HTML_REPLACEMENT_MAP = {
     '<h2><span class="normtab"></span>Directory</h2>': '<h6><span class="normtab"></span>Directory</h6>',
 }
 
+# How long to wait for the browser to finish a view search (see search_event).  NiceGUI's
+# own default is 1 second, which is a reasonable wait for a one-line snippet but far too
+# short for the search crawl: it walks every text node of the rendered view, and a Map or
+# Diagram of a large Tasker configuration is tens of thousands of lines.
+SEARCH_JAVASCRIPT_TIMEOUT = 60.0
+
 
 def _escape_html_text(text: str) -> str:
     """Escape plain text for safe embedding in HTML (the Diagram file has no markup of its own)."""
@@ -2278,6 +2285,26 @@ class NiceGuiTextView:
             # estimate in sync with this so scrolling doesn't jump around as chunks pop in.
             line_height_style = " line-height: 1.2;" if is_diagram else ""
 
+            # The Map view renders MapTasker.html, every color in which was picked against the
+            # configured output background -- the same one frontmtr writes onto that file's
+            # <body>. The app's own page background is set from the dark-mode toggle instead,
+            # so the two disagreed: open the file and the output sits on Lavender, show the
+            # same output here and it sat on white. Anything the output colors near-matches
+            # (a TaskerNet description's white headings, say) then disappears. Use the
+            # configured background here too, so the view shows what the file shows.
+            # "!important" is needed, not decorative: the light-mode overrides injected by
+            # inject_shared_head_styles() force "background-color: #ffffff !important" onto
+            # every .q-scrollarea to keep macOS's system appearance from bleeding through, and
+            # a plain inline style loses to that. An important declaration in the style
+            # attribute is the one thing that outranks an important rule in a stylesheet, and
+            # it applies to this one scroll area rather than weakening the override for the
+            # drawers, cards and tab panels that rely on it.
+            background_style = ""
+            if self.title.startswith("Map"):
+                background = css_color(PrimeItems.colors_to_use.get("background_color", ""))
+                if background:
+                    background_style = f" background-color: {background} !important;"
+
             self.scroll_area = (
                 ui
                 .scroll_area()
@@ -2294,7 +2321,7 @@ class NiceGuiTextView:
                     # master_gui.font -- see the note there on why that can be stale.
                     f"width: 100%; max-width: 100%; "
                     f"font-family: '{PrimeItems.program_arguments['font']}', monospace;"
-                    f"{line_height_style}",
+                    f"{line_height_style}{background_style}",
                 )
             )
 
@@ -2563,7 +2590,9 @@ class NiceGuiTextView:
         # Upgraded JavaScript engine targeting Quasar content nodes and penetrating Shadow Roots
         js_code = f"""
             const outerContainer = document.getElementById("c{self.scroll_area.id}");
-            if (!outerContainer) return [];
+            // Shape every return the same way: the Python side reads .get() off this, so
+            // handing back a bare list here would swap the timeout for an AttributeError.
+            if (!outerContainer) return {{ results: [], totalMatches: 0, truncated: false }};
 
             const container = outerContainer.querySelector('.q-scrollarea__content') || outerContainer;
 
@@ -2708,8 +2737,25 @@ class NiceGuiTextView:
 
         async def execute_search() -> None:
             with self.scroll_area:
-                # Await the execution of our DOM analyzer script block
-                search_result = await client.run_javascript(js_code)
+                # Await the execution of our DOM analyzer script block.
+                #
+                # Two things this has to survive.  First, the crawl takes as long as it
+                # takes -- hence SEARCH_JAVASCRIPT_TIMEOUT rather than NiceGUI's 1-second
+                # default, which a Map view of any size blows straight through.  Second,
+                # this coroutine is fired off with create_task() and never awaited, so an
+                # exception escaping it isn't merely unreported: asyncio prints a bare
+                # "Task exception was never retrieved" traceback to the console and the
+                # user is left with a search that silently never answers.  Say what
+                # happened in the window instead.
+                try:
+                    search_result = await client.run_javascript(js_code, timeout=SEARCH_JAVASCRIPT_TIMEOUT)
+                except TimeoutError:
+                    logger.debug(f"guiwins search timed out after {SEARCH_JAVASCRIPT_TIMEOUT} seconds: '{query}'")
+                    ui.notify(
+                        translate_string("The search did not finish. The view may be too large, or the browser is busy."),
+                        type="negative",
+                    )
+                    return
                 found_items = search_result.get("results", [])
                 total_matches = search_result.get("totalMatches", len(found_items))
                 was_truncated = search_result.get("truncated", False)
@@ -3624,11 +3670,18 @@ def initialize_screen(self: MyGui) -> None:
         with ui.row().classes("gap-4 mb-6") as self.gui_view_toolbar:
             self.current_file = ui.label(translate_string("No file loaded")).classes("text-gray-500 italic")
 
+        # A tab's *name* -- ui.tab's first argument -- is the value ui.tabs carries, what
+        # tab_to_use holds, and what TAB_NAMES and the settings file record, so it has to
+        # stay English.  Only the label the user reads is translated.  Handing ui.tab the
+        # translated string on its own (which makes it both name and label) meant the tab
+        # names changed with the language: after a switch, the set_value(self.tab_to_use)
+        # at the end of this function matched no tab at all and left every tab deselected,
+        # and switching back to English made a stale tab_to_use match again and jump there.
         with ui.tabs().classes("w-full") as self.gui_main_tabs_container:
-            self.tab_specific_name = ui.tab(translate_string("Specific Name"), icon="filter_list")
-            self.tab_colors = ui.tab(translate_string("Colors"), icon="palette")
-            self.tab_analyze = ui.tab(translate_string("Analyze"), icon="analytics")
-            self.tab_debug = ui.tab(translate_string("Debug"), icon="bug_report")
+            self.tab_specific_name = ui.tab("Specific Name", label=translate_string("Specific Name"), icon="filter_list")
+            self.tab_colors = ui.tab("Colors", label=translate_string("Colors"), icon="palette")
+            self.tab_analyze = ui.tab("Analyze", label=translate_string("Analyze"), icon="analytics")
+            self.tab_debug = ui.tab("Debug", label=translate_string("Debug"), icon="bug_report")
 
         with ui.tab_panels(self.gui_main_tabs_container, value=self.tab_specific_name).classes(
             "w-full border rounded shadow-inner p-4 mt-1 gap-y-0 m-0 p-0 leading-none",

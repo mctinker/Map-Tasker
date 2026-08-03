@@ -1267,6 +1267,31 @@ def create_changelog() -> None:
             changelog_file.write(f"{change}\n")
 
 
+def selected_tab_name(gui: object) -> str | None:
+    """The name of the tab currently showing in the main tab bar, or None if there is none.
+
+    That name is what tab_to_use records and what initialize_screen hands back to
+    ui.tabs.set_value() to reselect the tab, so it is deliberately the tab's English
+    *name* rather than its translated label (see the note where the tabs are built in
+    guiwins.initialize_screen).
+
+    ui.tabs reports its value two different ways -- the name, as a plain string, once the
+    user has clicked a tab, but the ui.tab object itself while the value is still the one
+    initialize_screen set programmatically. Reading '.label' off it, as this used to,
+    therefore worked only until the first click and raised AttributeError on a string
+    after it.
+
+        :param gui: the GUI object holding the main tab bar
+        :return: the selected tab's name, or None if the tab bar isn't built or nothing is
+            selected
+    """
+    tabs = getattr(gui, "gui_main_tabs_container", None)
+    selected = getattr(tabs, "value", None)
+    if selected is None:
+        return None
+    return getattr(selected, "props", {}).get("name", selected)
+
+
 # Reload the program
 def reload_gui(self: object) -> None:
     """
@@ -1286,7 +1311,7 @@ def reload_gui(self: object) -> None:
         None
     """
     # Save the last-used tab
-    self.tab_to_use = self.gui_main_tabs_container.value.label if hasattr(self, "gui_main_tabs_container") else None
+    self.tab_to_use = selected_tab_name(self)
 
     # Save the settings
     temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}

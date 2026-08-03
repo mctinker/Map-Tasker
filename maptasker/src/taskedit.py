@@ -1671,9 +1671,9 @@ def default_save_path(task_name: str) -> str:
     """Default standalone-export path: {current runtime directory}/{sanitized name}.tsk.xml.
 
     Uses os.getcwd() (the directory the app is running from) rather than the
-    loaded backup file's directory -- the backup is typically picked from the
-    user's home directory (see Local_File_Picker("~", ...) in userintr.py), which
-    isn't necessarily where a Task should land.
+    loaded backup file's directory -- the backup is picked from wherever the user
+    keeps their XML (see getxml_event/local_xml_start_directory in userintr.py),
+    which isn't necessarily where a Task should land.
     """
     return os.path.join(os.getcwd(), f"{sanitize_filename(task_name)}.tsk.xml")
 

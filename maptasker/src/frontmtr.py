@@ -9,7 +9,7 @@ import datetime
 
 from maptasker.src.addcss import add_css
 from maptasker.src.debug import display_debug_info
-from maptasker.src.format import format_html
+from maptasker.src.format import css_color, format_html
 from maptasker.src.prefers import get_preferences
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, FormatLine
@@ -42,10 +42,14 @@ def output_the_heading() -> None:
         else ""
     )
 
-    # Set up highlight background color if needed
+    # Set up highlight background color if needed.  Run the color through css_color: a color
+    # setting can be bare hex ("222623"), which a browser throws out along with the whole
+    # declaration -- see the note on the body's background color below.
     if PrimeItems.program_arguments["highlight"]:
         background_color_html = (
-            "<style>\nmark { \nbackground-color: " + PrimeItems.colors_to_use["highlight_color"] + ";\n}\n</style>\n"
+            "<style>\nmark { \nbackground-color: "
+            + css_color(PrimeItems.colors_to_use["highlight_color"])
+            + ";\n}\n</style>\n"
         )
     else:
         background_color_html = ""
@@ -59,8 +63,11 @@ def output_the_heading() -> None:
     # Format the output heading
     heading_color = "heading_color"
     PrimeItems.heading = (
+        # css_color(): the dark mode's background is configured as bare hex ("222623"), which
+        # is not a color as far as CSS is concerned -- the browser discards the declaration
+        # and the file opens on white instead of the dark background it was colored for.
         f'<!doctype html>\n<html lang=”en”>\n<head>\n<meta charset="UTF-8">{background_color_html}<title>MapTasker</title>\n<body'
-        f' style="background-color:{PrimeItems.colors_to_use["background_color"]}">\n'
+        f' style="background-color:{css_color(PrimeItems.colors_to_use["background_color"])}">\n'
         + format_html(
             heading_color,
             "",

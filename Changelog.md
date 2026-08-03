@@ -10,11 +10,15 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed:
+- Changed: Set as current directory if a different diretory is selected from the 'Get Locxal XML File'.
 
 ### Fixed
 
-- Fixed: Various GUI text translations are missing.
+- Fixed: Numerous GUI text translations are missing.
+- Fixed: <section> and <span> html tags are not recognized in TaskerNet descriptions.
+- Fixed: Cleaned up some formatting issues of TaskerNet descriptions.
+- Fixed: An intermittent program error can occur when switching languages.
+- FIxed: Switching language causes the wrong or no tab to be displayed.
 
 ### Known Issue
 
@@ -25,7 +29,6 @@ For each PID listed in the output from the above terminal command, issue the fol
 kill -9 pid_number
 ...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
 - Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
-
 
 
 ## Older History Logs
