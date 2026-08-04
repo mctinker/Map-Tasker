@@ -9,37 +9,39 @@
 
 import os
 
-from maptasker.src.config import GUI
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.runcli import process_cli
-from maptasker.src.rungui import process_gui
 from maptasker.src.sysconst import DEBUG_PROGRAM
 
 
 # Get the program arguments (e.g. python mapit.py -x)
 def get_program_arguments() -> None:
-    # Are we using the GUI?
     """
-    Process program arguments from GUI or CLI.
+    Process program arguments, from the GUI or the command line.
     Args:
-        GUI: Whether GUI is being used
         DEBUG_PROGRAM: Whether program is in debug mode
     Returns:
         None: No return value
-    - Parse GUI for program arguments and colors if GUI is being used
-    - Parse command line if no GUI
-    - Override debug argument to True if in debug mode"""
-    if GUI:
-        PrimeItems.program_arguments["gui"] = True
-
+    - Hand off to process_cli, which reads the runtime options and, when the GUI applies,
+      runs it (see runcli.process_cli for how that choice is made)
+    - Blank the single Project/Profile/Task names if more than one was restored
+    - Override debug argument to True if in debug mode
+    - Fall back to backup.xml if the file named in the arguments does not exist"""
     # Process the command line runtime options.  This will call the GUI if the GUI is being used,
     # and will call the CLI processing if not.  This is where we will get all of our runtime arguments
     # from the user.
+    #
+    # process_cli() owns that choice entirely, and starts the GUI itself when it applies --
+    # it is the branch that can also honour -v and capture what the GUI returns.  There used
+    # to be a second, unconditional 'if GUI: process_gui(True)' right here, so a GUI session
+    # was started twice per run: process_cli's call blocked until the window was closed, and
+    # this one immediately opened another.  It also discarded process_gui's return value,
+    # unlike process_cli, which assigns it back into program_arguments and colors_to_use.
+    #
+    # Setting program_arguments["gui"] here was pointless for the same reason: process_cli
+    # begins by replacing program_arguments wholesale via initialize_runtime_arguments(),
+    # so anything written before that call is discarded.  config.GUI is read there instead.
     process_cli()
-
-    # Do GUI processing if GUI is being used
-    if GUI:
-        process_gui(True)
 
     # Make sure we don't have too much
     if (

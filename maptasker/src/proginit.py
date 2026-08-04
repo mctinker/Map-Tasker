@@ -74,7 +74,7 @@ atexit.register(write_counter)
 
 
 # Prompt user to select the backup xml file to use.
-def prompt_for_backup_file(dir_path: str) -> None:
+def prompt_for_backup_file(_dir_path: str) -> None:
     """
     Prompt user to select a backup file
     Args:
@@ -88,12 +88,6 @@ def prompt_for_backup_file(dir_path: str) -> None:
         - Set an error code if running with GUI
     """
     file_error = False
-
-    # Opens the dialog starting at the current directory
-    # You can also pass 'upper_limit' to restrict how high up the directory tree a user can go
-    # PrimeItems.file_to_get = Local_File_Picker("~", multiple=False)
-    # if PrimeItems.file_to_get:
-    #     ui.notify(f"Selected file: {PrimeItems.file_to_get}")
 
     if PrimeItems.file_to_get is None:
         file_error = True

@@ -43,6 +43,7 @@ from maptasker.src.guiutils import (
     refresh_tasker_object_pulldowns,
     reload_gui,
     reset_single_item_pulldowns,
+    reset_single_item_selection,
     select_pulldown_option,
     selected_tab_name,
     set_ai_key,
@@ -522,8 +523,7 @@ class MyGui:
         """
         # REMOVED the "with self.gui_right_drawer:" breakout block to preserve row placement order
         self.get_backup_button = (
-            ui
-            .button(the_text, on_click=routine)
+            ui.button(the_text, on_click=routine)
             .style(f"background-color: {color1}; border-color: {color2}; border-width: 2px; color: white;")
             .classes("mt-0 ml-0 font-bold w-full")
         )
@@ -1989,6 +1989,11 @@ class MapTaskerEventHandlers:
         if hasattr(textview, "search_input"):
             textview.search_input.set_value("")
 
+        # The results this view is holding on to are only replayable while their highlight
+        # spans are still in the page, and they are about to stop being.
+        if hasattr(textview, "invalidate_search_cache"):
+            textview.invalidate_search_cache()
+
         if hasattr(textview, "scroll_area"):
             # Mirrors the "clearPreviousHighlights" routine inside NiceGuiTextView.search_event:
             # unwrap every '.search-highlight' span back into a plain text node, descending into
@@ -2009,7 +2014,26 @@ class MapTaskerEventHandlers:
                         if (child.shadowRoot) clearHighlights(child.shadowRoot);
                     }});
                 }}
-                clearHighlights(container);
+
+                // Prefer unwrapping the spans search_event recorded, which puts each match's
+                // own text node back where the span was. The generic sweep below cannot do
+                // that -- it substitutes freshly created text nodes -- and search_event's
+                // cached index (see guiwins.py) refers to the nodes themselves, so letting
+                // the sweep loose on them means throwing that index away and making the next
+                // search crawl the whole view again from scratch.
+                const cache = container.__mtSearchIndex;
+                if (cache && cache.highlights) {{
+                    for (const span of cache.highlights) {{
+                        if (span.parentNode && span.firstChild) {{
+                            span.parentNode.replaceChild(span.firstChild, span);
+                        }}
+                    }}
+                    cache.highlights = [];
+                }}
+                if (container.querySelector('.search-highlight')) {{
+                    clearHighlights(container);
+                    container.__mtSearchIndex = null;  // no longer describes these text nodes
+                }}
 
                 // Also turn off any Diagram-view connector highlighting left by clicking a connector.
                 container.querySelectorAll('.connector-highlight').forEach(el => {{
@@ -2065,15 +2089,13 @@ class MapTaskerEventHandlers:
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
                 gui.list_files_button = (
-                    ui
-                    .button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
+                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
                     .style("background-color: #D62CFF; color: white;")
                     .classes("flex-grow text-xs")
                 )
 
                 gui.list_files_query_button = (
-                    ui
-                    .button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                    ui.button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
                     .style("background-color: #246FB6; color: #ffd941;")
                     .classes("w-10 min-w-[40px] text-xs")
                 )
@@ -2091,10 +2113,16 @@ class MapTaskerEventHandlers:
                     ),
                 ).classes("text-xs").props("flat color=negative dense")
 
-            # Master Set XML Backup execution button
-            gui.get_backup_button = (
-                ui
-                .button(
+            # Master Set XML Backup execution button.
+            #
+            # Deliberately NOT self.get_backup_button: that name belongs to the "Get XML from
+            # Android Device" button in the drawer above (see
+            # _create_file_and_message_buttons_section in guiwins.py), which stays on screen the
+            # whole time this panel is open. Reusing the name here overwrote the reference to it,
+            # so clear_android_buttons() then deleted this button while believing it had deleted
+            # that one -- leaving the original in place and adding a second one every time.
+            gui.set_xml_details_button = (
+                ui.button(
                     translate_string("Click Here to Set XML Details"), on_click=gui.event_handlers.fetch_backup_event
                 )
                 .style("background-color: #D62CFF; color: white;")
@@ -5122,8 +5150,7 @@ class MapTaskerEventHandlers:
             if toolbar:
                 with toolbar:
                     gui.font_out_label = (
-                        ui
-                        .label(label_text)
+                        ui.label(label_text)
                         .style(f"font-family: {font_name}; font-size: 14px;")
                         .classes("text-gray-500 italic ml-4")
                     )
@@ -5235,6 +5262,15 @@ class MapTaskerEventHandlers:
             gui.android_ipaddr = android_ipaddr
             gui.android_port = android_port
             gui.android_file = android_file
+
+        # A different backup is now the source, so the Project/Profile/Task/Scene picked
+        # from the previous one is no longer a meaningful filter.  file_selected_event
+        # gets this via update_tasker_object_menus(reset_single_names=True); this branch --
+        # the user typing the file location instead of picking it from 'List XML Files' --
+        # has no equivalent, and without it a Project selected before the fetch stayed
+        # selected, and stayed the filter, against the newly fetched file.
+        clear_tasker_data()
+        reset_single_item_selection(gui)
 
         # Trigger final visual confirmation UI updates
         if hasattr(self, "_display_backup_summary"):

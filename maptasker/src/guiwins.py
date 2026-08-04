@@ -133,9 +133,7 @@ def _render_task_name_field(
         label=translate_string("Pick a Task"),
         with_input=True,
         on_change=fill_in_picked_task,
-    ).classes(
-        "flex-1",
-    ).props("dense")
+    ).classes("flex-1").props("dense")
 
 
 def build_action_condition_dialog(
@@ -326,7 +324,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
         # every entry there, which a ui.label doesn't have) so Rename can retitle
         # the still-open dialog: see rename_task_event.
         title_label = ui.label(f"{translate_string('Edit Task')}: {task_name}").classes(
-            "text-xl font-bold text-blue-600"
+            "text-xl font-bold text-blue-600",
         )
 
         with ui.row().classes("w-full gap-4"):
@@ -335,7 +333,9 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             # rejects a name another Task already has. Rename writes the new
             # name back into this field so Ok/Save, which still read it, don't
             # apply the pre-rename name over the top.
-            field_refs["name"] = ui.input(translate_string("Task Name"), value=task_name).props("readonly").classes("flex-1")
+            field_refs["name"] = (
+                ui.input(translate_string("Task Name"), value=task_name).props("readonly").classes("flex-1")
+            )
             field_refs["priority"] = ui.input(
                 translate_string("Priority"),
                 value=edited_task.task_element.findtext("pri", ""),
@@ -345,7 +345,9 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
         with ui.row().classes("w-full gap-4"):
             search_input = ui.input(translate_string("Search actions")).classes("flex-1")
             category_select = ui.select(["All", *category_names], value="All").classes("w-48")
-        position_select = ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
+        position_select = (
+            ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
+        )
 
         picker_container = ui.column().classes("w-full")
         ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
@@ -549,9 +551,11 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             ).classes("bg-red-500 text-white")
             with delete_task_button:
                 ui.tooltip(
-                    translate_string("Deletes this Task and every reference to it: it is removed from the Tasks of every "
+                    translate_string(
+                        "Deletes this Task and every reference to it: it is removed from the Tasks of every "
                         "Project that owns it, and from any Profile that runs it as its Entry/Exit Task. "
-                        "The Profiles themselves are kept."),
+                        "The Profiles themselves are kept.",
+                    ),
                 )
             rename_task_button = ui.button(
                 translate_string("Rename"),
@@ -559,9 +563,11 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             ).classes("bg-blue-600")
             with rename_task_button:
                 ui.tooltip(
-                    translate_string("Prompts for a new name and applies just that to the loaded backup, right now. "
+                    translate_string(
+                        "Prompts for a new name and applies just that to the loaded backup, right now. "
                         "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
-                        "open so you can carry on editing."),
+                        "open so you can carry on editing.",
+                    ),
                 )
             ui.button(
                 translate_string("Ok"),
@@ -577,14 +583,16 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             ).props("outline")
             with task_to_current_file:
                 ui.tooltip(
-                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- "
+                    translate_string(
+                        "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- "
                         "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
                         "It is written to a new, timestamped copy of the file currently loaded: "
                         "backup.xml becomes backup_20260728_143005.xml.\n"
                         "The file you loaded is never written to, so it is left exactly as it was.\n"
                         "The app then switches to the new copy, which becomes the current file for any further "
                         "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device."),
+                        "This writes to this computer only -- nothing is sent to your Android device.",
+                    ),
                 ).style("white-space: pre-line")
             task_to_android = ui.button(
                 translate_string("Save To Android"),
@@ -596,13 +604,15 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             ).props("outline")
             with task_to_android:
                 ui.tooltip(
-                    translate_string("This will save the Task directly into the active Tasker session on your Android device.\n\n"
+                    translate_string(
+                        "This will save the Task directly into the active Tasker session on your Android device.\n\n"
                         "Tasker version 6.2 or greater is required for this to work."
                         "The Android device must be on the same network, and the IP Address and Port\n"
                         "must match the Android device's Tasker server settings.\n\n"
                         "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task "
                         "will be loaded directly into the active Tasker session.\n\n"
-                        "You must exit and restart Tasker to see the new Task in the Tasker UI."),
+                        "You must exit and restart Tasker to see the new Task in the Tasker UI.",
+                    ),
                 ).style("white-space: pre-line")
             task_save = ui.button(
                 translate_string("Export Task"),
@@ -656,10 +666,12 @@ def build_save_to_android_dialog(
             ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
-                    translate_string("This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\n"
+                    translate_string(
+                        "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                         "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task."
-                        "and its own actions will determine where it is saved on the device."),
+                        "and its own actions will determine where it is saved on the device.",
+                    ),
                 ).style("white-space: pre-line")
 
     android_dialog.open()
@@ -845,7 +857,9 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         )
                         if not condition.args:
                             ui.label(
-                                translate_string("No editable arguments (code not mapped, or this condition has none)."),
+                                translate_string(
+                                    "No editable arguments (code not mapped, or this condition has none).",
+                                ),
                             ).classes("text-xs text-gray-500 italic")
                         for arg in condition.args:
                             key = profedit.condition_arg_key(condition.cond_index, arg.arg_id)
@@ -1053,7 +1067,10 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in event_rows
                 }
                 event_type_picker = (
-                    ui.select(event_options, label=translate_string("Event Type"), with_input=True).classes("flex-1").props("dense")
+                    ui
+                    .select(event_options, label=translate_string("Event Type"), with_input=True)
+                    .classes("flex-1")
+                    .props("dense")
                 )
                 _mark_unsupported_options(
                     event_type_picker,
@@ -1067,7 +1084,10 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in state_rows
                 }
                 state_type_picker = (
-                    ui.select(state_options, label=translate_string("State Type"), with_input=True).classes("flex-1").props("dense")
+                    ui
+                    .select(state_options, label=translate_string("State Type"), with_input=True)
+                    .classes("flex-1")
+                    .props("dense")
                 )
                 _mark_unsupported_options(
                     state_type_picker,
@@ -1088,7 +1108,9 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         self.event_handlers.add_condition_to_profile_event(edited_profile, type_picker.value)
                     render_conditions()
 
-                ui.button(translate_string("Add Condition"), on_click=add_condition_clicked).props("flat color=blue dense")
+                ui.button(translate_string("Add Condition"), on_click=add_condition_clicked).props(
+                    "flat color=blue dense",
+                )
 
     render_conditions()
 
@@ -1116,7 +1138,9 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
 
         # Read-only -- renamed only through the Rename button's prompt; see
         # build_edit_task_dialog's identical Name field for why.
-        field_refs["name"] = ui.input(translate_string("Profile Name"), value=profile_name).props("readonly").classes("w-full")
+        field_refs["name"] = (
+            ui.input(translate_string("Profile Name"), value=profile_name).props("readonly").classes("w-full")
+        )
 
         _build_profile_editor_body(self, edited_profile, field_refs)
 
@@ -1133,8 +1157,10 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             ).classes("bg-red-500 text-white")
             with delete_profile_button:
                 ui.tooltip(
-                    translate_string("Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by "
-                        "the Project, not by the Profile, and the same Task can be used by other Profiles."),
+                    translate_string(
+                        "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by "
+                        "the Project, not by the Profile, and the same Task can be used by other Profiles.",
+                    ),
                 )
             rename_profile_button = ui.button(
                 translate_string("Rename"),
@@ -1142,9 +1168,11 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             ).classes("bg-blue-600")
             with rename_profile_button:
                 ui.tooltip(
-                    translate_string("Prompts for a new name and applies just that to the loaded backup, right now. "
+                    translate_string(
+                        "Prompts for a new name and applies just that to the loaded backup, right now. "
                         "Everything else in this dialog stays pending until Ok/Save, and the dialog stays "
-                        "open so you can carry on editing."),
+                        "open so you can carry on editing.",
+                    ),
                 )
             ui.button(
                 translate_string("Ok"),
@@ -1160,14 +1188,16 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             ).props("outline")
             with profile_to_current_file:
                 ui.tooltip(
-                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- "
+                    translate_string(
+                        "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- "
                         "with this dialog's edits applied, the same ones 'Ok' would keep.\n"
                         "It is written to a new, timestamped copy of the file currently loaded: "
                         "backup.xml becomes backup_20260728_143005.xml.\n"
                         "The file you loaded is never written to, so it is left exactly as it was.\n"
                         "The app then switches to the new copy, which becomes the current file for any further "
                         "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device."),
+                        "This writes to this computer only -- nothing is sent to your Android device.",
+                    ),
                 ).style("white-space: pre-line")
             profile_to_android = ui.button(
                 translate_string("Save To Android"),
@@ -1179,12 +1209,14 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             ).props("outline")
             with profile_to_android:
                 ui.tooltip(
-                    translate_string("This will write the Profile as a standalone file onto your Android device, "
+                    translate_string(
+                        "This will write the Profile as a standalone file onto your Android device, "
                         "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
                         "The 'Http Server Example' Tasker Project must be installed and active on the Android "
                         "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
                         "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings. No authorization prompt is needed for this."),
+                        "match its Tasker server settings. No authorization prompt is needed for this.",
+                    ),
                 ).style("white-space: pre-line")
             ui.button(
                 translate_string("Export Profile"),
@@ -1231,10 +1263,12 @@ def build_save_profile_to_android_dialog(
             ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
-                    translate_string("This will write the Profile as a standalone file onto the Android device, "
+                    translate_string(
+                        "This will write the Profile as a standalone file onto the Android device, "
                         "under /Tasker/profiles.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                        "No authorization prompt is needed for this."),
+                        "No authorization prompt is needed for this.",
+                    ),
                 ).style("white-space: pre-line")
 
     android_dialog.open()
@@ -1285,7 +1319,9 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
 
         # Read-only -- renamed only through the Rename button's prompt; see
         # build_edit_task_dialog's identical Name field for why.
-        field_refs["name"] = ui.input(translate_string("Project Name"), value=project_name).props("readonly").classes("w-full")
+        field_refs["name"] = (
+            ui.input(translate_string("Project Name"), value=project_name).props("readonly").classes("w-full")
+        )
 
         field_refs["project_save_path"] = ui.input(
             translate_string("Save as"),
@@ -1304,8 +1340,10 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
             ).classes("bg-blue-600")
             with rename_project_button:
                 ui.tooltip(
-                    translate_string("Prompts for a new name and applies it to the loaded backup, right now. "
-                        "The Project Name field above is read-only -- this is the only way to change it."),
+                    translate_string(
+                        "Prompts for a new name and applies it to the loaded backup, right now. "
+                        "The Project Name field above is read-only -- this is the only way to change it.",
+                    ),
                 )
             project_to_current_file = ui.button(
                 translate_string("Save To Current File"),
@@ -1317,14 +1355,16 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
             ).props("outline")
             with project_to_current_file:
                 ui.tooltip(
-                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- "
+                    translate_string(
+                        "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- "
                         "including every edit made anywhere in this session.\n"
                         "It is written to a new, timestamped copy of the file currently loaded: "
                         "backup.xml becomes backup_20260728_143005.xml.\n"
                         "The file you loaded is never written to, so it is left exactly as it was.\n"
                         "The app then switches to the new copy, which becomes the current file for any further "
                         "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device."),
+                        "This writes to this computer only -- nothing is sent to your Android device.",
+                    ),
                 ).style("white-space: pre-line")
             project_to_android = ui.button(
                 translate_string("Save To Android"),
@@ -1335,13 +1375,15 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
             ).props("outline")
             with project_to_android:
                 ui.tooltip(
-                    translate_string("This will write the Project, and everything in it -- every Profile and Task -- as a "
+                    translate_string(
+                        "This will write the Project, and everything in it -- every Profile and Task -- as a "
                         "standalone file onto your Android device, under /Tasker/projects -- it does not import "
                         "it into Tasker's live configuration.\n\n"
                         "The 'Http Server Example' Tasker Project must be installed and active on the Android "
                         "device, with the server running.\n\n"
                         "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings. No authorization prompt is needed for this."),
+                        "match its Tasker server settings. No authorization prompt is needed for this.",
+                    ),
                 ).style("white-space: pre-line")
             save_single_project = ui.button(
                 translate_string("Export Project"),
@@ -1349,7 +1391,9 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
             ).classes("bg-blue-600")
             with save_single_project:
                 ui.tooltip(
-                    translate_string("Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."),
+                    translate_string(
+                        "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file.",
+                    ),
                 )
 
     dialog.open()
@@ -1391,10 +1435,12 @@ def build_save_project_to_android_dialog(
             ).classes("bg-blue-600")
             with save_to_android:
                 ui.tooltip(
-                    translate_string("This will write the Project, and everything in it, as a standalone file onto the "
+                    translate_string(
+                        "This will write the Project, and everything in it, as a standalone file onto the "
                         "Android device, under /Tasker/projects.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                        "No authorization prompt is needed for this."),
+                        "No authorization prompt is needed for this.",
+                    ),
                 ).style("white-space: pre-line")
 
     android_dialog.open()
@@ -1649,7 +1695,9 @@ def build_add_profile_dialog(
                 "text-sm text-gray-500 italic",
             )
 
-        field_refs["name"] = ui.input(translate_string("Profile Name"), value="", on_change=sync_save_path).classes("w-full")
+        field_refs["name"] = ui.input(translate_string("Profile Name"), value="", on_change=sync_save_path).classes(
+            "w-full",
+        )
 
         _build_profile_editor_body(self, edited_profile, field_refs)
 
@@ -1674,14 +1722,16 @@ def build_add_profile_dialog(
             ).props("outline")
             with new_profile_to_current_file:
                 ui.tooltip(
-                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
+                    translate_string(
+                        "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
                         "with the new Profile added to its Project, the same way 'Ok' adds it.\n"
                         "It is written to a new, timestamped copy of the file currently loaded: "
                         "backup.xml becomes backup_20260728_143005.xml.\n"
                         "The file you loaded is never written to, so it is left exactly as it was.\n"
                         "The app then switches to the new copy, which becomes the current file for any further "
                         "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device."),
+                        "This writes to this computer only -- nothing is sent to your Android device.",
+                    ),
                 ).style("white-space: pre-line")
             profile_to_android = ui.button(
                 translate_string("Save To Android"),
@@ -1693,12 +1743,14 @@ def build_add_profile_dialog(
             ).props("outline")
             with profile_to_android:
                 ui.tooltip(
-                    translate_string("This will write the Profile as a standalone file onto your Android device, "
+                    translate_string(
+                        "This will write the Profile as a standalone file onto your Android device, "
                         "under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\n"
                         "The 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android "
                         "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
                         "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings. No authorization prompt is needed for this."),
+                        "match its Tasker server settings. No authorization prompt is needed for this.",
+                    ),
                 ).style("white-space: pre-line")
             ui.button(
                 translate_string("Export Profile"),
@@ -1771,14 +1823,18 @@ def build_add_task_dialog(
             )
 
         with ui.row().classes("w-full gap-4"):
-            field_refs["name"] = ui.input(translate_string("Task Name"), value="", on_change=sync_save_path).classes("flex-1")
+            field_refs["name"] = ui.input(translate_string("Task Name"), value="", on_change=sync_save_path).classes(
+                "flex-1",
+            )
             field_refs["priority"] = ui.input(translate_string("Priority"), value="100").classes("w-32")
 
         ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
         with ui.row().classes("w-full gap-4"):
             search_input = ui.input(translate_string("Search actions")).classes("flex-1")
             category_select = ui.select(["All", *category_names], value="All").classes("w-48")
-        position_select = ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
+        position_select = (
+            ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
+        )
 
         picker_container = ui.column().classes("w-full")
         ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
@@ -1940,14 +1996,16 @@ def build_add_task_dialog(
             ).props("outline")
             with new_task_to_current_file:
                 ui.tooltip(
-                    translate_string("Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
+                    translate_string(
+                        "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- "
                         "with the new Task added to it, the same way 'Ok' adds it.\n"
                         "It is written to a new, timestamped copy of the file currently loaded: "
                         "backup.xml becomes backup_20260728_143005.xml.\n"
                         "The file you loaded is never written to, so it is left exactly as it was.\n"
                         "The app then switches to the new copy, which becomes the current file for any further "
                         "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
-                        "This writes to this computer only -- nothing is sent to your Android device."),
+                        "This writes to this computer only -- nothing is sent to your Android device.",
+                    ),
                 ).style("white-space: pre-line")
             ui.button(
                 translate_string("Save To Android"),
@@ -2138,7 +2196,9 @@ class NiceGuiTreeView:
                 # Header row with title and navigation hints
                 with ui.row().classes("items-center justify-between w-full border-b pb-3 mb-4"):
                     ui.label(f"{self.title}").classes("text-orange-500 font-bold text-lg")
-                    ui.label(translate_string("Click arrows to expand/collapse details.")).classes("text-xs text-gray-500 italic")
+                    ui.label(translate_string("Click arrows to expand/collapse details.")).classes(
+                        "text-xs text-gray-500 italic",
+                    )
 
                 # Convert MapTasker nested dictionary list nodes to NiceGUI tree notation
                 tree_data = self._format_data(items)
@@ -2212,10 +2272,39 @@ class NiceGuiTextView:
         self.title = title
         self.is_map = isinstance(the_data, dict)
         self.external_container = container
+        # Search caching (see search_event). The token identifies the content currently in
+        # this view: 0 means "not searchable as a stable document yet" -- process_data streams
+        # the content in chunk by chunk, so anything cached about the DOM mid-stream would be
+        # a snapshot of a partial document. _mark_content_ready() bumps it once streaming ends,
+        # and reload_diagram() drops it back to 0 while the content is replaced.
+        self._content_token = 0
+        self._content_generation = 0
+        self._last_search: tuple[str, list, int, bool] | None = None
         self.build_ui()
         register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
         self._task = asyncio.create_task(self.process_data(the_data))
+
+    def _mark_content_ready(self) -> None:
+        """Marks this view's content as fully streamed in, under a fresh content token.
+
+        The token is what lets the browser-side search index (and the results cache below)
+        be trusted: it changes whenever the content does, so an index built against the
+        previous content can never be mistaken for one built against this one.
+        """
+        self._content_generation += 1
+        self._content_token = self._content_generation
+        self._last_search = None
+
+    def invalidate_search_cache(self) -> None:
+        """Drops the cached search results, without touching the browser-side text index.
+
+        Called when the highlights the cached results point at are removed from the page
+        (the "Clear" button, see clear_event in userintr.py). The results are only reusable
+        while their highlight spans are still in the DOM -- each cached row's click handler
+        jumps to one by element id.
+        """
+        self._last_search = None
 
     def build_ui(self) -> None:
         """Builds the UI layout for the various text views, including toolbar and scrollable display area."""
@@ -2247,10 +2336,12 @@ class NiceGuiTextView:
                 search_button = ui.button(translate_string("Search"), on_click=self.search_event).classes("bg-blue-600")
                 with search_button:
                     ui.tooltip(
-                        translate_string("The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\n"
+                        translate_string(
+                            "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\n"
                             "It will only show the first 200 instances of the search string.\n\n"
                             "Click on the line number to go to that line in the text view box.\n\n"
-                            "The 'Clear' button will clear the search results.\n\n"),
+                            "The 'Clear' button will clear the search results.\n\n",
+                        ),
                     ).style("white-space: pre-line")
                 ui.button(translate_string("Clear"), on_click=self.master_gui.event_handlers.clear_event).classes(
                     "bg-blue-600",
@@ -2351,6 +2442,7 @@ class NiceGuiTextView:
             with self.scroll_area:
                 content_str = "\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data)
                 ui.html(f"<pre style='{html_style}'>{content_str}</pre>", sanitize=False)
+            self._mark_content_ready()
             return
 
         try:
@@ -2442,6 +2534,7 @@ class NiceGuiTextView:
                 self._enable_connector_highlighting()
                 if hasattr(self, "diagram_message_label"):
                     self.diagram_message_label.set_text(translate_string("Click on connector to highlight"))
+            self._mark_content_ready()
             return  # noqa: TRY300
 
         except FileNotFoundError:
@@ -2449,6 +2542,7 @@ class NiceGuiTextView:
 
         # Apply the fallback generation if the file does not exist
         self._process_fallback_data(the_data)
+        self._mark_content_ready()
 
     def _enable_connector_highlighting(self) -> None:
         """Wires up click-to-highlight for Diagram view connector spans.
@@ -2587,6 +2681,21 @@ class NiceGuiTextView:
             ui.notify(translate_string("Please enter a search term."), type="warning")
             return
 
+        client = context.client
+
+        # Cached results: re-running the search that is already showing costs nothing but
+        # rebuilding the dialog. Deliberately a single entry rather than a query -> results
+        # map: only the most recent search's highlight spans are still in the page (each
+        # search unwraps the previous one's, as does "Clear"), and every row in the dialog
+        # jumps to its match by element id -- so results held for any earlier query would
+        # come back with rows that quietly jump nowhere.
+        cached = self._last_search
+        if cached and self._content_token > 0 and cached[0] == query.lower():
+            _, found_items, total_matches, was_truncated = cached
+            with self.scroll_area:
+                self._report_search_results(query, found_items, total_matches, was_truncated, client)
+            return
+
         # Upgraded JavaScript engine targeting Quasar content nodes and penetrating Shadow Roots
         js_code = f"""
             const outerContainer = document.getElementById("c{self.scroll_area.id}");
@@ -2596,7 +2705,17 @@ class NiceGuiTextView:
 
             const container = outerContainer.querySelector('.q-scrollarea__content') || outerContainer;
 
-            // 1. Purge previous search highlights completely across Shadow boundaries
+            const searchTerm = {json.dumps(query.lower())};
+            const termLength = {len(query)};
+            // Identifies the content in the view (see _mark_content_ready); 0 while it is
+            // still streaming in, in which case nothing may be cached about it.
+            const contentToken = {self._content_token};
+
+            // 1. Purge previous search highlights completely across Shadow boundaries.
+            //    Used only when there is no usable cached index -- it swaps each highlight
+            //    for a brand-new text node, which is exactly what the cached index cannot
+            //    survive (it holds references to the nodes themselves). The cached path
+            //    below unwraps the very same spans without that.
             function clearPreviousHighlights(root) {{
                 const highlights = root.querySelectorAll ? root.querySelectorAll('.search-highlight') : [];
                 highlights.forEach(el => {{
@@ -2610,11 +2729,8 @@ class NiceGuiTextView:
                     }}
                 }});
             }}
-            clearPreviousHighlights(container);
 
-            const searchTerm = {json.dumps(query.lower())};
             const results = [];
-            let uniqueIdCounter = 0;
 
             // 2. Recursive text node crawler that only COLLECTS matches (no DOM mutation).
             //    Mutating the DOM (e.g. via surroundContents) while iterating a live
@@ -2635,46 +2751,95 @@ class NiceGuiTextView:
             //    each text node's starting offset within it, so each match's line number
             //    and line text can be derived from where its offset falls between
             //    newlines in that transcript.
-            const textNodes = [];  // {{ node, start }}
-            let fullText = '';
+            //
+            //    This whole crawl -- the traversal, the transcript, and the line map built
+            //    from it -- depends only on the content of the view, not on what is being
+            //    searched for, so it is cached on the container and reused by every later
+            //    search of the same content (see the index resolution below).
+            function buildIndex() {{
+                const textNodes = [];  // {{ node, start }}
+                let fullText = '';
 
-            function collectTextNodes(node) {{
-                if (node.shadowRoot) {{
-                    collectTextNodes(node.shadowRoot);
-                }}
-
-                if (node.nodeType === 3) {{
-                    if (node.parentNode &&
-                        node.parentNode.tagName !== 'SCRIPT' &&
-                        node.parentNode.tagName !== 'STYLE') {{
-                        textNodes.push({{ node, start: fullText.length }});
-                        fullText += node.nodeValue;
+                function collectTextNodes(node) {{
+                    if (node.shadowRoot) {{
+                        collectTextNodes(node.shadowRoot);
                     }}
-                }} else if (node.nodeType === 1 && node.tagName === 'BR') {{
-                    // The Diagram view is plain text with literal "\\n" line breaks, but the
-                    // Map/Misc/Tree views are real HTML that marks line breaks with <br>
-                    // elements instead -- treat each one as a line break in the transcript
-                    // too, so line numbers/text line up correctly there as well.
-                    fullText += '\\n';
-                }}
 
-                // Snapshot into a static array so later DOM mutations (done in the
-                // second pass below) can never feed back into this traversal.
-                if (node.childNodes && node.childNodes.length) {{
-                    for (const child of Array.from(node.childNodes)) {{
-                        collectTextNodes(child);
+                    if (node.nodeType === 3) {{
+                        if (node.parentNode &&
+                            node.parentNode.tagName !== 'SCRIPT' &&
+                            node.parentNode.tagName !== 'STYLE') {{
+                            textNodes.push({{ node, start: fullText.length }});
+                            fullText += node.nodeValue;
+                        }}
+                    }} else if (node.nodeType === 1 && node.tagName === 'BR') {{
+                        // The Diagram view is plain text with literal "\\n" line breaks, but the
+                        // Map/Misc/Tree views are real HTML that marks line breaks with <br>
+                        // elements instead -- treat each one as a line break in the transcript
+                        // too, so line numbers/text line up correctly there as well.
+                        fullText += '\\n';
+                    }}
+
+                    // Snapshot into a static array so later DOM mutations (done in the
+                    // second pass below) can never feed back into this traversal.
+                    if (node.childNodes && node.childNodes.length) {{
+                        for (const child of Array.from(node.childNodes)) {{
+                            collectTextNodes(child);
+                        }}
                     }}
                 }}
+
+                collectTextNodes(container);
+
+                // Map a global offset into fullText -> 0-based line number, via the offset of
+                // every line start (binary search since a large diagram can have many lines).
+                const lineStarts = [0];
+                for (let i = 0; i < fullText.length; i++) {{
+                    if (fullText[i] === '\\n') lineStarts.push(i + 1);
+                }}
+                return {{ token: contentToken, textNodes, fullText, lineStarts, highlights: [] }};
             }}
 
-            collectTextNodes(container);
-
-            // Map a global offset into fullText -> 0-based line number, via the offset of
-            // every line start (binary search since a large diagram can have many lines).
-            const lineStarts = [0];
-            for (let i = 0; i < fullText.length; i++) {{
-                if (fullText[i] === '\\n') lineStarts.push(i + 1);
+            // 3. Resolve the index: reuse the one cached on this container when it was built
+            //    against the content that is in it now, otherwise build a fresh one.
+            //
+            //    What makes this awkward is that highlighting mutates the very nodes the
+            //    index points at -- surroundContents() splits a matched text node into
+            //    prefix / match / tail -- so a cached index would never survive even its own
+            //    first use. Rather than discard it, each search unwraps the spans the previous
+            //    one left behind (keeping each match's own text node, unlike the wholesale
+            //    purge above, which swaps in new ones) and patches the split entries back into
+            //    the index as it makes them, further down. fullText and the line map need no
+            //    patching at all: splitting a text node changes no characters.
+            let cache = container.__mtSearchIndex;
+            let usedCachedIndex = false;
+            if (cache && contentToken > 0 && cache.token === contentToken) {{
+                for (const span of cache.highlights) {{
+                    if (span.parentNode && span.firstChild) {{
+                        span.parentNode.replaceChild(span.firstChild, span);
+                    }}
+                }}
+                cache.highlights = [];
+                usedCachedIndex = true;
+                // A highlight the index has no record of means something outside this routine
+                // rewrote the text nodes, so the index can no longer be trusted to match them.
+                if (container.querySelector('.search-highlight')) {{
+                    clearPreviousHighlights(container);
+                    cache = buildIndex();
+                    usedCachedIndex = false;
+                }}
+            }} else {{
+                clearPreviousHighlights(container);
+                cache = buildIndex();
             }}
+            // Keep nothing while the content is still streaming in: the index would describe
+            // a document that is only partly there.
+            container.__mtSearchIndex = contentToken > 0 ? cache : null;
+
+            const textNodes = cache.textNodes;
+            const fullText = cache.fullText;
+            const lineStarts = cache.lineStarts;
+
             function lineNumberForOffset(offset) {{
                 let lo = 0, hi = lineStarts.length - 1;
                 while (lo < hi) {{
@@ -2690,11 +2855,71 @@ class NiceGuiTextView:
                 return fullText.substring(start, end);
             }}
 
-            const matches = [];  // {{ node, index, globalOffset }}
-            for (const {{ node, start }} of textNodes) {{
-                const index = node.nodeValue.toLowerCase().indexOf(searchTerm);
-                if (index !== -1) {{
-                    matches.push({{ node, index, globalOffset: start + index }});
+            // 4. Find every occurrence of the term.
+            //
+            //    This searches the transcript rather than each text node in turn. Scanning
+            //    node by node can only ever report the FIRST hit inside any one node, and a
+            //    node is not a line: the views stream whole chunks into one element, so in
+            //    the Diagram view a single text node routinely holds 150 lines. A term
+            //    appearing ten times in a chunk was reported once. The transcript has no
+            //    such boundaries, and the cached per-node start offsets map any position in
+            //    it back to the node (and offset within it) that has to be wrapped.
+            //
+            //    Lowercasing the transcript is cached with it -- it depends only on the
+            //    content, and it is ~1.5MB of string work on a large Map view.
+            function transcriptLower() {{
+                if (cache.lowerText === undefined) {{
+                    const lower = cache.fullText.toLowerCase();
+                    // A handful of characters (e.g. U+0130) lowercase to a different number
+                    // of characters, which would shift every offset after them. Rare enough
+                    // to detect and step around rather than try to track.
+                    cache.lowerText = lower.length === cache.fullText.length ? lower : null;
+                }}
+                return cache.lowerText;
+            }}
+
+            const matches = [];  // {{ pos, index, globalOffset }} -- pos is the index slot to patch
+            let spanningSkipped = 0;
+            const lowerText = transcriptLower();
+            if (lowerText === null) {{
+                // Fallback: the transcript's offsets can't be trusted for this content, so
+                // take the old per-node scan (first hit in each node) rather than risk
+                // wrapping the wrong characters.
+                for (let pos = 0; pos < textNodes.length; pos++) {{
+                    const entry = textNodes[pos];
+                    const value = entry.node.nodeValue;
+                    if (!value) continue;
+                    const index = value.toLowerCase().indexOf(searchTerm);
+                    if (index !== -1) {{
+                        matches.push({{ pos, index, globalOffset: entry.start + index }});
+                    }}
+                }}
+            }} else {{
+                // Occurrences come out in ascending order, so the index slot for each one can
+                // be found by walking a cursor forward instead of searching from scratch.
+                let cursor = 0;
+                let from = 0;
+                for (;;) {{
+                    const at = lowerText.indexOf(searchTerm, from);
+                    if (at === -1) break;
+                    from = at + termLength;
+
+                    while (cursor + 1 < textNodes.length && textNodes[cursor + 1].start <= at) cursor++;
+                    const entry = textNodes[cursor];
+                    const index = at - entry.start;
+                    const value = entry.node.nodeValue;
+                    // Skip a match that isn't wholly inside one text node -- it either straddles
+                    // two of them (the views split lines across elements for colouring and for
+                    // the Diagram's connectors) or crosses one of the newlines the transcript
+                    // synthesises for <br>, which exist in no text node at all. A Range over
+                    // that can't be wrapped in a single span, so there would be nothing to
+                    // highlight or jump to. The per-node scan this replaces could not find
+                    // them either, so nothing that used to be reported has been lost.
+                    if (index < 0 || !value || index + termLength > value.length) {{
+                        spanningSkipped++;
+                        continue;
+                    }}
+                    matches.push({{ pos: cursor, index, globalOffset: at }});
                 }}
             }}
 
@@ -2706,34 +2931,91 @@ class NiceGuiTextView:
             const truncated = matches.length > MAX_MATCHES;
             const matchesToShow = truncated ? matches.slice(0, MAX_MATCHES) : matches;
 
-            // 3. Second pass: now that traversal is fully finished, apply the
-            //    highlight to each collected match. Each match's Text node is
-            //    still valid because no mutation happened during collection.
-            for (const {{ node, index, globalOffset }} of matchesToShow) {{
-                const span = document.createElement('span');
-                span.className = 'search-highlight';
-                span.id = "search_target_" + (++uniqueIdCounter);
-                span.style.backgroundColor = '#ffd941';
-                span.style.color = '#000000';
-                span.style.fontWeight = 'bold';
-                span.style.display = 'inline';
+            // 5. Second pass: now that traversal is fully finished, apply the highlight to
+            //    each collected match. Every match's text node is still valid because no
+            //    mutation happened during collection.
+            //
+            //    Matches are grouped by the text node holding them, because one node can now
+            //    hold many of them, and wrapping one splits that node: the original keeps
+            //    only the text BEFORE the match. Each group is therefore wrapped back to
+            //    front, so that every match still to be handled sits at its original offset
+            //    in the (progressively shortened) original node. Ids and result rows still
+            //    follow document order, via each match's rank in the ascending list.
+            const byNode = new Map();  // index slot -> its matches, ascending
+            matchesToShow.forEach((match, rank) => {{
+                match.rank = rank;
+                const group = byNode.get(match.pos);
+                if (group) {{ group.push(match); }} else {{ byNode.set(match.pos, [match]); }}
+            }});
 
-                const range = document.createRange();
-                range.setStart(node, index);
-                range.setEnd(node, index + {len(query)});
-                range.surroundContents(span);
+            const repairs = new Map();  // index slot -> the entries that now replace it
+            for (const [pos, group] of byNode) {{
+                const entry = textNodes[pos];
+                // Entries for the pieces split off this node, kept in document order.
+                const pieces = [];
+                for (let i = group.length - 1; i >= 0; i--) {{
+                    const match = group[i];
+                    const span = document.createElement('span');
+                    span.className = 'search-highlight';
+                    span.id = "search_target_" + (match.rank + 1);
+                    span.style.backgroundColor = '#ffd941';
+                    span.style.color = '#000000';
+                    span.style.fontWeight = 'bold';
+                    span.style.display = 'inline';
 
+                    const range = document.createRange();
+                    range.setStart(entry.node, match.index);
+                    range.setEnd(entry.node, match.index + termLength);
+                    range.surroundContents(span);
+                    cache.highlights.push(span);
+
+                    // Patch the index for the split just made. The span's own text node holds
+                    // the match and the remainder follows it as a new sibling text node --
+                    // and both offsets into fullText are already known, so nothing needs
+                    // re-crawling. fullText itself is untouched: splitting a text node
+                    // changes no characters.
+                    const added = [];
+                    if (span.firstChild) {{
+                        added.push({{ node: span.firstChild, start: entry.start + match.index }});
+                    }}
+                    const tail = span.nextSibling;
+                    if (tail && tail.nodeType === 3) {{
+                        added.push({{ node: tail, start: entry.start + match.index + termLength }});
+                    }}
+                    pieces.unshift(...added);
+                }}
+                repairs.set(pos, [entry, ...pieces]);
+            }}
+
+            for (const match of matchesToShow) {{
                 results.push({{
-                    elementId: span.id,
-                    text: lineTextForOffset(globalOffset).trim().substring(0, 100),
-                    lineNumber: lineNumberForOffset(globalOffset) + 1,
+                    elementId: "search_target_" + (match.rank + 1),
+                    text: lineTextForOffset(match.globalOffset).trim().substring(0, 100),
+                    lineNumber: lineNumberForOffset(match.globalOffset) + 1,
                 }});
             }}
 
-            return {{ results: results, totalMatches: matches.length, truncated: truncated }};
-        """
+            if (container.__mtSearchIndex && repairs.size) {{
+                const rebuilt = [];
+                for (let pos = 0; pos < textNodes.length; pos++) {{
+                    const replacements = repairs.get(pos);
+                    if (replacements) {{
+                        for (const entry of replacements) rebuilt.push(entry);
+                    }} else {{
+                        rebuilt.push(textNodes[pos]);
+                    }}
+                }}
+                cache.textNodes = rebuilt;
+            }}
 
-        client = context.client
+            return {{
+                results: results,
+                totalMatches: matches.length,
+                truncated: truncated,
+                cachedIndex: usedCachedIndex,
+                spanningSkipped: spanningSkipped,
+            }};
+        """
 
         async def execute_search() -> None:
             with self.scroll_area:
@@ -2751,101 +3033,131 @@ class NiceGuiTextView:
                     search_result = await client.run_javascript(js_code, timeout=SEARCH_JAVASCRIPT_TIMEOUT)
                 except TimeoutError:
                     logger.debug(f"guiwins search timed out after {SEARCH_JAVASCRIPT_TIMEOUT} seconds: '{query}'")
+                    # The script may or may not have got as far as rearranging the highlights
+                    # before it stopped answering, so nothing about this search is reusable.
+                    self._last_search = None
                     ui.notify(
-                        translate_string("The search did not finish. The view may be too large, or the browser is busy."),
+                        translate_string(
+                            "The search did not finish. The view may be too large, or the browser is busy.",
+                        ),
                         type="negative",
                     )
                     return
                 found_items = search_result.get("results", [])
                 total_matches = search_result.get("totalMatches", len(found_items))
                 was_truncated = search_result.get("truncated", False)
+                logger.debug(
+                    f"guiwins search '{query}': {total_matches} matches, "
+                    f"reused text index: {search_result.get('cachedIndex', False)}, "
+                    f"unwrappable matches skipped: {search_result.get('spanningSkipped', 0)}",
+                )
 
-                if not found_items:
-                    ui.notify(f"No matches found for: '{query}'", type="negative")
-                    return  # Debugging output
+                # These highlights are now the ones in the page, so this is the one search
+                # whose results can be handed back without re-running anything (see above).
+                if self._content_token > 0:
+                    self._last_search = (query.lower(), found_items, total_matches, was_truncated)
 
-                if was_truncated:
-                    ui.notify(
-                        f"Showing first {len(found_items)} of {total_matches} matches for: '{query}'",
-                        type="warning",
-                    )
-
-                # 3. Create the interactive Search Results Modal Popup Window
-                with ui.dialog() as results_dialog, ui.card().classes("w-[750px] max-w-full p-6"):
-                    header_text = (
-                        f"Search Results for '{query}' ({len(found_items)} of {total_matches} matches)"
-                        if was_truncated
-                        else f"Search Results for '{query}' ({len(found_items)} matches)"
-                    )
-                    ui.label(header_text).classes(
-                        "text-lg font-bold text-blue-600 mb-2",
-                    )
-                    ui.label(
-                        translate_string("Click on a row index line number to jump directly to that match block placement:"),
-                    ).classes("text-xs text-gray-500 italic mb-4")
-
-                    # Create a clear scroll area container for the results rows list matching the active theme font
-                    with ui.scroll_area().classes(
-                        "w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded",
-                    ):
-                        with ui.column().classes("w-full gap-1"):
-                            for item in found_items:
-                                # Localized function referencing the cross-linked runtime element reference
-                                def make_jump_callback(target_id: str = item["elementId"]) -> None:
-                                    return lambda: (
-                                        results_dialog.close(),
-                                        client.run_javascript(f"""
-                                            // Restore any previously-clicked match back to the standard
-                                            // highlight color before marking the newly-clicked one, so
-                                            // only the match the user just jumped to stands out.
-                                            document.querySelectorAll('.search-highlight-active').forEach(el => {{
-                                                el.classList.remove('search-highlight-active');
-                                                el.style.backgroundColor = '#ffd941';
-                                                el.style.color = '#000000';
-                                            }});
-                                            const el = document.getElementById("{target_id}");
-                                            if (el) {{
-                                                // As in the Diagram connector jump buttons: a chunk
-                                                // skipped by content-visibility: auto was never laid
-                                                // out, so scrollIntoView() on a descendant of it lands
-                                                // in the wrong place until it's forced to render.
-                                                for (let a = el; a; a = a.parentElement) {{
-                                                    if (getComputedStyle(a).contentVisibility === "auto") {{
-                                                        a.style.contentVisibility = "visible";
-                                                    }}
-                                                }}
-                                                el.classList.add('search-highlight-active');
-                                                el.style.backgroundColor = '#ff5722';
-                                                el.style.color = '#ffffff';
-                                                el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-                                            }}
-                                        """),
-                                    )
-
-                                with ui.row().classes(
-                                    "w-full items-center py-1 border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-950 px-2 rounded transition-colors",
-                                ):
-                                    # Active click hotlink index line label
-                                    ui.link(f"Line #{item['lineNumber']}", "#").on(
-                                        "click",
-                                        make_jump_callback(),
-                                    ).classes(
-                                        "text-blue-600 dark:text-blue-400 font-bold font-mono text-sm mr-4 shrink-0 decoration-dotted hover:underline",
-                                    )
-                                    # Text context content preview box
-                                    ui.label(item["text"]).classes(
-                                        "text-sm font-mono truncate text-gray-800 dark:text-gray-200",
-                                    )
-
-                    # Footer window management close control
-                    with ui.row().classes("w-full justify-end mt-4"):
-                        ui.button(translate_string("Close Results Window"), on_click=results_dialog.close).classes(
-                            "bg-red-500 text-white px-4",
-                        )
-
-                results_dialog.open()
+                self._report_search_results(query, found_items, total_matches, was_truncated, client)
 
         self._search = asyncio.create_task(execute_search())
+
+    def _report_search_results(
+        self,
+        query: str,
+        found_items: list,
+        total_matches: int,
+        was_truncated: bool,
+        client: object,
+    ) -> None:
+        """Announces a set of search results and builds the clickable results dialog for them.
+
+        Shared by a freshly-run search and a cached one so that re-running the search already
+        on screen is indistinguishable from the first run.
+        """
+        if not found_items:
+            ui.notify(f"No matches found for: '{query}'", type="negative")
+            return  # Debugging output
+
+        if was_truncated:
+            ui.notify(
+                f"Showing first {len(found_items)} of {total_matches} matches for: '{query}'",
+                type="warning",
+            )
+
+        # 3. Create the interactive Search Results Modal Popup Window
+        with ui.dialog() as results_dialog, ui.card().classes("w-[750px] max-w-full p-6"):
+            header_text = (
+                f"Search Results for '{query}' ({len(found_items)} of {total_matches} matches)"
+                if was_truncated
+                else f"Search Results for '{query}' ({len(found_items)} matches)"
+            )
+            ui.label(header_text).classes(
+                "text-lg font-bold text-blue-600 mb-2",
+            )
+            ui.label(
+                translate_string("Click on a row index line number to jump directly to that match block placement:"),
+            ).classes("text-xs text-gray-500 italic mb-4")
+
+            # Create a clear scroll area container for the results rows list matching the active theme font
+            with ui.scroll_area().classes(  # noqa: SIM117
+                "w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded",
+            ):
+                with ui.column().classes("w-full gap-1"):
+                    for item in found_items:
+                        # Localized function referencing the cross-linked runtime element reference
+                        def make_jump_callback(target_id: str = item["elementId"]) -> None:
+                            return lambda: (
+                                results_dialog.close(),
+                                client.run_javascript(f"""
+                                    // Restore any previously-clicked match back to the standard
+                                    // highlight color before marking the newly-clicked one, so
+                                    // only the match the user just jumped to stands out.
+                                    document.querySelectorAll('.search-highlight-active').forEach(el => {{
+                                        el.classList.remove('search-highlight-active');
+                                        el.style.backgroundColor = '#ffd941';
+                                        el.style.color = '#000000';
+                                    }});
+                                    const el = document.getElementById("{target_id}");
+                                    if (el) {{
+                                        // As in the Diagram connector jump buttons: a chunk
+                                        // skipped by content-visibility: auto was never laid
+                                        // out, so scrollIntoView() on a descendant of it lands
+                                        // in the wrong place until it's forced to render.
+                                        for (let a = el; a; a = a.parentElement) {{
+                                            if (getComputedStyle(a).contentVisibility === "auto") {{
+                                                a.style.contentVisibility = "visible";
+                                            }}
+                                        }}
+                                        el.classList.add('search-highlight-active');
+                                        el.style.backgroundColor = '#ff5722';
+                                        el.style.color = '#ffffff';
+                                        el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+                                    }}
+                                """),
+                            )
+
+                        with ui.row().classes(
+                            "w-full items-center py-1 border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-950 px-2 rounded transition-colors",
+                        ):
+                            # Active click hotlink index line label
+                            ui.link(f"Line #{item['lineNumber']}", "#").on(
+                                "click",
+                                make_jump_callback(),
+                            ).classes(
+                                "text-blue-600 dark:text-blue-400 font-bold font-mono text-sm mr-4 shrink-0 decoration-dotted hover:underline",
+                            )
+                            # Text context content preview box
+                            ui.label(item["text"]).classes(
+                                "text-sm font-mono truncate text-gray-800 dark:text-gray-200",
+                            )
+
+            # Footer window management close control
+            with ui.row().classes("w-full justify-end mt-4"):
+                ui.button(translate_string("Close Results Window"), on_click=results_dialog.close).classes(
+                    "bg-red-500 text-white px-4",
+                )
+
+        results_dialog.open()
 
     def extract_first_font_name(self: MyGui, text: str) -> str:
         """
@@ -2854,9 +3166,18 @@ class NiceGuiTextView:
         """
         # Regex Breakdown:
         # font-family\s*:\s* -> Matches 'font-family', optional spaces, a colon, and optional spaces
-        # ([a-zA-Z0-9\s\-_'\"]+) -> Capture Group 1: Matches valid font name characters (letters, numbers, spaces, quotes, hyphens)
-        # (?=[;}]) -> Positive Lookahead: Stops capturing when it hits a closing semicolon or bracket
-        pattern = re.compile(r"font-family\s*:\s*([a-zA-Z0-9\s\-_'\"]+)(?=[;}])")
+        # ([^,;{}]+)         -> Capture Group 1: the first family in the list, i.e. everything
+        #                       up to the comma that starts the fallback stack, or to the end
+        #                       of the declaration when there is no fallback
+        #
+        # The comma has to end the capture rather than be excluded from it.  Every
+        # font-family MapTasker writes carries a fallback -- addcss.py emits
+        # "font-family:<font>, monospace;" and the view styles below build the same shape --
+        # so a pattern that had to reach a ';' or '}' without crossing a comma matched none
+        # of them.  This returned "Font name not found" for all real output, and the caller
+        # fell back to program_arguments["font"] every single time: exactly the stale-font
+        # behaviour that reading the font back out of the file is meant to avoid.
+        pattern = re.compile(r"font-family\s*:\s*([^,;{}]+)")
 
         match = pattern.search(text)
 
@@ -3027,12 +3348,17 @@ class NiceGuiTextView:
         """Fires when the Diagram view's 'Profiles Per Line' pulldown selection changes."""
         new_value = int(event.value if hasattr(event, "value") else event)
         if new_value != self.master_gui.profiles_per_line:
-            asyncio.create_task(self.master_gui.event_handlers.profiles_per_line_event(new_value))
+            asyncio.create_task(self.master_gui.event_handlers.profiles_per_line_event(new_value))  # noqa: RUF006
 
     def reload_diagram(self) -> None:
         """Clears and re-streams the Diagram view's content in place after it has been
         regenerated (e.g. after the 'Profiles Per Line' pulldown changes the diagram's layout).
         """
+        # The content this view's cached search index and results were built against is about
+        # to be thrown away; process_data() issues a new token once the replacement is fully
+        # streamed in. Until then nothing about the old content may be reused.
+        self._content_token = 0
+        self._last_search = None
         self.scroll_area.clear()
         self._task = asyncio.create_task(self.process_data([]))
 
@@ -3179,10 +3505,7 @@ def document_language_html() -> str:
     attributes itself -- see set_document_language_js().
     """
     lang_code = PrimeItems.languages.get(PrimeItems.program_arguments.get("language") or "English", "en")
-    return (
-        '<meta name="google" content="notranslate">'
-        f"<script>{set_document_language_js(lang_code)}</script>"
-    )
+    return f'<meta name="google" content="notranslate"><script>{set_document_language_js(lang_code)}</script>'
 
 
 def set_document_language_js(lang_code: str) -> str:
@@ -3594,7 +3917,9 @@ def initialize_screen(self: MyGui) -> None:
         ).classes(f"w-full justify-center {blink_class}")
         with self.get_xml_button:
             ui.tooltip(
-                translate_string("Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands."),
+                translate_string(
+                    "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands.",
+                ),
             ).style("white-space: pre-line")
 
         self.exit_button = ui.button(
@@ -3613,9 +3938,11 @@ def initialize_screen(self: MyGui) -> None:
         )
         with self.close_tabs_on_exit_checkbox:
             ui.tooltip(
-                translate_string("When enabled, clicking 'Exit' also closes the main MapTasker window and any "
+                translate_string(
+                    "When enabled, clicking 'Exit' also closes the main MapTasker window and any "
                     "Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker "
-                    "but leaves those windows/tabs open."),
+                    "but leaves those windows/tabs open.",
+                ),
             ).style("white-space: pre-line")
 
         self.open_view_in_new_window_checkbox = (
@@ -3626,11 +3953,13 @@ def initialize_screen(self: MyGui) -> None:
         )
         with self.open_view_in_new_window_checkbox:
             ui.tooltip(
-                translate_string("When enabled, each Map/Diagram request opens in its own new window/tab, so you can "
+                translate_string(
+                    "When enabled, each Map/Diagram request opens in its own new window/tab, so you can "
                     "keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses "
                     "that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you "
                     "want to compare: a brand new window/tab is the one your browser may block, since "
-                    "it gets opened once the view has finished building rather than the instant you click."),
+                    "it gets opened once the view has finished building rather than the instant you click.",
+                ),
             ).style("white-space: pre-line")
 
         ui.label(translate_string("File Operations")).classes(
@@ -3678,7 +4007,11 @@ def initialize_screen(self: MyGui) -> None:
         # at the end of this function matched no tab at all and left every tab deselected,
         # and switching back to English made a stale tab_to_use match again and jump there.
         with ui.tabs().classes("w-full") as self.gui_main_tabs_container:
-            self.tab_specific_name = ui.tab("Specific Name", label=translate_string("Specific Name"), icon="filter_list")
+            self.tab_specific_name = ui.tab(
+                "Specific Name",
+                label=translate_string("Specific Name"),
+                icon="filter_list",
+            )
             self.tab_colors = ui.tab("Colors", label=translate_string("Colors"), icon="palette")
             self.tab_analyze = ui.tab("Analyze", label=translate_string("Analyze"), icon="analytics")
             self.tab_debug = ui.tab("Debug", label=translate_string("Debug"), icon="bug_report")
@@ -3865,7 +4198,9 @@ def initialize_screen(self: MyGui) -> None:
         with ui.dialog() as self.picker_dialog, ui.card().classes("p-4 items-center"):
             self.picker_title_label = ui.label("").classes("font-bold text-sm mb-2")
             self.picker_engine = ui.color_picker()
-            ui.button(translate_string("Cancel"), on_click=self.picker_dialog.close).classes("mt-4 w-full bg-gray-500 text-white")
+            ui.button(translate_string("Cancel"), on_click=self.picker_dialog.close).classes(
+                "mt-4 w-full bg-gray-500 text-white",
+            )
 
     if self.tab_to_use:
         self.gui_main_tabs_container.set_value(self.tab_to_use)
@@ -3905,8 +4240,14 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
     with tab:
         # 1. Action Buttons Row
         with ui.row().classes("items-center gap-4 mb-4"):
-            self.show_apikeys_button = ui.button(translate_string("Show/Edit API Key(s)"), on_click=self.event_handlers.ai_apikey_event)
-            self.change_prompt_button = ui.button(translate_string("Change Prompt"), on_click=self.event_handlers.ai_prompt_event)
+            self.show_apikeys_button = ui.button(
+                translate_string("Show/Edit API Key(s)"),
+                on_click=self.event_handlers.ai_apikey_event,
+            )
+            self.change_prompt_button = ui.button(
+                translate_string("Change Prompt"),
+                on_click=self.event_handlers.ai_prompt_event,
+            )
 
             self.analysis_button = ui.button(
                 translate_string("Run Analysis"),
@@ -3930,7 +4271,8 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
                 ui
                 .checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
                 .tooltip(
-                    translate_string("Display an extended list of ALL available models.\n\n"
+                    translate_string(
+                        "Display an extended list of ALL available models.\n\n"
                         "Note: If the API key is not set for OpenAI or Gemini,\n"
                         "      then the default model list for the respective\n"
                         "      AI provider will be displayed.\n\n"
@@ -3939,7 +4281,8 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
                         "Note: Enabling this option for the first time will\n"
                         "      force the installation of the following modules\n"
                         "      and all of their dependencies:\n"
-                        "      google-genai, anthropic, openai, ollama"),
+                        "      google-genai, anthropic, openai, ollama",
+                    ),
                 )
                 .style("white-space: pre-line")
             )  # Ensures the newline characters format correctly in HTML
@@ -4016,11 +4359,13 @@ def _create_task_action_limit_section(self: MyGui) -> None:
     )
     with self.task_action_limit:
         ui.tooltip(
-            translate_string("Select how many actions in a Task before issuing a warning.\n"
+            translate_string(
+                "Select how many actions in a Task before issuing a warning.\n"
                 "The warning appears near the bottom of the configuration output,\n"
                 "and is intended to help identify Tasks that are too complex\n"
                 "and which should potentially be broken up into multiple Tasks.\n"
-                "A setting of '100' means there is no limit."),
+                "A setting of '100' means there is no limit.",
+            ),
         ).style(
             "white-space: pre-line",
         )  # Ensures the tooltip text respects newlines for better readability
@@ -4039,9 +4384,11 @@ def _create_indentation_section(self: MyGui) -> None:
     ).classes("w-full leading-none py-0 my-0 gap-y-0")
     with self.indent_option:
         ui.tooltip(
-            translate_string("Set the indentation amount for If/Then/Else blocks.\n\n"
+            translate_string(
+                "Set the indentation amount for If/Then/Else blocks.\n\n"
                 "The default is '4'.\n\n"
-                "This affects how the output is formatted in the Map and Diagram views."),
+                "This affects how the output is formatted in the Map and Diagram views.",
+            ),
         ).style(
             "white-space: pre-line",
         )  # Ensures the tooltip text respects newlines for better readability
@@ -4087,9 +4434,11 @@ def _create_view_limit_section(self: MyGui) -> None:
         ).classes("flex-grow")
         with self.viewlimit_optionmenu:
             ui.tooltip(
-                translate_string("Select the maximum number of items to display in the view to be allowed.\n\n"
+                translate_string(
+                    "Select the maximum number of items to display in the view to be allowed.\n\n"
                     "Anything over this amount will stop the generation of the view as a means to throttle the program.\n\n"
-                    "Note: This is only for the 'Map' and 'Diagram' views, not the tree view."),
+                    "Note: This is only for the 'Map' and 'Diagram' views, not the tree view.",
+                ),
             ).style(
                 "white-space: pre-line",
             )  # Ensures the tooltip text respects newlines for better readability
@@ -4117,8 +4466,10 @@ def _create_settings_buttons_section(self: MyGui) -> None:
         # Nest the tooltip explicitly inside the button context
         with self.reset_button:
             ui.tooltip(
-                translate_string("Reset all of the options to their default values, including colors, font used, and other settings.\n\n"
-                    "The currently loaded XML will be cleared out."),
+                translate_string(
+                    "Reset all of the options to their default values, including colors, font used, and other settings.\n\n"
+                    "The currently loaded XML will be cleared out.",
+                ),
             ).style(
                 "white-space: pre-line;",
             )  # Tells the web browser to render \n newlines!
@@ -4147,8 +4498,10 @@ def _create_settings_buttons_section(self: MyGui) -> None:
         )
         with self.report_issue_button:
             ui.tooltip(
-                translate_string("Report any issues and/or suggestions to the developer.\n\n"
-                    "This will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue."),
+                translate_string(
+                    "Report any issues and/or suggestions to the developer.\n\n"
+                    "This will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue.",
+                ),
             ).style("white-space: pre-line;")
 
 
@@ -4184,12 +4537,14 @@ def _create_font_section(self: MyGui) -> None:
     ).classes("w-64")
     with self.font_optionmenu:
         ui.tooltip(
-            translate_string("This is a list of all of the fonts available on your system, monospaced ones first "
+            translate_string(
+                "This is a list of all of the fonts available on your system, monospaced ones first "
                 "and marked as such.\n\n"
                 "The font selected will be used in all output.\n\n"
                 "'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector "
                 "alignment. A font that is not monospaced will not hold the Diagram's connectors or the "
-                "output's indentation in line."),
+                "output's indentation in line.",
+            ),
         ).style(
             "white-space: pre-line;",
         )  # Ensures newlines render properly in the tooltip
@@ -4198,17 +4553,11 @@ def _create_font_section(self: MyGui) -> None:
 def _create_file_and_message_buttons_section(self: MyGui) -> None:
     """Creates file actions, message configuration button rows, and dynamic android panel containers."""
     with self.gui_right_drawer:
-        # Stored on self so clear_android_buttons() (guiutils.py) can re-enter this exact row
-        # when it deletes and recreates the button -- otherwise the recreated button attaches to
-        # whatever the default page slot happens to be during that event callback and ends up
-        # stranded at the bottom of the page instead of staying under "File Operations".
+        # This button and its "?" are built once, here, and stay put for the life of the window:
+        # opening the Android panel (get_xml_from_android_event in userintr.py) adds a panel
+        # below them rather than replacing them, and clear_android_buttons() (guiutils.py) only
+        # tears that panel down again.
         with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0") as self.android_button_row:
-            # self.get_backup_button = self.display_backup_button(
-            #     "Get XML from Android Device",
-            #     "#246FB6",
-            #     "#6563ff",
-            #     self.event_handlers.get_xml_from_android_event,
-            # )
             self.get_backup_button = (
                 ui
                 .button(

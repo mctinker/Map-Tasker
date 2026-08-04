@@ -15,6 +15,7 @@ from maptasker.src.format import format_line
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.globalvr import get_variables, output_variables
 from maptasker.src.initparg import initialize_runtime_arguments
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import (
     clear_tasker_data,
     display_task_warnings,
@@ -170,7 +171,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
         for num, item in enumerate(PrimeItems.output_lines.output_lines):
             # This is a temporary workaround to the GUI terminating prematurely due to output size.
             if num > PrimeItems.view_limit:
-                msg_text = f"MapTasker: view limit reached, stopping output to file:  output={len(PrimeItems.output_lines.output_lines)}, hardstop_limit={PrimeItems.view_limit}"
+                msg_text = f"{translate_string('MapTasker: view limit reached, stopping output to file:  output')}={len(PrimeItems.output_lines.output_lines)}, {translate_string('hardstop view limit')}={PrimeItems.view_limit}"
                 # print(msg_text)
                 # Breaking out mid-loop can leave something the last item opened still
                 # unclosed (a <span> deliberately left open by format_html(end_span=False)

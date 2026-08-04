@@ -275,8 +275,7 @@ def _relative_luminance(rgb: tuple[int, int, int]) -> float:
         :return: relative luminance between 0.0 and 1.0
     """
     linear = [
-        channel / 12.92 if (channel := value / 255) <= 0.03928 else ((channel + 0.055) / 1.055) ** 2.4
-        for value in rgb
+        channel / 12.92 if (channel := value / 255) <= 0.03928 else ((channel + 0.055) / 1.055) ** 2.4 for value in rgb
     ]
     return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
 
@@ -432,7 +431,7 @@ class HTMLDocumentSanitizer(HTMLParser):
                 break
 
     def handle_data(self, data: str) -> None:
-        """
+        r"""
         Keep the text, escaped so it can only ever be text -- and carrying no raw newline.
 
         Two later stages rewrite newlines and <br> out from under us: share.py turns every
@@ -714,13 +713,28 @@ class HTMLTextFormatter(HTMLParser):
             self._start_new_line()
             return
 
-        # Handle the <img> tag
+        # Handle the <img> tag.
+        #
+        # Look the attributes up by name rather than by position.  attrs is a list of
+        # (name, value) pairs, and taking them positionally got both cases wrong: an
+        # <img> carrying only a src (no alt -- which is how TaskerNet descriptions embed
+        # YouTube thumbnails) fell into a branch that interpolated the whole ('src', url)
+        # tuple as the URL, and one whose attributes came in another order, or which
+        # carried a width/class as well, took whatever happened to be second as its alt
+        # text.  A mangled src is not merely wrong in the page: the browser reads it as a
+        # relative URL and requests it, which is where the "/popout/('src', 'https://...')
+        # not found" console messages came from.
         if tag == "img":
-            if len(attrs) > 1:
-                string_to_add = f'<img src="{attrs[0][1]}" alt="{attrs[1][1]}" class="image-small"/>'
-            else:
-                string_to_add = f'<img src="{attrs[0]}" class="image-small"/>'
-            self._add_segment(string_to_add)
+            attributes = dict(attrs)
+            source = attributes.get("src")
+            # Nothing useful to render without a source, and emitting the tag anyway would
+            # send the browser off after another bogus relative URL.
+            if not source:
+                logger.warning(f"Ignoring <img> with no src attribute: {attrs}")
+                return
+            alt_text = attributes.get("alt")
+            alt_attribute = f' alt="{alt_text}"' if alt_text else ""
+            self._add_segment(f'<img src="{source}"{alt_attribute} class="image-small"/>')
             # Return to prevent it from being added to the tag stack
             return
 

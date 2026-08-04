@@ -19,7 +19,7 @@ import darkdetect
 from maptasker.src.clip import clip_figure
 from maptasker.src.colors import get_and_set_the_color, validate_color
 from maptasker.src.colrmode import set_color_mode
-from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
+from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL, GUI
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -559,7 +559,18 @@ def process_cli() -> None:
 
     # Restore runtime arguments if we are not doing a reset and not doing the GUI and there is a settings file to restore.
     restore_arguments()
-    PrimeItems.program_arguments["gui"] = True
+
+    # Decide GUI versus command line.  This has to come after restore_arguments(), which
+    # replaces program_arguments wholesale with what the settings file holds -- so the
+    # restored "gui" value is what stands unless something here overrides it.
+    #
+    # This was previously an unconditional 'PrimeItems.program_arguments["gui"] = True',
+    # which made the elif below -- the entire command-line path -- unreachable, and
+    # silently overrode both initparg's "gui": False default and the -g flag (gui_flag was
+    # declared here but read nowhere, so -g did nothing at all).  config.GUI stays an
+    # override so a build can force the GUI on, and -g does what its help text promises.
+    if GUI or getattr(args, gui_flag, False):
+        PrimeItems.program_arguments["gui"] = True
 
     # If using the GUI and not doing a map view or version, them process the GUI.
     do_version = getattr(args, version_flag)  # See if doing version (-v)

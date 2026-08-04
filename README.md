@@ -35,7 +35,7 @@ Diagram Map...
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run on in a web browser (see [Note 1](#1)).
 
-I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, and my phone was too small to navigate over my Projects, Profiles, Tasks and Scenes.  So I wrote a Python program to provide a complete map of my entire configuration in my web browser based on my Tasker backup XML file that I saved to my local desktop drive.
+I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, and my phone was too small to navigate over my Projects, Profiles, Tasks, and Scenes.  So I wrote a Python program to provide a complete map of my entire configuration in my web browser based on my Tasker backup XML file that I saved to my local desktop drive.
 
 Over time, I refined the map by providing many additional options, including the ability to edit Tasker objects.
 
@@ -69,13 +69,11 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 ### - Tasker full or partial XML file: backup.xml or other Tasker exported XML file
 
-<!-- ### - Optional 'ffmpeg' for inline Youtube video hotlinks (see [Note 6](#6)) -->
-
 &nbsp;&nbsp;&nbsp;You will be prompted to locate and identify your Tasker exported XML file (e.g. backup.xml) on your desktop, created by Tasker version 5 or version 6.  Optionally, you can retrieve it directly from your Android device (see [Note 2](#2)).
 
 ### - Ai Analysis
 
-&nbsp;&nbsp;&nbsp;This requires a valid API key if using the server-based analysis and/or Ollama to be installed for local analysis  (See [Note 5](#5)).
+&nbsp;&nbsp;&nbsp;This requires a valid API key if using the server-based analysis and/or Ollama to be installed for local analysis  (See [Note 3](#3)).
 
 ## Project Structure
 
@@ -221,17 +219,12 @@ Details for some of the points mentioned in the "Troubleshooting and FAQ" sectio
 
 To retrieve the Tasker XML file directly:
 
-- Ensure both desktop and Android devices are on the same local network.
-- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, with the server running. Remember to run the "launch" Task and enter your Google Drive ID.
+- Ensure both desktop and Android devices are on the same local network and that Tasker is running.
+- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, with the server running. Remember to run the "Update GD HTTP Info" Task and (first time only) enter your Google Drive ID when prompted.
 - The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) must be imported into Tasker for the 'List XML Files' button in the GUI. You can [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
 - Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
 
-<!-- ### 3 -->
-
-### 4
-**TBD:**
-
-### 5
+### 3
 **AI Support**
 
 Ai analysis is available through the GUI only. You can run an analysis using a single Project, Profile, Task, or Scene only. Support is available for server-based OpenAi (ChatGPT), Gemini, and Anthropic, as well as local-based Llama models.
@@ -284,30 +277,7 @@ The supporting AI modules are not installed by default when MapTasker is install
 	MapTasker does not do any extensive validation of arguments.  Additionally, default settings for arguments are not all populated.	
 	
 - Remember, this is NOT Tasker.  So the look and feel will be somewhat different.  It may feel a little clunky at first.  Suggestions are welcome.
-<!-- ### 6
-**Optional Inline Videos:** -->
 
-<!-- 'ffmpeg' version 8 or highler can optionally be installed to make embedded YouTube videos clickable and to display them in a separate video-player window from within the Map view.  Other videos, such as those stored on Dropbox as 'mp4' files, are not affected and will display as a clickable hot-link.
-
-The direct playing of YouTube videos is not supported on Windows due to a dependency issue.  Therefore, 'ffmpeg' is not required for Windows users.
-
-The videos are identifiable via the text: '[▶️ VIDEO: some-youtube-url...]', and this text will be hot/clickable if ffmpeg is properly installed.
-
-ffmpeg and all of its 92+ dependencies adds an additional 660 MBs to your installation (hard drive).
-
-To install ffmpeg:
-   MacOS: 'brew install ffmpeg'
-   Linux: 'sudo apt update' and 'sudo apt install ffmpeg'
-   Windows via Winget: 'winget install ffmpeg'
-   Windows via Chocolatey: 'choco install ffmpeg'
-
-Refer to [the ffmpeg download documentation](https://www.ffmpeg.org/download.html) for further details.
-
-If ffmpeg is not installed, then '[▶️ VIDEO: some-youtube-url...]' will still appear, but will not be hot/clickable, and the video can not be displayed, inline, in a separate MapTasker window.
-
-YouTube videos are downloaded to your local drive from which they are then played.  The bigger the video, the longer it will take to process the video.  Only YouTube videos with no audio or English audio will play under the current implementation.  Additional lanaguages will be supported in a future release.
-
-MP4 videos are played directly from their source. -->
 
 ## To-Do List (in no particular order)
 

@@ -250,9 +250,15 @@ def update_tasker_object_menus(self: "MyGui", get_data: bool = False, reset_sing
     Updates the Project, Profile, Task and Scene dropdowns in the 'Specific Name' tab.
     """
     if get_data:
-        if reset_single_names:
-            clear_single_item_view_names(self)
         return_code = list_tasker_objects(self)
+        if reset_single_names:
+            # New XML means the old selection no longer refers to anything in the file
+            # being displayed, so clear it outright.  This runs after list_tasker_objects
+            # so the pulldowns' option lists have already been rebuilt for the new file
+            # and the "None" assigned below lands on an option that exists.  It also runs
+            # whether or not the load succeeded -- a failed load leaves even less reason
+            # to keep pointing at the previous file's Project.
+            reset_single_item_selection(self)
         if not return_code:
             return
 
@@ -665,7 +671,7 @@ def clear_android_buttons(self: "MyGui") -> None:
         "ip_label",
         "port_label",
         "file_label",
-        "get_backup_button",
+        "set_xml_details_button",
         "cancel_entry_button",
         "list_files_button",
         "label_or",
@@ -689,32 +695,15 @@ def clear_android_buttons(self: "MyGui") -> None:
             # Clear the reference so your object state stays clean
             setattr(self, attr, None)
 
-    # 4. Recreate the backup button
-    # (Note: Ensure display_backup_button is also updated for NiceGUI,
-    # particularly how it handles the Hex color codes)
-    # Re-enter the row it originally lived in (see _create_file_and_message_buttons_section in
-    # guiwins.py) -- display_backup_button() builds the button with no container of its own, so
-    # without this it would attach to whatever the default slot is during this event callback
-    # instead of staying under "File Operations".
-    with self.android_button_row:
-        # display_backup_button() hands its text straight to ui.button, so the translation
-        # has to happen here.  The button's original construction in guiwins.py does call
-        # translate_string; without the same call the rebuild silently reverted it to
-        # English -- and this runs during startup, so a non-English GUI came up with one
-        # English button sitting among translated ones.
-        self.get_backup_button = self.display_backup_button(
-            translate_string("Get XML from Android Device"),
-            "#246FB6",
-            "#6563ff",
-            self.event_handlers.get_xml_from_android_event,
-        )
-
-    # The "?" button (self.android_query_button, see _create_file_and_message_buttons_section in
-    # guiwins.py) is never deleted above, so re-creating get_backup_button just appended it after
-    # the "?" button -- move() with no args re-appends an element to the end of its current
-    # parent, putting the "?" button back on the right where it started.
-    if getattr(self, "android_query_button", None):
-        self.android_query_button.move()
+    # 4. The "Get XML from Android Device" button (self.get_backup_button, built in
+    # _create_file_and_message_buttons_section in guiwins.py) is deliberately left alone.
+    #
+    # This used to delete and rebuild it here, which was never necessary -- opening the Android
+    # panel doesn't remove that button, it only adds a panel underneath, so it is still sitting
+    # in its row when this runs. The rebuild also had to be undone in part afterwards: it
+    # appended the new button after the "?" button, so that one had to be move()d back to the
+    # right, and the replacement lost the tooltip and the row-fitting classes the original
+    # carries. Everything this function actually needs to clear away lives in the panel above.
 
 
 # Build a list of Profiles that are under the given project, and all of their (Tasks) children.
@@ -886,6 +875,37 @@ def reset_single_item_pulldowns(self: object, except_for: str = "") -> None:
         if optionmenu is not None:
             optionmenu.value = "None"
             optionmenu.update()
+
+
+def reset_single_item_selection(self: object) -> None:
+    """Drop the current Project/Profile/Task/Scene selection everywhere it is held.
+
+    A selection lives in three places, and each is its own way for a stale one to
+    survive newly loaded XML:
+
+      * the view's single_xxx_name attributes -- what the labels read,
+      * the same names in PrimeItems.program_arguments -- what a mapping run actually
+        filters on,
+      * the 'Specific Name' pulldown widgets -- what the user sees.
+
+    Loading a fresh backup used to reset only the first (clear_single_item_view_names),
+    so a backup just fetched from Android was still filtered through the *previous*
+    file's Project while its pulldown carried on displaying that Project's name.
+
+    set_tasker_object_names does the widget half: with every name now cleared it takes
+    its "nothing selected" branch, putting each pulldown back on "None" and blanking the
+    "Display only ..." caption.  Assigning a select's .value fires its on_change, so this
+    runs under the is_updating lock like every other programmatic pulldown update.
+
+    Call this after the pulldowns' option lists have been rebuilt for the new file, so
+    the "None" being assigned is an option that actually exists.
+    """
+    clear_single_item_names(self)
+    try:
+        self.is_updating = True
+        set_tasker_object_names(self)
+    finally:
+        self.is_updating = False
 
 
 def set_tasker_object_names(self: object) -> None:
@@ -1565,16 +1585,14 @@ def check_new_version(self: "MyGui") -> None:
 
             # 'Upgrade to Latest Version' Button
             self.upgrade_button = (
-                ui
-                .button(translate_string("Upgrade to Latest Version"), on_click=self.event_handlers.upgrade_event)
+                ui.button(translate_string("Upgrade to Latest Version"), on_click=self.event_handlers.upgrade_event)
                 .style("background-color: #79ff94; color: #6563ff;")
                 .classes("w-full font-bold text-xs py-2")
             )
 
             # 'What's New' Button
             self.whats_new_button = (
-                ui
-                .button(translate_string("What's New?"), on_click=self.event_handlers.whatsnew_event)
+                ui.button(translate_string("What's New?"), on_click=self.event_handlers.whatsnew_event)
                 .style("background-color: #246FB6; border-color: #79ff94; border-width: 1px; color: white;")
                 .classes("w-full text-xs")
             )

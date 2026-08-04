@@ -15,9 +15,6 @@ from maptasker.src.error import rutroh_error
 from maptasker.src.mapfonts import get_font_choices as get_font_selections
 from maptasker.src.mapfonts import get_monospaced_fonts
 
-# from maptasker.src.maputil2 import translate_string
-# from maptasker.src.maputils import make_hex_color
-# from maptasker.src.video import handle_image
 # Define label fonts for headings (Replaced hardcoded pixel sizes with Tailwind text classes)
 from maptasker.src.primitem import PrimeItems
 

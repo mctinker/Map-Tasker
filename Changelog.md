@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.0.2] ??-Aug-2026  # FIX
+## [12.0.2] 05-Aug-2026
 
 ### Added
 
-- Added:
+- Added: Search results are nmow cahced for faster repeat searchs in the Map and Diagram views.
 
 ### Changed
 
@@ -18,16 +18,18 @@ All notable changes to this project will be documented in this file!
 - Fixed: <section> and <span> html tags are not recognized in TaskerNet descriptions.
 - Fixed: Cleaned up some formatting issues of TaskerNet descriptions.
 - Fixed: An intermittent program error can occur when switching languages.
-- FIxed: Switching language causes the wrong or no tab to be displayed.
+- Fixed: Switching language causes the wrong or no tab to be displayed.
+- Fixed: Search for a text string in the Map and Diagram view only finds the first match per line rather than all of the matches.
+- Fixed: Embedded images in TaskerNet descriptions are not displaying and an error message '...not found' prints out.
 
 ### Known Issue
 
 - It is unlikely but possible to have a previous browser task preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
 you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
-lsof -i :8080
+      `lsof -i :8080`
 For each PID listed in the output from the above terminal command, issue the following:
-kill -9 pid_number
-...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080'.
+      `kill -9 pid_number`
+...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080' (e.g. kill -9 8547).
 - Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
 
 
