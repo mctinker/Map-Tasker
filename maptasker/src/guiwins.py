@@ -25,6 +25,14 @@ if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
 
 
+# The mode the GUI opens in.  Single source of truth for the three things that have to agree
+# about it: NiceGUI's dark-mode controller, the "Dark Mode" switch's initial position, and
+# self.dark_mode (which views read to colour themselves before the switch is ever clicked).
+# They did not agree before -- the switch came up reading "dark" over a light page -- because
+# the switch's initial value never fires its on_change handler.  See initialize_screen().
+STARTUP_DARK_MODE = False
+
+
 # ==========================================
 # 2. DIALOGS & POPUPS
 # ==========================================
@@ -2170,6 +2178,129 @@ def forget_views(master_gui: MyGui) -> None:
     master_gui.textview = False
 
 
+def resolve_dark_mode(appearance_mode: str | None) -> bool:
+    """Whether the saved appearance mode means "dark" -- "system" asks the OS, as colrmode does."""
+    if appearance_mode == "system":
+        import darkdetect  # noqa: PLC0415  Only needed on this path, and it is a slow import
+
+        return bool(darkdetect.isDark())
+    return appearance_mode == "dark"
+
+
+def apply_appearance_mode(self: MyGui, is_dark: bool) -> None:
+    """Put the whole window into dark or light mode and remember which it is now in.
+
+    Called both by the "Dark Mode" switch and, on start-up, by restore_appearance_mode() with
+    whatever the saved settings hold -- the reason this is a function of its own rather than
+    the switch's handler: the widgets below are coloured by inline style, so nothing short of
+    running this puts a restored mode on the screen.
+    """
+    self.dm_controller.enable() if is_dark else self.dm_controller.disable()
+
+    # --- 1. Resolve theme colors from a single source of truth ---
+    bg = "#1e293b" if is_dark else "#ffffff"
+    drawer_bg = "#1f2937" if is_dark else "#ffffff"
+    fg = "#ffffff" if is_dark else "#000000"
+
+    # --- 2. Persist state on self ---
+    # appearance_mode is what gets written to the settings file (it is in ARGUMENT_NAMES),
+    # so setting it here is what makes the choice outlive the session.
+    self.appearance_mode = "dark" if is_dark else "light"
+    self.dark_mode = is_dark
+    self.saved_background_color = bg
+    # A settings restore carries its own colors and is mid-way through applying them, so leave
+    # them alone -- extract_settings() raises this flag for exactly this reason.
+    if not getattr(self, "extract_in_progress", False):
+        self.color_lookup = set_color_mode(self.appearance_mode)
+    bg = (self.color_lookup or {}).get("background", bg)
+
+    # --- 3. Push background color to the browser body ---
+    ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
+
+    # --- 4. Apply styles to every named widget that exists ---
+    for attr in ("gui_left_drawer", "gui_right_drawer"):
+        widget = getattr(self, attr, None)
+        if widget:
+            widget.style(f"background-color: {drawer_bg} !important; color: {fg} !important;")
+
+    for attr in (
+        "gui_main_column",
+        "gui_tab_panel",
+        "gui_tab_panels",
+        "gui_main_tabs_container",
+        "gui_color_panel",
+        "gui_ai_panel",
+        "gui_debug_panel",
+        "gui_tasker_object_panel",
+        "content_container",
+    ):
+        widget = getattr(self, attr, None)
+        if widget:
+            widget.style(f"background-color: {bg} !important; color: {fg} !important;")
+
+    # --- 5. CRITICAL FIX: Force the text view's gui_toolbar color update ---
+    # Every open view, not just the newest: "Open View In New Window" can leave
+    # several Map/Diagram tabs on screen, and they all have to follow the theme.
+    for textview in live_views(self):
+        # The Tree view colours its whole container itself (card included) rather than
+        # leaving it to the stylesheet -- see NiceGuiTreeView.apply_theme.
+        apply_theme = getattr(textview, "apply_theme", None)
+        if apply_theme:
+            apply_theme(bg, fg)
+        scroll_area = getattr(textview, "scroll_area", None)
+        if scroll_area and not apply_theme:
+            scroll_area.style(f"background-color: {bg} !important;")
+
+        # Map / Diagram / Tree View >  Search / Clear / Top / Bottom Toolbar
+        tv_toolbar = getattr(textview, "gui_toolbar", None)
+        if tv_toolbar:
+            if is_dark:
+                tv_toolbar.style("background-color: #1f2937 !important; color: #ffffff !important;")
+            else:
+                tv_toolbar.style("background-color: #00ffff !important; color: #000000 !important;")
+
+    # --- 6. CRITICAL FIX: Force the main body gui_view_toolbar color update (Current File: backup.xml ...---
+    view_toolbar = getattr(self, "gui_view_toolbar", None)
+    if view_toolbar:
+        if is_dark:
+            view_toolbar.style("background-color: #1e293b !important; color: #ffffff !important;")
+        else:
+            view_toolbar.style("background-color: #00ffff !important; color: #000000 !important;")
+
+
+def restore_appearance_mode(self: MyGui, appearance_mode: str | None) -> str:
+    """Put the window into the appearance mode a restored settings file asks for.
+
+    Runs from restore_display() during start-up, after initialize_screen() has already built
+    the window at STARTUP_DARK_MODE.  Moves the switch to match and repaints, so the saved
+    choice survives the session rather than being a setting that is written but never read.
+    """
+    is_dark = resolve_dark_mode(appearance_mode)
+    switch = getattr(self, "dark_mode_switch", None)
+    if switch is not None:
+        # Assigning an unchanged value fires no on_change, so paint by hand rather than
+        # relying on the switch to do it -- restoring "light" over a light start-up must
+        # still colour the window, since nothing else has yet.
+        switch.value = is_dark
+    apply_appearance_mode(self, is_dark)
+    return f"{translate_string('Appearance Mode')} {translate_string('set to')} {self.appearance_mode}\n"
+
+
+def view_theme_colors(master_gui: MyGui) -> tuple[str, str]:
+    """The (background, foreground) a view should paint itself with right now.
+
+    Same pair the dark-mode toggle hands to the drawers, panels and text views, so a view
+    that has to colour itself at build time -- the toggle's on_change only fires when the
+    switch is actually clicked -- lands on exactly what the rest of the window is using.
+    Defaults to light when the switch has never been touched, which is the state the page
+    starts in (ui.dark_mode() mounts disabled regardless of the switch's initial value).
+    """
+    is_dark = bool(getattr(master_gui, "dark_mode", False))
+    bg = "#1e293b" if is_dark else "#ffffff"
+    fg = "#ffffff" if is_dark else "#000000"
+    return (getattr(master_gui, "color_lookup", None) or {}).get("background", bg), fg
+
+
 class NiceGuiTreeView:
     """Replaces CTkTreeview. Renders a hierarchical tree representation in the main view column."""
 
@@ -2191,8 +2322,11 @@ class NiceGuiTreeView:
             container_context = ui.column()  # Fallback context if called standalone
 
         # 2. Render the layout inside the main application body container
-        with container_context:  # noqa: SIM117
-            with ui.card().classes("w-full max-w-full mx-auto p-6 shadow-md border-2 border-gray-300"):
+        with container_context:
+            self.card = ui.card().classes(
+                "maptasker-tree-card w-full max-w-full mx-auto p-6 shadow-md border-2 border-gray-300",
+            )
+            with self.card:
                 # Header row with title and navigation hints
                 with ui.row().classes("items-center justify-between w-full border-b pb-3 mb-4"):
                     ui.label(f"{self.title}").classes("text-orange-500 font-bold text-lg")
@@ -2204,7 +2338,8 @@ class NiceGuiTreeView:
                 tree_data = self._format_data(items)
 
                 # 3. Create a scrollable window container for large tree structures
-                with ui.scroll_area().classes("w-full h-[65vh] p-2"):
+                self.scroll_area = ui.scroll_area().classes("w-full h-[65vh] p-2")
+                with self.scroll_area:
                     # Render the native responsive Tree component
                     # Injected custom fonts to preserve monospace formatting matches
                     self.tree = (
@@ -2213,6 +2348,25 @@ class NiceGuiTreeView:
                         .classes("w-full text-base")
                         .style(f"font-family: '{self.master_gui.font}', monospace;")
                     )
+
+        self.apply_theme(*view_theme_colors(self.master_gui))
+
+    def apply_theme(self, bg: str, fg: str) -> None:
+        """Paint this view's card and scroll area for the mode the window is currently in.
+
+        Unlike the Map/Diagram views -- whose scroll area the dark-mode toggle restyles by
+        hand -- the Tree view's container used to carry no colours of its own, leaving it to
+        whichever stylesheet rule won the cascade for .q-card / .q-scrollarea. That is a
+        fragile thing to depend on across browsers and NiceGUI/Quasar releases (it is what
+        left this one container white in dark mode), so state the colours outright instead.
+        "!important" for the same reason the Map view's background needs it: it has to beat
+        the equally-important light/dark overrides injected by inject_shared_head_styles().
+        The node labels follow along through the .maptasker-tree-card rule in that same
+        stylesheet, which hands them this card's colour instead of Quasar's theme colour.
+        """
+        style = f"background-color: {bg} !important; color: {fg} !important;"
+        self.card.style(style)
+        self.scroll_area.style(style)
 
     def _format_data(self, items: list, parent_id: str = "node") -> list:
         """Converts MapTasker lists/dicts into NiceGUI's strict dict format,
@@ -2553,7 +2707,9 @@ class NiceGuiTextView:
         connector's spans are emitted top-to-bottom in document order -- is scrolled out of the
         visible area, a floating "Jump to Start"/"Jump to End" button appears so the user can
         bring it into view without hunting for it manually; the button hides itself again once
-        the user scrolls that end into view (or clicks away).
+        the user scrolls that end into view (or clicks away). A jump scrolls vertically to that
+        end's line and horizontally back to column 1, so the line is read from its beginning
+        rather than from wherever the connector happens to sit across a wide diagram.
         """
         # ui.run_javascript() needs an active NiceGUI "slot" to know which client to target.
         # This runs from a background asyncio task (self._task), after the `with self.scroll_area:`
@@ -2599,7 +2755,21 @@ class NiceGuiTextView:
                             // Instant, not smooth: the jump can cover tens of thousands of pixels
                             // on a large diagram, where an animated scroll would be slow to land
                             // and distracting rather than helpful.
-                            target.scrollIntoView({{block: "center", inline: "center", behavior: "auto"}});
+                            //
+                            // Vertical placement only. Centering horizontally on the connector
+                            // (inline: "center") parked a wide diagram mid-line, so the user
+                            // landed on the right line but somewhere out in the middle of it;
+                            // "nearest" keeps scrollIntoView from moving sideways on its own and
+                            // the loop below then pins every scrollable ancestor back to column 1.
+                            target.scrollIntoView({{block: "center", inline: "nearest", behavior: "auto"}});
+                            for (let a = target.parentElement; a; a = a.parentElement) {{
+                                if (a.scrollWidth > a.clientWidth) {{
+                                    a.scrollLeft = 0;
+                                }}
+                            }}
+                            if (document.scrollingElement) {{
+                                document.scrollingElement.scrollLeft = 0;
+                            }}
                             // Don't wait for the resulting "scroll" event to re-check visibility --
                             // it fires asynchronously, and updateJumpButtons is hoisted so it's
                             // already safe to call here even though it's defined further down.
@@ -2613,15 +2783,17 @@ class NiceGuiTextView:
                 const jumpStartBtn = makeJumpButton("Jump to Start", 60);
 
                 function isElementVisible(el, container) {{
-                    // A connector's horizontal run can be wider than the whole viewport, in which
-                    // case requiring it to fit entirely inside the container can never be
-                    // satisfied even right after successfully jumping to it. Its midpoint landing
-                    // inside the container is a better proxy for "the jump got you there".
+                    // Vertical only, matching what the jump actually does: it scrolls to the
+                    // connector's line and then resets to column 1, so a target sitting off to
+                    // the right is not something the button can help with -- testing for it
+                    // would leave the button showing forever on a wide diagram. A connector's
+                    // run can also be taller than the container, in which case requiring it to
+                    // fit entirely inside can never be satisfied even right after a successful
+                    // jump; its midpoint landing inside is a better proxy for "you're there".
                     const er = el.getBoundingClientRect();
                     const cr = container.getBoundingClientRect();
-                    const midX = er.left + er.width / 2;
                     const midY = er.top + er.height / 2;
-                    return midX >= cr.left && midX <= cr.right && midY >= cr.top && midY <= cr.bottom;
+                    return midY >= cr.top && midY <= cr.bottom;
                 }}
 
                 function positionJumpButtons() {{
@@ -3383,6 +3555,10 @@ def _initialize_gui_settings(self: MyGui) -> None:
     self.gui = True
     self.guiview = False
     self.appearance_mode = None
+    # What the "Dark Mode" switch will be showing when the window opens (see STARTUP_DARK_MODE).
+    # Kept in step with it here so a view rendered before the switch is ever clicked colours
+    # itself the way the rest of the window is already painted.
+    self.dark_mode = STARTUP_DARK_MODE
     self.default_font = ""
     self.font = None
     self.bold = None
@@ -3590,23 +3766,34 @@ def inject_shared_head_styles() -> None:
 
             /* =========================================================================
                DARK MODE HIGH-CONTRAST OVERRIDES (Crisp Silver/White on Dark Backgrounds)
+
+               "body.body--dark" is how dark mode is actually marked in the DOM: NiceGUI's
+               ui.dark_mode() drives Quasar's dark plugin, which sets body--dark/body--light
+               on <body>, and NiceGUI wires Tailwind's own "dark:" variant to that same class.
+               Nothing ever puts a "dark" class on <html> -- so the ".dark ..." selectors these
+               rules used to carry never matched anything, and the "html:not(.dark) ..." ones
+               further down matched in BOTH modes, forcing white onto cards and scroll areas
+               even in dark mode. Everything else survived that only because apply_appearance_mode()
+               writes inline "!important" styles over it (an inline important declaration
+               outranks a stylesheet one); the Tree view's card and scroll area get no such
+               inline styles, which is exactly why that one container stayed white.
                ========================================================================= */
-            .dark .force-scrollbar::-webkit-scrollbar-track,
-            .dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-track {
+            body.body--dark .force-scrollbar::-webkit-scrollbar-track,
+            body.body--dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-track {
                 background: rgba(255, 255, 255, 0.1) !important;
             }
-            .dark .force-scrollbar::-webkit-scrollbar-thumb,
-            .dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb,
-            .dark .q-scrollarea__thumb--v,
-            .dark .q-scrollarea__thumb--h {
+            body.body--dark .force-scrollbar::-webkit-scrollbar-thumb,
+            body.body--dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb,
+            body.body--dark .q-scrollarea__thumb--v,
+            body.body--dark .q-scrollarea__thumb--h {
                 background: #e2e8f0 !important;
                 border: 1px solid #1e293b !important;
                 opacity: 0.95 !important;
             }
-            .dark .force-scrollbar::-webkit-scrollbar-thumb:hover,
-            .dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb:hover,
-            .dark .q-scrollarea__thumb--v:hover,
-            .dark .q-scrollarea__thumb--h:hover {
+            body.body--dark .force-scrollbar::-webkit-scrollbar-thumb:hover,
+            body.body--dark .force-scrollbar .q-drawer__content::-webkit-scrollbar-thumb:hover,
+            body.body--dark .q-scrollarea__thumb--v:hover,
+            body.body--dark .q-scrollarea__thumb--h:hover {
                 background: #ffffff !important;
                 opacity: 1 !important;
             }
@@ -3617,29 +3804,32 @@ def inject_shared_head_styles() -> None:
                 scrollbar-width: auto !important;
                 scrollbar-color: #475569 rgba(0, 0, 0, 0.08) !important;
             }
-            .dark .force-scrollbar,
-            .dark .force-scrollbar .q-drawer__content {
+            body.body--dark .force-scrollbar,
+            body.body--dark .force-scrollbar .q-drawer__content {
                 scrollbar-color: #e2e8f0 rgba(255, 255, 255, 0.1) !important;
             }
 
             /* =========================================================================
                TARGETED LIGHT MODE OVERRIDES (Completely bypasses macOS System preferences)
+
+               Scoped to "body:not(.body--dark)" -- see the note above on why the old
+               "html:not(.dark)" scope leaked these white backgrounds into dark mode.
                ========================================================================= */
-            html:not(.dark) body,
-            html:not(.dark) .q-layout,
-            html:not(.dark) .q-page-container,
-            html:not(.dark) main,
-            html:not(.dark) .q-drawer,
-            html:not(.dark) .q-tab-panels,
-            html:not(.dark) .q-tab-panel,
-            html:not(.dark) .q-card,
-            html:not(.dark) .q-tabs,
-            html:not(.dark) .q-scrollarea,
-            html:not(.dark) .q-scroll-area,
-            html:not(.dark) .q-textview,
-            html:not(.dark) .q-content-container,
-            html:not(.dark) .q-container-context,
-            html:not(.dark) div.nicegui-content {
+            body:not(.body--dark),
+            body:not(.body--dark) .q-layout,
+            body:not(.body--dark) .q-page-container,
+            body:not(.body--dark) main,
+            body:not(.body--dark) .q-drawer,
+            body:not(.body--dark) .q-tab-panels,
+            body:not(.body--dark) .q-tab-panel,
+            body:not(.body--dark) .q-card,
+            body:not(.body--dark) .q-tabs,
+            body:not(.body--dark) .q-scrollarea,
+            body:not(.body--dark) .q-scroll-area,
+            body:not(.body--dark) .q-textview,
+            body:not(.body--dark) .q-content-container,
+            body:not(.body--dark) .q-container-context,
+            body:not(.body--dark) div.nicegui-content {
                 background-color: #ffffff !important;
                 color: #000000 !important;
             }
@@ -3647,11 +3837,25 @@ def inject_shared_head_styles() -> None:
             /* =========================================================================
                CRITICAL FIX: FORCE TOOLBAR ROWS WHITE IN LIGHT MODE
                ========================================================================= */
-            html:not(.dark) .bg-gray-200,
-            html:not(.dark) .dark\\:bg-gray-800,
-            html:not(.dark) .gap-4.mb-6 {
+            body:not(.body--dark) .bg-gray-200,
+            body:not(.body--dark) .dark\\:bg-gray-800,
+            body:not(.body--dark) .gap-4.mb-6 {
                 background-color: #ffffff !important;
                 color: #000000 !important;
+            }
+
+            /* =========================================================================
+               TREE VIEW: LABELS TAKE THEIR COLOUR FROM THE CARD
+
+               NiceGuiTreeView.apply_theme() puts the current mode's foreground colour on
+               the card as an inline style; Quasar otherwise colours the node rows from its
+               own theme, which is how the labels could end up light-on-light (or dark-on-
+               dark) if its idea of the mode ever disagrees with the switch's.  Inheriting
+               keeps the two in step no matter which way that disagreement goes.
+               ========================================================================= */
+            .maptasker-tree-card .q-tree,
+            .maptasker-tree-card .q-tree * {
+                color: inherit !important;
             }
 
             /* =========================================================================
@@ -3748,75 +3952,18 @@ def initialize_screen(self: MyGui) -> None:
     with ui.header().classes("bg-blue-900 text-white p-4 justify-between items-center"):
         ui.label("MapTasker").classes("text-2xl font-bold")
 
-        dm_controller = ui.dark_mode()
+        # Stated outright rather than left to ui.dark_mode()'s own default: ui.run()'s
+        # dark=None (auto) is applied before Vue mounts and this element then overrides it,
+        # so this -- not the system appearance, and not the switch -- is what the page comes
+        # up as. Only the mode the window OPENS in: restore_settings_event() runs after this
+        # whole layout is built and puts the saved mode on top (see restore_appearance_mode).
+        self.dm_controller = ui.dark_mode(value=STARTUP_DARK_MODE)
 
-        def toggle_dark_mode(e: ui.ValueChangeEventArguments) -> None:
-            is_dark = e.value
-
-            # --- 1. Activate NiceGUI's built-in dark mode controller ---
-            dm_controller.enable() if is_dark else dm_controller.disable()
-
-            # --- 2. Resolve theme colors from a single source of truth ---
-            bg = "#1e293b" if is_dark else "#ffffff"
-            drawer_bg = "#1f2937" if is_dark else "#ffffff"
-            fg = "#ffffff" if is_dark else "#000000"
-
-            # --- 3. Persist state on self ---
-            self.appearance_mode = "dark" if is_dark else "light"
-            self.dark_mode = is_dark
-            self.saved_background_color = bg
-            self.color_lookup = set_color_mode(self.appearance_mode)
-            bg = self.color_lookup.get("background", bg)
-
-            # --- 4. Push background color to the browser body ---
-            ui.run_javascript(f"document.body.style.backgroundColor = '{bg}';")
-
-            # --- 5. Apply styles to every named widget that exists ---
-            for attr in ("gui_left_drawer", "gui_right_drawer"):
-                widget = getattr(self, attr, None)
-                if widget:
-                    widget.style(f"background-color: {drawer_bg} !important; color: {fg} !important;")
-
-            for attr in (
-                "gui_main_column",
-                "gui_tab_panel",
-                "gui_tab_panels",
-                "gui_main_tabs_container",
-                "gui_color_panel",
-                "gui_ai_panel",
-                "gui_debug_panel",
-                "gui_tasker_object_panel",
-                "content_container",
-            ):
-                widget = getattr(self, attr, None)
-                if widget:
-                    widget.style(f"background-color: {bg} !important; color: {fg} !important;")
-
-            # --- 6. CRITICAL FIX: Force the text view's gui_toolbar color update ---
-            # Every open view, not just the newest: "Open View In New Window" can leave
-            # several Map/Diagram tabs on screen, and they all have to follow the theme.
-            for textview in live_views(self):
-                scroll_area = getattr(textview, "scroll_area", None)
-                if scroll_area:
-                    scroll_area.style(f"background-color: {bg} !important;")
-
-                # Map / Diagram / Tree View >  Search / Clear / Top / Bottom Toolbar
-                tv_toolbar = getattr(textview, "gui_toolbar", None)
-                if tv_toolbar:
-                    if is_dark:
-                        tv_toolbar.style("background-color: #1f2937 !important; color: #ffffff !important;")
-                    else:
-                        tv_toolbar.style("background-color: #00ffff !important; color: #000000 !important;")
-
-            # --- 7. CRITICAL FIX: Force the main body gui_view_toolbar color update (Current File: backup.xml ...---
-            view_toolbar = getattr(self, "gui_view_toolbar", None)
-            if view_toolbar:
-                if is_dark:
-                    view_toolbar.style("background-color: #1e293b !important; color: #ffffff !important;")
-                else:
-                    view_toolbar.style("background-color: #00ffff !important; color: #000000 !important;")
-
-        ui.switch(translate_string("Dark Mode"), value=True, on_change=toggle_dark_mode)
+        self.dark_mode_switch = ui.switch(
+            translate_string("Dark Mode"),
+            value=STARTUP_DARK_MODE,
+            on_change=lambda e: apply_appearance_mode(self, e.value),
+        )
 
     # =========================================================================
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES

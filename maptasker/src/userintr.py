@@ -76,6 +76,7 @@ from maptasker.src.guiwins import (
     initialize_gui,
     initialize_screen,
     live_views,
+    restore_appearance_mode,
     set_document_language_js,
 )
 from maptasker.src.guiwins2 import APIKeyDialog
@@ -838,6 +839,10 @@ class MyGui:
             "android_ipaddr": lambda: f"{translate_string('Android Get XML TCP IP Address')} {set_to} {value}\n",
             "android_port": lambda: f"{translate_string('Android Get XML Port Number')} {set_to} {value}\n",
             "android_file": lambda: f"{translate_string('Android Get XML File Location')} {set_to} {value}\n",
+            # Moves the "Dark Mode" switch and repaints the window.  Without this the saved
+            # appearance mode landed on self (every restored key does, via setattr above) and
+            # then sat there unused, which is what made dark mode look like it was never saved.
+            "appearance_mode": lambda: restore_appearance_mode(self, value),
             "ai_model_extended_list": lambda: self.select_deselect_checkbox(
                 self.aimodel_extend_checkbox,
                 value,
@@ -1908,16 +1913,25 @@ class MapTaskerEventHandlers:
         NICEGUI PARADIGM SHIFT:
         Dropdown (ui.select) on_change events automatically pass an 'event' object.
         The new selected value is stored in `event`.
+
+        Accepts the pulldown's event object, a bare string (what a restored settings file and
+        the 'Everything' toggle hand over) or an int, and always leaves an int on the GUI --
+        see the note below on why the type matters.
         """
         if self.gui.is_updating:
             return
 
-        if isinstance(event_value, int):
-            self.gui.display_detail_level = str(event_value)
-        elif isinstance(event_value, str) and event_value.isdigit():
-            self.gui.display_detail_level = event_value
-        else:
-            self.gui.display_detail_level = event_value.value
+        # The level is an int on the GUI object.  save_settings_event() writes these attributes
+        # to the settings file as-is, and every reader of program_arguments["display_detail_level"]
+        # compares it numerically (> 2, == 4, >= DISPLAY_DETAIL_LEVEL_all_tasks ...), so a string
+        # here is what wrote display_detail_level = "5" into the TOML and left capture_gui_state()
+        # and process_gui() (rungui.py) converting it back on every run.  The pulldown keeps a
+        # string of its own below, since its options are strings.
+        raw_level = event_value if isinstance(event_value, (int, str)) else event_value.value
+        # Anything unconvertible (an empty pulldown, say) leaves the current level alone rather
+        # than replacing it with something no comparison can handle.
+        with contextlib.suppress(TypeError, ValueError):
+            self.gui.display_detail_level = int(raw_level)
         self.gui.is_updating = True
 
         self.gui.sidebar_detail_option.value = str(self.gui.display_detail_level)
@@ -4992,11 +5006,11 @@ class MapTaskerEventHandlers:
                 # 3. Synchronize underlying property models
                 setattr(mygui, attr_name.replace("_checkbox", ""), value)
 
-        # Handle Display Detail Level separately
-        # In NiceGUI, we store DEFAULT_DISPLAY_DETAIL_LEVEL as a string configuration
+        # Handle Display Detail Level separately.  detail_selected_event() is what puts the
+        # level (an int) on the GUI; only the pulldown itself takes the string, its options
+        # being strings.
         detail_level_str = str(DEFAULT_DISPLAY_DETAIL_LEVEL)
-        mygui.event_handlers.detail_selected_event(detail_level_str)
-        mygui.display_detail_level = detail_level_str
+        mygui.event_handlers.detail_selected_event(DEFAULT_DISPLAY_DETAIL_LEVEL)
 
         # Safely force the Dropdown select component visual match if it exists
         if hasattr(mygui, "sidebar_detail_option") and mygui.sidebar_detail_option:
@@ -5090,7 +5104,7 @@ class MapTaskerEventHandlers:
         all_parameters_threshold = 3
 
         # 2. Check if detail level is too low to support twisties
-        if mygui.twisty and int(mygui.display_detail_level) < all_parameters_threshold:
+        if mygui.twisty and mygui.display_detail_level < all_parameters_threshold:
             mygui.display_message_box(
                 translate_string(
                     "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!"
@@ -5098,11 +5112,12 @@ class MapTaskerEventHandlers:
                 "Red",
             )
 
-            # Update both the dropdown value and the class attribute property
+            # Update both the dropdown value (a string, like its options) and the class
+            # attribute property (an int, like everything that compares it).
             if hasattr(mygui, "sidebar_detail_option") and mygui.sidebar_detail_option:
                 mygui.sidebar_detail_option.value = "3"
-            mygui.display_detail_level = "3"
-            PrimeItems.program_arguments["display_detail_level"] = 3
+            mygui.display_detail_level = all_parameters_threshold
+            PrimeItems.program_arguments["display_detail_level"] = all_parameters_threshold
 
         # 3. Check to see if we are doing everything (they are mutually exclusive)
         if mygui.twisty and mygui.everything:

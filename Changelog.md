@@ -2,25 +2,23 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.0.2] 05-Aug-2026
+## [12.0.3] ??-Aug-2026  # FIX
 
 ### Added
 
-- Added: Search results are nmow cahced for faster repeat searchs in the Map and Diagram views.
+- Added:
 
 ### Changed
 
-- Changed: Set as current directory if a different diretory is selected from the 'Get Locxal XML File'.
+- Changed:
 
 ### Fixed
 
-- Fixed: Numerous GUI text translations are missing.
-- Fixed: <section> and <span> html tags are not recognized in TaskerNet descriptions.
-- Fixed: Cleaned up some formatting issues of TaskerNet descriptions.
-- Fixed: An intermittent program error can occur when switching languages.
-- Fixed: Switching language causes the wrong or no tab to be displayed.
-- Fixed: Search for a text string in the Map and Diagram view only finds the first match per line rather than all of the matches.
-- Fixed: Embedded images in TaskerNet descriptions are not displaying and an error message '...not found' prints out.
+- Fixed: The 'Jump' buttons in the Diagram view jump to the middle column of the view rather than the beginning column. 
+- Fixed: Dark/Light Mode is incorrect on Windows 11, and incorrect for the Tree view on the MAC.
+- Fixed: The 'Dark Mode' switch is on when the window opens in light mode, making the first click on it appear to do nothing.
+- Fixed: The Dark/Light Mode setting is not saved and restored along with the rest of your settings.
+- Fixed: The Display Detail Level is written to the settings file as text ("5") rather than as a number (5).
 
 ### Known Issue
 
@@ -34,6 +32,18 @@ For each PID listed in the output from the above terminal command, issue the fol
 
 
 ## Older History Logs
+
+## [12.0.2] 05-Aug-2026
+
+- Added: Search results are nmow cahced for faster repeat searchs in the Map and Diagram views.
+- Changed: Set as current directory if a different diretory is selected from the 'Get Locxal XML File'.
+- Fixed: Numerous GUI text translations are missing.
+- Fixed: <section> and <span> html tags are not recognized in TaskerNet descriptions.
+- Fixed: Cleaned up some formatting issues of TaskerNet descriptions.
+- Fixed: An intermittent program error can occur when switching languages.
+- Fixed: Switching language causes the wrong or no tab to be displayed.
+- Fixed: Search for a text string in the Map and Diagram view only finds the first match per line rather than all of the matches.
+- Fixed: Embedded images in TaskerNet descriptions are not displaying and an error message '...not found' prints out.
 
 ## [12.0.1] 31-Jul-2026
 
