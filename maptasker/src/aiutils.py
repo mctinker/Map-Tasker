@@ -3,8 +3,12 @@
 #                                                                                      #
 # mapai: Ai support                                                                    #
 #                                                                                      #
+import importlib.util
 import os
 import pickle
+import shutil
+import subprocess
+import time
 from contextlib import suppress
 from typing import TYPE_CHECKING
 
@@ -23,6 +27,95 @@ from maptasker.src.sysconst import (
     KEYFILE,
     OPENAI_MODELS,
 )
+
+# How long to wait for a just-started Ollama server to begin answering, and how often to ask.
+# A first start straight after an install is the slow case: it has its model store to set up
+# before it will answer anything.
+OLLAMA_STARTUP_TIMEOUT = 30  # seconds
+OLLAMA_POLL_SECONDS = 1.0
+OLLAMA_DOWNLOAD_URL = "https://ollama.com/download"
+
+
+# Is there an Ollama server up and answering?
+def ollama_is_responding(ollama: object) -> bool:
+    """True if an Ollama server is running and answering requests.
+
+    Args:
+        ollama (object): the imported 'ollama' package.
+
+    Returns:
+        bool: True if the server answered, False for any reason it did not.
+    """
+    try:
+        ollama.list()
+    except Exception:  # noqa: BLE001  Any failure at all here simply means "not answering".
+        return False
+    return True
+
+
+# Start the Ollama server ('ollama serve') and wait until it is ready to be used.
+def start_ollama_server() -> tuple[bool, str]:
+    """Start the Ollama server with the 'ollama serve' terminal command and wait for it to answer.
+
+    MapTasker installs the 'ollama' package itself when it is missing (cria.py does it on
+    import, via ensure_and_import), and a machine that has just had it installed has no server
+    running yet.  Without this, whatever triggered the install would be the thing to fail --
+    with a bare connection error -- leaving the user to go and start the server by hand.
+
+    Reports nothing itself: the two callers differ on what a failure means (an analysis says so
+    through error_handler, the model pulldown only logs it and falls back to its stock list), so
+    the reason is handed back for them to deal with.
+
+    Returns:
+        tuple[bool, str]: (True, "") once a server is answering, otherwise (False, reason).
+    """
+    ollama = ensure_and_import("ollama", "ollama")
+    if ollama is None:
+        return (
+            False,
+            f"The 'ollama' package could not be installed.  Please install Ollama from '{OLLAMA_DOWNLOAD_URL}'.",
+        )
+
+    # Already up?  Then this run has nothing to start: the Ollama desktop app, an earlier
+    # MapTasker run, or the user's own 'ollama serve' is already serving it.
+    if ollama_is_responding(ollama):
+        return True, ""
+
+    # The Python package and the Ollama application are two separate installs, and only the
+    # first one is ours to do.  Say so plainly rather than letting the missing command surface
+    # as the FileNotFoundError cria raises deep inside an analysis.
+    if shutil.which("ollama") is None:
+        return (
+            False,
+            f"Ollama is not installed.  Please install the Ollama app from '{OLLAMA_DOWNLOAD_URL}' and try again.",
+        )
+
+    print("MapTasker: --- Starting the Ollama server ('ollama serve')... ---")
+    try:
+        # Not waited on: 'ollama serve' runs for as long as the server does.  Left running
+        # afterwards on purpose -- an analysis needs it for its whole duration, and cria finds
+        # this same process rather than starting a second one.
+        subprocess.Popen(
+            ["ollama", "serve"],  # noqa: S607  Deliberately found on PATH, as the user runs it.
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError as e:
+        return False, f"Could not start the Ollama server: {e}"
+
+    # Starting it is not the same as it being ready, so wait for it to actually answer.
+    deadline = time.monotonic() + OLLAMA_STARTUP_TIMEOUT
+    while time.monotonic() < deadline:
+        if ollama_is_responding(ollama):
+            print("MapTasker: --- The Ollama server is running. ---")
+            return True, ""
+        time.sleep(OLLAMA_POLL_SECONDS)
+
+    return (
+        False,
+        f"The Ollama server did not start within {OLLAMA_STARTUP_TIMEOUT} seconds.  "
+        "Try running 'ollama serve' in a terminal, then try again.",
+    )
 
 
 def get_openai_models() -> list:
@@ -207,34 +300,52 @@ def get_gemini_models() -> list:
     return models_to_keep
 
 
-def modify_list_elements(list1: list[str], list2: list[str], suffix: str) -> list[str]:
-    """
-    Modifies elements in the first list if they are found in the second list.
+# The model name Ollama itself knows a model by.
+def tagged_model_name(name: str) -> str:
+    """Ollama's full 'name:tag' for a model.  A name with no tag means ':latest' to Ollama."""
+    return name if ":" in name else f"{name}:latest"
 
-    For each string in `list2`, if it matches an element in `list1`, the
-    matching element in `list1` will have the `suffix` appended to it.
-    The modification happens in place, and the modified list1 is also returned.
+
+# Mark the models the user has, and add any of theirs the built-in list does not know about.
+def mark_installed_models(catalog: list[str], installed: list[str], suffix: str = " (installed)") -> list[str]:
+    """Flag every model in `catalog` that the user actually has under Ollama.
+
+    Ollama reports a model by its full 'name:tag' ("tinyllama:latest", "llama3.1:8b"), while the
+    built-in catalog is a mix of both forms ("tinyllama", but also "llama3.1:latest") -- and an
+    omitted tag means ':latest'.  Comparing the two as plain strings therefore only ever matched
+    when the catalog happened to spell out the same tag, which is why an installed
+    "tinyllama:latest" left the catalog's "tinyllama" sitting there unmarked.  Compare on the
+    tagged form instead.
+
+    A model the user has installed that the catalog knows nothing about (a different tag of a
+    listed model, like "llama3.1:8b", or something the catalog has never heard of) is added to
+    the list rather than dropped, since the whole point of the list is to pick a model to run.
 
     Args:
-        list1 (list[str]): The list of strings to be modified.
-        list2 (list[str]): The list of strings to check against `list1`.
-        suffix (str): The string to append to matching elements in `list1`.
+        catalog (list[str]): the built-in model names.
+        installed (list[str]): the model names Ollama reported as installed.
+        suffix (str): what to append to the ones the user has.
 
     Returns:
-        list[str]: The modified list1.
+        list[str]: the catalog with installed models marked, plus any installed extras.
     """
-    # Create a set from list2 for efficient lookups.
-    # This makes checking if an element from list1 is in list2 much faster,
-    # especially with large lists.
-    list2_set = set(list2)
+    # Tagged name -> the name to show for it, so each installed model is looked at once.
+    installed_by_tag = {tagged_model_name(name): name for name in installed}
 
-    # Iterate through list1 using an index so we can modify elements in place.
-    for i in range(len(list1)):
-        # Check if the current element of list1 exists in list2_set.
-        if list1[i] in list2_set:
-            # If it matches, append the suffix to the element.
-            list1[i] += suffix
-    return list1
+    marked = []
+    accounted_for = set()
+    for entry in catalog:
+        tag = tagged_model_name(entry)
+        if tag in installed_by_tag:
+            accounted_for.add(tag)
+            marked.append(f"{entry}{suffix}")
+        else:
+            marked.append(entry)
+
+    # Whatever the user has that nothing in the catalog covers, under the name Ollama gave it.
+    marked.extend(f"{name}{suffix}" for tag, name in installed_by_tag.items() if tag not in accounted_for)
+
+    return marked
 
 
 def get_llama_models() -> list:
@@ -308,29 +419,49 @@ def get_llama_models() -> list:
         "tinyllama",
     ]
 
-    try:
-        # Get all locally available models
-        ollama = ensure_and_import("ollama", "ollama")
-        if ollama is None:
+    # Ask BEFORE ensure_and_import: it is the call that installs the package, and afterwards
+    # there is no telling whether this run was the one that installed it.
+    ollama_was_installed = importlib.util.find_spec("ollama") is not None
+
+    # Get all locally available models
+    ollama = ensure_and_import("ollama", "ollama")
+    if ollama is None:
+        rutroh_error(f"The 'ollama' package could not be installed.  Install Ollama from '{OLLAMA_DOWNLOAD_URL}'.")
+        return extended_list
+
+    # We just installed it, so nothing can be serving it yet.  Start the server rather than
+    # quietly handing back the stock list as though Ollama had no models installed.
+    if not ollama_was_installed:
+        started, reason = start_ollama_server()
+        if not started:
+            rutroh_error(reason)
             return extended_list
 
+    try:
         all_models = ollama.list()
-        loaded_models = []
+    except Exception as e:  # noqa: BLE001  Whatever it was, the list did not come back.
+        # Nothing answering.  Start the server and ask once more -- this used to tell the user
+        # to go and run 'ollama serve' themselves, and then show a list of models that took no
+        # account of what they actually have installed.
+        started, reason = start_ollama_server()
+        if not started:
+            rutroh_error(f"Error connecting to Ollama: {e}")
+            rutroh_error(reason)
+            return extended_list
+        try:
+            all_models = ollama.list()
+        except Exception as retry_error:  # noqa: BLE001
+            rutroh_error(f"Error connecting to Ollama: {retry_error}")
+            return extended_list
 
+    try:
         # Get the model names into a list.
         loaded_models = [model_info["model"] for model_info in all_models["models"]]
 
         # Remove duplicates and sort for cleaner output
-        return sorted(set(modify_list_elements(extended_list, loaded_models, " (installed)")))
-
-    except ollama.ResponseError as e:
-        rutroh_error(f"Error connecting to Ollama: {e}")
-        rutroh_error(
-            "Please ensure the Ollama server is running. You can usually start it by running 'ollama serve' in your terminal.",
-        )
-        return extended_list
-    except Exception as e:  # noqa: BLE001
-        rutroh_error(f"An unexpected error occurred: {e}")
+        return sorted(set(mark_installed_models(extended_list, loaded_models)))
+    except (KeyError, TypeError) as e:
+        rutroh_error(f"Unexpected response from Ollama: {e}")
         return extended_list
 
 

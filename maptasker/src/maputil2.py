@@ -344,7 +344,7 @@ def http_post_request(
         except ConnectionError:
             error_message = f"Request failed for url: {url} .  Connection error! Unable to post XML to Android device."
         except Timeout:
-            error_message = f"Request failed for url: {url} .  Timeout error.  Or perhaps the profile 'MapTasker List' has not been imported into Tasker on the Android device!"
+            error_message = f"Request failed for url: {url} .  Timeout error.  Perhaps Tasker server is not active or the Project 'HTTP Server Example' has not been imported into Tasker on the Android device!"
         except Exception as e:  # noqa: BLE001
             error_message = f"Request failed for url: {url}, error: {e} ."
 

@@ -10,7 +10,8 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed:
+- Changed: The Diagram view now displays as much of the diagram as the 'View Limit' allows, and says how much was left off, rather than refusing to display anything at all.  This is what the Map view has always done.
+- Changed: The 'Get XML from Android Device' timeout message now points at the 'HTTP Server Example' Project rather than the 'MapTasker List' Profile.
 
 ### Fixed
 
@@ -19,6 +20,10 @@ All notable changes to this project will be documented in this file!
 - Fixed: The 'Dark Mode' switch is on when the window opens in light mode, making the first click on it appear to do nothing.
 - Fixed: The Dark/Light Mode setting is not saved and restored along with the rest of your settings.
 - Fixed: The Display Detail Level is written to the settings file as text ("5") rather than as a number (5).
+- Fixed: Program error doing AI Analysis with Ollama model if Ollama is not yet installed, since it doesn't start the server once it gets installed. 
+- Fixed: The Ai model pulldown doesn't start the Ollama server either, and falls back to the built-in model list without saying why.
+- Fixed: The Ai model pulldown doesn't mark your installed Ollama models as '(installed)' unless the built-in list happens to spell the model's tag the same way, and leaves out installed models it doesn't know about altogether.
+- Fixed: The 'Bottom' button scrolls to the end of the Map/Diagram/Misc views with the last line still below the bottom of the window.
 
 ### Known Issue
 

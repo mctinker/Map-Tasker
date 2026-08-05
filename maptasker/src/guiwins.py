@@ -2688,6 +2688,12 @@ class NiceGuiTextView:
                 self._enable_connector_highlighting()
                 if hasattr(self, "diagram_message_label"):
                     self.diagram_message_label.set_text(translate_string("Click on connector to highlight"))
+            # A diagram cut short at the view limit (diagram.check_limit) says so here, in place
+            # of the connector hint: that the diagram stops early is the more important of the
+            # two things to tell the user, and this is the Map view's view_limit_msg field by
+            # another name (see NiceGuiTextView.build_ui).
+            if PrimeItems.diagram_limit_msg and hasattr(self, "diagram_message_label"):
+                self.diagram_message_label.set_text(PrimeItems.diagram_limit_msg)
             self._mark_content_ready()
             return  # noqa: TRY300
 
@@ -3505,8 +3511,38 @@ class NiceGuiTextView:
             # Native NiceGUI scroll to top (0% progress)
             self.scroll_area.scroll_to(percent=0.0)
         else:
-            # Native NiceGUI scroll to bottom (100% progress)
-            self.scroll_area.scroll_to(percent=1.0)
+            self._scroll_to_bottom()
+
+    def _scroll_to_bottom(self) -> None:
+        """Scroll the view all the way down, with the last line actually on screen.
+
+        scroll_to(percent=1.0) hands Quasar a percentage of the scroll size it currently knows
+        about -- and while the chunks process_data() streamed in are still being skipped by
+        "content-visibility: auto", that size is the sum of their *estimated* heights
+        (contain-intrinsic-size), not their real ones. The estimate runs short on the last chunk,
+        so "100%" stopped a line or so above the true end of the content.
+
+        Setting scrollTop past the end instead lets the browser clamp it to the real maximum,
+        and doing that again over the next few frames picks up the correction as the chunks
+        being scrolled into view get laid out for real and the scroll height grows.
+        """
+        ui.run_javascript(f"""
+            const outerContainer = document.getElementById("c{self.scroll_area.id}");
+            if (!outerContainer) return;
+            const scroller = outerContainer.querySelector(".q-scrollarea__container") || outerContainer;
+            let attempts = 0;
+            const toBottom = () => {{
+                // Deliberately past the end: the browser clamps this to scrollHeight minus the
+                // visible height, which is exactly the bottom, without having to measure either.
+                scroller.scrollTop = scroller.scrollHeight;
+                // Eight frames is ~130ms at 60fps -- long enough for the last chunks to render
+                // and settle, short enough to still read as an instant jump.
+                if (++attempts < 8) {{
+                    requestAnimationFrame(toBottom);
+                }}
+            }};
+            toBottom();
+        """)
 
     def toggle_wrap(self) -> None:
         """Toggles word-wrap on/off for this view's content, replacing the exact prior classes."""

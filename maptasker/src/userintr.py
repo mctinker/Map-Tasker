@@ -1847,6 +1847,11 @@ class MapTaskerEventHandlers:
 
                     # Display the diagram in its own browser window/tab rather than the main window.
                     _open_popout_window("/popout/diagram", getattr(gui, "open_view_in_new_window", False))
+
+                    # Cut short at the view limit?  Say so, as the "map" branch above does -- the
+                    # diagram is still shown, up to the point the limit allowed.
+                    if PrimeItems.diagram_limit_msg:
+                        gui.display_message_box(PrimeItems.diagram_limit_msg, "Orange")
                     gui.display_message_box(translate_string("Diagram View opened in a new browser window."), "Green")
                 else:
                     gui.display_message_box(

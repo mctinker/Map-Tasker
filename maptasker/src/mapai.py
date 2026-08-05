@@ -11,7 +11,7 @@ import sys
 
 from nicegui import run
 
-from maptasker.src.aiutils import get_api_key
+from maptasker.src.aiutils import OLLAMA_DOWNLOAD_URL, get_api_key, start_ollama_server
 from maptasker.src.error import error_handler
 from maptasker.src.guiwins import create_popup_window
 from maptasker.src.guiwins import create_popup_window as popupwindow
@@ -200,11 +200,28 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
         local_ai("What is the capital of France?")
         # Output: "Paris"
     """
-    from maptasker.src import cria  # noqa: PLC0415
+    # Ask BEFORE importing cria: importing it is what installs the 'ollama' package when it is
+    # missing (ensure_and_import, at cria.py's module level), so once that import has happened
+    # there is no longer any way to tell whether this run is the one that installed it.
+    ollama_was_installed = importlib.util.find_spec("ollama") is not None
 
-    # if PrimeItems.program_arguments["ai_analyze"] and not module_is_available("cria"):
-    #     error_handler("Module 'cria' not found.  Please install the 'cria' module and the Ollama app.", 12)
-    #     return
+    try:
+        from maptasker.src import cria  # noqa: PLC0415
+    except Exception as e:  # noqa: BLE001  Its module-level install can fail in several ways.
+        error_handler(
+            f"Ollama support could not be loaded: {e}.  Please install Ollama from '{OLLAMA_DOWNLOAD_URL}'.",
+            12,
+        )
+        return
+
+    # We just installed it, so nothing can be serving it yet -- start the server and let it come
+    # up before handing it an analysis.  An install that was already there is left to cria,
+    # which starts a server of its own if whatever the user has running has gone away.
+    if not ollama_was_installed:
+        started, reason = start_ollama_server()
+        if not started:
+            error_handler(reason, 12)
+            return
 
     # Fix the model name
     if PrimeItems.program_arguments["ai_model"] == "None":
@@ -229,11 +246,14 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
     # Make sure we don't come back if cria fails.
     PrimeItems.program_arguments["ai_analyze"] = False
 
-    # Call Cria
-    ai = cria.Cria()
-
-    # Open the model and get the response
+    # Open the model and get the response.  Cria() is inside the try because it is the call that
+    # starts a server when there is none (and raises FileNotFoundError when the Ollama app is not
+    # installed at all) -- an error the user should be told about, not one that ends the analysis
+    # thread with a traceback.
     try:
+        # Call Cria
+        ai = cria.Cria()
+
         with cria.Model(PrimeItems.program_arguments["ai_model"]) as ai:
             for chunk in ai.chat(messages=messages, prompt=prompt):
                 response = f"{response}{chunk}"

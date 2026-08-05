@@ -169,6 +169,11 @@ class PrimeItems:
     view_limit_msg = (
         ""  # Set by bildhtml.write_out_the_file when output hits view_limit; read by the Map view's message field.
     )
+    # The Diagram view's equivalent: set by diagram.check_limit when the diagram is cut short at
+    # the view limit, read by the Diagram view's message field.  Kept separate from
+    # view_limit_msg so a truncated Map cannot leave its message showing on an untruncated
+    # Diagram (the two views are built from separate runs).
+    diagram_limit_msg = ""
     found_named_items: ClassVar[dict] = initial_found_named_items()
     grand_totals: ClassVar[dict] = initial_grand_totals()
     directory_items: ClassVar[dict] = initial_directory_items()
@@ -268,6 +273,7 @@ class PrimeItemsReset:
         PrimeItems.error_code = 0
         PrimeItems.error_msg = ""
         PrimeItems.view_limit_msg = ""
+        PrimeItems.diagram_limit_msg = ""
         PrimeItems.ai = {
             "do_ai": False,
             "ai_name": "",

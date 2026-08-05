@@ -1144,40 +1144,78 @@ def mysizeof(my_dict: list) -> int:
     return total
 
 
+def furthest_connector_line(connector: dict) -> int:
+    """The last diagram line a connector touches -- it needs every line between its two ends."""
+    return max(connector["caller_line_num"], connector["called_line_num"])
+
+
 def check_limit(call_table: dict, output_lines: list, progress_bar: dict) -> None:
     """
-    Checks if the size of the call table exceeds the maximum size limit.
+    Cut the diagram short at the view limit rather than refusing to draw it at all.
+
+    This used to bail out entirely -- error message, everything thrown away, no diagram -- which
+    left a large configuration with nothing to look at.  The Map view has always handled its own
+    limit by writing out as much as the limit allows and saying so (bildhtml.write_out_the_file),
+    and this now does the same: the diagram is drawn from the top down to the point where the
+    limit is reached, and PrimeItems.diagram_limit_msg says how much was left off.
+
+    The call table is what the limit is measured against, since every entry in it is a connector
+    that has to be drawn across the diagram -- so the budget is spent in connectors, and the
+    diagram is cut at the last line the affordable ones reach.  That keeps the work this limit
+    exists to cap capped, while still showing the user the part of the diagram it paid for.
 
     Args:
-        call_table (dict): The dictionary to check the size of.
+        call_table (dict): The caller/called connectors, keyed by an arbitrary unique key.
+        output_lines (list): The diagram built so far, one string per line.
         progress_bar (dict): The progress bar to update.
 
     Returns:
-        tuple: A tuple containing a boolean indicating whether the size limit was exceeded and the call table.
+        tuple: (line to cut the finished diagram at or None to keep all of it, the connectors to
+            draw).  The cut is applied by the caller once the arrows are drawn, not here: the
+            drawing routines reach a few lines beyond a connector's own two ends (see
+            add_down_and_up_arrows), so the lines have to still be there while it works.
     """
-    # Check if we have exceeded our maximum size limit.  The call table is the limiting factor.
-    if PrimeItems.program_arguments["guiview"]:
-        # size = mysizeof(call_table)
-        # size = getSize(call_table)
-        size = mysizeof(call_table) * 67
-        view_limit = PrimeItems.program_arguments["view_limit"]
-        # Exceeded size limit
-        if size > view_limit:
-            # Setup to disp[lay error message in GUI
-            PrimeItems.error_code = 1
-            PrimeItems.error_msg = f"Too much data to display (Size={size!s}, View Limit={view_limit}).  Select a larger 'View Limit' or a single Project / Profile / Task and try again."
+    # Only the GUI's views are limited; a command-line run writes the whole thing to a file.
+    if not PrimeItems.program_arguments["guiview"]:
+        return None, call_table
 
-            # Cleanup
-            PrimeItems.netmap_output = []
-            PrimeItems.output_lines.output_lines = []
-            call_table = {}
-            output_lines = []
-            # Tell python to collect the garbage
-            gc.collect()
-            # Bail out.
-            return True, call_table, output_lines
+    # Cleared per run: a diagram that fits must not inherit the message from one that did not.
+    PrimeItems.diagram_limit_msg = ""
 
-    return False, call_table, output_lines
+    # size = mysizeof(call_table)
+    # size = getSize(call_table)
+    size = mysizeof(call_table) * 67
+    view_limit = PrimeItems.program_arguments["view_limit"]
+    if size <= view_limit:
+        return None, call_table
+
+    # Over the limit.  Work out how many connectors that budget buys, and keep the ones nearest
+    # the top of the diagram: a connector is only drawable if both of its ends survive the cut,
+    # so ordering by the furthest line each one reaches is what makes the kept set contiguous
+    # from the top rather than scattered down a diagram whose lower half has been removed.
+    max_connectors = max(1, view_limit // 67)
+    by_position = sorted(call_table.items(), key=lambda item: furthest_connector_line(item[1]))
+    kept = dict(by_position[:max_connectors])
+
+    # Cut just past the last line the kept connectors need, so none of them is left dangling.
+    cut_at = max(furthest_connector_line(connector) for connector in kept.values()) + 1
+    total_connectors = mysizeof(call_table)
+    lines_dropped = max(0, len(output_lines) - cut_at)
+
+    PrimeItems.diagram_limit_msg = (
+        f"{translate_string('MapTasker: view limit reached, diagram truncated')}: "
+        f"{translate_string('connectors')}={len(kept)}/{total_connectors}, "
+        f"{translate_string('lines dropped')}={lines_dropped}, "
+        f"{translate_string('View Limit')}={view_limit}.  "
+        f"{translate_string('Select a larger View Limit or a single Project / Profile / Task to see the rest.')}"
+    )
+    logger.info(PrimeItems.diagram_limit_msg)
+
+    # The connectors being dropped can be a lot of memory on the configurations that get here,
+    # and nothing refers to them once this returns.
+    gc.collect()
+
+    return cut_at, kept
 
 
 def cleanup_task_names(output_lines: list, num: int, line: str) -> list:
@@ -1492,16 +1530,13 @@ def handle_calls(output_lines: list, progress: dict) -> None:
     # Create the table of caller/called Tasks and their pointers.
     call_table = build_call_table(output_lines)
 
-    # Check if we have exceeded our maximum size limit.
-    exceeded_limit, call_table, output_lines = check_limit(
+    # Check if we have exceeded our maximum size limit.  Over it, this hands back only the
+    # connectors that fit and the line to cut the diagram at once they have been drawn.
+    cut_at, call_table = check_limit(
         call_table,
         output_lines,
         progress,
     )
-    if exceeded_limit:
-        return []
-
-    # Drop here if we are okay with the limit.
 
     # Fix overlapping connectors that have the same up/down locations.
     call_table = fix_duplicate_up_down_locations(call_table)
@@ -1522,6 +1557,12 @@ def handle_calls(output_lines: list, progress: dict) -> None:
 
     # Now clean up the mess we made.
     output_lines = cleanup_diagram(output_lines, progress)
+
+    # Finally, if the view limit cut this diagram short, drop everything past the cut -- now that
+    # the arrows are drawn and cleanup_diagram (which only ever rewrites lines in place, never
+    # adds or removes any) has left the line numbering exactly as check_limit saw it.
+    if cut_at is not None:
+        del output_lines[cut_at:]
 
     return output_lines
 
@@ -1867,6 +1908,15 @@ def network_map(network: dict) -> None:
                 # of their own, which becomes two physical lines once written -- split the same way
                 # here so final_lines stays row-for-row aligned with the file.
                 final_lines.extend(line.split("\n"))
+
+            # Say so in the diagram itself when it was cut short at the view limit (check_limit),
+            # the way the Map view's file carries its own limit message -- the file is read on its
+            # own as often as it is displayed in the GUI, and a diagram that simply stops has no
+            # other way of telling the reader that there was more.  Written after the loop so it
+            # cannot disturb the netmap_output-to-file line mapping the connectors rely on.
+            if PrimeItems.diagram_limit_msg:
+                mapfile.write(f"\n{PrimeItems.diagram_limit_msg}\n")
+                final_lines.extend(["", PrimeItems.diagram_limit_msg])
             mapfile.close()
 
         remapped_seeds = [
