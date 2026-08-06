@@ -2,11 +2,11 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.0.3] ??-Aug-2026  # FIX
+## [12.1.0] ??-Aug-2026  # FIX
 
 ### Added
 
-- Added:
+- Added: Add/Edit a Scene - Legacy (minimal editing) and Version 2 (designer with 4 available basic templates)
 
 ### Changed
 

@@ -61,4 +61,15 @@ DEFAULT_DISPLAY_DETAIL_LEVEL = 5
 # Ai Analysis prompt...This will be proceeded by 'Given the following (Project/Profile/Task) in Tasker, '
 AI_PROMPT = "suggest improvements for performance and readability:"
 
+# Whether the GUI's 'Specific Name' tab offers the "Edit Scene" and "Add Scene" buttons,
+# alongside the Project/Profile/Task ones.  Set it to False and neither button is built at
+# all -- the Scene pulldown itself is unaffected, since it is what every view already
+# filters on.  Being a constant in this file is what makes the choice stick from one run to
+# the next: nothing in the app writes it, so it stays whatever it is here until edited.
+#
+# Scene editing is the newest of the four and is still filling in (the Scene's own UI
+# elements are not editable yet -- see sceneedit.py), which is why it is the one that ships
+# behind a switch.
+EDIT_SCENE = True
+
 #  END User-modifiable global constants

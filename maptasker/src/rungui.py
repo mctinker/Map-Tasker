@@ -69,6 +69,55 @@ def get_open_port(host: str = "127.0.0.1") -> int:
     return DEFAULT_PORT
 
 
+# The single-item selection the running session is on.  Mutually exclusive -- at most one is
+# ever set -- and each is mirrored on the MyGui instance as single_<x>_name.
+SELECTION_KEYS = (
+    "single_project_name",
+    "single_profile_name",
+    "single_task_name",
+    "single_scene_name",
+)
+
+
+def live_selection() -> tuple[str, str]:
+    """The (item type, name) the running session currently has selected, or ("", "").
+
+    Read out of PrimeItems.program_arguments rather than off the MyGui instance, because
+    that is the copy which survives the instance being replaced on a rebuild.  item_type
+    comes back as "Project"/"Profile"/"Task"/"Scene" -- the vocabulary process_name_event
+    and the specific_<x>_optionmenu attribute names both use.
+    """
+    for key in SELECTION_KEYS:
+        name = PrimeItems.program_arguments.get(key, "")
+        if name and name != "None":
+            return key.removeprefix("single_").removesuffix("_name").capitalize(), name
+    return "", ""
+
+
+def reapply_selection(gui: MyGui, item_type: str, name: str) -> None:
+    """Put a rebuilt window back on the selection the session was already using.
+
+    Rebuilding the UI -- for a page reload, or because a second window opened -- constructs
+    a fresh MyGui, and that re-runs the settings-file restore over PrimeItems.program_arguments.
+    So any selection made since the last save was silently discarded: opening a second tab,
+    or an accidental refresh, dropped the current Project/Profile/Task/Scene out from under
+    the running session and brought the new window up on a stale one, or none at all.
+    map_tasker_root captures it before the rebuild and hands it back here afterwards.
+
+    Goes through process_name_event -- the same path a user picking the name by hand takes --
+    so the pulldown, the "Display only ..." label and program_arguments all end up consistent,
+    rather than this setting each of them itself and drifting from that path later.
+
+    Guarded because a name that no longer resolves (its Project deleted from another window,
+    say) must not stop the window from finishing its build; losing the selection is a far
+    smaller problem than a half-built GUI.
+    """
+    if not item_type:
+        return
+    with contextlib.suppress(Exception):
+        gui.event_handlers.process_name_event(item_type, name)
+
+
 # ################################################################################
 # Convert a value to integere, and if not an integer then use default value
 # ################################################################################
@@ -200,6 +249,10 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     @ui.page("/")
     def map_tasker_root() -> None:
         restart = False
+        # What the session is on right now -- captured *before* MyGui() below re-runs the
+        # settings restore over the top of it. See reapply_selection.
+        carried_type, carried_name = live_selection()
+
         # Check if this is a page refresh/re-connection
         if app_lock["is_built"]:
             logger.info("Application refreshed or reconnected. Re-initializing user interface context.")
@@ -215,7 +268,15 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         # Mark as built so the application tracks that initialization has occurred
         app_lock["is_built"] = True
         if restart:
-            ui.notify("Application refreshed. Please re-enter your inputs.", color="orange", position="bottom")
+            # Only after a rebuild: on the very first build there is no live session to
+            # carry over, and the settings file is the right source.
+            reapply_selection(shared_state["user_input"], carried_type, carried_name)
+            # The old "Please re-enter your inputs" wording is no longer true of the thing
+            # people actually lost -- the selection now survives -- so say what did happen.
+            message = "This window was rebuilt from your saved settings."
+            if carried_name:
+                message += f" Still showing {carried_type}: {carried_name}."
+            ui.notify(message, color="orange", position="bottom")
 
     # 2b. Pop-out page for the Map and Diagram views, opened in their own browser window/tab
     # (see MapTaskerEventHandlers.view_event in userintr.py) so they no longer replace the

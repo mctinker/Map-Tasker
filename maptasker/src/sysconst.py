@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 """
-Module containing action runner logic.
+Module containing system constants for MapTasker.
 """
 
 #                                                                                      #
@@ -8,6 +8,7 @@ Module containing action runner logic.
 #                                                                                      #
 from __future__ import annotations
 
+import importlib.metadata
 import logging
 import re
 from datetime import datetime
@@ -17,7 +18,8 @@ import darkdetect
 
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
-VERSION = "12.0.3"
+VERSION = importlib.metadata.version("maptasker")
+print("bingo", VERSION)
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"

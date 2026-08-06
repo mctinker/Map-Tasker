@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import copy
 import json
 import os
 import re
@@ -11,8 +12,9 @@ from typing import TYPE_CHECKING
 
 from nicegui import app, context, ui
 
-from maptasker.src import profedit, projedit, taskedit
+from maptasker.src import profedit, projedit, sceneedit, taskedit
 from maptasker.src.colrmode import set_color_mode
+from maptasker.src.config import EDIT_SCENE
 from maptasker.src.format import css_color
 from maptasker.src.guiutil2 import get_font_choices, sort_languages_with_priority
 from maptasker.src.maputil2 import translate_string
@@ -1446,6 +1448,860 @@ def build_save_project_to_android_dialog(
                     translate_string(
                         "This will write the Project, and everything in it, as a standalone file onto the "
                         "Android device, under /Tasker/projects.\n\n"
+                        "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
+                        "No authorization prompt is needed for this.",
+                    ),
+                ).style("white-space: pre-line")
+
+    android_dialog.open()
+
+
+# ==========================================
+# 2a. SCENE DIALOGS
+#
+# The Scene arm of the Project/Profile/Task editing family.  Everything here is
+# reachable only when config.EDIT_SCENE is True -- that switch decides whether the
+# "Edit Scene"/"Add Scene" buttons are built at all (see initialize_gui's Specific
+# Name tab), and these dialogs have no other entry point.
+#
+# What is here is the whole Scene *envelope*: name, size, which Project owns it,
+# and every Save/Export path.  What is not here yet is the Scene's own contents --
+# its UI elements and the Tasks they fire.  _build_scene_editor_body is the single
+# seam that part drops into, and both dialogs call it, so filling it in lights up
+# Add and Edit together.
+# ==========================================
+def _build_v2_designer(
+    edited_scene: sceneedit.EditableScene,
+    field_refs: dict,
+    layout: dict,
+) -> None:
+    """The Version 2 Scene designer -- phase 1: pick a component out of the tree on the
+    left, edit its properties on the right.
+
+    Two panes rather than the read-only outline this replaces, because a component tree is
+    navigated and a property sheet is filled in, and those want different shapes.  Both are
+    rebuilt wholesale on every selection (`.clear()` then repopulate): the tree because the
+    highlight moves, the inspector because a different component has entirely different
+    fields.  Rebuilding is why selection is held as a *path* (see sceneedit.v2_flatten) and
+    not as a widget reference -- the widgets do not survive, the path does.
+
+    Edits write straight through to the layout dict as they are typed
+    (sceneedit.v2_set_prop), rather than being collected from widgets at save time.  The
+    inspector's widgets are destroyed on every selection change, so there would be nothing
+    left to collect from; and the dict being edited belongs to the dialog's own deep copy of
+    the Scene, so nothing reaches the loaded backup until a save button re-encodes it (see
+    userintr._apply_scene_field_values).  Cancel discards it by simply not encoding.
+
+    NOT in this phase: adding, deleting, reordering or reparenting components, and editing
+    modifiers or event handlers.  Those are carried through untouched -- see sceneedit.py's
+    designer section on why in-place editing is what keeps an unchanged Scene re-encoding
+    byte-identically.
+    """
+    # The dict every edit lands in, and the one _apply_scene_field_values re-encodes.
+    field_refs["v2_layout"] = layout
+    selection: dict = {"path": ()}
+    # Snapshots taken before each structural edit. Deep copies of the whole tree, which is
+    # affordable at this size (the largest Scene in this repo's backup is 13 components)
+    # and far simpler than modelling an inverse for every operation.
+    history: list[dict] = []
+    scene_name = edited_scene.scene_name
+    # Whether the Modifiers / Event handlers sections are open, kept out here because the
+    # inspector is rebuilt on every edit -- without this, adding a modifier would collapse
+    # the very section you are working in, and adding two in a row would mean re-opening it
+    # each time.
+    expanded = {"modifiers": False, "handlers": False}
+
+    if not sceneedit.v2_flatten(layout):
+        # No root component at all -- not something Tasker writes, and there is nothing for
+        # the tree to hang off, so say so rather than showing an empty designer.
+        ui.label(
+            translate_string("This Scene's Version 2 layout has no root component, so there is nothing to design."),
+        ).classes("text-sm text-orange-600 mt-2")
+        return
+
+    header = ui.row().classes("w-full items-center gap-2 mt-2")
+    with ui.row().classes("w-full gap-3 items-start no-wrap mt-1"):
+        tree_pane = ui.column().classes("w-2/5 gap-0 p-2 border rounded max-h-80 overflow-auto")
+        inspector_pane = ui.column().classes("w-3/5 gap-2 p-2 border rounded max-h-80 overflow-auto")
+    toolbar = ui.row().classes("w-full gap-1 items-center mt-1 flex-wrap")
+
+    def snapshot() -> None:
+        history.append(copy.deepcopy(layout))
+
+    def restore() -> None:
+        if not history:
+            return
+        previous = history.pop()
+        # Replace the contents rather than rebinding: field_refs and the save path hold
+        # *this* dict object, so swapping in a new one would leave them on the old tree.
+        layout.clear()
+        layout.update(previous)
+        if sceneedit.v2_node_at(layout, selection["path"]) is None:
+            selection["path"] = ()
+        render()
+
+    def select(path: tuple) -> None:
+        selection["path"] = path
+        render()
+
+    def add_component(node_type: str) -> None:
+        snapshot()
+        new_path = sceneedit.v2_insert_node(layout, selection["path"], sceneedit.v2_new_node(layout, node_type))
+        if new_path is None:
+            history.pop()
+            ui.notify(translate_string("That component can't go there."), type="warning")
+            return
+        select(new_path)
+
+    def structural(operation: Callable[[], tuple | None], failure: str) -> None:
+        """Run a move/duplicate that returns a new path, keeping the moved component
+        selected -- so a run of Move Up clicks walks one component up the tree instead of
+        losing it after the first.
+        """
+        snapshot()
+        new_path = operation()
+        if new_path is None:
+            history.pop()
+            ui.notify(translate_string(failure), type="warning")
+            return
+        select(new_path)
+
+    def delete_selected() -> None:
+        node = sceneedit.v2_node_at(layout, selection["path"])
+        node_id = (node or {}).get("id", "")
+        references = sceneedit.find_component_id_references(scene_name, node_id)
+        snapshot()
+        errors = sceneedit.v2_delete_node(layout, selection["path"])
+        if errors:
+            history.pop()
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+        if references:
+            # Warn rather than block: the Task may be obsolete, and the user can undo.
+            ui.notify(
+                f"Deleted '{node_id}'. {len(references)} Task(s) address it by id: "
+                f"{', '.join(references)}. They will no longer find it.",
+                type="warning",
+                multi_line=True,
+                timeout=10000,
+            )
+        selection["path"] = ()
+        render()
+
+    def render_tree() -> None:
+        for row in sceneedit.v2_flatten(layout):
+            selected = row.path == selection["path"]
+            classes = "text-sm font-mono whitespace-pre cursor-pointer rounded px-1 py-0.5 w-full"
+            classes += " bg-blue-600 text-white" if selected else " hover:bg-blue-100 dark:hover:bg-blue-900"
+            # The indent is drawn rather than nested so every row stays one flat, clickable
+            # strip -- nested containers would make the click target of a deep node a sliver.
+            ui.label(f"{'  ' * row.depth}{row.label}").classes(classes).on(
+                "click",
+                lambda _e=None, path=row.path: select(path),
+            )
+
+    def prop_input(item: dict, prop: sceneedit.V2Prop) -> None:
+        """One editable field for any dict the designer edits -- a component, a modifier,
+        an event or an action.  They all store scalars under named keys, so they all get
+        the same three widget kinds and the same write-through to sceneedit.v2_set_prop.
+        """
+        value = item.get(prop.key, "")
+        if prop.kind == "task":
+            # RunTask names a Task in the loaded backup, so offer the real list rather than
+            # a free field -- with_input still allows a name that isn't loaded yet.
+            task_names = sorted(PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}))
+            ui.select(
+                task_names,
+                value=str(value) if value != "" else None,
+                label=translate_string(prop.label),
+                with_input=True,
+                on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
+            ).props("dense").classes("w-full")
+        elif prop.kind == "choice":
+            ui.select(
+                list(prop.choices),
+                value=str(value) if value != "" else None,
+                label=translate_string(prop.label),
+                with_input=True,
+                on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
+            ).props("dense").classes("w-full")
+        else:
+            ui.input(
+                translate_string(prop.label),
+                value=str(value),
+                on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
+            ).props("dense").classes("w-full")
+
+    def structural_edit(mutate: Callable[[], object]) -> None:
+        """Snapshot, mutate, re-render -- the wrapper every add/remove/reorder inside the
+        inspector goes through, so all of them land on the same undo stack as the tree's.
+        """
+        snapshot()
+        mutate()
+        render()
+
+    def render_binding(node: dict) -> None:
+        slot = sceneedit.v2_binding_slot(node)
+        if slot is None:
+            return
+        state_key, binding_key = slot
+        ui.label(f"{translate_string('Writes to variable')} ({state_key}.{binding_key})").classes(
+            "text-xs uppercase text-gray-500 mt-2",
+        )
+        ui.input(
+            translate_string("Tasker variable(s)"),
+            value=sceneedit.v2_get_binding(node, slot),
+            on_change=lambda e, n=node, s=slot: sceneedit.v2_set_binding(n, s, str(e.value or "")),
+        ).props("dense").classes("w-full").tooltip(
+            translate_string(
+                "The Tasker variable this component writes its value into. "
+                "Separate several with commas. Leave empty to declare the binding without setting it.",
+            ),
+        )
+
+    def render_modifiers(node: dict) -> None:
+        modifiers = sceneedit.v2_modifiers(node)
+        with ui.expansion(
+            f"{translate_string('Modifiers')} ({len(modifiers)})",
+            icon="tune",
+            value=expanded["modifiers"],
+            on_value_change=lambda e: expanded.__setitem__("modifiers", bool(e.value)),
+        ).classes("w-full mt-2"):
+            ui.label(
+                translate_string("Applied in order — the one at the bottom sits on top."),
+            ).classes("text-xs text-gray-500 italic")
+            for index, modifier in enumerate(modifiers):
+                with ui.card().classes("w-full p-2 gap-1"):
+                    with ui.row().classes("w-full items-center gap-1"):
+                        ui.label(modifier.get("type", "?")).classes("text-sm font-mono font-semibold")
+                        ui.space()
+                        ui.button(
+                            icon="arrow_upward",
+                            on_click=lambda _e=None, i=index: structural_edit(
+                                lambda: sceneedit.v2_move_modifier(node, i, -1),
+                            ),
+                        ).props("dense flat size=sm")
+                        ui.button(
+                            icon="arrow_downward",
+                            on_click=lambda _e=None, i=index: structural_edit(
+                                lambda: sceneedit.v2_move_modifier(node, i, 1),
+                            ),
+                        ).props("dense flat size=sm")
+                        ui.button(
+                            icon="close",
+                            on_click=lambda _e=None, i=index: structural_edit(
+                                lambda: sceneedit.v2_delete_modifier(node, i),
+                            ),
+                        ).props("dense flat size=sm color=negative")
+                    for prop in sceneedit.v2_schema_props(sceneedit.V2_MODIFIER_SCHEMA, modifier):
+                        prop_input(modifier, prop)
+            add_modifier = ui.button(translate_string("Add modifier"), icon="add").props("dense flat")
+            with add_modifier, ui.menu():
+                for modifier_type in sceneedit.V2_MODIFIER_SCHEMA:
+                    ui.menu_item(
+                        modifier_type,
+                        on_click=lambda _e=None, t=modifier_type: structural_edit(
+                            lambda: sceneedit.v2_add_modifier(node, t),
+                        ),
+                    ).props("dense")
+
+    def render_handlers(node: dict) -> None:
+        handlers = sceneedit.v2_handlers(node)
+        with ui.expansion(
+            f"{translate_string('Event handlers')} ({len(handlers)})",
+            icon="bolt",
+            value=expanded["handlers"],
+            on_value_change=lambda e: expanded.__setitem__("handlers", bool(e.value)),
+        ).classes("w-full mt-1"):
+            for index, handler in enumerate(handlers):
+                events = handler.get("events") or []
+                with ui.card().classes("w-full p-2 gap-1"):
+                    with ui.row().classes("w-full items-center gap-1"):
+                        ui.label(
+                            translate_string("On") + " " + ", ".join(e.get("type", "?") for e in events),
+                        ).classes("text-sm font-mono font-semibold")
+                        ui.space()
+                        ui.button(
+                            icon="close",
+                            on_click=lambda _e=None, i=index: structural_edit(
+                                lambda: sceneedit.v2_delete_handler(node, i),
+                            ),
+                        ).props("dense flat size=sm color=negative")
+                    for event in events:
+                        for prop in sceneedit.v2_schema_props(sceneedit.V2_EVENT_SCHEMA, event):
+                            prop_input(event, prop)
+                    # A handler-level condition gates the whole thing; the 'V2' Scene uses
+                    # one to run only in portrait.
+                    ui.input(
+                        translate_string("Only when"),
+                        value=str(handler.get("condition", "")),
+                        on_change=lambda e, h=handler: sceneedit.v2_set_prop(h, "condition", str(e.value or "")),
+                    ).props("dense").classes("w-full")
+
+                    actions = handler.get("actions") or []
+                    ui.label(f"{translate_string('Actions')} ({len(actions)})").classes(
+                        "text-xs uppercase text-gray-500 mt-1",
+                    )
+                    for action_index, action in enumerate(actions):
+                        with ui.row().classes("w-full items-center gap-1"):
+                            ui.label(action.get("type", "?")).classes("text-xs font-mono")
+                            ui.space()
+                            ui.button(
+                                icon="arrow_upward",
+                                on_click=lambda _e=None, h=handler, a=action_index: structural_edit(
+                                    lambda: sceneedit.v2_move_action(h, a, -1),
+                                ),
+                            ).props("dense flat size=sm")
+                            ui.button(
+                                icon="arrow_downward",
+                                on_click=lambda _e=None, h=handler, a=action_index: structural_edit(
+                                    lambda: sceneedit.v2_move_action(h, a, 1),
+                                ),
+                            ).props("dense flat size=sm")
+                            ui.button(
+                                icon="close",
+                                on_click=lambda _e=None, h=handler, a=action_index: structural_edit(
+                                    lambda: sceneedit.v2_delete_action(h, a),
+                                ),
+                            ).props("dense flat size=sm color=negative")
+                        for prop in sceneedit.v2_schema_props(sceneedit.V2_ACTION_SCHEMA, action):
+                            prop_input(action, prop)
+
+                    add_action = ui.button(translate_string("Add action"), icon="add").props("dense flat size=sm")
+                    with add_action, ui.menu():
+                        for action_type in sceneedit.V2_ACTION_TYPES:
+                            ui.menu_item(
+                                action_type,
+                                on_click=lambda _e=None, h=handler, t=action_type: structural_edit(
+                                    lambda: sceneedit.v2_add_action(h, t),
+                                ),
+                            ).props("dense")
+
+            add_handler = ui.button(translate_string("Add handler"), icon="add").props("dense flat")
+            with add_handler, ui.menu():
+                for event_type in sceneedit.V2_EVENT_TYPES:
+                    ui.menu_item(
+                        event_type,
+                        on_click=lambda _e=None, t=event_type: structural_edit(
+                            lambda: sceneedit.v2_add_handler(node, t),
+                        ),
+                    ).props("dense")
+
+    def render_inspector() -> None:
+        node = sceneedit.v2_node_at(layout, selection["path"])
+        if node is None:
+            ui.label(translate_string("Select a component on the left.")).classes("text-sm italic text-gray-500")
+            return
+
+        ui.label(sceneedit.v2_node_label(node)).classes("text-sm font-semibold font-mono")
+        for prop in sceneedit.v2_editable_props(node):
+            value = node.get(prop.key, "")
+            if prop.key == "id":
+                # Editable now, but through v2_rename_id rather than v2_set_prop: an id has
+                # to stay unique, and Tasks address components by it (see rename_id below).
+                id_input = ui.input(translate_string(prop.label), value=str(value)).props("dense").classes("w-full")
+                id_input.on("blur", lambda _e=None, w=id_input, p=selection["path"]: rename_id(p, w))
+                references = sceneedit.find_component_id_references(scene_name, str(value))
+                if references:
+                    ui.label(
+                        f"{translate_string('Addressed by id from')}: {', '.join(references)}",
+                    ).classes("text-xs text-orange-600 italic")
+            else:
+                prop_input(node, prop)
+
+        render_binding(node)
+        render_modifiers(node)
+        render_handlers(node)
+
+    def rename_id(path: tuple, widget: ui.input) -> None:
+        """Applies the id field on blur rather than on every keystroke -- a partially-typed
+        id would otherwise be checked for uniqueness mid-word and rejected for colliding
+        with itself.
+        """
+        node = sceneedit.v2_node_at(layout, path)
+        if node is None or str(widget.value).strip() == node.get("id", ""):
+            return
+        snapshot()
+        errors = sceneedit.v2_rename_id(layout, path, str(widget.value))
+        if errors:
+            history.pop()
+            for error in errors:
+                ui.notify(error, type="negative")
+            widget.value = node.get("id", "")
+            return
+        render()
+
+    def render_header() -> None:
+        rows = sceneedit.v2_flatten(layout)
+        ui.label(f"{translate_string('Scene Components')} ({len(rows)})").classes("text-sm font-semibold")
+        ui.space()
+        add_button = ui.button(translate_string("Add"), icon="add").props("dense flat")
+        with add_button, ui.menu():
+            for group, types in sceneedit.V2_PALETTE:
+                ui.menu_item(group).props("disable dense").classes("text-xs uppercase text-gray-500")
+                for node_type in types:
+                    ui.menu_item(node_type, on_click=lambda _e=None, t=node_type: add_component(t)).props("dense")
+        with add_button:
+            ui.tooltip(
+                translate_string(
+                    "Adds inside the selected component if it can hold children, otherwise directly after it.",
+                ),
+            )
+        ui.button(translate_string("Undo"), icon="undo", on_click=restore).props("dense flat").set_enabled(
+            bool(history),
+        )
+
+    def render_toolbar() -> None:
+        node = sceneedit.v2_node_at(layout, selection["path"])
+        is_root = not selection["path"]
+        for label, icon, handler, failure in (
+            ("Up", "arrow_upward", lambda: sceneedit.v2_move_node(layout, selection["path"], -1), "Already first."),
+            ("Down", "arrow_downward", lambda: sceneedit.v2_move_node(layout, selection["path"], 1), "Already last."),
+            ("Out", "format_indent_decrease", lambda: sceneedit.v2_outdent_node(layout, selection["path"]),
+             "Nothing to move it out to."),
+            ("In", "format_indent_increase", lambda: sceneedit.v2_indent_node(layout, selection["path"]),
+             "The component above it can't hold children."),
+            ("Duplicate", "content_copy", lambda: sceneedit.v2_duplicate_node(layout, selection["path"]),
+             "The root component can't be duplicated."),
+        ):
+            ui.button(
+                translate_string(label),
+                icon=icon,
+                on_click=lambda _e=None, op=handler, f=failure: structural(op, f),
+            ).props("dense flat").set_enabled(node is not None and not is_root)
+        ui.button(translate_string("Delete"), icon="delete", on_click=delete_selected).props(
+            "dense flat color=negative",
+        ).set_enabled(node is not None and not is_root)
+
+    def render() -> None:
+        header.clear()
+        tree_pane.clear()
+        inspector_pane.clear()
+        toolbar.clear()
+        with header:
+            render_header()
+        with tree_pane:
+            render_tree()
+        with inspector_pane:
+            render_inspector()
+        with toolbar:
+            render_toolbar()
+
+    render()
+
+
+def _build_scene_editor_body(
+    _self: MyGui,
+    edited_scene: sceneedit.EditableScene,
+    field_refs: dict,
+) -> None:
+    """Renders the editable body shared by the Add Scene and Edit Scene dialogs --
+    the Scene sibling of _build_profile_editor_body/the Task dialog's action list.
+    Both callers supply their own Name field and their own button row; everything
+    between the two is this.
+
+    Branches on which kind of Scene it was handed (sceneedit.is_v2_scene), because
+    the two have almost nothing in common below the name:
+
+      Legacy -- editable size (the four <widthPort>/<heightPort>/<widthLand>/
+      <heightLand> children Tasker lays the Scene out on), plus a read-only list
+      of its UI elements.  -1 is Tasker's own "not laid out for this orientation"
+      and is left alone as such (see sceneedit.UNSET_DIMENSION), which is why
+      these are plain text inputs rather than number spinners -- a spinner would
+      quietly turn a deliberate -1 into a 0-sized Scene.
+
+      Version 2 -- no size fields at all, and a read-only outline of the component
+      tree instead of an element list.  The size fields are omitted rather than
+      shown-and-disabled because a V2 layout is declarative: there is no canvas
+      to size, every real V2 Scene carries -1 across all four, and offering the
+      four boxes would invite someone to set a number that means nothing.  Their
+      absence from field_refs is what userintr._apply_scene_field_values reads as
+      "nothing to validate here", so no size is ever written to a V2 Scene.
+
+    NOT editable yet in either kind, and listed read-only so the dialog at least
+    tells the truth about what the Scene holds: a Legacy Scene's UI elements
+    (TextElement, ButtonElement, ...) and the Tasks they fire, or a V2 Scene's
+    components.  That is the part still to be specified; when it arrives it goes
+    here, in the matching branch, and needs nothing from either dialog beyond the
+    field_refs dict it is already handed.
+
+    Every widget it puts in field_refs is read back by
+    userintr._apply_scene_field_values, which is the only thing that has to grow
+    alongside it.
+    """
+    # Lazy import: scenes.py pulls in the whole Map-output stack (tasks, proclist,
+    # dirout), none of which the GUI needs at import time.
+    from maptasker.src.scenes import get_scene_element_names  # noqa: PLC0415
+
+    scene_element = edited_scene.scene_element
+    is_v2 = sceneedit.is_v2_scene(scene_element)
+
+    ui.label(f"{translate_string('Scene type')}: {translate_string(sceneedit.scene_version(scene_element))}").classes(
+        "text-sm text-gray-500 italic mt-1",
+    )
+
+    if is_v2:
+        layout = sceneedit.decode_v2_layout(scene_element)
+        if layout is None:
+            ui.label(
+                translate_string("This Scene's Version 2 layout could not be read, and will be left exactly as it is."),
+            ).classes("text-sm text-orange-600 mt-2")
+            return
+        _build_v2_designer(edited_scene, field_refs, layout)
+        return
+
+    with ui.row().classes("w-full gap-2 mt-2"):
+        for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
+            field_refs[key] = (
+                ui
+                .input(
+                    translate_string(label),
+                    value=scene_element.findtext(key, sceneedit.UNSET_DIMENSION),
+                )
+                .classes("w-36")
+                .props("dense")
+            )
+    ui.label(translate_string("-1 means this orientation has no layout of its own.")).classes(
+        "text-xs text-gray-500 italic",
+    )
+
+    # Read-only for now -- see this function's docstring.
+    element_names = get_scene_element_names(scene_element)
+    with ui.expansion(
+        f"{translate_string('Scene Elements')} ({len(element_names)})",
+        icon="widgets",
+    ).classes("w-full mt-2"):
+        if element_names:
+            for element_name in element_names:
+                ui.label(element_name).classes("text-sm font-mono")
+        else:
+            ui.label(translate_string("This Scene has no UI elements.")).classes("text-sm italic text-gray-500")
+        ui.label(
+            translate_string(
+                "Scene elements are shown here for reference only -- editing them is not available yet.",
+            ),
+        ).classes("text-xs text-gray-500 italic mt-1")
+
+
+def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> None:
+    """Asks which kind of Scene to add -- Legacy or Version 2 -- and is what the
+    "Add Scene" button actually opens; the Add Scene dialog itself comes second,
+    once the answer is known (see userintr.add_scene_of_version_event).
+
+    The choice is made up front, in its own prompt, rather than as a toggle
+    inside the Add Scene dialog, because it isn't a field of the Scene -- it
+    decides what the Scene *is*, and therefore what that dialog can even show:
+    a Legacy Scene has a pixel canvas and an element list, a V2 Scene has a
+    component tree and no canvas at all (see _build_scene_editor_body, which
+    branches on exactly this).  A toggle would have to tear down and rebuild the
+    whole dialog body on every flip, and would let someone type a Scene's details
+    and then change what kind of Scene they were describing.
+
+    There is no equivalent prompt on Edit Scene: an existing Scene's kind is a
+    property of the Scene, not a choice, and Tasker offers no conversion between
+    the two -- the layouts have nothing in common (x/y geometry vs. declarative
+    components), so there is nothing this app could honestly convert.
+    """
+    with ui.dialog() as version_dialog, ui.card().classes("min-w-[450px] max-w-[650px] w-full p-6"):
+        ui.label(translate_string("Add Scene")).classes("text-xl font-bold text-blue-600")
+        if target_project_name:
+            ui.label(f"{translate_string('Adding to Project:')} {target_project_name}").classes(
+                "text-sm text-gray-500 italic",
+            )
+        ui.label(translate_string("Which kind of Scene?")).classes("text-base mt-3")
+
+        # Legacy is one choice; Version 2 is four, because for a component tree "what do I
+        # start from" is the same question as "which kind" -- an empty Column and a titled
+        # dialog are different enough that asking separately, after the fact, would mean
+        # answering the more consequential half second.
+        ui.label(translate_string("Legacy")).classes("text-sm font-semibold mt-2")
+        ui.label(
+            translate_string(
+                "The original Scene: UI elements placed at fixed positions on a sized canvas "
+                "(Text, Button, Rect, Image, Web, ...).",
+            ),
+        ).classes("text-xs text-gray-500")
+        ui.button(
+            translate_string("Legacy Scene"),
+            on_click=lambda: self.event_handlers.add_scene_of_version_event(
+                sceneedit.SCENE_VERSION_LEGACY,
+                "",
+                target_project_name,
+                version_dialog,
+            ),
+        ).classes("bg-blue-600 mt-1")
+
+        ui.label(translate_string("Version 2")).classes("text-sm font-semibold mt-4")
+        ui.label(
+            translate_string(
+                "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) "
+                "that lays itself out, with no fixed canvas size. Start from:",
+            ),
+        ).classes("text-xs text-gray-500")
+        with ui.column().classes("w-full gap-1 mt-1"):
+            for label, description, _builder in sceneedit.V2_TEMPLATES:
+                with ui.row().classes("w-full items-center gap-2"):
+                    # Bind the loop variable per iteration -- a bare closure over `label`
+                    # would hand every button the last one.
+                    ui.button(
+                        translate_string(label),
+                        on_click=lambda _e=None, chosen=label: self.event_handlers.add_scene_of_version_event(
+                            sceneedit.SCENE_VERSION_V2,
+                            chosen,
+                            target_project_name,
+                            version_dialog,
+                        ),
+                    ).classes("bg-blue-600 w-48")
+                    ui.label(translate_string(description)).classes("text-xs text-gray-500")
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Cancel"), on_click=version_dialog.close).props("outline")
+
+    version_dialog.open()
+
+
+def build_add_scene_dialog(
+    self: MyGui,
+    edited_scene: sceneedit.EditableScene,
+    target_project_name: str,
+) -> None:
+    """Builds and opens the Add Scene dialog for a Scene of the kind already
+    chosen in build_add_scene_version_dialog: create it, empty, and attach it to
+    the currently selected Project.  edited_scene arrives already built as Legacy
+    or V2 (sceneedit.create_new_scene), and the body renders itself accordingly --
+    nothing here has to know which it got.
+
+    A Project is required, for the same reason Add Profile/Add Task require one:
+    a Scene only shows up in the Map/Diagram/Tree views if some Project's <scenes>
+    element names it (scenes.process_project_scenes reads exactly that -- not the
+    all_scenes lookup table sceneedit.register_new_scene populates), so a Scene
+    registered without one exists but is invisible everywhere except the Scene
+    pulldown.  See sceneedit.add_scene_to_project.
+
+    Like Add Project, there is no Save/Export surface here -- a Scene that was
+    created a moment ago has nothing in it to export.  Create it, then use Edit
+    Scene, which does (see build_edit_scene_dialog).
+    """
+    field_refs: dict = {"target_project_name": target_project_name}
+
+    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
+        ui.label(
+            f"{translate_string('Add Scene')}: {translate_string(sceneedit.scene_version(edited_scene.scene_element))}",
+        ).classes("text-xl font-bold text-blue-600")
+
+        if target_project_name:
+            ui.label(f"{translate_string('Adding to Project:')} {target_project_name}").classes(
+                "text-sm text-gray-500 italic",
+            )
+
+        field_refs["name"] = ui.input(translate_string("Scene Name"), value="").classes("w-full")
+
+        _build_scene_editor_body(self, edited_scene, field_refs)
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+            ui.button(
+                translate_string("Ok"),
+                on_click=lambda: self.event_handlers.keep_new_scene_event(edited_scene, field_refs, dialog),
+            ).classes("bg-blue-600")
+
+    dialog.open()
+
+
+def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) -> None:
+    """Builds and opens the Edit Scene dialog: edit the Scene's size, rename it
+    (the Name field is read-only -- Rename prompts for the new one, see
+    build_rename_dialog), delete it -- removing it from every Project that lists
+    it, see build_delete_scene_dialog -- or save it, either as a standalone
+    .scn.xml file (sceneedit.write_standalone_scene_xml), back into a timestamped
+    copy of the whole backup, or onto the Android device under /Tasker/scenes
+    (see build_save_scene_to_android_dialog).
+
+    Rename gets its own prompt here rather than a live Name field for the reason
+    it does everywhere else, and then some: a Scene's name is its identity in
+    four places at once (see sceneedit.py's module docstring), so applying one is
+    a real operation across the whole backup, not a field edit.
+    """
+    scene_name = edited_scene.scene_name
+    field_refs: dict = {}
+
+    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
+        ui.label(f"{translate_string('Edit Scene')}: {scene_name}").classes("text-xl font-bold text-blue-600")
+        # The kind of Scene is stated in the body too (see _build_scene_editor_body); it
+        # is here as well because it is why the body looks the way it does.
+
+        # Read-only -- renamed only through the Rename button's prompt; see
+        # build_edit_project_dialog's identical Name field for why.
+        field_refs["name"] = (
+            ui.input(translate_string("Scene Name"), value=scene_name).props("readonly").classes("w-full")
+        )
+
+        _build_scene_editor_body(self, edited_scene, field_refs)
+
+        field_refs["scene_save_path"] = ui.input(
+            translate_string("Save as"),
+            value=sceneedit.default_scene_save_path(scene_name),
+        ).classes("w-full mt-2")
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+            ui.button(
+                translate_string("Delete Scene"),
+                on_click=lambda: self.event_handlers.delete_scene_event(edited_scene, dialog),
+            ).classes("bg-red-500 text-white")
+            rename_scene_button = ui.button(
+                translate_string("Rename"),
+                on_click=lambda: self.event_handlers.rename_scene_event(edited_scene, dialog),
+            ).classes("bg-blue-600")
+            with rename_scene_button:
+                ui.tooltip(
+                    translate_string(
+                        "Prompts for a new name and applies it to the loaded backup, right now -- "
+                        "renaming the Scene everywhere, including in the Scene list of every Project "
+                        "that holds it.\n\n"
+                        "Tasks that show or hide this Scene by name are NOT updated; those still name "
+                        "the old Scene.\n\n"
+                        "The Scene Name field above is read-only -- this is the only way to change it.",
+                    ),
+                ).style("white-space: pre-line")
+            ui.button(
+                translate_string("Ok"),
+                on_click=lambda: self.event_handlers.save_edited_scene_event(edited_scene, field_refs, dialog),
+            ).props("outline")
+            scene_to_current_file = ui.button(
+                translate_string("Save To Current File"),
+                on_click=lambda: self.event_handlers.save_scene_to_current_file_event(
+                    edited_scene,
+                    field_refs,
+                    dialog,
+                ),
+            ).props("outline")
+            with scene_to_current_file:
+                ui.tooltip(
+                    translate_string(
+                        "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this "
+                        "Scene -- including every edit made anywhere in this session.\n"
+                        "It is written to a new, timestamped copy of the file currently loaded: "
+                        "backup.xml becomes backup_20260728_143005.xml.\n"
+                        "The file you loaded is never written to, so it is left exactly as it was.\n"
+                        "The app then switches to the new copy, which becomes the current file for any further "
+                        "editing and saving; saving again replaces the timestamp rather than adding a second one.\n"
+                        "This writes to this computer only -- nothing is sent to your Android device.",
+                    ),
+                ).style("white-space: pre-line")
+            scene_to_android = ui.button(
+                translate_string("Save To Android"),
+                on_click=lambda: self.event_handlers.open_save_scene_to_android_dialog_event(edited_scene, dialog),
+            ).props("outline")
+            with scene_to_android:
+                ui.tooltip(
+                    translate_string(
+                        "This will write the Scene as a standalone file onto your Android device, under "
+                        "/Tasker/scenes -- it does not import it into Tasker's live configuration.\n\n"
+                        "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                        "device, with the server running.\n\n"
+                        "The Android device must be on the same network, and the IP Address and Port must "
+                        "match its Tasker server settings. No authorization prompt is needed for this.",
+                    ),
+                ).style("white-space: pre-line")
+            export_scene = ui.button(
+                translate_string("Export Scene"),
+                on_click=lambda: self.event_handlers.save_scene_event(edited_scene, field_refs, dialog),
+            ).classes("bg-blue-600")
+            with export_scene:
+                ui.tooltip(
+                    translate_string(
+                        "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same "
+                        "format Tasker's own Scene export produces.\n\n"
+                        "Tasks the Scene's elements run are not included; they belong to their own Project.",
+                    ),
+                ).style("white-space: pre-line")
+
+    dialog.open()
+
+
+def build_delete_scene_dialog(
+    self: MyGui,
+    edited_scene: sceneedit.EditableScene,
+    parent_dialog: ui.dialog,
+) -> None:
+    """Confirms deletion of a Scene.  Like the Profile and Task dialogs there is
+    no Keep/Delete Contents choice -- a Scene's UI elements are children of the
+    Scene element itself and go with it -- but, like a Task, other things point
+    *at* a Scene, so the dialog says how many Projects lose it (see
+    sceneedit.delete_scene).
+
+    The reference count is read live so it can't go stale between opening Edit
+    Scene and clicking Delete, same as the Project/Profile/Task dialogs' counts.
+    """
+    scene_name = edited_scene.scene_name
+    project_count = sceneedit.count_scene_references(scene_name)
+
+    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+        ui.label(f"{translate_string('Delete Scene')} '{scene_name}'").classes("text-lg font-bold text-red-600")
+        ui.label(
+            f"{translate_string('It will be removed from')} {project_count} "
+            f"{translate_string('Project(s) that list it.')}",
+        ).classes("mt-1")
+        ui.label(
+            translate_string(
+                "Tasks that show or hide this Scene by name are not changed, and are left where they are.",
+            ),
+        ).classes("text-xs text-gray-500 italic mt-1")
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
+            ui.button(
+                translate_string("Delete Scene"),
+                on_click=lambda: self.event_handlers.confirm_delete_scene_event(
+                    scene_name,
+                    confirm_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-red-500 text-white")
+
+    confirm_dialog.open()
+
+
+def build_save_scene_to_android_dialog(
+    self: MyGui,
+    edited_scene: sceneedit.EditableScene,
+    parent_dialog: ui.dialog,
+) -> None:
+    """Prompts for the Android device's IP address and port, then writes the
+    Scene -- under its current, already-applied name (edited_scene.scene_name,
+    same convention as save_scene_event's local export; a not-yet-applied Rename
+    doesn't carry through) -- as a standalone .scn.xml file onto the device's
+    storage under /Tasker/scenes, via the Tasker HTTP Server Example's /upload
+    endpoint (see sceneedit.save_scene_to_android).  This does not import it into
+    Tasker's live configuration.  On success both this prompt and the parent
+    (Edit Scene) dialog are closed.  Mirrors build_save_project_to_android_dialog.
+    """
+    default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
+    default_port = getattr(self, "android_port", "") or "1821"
+
+    with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
+        ui.label(translate_string("Save Scene To Android Device")).classes("text-lg font-bold text-blue-600")
+        android_field_refs = {
+            "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
+            "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
+        }
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
+            save_to_android = ui.button(
+                translate_string("Save"),
+                on_click=lambda: self.event_handlers.save_scene_to_android_event(
+                    edited_scene,
+                    android_field_refs,
+                    android_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-blue-600")
+            with save_to_android:
+                ui.tooltip(
+                    translate_string(
+                        "This will write the Scene as a standalone file onto the Android device, "
+                        "under /Tasker/scenes.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                         "No authorization prompt is needed for this.",
                     ),
@@ -4302,6 +5158,21 @@ def initialize_screen(self: MyGui) -> None:
                         translate_string("Add Task"),
                         on_click=self.event_handlers.open_add_task_dialog_event,
                     ).classes("w-64 mt-2 bg-blue-500")
+                # The Scene pair is the only one of the four behind a switch -- Scene
+                # editing is still filling in (see sceneedit.py).  Not built at all when
+                # config.EDIT_SCENE is False, rather than built-and-hidden: nothing else
+                # reads these two attributes, so leaving them unset is enough, and it
+                # keeps a disabled feature from occupying a row of the tab.
+                if EDIT_SCENE:
+                    with ui.row().classes("gap-2 m-0 p-0"):
+                        self.edit_scene_button = ui.button(
+                            translate_string("Edit Scene"),
+                            on_click=self.event_handlers.open_edit_scene_dialog_event,
+                        ).classes("w-64 mt-2 bg-blue-500")
+                        self.add_scene_button = ui.button(
+                            translate_string("Add Scene"),
+                            on_click=self.event_handlers.open_add_scene_dialog_event,
+                        ).classes("w-64 mt-2 bg-blue-500")
 
             # --- TAB 2: COLORS (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_colors).classes("p-2 m-0") as self.gui_color_panel:

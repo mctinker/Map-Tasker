@@ -563,16 +563,18 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     afterward (see apply_edited_profile_to_live_tree/register_new_profile/
     apply_edited_task_to_live_tree/register_new_task).
 
-    This reconciles all three: starting from a deep copy of the original tree
-    (preserving Scenes, Settings, and anything else this app doesn't track in a
-    table of its own), it splices in each all_projects/all_profiles/all_tasks
-    entry's *current* element in place of whatever the tree's own matching child
-    holds (or appends it, for one added via Add Project/Add Profile/Add Task
-    that never existed in the original file at all). Project is matched by
-    <name> rather than <id> -- unlike all_profiles/all_tasks, all_projects is
-    keyed by name, not id (taskerd.move_xml_to_table(..., get_id=False, "name")),
-    so matching it by <id> the same way would never find an existing Project at
-    all and duplicate every one of them into the output on every single save.
+    This reconciles all four: starting from a deep copy of the original tree
+    (preserving Settings, Variables, and anything else this app doesn't track in
+    a table of its own), it splices in each all_projects/all_profiles/all_tasks/
+    all_scenes entry's *current* element in place of whatever the tree's own
+    matching child holds (or appends it, for one added via Add Project/Add
+    Profile/Add Task/Add Scene that never existed in the original file at all).
+    Project is matched by <name> rather than <id> -- unlike all_profiles/
+    all_tasks, all_projects is keyed by name, not id
+    (taskerd.move_xml_to_table(..., get_id=False, "name")), so matching it by
+    <id> the same way would never find an existing Project at all and duplicate
+    every one of them into the output on every single save.  Scene is matched by
+    <nme>, since a Scene has no <id> at all -- see _element_match_key.
 
     Returns (True, new_file_path) on success, or (False, error_message) if
     there's no current file to copy from, or the write itself fails.
@@ -611,31 +613,56 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
             return None
         return id_element.text.strip()
 
-    for tag, table_name in (("Project", "all_projects"), ("Profile", "all_profiles"), ("Task", "all_tasks")):
+    def _element_match_key(element: ETW.Element, tag: str) -> str | None:
+        # What identifies this element across the two trees being reconciled.  For
+        # Project/Profile/Task that is <id> (see _element_id_key).  A Scene has no <id>
+        # at all -- its identity is its name, held in <nme> and, redundantly, in its own
+        # sr="scene<name>" attribute (see sceneedit.py's module docstring).
+        #
+        # Matching a Scene by name is only safe because sceneedit was built around this
+        # constraint: projedit/profedit edit a detached deep copy and swap it into the
+        # table afterward, which is fine when the match key is <id> (a rename doesn't
+        # change it) but would strand a renamed Scene -- root_copy's element would still
+        # say the old name, nothing would match, and the save would emit both.
+        # sceneedit.apply_edited_scene_to_live_tree therefore copies the edit *onto* the
+        # live element rather than swapping objects, and root_copy is deep-copied from
+        # that same live tree at the top of this function -- so both sides always carry
+        # the same name by the time this runs.  Change one of those two and this breaks.
+        if tag == "Scene":
+            return (element.findtext("nme", "") or "").strip() or None
+        return _element_id_key(element)
+
+    for tag, table_name in (
+        ("Project", "all_projects"),
+        ("Profile", "all_profiles"),
+        ("Task", "all_tasks"),
+        ("Scene", "all_scenes"),
+    ):
         existing_by_id = {}
         last_index_of_tag = -1
         for index, child in enumerate(root_copy):
             if child.tag != tag:
                 continue
             last_index_of_tag = index
-            child_id = _element_id_key(child)
+            child_id = _element_match_key(child, tag)
             if child_id is not None:
                 existing_by_id[child_id] = child
 
         for entry in PrimeItems.tasker_root_elements.get(table_name, {}).values():
             current_element = copy.deepcopy(entry["xml"])
-            current_id = _element_id_key(current_element)
+            current_id = _element_match_key(current_element, tag)
             old_element = existing_by_id.get(current_id) if current_id is not None else None
             if old_element is not None:
                 index = list(root_copy).index(old_element)
                 root_copy.remove(old_element)
                 root_copy.insert(index, current_element)
             else:
-                # Brand-new Project/Profile/Task (e.g. from Add Project/Add Profile/
-                # Add Task), or one with no <id> at all (never seen in practice --
-                # every Project/Profile/Task in this repo's own sample backup has one --
-                # but handled the same safe way rather than risking two different
-                # id-less elements colliding on a shared None key): insert it next to
+                # Brand-new Project/Profile/Task/Scene (e.g. from Add Project/Add
+                # Profile/Add Task/Add Scene), or one with no match key at all (never
+                # seen in practice -- every Project/Profile/Task in this repo's own
+                # sample backup has an <id> and every Scene an <nme> -- but handled the
+                # same safe way rather than risking two different key-less elements
+                # colliding on a shared None key): insert it next to
                 # its own kind rather than at the very end of the file, so the
                 # top-level <Setting>/<Profile>/<Project>/<Scene>/<Task>/<Variable>
                 # grouping that real Tasker backups always use stays intact.

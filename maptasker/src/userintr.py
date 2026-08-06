@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, context, run, ui
 
-from maptasker.src import profedit, projedit, taskedit
+from maptasker.src import profedit, projedit, sceneedit, taskedit
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
@@ -58,17 +58,22 @@ from maptasker.src.guiwins import (
     NiceGuiTreeView,
     build_add_profile_dialog,
     build_add_project_dialog,
+    build_add_scene_dialog,
+    build_add_scene_version_dialog,
     build_add_task_dialog,
     build_delete_profile_dialog,
     build_delete_project_dialog,
+    build_delete_scene_dialog,
     build_delete_task_dialog,
     build_edit_profile_dialog,
     build_edit_project_dialog,
+    build_edit_scene_dialog,
     build_edit_task_dialog,
     build_overwrite_confirm_dialog,
     build_rename_dialog,
     build_save_profile_to_android_dialog,
     build_save_project_to_android_dialog,
+    build_save_scene_to_android_dialog,
     build_save_to_android_dialog,
     create_popup_window,
     element_is_live,
@@ -1288,6 +1293,118 @@ def _confirmed_single_project_name(gui: MyGui) -> str:
     # Bare name covers the pulldown's unprefixed form; the second is how the
     # Project list itself is built.
     return name if name in options or f"{translate_string('Project:')} {name}" in options else ""
+
+
+def _confirmed_single_scene_name(gui: MyGui) -> str:
+    """Returns gui.single_scene_name, but only if the Specific Name tab's own
+    Scene pulldown currently lists it -- the Scene twin of
+    _confirmed_single_project_name, guarding the identical gap (a name restored
+    from a previous session's settings before the pulldown was ever populated,
+    see that function for the full account).
+
+    Simpler than its Project counterpart in one way: the Scene pulldown lists
+    bare names, not "Scene: name" (guiutils.get_tasker_objects builds it straight
+    from all_scenes' keys, the same way it builds the Task list), so there is no
+    translated prefix to reconstruct.
+    """
+    name = getattr(gui, "single_scene_name", "")
+    if not name:
+        return ""
+    widget = getattr(gui, "specific_scene_optionmenu", None)
+    options = getattr(widget, "options", None) if widget is not None else None
+    # No pulldown yet is not evidence of a bad name -- only a populated list is.
+    if options is None:
+        return name
+    return name if name in options else ""
+
+
+def _apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs: dict) -> list[str]:
+    """Writes the Add/Edit Scene dialog's non-name widgets back onto the Scene
+    copy, and returns a list of error strings (empty on success, and nothing is
+    written when it is non-empty -- the same all-or-nothing contract
+    sceneedit.apply_edits_to_scene uses).
+
+    Today that is the four size fields guiwins._build_scene_editor_body puts up
+    for a Legacy Scene.  A Version 2 Scene has no size at all -- its layout is
+    declarative, so that function builds no size inputs for one -- and this
+    silently writes nothing for it: the widgets simply aren't in field_refs, and
+    the loop skips what isn't there.  That is the intended contract between the
+    two, not an oversight; it means a V2 Scene can never be given a canvas size
+    by this path, however the dialog changes.
+
+    They are validated here rather than in the dialog builder because that runs
+    once, when the dialog opens, and what needs checking is what the user typed
+    afterward.  Anything that function grows later is read back here -- these two
+    are a matched pair and the only two places the Scene body's widgets are known
+    by name.
+
+    Sizes must be whole numbers; -1 is allowed and meaningful (Tasker's "this
+    orientation has no layout of its own", see sceneedit.UNSET_DIMENSION), so the
+    check is "integer", not "positive integer".
+    """
+    errors = []
+    pending: dict[str, str] = {}
+
+    for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
+        widget = field_refs.get(key)
+        if widget is None:
+            continue
+        value = str(widget.value).strip()
+        try:
+            int(value)
+        except ValueError:
+            errors.append(f"{translate_string(label)} must be a whole number (-1 for no layout).")
+            continue
+        pending[key] = value
+
+    if errors:
+        return errors
+
+    sceneedit.set_scene_dimensions(edited_scene, pending)
+    _encode_v2_layout_if_edited(edited_scene, field_refs)
+    return []
+
+
+def _encode_v2_layout_if_edited(edited_scene: sceneedit.EditableScene, field_refs: dict) -> None:
+    """Writes the Version 2 designer's live layout dict back into the Scene's <lj>.
+
+    The designer edits that dict in place as the user types (guiwins._build_v2_designer),
+    so by the time a save button runs, every property change is already in it and this is
+    the single step that makes them real.  A Legacy Scene has no "v2_layout" in field_refs
+    and this does nothing.
+
+    Re-syncs the layout's embedded "name" from <nme> first, because both this and
+    sceneedit.apply_edits_to_scene write to <lj> and the save handlers call them in
+    different orders: Rename applies the name (which re-encodes the layout it decodes
+    itself) and then lands here, so encoding a stale in-memory copy would put the old name
+    straight back. Taking the name from the element -- the one place both agree on -- makes
+    the two orderings equivalent.
+
+    Encoding an untouched layout is a no-op in the only sense that matters: it reproduces
+    the original <lj> byte for byte (see sceneedit._V2_GZIP_LEVEL), so a dialog opened and
+    saved with nothing changed leaves the file exactly as it was.
+    """
+    layout = field_refs.get("v2_layout")
+    if not isinstance(layout, dict):
+        return
+    layout["name"] = edited_scene.scene_element.findtext("nme", "") or layout.get("name", "")
+    sceneedit.encode_v2_layout(edited_scene.scene_element, layout)
+
+
+def _finish_new_scene(gui: MyGui, edited_scene: sceneedit.EditableScene, project_name: str) -> None:
+    """Registers a validated, applied new Scene into the live in-memory backup,
+    attaches it to its Project, and refreshes the pulldowns -- the Add Scene
+    counterpart of _finish_new_profile, and attaching for the same reason: a
+    Scene the owning Project's <scenes> doesn't name is invisible to every view
+    (see sceneedit.add_scene_to_project).
+    """
+    sceneedit.register_new_scene(edited_scene)
+    sceneedit.add_scene_to_project(edited_scene.scene_name, project_name)
+    refresh_tasker_object_pulldowns(gui)
+
+    # Select the new Scene as the app-wide single-Scene filter and show it in the
+    # pulldown -- also clears any stale single Project/Profile/Task selection.
+    select_pulldown_option(gui.specific_scene_optionmenu, edited_scene.scene_name)
 
 
 def _task_arg_values(field_refs: dict) -> dict[str, str]:
@@ -2921,6 +3038,366 @@ class MapTaskerEventHandlers:
         else:
             ui.notify(f"Deleted '{project_name}' and everything it owned.", type="positive")
 
+        confirm_dialog.close()
+        parent_dialog.close()
+
+    # -------------------------------------------------------------------------
+    # Scene editing.
+    #
+    # The Scene arm of the Project/Profile/Task handlers above, and shaped after the
+    # Project ones throughout, since a Scene is name-keyed the same way (see
+    # sceneedit.py's module docstring).  Every one of these is reachable only when
+    # config.EDIT_SCENE is True -- guiwins only builds the two buttons that call in
+    # here when it is, and nothing else calls them.
+    # -------------------------------------------------------------------------
+    def open_add_scene_dialog_event(self) -> None:
+        """Backs the "Add Scene" button.  Checks the two things that have to be
+        true before a Scene can be added at all -- a Project is selected to attach
+        it to (same requirement as Add Profile/Add Task, see
+        sceneedit.add_scene_to_project) and a backup is actually parsed -- and then
+        asks which kind of Scene to add.
+
+        The Scene itself isn't built here: which kind it is decides how it is
+        built, so creation waits for the answer, in add_scene_of_version_event.
+        Checking the preconditions first means the user is never asked to choose a
+        Scene type only to be told afterwards that nothing was loaded.
+        """
+        the_view = self.gui
+        project_name = _confirmed_single_project_name(the_view)
+        if not project_name:
+            ui.notify(translate_string("Select a single Project first (Project pulldown above)."), type="warning")
+            return
+
+        # See open_add_task_dialog_event's identical self-healing load: the toolbar's
+        # "Current File" only means a filename is known, not that it's been parsed
+        # into PrimeItems.xml_root yet.
+        if PrimeItems.xml_root is None:
+            if not PrimeItems.file_to_get and getattr(the_view, "file", ""):
+                PrimeItems.file_to_get = the_view.file
+            if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
+                ui.notify(
+                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning"
+                )
+                return
+
+        build_add_scene_version_dialog(the_view, project_name)
+
+    def add_scene_of_version_event(
+        self,
+        version: str,
+        template: str,
+        project_name: str,
+        version_dialog: ui.dialog,
+    ) -> None:
+        """Builds a brand-new Scene of the chosen kind -- and, for Version 2, from the
+        chosen template -- then opens the Add Scene dialog on it, closing the prompt behind
+        it.  Backs every button on that prompt (see build_add_scene_version_dialog).
+
+        template is ignored for a Legacy Scene, which has only one possible starting shape.
+
+        The prompt stays open if the Scene can't be built, so the choice isn't lost along
+        with the error.
+        """
+        new_scene = sceneedit.create_new_scene("", version, template or sceneedit.V2_DEFAULT_TEMPLATE)
+        if isinstance(new_scene, str):
+            ui.notify(new_scene, type="warning")
+            return
+
+        version_dialog.close()
+        build_add_scene_dialog(self.gui, new_scene, target_project_name=project_name)
+
+    def keep_new_scene_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Validates and applies the Add Scene dialog's fields, registers the new
+        Scene into the live in-memory backup, attaches it to its Project, then
+        closes the dialog -- the Add Scene dialog's only save action (no
+        standalone file or Save To Android surface, see build_add_scene_dialog).
+        Dialog stays open on any error so the user's in-progress work isn't lost.
+        """
+        name_value = field_refs["name"].value.strip()
+        if sceneedit.scene_name_exists(name_value):
+            ui.notify(
+                f"A Scene named '{name_value}' already exists in this backup. Choose a different name.",
+                type="negative",
+            )
+            return
+
+        errors = sceneedit.apply_edits_to_scene(edited_scene, name_value) + _apply_scene_field_values(
+            edited_scene,
+            field_refs,
+        )
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        _finish_new_scene(self.gui, edited_scene, field_refs["target_project_name"])
+
+        ui.notify(translate_string("Scene added."), type="positive")
+        dialog.close()
+
+    def open_edit_scene_dialog_event(self) -> None:
+        """Opens the Edit Scene dialog for the currently selected single Scene name."""
+        the_view = self.gui
+        scene_name = _confirmed_single_scene_name(the_view)
+        if not scene_name:
+            ui.notify(translate_string("Select a single Scene first (Scene pulldown above)."), type="warning")
+            return
+
+        edited_scene = sceneedit.load_scene_for_edit(scene_name)
+        if edited_scene is None:
+            ui.notify(f"Could not find Scene '{scene_name}'.", type="negative")
+            return
+
+        build_edit_scene_dialog(the_view, edited_scene)
+
+    def save_edited_scene_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Applies the Edit Scene dialog's editable fields to the live in-memory
+        backup and closes the dialog.  Backs the "Ok" button.
+
+        The Name field is read-only here, so this never renames anything -- Rename
+        is its own operation (see confirm_rename_scene_event).  What it does have
+        to do, which the Project equivalent does not, is write the edited *copy*
+        back into the live tree: the dialog edits a deep copy
+        (sceneedit.load_scene_for_edit), so without this the size changes stay in
+        the copy and vanish with the dialog.
+        """
+        errors = _apply_scene_field_values(edited_scene, field_refs)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
+
+        ui.notify(f"Saved Scene '{edited_scene.scene_name}'.", type="positive")
+        dialog.close()
+
+    def rename_scene_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        dialog: ui.dialog,
+    ) -> None:
+        """Opens the Rename prompt for this Scene, nested inside Edit Scene -- see
+        build_rename_dialog.  Backs the "Rename" button; mirrors
+        rename_project_event.  The dialog's own Name field is read-only, so the
+        prompt is where the new name comes from.
+        """
+        build_rename_dialog(
+            self.gui,
+            "Scene",
+            edited_scene.scene_name,
+            lambda new_name, rename_dialog: self.confirm_rename_scene_event(
+                edited_scene,
+                new_name,
+                rename_dialog,
+                dialog,
+            ),
+        )
+
+    def confirm_rename_scene_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        new_name: str,
+        rename_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Validates the name typed into the Rename prompt and applies it,
+        renaming the Scene in the live in-memory backup -- moving its all_scenes
+        entry and rewriting the <scenes> list of every Project that named it (see
+        sceneedit.apply_edited_scene_to_live_tree) -- making it the current single
+        Scene under that name, then closing both the prompt and the Edit Scene dialog.
+        The prompt stays open on any error, with what was typed still in it to fix.
+
+        Closes the Edit Scene dialog on success, for the same reason Edit Project
+        does (see confirm_rename_project_event): what remains in it is either
+        derived from the name (its title, its "Save as" path) or already applied.
+        """
+        old_name = edited_scene.scene_name
+
+        errors = sceneedit.apply_edits_to_scene(edited_scene, new_name)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        sceneedit.apply_edited_scene_to_live_tree(old_name, edited_scene)
+        refresh_tasker_object_pulldowns(self.gui)
+        _select_renamed_item(self.gui, "Scene", new_name)
+
+        ui.notify(f"Renamed to '{new_name}'.", type="positive")
+        rename_dialog.close()
+        parent_dialog.close()
+
+    def save_scene_to_current_file_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Applies the dialog's editable fields, then writes the *entire* current
+        backup -- not just this Scene -- out to a new, timestamped copy of
+        whatever file it was loaded from (see
+        maputil2.write_full_backup_to_current_file, whose reconciliation now
+        covers Scenes too) and switches the app over to that copy (see
+        _reload_saved_copy_and_refresh) -- the original file is left untouched.
+        Mirrors save_project_to_current_file_event.  Dialog stays open on any
+        error so the user's in-progress edit isn't lost.
+
+        Re-selects the Scene after the reload, never before: this path replaces
+        every table wholesale by re-parsing the file it just wrote, so a selection
+        made beforehand would point at state that no longer exists a moment later.
+        """
+        errors = _apply_scene_field_values(edited_scene, field_refs)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
+
+        success, result = write_full_backup_to_current_file()
+        if not success:
+            ui.notify(f"Could not save to current file: {result}", type="negative")
+            return
+        reload_ok, reload_error = _reload_saved_copy_and_refresh(self.gui, result)
+        if not reload_ok:
+            ui.notify(f"Saved a copy to {result}, but failed to load it: {reload_error}", type="warning")
+            return
+
+        _select_renamed_item(self.gui, "Scene", edited_scene.scene_name)
+        ui.notify(f"Saved a copy to {result} and loaded it. The original file was left unchanged.", type="positive")
+        dialog.close()
+
+    def save_scene_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        dialog: ui.dialog,
+    ) -> None:
+        """Writes the Scene out as a standalone .scn.xml file (see
+        sceneedit.write_standalone_scene_xml).  Backs the "Export Scene" button.
+
+        Exports the Scene as it currently stands in the live backup, under its
+        current name -- a size edit sitting unapplied in the dialog does not carry
+        through, exactly as save_project_event's export ignores an unapplied
+        rename.  Use "Ok" first if the edit should be included.  Dialog stays open
+        on any error so the user's in-progress edit isn't lost.
+        """
+        save_path = field_refs["scene_save_path"].value.strip()
+
+        def _write() -> None:
+            try:
+                sceneedit.write_standalone_scene_xml(edited_scene.scene_name, save_path)
+            except (OSError, ValueError) as e:
+                ui.notify(f"Could not save file: {e}", type="negative")
+                return
+
+            ui.notify(f"Saved Scene '{edited_scene.scene_name}' to {save_path}", type="positive")
+            dialog.close()
+
+        if sceneedit.save_path_exists(save_path):
+            build_overwrite_confirm_dialog(f"'{save_path}'", _write)
+            return
+        _write()
+
+    def open_save_scene_to_android_dialog_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Opens the Save Scene To Android prompt, nested inside Edit Scene -- see
+        build_save_scene_to_android_dialog.
+        """
+        build_save_scene_to_android_dialog(self.gui, edited_scene, parent_dialog)
+
+    async def save_scene_to_android_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        android_field_refs: dict,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Pings the Android device to confirm it's reachable, then writes the
+        Scene onto the device's storage under /Tasker/scenes (see
+        sceneedit.save_scene_to_android).  Mirrors save_project_to_android_event
+        exactly, including exporting under the Scene's current, already-applied
+        name rather than anything unapplied in the dialog.
+        """
+        ip_address = android_field_refs["ip_address"].value.strip()
+        ip_port = android_field_refs["ip_port"].value.strip()
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+
+        def _upload() -> None:
+            return_code, result = sceneedit.save_scene_to_android(edited_scene.scene_name, ip_address, ip_port)
+            if return_code != 0:
+                ui.notify(f"Could not save to Android device: {result}", type="negative")
+                return
+
+            # Remember the connection details for next time, same as the Get XML dialog does.
+            self.gui.android_ipaddr = ip_address
+            self.gui.android_port = ip_port
+
+            ui.notify(f"Scene saved to Android device at {result}", type="positive")
+            android_dialog.close()
+            parent_dialog.close()
+
+        # /upload overwrites silently and answers 200 either way, so the only way to
+        # know is to read the destination back first -- see maputil2.file_exists_on_android
+        # (None = couldn't tell, which still prompts rather than risking a silent clobber).
+        device_path = sceneedit.android_scene_path(edited_scene.scene_name)
+        exists = file_exists_on_android(ip_address, ip_port, device_path)
+        if exists is not False:
+            build_overwrite_confirm_dialog(
+                f"'{device_path}' on the Android device",
+                _upload,
+                unknown=exists is None,
+            )
+            return
+        _upload()
+
+    def delete_scene_event(self, edited_scene: sceneedit.EditableScene, dialog: ui.dialog) -> None:
+        """Opens the Delete Scene confirmation dialog, nested inside Edit Scene --
+        see build_delete_scene_dialog.
+        """
+        build_delete_scene_dialog(self.gui, edited_scene, dialog)
+
+    def confirm_delete_scene_event(
+        self,
+        scene_name: str,
+        confirm_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Deletes the Scene, along with its entry in every Project that lists it
+        (see sceneedit.delete_scene), then refreshes the pulldowns, resets the
+        now-stale single-name selection, and closes both dialogs.  Mirrors
+        confirm_delete_task_event; both dialogs stay open on error.
+
+        The selection reset is required, not cosmetic: the Scene pulldown is still
+        pointing at the name just deleted, and leaving it there would let Edit
+        Scene reopen on a Scene that no longer resolves.
+        """
+        errors = sceneedit.delete_scene(scene_name)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        refresh_tasker_object_pulldowns(self.gui)
+        _reset_specific_name_selection(self.gui)
+
+        ui.notify(f"Deleted Scene '{scene_name}'.", type="positive")
         confirm_dialog.close()
         parent_dialog.close()
 
