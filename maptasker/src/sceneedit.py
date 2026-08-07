@@ -262,6 +262,200 @@ class V2Prop:
 # sketch's round-trip rules).
 V2_ID_PROP = V2Prop("id", "Component id")
 
+# Properties every component can carry, whatever its type, appended after its own schema.
+# They are here rather than repeated per type because the 'V2New' Scene shows them turning up
+# on components of completely unrelated kinds -- treeLabel on a ProgressBar, a Camera, a Box
+# and a Card; showWhen on a ProgressBar, a Camera and a RangeSlider as well as the TextInput
+# and Button they were first seen on.
+#
+# treeLabel is Tasker's own name for the component in the Screen Builder's tree, which is why
+# v2_node_label prefers it over the raw type when it is set: the designer's tree should read
+# the way the Screen Builder's does.
+V2_UNIVERSAL_PROPS: tuple[V2Prop, ...] = (
+    V2Prop("showWhen", "Show when"),
+    V2Prop("showWhenMode", "Hidden as", "choice", ("Gone", "Invisible")),
+    V2Prop("treeLabel", "Tree label"),
+)
+
+
+@dataclass(frozen=True)
+class V2ShowWhenChoice:
+    """One variable the Show When picker offers: what it is called, and what it inserts.
+
+    The two differ for the entries that have a documented name -- "Airplane Mode Status"
+    inserts "%AIR" -- and are the same string for a user's own global, which has no name
+    other than itself.
+
+    Note what is deliberately NOT here: the variable's current value.  A Show When is
+    evaluated when the Scene is shown, against whatever the variable holds *then*; whatever
+    the backup happened to have stored when it was written is a different number and showing
+    it would only invite someone to reason from it.
+    """
+
+    label: str
+    value: str
+
+
+# The Screen Builder's own environment variables -- read-only values Tasker sets while a
+# Version 2 Scene is on screen.  "display" is the device's whole screen; "render" is the area
+# this Scene is actually drawn into, which is smaller when the Scene is a dialog rather than
+# full screen, so the two disagree exactly when it matters.
+#
+# The spellings are confirmed against real Scenes rather than transcribed: %sv2_render_is_
+# landscape, %sv2_render_is_portrait, %sv2_display_is_portrait and %sv2_render_width all
+# appear in the Version 2 Scenes in XML/backup.xml, every one of them with the "sv2" prefix
+# (an "sv_" spelling appears nowhere, in any Scene, and would silently never match).
+V2_SHOW_WHEN_ENVIRONMENT: tuple[V2ShowWhenChoice, ...] = (
+    V2ShowWhenChoice("Display Width", "%sv2_display_width"),
+    V2ShowWhenChoice("Display Height", "%sv2_display_height"),
+    V2ShowWhenChoice("Display is Landscape", "%sv2_display_is_landscape"),
+    V2ShowWhenChoice("Display is Portrait", "%sv2_display_is_portrait"),
+    V2ShowWhenChoice("Render Width", "%sv2_render_width"),
+    V2ShowWhenChoice("Render Height", "%sv2_render_height"),
+    V2ShowWhenChoice("Render is Landscape", "%sv2_render_is_landscape"),
+    V2ShowWhenChoice("Render is Portrait", "%sv2_render_is_portrait"),
+)
+
+# The comparisons a Show When can be built with.  Same shape as everything else the picker
+# offers -- a name to choose by and the text it inserts -- because an operator is chosen the
+# same way a variable is, and "ccontains" is no more memorable than "%AIR".
+#
+# Note "Contains (Case-Insensitive)": the parentheses are part of the *name*, not a spelling
+# of the operator.  What goes into the field is the bare word, "contains".
+V2_SHOW_WHEN_OPERATORS: tuple[V2ShowWhenChoice, ...] = (
+    V2ShowWhenChoice("Equals", "=="),
+    V2ShowWhenChoice("Not Equals", "!="),
+    V2ShowWhenChoice("Greater Than", ">"),
+    V2ShowWhenChoice("Less Than", "<"),
+    V2ShowWhenChoice("Greater or Equal", ">="),
+    V2ShowWhenChoice("Less or Equal", "<="),
+    V2ShowWhenChoice("Contains (Case-Insensitive)", "contains"),
+    V2ShowWhenChoice("Contains (Case-Sensitive)", "ccontains"),
+    V2ShowWhenChoice("Matches Pattern", "matches"),
+    V2ShowWhenChoice("Matches Regex", "matchesr"),
+)
+
+# What joins two comparisons into one condition, or negates one.  Kept as their own category
+# rather than folded in with the comparisons above: these combine whole tests where those
+# compare two values, so they are reached for at a different point in writing a condition.
+V2_SHOW_WHEN_LOGICAL_OPERATORS: tuple[V2ShowWhenChoice, ...] = (
+    V2ShowWhenChoice("And", "&"),
+    V2ShowWhenChoice("Or", "|"),
+    V2ShowWhenChoice("Not", "!"),
+)
+
+# The picker's categories, in the order it lists them.  The three short ones lead so they are
+# all on screen without scrolling -- and because a condition is written left to right out of
+# exactly these: a variable, a comparison, and whatever joins it to the next one.  The two
+# long lists of globals follow.
+V2_SHOW_WHEN_GROUPS = (
+    "Environment",
+    "Operators",
+    "Logical Operators",
+    "User Globals",
+    "Built-in Globals",
+)
+
+
+def _v2_global_choices() -> tuple[list[V2ShowWhenChoice], list[V2ShowWhenChoice]]:
+    """(user globals, built-in globals) out of the loaded backup's <Variable> elements.
+
+    Read straight from the XML rather than from PrimeItems.variables, which looks like the
+    obvious source and is the wrong one twice over: it is only ever filled by
+    globalvr.get_variables() on the Map-output path, so in a GUI session that has not built a
+    Map it is simply empty; and what it does hold has been through HTML escaping (spaces to
+    &nbsp;, commas to <br>) for the benefit of the Map, which is not what a dialog should
+    show.
+
+    The two categories come from different places, and have to.
+
+    User globals are the same set globalvr.print_the_variables treats as the user's: every
+    <Variable> in the backup whose name Tasker does not own.  It is read here straight off
+    the XML rather than out of PrimeItems.variables, which is the dict that function walks
+    and would be the obvious thing to reuse, for two reasons: PrimeItems.variables is only
+    ever filled by globalvr.get_variables() on the Map-output path, so in a GUI session that
+    has not built a Map it is simply empty; and the values it holds have been HTML-escaped
+    for the Map (spaces to &nbsp;, commas to <br>).  The names are identical either way,
+    which is all this needs -- the name is both the label and what gets inserted.
+
+    Built-ins are Tasker's own fixed set, and NOT the built-in-looking names found in the
+    file: Tasker only writes a <Variable> for a value it has actually stored, so sourcing
+    them from the backup yields an *empty* category on a real backup while %BATT and %WIFI
+    are perfectly usable in a Show When.  Each is offered under its documented name --
+    "Airplane Mode Status", not "%AIR", which is not something anyone browses a hundred-item
+    list by -- from globalvr.tasker_global_variable_names, falling back to the variable
+    itself for the handful that table has no name for.  Either way what gets inserted is the
+    variable.  The set is the union of that table and globalvr's list, since each holds a few
+    the other doesn't (see the note above tasker_global_variable_names).
+
+    Both lists come back sorted by what the picker shows, ignoring case and any leading %,
+    because Tasker's own ordering in the file is the order they were created in and means
+    nothing to someone looking for one by name.
+    """
+    from maptasker.src.globalvr import tasker_global_variable_names, tasker_global_variables  # noqa: PLC0415
+
+    builtin_names = set(tasker_global_variables) | set(tasker_global_variable_names)
+    stored_names = (
+        [variable.findtext("n") for variable in PrimeItems.xml_root.findall("Variable")]
+        if PrimeItems.xml_root is not None
+        else []
+    )
+
+    user = [V2ShowWhenChoice(name, name) for name in dict.fromkeys(stored_names) if name and name not in builtin_names]
+    builtin = [
+        V2ShowWhenChoice(tasker_global_variable_names.get(name, name), name) for name in builtin_names
+    ]
+
+    def sort_key(choice: V2ShowWhenChoice) -> str:
+        return choice.label.lstrip("%").lower()
+
+    user.sort(key=sort_key)
+    builtin.sort(key=sort_key)
+    return user, builtin
+
+
+def v2_show_when_choices() -> list[tuple[str, list[V2ShowWhenChoice]]]:
+    """The whole Show When picker, as (category, choices) in V2_SHOW_WHEN_GROUPS order.
+
+    A category with nothing in it is still returned, empty -- a backup with no variables of
+    its own should say "User Globals: none" rather than silently offering two categories
+    where the user was told there are three.
+    """
+    user, builtin = _v2_global_choices()
+    return [
+        ("Environment", list(V2_SHOW_WHEN_ENVIRONMENT)),
+        ("Operators", list(V2_SHOW_WHEN_OPERATORS)),
+        ("Logical Operators", list(V2_SHOW_WHEN_LOGICAL_OPERATORS)),
+        ("User Globals", user),
+        ("Built-in Globals", builtin),
+    ]
+
+
+def v2_insert_show_when(current: str, value: str, caret: int | None = None) -> tuple[str, int]:
+    """Put one variable or operator into a Show When expression at `caret`, and hand back
+    (new text, where the caret should now be).
+
+    Inserts rather than replaces, because a Show When is an expression built a piece at a
+    time -- "%sv2_render_is_portrait" is a complete condition on its own, but
+    "%BATT < 20" is a variable, an operator and something typed, in that order.
+
+    caret is where the user last had the cursor in the field; None, or a position that no
+    longer fits the text, means the end.  The end is also the right answer for the common
+    case of never having clicked into the field at all, where the caret sits at 0 and
+    inserting there would build the expression backwards.
+
+    Single spaces are added around the inserted text where its neighbours don't already
+    provide them, so picking a variable and then an operator gives "%BATT <" rather than
+    "%BATT<" -- and the returned caret sits *after* that trailing space, ready for whatever
+    comes next.
+    """
+    position = len(current) if caret is None or not 0 <= caret <= len(current) else caret
+    before, after = current[:position], current[position:]
+    lead = "" if not before or before[-1].isspace() else " "
+    trail = "" if not after or after[0].isspace() else " "
+    inserted = f"{lead}{value}{trail}"
+    return f"{before}{inserted}{after}", position + len(inserted)
+
 _ARRANGEMENT = ("Start", "Center", "End", "SpaceBetween", "SpaceAround", "SpaceEvenly")
 _ALIGNMENT = ("Start", "Center", "End")
 _VERTICAL_ALIGNMENT = ("Top", "Center", "Bottom")
@@ -300,14 +494,11 @@ V2_COMPONENT_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
     "TextInput": (
         V2Prop("label", "Label"),
         V2Prop("textSize", "Text size", "number"),
-        V2Prop("showWhen", "Show when"),
-        V2Prop("showWhenMode", "Hidden as", "choice", ("Gone", "Invisible")),
     ),
     "Button": (
         V2Prop("text", "Text"),
         V2Prop("buttonColor", "Button colour"),
         V2Prop("textColor", "Text colour"),
-        V2Prop("showWhen", "Show when"),
     ),
     "IconButton": (
         V2Prop("icon", "Icon"),
@@ -319,6 +510,7 @@ V2_COMPONENT_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
         V2Prop("width", "Width", "number"),
         V2Prop("height", "Height", "number"),
         V2Prop("alignment", "Alignment", "choice", _ALIGNMENT),
+        V2Prop("contentScale", "Content scale"),
     ),
     "WebView": (
         V2Prop("content", "Content"),
@@ -344,17 +536,61 @@ V2_COMPONENT_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
     ),
     "Checkbox": (V2Prop("checked", "Checked"),),
     "Switch": (V2Prop("checked", "Checked"),),
+    "SegmentedButtonRow": (
+        V2Prop("allowDeselect", "Allow deselect", "choice", ("true", "false")),
+        V2Prop("selectedIndices", "Selected indices"),
+    ),
+    "SegmentedButtonItem": (V2Prop("label", "Label"),),
     "NavigationItem": (
         V2Prop("icon", "Icon"),
         V2Prop("label", "Label"),
+        V2Prop("selected", "Selected", "choice", ("true", "false")),
     ),
     "Variable": (V2Prop("key", "Variable"),),
     "Spacer": (V2Prop("height", "Height", "number"),),
     "Divider": (V2Prop("color", "Colour"),),
     "Scaffold": (),
     "TopAppBar": (),
-    "NavigationBar": (),
+    "NavigationBar": (V2Prop("selectedIndex", "Selected index", "number"),),
     "FloatingActionButton": (),
+    # ---- Read off the 'V2New' Scene, which was built in Tasker's Screen Builder with one of
+    # each of the elements this app had never seen a sample of.  Every key below appears in
+    # that Scene; the ones Tasker left absent are absent here too rather than guessed at, so
+    # these entries stay as short as the evidence is.
+    "ProgressBar": (
+        V2Prop("minProgress", "Minimum progress", "number"),
+        V2Prop("color", "Colour"),
+        V2Prop("showStopIndicator", "Show stop indicator", "choice", ("true", "false")),
+        V2Prop("animateChanges", "Animate changes", "choice", ("true", "false")),
+    ),
+    # "front" is what the sample carries; the opposite value is Tasker's to name, so this is a
+    # free text field rather than a two-item pulldown that might offer the wrong other half.
+    "Camera": (V2Prop("lens", "Lens"),),
+    "RangeSlider": (
+        V2Prop("start", "Range start"),
+        V2Prop("end", "Range end"),
+    ),
+    "Card": (V2Prop("elevation", "Elevation", "number"),),
+    "FlexBox": (
+        V2Prop("wrap", "Wrap", "choice", ("Wrap", "NoWrap")),
+        V2Prop("alignItems", "Align items"),
+        V2Prop("alignContent", "Align content", "choice", _ARRANGEMENT),
+        V2Prop("gap", "Gap", "number"),
+    ),
+    "FlowColumn": (
+        V2Prop("horizontalArrangement", "Horizontal arrangement", "choice", _ARRANGEMENT),
+        V2Prop("itemHorizontalAlignment", "Item alignment", "choice", _ALIGNMENT),
+        V2Prop("maxItemsPerLine", "Max items per line", "number"),
+        V2Prop("maxLines", "Max lines", "number"),
+        V2Prop("overflow", "Overflow"),
+    ),
+    # Four the sample carries with no properties of their own beyond the universal ones --
+    # they were added and left empty.  Listed anyway, so the inspector shows a deliberate
+    # "nothing to set here" rather than falling through to the unschema'd path.
+    "Box": (),
+    "BottomAppBar": (),
+    "ArraysMergeTemplate": (),
+    "Placeholder": (),
 }
 
 
@@ -394,10 +630,15 @@ def v2_child_slots(node: dict) -> list[tuple[str, list]]:
 def v2_node_label(node: dict) -> str:
     """"Text 'title_text'" -- how a node reads in the tree, matching what
     v2_component_summary already produces for the read-only outline.
+
+    A node carrying a treeLabel shows that instead of its id, because that is exactly what
+    the property is for: it is the name Tasker's own Screen Builder tree displays, and a
+    component the user has bothered to name should read by that name here too.
     """
     node_type = node.get("type", "?")
-    node_id = node.get("id", "")
-    return f"{node_type} '{node_id}'" if node_id else node_type
+    tree_label = node.get("treeLabel")
+    name = tree_label if isinstance(tree_label, str) and tree_label else node.get("id", "")
+    return f"{node_type} '{name}'" if name else node_type
 
 
 def v2_flatten(layout: dict) -> list[V2TreeRow]:
@@ -453,7 +694,7 @@ def v2_editable_props(node: dict) -> list[V2Prop]:
     none of which phase 1 edits, and all of which are carried through untouched.
     """
     schema = V2_COMPONENT_SCHEMA.get(node.get("type", ""), ())
-    props = [V2_ID_PROP, *schema]
+    props = [V2_ID_PROP, *schema, *V2_UNIVERSAL_PROPS]
     known = {prop.key for prop in props}
     for key, value in node.items():
         if key in known or key in V2_STRUCTURAL_KEYS:
@@ -532,18 +773,188 @@ V2_CONTAINER_SLOTS: dict[str, tuple[str, ...]] = {
     "NavigationBar": ("content",),
     "FloatingActionButton": ("content",),
     "Dropdown": ("trigger", "content"),
+    # "content", not "children" -- the Scene v2 Dialog compiler builds its rows as
+    # {type: "SegmentedButtonRow", ..., content: [SegmentedButtonItem, ...]}.
+    "SegmentedButtonRow": ("content",),
+    # Confirmed: the 'V2New' Scene's Card holds a Text under "children".
+    "Card": ("children",),
+    # Containers by their own properties -- FlowColumn carries maxItemsPerLine and
+    # itemHorizontalAlignment, FlexBox carries alignItems and gap, and a Z-stack, an app bar
+    # and a repeating template exist to hold things -- but each was left empty in 'V2New', so
+    # the slot *name* is still the one inference left here.  "children" is the guess, being
+    # what every confirmed general-purpose container uses.  If Tasker turns out to name it
+    # otherwise, v2_container_slots' present-slot fallback still finds the real one when a
+    # populated Scene arrives.
+    "Box": ("children",),
+    "FlowColumn": ("children",),
+    "FlexBox": ("children",),
+    "BottomAppBar": ("children",),
+    "ArraysMergeTemplate": ("children",),
+    # Placeholder is deliberately NOT here.  Nothing shows it holding anything, and a leaf
+    # wrongly declared a container swallows the next component added; a container wrongly
+    # left a leaf only puts it alongside instead, which is the recoverable way to be wrong.
 }
 
-# What the palette offers, grouped the way the inspector shows it.  Restricted to types
-# seen in XML/backup.xml -- the three Version 2 Scenes plus everything the 'Scene v2 Dialog'
-# builder emits -- because inventing entries for Tasker components nothing here has ever
-# produced would mean inventing their property lists too, with nothing to check them against.
-V2_PALETTE: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("Layout", ("Column", "Row", "FlowRow", "Spacer", "Divider")),
-    ("Display", ("Text", "Image", "WebView", "Video")),
-    ("Input", ("TextInput", "Slider", "Switch", "Checkbox", "Dropdown", "Button", "IconButton")),
-    ("Structure", ("Scaffold", "TopAppBar", "NavigationBar", "NavigationItem", "FloatingActionButton", "Variable")),
+@dataclass(frozen=True)
+class V2PaletteEntry:
+    """One element the Add Element dialog offers.
+
+    label is deliberately *not* the type: Tasker's own Add Element sheet says "Vertical
+    Column" and "Horizontal Row" where the JSON says Column and Row, and someone who
+    learned the Screen Builder should find the element under the name it showed them.
+    The type is what gets written; the label is what gets read.
+
+    verified is the honest bit -- see V2_PALETTE below.
+    """
+
+    node_type: str
+    label: str
+    group: str
+    description: str
+    verified: bool = True
+
+
+# The groups, in the order Tasker's own Add Element sheet lists them.  Its grouping is
+# adopted wholesale rather than kept as this app's earlier Layout/Display/Input/Structure
+# split, for the same reason the labels are: it is the arrangement the user already knows.
+V2_PALETTE_GROUPS = ("Display", "Input", "Layout", "Media")
+
+# What the palette offers -- every element Tasker's Add Element sheet lists, plus the three
+# slot-scoped ones it only offers in context (see V2_PARENT_ONLY).
+#
+# `verified` says whether this entry's type string and property keys were read off something
+# real -- a decoded <lj> in XML/*.xml, or the 'Scene v2 Dialog' project's compiler, which
+# emits component JSON as string literals.  Every entry currently is: the 'V2New' Scene in
+# XML/backup.xml was built in Tasker's Screen Builder expressly to carry one of each element
+# this app had never seen a sample of, and it confirmed all ten type strings (PascalCase of
+# the label, as guessed) along with their real properties.
+#
+# The flag stays because the situation it describes will recur: Tasker adds elements, and the
+# next one named in its UI but absent from every Scene here starts life unverified.  Such an
+# entry deliberately carries NO schema and NO invented properties -- inventing property keys
+# would be inventing a format, and the failure mode is a Scene Tasker can no longer render.
+# The dialog marks it, and its tooltip says so in words.
+#
+# To retire one: build it in Tasker's Screen Builder, export the Scene into XML/, decode its
+# <lj>, and write down what is actually there -- the real type string, the real property
+# keys, the real child-slot name.  Then flip the flag and fill in V2_COMPONENT_SCHEMA /
+# V2_CONTAINER_SLOTS from the sample.  Note what Tasker *omits* as much as what it writes:
+# it gives a brand-new component nothing but a type and an id, which is why
+# V2_NEW_NODE_DEFAULTS stays empty for all ten.
+#
+# Alphabetical within each group, matching the sheet.  Every label and description is an
+# English source string -- guiwins runs them through translate_string.
+V2_PALETTE: tuple[V2PaletteEntry, ...] = (
+    # ---- Display ----
+    V2PaletteEntry("Divider", "Divider", "Display", "A horizontal rule across the width of its container."),
+    V2PaletteEntry("Image", "Image", "Display", "A picture from a URL, a file path, or a named icon."),
+    V2PaletteEntry("ProgressBar", "Progress Bar", "Display", "A progress indicator."),
+    V2PaletteEntry("Text", "Text", "Display", "A run of text. Accepts %variables."),
+    V2PaletteEntry("WebView", "WebView", "Display", "An embedded web page, or HTML held in a variable."),
+    # ---- Input ----
+    V2PaletteEntry("Button", "Button", "Input", "A labelled button. Add a click handler to make it do something."),
+    V2PaletteEntry("Camera", "Camera", "Input", "A live camera preview."),
+    V2PaletteEntry("Checkbox", "Checkbox", "Input", "A tick box that writes its state into a variable."),
+    V2PaletteEntry("IconButton", "Icon Button", "Input", "A button showing an icon instead of a label."),
+    V2PaletteEntry(
+        "RangeSlider",
+        "Range Slider",
+        "Input",
+        "A slider with a low and a high handle, selecting a range.",
+    ),
+    V2PaletteEntry(
+        "SegmentedButtonRow",
+        "Segmented Button Row",
+        "Input",
+        "A row of joined buttons of which one stays selected. Holds Segmented Button Items.",
+    ),
+    V2PaletteEntry(
+        "SegmentedButtonItem",
+        "Segmented Button Item",
+        "Input",
+        "One button within a Segmented Button Row.",
+    ),
+    V2PaletteEntry("Slider", "Slider", "Input", "A slider between a minimum and a maximum."),
+    V2PaletteEntry("Switch", "Switch", "Input", "An on/off switch that writes its state into a variable."),
+    V2PaletteEntry("TextInput", "Text Input", "Input", "A text field that writes what is typed into a variable."),
+    # ---- Layout ----
+    V2PaletteEntry(
+        "ArraysMergeTemplate",
+        "Arrays Merge Template",
+        "Layout",
+        "Repeats a block of components once per entry in a set of Tasker arrays.",
+    ),
+    V2PaletteEntry(
+        "BottomAppBar",
+        "Bottom App Bar",
+        "Layout",
+        "A bar pinned to the bottom of a Scaffold.",
+    ),
+    V2PaletteEntry(
+        "Box",
+        "Box (Z-Stack)",
+        "Layout",
+        "Stacks its children on top of one another rather than in a line.",
+    ),
+    V2PaletteEntry("Card", "Card", "Layout", "A raised, rounded panel to group components in."),
+    V2PaletteEntry("Dropdown", "Dropdown", "Layout", "A trigger that opens a list to pick from."),
+    V2PaletteEntry(
+        "FlexBox",
+        "FlexBox (Experimental)",
+        "Layout",
+        "Experimental flexible layout. Tasker marks it experimental itself.",
+    ),
+    V2PaletteEntry(
+        "FlowColumn",
+        "Flow Column",
+        "Layout",
+        "Stacks children downwards, wrapping into a new column when full.",
+    ),
+    V2PaletteEntry("FlowRow", "Flow Row", "Layout", "Lays children across, wrapping onto a new line when full."),
+    V2PaletteEntry("Row", "Horizontal Row", "Layout", "Lays its children out side by side."),
+    V2PaletteEntry("NavigationBar", "Navigation Bar", "Layout", "A bottom navigation bar holding Navigation Items."),
+    V2PaletteEntry("NavigationItem", "Navigation Item", "Layout", "One destination within a Navigation Bar."),
+    V2PaletteEntry(
+        "FloatingActionButton",
+        "Floating Action Button",
+        "Layout",
+        "The round button that floats over a Scaffold's content.",
+    ),
+    V2PaletteEntry(
+        "Placeholder",
+        "Placeholder",
+        "Layout",
+        "A blank stand-in, to reserve space while building.",
+    ),
+    V2PaletteEntry(
+        "Scaffold",
+        "Scaffold",
+        "Layout",
+        "The frame of a full-screen Scene: top bar, content, bottom bar and floating button.",
+    ),
+    V2PaletteEntry("Spacer", "Spacer", "Layout", "Empty space of a fixed size, to push components apart."),
+    V2PaletteEntry("TopAppBar", "Top App Bar", "Layout", "A title bar across the top of a Scaffold."),
+    V2PaletteEntry("Variable", "Variable", "Layout", "Declares a Scene variable. Renders nothing itself."),
+    V2PaletteEntry("Column", "Vertical Column", "Layout", "Lays its children out one above the other."),
+    # ---- Media ----
+    V2PaletteEntry("Video", "Video", "Media", "A video player."),
 )
+
+# Elements that only make sense inside one kind of parent, and the parents that will take
+# them.  Tasker's own sheet offers these contextually rather than listing them at the root,
+# which is why none of the three appear in a screenshot of it taken with the root selected.
+# The designer greys them out with a reason instead of hiding them, so the element is still
+# discoverable -- and so "why can't I add this?" has an answer on screen.
+V2_PARENT_ONLY: dict[str, tuple[str, ...]] = {
+    "NavigationItem": ("NavigationBar",),
+    "SegmentedButtonItem": ("SegmentedButtonRow",),
+    "FloatingActionButton": ("Scaffold",),
+}
+
+# Type -> the name the palette shows for it, for messages that have to name a component the
+# user did not necessarily add themselves (v2_can_add's reasons).  A type absent from the
+# palette -- a component from a newer Tasker -- falls back to its own type string.
+V2_PALETTE_LABELS: dict[str, str] = {entry.node_type: entry.label for entry in V2_PALETTE}
 
 # The properties a newly-added component starts with, beyond its type and id.  Kept to what
 # makes the component visible and sensible on screen -- a Text with no text renders as
@@ -572,6 +983,16 @@ V2_NEW_NODE_DEFAULTS: dict[str, dict] = {
     "NavigationBar": {"content": []},
     "FloatingActionButton": {"content": []},
     "IconButton": {"icon": "icon:Star"},
+    # Traced to the Scene v2 Dialog compiler's own buildButtonRow(), including the string
+    # "true" rather than a JSON boolean -- see _coerce_like on why that distinction is kept.
+    "SegmentedButtonRow": {"allowDeselect": "true", "selectedIndices": "", "content": []},
+    "SegmentedButtonItem": {"label": "Item"},
+    # The ten from 'V2New' get no defaults at all -- deliberately, and not for lack of a
+    # schema.  Tasker wrote every one of them carrying nothing but its type and id: an
+    # untouched Box is {"type": "Box", "id": "Box1"}, with no empty children list, no colour,
+    # no size.  Matching that exactly is the point (see this module's note on re-encoding),
+    # and the missing child slot costs nothing -- v2_insert_node setdefaults it into place the
+    # moment something is actually added, which is also when Tasker itself would write it.
 }
 
 # Task action codes that address a Version 2 Scene's component by its id: Update Scene v2,
@@ -676,6 +1097,74 @@ def v2_insert_node(layout: dict, path: tuple, node: dict, slot: str = "") -> tup
         return None
     siblings.insert(index + 1, node)
     return (*path[:-1], index + 1)
+
+
+def v2_insert_destination(layout: dict, path: tuple) -> tuple[str, str]:
+    """Where v2_insert_node would put a new component right now, as ("inside"/"after", id).
+
+    The same two-case rule v2_insert_node implements, answered *before* the click rather
+    than described in a tooltip -- the Add Element dialog puts it in its header so the
+    destination is a fact on screen ("inside Column1") instead of a caveat.  ("", "") for a
+    path that doesn't resolve.
+
+    "inside" and "after" are English source strings; the caller translates them.
+    """
+    target = v2_node_at(layout, path)
+    if target is None:
+        return "", ""
+    name = str(target.get("id") or target.get("type", ""))
+    return ("inside" if v2_container_slots(target) else "after"), name
+
+
+def _v2_insert_parent_type(layout: dict, path: tuple) -> str:
+    """The type of the component a new node added at `path` would end up *in* -- the target
+    itself when it can hold children, otherwise the target's own parent.  Mirrors
+    v2_insert_node's two cases, which is what makes v2_can_add agree with what a click does.
+    """
+    target = v2_node_at(layout, path)
+    if target is None:
+        return ""
+    if v2_container_slots(target):
+        return str(target.get("type", ""))
+    parent, _slot, _index = _v2_parent_and_slot(layout, path)
+    return str((parent or {}).get("type", ""))
+
+
+def v2_can_add(layout: dict, path: tuple, node_type: str) -> str:
+    """"" if this element can be added at this selection, otherwise the reason it can't.
+
+    Only V2_PARENT_ONLY is consulted: everything else goes anywhere a container will take
+    it, and being stricter than that would mean ruling on nestings Tasker allows and this
+    app has simply never seen.  The reason is an English source string for the caller to
+    translate, and names the parent by its palette label ("a Navigation Bar", not
+    "a NavigationBar").
+    """
+    allowed = V2_PARENT_ONLY.get(node_type)
+    if allowed is None:
+        return ""
+    if _v2_insert_parent_type(layout, path) in allowed:
+        return ""
+    labels = " or ".join(V2_PALETTE_LABELS.get(parent_type, parent_type) for parent_type in allowed)
+    return f"Only goes inside a {labels}. Select one first."
+
+
+def v2_palette_for(layout: dict, path: tuple) -> list[tuple[str, list[tuple[V2PaletteEntry, str]]]]:
+    """The whole palette as the Add Element dialog needs it: groups in V2_PALETTE_GROUPS
+    order, each holding its entries paired with "" or the reason that entry can't be added
+    at this selection.
+
+    Deciding here rather than in guiwins keeps the dialog presentation-only -- it renders
+    what it is handed and never reasons about the tree.  Nothing is filtered out: an element
+    that can't go here is still shown, greyed, with its reason, because a palette that hides
+    things teaches nothing about why.
+    """
+    return [
+        (
+            group,
+            [(entry, v2_can_add(layout, path, entry.node_type)) for entry in V2_PALETTE if entry.group == group],
+        )
+        for group in V2_PALETTE_GROUPS
+    ]
 
 
 def v2_delete_node(layout: dict, path: tuple) -> list[str]:

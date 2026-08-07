@@ -14,8 +14,10 @@ class APIKeyDialog:
         self.master = master_gui
         self.my_gui = master_gui
 
-        # Create the inner NiceGUI dialog element
-        self.dialog = ui.dialog()
+        # Create the inner NiceGUI dialog element.  persistent: it holds typed-in API keys,
+        # so it closes on OK or Cancel only -- a stray click on the backdrop would otherwise
+        # throw them away.  Same reason every Add/Edit dialog in guiwins carries it.
+        self.dialog = ui.dialog().props("persistent")
 
         # CHANGE: Store the custom class instance container on my_gui instead of the raw dialog
         self.my_gui.ai_apikey_window = self

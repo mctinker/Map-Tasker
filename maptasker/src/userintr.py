@@ -4446,7 +4446,10 @@ class MapTaskerEventHandlers:
         # This structure waits for the user to click either 'Submit' or 'Cancel'
         name_entered = None
 
-        with ui.dialog() as dialog, ui.card().classes("w-[500px] p-6"):
+        # persistent: this holds a typed-in prompt, so it closes on Submit or Cancel only --
+        # a stray click on the backdrop would otherwise throw the typing away.  Same reason
+        # every Add/Edit dialog in guiwins carries it.
+        with ui.dialog().props("persistent") as dialog, ui.card().classes("w-[500px] p-6"):
             ui.label(dialog_title).classes("text-xl font-bold text-blue-600 mb-2")
 
             # Display current prompt info

@@ -19,7 +19,6 @@ import darkdetect
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
 VERSION = importlib.metadata.version("maptasker")
-print("bingo", VERSION)
 MY_VERSION = f"MapTasker version {VERSION}"
 
 MY_LICENSE = "MIT License"

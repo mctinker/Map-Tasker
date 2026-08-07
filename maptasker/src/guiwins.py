@@ -37,6 +37,18 @@ STARTUP_DARK_MODE = False
 
 # ==========================================
 # 2. DIALOGS & POPUPS
+#
+# Every dialog that holds work in progress or asks for a decision is built with Quasar's
+# `persistent` prop, which is what stops it closing when the backdrop is clicked or Esc is
+# pressed: it leaves on a button and nothing else.  Without it a stray click anywhere outside
+# an Add or Edit dialog silently discarded everything typed into it, with no warning and no
+# undo -- and the bigger the dialog, the more of the screen is a mine.  The Cancel button is
+# still there and still discards; the point is that discarding is now something the user
+# chose rather than something that happened to them.
+#
+# Read-only dialogs deliberately do NOT carry it -- create_popup_window's message box, the
+# search results view, the colour picker.  Nothing is lost by dismissing those, and making a
+# message you have finished reading demand a button press is just friction.
 # ==========================================
 def create_popup_window(title: str, message: str = "", close_button: bool = False) -> ui.dialog:
     """Creates a modal dialog. Replaces PopupWindow and CTkToplevel.
@@ -167,7 +179,7 @@ def build_action_condition_dialog(
     prefill = condition_cache.get(act_number) or taskedit.get_action_condition_values(action)
     operator_labels = [label for _code, label in taskedit.IF_CONDITION_OPERATORS]
 
-    with ui.dialog() as condition_dialog, ui.card().classes("min-w-[400px] p-6"):
+    with ui.dialog().props("persistent") as condition_dialog, ui.card().classes("min-w-[400px] p-6"):
         ui.label(f"If Condition -- {act_number}: {action.action_name}").classes("text-lg font-bold text-blue-600")
         target_input = ui.input(translate_string("Target"), value=prefill[0]).classes("w-full")
         operator_select = ui.select(
@@ -287,7 +299,7 @@ def build_if_variant_dialog(on_choice: Callable[[str], None]) -> None:
     taskedit.IF_BLOCK_VARIANTS/add_if_block_to_task. Fires on_choice(variant)
     only when one is clicked; Cancel inserts nothing.
     """
-    with ui.dialog() as variant_dialog, ui.card().classes("min-w-[300px] p-6"):
+    with ui.dialog().props("persistent") as variant_dialog, ui.card().classes("min-w-[300px] p-6"):
         ui.label(translate_string("Add 'If' Action")).classes("text-lg font-bold text-blue-600")
         ui.label(translate_string("Insert just the 'If', or a complete block?")).classes("text-sm mb-2")
         for variant in taskedit.IF_BLOCK_VARIANTS:
@@ -329,7 +341,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
     # menu entries.
     position_labels: dict[str, int | None] = {}
 
-    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         # Kept as a local (not in field_refs -- _task_arg_values reads .value off
         # every entry there, which a ui.label doesn't have) so Rename can retitle
         # the still-open dialog: see rename_task_event.
@@ -655,7 +667,7 @@ def build_save_to_android_dialog(
     default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
     default_port = getattr(self, "android_port", "") or "1821"
 
-    with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
+    with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Task To Android Device")).classes("text-lg font-bold text-blue-600")
         android_field_refs = {
             "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
@@ -1140,7 +1152,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
     profile_name = edited_profile.profile_element.findtext("nme", "")
     field_refs: dict = {}
 
-    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         # Kept as a local (not in field_refs, which is scanned by key for widgets
         # to read .value off) so Rename can retitle the still-open dialog --
         # see build_edit_task_dialog's identical note and rename_profile_event.
@@ -1253,7 +1265,7 @@ def build_save_profile_to_android_dialog(
     default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
     default_port = getattr(self, "android_port", "") or "1821"
 
-    with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
+    with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Profile To Android Device")).classes("text-lg font-bold text-blue-600")
         android_field_refs = {
             "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
@@ -1295,7 +1307,7 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
     """
     field_refs: dict = {}
 
-    with ui.dialog() as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(translate_string("Add Project")).classes("text-xl font-bold text-blue-600")
 
         field_refs["name"] = ui.input(translate_string("Project Name"), value="").classes("w-full")
@@ -1324,7 +1336,7 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
     project_name = edited_project.project_name
     field_refs: dict = {}
 
-    with ui.dialog() as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"{translate_string('Edit Project')}: {project_name}").classes("text-xl font-bold text-blue-600")
 
         # Read-only -- renamed only through the Rename button's prompt; see
@@ -1426,7 +1438,7 @@ def build_save_project_to_android_dialog(
     default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
     default_port = getattr(self, "android_port", "") or "1821"
 
-    with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
+    with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Project To Android Device")).classes("text-lg font-bold text-blue-600")
         android_field_refs = {
             "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
@@ -1470,6 +1482,280 @@ def build_save_project_to_android_dialog(
 # seam that part drops into, and both dialogs call it, so filling it in lights up
 # Add and Edit together.
 # ==========================================
+def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str], None]) -> None:
+    """Tasker's own "Add Element" sheet, as a dialog: a search box, then every element the
+    palette offers as a chip, grouped and named the way the Screen Builder groups and names
+    them (see sceneedit.V2_PALETTE -- "Vertical Column", not "Column").
+
+    Replaces the cascading Add menu this used to be, because a menu can do only one of the
+    three things this needs.  It can list types; it cannot describe them, and it cannot show
+    an element that is *visible but not addable here* -- the old menu let you pick a
+    Navigation Item anywhere and reported the mistake afterwards, as a notification, once
+    the chance to explain had passed.
+
+    Nothing here reasons about the tree.  Which elements exist, which are blocked, and why,
+    all come from sceneedit.v2_palette_for; this renders the answer.
+
+    Blocked chips stay clickable rather than being disabled.  A disabled Quasar button eats
+    its own tooltip, so disabling would hide the very sentence that explains the block; a
+    click on one notifies the reason instead of inserting.
+    """
+    relation, target_name = sceneedit.v2_insert_destination(layout, path)
+    groups = sceneedit.v2_palette_for(layout, path)
+    search = {"text": ""}
+
+    def tooltip_for(entry: sceneedit.V2PaletteEntry, reason: str) -> str:
+        lines = [translate_string(entry.description)]
+        if reason:
+            lines.append(reason)
+        if not entry.verified:
+            lines.append(
+                translate_string(
+                    "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- "
+                    "so it is added carrying nothing but its type and id, and even the type is inferred "
+                    'from the name above (written as type: "{node_type}"). '
+                    "If Tasker doesn't recognise it, press Undo.",
+                ).format(node_type=entry.node_type),
+            )
+        return "\n\n".join(lines)
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[640px] max-w-[760px] p-6"):
+        ui.label(translate_string("Add Element")).classes("text-lg font-bold text-blue-600")
+        if target_name:
+            # The destination stated up front rather than left to a tooltip -- this is
+            # v2_insert_node's inside-vs-after rule, resolved against the current selection.
+            ui.label(
+                translate_string("Adds inside {name}" if relation == "inside" else "Adds after {name}").format(
+                    name=target_name,
+                ),
+            ).classes("text-sm text-gray-500 italic")
+
+        def pick(entry: sceneedit.V2PaletteEntry, reason: str) -> None:
+            if reason:
+                ui.notify(reason, type="warning")
+                return
+            dialog.close()
+            on_pick(entry.node_type)
+
+        def matches(entry: sceneedit.V2PaletteEntry) -> bool:
+            """Substring, case-insensitive, over the label, its translation and the JSON
+            type -- so "row" finds Horizontal Row, and someone who knows the format can
+            still type "FlowRow" and get there.
+            """
+            text = search["text"].strip().lower()
+            if not text:
+                return True
+            return any(
+                text in candidate.lower()
+                for candidate in (entry.label, translate_string(entry.label), entry.node_type)
+            )
+
+        def chip(entry: sceneedit.V2PaletteEntry, reason: str) -> None:
+            # The icon and colour go on as Quasar props rather than as ui.button arguments:
+            # ui.button takes `icon` but has no icon_right, and the colour is state-dependent
+            # (grey = blocked, orange = unverified, default otherwise).
+            props = ["outline", "rounded", "no-caps", "dense"]
+            props.append("icon-right=help_outline" if not entry.verified else "icon-right=info_outline")
+            if reason:
+                props.append("color=grey")
+            elif not entry.verified:
+                props.append("color=orange")
+            button = ui.button(
+                translate_string(entry.label),
+                on_click=lambda _e=None, x=entry, r=reason: pick(x, r),
+            ).props(" ".join(props))
+            if reason:
+                button.classes("opacity-70")
+            with button:
+                ui.tooltip(tooltip_for(entry, reason)).style("white-space: pre-line").classes("max-w-sm")
+
+        # Created before `results` because NiceGUI lays widgets out in creation order, and the
+        # search box belongs above the chips it filters.  Its on_change closes over
+        # search_changed, which is defined below -- resolved at call time, not at creation.
+        search_input = (
+            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            .props("outlined dense clearable autofocus")
+            .classes("w-full mt-2")
+        )
+        with search_input.add_slot("prepend"):
+            ui.icon("search")
+
+        results = ui.column().classes("w-full gap-0 mt-1 max-h-96 overflow-auto")
+
+        def render() -> None:
+            results.clear()
+            shown = 0
+            with results:
+                for group, entries in groups:
+                    visible = [(entry, reason) for entry, reason in entries if matches(entry)]
+                    if not visible:
+                        continue
+                    shown += len(visible)
+                    ui.label(translate_string(group)).classes("text-xs uppercase text-blue-400 mt-3 mb-1")
+                    with ui.row().classes("w-full gap-2 flex-wrap"):
+                        for entry, reason in visible:
+                            chip(entry, reason)
+                if not shown:
+                    ui.label(translate_string("No element matches that.")).classes(
+                        "text-sm italic text-gray-500 mt-3",
+                    )
+
+        def search_changed(value: str) -> None:
+            search["text"] = value or ""
+            render()
+
+        def enter_pressed() -> None:
+            """Enter picks the search's one remaining match -- the fast path for someone who
+            knows what they want.  Deliberately silent when the search still matches several
+            elements: guessing which of them was meant would insert the wrong component.
+            """
+            hits = [(entry, reason) for _group, entries in groups for entry, reason in entries if matches(entry)]
+            if len(hits) == 1:
+                pick(*hits[0])
+
+        search_input.on("keydown.enter", lambda _e=None: enter_pressed())
+
+        render()
+
+        with ui.row().classes("w-full items-center justify-between mt-4 pt-3 border-t"):
+            ui.label(
+                translate_string(
+                    "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. "
+                    "Grey: can't go where the selection would put it.",
+                ),
+            ).classes("text-xs text-gray-500 italic")
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
+
+    dialog.open()
+
+
+# How many entries of one category the Show When picker lists before it stops and asks for a
+# search.  User Globals runs to several hundred on a real backup and Built-in Globals is a
+# hundred on any backup; drawing all of them makes a dialog nobody can read and a page that
+# takes a visible moment to build.  Forty is enough to browse a category and see what kind of
+# thing is in it, which is what an unsearched list is for.
+_SHOW_WHEN_PREVIEW_LIMIT = 40
+
+
+def _build_show_when_dialog(field: ui.input) -> None:
+    """The Show When picker: choose variables to build the condition out of, from the three
+    categories in sceneedit.v2_show_when_choices -- the Screen Builder's own environment
+    values, the loaded backup's own global variables, and Tasker's built-in globals.
+
+    Appends rather than replaces, and stays open after a pick, because a Show When is an
+    expression and usually wants more than one: "%sv2_render_width > %sv2_display_width / 2"
+    is two picks and some typing.  Writing through `field.value` rather than onto the node
+    directly is what keeps the inspector's own on_change in charge of storing it, so this
+    needs to know nothing about the component being edited.
+    """
+    groups = sceneedit.v2_show_when_choices()
+    search = {"text": ""}
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[620px] max-w-[740px] p-6"):
+        ui.label(translate_string("Insert into Show When")).classes("text-lg font-bold text-blue-600")
+        ui.label(
+            translate_string("Each one you pick is added to the end of the field. Close when you are done."),
+        ).classes("text-sm text-gray-500 italic")
+
+        # Reaching the field's native <input>.  getHtmlElement() hands back whatever element
+        # carries the NiceGUI id, and for ui.input that IS the <input> -- not a wrapper around
+        # one -- so this has to cope with both rather than assuming a wrapper to search
+        # inside.  (Assuming the wrapper is exactly the bug this replaced: querySelector found
+        # nothing, every read came back null, and every pick silently fell back to the end.)
+        _NATIVE_INPUT = (
+            f"const el = (() => {{ const r = getHtmlElement({field.id});"
+            f" return r && r.matches('input, textarea') ? r : r && r.querySelector('input, textarea'); }})();"
+        )
+
+        async def caret_position() -> int | None:
+            """Where the cursor is sitting in the Show When field, asked of the browser.
+
+            It has to be asked for rather than remembered: the caret lives in the DOM, and
+            NiceGUI's own value binding knows nothing about it.  Asking while this dialog has
+            focus still works -- a blurred input keeps its selection.  None (a field never
+            clicked into, or a browser that declines) means "the end", which is what
+            v2_insert_show_when does with it.
+            """
+            with contextlib.suppress(Exception):
+                return await ui.run_javascript(
+                    f"(() => {{ {_NATIVE_INPUT} return el ? el.selectionStart : null; }})()",
+                    timeout=3.0,
+                )
+            return None
+
+        async def pick(choice: sceneedit.V2ShowWhenChoice) -> None:
+            text, caret = sceneedit.v2_insert_show_when(
+                str(field.value or ""),
+                choice.value,
+                await caret_position(),
+            )
+            field.value = text
+            # Put the caret back where the insert left it, so a run of picks builds the
+            # expression left to right instead of every one landing on the same spot.
+            with contextlib.suppress(Exception):
+                ui.run_javascript(
+                    f"(() => {{ {_NATIVE_INPUT}"
+                    f" if (el) {{ el.setSelectionRange({caret}, {caret}); }} }})()",
+                )
+
+        def matches(choice: sceneedit.V2ShowWhenChoice) -> bool:
+            text = search["text"].strip().lower()
+            return not text or text in choice.label.lower() or text in choice.value.lower()
+
+        # Created before `results`: NiceGUI lays widgets out in creation order, and a search
+        # box below the list it filters is a search box nobody finds.  Its on_change closes
+        # over search_changed, defined below and resolved at call time.
+        search_input = (
+            ui.input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
+            .props("outlined dense clearable autofocus")
+            .classes("w-full mt-2")
+        )
+        with search_input.add_slot("prepend"):
+            ui.icon("search")
+
+        results = ui.column().classes("w-full gap-0 mt-1 max-h-96 overflow-auto")
+
+        def render() -> None:
+            results.clear()
+            with results:
+                for group, choices in groups:
+                    visible = [choice for choice in choices if matches(choice)]
+                    ui.label(f"{translate_string(group)} ({len(visible)})").classes(
+                        "text-xs uppercase text-blue-400 mt-3 mb-1",
+                    )
+                    if not visible:
+                        ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
+                        continue
+                    with ui.row().classes("w-full gap-2 flex-wrap"):
+                        for choice in visible[:_SHOW_WHEN_PREVIEW_LIMIT]:
+                            button = ui.button(
+                                choice.label,
+                                on_click=lambda _e=None, c=choice: pick(c),
+                            ).props("outline rounded no-caps dense")
+                            if choice.label != choice.value:
+                                # Only the named entries need this -- a user global is
+                                # already showing the exact text it inserts.
+                                with button:
+                                    ui.tooltip(choice.value)
+                    if len(visible) > _SHOW_WHEN_PREVIEW_LIMIT:
+                        ui.label(
+                            translate_string("...and {count} more -- type above to narrow it down.").format(
+                                count=len(visible) - _SHOW_WHEN_PREVIEW_LIMIT,
+                            ),
+                        ).classes("text-xs text-gray-500 italic mt-1")
+
+        def search_changed(value: str) -> None:
+            search["text"] = value or ""
+            render()
+
+        render()
+
+        with ui.row().classes("w-full justify-end mt-4 pt-3 border-t"):
+            ui.button(translate_string("Close"), on_click=dialog.close).props("flat")
+
+    dialog.open()
+
+
 def _build_v2_designer(
     edited_scene: sceneedit.EditableScene,
     field_refs: dict,
@@ -1510,6 +1796,11 @@ def _build_v2_designer(
     # the very section you are working in, and adding two in a row would mean re-opening it
     # each time.
     expanded = {"modifiers": False, "handlers": False}
+    # The tree's rendered rows, path -> (label widget, depth), rebuilt by render_tree.  Held
+    # so retitle_node_labels can reach the selected row's label without a full re-render.
+    tree_rows: dict[tuple, tuple] = {}
+    # The inspector's own heading for the selected component, held for the same reason.
+    inspector_heading: dict = {"label": None}
 
     if not sceneedit.v2_flatten(layout):
         # No root component at all -- not something Tasker writes, and there is nothing for
@@ -1590,16 +1881,38 @@ def _build_v2_designer(
         render()
 
     def render_tree() -> None:
+        tree_rows.clear()
         for row in sceneedit.v2_flatten(layout):
             selected = row.path == selection["path"]
             classes = "text-sm font-mono whitespace-pre cursor-pointer rounded px-1 py-0.5 w-full"
             classes += " bg-blue-600 text-white" if selected else " hover:bg-blue-100 dark:hover:bg-blue-900"
             # The indent is drawn rather than nested so every row stays one flat, clickable
             # strip -- nested containers would make the click target of a deep node a sliver.
-            ui.label(f"{'  ' * row.depth}{row.label}").classes(classes).on(
-                "click",
-                lambda _e=None, path=row.path: select(path),
+            tree_rows[row.path] = (
+                ui.label(f"{'  ' * row.depth}{row.label}")
+                .classes(classes)
+                .on("click", lambda _e=None, path=row.path: select(path)),
+                row.depth,
             )
+
+    def retitle_node_labels(node: dict) -> None:
+        """Keep both places a component is named by -- its tree row and the inspector's own
+        heading -- reading correctly as its Tree label is typed.  Both, because they show the
+        same v2_node_label and would otherwise disagree with each other until the next
+        re-render.
+
+        A no-op for any other dict prop_input is editing: a modifier or an action can carry a
+        treeLabel key of its own and names nothing in the tree.
+        """
+        if node is not sceneedit.v2_node_at(layout, selection["path"]):
+            return
+        text = sceneedit.v2_node_label(node)
+        row = tree_rows.get(selection["path"])
+        if row is not None:
+            label, depth = row
+            label.set_text(f"{'  ' * depth}{text}")
+        if inspector_heading.get("label") is not None:
+            inspector_heading["label"].set_text(text)
 
     def prop_input(item: dict, prop: sceneedit.V2Prop) -> None:
         """One editable field for any dict the designer edits -- a component, a modifier,
@@ -1627,11 +1940,32 @@ def _build_v2_designer(
                 on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
             ).props("dense").classes("w-full")
         else:
-            ui.input(
+            text_input = ui.input(
                 translate_string(prop.label),
                 value=str(value),
                 on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
             ).props("dense").classes("w-full")
+            if prop.key == "showWhen":
+                # A Show When is built out of variables nobody remembers the spelling of --
+                # %sv2_render_is_landscape is not something to type from memory, and a
+                # misspelling doesn't fail, it just silently never matches.  So the field
+                # carries a picker for all three categories of them.
+                with text_input.add_slot("append"):
+                    show_when_button = ui.button(
+                        icon="playlist_add",
+                        on_click=lambda _e=None, w=text_input: _build_show_when_dialog(w),
+                    ).props("flat dense round size=sm")
+                    with show_when_button:
+                        ui.tooltip(translate_string("Pick from the Scene's environment and global variables."))
+            if prop.key == "treeLabel":
+                # The tree shows treeLabel in place of the id (see sceneedit.v2_node_label),
+                # so a change to it has to reach the tree row.  The row is retitled in place
+                # rather than the panes being re-rendered, for two reasons: a rebuild on every
+                # keystroke would destroy the field being typed into and take the caret with
+                # it, and deferring the rebuild to the field's blur doesn't work -- Quasar's
+                # blur does not reach a NiceGUI .on("blur") handler here, so the row would
+                # simply sit stale until the next click.
+                text_input.on_value_change(lambda _e=None, d=item: retitle_node_labels(d))
 
     def structural_edit(mutate: Callable[[], object]) -> None:
         """Snapshot, mutate, re-render -- the wrapper every add/remove/reorder inside the
@@ -1794,7 +2128,9 @@ def _build_v2_designer(
             ui.label(translate_string("Select a component on the left.")).classes("text-sm italic text-gray-500")
             return
 
-        ui.label(sceneedit.v2_node_label(node)).classes("text-sm font-semibold font-mono")
+        inspector_heading["label"] = ui.label(sceneedit.v2_node_label(node)).classes(
+            "text-sm font-semibold font-mono",
+        )
         for prop in sceneedit.v2_editable_props(node):
             value = node.get(prop.key, "")
             if prop.key == "id":
@@ -1836,12 +2172,11 @@ def _build_v2_designer(
         rows = sceneedit.v2_flatten(layout)
         ui.label(f"{translate_string('Scene Components')} ({len(rows)})").classes("text-sm font-semibold")
         ui.space()
-        add_button = ui.button(translate_string("Add"), icon="add").props("dense flat")
-        with add_button, ui.menu():
-            for group, types in sceneedit.V2_PALETTE:
-                ui.menu_item(group).props("disable dense").classes("text-xs uppercase text-gray-500")
-                for node_type in types:
-                    ui.menu_item(node_type, on_click=lambda _e=None, t=node_type: add_component(t)).props("dense")
+        add_button = ui.button(
+            translate_string("Add"),
+            icon="add",
+            on_click=lambda: _build_add_element_dialog(layout, selection["path"], add_component),
+        ).props("dense flat")
         with add_button:
             ui.tooltip(
                 translate_string(
@@ -2003,7 +2338,7 @@ def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> Non
     the two -- the layouts have nothing in common (x/y geometry vs. declarative
     components), so there is nothing this app could honestly convert.
     """
-    with ui.dialog() as version_dialog, ui.card().classes("min-w-[450px] max-w-[650px] w-full p-6"):
+    with ui.dialog().props("persistent") as version_dialog, ui.card().classes("min-w-[450px] max-w-[650px] w-full p-6"):
         ui.label(translate_string("Add Scene")).classes("text-xl font-bold text-blue-600")
         if target_project_name:
             ui.label(f"{translate_string('Adding to Project:')} {target_project_name}").classes(
@@ -2085,7 +2420,7 @@ def build_add_scene_dialog(
     """
     field_refs: dict = {"target_project_name": target_project_name}
 
-    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
         ui.label(
             f"{translate_string('Add Scene')}: {translate_string(sceneedit.scene_version(edited_scene.scene_element))}",
         ).classes("text-xl font-bold text-blue-600")
@@ -2126,7 +2461,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
     scene_name = edited_scene.scene_name
     field_refs: dict = {}
 
-    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
         ui.label(f"{translate_string('Edit Scene')}: {scene_name}").classes("text-xl font-bold text-blue-600")
         # The kind of Scene is stated in the body too (see _build_scene_editor_body); it
         # is here as well because it is why the body looks the way it does.
@@ -2238,7 +2573,7 @@ def build_delete_scene_dialog(
     scene_name = edited_scene.scene_name
     project_count = sceneedit.count_scene_references(scene_name)
 
-    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+    with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"{translate_string('Delete Scene')} '{scene_name}'").classes("text-lg font-bold text-red-600")
         ui.label(
             f"{translate_string('It will be removed from')} {project_count} "
@@ -2280,7 +2615,7 @@ def build_save_scene_to_android_dialog(
     default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
     default_port = getattr(self, "android_port", "") or "1821"
 
-    with ui.dialog() as android_dialog, ui.card().classes("min-w-[350px] p-6"):
+    with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Scene To Android Device")).classes("text-lg font-bold text-blue-600")
         android_field_refs = {
             "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
@@ -2339,7 +2674,7 @@ def build_overwrite_confirm_dialog(
         else f"{what_exists} already exists and will be replaced."
     )
 
-    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+    with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(title).classes("text-lg font-bold text-orange-600")
         ui.label(body).classes("mt-1 break-all")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
@@ -2382,7 +2717,7 @@ def build_rename_dialog(
     prompt and leaves the parent Edit dialog exactly as it was, same convention
     as build_delete_profile_dialog.
     """
-    with ui.dialog() as rename_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+    with ui.dialog().props("persistent") as rename_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"{translate_string('Rename')} {translate_string(item_type)} '{current_name}'").classes(
             "text-lg font-bold text-blue-600",
         )
@@ -2413,7 +2748,7 @@ def build_delete_profile_dialog(
     profile_name = edited_profile.profile_element.findtext("nme", "")
     task_count = profedit.count_profile_tasks(profile_name)
 
-    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+    with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"{translate_string('Delete Profile')} '{profile_name}'").classes("text-lg font-bold text-red-600")
         if task_count:
             ui.label(
@@ -2452,7 +2787,7 @@ def build_delete_task_dialog(
     task_name = edited_task.task_element.findtext("nme", "")
     project_count, profile_count = taskedit.count_task_references(task_name)
 
-    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+    with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"{translate_string('Delete Task')} '{task_name}'").classes("text-lg font-bold text-red-600")
         ui.label(
             f"{translate_string('It will be removed from')} {project_count} {translate_string('Project(s) and unlinked from')}"
@@ -2486,7 +2821,7 @@ def build_delete_project_dialog(
     project_name = edited_project.project_name
     profile_count, task_count = projedit.count_project_contents(project_name)
 
-    with ui.dialog() as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+    with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"{translate_string('Delete Project')} '{project_name}'").classes("text-lg font-bold text-red-600")
         ui.label(
             f"{translate_string('It owns')} {profile_count} {translate_string('Profile(s) and')} {task_count} {translate_string('Task(s).')}",
@@ -2540,7 +2875,7 @@ def build_add_profile_dialog(
     """
     field_refs: dict = {"target_project_name": target_project_name}
 
-    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label(translate_string("Add Profile")).classes("text-xl font-bold text-blue-600")
 
         last_auto_path = {"value": profedit.default_save_path("")}
@@ -2664,7 +2999,7 @@ def build_add_task_dialog(
     # Same per-action If condition value cache as build_edit_task_dialog's.
     condition_cache: dict[int, tuple[str, str, str]] = {}
 
-    with ui.dialog() as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         ui.label(translate_string("Add Task")).classes("text-xl font-bold text-blue-600")
 
         last_auto_path = {"value": taskedit.default_save_path("")}

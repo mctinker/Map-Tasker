@@ -12,6 +12,106 @@ import defusedxml.ElementTree  # Need for type hints
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
 
+# What each built-in variable is called in Tasker's own documentation, for anywhere a person
+# has to *choose* one rather than read one -- the Version 2 Scene designer's Show When picker
+# is the first such place ("Airplane Mode Status", not "%AIR", which nobody browses by).
+#
+# Transcribed from https://tasker.joaoapps.com/userguide-donut/de/variables.html, under
+# "Built-in Variables".  That page documents 83 of the 101 names in tasker_global_variables
+# below; the other 18 (%HUMIDITY, %PRESSURE, %SDK, %ROOT, the %DEV* and %CAL* families, ...)
+# postdate it and are deliberately absent here rather than given a name this app invented --
+# callers fall back to showing the variable itself, which is at least always true.
+#
+# Three names go the other way, documented but missing from the list below: %CLIP, %QTIME and
+# %UIMODE.  They are named here so the picker can still offer them.  Note %UIMODE against the
+# list's %UIMOD -- one of the two is a typo, and since it is not clear which, both are left
+# in place rather than one being silently "corrected" into a variable that never matches.
+tasker_global_variable_names = {
+    "%AIR": "Airplane Mode Status",
+    "%BATT": "Battery Level",
+    "%BLUE": "Bluetooth Status",
+    "%CNAME": "Call Name (In)",
+    "%CNUM": "Call Number (In)",
+    "%CDATE": "Call Date (In)",
+    "%CTIME": "Call Time (In)",
+    "%CONAME": "Call Name (Out)",
+    "%CONUM": "Call Number (Out)",
+    "%CODATE": "Call Date (Out)",
+    "%COTIME": "Call Time (Out)",
+    "%CODUR": "Call Duration (Out)",
+    "%CELLID": "Cell ID",
+    "%CELLSIG": "Cell Signal Strength",
+    "%CELLSRV": "Cell Service State",
+    "%CLIP": "Clipboard Contents",
+    "%CPUFREQ": "CPU Frequency",
+    "%CPUGOV": "CPU Governor",
+    "%DATE": "Date",
+    "%DAYM": "Day of the Month",
+    "%DAYW": "Day of the Week",
+    "%BRIGHT": "Display Brightness",
+    "%DTOUT": "Display Timeout",
+    "%EFROM": "Email From",
+    "%ECC": "Email Cc",
+    "%ESUBJ": "Email Subject",
+    "%EDATE": "Email Date",
+    "%ETIME": "Email Time",
+    "%MEMF": "Free Memory",
+    "%GPS": "GPS Status",
+    "%HTTPR": "HTTP Response Code",
+    "%HTTPD": "HTTP Response Data",
+    "%HTTPL": "HTTP Content Length",
+    "%KEYG": "Keyguard Status",
+    "%LAPP": "Last Application",
+    "%FOTO": "Last Photo",
+    "%LIGHT": "Light Level",
+    "%LOC": "Location",
+    "%LOCACC": "Location Accuracy",
+    "%LOCALT": "Location Altitude",
+    "%LOCSPD": "Location Speed",
+    "%LOCTMS": "Location Fix Time Seconds",
+    "%LOCN": "Location (Net)",
+    "%LOCNACC": "Location Accuracy (Net)",
+    "%LOCNTMS": "Location Fix Time (Net)",
+    "%MTRACK": "Music Track",
+    "%MUTED": "Muted",
+    "%NIGHT": "Night Mode",
+    "%NTITLE": "Notification Title",
+    "%PNUM": "Phone Number",
+    "%PACTIVE": "Profiles Active",
+    "%PENABLED": "Profiles Enabled",
+    "%ROAM": "Roaming",
+    "%SCREEN": "Screen",
+    "%SILENT": "Silent Mode",
+    "%SIMNUM": "SIM Serial Number",
+    "%SIMSTATE": "SIM State",
+    "%SPHONE": "Speakerphone",
+    "%SPEECH": "Speech",
+    "%QTIME": "Task Queue Seconds",
+    "%TRUN": "Tasks Running",
+    "%TNET": "Telephone Network",
+    "%SMSRF": "Text From",
+    "%SMSRN": "Text Name",
+    "%SMSRB": "Text Body",
+    "%SMSRD": "Text Date",
+    "%MMSRS": "Text Subject",
+    "%SMSRT": "Text Time",
+    "%TIME": "Time",
+    "%TIMES": "Time Seconds",
+    "%UIMODE": "UI Mode",
+    "%UPS": "Uptime Seconds",
+    "%VOLA": "Volume - Alarm",
+    "%VOLC": "Volume - Call",
+    "%VOLD": "Volume - DTMF",
+    "%VOLM": "Volume - Media",
+    "%VOLN": "Volume - Notification",
+    "%VOLR": "Volume - Ringer",
+    "%VOLS": "Volume - System",
+    "%WIFII": "WiFi Info",
+    "%WIFI": "WiFi Status",
+    "%WIMAX": "Wimax Status",
+    "%WIN": "Window Label",
+}
+
 # List of Tasker global variables
 tasker_global_variables = [
     "%AIR",
