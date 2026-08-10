@@ -6,6 +6,7 @@
 # initparg: intialize command line interface/runtime arguments for MapTasker           #
 #                                                                                      #
 from maptasker.src.config import ANDROID_FILE, ANDROID_IPADDR, ANDROID_PORT, OUTPUT_FONT
+from maptasker.src.sysconst import DIAGRAM_PROFILES_PER_LINE, NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAULT
 
 
 #######################################################################################
@@ -48,10 +49,11 @@ def initialize_runtime_arguments() -> dict:
         # Directory the last 'Get Local XML File' file came from.  Empty = start the file
         # picker at the user's home directory.
         "local_xml_directory": "",
-        "view_limit": 10000,  # Map view limit
+        "notify_timeout": NOTIFY_TIMEOUT_DEFAULT,  # How long a notification stays up (ms)
+        "view_limit": VIEW_LIMIT_DEFAULT,  # Map view limit
         "preferences": False,  # Display Tasker's preferences
         "pretty": False,  # Pretty up the output (takes many more output lines)
-        "profiles_per_line": 6,  # Profiles per line in Diagram view
+        "profiles_per_line": DIAGRAM_PROFILES_PER_LINE,  # Profiles per line in Diagram view
         "rerun": False,  # Is this a GUI re-run?
         "reset": False,  # Reset settings to default values
         "runtime": False,  # Display the runtime arguments/settings

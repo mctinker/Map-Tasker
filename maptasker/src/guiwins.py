@@ -5,21 +5,29 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import copy
+import itertools
 import json
 import os
 import re
 from typing import TYPE_CHECKING
 
-from nicegui import app, context, ui
+from nicegui import Event, app, context, ui
 
-from maptasker.src import profedit, projedit, sceneedit, taskedit
+from maptasker.src import profedit, projedit, sceneedit, sceneview, taskedit
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import EDIT_SCENE
 from maptasker.src.format import css_color
 from maptasker.src.guiutil2 import get_font_choices, sort_languages_with_priority
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import DIAGRAM_FILE, DIAGRAM_PROFILES_PER_LINE, logger
+from maptasker.src.sysconst import (
+    DIAGRAM_FILE,
+    DIAGRAM_PROFILES_PER_LINE,
+    NOTIFY_TIMEOUT_DEFAULT,
+    SCENE_TASK_TYPES,
+    VIEW_LIMIT_DEFAULT,
+    logger,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -33,6 +41,81 @@ if TYPE_CHECKING:
 # They did not agree before -- the switch came up reading "dark" over a light page -- because
 # the switch's initial value never fires its on_change handler.  See initialize_screen().
 STARTUP_DARK_MODE = False
+
+# ==========================================
+# How long a notification stays up.
+#
+# ui.notify takes a `timeout` in milliseconds -- it is not in the signature, but NiceGUI
+# merges **kwargs straight into the options it hands Quasar, so any Quasar Notify option
+# works.  0 is Quasar's "stays until dismissed".
+#
+# The setting is applied by wrapping ui.notify once rather than by touching the 162 call
+# sites that would otherwise each have to pass it.  That is a monkeypatch, and the honest
+# argument for it is that the alternative is 162 edits to express one default -- and that
+# every one of them would have to be found again the next time someone adds a notification.
+# Wrapping puts the default at the seam where a default belongs, and leaves the call sites
+# saying only what is unusual about them.
+#
+# A call that passes its own timeout keeps it.  That is not politeness to existing code: the
+# reference warnings on Scene delete and rename run to 8-10 seconds *because* they list Task
+# names the user has to read, and collapsing those to a global default would make the one
+# notification that must be read the first to vanish.
+# ==========================================
+# The choices offered, as (label, milliseconds).  A pulldown rather than a number box: the
+# only values that mean anything here are "long enough to read" and "don't take it away", and
+# a free field invites 250ms.
+NOTIFY_TIMEOUT_CHOICES: tuple[tuple[str, int], ...] = (
+    ("1 second", 1000),
+    ("2 seconds", 2000),
+    ("5 seconds", 5000),
+    ("10 seconds", 10000),
+    ("30 seconds", 30000),
+    ("Until dismissed", 0),
+)
+# Mutable so the pulldown can change it live; read at notify time, not at install time.
+_NOTIFY_TIMEOUT = {"ms": NOTIFY_TIMEOUT_DEFAULT}
+_NOTIFY_WRAPPED = False
+
+
+def set_notification_timeout(milliseconds: int) -> None:
+    """Set how long a notification stays up from now on, in milliseconds (0 = until
+    dismissed).  Takes effect on the next notification; nothing already on screen moves.
+    """
+    _NOTIFY_TIMEOUT["ms"] = max(0, int(milliseconds))
+
+
+def notification_timeout() -> int:
+    """The duration currently in force -- what the pulldown and the settings file read."""
+    return _NOTIFY_TIMEOUT["ms"]
+
+
+def install_notification_timeout() -> None:
+    """Wrap ui.notify so every notification honours the user's chosen duration.
+
+    Idempotent, and it has to be: this is called from GUI start-up, which a "Reset Settings"
+    can run through again, and wrapping a wrapper would stack another closure on every pass.
+
+    Only ui.notify is covered.  A ui.notification object has its own lifecycle and an
+    'ongoing' notification is indefinite by design; neither is touched, which is right --
+    an ongoing notification that timed out would be a progress indicator that lied.
+    """
+    global _NOTIFY_WRAPPED  # noqa: PLW0603
+    if _NOTIFY_WRAPPED:
+        return
+
+    original = ui.notify
+
+    def notify(message: object, **kwargs: object) -> None:
+        kwargs.setdefault("timeout", _NOTIFY_TIMEOUT["ms"])
+        if not kwargs["timeout"]:
+            # "Until dismissed" with no way to dismiss it is a notification that covers the
+            # window forever, so the close button comes with the choice rather than being a
+            # second thing to remember.
+            kwargs.setdefault("close_button", True)
+        original(message, **kwargs)
+
+    ui.notify = notify
+    _NOTIFY_WRAPPED = True
 
 
 # ==========================================
@@ -1322,6 +1405,23 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
     dialog.open()
 
 
+# The Edit Project dialog's field_refs keys that hold no editable Project state, and so
+# need nothing applied before a save.  "name" is read-only (Rename is its own operation),
+# and "project_save_path" is where the export goes rather than anything about the Project.
+#
+# THIS IS A LIST OF WHAT IS SAFE, checked at save time by userintr._unapplied_project_edits,
+# because both of this dialog's saves render the Project from the LIVE TREE by name --
+# projedit.write_standalone_project_xml(project_name, ...) and .save_project_to_android(
+# project_name, ...).  A field added here that edits the Project would therefore be dropped
+# silently from the exported file and the upload, which is the bug Scene had (see
+# userintr.save_scene_to_android_event).  Anything added to field_refs and not named here
+# fails the save with a message naming the field, rather than writing an incomplete Project.
+#
+# Adding a real editable field means applying it before those two saves -- follow what the
+# Scene handlers do -- and only then listing its key here.
+EDIT_PROJECT_INERT_FIELDS: frozenset[str] = frozenset({"name", "project_save_path"})
+
+
 def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
     """Builds and opens the Edit Project dialog: Rename the Project (the Name
     field is read-only -- Rename prompts for the new one, see build_rename_dialog),
@@ -1392,6 +1492,7 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
                 translate_string("Save To Android"),
                 on_click=lambda: self.event_handlers.open_save_project_to_android_dialog_event(
                     edited_project,
+                    field_refs,
                     dialog,
                 ),
             ).props("outline")
@@ -1424,6 +1525,7 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
 def build_save_project_to_android_dialog(
     self: MyGui,
     edited_project: projedit.EditableProject,
+    field_refs: dict,
     parent_dialog: ui.dialog,
 ) -> None:
     """Prompts for the Android device's IP address and port, then writes the
@@ -1434,6 +1536,10 @@ def build_save_project_to_android_dialog(
     endpoint -- see projedit.save_project_to_android. This does not import it into
     Tasker's live configuration. On success both this prompt and the parent (Edit
     Project) dialog are closed.
+
+    field_refs is the parent dialog's, carried through only so the save handler can
+    check it for editable fields this by-name upload would drop -- see
+    EDIT_PROJECT_INERT_FIELDS. Nothing here reads it.
     """
     default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
     default_port = getattr(self, "android_port", "") or "1821"
@@ -1450,6 +1556,7 @@ def build_save_project_to_android_dialog(
                 translate_string("Save"),
                 on_click=lambda: self.event_handlers.save_project_to_android_event(
                     edited_project,
+                    field_refs,
                     android_field_refs,
                     android_dialog,
                     parent_dialog,
@@ -1629,6 +1736,213 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
     dialog.open()
 
 
+def _build_rename_legacy_element_dialog(
+    edited_scene: sceneedit.EditableScene,
+    element: object,
+    on_renamed: Callable[[str, str, bool], None],
+) -> None:
+    """Rename one Legacy element, having first said what else in the backup is relying on
+    its current name.
+
+    THE POINT OF THIS DIALOG IS THE LIST, not the text field.  Renaming an element is a
+    one-word edit with consequences that are invisible from the Scene: 18 Task action codes
+    address an element by name, so a rename either brings those Tasks along or quietly stops
+    them working, and nothing in the Scene itself would ever show it.
+
+    Three separate things are reported, because they can be acted on to three different
+    degrees:
+
+      * The Task actions that WILL be rewritten -- matched strictly, on the arg0/arg1 shape
+        all 18 codes declare (find_element_name_actions).  Offered as a checkbox, on by
+        default, because leaving them behind is almost never what anyone wants.
+
+      * Tasks that mention both this Scene and this element but not in that shape -- listed
+        so the count cannot silently differ from what was warned about, and not rewritten,
+        because this app cannot tell what they meant by it.
+
+      * Tasks that address elements by a match *pattern* (Element Visibility, code 65).
+        Never rewritten and never can be: the pattern is evaluated by Tasker at run time, so
+        whether it currently catches this element is not a question the file can answer.
+    """
+    old_name = (element.find("Str[@sr='arg0']").text or "").strip() if element.find("Str[@sr='arg0']") is not None else ""
+    rewritable = sceneedit.find_element_name_actions(edited_scene.scene_name, old_name)
+    rewritable_tasks = sorted({task_name for task_name, _argument in rewritable})
+    loose_tasks = sceneedit.find_element_name_references(edited_scene.scene_name, old_name)
+    unmatched = [task for task in loose_tasks if task not in rewritable_tasks]
+    patterns = sceneedit.find_element_match_references(edited_scene.scene_name)
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[520px] max-w-[720px] p-6"):
+        ui.label(f"{translate_string('Rename Element')}: {old_name}").classes("text-lg font-bold text-blue-600")
+        name_input = ui.input(translate_string("New name"), value=old_name).props("dense autofocus").classes("w-full")
+
+        update_tasks = {"value": bool(rewritable)}
+        if rewritable:
+            checkbox = ui.checkbox(
+                f"{translate_string('Also update')} {len(rewritable)} "
+                f"{translate_string('Task action(s) in')} {len(rewritable_tasks)} {translate_string('Task(s)')}",
+                value=True,
+                on_change=lambda event: update_tasks.__setitem__("value", bool(event.value)),
+            )
+            with checkbox:
+                ui.tooltip(
+                    translate_string(
+                        "Applied when this Scene is saved, not now -- Cancel on the Scene dialog "
+                        "leaves both the element and the Tasks exactly as they were.",
+                    ),
+                ).style("white-space: pre-line")
+            ui.label(", ".join(rewritable_tasks)).classes("text-xs text-gray-500 ml-8")
+        else:
+            ui.label(translate_string("No Task addresses this element by name.")).classes(
+                "text-sm text-gray-500 italic",
+            )
+
+        if unmatched:
+            ui.label(
+                f"{translate_string('Not updated -- these name both this Scene and this element, but not as a')} "
+                f"Scene Name / Element {translate_string('pair')}: {', '.join(unmatched)}",
+            ).classes("text-xs text-orange-600 italic mt-2")
+        if patterns:
+            ui.label(
+                f"{translate_string('Never updated')}: {len(patterns)} "
+                f"{translate_string('Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself')}: "
+                f"{', '.join(patterns)}",
+            ).classes("text-xs text-orange-600 italic mt-1")
+
+        def apply() -> None:
+            on_renamed(old_name, str(name_input.value or ""), update_tasks["value"])
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+            ui.button(translate_string("Rename"), on_click=lambda: (apply(), dialog.close())).classes("bg-blue-600")
+
+    dialog.open()
+
+
+def _build_add_legacy_element_dialog(
+    scene_element: object,
+    on_pick: Callable[[str], None],
+) -> None:
+    """The Legacy Scene's "Add Element" dialog -- the same shape as the Version 2 one above,
+    and deliberately so: a search box, then every element as a chip with a description, and
+    anything that cannot be created greyed out with the reason rather than hidden.
+
+    Two honest differences from the V2 dialog, both stated on screen rather than buried here:
+
+      * THE GROUPING IS THIS APP'S.  V2's headings were taken from a screenshot of Tasker's
+        own Add Element sheet; no such evidence exists for the Legacy editor, so these four
+        are a convenience and are not claimed to be Tasker's (see LEGACY_PALETTE_GROUPS).
+
+      * THERE IS NO DESTINATION TO STATE.  A V2 component goes inside or after whatever is
+        selected, which is worth saying up front; a Legacy element has no parent to go into.
+        It goes on top of the stack, which the header says once.
+    """
+    search = {"text": ""}
+    blocked = {entry.element_type: sceneedit.legacy_can_add(entry.element_type) for entry in sceneedit.LEGACY_PALETTE}
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[640px] max-w-[760px] p-6"):
+        ui.label(translate_string("Add Element")).classes("text-lg font-bold text-blue-600")
+        ui.label(
+            translate_string("Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."),
+        ).classes("text-sm text-gray-500 italic")
+
+        def pick(entry: sceneedit.LegacyPaletteEntry) -> None:
+            reason = blocked.get(entry.element_type, "")
+            if reason:
+                ui.notify(reason, type="warning", multi_line=True)
+                return
+            dialog.close()
+            on_pick(entry.element_type)
+
+        def matches(entry: sceneedit.LegacyPaletteEntry) -> bool:
+            """Substring, case-insensitive, over the label, its translation and the XML tag --
+            so "map" finds the Map element whose tag is SceneElement, and someone who knows
+            the format can type "SceneElement" and still get there.
+            """
+            text = search["text"].strip().lower()
+            if not text:
+                return True
+            return any(
+                text in candidate.lower()
+                for candidate in (entry.label, translate_string(entry.label), entry.element_type)
+            )
+
+        def chip(entry: sceneedit.LegacyPaletteEntry) -> None:
+            reason = blocked.get(entry.element_type, "")
+            props = ["outline", "rounded", "no-caps", "dense", "icon-right=info_outline"]
+            if reason:
+                props.append("color=grey")
+            button = ui.button(
+                translate_string(entry.label),
+                on_click=lambda _e=None, x=entry: pick(x),
+            ).props(" ".join(props))
+            if reason:
+                button.classes("opacity-70")
+            with button:
+                # Blocked chips stay clickable rather than disabled, for the reason the V2
+                # dialog gives: a disabled Quasar button eats its own tooltip, which is the
+                # one place the block is explained.
+                lines = [translate_string(entry.description)]
+                if reason:
+                    lines.append(translate_string(reason))
+                ui.tooltip("\n\n".join(lines)).style("white-space: pre-line").classes("max-w-sm")
+
+        search_input = (
+            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            .props("outlined dense clearable autofocus")
+            .classes("w-full mt-2")
+        )
+        with search_input.add_slot("prepend"):
+            ui.icon("search")
+
+        results = ui.column().classes("w-full gap-0 mt-1 max-h-96 overflow-auto")
+
+        def render() -> None:
+            results.clear()
+            shown = 0
+            with results:
+                for group in sceneedit.LEGACY_PALETTE_GROUPS:
+                    visible = [
+                        entry for entry in sceneedit.LEGACY_PALETTE if entry.group == group and matches(entry)
+                    ]
+                    if not visible:
+                        continue
+                    shown += len(visible)
+                    ui.label(translate_string(group)).classes("text-xs uppercase text-blue-400 mt-3 mb-1")
+                    with ui.row().classes("w-full gap-2 flex-wrap"):
+                        for entry in visible:
+                            chip(entry)
+                if not shown:
+                    ui.label(translate_string("No element matches that.")).classes(
+                        "text-sm italic text-gray-500 mt-3",
+                    )
+
+        def search_changed(value: str) -> None:
+            search["text"] = value or ""
+            render()
+
+        def enter_pressed() -> None:
+            """Enter picks the search's one remaining match -- silent while several still
+            match, since guessing would add the wrong element.
+            """
+            hits = [entry for entry in sceneedit.LEGACY_PALETTE if matches(entry)]
+            if len(hits) == 1:
+                pick(hits[0])
+
+        search_input.on("keydown.enter", lambda _e=None: enter_pressed())
+        render()
+
+        with ui.row().classes("w-full items-center justify-between mt-4 pt-3 border-t"):
+            ui.label(
+                translate_string(
+                    "Grey: MapTasker has no argument table for it, so it can't be created without "
+                    "guessing what Tasker expects inside. Headings are MapTasker's own grouping.",
+                ),
+            ).classes("text-xs text-gray-500 italic")
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
+
+    dialog.open()
+
+
 # How many entries of one category the Show When picker lists before it stops and asks for a
 # search.  User Globals runs to several hundred on a real backup and Built-in Globals is a
 # hundred on any backup; drawing all of them makes a dialog nobody can read and a page that
@@ -1654,7 +1968,7 @@ def _build_show_when_dialog(field: ui.input) -> None:
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[620px] max-w-[740px] p-6"):
         ui.label(translate_string("Insert into Show When")).classes("text-lg font-bold text-blue-600")
         ui.label(
-            translate_string("Each one you pick is added to the end of the field. Close when you are done."),
+            translate_string("What you pick goes in at the cursor. Open this again to add the next piece."),
         ).classes("text-sm text-gray-500 italic")
 
         # Reaching the field's native <input>.  getHtmlElement() hands back whatever element
@@ -1690,13 +2004,19 @@ def _build_show_when_dialog(field: ui.input) -> None:
                 await caret_position(),
             )
             field.value = text
-            # Put the caret back where the insert left it, so a run of picks builds the
-            # expression left to right instead of every one landing on the same spot.
+            # Put the caret back where the insert left it, so re-opening the picker adds the
+            # next piece after this one rather than back at the same spot.
             with contextlib.suppress(Exception):
                 ui.run_javascript(
                     f"(() => {{ {_NATIVE_INPUT}"
                     f" if (el) {{ el.setSelectionRange({caret}, {caret}); }} }})()",
                 )
+            # Close on the pick.  A condition is built out of several of these, so staying
+            # open to save a click is the obvious thing to do and the wrong one: the dialog
+            # covers the very field it is filling in, so every pick landed unseen and there
+            # was no way to check the expression without dismissing the picker anyway.
+            # Closing shows the result, which is what makes the next pick an informed one.
+            dialog.close()
 
         def matches(choice: sceneedit.V2ShowWhenChoice) -> bool:
             text = search["text"].strip().lower()
@@ -2226,10 +2546,1155 @@ def _build_v2_designer(
     render()
 
 
+# ==========================================
+# The Scene canvas, shared by the read-only Preview and the Legacy designer.
+#
+# Both draw the same thing (sceneview.draw_scene) at the Scene's true pixel size and then
+# scale the whole canvas to fit.  The fitting has to happen in the browser -- the width to
+# fit into is the viewport's, which the server does not know -- so it goes out as JavaScript,
+# and the two callers scope it to their own wrapper class because a Preview and a designer
+# can be on the page at the same time (the Preview is in the main column, the designer is in
+# a dialog that is only hidden while the Preview is up).  A bare ".mt-scene-wrap" selector
+# would have found whichever came first and scaled the wrong one.
+# ==========================================
+CANVAS_PREVIEW_ROOT = "mt-preview"
+CANVAS_DESIGNER_ROOT = "mt-designer"
+# How much of the Scene dialog the designer's canvas may take.  It shares that dialog with a
+# size row, an element list, a property sheet and a button row, so the canvas is fitted to
+# this as well as to the width -- see _emit_canvas_fit's `budget`.  The Preview, which has a
+# 70vh scroll area to itself, has no such limit.
+DESIGNER_CANVAS_HEIGHT = 300
+
+
+def _emit_canvas_fit(root: str, width: int, height: int, fixed: str = "null", budget: int = 0) -> None:
+    """Scale the canvas under `root` to fit its wrapper, and keep it fitting on resize.
+
+    `fixed` is a scale factor as a JS literal, or "null" for fit-to-width.  `budget` is a
+    height in pixels the canvas must also fit inside, or 0 for none -- the Preview has a
+    scroll area of its own and wants the full width, but the designer sits in a dialog
+    alongside a list, a property sheet and a button row, and a tall Scene scaled to the
+    width alone would push all of them off the screen.
+
+    The wrapper's dataset carries the resulting scale, because the pointer handlers need it
+    to turn screen pixels into canvas pixels and re-deriving it from the CSS transform would
+    be reading back a number this already computed.
+
+    THE SCALE GOES INTO A STYLESHEET RULE, NOT AN INLINE STYLE, and that is not a matter of
+    taste.  The canvas element is rebuilt by NiceGUI on every re-render and its inline style
+    is patched from the server's own copy of it -- which knows nothing about a transform this
+    script added -- so an inline transform survives the first render and is silently wiped by
+    the next one.  The symptom is a canvas that quietly reverts to full size after any edit,
+    with every coordinate the pointer handlers compute wrong by the scale factor.  A rule in
+    a stylesheet is outside what that patching touches, and nothing on the Python side sets
+    `transform`, so the two can never fight over it.
+
+    The resize handler is kept on `window` under this root's name and removed before the next
+    one is added -- every re-render would otherwise leave another one behind, and after a
+    dozen drags the browser would be recomputing the same layout a dozen times per resize.
+    """
+    ui.run_javascript(
+        f"""
+        (() => {{
+            const root = '{root}', canvasWidth = {width}, canvasHeight = {height};
+            const fixed = {fixed}, budget = {budget};
+            const styleId = 'mt-scene-fit-' + root;
+            let sheet = document.getElementById(styleId);
+            if (!sheet) {{
+                sheet = document.createElement('style');
+                sheet.id = styleId;
+                document.head.appendChild(sheet);
+            }}
+            const apply = () => {{
+                const wrap = document.querySelector('.' + root);
+                if (!wrap || !wrap.querySelector('.mt-scene-canvas')) return;
+                const byWidth = (wrap.clientWidth - 16) / canvasWidth;
+                const byHeight = budget ? (budget - 8) / canvasHeight : Infinity;
+                const scale = fixed !== null
+                    ? fixed
+                    : Math.max(0.05, Math.min(1, byWidth, byHeight));
+                // flex-shrink: 0 is not decoration.  The wrapper sits in a flex column (a
+                // NiceGUI card is one), and a flex item's height is only a basis -- when the
+                // dialog's content is taller than the dialog, flex shrinks the item and the
+                // stated height is simply ignored.  The symptom is a canvas squashed to a
+                // sliver with everything below its clip line unclickable.
+                sheet.textContent =
+                    '.' + root + ' .mt-scene-canvas {{ transform: scale(' + scale + '); }}' +
+                    '.' + root + ' {{ height: ' + (canvasHeight * scale + 8) + 'px;' +
+                    ' flex: none;' +
+                    ' overflow-x: ' + (canvasWidth * scale > wrap.clientWidth ? 'auto' : 'hidden') + '; }}';
+                wrap.dataset.scale = scale;
+            }};
+            window.__mtSceneFit = window.__mtSceneFit || {{}};
+            if (window.__mtSceneFit[root]) window.removeEventListener('resize', window.__mtSceneFit[root]);
+            window.__mtSceneFit[root] = apply;
+            window.addEventListener('resize', apply);
+            apply();
+            requestAnimationFrame(apply);
+        }})();
+        """,
+    )
+
+
+def _emit_canvas_editing(root: str, snap: int) -> None:
+    """Install the pointer and keyboard handlers that make the canvas draggable.
+
+    THE WHOLE DRAG HAPPENS IN THE BROWSER.  Only the finished geometry is sent back, once,
+    on pointer-up: a round trip per mousemove would be unusable over a websocket, and it
+    would also put one undo entry on the stack per pixel travelled instead of one per gesture.
+
+    SELECTION IS ALSO REPORTED ON POINTER-UP, not on pointer-down, and that ordering is
+    load-bearing rather than incidental.  Selecting re-renders all three panes from Python,
+    which replaces the very DOM node the pointer is captured on -- so selecting first and
+    dragging second would tear the element out from under the drag on every click. Reporting
+    a click only when the pointer did not move keeps the two apart: a click selects, a drag
+    moves, and a drag reports the element it moved so Python can select it afterwards.
+
+    Handlers are attached to the canvas element itself, which draw_scene rebuilds on every
+    render, so they are disposed of with it and can never accumulate.  The one exception is
+    the resize listener in _emit_canvas_fit, which is on `window` and is removed by name.
+
+    EVERY EVENT CARRIES ITS ROOT.  ui.on subscribes app-wide, and there can be more than one
+    designer on the page -- editing a List's item layout opens a second one, on the nested
+    Scene, while the first is still mounted behind it.  Without the root in the payload both
+    would answer every click, and the outer designer would apply the inner one's drags to
+    whatever element of the outer Scene happened to share its sr.
+    """
+    ui.run_javascript(
+        f"""
+        (() => {{
+            const root = '{root}', snap = {max(1, snap)};
+            const wrap = document.querySelector('.' + root);
+            const canvas = wrap && wrap.querySelector('.mt-scene-canvas');
+            if (!canvas) return;
+            const scale = () => parseFloat(wrap.dataset.scale || '1') || 1;
+            const round = (value) => Math.round(value / snap) * snap;
+            let drag = null;
+
+            const place = (sr, box) => {{
+                const target = canvas.querySelector('.mt-el[data-sr="' + sr + '"]');
+                const overlay = canvas.querySelector('.mt-selection');
+                for (const node of [target, overlay]) {{
+                    if (!node) continue;
+                    node.style.left = box.x + 'px';
+                    node.style.top = box.y + 'px';
+                    node.style.width = box.w + 'px';
+                    node.style.height = box.h + 'px';
+                }}
+            }};
+
+            canvas.addEventListener('pointerdown', (event) => {{
+                const handle = event.target.closest('.mt-handle');
+                const element = handle ? canvas.querySelector('.mt-el[data-sr="' + canvas.dataset.selected + '"]')
+                                       : event.target.closest('.mt-el');
+                if (!element) return;
+                event.preventDefault();
+                canvas.focus();
+                drag = {{
+                    sr: element.dataset.sr,
+                    dir: handle ? handle.dataset.dir : 'move',
+                    startX: event.clientX,
+                    startY: event.clientY,
+                    box: {{
+                        x: parseFloat(element.dataset.x), y: parseFloat(element.dataset.y),
+                        w: parseFloat(element.dataset.w), h: parseFloat(element.dataset.h),
+                    }},
+                    moved: false,
+                }};
+                canvas.setPointerCapture(event.pointerId);
+            }});
+
+            canvas.addEventListener('pointermove', (event) => {{
+                if (!drag) return;
+                const dx = (event.clientX - drag.startX) / scale();
+                const dy = (event.clientY - drag.startY) / scale();
+                if (!drag.moved && Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+                drag.moved = true;
+                const start = drag.box;
+                let {{ x, y, w, h }} = start;
+                if (drag.dir === 'move') {{
+                    x = round(start.x + dx); y = round(start.y + dy);
+                }} else {{
+                    if (drag.dir.includes('w')) {{ x = round(start.x + dx); w = start.w + (start.x - x); }}
+                    if (drag.dir.includes('n')) {{ y = round(start.y + dy); h = start.h + (start.y - y); }}
+                    if (drag.dir.includes('e')) {{ w = round(start.w + dx); }}
+                    if (drag.dir.includes('s')) {{ h = round(start.h + dy); }}
+                }}
+                // An element may sit off the canvas -- Tasker allows it -- so nothing is
+                // clamped to the edges; only a collapse to nothing is refused.
+                w = Math.max(1, w); h = Math.max(1, h);
+                drag.next = {{ x, y, w, h }};
+                place(drag.sr, drag.next);
+            }});
+
+            const finish = (event) => {{
+                if (!drag) return;
+                const finished = drag;
+                drag = null;
+                if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+                if (finished.moved && finished.next) {{
+                    emitEvent('mt_scene_geometry', {{ root, sr: finished.sr, ...finished.next }});
+                }} else {{
+                    emitEvent('mt_scene_select', {{ root, sr: finished.sr }});
+                }}
+            }};
+            canvas.addEventListener('pointerup', finish);
+            canvas.addEventListener('pointercancel', finish);
+
+            // Give the canvas the focus back, because every edit rebuilds it and the
+            // replacement starts unfocused -- so without this the arrow keys would work
+            // exactly once, until the first nudge re-rendered the element being nudged.
+            //
+            // Not while the user is typing: an edit in the Inspector re-renders too, and
+            // stealing the focus there would eject them from the field after one keystroke.
+            const active = document.activeElement;
+            if (!active || !active.closest || !active.closest('input, textarea, select, [contenteditable]')) {{
+                canvas.focus({{ preventScroll: true }});
+            }}
+
+            canvas.addEventListener('keydown', (event) => {{
+                if (event.target.closest('input, textarea, select')) return;
+                const step = event.shiftKey ? 10 : 1;
+                const moves = {{ ArrowLeft: [-step, 0], ArrowRight: [step, 0],
+                                ArrowUp: [0, -step], ArrowDown: [0, step] }};
+                const move = moves[event.key];
+                if (!move) return;
+                event.preventDefault();
+                emitEvent('mt_scene_nudge', {{ root, dx: move[0], dy: move[1] }});
+            }});
+        }})();
+        """,
+    )
+
+
+# Every mounted designer's canvas handlers, keyed by its own root class.
+#
+# ui.on subscribes app-wide rather than per-widget, so registering a fresh handler on every
+# dialog build would leave one behind on every open.  The handlers are therefore registered
+# once and dispatch through this table, which each designer registers itself in.
+#
+# Keyed rather than a single slot because designers nest: "Edit item layout" opens a second
+# designer, on the Scene inside a List or Spinner, while the first is still mounted behind
+# it.  Both canvases exist in the DOM, both would receive the app-wide event, and an sr means
+# something different in each -- so the event says which root it came from and only that
+# designer answers.
+_ACTIVE_CANVASES: dict[str, dict[str, Callable]] = {}
+_CANVAS_EVENTS_REGISTERED = False
+# Hands out a unique root class per designer, so two on one page cannot share a stylesheet
+# rule, a resize handler or a pointer target.
+_DESIGNER_SEQUENCE = itertools.count(1)
+
+
+def _register_canvas_events() -> None:
+    """Subscribe the three canvas events, once per process."""
+    global _CANVAS_EVENTS_REGISTERED  # noqa: PLW0603
+    if _CANVAS_EVENTS_REGISTERED:
+        return
+
+    def dispatch(name: str, payload: object) -> None:
+        """Route one canvas event to the designer whose canvas emitted it.
+
+        A payload without a root is from a designer that has since been torn down, or from a
+        build of this app that predates the routing; either way there is nothing to do with
+        it but drop it, which is quieter than guessing at a recipient.
+        """
+        if not isinstance(payload, dict):
+            return
+        handlers = _ACTIVE_CANVASES.get(str(payload.get("root", "")))
+        if handlers and name in handlers:
+            handlers[name](payload)
+
+    ui.on("mt_scene_select", lambda event: dispatch("select", event.args))
+    ui.on("mt_scene_geometry", lambda event: dispatch("geometry", event.args))
+    ui.on("mt_scene_nudge", lambda event: dispatch("nudge", event.args))
+    _CANVAS_EVENTS_REGISTERED = True
+
+
+def _legacy_canvas_size(
+    edited_scene: sceneedit.EditableScene,
+    field_refs: dict,
+    landscape: bool,
+) -> tuple[int, int] | None:
+    """The canvas size to draw a Legacy Scene at: what the dialog's size fields currently
+    hold, falling back to what the Scene itself carries.
+
+    Shared by the designer and the Preview so the two never disagree about how big the Scene
+    is.  The fields are only present in a dialog that built them, so a missing widget means
+    "use the Scene's own value", not an error -- the same contract
+    userintr._apply_scene_field_values relies on.
+    """
+    width_key, height_key = ("widthLand", "heightLand") if landscape else ("widthPort", "heightPort")
+    typed: dict[str, int] = {}
+    for key in (width_key, height_key):
+        widget = field_refs.get(key)
+        if widget is None:
+            continue
+        try:
+            typed[key] = int(str(widget.value).strip())
+        except (AttributeError, ValueError):
+            ui.notify(
+                f"{translate_string('Using the saved size')}: "
+                f"'{widget.value}' {translate_string('is not a whole number')}.",
+                type="warning",
+            )
+    if width_key in typed and height_key in typed:
+        width, height = typed[width_key], typed[height_key]
+        return (width, height) if width > 0 and height > 0 else None
+    return sceneview.scene_dimensions(edited_scene.scene_element, landscape)
+
+
+def _build_legacy_designer(
+    edited_scene: sceneedit.EditableScene,
+    field_refs: dict,
+) -> None:
+    """The Legacy Scene designer: pick an element off the canvas, inspect its properties,
+    move and resize it, and add, duplicate, restack or delete it.
+
+    THE CANVAS IS THE EDITOR.  The V2 designer is a tree because a V2 layout is a tree; a
+    Legacy Scene is a pixel canvas where every element states its own x,y,w,h, so the natural
+    way to edit one is to drag it.  That canvas already existed as the read-only Preview
+    (sceneview.draw_scene), and this passes it a CanvasEditing to turn it into a surface --
+    the same drawing code, so what the user edits is exactly what the Preview showed them.
+
+    Three panes, all rebuilt on every change: the canvas, an element list in z-order, and a
+    property sheet.  Rebuilding wholesale rather than patching is the V2 designer's pattern
+    and is here for the same reasons -- a different element has entirely different fields, and
+    one render path cannot disagree with itself.  Selection is held as an sr string for the
+    same reason V2 holds a path: the widgets do not survive a rebuild, the key does.
+
+    The list is drawn top-of-stack first, which is the reverse of the XML order.  sr="elementsN"
+    is the paint order -- elements0 is painted first and therefore sits at the bottom -- and a
+    layers panel that put the bottom element at the top would be describing the Scene upside
+    down.
+
+    Every structural edit renumbers every sr, so each of them re-selects by the sr the model
+    hands back rather than the one it went in with (see sceneedit._legacy_reindex).  Deleting
+    warns about the Tasks that address the element by name -- it does not refuse, because the
+    Task may well be the obsolete one, and Undo is right there.
+
+    NOT here yet, and each left alone rather than half-done: renaming an element (18 Task
+    action codes address one by name, so a rename has to rewrite them, which is a different
+    and more dangerous operation than warning about them); the Tasks an element fires; its
+    background sub-element; and the Scene's own PropertiesElement.  Undo covers geometry and
+    structure, matching the V2 designer, which likewise does not undo typing in a property
+    field.
+    """
+    scene_element = edited_scene.scene_element
+    selection: dict = {"sr": ""}
+    orientation: dict = {"landscape": False}
+    history: list = []
+    # Whole-Scene snapshots, as the V2 designer keeps whole-tree ones -- see
+    # sceneedit.legacy_snapshot on why an inverse per operation is not worth modelling.
+    snap = {"grid": 1}
+    # Which sections are open, held out here because the inspector is rebuilt on every edit
+    # -- without this, adding a Task binding would collapse the very section it was added in.
+    # The V2 designer keeps its modifier/handler sections open the same way.
+    expanded = {"tasks": False, "background": False, "properties": False}
+    # Events the user has added a row for but not yet chosen a Task for.
+    #
+    # Held here rather than written into the XML, because a half-made binding is not a thing
+    # Tasker writes: every <clickTask> in the sample data holds a real id, and an empty one
+    # would be a Scene that says it fires something and names nothing.  The row exists so
+    # there is somewhere to pick a Task; the child element appears when one is picked.
+    pending_events: dict = {"sr": "", "tags": set()}
+
+    _register_canvas_events()
+    has_landscape = sceneview.has_landscape_layout(scene_element)
+    # This designer's own canvas identity -- see _ACTIVE_CANVASES on why it cannot be shared.
+    root_class = f"{CANVAS_DESIGNER_ROOT}-{next(_DESIGNER_SEQUENCE)}"
+
+    header = ui.row().classes("w-full items-center gap-2 mt-2")
+    canvas_pane = ui.element("div").classes(
+        f"mt-scene-wrap {root_class} w-full border rounded overflow-hidden",
+    ).style("position: relative;")
+    toolbar = ui.row().classes("w-full gap-1 items-center mt-1 flex-wrap")
+    with ui.row().classes("w-full gap-3 items-start no-wrap mt-1"):
+        list_pane = ui.column().classes("w-2/5 gap-0 p-2 border rounded max-h-64 overflow-auto")
+        inspector_pane = ui.column().classes("w-3/5 gap-1 p-2 border rounded max-h-72 overflow-auto")
+    properties_pane = ui.column().classes("w-full gap-0")
+    status = ui.row().classes("w-full items-center gap-2")
+
+    def snapshot() -> None:
+        history.append(sceneedit.legacy_snapshot(scene_element))
+
+    def restore() -> None:
+        if not history:
+            return
+        sceneedit.legacy_restore(scene_element, history.pop())
+        if sceneedit.legacy_element_at(scene_element, selection["sr"]) is None:
+            selection["sr"] = ""
+        render()
+
+    def select(sr: str) -> None:
+        selection["sr"] = str(sr or "")
+        render()
+
+    def select_from_canvas(payload: dict) -> None:
+        select(str(payload.get("sr", "")))
+
+    def add_element(element_type: str) -> None:
+        """Create an element of this type, in the middle of the canvas, on top of the stack.
+
+        Centred rather than at 0,0 because a Scene's bottom element is very often a
+        full-canvas background Rect, and a new element created at the origin under one would
+        be invisible -- indistinguishable, to the user, from the Add button not working.
+        """
+        size = _legacy_canvas_size(edited_scene, field_refs, orientation["landscape"])
+        if size is None:
+            ui.notify(translate_string("This Scene has no layout for this orientation."), type="warning")
+            return
+        canvas_width, canvas_height = size
+        width, height = min(300, canvas_width), min(120, canvas_height)
+        box = ((canvas_width - width) // 2, (canvas_height - height) // 2, width, height)
+
+        snapshot()
+        element = sceneedit.legacy_new_element(
+            scene_element,
+            element_type,
+            box,
+            landscape=sceneview.has_landscape_layout(scene_element),
+        )
+        if isinstance(element, str):
+            history.pop()
+            ui.notify(element, type="negative", multi_line=True)
+            return
+        selection["sr"] = sceneedit.legacy_insert_element(scene_element, element)
+        render()
+
+    def duplicate_element() -> None:
+        snapshot()
+        new_sr = sceneedit.legacy_duplicate_element(scene_element, selection["sr"])
+        if not new_sr:
+            history.pop()
+            ui.notify(translate_string("Select an element first."), type="warning")
+            return
+        selection["sr"] = new_sr
+        render()
+
+    def delete_element() -> None:
+        """Delete the selected element, warning about -- but not blocked by -- the Tasks that
+        address it.
+
+        Warn rather than refuse, exactly as the V2 designer does when deleting a component
+        Tasks address by id: the Task may be the obsolete one, this app cannot know which of
+        the two the user meant to keep, and Undo is one button away.
+        """
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        if element is None:
+            ui.notify(translate_string("Select an element first."), type="warning")
+            return
+
+        name = sceneedit.legacy_element_label(element)
+        element_name = (element.findtext("Str[@sr='arg0']") or "").strip()
+        references = sceneedit.find_element_name_references(edited_scene.scene_name, element_name)
+        patterns = sceneedit.find_element_match_references(edited_scene.scene_name)
+
+        snapshot()
+        selection["sr"] = sceneedit.legacy_delete_element(scene_element, selection["sr"])
+        if references:
+            ui.notify(
+                f"Deleted {name}. {len(references)} Task(s) address '{element_name}' by name: "
+                f"{', '.join(references)}. They will no longer find it.",
+                type="warning",
+                multi_line=True,
+                timeout=10000,
+            )
+        if patterns:
+            ui.notify(
+                f"{len(patterns)} Task(s) also address this Scene's elements by a match pattern "
+                f"(Element Visibility): {', '.join(patterns)}. Whether they matched '{element_name}' "
+                "is decided by Tasker at run time, so check them yourself.",
+                type="warning",
+                multi_line=True,
+                timeout=10000,
+            )
+        render()
+
+    def restack(position: Callable[[int, int], int], failure: str) -> None:
+        """Move the selection through the z-order.  `position` is handed (current index,
+        count) and returns where it should end up, which is what makes Forward, Backward,
+        To Front and To Back one operation with four callers.
+        """
+        ordered = sceneedit.legacy_drawable_elements(scene_element)
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        if element is None or element not in ordered:
+            ui.notify(translate_string("Select an element first."), type="warning")
+            return
+
+        snapshot()
+        new_sr = sceneedit.legacy_restack(scene_element, selection["sr"], position(ordered.index(element), len(ordered)))
+        if not new_sr:
+            history.pop()
+            ui.notify(translate_string(failure), type="warning")
+            return
+        selection["sr"] = new_sr
+        render()
+
+    def set_geometry(payload: dict) -> None:
+        """Apply a finished drag or resize.  One snapshot per gesture, not per pixel -- the
+        browser sends the finished box once (see _emit_canvas_editing).
+        """
+        sr = str(payload.get("sr", ""))
+        element = sceneedit.legacy_element_at(scene_element, sr)
+        if element is None:
+            return
+        snapshot()
+        sceneedit.legacy_set_geometry(
+            element,
+            (int(payload["x"]), int(payload["y"]), int(payload["w"]), int(payload["h"])),
+            landscape=orientation["landscape"],
+        )
+        # A drag reports the element it moved rather than assuming it was the selected one,
+        # so dragging something else selects it as a side effect -- which is what makes
+        # "click to select, drag to move" work without a mode.
+        selection["sr"] = sr
+        render()
+
+    def nudge(payload: dict) -> None:
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        if element is None:
+            return
+        box = sceneview.element_geometry(element, orientation["landscape"])
+        if box is None:
+            return
+        snapshot()
+        x, y, width, height = box
+        sceneedit.legacy_set_geometry(
+            element,
+            (x + int(payload.get("dx", 0)), y + int(payload.get("dy", 0)), width, height),
+            landscape=orientation["landscape"],
+        )
+        render()
+
+    def set_orientation(landscape: bool) -> None:
+        orientation["landscape"] = landscape
+        render()
+
+    def render_canvas() -> None:
+        size = _legacy_canvas_size(edited_scene, field_refs, orientation["landscape"])
+        if size is None:
+            which = "landscape" if orientation["landscape"] else "portrait"
+            ui.label(
+                translate_string(
+                    f"This Scene has no {which} layout: its size is -1, which is Tasker's "
+                    "'this orientation has no layout of its own'.",
+                ),
+            ).classes("text-sm text-orange-600 p-2")
+            return
+        width, height = size
+        options = sceneview.PreviewOptions(landscape=orientation["landscape"], show_tasks=False)
+        with canvas_pane:
+            sceneview.draw_scene(
+                scene_element,
+                width,
+                height,
+                options,
+                editing=sceneview.CanvasEditing(selected=selection["sr"], snap=snap["grid"]),
+            )
+        _emit_canvas_fit(root_class, width, height, budget=DESIGNER_CANVAS_HEIGHT)
+        _emit_canvas_editing(root_class, snap["grid"])
+
+    def render_list() -> None:
+        elements = sceneview.paint_order(scene_element)
+        if not elements:
+            ui.label(translate_string("This Scene has no UI elements.")).classes("text-sm italic text-gray-500")
+            return
+        # Reversed: top of the list is top of the stack.  See this function's docstring.
+        for element in reversed(elements):
+            sr = element.get("sr", "")
+            selected = sr == selection["sr"]
+            classes = "text-sm font-mono whitespace-pre cursor-pointer rounded px-1 py-0.5 w-full"
+            classes += " bg-blue-600 text-white" if selected else " hover:bg-blue-100 dark:hover:bg-blue-900"
+            ui.label(sceneedit.legacy_element_label(element)).classes(classes).on(
+                "click",
+                lambda _e=None, key=sr: select(key),
+            )
+
+    def geometry_input(label: str, index: int, element: object, box: tuple) -> None:
+        """One of the four geometry boxes.  Typing a number and dragging the element are the
+        same operation on the same value, so they go through the same legacy_set_geometry and
+        land on the same undo stack.
+        """
+
+        def commit(event: Event, position: int = index) -> None:
+            try:
+                number = int(str(event.value).strip())
+            except (TypeError, ValueError):
+                return
+            current = sceneview.element_geometry(element, orientation["landscape"])
+            if current is None or current[position] == number:
+                return
+            snapshot()
+            values = list(current)
+            values[position] = number
+            sceneedit.legacy_set_geometry(element, tuple(values), landscape=orientation["landscape"])
+            render()
+
+        ui.number(translate_string(label), value=box[index], format="%d", on_change=commit).props(
+            "dense",
+        ).classes("w-1/4")
+
+    def render_inspector() -> None:
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        if element is None:
+            ui.label(translate_string("Select an element on the canvas or in the list.")).classes(
+                "text-sm italic text-gray-500",
+            )
+            return
+
+        ui.label(sceneedit.legacy_element_label(element)).classes("text-sm font-semibold font-mono")
+
+        box = sceneview.element_geometry(element, orientation["landscape"])
+        if box is None:
+            ui.label(
+                translate_string("This element has no layout for this orientation."),
+            ).classes("text-xs text-orange-600 italic")
+        else:
+            ui.label(translate_string("Geometry")).classes("text-xs uppercase text-gray-500 mt-1")
+            with ui.row().classes("w-full gap-1 no-wrap"):
+                for index, label in enumerate(("X", "Y", "Width", "Height")):
+                    geometry_input(label, index, element, box)
+
+        args = sceneedit.legacy_element_args(element)
+        if not args:
+            ui.label(
+                translate_string(
+                    "This app has no property table for this element type, so only its geometry "
+                    "can be edited here. It is otherwise carried through untouched.",
+                ),
+            ).classes("text-xs text-gray-500 italic mt-2")
+            return
+
+        ui.label(translate_string("Properties")).classes("text-xs uppercase text-gray-500 mt-2")
+        for arg in args:
+            _render_legacy_arg(arg, render, on_rename=rename_selected)
+        render_tasks(element)
+        render_background(element)
+        render_item_layout(element)
+
+    def render_item_layout(element: object) -> None:
+        """The Scene inside this element, if it has one.
+
+        A List and a Spinner each carry a whole nested Scene that is the layout of one row.
+        It is opened in a designer of its own rather than inlined here: it is a Scene, with
+        its own canvas, its own stack and its own elements, and squeezing a second canvas
+        into this inspector would give it none of that.
+        """
+        layout = sceneedit.legacy_item_layout(element)
+        if layout is None:
+            return
+        rows = len(sceneedit.legacy_drawable_elements(layout))
+        with ui.row().classes("w-full items-center gap-2 mt-2"):
+            ui.label(
+                f"{translate_string('Item layout')}: {sceneedit.legacy_item_layout_name(element)} "
+                f"({rows} {translate_string('element(s)')})",
+            ).classes("text-xs text-gray-500")
+            ui.space()
+            ui.button(
+                translate_string("Edit item layout"),
+                icon="open_in_new",
+                on_click=lambda _e=None, holder=element: _build_item_layout_dialog(holder, render),
+            ).props("dense flat size=sm")
+
+    def rename_selected() -> None:
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        if element is None:
+            return
+        _build_rename_legacy_element_dialog(edited_scene, element, apply_rename)
+
+    def apply_rename(old_name: str, new_name: str, update_tasks: bool) -> None:
+        """Take the rename dialog's answer.  The Task rewrite is *recorded*, not performed --
+        see sceneedit.EditableScene.element_renames.
+        """
+        snapshot()
+        errors = sceneedit.legacy_rename_element(scene_element, selection["sr"], new_name)
+        if errors:
+            history.pop()
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+        wanted = new_name.strip()
+        if update_tasks and wanted != old_name:
+            edited_scene.element_renames.append((old_name, wanted))
+            ui.notify(
+                translate_string("The Tasks that address it will be updated when this Scene is saved."),
+                type="positive",
+            )
+        render()
+
+    def render_tasks(element: object) -> None:
+        """What this element does when it is used.
+
+        A Legacy element's behaviour is entirely in these children -- there is no equivalent
+        of a V2 component's eventHandlers block -- so an inspector without them describes
+        only half of what the element is.
+
+        An anonymous Task (a negative id) is shown and cannot be repointed.  Tasker stores
+        those inside the Scene itself and nowhere else, so replacing one destroys the only
+        copy; the offer to do that would be an offer to lose work.
+        """
+        bindings = sceneedit.legacy_task_bindings(element)
+        available = sceneedit.legacy_task_tags_for(element)
+        if pending_events["sr"] != selection["sr"]:
+            # The pending rows belong to the element they were opened on.
+            pending_events["sr"], pending_events["tags"] = selection["sr"], set()
+        waiting = sorted(tag for tag in pending_events["tags"] if element.find(tag) is None)
+        unused = [tag for tag in available if element.find(tag) is None and tag not in waiting]
+        if not bindings and not unused and not waiting:
+            return
+
+        with ui.expansion(
+            f"{translate_string('Tasks')} ({len(bindings)})",
+            icon="bolt",
+            value=expanded["tasks"],
+            on_value_change=lambda event: expanded.__setitem__("tasks", bool(event.value)),
+        ).classes("w-full mt-2"):
+            choices = sceneedit.legacy_task_choices()
+            for binding in bindings:
+                with ui.row().classes("w-full items-center gap-1 no-wrap"):
+                    ui.label(translate_string(binding.label)).classes("text-xs w-28 shrink-0")
+                    if binding.anonymous:
+                        anonymous_field = ui.input(value=binding.task_name).props("readonly dense").classes("flex-1")
+                        with anonymous_field:
+                            ui.tooltip(
+                                translate_string(
+                                    "Tasker keeps this Task inside the Scene and nowhere else, so it has no "
+                                    "name and cannot be pointed somewhere else without losing it. It is "
+                                    "carried through untouched.",
+                                ),
+                            ).style("white-space: pre-line")
+                    else:
+                        ui.select(
+                            choices,
+                            value=binding.task_name if binding.task_name in choices else None,
+                            with_input=True,
+                            on_change=lambda event, tag=binding.tag: set_binding(tag, str(event.value or "")),
+                        ).props("dense").classes("flex-1")
+                        ui.button(
+                            icon="close",
+                            on_click=lambda _e=None, tag=binding.tag: clear_binding(tag),
+                        ).props("dense flat size=sm color=negative").tooltip(
+                            translate_string("Stop firing anything on this event."),
+                        )
+            for tag in waiting:
+                with ui.row().classes("w-full items-center gap-1 no-wrap"):
+                    ui.label(translate_string(SCENE_TASK_TYPES.get(tag, tag))).classes("text-xs w-28 shrink-0")
+                    ui.select(
+                        choices,
+                        value=None,
+                        with_input=True,
+                        label=translate_string("Pick a Task"),
+                        on_change=lambda event, t=tag: set_binding(t, str(event.value or "")),
+                    ).props("dense").classes("flex-1")
+                    ui.button(
+                        icon="close",
+                        on_click=lambda _e=None, t=tag: discard_pending(t),
+                    ).props("dense flat size=sm color=negative")
+            if unused:
+                add_binding = ui.button(translate_string("Add event"), icon="add").props("dense flat size=sm")
+                with add_binding, ui.menu():
+                    for tag in unused:
+                        ui.menu_item(
+                            translate_string(SCENE_TASK_TYPES.get(tag, tag)),
+                            on_click=lambda _e=None, t=tag: open_pending(t),
+                        ).props("dense")
+
+    def open_pending(tag: str) -> None:
+        """Show a row for this event without writing anything yet -- see pending_events."""
+        pending_events["sr"] = selection["sr"]
+        pending_events["tags"].add(tag)
+        expanded["tasks"] = True
+        render()
+
+    def discard_pending(tag: str) -> None:
+        pending_events["tags"].discard(tag)
+        expanded["tasks"] = True
+        render()
+
+    def set_binding(tag: str, task_name: str) -> None:
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        if element is None or not task_name:
+            return
+        task_id = sceneedit.legacy_task_id_for_name(task_name)
+        if not task_id:
+            ui.notify(f"No Task named '{task_name}' in this backup.", type="negative")
+            return
+        snapshot()
+        sceneedit.legacy_set_task_binding(element, tag, task_id)
+        pending_events["tags"].discard(tag)
+        expanded["tasks"] = True
+        render()
+
+    def clear_binding(tag: str) -> None:
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        if element is None:
+            return
+        snapshot()
+        sceneedit.legacy_clear_task_binding(element, tag)
+        expanded["tasks"] = True
+        render()
+
+    def render_background(element: object) -> None:
+        """The element's background sub-element -- a whole RectElement inside it, and where
+        most of a real Scene's colour lives.
+
+        Offered only for the types Tasker gives one to (sceneedit.LEGACY_BACKGROUND_TYPES);
+        a Button, a Rect and an Oval carry their fill in their own arguments and have never
+        been seen with one.
+        """
+        if not sceneedit.legacy_can_have_background(element):
+            return
+        background = sceneedit.legacy_background(element)
+
+        with ui.expansion(
+            translate_string("Background") + ("" if background is not None else f" ({translate_string('none')})"),
+            icon="format_paint",
+            value=expanded["background"],
+            on_value_change=lambda event: expanded.__setitem__("background", bool(event.value)),
+        ).classes("w-full mt-1"):
+            if background is None:
+                ui.button(
+                    translate_string("Add a background"),
+                    icon="add",
+                    on_click=add_background,
+                ).props("dense flat")
+                return
+            # It is a RectElement, so it gets the Rect fields -- the same generated form the
+            # inspector gives a real Rect, from the same table.
+            for arg in sceneedit.legacy_element_args(background):
+                _render_legacy_arg(arg, render, name_editable=True)
+            ui.button(translate_string("Remove background"), icon="delete", on_click=remove_background).props(
+                "dense flat size=sm color=negative",
+            )
+
+    def add_background() -> None:
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        if element is None:
+            return
+        snapshot()
+        sceneedit.legacy_add_background(element)
+        expanded["background"] = True
+        render()
+
+    def remove_background() -> None:
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        if element is None:
+            return
+        snapshot()
+        sceneedit.legacy_remove_background(element)
+        expanded["background"] = True
+        render()
+
+    def render_scene_properties() -> None:
+        """The Scene's own settings -- how it is put on screen, which way up, its background,
+        its title.  They describe the Scene rather than any element, so they sit below the
+        panes rather than in the element inspector, and they were invisible in this dialog
+        until now.
+        """
+        properties = sceneedit.legacy_scene_properties(scene_element)
+        with ui.expansion(
+            translate_string("Scene Properties") + ("" if properties is not None else f" ({translate_string('none')})"),
+            icon="settings",
+            value=expanded["properties"],
+            on_value_change=lambda event: expanded.__setitem__("properties", bool(event.value)),
+        ).classes("w-full mt-1"):
+            if properties is None:
+                ui.label(
+                    translate_string(
+                        "This Scene has no properties element. 66 of the 366 Scenes MapTasker has "
+                        "seen have none either, so this is ordinary rather than damage.",
+                    ),
+                ).classes("text-xs text-gray-500 italic")
+                ui.button(
+                    translate_string("Add scene properties"),
+                    icon="add",
+                    on_click=add_scene_properties,
+                ).props("dense flat")
+                return
+            for arg in sceneedit.legacy_element_args(properties):
+                _render_legacy_arg(arg, render, name_editable=True)
+
+    def add_scene_properties() -> None:
+        snapshot()
+        sceneedit.legacy_add_scene_properties(scene_element)
+        expanded["properties"] = True
+        render()
+
+    def render() -> None:
+        _ACTIVE_CANVASES[root_class] = {
+            "select": select_from_canvas,
+            "geometry": set_geometry,
+            "nudge": nudge,
+        }
+        header.clear()
+        canvas_pane.clear()
+        list_pane.clear()
+        inspector_pane.clear()
+        toolbar.clear()
+        properties_pane.clear()
+        status.clear()
+        with header:
+            ui.label(
+                f"{translate_string('Scene Elements')} ({len(sceneview.paint_order(scene_element))})",
+            ).classes("text-sm font-semibold")
+            ui.space()
+            orientation_switch = ui.switch(
+                translate_string("Landscape"),
+                value=orientation["landscape"],
+                on_change=lambda event: set_orientation(bool(event.value)),
+            ).props("dense")
+            orientation_switch.set_enabled(has_landscape)
+            if not has_landscape:
+                with orientation_switch:
+                    ui.tooltip(
+                        translate_string("This Scene has no landscape layout of its own (its size is -1)."),
+                    )
+            ui.select(
+                [1, 2, 5, 10],
+                value=snap["grid"],
+                label=translate_string("Snap"),
+                on_change=lambda event: (snap.__setitem__("grid", int(event.value or 1)), render()),
+            ).props("dense").classes("w-24").tooltip(
+                translate_string("Round dragged positions and sizes to this many pixels."),
+            )
+            add_button = ui.button(
+                translate_string("Add"),
+                icon="add",
+                on_click=lambda: _build_add_legacy_element_dialog(scene_element, add_element),
+            ).props("dense flat")
+            with add_button:
+                ui.tooltip(translate_string("Adds an element on top of the stack, in the middle of the Scene."))
+            ui.button(translate_string("Undo"), icon="undo", on_click=restore).props("dense flat").set_enabled(
+                bool(history),
+            )
+        with canvas_pane:
+            render_canvas()
+        with list_pane:
+            render_list()
+        with inspector_pane:
+            render_inspector()
+        with toolbar:
+            render_toolbar()
+        with properties_pane:
+            render_scene_properties()
+        with status:
+            ui.label(
+                translate_string(
+                    "Click an element to select it, drag to move, drag a handle to resize, "
+                    "arrow keys to nudge (Shift for 10px).",
+                ),
+            ).classes("text-xs text-gray-500 italic")
+
+    def render_toolbar() -> None:
+        """The structural operations, all of which need something selected.
+
+        Restacking is four buttons rather than two because "send this behind everything" is
+        a different intent from "send it back one", and on a Scene with a full-canvas
+        background Rect the one-step version is a lot of clicking.  They are named for the
+        stack rather than for the list -- Front is the top of both, but "Up" would be
+        ambiguous the moment someone looks at the canvas instead of the list.
+        """
+        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        count = len(sceneedit.legacy_drawable_elements(scene_element))
+        for label, icon, position, failure in (
+            ("Front", "flip_to_front", lambda _index, total: total - 1, "Already at the front."),
+            ("Forward", "arrow_upward", lambda index, _total: index + 1, "Already at the front."),
+            ("Backward", "arrow_downward", lambda index, _total: index - 1, "Already at the back."),
+            ("Back", "flip_to_back", lambda _index, _total: 0, "Already at the back."),
+        ):
+            ui.button(
+                translate_string(label),
+                icon=icon,
+                on_click=lambda _e=None, p=position, f=failure: restack(p, f),
+            ).props("dense flat").set_enabled(element is not None and count > 1)
+        ui.button(translate_string("Duplicate"), icon="content_copy", on_click=duplicate_element).props(
+            "dense flat",
+        ).set_enabled(element is not None)
+        ui.button(translate_string("Delete"), icon="delete", on_click=delete_element).props(
+            "dense flat color=negative",
+        ).set_enabled(element is not None)
+
+    render()
+
+
+def _build_item_layout_dialog(holder: object, on_closed: Callable[[], None]) -> None:
+    """Edit the Scene inside a List or a Spinner, in a designer of its own.
+
+    The nested thing really is a Scene -- its own <nme>, its own widthPort/heightPort, its
+    own elements numbered from elements0, its own PropertiesElement -- so it gets the same
+    designer rather than a reduced version of one.  That is the whole reason the canvas
+    plumbing is keyed per instance (see _ACTIVE_CANVASES): this dialog sits on top of the
+    designer that opened it, and both canvases are mounted at once.
+
+    IT IS NOT A COPY.  The outer dialog is already editing a deep copy of the whole Scene,
+    and this nested element is part of it, so edits land in that copy and are kept or
+    discarded with it by the outer dialog's own Ok or Cancel.  A second layer of copying
+    would need a second layer of Ok/Cancel to reconcile, and "Cancel" on the inner one while
+    keeping the outer would be a promise this app could not keep.
+
+    THE RENAME SWEEP IS TURNED OFF IN HERE, and the dialog says so.  find_element_name_actions
+    matches a Task action against a *Scene* name, and an item layout is not in the backup's
+    Scene table -- it has no name Tasker's Element actions could address it by.  Running the
+    sweep against the outer Scene's name instead would be worse than not running it: it would
+    rewrite Tasks that address a same-named element of the outer Scene, which is a different
+    element.
+    """
+    layout = sceneedit.legacy_item_layout(holder)
+    if layout is None:
+        return
+
+    # scene_name deliberately empty: it is what the rename sweep keys on, and an empty one is
+    # what makes find_element_name_actions correctly find nothing.  The dialog explains it
+    # rather than leaving the user to read "no Task addresses this" as a fact about Tasker.
+    nested = sceneedit.EditableScene(scene_name="", scene_element=layout)
+    field_refs: dict = {}
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[900px] w-full p-6"):
+        ui.label(
+            f"{translate_string('Item layout')}: {sceneedit.legacy_item_layout_name(holder) or translate_string('(unnamed)')}",
+        ).classes("text-lg font-bold text-blue-600")
+        ui.label(
+            translate_string(
+                "The layout of one row. Tasker draws it once per entry of whatever fills the list, "
+                "so what you see here is a single row rather than the list.",
+            ),
+        ).classes("text-sm text-gray-500 italic")
+
+        with ui.row().classes("w-full gap-2 mt-2"):
+            for key, label in sceneedit.SCENE_DIMENSION_FIELDS[:2]:
+                field_refs[key] = (
+                    ui.input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
+                    .props("dense")
+                    .classes("w-36")
+                    .on(
+                        "blur",
+                        lambda _e=None, k=key: _apply_item_layout_size(nested, field_refs, k),
+                    )
+                )
+        ui.label(
+            translate_string(
+                "Renaming an element in here does not sweep the backup: an item layout has no Scene "
+                "name for a Task's Element action to address it by, so there is nothing to rewrite.",
+            ),
+        ).classes("text-xs text-gray-500 italic mt-1")
+
+        _build_legacy_designer(nested, field_refs)
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(
+                translate_string("Done"),
+                on_click=lambda: (dialog.close(), on_closed()),
+            ).classes("bg-blue-600")
+
+    dialog.open()
+
+
+def _apply_item_layout_size(
+    nested: sceneedit.EditableScene,
+    field_refs: dict,
+    key: str,
+) -> None:
+    """Write one of the item layout's two size fields through, on blur.
+
+    On blur rather than on every keystroke: a half-typed "10" on the way to "103" is a real
+    number and would resize the canvas to it, which makes typing one feel like a fight.
+
+    Written straight through rather than collected at save time because this dialog has no
+    save -- it is editing the outer dialog's copy in place (see _build_item_layout_dialog).
+    """
+    widget = field_refs.get(key)
+    if widget is None:
+        return
+    value = str(widget.value).strip()
+    try:
+        int(value)
+    except ValueError:
+        ui.notify(translate_string("Size must be a whole number (-1 for no layout)."), type="negative")
+        widget.value = nested.scene_element.findtext(key, sceneedit.UNSET_DIMENSION)
+        return
+    sceneedit.set_scene_dimensions(nested, {key: value})
+
+
+def _render_legacy_arg(
+    arg: taskedit.EditableArg,
+    on_applied: Callable[[], None],
+    on_rename: Callable[[], None] | None = None,
+    *,
+    name_editable: bool = False,
+) -> None:
+    """One property field, rendered from the same EditableArg model the Task editor uses --
+    so a dropdown, a checkbox and a variable-backed field look and behave identically
+    wherever they appear in this app.
+
+    Written through on change rather than collected at save time, matching the V2 designer:
+    the inspector's widgets are destroyed on every selection change, so there would be
+    nothing left to collect from.  Cancel still discards everything, because all of this is
+    happening to the dialog's own deep copy of the Scene.
+
+    THE NAME FIELD IS THE EXCEPTION, and which exception depends on whose name it is:
+
+      * A top-level element's name is what 18 Task action codes look it up by, so it is not
+        typed into.  It gets a Rename button (`on_rename`) that opens a dialog naming what
+        depends on the current name first -- see _build_rename_legacy_element_dialog.
+
+      * A sub-element's name -- a background RectElement's, a PropertiesElement's -- is
+        addressed by nothing at all: Tasker reaches those through their owner and their sr,
+        never by name.  Those pass `name_editable` and are typed into like any other field.
+    """
+    is_name = arg.arg_id == "0" and arg.backing_tag == "Str" and not name_editable
+
+    def commit(event: Event) -> None:
+        value = event.value
+        if arg.widget_kind == "checkbox":
+            value = "1" if value else "0"
+        errors = sceneedit.legacy_validate_arg(arg, str(value))
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+        sceneedit.legacy_set_arg(arg, str(value))
+        on_applied()
+
+    with ui.row().classes("w-full items-center gap-2"):
+        if is_name:
+            ui.input(translate_string(arg.arg_name), value=arg.current_value).props("readonly dense").classes("flex-1")
+            rename_button = ui.button(
+                translate_string("Rename"),
+                icon="drive_file_rename_outline",
+                on_click=lambda: on_rename() if on_rename else None,
+            ).props("dense flat size=sm")
+            rename_button.set_enabled(on_rename is not None)
+            with rename_button:
+                ui.tooltip(
+                    translate_string(
+                        "Tasks address this element by name (Element Text, Element Position, ... 18 "
+                        "action codes in all), so renaming it is not a field edit. The Rename dialog "
+                        "lists what depends on the current name and offers to bring those Tasks along.",
+                    ),
+                ).style("white-space: pre-line")
+        elif arg.widget_kind == "checkbox":
+            ui.checkbox(translate_string(arg.arg_name), value=arg.current_value == "1", on_change=commit)
+        elif arg.widget_kind == "dropdown":
+            ui.select(
+                arg.dropdown_options or [],
+                value=_dropdown_current_label(arg),
+                label=translate_string(arg.arg_name),
+                on_change=commit,
+            ).props("dense").classes("flex-1")
+        elif arg.widget_kind == "readonly":
+            ui.input(translate_string(arg.arg_name), value=arg.current_value).props("readonly dense").classes("flex-1")
+            if arg.readonly_note:
+                ui.label(translate_string(arg.readonly_note)).classes("text-xs text-gray-500 italic")
+        else:  # "text" and "raw_fallback"
+            ui.input(translate_string(arg.arg_name), value=arg.current_value, on_change=commit).props(
+                "dense",
+            ).classes("flex-1")
+
+
 def _build_scene_editor_body(
     _self: MyGui,
     edited_scene: sceneedit.EditableScene,
     field_refs: dict,
+    dialog: ui.dialog | None = None,
 ) -> None:
     """Renders the editable body shared by the Add Scene and Edit Scene dialogs --
     the Scene sibling of _build_profile_editor_body/the Task dialog's action list.
@@ -2254,27 +3719,61 @@ def _build_scene_editor_body(
       absence from field_refs is what userintr._apply_scene_field_values reads as
       "nothing to validate here", so no size is ever written to a V2 Scene.
 
-    NOT editable yet in either kind, and listed read-only so the dialog at least
-    tells the truth about what the Scene holds: a Legacy Scene's UI elements
-    (TextElement, ButtonElement, ...) and the Tasks they fire, or a V2 Scene's
-    components.  That is the part still to be specified; when it arrives it goes
-    here, in the matching branch, and needs nothing from either dialog beyond the
-    field_refs dict it is already handed.
+    Each branch then hands off to the designer for its kind -- _build_v2_designer
+    for a component tree, _build_legacy_designer for a canvas -- and neither needs
+    anything from either dialog beyond the field_refs dict it is already handed.
+    What each designer does and does not yet edit is documented on it rather than
+    here; both are still filling in, and this function's job is only to pick.
 
     Every widget it puts in field_refs is read back by
     userintr._apply_scene_field_values, which is the only thing that has to grow
     alongside it.
-    """
-    # Lazy import: scenes.py pulls in the whole Map-output stack (tasks, proclist,
-    # dirout), none of which the GUI needs at import time.
-    from maptasker.src.scenes import get_scene_element_names  # noqa: PLC0415
 
+    `dialog` is the dialog this body is being built into, and is needed only by the
+    Preview button: previewing has to close the dialog to get at the screen behind
+    it, so it needs something to re-open afterwards (see NiceGuiSceneView).  It is
+    optional so that a caller that has no dialog to hand still gets the whole body,
+    minus that one button.
+    """
     scene_element = edited_scene.scene_element
     is_v2 = sceneedit.is_v2_scene(scene_element)
 
-    ui.label(f"{translate_string('Scene type')}: {translate_string(sceneedit.scene_version(scene_element))}").classes(
-        "text-sm text-gray-500 italic mt-1",
-    )
+    with ui.row().classes("w-full items-center gap-2 mt-1"):
+        ui.label(
+            f"{translate_string('Scene type')}: {translate_string(sceneedit.scene_version(scene_element))}",
+        ).classes("text-sm text-gray-500 italic")
+        ui.space()
+        preview_button = ui.button(
+            translate_string("Preview"),
+            icon="visibility",
+            on_click=lambda: _self.event_handlers.preview_scene_event(edited_scene, field_refs, dialog),
+        ).props("dense outline")
+        with preview_button:
+            # Two Scenes, two things the preview is drawing from, so two tooltips: a Legacy
+            # Scene is previewed at the size typed into the fields below, a V2 Scene at a
+            # screen size the preview itself offers, because a V2 layout has none.
+            ui.tooltip(
+                translate_string(
+                    "Draws this Scene as a picture in the main window -- including the components "
+                    "you have added or changed here but not yet saved.\n\n"
+                    "A Version 2 layout has no size of its own, so the preview lays it out in a screen "
+                    "you pick, and re-flows it when you change that.\n\n"
+                    "This dialog closes while the preview is up, with everything in it kept; the "
+                    "preview's 'Back to Editor' button brings it back.\n\n"
+                    "It is a representation, not Tasker's own renderer: %variables are named rather "
+                    "than resolved, Material colours come from the baseline palette rather than the "
+                    "device's theme, and images, video and web content are shown as placeholders.",
+                )
+                if is_v2
+                else translate_string(
+                    "Draws this Scene as a picture in the main window, at the size typed above -- "
+                    "including changes not yet saved.\n\n"
+                    "This dialog closes while the preview is up, with everything in it kept; the "
+                    "preview's 'Back to Editor' button brings it back.\n\n"
+                    "It is a representation, not Tasker's own renderer: %variables are named rather "
+                    "than resolved, and images, video and web content are shown as placeholders.",
+                ),
+            ).style("white-space: pre-line")
 
     if is_v2:
         layout = sceneedit.decode_v2_layout(scene_element)
@@ -2301,22 +3800,7 @@ def _build_scene_editor_body(
         "text-xs text-gray-500 italic",
     )
 
-    # Read-only for now -- see this function's docstring.
-    element_names = get_scene_element_names(scene_element)
-    with ui.expansion(
-        f"{translate_string('Scene Elements')} ({len(element_names)})",
-        icon="widgets",
-    ).classes("w-full mt-2"):
-        if element_names:
-            for element_name in element_names:
-                ui.label(element_name).classes("text-sm font-mono")
-        else:
-            ui.label(translate_string("This Scene has no UI elements.")).classes("text-sm italic text-gray-500")
-        ui.label(
-            translate_string(
-                "Scene elements are shown here for reference only -- editing them is not available yet.",
-            ),
-        ).classes("text-xs text-gray-500 italic mt-1")
+    _build_legacy_designer(edited_scene, field_refs)
 
 
 def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> None:
@@ -2432,7 +3916,7 @@ def build_add_scene_dialog(
 
         field_refs["name"] = ui.input(translate_string("Scene Name"), value="").classes("w-full")
 
-        _build_scene_editor_body(self, edited_scene, field_refs)
+        _build_scene_editor_body(self, edited_scene, field_refs, dialog)
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
@@ -2442,6 +3926,40 @@ def build_add_scene_dialog(
             ).classes("bg-blue-600")
 
     dialog.open()
+
+
+def suspend_scene_editor_session(gui: MyGui, dialog: ui.dialog) -> None:
+    """Mark the Edit Scene dialog as hidden-but-alive, which is what Preview does to it.
+
+    Only the Edit Scene dialog is tracked (build_edit_scene_dialog records it); previewing
+    from Add Scene finds no match here and is left alone, so nothing can resume a half-built
+    Scene that is not in the tree yet.
+    """
+    session = getattr(gui, "scene_editor_session", None)
+    if session and session.get("dialog") is dialog:
+        session["suspended"] = True
+
+
+def _resume_scene_editor_session(gui: MyGui, dialog: ui.dialog) -> None:
+    """Clear the suspended mark -- the dialog is being put back on screen."""
+    session = getattr(gui, "scene_editor_session", None)
+    if session and session.get("dialog") is dialog:
+        session["suspended"] = False
+
+
+def suspended_scene_editor(gui: MyGui, scene_name: str) -> ui.dialog | None:
+    """The Edit Scene dialog for `scene_name` that a preview is currently holding hidden,
+    or None if there isn't one.  Resuming is the caller's job; this marks it resumed.
+
+    The mark exists only between Preview closing the dialog and something re-opening it, so
+    a dialog closed for good by Cancel/Ok/Delete is never handed back: those all run while
+    the dialog is on screen, which by definition is not suspended.
+    """
+    session = getattr(gui, "scene_editor_session", None)
+    if not session or not session.get("suspended") or session.get("name") != scene_name:
+        return None
+    session["suspended"] = False
+    return session["dialog"]
 
 
 def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) -> None:
@@ -2472,7 +3990,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
             ui.input(translate_string("Scene Name"), value=scene_name).props("readonly").classes("w-full")
         )
 
-        _build_scene_editor_body(self, edited_scene, field_refs)
+        _build_scene_editor_body(self, edited_scene, field_refs, dialog)
 
         field_refs["scene_save_path"] = ui.input(
             translate_string("Save as"),
@@ -2527,7 +4045,11 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
                 ).style("white-space: pre-line")
             scene_to_android = ui.button(
                 translate_string("Save To Android"),
-                on_click=lambda: self.event_handlers.open_save_scene_to_android_dialog_event(edited_scene, dialog),
+                on_click=lambda: self.event_handlers.open_save_scene_to_android_dialog_event(
+                    edited_scene,
+                    field_refs,
+                    dialog,
+                ),
             ).props("outline")
             with scene_to_android:
                 ui.tooltip(
@@ -2553,6 +4075,12 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
                     ),
                 ).style("white-space: pre-line")
 
+    # Preview has to close this dialog to get at the screen behind it, and the work in
+    # progress lives in the dialog's widgets and field_refs -- not in the live tree, which
+    # nothing writes to until a save button runs.  Remembering the dialog is what lets the
+    # "Edit Scene" button resume it (userintr.open_edit_scene_dialog_event) rather than
+    # build a second one from the unedited tree, showing none of the pending edits.
+    self.scene_editor_session = {"name": scene_name, "dialog": dialog, "suspended": False}
     dialog.open()
 
 
@@ -2601,16 +4129,21 @@ def build_delete_scene_dialog(
 def build_save_scene_to_android_dialog(
     self: MyGui,
     edited_scene: sceneedit.EditableScene,
+    field_refs: dict,
     parent_dialog: ui.dialog,
 ) -> None:
     """Prompts for the Android device's IP address and port, then writes the
-    Scene -- under its current, already-applied name (edited_scene.scene_name,
-    same convention as save_scene_event's local export; a not-yet-applied Rename
-    doesn't carry through) -- as a standalone .scn.xml file onto the device's
-    storage under /Tasker/scenes, via the Tasker HTTP Server Example's /upload
-    endpoint (see sceneedit.save_scene_to_android).  This does not import it into
-    Tasker's live configuration.  On success both this prompt and the parent
-    (Edit Scene) dialog are closed.  Mirrors build_save_project_to_android_dialog.
+    Scene as a standalone .scn.xml file onto the device's storage under
+    /Tasker/scenes, via the Tasker HTTP Server Example's /upload endpoint (see
+    sceneedit.save_scene_to_android).  This does not import it into Tasker's live
+    configuration.  On success both this prompt and the parent (Edit Scene)
+    dialog are closed.  Mirrors build_save_project_to_android_dialog.
+
+    field_refs is the parent dialog's, and is carried through for the save
+    handler, which applies those edits before uploading -- the upload renders
+    from the live tree, so what is not applied is not sent.  The Scene still goes
+    up under its current name: a not-yet-applied Rename does not carry through,
+    since Rename is its own operation rather than a field on the dialog.
     """
     default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
     default_port = getattr(self, "android_port", "") or "1821"
@@ -2627,6 +4160,7 @@ def build_save_scene_to_android_dialog(
                 translate_string("Save"),
                 on_click=lambda: self.event_handlers.save_scene_to_android_event(
                     edited_scene,
+                    field_refs,
                     android_field_refs,
                     android_dialog,
                     parent_dialog,
@@ -3597,6 +5131,390 @@ class NiceGuiTreeView:
         return formatted_nodes
 
 
+class NiceGuiSceneView:
+    """Draws a Scene as a picture in the main content column -- what the Preview button on
+    the Add/Edit Scene dialogs opens.  The drawing itself is sceneview.py; this is the frame
+    round it: the toolbar, the scaling, and the way back to the dialog.
+
+    THE DIALOG HAS TO GET OUT OF THE WAY.  content_container sits behind a modal overlay, so
+    a preview drawn while the Scene dialog is up would be invisible underneath it.  The
+    dialog is therefore closed before this is built and re-opened by this view's own "Back to
+    Editor" button.  Closing a NiceGUI dialog only hides it -- its widgets are not destroyed
+    -- so every field the user has typed into and not yet saved is still there when they go
+    back, which is the entire reason it is closed rather than cancelled.
+
+    That is also why this takes field_refs rather than reading the Scene: the preview shows
+    what is currently *typed into* the dialog, not what was last saved.  For a Legacy Scene
+    that is the four size fields, so previewing is a way to try a canvas size out; for a
+    Version 2 Scene it is the live layout dict the designer edits in place (field_refs
+    ["v2_layout"]), so previewing shows components added, moved and retyped a moment ago.
+    A Legacy size that isn't a whole number is reported and the saved one used, matching what
+    userintr._apply_scene_field_values would say about it at save time rather than inventing a
+    second opinion.
+
+    THE TWO KINDS OF SCENE NEED DIFFERENT CONTROLS, so the toolbar is built per kind rather
+    than shown-and-disabled.  A Legacy Scene needs a text density (its canvas size is its own)
+    and a Landscape toggle that is meaningless unless it has a second layout; a V2 Scene needs
+    a screen size (it has no size at all) and a Landscape toggle that always means something,
+    and has no use for a density because dp is already density-independent.  Offering all four
+    to both would mean two controls that do nothing on whichever Scene is open.
+
+    Registered with register_view like the Map/Diagram/Tree views, so Clear View disposes of
+    it and the dark-mode toggle repaints it.  The canvas itself deliberately does NOT follow
+    dark mode: it is painted with the Scene's own background colour (Legacy) or the Material
+    palette (V2), and letting this app's appearance change what the Scene appears to look like
+    would defeat the point of it.
+    """
+
+    # The zoom pulldown.  "Fit" is not a number because the width it has to fit is the
+    # browser's, which only the browser knows -- see _apply_scale.
+    ZOOM_CHOICES = ("Fit", "25%", "50%", "75%", "100%", "150%", "200%")
+
+    def __init__(
+        self,
+        master_gui: MyGui,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        dialog: ui.dialog | None = None,
+    ) -> None:
+        """Build the preview and draw it."""
+        self.master_gui = master_gui
+        self.edited_scene = edited_scene
+        self.field_refs = field_refs
+        self.dialog = dialog
+        self.title = f"{translate_string('Scene Preview')}: {edited_scene.scene_name}"
+        self.is_v2 = sceneedit.is_v2_scene(edited_scene.scene_element)
+        self.options = sceneview.PreviewOptions()
+        self.zoom = "Fit"
+        self.screen = sceneview.V2_DEFAULT_SCREEN
+        self.build_ui()
+        self.render()
+        register_view(master_gui, self)
+
+    # ---------- layout ----------
+    def build_ui(self) -> None:
+        """Toolbar, then the scroll area the canvas is drawn into."""
+        if hasattr(self.master_gui, "content_container") and self.master_gui.content_container:
+            self.master_gui.content_container.clear()
+            container_context = self.master_gui.content_container
+        else:
+            container_context = ui.column()
+
+        with container_context:
+            self.card = ui.card().classes("w-full max-w-full mx-auto p-4 shadow-md border-2 border-gray-300")
+            with self.card:
+                with ui.row().classes("w-full items-center gap-2 flex-wrap") as self.gui_toolbar:
+                    ui.label(self.title).classes("text-orange-500 font-bold mr-2")
+                    if self.dialog is not None:
+                        ui.button(
+                            translate_string("Back to Editor"),
+                            icon="arrow_back",
+                            on_click=self._back_to_editor,
+                        ).classes("bg-blue-600")
+                    ui.button(translate_string("Refresh"), icon="refresh", on_click=self.render).classes("bg-blue-600")
+                    ui.separator().props("vertical")
+
+                    self._build_orientation_control()
+
+                    ui.select(
+                        list(self.ZOOM_CHOICES),
+                        value=self.zoom,
+                        label=translate_string("Zoom"),
+                        on_change=self._zoom_selected,
+                    ).props("dense").classes("w-28")
+
+                    if self.is_v2:
+                        self._build_screen_control()
+                    else:
+                        self._build_density_control()
+
+                    ui.switch(
+                        translate_string("Bounds"),
+                        value=self.options.show_bounds,
+                        on_change=lambda event: self._set_option("show_bounds", bool(event.value)),
+                    ).props("dense").tooltip(
+                        translate_string(
+                            "Outline every component and name it, the way the designer's tree names it.",
+                        )
+                        if self.is_v2
+                        else translate_string("Outline every element and name it."),
+                    )
+                    ui.switch(
+                        translate_string("Actions") if self.is_v2 else translate_string("Tasks"),
+                        value=self.options.show_tasks,
+                        on_change=lambda event: self._set_option("show_tasks", bool(event.value)),
+                    ).props("dense").tooltip(
+                        translate_string("Show what each component does when tapped, and what it writes to.")
+                        if self.is_v2
+                        else translate_string("Show the Task each element runs."),
+                    )
+
+                self.scroll_area = ui.scroll_area().classes("w-full h-[70vh] p-2")
+                with self.scroll_area:
+                    # Two nested elements on purpose: the outer one is what the fit
+                    # calculation measures and what reserves the scaled height in the page's
+                    # flow, the inner one is the true-size canvas that gets transformed. A
+                    # transform does not affect layout, so without the outer element the page
+                    # would reserve room for the canvas at full size however far it is
+                    # scaled down.
+                    self.canvas_wrap = ui.element("div").classes(f"mt-scene-wrap {CANVAS_PREVIEW_ROOT}").style(
+                        "position: relative; width: 100%; overflow: hidden;",
+                    )
+                self.caption = ui.column().classes("w-full gap-0 mt-2")
+
+        self.apply_theme(*view_theme_colors(self.master_gui))
+
+    def _build_orientation_control(self) -> None:
+        """The Landscape toggle, which means two different things.
+
+        For a Legacy Scene it selects the Scene's *second stored layout* -- the landscape half
+        of every <geom> -- and most Scenes do not have one, so it is disabled and says why.
+        For a V2 Scene there is no second layout to select: it turns the frame on its side and
+        lets the tree re-flow into it, which is exactly what the Scene would do on a phone, so
+        it is always available.
+        """
+        if self.is_v2:
+            ui.switch(
+                translate_string("Landscape"),
+                value=False,
+                on_change=lambda event: self._set_option("landscape", bool(event.value)),
+            ).props("dense").tooltip(
+                translate_string("Turn the screen on its side and let the layout re-flow into it."),
+            )
+            return
+
+        has_landscape = sceneview.has_landscape_layout(self.edited_scene.scene_element)
+        landscape_switch = ui.switch(
+            translate_string("Landscape"),
+            value=False,
+            on_change=lambda event: self._set_option("landscape", bool(event.value)),
+        ).props("dense")
+        landscape_switch.set_enabled(has_landscape)
+        if not has_landscape:
+            with landscape_switch:
+                ui.tooltip(translate_string("This Scene has no landscape layout of its own (its size is -1)."))
+
+    def _build_density_control(self) -> None:
+        """Legacy only: the sp-to-pixel number that is not in the backup file."""
+        density_select = ui.select(
+            list(sceneview.DENSITY_CHOICES),
+            value=str(sceneview.DEFAULT_DENSITY),
+            label=translate_string("Text density"),
+            on_change=self._density_selected,
+        ).props("dense").classes("w-32")
+        with density_select:
+            ui.tooltip(
+                translate_string(
+                    "A Scene's element positions are stored in device pixels, but its text sizes "
+                    "are stored in Android's sp units. The number that converts between the two is "
+                    "a property of the phone the Scene is shown on, and is not in the backup file.\n\n"
+                    "So it is set here. Raise it if the text looks too small for its elements, "
+                    "lower it if the text overflows them.",
+                ),
+            ).style("white-space: pre-line")
+
+    def _build_screen_control(self) -> None:
+        """Version 2 only: which screen to lay the component tree out in.
+
+        The nearest thing V2 has to the Legacy canvas size, except that it is not a property
+        of the Scene at all -- it is the question the Scene answers differently on every
+        device, which is why it is a control and not a number in the file.
+        """
+        screen_select = ui.select(
+            [name for name, _width, _height in sceneview.V2_SCREENS],
+            value=self.screen,
+            label=translate_string("Screen"),
+            on_change=self._screen_selected,
+        ).props("dense").classes("w-36")
+        with screen_select:
+            ui.tooltip(
+                translate_string(
+                    "A Version 2 Scene has no size of its own -- it lays itself out inside whatever "
+                    "screen it is shown on, so there is nothing in the backup file to draw it at.\n\n"
+                    "Change this to see the layout re-flow. A Flow Row wraps differently, and any "
+                    "'Show when' written against %sv2_render_width is asking about exactly this.",
+                ),
+            ).style("white-space: pre-line")
+
+    def apply_theme(self, bg: str, fg: str) -> None:
+        """Paint the card and scroll area for the window's current mode.  The canvas inside
+        keeps the Scene's own colours -- see this class's docstring.
+        """
+        style = f"background-color: {bg} !important; color: {fg} !important;"
+        self.card.style(style)
+        self.scroll_area.style(style)
+
+    # ---------- toolbar handlers ----------
+    def _back_to_editor(self) -> None:
+        """Re-open the Scene dialog this preview was launched from, with everything still
+        typed into it (see this class's docstring).
+        """
+        if self.dialog is not None:
+            _resume_scene_editor_session(self.master_gui, self.dialog)
+            self.dialog.open()
+
+    def _set_option(self, name: str, value: object) -> None:
+        setattr(self.options, name, value)
+        self.render()
+
+    def _zoom_selected(self, event: Event) -> None:
+        self.zoom = str(event.value or "Fit")
+        self.render()
+
+    def _density_selected(self, event: Event) -> None:
+        try:
+            self.options.density = float(event.value)
+        except (TypeError, ValueError):
+            self.options.density = sceneview.DEFAULT_DENSITY
+        self.render()
+
+    def _screen_selected(self, event: Event) -> None:
+        self.screen = str(event.value or sceneview.V2_DEFAULT_SCREEN)
+        self.render()
+
+    # ---------- drawing ----------
+    def render(self) -> None:
+        """Draw (or re-draw) from the dialog's current state.  Every toolbar control lands
+        here rather than trying to patch the drawing in place: it is a few hundred divs,
+        rebuilding is cheap, and a partial update would be a second code path that could
+        disagree with the first.
+        """
+        self.canvas_wrap.clear()
+        self.caption.clear()
+        self._render_v2() if self.is_v2 else self._render_legacy()
+
+    def _render_legacy(self) -> None:
+        """A Legacy Scene: its own pixel canvas, at the size the dialog currently holds."""
+        scene_element = self.edited_scene.scene_element
+        dimensions = self._dimensions()
+        if dimensions is None:
+            orientation = "landscape" if self.options.landscape else "portrait"
+            self._say(
+                f"This Scene has no {orientation} layout: its size is -1, which is Tasker's "
+                "'this orientation has no layout of its own'.",
+                "text-orange-600",
+            )
+            return
+
+        width, height = dimensions
+        with self.canvas_wrap:
+            sceneview.draw_scene(scene_element, width, height, self.options)
+        self._apply_scale(width, height)
+        self._draw_legacy_caption(scene_element, width, height)
+
+    def _render_v2(self) -> None:
+        """A Version 2 Scene: the component tree, laid out in the chosen screen.
+
+        The layout comes from field_refs first -- that is the dict the designer edits in
+        place, so a component added or retyped in the dialog a moment ago is in the picture
+        without having been saved.  Decoding the Scene is the fallback for a preview opened
+        from somewhere that never built a designer.
+        """
+        layout = self.field_refs.get("v2_layout")
+        if not isinstance(layout, dict):
+            layout = sceneedit.decode_v2_layout(self.edited_scene.scene_element)
+        if not isinstance(layout, dict):
+            self._say(
+                "This Scene's Version 2 layout could not be read, so there is nothing to draw.",
+                "text-orange-600",
+            )
+            return
+
+        width, height = self._screen_size()
+        with self.canvas_wrap:
+            sceneview.draw_v2_layout(layout, width, height, self.options)
+        self._apply_scale(width, height)
+        self._draw_v2_caption(layout, width, height)
+
+    def _screen_size(self) -> tuple[int, int]:
+        """The frame a V2 layout is drawn in: the chosen screen, on its side when Landscape
+        is on -- which for V2 is the whole of what the toggle does, there being no second
+        stored layout to switch to.
+        """
+        for name, width, height in sceneview.V2_SCREENS:
+            if name == self.screen:
+                return (height, width) if self.options.landscape else (width, height)
+        _name, width, height = sceneview.V2_SCREENS[0]
+        return (height, width) if self.options.landscape else (width, height)
+
+    def _dimensions(self) -> tuple[int, int] | None:
+        """The canvas size to draw at -- the same answer the designer draws at, from the same
+        function, so a Scene never previews at one size and edits at another.
+        """
+        return _legacy_canvas_size(self.edited_scene, self.field_refs, self.options.landscape)
+
+    def _apply_scale(self, width: int, height: int) -> None:
+        """Fit the true-size canvas into the space available.
+
+        One transform on the whole canvas, rather than scaling each element's coordinates as
+        it is drawn: the DOM then holds the same numbers the XML does, so a misplaced element
+        here is a misplaced element in the Scene.  Scoped to this view's own wrapper class,
+        because the Legacy designer has a canvas of its own on the same page.
+        """
+        fixed = "null"
+        if self.zoom != "Fit":
+            try:
+                fixed = str(int(self.zoom.rstrip("%")) / 100)
+            except ValueError:
+                fixed = "null"
+        _emit_canvas_fit(CANVAS_PREVIEW_ROOT, width, height, fixed)
+
+    def _draw_legacy_caption(self, scene_element: object, width: int, height: int) -> None:
+        """Under the canvas: the Scene's own settings, the element count, and -- the part
+        that matters -- what the drawing above is not able to tell the truth about.
+        """
+        elements = sceneview.paint_order(scene_element)
+        with self.caption:
+            summary = (
+                f"{width} x {height} {translate_string('pixels')} · "
+                f"{len(elements)} {translate_string('element(s)')}"
+            )
+            properties = sceneview.scene_properties(scene_element)
+            if properties:
+                summary += " · " + " · ".join(f"{translate_string(label)}: {value}" for label, value in properties)
+            ui.label(summary).classes("text-xs text-gray-500")
+            ui.label(
+                translate_string(
+                    "Hatched fills and italic underlined text are %variables -- their values live on the "
+                    "device, not in the backup, so they are named rather than guessed at. Images, video, "
+                    "maps and web content are shown as placeholders. Hover any element for its geometry, "
+                    "its variables and the Tasks it runs.",
+                ),
+            ).classes("text-xs text-gray-500 italic")
+
+    def _draw_v2_caption(self, layout: dict, width: int, height: int) -> None:
+        """The V2 counterpart.  Says the screen the layout was drawn in, because unlike a
+        Legacy canvas that number is this preview's choice rather than the Scene's -- and
+        says where the colours came from, for the same reason.
+        """
+        with self.caption:
+            summary = (
+                f"{translate_string('Drawn in')} {self.screen} {width} x {height} dp · "
+                f"{sceneview.v2_component_count(layout)} {translate_string('component(s)')}"
+            )
+            properties = sceneview.v2_layout_summary(layout)
+            if properties:
+                summary += " · " + " · ".join(f"{translate_string(label)}: {value}" for label, value in properties)
+            ui.label(summary).classes("text-xs text-gray-500")
+            ui.label(
+                translate_string(
+                    "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size "
+                    "of its own, so change 'Screen' to see it re-flow. Colours named by Material role are "
+                    "drawn from the Material 3 baseline palette; the device resolves them against its own "
+                    "theme, which under Material You comes from the wallpaper. Hatched fills and italic "
+                    "underlined text are %variables. Amber outlines mark components with a 'Show when'. "
+                    "Hover any component for its modifiers, variables and actions.",
+                ),
+            ).classes("text-xs text-gray-500 italic")
+
+    def _say(self, message: str, colour_classes: str) -> None:
+        """The stand-in for a canvas that cannot be drawn -- said in the caption area so the
+        toolbar stays put and the user can change orientation and try again.
+        """
+        with self.caption:
+            ui.label(translate_string(message)).classes(f"text-sm {colour_classes}")
+
+
 class NiceGuiTextView:
     """Replaces CTkTextview. Handles rendering MapTasker data using HTML."""
 
@@ -3699,7 +5617,11 @@ class NiceGuiTextView:
                     self.map_message_label = ui.label(PrimeItems.view_limit_msg).classes("text-orange-400 italic ml-4")
                 if is_diagram:
                     ui.separator().props("vertical")
-                    ui.select(
+                    # Held on the view, not left anonymous, so "Reset Options" can move it:
+                    # this pulldown lives on the Diagram view's own toolbar rather than in the
+                    # settings drawer, and a reset that changed the value without moving the
+                    # control would leave the two disagreeing on screen.
+                    self.profiles_per_line_select = ui.select(
                         options=[str(n) for n in range(11)],
                         value=str(self.master_gui.profiles_per_line),
                         label=translate_string("Profiles Per Line"),
@@ -4798,7 +6720,8 @@ def _initialize_gui_settings(self: MyGui) -> None:
     self.indent = None
     self.display_detail_level = None
     self.everything = None
-    self.view_limit = 10000
+    self.view_limit = VIEW_LIMIT_DEFAULT
+    self.notify_timeout = NOTIFY_TIMEOUT_DEFAULT
     self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
     self.pretty = False
     self.task_action_warning_limit = 20
@@ -5172,6 +7095,10 @@ def initialize_screen(self: MyGui) -> None:
     logger.info("Building UI Layout...")
 
     inject_shared_head_styles()
+    # Before anything can notify: the wrapper has to be in place for the first message, and
+    # start-up is capable of producing several (see restore_settings_event's running report).
+    install_notification_timeout()
+    set_notification_timeout(getattr(self, "notify_timeout", NOTIFY_TIMEOUT_DEFAULT))
 
     # =========================================================================
     # 1. HEADER
@@ -5265,6 +7192,7 @@ def initialize_screen(self: MyGui) -> None:
         _create_language_selection_section(self)
         _create_font_section(self)
         _create_view_limit_section(self)
+        _create_notification_duration_section(self)
 
     # =========================================================================
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
@@ -5813,12 +7741,12 @@ def _create_view_limit_section(self: MyGui) -> None:
     )
 
     with ui.row().classes("w-full items-center gap-2"):
-        temp_view_limit = getattr(self, "view_limit", "10000")
+        temp_view_limit = getattr(self, "view_limit", str(VIEW_LIMIT_DEFAULT))
         if temp_view_limit == 9999999:
             self.view_limit = "Unlimited"
         self.viewlimit_optionmenu = ui.select(
             options=["5000", "10000", "15000", "20000", "25000", "30000", "Unlimited"],
-            value=str(getattr(self, "view_limit", "10000")),
+            value=str(getattr(self, "view_limit", VIEW_LIMIT_DEFAULT)),
             on_change=self.event_handlers.viewlimit_event,
         ).classes("flex-grow")
         with self.viewlimit_optionmenu:
@@ -5838,6 +7766,41 @@ def _create_view_limit_section(self: MyGui) -> None:
             "?",
             on_click=lambda: self.event_handlers.query_event("viewlimit"),
         ).classes("bg-blue-600 text-white min-w-[40px]")
+
+
+def _create_notification_duration_section(self: MyGui) -> None:
+    """The 'Notification Duration' pulldown in the sidebar drawer.
+
+    Offered as durations rather than milliseconds: the number is an implementation detail of
+    Quasar's API, and nobody choosing how long a message should linger is thinking in
+    thousandths of a second.  The stored value is still milliseconds, because that is what
+    ui.notify wants and what the settings file has always held for numeric settings.
+    """
+    self.notify_timeout_label = ui.label(translate_string("Notification Duration:")).classes(
+        "text-sm font-semibold mt-4 mb-1 leading-none py-0 my-0 gap-y-0",
+    )
+    with ui.row().classes("w-full items-center gap-2"):
+        current = getattr(self, "notify_timeout", NOTIFY_TIMEOUT_DEFAULT)
+        labels = {milliseconds: label for label, milliseconds in NOTIFY_TIMEOUT_CHOICES}
+        # Fall back through the default to the first choice: an unlistable value is a settings
+        # bug, and the whole GUI failing to build is too high a price for one wrong pulldown.
+        fallback = labels.get(NOTIFY_TIMEOUT_DEFAULT, NOTIFY_TIMEOUT_CHOICES[0][0])
+        self.notify_timeout_optionmenu = ui.select(
+            options=[translate_string(label) for label, _ms in NOTIFY_TIMEOUT_CHOICES],
+            value=translate_string(labels.get(current, fallback)),
+            on_change=self.event_handlers.notify_timeout_event,
+        ).classes("flex-grow")
+        with self.notify_timeout_optionmenu:
+            ui.tooltip(
+                translate_string(
+                    "How long a pop-up message stays on screen before it disappears.\n\n"
+                    "'Until dismissed' keeps every message up until you close it, which is useful "
+                    "when a message scrolls past before you can read it.\n\n"
+                    "A few messages set their own longer duration because they list things you "
+                    "have to read -- the Tasks affected by deleting or renaming a Scene element, "
+                    "for instance. Those keep their own timing whatever is chosen here.",
+                ),
+            ).style("white-space: pre-line")
 
 
 def _create_settings_buttons_section(self: MyGui) -> None:

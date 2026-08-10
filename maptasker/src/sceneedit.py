@@ -74,7 +74,7 @@ import os
 import re
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -82,6 +82,7 @@ if TYPE_CHECKING:
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
+from maptasker.src.sysconst import SCENE_TASK_TYPES
 
 # Destination folder on the Android device for Save To Android -- the Scene sibling of
 # projedit.ANDROID_PROJECT_LOCATION ("Tasker/projects"); see android_scene_path.
@@ -138,10 +139,21 @@ class EditableScene:
     user has typed a new one but not yet applied it).  Mirrors
     projedit.EditableProject, for the same reason: name-keyed table, so the
     key it came in under has to be remembered separately from the element.
+
+    element_renames records (old name, new name) for every Legacy element the
+    designer has renamed, in the order they were renamed, when the user asked for
+    the Tasks that address them to be brought along.  It is deliberately a
+    *pending* list rather than an edit already made: renaming an element inside
+    this dialog changes a deep copy that Cancel throws away, but the Tasks it
+    would rewrite are the live ones, so rewriting them as the rename is typed
+    would leave a cancelled edit half-applied to the backup.  They are applied by
+    apply_edited_scene_to_live_tree -- the single point at which this copy becomes
+    the real Scene -- and by nothing else.
     """
 
     scene_name: str
     scene_element: defusedxml.ElementTree.Element
+    element_renames: list[tuple[str, str]] = field(default_factory=list)
 
 
 def is_v2_scene(scene_element: defusedxml.ElementTree.Element) -> bool:
@@ -2096,6 +2108,14 @@ def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene) 
     if entry is None:
         return
 
+    # Element renames the designer deferred, applied here because here is where this copy
+    # stops being a copy.  Matched against old_name: a Task that addresses this Scene names
+    # it as it was, and renaming a Scene has never rewritten those (see this module's
+    # docstring), so the Scene name in a Task action is still the one it came in under.
+    if edited_scene.element_renames:
+        apply_element_renames_to_tasks(old_name, edited_scene.element_renames)
+        edited_scene.element_renames.clear()
+
     live_element = entry["xml"]
     edited_element = edited_scene.scene_element
     if live_element is not edited_element:
@@ -2282,3 +2302,1053 @@ def save_scene_to_android(scene_name: str, ip_address: str, ip_port: str) -> tup
         return 8, f"Uploaded to {device_path}, but could not confirm it landed correctly."
 
     return 0, device_path
+
+
+# --------------------------------------------------------------------------------------
+# Legacy designer, phase 1: select an element on the canvas, inspect it, move and resize it.
+#
+# The V2 designer's counterpart, and shaped by the one difference that matters: a V2 layout
+# is a tree with no coordinates, so its editor is a tree; a Legacy Scene is a pixel canvas
+# where every element carries its own <geom>, so its editor is that canvas.  What is here is
+# therefore geometry and properties -- not structure.  Adding, deleting, restacking and
+# renaming are phase 2 and 3 (see the design sketch), and nothing below can change how many
+# elements a Scene has or what they are called.
+#
+# The property side costs almost nothing, because the schema already ships: an element's
+# arguments are <Int sr="argN">/<Str sr="argN"> children, which is the *identical* structure
+# a Task Action's arguments use, and taskedit.build_editable_args already turns that plus an
+# actionc.action_codes entry into a list of typed, widget-classified fields.  It is documented
+# as depending only on that structure rather than on being a Task Action -- profedit already
+# reuses it for Profile conditions -- so a Scene element is the third caller, not a special
+# case.  Reusing it also means dropdowns, checkboxes and the %variable fallback behave the
+# same everywhere in this app, and that a new argument added to actionc.py appears in the
+# Scene inspector without anything here changing.
+#
+# Same in-place discipline as the V2 half: mutate the elements a Scene already has, never
+# rebuild them, so an untouched Scene serializes byte-identically.
+# --------------------------------------------------------------------------------------
+
+# <geom> is eight comma-separated numbers -- the portrait x,y,w,h then the landscape x,y,w,h
+# (see sceneview.element_geometry, which is the read side of this and the one place that
+# parses it for drawing).  -1 across a half means "not laid out for this orientation".
+LEGACY_GEOM_VALUES = 8
+
+
+def legacy_element_at(
+    scene_element: defusedxml.ElementTree.Element,
+    sr: str,
+) -> defusedxml.ElementTree.Element | None:
+    """The element with this sr ("elements3"), or None.
+
+    Selection is held as an sr string rather than as a reference to the element, for the
+    reason the V2 designer holds a path rather than a node: the panes are rebuilt on every
+    change, and an sr survives that -- as it survives an Undo, which replaces the Scene's
+    children wholesale with a restored copy.
+    """
+    if not sr:
+        return None
+    return next((child for child in scene_element if child.get("sr") == sr), None)
+
+
+def legacy_element_label(element: defusedxml.ElementTree.Element) -> str:
+    """"Text 'Done!'" -- how an element reads in the designer's list.
+
+    Its own name (arg0) if it has one, in the same quoted style v2_node_label uses, so the
+    two designers name things the same way.  Falling back to the type alone is right rather
+    than inventing a placeholder: an unnamed element genuinely has no name, and Tasker will
+    show it that way too.
+    """
+    element_type = element.tag.replace("Element", "")
+    name_element = element.find("Str[@sr='arg0']")
+    name = (name_element.text or "").strip() if name_element is not None else ""
+    return f"{element_type} '{name}'" if name else element_type
+
+
+def legacy_element_args(element: defusedxml.ElementTree.Element) -> list:
+    """The element's editable arguments, as taskedit.EditableArg records.
+
+    Empty for an element type actionc.py has no entry for -- a type from a newer Tasker.
+    That is deliberately not the same as "no fields": the designer says so, and the element
+    is still selectable and still movable, because its geometry is in <geom> and needs no
+    schema at all.  Losing the ability to reposition an element this app cannot describe
+    would be a much worse answer than showing it with an empty property sheet.
+    """
+    from maptasker.src.actionc import action_codes  # noqa: PLC0415  (kept off the import path)
+    from maptasker.src.taskedit import build_editable_args  # noqa: PLC0415
+
+    action_code = action_codes.get(element.tag)
+    if action_code is None:
+        return []
+    return build_editable_args(element, action_code.args)
+
+
+def legacy_validate_arg(arg: object, value: str) -> list[str]:
+    """Whether this value may be written to this argument -- taskedit's own rule, so the
+    Scene inspector rejects exactly what the Task editor rejects and with the same words.
+    """
+    from maptasker.src.taskedit import validate_arg_values  # noqa: PLC0415
+
+    return validate_arg_values([arg], lambda _arg: "value", {"value": str(value)})
+
+
+def legacy_set_arg(arg: object, value: str) -> None:
+    """Write one inspector field back onto the XML element behind it.
+
+    Goes through taskedit.apply_arg_values rather than setting the attribute here, so the
+    per-widget write rules stay in exactly one place: a checkbox writes val="1"/"0", a
+    dropdown writes the *index* of the chosen label and not the label, a variable-backed Int
+    writes into its <var> child rather than its val attribute.  Reimplementing those four
+    lines here is how the Scene inspector and the Task editor would start disagreeing about
+    what a dropdown means.
+
+    Caller validates first (legacy_validate_arg); this assumes a well-formed value, exactly
+    as apply_arg_values does for its own callers.
+    """
+    from maptasker.src.taskedit import apply_arg_values  # noqa: PLC0415
+
+    apply_arg_values([arg], lambda _arg: "value", {"value": str(value)})
+
+
+def legacy_geometry_values(element: defusedxml.ElementTree.Element) -> list[str]:
+    """The eight raw <geom> numbers, padded if the element carries fewer.
+
+    Padded rather than rejected because the padding is only ever written back for an element
+    that already had a <geom> -- and a short one is still describing a real portrait box that
+    the user is entitled to move.
+    """
+    geom = element.find("geom")
+    if geom is None:
+        return []
+    values = [value.strip() for value in (geom.text or "").split(",")]
+    return values + [UNSET_DIMENSION] * (LEGACY_GEOM_VALUES - len(values)) if values else []
+
+
+def legacy_set_geometry(
+    element: defusedxml.ElementTree.Element,
+    box: tuple[int, int, int, int],
+    *,
+    landscape: bool = False,
+) -> None:
+    """Write one orientation's x,y,w,h back into <geom>, leaving the other half alone.
+
+    The other half matters: the two orientations share one element, so a drag in portrait
+    must not disturb a landscape layout somebody laid out by hand -- and for the great
+    majority of Scenes that other half is -1,-1,-1,-1, which has to survive as -1 rather
+    than becoming a real number the Scene never had.
+
+    Never creates a <geom>.  An element without one is not drawn on the canvas and cannot be
+    selected (see sceneview.paint_order), so being asked to move one means something else is
+    wrong; writing a geometry onto an element Tasker deliberately left without one would be
+    inventing a layout.
+    """
+    geom = element.find("geom")
+    if geom is None:
+        return
+    values = legacy_geometry_values(element)
+    if not values:
+        return
+    offset = 4 if landscape else 0
+    values[offset : offset + 4] = [str(int(number)) for number in box]
+    geom.text = ",".join(values)
+
+
+def legacy_snapshot(scene_element: defusedxml.ElementTree.Element) -> defusedxml.ElementTree.Element:
+    """A deep copy of the whole Scene, for the designer's undo stack.
+
+    The whole Scene rather than the one element being changed, and for the same reason the
+    V2 designer snapshots its whole tree: it is affordable at this size (the largest Legacy
+    Scene in this repo's sample data has 42 elements) and far simpler than modelling an
+    inverse for every operation -- which is what phases 2 and 3, where an edit can touch
+    several elements' sr attributes at once, would otherwise need.
+    """
+    return copy.deepcopy(scene_element)
+
+
+def legacy_restore(
+    scene_element: defusedxml.ElementTree.Element,
+    snapshot: defusedxml.ElementTree.Element,
+) -> None:
+    """Put a snapshot back, in place.
+
+    Replaces the live element's children and attributes rather than rebinding it, because
+    EditableScene, the dialog's field_refs and the save path all hold *this* element object;
+    swapping in the copy would leave every one of them editing something that is no longer
+    going to be saved.  The V2 designer does the same thing to its layout dict, for the same
+    reason.
+    """
+    scene_element[:] = list(snapshot)
+    scene_element.attrib.clear()
+    scene_element.attrib.update(snapshot.attrib)
+    scene_element.text = snapshot.text
+
+
+# --------------------------------------------------------------------------------------
+# Legacy designer, phase 2: changing what a Scene contains -- add, delete, duplicate and
+# restack its elements.
+#
+# Phase 1 could move and retype what was already there; nothing in it changed the element
+# count. This does, and that brings in two constraints phase 1 never had to meet:
+#
+#   sr IS THE Z-ORDER AND IT MUST STAY CONTIGUOUS.  An element's sr="elementsN" is both its
+#   key and its paint order -- elements0 is drawn first and therefore sits at the bottom --
+#   and every one of the 350 Legacy Scenes in this repo's sample data numbers them 0..N-1
+#   with no gaps.  So there is no such thing as adding or deleting one element: every
+#   operation here renumbers the whole list and rewrites the XML in the new order, which is
+#   also why each returns the sr the element ended up with rather than the one it started
+#   with (see _legacy_reindex).
+#
+#   NAMES ARE UNIQUE, AND TASKS DEPEND ON THEM.  18 Task action codes reach into a Scene and
+#   address an element by its name (LEGACY_ELEMENT_ACTION_CODES), and no Scene in the sample
+#   data has two elements sharing one -- so a new or duplicated element has to be given a
+#   name nobody else is using, and a deletion has to say which Tasks were relying on the one
+#   going away (find_element_name_references).
+#
+# What a new element is made of is read off the sample data rather than invented: which types
+# carry a ve attribute and which value (LEGACY_VE_BY_TYPE -- 100% consistent per type across
+# 2,186 elements), what Tasker names a new one (LEGACY_DEFAULT_NAME), and that an Img-typed
+# argument is always written even when it holds no image.  <flags> is deliberately NOT
+# written: 75 real elements carry a <geom> and no <flags> at all, so its absence is a state
+# Tasker itself produces, and this app does not know what its bits mean (see sceneview).
+# --------------------------------------------------------------------------------------
+
+# The ve attribute a new element of each type carries.  Every type in the sample data is
+# entirely consistent about this -- all 897 TextElements are ve="3", all 167 ImageElements
+# are ve="2", all 265 RectElements have none -- so these are transcribed, not chosen.
+# A type absent from here gets no ve attribute, which is what those types do.
+LEGACY_VE_BY_TYPE: dict[str, str] = {
+    "ButtonElement": "3",
+    "EditTextElement": "3",
+    "TextElement": "3",
+    "ImageElement": "2",
+    "SceneElement": "2",
+    "WebElement": "2",
+}
+
+# What Tasker calls a new element of each type, before the user renames it -- taken from the
+# names in the sample data that still match Tasker's own "<prefix><number>" pattern.  Two are
+# worth noting because they are not the type name: an EditTextElement is a "TextEdit", and a
+# SceneElement -- Tasker's Map element, despite the tag -- is a "Map".
+LEGACY_DEFAULT_NAME: dict[str, str] = {
+    "ButtonElement": "Button",
+    "CheckBoxElement": "Checkbox",
+    "DoodleElement": "Doodle",
+    "EditTextElement": "TextEdit",
+    "ImageElement": "Image",
+    "ListElement": "Menu",
+    "OvalElement": "Oval",
+    "PickerElement": "Number Picker",
+    "RectElement": "Rectangle",
+    "SceneElement": "Map",
+    "SliderElement": "Slider",
+    "SpinnerElement": "Spinner",
+    "SwitchElement": "Switch",
+    "TextElement": "Text",
+    "ToggleElement": "Toggle",
+    "VideoElement": "Video",
+    "WebElement": "WebView",
+}
+
+
+@dataclass(frozen=True)
+class LegacyPaletteEntry:
+    """One element the Add Element dialog offers."""
+
+    element_type: str
+    label: str
+    group: str
+    description: str
+
+
+# The groups the Add Element dialog sorts the palette into.
+#
+# UNLIKE THE VERSION 2 PALETTE, THIS GROUPING IS THIS APP'S OWN.  V2_PALETTE_GROUPS was
+# adopted from a screenshot of Tasker's own Add Element sheet, so it could be said to be the
+# arrangement the user already knows; no such evidence exists for the Legacy editor's sheet,
+# and claiming it would be dressing up a guess.  The labels and types below are real -- only
+# the four headings they are filed under are a convenience.
+LEGACY_PALETTE_GROUPS = ("Text", "Shapes", "Input", "Media")
+
+LEGACY_PALETTE: tuple[LegacyPaletteEntry, ...] = (
+    LegacyPaletteEntry("TextElement", "Text", "Text", "A run of text. Accepts %variables."),
+    LegacyPaletteEntry("ButtonElement", "Button", "Text", "A labelled button, with an optional icon."),
+    LegacyPaletteEntry("EditTextElement", "Text Edit", "Text", "A field the user types into."),
+    LegacyPaletteEntry("ToggleElement", "Toggle", "Text", "A two-state button with its own on and off labels."),
+    LegacyPaletteEntry("RectElement", "Rectangle", "Shapes", "A filled or outlined rectangle, with optional rounded corners."),
+    LegacyPaletteEntry("OvalElement", "Oval", "Shapes", "A filled or outlined ellipse."),
+    LegacyPaletteEntry("CheckBoxElement", "Checkbox", "Input", "A tick box."),
+    LegacyPaletteEntry("SwitchElement", "Switch", "Input", "An on/off switch."),
+    LegacyPaletteEntry("SliderElement", "Slider", "Input", "A slider between a minimum and a maximum."),
+    LegacyPaletteEntry("PickerElement", "Number Picker", "Input", "A number spinner between a minimum and a maximum."),
+    LegacyPaletteEntry("SpinnerElement", "Spinner", "Input", "A drop-down list, filled from a Tasker variable."),
+    LegacyPaletteEntry("ListElement", "Menu", "Input", "A scrolling list, filled from a Tasker variable."),
+    LegacyPaletteEntry("ImageElement", "Image", "Media", "A built-in Tasker icon or an image file on the device."),
+    LegacyPaletteEntry("DoodleElement", "Doodle", "Media", "A freehand drawing surface."),
+    LegacyPaletteEntry("WebElement", "Web", "Media", "An embedded web page, a local file, or HTML written inline."),
+    LegacyPaletteEntry("SceneElement", "Map", "Media", "A map, with optional traffic, satellite and road overlays."),
+    LegacyPaletteEntry("VideoElement", "Video", "Media", "A video player."),
+)
+
+# Task action codes that address a Legacy Scene's element by name: Element Text, Element
+# Position, Element Size, Element Back Colour and the rest.  Bare digits, matching what a
+# Task's <code> holds -- actionc.py keys the same actions "50t"/"612t".
+#
+# Confirmed by reading actionc.action_codes: each of these declares a "Scene Name" argument
+# and an "Element" argument, which is what makes a rename or a delete here able to break a
+# Task somewhere else in the backup.
+LEGACY_ELEMENT_ACTION_CODES = (
+    "50", "51", "53", "54", "55", "56", "57", "58", "60",
+    "63", "64", "66", "67", "68", "71", "73", "195", "612",
+)
+
+# Element Visibility (code 65) is deliberately NOT in that list.  Its argument is an "Element
+# Match" *pattern* rather than a name, so a Task that hides "Text*" depends on an element
+# this app could rename or delete without its name ever appearing in that Task.  It is
+# reported separately and never rewritten -- guessing at a glob is how a working Scene gets
+# broken invisibly.
+LEGACY_ELEMENT_MATCH_CODES = ("65",)
+
+
+def find_element_name_references(scene_name: str, element_name: str) -> list[str]:
+    """Tasks whose actions address this element by name, as readable descriptions.
+
+    The Legacy sibling of find_component_id_references, and matched the same way and for the
+    same reasons: an action naming *both* this Scene and this element in any of its string
+    arguments, compared case-insensitively.  Position-independent because the two arguments
+    do not sit at fixed indexes across all 18 codes, and case-insensitive because Tasker
+    itself resolves a Scene named with different capitalisation (see the note on the V2
+    version, which found a real instance of that in this repo's own backup).
+
+    The cost is theoretical false positives -- a Task that names both strings coincidentally
+    -- which is the right way round for a warning shown before a destructive edit.
+    """
+    if not scene_name or not element_name:
+        return []
+
+    wanted_scene = scene_name.strip().casefold()
+    wanted_element = element_name.strip().casefold()
+
+    references = []
+    for entry in PrimeItems.tasker_root_elements.get("all_tasks", {}).values():
+        task_element = entry["xml"]
+        task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
+        for action in task_element.findall("Action"):
+            if action.findtext("code") not in LEGACY_ELEMENT_ACTION_CODES:
+                continue
+            values = {(child.text or "").strip().casefold() for child in action.findall("Str")}
+            if wanted_scene in values and wanted_element in values:
+                references.append(task_name)
+                break
+    return sorted(set(references))
+
+
+def find_element_match_references(scene_name: str) -> list[str]:
+    """Tasks that address this Scene's elements by a match *pattern* (Element Visibility).
+
+    Reported wholesale for the Scene rather than per element, because that is as precise as
+    the truth allows: the pattern is evaluated by Tasker against whatever elements exist when
+    it runs, so whether it currently matches the one being deleted is not something this app
+    can answer without implementing Tasker's own globbing.  Naming the Tasks and leaving the
+    judgement to the user is the honest form of that warning.
+    """
+    if not scene_name:
+        return []
+
+    wanted_scene = scene_name.strip().casefold()
+    references = []
+    for entry in PrimeItems.tasker_root_elements.get("all_tasks", {}).values():
+        task_element = entry["xml"]
+        task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
+        for action in task_element.findall("Action"):
+            if action.findtext("code") not in LEGACY_ELEMENT_MATCH_CODES:
+                continue
+            if wanted_scene in {(child.text or "").strip().casefold() for child in action.findall("Str")}:
+                references.append(task_name)
+                break
+    return sorted(set(references))
+
+
+def legacy_can_add(element_type: str) -> str:
+    """"" if this element type can be created, otherwise the reason it cannot.
+
+    The reason is always the same one, and it is a real limit rather than a placeholder:
+    actionc.py has no argument table for the type, so this app does not know what arguments
+    Tasker expects it to carry.  Writing an element with the arguments missing or invented is
+    how a Scene stops opening in Tasker, so the palette offers the type, greys it out, and
+    says why -- the same treatment v2_can_add gives a component that cannot go where it is
+    being put.  VideoElement is the one type in this position today.
+    """
+    from maptasker.src.actionc import action_codes  # noqa: PLC0415
+
+    if element_type in action_codes:
+        return ""
+    return (
+        "MapTasker has no argument table for this element type, so it cannot be created "
+        "without inventing what Tasker expects it to contain."
+    )
+
+
+def _legacy_effective_args(element_type: str) -> list:
+    """The argument definitions to build this element type from.
+
+    An entry's `redirect` names another entry to borrow arguments from, and is followed when
+    it resolves -- but SceneElement's says "Map", which is not a key in the table.  It also
+    carries a full set of arguments of its own (Lat/Long, Zoom, Show Traffic, ...), so the
+    redirect is a dangling label rather than a missing definition, and following it blindly
+    is an exception where taking the entry at its word works.  Hence: use the target when it
+    exists, the entry itself when it does not.
+    """
+    from maptasker.src.actionc import action_codes  # noqa: PLC0415
+
+    action_code = action_codes[element_type]
+    target = action_codes.get(action_code.redirect) if action_code.redirect else None
+    return target.args if target is not None else action_code.args
+
+
+def legacy_element_names(scene_element: defusedxml.ElementTree.Element) -> set[str]:
+    """Every element name currently in the Scene -- what uniqueness is checked against."""
+    names = set()
+    for child in scene_element:
+        if not child.tag.endswith("Element") or child.tag == "PropertiesElement":
+            continue
+        name_element = child.find("Str[@sr='arg0']")
+        if name_element is not None and name_element.text:
+            names.add(name_element.text.strip())
+    return names
+
+
+def legacy_next_element_name(scene_element: defusedxml.ElementTree.Element, element_type: str) -> str:
+    """A free name for a new element of this type: "Text1", "Text2", ...
+
+    The stem is what Tasker itself names a new one (LEGACY_DEFAULT_NAME), so a Scene built
+    here reads like a Scene built in Tasker.  Uniqueness is not cosmetic: 18 Task action
+    codes address an element by name, and two elements sharing one makes every one of them
+    ambiguous -- which is presumably why no Scene in the sample data has a duplicate.
+    """
+    stem = LEGACY_DEFAULT_NAME.get(element_type, element_type.replace("Element", "") or "Element")
+    taken = legacy_element_names(scene_element)
+    index = 1
+    while f"{stem}{index}" in taken:
+        index += 1
+    return f"{stem}{index}"
+
+
+def legacy_drawable_elements(scene_element: defusedxml.ElementTree.Element) -> list:
+    """The Scene's elements in paint order, bottom first -- the same rule and the same order
+    sceneview.paint_order draws them in, kept here so the model can reorder them without the
+    editing half having to import the drawing half.
+    """
+    drawable = [
+        child
+        for child in scene_element
+        if child.tag.endswith("Element") and child.tag != "PropertiesElement" and child.find("geom") is not None
+    ]
+
+    def order(element: defusedxml.ElementTree.Element) -> tuple[int, str]:
+        sr = element.get("sr", "")
+        digits = sr[len("elements") :] if sr.startswith("elements") else ""
+        return (int(digits), sr) if digits.isdigit() else (1_000_000, sr)
+
+    return sorted(drawable, key=order)
+
+
+def _legacy_reindex(scene_element: defusedxml.ElementTree.Element, ordered: list) -> None:
+    """Renumber this list of elements elements0..N-1, in place.
+
+    Renumbering only.  The elements are deliberately NOT moved to match their new order in
+    the file, and that is a correction to what this function first did: it reordered them
+    physically, on the assumption that Tasker writes its elements in sr order.
+
+    IT DOES NOT.  53 of the 350 Legacy Scenes in this repo's sample data have a document
+    order that disagrees with their sr order -- so sr is authoritative and the position in
+    the file carries no meaning, which is exactly what sceneview.paint_order already assumed
+    when it sorted by sr rather than trusting the document.  Reordering them here would have
+    rewritten a seventh of every backup this app touched, for a change nothing reads.
+
+    The consequence worth stating: after a restack the file's element order and its z-order
+    disagree, which looks wrong in a diff and is not.  It is the same state Tasker leaves
+    those 53 Scenes in.
+    """
+    for offset, element in enumerate(ordered):
+        element.set("sr", f"elements{offset}")
+
+
+def _legacy_order_arg_children(element: defusedxml.ElementTree.Element) -> None:
+    """Put an element's argument children back into argument order.
+
+    Needed because the Img-typed arguments are written separately from the Int/Str ones (see
+    legacy_new_element), which would otherwise leave an ImageElement carrying arg0, arg2,
+    arg1.  Tasker addresses arguments by their sr and would not care, but a file this app
+    writes should be indistinguishable from one Tasker wrote -- and a diff against a Scene
+    that was only moved should not show its arguments shuffled.
+    """
+    args = [child for child in element if child.tag in ("Str", "Int", "Img")]
+
+    def order(child: defusedxml.ElementTree.Element) -> int:
+        sr = child.get("sr", "")
+        digits = sr[len("arg") :] if sr.startswith("arg") else ""
+        return int(digits) if digits.isdigit() else 1_000
+
+    for child in args:
+        element.remove(child)
+    for child in sorted(args, key=order):
+        element.append(child)
+
+
+def legacy_new_element(
+    scene_element: defusedxml.ElementTree.Element,
+    element_type: str,
+    box: tuple[int, int, int, int],
+    *,
+    landscape: bool = False,
+) -> defusedxml.ElementTree.Element | str:
+    """Build a new element of this type, sized and placed at `box`, ready to be inserted.
+
+    Returns the element, or a reason string if the type cannot be created (legacy_can_add).
+
+    Its arguments are synthesized from actionc.py's own table by taskedit.build_synthesized_args
+    -- the same function that builds a brand-new Task Action's arguments and a brand-new
+    Profile condition's, so a Scene element gets exactly the defaults those get.  The one
+    thing it does not write is an Img-typed argument, which it classifies as uneditable and
+    skips; those are added here as the empty <Img ve="2"/> that every Button, Image and
+    Slider in the sample data carries, because "no icon" is stored as an empty Img and not as
+    a missing one.
+
+    `landscape` says whether the Scene has a landscape layout of its own.  When it does, the
+    new element is given the same box in both orientations rather than -1,-1,-1,-1: an
+    element that exists in portrait and is absent in landscape is a stranger thing to create
+    on purpose than one that starts in the same place in both, and the landscape half can be
+    dragged somewhere else the moment the designer is switched to it.
+    """
+    from maptasker.src.taskedit import build_synthesized_args  # noqa: PLC0415
+
+    reason = legacy_can_add(element_type)
+    if reason:
+        return reason
+
+    element_cls = type(scene_element)
+    attributes = {"sr": "elements0"}  # replaced by _legacy_reindex on insert.
+    version = LEGACY_VE_BY_TYPE.get(element_type)
+    if version:
+        attributes["ve"] = version
+    element = element_cls(element_type, attributes)
+
+    x, y, width, height = (int(value) for value in box)
+    geometry = element_cls("geom")
+    landscape_half = f"{x},{y},{width},{height}" if landscape else "-1,-1,-1,-1"
+    geometry.text = f"{x},{y},{width},{height},{landscape_half}"
+    element.append(geometry)
+
+    effective_args = _legacy_effective_args(element_type)
+    build_synthesized_args(element_cls, element, effective_args)
+
+    for argument in effective_args:
+        if argument.arg_type != "8":
+            continue
+        if element.find(f"Img[@sr='arg{argument.arg_id}']") is None:
+            element.append(element_cls("Img", {"sr": f"arg{argument.arg_id}", "ve": "2"}))
+    _legacy_order_arg_children(element)
+
+    name_element = element.find("Str[@sr='arg0']")
+    if name_element is not None:
+        name_element.text = legacy_next_element_name(scene_element, element_type)
+    return element
+
+
+def legacy_insert_element(
+    scene_element: defusedxml.ElementTree.Element,
+    element: defusedxml.ElementTree.Element,
+    at: int | None = None,
+) -> str:
+    """Put an element into the Scene and return the sr it ended up with.
+
+    Appended at the top of the z-order by default, which is where a newly added element
+    belongs: anything else would create it underneath something and look like it had not been
+    created at all.
+
+    Physically it goes in front of <PropertiesElement>, which is the only child whose
+    position in the file is worth respecting -- every Scene in the sample data that has one
+    keeps it last.  Where the element lands relative to its siblings does not matter, since
+    sr is what carries the order (see _legacy_reindex).
+    """
+    ordered = legacy_drawable_elements(scene_element)
+    position = len(ordered) if at is None else max(0, min(at, len(ordered)))
+
+    properties = scene_element.find("PropertiesElement")
+    if properties is None:
+        scene_element.append(element)
+    else:
+        scene_element.insert(list(scene_element).index(properties), element)
+
+    ordered.insert(position, element)
+    _legacy_reindex(scene_element, ordered)
+    return f"elements{position}"
+
+
+def legacy_delete_element(scene_element: defusedxml.ElementTree.Element, sr: str) -> str:
+    """Remove an element and renumber what is left.  Returns the sr to select next -- the
+    element that took its place in the stack, or the new top one, or "" for an empty Scene.
+
+    Selecting something afterwards rather than nothing is deliberate: a delete is usually one
+    of several, and being dropped back to "select an element" between each would make a run
+    of them needlessly slow.
+    """
+    ordered = legacy_drawable_elements(scene_element)
+    element = next((candidate for candidate in ordered if candidate.get("sr") == sr), None)
+    if element is None:
+        return ""
+
+    position = ordered.index(element)
+    ordered.remove(element)
+    scene_element.remove(element)
+    _legacy_reindex(scene_element, ordered)
+    if not ordered:
+        return ""
+    return f"elements{min(position, len(ordered) - 1)}"
+
+
+def legacy_duplicate_element(scene_element: defusedxml.ElementTree.Element, sr: str) -> str:
+    """Copy an element, name the copy, and put it directly above the original.  Returns the
+    copy's sr, or "" if there was nothing at `sr`.
+
+    Directly above rather than at the top of the stack, so the copy lands next to the thing
+    it was copied from, and the two overlap exactly the way duplicating usually intends.
+
+    The copy keeps whatever Tasks the original fires -- a duplicated button that does nothing
+    would be a surprise -- but it does not keep its name: element names are how 18 Task action
+    codes find an element, and two elements answering to one name makes every one of those
+    actions ambiguous.
+    """
+    ordered = legacy_drawable_elements(scene_element)
+    element = next((candidate for candidate in ordered if candidate.get("sr") == sr), None)
+    if element is None:
+        return ""
+
+    copy_of_element = copy.deepcopy(element)
+    name_element = copy_of_element.find("Str[@sr='arg0']")
+    if name_element is not None:
+        name_element.text = legacy_next_element_name(scene_element, element.tag)
+    return legacy_insert_element(scene_element, copy_of_element, ordered.index(element) + 1)
+
+
+def legacy_restack(scene_element: defusedxml.ElementTree.Element, sr: str, position: int) -> str:
+    """Move an element to this position in the z-order -- 0 is the bottom -- and return the
+    sr it ended up with, or "" if it did not move.
+
+    One function for all four of Forward, Backward, To Front and To Back, because they differ
+    only in the position they ask for; the caller works that out from where the element
+    currently is, and this clamps it.  The returned sr is what the caller re-selects with,
+    since renumbering has just changed it.
+    """
+    ordered = legacy_drawable_elements(scene_element)
+    element = next((candidate for candidate in ordered if candidate.get("sr") == sr), None)
+    if element is None:
+        return ""
+
+    current = ordered.index(element)
+    target = max(0, min(position, len(ordered) - 1))
+    if target == current:
+        return ""
+
+    ordered.remove(element)
+    ordered.insert(target, element)
+    _legacy_reindex(scene_element, ordered)
+    return f"elements{target}"
+
+
+# --------------------------------------------------------------------------------------
+# Legacy designer, phase 3: the parts of an element that reach outside it.
+#
+# Phases 1 and 2 stayed inside the Scene -- geometry, properties, and which elements exist.
+# Everything here crosses a boundary:
+#
+#   RENAMING reaches into other Tasks.  An element's name is how 18 Task action codes find
+#   it, so a rename either brings them along or silently breaks them.  This offers to bring
+#   them -- and defers the rewrite to the moment the Scene is actually saved, because the
+#   Scene being edited is a deep copy that Cancel discards while the Tasks are the live ones
+#   (see EditableScene.element_renames).
+#
+#   TASK BINDINGS are the Tasks.  <clickTask>213</clickTask> is a Task id, and 199 of the
+#   1,472 bindings in this repo's sample data are *negative* -- Tasker's anonymous inline
+#   Tasks, which exist nowhere else and have no name.  Those are shown and preserved and
+#   never offered for rebinding: replacing one orphans a Task that cannot be recovered.
+#
+#   THE BACKGROUND is a whole RectElement living inside another element, and is where most
+#   of a real Scene's colour is.  Only some types have one -- Button, Rect, Oval, Spinner,
+#   Toggle, Doodle, Map and Video never do in any of the 2,186 sample elements -- so it is
+#   offered only where Tasker itself puts one.
+#
+#   THE SCENE'S PROPERTIES describe the Scene rather than any element: how it is put on
+#   screen, which way up, its background, its title.  66 of 366 sample Scenes have no
+#   <PropertiesElement> at all, so its absence is ordinary and gets an offer to create one
+#   rather than an error.
+# --------------------------------------------------------------------------------------
+
+# Which Task-binding tags each element type is offered, taken from what the sample data
+# actually uses -- a Text can be tapped, long-tapped and stroked; a Checkbox only reports a
+# change; a Web element reports link clicks and page loads.  sysconst.SCENE_TASK_TYPES names
+# all fifteen tags Tasker has; these are the ones each type is observed to carry, so the
+# editor offers a short real list rather than a long speculative one.
+#
+# A tag an element already carries is always offered for that element even if it is not
+# listed here (see legacy_task_tags_for), so a Scene from a newer Tasker keeps whatever it
+# came with.
+LEGACY_TASK_TAGS_BY_TYPE: dict[str, tuple[str, ...]] = {
+    "ButtonElement": ("clickTask", "longclickTask"),
+    "CheckBoxElement": ("checkchangeTask",),
+    "EditTextElement": ("valueselectedTask",),
+    "ImageElement": ("clickTask", "longclickTask"),
+    "ListElement": ("itemclickTask", "itemlongclickTask"),
+    "OvalElement": ("clickTask", "longclickTask"),
+    "PickerElement": ("valueselectedTask",),
+    "RectElement": ("clickTask", "longclickTask", "strokeTask"),
+    "SliderElement": ("valueselectedTask",),
+    "SpinnerElement": ("itemselectedTask",),
+    "SwitchElement": ("checkchangeTask",),
+    "TextElement": ("clickTask", "longclickTask", "strokeTask"),
+    "ToggleElement": ("clickTask",),
+    "WebElement": ("linkclickTask", "pageloadedTask"),
+}
+
+# Element types Tasker gives a <RectElement sr="background"> to.  Transcribed from the
+# sample data: every CheckBox and every Switch has one, most Texts and EditTexts do, and the
+# eight types absent from here have one in none of the 2,186 elements.
+LEGACY_BACKGROUND_TYPES = frozenset({
+    "CheckBoxElement",
+    "EditTextElement",
+    "ImageElement",
+    "ListElement",
+    "PickerElement",
+    "SliderElement",
+    "SwitchElement",
+    "TextElement",
+    "WebElement",
+})
+
+# An anonymous inline Task -- Tasker writes these with a negative id and stores them nowhere
+# else.  scenes.process_tasks calls them "fake" and skips them for the same reason.
+LEGACY_ANONYMOUS_TASK_PREFIX = "-"
+
+
+@dataclass(frozen=True)
+class LegacyBinding:
+    """One Task an element fires: which event, which Task, and whether it is one that can be
+    changed.
+    """
+
+    tag: str
+    label: str
+    task_id: str
+    task_name: str
+    anonymous: bool
+
+
+def legacy_task_tags_for(element: defusedxml.ElementTree.Element) -> list[str]:
+    """The Task-binding tags to offer for this element: the ones its type is observed to
+    use, plus any it already carries that the table has not heard of.
+
+    The second half is the forward-compatible bit, and the same rule v2_container_slots
+    follows: an element from a newer Tasker keeps whatever bindings it arrived with, and they
+    stay editable, rather than the editor deciding they do not exist.
+    """
+    known = list(LEGACY_TASK_TAGS_BY_TYPE.get(element.tag, ()))
+    present = [child.tag for child in element if child.tag in SCENE_TASK_TYPES and child.tag not in known]
+    return known + present
+
+
+def legacy_task_bindings(element: defusedxml.ElementTree.Element) -> list[LegacyBinding]:
+    """Every Task this element currently fires, resolved to names where it can be.
+
+    A binding whose id is not in the loaded backup is reported under its id rather than
+    dropped -- it is still what the Scene will run, and hiding it would make the Tasks
+    section disagree with the file.
+    """
+    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    bindings = []
+    for child in element:
+        if child.tag not in SCENE_TASK_TYPES:
+            continue
+        task_id = (child.text or "").strip()
+        anonymous = task_id.startswith(LEGACY_ANONYMOUS_TASK_PREFIX)
+        entry = all_tasks.get(task_id)
+        if anonymous:
+            name = "(anonymous Task, stored in the Scene)"
+        elif entry:
+            name = entry["name"]
+        else:
+            name = f"Task {task_id}"
+        bindings.append(
+            LegacyBinding(
+                tag=child.tag,
+                label=SCENE_TASK_TYPES.get(child.tag, child.tag),
+                task_id=task_id,
+                task_name=name,
+                anonymous=anonymous,
+            ),
+        )
+    return bindings
+
+
+def _legacy_insert_ordered_child(
+    element: defusedxml.ElementTree.Element,
+    child: defusedxml.ElementTree.Element,
+) -> None:
+    """Put a lowercase-tagged child (a Task binding, <geom>, <flags>) where Tasker puts it.
+
+    Tasker writes an element's lowercase children in alphabetical order and its capitalised
+    argument children (Str/Int/Img) after all of them -- "clickTask, flags, geom,
+    longclickTask, Str arg0, ..." is the order every sample element is in.  Appending would
+    put a new binding after the arguments, which no Tasker file does.
+    """
+    for index, existing in enumerate(element):
+        if existing.tag[:1].isupper() or existing.tag > child.tag:
+            element.insert(index, child)
+            return
+    element.append(child)
+
+
+def legacy_set_task_binding(
+    element: defusedxml.ElementTree.Element,
+    tag: str,
+    task_id: str,
+) -> None:
+    """Point one of this element's events at this Task, adding the child if it has none."""
+    existing = element.find(tag)
+    if existing is not None:
+        existing.text = str(task_id)
+        return
+    child = type(element)(tag)
+    child.text = str(task_id)
+    _legacy_insert_ordered_child(element, child)
+
+
+def legacy_clear_task_binding(element: defusedxml.ElementTree.Element, tag: str) -> None:
+    """Stop this element firing anything on this event."""
+    child = element.find(tag)
+    if child is not None:
+        element.remove(child)
+
+
+def legacy_task_choices() -> list[str]:
+    """Every Task name in the loaded backup, sorted -- what a binding can be pointed at.
+
+    The same list the Task editor's own 'Perform Task' picker offers
+    (taskedit.get_all_task_names), so the two never disagree about what exists.
+    """
+    return sorted(PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}))
+
+
+def legacy_task_id_for_name(task_name: str) -> str:
+    """The id of the Task with this name, or "" -- how a picked name becomes what the XML
+    stores.
+    """
+    entry = PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}).get(task_name)
+    return str(entry["id"]) if entry else ""
+
+
+def legacy_background(element: defusedxml.ElementTree.Element) -> defusedxml.ElementTree.Element | None:
+    """The element's <RectElement sr="background">, or None."""
+    return element.find("RectElement[@sr='background']")
+
+
+def legacy_can_have_background(element: defusedxml.ElementTree.Element) -> bool:
+    """Whether Tasker gives this element type a background sub-element (see
+    LEGACY_BACKGROUND_TYPES).  A Button, a Rect and an Oval draw their own fill through their
+    own arguments and never carry one.
+    """
+    return element.tag in LEGACY_BACKGROUND_TYPES
+
+
+def legacy_add_background(element: defusedxml.ElementTree.Element) -> defusedxml.ElementTree.Element | None:
+    """Give this element a background sub-element, shaped the way Tasker writes one.
+
+    Its <geom> is -1,-1,-1,-1,-1,-1,-1,-1 in every sample: a background has no geometry of
+    its own, it fills its owner, and the field is there because it is a RectElement like any
+    other.  Returns None for a type that never has one rather than creating something Tasker
+    would not.
+    """
+    if not legacy_can_have_background(element):
+        return None
+    existing = legacy_background(element)
+    if existing is not None:
+        return existing
+
+    from maptasker.src.taskedit import build_synthesized_args  # noqa: PLC0415
+
+    element_cls = type(element)
+    background = element_cls("RectElement", {"sr": "background"})
+    geometry = element_cls("geom")
+    geometry.text = ",".join([UNSET_DIMENSION] * LEGACY_GEOM_VALUES)
+    background.append(geometry)
+    build_synthesized_args(element_cls, background, _legacy_effective_args("RectElement"))
+    _legacy_order_arg_children(background)
+    element.append(background)
+    return background
+
+
+def legacy_remove_background(element: defusedxml.ElementTree.Element) -> None:
+    """Take the background away again."""
+    background = legacy_background(element)
+    if background is not None:
+        element.remove(background)
+
+
+def legacy_scene_properties(
+    scene_element: defusedxml.ElementTree.Element,
+) -> defusedxml.ElementTree.Element | None:
+    """The Scene's own <PropertiesElement>, or None -- 66 of 366 sample Scenes have none."""
+    return scene_element.find("PropertiesElement")
+
+
+def legacy_add_scene_properties(
+    scene_element: defusedxml.ElementTree.Element,
+) -> defusedxml.ElementTree.Element:
+    """Give the Scene a <PropertiesElement>, at the end where Tasker keeps it."""
+    existing = legacy_scene_properties(scene_element)
+    if existing is not None:
+        return existing
+
+    from maptasker.src.taskedit import build_synthesized_args  # noqa: PLC0415
+
+    element_cls = type(scene_element)
+    properties = element_cls("PropertiesElement", {"sr": "props"})
+    build_synthesized_args(element_cls, properties, _legacy_effective_args("PropertiesElement"))
+    _legacy_order_arg_children(properties)
+    scene_element.append(properties)
+    return properties
+
+
+def find_element_name_actions(scene_name: str, element_name: str) -> list[tuple[str, object]]:
+    """The exact <Str> elements a rename would rewrite, as (Task name, Str element).
+
+    STRICTER THAN find_element_name_references ON PURPOSE.  That one matches an action naming
+    both strings in any argument, which is the right way round for a *warning* -- a false
+    positive costs a needless sentence.  This one drives an edit, where a false positive
+    costs a Task silently repointed at something else, so it insists on the shape all 18
+    codes actually declare: arg0 is the Scene Name and arg1 is the Element.
+
+    The two can therefore disagree, and the caller is expected to say so rather than quietly
+    rewrite fewer Tasks than it warned about.
+    """
+    if not scene_name or not element_name:
+        return []
+
+    wanted_scene = scene_name.strip().casefold()
+    wanted_element = element_name.strip().casefold()
+
+    found = []
+    for entry in PrimeItems.tasker_root_elements.get("all_tasks", {}).values():
+        task_element = entry["xml"]
+        task_name = task_element.findtext("nme") or f"Task {task_element.findtext('id', '?')}"
+        for action in task_element.findall("Action"):
+            if action.findtext("code") not in LEGACY_ELEMENT_ACTION_CODES:
+                continue
+            scene_argument = action.find("Str[@sr='arg0']")
+            element_argument = action.find("Str[@sr='arg1']")
+            if scene_argument is None or element_argument is None:
+                continue
+            if (scene_argument.text or "").strip().casefold() != wanted_scene:
+                continue
+            if (element_argument.text or "").strip().casefold() != wanted_element:
+                continue
+            found.append((task_name, element_argument))
+    return found
+
+
+def apply_element_renames_to_tasks(scene_name: str, renames: list[tuple[str, str]]) -> int:
+    """Rewrite the Task actions that address these elements by name.  Returns how many
+    argument values were changed.
+
+    Applied in the order the renames were made, so an element renamed twice (A to B, then B
+    to C) ends up addressed as C rather than being missed by the second pass.
+
+    Called from apply_edited_scene_to_live_tree and nowhere else -- see
+    EditableScene.element_renames on why this cannot happen while the dialog is still open.
+    """
+    changed = 0
+    for old_name, new_name in renames:
+        for _task_name, argument in find_element_name_actions(scene_name, old_name):
+            argument.text = new_name
+            changed += 1
+    return changed
+
+
+def legacy_rename_element(
+    scene_element: defusedxml.ElementTree.Element,
+    sr: str,
+    new_name: str,
+) -> list[str]:
+    """Rename an element within the Scene copy.  Returns errors; renames nothing when it
+    returns any.
+
+    Uniqueness is enforced rather than warned about: an element's name is what 18 Task action
+    codes look it up by, and no Scene in the sample data has two elements sharing one -- so a
+    duplicate would make every one of those actions ambiguous, with no way for Tasker to say
+    which was meant.
+    """
+    element = legacy_element_at(scene_element, sr)
+    if element is None:
+        return ["That element is no longer in this Scene."]
+
+    wanted = new_name.strip()
+    if not wanted:
+        return ["An element name cannot be empty."]
+
+    name_element = element.find("Str[@sr='arg0']")
+    if name_element is None:
+        return ["This element has no name field to rename."]
+
+    current = (name_element.text or "").strip()
+    if wanted == current:
+        return []
+
+    taken = legacy_element_names(scene_element) - {current}
+    if wanted in taken:
+        return [f"This Scene already has an element named '{wanted}'."]
+
+    name_element.text = wanted
+    return []
+
+
+# --------------------------------------------------------------------------------------
+# Item layouts: the Scene inside an element.
+#
+# A ListElement and a SpinnerElement each carry a whole nested <Scene> that is the layout of
+# one row -- Tasker stamps it out once per entry of whatever variable fills the list.  It is
+# a Scene in every sense: its own <nme>, its own widthPort/heightPort, its own elements
+# numbered from elements0, its own PropertiesElement.  So it is edited by the same designer,
+# opened on the nested element instead of the outer one.
+#
+# 58 of them across this repo's sample data, always in the same slot per holder type, and
+# never nested more than one deep.
+# --------------------------------------------------------------------------------------
+
+# Which argument slot each holder keeps its item layout in.  Transcribed: all 38 Lists use
+# arg4 and all 20 Spinners use arg3.  A PickerElement has no item layout at all -- it holds
+# numbers, not rows.
+LEGACY_ITEM_LAYOUT_SLOT: dict[str, str] = {
+    "ListElement": "arg4",
+    "SpinnerElement": "arg3",
+}
+
+
+def legacy_item_layout(
+    element: defusedxml.ElementTree.Element,
+) -> defusedxml.ElementTree.Element | None:
+    """The nested <Scene sr="val"> holding this element's row layout, or None.
+
+    None covers both "this type never has one" and "this one has not been given one", and
+    the caller does not need to tell those apart: neither can be edited.
+    """
+    slot = LEGACY_ITEM_LAYOUT_SLOT.get(element.tag)
+    if slot is None:
+        return None
+    return element.find(f"Scene[@sr='{slot}']/Scene[@sr='val']")
+
+
+def legacy_item_layout_name(element: defusedxml.ElementTree.Element) -> str:
+    """What the item layout calls itself -- "Builtin Item Layout" for a List, "spinner" for
+    a Spinner, in every sample.  For the nested dialog's title, so it says which layout is
+    being edited rather than just "Scene".
+    """
+    layout = legacy_item_layout(element)
+    return (layout.findtext("nme") or "").strip() if layout is not None else ""

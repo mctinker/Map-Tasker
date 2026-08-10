@@ -54,6 +54,9 @@ from maptasker.src.guiutils import (
     validate_or_filelist_xml,
 )
 from maptasker.src.guiwins import (
+    EDIT_PROJECT_INERT_FIELDS,
+    NOTIFY_TIMEOUT_CHOICES,
+    NiceGuiSceneView,
     NiceGuiTextView,
     NiceGuiTreeView,
     build_add_profile_dialog,
@@ -83,6 +86,9 @@ from maptasker.src.guiwins import (
     live_views,
     restore_appearance_mode,
     set_document_language_js,
+    set_notification_timeout,
+    suspend_scene_editor_session,
+    suspended_scene_editor,
 )
 from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
@@ -114,9 +120,12 @@ from maptasker.src.sysconst import (
     ANALYSIS_FILE,
     ARGUMENT_NAMES,
     CHANGELOG_URL,
+    DIAGRAM_PROFILES_PER_LINE,
     KEYFILE,
+    NOTIFY_TIMEOUT_DEFAULT,
     TAB_NAMES,
     TYPES_OF_COLOR_NAMES,
+    VIEW_LIMIT_DEFAULT,
     logger,
 )
 from maptasker.src.taskerd import get_the_xml_data
@@ -357,11 +366,51 @@ class MyGui:
         # until the user picks a file from somewhere else (see remember_local_xml_directory).
         self.local_xml_directory = ""
 
+        self.reset_numeric_preferences()
+
         # Display current Items setting.
         with contextlib.suppress(
             AttributeError,
         ):  # single_name_status may not be defined yet.
             self.single_name_status(all_objects, "#3f99ff")
+
+    def reset_numeric_preferences(self: "MyGui") -> None:
+        """Put View Limit, Notification Duration and Profiles Per Line back to their defaults.
+
+        Separate from the assignments above it because each of these three is shown by a
+        control, and a reset that changed the value without moving the control would leave the
+        two disagreeing -- the window saying 30000 while the program used 10000, which is the
+        kind of disagreement nobody thinks to doubt.  So each goes through the same path a
+        user's own change goes through.
+
+        Nothing here assumes the GUI exists.  set_defaults runs once during start-up, before
+        the event handlers are attached and long before any widget is built, and again on
+        "Reset Options" when everything is up; the plain assignments cover the first case and
+        are all it needs.
+        """
+        self.view_limit = VIEW_LIMIT_DEFAULT
+        self.notify_timeout = NOTIFY_TIMEOUT_DEFAULT
+        self.profiles_per_line = DIAGRAM_PROFILES_PER_LINE
+        PrimeItems.program_arguments["profiles_per_line"] = DIAGRAM_PROFILES_PER_LINE
+
+        handlers = getattr(self, "event_handlers", None)
+        if handlers is None:
+            return
+
+        # These two own a pulldown in the settings drawer and know how to move it.
+        handlers.viewlimit_event(str(VIEW_LIMIT_DEFAULT))
+        handlers.notify_timeout_event(NOTIFY_TIMEOUT_DEFAULT)
+
+        # Profiles Per Line is not in the drawer -- it sits on the Diagram view's own toolbar,
+        # and there can be one on each open Diagram view ("Open View In New Window").  Its own
+        # handler is not used: that one is async and regenerates the diagram, which is a
+        # surprising amount of work to trigger from a settings reset, and pointless when the
+        # value it would rebuild with is the one already in place.
+        for view in live_views(self):
+            selector = getattr(view, "profiles_per_line_select", None)
+            if selector is not None:
+                selector.value = str(DIAGRAM_PROFILES_PER_LINE)
+                selector.update()
 
     def set_startup_language(self: "MyGui") -> None:
         """Establish the translation function for the saved language before the GUI is built.
@@ -904,6 +953,7 @@ class MyGui:
                 "Display Unnamed Tasks",
                 display=False,
             ),
+            "notify_timeout": lambda: self.event_handlers.notify_timeout_event(value),
             "view_limit": lambda: self.event_handlers.viewlimit_event(value),
             "preferences": lambda: self.select_deselect_checkbox(
                 self.preferences_checkbox,
@@ -1316,6 +1366,39 @@ def _confirmed_single_scene_name(gui: MyGui) -> str:
     if options is None:
         return name
     return name if name in options else ""
+
+
+def _unapplied_project_edits(field_refs: dict) -> list[str]:
+    """Guards the Edit Project dialog's two by-name saves against a field being added to
+    it without the apply step those saves would then need.  Returns error strings, empty
+    when there is nothing to worry about -- same contract as _apply_scene_field_values.
+
+    Both Project saves render from the live tree by name (projedit.write_standalone_
+    project_xml and .save_project_to_android each take project_name, not the edited copy),
+    so anything the dialog holds that has not been written back to that tree does not reach
+    the file.  Today nothing does: the dialog has a read-only Name and an export path, both
+    listed in guiwins.EDIT_PROJECT_INERT_FIELDS, and this returns nothing.
+
+    It exists for the next editable field added there.  That field will work everywhere it
+    is visible -- typed into, previewed, read back -- and be quietly missing from the
+    exported .prj.xml and the upload, with no error to trace, exactly as an added Scene
+    component was missing from both before those handlers learned to apply first.  Failing
+    the save and naming the field turns half a day of that into one message.
+
+    Deliberately a deny-list of what is known inert rather than an allow-list of what looks
+    editable: a new field is caught by being unrecognised, so nothing has to predict what
+    kind of widget it will be, and silence here always means "somebody checked".
+    """
+    unknown = sorted(set(field_refs) - EDIT_PROJECT_INERT_FIELDS)
+    if not unknown:
+        return []
+
+    logger.error(f"Edit Project dialog has unapplied editable field(s): {', '.join(unknown)}")
+    return [
+        f"Cannot save Project: the field(s) {', '.join(unknown)} are edited in this dialog but "
+        "are not written to the Project before it is saved, so saving now would leave them out. "
+        "See guiwins.EDIT_PROJECT_INERT_FIELDS.",
+    ]
 
 
 def _apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs: dict) -> list[str]:
@@ -1840,7 +1923,7 @@ class MapTaskerEventHandlers:
         logger.info(f"GUI: Switching to {window_title}")
 
         gui = self.gui
-        PrimeItems.view_limit = gui.view_limit if hasattr(gui, "view_limit") else 10000
+        PrimeItems.view_limit = gui.view_limit if hasattr(gui, "view_limit") else VIEW_LIMIT_DEFAULT
 
         # Plug all of our settings back into PrimeItems.program_arguments
         capture_gui_state(gui, {})
@@ -2910,7 +2993,17 @@ class MapTaskerEventHandlers:
         matters most here of the three: a Project's identity is its name (see
         rename_project_in_live_tree), so a rename through this button would
         otherwise leave the Project pulldown's .value on a name that's gone.
+
+        Guarded like the dialog's other two saves: the apply below covers the Name and
+        nothing else, so a field added without extending it would be left out of the
+        backup this writes -- see _unapplied_project_edits.
         """
+        errors = _unapplied_project_edits(field_refs)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
         old_name = edited_project.project_name
         name_value = field_refs["name"].value.strip()
 
@@ -2951,7 +3044,16 @@ class MapTaskerEventHandlers:
         and deliberately doesn't also rename the live Project as a side
         effect; use "Rename" first if the new name should carry through.
         Dialog stays open on any error so the user's in-progress edit isn't lost.
+
+        Guarded against a field being added to the dialog without the apply that a
+        by-name render would then need -- see _unapplied_project_edits.
         """
+        errors = _unapplied_project_edits(field_refs)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
         save_path = field_refs["project_save_path"].value.strip()
 
         def _write() -> None:
@@ -3148,12 +3250,49 @@ class MapTaskerEventHandlers:
             ui.notify(translate_string("Select a single Scene first (Scene pulldown above)."), type="warning")
             return
 
+        # A preview may be holding this Scene's dialog hidden with edits in it that have not
+        # been saved -- an added component lives in the designer's layout dict, not in the
+        # tree load_scene_for_edit copies from.  Resume that dialog rather than build a
+        # second one, so this button and the preview's "Back to Editor" both come back to
+        # the same work in progress instead of disagreeing about what the Scene contains.
+        suspended = suspended_scene_editor(the_view, scene_name)
+        if suspended is not None:
+            suspended.open()
+            return
+
         edited_scene = sceneedit.load_scene_for_edit(scene_name)
         if edited_scene is None:
             ui.notify(f"Could not find Scene '{scene_name}'.", type="negative")
             return
 
         build_edit_scene_dialog(the_view, edited_scene)
+
+    def preview_scene_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        dialog: ui.dialog | None = None,
+    ) -> None:
+        """Draws the Scene being edited as a picture in the main content column.  Backs the
+        "Preview" button on both Scene dialogs (guiwins._build_scene_editor_body).
+
+        The dialog is closed first and handed to the view, which puts a "Back to Editor"
+        button up to re-open it.  It has to be: content_container is behind the dialog's
+        modal overlay, so a preview drawn with the dialog still up would be invisible.
+        Closing a NiceGUI dialog hides it without destroying its widgets, so nothing typed
+        into it is lost in the round trip -- which is what makes previewing a size the user
+        has typed but not saved worth doing at all.
+
+        Nothing is written to the Scene here, and nothing is validated beyond what the view
+        needs to pick a canvas size: this is a read-only look at work in progress, and it
+        stays available even while the dialog holds something that would fail to save.
+        """
+        if dialog is not None:
+            dialog.close()
+            # Hidden, not finished: the "Edit Scene" button has to resume this dialog rather
+            # than open a fresh one on the unedited tree.  See suspend_scene_editor_session.
+            suspend_scene_editor_session(self.gui, dialog)
+        self.gui.textview = NiceGuiSceneView(self.gui, edited_scene, field_refs, dialog)
 
     def save_edited_scene_event(
         self,
@@ -3284,16 +3423,32 @@ class MapTaskerEventHandlers:
         field_refs: dict,
         dialog: ui.dialog,
     ) -> None:
-        """Writes the Scene out as a standalone .scn.xml file (see
-        sceneedit.write_standalone_scene_xml).  Backs the "Export Scene" button.
+        """Applies the Edit Scene dialog's edits, then writes the Scene out as a
+        standalone .scn.xml file (see sceneedit.write_standalone_scene_xml).  Backs
+        the "Export Scene" button.  Dialog stays open on any error so the user's
+        in-progress edit isn't lost.
 
-        Exports the Scene as it currently stands in the live backup, under its
-        current name -- a size edit sitting unapplied in the dialog does not carry
-        through, exactly as save_project_event's export ignores an unapplied
-        rename.  Use "Ok" first if the edit should be included.  Dialog stays open
-        on any error so the user's in-progress edit isn't lost.
+        THE APPLY IS WHAT MAKES THE FILE CARRY THE USER'S WORK, for the same reason
+        it is needed on the Android upload (see save_scene_to_android_event): the
+        write renders from the live tree by name, and the dialog edits a deep copy
+        whose V2 layout lives in a dict nothing writes back until a save handler
+        runs.  Without it a component added a moment ago is simply missing from the
+        exported file, with nothing to say so.
+
+        Validating before the overwrite check means a bad field cannot get as far as
+        prompting to replace a file it was never going to write.  The Scene is still
+        exported under its current name: Rename is its own operation, not a field on
+        this dialog, so there is no such thing as an unapplied rename to carry.
         """
         save_path = field_refs["scene_save_path"].value.strip()
+
+        errors = _apply_scene_field_values(edited_scene, field_refs)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
 
         def _write() -> None:
             try:
@@ -3313,26 +3468,47 @@ class MapTaskerEventHandlers:
     def open_save_scene_to_android_dialog_event(
         self,
         edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
         parent_dialog: ui.dialog,
     ) -> None:
         """Opens the Save Scene To Android prompt, nested inside Edit Scene -- see
-        build_save_scene_to_android_dialog.
+        build_save_scene_to_android_dialog.  The Edit Scene dialog's field_refs go
+        with it so the upload can apply the edits sitting in them first.
         """
-        build_save_scene_to_android_dialog(self.gui, edited_scene, parent_dialog)
+        build_save_scene_to_android_dialog(self.gui, edited_scene, field_refs, parent_dialog)
 
     async def save_scene_to_android_event(
         self,
         edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
         android_field_refs: dict,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
-        """Pings the Android device to confirm it's reachable, then writes the
-        Scene onto the device's storage under /Tasker/scenes (see
-        sceneedit.save_scene_to_android).  Mirrors save_project_to_android_event
-        exactly, including exporting under the Scene's current, already-applied
-        name rather than anything unapplied in the dialog.
+        """Applies the Edit Scene dialog's edits, pings the Android device to confirm
+        it's reachable, then writes the Scene onto the device's storage under
+        /Tasker/scenes (see sceneedit.save_scene_to_android).
+
+        THE APPLY IS WHAT MAKES THE UPLOAD CARRY THE USER'S WORK.  The upload renders
+        the Scene from the live tree (sceneedit.render_standalone_scene_xml takes a
+        name, not the dialog's copy), and the dialog edits a deep copy whose V2 layout
+        lives in a dict that nothing writes back until a save handler runs.  Without
+        this, an element added a moment ago is simply absent from the file that lands
+        on the device, with nothing to say so.
+
+        Applying first also means a validation failure stops the upload before the
+        device is contacted, rather than after.  Edits stay applied in memory if the
+        upload then fails, which is the same state clicking "Ok" first would leave --
+        and clicking "Ok" first is exactly what this saves the user from having to do.
         """
+        errors = _apply_scene_field_values(edited_scene, field_refs)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
+
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
@@ -3940,14 +4116,19 @@ class MapTaskerEventHandlers:
     def open_save_project_to_android_dialog_event(
         self,
         edited_project: projedit.EditableProject,
+        field_refs: dict,
         parent_dialog: ui.dialog,
     ) -> None:
-        """Opens the IP/port prompt for writing this Project onto the Android device."""
-        build_save_project_to_android_dialog(self.gui, edited_project, parent_dialog)
+        """Opens the IP/port prompt for writing this Project onto the Android device.
+        The Edit Project dialog's field_refs go with it for the upload's guard -- see
+        _unapplied_project_edits.
+        """
+        build_save_project_to_android_dialog(self.gui, edited_project, field_refs, parent_dialog)
 
     async def save_project_to_android_event(
         self,
         edited_project: projedit.EditableProject,
+        field_refs: dict,
         android_field_refs: dict,
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
@@ -3958,7 +4139,18 @@ class MapTaskerEventHandlers:
         save_profile_to_android_event, there's no field-edit/apply step first --
         a Project has no separate editable model, and this exports under its
         current, already-applied name, same as save_project_event's local export.
+
+        That "no apply step" is an assertion about the dialog, not a permanent fact
+        about Projects, so it is checked rather than assumed: the guard runs before the
+        device is contacted, so a field added without its apply fails here instead of
+        putting an incomplete Project on the phone.  See _unapplied_project_edits.
         """
+        errors = _unapplied_project_edits(field_refs)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
@@ -5070,6 +5262,48 @@ class MapTaskerEventHandlers:
             close_button=True,
         )
 
+    def notify_timeout_event(self: object, choice: object) -> None:
+        """Notification Duration pulldown, and the same key on restore.
+
+        Takes either the label the pulldown shows ("10 seconds") or the milliseconds the
+        settings file holds (10000), because both arrive here: the widget sends its label and
+        restore_display sends the saved number.  Anything unrecognised falls back to the
+        default rather than to zero -- a bad value should not silently turn every message in
+        the app into one that never goes away.
+        """
+        guiview = self.gui
+        if getattr(guiview, "is_updating", False):
+            return
+
+        raw = choice.value if hasattr(choice, "value") else choice
+        by_label = {translate_string(label): milliseconds for label, milliseconds in NOTIFY_TIMEOUT_CHOICES}
+        by_label.update({label: milliseconds for label, milliseconds in NOTIFY_TIMEOUT_CHOICES})
+
+        if isinstance(raw, str) and raw in by_label:
+            milliseconds = by_label[raw]
+        else:
+            try:
+                milliseconds = int(str(raw).strip())
+            except (TypeError, ValueError):
+                milliseconds = NOTIFY_TIMEOUT_DEFAULT
+            if milliseconds not in {value for _label, value in NOTIFY_TIMEOUT_CHOICES}:
+                milliseconds = NOTIFY_TIMEOUT_DEFAULT
+
+        guiview.notify_timeout = milliseconds
+        set_notification_timeout(milliseconds)
+
+        label_for = {value: label for label, value in NOTIFY_TIMEOUT_CHOICES}
+        display_value = translate_string(label_for[milliseconds])
+        widget = getattr(guiview, "notify_timeout_optionmenu", None)
+        if widget:
+            try:
+                guiview.is_updating = True
+                widget.value = display_value
+                widget.update()
+            finally:
+                guiview.is_updating = False
+        return f"{translate_string('Notification Duration')} {translate_string('set to')} {display_value}\n"
+
     def viewlimit_event(self: object, view_limit: str) -> None:
         """View Limit Event handled safely without recursion."""
         guiview = self.gui
@@ -5088,8 +5322,8 @@ class MapTaskerEventHandlers:
             if display_value.isdigit():
                 guiview.view_limit = int(display_value)
             else:
-                display_value = "10000"  # Fallback safety
-                guiview.view_limit = 10000
+                display_value = str(VIEW_LIMIT_DEFAULT)  # Fallback safety
+                guiview.view_limit = VIEW_LIMIT_DEFAULT
 
         # 3. Target the correct guiview reference variable
         if hasattr(guiview, "viewlimit_optionmenu") and guiview.viewlimit_optionmenu:

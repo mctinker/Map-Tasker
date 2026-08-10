@@ -6,10 +6,9 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Add/Edit a Scene - initial support for Legacy (minimal editing) and Version 2 (designer with 4 available basic templates) Scenes
-- Added: Add/Edit Scene - the Version 2 designer's 'Add' button now opens an 'Add Element' dialog modelled on Tasker's own: a search box and every element as a labelled chip, grouped as Display/Input/Layout/Media and named the way the Screen Builder names them ('Vertical Column' rather than 'Column').  It offers every element Tasker's own list does, describes each one, says up front where the new element will land, and greys out - with the reason - anything that can't go at the current selection.  Every element Tasker offers is now fully supported, with its real properties: Progress Bar, Camera, Range Slider, Arrays Merge Template, Bottom App Bar, Box (Z-Stack), Card, FlexBox, Flow Column and Placeholder.  Should a future Tasker add an element MapTasker has no sample of, the dialog marks it and adds it carrying nothing but its type and id.
-- Added: Add/Edit Scene - the Version 2 'Show when' field now has a picker for the variables a condition is built out of, in the three categories Tasker offers them in: 'Environment' (the Screen Builder's own %sv2_display_* and %sv2_render_* values), 'User Globals' (your own global variables out of the loaded backup) and 'Built-in Globals' (Tasker's own, listed under their documented names - pick 'Airplane Mode Status' and it inserts '%AIR').  It also offers the comparison operators ('Equals', 'Contains (Case-Insensitive)', 'Matches Regex', ...) and the logical operators ('And', 'Or', 'Not'), so a whole condition - one or more variables, each with a comparison, joined by logic - can be built without typing an operator or remembering how a variable is spelled.  Search runs across every category, and each pick is inserted at the cursor, or at the end if you have not put the cursor anywhere, with spacing added around it.
-- Added: Add/Edit Scene - a Version 2 component's 'Tree label' (the name Tasker's Screen Builder shows it under) is now editable, and the designer's tree shows it in place of the component id wherever one is set.  'Show when'/'Hidden as' are now offered on every component rather than just a few.
+- Added: Add/Edit a Scene - Support for Legacy and Version 2 (designer with 4 available basic templates) Scenes
+- Added: Scene 'Preview' button, while editing a Scene, provides a preview of the Scene's appearance.
+- Added: Notification Duration can not be set in the GUI.
 
 ### Changed
 

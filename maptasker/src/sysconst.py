@@ -128,6 +128,7 @@ ARGUMENT_NAMES = {
     "italicize": "Italicize Names",
     "list_unnamed_items": "List Unnamed Items",
     "local_xml_directory": "Default Directory For 'Get Local XML File'",
+    "notify_timeout": "Notification Duration",
     "view_limit": "View Limit",
     "preferences": "Display Tasker Preferences",
     "pretty": "Display Prettier Output",
@@ -334,6 +335,18 @@ MODEL_GROUPS = {
 
 # Define the number of Profiles per line in the Diagram view.  Default = 6.
 DIAGRAM_PROFILES_PER_LINE = 6
+
+# How many lines the Map and Diagram views will build before they stop.  Single source of
+# truth for the four places that have to agree about it: the runtime-argument defaults, the
+# GUI's own initial value, what "Reset Options" restores, and the fallback viewlimit_event
+# lands on when it is handed something it cannot parse.
+VIEW_LIMIT_DEFAULT = 10000
+
+# How long a GUI notification stays up, in milliseconds; 0 means until dismissed
+# Valid values are 0, 1000 (one second), 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, and 10000.
+# Must be one of the values in guiwins.NOTIFY_TIMEOUT_CHOICES -- the pulldown has to be able
+# to show it.
+NOTIFY_TIMEOUT_DEFAULT = 5000
 
 # Number of spaces to substitute &nbsp; for <blanktab> CSS in the output. [spaces, 'pixels']
 SPACE_COUNT1 = [16, "155"]
