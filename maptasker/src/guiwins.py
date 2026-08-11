@@ -2779,6 +2779,18 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
 # something different in each -- so the event says which root it came from and only that
 # designer answers.
 _ACTIVE_CANVASES: dict[str, dict[str, Callable]] = {}
+# How long a typed-into designer field waits, after the last keystroke, before committing.
+#
+# Quasar's own debounce, so the caret is never involved: it holds the value and emits once the
+# typing stops, and QInput flushes anything still pending on blur and on the native change
+# event (onFinishEditing/onChange both call the pending emit).  Nothing can be lost by clicking
+# Ok, tabbing away or picking another element straight after typing.
+#
+# It is here because a commit repaints the canvas, and a canvas is not a cheap thing to
+# repaint: every element is redrawn, and a Text element holding HTML or a Web element holding a
+# page is a sandboxed frame that reloads with it (see sceneview._html_frame).  Doing that once
+# per '#FF8800' rather than eight times is the difference between a redraw and a flicker.
+FIELD_COMMIT_DEBOUNCE_MS = 350
 # Which clients have had the three canvas events subscribed.
 #
 # Per client rather than per process, because that is what ui.on is: it hands the listener to
@@ -3134,6 +3146,10 @@ def _build_legacy_designer(
         """One of the four geometry boxes.  Typing a number and dragging the element are the
         same operation on the same value, so they go through the same legacy_set_geometry and
         land on the same undo stack.
+
+        Repaints rather than re-renders, and is debounced, for the reasons on repaint() and
+        FIELD_COMMIT_DEBOUNCE_MS -- typing "140" into Width is three keystrokes, and a
+        re-render on the first of them would take the box being typed into with it.
         """
 
         def commit(event: Event, position: int = index) -> None:
@@ -3148,10 +3164,10 @@ def _build_legacy_designer(
             values = list(current)
             values[position] = number
             sceneedit.legacy_set_geometry(element, tuple(values), landscape=orientation["landscape"])
-            render()
+            repaint()
 
         ui.number(translate_string(label), value=box[index], format="%d", on_change=commit).props(
-            "dense",
+            f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}",
         ).classes("w-1/4")
 
     def render_inspector() -> None:
@@ -3187,7 +3203,7 @@ def _build_legacy_designer(
 
         ui.label(translate_string("Properties")).classes("text-xs uppercase text-gray-500 mt-2")
         for arg in args:
-            _render_legacy_arg(arg, render, on_rename=rename_selected)
+            _render_legacy_arg(arg, repaint, on_rename=rename_selected)
         render_tasks(element)
         render_background(element)
         render_item_layout(element)
@@ -3382,7 +3398,7 @@ def _build_legacy_designer(
             # It is a RectElement, so it gets the Rect fields -- the same generated form the
             # inspector gives a real Rect, from the same table.
             for arg in sceneedit.legacy_element_args(background):
-                _render_legacy_arg(arg, render, name_editable=True)
+                _render_legacy_arg(arg, repaint, name_editable=True)
             ui.button(translate_string("Remove background"), icon="delete", on_click=remove_background).props(
                 "dense flat size=sm color=negative",
             )
@@ -3432,13 +3448,34 @@ def _build_legacy_designer(
                 ).props("dense flat")
                 return
             for arg in sceneedit.legacy_element_args(properties):
-                _render_legacy_arg(arg, render, name_editable=True)
+                _render_legacy_arg(arg, repaint, name_editable=True)
 
     def add_scene_properties() -> None:
         snapshot()
         sceneedit.legacy_add_scene_properties(scene_element)
         expanded["properties"] = True
         render()
+
+    def repaint() -> None:
+        """Redraw the canvas, and leave every form on screen exactly as it is.
+
+        WHAT EVERY TYPED-INTO FIELD COMMITS THROUGH, in place of render().  render() clears
+        the panes and builds them again, which destroys the widget being typed into and takes
+        the caret with it: entering a colour meant typing '#', losing focus, clicking the
+        field, typing 'F', losing focus, and so on for every character of '#FF8800'.  The V2
+        designer keeps focus the same way -- write the value through, update whatever the
+        value changed, do not touch the form (see the treeLabel note in _build_v2_designer).
+
+        The canvas is the only thing that can be showing something the new value contradicts.
+        The element list names elements by type and by name, and neither is reachable from a
+        field here -- a top-level element's name belongs to the Rename button, never to a text
+        box -- while the header counts elements, which no value edit changes.  Structural
+        edits (add, delete, restack, background added or removed) do change those, and they
+        stay on render(); none of them is a keystroke.
+        """
+        canvas_pane.clear()
+        with canvas_pane:
+            render_canvas()
 
     def render() -> None:
         _ACTIVE_CANVASES[root_class] = {
@@ -3651,6 +3688,11 @@ def _render_legacy_arg(
     nothing left to collect from.  Cancel still discards everything, because all of this is
     happening to the dialog's own deep copy of the Scene.
 
+    `on_applied` RUNS WHILE THE FIELD STILL HAS FOCUS, and must therefore not rebuild the
+    container these widgets are in -- it would destroy the one being typed into mid-word.  The
+    designer passes its repaint(), which redraws the canvas and leaves the forms alone; see
+    that function, which is where this used to go wrong.
+
     THE NAME FIELD IS THE EXCEPTION, and which exception depends on whose name it is:
 
       * A top-level element's name is what 18 Task action codes look it up by, so it is not
@@ -3706,8 +3748,12 @@ def _render_legacy_arg(
             if arg.readonly_note:
                 ui.label(translate_string(arg.readonly_note)).classes("text-xs text-gray-500 italic")
         else:  # "text" and "raw_fallback"
+            # Debounced, unlike the checkbox and the dropdown above: those commit one whole
+            # value per click, while this one is typed a character at a time.  See
+            # FIELD_COMMIT_DEBOUNCE_MS, and repaint() for why the commit no longer takes the
+            # caret with it either way.
             ui.input(translate_string(arg.arg_name), value=arg.current_value, on_change=commit).props(
-                "dense",
+                f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}",
             ).classes("flex-1")
 
 

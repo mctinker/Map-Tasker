@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.1.0] 12-Aug-2026
+## [12.1.0-12.1.1] 12-Aug-2026
 
 ### Added
 
@@ -18,12 +18,10 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed: After the main window was rebuilt - a browser reload, a reconnect, or a second window - the Scene designer's canvas stopped responding to clicks, drags and arrow keys entirely.  Those subscriptions belong to a window, but were being tracked as though one per program run were enough, so the rebuilt window never got its own.
 - Fixed: An EditText element that allowed exactly two characters was drawn as though its text were HTML - tags stripped and an 'HTML' badge in the corner.  'Maximum Characters' is the eighth argument on an EditText element and 'Text Format' is the eighth on a Text element, and the Preview was reading the one as the other.
 - Fixed: A Project/Profile/Task variable, or a global variable, holding a whole HTML document - a Scene V2 WebView's page, for instance - had that document written into the map as live markup rather than as the value's text.  Its `<style>` then restyled the map itself and its `<script>` ran there, which collapsed the entire Map view to a blank page.  Variable names, prompts, values, display names and exported values are now escaped, so the value shows as the text it is.
 - Fixed: An image in a TaskerNet description was shown as the literal text of its `<img>` tag, and no picture, whenever the Map view had to build its content itself rather than from the generated MapTasker.html.  Images - along with `<figure>`, `<figcaption>`, `<code>`, `<pre>`, `<blockquote>`, `<big>`, `<small>`, `<font>`, `<mark>`, `<sub>` and `<sup>` - now render there as they do everywhere else.
 - Fixed: An image whose address or alt text contained a double quote or an ampersand produced a malformed `<img>` tag, which for the address meant the browser was handed a truncated URL and no image appeared.  Both are now escaped, and an `<img>` asking for a scheme we won't load (e.g. `javascript:`) is dropped rather than passed to the browser.
-- Changed: A description's images are now requested without a referrer, so an image host that refuses hotlinking no longer turns down the request just because it came from a 'localhost' or 'file://' page.
 - Fixed: A TaskerNet description carrying a `<style>` block printed the stylesheet itself as text, under 'Style tag details......'.  The rules are now matched against the description's own elements and used to color, bold, italicize and underline its text, the same way an inline 'style=' attribute already was, and the stylesheet is no longer shown.
 - Fixed: Clicking outside an Add/Edit panel - or pressing Esc - closed it and silently discarded everything typed into it.  Every panel that holds your work or asks you to decide something now leaves on a button and nothing else: Add/Edit Project, Profile, Task and Scene, the Add Element and Scene template pickers, Rename, the Delete and Overwrite confirmations, every Save To Android prompt, the Ai prompt and the Api Key panels.  Cancel still discards - the difference is that it is now something you chose.  Read-only popups (messages, search results, the colour picker) still dismiss with a click as before.
 - Fixed: The 'Jump' buttons in the Diagram view jump to the middle column of the view rather than the beginning column. 
