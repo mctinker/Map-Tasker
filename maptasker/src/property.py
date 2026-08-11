@@ -5,6 +5,8 @@
 #                                                                                      #
 # property: get Project/Profile/Task properties and output them                        #
 #                                                                                      #
+import html
+
 import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.actione import fix_json
@@ -17,6 +19,29 @@ from maptasker.src.sysconst import FormatLine
 def get_text(element: defusedxml.ElementTree) -> str:
     """Return value or"""
     return element.text if element is not None else ""
+
+
+# Helper function to get text safely, as display data rather than as markup
+def get_display_text(element: defusedxml.ElementTree) -> str:
+    """Return the element's text with any markup in it escaped so it displays as itself.
+
+    A variable's name/prompt/value is data a person typed into Tasker, not markup meant to
+    be rendered, and Tasker users routinely park a whole HTML document in one (a Scene V2
+    WebView's page, for instance).  Written into the map as-is, that document's own
+    '<style>' rules restyle the map itself -- one project variable holding a WebView page
+    whose CSS says 'body {display: flex; height: 100vh; background-color: transparent}'
+    was enough to collapse the entire Map view for its Project to a blank page -- and its
+    '<script>' runs in the map.  Escaping keeps the value visible as the text it is.
+
+    Args:
+        element (defusedxml.ElementTree): the xml element holding the text, or None
+
+    Returns:
+        str: the element's text, safe to embed in the output
+    """
+    # get_text hands back the element's text verbatim, which is None for an empty tag
+    # (<pvd></pvd>, of which every variable in a backup has several).
+    return html.escape(get_text(element) or "")
 
 
 # Parse Property's variable and output it
@@ -95,18 +120,18 @@ def parse_variable(
 
     # Mapping field values to output strings.  They are in the order as displayed in Tasker.
     components = [
-        f"Variable:{get_text(fields['pvn'])}, " if get_text(fields["pvn"]) else "",
+        f"Variable:{get_display_text(fields['pvn'])}, " if get_text(fields["pvn"]) else "",
         "Configure on Import, " if get_text(fields["pvci"]) != "false" else "",
         "Structured Variable (JSON, etc.), " if get_text(fields["strout"]) != "false" else "",
         "Immutable, " if get_text(fields["immutable"]) != "false" else "",
-        f"Clear Out:{get_text(fields['clearout'])}, " if get_text(fields["clearout"]) != "false" else "",
-        f"Prompt:{get_text(fields['pvd'])}, " if get_text(fields["pvd"]) else "",
-        f"Value:{get_text(fields['pvv'])}, " if get_text(fields["pvv"]) else "",
-        f"Display Name:{get_text(fields['pvdn'])}, " if get_text(fields["pvdn"]) else "",
+        f"Clear Out:{get_display_text(fields['clearout'])}, " if get_text(fields["clearout"]) != "false" else "",
+        f"Prompt:{get_display_text(fields['pvd'])}, " if get_text(fields["pvd"]) else "",
+        f"Value:{get_display_text(fields['pvv'])}, " if get_text(fields["pvv"]) else "",
+        f"Display Name:{get_display_text(fields['pvdn'])}, " if get_text(fields["pvdn"]) else "",
     ]
 
     # Determine exported value
-    exported_value = "Same as Value" if get_text(fields["pvn"]) == "1" else get_text(fields["exportval"])
+    exported_value = "Same as Value" if get_text(fields["pvn"]) == "1" else get_display_text(fields["exportval"])
     components.append(f"Exported Value:{exported_value}, " if exported_value else "")
 
     # Get the variable type

@@ -309,21 +309,22 @@ LLAMA_MODELS = [
     "mistral-nemo",
     "phi3",
     "phi4-mini",
-    "qwen3:1.7b",
+    "qwen3:1:latest",
     "qwen3.5:0.8b",
     "tinyllama",
 ]
 ANTHROPIC_MODELS = [
+    "claude-fable-5",
     "claude-haiku-4-5",
-    "claude-opus-4-8",
-    "claude-sonnet-4-6",
+    "claude-opus-5",
+    "claude-sonnet-5",
 ]
 DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
     "gemini-3.1-pro",
-    "gemini-3-flash",
+    "gemini-3.6-flash",
     "gemini-3.5-flash",
-    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",
 ]
 MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,

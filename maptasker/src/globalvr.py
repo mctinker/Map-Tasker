@@ -7,6 +7,8 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
+import html
+
 import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src.primitem import PrimeItems
@@ -237,8 +239,13 @@ def get_variables() -> None:
             else:
                 variable_value = child.text
 
-        # Format the output
+        # Format the output.  The value is data somebody stored in Tasker, not markup meant
+        # to be rendered, so escape it before adding any of our own: a variable holding a
+        # whole HTML document (a Scene V2 WebView's page, say) would otherwise have its
+        # '<style>'/'<script>' turned loose on the map itself -- see get_display_text in
+        # property.py, where the same thing blanked out an entire Project's Map view.
         if variable_value:
+            variable_value = html.escape(variable_value)
             variable_value = variable_value.replace(",", "<br>")
             variable_value = variable_value.replace(" ", "&nbsp;")
 

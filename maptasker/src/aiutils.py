@@ -216,26 +216,18 @@ def get_anthropic_models() -> list:
     """
     # From : https://docs.anthropic.com/en/api/client-sdks
     return [
-        # "claude-opus-4-20250514",
-        "claude-opus-4-0",  # alias
-        "claude-opus-4-1",  # alias
-        "claude-opus-4-5",  # alias
+        "claude-fable-5",
+        "claude-opus-5",
+        "claude-sonnet-5",
+        "claude-opus-4-7",
+        "claude-opus-4-8",
+        "claude-opus-4-5",
         "claude-opus-4-6",
-        # "claude-sonnet-4-20250514",
-        "claude-sonnet-4-0",  # alias
         "claude-sonnet-4-5",
         "claude-sonnet-4-6",
-        # Claude 3.5 Models
         "claude-3-5-haiku-latest",  # alias
-        "claude-haiku-4-5",  # alias
-        # "claude-3-5-sonnet-20241022",
-        "claude-3-5-sonnet-latest",  # alias
-        "claude-sonnet-4-5",  # alias
-        # Claude 3 Models
-        "claude-3-opus-20240229",
-        "claude-3-opus-latest",  # alias
-        "claude-3-sonnet-20240229",
-        "claude-3-haiku-20240307",
+        "claude-haiku-4-5",
+        "claude-sonnet-4-5",
     ]
 
 
@@ -386,23 +378,25 @@ def get_llama_models() -> list:
         "gemma3n:latest",
         "gemma3n:e2bllama2",
         "gemma3n:e4b",
-        "glm-4.7",
+        "glm-5.2",
         "glm-4.7-flash",
         "gpt-oss:latest",
         "granite4.1",
         "llama2",
         "llama3",
         "llama3.1:latest",
-        "llama3:l:8b",
         "llama3.2:latest",
         "llama3.2:1b",
         "llama3.3",
         "llama4",
         "lfm2",
+        "kimi-k3",
         "magistral",
+        "minimmax-m3",
         "mistral",
         "mistral-nemo",
         "olmo2",
+        "ornith:latest",
         "phi3:latest",
         "phi4",
         "phi4-mini",

@@ -42,10 +42,15 @@ papered over -- the whole point of a preview is that what it shows can be truste
     generated from the user's wallpaper.  They are resolved here against the M3 baseline
     palette, which is a real answer but not the user's answer; see V2_MATERIAL_PALETTE.
 
-  * Images and web content.  A Legacy <Img> names a built-in Tasker icon or a file on the
-    device; a V2 Image names a URL.  Neither is fetched -- the first two are unreachable, and
-    the third is not something a preview should go to the network for.  Web content is not
-    rendered even when it is inline HTML: see _draw_web.
+  * Images, and web content this app would have to go and get.  A Legacy <Img> names a
+    built-in Tasker icon or a file on the device; a V2 Image names a URL; a Web element in
+    URL or File mode names a page in one of those two places.  None is fetched -- the
+    device-side ones are unreachable, and the network ones are not a trip a preview should
+    make on the user's behalf.  Markup the Scene carries itself is different: a Web element's
+    inline page and a Text element's HTML are both here, so both ARE drawn, in a frame that
+    renders markup without running it or letting it reach anything.  See _WEB_SANDBOX,
+    _draw_web, _v2_draw_web_view and _text_content -- and note that a page which builds
+    itself in JavaScript therefore previews as its markup alone.
 
 WHERE THE PROPERTY NAMES COME FROM
 
@@ -145,15 +150,50 @@ _FIT_SCROLL = 2
 
 # actiont "TextElement3" -- Text Format: Plain Text, Text With Links, HTML.
 _FORMAT_HTML = 2
-# Tags are stripped from an HTML-format Text element rather than rendered -- see
-# _text_content.  Deliberately a blunt "anything between angle brackets": this is not
-# parsing the markup, it is removing it.
+# For the HTML-format text that is NOT rendered -- a value with no real markup in it, or one
+# that is wholly a %variable; see _text_content.  Deliberately a blunt "anything between
+# angle brackets": this is not parsing the markup, it is removing it.
 _HTML_TAG = re.compile(r"<[^>]*>")
 
 # How deep to follow an item layout (a Spinner/List/Picker carries a whole nested <Scene>).
 # One level is what makes those elements legible; more would be a Scene inside a Scene inside
 # a Scene, drawn at a size nobody can read.
 _MAX_ITEM_DEPTH = 1
+
+# actiont "WebElement" -- Mode: URL, File, Direct.  Only "Direct" holds the page itself; the
+# other two name something on the network or on the Android device, neither of which is here.
+_WEB_MODE_DIRECT = 2
+
+# Does this value carry markup?  Deliberately loose -- one tag, closing tag or doctype is
+# enough to call it a page.  A Source without one keeps the placeholder, so a bare URL, a
+# lone %variable or a plain sentence is not dressed up as a document it isn't.
+_HTML_MARKUP = re.compile(r"<(?:!doctype\b|/?[a-z][a-z0-9]*)(?:\s[^>]*)?/?>", re.IGNORECASE)
+
+# What the frame holding that markup may do: nothing that reaches out of itself.
+#
+# An empty sandbox is every restriction at once -- most of all no scripts and no
+# same-origin -- which is what makes rendering the markup a different act from running it.
+# The page draws; it cannot read this app's page, its session or its storage, cannot
+# navigate the window it sits in, and cannot submit a form.  A shared Tasker project is
+# exactly the sort of file that arrives from a stranger, so this is not negotiable: see
+# _draw_web, which stopped at a placeholder for want of it.
+_WEB_SANDBOX = ""
+
+# ...and nothing that reaches out to the network.  Without this, an <img src="https://...">
+# or an @font-face in a stranger's Scene would tell that host the user just opened the
+# backup, which is the network trip this module's docstring declines to make on their behalf.
+# Inline CSS is what makes the preview worth looking at, and data: URIs are self-contained,
+# so those two are all that is allowed.
+_WEB_CSP = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src data:; media-src data:"
+
+# Where that policy has to go: a Content-Security-Policy <meta> counts only inside <head>,
+# and only before the content it governs.  Slipping it in after the document's own <head>
+# (or after <html>, for markup that never opened one) leaves the rest of the document
+# exactly as written -- which matters, because prepending a wrapper of our own would put
+# the doctype in the body and drop the page into quirks mode, changing the very layout the
+# preview exists to show.
+_HTML_HEAD_OPEN = re.compile(r"<head(?:\s[^>]*)?>", re.IGNORECASE)
+_HTML_OPEN = re.compile(r"<html(?:\s[^>]*)?>", re.IGNORECASE)
 
 
 @dataclass
@@ -725,24 +765,71 @@ def _position_style(args: ElementArgs, index: int = 6) -> str:
     return f"display: flex; justify-content: {justify}; align-items: {align};"
 
 
-def _text_content(args: ElementArgs, index: int, options: PreviewOptions, height: int) -> None:
+def _text_document(snippet: str, base_style: str, position_style: str) -> str:
+    """A Text element's markup as a document, styled the way the Scene styles the element.
+
+    The element's own font, colour, width scale and position are put on the document rather
+    than left behind with the frame: a Text element's HTML is a styled *sentence*, and Tasker
+    draws it over the size and colour set on the element, with the markup's own tags
+    overriding those from the inside.  Handing the frame those same two rules -- the box's
+    alignment on <body>, the element's text style on the sentence -- is what makes the drawn
+    result the element rather than a bare snippet in a browser's default serif.
+
+    Mirrors the DOM the plain-text branch builds (a flex box holding one styled label), with
+    one deliberate difference: no white-space: pre-wrap.  Runs of spaces and newlines collapse
+    in markup -- which is why the author wrote a <br> to break the line -- and honouring them
+    literally turns a two-line label into three or four and clips what should have fitted.
+    The plain-text branch keeps pre-wrap for the opposite reason: there, a newline in the
+    value is the only line break there is.
+    """
+    return (
+        "<!DOCTYPE html><html><head><style>"
+        "html, body { margin: 0; padding: 0; height: 100%; background: transparent; }"
+        f"body {{ {position_style} overflow: hidden; }}"
+        f".t {{ {base_style} max-width: 100%; text-align: center; overflow-wrap: break-word; }}"
+        f'</style></head><body><div class="t">{snippet}</div></body></html>'
+    )
+
+
+def _text_content(
+    args: ElementArgs,
+    index: int,
+    options: PreviewOptions,
+    height: int,
+    *,
+    html_format: bool = False,
+) -> None:
     """Draw the element's text, marked as variable-driven when that is what it is.
 
-    A Text element set to the HTML format (arg8) holds markup, and real Scenes use a lot of
-    it -- whole <font color=...> runs.  It is neither rendered nor shown as source: the tags
-    are stripped and the text inside them drawn.
+    `html_format` says the value is markup, and only the caller can know that: it is arg8 on
+    a TextElement, but arg8 on an EditTextElement is Maximum Characters, so reading it here
+    would call an input that allows two characters an HTML one.
 
-    Rendering it is out, for the reason in _draw_web -- markup out of a backup file must not
-    run in this app's page.  Showing the source is out because it is unreadable: an element
-    whose text is one styled sentence fills its box with angle brackets, and a preview of a
-    Scene made of those tells the user nothing about their Scene.  Stripping loses the bold
-    and the colours, which is worth saying, so the element carries an HTML badge.
+    Markup is rendered, in the sandboxed frame described at _WEB_SANDBOX -- the same frame
+    the Web element uses, for the same reason.  A frame rather than markup put straight into
+    this page even for something as small as one <b>: the sentence can carry a <style> block,
+    and a stylesheet loose in the preview restyles the whole of it (which is not theoretical
+    -- see the Map view, where exactly that blanked out a Project).  Its own styling is
+    handed to the frame, so what is drawn is still this element -- see _text_document.
+
+    A value with no markup in it, or one that is wholly a %variable, has nothing to render:
+    those keep the plain label, with any stray tags stripped rather than shown as source (an
+    element whose text is one styled sentence would otherwise fill its box with angle
+    brackets, and a preview of a Scene made of those says nothing about the Scene).
     """
     raw = args.text(index)
     if not raw:
         return
-    is_html = args.number(8) == _FORMAT_HTML
-    text = html.unescape(_HTML_TAG.sub("", raw)).strip() if is_html else raw
+
+    if html_format and _is_inline_html(raw):
+        _html_frame(
+            _text_document(raw, _text_style(args, height, options), _position_style(args)),
+            "position: absolute; inset: 0; width: 100%; height: 100%;",
+        )
+        _corner_badge("HTML")
+        return
+
+    text = html.unescape(_HTML_TAG.sub("", raw)).strip() if html_format else raw
     if not text:
         return
 
@@ -752,14 +839,15 @@ def _text_content(args: ElementArgs, index: int, options: PreviewOptions, height
         # where the user expects to judge what their Scene looks like.  Mark it instead.
         style += "font-style: italic; text-decoration: underline dotted; opacity: 0.85;"
     ui.label(text).style(f"{style} max-width: 100%; overflow: hidden; white-space: pre-wrap; text-align: center;")
-    if is_html:
+    if html_format:
         _corner_badge("HTML")
 
 
 def _corner_badge(text: str) -> None:
-    """A small marker in an element's top-right: what the drawing had to leave out (HTML
-    formatting) or what it cannot show (an input type).  Positioned against the element's
-    frame, so it is drawn from inside a drawer rather than by the caller.
+    """A small marker in an element's top-right: that what is drawn there is the element's
+    own markup ("HTML"), or something the drawing cannot show (an input type).  Positioned
+    against the element's frame, so it is drawn from inside a drawer rather than by the
+    caller.
     """
     ui.label(text).style(
         "position: absolute; right: 2px; top: 1px; font: 10px/1.2 monospace;"
@@ -787,6 +875,75 @@ def _placeholder(icon: str, caption: str, detail: str = "") -> None:
             )
 
 
+def _is_inline_html(source: str) -> bool:
+    """Whether this Source is a page the preview can draw rather than a reference to one.
+
+    A Web element's Source is only markup in "Direct" mode, and even then only when there is
+    markup in it -- Tasker is happy to hold a bare URL, a lone %variable or a plain sentence
+    there.  A value that is wholly a %variable is a page nothing in a backup file can show,
+    whatever it looks like, so it is excluded too.
+    """
+    stripped = source.strip()
+    return bool(stripped) and not stripped.startswith("%") and bool(_HTML_MARKUP.search(stripped))
+
+
+def _sandboxed_document(source: str) -> str:
+    """`source` with _WEB_CSP inserted into it, ready to be a frame's srcdoc."""
+    policy = f'<meta http-equiv="Content-Security-Policy" content="{_WEB_CSP}">'
+    for pattern, insert in ((_HTML_HEAD_OPEN, policy), (_HTML_OPEN, f"<head>{policy}</head>")):
+        match = pattern.search(source)
+        if match:
+            return source[: match.end()] + insert + source[match.end() :]
+    # A fragment rather than a whole document (no <html>, no <head>): give it the head it
+    # never had.  The doctype leads, so this still parses in standards mode.
+    return f"<!DOCTYPE html><html><head>{policy}</head><body>{source}</body></html>"
+
+
+def _html_frame(source: str, box_style: str, background: str = "transparent") -> None:
+    """The frame a Scene's own HTML is drawn in -- see _WEB_SANDBOX for what it may do.
+
+    `background` is what shows through where the markup paints nothing.  It defaults to
+    transparent because a frame is drawn *over* the element's own background -- the
+    <RectElement sr="background"> that gives a Text element its fill and its rounded corners
+    -- and an opaque frame would hide the very thing the text is meant to sit on.  A Web
+    element passes white: a WebView's page starts on white on the phone, and every colour in
+    a page written for one is chosen against that.
+
+    pointer-events are off.  The preview is a picture, and the Legacy designer's drag has to
+    reach the element frame underneath rather than stop at the page drawn on it.
+    """
+    frame = ui.element("iframe").style(f"border: 0; background: {background}; pointer-events: none;{box_style}")
+    # Set through props rather than props()' string parsing: a whole HTML document holds every
+    # character that syntax uses.  sandbox has to be present-but-empty, which is the one thing
+    # "sandbox" alone as a boolean prop would not say.
+    frame.props["srcdoc"] = _sandboxed_document(source)
+    frame.props["sandbox"] = _WEB_SANDBOX
+    frame.props["referrerpolicy"] = "no-referrer"
+    # Not loading="lazy": the document is inline, so there is nothing to defer, and a frame
+    # inside a canvas the view scales with a CSS transform is exactly the case where the
+    # browser's own "is this on screen yet" guess would leave it blank.
+    frame.props["scrolling"] = "no"
+
+
+def _draw_inline_html(source: str, width: int, height: int, options: PreviewOptions) -> None:
+    """Draw a Legacy Web element's own HTML at its place on the canvas.
+
+    The frame is laid out at the element's size in *CSS* pixels and then scaled back up by
+    the density, rather than being handed the raw <geom> size: a WebView lays its page out in
+    CSS pixels, so a 1440px-wide element on a 2.75 phone is a 524px-wide viewport, and giving
+    the page 1440 would draw it at a third of the size it has on the phone.  Same sp->px
+    conversion _text_style makes, for the same reason.
+    """
+    viewport_width = max(1, round(width / options.density))
+    viewport_height = max(1, round(height / options.density))
+    _html_frame(
+        source,
+        f"position: absolute; left: 0; top: 0; width: {viewport_width}px; height: {viewport_height}px;"
+        f"transform: scale({options.density}); transform-origin: top left;",
+        background="#fff",
+    )
+
+
 # ------------------------------------------------------------------
 # One drawer per element type.  Argument numbers per actionc.action_codes.
 # ------------------------------------------------------------------
@@ -800,13 +957,16 @@ def _draw_text(
 ) -> None:
     """TextElement: 1 Text, 2 Text Size, 3 Width Scale %, 4 Colour, 5 Font, 6 Position,
     7 Vertical Fit Mode, 8 Text Format.
+
+    Text Format is read here rather than inside _text_content because arg8 only means the
+    format on this element type -- see _text_content.
     """
     overflow = "auto" if args.number(7) == _FIT_SCROLL else "hidden"
     with ui.element("div").style(
         f"position: absolute; inset: 0; box-sizing: border-box; overflow: {overflow};"
         f"{_background_style(element)}{_position_style(args)}",
     ):
-        _text_content(args, 1, options, height)
+        _text_content(args, 1, options, height, html_format=args.number(8) == _FORMAT_HTML)
 
 
 def _draw_button(
@@ -1034,22 +1194,28 @@ def _draw_toggle(
 def _draw_web(
     element: defusedxml.ElementTree.Element,  # noqa: ARG001
     args: ElementArgs,
-    width: int,  # noqa: ARG001
-    height: int,  # noqa: ARG001
-    options: PreviewOptions,  # noqa: ARG001
+    width: int,
+    height: int,
+    options: PreviewOptions,
     depth: int,  # noqa: ARG001
 ) -> None:
     """WebElement: 1 Mode (URL / File / Direct), 2 Source.
 
-    The content is NOT rendered, in any of the three modes, and that is a decision rather
-    than a gap.  "Direct" holds raw HTML out of the backup file: rendering it would run
-    someone else's markup -- and any script in it -- inside this app's own page, against
-    this app's own session, for no better reason than that it would look nicer.  A shared
-    Tasker project is exactly the sort of file that arrives from a stranger.  So the panel
-    reports the mode and the source and stops there.
+    In "Direct" mode the Source *is* the page, so it is drawn -- inside the frame described
+    at _WEB_SANDBOX, which renders markup without running it.  That distinction is the whole
+    reason this can be drawn at all: a shared Tasker project arrives from a stranger, and
+    what it holds must not get at this app's page or the network.  It draws no script, so a
+    page that builds itself in JavaScript previews as whatever its markup alone amounts to.
+
+    "URL" and "File" name a page on the network or on the Android device.  Neither is here
+    and neither is fetched, so those keep the panel reporting the mode and the source.
     """
-    mode = _enum(lookup_values["WebElement"], args.number(1)) or "?"
     source = args.text(2)
+    if args.number(1) == _WEB_MODE_DIRECT and _is_inline_html(source):
+        _draw_inline_html(source, width, height, options)
+        _corner_badge("HTML")
+        return
+    mode = _enum(lookup_values["WebElement"], args.number(1)) or "?"
     summary = source.splitlines()[0][:80] if source else translate_string("(empty)")
     _placeholder("public", f"Web ({mode})", summary)
 
@@ -2378,14 +2544,21 @@ def _v2_draw_image(node: dict, options: PreviewOptions, depth: int) -> None:  # 
 def _v2_draw_web_view(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
     """WebView: an embedded page, or HTML held in a variable.
 
-    Not rendered, for the reason the Legacy WebElement is not -- see _draw_web.  A V2
-    WebView's `content` is the same kind of thing: markup out of a backup file, which must
-    not run inside this app's own page.
+    Inline HTML is drawn, in the same sandboxed frame the Legacy WebElement uses -- see
+    _draw_web and _WEB_SANDBOX.  A `content` that names a page instead of holding one, or
+    that is a %variable, keeps the panel.
+
+    No density here: a V2 layout is already laid out in dp, which this renderer maps to CSS
+    pixels one-for-one, so the frame is simply the box it was given.
     """
     height = _v2_number(node, "height") or "120px"
     content = str(node.get("content", ""))
     with ui.element("div").style(f"position: relative; width: 100%; height: {height}; flex: none;"):
-        _placeholder("public", "WebView", content.splitlines()[0][:60] if content else "")
+        if _is_inline_html(content):
+            _html_frame(content, "position: absolute; inset: 0; width: 100%; height: 100%;", background="#fff")
+            _corner_badge("HTML")
+        else:
+            _placeholder("public", "WebView", content.splitlines()[0][:60] if content else "")
 
 
 def _v2_draw_video(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001

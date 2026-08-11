@@ -32,7 +32,7 @@ dependencies = [
     'deep_translator>=1.11.4',
     'defusedxml>=0.7.1',
     'nicegui>=3.15.0',
-    'packaging>=26.2',
+    'packaging>=26.3',
     'pillow==12.3.0',
     'requests>=2.34.2',
     'tomli_w>=1.2.0',

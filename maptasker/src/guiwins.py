@@ -9,6 +9,7 @@ import itertools
 import json
 import os
 import re
+import weakref
 from typing import TYPE_CHECKING
 
 from nicegui import Event, app, context, ui
@@ -2778,16 +2779,36 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
 # something different in each -- so the event says which root it came from and only that
 # designer answers.
 _ACTIVE_CANVASES: dict[str, dict[str, Callable]] = {}
-_CANVAS_EVENTS_REGISTERED = False
+# Which clients have had the three canvas events subscribed.
+#
+# Per client rather than per process, because that is what ui.on is: it hands the listener to
+# the page's own root element (nicegui.ui.on -> context.client.layout.on), so every page needs
+# its own subscription.  A single process-wide flag left a rebuilt window -- a reload, a
+# reconnect, a second window, all of which this app really does produce -- believing the job
+# was already done, and its designer's canvas then answered no clicks and no drags at all.
+#
+# Weak, so a client that has gone away is forgotten with it rather than being kept alive here.
+_CANVAS_EVENT_CLIENTS: weakref.WeakSet = weakref.WeakSet()
 # Hands out a unique root class per designer, so two on one page cannot share a stylesheet
 # rule, a resize handler or a pointer target.
 _DESIGNER_SEQUENCE = itertools.count(1)
 
 
 def _register_canvas_events() -> None:
-    """Subscribe the three canvas events, once per process."""
-    global _CANVAS_EVENTS_REGISTERED  # noqa: PLW0603
-    if _CANVAS_EVENTS_REGISTERED:
+    """Subscribe the three canvas events for this page, once.
+
+    Called from initialize_screen, while the layout is still being built -- not left to the
+    first designer that opens.  ui.on adds its listener to client.layout, and by the time a
+    dialog opens the browser has long had that element: a listener appearing on an element it
+    already knows is what made NiceGUI re-render the whole layout and log "Event listeners
+    changed after initial definition.  Re-rendering affected elements." the first time anyone
+    clicked "Edit Scene".
+
+    A designer still calls this itself, so a page that builds one without going through
+    initialize_screen is not left without the plumbing; the guard makes that call a no-op.
+    """
+    client = context.client
+    if client in _CANVAS_EVENT_CLIENTS:
         return
 
     def dispatch(name: str, payload: object) -> None:
@@ -2806,7 +2827,7 @@ def _register_canvas_events() -> None:
     ui.on("mt_scene_select", lambda event: dispatch("select", event.args))
     ui.on("mt_scene_geometry", lambda event: dispatch("geometry", event.args))
     ui.on("mt_scene_nudge", lambda event: dispatch("nudge", event.args))
-    _CANVAS_EVENTS_REGISTERED = True
+    _CANVAS_EVENT_CLIENTS.add(client)
 
 
 def _legacy_canvas_size(
@@ -6530,6 +6551,22 @@ class NiceGuiTextView:
                 "ul",
                 "ol",
                 "li",
+                # Everything format.py can put in a TaskerNet description or Task label needs
+                # to be in this list, or it is escaped and shown as its own markup instead of
+                # being rendered.  "img" is the one that shows: a description's picture came
+                # out as the literal text of its <img> tag and no image at all.
+                "img",
+                "figure",
+                "figcaption",
+                "big",
+                "small",
+                "code",
+                "pre",
+                "blockquote",
+                "font",
+                "mark",
+                "sub",
+                "sup",
             }
 
             for i in range(len(parts)):
@@ -7099,6 +7136,9 @@ def initialize_screen(self: MyGui) -> None:
     # start-up is capable of producing several (see restore_settings_event's running report).
     install_notification_timeout()
     set_notification_timeout(getattr(self, "notify_timeout", NOTIFY_TIMEOUT_DEFAULT))
+    # While the layout is still being built, rather than when a Scene designer first opens --
+    # see _register_canvas_events for why the timing is the whole point.
+    _register_canvas_events()
 
     # =========================================================================
     # 1. HEADER

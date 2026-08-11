@@ -347,6 +347,25 @@ def safe_url(url: str) -> str:
     return ""
 
 
+def image_source(url: str) -> str:
+    """
+    An <img src> value if we are willing to hand it to the browser, otherwise empty.
+
+    safe_url() is the general rule, with one exception: it refuses "data:", and a data URI is
+    exactly how a description embeds an image with no server to fetch it from.  An image data
+    URI is inert -- the browser decodes it as pixels, never as code -- so dropping it would
+    only lose a picture that renders perfectly well today.  Every other "data:" payload, and
+    every scheme safe_url() turns down, still goes.
+
+        :param url: the src as written in the description
+        :return: the URL, or "" if it isn't one we will load
+    """
+    cleaned = url.strip().replace("\n", "").replace("\t", "")
+    if cleaned.lower().startswith("data:image/"):
+        return cleaned
+    return safe_url(cleaned)
+
+
 def safe_style(style: str) -> str:
     """
     An inline style with any declaration that reaches outside itself removed.
@@ -625,6 +644,27 @@ VOID_ELEMENTS = {
 # having the stack restore a value the tag's own end-tag handler is about to overwrite.
 SELF_MANAGED_STYLE_TAGS = {"b", "em", "font", "i", "strong", "u"}
 
+# A <style> element's rules are resolved as the description is parsed: each rule is matched
+# against the elements it selects and folded into their styles, exactly as an inline "style="
+# attribute is (see _push_inline_styles).  There is nowhere for a real stylesheet to go --
+# the parser flattens the markup to colored text segments carrying no tags, classes or ids
+# for a selector to reach -- so the matching has to happen here, while the elements the rules
+# name still exist.  Only the four properties a segment can represent survive; backgrounds,
+# spacing and layout are passed over the same way they are in an inline style.
+CSS_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
+
+# The <br> that parse_html_to_text_segments puts in place of every newline before feeding the
+# parser.  A <style> element's content is CDATA, so those arrive as literal text in the middle
+# of the CSS and have to be turned back into the line breaks they stand for.
+CSS_LINE_BREAK = re.compile(r"<br\s*/?>", re.IGNORECASE)
+
+# One compound selector: an optional tag name followed by any run of ".class" and "#id".
+# Anything else -- an attribute selector, a pseudo-class, a sibling combinator -- cannot be
+# decided about an element as it is parsed, and the rule carrying it is dropped rather than
+# guessed at.
+COMPOUND_SELECTOR = re.compile(r"(\*|[a-zA-Z][\w-]*)?((?:[.#][\w-]+)*)$")
+SELECTOR_NAME = re.compile(r"[.#][\w-]+")
+
 # How far to indent the contents of each nested <div>.  Empty -- the setting we want -- means
 # no indenting: a nested layout is flattened to plain lines, the <div> nesting showing only in
 # where the lines break.  Set it to some whitespace (e.g. "&nbsp;&nbsp;") to step each level
@@ -641,6 +681,159 @@ MAX_INDENT_LEVELS = 6
 _BLOCK_TAGS = r"div|section|p|h[1-6]|ul|ol|li|table|thead|tbody|tr|td|th|blockquote|pre|hr|br|figure|figcaption"
 NEWLINE_AFTER_BLOCK_TAG = re.compile(rf"(</?(?:{_BLOCK_TAGS})\b[^>]*>)[^\S\n]*\n\s*", re.IGNORECASE)
 NEWLINE_BEFORE_BLOCK_TAG = re.compile(rf"\s*\n[^\S\n]*(?=</?(?:{_BLOCK_TAGS})\b)", re.IGNORECASE)
+
+
+def _matching_brace(css: str, opening: int) -> int:
+    """
+    The offset of the "}" closing the block that opens at "opening", counting nested blocks.
+
+    A rule's own block holds no braces, but an at-rule's holds whole rules -- so the first
+    "}" is not necessarily the end of the block.  A block left unclosed runs to the end of
+    the stylesheet, which is what a browser does with it too.
+
+        :param css: the stylesheet text
+        :param opening: offset of the "{" that opens the block
+        :return: offset of the matching "}", or the length of the text if there isn't one
+    """
+    depth = 0
+    for position in range(opening, len(css)):
+        if css[position] == "{":
+            depth += 1
+        elif css[position] == "}":
+            depth -= 1
+            if depth == 0:
+                return position
+    return len(css)
+
+
+def parse_selector(text: str) -> tuple | None:
+    """
+    Break a single selector into the compounds to match, or None if it isn't one we can.
+
+    Each compound is paired with the combinator joining it to the one on its left: None for
+    the leftmost, ">" for a child, " " for a descendant.  Only those two combinators are
+    read; a selector using any other, or naming anything COMPOUND_SELECTOR doesn't cover, is
+    refused whole rather than approximated.
+
+        :param text: one selector, e.g. ".card h2" or "#notes > p"
+        :return: a tuple of (combinator, (tag, classes, id)) pairs, or None
+    """
+    tokens = text.replace(">", " > ").split()
+    parts = []
+    combinator = None
+    for token in tokens:
+        if token == ">":
+            # A child combinator with nothing to its left is malformed (CSS nesting writes
+            # rules that way, and those belong to a parent rule we are not tracking).
+            if not parts:
+                return None
+            combinator = ">"
+            continue
+        compound = COMPOUND_SELECTOR.fullmatch(token)
+        if not compound:
+            return None
+        tag = (compound.group(1) or "").lower()
+        names = SELECTOR_NAME.findall(compound.group(2) or "")
+        ids = [name[1:] for name in names if name.startswith("#")]
+        classes = frozenset(name[1:] for name in names if name.startswith("."))
+        # "*" matches everything, which comes to the same thing as naming no tag at all.
+        parts.append((combinator, (tag if tag and tag != "*" else None, classes, ids[-1] if ids else None)))
+        combinator = " "
+    return tuple(parts) if parts else None
+
+
+def selector_specificity(selector: tuple) -> tuple[int, int, int]:
+    """
+    A selector's specificity as (ids, classes, tags), which sorts the way CSS ranks rules.
+
+        :param selector: a selector as returned by parse_selector
+        :return: the number of ids, classes and tag names it names
+    """
+    ids = sum(1 for _, (_, _, element_id) in selector if element_id)
+    classes = sum(len(class_names) for _, (_, class_names, _) in selector)
+    tags = sum(1 for _, (tag, _, _) in selector if tag)
+    return (ids, classes, tags)
+
+
+def parse_stylesheet(css: str) -> list[tuple[tuple[int, int, int], tuple, str]]:
+    """
+    Pull the usable rules out of a stylesheet, as (specificity, selector, declarations).
+
+    At-rules are skipped along with everything inside them: @media's condition can't be
+    evaluated here (a description written for a dark theme states its dark colors inside one,
+    and applying those unconditionally would be a guess at which theme is in force), and
+    @import, @font-face and @keyframes carry nothing a text segment could use.
+
+        :param css: the text content of a <style> element
+        :return: one entry per selector of every rule we can evaluate, in source order
+    """
+    css = CSS_COMMENT.sub(" ", CSS_LINE_BREAK.sub("\n", css))
+    rules = []
+    position = 0
+    while (opening := css.find("{", position)) != -1:
+        # A statement at-rule ("@import ...;", "@charset ...;") ends at its semicolon rather
+        # than at a block, so everything up to the last one belongs to it and not to the rule
+        # about to open -- take only what follows, or an @import at the top of a stylesheet
+        # swallows the first real rule after it.
+        prelude = css[position:opening].rpartition(";")[2].strip()
+        closing = _matching_brace(css, opening)
+        declarations = css[opening + 1 : closing]
+        position = closing + 1
+        if prelude.startswith("@"):
+            continue
+        for selector_text in prelude.split(","):
+            selector = parse_selector(selector_text)
+            if selector:
+                rules.append((selector_specificity(selector), selector, declarations))
+    return rules
+
+
+def _compound_matches(compound: tuple, element: tuple) -> bool:
+    """
+    Whether one compound selector describes one open element.
+
+        :param compound: (tag, classes, id) from a parsed selector
+        :param element: (tag, classes, id) of the element to test
+        :return: True if the element is one the compound selects
+    """
+    tag, class_names, element_id = compound
+    element_tag, element_classes, element_element_id = element
+    if tag and tag != element_tag:
+        return False
+    if element_id and element_id != element_element_id:
+        return False
+    return class_names <= element_classes
+
+
+def selector_matches(selector: tuple, element_stack: list[tuple]) -> bool:
+    """
+    Whether a selector matches the innermost open element, given everything it sits inside.
+
+    Matched right to left, the way a browser does it: the last compound has to describe the
+    element itself, and each one before it has to be found among that element's ancestors --
+    the nearest one for a child combinator, any of them for a descendant.
+
+        :param selector: a selector as returned by parse_selector
+        :param element_stack: the open elements as (tag, classes, id), innermost last
+        :return: True if the selector selects the innermost open element
+    """
+    index = len(element_stack) - 1
+    if index < 0 or not _compound_matches(selector[-1][1], element_stack[index]):
+        return False
+
+    # Walk leftward through the selector and outward through the ancestors together.
+    for position in range(len(selector) - 1, 0, -1):
+        combinator, compound = selector[position][0], selector[position - 1][1]
+        index -= 1
+        if combinator == ">":
+            if index < 0 or not _compound_matches(compound, element_stack[index]):
+                return False
+        else:
+            while index >= 0 and not _compound_matches(compound, element_stack[index]):
+                index -= 1
+            if index < 0:
+                return False
+    return True
 
 
 class HTMLTextFormatter(HTMLParser):
@@ -670,6 +863,15 @@ class HTMLTextFormatter(HTMLParser):
             "is_table_cell": False,  # New flag to track if we're in a table cell
         }
         self.tag_stack = []  # To keep track of active tags and their influence
+        # The open elements as (tag, classes, id), innermost last, for matching the rules of
+        # any <style> the description carries against the element currently being opened.
+        self.element_stack = []
+        # Every rule collected so far, in source order, as (specificity, selector,
+        # declarations) -- see parse_stylesheet.
+        self.stylesheet = []
+        # The text of the <style> element being read, which arrives in as many pieces as the
+        # parser cares to hand over and is only parseable once all of it is in.
+        self.style_text = []
         # (tag, styles-before) for every open element carrying an inline style, innermost
         # last.  Elements nest, so a closing tag has to put back exactly what the element it
         # belongs to changed rather than reset to the defaults -- otherwise an inner <span>
@@ -696,7 +898,18 @@ class HTMLTextFormatter(HTMLParser):
         """
         Processes an opening HTML tag and updates the current formatting state.
         """
-        self.tag_stack.append(tag)
+        # A void element has no end tag, so an entry here would never come off again -- and a
+        # stale entry on top is one the next real end tag fails to match, which leaves that
+        # tag unpopped too and walks the stack steadily out of step with the document.  <img>
+        # in particular was pushed and then returned past, despite the comment below saying
+        # it wasn't.
+        if tag not in VOID_ELEMENTS:
+            self.tag_stack.append(tag)
+
+        # Put this element on the stack of open elements before any styling is worked out:
+        # a stylesheet's selectors are matched against the element itself and the ones it
+        # sits inside, so it has to be there to be selected.
+        self._push_element(tag, attrs)
 
         # Fold in whatever this element's "style=" attribute says before dealing with the
         # tag itself, so the styling covers everything the element contains -- and record
@@ -726,15 +939,29 @@ class HTMLTextFormatter(HTMLParser):
         # not found" console messages came from.
         if tag == "img":
             attributes = dict(attrs)
-            source = attributes.get("src")
+            source = image_source(attributes.get("src") or "")
             # Nothing useful to render without a source, and emitting the tag anyway would
             # send the browser off after another bogus relative URL.
             if not source:
-                logger.warning(f"Ignoring <img> with no src attribute: {attrs}")
+                logger.warning(f"Ignoring <img> with no usable src attribute: {attrs}")
                 return
+            # Escape both values into the tag being built rather than dropping them in as
+            # written.  A src or alt carrying a double quote closed its attribute early, and
+            # what followed was read as further attributes -- which for a src means the
+            # browser is handed a truncated URL and the image simply does not appear.  The
+            # same goes for a bare "&", which an unescaped URL is full of.
             alt_text = attributes.get("alt")
-            alt_attribute = f' alt="{alt_text}"' if alt_text else ""
-            self._add_segment(f'<img src="{source}"{alt_attribute} class="image-small"/>')
+            alt_attribute = f' alt="{html.escape(alt_text, quote=True)}"' if alt_text else ""
+            # "referrerpolicy=no-referrer" asks the browser not to say where the request came
+            # from.  An image host that turns down hotlinking decides that on the referrer,
+            # and what it would be told here -- a "localhost:<port>" page, or a "file://" one
+            # for the saved output -- is exactly the sort it turns down, which shows up as a
+            # broken-image icon for a URL that loads perfectly well on its own.  Nothing is
+            # lost by withholding it: these are someone else's images on someone else's host.
+            self._add_segment(
+                f'<img src="{html.escape(source, quote=True)}"{alt_attribute} '
+                f'referrerpolicy="no-referrer" class="image-small"/>',
+            )
             # Return to prevent it from being added to the tag stack
             return
 
@@ -870,6 +1097,7 @@ class HTMLTextFormatter(HTMLParser):
         # Take this element's inline styling back off.  First thing done, so it still
         # happens for the tags that return early below.
         self._pop_inline_styles(tag)
+        self._pop_element(tag)
 
         # Handle the </div> and </section> tags
         if tag in ("div", "section"):
@@ -881,12 +1109,15 @@ class HTMLTextFormatter(HTMLParser):
                 self.tag_stack.pop()
             return
 
-        # Handle the </style> tag
+        # Handle the </style> tag.  The rules gathered up are now complete, so work out what
+        # they select and add them to the ones in force for the rest of the description.
+        # Nothing is emitted: a stylesheet is instructions for drawing the text, not text.
         if tag == "style":
             self.is_in_style = False
+            self.stylesheet.extend(parse_stylesheet("".join(self.style_text)))
+            self.style_text = []
             if self.tag_stack and self.tag_stack[-1] == tag:
                 self.tag_stack.pop()
-                self._add_segment("......Style tag end.<br>")
             return
 
         # Handle the </pre> tag
@@ -1007,9 +1238,11 @@ class HTMLTextFormatter(HTMLParser):
         """
         Processes character data (plain text) and adds it as a formatted segment.
         """
-        # If we are inside a style tag, ignore the data
+        # Inside a <style>, this is the stylesheet rather than anything to show.  Save it up
+        # for </style> to parse -- CDATA content can arrive in several pieces, and a rule
+        # split across two of them is only readable once they are back together.
         if self.is_in_style:
-            self._add_segment(f"<br>Style tag details......{data}")
+            self.style_text.append(data)
             return
 
         # If we are in a preformatted block, handle the data separately
@@ -1075,9 +1308,68 @@ class HTMLTextFormatter(HTMLParser):
             return
 
         self.style_stack.append((tag, {key: self.current_styles[key] for key in INLINE_STYLE_KEYS}))
+
+        # The description's own stylesheet first, weakest rule to strongest, then the
+        # element's "style=" attribute -- which is how CSS ranks them, an inline style
+        # outranking any rule that merely selected the element.
+        for declarations in self._matched_declarations():
+            self._apply_inline_style(declarations)
+
         style = dict(attrs).get("style", "")
         if style:
             self._apply_inline_style(style)
+
+    def _push_element(self, tag: str, attrs: list[tuple[str, str]]) -> None:
+        """
+        Note an element as open, with the class and id a selector might reach it by.
+
+        Void elements are left off: they contain nothing, so nothing is ever inside them for
+        a descendant selector to find, and there is no end tag to take them off again.
+
+            :param tag: the element's tag name
+            :param attrs: the element's attributes as parsed
+        """
+        if tag in VOID_ELEMENTS:
+            return
+        attributes = dict(attrs)
+        classes = frozenset((attributes.get("class") or "").split())
+        element_id = (attributes.get("id") or "").strip() or None
+        self.element_stack.append((tag, classes, element_id))
+
+    def _pop_element(self, tag: str) -> None:
+        """
+        Close an element, along with anything still open inside it.
+
+        The same tolerance _pop_inline_styles needs, for the same reason: descriptions leave
+        tags unclosed, and an entry left behind would go on selecting text that is no longer
+        inside it.
+
+            :param tag: tag name of the element being closed
+        """
+        for index in range(len(self.element_stack) - 1, -1, -1):
+            if self.element_stack[index][0] == tag:
+                del self.element_stack[index:]
+                return
+
+    def _matched_declarations(self) -> list[str]:
+        """
+        The declaration blocks of every rule selecting the innermost open element.
+
+        Ordered the way the cascade resolves them -- least specific first, and source order
+        breaking a tie -- so that applying them in turn leaves the winning rule's value in
+        place, without any of them having to know what the others said.
+
+            :return: the matching declaration blocks, weakest first
+        """
+        if not self.stylesheet:
+            return []
+        matched = [
+            (specificity, order, declarations)
+            for order, (specificity, selector, declarations) in enumerate(self.stylesheet)
+            if selector_matches(selector, self.element_stack)
+        ]
+        matched.sort(key=lambda rule: (rule[0], rule[1]))
+        return [declarations for _, _, declarations in matched]
 
     def _pop_inline_styles(self, tag: str) -> None:
         """
@@ -1115,7 +1407,11 @@ class HTMLTextFormatter(HTMLParser):
 
     def _apply_inline_style(self, style: str) -> None:
         """
-        Fold an element's inline "style=" attribute into the current styles.
+        Fold a block of CSS declarations into the current styles.
+
+        Used for an element's inline "style=" attribute and for the body of a rule out of the
+        description's own <style> (see _matched_declarations) -- by the time either gets here
+        it is the same thing, a list of declarations to apply to the text being read.
 
         Only the four properties this formatter can actually represent are read (see
         INLINE_STYLE_KEYS); everything else in the declaration -- font sizes, margins,
@@ -1123,13 +1419,19 @@ class HTMLTextFormatter(HTMLParser):
         are applied rather than merely turned on, so "font-weight: normal" inside a bold
         run correctly un-bolds it for the length of the element.
 
-            :param style: the raw value of the style attribute, e.g. "color: #ff0000; font-weight: bold"
+            :param style: the declarations, e.g. "color: #ff0000; font-weight: bold"
         """
         for declaration in style.split(";"):
             prop, _, value = declaration.partition(":")
             prop = prop.strip().lower()
             value = value.strip().lower()
             if not prop or not value:
+                continue
+
+            # The color goes on to be written into a style="..." attribute of our own (see
+            # format_label).  No color contains a quote or an angle bracket, so a value that
+            # does is one trying to get out of that attribute, and is dropped.
+            if '"' in value or "<" in value or ">" in value:
                 continue
 
             if prop == "color":
