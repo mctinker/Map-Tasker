@@ -2,22 +2,43 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.1.0-12.1.1] 12-Aug-2026
+## [12.1.2] ??-Aug-2026  # FIX
 
 ### Added
+
+- Added:
+
+### Changed
+
+- Changed:
+
+### Fixed
+
+- Fixed: The 'Notification Duration' setting is ignored for startup-related messages.
+- Fixed: Typing a new X, Y, Width or Height for a Legacy Scene element had no effect: the value reverted as soon as another element was selected.
+- Fixed:
+
+### Known Issue
+
+- It is unlikely but possible to have a previous browser task preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
+you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
+      `lsof -i :8080`
+For each PID listed in the output from the above terminal command, issue the following:
+      `kill -9 pid_number`
+...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080' (e.g. kill -9 8547).
+- Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
+
+
+## Older History Logs
+
+## [12.1.0-12.1.1] 12-Aug-2026
 
 - Added: Add/Edit a Scene - Support for Legacy and Version 2 (designer with 4 available basic templates) Scenes
 - Added: Scene 'Preview' button, while editing a Scene, provides a visual preview of the Scene's appearance.
 - Added: Notification Duration can not be set in the GUI.
-
-### Changed
-
 - Changed: The Diagram view now displays as much of the diagram as the 'View Limit' allows, and says how much was left off, rather than refusing to display anything at all.  This is what the Map view has always done.
 - Changed: The 'Get XML from Android Device' timeout message now points at the 'HTTP Server Example' Project rather than the 'MapTasker List' Profile.
 - Changed: Updated the list of current Ai models.
-
-### Fixed
-
 - Fixed: An EditText element that allowed exactly two characters was drawn as though its text were HTML - tags stripped and an 'HTML' badge in the corner.  'Maximum Characters' is the eighth argument on an EditText element and 'Text Format' is the eighth on a Text element, and the Preview was reading the one as the other.
 - Fixed: A Project/Profile/Task variable, or a global variable, holding a whole HTML document - a Scene V2 WebView's page, for instance - had that document written into the map as live markup rather than as the value's text.  Its `<style>` then restyled the map itself and its `<script>` ran there, which collapsed the entire Map view to a blank page.  Variable names, prompts, values, display names and exported values are now escaped, so the value shows as the text it is.
 - Fixed: An image in a TaskerNet description was shown as the literal text of its `<img>` tag, and no picture, whenever the Map view had to build its content itself rather than from the generated MapTasker.html.  Images - along with `<figure>`, `<figcaption>`, `<code>`, `<pre>`, `<blockquote>`, `<big>`, `<small>`, `<font>`, `<mark>`, `<sub>` and `<sup>` - now render there as they do everywhere else.
@@ -33,20 +54,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: The Ai model pulldown doesn't start the Ollama server either, and falls back to the built-in model list without saying why.
 - Fixed: The Ai model pulldown doesn't mark your installed Ollama models as '(installed)' unless the built-in list happens to spell the model's tag the same way, and leaves out installed models it doesn't know about altogether.
 - Fixed: The 'Bottom' button scrolls to the end of the Map/Diagram/Misc views with the last line still below the bottom of the window.
-
-### Known Issue
-
-- It is unlikely but possible to have a previous browser task preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
-you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
-      `lsof -i :8080`
-For each PID listed in the output from the above terminal command, issue the following:
-      `kill -9 pid_number`
-...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080' (e.g. kill -9 8547).
-- Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
-
-
-## Older History Logs
-
 ## [12.0.2] 05-Aug-2026
 
 - Added: Search results are nmow cahced for faster repeat searchs in the Map and Diagram views.

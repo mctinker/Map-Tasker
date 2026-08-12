@@ -66,6 +66,7 @@ STARTUP_DARK_MODE = False
 # only values that mean anything here are "long enough to read" and "don't take it away", and
 # a free field invites 250ms.
 NOTIFY_TIMEOUT_CHOICES: tuple[tuple[str, int], ...] = (
+    ("1/2 second", 500),
     ("1 second", 1000),
     ("2 seconds", 2000),
     ("5 seconds", 5000),
@@ -85,9 +86,10 @@ def set_notification_timeout(milliseconds: int) -> None:
     _NOTIFY_TIMEOUT["ms"] = max(0, int(milliseconds))
 
 
-def notification_timeout() -> int:
-    """The duration currently in force -- what the pulldown and the settings file read."""
-    return _NOTIFY_TIMEOUT["ms"]
+# FIX Remove commented lines
+# def notification_timeout() -> int:
+#     """The duration currently in force -- what the pulldown and the settings file read."""
+#     return _NOTIFY_TIMEOUT["ms"]
 
 
 def install_notification_timeout() -> None:
@@ -1654,8 +1656,7 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
             if not text:
                 return True
             return any(
-                text in candidate.lower()
-                for candidate in (entry.label, translate_string(entry.label), entry.node_type)
+                text in candidate.lower() for candidate in (entry.label, translate_string(entry.label), entry.node_type)
             )
 
         def chip(entry: sceneedit.V2PaletteEntry, reason: str) -> None:
@@ -1681,7 +1682,8 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
         # search box belongs above the chips it filters.  Its on_change closes over
         # search_changed, which is defined below -- resolved at call time, not at creation.
         search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -1765,7 +1767,9 @@ def _build_rename_legacy_element_dialog(
         Never rewritten and never can be: the pattern is evaluated by Tasker at run time, so
         whether it currently catches this element is not a question the file can answer.
     """
-    old_name = (element.find("Str[@sr='arg0']").text or "").strip() if element.find("Str[@sr='arg0']") is not None else ""
+    old_name = (
+        (element.find("Str[@sr='arg0']").text or "").strip() if element.find("Str[@sr='arg0']") is not None else ""
+    )
     rewritable = sceneedit.find_element_name_actions(edited_scene.scene_name, old_name)
     rewritable_tasks = sorted({task_name for task_name, _argument in rewritable})
     loose_tasks = sceneedit.find_element_name_references(edited_scene.scene_name, old_name)
@@ -1888,7 +1892,8 @@ def _build_add_legacy_element_dialog(
                 ui.tooltip("\n\n".join(lines)).style("white-space: pre-line").classes("max-w-sm")
 
         search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -1902,9 +1907,7 @@ def _build_add_legacy_element_dialog(
             shown = 0
             with results:
                 for group in sceneedit.LEGACY_PALETTE_GROUPS:
-                    visible = [
-                        entry for entry in sceneedit.LEGACY_PALETTE if entry.group == group and matches(entry)
-                    ]
+                    visible = [entry for entry in sceneedit.LEGACY_PALETTE if entry.group == group and matches(entry)]
                     if not visible:
                         continue
                     shown += len(visible)
@@ -2009,8 +2012,7 @@ def _build_show_when_dialog(field: ui.input) -> None:
             # next piece after this one rather than back at the same spot.
             with contextlib.suppress(Exception):
                 ui.run_javascript(
-                    f"(() => {{ {_NATIVE_INPUT}"
-                    f" if (el) {{ el.setSelectionRange({caret}, {caret}); }} }})()",
+                    f"(() => {{ {_NATIVE_INPUT} if (el) {{ el.setSelectionRange({caret}, {caret}); }} }})()",
                 )
             # Close on the pick.  A condition is built out of several of these, so staying
             # open to save a click is the obvious thing to do and the wrong one: the dialog
@@ -2027,7 +2029,8 @@ def _build_show_when_dialog(field: ui.input) -> None:
         # box below the list it filters is a search box nobody finds.  Its on_change closes
         # over search_changed, defined below and resolved at call time.
         search_input = (
-            ui.input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2210,7 +2213,8 @@ def _build_v2_designer(
             # The indent is drawn rather than nested so every row stays one flat, clickable
             # strip -- nested containers would make the click target of a deep node a sliver.
             tree_rows[row.path] = (
-                ui.label(f"{'  ' * row.depth}{row.label}")
+                ui
+                .label(f"{'  ' * row.depth}{row.label}")
                 .classes(classes)
                 .on("click", lambda _e=None, path=row.path: select(path)),
                 row.depth,
@@ -2261,11 +2265,16 @@ def _build_v2_designer(
                 on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
             ).props("dense").classes("w-full")
         else:
-            text_input = ui.input(
-                translate_string(prop.label),
-                value=str(value),
-                on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
-            ).props("dense").classes("w-full")
+            text_input = (
+                ui
+                .input(
+                    translate_string(prop.label),
+                    value=str(value),
+                    on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
+                )
+                .props("dense")
+                .classes("w-full")
+            )
             if prop.key == "showWhen":
                 # A Show When is built out of variables nobody remembers the spelling of --
                 # %sv2_render_is_landscape is not something to type from memory, and a
@@ -2514,12 +2523,24 @@ def _build_v2_designer(
         for label, icon, handler, failure in (
             ("Up", "arrow_upward", lambda: sceneedit.v2_move_node(layout, selection["path"], -1), "Already first."),
             ("Down", "arrow_downward", lambda: sceneedit.v2_move_node(layout, selection["path"], 1), "Already last."),
-            ("Out", "format_indent_decrease", lambda: sceneedit.v2_outdent_node(layout, selection["path"]),
-             "Nothing to move it out to."),
-            ("In", "format_indent_increase", lambda: sceneedit.v2_indent_node(layout, selection["path"]),
-             "The component above it can't hold children."),
-            ("Duplicate", "content_copy", lambda: sceneedit.v2_duplicate_node(layout, selection["path"]),
-             "The root component can't be duplicated."),
+            (
+                "Out",
+                "format_indent_decrease",
+                lambda: sceneedit.v2_outdent_node(layout, selection["path"]),
+                "Nothing to move it out to.",
+            ),
+            (
+                "In",
+                "format_indent_increase",
+                lambda: sceneedit.v2_indent_node(layout, selection["path"]),
+                "The component above it can't hold children.",
+            ),
+            (
+                "Duplicate",
+                "content_copy",
+                lambda: sceneedit.v2_duplicate_node(layout, selection["path"]),
+                "The root component can't be duplicated.",
+            ),
         ):
             ui.button(
                 translate_string(label),
@@ -2936,9 +2957,14 @@ def _build_legacy_designer(
     root_class = f"{CANVAS_DESIGNER_ROOT}-{next(_DESIGNER_SEQUENCE)}"
 
     header = ui.row().classes("w-full items-center gap-2 mt-2")
-    canvas_pane = ui.element("div").classes(
-        f"mt-scene-wrap {root_class} w-full border rounded overflow-hidden",
-    ).style("position: relative;")
+    canvas_pane = (
+        ui
+        .element("div")
+        .classes(
+            f"mt-scene-wrap {root_class} w-full border rounded overflow-hidden",
+        )
+        .style("position: relative;")
+    )
     toolbar = ui.row().classes("w-full gap-1 items-center mt-1 flex-wrap")
     with ui.row().classes("w-full gap-3 items-start no-wrap mt-1"):
         list_pane = ui.column().classes("w-2/5 gap-0 p-2 border rounded max-h-64 overflow-auto")
@@ -3054,7 +3080,11 @@ def _build_legacy_designer(
             return
 
         snapshot()
-        new_sr = sceneedit.legacy_restack(scene_element, selection["sr"], position(ordered.index(element), len(ordered)))
+        new_sr = sceneedit.legacy_restack(
+            scene_element,
+            selection["sr"],
+            position(ordered.index(element), len(ordered)),
+        )
         if not new_sr:
             history.pop()
             ui.notify(translate_string(failure), type="warning")
@@ -3153,8 +3183,12 @@ def _build_legacy_designer(
         """
 
         def commit(event: Event, position: int = index) -> None:
+            # float() before int(): ui.number hands back a float, and "900.0" is not something
+            # int() will parse.  Every typed geometry edit used to be dropped right here, in
+            # silence -- the box showed the number, the element never moved, and selecting
+            # anything else brought the old value straight back.
             try:
-                number = int(str(event.value).strip())
+                number = int(float(str(event.value).strip()))
             except (TypeError, ValueError):
                 return
             current = sceneview.element_geometry(element, orientation["landscape"])
@@ -3620,7 +3654,8 @@ def _build_item_layout_dialog(holder: object, on_closed: Callable[[], None]) -> 
         with ui.row().classes("w-full gap-2 mt-2"):
             for key, label in sceneedit.SCENE_DIMENSION_FIELDS[:2]:
                 field_refs[key] = (
-                    ui.input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
+                    ui
+                    .input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
                     .props("dense")
                     .classes("w-36")
                     .on(
@@ -5324,8 +5359,13 @@ class NiceGuiSceneView:
                     # transform does not affect layout, so without the outer element the page
                     # would reserve room for the canvas at full size however far it is
                     # scaled down.
-                    self.canvas_wrap = ui.element("div").classes(f"mt-scene-wrap {CANVAS_PREVIEW_ROOT}").style(
-                        "position: relative; width: 100%; overflow: hidden;",
+                    self.canvas_wrap = (
+                        ui
+                        .element("div")
+                        .classes(f"mt-scene-wrap {CANVAS_PREVIEW_ROOT}")
+                        .style(
+                            "position: relative; width: 100%; overflow: hidden;",
+                        )
                     )
                 self.caption = ui.column().classes("w-full gap-0 mt-2")
 
@@ -5363,12 +5403,17 @@ class NiceGuiSceneView:
 
     def _build_density_control(self) -> None:
         """Legacy only: the sp-to-pixel number that is not in the backup file."""
-        density_select = ui.select(
-            list(sceneview.DENSITY_CHOICES),
-            value=str(sceneview.DEFAULT_DENSITY),
-            label=translate_string("Text density"),
-            on_change=self._density_selected,
-        ).props("dense").classes("w-32")
+        density_select = (
+            ui
+            .select(
+                list(sceneview.DENSITY_CHOICES),
+                value=str(sceneview.DEFAULT_DENSITY),
+                label=translate_string("Text density"),
+                on_change=self._density_selected,
+            )
+            .props("dense")
+            .classes("w-32")
+        )
         with density_select:
             ui.tooltip(
                 translate_string(
@@ -5387,12 +5432,17 @@ class NiceGuiSceneView:
         of the Scene at all -- it is the question the Scene answers differently on every
         device, which is why it is a control and not a number in the file.
         """
-        screen_select = ui.select(
-            [name for name, _width, _height in sceneview.V2_SCREENS],
-            value=self.screen,
-            label=translate_string("Screen"),
-            on_change=self._screen_selected,
-        ).props("dense").classes("w-36")
+        screen_select = (
+            ui
+            .select(
+                [name for name, _width, _height in sceneview.V2_SCREENS],
+                value=self.screen,
+                label=translate_string("Screen"),
+                on_change=self._screen_selected,
+            )
+            .props("dense")
+            .classes("w-36")
+        )
         with screen_select:
             ui.tooltip(
                 translate_string(
@@ -5533,8 +5583,7 @@ class NiceGuiSceneView:
         elements = sceneview.paint_order(scene_element)
         with self.caption:
             summary = (
-                f"{width} x {height} {translate_string('pixels')} · "
-                f"{len(elements)} {translate_string('element(s)')}"
+                f"{width} x {height} {translate_string('pixels')} · {len(elements)} {translate_string('element(s)')}"
             )
             properties = sceneview.scene_properties(scene_element)
             if properties:
@@ -5688,12 +5737,17 @@ class NiceGuiTextView:
                     # this pulldown lives on the Diagram view's own toolbar rather than in the
                     # settings drawer, and a reset that changed the value without moving the
                     # control would leave the two disagreeing on screen.
-                    self.profiles_per_line_select = ui.select(
-                        options=[str(n) for n in range(11)],
-                        value=str(self.master_gui.profiles_per_line),
-                        label=translate_string("Profiles Per Line"),
-                        on_change=self._profiles_per_line_selected,
-                    ).classes("w-40").props("dense")
+                    self.profiles_per_line_select = (
+                        ui
+                        .select(
+                            options=[str(n) for n in range(11)],
+                            value=str(self.master_gui.profiles_per_line),
+                            label=translate_string("Profiles Per Line"),
+                            on_change=self._profiles_per_line_selected,
+                        )
+                        .classes("w-40")
+                        .props("dense")
+                    )
                     self.diagram_message_label = ui.label("").classes("text-orange-400 italic ml-4")
 
             self.wrap_enabled = "Diagram" not in self.title

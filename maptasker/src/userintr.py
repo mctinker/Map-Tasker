@@ -251,6 +251,13 @@ class MyGui:
 
         # 2. Attach Event Handlers
         self.event_handlers = MapTaskerEventHandlers(self)
+
+        # 2a. Put the saved notification duration in force before anything can notify, for the
+        # same reason the language goes in before the layout: start-up talks, and by the time
+        # the restore below reaches the key that carries the duration it has already said a
+        # dozen things at the wrong one.
+        self.set_startup_notification_duration()
+
         # 3. Build the UI Layout directly!
         try:
             initialize_screen(self)
@@ -436,6 +443,32 @@ class MyGui:
 
         self.language = language
         T.set_language(language)
+
+    def set_startup_notification_duration(self: "MyGui") -> None:
+        """Put the saved notification duration in force before the first message goes out.
+
+        The settings file has already been read into PrimeItems.program_arguments by the time
+        the GUI is created (the same thing set_startup_language relies on), so the chosen
+        duration is available here -- before the layout exists and long before the restore
+        gets to it.  It has to be applied this early because start-up is a dozen notifications
+        long: set_defaults announces the reset it makes and the restore then announces every
+        setting it puts back, and all of that came out at the default duration purely because
+        the saved value was not applied until the restore happened to reach its own key, most
+        of the way down the list.  restore_settings_event puts it back a second time, after
+        set_defaults has reset it, for the rest of that same report.
+
+        The event handler does the work rather than a plain assignment, so an unusable value
+        in a hand-edited settings file lands on the default instead of on zero -- which would
+        mean every message in the app stays up until it is clicked.
+        """
+        # A reset run deliberately ignores the saved settings.
+        if PrimeItems.program_arguments.get("reset"):
+            return
+
+        saved_duration = PrimeItems.program_arguments.get("notify_timeout")
+        if saved_duration is not None:
+            # The pulldown does not exist yet; notify_timeout_event skips it when it is absent.
+            self.event_handlers.notify_timeout_event(saved_duration)
 
     # Utility functions
     def display_message_box(self: "MyGui", message: str, color: str) -> None:
@@ -4578,6 +4611,15 @@ class MapTaskerEventHandlers:
             the_view.color_lookup,
             to_save=False,
         )
+
+        # set_defaults has just put the notification duration back to the default, and the
+        # restore below does not reach the key that undoes that until a dozen messages later --
+        # every one of which would sit on screen for the default duration rather than the
+        # chosen one.  The saved value is in hand now, so put it in force before the restore
+        # starts reporting itself.  The loop restores it again on its way past, to the same
+        # value, which costs nothing.
+        if "notify_timeout" in temp_args:
+            self.notify_timeout_event(temp_args["notify_timeout"])
 
         # Check for errors
         with contextlib.suppress(KeyError):

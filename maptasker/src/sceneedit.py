@@ -414,9 +414,7 @@ def _v2_global_choices() -> tuple[list[V2ShowWhenChoice], list[V2ShowWhenChoice]
     )
 
     user = [V2ShowWhenChoice(name, name) for name in dict.fromkeys(stored_names) if name and name not in builtin_names]
-    builtin = [
-        V2ShowWhenChoice(tasker_global_variable_names.get(name, name), name) for name in builtin_names
-    ]
+    builtin = [V2ShowWhenChoice(tasker_global_variable_names.get(name, name), name) for name in builtin_names]
 
     def sort_key(choice: V2ShowWhenChoice) -> str:
         return choice.label.lstrip("%").lower()
@@ -467,6 +465,7 @@ def v2_insert_show_when(current: str, value: str, caret: int | None = None) -> t
     trail = "" if not after or after[0].isspace() else " "
     inserted = f"{lead}{value}{trail}"
     return f"{before}{inserted}{after}", position + len(inserted)
+
 
 _ARRANGEMENT = ("Start", "Center", "End", "SpaceBetween", "SpaceAround", "SpaceEvenly")
 _ALIGNMENT = ("Start", "Center", "End")
@@ -640,7 +639,7 @@ def v2_child_slots(node: dict) -> list[tuple[str, list]]:
 
 
 def v2_node_label(node: dict) -> str:
-    """"Text 'title_text'" -- how a node reads in the tree, matching what
+    """ "Text 'title_text'" -- how a node reads in the tree, matching what
     v2_component_summary already produces for the read-only outline.
 
     A node carrying a treeLabel shows that instead of its id, because that is exactly what
@@ -806,6 +805,7 @@ V2_CONTAINER_SLOTS: dict[str, tuple[str, ...]] = {
     # wrongly declared a container swallows the next component added; a container wrongly
     # left a leaf only puts it alongside instead, which is the recoverable way to be wrong.
 }
+
 
 @dataclass(frozen=True)
 class V2PaletteEntry:
@@ -1143,7 +1143,7 @@ def _v2_insert_parent_type(layout: dict, path: tuple) -> str:
 
 
 def v2_can_add(layout: dict, path: tuple, node_type: str) -> str:
-    """"" if this element can be added at this selection, otherwise the reason it can't.
+    """ "" if this element can be added at this selection, otherwise the reason it can't.
 
     Only V2_PARENT_ONLY is consulted: everything else goes anywhere a container will take
     it, and being stricter than that would mean ruling on nestings Tasker allows and this
@@ -1598,39 +1598,40 @@ def v2_set_binding(node: dict, slot: tuple[str, str], text: str) -> None:
     bindings[binding_key] = [part.strip() for part in text.split(",") if part.strip()]
 
 
-def v2_component_summary(layout: dict) -> list[str]:
-    """A flat, indented outline of a V2 layout's component tree -- "Column",
-    "  Text 'title_text'", "  IconButton 'close_button'" -- for the read-only
-    panel the editor body shows in place of the Legacy element list (see
-    guiwins._build_scene_editor_body).  The Legacy counterpart is
-    scenes.get_scene_element_names.
+# FIX Remove commented statements
+# def v2_component_summary(layout: dict) -> list[str]:
+#     """A flat, indented outline of a V2 layout's component tree -- "Column",
+#     "  Text 'title_text'", "  IconButton 'close_button'" -- for the read-only
+#     panel the editor body shows in place of the Legacy element list (see
+#     guiwins._build_scene_editor_body).  The Legacy counterpart is
+#     scenes.get_scene_element_names.
 
-    Children hang off more than one key: "children" for a Column/Row, but a
-    Scaffold puts them under "topBar", a TopAppBar its title under "title", and
-    so on.  Rather than enumerate the container keys -- there is no fixed list,
-    and a Tasker update would silently add to it -- this walks into any list
-    whose entries are themselves components (dicts with a "type"), which is what
-    every one of those keys holds.  "modifiers" and "eventHandlers" are skipped
-    by name: they are lists of dicts with a "type" too, but they describe a
-    component rather than being one, so including them would bury the structure.
-    """
-    lines: list[str] = []
+#     Children hang off more than one key: "children" for a Column/Row, but a
+#     Scaffold puts them under "topBar", a TopAppBar its title under "title", and
+#     so on.  Rather than enumerate the container keys -- there is no fixed list,
+#     and a Tasker update would silently add to it -- this walks into any list
+#     whose entries are themselves components (dicts with a "type"), which is what
+#     every one of those keys holds.  "modifiers" and "eventHandlers" are skipped
+#     by name: they are lists of dicts with a "type" too, but they describe a
+#     component rather than being one, so including them would bury the structure.
+#     """
+#     lines: list[str] = []
 
-    def walk(component: dict, depth: int) -> None:
-        component_type = component.get("type", "?")
-        component_id = component.get("id", "")
-        lines.append(f"{'  ' * depth}{component_type}" + (f" '{component_id}'" if component_id else ""))
-        for key, value in component.items():
-            if key in ("modifiers", "eventHandlers") or not isinstance(value, list):
-                continue
-            for item in value:
-                if isinstance(item, dict) and "type" in item:
-                    walk(item, depth + 1)
+#     def walk(component: dict, depth: int) -> None:
+#         component_type = component.get("type", "?")
+#         component_id = component.get("id", "")
+#         lines.append(f"{'  ' * depth}{component_type}" + (f" '{component_id}'" if component_id else ""))
+#         for key, value in component.items():
+#             if key in ("modifiers", "eventHandlers") or not isinstance(value, list):
+#                 continue
+#             for item in value:
+#                 if isinstance(item, dict) and "type" in item:
+#                     walk(item, depth + 1)
 
-    root = layout.get(_V2_ROOT_KEY)
-    if isinstance(root, dict):
-        walk(root, 0)
-    return lines
+#     root = layout.get(_V2_ROOT_KEY)
+#     if isinstance(root, dict):
+#         walk(root, 0)
+#     return lines
 
 
 def resolve_scene_by_name(scene_name: str) -> defusedxml.ElementTree.Element | None:
@@ -2351,7 +2352,7 @@ def legacy_element_at(
 
 
 def legacy_element_label(element: defusedxml.ElementTree.Element) -> str:
-    """"Text 'Done!'" -- how an element reads in the designer's list.
+    """ "Text 'Done!'" -- how an element reads in the designer's list.
 
     Its own name (arg0) if it has one, in the same quoted style v2_node_label uses, so the
     two designers name things the same way.  Falling back to the type alone is right rather
@@ -2573,7 +2574,9 @@ LEGACY_PALETTE: tuple[LegacyPaletteEntry, ...] = (
     LegacyPaletteEntry("ButtonElement", "Button", "Text", "A labelled button, with an optional icon."),
     LegacyPaletteEntry("EditTextElement", "Text Edit", "Text", "A field the user types into."),
     LegacyPaletteEntry("ToggleElement", "Toggle", "Text", "A two-state button with its own on and off labels."),
-    LegacyPaletteEntry("RectElement", "Rectangle", "Shapes", "A filled or outlined rectangle, with optional rounded corners."),
+    LegacyPaletteEntry(
+        "RectElement", "Rectangle", "Shapes", "A filled or outlined rectangle, with optional rounded corners."
+    ),
     LegacyPaletteEntry("OvalElement", "Oval", "Shapes", "A filled or outlined ellipse."),
     LegacyPaletteEntry("CheckBoxElement", "Checkbox", "Input", "A tick box."),
     LegacyPaletteEntry("SwitchElement", "Switch", "Input", "An on/off switch."),
@@ -2596,8 +2599,24 @@ LEGACY_PALETTE: tuple[LegacyPaletteEntry, ...] = (
 # and an "Element" argument, which is what makes a rename or a delete here able to break a
 # Task somewhere else in the backup.
 LEGACY_ELEMENT_ACTION_CODES = (
-    "50", "51", "53", "54", "55", "56", "57", "58", "60",
-    "63", "64", "66", "67", "68", "71", "73", "195", "612",
+    "50",
+    "51",
+    "53",
+    "54",
+    "55",
+    "56",
+    "57",
+    "58",
+    "60",
+    "63",
+    "64",
+    "66",
+    "67",
+    "68",
+    "71",
+    "73",
+    "195",
+    "612",
 )
 
 # Element Visibility (code 65) is deliberately NOT in that list.  Its argument is an "Element
@@ -2668,7 +2687,7 @@ def find_element_match_references(scene_name: str) -> list[str]:
 
 
 def legacy_can_add(element_type: str) -> str:
-    """"" if this element type can be created, otherwise the reason it cannot.
+    """ "" if this element type can be created, otherwise the reason it cannot.
 
     The reason is always the same one, and it is a real limit rather than a placeholder:
     actionc.py has no argument table for the type, so this app does not know what arguments

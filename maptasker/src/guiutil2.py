@@ -13,7 +13,6 @@ import requests
 from maptasker.src.config import INCLUDE_PROPORTIONAL_FONTS
 from maptasker.src.error import rutroh_error
 from maptasker.src.mapfonts import get_font_choices as get_font_selections
-from maptasker.src.mapfonts import get_monospaced_fonts
 
 # Define label fonts for headings (Replaced hardcoded pixel sizes with Tailwind text classes)
 from maptasker.src.primitem import PrimeItems
@@ -153,17 +152,6 @@ def get_changelog_file(url: str, delimiter: str, n: int) -> list:
         lines.append(line)
 
     return lines
-
-
-def get_monospace_fonts() -> list[str]:
-    """Queries the OS font files to retrieve the available monospaced fonts."""
-    try:
-        # mapfonts reads the installed font files directly and supplies its own
-        # fallback list if none of them turn out to be monospaced.
-        return get_monospaced_fonts()
-    except Exception as e:  # noqa: BLE001
-        rutroh_error(f"Unable to retrieve the system monospaced fonts: {e}")
-        return ["Courier New", "Courier"]
 
 
 def get_font_choices() -> dict[str, str]:
