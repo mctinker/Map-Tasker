@@ -1149,7 +1149,7 @@ def furthest_connector_line(connector: dict) -> int:
     return max(connector["caller_line_num"], connector["called_line_num"])
 
 
-def check_limit(call_table: dict, output_lines: list, progress_bar: dict) -> None:
+def check_limit(call_table: dict, output_lines: list, _progress_bar: dict) -> None:
     """
     Cut the diagram short at the view limit rather than refusing to draw it at all.
 
@@ -1167,7 +1167,7 @@ def check_limit(call_table: dict, output_lines: list, progress_bar: dict) -> Non
     Args:
         call_table (dict): The caller/called connectors, keyed by an arbitrary unique key.
         output_lines (list): The diagram built so far, one string per line.
-        progress_bar (dict): The progress bar to update.
+        _progress_bar (dict): The progress bar to update.
 
     Returns:
         tuple: (line to cut the finished diagram at or None to keep all of it, the connectors to

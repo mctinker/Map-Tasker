@@ -10,8 +10,8 @@ bar = "│"
 box_line = "═"
 blank = " "
 straight_line = "─"
-line_right_arrow = f"{straight_line*2}▶"
-line_left_arrow = f"◄{straight_line*2}"
+line_right_arrow = f"{straight_line * 2}▶"
+line_left_arrow = f"◄{straight_line * 2}"
 down_arrow = "▼"
 up_arrow = "▲"
 left_arrow = "◄"
@@ -52,4 +52,4 @@ CONNECTOR_DIRECTIONS = {
     left_arrow_corner_down: {_DOWN, _RIGHT},
     left_arrow_corner_up: {_DOWN, _LEFT},
 }
-CONNECTOR_CHARS = frozenset(CONNECTOR_DIRECTIONS)
+# CONNECTOR_CHARS = frozenset(CONNECTOR_DIRECTIONS)

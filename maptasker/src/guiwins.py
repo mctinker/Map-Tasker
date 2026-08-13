@@ -86,12 +86,6 @@ def set_notification_timeout(milliseconds: int) -> None:
     _NOTIFY_TIMEOUT["ms"] = max(0, int(milliseconds))
 
 
-# FIX Remove commented lines
-# def notification_timeout() -> int:
-#     """The duration currently in force -- what the pulldown and the settings file read."""
-#     return _NOTIFY_TIMEOUT["ms"]
-
-
 def install_notification_timeout() -> None:
     """Wrap ui.notify so every notification honours the user's chosen duration.
 
@@ -1955,7 +1949,11 @@ def _build_add_legacy_element_dialog(
 _SHOW_WHEN_PREVIEW_LIMIT = 40
 
 
-def _build_show_when_dialog(field: ui.input) -> None:
+def _build_show_when_dialog(
+    field: ui.input,
+    groups: list[tuple[str, list[sceneedit.V2ShowWhenChoice]]] | None = None,
+    title: str = "Insert into Show When",
+) -> None:
     """The Show When picker: choose variables to build the condition out of, from the three
     categories in sceneedit.v2_show_when_choices -- the Screen Builder's own environment
     values, the loaded backup's own global variables, and Tasker's built-in globals.
@@ -1965,12 +1963,16 @@ def _build_show_when_dialog(field: ui.input) -> None:
     is two picks and some typing.  Writing through `field.value` rather than onto the node
     directly is what keeps the inspector's own on_change in charge of storing it, so this
     needs to know nothing about the component being edited.
+
+    `groups` and `title` are what let a Dynamic state field reuse all of this: the same
+    insert, search and caret handling over a shorter list (no operators -- see
+    sceneedit.v2_dynamic_variable_choices), under its own heading.
     """
-    groups = sceneedit.v2_show_when_choices()
+    groups = sceneedit.v2_show_when_choices() if groups is None else groups
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[620px] max-w-[740px] p-6"):
-        ui.label(translate_string("Insert into Show When")).classes("text-lg font-bold text-blue-600")
+        ui.label(translate_string(title)).classes("text-lg font-bold text-blue-600")
         ui.label(
             translate_string("What you pick goes in at the cursor. Open this again to add the next piece."),
         ).classes("text-sm text-gray-500 italic")
@@ -2078,6 +2080,325 @@ def _build_show_when_dialog(field: ui.input) -> None:
             ui.button(translate_string("Close"), on_click=dialog.close).props("flat")
 
     dialog.open()
+
+
+# How big the swatch beside a Version 2 colour field is, and in the menu beside each Material
+# role.  Small enough to sit inside a dense field, big enough to tell two greys apart.
+_V2_SWATCH_STYLE = (
+    "width: 18px; height: 18px; border-radius: 3px; flex: none;"
+    "border: 1px solid rgba(120,120,120,0.55); box-sizing: border-box;"
+)
+
+
+def _build_colour_field(item: dict, prop: sceneedit.V2Prop) -> None:
+    """A Version 2 colour property: type a name or a #hex value, pick one off the wheel, or
+    take one of Material's own roles from the menu.
+
+    The three ways matter because a V2 Scene's colours are of two kinds.  Most are ordinary
+    values -- "#64B5F6", "red" -- and those want the wheel.  But Tasker also writes *role*
+    names ("onPrimaryFixed", "surfaceContainerHigh"), which are not colours at all until the
+    phone resolves them against its own theme, and which no colour wheel can offer because
+    picking the swatch they happen to look like here would store the wrong thing entirely.
+    Picking one from the menu stores the name, which is the whole point of naming it.
+
+    The swatch is drawn here rather than through ui.color_input's own `preview`, which knows
+    only hex: this one shows what a role name and an HTML colour name look like too, and goes
+    blank -- rather than misleading -- for a %variable or a spelling this app cannot resolve.
+
+    What the field does NOT do is refuse a value it doesn't recognise.  It marks it (Quasar's
+    own error state, so it reads as a warning rather than a rejection) and stores it anyway:
+    the Scene belongs to the user, the property may well be one a newer Tasker understands,
+    and silently dropping what they typed would be worse than showing it in red.
+    """
+    field = (
+        ui
+        .color_input(
+            label=translate_string(prop.label),
+            value=str(item.get(prop.key, "")),
+            on_change=lambda e, k=prop.key, d=item: colour_changed(d, k, str(e.value or "")),
+        )
+        .props("dense")
+        .classes("w-full")
+    )
+    with field.add_slot("prepend"):
+        swatch = ui.element("div").style(_V2_SWATCH_STYLE)
+    # Into the append slot ui.color_input already made, NOT a fresh one: add_slot REPLACES a
+    # slot of the same name, and the slot this field arrives with is the one holding its
+    # colour wheel.  Making a new one here takes the wheel away, which is the opposite of
+    # what this button is for -- the roles are offered *as well as* the wheel, not instead.
+    with field.slots["append"]:
+        palette_button = ui.button(icon="palette").props("flat dense round size=sm")
+        with palette_button:
+            ui.tooltip(translate_string("Pick one of Material's own colour roles."))
+            _build_material_colour_menu(field)
+
+    def colour_changed(node: dict, key: str, text: str) -> None:
+        sceneedit.v2_set_prop(node, key, text)
+        resolved = sceneview.v2_swatch_colour(text)
+        swatch.style(f"background: {resolved or 'transparent'};")
+        if sceneedit.v2_is_colour(text):
+            field.props(remove="error")
+        else:
+            message = translate_string("Not an HTML colour name or #hex value.")
+            field.props(f'error error-message="{message}"')
+
+    colour_changed(item, prop.key, str(item.get(prop.key, "")))
+
+
+# How many icons the picker draws before it stops and asks for a search.  Same bargain the
+# Show When picker strikes at _SHOW_WHEN_PREVIEW_LIMIT, at a size that suits a grid of glyphs:
+# enough to browse and see what kind of thing is in there, not so many that opening the dialog
+# builds several hundred widgets nobody scrolled to.
+_ICON_PREVIEW_LIMIT = 120
+
+
+def _build_icon_field(item: dict, prop: sceneedit.V2Prop) -> None:
+    """A Version 2 icon property: type a reference, or pick a Material icon by its picture.
+
+    Typed into as well as picked from, because an icon reference is not only ever a Material
+    name -- a Scene can point at a Material Symbol ("symbol:cloud_upload;opsz:24") or at an
+    installed app's own icon, and neither is something this picker can offer.  What is typed
+    is stored exactly as typed.
+
+    The glyph on the left is the field showing its own value back: it resolves all three forms
+    through the same sceneview.v2_icon the preview draws by, so what is in the field and what
+    the component will show are the same answer.
+    """
+    field = (
+        ui
+        .input(
+            translate_string(prop.label),
+            value=str(item.get(prop.key, "")),
+            on_change=lambda e, k=prop.key, d=item: icon_changed(d, k, str(e.value or "")),
+        )
+        .props("dense")
+        .classes("w-full")
+    )
+    with field.add_slot("prepend"):
+        glyph = ui.icon("").style("font-size: 22px;")
+    with field.add_slot("append"):
+        pick_button = ui.button(
+            icon="apps",
+            on_click=lambda _e=None, w=field: _build_icon_dialog(w),
+        ).props("flat dense round size=sm")
+        with pick_button:
+            ui.tooltip(translate_string("Pick a Material icon."))
+
+    def icon_changed(node: dict, key: str, text: str) -> None:
+        sceneedit.v2_set_prop(node, key, text)
+        glyph.name = sceneview.v2_icon(text)
+
+    icon_changed(item, prop.key, str(item.get(prop.key, "")))
+
+
+def _build_icon_dialog(field: ui.input) -> None:
+    """The Material icon picker: a grid of the glyphs themselves, because an icon is chosen by
+    looking at it -- "AcUnit" is a snowflake, and nobody browses a list of names for that.
+
+    The name goes under each glyph anyway.  It is what gets stored (sceneedit
+    .v2_icon_reference turns "ac_unit" into "icon:AcUnit"), and two icons that look alike at
+    22px are told apart by it.
+
+    Replaces the field rather than inserting into it, unlike the Show When picker: a component
+    has one icon, so a second pick is a correction and not an addition.
+    """
+    names = sceneedit.v2_icon_names()
+    search = {"text": ""}
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[640px] max-w-[760px] p-6"):
+        ui.label(translate_string("Pick an icon")).classes("text-lg font-bold text-blue-600")
+        ui.label(
+            translate_string("What you pick replaces what the field holds. Type to narrow the list down."),
+        ).classes("text-sm text-gray-500 italic")
+
+        def pick(name: str) -> None:
+            field.set_value(sceneedit.v2_icon_reference(name))
+            dialog.close()
+
+        search_input = (
+            ui
+            .input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
+            .props("outlined dense clearable autofocus")
+            .classes("w-full mt-2")
+        )
+        with search_input.add_slot("prepend"):
+            ui.icon("search")
+
+        results = ui.column().classes("w-full gap-1 mt-2 max-h-96 overflow-auto")
+
+        def render() -> None:
+            results.clear()
+            text = search["text"].strip().lower().replace(" ", "_")
+            visible = [name for name in names if text in name] if text else names
+            with results:
+                if not names:
+                    ui.label(
+                        translate_string("The Material icon list could not be read, so type the name instead."),
+                    ).classes("text-sm italic text-orange-600")
+                    return
+                if not visible:
+                    ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
+                    return
+                with ui.row().classes("w-full gap-1 flex-wrap"):
+                    for name in visible[:_ICON_PREVIEW_LIMIT]:
+                        # "stack" is Quasar's own glyph-above-label layout.  Doing it with flex
+                        # classes on the button does not work: they land on the button, while
+                        # the row that needs turning is the .q-btn__content inside it, so the
+                        # tiles come out half stacked and half side by side.
+                        tile = ui.button(on_click=lambda _e=None, n=name: pick(n)).props(
+                            "flat dense no-caps stack",
+                        ).classes("w-24 h-20")
+                        with tile:
+                            ui.icon(name).style("font-size: 24px;")
+                            ui.label(name).style(
+                                "font: 9px/1.1 monospace; max-width: 84px; overflow: hidden;"
+                                "text-overflow: ellipsis; white-space: nowrap;",
+                            )
+                            ui.tooltip(sceneedit.v2_icon_reference(name))
+                if len(visible) > _ICON_PREVIEW_LIMIT:
+                    ui.label(
+                        translate_string("...and {count} more -- type above to narrow it down.").format(
+                            count=len(visible) - _ICON_PREVIEW_LIMIT,
+                        ),
+                    ).classes("text-xs text-gray-500 italic mt-1")
+
+        def search_changed(value: str) -> None:
+            search["text"] = value or ""
+            render()
+
+        render()
+
+        with ui.row().classes("w-full justify-end mt-4 pt-3 border-t"):
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
+
+    dialog.open()
+
+
+def _build_material_colour_menu(field: ui.color_input) -> None:
+    """The menu of Material role names, each beside a swatch of what it resolves to.
+
+    Both halves are needed to choose one: the name is what gets stored and the colour is what
+    it will look like, and neither on its own tells you whether onSecondaryContainer is the
+    dark one.  The colours are Material 3's baseline (sceneview.V2_MATERIAL_PALETTE) -- what a
+    device without Material You shows, and an indication rather than a promise on one with it.
+
+    Writing through `field.value` leaves the field's own on_change to store it, so this needs
+    to know nothing about the component being edited -- the same division the Show When picker
+    keeps to.
+    """
+    with ui.menu().props("auto-close").classes("max-h-96"), ui.column().classes("gap-0 p-1"):
+        for name, css in sceneview.V2_MATERIAL_PALETTE.items():
+            with ui.item(on_click=lambda _e=None, n=name: field.set_value(n)).props("dense clickable"):
+                with ui.row().classes("items-center gap-2 no-wrap"):
+                    ui.element("div").style(f"{_V2_SWATCH_STYLE} background: {css};")
+                    ui.label(name).classes("text-sm font-mono")
+                    ui.space()
+                    ui.label(css).classes("text-xs text-gray-500 font-mono")
+
+
+def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
+    """One of the Screen Builder's state properties -- Enabled, Content format: a pulldown of
+    its states, and, for Dynamic only, the text or %variable to be evaluated when the Scene is
+    shown.
+
+    Two widgets rather than one list of everything, because the settling states and the value
+    behind Dynamic are not alternatives to each other: On *is* the answer, Dynamic says where
+    the answer will come from.  The value box is shown and hidden rather than created and
+    destroyed, so that switching to Off to try something and back to Dynamic doesn't lose what
+    was typed.
+
+    Each box writes the whole property on every change (sceneedit.v2_set_state takes the state
+    and the value together), since neither the state nor the box alone says what to store.
+    """
+    stored = item.get(field.key, "")
+    state = sceneedit.v2_state_of(field, stored)
+    # Guards the prompt below against firing while this field is still being built.  Nothing
+    # in NiceGUI 3.15 raises on_change from a constructor, so this is belt and braces -- but
+    # the cost of being wrong is a picker dialog opening by itself every time a component that
+    # happens to hold a variable is selected in the tree.
+    ready = {"user": False}
+
+    def value_of(state_name: str) -> str:
+        return str((dynamic_input if state_name == sceneedit.V2_DYNAMIC_STATE else variable_input).value or "")
+
+    def write() -> None:
+        chosen = str(state_select.value or "")
+        sceneedit.v2_set_state(field, item, chosen, value_of(chosen))
+
+    def state_changed() -> None:
+        """Write the new state, and -- this being what Select Variable *is* -- put the picker
+        up as soon as it is chosen, rather than making the user find a button afterwards.
+        """
+        write()
+        if ready["user"] and state_select.value == sceneedit.V2_VARIABLE_STATE:
+            pick_variable()
+
+    def pick_variable() -> None:
+        _build_show_when_dialog(
+            variable_input,
+            sceneedit.v2_dynamic_variable_choices(),
+            f"Select a variable for {field.label}",
+        )
+
+    state_select = (
+        ui
+        .select(
+            list(field.states),
+            value=state or None,
+            label=translate_string(field.label),
+            clearable=True,
+            on_change=lambda _e=None: state_changed(),
+        )
+        .props("dense")
+        .classes("w-full")
+    )
+    with state_select:
+        ui.tooltip(
+            translate_string("Dynamic and Select Variable are worked out when the Scene is shown."),
+        )
+
+    dynamic_input = (
+        ui
+        .input(
+            translate_string("Dynamic value"),
+            value=sceneedit.v2_state_value(field, stored, sceneedit.V2_DYNAMIC_STATE),
+            on_change=lambda _e=None: write(),
+        )
+        .props("dense")
+        .classes("w-full")
+    )
+    dynamic_input.bind_visibility_from(
+        state_select,
+        "value",
+        backward=lambda value: value == sceneedit.V2_DYNAMIC_STATE,
+    )
+
+    variable_input = (
+        ui
+        .input(
+            translate_string("Variable"),
+            value=sceneedit.v2_state_value(field, stored, sceneedit.V2_VARIABLE_STATE),
+            on_change=lambda _e=None: write(),
+        )
+        .props("dense")
+        .classes("w-full")
+    )
+    variable_input.bind_visibility_from(
+        state_select,
+        "value",
+        backward=lambda value: value == sceneedit.V2_VARIABLE_STATE,
+    )
+    # Shows what was picked, and re-opens the picker: the prompt on choosing the state is the
+    # way in, but a variable chosen by mistake needs a way back that isn't "select a different
+    # state and select this one again".
+    with variable_input.add_slot("append"):
+        variable_button = ui.button(icon="playlist_add", on_click=lambda _e=None: pick_variable()).props(
+            "flat dense round size=sm",
+        )
+        with variable_button:
+            ui.tooltip(translate_string("Pick from the Scene's environment and global variables."))
+
+    ready["user"] = True
 
 
 def _build_v2_designer(
@@ -2264,6 +2585,12 @@ def _build_v2_designer(
                 with_input=True,
                 on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
             ).props("dense").classes("w-full")
+        elif prop.kind == "state" and (state_field := sceneedit.v2_state_field(prop.key)) is not None:
+            _build_state_field(item, state_field)
+        elif prop.kind == "color":
+            _build_colour_field(item, prop)
+        elif prop.kind == "icon":
+            _build_icon_field(item, prop)
         else:
             text_input = (
                 ui
@@ -2287,14 +2614,16 @@ def _build_v2_designer(
                     ).props("flat dense round size=sm")
                     with show_when_button:
                         ui.tooltip(translate_string("Pick from the Scene's environment and global variables."))
-            if prop.key == "treeLabel":
-                # The tree shows treeLabel in place of the id (see sceneedit.v2_node_label),
-                # so a change to it has to reach the tree row.  The row is retitled in place
-                # rather than the panes being re-rendered, for two reasons: a rebuild on every
-                # keystroke would destroy the field being typed into and take the caret with
-                # it, and deferring the rebuild to the field's blur doesn't work -- Quasar's
-                # blur does not reach a NiceGUI .on("blur") handler here, so the row would
-                # simply sit stale until the next click.
+            # Either of the two properties a component can be named by: its treeLabel, or --
+            # for a Text, which is named by what it says -- its own text (see
+            # sceneedit.v2_node_name).  A change to whichever names *this* node has to reach
+            # the tree row.  The row is retitled in place rather than the panes being
+            # re-rendered, for two reasons: a rebuild on every keystroke would destroy the
+            # field being typed into and take the caret with it, and deferring the rebuild to
+            # the field's blur doesn't work -- Quasar's blur does not reach a NiceGUI
+            # .on("blur") handler here, so the row would simply sit stale until the next click.
+            names_node = prop.key in ("treeLabel", sceneedit.V2_LABEL_FALLBACK.get(str(item.get("type", "")), ""))
+            if names_node:
                 text_input.on_value_change(lambda _e=None, d=item: retitle_node_labels(d))
 
     def structural_edit(mutate: Callable[[], object]) -> None:
@@ -2358,7 +2687,11 @@ def _build_v2_designer(
                                 lambda: sceneedit.v2_delete_modifier(node, i),
                             ),
                         ).props("dense flat size=sm color=negative")
-                    for prop in sceneedit.v2_schema_props(sceneedit.V2_MODIFIER_SCHEMA, modifier):
+                    for prop in sceneedit.v2_schema_props(
+                        sceneedit.V2_MODIFIER_SCHEMA,
+                        modifier,
+                        sceneedit.V2_MODIFIER_UNIVERSAL_PROPS,
+                    ):
                         prop_input(modifier, prop)
             add_modifier = ui.button(translate_string("Add modifier"), icon="add").props("dense flat")
             with add_modifier, ui.menu():
@@ -3707,6 +4040,51 @@ def _apply_item_layout_size(
     sceneedit.set_scene_dimensions(nested, {key: value})
 
 
+def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event], None]) -> None:
+    """A Legacy element's colour: the same picker the V2 designer's colours use, over a value
+    written the other way round.
+
+    Tasker stores #AARRGGBB and every colour picker there is speaks #RRGGBBAA, so the field
+    shows the converted value and converts back before committing (see
+    sceneedit.legacy_colour_to_css, which is where that ordering is explained).  The picker
+    itself is put into "hexa" so it returns the alpha rather than dropping it -- a Scene's
+    "#77333333" is a deliberately half-transparent grey, and a picker that answered in plain
+    #RRGGBB would quietly make it opaque.
+
+    The committed value is re-shown afterwards.  A pick of an opaque colour comes back as
+    eight digits, which stores as #FFRRGGBB and reads back out as six -- so writing that form
+    into the field is what lets the swatch preview it.  That write is its own change event,
+    which `settling` swallows: it would otherwise commit the identical colour a second time
+    and repaint the canvas for it.
+    """
+    settling = {"busy": False}
+
+    def commit_colour(event: Event) -> None:
+        if settling["busy"]:
+            return
+        stored = sceneedit.legacy_colour_from_css(str(event.value or ""))
+        event.value = stored
+        commit(event)
+        settling["busy"] = True
+        try:
+            field.value = sceneedit.legacy_colour_to_css(stored)
+        finally:
+            settling["busy"] = False
+
+    field = (
+        ui
+        .color_input(
+            label=translate_string(arg.arg_name),
+            value=sceneedit.legacy_colour_to_css(arg.current_value),
+            preview=True,
+            on_change=commit_colour,
+        )
+        .props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}")
+        .classes("flex-1")
+    )
+    field.picker.q_color.props('format-model="hexa"')
+
+
 def _render_legacy_arg(
     arg: taskedit.EditableArg,
     on_applied: Callable[[], None],
@@ -3782,6 +4160,8 @@ def _render_legacy_arg(
             ui.input(translate_string(arg.arg_name), value=arg.current_value).props("readonly dense").classes("flex-1")
             if arg.readonly_note:
                 ui.label(translate_string(arg.readonly_note)).classes("text-xs text-gray-500 italic")
+        elif sceneedit.legacy_is_colour_arg(arg):
+            _render_legacy_colour_arg(arg, commit)
         else:  # "text" and "raw_fallback"
             # Debounced, unlike the checkbox and the dropdown above: those commit one whole
             # value per click, while this one is typed a character at a time.  See

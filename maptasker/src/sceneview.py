@@ -83,7 +83,7 @@ from typing import TYPE_CHECKING
 from nicegui import ui
 
 from maptasker.src.actiont import lookup_values
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import is_html_colour, tasker_icon_name, translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SCENE_TASK_TYPES
 
@@ -1474,6 +1474,31 @@ V2_MATERIAL_PALETTE: dict[str, str] = {
     "outline": "#79747E",
     "outlineVariant": "#CAC4D0",
     "scrim": "#000000",
+    # The rest of Material 3's roles, at the same baseline.  The "fixed" family is the one
+    # that keeps its colour when the rest of the scheme flips between light and dark -- which
+    # is why onPrimaryFixed and onPrimaryContainer are the same swatch here and stop being the
+    # same one on a dark device -- and the surfaceContainer family is the elevation ladder
+    # that replaced Material 2's shadows.  Both are offered by Tasker's own colour picker, so
+    # a Scene can name any of them.
+    "primaryFixed": "#EADDFF",
+    "onPrimaryFixed": "#21005D",
+    "primaryFixedDim": "#D0BCFF",
+    "onPrimaryFixedVariant": "#4F378B",
+    "secondaryFixed": "#E8DEF8",
+    "onSecondaryFixed": "#1D192B",
+    "secondaryFixedDim": "#CCC2DC",
+    "onSecondaryFixedVariant": "#4A4458",
+    "tertiaryFixed": "#FFD8E4",
+    "onTertiaryFixed": "#31111D",
+    "tertiaryFixedDim": "#EFB8C8",
+    "onTertiaryFixedVariant": "#633B48",
+    "surfaceDim": "#DED8E1",
+    "surfaceBright": "#FEF7FF",
+    "surfaceContainerLowest": "#FFFFFF",
+    "surfaceContainerLow": "#F7F2FA",
+    "surfaceContainer": "#F3EDF7",
+    "surfaceContainerHigh": "#ECE6F0",
+    "surfaceContainerHighest": "#E6E0E9",
 }
 
 # Compose's arrangements and alignments, in the spellings sceneedit's schema offers, mapped
@@ -1508,6 +1533,23 @@ _V2_MAX_DEPTH = 40
 _V2_ICON_PREFIX = "icon:"
 _V2_CAMEL_BOUNDARY = re.compile(r"(?<!^)(?=[A-Z])")
 
+# The second way a Scene names a glyph: Material Symbols, Google's newer set.  Quasar reaches
+# it by prefixing the name -- sym_o_ for the Outlined face, which is the one Tasker's own
+# picker shows -- and NiceGUI 3.15 ships all three Symbols faces with itself (see its
+# static/fonts.css), so drawing one fetches nothing from the network.
+#
+# The names in this set are already snake_case, and the ";weight:600;opsz:24" tail on them
+# says how to draw the glyph rather than which glyph it is (maputil2.tasker_icon_name).
+_V2_SYMBOL_PREFIX = "symbol:"
+_V2_QUASAR_SYMBOL_PREFIX = "sym_o_"
+
+# The third way: an installed app's own icon, served by Tasker's icon provider on the device.
+# "content://net.dinglisch.android.taskerm.iconprovider//app/com.android.vending" is a
+# reference to something on the phone -- the icon belongs to the app, not to the backup -- so
+# there is no glyph here to draw and the package name is what can honestly be shown for it.
+_V2_APP_ICON_SCHEME = "content://"
+_V2_APP_ICON_MARKER = "iconprovider"
+
 
 def v2_colour(raw: object, fallback: str = "") -> Colour:
     """A V2 colour value: a Material role name, a plain hex colour, or a %variable.
@@ -1540,15 +1582,59 @@ def v2_colour(raw: object, fallback: str = "") -> Colour:
     return Colour(fallback or "transparent", known=False)
 
 
-def v2_icon(raw: object) -> str:
-    """"icon:ArrowBack" -> "arrow_back", the name the Material icon font uses.  "" for
-    anything that is not an icon reference (a URL, a %variable, an empty property).
+def v2_swatch_colour(raw: object) -> str:
+    """The CSS this V2 colour value actually draws as, for showing a swatch of it -- a
+    Material role name resolved through the palette, a #hex as itself, an HTML colour name as
+    itself.
+
+    "" for anything that names no colour this app can resolve: an empty property, a
+    %variable, a spelling from a newer Tasker.  The caller decides what to show for those --
+    a blank swatch says "nothing to show you" where a made-up colour would be a claim.
     """
     value = str(raw or "").strip()
-    if not value.startswith(_V2_ICON_PREFIX):
+    if not value or value.startswith("%"):
         return ""
-    name = value[len(_V2_ICON_PREFIX) :]
-    return _V2_CAMEL_BOUNDARY.sub("_", name).lower() if name else ""
+    colour = v2_colour(value, fallback="")
+    if colour.known:
+        return colour.css
+    return value.lower() if is_html_colour(value) else ""
+
+
+def v2_icon(raw: object) -> str:
+    """The name Quasar draws this icon by: "icon:ArrowBack" -> "arrow_back",
+    "symbol:cloud_upload;opsz:24" -> "sym_o_cloud_upload".
+
+    Both sets are drawn from fonts NiceGUI ships, so neither goes to the network.  The two
+    differ in how the name is spelled as well as which font it is in: Material Icons names are
+    camel case in a Scene and snake case in the font, while Symbols names are snake case
+    already -- which is why only the first is converted.
+
+    "" for anything that is not a font glyph at all: an app icon from the device's own icon
+    provider (see _v2_app_icon), a URL, a %variable, an empty property.
+    """
+    value = str(raw or "").strip()
+    if value.startswith(_V2_SYMBOL_PREFIX):
+        name = tasker_icon_name(value)
+        return f"{_V2_QUASAR_SYMBOL_PREFIX}{name}" if name else ""
+    if value.startswith(_V2_ICON_PREFIX):
+        name = tasker_icon_name(value)
+        return _V2_CAMEL_BOUNDARY.sub("_", name).lower() if name else ""
+    return ""
+
+
+def _v2_app_icon(raw: object) -> str:
+    """The package whose own icon this reference names -- "com.android.vending" out of a
+    "content://...iconprovider//app/com.android.vending".  "" for anything else.
+
+    The icon itself is installed with the app on the phone and is not in the backup, so this
+    is the most that can be said about it here.  The callers draw a stand-in glyph and name
+    the package rather than leaving the component empty, which is what a preview that cannot
+    show something owes the person reading it.
+    """
+    value = str(raw or "").strip()
+    if not value.startswith(_V2_APP_ICON_SCHEME) or _V2_APP_ICON_MARKER not in value:
+        return ""
+    return tasker_icon_name(value)
 
 
 def v2_layout_summary(layout: dict) -> list[tuple[str, str]]:
@@ -1673,16 +1759,27 @@ def _v2_modifier_style(node: dict) -> str:
 
     Every modifier's keys are read defensively.  Size is the reason: sceneedit's schema lists
     width/height, and the Scenes in this repo carry "all".  Both work here.
+
+    The transforming modifiers (Offset, Rotate, Scale) are gathered rather than concatenated,
+    for the reason given at _V2_MODIFIER_TRANSFORM, and land after everything else -- a
+    transform is applied to the box the rest of the chain has already decided on.
     """
     modifiers = node.get("modifiers")
     if not isinstance(modifiers, list):
         return ""
 
     style = ""
+    transforms = []
     for modifier in modifiers:
         if not isinstance(modifier, dict):
             continue
-        style += _V2_MODIFIER_CSS.get(str(modifier.get("type", "")), lambda _m: "")(modifier)
+        modifier_type = str(modifier.get("type", ""))
+        style += _V2_MODIFIER_CSS.get(modifier_type, lambda _m: "")(modifier)
+        transform = _V2_MODIFIER_TRANSFORM.get(modifier_type, lambda _m: "")(modifier)
+        if transform:
+            transforms.append(transform)
+    if transforms:
+        style += f"transform: {' '.join(transforms)};"
     return style
 
 
@@ -1785,33 +1882,137 @@ def _v2_alpha(modifier: dict) -> str:
         return ""
 
 
+# The weights a Weight modifier is set from (sceneedit.V2_FONT_WEIGHTS), as the numbers CSS
+# knows them by.  Keyed without spaces or case so "ExtraLight", "Extra Light" and "extra
+# light" all arrive at the same weight -- the same looseness sceneedit.v2_state_of reads them
+# with, and for the same reason: which of the two spellings Tasker writes is not in evidence.
+_V2_FONT_WEIGHT_CSS: dict[str, int] = {
+    "thin": 100,
+    "extralight": 200,
+    "light": 300,
+    "normal": 400,
+    "medium": 500,
+    "semibold": 600,
+    "bold": 700,
+    "extrabold": 800,
+    "black": 900,
+}
+
+# What a Blur is drawn as when it says nothing about how much.  No Blur in any sample carries
+# a radius and Tasker's name for one is not in evidence (see sceneedit's schema note), so this
+# is a stand-in: enough to show that the component is blurred, not a claim about how much.
+_V2_DEFAULT_BLUR = "4px"
+
+
 def _v2_weight(modifier: dict) -> str:
-    amount = str(modifier.get("amount", "1")).strip()
+    """Weight: how heavy the text is drawn.
+
+    A named weight off Compose's scale, or a plain 100-900 that CSS would take as one.  A
+    %variable, or a leftover number from when this modifier was read as a layout weight, is
+    not a font weight and draws nothing -- the modifier is still named in the tooltip.
+    """
+    amount = str(modifier.get("amount", "")).strip()
+    named = _V2_FONT_WEIGHT_CSS.get("".join(amount.split()).lower())
+    if named:
+        return f"font-weight: {named};"
     try:
-        return f"flex-grow: {float(amount):g}; flex-basis: 0;"
+        numeric = int(float(amount))
     except ValueError:
-        return "flex-grow: 1; flex-basis: 0;"
+        return ""
+    return f"font-weight: {numeric};" if 100 <= numeric <= 900 else ""  # noqa: PLR2004
 
 
-# type -> the CSS it contributes.  A modifier absent from here contributes nothing visually
-# and is reported in the component's tooltip instead (see _v2_tooltip): WindowDrag has no
-# appearance to draw, and an unrecognised one is not going to be invented.
+def _v2_fraction(modifier: dict) -> str:
+    """How much of the available space a Fill* modifier takes, as a CSS percentage.  Absent
+    means all of it, which is how most of the samples' Fills are written.
+    """
+    value = str(modifier.get("fraction", "")).strip()
+    try:
+        return f"{max(0.0, min(1.0, float(value))) * 100:g}%"
+    except ValueError:
+        return "100%"
+
+
+def _v2_shadow(modifier: dict) -> str:
+    """Shadow: elevation as the distance the component is lifted off what is behind it.
+
+    Compose states an elevation in dp and works the shadow out from it; CSS wants the offset
+    and the blur, so the one number becomes both -- dropped half its elevation, blurred by the
+    whole of it, which is the shape of Material's own elevation overlays.  The shape is
+    carried too, so a shadow under a rounded card is rounded rather than square.
+    """
+    elevation = _v2_number(modifier, "elevation")
+    if not elevation:
+        return _v2_shape(modifier)
+    depth = float(elevation.removesuffix("px"))
+    return f"box-shadow: 0 {depth / 2:g}px {depth:g}px rgba(0,0,0,0.28);{_v2_shape(modifier)}"
+
+
+def _v2_offset(modifier: dict) -> str:
+    """Offset: x and y, either of which can be negative and either of which can be absent."""
+    x = _v2_number(modifier, "x") or "0px"
+    y = _v2_number(modifier, "y") or "0px"
+    return "" if x == "0px" and y == "0px" else f"translate({x}, {y})"
+
+
+def _v2_rotate(modifier: dict) -> str:
+    degrees = str(modifier.get("degrees", "")).strip()
+    try:
+        return f"rotate({float(degrees):g}deg)"
+    except ValueError:
+        return ""
+
+
+def _v2_scale(modifier: dict) -> str:
+    amount = str(modifier.get("all", "")).strip()
+    try:
+        return f"scale({float(amount):g})"
+    except ValueError:
+        return ""
+
+
+# type -> the CSS it contributes.  A modifier absent from here and from
+# _V2_MODIFIER_TRANSFORM contributes nothing visually and is reported in the component's
+# tooltip instead (see _v2_tooltip): WindowDrag is behaviour rather than appearance -- a
+# picture cannot show that a window can be dragged -- and an unrecognised one is not going to
+# be invented.
 _V2_MODIFIER_CSS: dict[str, object] = {
-    "FillWidth": lambda _m: "width: 100%;",
-    "FillSize": lambda _m: "width: 100%; height: 100%;",
+    "FillWidth": lambda m: f"width: {_v2_fraction(m)};",
+    "FillHeight": lambda m: f"height: {_v2_fraction(m)};",
+    "FillSize": lambda m: f"width: {_v2_fraction(m)}; height: {_v2_fraction(m)};",
     "Size": _v2_size,
     "SizeIn": _v2_size_in,
     "Padding": _v2_padding,
     "Clip": lambda m: f"overflow: hidden;{_v2_shape(m)}",
     "Border": _v2_border,
+    "Shadow": _v2_shadow,
     "Background": _v2_background,
     "Align": lambda m: f"align-self: {_V2_ALIGNMENT.get(str(m.get('alignment', '')), 'auto')};",
     "Weight": _v2_weight,
     "AspectRatio": lambda m: f"aspect-ratio: {m.get('ratio', '1')};",
     "Alpha": _v2_alpha,
+    "Blur": lambda m: f"filter: blur({_v2_number(m, 'radius', 'all', 'value') or _V2_DEFAULT_BLUR});",
     "VerticalScroll": lambda _m: "overflow-y: auto;",
+    "HorizontalScroll": lambda _m: "overflow-x: auto;",
     "Clickable": lambda _m: "cursor: pointer;",
 }
+
+# The three that are all the same CSS property.  Kept apart from the table above because
+# `transform` takes a *list* of functions and the styles here are concatenated: written as
+# ordinary declarations, a component carrying both a Rotate and a Scale would keep only
+# whichever came last.  Gathered instead, and emitted as one transform in modifier order.
+_V2_MODIFIER_TRANSFORM: dict[str, object] = {
+    "Offset": _v2_offset,
+    "Rotate": _v2_rotate,
+    "Scale": _v2_scale,
+}
+
+
+def _v2_modifier_drawn(modifier_type: str) -> bool:
+    """Whether the preview has anything to draw for this modifier -- what the tooltip's
+    "(not drawn)" note is the answer to.
+    """
+    return modifier_type in _V2_MODIFIER_CSS or modifier_type in _V2_MODIFIER_TRANSFORM
 
 
 # ------------------------------------------------------------------
@@ -1939,11 +2140,31 @@ def _v2_draw_node(node: dict, options: PreviewOptions, depth: int, *, fill: bool
     _v2_tooltip(container, node)
 
 
+# The components named by one of their own properties when they carry no treeLabel, and which
+# property -- the same table sceneedit.V2_LABEL_FALLBACK holds for the designer's tree,
+# written out again rather than imported to keep the renderer from depending on the editor.
+# The two change together.
+_V2_NAMED_BY_PROPERTY = {"Text": "text", "Button": "text", "IconButton": "icon"}
+
+
 def _v2_bounds_label(node: dict) -> None:
     """The component's name, the way the designer's tree says it -- so a component picked out
     of the picture can be found in the tree, and the other way round.
+
+    Which means the same order of preference sceneedit.v2_node_name uses, own property
+    included: the two are written out separately rather than shared, to keep the renderer from
+    importing the editor, and they have to be changed together.
     """
-    label = node.get("treeLabel") or node.get("id") or node.get("type", "?")
+    own_key = _V2_NAMED_BY_PROPERTY.get(str(node.get("type", "")), "")
+    own = str(node.get(own_key, "") or "") if own_key else ""
+    if own and _v2_is_html(node):
+        # Named by what it says rather than by its markup -- "Bold heading", not
+        # "<b>Bold</b> heading".
+        own = _v2_plain_text(own)
+    if own and own_key == "icon":
+        # "icon:Close" is called Close; a Symbol's ";weight:600;opsz:24" says how to draw it.
+        own = tasker_icon_name(own)
+    label = node.get("treeLabel") or own.strip() or node.get("id") or node.get("type", "?")
     ui.label(str(label)).style(
         "position: absolute; left: 0; top: 0; z-index: 5; pointer-events: none;"
         "font: 9px/1.2 monospace; color: rgba(37,99,235,0.95); background: rgba(255,255,255,0.75);"
@@ -1999,7 +2220,7 @@ def _v2_tooltip(container: ui.element, node: dict) -> None:
 
     modifiers = [
         str(modifier.get("type", "?"))
-        + ("" if str(modifier.get("type", "")) in _V2_MODIFIER_CSS else f" ({translate_string('not drawn')})")
+        + ("" if _v2_modifier_drawn(str(modifier.get("type", ""))) else f" ({translate_string('not drawn')})")
         for modifier in node.get("modifiers") or []
         if isinstance(modifier, dict)
     ]
@@ -2046,6 +2267,127 @@ def _v2_text(value: object, style: str) -> None:
     if text.startswith("%"):
         style += "font-style: italic; text-decoration: underline dotted; opacity: 0.85;"
     ui.label(text).style(f"{style} max-width: 100%; overflow: hidden; white-space: pre-wrap;")
+
+
+# One <a>...</a> and what it reads as on screen.  Nothing else about the markup is parsed:
+# this is here to find the *links*, because they are the run drawn in the component's own
+# link colour, and everything else is text.
+_V2_ANCHOR = re.compile(r"<a\b[^>]*>(.*?)</a>", re.IGNORECASE | re.DOTALL)
+
+# A link nobody wrote a tag around.  Android linkifies these itself -- a bare https://..., a
+# www. address or an email address in a text is tappable on the phone and drawn in the link
+# colour -- so a preview that only coloured <a> runs would show a Scene whose one link is
+# plainly a URL as having no links at all.
+_V2_AUTOLINK = re.compile(
+    r"(?:https?://|www\.)[^\s<>\"']+|[\w.+-]+@[\w-]+\.[\w.-]+",
+    re.IGNORECASE,
+)
+
+# Punctuation that ends the sentence rather than the URL: "see https://x.com." links up to
+# the "m".  Matches how Android's own Linkify treats a trailing stop.
+_V2_AUTOLINK_TRAILING = ".,;:!?)\"'"
+
+# What Tasker's contentFormat has to say for the text to be markup rather than a sentence.
+_V2_HTML_FORMAT = "html"
+
+
+def _v2_is_html(node: dict) -> bool:
+    """Whether this component's text is to be read as markup: contentFormat says Html, and
+    there is text to read it in.
+
+    Deliberately NOT also "and there is a tag in it".  That extra test looks like the careful
+    version and is the wrong one: an Html text whose only link is a bare URL has no tags at
+    all, and gating on tags drew exactly that case -- the commonest one there is -- as a plain
+    sentence with its link uncoloured.  Whether the text is markup is what contentFormat says;
+    what is in it decides only what the drawing has to do.
+
+    A text that is wholly a %variable is still excluded, as it is on the Legacy side (see
+    _is_inline_html): its markup, and any link in it, arrive on the phone and not here, so it
+    keeps the plain label and its variable marking.
+    """
+    if str(node.get("contentFormat", "")).strip().lower() != _V2_HTML_FORMAT:
+        return False
+    text = str(node.get("text", "") or "").strip()
+    return bool(text) and not text.startswith("%")
+
+
+def _v2_link_colour(node: dict) -> str:
+    """The CSS colour this component's tappable links are drawn in.
+
+    linkColor is an ordinary HTML colour -- a name or a #hex -- which is one more form than
+    v2_colour parses (that one knows Material role names, Tasker's #AARRGGBB and CSS's
+    shorter hexes), so a name is checked for separately and handed to CSS as itself.
+
+    A %variable can't be resolved from a backup file, so it draws in the same muted grey
+    _v2_text_style uses for a variable-driven text colour: the preview says "this is decided
+    on the phone" rather than inventing a colour to show.  Nothing set at all means Material's
+    primary, which is what an unstyled link lands on.
+    """
+    raw = str(node.get("linkColor", "") or "").strip()
+    if raw.startswith("%"):
+        return "rgba(100,116,139,0.95)"
+    return v2_swatch_colour(raw) or V2_MATERIAL_PALETTE["primary"]
+
+
+def _v2_html_text(node: dict, style: str) -> None:
+    """Draw an Html-format text: its links in the component's link colour, the rest as text.
+
+    The markup is taken apart rather than rendered.  A V2 component draws in the page's own
+    flow -- it has no geometry to give a frame a size (which is how the Legacy half can afford
+    to render markup properly, in the sandboxed iframe at _WEB_SANDBOX) -- and putting a
+    stranger's markup loose in this page is the one thing that module is careful never to do.
+
+    So what is drawn is the sentence with its tags taken off, the way the Legacy half draws an
+    HTML text it isn't rendering, with the tappable runs kept apart and coloured.  That is the
+    part of the markup this preview is actually being asked about: which words are tappable,
+    and what colour they come out.  Each run goes in as *text* through ui.label, so nothing in
+    the Scene can be markup here however it was written.
+
+    Tappable means both kinds of link: the ones written as <a>, and the bare URLs and email
+    addresses Android turns into links on its own (see _V2_AUTOLINK).
+    """
+    raw = str(node.get("text", "") or "")
+    link_style = f"color: {_v2_link_colour(node)}; text-decoration: underline;"
+    with ui.element("div").style(f"{style} max-width: 100%; overflow: hidden;"):
+        position = 0
+        for match in _V2_ANCHOR.finditer(raw):
+            _v2_linkified_runs(raw[position : match.start()], link_style)
+            _v2_run(_v2_plain_text(match.group(1)), link_style)
+            position = match.end()
+        _v2_linkified_runs(raw[position:], link_style)
+
+
+def _v2_plain_text(fragment: str) -> str:
+    """A run of markup as the words it shows: tags off, entities back (a &amp; is an "&" on
+    the phone, not five characters).  What makes the drawn result a sentence rather than a
+    listing of its source.
+    """
+    return html.unescape(_HTML_TAG.sub("", fragment))
+
+
+def _v2_linkified_runs(fragment: str, link_style: str) -> None:
+    """Draw a stretch of text that is outside any <a>, giving the link colour to the URLs and
+    email addresses in it that Android would make tappable by itself.
+
+    Tags come off first, so a URL that is only there as an href -- inside a tag rather than in
+    the words -- is not mistaken for one the reader can see.
+    """
+    text = _v2_plain_text(fragment)
+    position = 0
+    for match in _V2_AUTOLINK.finditer(text):
+        link = match.group(0).rstrip(_V2_AUTOLINK_TRAILING)
+        _v2_run(text[position : match.start()], "")
+        _v2_run(link, link_style)
+        position = match.start() + len(link)
+    _v2_run(text[position:], "")
+
+
+def _v2_run(text: str, style: str) -> None:
+    """One run of an Html-format text, drawn inline so the runs read as one sentence rather
+    than as a stack of lines.
+    """
+    if text:
+        ui.label(text).style(f"display: inline; {style}")
 
 
 # ------------------------------------------------------------------
@@ -2277,6 +2619,9 @@ def _v2_draw_navigation_item(node: dict, options: PreviewOptions, depth: int) ->
 
 def _v2_draw_text(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
     """Text: the component real Scenes are mostly made of."""
+    if _v2_is_html(node):
+        _v2_html_text(node, _v2_text_style(node))
+        return
     _v2_text(node.get("text"), _v2_text_style(node))
 
 
@@ -2536,6 +2881,14 @@ def _v2_draw_image(node: dict, options: PreviewOptions, depth: int) -> None:  # 
         with ui.element("div").style(f"display: inline-flex; align-items: center; justify-content: center; {box}"):
             ui.icon(icon).style(f"font-size: {height or '32px'}; color: {V2_MATERIAL_PALETTE['onSurfaceVariant']};")
         return
+    package = _v2_app_icon(node.get("icon"))
+    if package:
+        # Named rather than drawn, for the reason at _v2_app_icon -- and named as the app it
+        # is, rather than falling through to the "Image" panel below, which would say only
+        # that something unshowable goes here.
+        with ui.element("div").style(f"{box or 'width: 100%; height: 96px;'} position: relative; flex: none;"):
+            _placeholder("android", "App icon", package)
+        return
     url = str(node.get("url", "") or node.get("icon", ""))
     with ui.element("div").style(f"{box or 'width: 100%; height: 96px;'} position: relative; flex: none;"):
         _placeholder("image", "Image", url.rsplit("/", 1)[-1] if url else "")
@@ -2599,10 +2952,20 @@ def _v2_draw_unknown(node: dict, options: PreviewOptions, depth: int) -> None:
 
 
 def _v2_icon_or_placeholder(raw: object, size: int, colour: str) -> None:
-    """An icon: reference as the real Material glyph; anything else named instead."""
+    """A named icon as the real glyph, an app's icon as a stand-in that says which app, and
+    anything else -- a URL, a %variable -- named instead.
+    """
     icon = v2_icon(raw)
     if icon:
         ui.icon(icon).style(f"font-size: {size}px; color: {colour};")
+        return
+    package = _v2_app_icon(raw)
+    if package:
+        # The app's real icon is on the phone (see _v2_app_icon).  A generic glyph at the
+        # right size and place says "an app icon goes here" without inventing which one; the
+        # tooltip is where the package name goes, there being no room for it at 48px.
+        with ui.icon("android").style(f"font-size: {size}px; color: {colour};"):
+            ui.tooltip(f"{translate_string('App icon')}: {package}")
         return
     text = str(raw or "")
     if text:

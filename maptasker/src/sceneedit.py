@@ -68,6 +68,7 @@ from __future__ import annotations
 import base64
 import copy
 import gzip
+import html
 import io
 import json
 import os
@@ -289,6 +290,131 @@ V2_UNIVERSAL_PROPS: tuple[V2Prop, ...] = (
     V2Prop("treeLabel", "Tree label"),
 )
 
+# The two states that settle nothing themselves and instead carry a value: Dynamic, whose
+# value is typed, and Select Variable, whose value is picked from the same categories the Show
+# When picker offers.  Both write the one property -- they are two ways of filling it in, not
+# two things to fill in -- which is why they are states of the same pulldown.
+V2_DYNAMIC_STATE = "Dynamic"
+V2_VARIABLE_STATE = "Select Variable"
+
+
+@dataclass(frozen=True)
+class V2StateField:
+    """A property set from a short list of named states.
+
+    Tasker's Screen Builder offers several of these and they all work the same way: two or
+    three states that settle the property outright, plus the two open ones above, which settle
+    nothing and instead carry a value to be evaluated when the Scene is shown.  That is why
+    these are their own kind of input rather than a "choice": a choice stores what was picked,
+    and this stores what was picked *or* what was written beside it.
+
+    `fixed` pairs each settling state with what it stores, because the two are not always the
+    same word: Enabled's On stores "true", while Content format's Plain stores "Plain".
+
+    `types` is which components offer the field.  It is here rather than in
+    V2_COMPONENT_SCHEMA because these fields have to sit directly below Show when -- Tasker
+    groups them there, and they read as a set: whether the component is there, whether it
+    responds, how it reads what it is given.  Everything in V2_COMPONENT_SCHEMA is offered
+    *above* the universal properties, which is where Show when lives.
+
+    `modifier` names the modifier type a field belongs to, for the ones that are a modifier's
+    value rather than a component's property (Weight).  Those are offered by
+    V2_MODIFIER_SCHEMA on the modifier itself and nowhere else, so a component that happens to
+    carry a key of the same name is not handed a pulldown meant for something else.
+    """
+
+    key: str
+    label: str
+    fixed: tuple[tuple[str, str], ...]
+    types: frozenset[str]
+    modifier: str = ""
+
+    @property
+    def states(self) -> tuple[str, ...]:
+        """What the pulldown offers: the settling states in order, then the two open ones."""
+        return (*(state for state, _ in self.fixed), V2_DYNAMIC_STATE, V2_VARIABLE_STATE)
+
+    @property
+    def prop(self) -> V2Prop:
+        """This field as the inspector's own kind of property."""
+        return V2Prop(self.key, self.label, "state")
+
+
+# What Enabled's On and Off actually store.  Strings, not JSON booleans, because that is what
+# Tasker writes for a component property: every boolean-valued property in the V2 Scenes in
+# XML/backup.xml -- autoPlay, loop, allowFileAccess, showStopIndicator, animateChanges -- is
+# the *string* "true" or "false".  (The one real JSON bool anywhere in those layouts,
+# stopPropagation, is on an event handler rather than a component.)
+V2_ENABLED_ON = "true"
+V2_ENABLED_OFF = "false"
+
+# How heavy the text is drawn, lightest first -- Compose's own FontWeight scale, which is what
+# the Screen Builder is offering.  Each stores the name it shows; v2_state_of matches them
+# loosely enough that a Scene spelling one "ExtraLight" and this table spelling it
+# "Extra Light" still read as the same weight.
+V2_FONT_WEIGHTS: tuple[str, ...] = (
+    "Thin",
+    "Extra Light",
+    "Light",
+    "Normal",
+    "Medium",
+    "SemiBold",
+    "Bold",
+    "ExtraBold",
+    "Black",
+)
+
+# The state fields.  The component ones come in the order they are offered -- which is the
+# order Tasker's own Screen Builder puts them in, directly below Show when.
+V2_STATE_FIELDS: tuple[V2StateField, ...] = (
+    V2StateField("enabled", "Enabled", (("On", V2_ENABLED_ON), ("Off", V2_ENABLED_OFF)), frozenset({"Text"})),
+    V2StateField(
+        "contentFormat",
+        "Content format",
+        (("Plain", "Plain"), ("Html", "Html")),
+        frozenset({"Text"}),
+    ),
+    # A modifier's value rather than a component's property, so it carries no component types
+    # and is reached only through V2_MODIFIER_SCHEMA's "Weight" entry.
+    V2StateField(
+        "amount",
+        "Weight",
+        tuple((weight, weight) for weight in V2_FONT_WEIGHTS),
+        frozenset(),
+        modifier="Weight",
+    ),
+)
+
+# Properties that hold an ordinary value but belong with the state fields below Show when
+# rather than up in V2_COMPONENT_SCHEMA, as (property, the types offered it).
+#
+# Link colour is the colour a tappable link is drawn in, and it only means anything to a
+# component whose Content format is Html -- which is what puts it directly below that field
+# rather than beside the Text's own "color".
+V2_BELOW_SHOW_WHEN_PROPS: tuple[tuple[V2Prop, frozenset[str]], ...] = (
+    (V2Prop("linkColor", "Link color", "color"), frozenset({"Text"})),
+)
+
+
+def v2_is_colour(text: str) -> bool:
+    """Whether this is something a Scene can hold as a colour -- and, just as much to the
+    point, something the preview can draw.
+
+    True for an HTML colour name or a #hex value (maputil2.is_html_colour), and for the
+    Material role names Tasker writes into V2 colour properties ("primary", "onSurface").
+    True as well for empty, which is a property that isn't set rather than one set wrongly,
+    and for a %variable, whose value is only known on the phone.
+
+    False, then, means a value that will not draw as a colour anywhere -- which is what the
+    inspector marks, rather than refusing to store it: it is the user's Scene, and a colour
+    this app fails to recognise is still theirs to keep.
+    """
+    from maptasker.src.maputil2 import is_html_colour  # noqa: PLC0415
+    from maptasker.src.sceneview import V2_MATERIAL_PALETTE  # noqa: PLC0415
+
+    value = text.strip()
+    return not value or value.startswith("%") or value in V2_MATERIAL_PALETTE or is_html_colour(value)
+
 
 @dataclass(frozen=True)
 class V2ShowWhenChoice:
@@ -467,6 +593,110 @@ def v2_insert_show_when(current: str, value: str, caret: int | None = None) -> t
     return f"{before}{inserted}{after}", position + len(inserted)
 
 
+def v2_dynamic_variable_choices() -> list[tuple[str, list[V2ShowWhenChoice]]]:
+    """The variables offered for a Dynamic state field, as (category, choices).
+
+    The same three categories of variable the Show When picker lists -- Environment, User
+    Globals, Built-in Globals -- because these fields can be driven by a variable in exactly
+    the way a Show When can.  What they do not borrow from that picker are its Operators and
+    Logical Operators: those build a comparison out of two values, and these fields hold one.
+
+    Empty categories are returned empty, for the reason v2_show_when_choices gives.
+    """
+    user, builtin = _v2_global_choices()
+    return [
+        ("Environment", list(V2_SHOW_WHEN_ENVIRONMENT)),
+        ("User Globals", user),
+        ("Built-in Globals", builtin),
+    ]
+
+
+def v2_state_field(key: str) -> V2StateField | None:
+    """The state field this property key belongs to, or None for a key that isn't one."""
+    return next((field for field in V2_STATE_FIELDS if field.key == key), None)
+
+
+def v2_is_variable(text: str) -> bool:
+    """Whether this is one variable and nothing else -- "%BATT", not "%BATT > 20" and not
+    "<b>%name</b>".
+
+    The whole test is a leading % and no whitespace, which is what tells a value the Select
+    Variable state produced from one someone typed under Dynamic.  It is deliberately a shape
+    test rather than a lookup in the picker's own lists: a Scene can perfectly well be driven
+    by a local variable, or one a Task creates at run time, and neither appears in any list
+    this app can build.
+    """
+    stripped = text.strip()
+    return stripped.startswith("%") and len(stripped) > 1 and not any(c.isspace() for c in stripped)
+
+
+def v2_state_of(field: V2StateField, value: object) -> str:
+    """Which state a stored value reads as -- or "" for a component that carries no such
+    property at all, which is not the same as one set to its "off" state.
+
+    A settling state is matched ignoring case *and* spaces, and a real JSON boolean is read as
+    the "true"/"false" it prints as.  So a Scene from a newer Tasker spelling Enabled as true
+    rather than "true" still lands on On, and one spelling a weight "ExtraLight" where this
+    app spells it "Extra Light" still lands on that weight rather than falling through to
+    Dynamic.  Nothing is lost by being that loose: no two states in any of these tables differ
+    only by case or a space.
+
+    What is left is one of the two open states, told apart by v2_is_variable: a bare %variable
+    reads as Select Variable, anything else as Dynamic.  The point of the distinction is that
+    the field reopens on the control that could have produced what is stored -- a picked
+    variable in the variable box, typed text in the text box.
+    """
+    text = str(value).strip()
+    if not text:
+        return ""
+
+    def loose(word: str) -> str:
+        return "".join(word.split()).lower()
+
+    settled = next((state for state, stored in field.fixed if loose(text) == loose(stored)), "")
+    if settled:
+        return settled
+    return V2_VARIABLE_STATE if v2_is_variable(text) else V2_DYNAMIC_STATE
+
+
+def v2_state_value(field: V2StateField, value: object, state: str = "") -> str:
+    """What an open state is carrying -- the typed text, or the picked variable -- and "" for
+    any settling state, so that the box starts empty rather than showing "true" for a
+    component the user has only just switched over.
+
+    `state` asks for the value of one particular open state, which is how the two boxes are
+    filled from the one stored property: the one that state produced gets it, the other starts
+    empty rather than both opening with the same text.
+    """
+    current = v2_state_of(field, value)
+    if current not in (V2_DYNAMIC_STATE, V2_VARIABLE_STATE):
+        return ""
+    return str(value).strip() if state in ("", current) else ""
+
+
+def v2_set_state(field: V2StateField, node: dict, state: str, value: str = "") -> None:
+    """Write a state field from the state chosen and, for the two open states, whatever is in
+    that state's box.
+
+    A settling state goes through v2_set_prop, so that a Scene which already spelled the key
+    as a JSON boolean keeps its own spelling (see _coerce_like); anything else stores the
+    string Tasker writes.  An open state can't go that way -- a %variable coerced onto a
+    boolean key would store false and silently lose what was chosen -- so it is written as the
+    string it is.
+
+    No state, or an open state with nothing in it yet, removes the key rather than storing an
+    empty one: absent is how Tasker writes a component that has never been given the property,
+    and it is the honest way to hold a setting that isn't finished being written.
+    """
+    stored = dict(field.fixed).get(state)
+    if stored is not None:
+        v2_set_prop(node, field.key, stored)
+    elif state in (V2_DYNAMIC_STATE, V2_VARIABLE_STATE) and value.strip():
+        node[field.key] = value
+    else:
+        node.pop(field.key, None)
+
+
 _ARRANGEMENT = ("Start", "Center", "End", "SpaceBetween", "SpaceAround", "SpaceEvenly")
 _ALIGNMENT = ("Start", "Center", "End")
 _VERTICAL_ALIGNMENT = ("Top", "Center", "Bottom")
@@ -500,7 +730,7 @@ V2_COMPONENT_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
         V2Prop("text", "Text"),
         V2Prop("textSize", "Text size", "number"),
         V2Prop("textAlign", "Text alignment", "choice", _ALIGNMENT),
-        V2Prop("color", "Colour"),
+        V2Prop("color", "Colour", "color"),
     ),
     "TextInput": (
         V2Prop("label", "Label"),
@@ -508,16 +738,16 @@ V2_COMPONENT_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
     ),
     "Button": (
         V2Prop("text", "Text"),
-        V2Prop("buttonColor", "Button colour"),
-        V2Prop("textColor", "Text colour"),
+        V2Prop("buttonColor", "Button colour", "color"),
+        V2Prop("textColor", "Text colour", "color"),
     ),
     "IconButton": (
-        V2Prop("icon", "Icon"),
+        V2Prop("icon", "Icon", "icon"),
         V2Prop("contentScale", "Content scale"),
     ),
     "Image": (
         V2Prop("url", "Image URL"),
-        V2Prop("icon", "Icon"),
+        V2Prop("icon", "Icon", "icon"),
         V2Prop("width", "Width", "number"),
         V2Prop("height", "Height", "number"),
         V2Prop("alignment", "Alignment", "choice", _ALIGNMENT),
@@ -553,13 +783,13 @@ V2_COMPONENT_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
     ),
     "SegmentedButtonItem": (V2Prop("label", "Label"),),
     "NavigationItem": (
-        V2Prop("icon", "Icon"),
+        V2Prop("icon", "Icon", "icon"),
         V2Prop("label", "Label"),
         V2Prop("selected", "Selected", "choice", ("true", "false")),
     ),
     "Variable": (V2Prop("key", "Variable"),),
     "Spacer": (V2Prop("height", "Height", "number"),),
-    "Divider": (V2Prop("color", "Colour"),),
+    "Divider": (V2Prop("color", "Colour", "color"),),
     "Scaffold": (),
     "TopAppBar": (),
     "NavigationBar": (V2Prop("selectedIndex", "Selected index", "number"),),
@@ -570,7 +800,7 @@ V2_COMPONENT_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
     # these entries stay as short as the evidence is.
     "ProgressBar": (
         V2Prop("minProgress", "Minimum progress", "number"),
-        V2Prop("color", "Colour"),
+        V2Prop("color", "Colour", "color"),
         V2Prop("showStopIndicator", "Show stop indicator", "choice", ("true", "false")),
         V2Prop("animateChanges", "Animate changes", "choice", ("true", "false")),
     ),
@@ -638,17 +868,127 @@ def v2_child_slots(node: dict) -> list[tuple[str, list]]:
     return slots
 
 
-def v2_node_label(node: dict) -> str:
-    """ "Text 'title_text'" -- how a node reads in the tree, matching what
-    v2_component_summary already produces for the read-only outline.
+# Components that name themselves by one of their own properties when they carry no
+# treeLabel, and which property that is.  A Text or a Button says what it says and an
+# IconButton is the icon on it: "Text 'Empty Scene'", "Button 'Save'" and "IconButton 'Close'"
+# identify them on sight, where "Text 'Text2'" is a number the user never chose and has to
+# click each one to tell apart.
+V2_LABEL_FALLBACK: dict[str, str] = {"Text": "text", "Button": "text", "IconButton": "icon"}
 
-    A node carrying a treeLabel shows that instead of its id, because that is exactly what
-    the property is for: it is the name Tasker's own Screen Builder tree displays, and a
-    component the user has bothered to name should read by that name here too.
+# The properties above that hold an icon reference rather than words, and so are read for
+# their name by maputil2.tasker_icon_name -- "icon:Close" is called Close.
+_V2_ICON_KEYS = ("icon",)
+
+# How Tasker spells a Material icon: the prefix, then the name in Pascal case ("icon:AcUnit")
+# where the font's own ligature is snake ("ac_unit").  The designer's picker offers the
+# ligature names -- they are what the glyphs are drawn by -- and converts on the way in.
+V2_ICON_PREFIX = "icon:"
+
+# Where the names come from.  Alongside the app's other tables rather than written into this
+# module, because it is a list of 550 strings and it is data: see the file's own _comment for
+# what was verified about it, and _build_icon_field for what the designer does with it.
+_V2_ICON_NAMES_FILE = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "assets",
+    "json",
+    "material_icons.json",
+)
+_v2_icon_names_cache: list[str] = []
+
+
+def v2_icon_names() -> list[str]:
+    """Every Material icon the picker offers, by the ligature name its glyph is drawn by.
+
+    Read once and kept: the file is small, but the picker rebuilds its list on every keystroke
+    of its search box, and re-reading a file per keystroke is the kind of thing that makes a
+    dialog feel slow for no reason.
+
+    An empty list if the file is missing or unreadable -- the designer then offers no picker
+    and the icon field is typed into, which is exactly what it was before there was one.
+    """
+    if not _v2_icon_names_cache:
+        try:
+            with open(_V2_ICON_NAMES_FILE, encoding="utf-8") as file:
+                _v2_icon_names_cache.extend(json.load(file).get("icons", []))
+        except (OSError, ValueError):
+            return []
+    return _v2_icon_names_cache
+
+
+def v2_icon_reference(name: str) -> str:
+    """A ligature name as the reference a Scene stores: "ac_unit" -> "icon:AcUnit"."""
+    return f"{V2_ICON_PREFIX}{''.join(part.capitalize() for part in name.split('_'))}"
+
+# How much of that property the tree shows.  The ids and treeLabels this used to display are
+# a few characters; a Text's content runs to 66 in this repo's own Scenes, and a tree row is
+# one unwrapped line, so a whole paragraph would widen the pane rather than name the row.
+_V2_LABEL_MAX = 40
+
+
+def _v2_label_text(value: str) -> str:
+    """One line, short enough for a tree row.  Runs of whitespace become single spaces --
+    a Text's value can carry newlines, and a row is drawn with white-space: pre, so an
+    unflattened one would break the row apart rather than label it.
+    """
+    single_line = " ".join(value.split())
+    return single_line if len(single_line) <= _V2_LABEL_MAX else f"{single_line[:_V2_LABEL_MAX]}..."
+
+
+def v2_reads_as_html(node: dict) -> bool:
+    """Whether this component's text is markup rather than the words themselves -- its
+    Content format settles on Html.
+
+    A format left to a %variable or to Dynamic answers False: what it will be is decided on
+    the phone, and treating an unknown as markup would strip angle brackets out of a value
+    that may well be showing them.
+    """
+    field = v2_state_field("contentFormat")
+    return field is not None and v2_state_of(field, node.get(field.key, "")) == "Html"
+
+
+def v2_node_name(node: dict) -> str:
+    """What a component is called in the designer: its treeLabel, else the property named for
+    its type in V2_LABEL_FALLBACK, else its id.
+
+    treeLabel leads because that is exactly what the property is for -- it is the name
+    Tasker's own Screen Builder tree displays, and a component the user has bothered to name
+    should read by that name here too.  The id is last because it is the only one of the three
+    the user did not write.
+
+    A property that holds markup is named by what it *says*: the tags come off and the
+    entities come back, so an Html Text reads "Bold heading" rather than "<b>Bold</b>
+    heading".  Only when the Content format actually says Html, though -- in a Plain text the
+    angle brackets are the content, and a component showing "<b>" on the phone should say so
+    here.  An icon reference is read for its name for the same reason -- "icon:Close" is
+    called Close, and the ";weight:600;opsz:24" on a Symbol says how to draw it, not which one
+    it is (see maputil2.tasker_icon_name).
+
+    A value that cleans up to nothing -- markup with no words in it, a bare "icon:" -- falls
+    through to the id, the same as a value that was empty to begin with.
+    """
+    tree_label = str(node.get("treeLabel") or "").strip()
+    if tree_label:
+        return _v2_label_text(tree_label)
+
+    own_key = V2_LABEL_FALLBACK.get(str(node.get("type", "")), "")
+    own_value = str(node.get(own_key, "") or "") if own_key else ""
+    if own_value and v2_reads_as_html(node):
+        from maptasker.src.maputil2 import strip_html_tags  # noqa: PLC0415
+
+        own_value = html.unescape(strip_html_tags(own_value))
+    if own_value and own_key in _V2_ICON_KEYS:
+        from maptasker.src.maputil2 import tasker_icon_name  # noqa: PLC0415
+
+        own_value = tasker_icon_name(own_value)
+    return _v2_label_text(own_value) or str(node.get("id", ""))
+
+
+def v2_node_label(node: dict) -> str:
+    """ "Text 'Empty Scene'" -- how a node reads in the designer's tree and at the head of its
+    inspector.  See v2_node_name for which of the component's names is used.
     """
     node_type = node.get("type", "?")
-    tree_label = node.get("treeLabel")
-    name = tree_label if isinstance(tree_label, str) and tree_label else node.get("id", "")
+    name = v2_node_name(node)
     return f"{node_type} '{name}'" if name else node_type
 
 
@@ -693,6 +1033,30 @@ def v2_node_at(layout: dict, path: tuple) -> dict | None:
     return node
 
 
+def _v2_universal_props(node: dict) -> list[V2Prop]:
+    """The properties every component can carry, with the state fields and then
+    V2_BELOW_SHOW_WHEN_PROPS spliced in directly below Show when, for the types that have
+    them.
+
+    A node that already carries one of those keys gets the field whatever its type, so that a
+    component this app doesn't yet know has one is still edited with its own widget rather
+    than falling through to the raw text box an unrecognised key gets.
+    """
+    node_type = node.get("type")
+    extras = [
+        field.prop
+        for field in V2_STATE_FIELDS
+        if not field.modifier and (node_type in field.types or field.key in node)
+    ]
+    extras += [prop for prop, types in V2_BELOW_SHOW_WHEN_PROPS if node_type in types or prop.key in node]
+
+    props = list(V2_UNIVERSAL_PROPS)
+    below_show_when = next(index for index, prop in enumerate(props) if prop.key == "showWhen") + 1
+    for offset, prop in enumerate(extras):
+        props.insert(below_show_when + offset, prop)
+    return props
+
+
 def v2_editable_props(node: dict) -> list[V2Prop]:
     """What the inspector puts up for this node: its schema properties first, then any
     other scalar key it happens to carry.
@@ -705,7 +1069,7 @@ def v2_editable_props(node: dict) -> list[V2Prop]:
     none of which phase 1 edits, and all of which are carried through untouched.
     """
     schema = V2_COMPONENT_SCHEMA.get(node.get("type", ""), ())
-    props = [V2_ID_PROP, *schema, *V2_UNIVERSAL_PROPS]
+    props = [V2_ID_PROP, *schema, *_v2_universal_props(node)]
     known = {prop.key for prop in props}
     for key, value in node.items():
         if key in known or key in V2_STRUCTURAL_KEYS:
@@ -1363,15 +1727,47 @@ def find_component_id_references(scene_name: str, component_id: str) -> list[str
 # component nobody touched still re-encodes to its original bytes.
 # --------------------------------------------------------------------------------------
 
+# What any modifier can carry, whatever its type: the condition deciding whether it applies at
+# all.  Universal rather than declared per type because the Scenes in XML/ carry it on six
+# unrelated modifiers -- Size, Padding, Alpha, Background, Rotate and VerticalScroll -- which
+# says it belongs to modifiers in general rather than to any of them in particular.
+#
+# An expression in the same language a component's showWhen is written in ("%floatbutton ==
+# \"Add\"", "%description_toggle"), which is why it is offered as a plain field rather than a
+# pulldown of anything.
+V2_MODIFIER_UNIVERSAL_PROPS: tuple[V2Prop, ...] = (V2Prop("applyWhen", "Apply when"),)
+
 # Modifier types and what each takes.  Order within a node's "modifiers" list is
 # significant -- they compose in sequence, so Padding-then-Border draws a different thing
 # from Border-then-Padding, which is why the editor offers move up/down rather than sorting.
+#
+# Read off the Version 2 Scenes in XML/ rather than from any published schema (there is none):
+# every key below appears in a real Scene, at the spelling written here.  A type or key that
+# does not appear is not invented -- see the "no properties observed" group at the end, and
+# _v2_unschemad's fallback, which still shows anything a newer Tasker writes.
 V2_MODIFIER_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
-    "FillWidth": (),
-    "FillSize": (),
+    # "fraction" is how much of the available space to fill: 0.83, 0.9, 1.  Absent means all
+    # of it, which is why most of the 58 FillWidths in the samples carry nothing at all.
+    "FillWidth": (V2Prop("fraction", "Fraction", "number"),),
+    "FillSize": (V2Prop("fraction", "Fraction", "number"),),
+    # INFERRED, and the only inferred entry here: no FillHeight in any sample carries a
+    # fraction, but its two siblings above both do, and a "fill the height" that could not be
+    # told to fill half of it would be the odd one of the three.
+    "FillHeight": (V2Prop("fraction", "Fraction", "number"),),
     "WindowDrag": (),
-    "Size": (V2Prop("width", "Width", "number"), V2Prop("height", "Height", "number")),
-    "SizeIn": (V2Prop("maxWidth", "Max width", "number"), V2Prop("maxHeight", "Max height", "number")),
+    # "all" -- one number for both sides -- is the commonest form of this modifier by some way
+    # (47 of the samples' Sizes), and was missing here while width/height were not.
+    "Size": (
+        V2Prop("all", "All", "number"),
+        V2Prop("width", "Width", "number"),
+        V2Prop("height", "Height", "number"),
+    ),
+    "SizeIn": (
+        V2Prop("minWidth", "Min width", "number"),
+        V2Prop("minHeight", "Min height", "number"),
+        V2Prop("maxWidth", "Max width", "number"),
+        V2Prop("maxHeight", "Max height", "number"),
+    ),
     "Padding": (
         V2Prop("all", "All", "number"),
         V2Prop("horizontal", "Horizontal", "number"),
@@ -1381,19 +1777,43 @@ V2_MODIFIER_SCHEMA: dict[str, tuple[V2Prop, ...]] = {
         V2Prop("top", "Top", "number"),
         V2Prop("bottom", "Bottom", "number"),
     ),
+    "Offset": (V2Prop("x", "X", "number"), V2Prop("y", "Y", "number")),
     "Clip": (V2Prop("shape", "Shape", "choice", ("Rounded", "Circle")), V2Prop("radius", "Radius", "number")),
     "Border": (
-        V2Prop("color", "Colour"),
+        V2Prop("color", "Colour", "color"),
         V2Prop("shape", "Shape", "choice", ("Rounded", "Circle")),
         V2Prop("radius", "Radius", "number"),
         V2Prop("width", "Width", "number"),
     ),
-    "Background": (V2Prop("color", "Colour"),),
+    "Shadow": (
+        V2Prop("elevation", "Elevation", "number"),
+        V2Prop("shape", "Shape", "choice", ("Rounded", "Circle")),
+        V2Prop("radius", "Radius", "number"),
+    ),
+    "Background": (V2Prop("color", "Colour", "color"),),
     "Align": (V2Prop("alignment", "Alignment", "choice", ("Start", "Center", "End")),),
-    "Weight": (V2Prop("amount", "Amount", "number"),),
+    # The one modifier whose value is a state field rather than a plain property: a weight is
+    # picked off Compose's scale (V2_FONT_WEIGHTS), or worked out when the Scene is shown.
+    "Weight": (v2_state_field("amount").prop,),
     "AspectRatio": (V2Prop("ratio", "Ratio"),),
     "Alpha": (V2Prop("value", "Opacity", "number"),),
-    "VerticalScroll": (V2Prop("applyWhen", "Apply when"),),
+    # A fraction rather than a size: the samples' Scales are 0.7, 0.8, 0.9.  Only "all" is
+    # ever written in them, so only "all" is offered -- Compose scales each axis separately
+    # and Tasker may well too, but under a spelling that is not in evidence here.
+    "Scale": (V2Prop("all", "All", "number"),),
+    "Rotate": (V2Prop("degrees", "Degrees", "number"),),
+    "VerticalScroll": (),
+    "HorizontalScroll": (),
+    # Listed so they can be added and are named as themselves, with no properties because none
+    # of them carries one in any sample.  Blur especially will have something to set (a radius,
+    # if it follows Compose) -- but what Tasker calls it is not in evidence here, and a guessed
+    # key writes a property Tasker would ignore.  Anything they do carry still shows through
+    # the unschema'd fallback in v2_schema_props.
+    "Blur": (),
+    # Clickable's one key, "actions", is a nested {"click:2": {"task": ...}} rather than a
+    # scalar, so it is not offered as a field at all -- it is carried through untouched, and
+    # the Task it names is edited where Tasks are edited.
+    "Clickable": (),
 }
 
 # Events a handler can fire on.  screen_variable_changed carries a variableName; the rest
@@ -1434,13 +1854,22 @@ V2_STATE_BY_TYPE: dict[str, tuple[str, str]] = {
 _V2_BINDINGS_KEY = "outputVariableBindings"
 
 
-def v2_schema_props(schema: dict[str, tuple[V2Prop, ...]], item: dict) -> list[V2Prop]:
-    """The editable properties of a modifier / event / action, from its schema plus any
-    other scalar key it carries.  The same forward-compatible shape v2_editable_props uses
-    for components, and for the same reason: these tables are read off one backup, so
-    anything newer must still be visible and editable rather than silently dropped.
+def v2_schema_props(
+    schema: dict[str, tuple[V2Prop, ...]],
+    item: dict,
+    universal: tuple[V2Prop, ...] = (),
+) -> list[V2Prop]:
+    """The editable properties of a modifier / event / action, from its schema, then any
+    `universal` property its kind carries whatever its type, then any other scalar key it
+    happens to hold.  The same forward-compatible shape v2_editable_props uses for components,
+    and for the same reason: these tables are read off one backup, so anything newer must
+    still be visible and editable rather than silently dropped.
+
+    A universal property already named by the type's own schema is not offered twice.
     """
     props = list(schema.get(item.get("type", ""), ()))
+    declared = {prop.key for prop in props}
+    props += [prop for prop in universal if prop.key not in declared]
     known = {prop.key for prop in props}
     for key, value in item.items():
         if key != "type" and key not in known and isinstance(value, (str, int, float, bool)):
@@ -1596,42 +2025,6 @@ def v2_set_binding(node: dict, slot: tuple[str, str], text: str) -> None:
     if not isinstance(bindings, dict):
         bindings = state[_V2_BINDINGS_KEY] = {}
     bindings[binding_key] = [part.strip() for part in text.split(",") if part.strip()]
-
-
-# FIX Remove commented statements
-# def v2_component_summary(layout: dict) -> list[str]:
-#     """A flat, indented outline of a V2 layout's component tree -- "Column",
-#     "  Text 'title_text'", "  IconButton 'close_button'" -- for the read-only
-#     panel the editor body shows in place of the Legacy element list (see
-#     guiwins._build_scene_editor_body).  The Legacy counterpart is
-#     scenes.get_scene_element_names.
-
-#     Children hang off more than one key: "children" for a Column/Row, but a
-#     Scaffold puts them under "topBar", a TopAppBar its title under "title", and
-#     so on.  Rather than enumerate the container keys -- there is no fixed list,
-#     and a Tasker update would silently add to it -- this walks into any list
-#     whose entries are themselves components (dicts with a "type"), which is what
-#     every one of those keys holds.  "modifiers" and "eventHandlers" are skipped
-#     by name: they are lists of dicts with a "type" too, but they describe a
-#     component rather than being one, so including them would bury the structure.
-#     """
-#     lines: list[str] = []
-
-#     def walk(component: dict, depth: int) -> None:
-#         component_type = component.get("type", "?")
-#         component_id = component.get("id", "")
-#         lines.append(f"{'  ' * depth}{component_type}" + (f" '{component_id}'" if component_id else ""))
-#         for key, value in component.items():
-#             if key in ("modifiers", "eventHandlers") or not isinstance(value, list):
-#                 continue
-#             for item in value:
-#                 if isinstance(item, dict) and "type" in item:
-#                     walk(item, depth + 1)
-
-#     root = layout.get(_V2_ROOT_KEY)
-#     if isinstance(root, dict):
-#         walk(root, 0)
-#     return lines
 
 
 def resolve_scene_by_name(scene_name: str) -> defusedxml.ElementTree.Element | None:
@@ -2383,6 +2776,81 @@ def legacy_element_args(element: defusedxml.ElementTree.Element) -> list:
     return build_editable_args(element, action_code.args)
 
 
+# ---- Legacy colour arguments ---------------------------------------------------------
+# A Legacy element writes its colours as #AARRGGBB -- alpha FIRST -- and CSS reads that same
+# string as #RRGGBBAA, so the two orders are not a near miss: handing "#77333333" straight to
+# a colour picker offers a grey at 20% where the Scene has one at 47%, and taking the picker's
+# answer back unconverted would store a colour whose transparency came from its red channel.
+# (sceneview.tasker_colour is the read-only half of this, and says the same thing at length.)
+#
+# The V2 half needs none of this: a V2 Scene writes ordinary CSS-ordered #RRGGBB.
+_LEGACY_COLOUR_LENGTH = 9
+_LEGACY_OPAQUE = "FF"
+_LEGACY_COLOUR_NAMES = ("color", "colour")
+
+
+def legacy_is_colour_arg(arg: object) -> bool:
+    """Whether this element argument holds a colour, and can be typed into.
+
+    Decided by the argument's name -- "Text Color", "Border XColor", "Background_Color" --
+    because that is the only place actionc.py says so: its arg types are the storage kinds
+    (Str, Int), and a colour is stored as a Str like any other string.
+
+    A readonly argument stays readonly.  An element type this app has no table for has no
+    arguments here at all, so it never reaches this.
+    """
+    name = str(getattr(arg, "arg_name", "")).lower()
+    return getattr(arg, "widget_kind", "") == "text" and any(word in name for word in _LEGACY_COLOUR_NAMES)
+
+
+def legacy_colour_to_css(value: str) -> str:
+    """Tasker's #AARRGGBB as the CSS a colour picker understands: the same digits with the
+    alpha moved from the front to the back.
+
+    A fully opaque colour comes back as plain #RRGGBB rather than #RRGGBBFF, because that is
+    the form the picker's swatch can preview -- and #FFFFFFFF and #FF000000 are between them
+    most of the colours in a real backup.
+
+    Anything that is not one of Tasker's nine characters -- a %variable, an empty argument, a
+    colour some other Tasker wrote -- comes back untouched, to be shown as it is rather than
+    reinterpreted.
+    """
+    text = value.strip()
+    if len(text) != _LEGACY_COLOUR_LENGTH or not text.startswith("#"):
+        return text
+    try:
+        int(text[1:], 16)
+    except ValueError:
+        return text
+    alpha, rgb = text[1:3].upper(), text[3:].upper()
+    return f"#{rgb}" if alpha == _LEGACY_OPAQUE else f"#{rgb}{alpha}"
+
+
+def legacy_colour_from_css(value: str) -> str:
+    """The way back: CSS's #RRGGBB or #RRGGBBAA as Tasker's #AARRGGBB, with a colour that
+    states no alpha stored as fully opaque.
+
+    Anything that is not a CSS hex colour is passed through unchanged rather than mangled into
+    one -- a %variable in a colour argument is a perfectly ordinary thing for a Scene to hold,
+    and it is not this function's business to decide it was a mistake.
+    """
+    text = value.strip()
+    if not text.startswith("#"):
+        return text
+    body = text[1:]
+    try:
+        int(body, 16)
+    except ValueError:
+        return text
+    if len(body) == 3:
+        body = "".join(digit * 2 for digit in body)
+    if len(body) == 6:
+        return f"#{_LEGACY_OPAQUE}{body}".upper()
+    if len(body) == 8:
+        return f"#{body[6:]}{body[:6]}".upper()
+    return text
+
+
 def legacy_validate_arg(arg: object, value: str) -> list[str]:
     """Whether this value may be written to this argument -- taskedit's own rule, so the
     Scene inspector rejects exactly what the Task editor rejects and with the same words.
@@ -2575,7 +3043,10 @@ LEGACY_PALETTE: tuple[LegacyPaletteEntry, ...] = (
     LegacyPaletteEntry("EditTextElement", "Text Edit", "Text", "A field the user types into."),
     LegacyPaletteEntry("ToggleElement", "Toggle", "Text", "A two-state button with its own on and off labels."),
     LegacyPaletteEntry(
-        "RectElement", "Rectangle", "Shapes", "A filled or outlined rectangle, with optional rounded corners."
+        "RectElement",
+        "Rectangle",
+        "Shapes",
+        "A filled or outlined rectangle, with optional rounded corners.",
     ),
     LegacyPaletteEntry("OvalElement", "Oval", "Shapes", "A filled or outlined ellipse."),
     LegacyPaletteEntry("CheckBoxElement", "Checkbox", "Input", "A tick box."),

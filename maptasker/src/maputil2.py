@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/s
 from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime
+from functools import lru_cache
 
 import requests
 from requests.exceptions import ConnectionError, InvalidSchema, Timeout
@@ -55,6 +56,64 @@ def truncate_string(text: str, max_length: int = 30) -> str:
     if len(text) <= max_length:
         return text
     return text[:max_length] + "..."
+
+
+# A #hex colour as CSS accepts one: three, six or eight digits behind a "#".  Eight is
+# included because Tasker writes them (#AARRGGBB, alpha first -- see sceneview.tasker_colour,
+# which is the one place that ordering is untangled); this only says the value is a colour,
+# not which way round to read it.
+HEX_COLOUR = re.compile(r"^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$", re.IGNORECASE)
+
+
+@lru_cache(maxsize=1)
+def html_colour_names() -> frozenset[str]:
+    """The colour names CSS knows, lowercased -- "red", "rebeccapurple", all 148 of them.
+
+    Taken from Pillow's own table rather than written out here, because that table IS the
+    CSS/X11 list a browser uses and a hand-copied one is a list that can quietly be wrong.
+    Pillow is already a hard dependency (see pyproject.toml, and format.py, which parses
+    colours with it).
+    """
+    from PIL import ImageColor  # noqa: PLC0415
+
+    return frozenset(ImageColor.colormap)
+
+
+# How Tasker writes an icon reference, in the three forms its Scenes actually carry:
+#   icon:Close                                    -- a Material icon by name
+#   symbol:cloud_upload;weight:600;opsz:24        -- a Material Symbol, plus how to draw it
+#   content://...taskerm.iconprovider//app/<pkg>  -- an installed app's own icon
+_TASKER_ICON_PREFIXES = ("icon:", "symbol:")
+_TASKER_ICON_CONTENT = "content://"
+
+
+def tasker_icon_name(value: str) -> str:
+    """What an icon reference is *called*, for showing to someone: "Close", "cloud_upload",
+    "com.android.vending".
+
+    Everything dropped here says how to find or draw the icon rather than which icon it is --
+    the scheme in front, the ";weight:600;opsz:24" that styles a Symbol, the provider URI
+    around a package name.  Anything not in one of those forms (a %variable, a plain name)
+    comes back as it went in.
+    """
+    name = value.strip()
+    if name.startswith(_TASKER_ICON_CONTENT):
+        return next((part for part in reversed(name.split("/")) if part), name)
+    for prefix in _TASKER_ICON_PREFIXES:
+        if name.startswith(prefix):
+            return name[len(prefix) :].split(";", 1)[0]
+    return name
+
+
+def is_html_colour(text: str) -> bool:
+    """Whether this is a colour a browser will take: one of the CSS colour names, or a #hex
+    value.  Case doesn't matter -- CSS doesn't care, and neither does Tasker.
+
+    Says nothing about empty (that is "not set", which is a caller's decision to make) or
+    about a %variable (whose value isn't known here).
+    """
+    value = text.strip()
+    return bool(value) and (value.lower() in html_colour_names() or bool(HEX_COLOUR.match(value)))
 
 
 # ==========================================

@@ -599,27 +599,7 @@ class MyGui:
             self.display_message_box(f"{text} {filename}", "Green")
         self.file = filename  # Set this so it is saved in settings.
 
-    def display_backup_button(
-        self,
-        the_text: str,
-        color1: str,
-        color2: str,
-        routine: Callable,
-    ) -> ui.button:
-        """
-        Displays a backup button on the GUI inline within the active context.
-        """
-        # REMOVED the "with self.gui_right_drawer:" breakout block to preserve row placement order
-        self.get_backup_button = (
-            ui.button(the_text, on_click=routine)
-            .style(f"background-color: {color1}; border-color: {color2}; border-width: 2px; color: white;")
-            .classes("mt-0 ml-0 font-bold w-full")
-        )
-
-        return self.get_backup_button
-
-        # Build a hierarchical list of all of the Tasker elements.
-
+    # Build a hierarchical list of all of the Tasker elements.
     def build_the_tree(self) -> list:
         """Builds the hierarchical list of all of the Tasker elements.
         Parameters:
@@ -1996,7 +1976,8 @@ class MapTaskerEventHandlers:
         if view_type == "map":
             if PrimeItems.xml_root is None:
                 gui.display_message_box(
-                    translate_string("No XML data loaded! Please select a valid XML file first."), "Orange"
+                    translate_string("No XML data loaded! Please select a valid XML file first."),
+                    "Orange",
                 )
                 return
 
@@ -2088,7 +2069,8 @@ class MapTaskerEventHandlers:
                     gui.display_message_box(translate_string("Diagram View opened in a new browser window."), "Green")
                 else:
                     gui.display_message_box(
-                        translate_string("No XML data loaded! Please select a valid XML file first."), "Orange"
+                        translate_string("No XML data loaded! Please select a valid XML file first."),
+                        "Orange",
                     )
 
             else:
@@ -2324,30 +2306,32 @@ class MapTaskerEventHandlers:
         # 3. Mount text input fields and control action items into the view hierarchy
         with gui.android_container:
             ui.label(translate_string("Configure Android Connection:")).classes(
-                "text-sm font-bold text-blue-500 mb-1 self-start"
+                "text-sm font-bold text-blue-500 mb-1 self-start",
             )
 
             # Form Fields
             gui.ip_entry = ui.input(label=translate_string("1-TCP/IP Address:"), value=android_ipaddr).classes(
-                "w-full q-py-none"
+                "w-full q-py-none",
             )
             gui.port_entry = ui.input(label=translate_string("2-Port Number:"), value=android_port).classes(
-                "w-full q-py-none"
+                "w-full q-py-none",
             )
             gui.file_entry = ui.input(label=translate_string("3-File Location:"), value=android_file).classes(
-                "w-full q-py-none"
+                "w-full q-py-none",
             )
 
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
                 gui.list_files_button = (
-                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
+                    ui
+                    .button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
                     .style("background-color: #D62CFF; color: white;")
                     .classes("flex-grow text-xs")
                 )
 
                 gui.list_files_query_button = (
-                    ui.button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                    ui
+                    .button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
                     .style("background-color: #246FB6; color: #ffd941;")
                     .classes("w-10 min-w-[40px] text-xs")
                 )
@@ -2374,8 +2358,10 @@ class MapTaskerEventHandlers:
             # so clear_android_buttons() then deleted this button while believing it had deleted
             # that one -- leaving the original in place and adding a second one every time.
             gui.set_xml_details_button = (
-                ui.button(
-                    translate_string("Click Here to Set XML Details"), on_click=gui.event_handlers.fetch_backup_event
+                ui
+                .button(
+                    translate_string("Click Here to Set XML Details"),
+                    on_click=gui.event_handlers.fetch_backup_event,
                 )
                 .style("background-color: #D62CFF; color: white;")
                 .classes("w-full mt-3 font-bold text-xs py-2")
@@ -2884,7 +2870,8 @@ class MapTaskerEventHandlers:
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
                 ui.notify(
-                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning"
+                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."),
+                    type="warning",
                 )
                 return
 
@@ -3211,7 +3198,8 @@ class MapTaskerEventHandlers:
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
                 ui.notify(
-                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning"
+                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."),
+                    type="warning",
                 )
                 return
 
@@ -3748,7 +3736,8 @@ class MapTaskerEventHandlers:
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
                 ui.notify(
-                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning"
+                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."),
+                    type="warning",
                 )
                 return
 
@@ -4006,7 +3995,7 @@ class MapTaskerEventHandlers:
 
         ui.notify(
             translate_string(
-                "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+                "Profile kept for this session only -- use 'Save To Current File' to keep it permanently.",
             ),
             type="positive",
         )
@@ -4242,7 +4231,8 @@ class MapTaskerEventHandlers:
                 PrimeItems.file_to_get = the_view.file
             if not PrimeItems.file_to_get or get_xml(the_view.debug, the_view.appearance_mode) != 0:
                 ui.notify(
-                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."), type="warning"
+                    translate_string("No backup file is currently loaded. Use 'Get Local XML' first."),
+                    type="warning",
                 )
                 return
 
@@ -4696,7 +4686,7 @@ class MapTaskerEventHandlers:
             # Actions Row
             with ui.row().classes("w-full justify-end gap-2"):
                 ui.button(translate_string("Cancel"), on_click=lambda: dialog.submit(None)).classes(
-                    "bg-gray-400 text-white"
+                    "bg-gray-400 text-white",
                 )
                 ui.button(translate_string("Submit"), on_click=lambda: dialog.submit(prompt_input.value)).classes(
                     "bg-blue-600 text-white",
@@ -5315,7 +5305,7 @@ class MapTaskerEventHandlers:
         """
         guiview = self.gui
         if getattr(guiview, "is_updating", False):
-            return
+            return None
 
         raw = choice.value if hasattr(choice, "value") else choice
         by_label = {translate_string(label): milliseconds for label, milliseconds in NOTIFY_TIMEOUT_CHOICES}
@@ -5430,7 +5420,8 @@ class MapTaskerEventHandlers:
                     scroll_area.style(f"background-color: {color_value} !important;")
                 if not scroll_areas:
                     ui.notify(
-                        translate_string("The change will take effect the next time you open the view."), color="green"
+                        translate_string("The change will take effect the next time you open the view."),
+                        color="green",
                     )
 
             else:
@@ -5453,7 +5444,8 @@ class MapTaskerEventHandlers:
                         )
                 if not (css_class and scroll_areas):
                     ui.notify(
-                        translate_string("The change will take effect the next time you open the view."), color="green"
+                        translate_string("The change will take effect the next time you open the view."),
+                        color="green",
                     )
 
             # Update the visual status label text and text color instantly
@@ -5868,7 +5860,7 @@ class MapTaskerEventHandlers:
         if mygui.twisty and mygui.display_detail_level < all_parameters_threshold:
             mygui.display_message_box(
                 translate_string(
-                    "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!"
+                    "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!",
                 ),
                 "Red",
             )
@@ -5926,7 +5918,8 @@ class MapTaskerEventHandlers:
             if toolbar:
                 with toolbar:
                     gui.font_out_label = (
-                        ui.label(label_text)
+                        ui
+                        .label(label_text)
                         .style(f"font-family: {font_name}; font-size: 14px;")
                         .classes("text-gray-500 italic ml-4")
                     )

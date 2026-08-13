@@ -2,21 +2,28 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.1.2] ??-Aug-2026  # FIX
+## [12.1.2] 13-Aug-2026
 
 ### Added
 
-- Added:
+- Added: Editing a Version 2 Scene 'Text' element now offers 'Enabled', 'Content Format' and 'Link color' settings.
+- Added: The Version 2 Scene 'Weight' modifier is now picked from the font weights ('Thin' through 'Black'), 'Dynamic' or 'Select Variable', rather than typed as a number.
+- Added: Version 2 Scene modifiers 'Shadow', 'Scale', 'Rotate', 'Offset', 'Blur', 'FillHeight', 'HorizontalScroll' and 'Clickable' can now be added and edited by name, and every modifier can be given an 'Apply when' condition. 'Size' gained 'All', 'SizeIn' gained 'Min width'/'Min height', and 'Fill Width'/'Fill Size' gained 'Fraction'.
+- Added: A Version 2 Scene 'Icon' argument can now be picked from a grid of Material icons.
+- Added: A Version 2 Scene colour argument can now be set to one of Material's own colour roles.
 
 ### Changed
 
-- Changed:
+- Changed: Every colour argument in Scene editing now offers the colour picker and swatch that 'Link color' has — the Version 2 'Colour', 'Button colour', 'Text colour' and modifier colours, and the Legacy element colours ('Text Color', 'Border XColor', 'Background_Color' and the rest). A Legacy colour is stored the way Tasker writes it, #AARRGGBB with the alpha first, and is converted for the picker and back again so that a half-transparent colour stays half-transparent.
+- Changed: A Version 2 Scene 'Text', 'Button' or 'IconButton' element with no 'Tree label' now reads by what it says or shows rather than by its component id — "Text 'Empty Scene'" instead of "Text 'Text2'", "Button 'Cancel'" instead of "Button 'button_1'", "IconButton 'Close'" instead of "IconButton 'IconBtn1'" — in the designer's tree, at the head of its inspector, and on the preview. An element whose 'Content Format' is 'Html' reads by its words rather than its markup: "Text 'Bold heading'", not "Text '&lt;b&gt;Bold&lt;/b&gt; heading'".
+- Changed: The Scene preview now draws the Version 2 'Shadow', 'Scale', 'Rotate', 'Offset', 'Blur', 'FillHeight' and 'HorizontalScroll' modifiers, the 'Fraction' of a 'Fill Width'/'Fill Size'/'Fill Height', and a 'Weight' as the weight the text is drawn in. Only 'WindowDrag' is still reported as not drawn, a picture having no way to show that a window can be dragged.
+- Changed: The Scene preview now draws a Version 2 'Text' element whose 'Content Format' is 'Html' as its text rather than its markup, with tappable links — both '<a>' links and the bare URLs and email addresses Android makes tappable itself — in the element's 'Link color'.
 
 ### Fixed
 
+- Fixed: Version 2 Scene icons written as 'symbol:' (Material Symbols) drew as nothing in the Scene preview; only the older 'icon:' form was recognised. An icon naming an installed app's own icon, which is on the phone rather than in the backup, now draws a stand-in naming the app instead of being left blank.
 - Fixed: The 'Notification Duration' setting is ignored for startup-related messages.
 - Fixed: Typing a new X, Y, Width or Height for a Legacy Scene element had no effect: the value reverted as soon as another element was selected.
-- Fixed:
 
 ### Known Issue
 
