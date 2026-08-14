@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import collections
 import contextlib
 import copy
 import itertools
@@ -2089,10 +2090,52 @@ _V2_SWATCH_STYLE = (
     "border: 1px solid rgba(120,120,120,0.55); box-sizing: border-box;"
 )
 
+# A glyph for each of sceneedit.V2_TEXT_CATEGORIES, so a closed section is recognisable at a
+# glance rather than being one of eight identical grey bars.  Here rather than beside the
+# categories themselves because what a section is called is the Scene's business and what it
+# looks like is this pane's.  A category with no entry falls back to the Modifiers section's
+# own "tune", which is what a group of settings looks like everywhere else in this designer.
+_V2_CATEGORY_ICONS: dict[str, str] = {
+    "General": "settings",
+    "Content": "short_text",
+    "Appearance": "palette",
+    "Behavior": "rule",
+    "Font": "text_fields",
+    "Spacing": "format_line_spacing",
+    "Decoration and effects": "auto_fix_high",
+    "Paragraph": "notes",
+    "Other": "more_horiz",
+}
+
+
+def _variable_picker_button(field: ui.input, label: str) -> None:
+    """The Select Variable half of a property that can either be filled in or pointed at a
+    variable -- a Text's own text, a max lines of %line_budget, a shadow the theme decides.
+
+    Only the button.  Which slot it goes in is the caller's, because ui.color_input arrives
+    with an append slot already holding its wheel: adding one there takes the wheel away (see
+    _build_colour_field), so a colour field has to put this *into* that slot instead.
+
+    Writes through `field.value`, so the field's own on_change is still what stores it and this
+    knows nothing about the component being edited -- the same division the Show When picker
+    and the state fields' own variable box keep to.
+    """
+    picker = ui.button(
+        icon="playlist_add",
+        on_click=lambda _e=None: _build_show_when_dialog(
+            field,
+            sceneedit.v2_dynamic_variable_choices(),
+            f"Select a variable for {label}",
+        ),
+    ).props("flat dense round size=sm")
+    with picker:
+        ui.tooltip(translate_string("Pick from the Scene's environment and global variables."))
+
 
 def _build_colour_field(item: dict, prop: sceneedit.V2Prop) -> None:
     """A Version 2 colour property: type a name or a #hex value, pick one off the wheel, or
-    take one of Material's own roles from the menu.
+    take one of Material's own roles from the menu.  A "colorvar" property adds a fourth way --
+    point it at a variable and let the phone decide.
 
     The three ways matter because a V2 Scene's colours are of two kinds.  Most are ordinary
     values -- "#64B5F6", "red" -- and those want the wheel.  But Tasker also writes *role*
@@ -2131,6 +2174,8 @@ def _build_colour_field(item: dict, prop: sceneedit.V2Prop) -> None:
         with palette_button:
             ui.tooltip(translate_string("Pick one of Material's own colour roles."))
             _build_material_colour_menu(field)
+        if prop.kind == "colorvar":
+            _variable_picker_button(field, prop.label)
 
     def colour_changed(node: dict, key: str, text: str) -> None:
         sceneedit.v2_set_prop(node, key, text)
@@ -2245,9 +2290,14 @@ def _build_icon_dialog(field: ui.input) -> None:
                         # classes on the button does not work: they land on the button, while
                         # the row that needs turning is the .q-btn__content inside it, so the
                         # tiles come out half stacked and half side by side.
-                        tile = ui.button(on_click=lambda _e=None, n=name: pick(n)).props(
-                            "flat dense no-caps stack",
-                        ).classes("w-24 h-20")
+                        tile = (
+                            ui
+                            .button(on_click=lambda _e=None, n=name: pick(n))
+                            .props(
+                                "flat dense no-caps stack",
+                            )
+                            .classes("w-24 h-20")
+                        )
                         with tile:
                             ui.icon(name).style("font-size: 24px;")
                             ui.label(name).style(
@@ -2430,7 +2480,15 @@ def _build_v2_designer(
     """
     # The dict every edit lands in, and the one _apply_scene_field_values re-encodes.
     field_refs["v2_layout"] = layout
-    selection: dict = {"path": ()}
+    # What is selected: a *run* of adjacent siblings, as the path of its first component and
+    # how many of them there are.  One component is the run of one, so nothing here has a
+    # single-selection case to special-case.
+    #
+    # The invariant, which sceneedit.v2_selection_run is what enforces: every component in a
+    # run shares a parent and a slot, and their indices are consecutive.  That is what makes
+    # a run something a single splice can move, and a selection reaching across two parents
+    # something no drag could carry out -- so one is never allowed to exist.
+    selection: dict = {"path": (), "count": 1}
     # Snapshots taken before each structural edit. Deep copies of the whole tree, which is
     # affordable at this size (the largest Scene in this repo's backup is 13 components)
     # and far simpler than modelling an inverse for every operation.
@@ -2455,9 +2513,14 @@ def _build_v2_designer(
         ).classes("text-sm text-orange-600 mt-2")
         return
 
+    _register_canvas_events()
+    # This designer's own reorder surface -- unique for the reason _ACTIVE_CANVASES gives:
+    # ui.on subscribes app-wide, and the Preview is a second surface over this same layout.
+    tree_root = f"mt-v2-tree-{next(_DESIGNER_SEQUENCE)}"
+
     header = ui.row().classes("w-full items-center gap-2 mt-2")
     with ui.row().classes("w-full gap-3 items-start no-wrap mt-1"):
-        tree_pane = ui.column().classes("w-2/5 gap-0 p-2 border rounded max-h-80 overflow-auto")
+        tree_pane = ui.column().classes(f"{tree_root} w-2/5 gap-0 p-2 border rounded max-h-80 overflow-auto")
         inspector_pane = ui.column().classes("w-3/5 gap-2 p-2 border rounded max-h-80 overflow-auto")
     toolbar = ui.row().classes("w-full gap-1 items-center mt-1 flex-wrap")
 
@@ -2472,13 +2535,53 @@ def _build_v2_designer(
         # *this* dict object, so swapping in a new one would leave them on the old tree.
         layout.clear()
         layout.update(previous)
-        if sceneedit.v2_node_at(layout, selection["path"]) is None:
-            selection["path"] = ()
+        if not sceneedit.v2_run_is_valid(layout, selection["path"], selection["count"]):
+            select_only(())
         render()
 
-    def select(path: tuple) -> None:
+    def select_only(path: tuple, count: int = 1) -> None:
+        """Set the selection without re-rendering -- for the callers that render anyway."""
         selection["path"] = path
+        selection["count"] = max(1, count)
+
+    def select(path: tuple, count: int = 1) -> None:
+        select_only(path, count)
         render()
+
+    def select_from_surface(payload: dict) -> None:
+        """A click on a tree row or on a component in the Preview.
+
+        Shift extends the selection into a run, but only where a run is a thing that could
+        exist: shift-clicking into another container starts a fresh selection there instead
+        of refusing the click, because the user is plainly pointing at that component and
+        selecting it is the reading that gives them something.
+        """
+        path = sceneview.v2_decode_path(str(payload.get("path", "")))
+        if sceneedit.v2_node_at(layout, path) is None:
+            return
+        if payload.get("extend"):
+            run = sceneedit.v2_selection_run(layout, selection["path"], path)
+            if run is not None:
+                select(*run)
+                return
+        select(path)
+
+    def reorder_from_surface(payload: dict) -> None:
+        """A run dropped in one of the gaps between its siblings, from either surface."""
+        path = sceneview.v2_decode_path(str(payload.get("path", "")))
+        count = max(1, int(payload.get("count", 1) or 1))
+        if not sceneedit.v2_run_is_valid(layout, path, count):
+            return
+        snapshot()
+        new_path = sceneedit.v2_drop_run(layout, path, count, int(payload.get("before", 0) or 0))
+        if new_path is None:
+            # The drop landed where the run already was.  Nothing was changed and nothing is
+            # said about it -- putting something back where it came from is a thing users do
+            # on purpose, not a failed operation.
+            history.pop()
+            select(path, count)
+            return
+        select(new_path, count)
 
     def add_component(node_type: str) -> None:
         snapshot()
@@ -2489,10 +2592,13 @@ def _build_v2_designer(
             return
         select(new_path)
 
-    def structural(operation: Callable[[], tuple | None], failure: str) -> None:
+    def structural(operation: Callable[[], tuple | None], failure: str, count: int = 1) -> None:
         """Run a move/duplicate that returns a new path, keeping the moved component
         selected -- so a run of Move Up clicks walks one component up the tree instead of
         losing it after the first.
+
+        `count` is what to re-select: the whole run for the operations that move one (Up and
+        Down), one component for those that do not.
         """
         snapshot()
         new_path = operation()
@@ -2500,7 +2606,7 @@ def _build_v2_designer(
             history.pop()
             ui.notify(translate_string(failure), type="warning")
             return
-        select(new_path)
+        select(new_path, count)
 
     def delete_selected() -> None:
         node = sceneedit.v2_node_at(layout, selection["path"])
@@ -2522,24 +2628,45 @@ def _build_v2_designer(
                 multi_line=True,
                 timeout=10000,
             )
-        selection["path"] = ()
+        select_only(())
         render()
 
     def render_tree() -> None:
         tree_rows.clear()
-        for row in sceneedit.v2_flatten(layout):
-            selected = row.path == selection["path"]
-            classes = "text-sm font-mono whitespace-pre cursor-pointer rounded px-1 py-0.5 w-full"
-            classes += " bg-blue-600 text-white" if selected else " hover:bg-blue-100 dark:hover:bg-blue-900"
+        rows = sceneedit.v2_flatten(layout)
+        # How many components share each slot, which is the number of gaps a drop can aim at.
+        # Counted off the flattened tree rather than looked up per row: every sibling is a row
+        # here, and rows that are siblings are exactly the rows whose paths agree but for
+        # their last element.
+        siblings = collections.Counter(row.path[:-1] for row in rows if row.path)
+        selected = sceneedit.v2_run_paths(selection["path"], selection["count"])
+        for row in rows:
+            classes = "mt-v2-row text-sm font-mono whitespace-pre cursor-pointer rounded px-1 py-0.5 w-full"
+            classes += (
+                " bg-blue-600 text-white" if row.path in selected else " hover:bg-blue-100 dark:hover:bg-blue-900"
+            )
             # The indent is drawn rather than nested so every row stays one flat, clickable
             # strip -- nested containers would make the click target of a deep node a sliver.
-            tree_rows[row.path] = (
+            label = (
                 ui
                 .label(f"{'  ' * row.depth}{row.label}")
                 .classes(classes)
-                .on("click", lambda _e=None, path=row.path: select(path)),
-                row.depth,
+                .on("click", lambda _e=None, path=row.path: select(path))
             )
+            # The same two attributes the Preview's components carry, so one script drags
+            # both -- where this row sits, and how many gaps its slot has to drop into.
+            label.props(
+                f'data-path="{sceneview.v2_encode_path(row.path)}" data-sibs="{siblings.get(row.path[:-1], 0)}"',
+            )
+            tree_rows[row.path] = (label, row.depth)
+        tree_pane.props(_v2_selection_props(selection))
+        _emit_v2_dragging(
+            tree_root,
+            f".{tree_root}",
+            "mt-v2-row",
+            # The rows select themselves through NiceGUI; see _emit_v2_dragging.
+            select_on_click=False,
+        )
 
     def retitle_node_labels(node: dict) -> None:
         """Keep both places a component is named by -- its tree row and the inspector's own
@@ -2563,9 +2690,16 @@ def _build_v2_designer(
     def prop_input(item: dict, prop: sceneedit.V2Prop) -> None:
         """One editable field for any dict the designer edits -- a component, a modifier,
         an event or an action.  They all store scalars under named keys, so they all get
-        the same three widget kinds and the same write-through to sceneedit.v2_set_prop.
+        the same handful of widget kinds and the same write-through to sceneedit.v2_set_prop.
+
+        `item` is the thing being edited; `target` is where this particular property is kept,
+        which for most of them is the same object and for a Text's styling is the nested one
+        it names (sceneedit.v2_prop_dict).  Everything that reads or writes the value goes
+        through `target`; the two things that need the component itself -- what type it is, and
+        retitling its tree row -- keep using `item`.
         """
-        value = item.get(prop.key, "")
+        target = sceneedit.v2_prop_dict(item, prop)
+        value = target.get(prop.key, "")
         if prop.kind == "task":
             # RunTask names a Task in the loaded backup, so offer the real list rather than
             # a free field -- with_input still allows a name that isn't loaded yet.
@@ -2575,7 +2709,7 @@ def _build_v2_designer(
                 value=str(value) if value != "" else None,
                 label=translate_string(prop.label),
                 with_input=True,
-                on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
+                on_change=lambda e, k=prop.key, d=target: sceneedit.v2_set_prop(d, k, str(e.value or "")),
             ).props("dense").classes("w-full")
         elif prop.kind == "choice":
             ui.select(
@@ -2583,21 +2717,21 @@ def _build_v2_designer(
                 value=str(value) if value != "" else None,
                 label=translate_string(prop.label),
                 with_input=True,
-                on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
+                on_change=lambda e, k=prop.key, d=target: sceneedit.v2_set_prop(d, k, str(e.value or "")),
             ).props("dense").classes("w-full")
         elif prop.kind == "state" and (state_field := sceneedit.v2_state_field(prop.key)) is not None:
-            _build_state_field(item, state_field)
-        elif prop.kind == "color":
-            _build_colour_field(item, prop)
+            _build_state_field(target, state_field)
+        elif prop.kind in ("color", "colorvar"):
+            _build_colour_field(target, prop)
         elif prop.kind == "icon":
-            _build_icon_field(item, prop)
+            _build_icon_field(target, prop)
         else:
             text_input = (
                 ui
                 .input(
                     translate_string(prop.label),
                     value=str(value),
-                    on_change=lambda e, k=prop.key, d=item: sceneedit.v2_set_prop(d, k, str(e.value or "")),
+                    on_change=lambda e, k=prop.key, d=target: sceneedit.v2_set_prop(d, k, str(e.value or "")),
                 )
                 .props("dense")
                 .classes("w-full")
@@ -2614,6 +2748,13 @@ def _build_v2_designer(
                     ).props("flat dense round size=sm")
                     with show_when_button:
                         ui.tooltip(translate_string("Pick from the Scene's environment and global variables."))
+            elif prop.kind in ("textvar", "numvar"):
+                # Fill it in, or point it at a variable.  One field for both, rather than the
+                # state fields' pulldown-and-box, because there is nothing to choose between:
+                # a max lines of "2" and a max lines of "%line_budget" are the same property
+                # written two ways, and neither is a state the other isn't.
+                with text_input.add_slot("append"):
+                    _variable_picker_button(text_input, prop.label)
             # Either of the two properties a component can be named by: its treeLabel, or --
             # for a Text, which is named by what it says -- its own text (see
             # sceneedit.v2_node_name).  A change to whichever names *this* node has to reach
@@ -2785,6 +2926,75 @@ def _build_v2_designer(
                         ),
                     ).props("dense")
 
+    def render_prop(node: dict, prop: sceneedit.V2Prop) -> None:
+        """One property of the selected component.
+
+        Everything goes through prop_input except the component's own id, which is applied by
+        v2_rename_id rather than v2_set_prop: an id has to stay unique, and Tasks address
+        components by it (see rename_id below).  `prop.container` is what tells that id apart
+        from a nested key that merely happens to be called "id".
+        """
+        if prop.key != "id" or prop.container:
+            prop_input(node, prop)
+            return
+
+        value = node.get(prop.key, "")
+        id_input = ui.input(translate_string(prop.label), value=str(value)).props("dense").classes("w-full")
+        id_input.on("blur", lambda _e=None, w=id_input, p=selection["path"]: rename_id(p, w))
+        references = sceneedit.find_component_id_references(scene_name, str(value))
+        if references:
+            ui.label(
+                f"{translate_string('Addressed by id from')}: {', '.join(references)}",
+            ).classes("text-xs text-orange-600 italic")
+
+    def render_category(node: dict, name: str, props: list) -> None:
+        """One named section of the property sheet, for the types that have them.
+
+        Open/closed is remembered in `expanded` for the same reason the Modifiers section's is:
+        the inspector is rebuilt on every edit, so a section that didn't remember would shut
+        itself the moment you typed in it.  It is keyed by category name rather than by
+        component, so walking down a column of Texts keeps the section you are working in open
+        instead of making you reopen it at every stop.
+
+        The caption counts what is actually set.  With eight sections and fifty-odd fields
+        behind them, "which of these has anything in it" is the question the closed sheet has
+        to answer -- otherwise finding the one shadow colour a Scene sets means opening all
+        eight.
+
+        It is recounted when the section is toggled rather than on every keystroke, because
+        the inspector is not rebuilt as you type (see the treeLabel note in prop_input) and a
+        count that never recounted would still read 2/11 after you had filled in a third.
+        Toggling is when the number is actually read: an open section shows its own fields, so
+        the only caption anyone looks at is one that has just been -- or is about to be --
+        closed.
+        """
+        key = f"category:{name}"
+        expanded.setdefault(key, name in sceneedit.V2_OPEN_CATEGORIES)
+
+        def caption() -> str:
+            filled = sum(1 for prop in props if str(sceneedit.v2_prop_dict(node, prop).get(prop.key, "")) != "")
+            return f"{filled}/{len(props)}"
+
+        def toggled(value: object) -> None:
+            expanded[key] = bool(value)
+            section.props(f'caption="{caption()}"')
+
+        section = (
+            ui
+            .expansion(
+                translate_string(name),
+                icon=_V2_CATEGORY_ICONS.get(name, "tune"),
+                caption=caption(),
+                value=expanded[key],
+                on_value_change=lambda e: toggled(e.value),
+            )
+            .props("dense")
+            .classes("w-full")
+        )
+        with section, ui.column().classes("w-full gap-2 pb-2"):
+            for prop in props:
+                render_prop(node, prop)
+
     def render_inspector() -> None:
         node = sceneedit.v2_node_at(layout, selection["path"])
         if node is None:
@@ -2794,20 +3004,13 @@ def _build_v2_designer(
         inspector_heading["label"] = ui.label(sceneedit.v2_node_label(node)).classes(
             "text-sm font-semibold font-mono",
         )
-        for prop in sceneedit.v2_editable_props(node):
-            value = node.get(prop.key, "")
-            if prop.key == "id":
-                # Editable now, but through v2_rename_id rather than v2_set_prop: an id has
-                # to stay unique, and Tasks address components by it (see rename_id below).
-                id_input = ui.input(translate_string(prop.label), value=str(value)).props("dense").classes("w-full")
-                id_input.on("blur", lambda _e=None, w=id_input, p=selection["path"]: rename_id(p, w))
-                references = sceneedit.find_component_id_references(scene_name, str(value))
-                if references:
-                    ui.label(
-                        f"{translate_string('Addressed by id from')}: {', '.join(references)}",
-                    ).classes("text-xs text-orange-600 italic")
-            else:
-                prop_input(node, prop)
+        for name, props in sceneedit.v2_property_groups(node):
+            if not name:
+                # The flat list every type but Text still gets -- see v2_property_groups.
+                for prop in props:
+                    render_prop(node, prop)
+                continue
+            render_category(node, name, props)
 
         render_binding(node)
         render_modifiers(node)
@@ -2851,11 +3054,29 @@ def _build_v2_designer(
         )
 
     def render_toolbar() -> None:
+        """The structural operations.
+
+        Up and Down move the whole selected run; everything else is a one-component
+        operation and is switched off while a run is selected, rather than quietly acting on
+        the first of them.  Deleting three highlighted components and keeping two is the kind
+        of surprise an Undo does not really undo.
+        """
         node = sceneedit.v2_node_at(layout, selection["path"])
         is_root = not selection["path"]
+        run = selection["count"]
         for label, icon, handler, failure in (
-            ("Up", "arrow_upward", lambda: sceneedit.v2_move_node(layout, selection["path"], -1), "Already first."),
-            ("Down", "arrow_downward", lambda: sceneedit.v2_move_node(layout, selection["path"], 1), "Already last."),
+            (
+                "Up",
+                "arrow_upward",
+                lambda: sceneedit.v2_move_run(layout, selection["path"], selection["count"], -1),
+                "Already first.",
+            ),
+            (
+                "Down",
+                "arrow_downward",
+                lambda: sceneedit.v2_move_run(layout, selection["path"], selection["count"], 1),
+                "Already last.",
+            ),
             (
                 "Out",
                 "format_indent_decrease",
@@ -2875,16 +3096,49 @@ def _build_v2_designer(
                 "The root component can't be duplicated.",
             ),
         ):
+            moves_run = label in ("Up", "Down")
             ui.button(
                 translate_string(label),
                 icon=icon,
-                on_click=lambda _e=None, op=handler, f=failure: structural(op, f),
-            ).props("dense flat").set_enabled(node is not None and not is_root)
+                on_click=lambda _e=None, op=handler, f=failure, c=(run if moves_run else 1): structural(op, f, c),
+            ).props("dense flat").set_enabled(node is not None and not is_root and (moves_run or run == 1))
         ui.button(translate_string("Delete"), icon="delete", on_click=delete_selected).props(
             "dense flat color=negative",
-        ).set_enabled(node is not None and not is_root)
+        ).set_enabled(node is not None and not is_root and run == 1)
+        ui.space()
+        ui.label(
+            translate_string(
+                "Drag to reorder. Shift-click a component in the same container to take several at once."
+                if run == 1
+                else f"{run} components selected — they move together.",
+            ),
+        ).classes("text-xs text-gray-500 italic")
 
     def render() -> None:
+        # Re-registered on every render because the handlers close over nothing that changes,
+        # but the table is what a re-opened dialog's surface has to be found in again.
+        _ACTIVE_CANVASES[tree_root] = {"v2select": select_from_surface, "v2reorder": reorder_from_surface}
+        # What the Preview needs to be the second surface over this same layout, and why it
+        # is handed these three rather than a copy of them:
+        #
+        #   handlers  -- the Preview's drags run *these* closures, so a reorder made in the
+        #                picture lands on this designer's undo stack instead of a second one
+        #                that its Undo button knows nothing about.
+        #   selection -- the same dict object, so the run outlined in the picture and the run
+        #                highlighted in the tree cannot disagree.
+        #
+        #   rerender  -- called when the dialog comes back, because re-opening it rebuilds the
+        #                tree pane's DOM and the drag handlers have to be put back on the new
+        #                one.  See NiceGuiSceneView._back_to_editor.
+        #
+        # Running this designer's handlers is also what keeps the tree from going stale while
+        # it is hidden: they end in render(), so the pane the Preview is covering is rebuilt
+        # as the drag lands rather than coming back showing the order from before it.
+        field_refs["v2_edit"] = {
+            "handlers": _ACTIVE_CANVASES[tree_root],
+            "selection": selection,
+            "rerender": render,
+        }
         header.clear()
         tree_pane.clear()
         inspector_pane.clear()
@@ -3121,6 +3375,231 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
     )
 
 
+def _v2_selection_props(selection: dict) -> str:
+    """The selected run, as the two attributes the drag script reads off its host.
+
+    Set as element props rather than written from JavaScript so that a surface which is not
+    in the document right now -- a designer behind the Preview, whose dialog has detached its
+    contents -- still comes back with the run that is selected *now*.  See _emit_v2_dragging.
+    """
+    return (
+        f'data-mt-v2-sel="{sceneview.v2_encode_path(selection["path"])}" '
+        f'data-mt-v2-count="{max(1, int(selection["count"]))}"'
+    )
+
+
+def _emit_v2_dragging(
+    root: str,
+    container: str,
+    node_class: str,
+    *,
+    select_on_click: bool = True,
+) -> None:
+    """Install the pointer handlers that let a run of Version 2 components be dragged into a
+    new position among its siblings.  Used by both surfaces the tree can be reordered on --
+    the designer's tree pane and the Preview's canvas -- because the gesture is the same one.
+
+    SIBLINGS ONLY, AND THE GESTURE SAYS SO.  A drop can land only in a gap between the
+    dragged run's own siblings; the insertion line appears in those gaps and nowhere else, so
+    a drag over a component in some other container simply shows no line to drop on.  That is
+    the constraint being visible during the gesture rather than arriving as an error
+    afterwards -- re-nesting is what the In/Out buttons are for, and this cannot do it.
+
+    WHAT THE BROWSER KNOWS is two string tests, which is why paths are sent as strings (see
+    sceneview.v2_encode_path): two components are siblings when their paths agree up to the
+    last separator, and one is inside another when its path starts with the other's plus a
+    separator.  No component types, no slot rules, no schema -- all of that stays in Python.
+
+    A SIBLING'S EXTENT, NOT ITS ROW.  Both surfaces measure a sibling as the union of its own
+    box and every box inside it, which is free on the canvas (a component's div contains its
+    children) and load-bearing in the tree, where a container's children are separate rows
+    below it.  Without it, dropping "after a Column" would draw its line between that Column
+    and its first child -- which is where "into it" would go, an operation this does not do.
+
+    Only the finished drop is sent back, once, on pointer-up -- the same bargain
+    _emit_canvas_editing makes, for the same two reasons: a round trip per pointermove would
+    be unusable, and it would put an undo entry on the stack per pixel travelled.  Selection
+    is likewise reported only when the pointer did not move.
+
+    The handlers are delegated to the container and guarded by a flag on it, because the tree
+    pane is a widget that outlives its rows: re-rendering replaces every row inside it while
+    the pane itself stays, so re-attaching per render would stack up a listener per selection.
+    The Preview's canvas is rebuilt whole, arrives without the flag, and is wired afresh.
+
+    `select_on_click` is off where the surface has a click handler of its own.  The tree's
+    rows are NiceGUI labels that already select when clicked, and leaving that alone means a
+    page where this script never ran -- or ran and found nothing -- is a tree that still
+    selects and simply does not drag, rather than one that answers no clicks at all.  A
+    shift-click is always reported here, because extending a selection is this script's own.
+
+    WHAT IS SELECTED IS NOT SET HERE.  It arrives on the host as data-mt-v2-sel/-count, put
+    there by whoever drew the surface (see _v2_selection_props), because a Quasar dialog
+    detaches its contents from the document while it is hidden -- which is exactly what
+    Preview does to the designer.  A script that wrote the selection itself would find no
+    host at all for every render made behind the Preview, and the tree would come back
+    dragging whatever run was selected before it opened.  An attribute is patched onto the
+    element whether it is in the document or not, and is right again the moment it returns.
+    """
+    ui.run_javascript(
+        f"""
+        (() => {{
+            const root = '{root}', nodeSel = '.{node_class}';
+            const plainSelect = {"true" if select_on_click else "false"};
+            const host = document.querySelector('{container}');
+            if (!host) return;
+            if (host.dataset.mtV2Drag === '1') return;
+            host.dataset.mtV2Drag = '1';
+
+            let drag = null, line = null;
+
+            const clearLine = () => {{ if (line) {{ line.remove(); line = null; }} }};
+
+            // Everything drawn for one component: its own element and everything inside it.
+            const extent = (path) => {{
+                let box = null;
+                for (const el of host.querySelectorAll(nodeSel + '[data-path]')) {{
+                    const p = el.dataset.path;
+                    if (p !== path && !p.startsWith(path + '|')) continue;
+                    const r = el.getBoundingClientRect();
+                    if (!r.width && !r.height) continue;
+                    box = box ? {{ top: Math.min(box.top, r.top), left: Math.min(box.left, r.left),
+                                  bottom: Math.max(box.bottom, r.bottom), right: Math.max(box.right, r.right) }}
+                              : {{ top: r.top, left: r.left, bottom: r.bottom, right: r.right }};
+                }}
+                return box;
+            }};
+
+            // The dragged run's siblings, by index, with where each of them is on screen.
+            const siblings = (path, total) => {{
+                const base = path.slice(0, path.lastIndexOf('|'));
+                const found = [];
+                for (let i = 0; i < total; i++) {{
+                    const box = extent(base + '|' + i);
+                    if (box) found.push({{ index: i, box }});
+                }}
+                return found;
+            }};
+
+            // Down the page or across it?  Read off where the siblings actually are rather
+            // than from the container's flex-direction, so a Box, a grid or a wrapped row
+            // answers for itself and the tree (always a stack of rows) needs no special case.
+            const isVertical = (sibs) => {{
+                let dx = 0, dy = 0;
+                for (const a of sibs) for (const b of sibs) {{
+                    dx = Math.max(dx, Math.abs((a.box.left + a.box.right) / 2 - (b.box.left + b.box.right) / 2));
+                    dy = Math.max(dy, Math.abs((a.box.top + a.box.bottom) / 2 - (b.box.top + b.box.bottom) / 2));
+                }}
+                return dy >= dx;
+            }};
+
+            const showLine = (sibs, vertical, target) => {{
+                const at = sibs.find((s) => s.index === target);
+                const last = sibs[sibs.length - 1];
+                const edge = at ? at.box : last.box;
+                const before = !!at;
+                let top = Math.min(...sibs.map((s) => s.box.top));
+                let left = Math.min(...sibs.map((s) => s.box.left));
+                let bottom = Math.max(...sibs.map((s) => s.box.bottom));
+                let right = Math.max(...sibs.map((s) => s.box.right));
+                if (!line) {{
+                    line = document.createElement('div');
+                    line.style.cssText = 'position: fixed; z-index: 9999; background: #2563eb;'
+                                       + 'border-radius: 2px; pointer-events: none;';
+                    document.body.appendChild(line);
+                }}
+                if (vertical) {{
+                    const y = before ? edge.top : edge.bottom;
+                    line.style.left = left + 'px';
+                    line.style.width = Math.max(8, right - left) + 'px';
+                    line.style.top = (y - 1) + 'px';
+                    line.style.height = '3px';
+                }} else {{
+                    const x = before ? edge.left : edge.right;
+                    line.style.top = top + 'px';
+                    line.style.height = Math.max(8, bottom - top) + 'px';
+                    line.style.left = (x - 1) + 'px';
+                    line.style.width = '3px';
+                }}
+            }};
+
+            host.addEventListener('pointerdown', (event) => {{
+                if (event.button !== 0) return;
+                const el = event.target.closest(nodeSel + '[data-path]');
+                if (!el || !el.dataset.path) return;
+                const total = parseInt(el.dataset.sibs || '0', 10);
+                if (!(total > 1)) return;   // nothing to reorder it among
+                const path = el.dataset.path;
+                const base = path.slice(0, path.lastIndexOf('|'));
+                const index = parseInt(path.slice(base.length + 1), 10);
+
+                // Grabbing anything inside the selected run drags the whole run; grabbing
+                // anything else drags just that one, and drops the old selection with it.
+                const sel = host.dataset.mtV2Sel || '';
+                const selBase = sel.slice(0, sel.lastIndexOf('|'));
+                const selStart = sel ? parseInt(sel.slice(selBase.length + 1), 10) : -1;
+                const selCount = parseInt(host.dataset.mtV2Count || '1', 10);
+                const inRun = sel && selBase === base && index >= selStart && index < selStart + selCount;
+
+                drag = {{
+                    path: inRun ? sel : path, count: inRun ? selCount : 1,
+                    clicked: path, total, base,
+                    startX: event.clientX, startY: event.clientY, moved: false, target: null,
+                }};
+                // No pointer capture yet, and not until the drag threshold is crossed: a
+                // captured pointer redirects the click that follows it to the capturing
+                // element, which would take every plain click away from the tree row that
+                // was meant to receive it.
+            }});
+
+            host.addEventListener('pointermove', (event) => {{
+                if (!drag) return;
+                if (!drag.moved
+                    && Math.abs(event.clientX - drag.startX) < 4
+                    && Math.abs(event.clientY - drag.startY) < 4) return;
+                if (!drag.moved) {{
+                    drag.moved = true;
+                    // Only now, so a plain click is left exactly as it was found.
+                    document.body.style.userSelect = 'none';
+                    // Capture keeps the drag alive past the edge of the pane.  Guarded
+                    // because it throws for a pointer the browser no longer considers
+                    // active, and losing the capture is worth far less than losing the drag.
+                    try {{ host.setPointerCapture(event.pointerId); }} catch (e) {{ /* not fatal */ }}
+                }}
+                event.preventDefault();
+                const sibs = siblings(drag.path, drag.total);
+                if (sibs.length < 2) return;
+                const vertical = isVertical(sibs);
+                const at = vertical ? event.clientY : event.clientX;
+                let target = 0;
+                for (const s of sibs) {{
+                    const mid = vertical ? (s.box.top + s.box.bottom) / 2 : (s.box.left + s.box.right) / 2;
+                    if (at > mid) target = s.index + 1;
+                }}
+                drag.target = target;
+                showLine(sibs, vertical, target);
+            }});
+
+            const finish = (event) => {{
+                if (!drag) return;
+                const done = drag;
+                drag = null;
+                clearLine();
+                document.body.style.userSelect = '';
+                if (host.hasPointerCapture(event.pointerId)) host.releasePointerCapture(event.pointerId);
+                if (done.moved && done.target !== null) {{
+                    emitEvent('mt_v2_reorder',
+                              {{ root, path: done.path, count: done.count, before: done.target }});
+                }} else if (!done.moved && (plainSelect || event.shiftKey)) {{
+                    emitEvent('mt_v2_select', {{ root, path: done.clicked, extend: !!event.shiftKey }});
+                }}
+            }};
+            host.addEventListener('pointerup', finish);
+            host.addEventListener('pointercancel', finish);
+        }})();
+        """,
+    )
+
+
 # Every mounted designer's canvas handlers, keyed by its own root class.
 #
 # ui.on subscribes app-wide rather than per-widget, so registering a fresh handler on every
@@ -3193,6 +3672,11 @@ def _register_canvas_events() -> None:
     ui.on("mt_scene_select", lambda event: dispatch("select", event.args))
     ui.on("mt_scene_geometry", lambda event: dispatch("geometry", event.args))
     ui.on("mt_scene_nudge", lambda event: dispatch("nudge", event.args))
+    # The Version 2 pair, routed the same way and for the same reason -- a designer's tree
+    # pane and the Preview's canvas can both be reordering the same layout, and each has to
+    # answer only for its own.
+    ui.on("mt_v2_select", lambda event: dispatch("v2select", event.args))
+    ui.on("mt_v2_reorder", lambda event: dispatch("v2reorder", event.args))
     _CANVAS_EVENT_CLIENTS.add(client)
 
 
@@ -5669,6 +6153,7 @@ class NiceGuiSceneView:
         self.options = sceneview.PreviewOptions()
         self.zoom = "Fit"
         self.screen = sceneview.V2_DEFAULT_SCREEN
+        _register_canvas_events()
         self.build_ui()
         self.render()
         register_view(master_gui, self)
@@ -5846,9 +6331,21 @@ class NiceGuiSceneView:
         """Re-open the Scene dialog this preview was launched from, with everything still
         typed into it (see this class's docstring).
         """
-        if self.dialog is not None:
-            _resume_scene_editor_session(self.master_gui, self.dialog)
-            self.dialog.open()
+        if self.dialog is None:
+            return
+        _resume_scene_editor_session(self.master_gui, self.dialog)
+        self.dialog.open()
+        editor = self.field_refs.get("v2_edit")
+        if isinstance(editor, dict):
+            # Re-render the designer, which re-installs its tree's drag handlers.
+            #
+            # A hidden Quasar dialog does not merely hide its contents, it takes them out of
+            # the document, and re-opening it puts back new elements rather than the same
+            # ones -- so the pointer handlers installed on the old tree pane went with it.
+            # Everything else about the designer survives, which is exactly what makes this
+            # worth doing here instead of leaving the tree to look right and drag nothing
+            # until whatever the user clicked next happened to re-render it.
+            editor["rerender"]()
 
     def _set_option(self, name: str, value: object) -> None:
         setattr(self.options, name, value)
@@ -5917,11 +6414,56 @@ class NiceGuiSceneView:
             )
             return
 
+        editing = self._v2_editing()
         width, height = self._screen_size()
         with self.canvas_wrap:
-            sceneview.draw_v2_layout(layout, width, height, self.options)
+            sceneview.draw_v2_layout(layout, width, height, self.options, editing=editing)
         self._apply_scale(width, height)
+        if editing is not None:
+            _ACTIVE_CANVASES[CANVAS_PREVIEW_ROOT] = {
+                "v2select": lambda payload: self._v2_from_canvas("v2select", payload),
+                "v2reorder": lambda payload: self._v2_from_canvas("v2reorder", payload),
+            }
+            _emit_v2_dragging(
+                CANVAS_PREVIEW_ROOT,
+                f".{CANVAS_PREVIEW_ROOT} .mt-scene-canvas",
+                "mt-v2-node",
+            )
         self._draw_v2_caption(layout, width, height)
+
+    def _v2_editing(self) -> sceneview.V2Editing | None:
+        """The Preview as a reorder surface, or None for the picture it has always been.
+
+        Editing needs two things at once, and the absence of either is what makes this a
+        read-only preview: the layout being drawn has to be the *live* one the designer edits
+        in place, and the designer has to still be there to take the edit -- it owns the undo
+        stack a drag has to land on, and the tree that has to agree with the picture
+        afterwards.  A Preview opened where no designer was built draws a dict decoded for
+        this view alone, which nothing would ever save; a drag on that would look like it
+        worked and quietly lose the change.
+        """
+        editor = self.field_refs.get("v2_edit")
+        if not isinstance(editor, dict) or self.field_refs.get("v2_layout") is None:
+            return None
+        selection = editor["selection"]
+        return sceneview.V2Editing(selected=sceneedit.v2_run_paths(selection["path"], selection["count"]))
+
+    def _v2_from_canvas(self, name: str, payload: object) -> None:
+        """A click or a drop on the picture: hand it to the designer, then redraw.
+
+        The designer's own handlers do the work -- see the note on field_refs["v2_edit"] --
+        so a component dragged in the Preview is snapshotted, moved, selected and re-rendered
+        in the tree by exactly the code the tree's own drag goes through.  All that is left
+        here is the half the designer cannot do, which is repainting this picture.
+        """
+        editor = self.field_refs.get("v2_edit")
+        if not isinstance(editor, dict):
+            return
+        handler = editor["handlers"].get(name)
+        if handler is None:
+            return
+        handler(payload)
+        self.render()
 
     def _screen_size(self) -> tuple[int, int]:
         """The frame a V2 layout is drawn in: the chosen screen, on its side when Landscape
@@ -5992,6 +6534,14 @@ class NiceGuiSceneView:
             if properties:
                 summary += " · " + " · ".join(f"{translate_string(label)}: {value}" for label, value in properties)
             ui.label(summary).classes("text-xs text-gray-500")
+            if self._v2_editing() is not None:
+                ui.label(
+                    translate_string(
+                        "Click a component to select it, shift-click another in the same container to take "
+                        "several, and drag to reorder them among their own siblings. Moving a component into "
+                        "or out of a container is the editor's In and Out buttons; Undo is there too.",
+                    ),
+                ).classes("text-xs text-blue-600")
             ui.label(
                 translate_string(
                     "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size "

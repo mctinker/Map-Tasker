@@ -106,7 +106,21 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
     blank = " "  # Assuming blank is a space character
 
     if isinstance(data, dict):
-        for key, value in data.items():
+        # A Scene V2 element is identified by its "type" key.  Output the type first and
+        # indent the element's remaining keys under it so that each element's attributes
+        # are visually grouped with the element they belong to.
+        items = list(data.items())
+        type_value = data.get("type")
+        if type_value is not None and not isinstance(type_value, (dict, list)):
+            PrimeItems.output_lines.add_line_to_output(
+                0,
+                f"{blank * ((3 + indentation) + (current_depth * 3))}type: {type_value}",
+                ["", "scene_color", FormatLine.add_end_span],
+            )
+            current_depth += 1
+            items = [(key, value) for key, value in items if key != "type"]
+
+        for key, value in items:
             # Calculate dynamic indentation: base (3) + parent + (3 per depth level)
             current_indent = (3 + indentation) + (current_depth * 3)
 
@@ -139,7 +153,6 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
     elif isinstance(data, list):
         # Optional: Handle lists if they appear in your Scene V2 JSON
         for i, item in enumerate(data):
-            current_indent = (3 + indentation) + (current_depth * 3)
             process_recursive_json({f"[{i}]": item}, indentation, current_depth)
 
 

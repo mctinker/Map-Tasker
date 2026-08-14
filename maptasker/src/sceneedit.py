@@ -260,13 +260,23 @@ class V2Prop:
 
     kind is "text" (free string, including a %variable reference), "number" (digits, but
     still stored as a string -- see _coerce_like) or "choice" (one of `choices`, offered
-    as a pulldown).
+    as a pulldown).  "textvar", "numvar" and "colorvar" are those three plus a Select
+    Variable picker, for the properties Tasker lets you point at a variable instead of
+    filling in -- see V2_TEXT_CATEGORIES.
+
+    `container` names the nested dict inside the node the property actually lives in, for the
+    ones that are not a top-level key: a Text's font, spacing and decoration all sit inside
+    its "textStyle" object rather than on the component itself.  Empty -- the ordinary case --
+    means the node's own key.  v2_prop_dict is what turns this into something to read and
+    write, and why it is a name here rather than a dict reference: the container is created
+    only when something is first written into it, so an untouched Scene never grows one.
     """
 
     key: str
     label: str
     kind: str = "text"
     choices: tuple[str, ...] = ()
+    container: str = ""
 
 
 # Every component carries an id, so it is offered first for all of them rather than
@@ -321,6 +331,13 @@ class V2StateField:
     value rather than a component's property (Weight).  Those are offered by
     V2_MODIFIER_SCHEMA on the modifier itself and nowhere else, so a component that happens to
     carry a key of the same name is not handed a pulldown meant for something else.
+
+    `grouped` says the same thing about a field that belongs to a category group rather than
+    to the run below Show when -- everything a Text offers under Behaviour, Font, Decoration
+    and Paragraph.  Without it _v2_universal_props would splice all fifteen of them in above
+    the very categories that exist to organise them.
+
+    `container` is V2Prop's, and means the same: the nested dict the property lives in.
     """
 
     key: str
@@ -328,6 +345,8 @@ class V2StateField:
     fixed: tuple[tuple[str, str], ...]
     types: frozenset[str]
     modifier: str = ""
+    grouped: bool = False
+    container: str = ""
 
     @property
     def states(self) -> tuple[str, ...]:
@@ -337,7 +356,7 @@ class V2StateField:
     @property
     def prop(self) -> V2Prop:
         """This field as the inspector's own kind of property."""
-        return V2Prop(self.key, self.label, "state")
+        return V2Prop(self.key, self.label, "state", container=self.container)
 
 
 # What Enabled's On and Off actually store.  Strings, not JSON booleans, because that is what
@@ -364,16 +383,85 @@ V2_FONT_WEIGHTS: tuple[str, ...] = (
     "Black",
 )
 
+# --- A Text's own styling, which is where nearly all of it lives ----------------------------
+#
+# Everything about how a Text is *drawn* -- its font, its spacing, its decoration, how its
+# paragraphs are laid out -- sits in one nested object rather than on the component, and this
+# is that object's key.  The properties below name it through V2Prop.container, and the
+# container is created only when one of them is first written (see v2_prop_dict): a Scene whose
+# Text carries no textStyle must not grow an empty one just for being opened.
+V2_TEXT_STYLE = "textStyle"
+
+# The Screen Builder's font weights, spelled the way it spells them.  Separate from
+# V2_FONT_WEIGHTS -- which is the Weight *modifier's* scale and spells the second one
+# "Extra Light" -- because these are what a Scene's textStyle.fontWeight actually holds
+# ("SemiBold", "ExtraBold" and "Bold" all appear in XML/backup.xml).  v2_state_of matches
+# loosely enough that either spelling lands on the same weight whichever table reads it.
+_TEXT_FONT_WEIGHTS: tuple[str, ...] = (
+    "Thin",
+    "ExtraLight",
+    "Light",
+    "Normal",
+    "Medium",
+    "SemiBold",
+    "Bold",
+    "ExtraBold",
+    "Black",
+)
+
+# Compose's own named type scale, largest first, which is what the Screen Builder's Preset
+# pulldown is offering.  TitleLarge, TitleMedium and BodySmall are the three that appear in
+# XML/backup.xml; the rest of the scale is listed with them because a scale with three of its
+# fifteen steps offered is not a scale.
+_TYPOGRAPHY_PRESETS: tuple[str, ...] = (
+    "DisplayLarge",
+    "DisplayMedium",
+    "DisplaySmall",
+    "HeadlineLarge",
+    "HeadlineMedium",
+    "HeadlineSmall",
+    "TitleLarge",
+    "TitleMedium",
+    "TitleSmall",
+    "BodyLarge",
+    "BodyMedium",
+    "BodySmall",
+    "LabelLarge",
+    "LabelMedium",
+    "LabelSmall",
+)
+
+# The font families Compose resolves by name on any device -- so, the ones that can be offered
+# rather than typed.  Monospace and Cursive are both in XML/backup.xml; the other three are the
+# rest of the same set.  A family outside it (an installed font, say) is still reachable
+# through Dynamic, which is why this being a short list costs nothing.
+_FONT_FAMILIES: tuple[str, ...] = ("Default", "SansSerif", "Serif", "Monospace", "Cursive")
+
+
+def _switch(on: str = V2_ENABLED_ON, off: str = V2_ENABLED_OFF) -> tuple[tuple[str, str], ...]:
+    """An On/Off pair as V2StateField.fixed wants it, for the several Text properties that are
+    exactly a switch: On stores one string, Off the other.  Defaulted to Enabled's "true" and
+    "false", which is what all but one of them store.
+    """
+    return (("On", on), ("Off", off))
+
+
+def _states(*names: str) -> tuple[tuple[str, str], ...]:
+    """States whose stored value is the name shown, which is all of Tasker's own enums."""
+    return tuple((name, name) for name in names)
+
+
 # The state fields.  The component ones come in the order they are offered -- which is the
 # order Tasker's own Screen Builder puts them in, directly below Show when.
+#
+# Everything marked grouped=True is offered through V2_TEXT_CATEGORIES instead and nowhere
+# else; see V2StateField.grouped.
 V2_STATE_FIELDS: tuple[V2StateField, ...] = (
-    V2StateField("enabled", "Enabled", (("On", V2_ENABLED_ON), ("Off", V2_ENABLED_OFF)), frozenset({"Text"})),
-    V2StateField(
-        "contentFormat",
-        "Content format",
-        (("Plain", "Plain"), ("Html", "Html")),
-        frozenset({"Text"}),
-    ),
+    V2StateField("enabled", "Enabled", _switch(), frozenset({"Text"})),
+    # Markdown as well as Plain and Html: a Text in XML/backup.xml carries "Markdown", and
+    # without it here that Scene's Content format would open on Dynamic and read as a typed
+    # expression rather than as the setting it is.
+    V2StateField("contentFormat", "Content format", _states("Plain", "Html", "Markdown"), frozenset({"Text"})),
     # A modifier's value rather than a component's property, so it carries no component types
     # and is reached only through V2_MODIFIER_SCHEMA's "Weight" entry.
     V2StateField(
@@ -382,6 +470,105 @@ V2_STATE_FIELDS: tuple[V2StateField, ...] = (
         tuple((weight, weight) for weight in V2_FONT_WEIGHTS),
         frozenset(),
         modifier="Weight",
+    ),
+    # ---- Behaviour.  Top-level keys on the component, unlike everything below them.
+    # "Ellipsis" is Compose's spelling and the one in XML/backup.xml.
+    V2StateField("overflow", "Overflow", _states("Clip", "Ellipsis", "Visible"), frozenset({"Text"}), grouped=True),
+    V2StateField("softWrap", "Soft wrap", _switch(), frozenset({"Text"}), grouped=True),
+    V2StateField("selectable", "Selectable", _switch(), frozenset({"Text"}), grouped=True),
+    V2StateField("autoSize", "Auto-size to fit", _switch(), frozenset({"Text"}), grouped=True),
+    # ---- Font, and everything after it: inside textStyle.
+    V2StateField(
+        "typographyPreset",
+        "Preset",
+        _states(*_TYPOGRAPHY_PRESETS),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    V2StateField(
+        "fontFamily",
+        "Family",
+        _states(*_FONT_FAMILIES),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    V2StateField(
+        "fontWeight",
+        "Weight",
+        _states(*_TEXT_FONT_WEIGHTS),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    # Compose's FontStyle has exactly the two values, so the switch stores the words rather
+    # than true/false -- "Italic" is what the samples hold.
+    V2StateField(
+        "fontStyle",
+        "Italic",
+        _switch("Italic", "Normal"),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    # ---- Decoration and effects.
+    V2StateField(
+        "textDecoration",
+        "Decoration",
+        _states("None", "Underline", "LineThrough", "UnderlineLineThrough"),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    V2StateField(
+        "baselineShift",
+        "Baseline",
+        _states("None", "Superscript", "Subscript"),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    # ---- Paragraph.
+    V2StateField(
+        "lineBreak",
+        "Line break",
+        _states("Simple", "Heading", "Paragraph"),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    V2StateField(
+        "hyphens",
+        "Hyphens",
+        _states("None", "Auto"),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    V2StateField(
+        "textDirection",
+        "Direction",
+        _states("Content", "Ltr", "Rtl"),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    V2StateField(
+        "lineHeightAlignment",
+        "Line height alignment",
+        _states("Top", "Center", "Proportional", "Bottom"),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
+    ),
+    V2StateField(
+        "lineHeightTrim",
+        "Line height trim",
+        _states("Both", "None", "FirstLineTop", "LastLineBottom"),
+        frozenset({"Text"}),
+        grouped=True,
+        container=V2_TEXT_STYLE,
     ),
 )
 
@@ -1041,12 +1228,17 @@ def _v2_universal_props(node: dict) -> list[V2Prop]:
     A node that already carries one of those keys gets the field whatever its type, so that a
     component this app doesn't yet know has one is still edited with its own widget rather
     than falling through to the raw text box an unrecognised key gets.
+
+    Grouped fields are left out on both counts -- see V2StateField.grouped.  They have a place
+    of their own in V2_TEXT_CATEGORIES, and a component that carries one without being the type
+    that groups them (a "selectable" on something other than a Text, say) is better served by
+    the plain fallback field than by a widget lifted out of another type's category.
     """
     node_type = node.get("type")
     extras = [
         field.prop
         for field in V2_STATE_FIELDS
-        if not field.modifier and (node_type in field.types or field.key in node)
+        if not field.modifier and not field.grouped and (node_type in field.types or field.key in node)
     ]
     extras += [prop for prop, types in V2_BELOW_SHOW_WHEN_PROPS if node_type in types or prop.key in node]
 
@@ -1077,6 +1269,274 @@ def v2_editable_props(node: dict) -> list[V2Prop]:
         if isinstance(value, (str, int, float, bool)):
             props.append(V2Prop(key, key))
     return props
+
+
+# --------------------------------------------------------------------------------------
+# Property categories.
+#
+# A Text carries more settings than any other component by a wide margin -- fifty-odd, once
+# its textStyle is counted -- and a flat list of fifty fields is not a property sheet, it is a
+# haystack.  So they are grouped the way Tasker's own Screen Builder groups them, and the
+# inspector puts each group up as a section that can be opened and closed.
+#
+# Only Text has a table here.  Every other component still gets the flat list from
+# v2_editable_props, because none of them has enough properties for the grouping to be worth
+# the click it costs -- see v2_property_groups, which is what both paths go through.
+#
+# Every key below appears on a real Text in XML/backup.xml, at the spelling written here.
+# --------------------------------------------------------------------------------------
+
+
+def _state_prop(key: str) -> V2Prop:
+    """One of the state fields above as a property, by key -- so the table reads as a list of
+    fields rather than as a list of lookups.
+    """
+    field = v2_state_field(key)
+    if field is None:  # pragma: no cover -- the keys below are literals from V2_STATE_FIELDS
+        message = f"No V2 state field named {key!r}"
+        raise KeyError(message)
+    return field.prop
+
+
+def _style_prop(key: str, label: str, kind: str = "numvar") -> V2Prop:
+    """One plain textStyle property.  Defaulted to "numvar" because most of them are a
+    measurement that can equally be pointed at a variable -- a line height of 17, or of
+    whatever %spacing turns out to hold when the Scene is shown.
+    """
+    return V2Prop(key, label, kind, container=V2_TEXT_STYLE)
+
+
+V2_TEXT_CATEGORIES: tuple[tuple[str, tuple[V2Prop, ...]], ...] = (
+    (
+        "General",
+        (
+            V2_ID_PROP,
+            V2Prop("treeLabel", "Tree label"),
+            V2Prop("showWhen", "Show when"),
+            # Kept with Show when rather than dropped: it says what "hidden" means for this
+            # component, and it is meaningless anywhere else.
+            V2Prop("showWhenMode", "Hidden as", "choice", ("Gone", "Invisible")),
+            _state_prop("enabled"),
+        ),
+    ),
+    (
+        "Content",
+        (
+            # The one property a Text cannot do without, and the reason "textvar" exists: what
+            # it says is as often %some_variable as it is words.
+            V2Prop("text", "Text", "textvar"),
+            _state_prop("contentFormat"),
+            # Only means anything when the Content format above it is Html or Markdown, which
+            # is why it sits with them rather than beside Appearance's own colour.
+            V2Prop("linkColor", "Link color", "color"),
+        ),
+    ),
+    (
+        "Appearance",
+        (
+            V2Prop("textSize", "Text size", "number"),
+            V2Prop("color", "Colour", "color"),
+            V2Prop("textAlign", "Alignment", "choice", _ALIGNMENT),
+            V2Prop("verticalAlignment", "Vertical alignment", "choice", _VERTICAL_ALIGNMENT),
+        ),
+    ),
+    (
+        "Behavior",
+        (
+            _state_prop("overflow"),
+            V2Prop("maxLines", "Max lines", "numvar"),
+            V2Prop("minLines", "Min lines", "numvar"),
+            _state_prop("softWrap"),
+            _state_prop("selectable"),
+            _state_prop("autoSize"),
+            V2Prop("autoSizeMinSp", "Auto-size min (sp)", "numvar"),
+            # Offered beside its own minimum.  Not in the brief this table was written from,
+            # but it is in the Scenes -- five Texts in XML/backup.xml carry it -- and a minimum
+            # whose maximum could only be edited as a raw key would be the odd one of the pair.
+            V2Prop("autoSizeMaxSp", "Auto-size max (sp)", "numvar"),
+        ),
+    ),
+    (
+        "Font",
+        (
+            _state_prop("typographyPreset"),
+            _state_prop("fontFamily"),
+            _state_prop("fontWeight"),
+            _state_prop("fontStyle"),
+        ),
+    ),
+    (
+        "Spacing",
+        (
+            _style_prop("lineHeight", "Line height"),
+            _style_prop("letterSpacing", "Letter spacing"),
+            _style_prop("textIndentFirstLine", "Indent (first line)"),
+            _style_prop("textIndentRestLine", "Indent (other lines)"),
+        ),
+    ),
+    (
+        "Decoration and effects",
+        (
+            _state_prop("textDecoration"),
+            _state_prop("baselineShift"),
+            _style_prop("shadowColor", "Shadow color", "colorvar"),
+            _style_prop("shadowOffsetX", "Shadow offset X"),
+            _style_prop("shadowOffsetY", "Shadow offset Y"),
+            _style_prop("shadowBlur", "Shadow blur"),
+            _style_prop("gradientStartColor", "Gradient start", "colorvar"),
+            _style_prop("gradientEndColor", "Gradient end", "colorvar"),
+            _style_prop("gradientAngleDegrees", "Gradient angle"),
+            _style_prop("strokeWidth", "Stroke"),
+            # Tasker's key for it is spanBackground; the Screen Builder calls it Highlight, and
+            # that is the name the user is looking for.
+            _style_prop("spanBackground", "Highlight", "colorvar"),
+        ),
+    ),
+    (
+        "Paragraph",
+        (
+            _state_prop("lineBreak"),
+            _state_prop("hyphens"),
+            _state_prop("textDirection"),
+            _state_prop("lineHeightAlignment"),
+            _state_prop("lineHeightTrim"),
+        ),
+    ),
+)
+
+# Which categories the inspector opens on.  The two that answer "which component is this and
+# what does it say" -- the rest are refinements, and eight open sections is the flat list this
+# grouping replaced, only taller.
+V2_OPEN_CATEGORIES = frozenset({"General", "Content"})
+
+# Where the leftovers go: any key a Scene carries that no category above claims.  Named rather
+# than hidden, for the reason v2_editable_props gives -- a Scene from a newer Tasker will carry
+# properties this app has never seen, and the designer must not be the reason they can't be
+# touched.
+V2_OTHER_CATEGORY = "Other"
+
+
+class V2NestedProps:
+    """One node's nested property object -- a Text's textStyle -- presented as the dict the
+    inspector edits.
+
+    It exists so that v2_set_prop and v2_set_state, which know only how to read and write keys
+    on a dict, can edit a property that lives one level down without either of them learning
+    about nesting.  Every operation those two use is forwarded to the real object.
+
+    What it adds is when that object exists.  It is created on the first write and removed
+    again when its last key is cleared, so a Text that has never been styled does not grow an
+    empty "textStyle": {} for having been selected in the tree, and one styled back to nothing
+    re-encodes to the bytes it arrived as.
+
+    A container the Scene holds as something other than an object is read as empty and never
+    written over.  That is not a shape Tasker writes, and guessing at it would cost the user
+    whatever is actually in there.
+    """
+
+    __slots__ = ("_container", "_node")
+
+    def __init__(self, node: dict, container: str) -> None:
+        self._node = node
+        self._container = container
+
+    @property
+    def _held(self) -> dict:
+        held = self._node.get(self._container)
+        return held if isinstance(held, dict) else {}
+
+    def _writable(self) -> dict | None:
+        """The object to write into, created if this node has never had one."""
+        held = self._node.get(self._container)
+        if isinstance(held, dict):
+            return held
+        if held is not None:
+            return None
+        created: dict = {}
+        self._node[self._container] = created
+        return created
+
+    def _prune(self) -> None:
+        held = self._node.get(self._container)
+        if isinstance(held, dict) and not held:
+            del self._node[self._container]
+
+    def get(self, key: str, default: object = None) -> object:
+        return self._held.get(key, default)
+
+    def items(self) -> object:
+        return self._held.items()
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._held
+
+    def __getitem__(self, key: str) -> object:
+        return self._held[key]
+
+    def __setitem__(self, key: str, value: object) -> None:
+        held = self._writable()
+        if held is not None:
+            held[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        self._held.pop(key, None)
+        self._prune()
+
+    def pop(self, key: str, default: object = None) -> object:
+        value = self._held.pop(key, default)
+        self._prune()
+        return value
+
+
+def v2_prop_dict(node: dict, prop: V2Prop) -> dict | V2NestedProps:
+    """What to read and write this property on: the node itself, or the nested object it
+    lives in.  The one call the inspector needs to make to stop caring where a property sits.
+    """
+    return V2NestedProps(node, prop.container) if prop.container else node
+
+
+def _v2_other_props(node: dict, claimed: tuple[tuple[str, tuple[V2Prop, ...]], ...]) -> list[V2Prop]:
+    """Scalar keys the categories don't account for -- on the node and inside the containers
+    they name -- as plain fields, so nothing a Scene holds is invisible.
+    """
+    spoken_for = {(prop.container, prop.key) for _, props in claimed for prop in props}
+    containers = {prop.container for _, props in claimed for prop in props if prop.container}
+
+    others: list[V2Prop] = []
+    for key, value in node.items():
+        if key in V2_STRUCTURAL_KEYS or key in containers or ("", key) in spoken_for:
+            continue
+        if isinstance(value, (str, int, float, bool)):
+            others.append(V2Prop(key, key))
+    for container in sorted(containers):
+        held = node.get(container)
+        if not isinstance(held, dict):
+            continue
+        others += [
+            V2Prop(key, f"{container}.{key}", container=container)
+            for key, value in held.items()
+            if (container, key) not in spoken_for and isinstance(value, (str, int, float, bool))
+        ]
+    return others
+
+
+def v2_property_groups(node: dict) -> list[tuple[str, list[V2Prop]]]:
+    """This component's editable properties, as the named sections the inspector draws.
+
+    A type with a category table (Text, and so far only Text) gets its sections in the table's
+    order, with anything left over gathered into a final one.  Every other type gets a single
+    section with no name, which is the flat list the inspector has always drawn -- so the
+    grouping is something a type opts into rather than something every type now pays for.
+    """
+    categories = V2_TEXT_CATEGORIES if node.get("type") == "Text" else ()
+    if not categories:
+        return [("", v2_editable_props(node))]
+
+    groups = [(name, list(props)) for name, props in categories]
+    others = _v2_other_props(node, categories)
+    if others:
+        groups.append((V2_OTHER_CATEGORY, others))
+    return groups
 
 
 def _coerce_like(existing: object, text: str) -> object:
@@ -1564,17 +2024,104 @@ def v2_move_node(layout: dict, path: tuple, offset: int) -> tuple | None:
     it can't move that way (already first/last, or it's the root).  Reordering matters:
     a slot's list order is the order the components lay out on screen.
     """
-    parent, slot, index = _v2_parent_and_slot(layout, path)
-    if parent is None:
+    return v2_move_run(layout, path, 1, offset)
+
+
+def _v2_splice_run(layout: dict, path: tuple, count: int, insert_at: int) -> tuple | None:
+    """Lift `count` consecutive siblings starting at `path` out of their slot and put them
+    back at `insert_at`, and return the run's new first path.
+
+    THE ONE PLACE THE INDEX ARITHMETIC HAPPENS.  Every way of moving a run -- the toolbar's
+    Up/Down, a drag dropped in a gap -- is the same splice under a different way of naming
+    where it lands, and each of those names has its own off-by-one against the other.  So
+    they convert to this one, which takes the only unambiguous answer: an index into the
+    sibling list *as it stands with the run already lifted out*.  Callers do their own
+    conversion (see v2_move_run and v2_drop_run) and this does none.
+
+    Returns None -- changing nothing -- for the root, a run that doesn't sit whole inside one
+    slot, a destination outside the list, and a move that would put the run back exactly
+    where it was.  That last one is not a failure the caller need report; see v2_drop_run.
+    """
+    parent, slot, start = _v2_parent_and_slot(layout, path)
+    if parent is None or count < 1:
         return None
     siblings = parent.get(slot)
-    if not isinstance(siblings, list):
+    if not isinstance(siblings, list) or start < 0 or start + count > len(siblings):
         return None
-    new_index = index + offset
-    if not 0 <= new_index < len(siblings):
+    if insert_at == start or not 0 <= insert_at <= len(siblings) - count:
         return None
-    siblings.insert(new_index, siblings.pop(index))
-    return (*path[:-1], new_index)
+    run = siblings[start : start + count]
+    del siblings[start : start + count]
+    siblings[insert_at:insert_at] = run
+    return (*path[:-1], insert_at)
+
+
+def v2_move_run(layout: dict, path: tuple, count: int, offset: int) -> tuple | None:
+    """Move a run of `count` adjacent siblings `offset` places up (negative) or down.
+
+    The run-sized Up/Down: offset is in sibling positions, so +1 steps the whole run past
+    the one component below it however many components the run holds.  Returns the run's new
+    first path, or None if it can't move that way.
+    """
+    return _v2_splice_run(layout, path, count, _v2_parent_and_slot(layout, path)[2] + offset)
+
+
+def v2_drop_run(layout: dict, path: tuple, count: int, before: int) -> tuple | None:
+    """Move a run of `count` adjacent siblings so it sits before sibling `before`.
+
+    What a drag drops: `before` is a *gap* in the slot as the user sees it right now -- 0 is
+    above the first component, len(siblings) is below the last -- counted with the dragged
+    run still in place, because that is the list the gap was aimed at.  Lifting the run out
+    shifts every gap below it up by count, which is the correction made here and nowhere
+    else.
+
+    Returns the run's new first path, or None if the drop changes nothing (the two gaps
+    either side of a run are both where it already is) or can't be made.
+    """
+    _parent, _slot, start = _v2_parent_and_slot(layout, path)
+    return _v2_splice_run(layout, path, count, before - count if before > start else before)
+
+
+def v2_selection_run(layout: dict, anchor: tuple, other: tuple) -> tuple[tuple, int] | None:
+    """The run of adjacent siblings spanned by two selected paths, as (first path, count).
+
+    What a shift-click means, and the one place the "adjacent" in "one or more adjacent
+    components" is enforced: two paths span a run only when they address siblings -- the same
+    parent and the same slot, which is exactly `path[:-1]` being equal.  Everything between
+    two siblings is a sibling, so the span needs no further checking.
+
+    None when they are not siblings, which the caller reads as "start a new selection here"
+    rather than as an error.  A tree selection that reached across parents could not be moved
+    by any single splice, so it is never allowed to exist.
+    """
+    if not anchor or not other or anchor[:-1] != other[:-1]:
+        return None
+    if v2_node_at(layout, anchor) is None or v2_node_at(layout, other) is None:
+        return None
+    first, last = sorted((anchor[-1], other[-1]))
+    return (*anchor[:-1], first), last - first + 1
+
+
+def v2_run_paths(path: tuple, count: int) -> tuple[tuple, ...]:
+    """Every path in a run -- what the tree and the picture both highlight.  The run's own
+    invariant is what makes this arithmetic rather than a search: adjacent siblings differ
+    only in the last element of their path.
+    """
+    if not path:
+        return ((),)
+    return tuple((*path[:-1], path[-1] + step) for step in range(max(1, count)))
+
+
+def v2_run_is_valid(layout: dict, path: tuple, count: int) -> bool:
+    """Does this run still address `count` whole siblings?  Checked before every use of a
+    remembered selection, because the tree it was taken from can have been re-rendered,
+    undone or edited from the other view since.
+    """
+    parent, slot, start = _v2_parent_and_slot(layout, path)
+    if parent is None or count < 1 or start < 0:
+        return False
+    siblings = parent.get(slot)
+    return isinstance(siblings, list) and start + count <= len(siblings)
 
 
 def v2_outdent_node(layout: dict, path: tuple) -> tuple | None:

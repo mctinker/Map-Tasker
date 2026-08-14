@@ -225,6 +225,23 @@ class CanvasEditing:
     snap: int = 1
 
 
+@dataclass
+class V2Editing:
+    """The Version 2 counterpart of CanvasEditing: present when the V2 canvas is a reorder
+    surface rather than a picture, None when it is the read-only Preview.
+
+    `selected` is the run of adjacent siblings currently picked out -- their paths, in the
+    form sceneedit.v2_flatten hands out.  A run rather than a single path because a drag
+    moves everything selected, and the highlight is what tells the user what that is.
+
+    Like CanvasEditing this holds no callbacks: the gesture is browser-side and what comes
+    back goes through NiceGUI's event bridge, so all this module needs to know is which
+    components to outline and that paths are wanted on the DOM at all.
+    """
+
+    selected: tuple[tuple, ...] = ()
+
+
 @dataclass(frozen=True)
 class Colour:
     """A colour argument, resolved as far as it can be.
@@ -1653,7 +1670,88 @@ def v2_layout_summary(layout: dict) -> list[tuple[str, str]]:
     return [(label, value) for label, value in rows if value]
 
 
-def draw_v2_layout(layout: dict, width: int, height: int, options: PreviewOptions) -> None:
+# ------------------------------------------------------------------
+# Component identity, for the drag that reorders them
+# ------------------------------------------------------------------
+# Where every node drawn in this pass sits in the tree: id(node) -> (path, siblings in its
+# slot).  Built once per draw by _v2_index_paths and read by _v2_draw_node, which is the one
+# funnel every component goes through.
+#
+# A LOOKUP RATHER THAN A PARAMETER, and deliberately.  The alternative is threading a path
+# through _v2_draw_node into all thirty-odd drawers and back out of each of them to their
+# children -- every drawer changed, every one of them able to compute the wrong path, to
+# deliver something the drawers themselves have no use for.  The tree is walked once here
+# instead, by the same rule _v2_slots walks by, so the paths mean to sceneedit exactly what
+# its own v2_flatten would have meant.
+#
+# Keyed by id() because these dicts are the layout's own and stay alive throughout the draw;
+# see _v2_alias for the two drawers that hand _v2_draw_node something else.
+_V2_PATHS: dict[int, tuple[tuple, int]] = {}
+# The editing surface for this draw, or None when it is the read-only Preview.  Module-level
+# for the same reason as _V2_PATHS: it is the drawer funnel that needs it, not the drawers.
+_V2_EDITING: V2Editing | None = None
+
+
+def v2_encode_path(path: tuple) -> str:
+    """A path as one DOM-safe string -- ("content", 0, "children", 2) as
+    "content|0|children|2", the empty tuple as "".
+
+    The browser needs to compare paths (is this component a sibling of that one? is it inside
+    it?) and a string it can take a prefix of is the whole of what that takes: siblings share
+    everything up to the last separator, and a descendant's path starts with its ancestor's
+    plus one.  See _emit_v2_dragging, which does exactly those two tests and nothing else.
+    """
+    return "|".join(str(part) for part in path)
+
+
+def v2_decode_path(encoded: str) -> tuple:
+    """The tuple a v2_encode_path string names.  Index segments come back as ints, slot keys
+    as strings, which is what sceneedit.v2_node_at indexes with.
+
+    Whatever the browser sends is a path *shape*, never a promise that it still resolves --
+    the caller looks it up in the tree, which is what decides whether it means anything.
+    """
+    if not encoded:
+        return ()
+    return tuple(int(part) if part.lstrip("-").isdigit() else part for part in encoded.split("|"))
+
+
+def _v2_index_paths(root: dict) -> None:
+    """Record where every component in this layout sits, before a line of it is drawn."""
+    _V2_PATHS.clear()
+
+    def walk(node: dict, path: tuple, siblings: int) -> None:
+        _V2_PATHS[id(node)] = (path, siblings)
+        for slot, children in _v2_slots(node):
+            for index, child in enumerate(children):
+                if isinstance(child, dict):
+                    walk(child, (*path, slot, index), len(children))
+
+    walk(root, (), 0)
+
+
+def _v2_alias(drawn: dict, original: dict) -> dict:
+    """Give a stand-in dict the identity of the component it stands in for.
+
+    Two drawers do not draw the component the tree holds: a NavigationBar and a
+    SegmentedButtonRow decide which of their items is selected, and say so by drawing a copy
+    with one key overridden rather than by writing into the Scene.  A copy is a different
+    id(), so without this its items would be the only components on the canvas with no path
+    -- unselectable and undraggable, for a reason invisible from the outside.
+    """
+    identity = _V2_PATHS.get(id(original))
+    if identity is not None:
+        _V2_PATHS[id(drawn)] = identity
+    return drawn
+
+
+def draw_v2_layout(
+    layout: dict,
+    width: int,
+    height: int,
+    options: PreviewOptions,
+    editing: V2Editing | None = None,
+) -> None:
     """Draw a Version 2 layout into a device-sized frame, into whatever container is open.
 
     The frame is the point.  A V2 layout has no size of its own -- it fills whatever it is
@@ -1666,9 +1764,17 @@ def draw_v2_layout(layout: dict, width: int, height: int, options: PreviewOption
     between a layout that fills a phone and one that floats in the middle of it, and a
     preview that showed the same picture for both would be wrong about the more important
     half of what the Scene is.
+
+    `editing` makes the components the browser can pick up and drag -- see V2Editing.  The
+    picture drawn is the same either way: what it adds is a path on each component and an
+    outline round the selected run, never a different layout.
     """
+    global _V2_EDITING  # noqa: PLW0603 -- see _V2_PATHS on why this is not a parameter.
     root = layout.get("root")
     is_dialog = "dialog" in str(layout.get("defaultDisplayMode", "")).lower()
+    _V2_EDITING = editing
+    if editing is not None and isinstance(root, dict):
+        _v2_index_paths(root)
 
     frame = ui.element("div").classes("mt-scene-canvas").style(
         f"position: relative; width: {width}px; height: {height}px; overflow: hidden;"
@@ -1676,6 +1782,14 @@ def draw_v2_layout(layout: dict, width: int, height: int, options: PreviewOption
         f"background: {V2_MATERIAL_PALETTE['background']}; color: {V2_MATERIAL_PALETTE['onBackground']};"
         "font-family: Roboto, system-ui, sans-serif;",
     )
+    if editing is not None:
+        # The selected run, for the drag handlers to read off the canvas: where it starts and
+        # how long it is.  The same two attributes the designer's tree pane carries, and put
+        # here for the same reason -- see guiwins._v2_selection_props.
+        frame.props(
+            f'data-mt-v2-sel="{v2_encode_path(editing.selected[0] if editing.selected else ())}" '
+            f'data-mt-v2-count="{max(1, len(editing.selected))}"',
+        )
     with frame:
         if not isinstance(root, dict):
             _placeholder("layers_clear", "This layout has no root component")
@@ -2128,7 +2242,25 @@ def _v2_draw_node(node: dict, options: PreviewOptions, depth: int, *, fill: bool
         # has to find) but it is never drawn as though it were unconditional.
         style += "outline: 1px dashed rgba(217,119,6,0.9); outline-offset: -1px;"
 
+    # The selection outline goes on last so it wins over a Show when's dashed one: which
+    # components are about to be dragged is the more urgent of the two things to say, and the
+    # amber outline is still there the moment the selection moves on.
+    path, siblings = _V2_PATHS.get(id(node), ((), 0)) if _V2_EDITING is not None else ((), 0)
+    if _V2_EDITING is not None and path in _V2_EDITING.selected:
+        style += "outline: 2px solid #2563eb; outline-offset: -2px;"
+
     container = ui.element("div").style(style)
+    if _V2_EDITING is not None and path:
+        # The root is deliberately left out: it has no siblings, so there is nothing it could
+        # be dragged among, and marking it draggable would be an offer that cannot be kept.
+        #
+        # data-sibs is how many components share its slot -- the count the drop gap is
+        # measured against, known here and nowhere in the browser.
+        container.classes("mt-v2-node").props(
+            f'data-path="{v2_encode_path(path)}" data-sibs="{siblings}"',
+        )
+        if siblings > 1:
+            container.style("cursor: grab;")
     with container:
         drawer(node, options, depth)
         if hidden:
@@ -2598,7 +2730,7 @@ def _v2_draw_navigation_bar(node: dict, options: PreviewOptions, depth: int) -> 
         for index, child in enumerate(_v2_all_children(node)):
             # The bar's own selectedIndex wins over an item's "selected", because it is the
             # bar that decides which of its items is current.
-            marked = dict(child)
+            marked = _v2_alias(dict(child), child)
             if selected >= 0:
                 marked["selected"] = "true" if index == selected else "false"
             _v2_draw_node(marked, options, depth + 1)
@@ -2773,7 +2905,7 @@ def _v2_draw_segmented_row(node: dict, options: PreviewOptions, depth: int) -> N
         f"overflow: hidden; box-sizing: border-box;",
     ):
         for index, child in enumerate(_v2_all_children(node)):
-            marked = dict(child)
+            marked = _v2_alias(dict(child), child)
             marked["selected"] = "true" if str(index) in selected else "false"
             _v2_draw_node(marked, options, depth + 1)
 
