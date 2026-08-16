@@ -6,12 +6,13 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Edit Scene Drag and Drop - Version 2 Scene elements can be dragged and dropped in the tree view as well as the preview to change their order up/down the tree.
+- Added: Edit Scene Drag and Drop in Preview - Version 2 Scene element(s) up-and-down the tree view, and Legacy Scene element(s) move x-and-y coordinates.
 - Added: Edit Scene 'Text' - Missing arguments have been added to provide full edit-text argument support.
 
 ### Changed
 
 - Changed: Version 2 Scene 'type' field in the Map view is merged in with it's arguments.  It's arguments are now idented in the Map view.
+
 ### Fixed
 
 - Fixed:

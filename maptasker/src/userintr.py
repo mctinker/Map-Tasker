@@ -3309,10 +3309,17 @@ class MapTaskerEventHandlers:
         stays available even while the dialog holds something that would fail to save.
         """
         if dialog is not None:
-            dialog.close()
             # Hidden, not finished: the "Edit Scene" button has to resume this dialog rather
             # than open a fresh one on the unedited tree.  See suspend_scene_editor_session.
+            #
+            # MARKED BEFORE THE CLOSE, NOT AFTER.  Closing fires the dialog's own value-change
+            # handler synchronously, and that handler repaints any preview this dialog left on
+            # screen (guiwins._scene_dialog_closed).  Marking afterwards would leave it looking
+            # at a session that still said "not suspended", so it would take a close *on its
+            # way to building a new preview* for a close that had finished with one, and
+            # repaint the outgoing view into a container about to be cleared.
             suspend_scene_editor_session(self.gui, dialog)
+            dialog.close()
         self.gui.textview = NiceGuiSceneView(self.gui, edited_scene, field_refs, dialog)
 
     def save_edited_scene_event(

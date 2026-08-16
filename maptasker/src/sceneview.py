@@ -215,14 +215,28 @@ class CanvasEditing:
 
     Deliberately holds no callbacks.  Everything about *reacting* to a drag lives in
     guiwins (the pointer handlers are browser-side, and what they report goes back through
-    NiceGUI's global event bridge); all this module needs to know is which element to draw
+    NiceGUI's global event bridge); all this module needs to know is which elements to draw
     the selection on and how far apart the grid is, because those are the only two things
     that change the drawing.  Keeping the split there is what lets the Preview keep calling
     draw_scene with nothing at all and get exactly what it got before.
+
+    `selected` is every element picked out, by sr, in the order they were picked -- a drag
+    moves all of them together, and the outlines are what tell the user what "all of them"
+    is.  Unlike V2Editing this is a set rather than a run: a Legacy Scene is a pixel canvas
+    where any elements at all can be moved by the same delta, so there is no adjacency for a
+    selection to have to satisfy.
+
+    `tooltips` is whether the elements keep the hover tooltip the read-only picture gives
+    them.  It is the caller's answer rather than a rule here, because the honest answer
+    depends on what else is on screen: the designer has an Inspector showing the same
+    numbers a few inches away and drops them, while the Preview -- whose dialog, and
+    therefore whose Inspector, is closed while it is up -- is the only place those numbers
+    can be read at all and keeps them.
     """
 
-    selected: str = ""
+    selected: tuple[str, ...] = ()
     snap: int = 1
+    tooltips: bool = False
 
 
 @dataclass
@@ -495,17 +509,27 @@ def draw_scene(
         # script: the handles belong to the overlay rather than to the element they resize,
         # so a handle-drag has to look up which element that is, and an attribute this
         # renderer states is one NiceGUI will re-state on every patch instead of dropping.
-        canvas.props(f'tabindex="0" data-selected="{editing.selected}"').style("outline: none;")
+        #
+        # Space-separated because it is a set: the drag script splits it to decide whether
+        # the element under the pointer is one of the group, and an sr ("elements10") never
+        # contains a space.
+        canvas.props(f'tabindex="0" data-selected="{" ".join(editing.selected)}"').style("outline: none;")
     with canvas:
-        selected_box = None
+        selected_boxes = []
         for element in paint_order(scene_element):
             _draw_element(element, options, editing=editing)
-            if editing and element.get("sr", "") == editing.selected:
-                selected_box = element_geometry(element, options.landscape)
-        # Drawn last, and outside every element's frame, so it sits above the whole canvas
-        # and its handles are not clipped by the frame's own overflow: hidden.
-        if editing and selected_box is not None:
-            _draw_selection(selected_box)
+            sr = element.get("sr", "")
+            if editing and sr in editing.selected:
+                # None for an element selected in one orientation and looked at in the
+                # other, where it has no layout at all -- it is not drawn, so it gets no
+                # outline either, rather than one round a box that isn't there.
+                box = element_geometry(element, options.landscape)
+                if box is not None:
+                    selected_boxes.append((sr, box))
+        # Drawn last, and outside every element's frame, so they sit above the whole canvas
+        # and their handles are not clipped by the frame's own overflow: hidden.
+        for sr, box in selected_boxes:
+            _draw_selection(sr, box, handles=len(selected_boxes) == 1)
 
 
 # Which way each handle stretches the box.  The names are compass points because that is
@@ -523,21 +547,31 @@ _HANDLE_POSITIONS: tuple[tuple[str, str, str], ...] = (
 )
 
 
-def _draw_selection(box: tuple[int, int, int, int]) -> None:
-    """The selection outline and its eight resize handles, as an overlay at the selected
-    element's box rather than as part of the element itself.
+def _draw_selection(sr: str, box: tuple[int, int, int, int], *, handles: bool = True) -> None:
+    """One selection outline, and its eight resize handles, as an overlay at that element's
+    box rather than as part of the element itself.
 
     Separate because every element frame carries overflow: hidden -- an element has to clip
     its own contents to its geometry, which is exactly what Tasker does -- and a handle
     hanging 4px outside the edge would be clipped away by it.  An overlay also means the
-    selection can be moved during a drag without touching what is drawn inside the element.
+    selection can be moved during a drag without touching what is drawn inside the element,
+    which is why it carries the sr: the drag script moves each outline with the element it
+    belongs to.
+
+    HANDLES ONLY WHEN ONE ELEMENT IS SELECTED.  Eight handles round each of six selected
+    elements would be an offer this cannot keep: resizing a group is a question with two
+    honest answers (scale them all about the group's box, or give each of them the same
+    size) and no way to ask which was meant, so a multiple selection moves and does not
+    resize.  Which is exactly what the drawing then says.
     """
     x, y, width, height = box
-    with ui.element("div").classes("mt-selection").style(
+    with ui.element("div").classes("mt-selection").props(f'data-sr="{sr}"').style(
         f"position: absolute; left: {x}px; top: {y}px; width: {width}px; height: {height}px;"
         "box-sizing: border-box; z-index: 10; outline: 2px solid rgba(37,99,235,0.95);"
         "outline-offset: -1px; pointer-events: none;",
     ):
+        if not handles:
+            return
         for direction, placement, cursor in _HANDLE_POSITIONS:
             ui.element("div").classes("mt-handle").props(f'data-dir="{direction}"').style(
                 f"position: absolute; {placement} width: 8px; height: 8px; box-sizing: border-box;"
@@ -627,8 +661,10 @@ def _draw_element(
             _draw_task_badges(element)
 
     # A tooltip on a frame the user is dragging gets in the way of the thing it describes,
-    # so the designer does without: the Inspector is showing all of it anyway.
-    if not editing:
+    # so the designer does without: the Inspector is showing all of it anyway.  That reason
+    # does not survive the trip to the Preview, where the dialog holding that Inspector is
+    # closed -- so the surface says which it is rather than this inferring it from `editing`.
+    if not editing or editing.tooltips:
         _attach_tooltip(frame, element, args, box)
 
 

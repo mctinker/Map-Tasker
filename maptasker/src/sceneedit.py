@@ -3498,6 +3498,63 @@ def legacy_restore(
     scene_element.text = snapshot.text
 
 
+def session_snapshot(edited_scene: EditableScene) -> defusedxml.ElementTree.Element:
+    """The Scene as the Edit dialog found it, kept for the whole edit session so Cancel has
+    something to put back.  One deep copy per dialog, taken once -- see revert_session.
+    """
+    return copy.deepcopy(edited_scene.scene_element)
+
+
+def revert_session(
+    edited_scene: EditableScene,
+    snapshot: defusedxml.ElementTree.Element,
+    layout: dict | None = None,
+) -> bool:
+    """Undo everything an edit session did to the Scene, and say whether there was anything
+    to undo.
+
+    WHAT THIS IS AND IS NOT UNDOING.  The dialog edits a deep copy (load_scene_for_edit), and
+    that copy reaches the real backup at exactly one point, apply_edited_scene_to_live_tree,
+    which Cancel never goes near -- so cancelling was already safe for the *file*.  What it
+    was not was safe for what is on *screen*: a Preview holds this very element and goes on
+    drawing whatever the designer did to it, so a Scene dragged about in the preview and then
+    cancelled kept showing the new positions, which reads as Cancel having done nothing.
+    Putting the copy back is what makes the two agree.
+
+    In place, and for the reason legacy_restore gives: EditableScene, the dialog's field_refs
+    and the Preview all hold this element object.
+
+    `layout` is the Version 2 designer's decoded tree (field_refs["v2_layout"]).  It has to be
+    reverted as well as the element, and cannot be reverted *from* it without a step: that
+    dict is the thing V2 edits, and it is only encoded back into <lj> when a save runs, so a
+    session's V2 work lives entirely in the dict and not at all in the element that was just
+    restored.  Re-decoding the restored element is what turns one back into the other.
+
+    element_renames goes too.  It is a list of renames *pending* against the live Tasks, held
+    precisely because they must not happen until the copy is applied -- so a cancelled session
+    has to leave none of them queued for a session that is applied later.
+    """
+    changed = ETW.tostring(edited_scene.scene_element) != ETW.tostring(snapshot) or bool(
+        edited_scene.element_renames,
+    )
+    # Decoded from the snapshot rather than from the restored element, which is the same
+    # content one step later, so the layout is read once and answers both questions below.
+    original_layout = decode_v2_layout(snapshot) if layout is not None else None
+    if not changed and isinstance(original_layout, dict):
+        # A Version 2 session leaves the element alone from beginning to end -- its work is
+        # in the dict until a save encodes it -- so comparing elements calls a reordered,
+        # retyped, half-rebuilt V2 layout "unchanged".  Asking the dict is what makes Cancel
+        # able to say it discarded something on the one kind of Scene where it always had.
+        changed = original_layout != layout
+
+    legacy_restore(edited_scene.scene_element, snapshot)
+    edited_scene.element_renames.clear()
+    if isinstance(original_layout, dict):
+        layout.clear()
+        layout.update(original_layout)
+    return changed
+
+
 # --------------------------------------------------------------------------------------
 # Legacy designer, phase 2: changing what a Scene contains -- add, delete, duplicate and
 # restack its elements.

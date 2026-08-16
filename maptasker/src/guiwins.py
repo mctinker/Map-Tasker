@@ -3256,7 +3256,17 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
     which replaces the very DOM node the pointer is captured on -- so selecting first and
     dragging second would tear the element out from under the drag on every click. Reporting
     a click only when the pointer did not move keeps the two apart: a click selects, a drag
-    moves, and a drag reports the element it moved so Python can select it afterwards.
+    moves, and a drag reports the elements it moved so Python can select them afterwards.
+
+    MORE THAN ONE ELEMENT CAN BE SELECTED, and a drag moves all of them by the same delta.
+    Which elements those are is read off the canvas rather than held here, for the same
+    reason the selected element always was: Python re-renders the canvas on every change and
+    a value cached in this closure would be describing the render before last.
+
+    A PRESS ON THE BARE CANVAS IS TWO GESTURES until it ends: released where it started it is
+    a click that clears the selection, dragged it is a rubber band that takes everything it
+    encloses.  Both leave as mt_scene_select, one carrying an sr and the other a list of them
+    -- see the finish() below and select_from_canvas, which is what reads them apart.
 
     Handlers are attached to the canvas element itself, which draw_scene rebuilds on every
     render, so they are disposed of with it and can never accumulate.  The one exception is
@@ -3279,34 +3289,114 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
             const round = (value) => Math.round(value / snap) * snap;
             let drag = null;
 
-            const place = (sr, box) => {{
-                const target = canvas.querySelector('.mt-el[data-sr="' + sr + '"]');
-                const overlay = canvas.querySelector('.mt-selection');
+            // What is selected right now, straight off the canvas -- see the docstring.
+            const selected = () => (canvas.dataset.selected || '').split(' ').filter(Boolean);
+            const box = (sr) => {{
+                const node = canvas.querySelector('.mt-el[data-sr="' + sr + '"]');
+                return node && {{
+                    sr,
+                    x: parseFloat(node.dataset.x), y: parseFloat(node.dataset.y),
+                    w: parseFloat(node.dataset.w), h: parseFloat(node.dataset.h),
+                }};
+            }};
+
+            const place = (next) => {{
+                const target = canvas.querySelector('.mt-el[data-sr="' + next.sr + '"]');
+                const overlay = canvas.querySelector('.mt-selection[data-sr="' + next.sr + '"]');
                 for (const node of [target, overlay]) {{
                     if (!node) continue;
-                    node.style.left = box.x + 'px';
-                    node.style.top = box.y + 'px';
-                    node.style.width = box.w + 'px';
-                    node.style.height = box.h + 'px';
+                    node.style.left = next.x + 'px';
+                    node.style.top = next.y + 'px';
+                    node.style.width = next.w + 'px';
+                    node.style.height = next.h + 'px';
                 }}
+            }};
+
+            // ---- the rubber band ----
+            //
+            // Where the pointer is in the Scene's own coordinates.  The canvas is scaled by
+            // one CSS transform with transform-origin: top left, so its client rect's corner
+            // *is* canvas 0,0 and dividing by the scale is the whole conversion.
+            let band = null;
+            const point = (event) => {{
+                const rect = canvas.getBoundingClientRect();
+                return {{ x: (event.clientX - rect.left) / scale(), y: (event.clientY - rect.top) / scale() }};
+            }};
+            const spanned = (from, to) => ({{
+                x: Math.min(from.x, to.x), y: Math.min(from.y, to.y),
+                w: Math.abs(to.x - from.x), h: Math.abs(to.y - from.y),
+            }});
+
+            // WHOLLY INSIDE THE BAND, not merely touched by it -- and that is a fact about
+            // Legacy Scenes rather than a preference.  Most real ones are built on a
+            // full-canvas RectElement as a background (it is why paint_order exists), and
+            // under a touch rule every band anywhere would catch it, so every marquee would
+            // quietly pick up the background and drag it along with whatever was wanted.
+            // Requiring containment makes that element reachable only by a band drawn round
+            // the whole canvas -- which reads as "select everything", and is.
+            const enclosed = (area) => [...canvas.querySelectorAll('.mt-el')].filter((node) => {{
+                const x = parseFloat(node.dataset.x), y = parseFloat(node.dataset.y);
+                const w = parseFloat(node.dataset.w), h = parseFloat(node.dataset.h);
+                return x >= area.x && y >= area.y
+                    && x + w <= area.x + area.w && y + h <= area.y + area.h;
+            }}).map((node) => node.dataset.sr);
+
+            const drawBand = (area) => {{
+                if (!band) {{
+                    band = document.createElement('div');
+                    band.className = 'mt-marquee';
+                    band.style.cssText = 'position: absolute; z-index: 11; pointer-events: none;'
+                        + 'box-sizing: border-box; border: 1px dashed rgba(37,99,235,0.95);'
+                        + 'background: rgba(37,99,235,0.10);';
+                    canvas.appendChild(band);
+                }}
+                band.style.left = area.x + 'px';
+                band.style.top = area.y + 'px';
+                band.style.width = area.w + 'px';
+                band.style.height = area.h + 'px';
             }};
 
             canvas.addEventListener('pointerdown', (event) => {{
                 const handle = event.target.closest('.mt-handle');
-                const element = handle ? canvas.querySelector('.mt-el[data-sr="' + canvas.dataset.selected + '"]')
+                const picked = selected();
+                const element = handle ? canvas.querySelector('.mt-el[data-sr="' + picked[picked.length - 1] + '"]')
                                        : event.target.closest('.mt-el');
-                if (!element) return;
                 event.preventDefault();
                 canvas.focus();
+                if (!element) {{
+                    // The bare canvas -- a press with nothing under it.  It is the start of
+                    // both gestures the background has: released where it began it is a click
+                    // that clears the selection (the only way back to none once several are
+                    // picked), and dragged it is the rubber band.  Which of the two it was is
+                    // not known until the pointer comes up, which is where both are reported.
+                    //
+                    // The modifier travels either way.  Shift-clicking past everything is a
+                    // miss rather than an instruction to drop the selection being built, and
+                    // Python does nothing with an empty sr it was asked to add; shift-banding
+                    // adds what the band caught to what was already picked.
+                    drag = {{
+                        sr: '', extend: event.shiftKey || event.ctrlKey || event.metaKey,
+                        dir: 'move', box: null, boxes: [], moved: false,
+                        startX: event.clientX, startY: event.clientY, from: point(event),
+                    }};
+                    canvas.setPointerCapture(event.pointerId);
+                    return;
+                }}
+                // Grabbing anything inside the selection drags the whole selection; grabbing
+                // anything else drags just that one, and drops the old selection with it.
+                // The same rule the Version 2 surface uses (see _emit_v2_dragging), so a drag
+                // never quietly moves something the user cannot see is picked out.  A handle
+                // is always the single selected element: handles are drawn only for one.
+                const group = (!handle && picked.includes(element.dataset.sr))
+                    ? picked : [element.dataset.sr];
                 drag = {{
                     sr: element.dataset.sr,
+                    extend: event.shiftKey || event.ctrlKey || event.metaKey,
                     dir: handle ? handle.dataset.dir : 'move',
                     startX: event.clientX,
                     startY: event.clientY,
-                    box: {{
-                        x: parseFloat(element.dataset.x), y: parseFloat(element.dataset.y),
-                        w: parseFloat(element.dataset.w), h: parseFloat(element.dataset.h),
-                    }},
+                    box: box(element.dataset.sr),
+                    boxes: group.map(box).filter(Boolean),
                     moved: false,
                 }};
                 canvas.setPointerCapture(event.pointerId);
@@ -3314,25 +3404,45 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
 
             canvas.addEventListener('pointermove', (event) => {{
                 if (!drag) return;
+                if (!drag.box) {{
+                    // A press that began on the bare canvas: this is the band being drawn.
+                    // The threshold is in screen pixels rather than canvas ones so that it
+                    // feels the same however far the canvas is scaled down -- 4 canvas px on
+                    // a phone-sized Scene fitted to the pane is well under one real pixel.
+                    if (!drag.moved
+                        && Math.abs(event.clientX - drag.startX) < 4
+                        && Math.abs(event.clientY - drag.startY) < 4) return;
+                    drag.moved = true;
+                    drag.band = spanned(drag.from, point(event));
+                    drawBand(drag.band);
+                    return;
+                }}
                 const dx = (event.clientX - drag.startX) / scale();
                 const dy = (event.clientY - drag.startY) / scale();
                 if (!drag.moved && Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
                 drag.moved = true;
                 const start = drag.box;
-                let {{ x, y, w, h }} = start;
                 if (drag.dir === 'move') {{
-                    x = round(start.x + dx); y = round(start.y + dy);
+                    // THE SNAP IS APPLIED TO THE DELTA, ONCE, not to each element in turn.
+                    // Rounding every element's own position to the grid would pull a group
+                    // that was laid out 3px apart onto 5px boundaries -- destroying the very
+                    // spacing the user selected them together to preserve.  Snapping the
+                    // element under the pointer and moving the rest by that same offset keeps
+                    // the group rigid and still lands the grabbed one on the grid.
+                    const ox = round(start.x + dx) - start.x;
+                    const oy = round(start.y + dy) - start.y;
+                    drag.next = drag.boxes.map((b) => ({{ sr: b.sr, x: b.x + ox, y: b.y + oy, w: b.w, h: b.h }}));
                 }} else {{
+                    let {{ x, y, w, h }} = start;
                     if (drag.dir.includes('w')) {{ x = round(start.x + dx); w = start.w + (start.x - x); }}
                     if (drag.dir.includes('n')) {{ y = round(start.y + dy); h = start.h + (start.y - y); }}
                     if (drag.dir.includes('e')) {{ w = round(start.w + dx); }}
                     if (drag.dir.includes('s')) {{ h = round(start.h + dy); }}
+                    // An element may sit off the canvas -- Tasker allows it -- so nothing is
+                    // clamped to the edges; only a collapse to nothing is refused.
+                    drag.next = [{{ sr: start.sr, x, y, w: Math.max(1, w), h: Math.max(1, h) }}];
                 }}
-                // An element may sit off the canvas -- Tasker allows it -- so nothing is
-                // clamped to the edges; only a collapse to nothing is refused.
-                w = Math.max(1, w); h = Math.max(1, h);
-                drag.next = {{ x, y, w, h }};
-                place(drag.sr, drag.next);
+                drag.next.forEach(place);
             }});
 
             const finish = (event) => {{
@@ -3340,10 +3450,16 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
                 const finished = drag;
                 drag = null;
                 if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-                if (finished.moved && finished.next) {{
-                    emitEvent('mt_scene_geometry', {{ root, sr: finished.sr, ...finished.next }});
+                // Taken away before anything is reported: reporting re-renders the canvas
+                // from Python, and a band left behind would be a stray div inside the very
+                // element being replaced.
+                if (band) {{ band.remove(); band = null; }}
+                if (finished.band) {{
+                    emitEvent('mt_scene_select', {{ root, srs: enclosed(finished.band), extend: finished.extend }});
+                }} else if (finished.moved && finished.next) {{
+                    emitEvent('mt_scene_geometry', {{ root, moves: finished.next }});
                 }} else {{
-                    emitEvent('mt_scene_select', {{ root, sr: finished.sr }});
+                    emitEvent('mt_scene_select', {{ root, sr: finished.sr, extend: finished.extend }});
                 }}
             }};
             canvas.addEventListener('pointerup', finish);
@@ -3729,8 +3845,16 @@ def _build_legacy_designer(
     Three panes, all rebuilt on every change: the canvas, an element list in z-order, and a
     property sheet.  Rebuilding wholesale rather than patching is the V2 designer's pattern
     and is here for the same reasons -- a different element has entirely different fields, and
-    one render path cannot disagree with itself.  Selection is held as an sr string for the
-    same reason V2 holds a path: the widgets do not survive a rebuild, the key does.
+    one render path cannot disagree with itself.  Selection is held as sr strings for the
+    same reason V2 holds paths: the widgets do not survive a rebuild, the keys do.
+
+    SEVERAL ELEMENTS CAN BE SELECTED AT ONCE -- shift-, ctrl- or cmd-click, on the canvas or
+    in the list, or a rubber band drawn on the canvas background -- and dragging or nudging
+    any of them moves all of them by the same delta, in one undo step.  Laying out a Scene is
+    mostly moving groups of things that belong together, and doing that one element at a time
+    loses their alignment on the first drag.
+    Everything else stays deliberately single: see render_toolbar on why the structural
+    buttons want exactly one element, and render_inspector on why the property sheet does.
 
     The list is drawn top-of-stack first, which is the reverse of the XML order.  sr="elementsN"
     is the paint order -- elements0 is painted first and therefore sits at the bottom -- and a
@@ -3750,7 +3874,17 @@ def _build_legacy_designer(
     field.
     """
     scene_element = edited_scene.scene_element
-    selection: dict = {"sr": ""}
+    # What is selected, in two forms that set_selection keeps in step and nothing else writes:
+    #
+    #   srs -- every element picked out, in the order they were picked.  A drag moves all of
+    #          them by one delta, which is the whole point of allowing more than one.
+    #   sr  -- the last of them, the anchor: the element the Inspector edits, the one the
+    #          resize handles belong to, and the one every structural operation acts on.
+    #
+    # An anchor rather than a set for those, because they are the operations a set has no
+    # single answer for -- what "Bring to Front" means for six elements at once depends on
+    # what order they end up in, and this designer would be inventing that order.
+    selection: dict = {"sr": "", "srs": ()}
     orientation: dict = {"landscape": False}
     history: list = []
     # Whole-Scene snapshots, as the V2 designer keeps whole-tree ones -- see
@@ -3792,20 +3926,79 @@ def _build_legacy_designer(
     def snapshot() -> None:
         history.append(sceneedit.legacy_snapshot(scene_element))
 
+    def set_selection(*srs: str) -> None:
+        """Pick out zero or more elements, without re-rendering -- for the callers that
+        render anyway.  Duplicates are dropped and order is kept, so the anchor is the last
+        element the user actually pointed at.
+        """
+        selection["srs"] = tuple(dict.fromkeys(sr for sr in srs if sr))
+        selection["sr"] = selection["srs"][-1] if selection["srs"] else ""
+
     def restore() -> None:
         if not history:
             return
         sceneedit.legacy_restore(scene_element, history.pop())
-        if sceneedit.legacy_element_at(scene_element, selection["sr"]) is None:
-            selection["sr"] = ""
+        # Undoing an Add takes the added element away with it, so anything the restored Scene
+        # no longer has is dropped rather than left selected as a key naming nothing.
+        set_selection(*(sr for sr in selection["srs"] if sceneedit.legacy_element_at(scene_element, sr) is not None))
         render()
 
-    def select(sr: str) -> None:
-        selection["sr"] = str(sr or "")
+    def select(*srs: str) -> None:
+        set_selection(*srs)
         render()
+
+    def toggle(sr: str) -> None:
+        """Add an element to the selection, or take it out again if it is already in.
+
+        Toggling rather than only extending because this is a set, not a run: there is no
+        "shrink from the end" to fall back on, and taking one element back out of six is
+        otherwise a matter of starting the whole selection again.
+        """
+        if not sr:
+            return
+        current = list(selection["srs"])
+        if sr in current:
+            current.remove(sr)
+        else:
+            current.append(sr)
+        select(*current)
+
+    def select_anchor(sr: str) -> None:
+        """Move the anchor onto another already-selected element, leaving the selection
+        itself alone -- what the Inspector's "Also selected" names do.  Which element the
+        property sheet is showing and which elements are picked out are two different
+        questions, and this is the one that answers only the first.
+        """
+        if sr not in selection["srs"]:
+            return
+        select(*(key for key in selection["srs"] if key != sr), sr)
 
     def select_from_canvas(payload: dict) -> None:
-        select(str(payload.get("sr", "")))
+        """A click or a rubber band on the canvas.
+
+        Two payloads through one event, because they are one gesture until the pointer comes
+        up: `sr` for a click (Shift, Ctrl or Cmd adds to the selection, a plain click replaces
+        it, and a plain click on the background clears it), `srs` for a band drawn on the
+        background (a list of everything it enclosed, added to the selection with a modifier
+        held and replacing it without).
+        """
+        caught = payload.get("srs")
+        if isinstance(caught, list):
+            # Nothing caught and no modifier is a band drawn round empty canvas, which
+            # clears -- the same answer the plain click it grew out of would have given.
+            picked = [
+                sr
+                for sr in (str(value) for value in caught)
+                if sceneedit.legacy_element_at(scene_element, sr) is not None
+            ]
+            select(*selection["srs"], *picked) if payload.get("extend") else select(*picked)
+            return
+
+        sr = str(payload.get("sr", ""))
+        if payload.get("extend"):
+            toggle(sr)
+            return
+        select(sr)
 
     def add_element(element_type: str) -> None:
         """Create an element of this type, in the middle of the canvas, on top of the stack.
@@ -3833,7 +4026,10 @@ def _build_legacy_designer(
             history.pop()
             ui.notify(element, type="negative", multi_line=True)
             return
-        selection["sr"] = sceneedit.legacy_insert_element(scene_element, element)
+        # Every structural edit renumbers every sr (see sceneedit._legacy_reindex), so each of
+        # them re-selects by the sr the model hands back -- and collapses the selection to
+        # that one element, rather than trying to follow a whole set through the renumbering.
+        set_selection(sceneedit.legacy_insert_element(scene_element, element))
         render()
 
     def duplicate_element() -> None:
@@ -3843,7 +4039,7 @@ def _build_legacy_designer(
             history.pop()
             ui.notify(translate_string("Select an element first."), type="warning")
             return
-        selection["sr"] = new_sr
+        set_selection(new_sr)
         render()
 
     def delete_element() -> None:
@@ -3865,7 +4061,7 @@ def _build_legacy_designer(
         patterns = sceneedit.find_element_match_references(edited_scene.scene_name)
 
         snapshot()
-        selection["sr"] = sceneedit.legacy_delete_element(scene_element, selection["sr"])
+        set_selection(sceneedit.legacy_delete_element(scene_element, selection["sr"]))
         if references:
             ui.notify(
                 f"Deleted {name}. {len(references)} Task(s) address '{element_name}' by name: "
@@ -3906,43 +4102,62 @@ def _build_legacy_designer(
             history.pop()
             ui.notify(translate_string(failure), type="warning")
             return
-        selection["sr"] = new_sr
+        set_selection(new_sr)
         render()
 
     def set_geometry(payload: dict) -> None:
-        """Apply a finished drag or resize.  One snapshot per gesture, not per pixel -- the
-        browser sends the finished box once (see _emit_canvas_editing).
+        """Apply a finished drag or resize.
+
+        ONE SNAPSHOT PER GESTURE -- not per pixel, and not per element.  The browser sends
+        every moved box once, on pointer-up (see _emit_canvas_editing), and dragging six
+        elements across the canvas is one thing the user did and one thing Undo should put
+        back.  Everything is worked out before the snapshot is taken so that a payload naming
+        nothing this Scene has leaves no empty entry on the stack.
         """
-        sr = str(payload.get("sr", ""))
-        element = sceneedit.legacy_element_at(scene_element, sr)
-        if element is None:
+        moves = []
+        for move in payload.get("moves") or ():
+            sr = str(move.get("sr", ""))
+            element = sceneedit.legacy_element_at(scene_element, sr)
+            if element is None:
+                continue
+            try:
+                box = (int(move["x"]), int(move["y"]), int(move["w"]), int(move["h"]))
+            except (KeyError, TypeError, ValueError):
+                continue
+            moves.append((element, sr, box))
+        if not moves:
             return
+
         snapshot()
-        sceneedit.legacy_set_geometry(
-            element,
-            (int(payload["x"]), int(payload["y"]), int(payload["w"]), int(payload["h"])),
-            landscape=orientation["landscape"],
-        )
-        # A drag reports the element it moved rather than assuming it was the selected one,
-        # so dragging something else selects it as a side effect -- which is what makes
+        for element, _sr, box in moves:
+            sceneedit.legacy_set_geometry(element, box, landscape=orientation["landscape"])
+        # A drag reports the elements it moved rather than assuming they were the selected
+        # ones, so dragging something else selects it as a side effect -- which is what makes
         # "click to select, drag to move" work without a mode.
-        selection["sr"] = sr
+        set_selection(*(sr for _element, sr, _box in moves))
         render()
 
     def nudge(payload: dict) -> None:
-        element = sceneedit.legacy_element_at(scene_element, selection["sr"])
-        if element is None:
+        """Arrow-key move, applied to everything selected -- one snapshot for the whole
+        nudge, exactly as one drag of that same group is one snapshot.
+        """
+        delta_x, delta_y = int(payload.get("dx", 0)), int(payload.get("dy", 0))
+        moves = []
+        for sr in selection["srs"]:
+            element = sceneedit.legacy_element_at(scene_element, sr)
+            if element is None:
+                continue
+            box = sceneview.element_geometry(element, orientation["landscape"])
+            if box is None:
+                continue
+            x, y, width, height = box
+            moves.append((element, (x + delta_x, y + delta_y, width, height)))
+        if not moves:
             return
-        box = sceneview.element_geometry(element, orientation["landscape"])
-        if box is None:
-            return
+
         snapshot()
-        x, y, width, height = box
-        sceneedit.legacy_set_geometry(
-            element,
-            (x + int(payload.get("dx", 0)), y + int(payload.get("dy", 0)), width, height),
-            landscape=orientation["landscape"],
-        )
+        for element, box in moves:
+            sceneedit.legacy_set_geometry(element, box, landscape=orientation["landscape"])
         render()
 
     def set_orientation(landscape: bool) -> None:
@@ -3968,7 +4183,7 @@ def _build_legacy_designer(
                 width,
                 height,
                 options,
-                editing=sceneview.CanvasEditing(selected=selection["sr"], snap=snap["grid"]),
+                editing=sceneview.CanvasEditing(selected=selection["srs"], snap=snap["grid"]),
             )
         _emit_canvas_fit(root_class, width, height, budget=DESIGNER_CANVAS_HEIGHT)
         _emit_canvas_editing(root_class, snap["grid"])
@@ -3981,13 +4196,63 @@ def _build_legacy_designer(
         # Reversed: top of the list is top of the stack.  See this function's docstring.
         for element in reversed(elements):
             sr = element.get("sr", "")
-            selected = sr == selection["sr"]
             classes = "text-sm font-mono whitespace-pre cursor-pointer rounded px-1 py-0.5 w-full"
-            classes += " bg-blue-600 text-white" if selected else " hover:bg-blue-100 dark:hover:bg-blue-900"
+            if sr == selection["sr"]:
+                # The anchor is marked apart from the rest of the selection, because it is
+                # what the Inspector below is showing and what the toolbar's buttons act on.
+                classes += " bg-blue-600 text-white"
+            elif sr in selection["srs"]:
+                classes += " bg-blue-200 dark:bg-blue-900"
+            else:
+                classes += " hover:bg-blue-100 dark:hover:bg-blue-900"
             ui.label(sceneedit.legacy_element_label(element)).classes(classes).on(
                 "click",
-                lambda _e=None, key=sr: select(key),
+                lambda event, key=sr: click_row(event, key),
+                # The modifiers, so a row can extend the selection the way the canvas does.
+                # Named here rather than read off a JS event object, because NiceGUI sends
+                # only what it is asked for.
+                args=["shiftKey", "ctrlKey", "metaKey"],
             )
+
+    def click_row(event: Event, sr: str) -> None:
+        """A click in the element list.
+
+        Shift takes the whole range between the anchor and this row; Ctrl or Cmd toggles
+        this row alone.  The canvas draws no such distinction -- every modifier toggles
+        there -- and the difference is the point rather than an inconsistency: a list is in
+        an order, so a range along it is a thing the user can see and mean, while a canvas
+        is a plane where the elements between two others are whichever ones happen to lie
+        between them, which is not something anyone selects on purpose.
+        """
+        modifiers = event.args if isinstance(event.args, dict) else {}
+        if modifiers.get("shiftKey"):
+            select_range(sr)
+            return
+        if modifiers.get("ctrlKey") or modifiers.get("metaKey"):
+            toggle(sr)
+            return
+        select(sr)
+
+    def select_range(sr: str) -> None:
+        """Take everything between the anchor and this element, in paint order.
+
+        Replaces the selection rather than adding to it, which is what shift-click does in
+        every list of layers there has ever been -- Ctrl is the one that adds.  With no
+        anchor yet there is no range to take, so it falls back to an ordinary click.
+
+        THE ANCHOR STAYS THE ANCHOR: it goes in last, and set_selection reads the last as
+        the anchor.  Without that, shift-clicking a second time would range from the row
+        just clicked instead of from where the range started, and the selection would walk
+        along the list rather than widen and narrow about a fixed end -- which is the whole
+        behaviour a shift-click is reached for.
+        """
+        order = [element.get("sr", "") for element in sceneview.paint_order(scene_element)]
+        anchor = selection["sr"]
+        if anchor not in order or sr not in order:
+            select(sr)
+            return
+        first, last = sorted((order.index(anchor), order.index(sr)))
+        select(*(key for key in order[first : last + 1] if key != anchor), anchor)
 
     def geometry_input(label: str, index: int, element: object, box: tuple) -> None:
         """One of the four geometry boxes.  Typing a number and dragging the element are the
@@ -4022,6 +4287,15 @@ def _build_legacy_designer(
         ).classes("w-1/4")
 
     def render_inspector() -> None:
+        """The anchor's properties -- one element's, however many are selected.
+
+        Editing a set of them together is a bigger and much less obvious thing than moving
+        one: several of these fields are geometry, and X on six elements at once could mean
+        "put them all at X" or "shift them all to X", which are different edits with the same
+        box.  So the property sheet stays on one element and says which, rather than offering
+        a group edit whose meaning the user would have to guess at.  Moving the group is what
+        the canvas is for.
+        """
         element = sceneedit.legacy_element_at(scene_element, selection["sr"])
         if element is None:
             ui.label(translate_string("Select an element on the canvas or in the list.")).classes(
@@ -4029,7 +4303,35 @@ def _build_legacy_designer(
             )
             return
 
-        ui.label(sceneedit.legacy_element_label(element)).classes("text-sm font-semibold font-mono")
+        others = [sr for sr in selection["srs"] if sr != selection["sr"]]
+        with ui.row().classes("w-full items-center gap-2 no-wrap"):
+            ui.label(sceneedit.legacy_element_label(element)).classes("text-sm font-semibold font-mono")
+            if others:
+                ui.label(
+                    f"{translate_string('editing 1 of')} {len(selection['srs'])} "
+                    f"{translate_string('selected')}",
+                ).classes("text-xs text-gray-500 italic").tooltip(
+                    translate_string(
+                        "Properties are edited one element at a time. Dragging and nudging move "
+                        "everything selected.",
+                    ),
+                )
+        if others:
+            # Named, and clickable, because otherwise a selection of six is six identical
+            # blue rows and no way to say which one this sheet should be showing without
+            # taking the other five apart and building the selection again.
+            with ui.row().classes("w-full items-center gap-2 flex-wrap"):
+                ui.label(translate_string("Also selected:")).classes("text-xs text-gray-500")
+                for other_sr in others:
+                    other = sceneedit.legacy_element_at(scene_element, other_sr)
+                    if other is None:
+                        continue
+                    ui.label(sceneedit.legacy_element_label(other)).classes(
+                        "text-xs font-mono cursor-pointer underline decoration-dotted "
+                        "text-blue-700 dark:text-blue-300",
+                    ).on("click", lambda _e=None, key=other_sr: select_anchor(key)).tooltip(
+                        translate_string("Edit this one's properties instead, keeping the selection."),
+                    )
 
         box = sceneview.element_geometry(element, orientation["landscape"])
         if box is None:
@@ -4334,6 +4636,35 @@ def _build_legacy_designer(
             "geometry": set_geometry,
             "nudge": nudge,
         }
+        # What the Preview needs to be a second canvas over this same Scene, and why it is
+        # handed these rather than copies of them -- the Version 2 designer publishes itself
+        # the same way, for the same reasons (see field_refs["v2_edit"]):
+        #
+        #   handlers    -- the Preview's drags run *these* closures, so a move made in the
+        #                  picture lands on this designer's undo stack rather than a second
+        #                  one its Undo button knows nothing about.
+        #   selection   -- the same dict object, so the elements outlined in the picture and
+        #                  the rows highlighted in the list cannot disagree.
+        #   snap, orientation
+        #               -- likewise the same objects.  Orientation especially: these handlers
+        #                  write whichever half of <geom> *this* dict names, so a Preview
+        #                  showing the other one would rewrite the layout nobody was looking
+        #                  at.  See NiceGuiSceneView._set_option, which keeps them level.
+        #   rerender    -- called when the dialog comes back, because re-opening it rebuilds
+        #                  these panes' DOM and the canvas handlers have to be put back on
+        #                  the new one.  See NiceGuiSceneView._back_to_editor.
+        #
+        # Running this designer's handlers is also what keeps these panes from going stale
+        # while they are hidden: every one of them ends in render(), so the list and the
+        # Inspector are rebuilt as the drag lands rather than coming back showing the
+        # geometry from before it.
+        field_refs["legacy_edit"] = {
+            "handlers": _ACTIVE_CANVASES[root_class],
+            "selection": selection,
+            "snap": snap,
+            "orientation": orientation,
+            "rerender": render,
+        }
         header.clear()
         canvas_pane.clear()
         list_pane.clear()
@@ -4342,9 +4673,17 @@ def _build_legacy_designer(
         properties_pane.clear()
         status.clear()
         with header:
+            picked = len(selection["srs"])
             ui.label(
-                f"{translate_string('Scene Elements')} ({len(sceneview.paint_order(scene_element))})",
-            ).classes("text-sm font-semibold")
+                f"{translate_string('Scene Elements')} ({len(sceneview.paint_order(scene_element))})"
+                + (f" — {picked} {translate_string('selected')}" if picked > 1 else ""),
+            ).classes("text-sm font-semibold").tooltip(
+                # Where the list's two modifiers are said, because this sits directly above
+                # the rows they apply to and the status line below is about the canvas.
+                translate_string(
+                    "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one.",
+                ),
+            )
             ui.space()
             orientation_switch = ui.switch(
                 translate_string("Landscape"),
@@ -4386,15 +4725,28 @@ def _build_legacy_designer(
         with properties_pane:
             render_scene_properties()
         with status:
+            picked = len(selection["srs"])
             ui.label(
                 translate_string(
                     "Click an element to select it, drag to move, drag a handle to resize, "
-                    "arrow keys to nudge (Shift for 10px).",
+                    "arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the "
+                    "background, to take several at once.",
+                )
+                if picked < 2
+                else (
+                    f"{picked} {translate_string('elements selected')} — "
+                    f"{translate_string('drag or nudge any of them and they all move together.')}"
                 ),
             ).classes("text-xs text-gray-500 italic")
 
     def render_toolbar() -> None:
-        """The structural operations, all of which need something selected.
+        """The structural operations, all of which need exactly one element selected.
+
+        One rather than any number, because none of these has an obvious meaning for a set.
+        "Bring to Front" for six elements has to decide what order they end up in relative to
+        each other; Duplicate has to decide where six copies go and what they are called.
+        Both are answerable, neither is answerable *obviously*, and a button that quietly
+        picks one of the readings is worse than a button that waits for a single selection.
 
         Restacking is four buttons rather than two because "send this behind everything" is
         a different intent from "send it back one", and on a Scene with a full-canvas
@@ -4403,6 +4755,7 @@ def _build_legacy_designer(
         ambiguous the moment someone looks at the canvas instead of the list.
         """
         element = sceneedit.legacy_element_at(scene_element, selection["sr"])
+        single = element is not None and len(selection["srs"]) == 1
         count = len(sceneedit.legacy_drawable_elements(scene_element))
         for label, icon, position, failure in (
             ("Front", "flip_to_front", lambda _index, total: total - 1, "Already at the front."),
@@ -4414,13 +4767,18 @@ def _build_legacy_designer(
                 translate_string(label),
                 icon=icon,
                 on_click=lambda _e=None, p=position, f=failure: restack(p, f),
-            ).props("dense flat").set_enabled(element is not None and count > 1)
+            ).props("dense flat").set_enabled(single and count > 1)
         ui.button(translate_string("Duplicate"), icon="content_copy", on_click=duplicate_element).props(
             "dense flat",
-        ).set_enabled(element is not None)
+        ).set_enabled(single)
         ui.button(translate_string("Delete"), icon="delete", on_click=delete_element).props(
             "dense flat color=negative",
-        ).set_enabled(element is not None)
+        ).set_enabled(single)
+        if element is not None and not single:
+            # Six greyed-out buttons and no reason given is a bug report waiting to happen.
+            ui.label(
+                translate_string("Select a single element to duplicate, delete or restack it."),
+            ).classes("text-xs text-gray-500 italic")
 
     render()
 
@@ -4714,6 +5072,12 @@ def _build_scene_editor_body(
             icon="visibility",
             on_click=lambda: _self.event_handlers.preview_scene_event(edited_scene, field_refs, dialog),
         ).props("dense outline")
+        if dialog is not None:
+            # Whatever this dialog changes, the picture it opened has to hear about when it
+            # closes -- see repaint_scene_previews.  Registered here, beside the button that
+            # creates that picture, so the Add and Edit dialogs both get it from the one
+            # place that knows a preview is possible at all.
+            dialog.on_value_change(lambda event: _scene_dialog_closed(_self, dialog, field_refs, event))
         with preview_button:
             # Two Scenes, two things the preview is drawing from, so two tooltips: a Legacy
             # Scene is previewed at the size typed into the fields below, a V2 Scene at a
@@ -4894,6 +5258,62 @@ def build_add_scene_dialog(
     dialog.open()
 
 
+def repaint_scene_previews(gui: MyGui, dialog: ui.dialog) -> None:
+    """Redraw every Scene preview this dialog put on screen.
+
+    WHY A DIALOG CLOSING HAS TO REACH THE PICTURE BEHIND IT.  A preview draws from the
+    dialog's live state -- for a Legacy Scene, edited_scene.scene_element itself -- and then
+    never looks at it again; it repaints on its own toolbar, its own gestures and its own
+    Refresh button, none of which is what just happened.  So the sequence Preview, Back to
+    Editor, move something in the designer, Ok leaves the picture the user is returned to
+    showing the geometry from before the move, with nothing on screen to say it is out of
+    date.  Repainting is a few hundred divs and the state it reads is already in hand.
+
+    Matched on the dialog the view was launched from rather than on the Scene's name,
+    because that is the relationship that actually holds: a view holds the dialog it has to
+    re-open, names can be changed by the Rename button mid-session, and two dialogs on the
+    same Scene are a thing this app can produce (see _build_item_layout_dialog).
+
+    Deliberately not called when Preview is what closed the dialog: that path is on its way
+    to building a *new* view over a cleared content_container, and repainting the outgoing
+    one into a container about to be emptied is work at best and a draw into a detached
+    element at worst.  See preview_scene_event, which marks the session suspended first so
+    that _scene_dialog_closed can tell the two apart.
+    """
+    for view in live_views(gui):
+        if isinstance(view, NiceGuiSceneView) and getattr(view, "dialog", None) is dialog:
+            view.render()
+
+
+def _scene_dialog_closed(gui: MyGui, dialog: ui.dialog, field_refs: dict, event: Event) -> None:
+    """One place every way of closing a Scene dialog goes through.
+
+    Hung on the dialog's own value rather than on its buttons because there are eight of
+    them across the two dialogs -- Cancel, Ok, Delete, Rename, three kinds of Save, Export --
+    and they close it through six different event handlers in userintr.  A ninth button
+    added later would be one more that forgot to repaint; the value cannot be.
+
+    THE PREVIEW STOPS BEING AN EDITING SURFACE HERE, which is half of drawing the right
+    thing rather than merely a fresh thing.  A preview is editable only while the designer
+    that opened it is alive to take the edit (see NiceGuiSceneView._legacy_editing), and
+    these two keys are how it finds one -- but the closures in them outlive the dialog,
+    because NiceGUI hides a dialog rather than destroying it.  Left in place, the repainted
+    picture would go on offering drags into an editor the user has just finished with: after
+    Cancel they would land on a deep copy that was abandoned by definition, and after Ok on
+    one whose contents have already been written to the live tree.  Both would move on
+    screen, and neither would reach the Scene.  Dropping the keys turns the picture back
+    into a picture, which is what it now is.
+    """
+    if event.value:
+        return  # opening, not closing
+    session = getattr(gui, "scene_editor_session", None)
+    if session and session.get("dialog") is dialog and session.get("suspended"):
+        return  # Preview is holding it hidden -- see repaint_scene_previews
+    for key in ("v2_edit", "legacy_edit"):
+        field_refs.pop(key, None)
+    repaint_scene_previews(gui, dialog)
+
+
 def suspend_scene_editor_session(gui: MyGui, dialog: ui.dialog) -> None:
     """Mark the Edit Scene dialog as hidden-but-alive, which is what Preview does to it.
 
@@ -4944,6 +5364,35 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
     """
     scene_name = edited_scene.scene_name
     field_refs: dict = {}
+    # The Scene as this session found it.  Taken before the body is built, so it is the
+    # state Cancel returns to however much the designers go on to change.  See cancel().
+    opened_as = sceneedit.session_snapshot(edited_scene)
+
+    def cancel() -> None:
+        """Discard this session's work, then close.
+
+        Reverting rather than only closing, because a Preview holds the same element and
+        keeps drawing it: without this, elements dragged in the preview stayed where they
+        were dropped after Cancel, which reads as Cancel having failed.  See
+        sceneedit.revert_session for what is and is not being undone.
+
+        Ordering matters both ways round it: the revert has to happen before the close,
+        because closing is what repaints the preview (_scene_dialog_closed), and the notice
+        has to come after, because a dialog closing over a notification hides it.
+
+        Rename cannot have happened first -- it applies to the live backup and closes this
+        dialog itself (userintr.confirm_rename_scene_event) -- so there is no applied change
+        for a later Cancel to be quietly failing to undo.
+        """
+        discarded = sceneedit.revert_session(edited_scene, opened_as, field_refs.get("v2_layout"))
+        dialog.close()
+        if discarded:
+            # Only when there was something to discard: a Cancel out of a dialog nobody
+            # changed is not an event, and saying so every time would train the notice away.
+            ui.notify(
+                translate_string("Cancelled. Changes to this Scene were discarded."),
+                type="info",
+            )
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[800px] w-full p-6"):
         ui.label(f"{translate_string('Edit Scene')}: {scene_name}").classes("text-xl font-bold text-blue-600")
@@ -4964,7 +5413,16 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
         ).classes("w-full mt-2")
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+            cancel_button = ui.button(translate_string("Cancel"), on_click=cancel).props("outline")
+            with cancel_button:
+                ui.tooltip(
+                    translate_string(
+                        "Closes without saving, and puts this Scene back exactly as it was when this "
+                        "dialog opened -- including anything moved or resized in the Preview.\n\n"
+                        "A Rename is the one thing this cannot take back: it is applied to the loaded "
+                        "backup as it is confirmed, and closes this dialog with it.",
+                    ),
+                ).style("white-space: pre-line")
             ui.button(
                 translate_string("Delete Scene"),
                 on_click=lambda: self.event_handlers.delete_scene_event(edited_scene, dialog),
@@ -6118,6 +6576,14 @@ class NiceGuiSceneView:
     userintr._apply_scene_field_values would say about it at save time rather than inventing a
     second opinion.
 
+    THE PICTURE IS ALSO AN EDITING SURFACE, for both kinds of Scene, whenever the designer
+    that opened it is still alive: components are dragged into a new order here (V2) and
+    elements are selected, moved and resized here (Legacy).  It edits nothing itself.  Every
+    gesture is handed straight to that designer's own closures -- see _v2_from_canvas and
+    _legacy_from_canvas -- so an edit made in the picture goes on the same undo stack, and
+    through the same code, as the identical edit made in the dialog.  A second implementation
+    of "move an element" living here is exactly what this arrangement exists to avoid.
+
     THE TWO KINDS OF SCENE NEED DIFFERENT CONTROLS, so the toolbar is built per kind rather
     than shown-and-disabled.  A Legacy Scene needs a text density (its canvas size is its own)
     and a Landscape toggle that is meaningless unless it has a second layout; a V2 Scene needs
@@ -6194,6 +6660,7 @@ class NiceGuiSceneView:
                         self._build_screen_control()
                     else:
                         self._build_density_control()
+                        self._build_snap_control()
 
                     ui.switch(
                         translate_string("Bounds"),
@@ -6290,6 +6757,34 @@ class NiceGuiSceneView:
                 ),
             ).style("white-space: pre-line")
 
+    def _build_snap_control(self) -> None:
+        """Legacy, and only when this Preview is an editing surface: the grid a dragged
+        element's position rounds to.
+
+        Built at all only when there is a designer behind this picture, because without one
+        there is nothing to drag and a Snap control would be a setting for a gesture the
+        Preview does not offer.  It writes the designer's own dict rather than keeping a
+        number of its own, so the two canvases cannot end up snapping to different grids --
+        the same sharing that puts one selection on both of them.
+        """
+        editor = self.field_refs.get("legacy_edit")
+        if not isinstance(editor, dict):
+            return
+        ui.select(
+            [1, 2, 5, 10],
+            value=int(editor["snap"]["grid"]),
+            label=translate_string("Snap"),
+            on_change=self._snap_selected,
+        ).props("dense").classes("w-24").tooltip(
+            translate_string("Round dragged positions and sizes to this many pixels."),
+        )
+
+    def _snap_selected(self, event: Event) -> None:
+        editor = self.field_refs.get("legacy_edit")
+        if isinstance(editor, dict):
+            editor["snap"]["grid"] = int(event.value or 1)
+        self.render()
+
     def _build_screen_control(self) -> None:
         """Version 2 only: which screen to lay the component tree out in.
 
@@ -6335,20 +6830,35 @@ class NiceGuiSceneView:
             return
         _resume_scene_editor_session(self.master_gui, self.dialog)
         self.dialog.open()
-        editor = self.field_refs.get("v2_edit")
-        if isinstance(editor, dict):
-            # Re-render the designer, which re-installs its tree's drag handlers.
-            #
-            # A hidden Quasar dialog does not merely hide its contents, it takes them out of
-            # the document, and re-opening it puts back new elements rather than the same
-            # ones -- so the pointer handlers installed on the old tree pane went with it.
-            # Everything else about the designer survives, which is exactly what makes this
-            # worth doing here instead of leaving the tree to look right and drag nothing
-            # until whatever the user clicked next happened to re-render it.
-            editor["rerender"]()
+        # Re-render whichever designer is behind this preview, which re-installs the pointer
+        # handlers on its surface -- the V2 designer's tree, the Legacy designer's canvas.
+        #
+        # A hidden Quasar dialog does not merely hide its contents, it takes them out of the
+        # document, and re-opening it puts back new elements rather than the same ones -- so
+        # the handlers installed on the old pane went with it.  Everything else about the
+        # designer survives, which is exactly what makes this worth doing here instead of
+        # leaving the pane to look right and answer nothing until whatever the user clicked
+        # next happened to re-render it.
+        #
+        # A Scene is one kind or the other, so only one of these two is ever present.
+        for key in ("v2_edit", "legacy_edit"):
+            editor = self.field_refs.get(key)
+            if isinstance(editor, dict):
+                editor["rerender"]()
 
     def _set_option(self, name: str, value: object) -> None:
         setattr(self.options, name, value)
+        if name == "landscape" and not self.is_v2:
+            # ONE ORIENTATION, TWO SURFACES.  A drag in this picture is applied by the
+            # designer's handlers, and they write whichever half of <geom> the designer's own
+            # orientation names -- so a Preview showing landscape while the designer sat in
+            # portrait would take a landscape drag and rewrite the portrait layout with it,
+            # silently, with the evidence on the other toggle.  Moving them together is also
+            # the better behaviour on its own terms: going Back to Editor lands on the
+            # orientation the user was just looking at.
+            editor = self.field_refs.get("legacy_edit")
+            if isinstance(editor, dict):
+                editor["orientation"]["landscape"] = bool(value)
         self.render()
 
     def _zoom_selected(self, event: Event) -> None:
@@ -6391,10 +6901,60 @@ class NiceGuiSceneView:
             return
 
         width, height = dimensions
+        editing = self._legacy_editing()
         with self.canvas_wrap:
-            sceneview.draw_scene(scene_element, width, height, self.options)
+            sceneview.draw_scene(scene_element, width, height, self.options, editing=editing)
         self._apply_scale(width, height)
+        if editing is not None:
+            _ACTIVE_CANVASES[CANVAS_PREVIEW_ROOT] = {
+                name: (lambda payload, which=name: self._legacy_from_canvas(which, payload))
+                for name in ("select", "geometry", "nudge")
+            }
+            _emit_canvas_editing(CANVAS_PREVIEW_ROOT, editing.snap)
         self._draw_legacy_caption(scene_element, width, height)
+
+    def _legacy_editing(self) -> sceneview.CanvasEditing | None:
+        """The Preview as the Legacy designer's second canvas, or None for the picture it has
+        always been.
+
+        Editing needs the designer to still be there -- and for a different reason than the
+        Version 2 half of this class needs it.  There, a Preview opened where no designer was
+        built draws a layout dict decoded for this view alone, so a drag on it would look like
+        it worked and quietly lose the change.  Here the Preview draws
+        edited_scene.scene_element, the very element the dialog saves, so a drag WOULD stick.
+        It would stick with no snapshot taken and no designer panes to agree with it: a move
+        that really did change the Scene and that Undo cannot take back, which is the worse of
+        the two failures rather than the milder one.
+        """
+        editor = self.field_refs.get("legacy_edit")
+        if not isinstance(editor, dict):
+            return None
+        return sceneview.CanvasEditing(
+            selected=tuple(editor["selection"]["srs"]),
+            snap=int(editor["snap"]["grid"]),
+            # Kept here, unlike on the designer's canvas: the dialog holding the Inspector
+            # that made them redundant there is closed while this is up, so the tooltip is
+            # the only place an element's variables and Tasks can be read.  The caption below
+            # promises exactly that, and this is what keeps the promise.
+            tooltips=True,
+        )
+
+    def _legacy_from_canvas(self, name: str, payload: object) -> None:
+        """A click, a drag or a nudge on the picture: hand it to the designer, then redraw.
+
+        The designer's own handlers do the work -- see the note on field_refs["legacy_edit"]
+        -- so an element moved in the Preview is snapshotted, written, selected and re-listed
+        by exactly the code the designer's own canvas goes through.  All that is left here is
+        the half the designer cannot do, which is repainting this picture.
+        """
+        editor = self.field_refs.get("legacy_edit")
+        if not isinstance(editor, dict):
+            return
+        handler = editor["handlers"].get(name)
+        if handler is None:
+            return
+        handler(payload)
+        self.render()
 
     def _render_v2(self) -> None:
         """A Version 2 Scene: the component tree, laid out in the chosen screen.
@@ -6511,6 +7071,15 @@ class NiceGuiSceneView:
             if properties:
                 summary += " · " + " · ".join(f"{translate_string(label)}: {value}" for label, value in properties)
             ui.label(summary).classes("text-xs text-gray-500")
+            if self._legacy_editing() is not None:
+                ui.label(
+                    translate_string(
+                        "Click an element to select it, Shift-click or drag a box on the background to "
+                        "take several, and drag any of them to move them all -- arrow keys nudge, Shift "
+                        "for 10px. Drag a handle to resize a single element. Undo, and everything else "
+                        "about an element, is back in the editor.",
+                    ),
+                ).classes("text-xs text-blue-600")
             ui.label(
                 translate_string(
                     "Hatched fills and italic underlined text are %variables -- their values live on the "
