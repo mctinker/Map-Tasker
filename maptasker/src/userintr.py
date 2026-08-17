@@ -1,6 +1,7 @@
 """Code to manage the graphical user interface using NiceGUI."""
 
 import contextlib
+import html
 import pickle
 import sys
 import time
@@ -21,6 +22,7 @@ from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_changelog_file
+from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     add_logo,
@@ -2124,6 +2126,39 @@ class MapTaskerEventHandlers:
             "catch (e) {} }); window.mapTaskerPopouts = [];",
         )
         ui.notify(translate_string("View cleared."), type="info", position="bottom")
+
+    def health_check_event(self: "MapTaskerEventHandlers") -> None:
+        """Scan the loaded configuration for problems, display the report and save it to a file."""
+        gui = self.gui
+        if not PrimeItems.tasker_root_elements["all_tasks"]:
+            gui.display_message_box(
+                translate_string("No XML file has been loaded.  Get an XML file first."),
+                "Red",
+            )
+            return
+
+        report, counts = run_health_check()
+        file_name = write_health_check_report(report)
+
+        if file_name:
+            gui.display_message_box(f"{translate_string('Health Check saved as')} {file_name}", "Green")
+        else:
+            gui.display_message_box(translate_string("Health Check report could not be saved."), "Red")
+
+        # Escaped for display only -- the file above keeps the plain text.  NiceGuiTextView's
+        # Misc branch drops its content into a <pre> with sanitize=False, so a Tasker name
+        # holding '<', '>' or '&' would otherwise be read as markup rather than shown as the
+        # name it is.  Same failure the 12.1.1 fix addressed for variable values.
+        self.gui.textview = NiceGuiTextView(
+            gui,
+            title="Misc View",
+            the_data=html.escape(report),
+        )
+
+        # A clean bill of health is worth saying out loud: an empty-looking report should not
+        # leave the user wondering whether the check actually ran.
+        if not counts[ERROR] and not counts[WARNING]:
+            ui.notify(translate_string("Health Check found no errors or warnings."), type="positive")
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS

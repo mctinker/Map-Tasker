@@ -9018,6 +9018,25 @@ def initialize_screen(self: MyGui) -> None:
             ui.button(translate_string("Tree"), on_click=lambda: self.event_handlers.view_event("tree")).classes(
                 "bg-blue-500",
             )
+        # Full width rather than a fourth button in the row above: the drawer is w-80, and a
+        # fourth button wraps.  The width also leaves room for the longer label this needs.
+        # Coloured through the "color" prop rather than a bg-* class, the way the Get XML and
+        # Exit buttons are.  Quasar puts its own bg-primary on every button, and that wins over
+        # a Tailwind bg-* added here -- a bg-teal-600 class renders plain blue.
+        self.health_check_button = ui.button(
+            translate_string("Health Check"),
+            color="teal",
+            on_click=self.event_handlers.health_check_event,
+            icon="health_and_safety",
+        ).classes("w-full justify-center")
+        with self.health_check_button:
+            ui.tooltip(
+                translate_string(
+                    "Scan the loaded XML for broken references, unreachable Tasks, Profiles and "
+                    "Scenes, and naming problems.\n\nResults are displayed here and saved to a "
+                    "text file in the current directory.",
+                ),
+            ).style("white-space: pre-line")
         ui.button(translate_string("Clear"), on_click=self.event_handlers.clear_view_event).classes("bg-blue-500")
 
         ui.label(translate_string("Application Settings")).classes(

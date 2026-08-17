@@ -33,6 +33,7 @@ CHANGELOG_URL = "https://raw.githubusercontent.com/mctinker/Map-Tasker/Master/Ch
 KEYFILE = ".maptasker.pkl"
 ERROR_FILE = ".maptasker_error.txt"
 ANALYSIS_FILE = "MapTasker_Analysis.txt"
+HEALTHCHECK_FILE = "MapTasker_HealthCheck.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
 SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
 

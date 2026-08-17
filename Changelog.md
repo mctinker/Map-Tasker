@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file!
 - Added: Edit Scene 'Text' - Missing arguments have been added to provide full edit-text argument support.
 - Added: Scene Version 2 Preview now gets a bounding box around the defined elements to reflect the scene dimensions.
 - Added: Edit Scene Version 2 'Apply when' (on every modifier of every element) now offers the 'Select Variable' picker, the same one the other variable-backed fields use.
+- Added: 'Health Check' - a new button in the 'Display Views' section scans the loaded XML and reports what is broken or dead in it.
 
 ### Changed
 
