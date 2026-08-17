@@ -1723,6 +1723,19 @@ def v2_layout_summary(layout: dict) -> list[tuple[str, str]]:
 # Keyed by id() because these dicts are the layout's own and stay alive throughout the draw;
 # see _v2_alias for the two drawers that hand _v2_draw_node something else.
 _V2_PATHS: dict[int, tuple[tuple, int]] = {}
+
+# The two classes the hull is measured with: every component drawn carries the first, and the
+# box drawn behind them carries the second.  Stated here rather than in guiwins because this
+# is the module that puts them in the DOM; the script that reads them is
+# guiwins._emit_v2_hull, and the two change together.
+V2_COMPONENT_CLASS = "mt-v2-comp"
+V2_HULL_CLASS = "mt-v2-hull"
+
+# How far the hull is drawn outside the content it encloses, in canvas pixels.  Not
+# decoration: the elements it encloses paint their own opaque backgrounds (a dialog's card,
+# a filled Button), and a box drawn *behind* them and exactly the size of them would be a box
+# nobody can see.  The rim is what is left visible, and it is still clamped to the screen.
+V2_HULL_PADDING = 6
 # The editing surface for this draw, or None when it is the read-only Preview.  Module-level
 # for the same reason as _V2_PATHS: it is the drawer funnel that needs it, not the drawers.
 _V2_EDITING: V2Editing | None = None
@@ -1804,6 +1817,10 @@ def draw_v2_layout(
     `editing` makes the components the browser can pick up and drag -- see V2Editing.  The
     picture drawn is the same either way: what it adds is a path on each component and an
     outline round the selected run, never a different layout.
+
+    Behind all of it goes the hull -- the box round everything the layout actually occupies
+    within the screen.  It is drawn empty here and sized in the browser, for the reason
+    _v2_hull gives.
     """
     global _V2_EDITING  # noqa: PLW0603 -- see _V2_PATHS on why this is not a parameter.
     root = layout.get("root")
@@ -1830,6 +1847,7 @@ def draw_v2_layout(
         if not isinstance(root, dict):
             _placeholder("layers_clear", "This layout has no root component")
             return
+        _v2_hull()
         if is_dialog:
             with ui.element("div").style(
                 "position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;"
@@ -1846,6 +1864,34 @@ def draw_v2_layout(
                 "position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden;",
             ):
                 _v2_draw_node(root, options, 0, fill=True)
+
+
+def _v2_hull() -> None:
+    """The box behind the layout: everything the Scene's components occupy within the screen,
+    enclosed in one rectangle.
+
+    A V2 layout has no coordinates of its own -- it is flexbox, and where a component lands
+    is decided by the browser laying its siblings out -- so unlike the Legacy canvas, where
+    every element's box is in the XML, there is no extent to compute here.  This element is
+    therefore drawn empty and positioned by guiwins._emit_v2_hull once the layout has been
+    laid out, which is the only place the numbers exist.
+
+    Hidden until it has been measured, so a render whose script has not run yet shows no box
+    rather than a box of the wrong size; drawn before the layout so it is painted underneath
+    it, which is what makes it a background rather than an overlay.
+
+    SOLID, where every other outline on this canvas is dashed.  A component's Bounds outline
+    and a Show when's amber one are both dashed hairlines, and a fourth dashed blue rectangle
+    would read as one more of those instead of as the thing they all sit inside.  The tint,
+    the 2px edge and the glow beneath it are what carry the box at a glance -- it is behind
+    opaque components, so the rim V2_HULL_PADDING leaves is most of what can be seen of it.
+    """
+    ui.element("div").classes(V2_HULL_CLASS).style(
+        "position: absolute; display: none; z-index: 0; pointer-events: none;"
+        "box-sizing: border-box; border-radius: 6px;"
+        "background: rgba(37,99,235,0.13); border: 2px solid rgba(37,99,235,0.7);"
+        "box-shadow: 0 2px 12px rgba(37,99,235,0.35);",
+    )
 
 
 def v2_component_count(layout: dict) -> int:
@@ -2285,7 +2331,9 @@ def _v2_draw_node(node: dict, options: PreviewOptions, depth: int, *, fill: bool
     if _V2_EDITING is not None and path in _V2_EDITING.selected:
         style += "outline: 2px solid #2563eb; outline-offset: -2px;"
 
-    container = ui.element("div").style(style)
+    # The class is on every component, editing or not: it is what the hull is measured from,
+    # and the hull is part of the picture rather than part of the editing surface.
+    container = ui.element("div").classes(V2_COMPONENT_CLASS).style(style)
     if _V2_EDITING is not None and path:
         # The root is deliberately left out: it has no siblings, so there is nothing it could
         # be dragged among, and marking it draggable would be an offer that cannot be kept.

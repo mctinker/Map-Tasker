@@ -2280,9 +2280,13 @@ def find_component_id_references(scene_name: str, component_id: str) -> list[str
 # says it belongs to modifiers in general rather than to any of them in particular.
 #
 # An expression in the same language a component's showWhen is written in ("%floatbutton ==
-# \"Add\"", "%description_toggle"), which is why it is offered as a plain field rather than a
-# pulldown of anything.
-V2_MODIFIER_UNIVERSAL_PROPS: tuple[V2Prop, ...] = (V2Prop("applyWhen", "Apply when"),)
+# \"Add\"", "%description_toggle"), which is why it is offered as a field to write in rather
+# than a pulldown of anything.  "textvar" so that field also carries the Select Variable
+# picker: the expression is built out of variables nobody remembers the spelling of, and a
+# misspelt one doesn't fail, it just quietly never applies the modifier.  Every modifier on
+# every component is offered this property (v2_schema_props appends the universal ones for all
+# of them), so the picker is there wherever an Apply when is.
+V2_MODIFIER_UNIVERSAL_PROPS: tuple[V2Prop, ...] = (V2Prop("applyWhen", "Apply when", "textvar"),)
 
 # Modifier types and what each takes.  Order within a node's "modifiers" list is
 # significant -- they compose in sequence, so Padding-then-Border draws a different thing

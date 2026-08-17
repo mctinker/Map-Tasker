@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file!
 
 - Added: Edit Scene Drag and Drop in Preview - Version 2 Scene element(s) up-and-down the tree view, and Legacy Scene element(s) move x-and-y coordinates.
 - Added: Edit Scene 'Text' - Missing arguments have been added to provide full edit-text argument support.
+- Added: Scene Version 2 Preview now gets a bounding box around the defined elements to reflect the scene dimensions.
+- Added: Edit Scene Version 2 'Apply when' (on every modifier of every element) now offers the 'Select Variable' picker, the same one the other variable-backed fields use.
 
 ### Changed
 

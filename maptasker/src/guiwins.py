@@ -3244,6 +3244,102 @@ def _emit_canvas_fit(root: str, width: int, height: int, fixed: str = "null", bu
     )
 
 
+def _emit_v2_hull(root: str, width: int, height: int) -> None:
+    """Size the box behind a Version 2 layout to everything that layout occupies on screen.
+
+    THE MEASURING HAS TO HAPPEN IN THE BROWSER, and for the same reason the fitting above
+    does: the numbers do not exist anywhere else.  A Legacy element carries its box in the
+    XML, so its extent is arithmetic Python can do; a V2 component is a flex item whose size
+    and position are whatever the browser works out from its siblings, its text and the width
+    of the screen it was dropped into.  Nothing on the server knows where any of it landed.
+
+    WHICH COMPONENTS COUNT: the defined elements, not the space they were handed.  A leaf --
+    a component with nothing inside it -- always counts; it is a thing the Scene draws,
+    whatever size it is.  A container counts only when it paints something of its own (a
+    background, a border, a shadow) AND does not fill the screen.
+
+    Both halves of that are needed, and each was learned from a real Scene.  A container that
+    paints has to be counted or the box would cut through the ring it draws round its
+    children ($V2 Test's header is an ellipse wider than anything inside it).  But a
+    container that fills the screen has to be skipped even when it paints, because a
+    container is stretched by its parent rather than sized by its contents -- $V2 Test's root
+    Column paints a 1px border and is handed the whole screen, so counting it drew the box
+    round the screen and said nothing about where the Scene's elements are.  A leaf that
+    happens to fill the screen is a different matter and still counts: a full-screen image is
+    the content rather than the room it was given.
+
+    The result is clamped to the screen, because a component that overflows the frame is
+    clipped by it (the frame carries overflow: hidden) and a hull round the part nobody can
+    see would be drawing the layout the Scene does not have.  V2_HULL_PADDING is added first
+    -- see sceneview for why the box needs a rim it can be seen by.
+
+    Measured again on the next frame, when the web fonts settle and once more shortly after:
+    text that reflows when Roboto arrives moves the very edges this is measuring, and a box
+    left at the pre-font size would be visibly wrong against the layout it encloses.  No
+    listener is left behind -- the hull is in canvas coordinates, which the fit's scaling
+    does not change -- so nothing here accumulates across renders.
+    """
+    ui.run_javascript(
+        f"""
+        (() => {{
+            const root = '{root}', canvasWidth = {width}, canvasHeight = {height};
+            const pad = {sceneview.V2_HULL_PADDING};
+            const compSel = '.{sceneview.V2_COMPONENT_CLASS}';
+            const wrap = document.querySelector('.' + root);
+            const canvas = wrap && wrap.querySelector('.mt-scene-canvas');
+            const hull = canvas && canvas.querySelector('.{sceneview.V2_HULL_CLASS}');
+            if (!hull) return;
+
+            // Does this component put anything on the screen itself, beyond its children?
+            const paints = (el) => {{
+                const style = getComputedStyle(el);
+                if (style.backgroundImage !== 'none' || style.boxShadow !== 'none') return true;
+                if (parseFloat(style.borderTopWidth) || parseFloat(style.borderRightWidth)
+                    || parseFloat(style.borderBottomWidth) || parseFloat(style.borderLeftWidth)) return true;
+                // "rgb(...)" is opaque; "rgba(..., 0)" is the transparent default.
+                const parts = (style.backgroundColor.match(/[\\d.]+/g) || []).map(Number);
+                return parts.length === 3 || (parts.length > 3 && parts[3] > 0.01);
+            }};
+
+            const measure = () => {{
+                const origin = canvas.getBoundingClientRect();
+                // Screen pixels back to canvas pixels: the canvas is drawn at its true size
+                // and scaled as a whole by _emit_canvas_fit, which leaves the factor here.
+                const scale = parseFloat(wrap.dataset.scale || '1') || 1;
+                // A box within a pixel of the screen in both directions is the screen: this
+                // component was stretched to what it was given, wherever the elements are.
+                const fillsScreen = (box) => box.width / scale >= canvasWidth - 1
+                                          && box.height / scale >= canvasHeight - 1;
+                let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+                for (const el of canvas.querySelectorAll(compSel)) {{
+                    const box = el.getBoundingClientRect();
+                    if (el.querySelector(compSel) && (!paints(el) || fillsScreen(box))) continue;
+                    if (!box.width && !box.height) continue;
+                    left = Math.min(left, box.left); top = Math.min(top, box.top);
+                    right = Math.max(right, box.right); bottom = Math.max(bottom, box.bottom);
+                }}
+                if (!isFinite(left)) {{ hull.style.display = 'none'; return; }}
+                const x = Math.max(0, (left - origin.left) / scale - pad);
+                const y = Math.max(0, (top - origin.top) / scale - pad);
+                const w = Math.min(canvasWidth, (right - origin.left) / scale + pad) - x;
+                const h = Math.min(canvasHeight, (bottom - origin.top) / scale + pad) - y;
+                if (w <= 0 || h <= 0) {{ hull.style.display = 'none'; return; }}
+                hull.style.left = x + 'px';
+                hull.style.top = y + 'px';
+                hull.style.width = w + 'px';
+                hull.style.height = h + 'px';
+                hull.style.display = 'block';
+            }};
+
+            measure();
+            requestAnimationFrame(measure);
+            setTimeout(measure, 300);
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+        }})();
+        """,
+    )
+
+
 def _emit_canvas_editing(root: str, snap: int) -> None:
     """Install the pointer and keyboard handlers that make the canvas draggable.
 
@@ -4308,12 +4404,10 @@ def _build_legacy_designer(
             ui.label(sceneedit.legacy_element_label(element)).classes("text-sm font-semibold font-mono")
             if others:
                 ui.label(
-                    f"{translate_string('editing 1 of')} {len(selection['srs'])} "
-                    f"{translate_string('selected')}",
+                    f"{translate_string('editing 1 of')} {len(selection['srs'])} {translate_string('selected')}",
                 ).classes("text-xs text-gray-500 italic").tooltip(
                     translate_string(
-                        "Properties are edited one element at a time. Dragging and nudging move "
-                        "everything selected.",
+                        "Properties are edited one element at a time. Dragging and nudging move everything selected.",
                     ),
                 )
         if others:
@@ -4327,8 +4421,7 @@ def _build_legacy_designer(
                     if other is None:
                         continue
                     ui.label(sceneedit.legacy_element_label(other)).classes(
-                        "text-xs font-mono cursor-pointer underline decoration-dotted "
-                        "text-blue-700 dark:text-blue-300",
+                        "text-xs font-mono cursor-pointer underline decoration-dotted text-blue-700 dark:text-blue-300",
                     ).on("click", lambda _e=None, key=other_sr: select_anchor(key)).tooltip(
                         translate_string("Edit this one's properties instead, keeping the selection."),
                     )
@@ -6979,6 +7072,10 @@ class NiceGuiSceneView:
         with self.canvas_wrap:
             sceneview.draw_v2_layout(layout, width, height, self.options, editing=editing)
         self._apply_scale(width, height)
+        # After the scale, never before: the hull is measured in screen pixels and divided
+        # back by the factor _apply_scale leaves on the wrapper, and a hull measured before
+        # that factor existed would be sized by whatever the last render happened to set.
+        _emit_v2_hull(CANVAS_PREVIEW_ROOT, width, height)
         if editing is not None:
             _ACTIVE_CANVASES[CANVAS_PREVIEW_ROOT] = {
                 "v2select": lambda payload: self._v2_from_canvas("v2select", payload),
