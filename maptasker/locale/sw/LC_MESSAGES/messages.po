@@ -1595,3 +1595,714 @@ msgstr "Error 500 (Server Error)!!1500.That’s an error.There was an error. Ple
 
 msgid "hardstop view limit"
 msgstr "kikomo cha kutazama cha hardstop"
+
+msgid "(empty)"
+msgstr "(tupu)"
+
+
+msgid "(no name)"
+msgstr "(hakuna jina)"
+
+
+msgid "(unnamed)"
+msgstr "(bila jina)"
+
+msgid "(unnamed Task)"
+msgstr "(Kazi isiyo na jina)"
+
+
+msgid "-1 means this orientation has no layout of its own."
+msgstr "-1 inamaanisha mwelekeo huu hauna mpangilio wake."
+
+
+msgid "...and {count} more -- type above to narrow it down."
+msgstr "...na {count} zaidi -- andika juu ili kuipunguza."
+
+
+msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
+msgstr "Nafasi za vipengee vya Scene huhifadhiwa katika pikseli za kifaa, lakini saizi zake za maandishi huhifadhiwa katika vitengo vya sp vya Android. Nambari inayobadilisha kati ya hizi mbili ni sifa ya simu ambayo Onyesho linaonyeshwa, na haiko kwenye faili ya chelezo.\n\nKwa hivyo imewekwa hapa. Inua ikiwa maandishi yanaonekana kuwa madogo sana kwa vipengele vyake, yapunguze ikiwa maandishi yamefurika."
+
+
+msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
+msgstr "Onyesho la Toleo la 2 halina ukubwa wake -- linajiweka ndani ya skrini yoyote linaonyeshwa, kwa hivyo hakuna chochote katika faili chelezo cha kuichora.\n\nBadilisha hii ili kuona mtiririko wa mpangilio. Safu Mlalo ya Mtiririko inasongwa tofauti, na 'Onyesha wakati' yoyote iliyoandikwa dhidi ya %sv2_render_width inauliza kuhusu hili haswa."
+
+
+msgid "Actions"
+msgstr "Vitendo"
+
+msgid "Add"
+msgstr "Ongeza"
+
+msgid "Add Element"
+msgstr "Ongeza Kipengele"
+
+msgid "Add Scene"
+msgstr "Ongeza Onyesho"
+
+msgid "Add a background"
+msgstr "Ongeza usuli"
+
+msgid "Add action"
+msgstr "Ongeza kitendo"
+
+msgid "Add event"
+msgstr "Ongeza tukio"
+
+msgid "Add handler"
+msgstr "Ongeza kidhibiti"
+
+msgid "Add modifier"
+msgstr "Ongeza kirekebishaji"
+
+
+
+
+msgid "Add scene properties"
+msgstr "Ongeza sifa za eneo"
+
+
+
+
+msgid "Addressed by id from"
+msgstr "Imeshughulikiwa na kitambulisho kutoka"
+
+
+
+
+msgid "Adds an element on top of the stack, in the middle of the Scene."
+msgstr "Huongeza kipengele juu ya rafu, katikati ya Onyesho."
+
+
+
+msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
+msgstr "Huongeza ndani ya kijenzi kilichochaguliwa ikiwa kinaweza kushikilia watoto, vinginevyo moja kwa moja baada yake."
+
+msgid "Also selected:"
+msgstr "Imechaguliwa pia:"
+
+msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
+msgstr "Huiongeza juu ya rundo, katikati ya Onyesho. Iburute unapotaka."
+
+msgid "Also update"
+msgstr "Pia sasisha"
+
+msgid "App icon"
+msgstr "Aikoni ya programu"
+
+msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
+msgstr "Amber: Tasker inaiorodhesha, lakini MapTasker haina sampuli yake iliyothibitishwa. Grey: haiwezi kwenda ambapo uteuzi ungeiweka."
+
+
+msgid "Appearance Mode"
+msgstr "Hali ya Kuonekana"
+
+
+msgid "Applied in order — the one at the bottom sits on top."
+msgstr "Imetumika kwa mpangilio - ile iliyo chini inakaa juu."
+
+
+msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
+msgstr "Inatumika wakati Onyesho hili limehifadhiwa, sio sasa -- Ghairi kwenye kidirisha cha Onyesho huacha kipengele na Majukumu kama yalivyokuwa."
+
+msgid "Back to Editor"
+msgstr "Rudi kwa Mhariri"
+
+
+msgid "Bounds"
+msgstr "Mipaka"
+
+
+msgid "Cancelled. Changes to this Scene were discarded."
+msgstr "Imeghairiwa. Mabadiliko kwenye Onyesho hili yametupwa."
+
+
+msgid "Choose another file..."
+msgstr "Chagua faili nyingine..."
+
+
+msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
+msgstr "Bofya kijenzi ili kukichagua, bofya kitufe cha shift-click kwenye chombo kimoja ili kuchukua kadhaa, na uburute ili kuzipanga upya kati ya ndugu zao wenyewe. Kuhamisha kijenzi ndani au nje ya kontena ni vitufe vya kihariri vya Kuingia na Kutoka; Tendua ipo pia."
+
+
+msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
+msgstr "Bofya kipengee ili kukichagua, buruta ili kusogeza, buruta mpini ili kubadilisha ukubwa, vitufe vya vishale ili kugusa (Shift kwa 10px). Bofya Shift, au buruta kisanduku kwenye usuli, kuchukua kadhaa mara moja."
+
+msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
+msgstr "Bofya kipengee ili kukichagua, Shift-click au buruta kisanduku kwenye usuli kuchukua kadhaa, na buruta yoyote kati ya hizo ili kuzisogeza zote -- gusa vitufe vya vishale, Shift kwa 10px. Buruta mpini ili kubadilisha ukubwa wa kipengele kimoja. Tendua, na kila kitu kingine kuhusu kipengele, kimerudishwa kwenye kihariri."
+
+
+msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
+msgstr "Hufunga bila kuhifadhi, na hurudisha Onyesho hili nyuma jinsi ilivyokuwa wakati kidirisha hiki kilipofunguliwa -- ikijumuisha kitu chochote kilichohamishwa au kubadilishwa ukubwa katika Onyesho la Kuchungulia.\n\nKubadilisha jina ni jambo moja ambalo haliwezi kurudisha nyuma: linatumika kwa chelezo iliyopakiwa inapothibitishwa, na kufunga mazungumzo haya nayo."
+
+
+msgid "Compare Files"
+msgstr "Linganisha Faili"
+
+
+msgid "Compare With"
+msgstr "Linganisha Na"
+
+
+msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Linganisha faili nyingine ya XML dhidi ya iliyopakiwa: kilichoongezwa, kuondolewa, kubadilishwa jina na kubadilishwa.\n\nItumie kuona uletaji wa TaskerNet ulileta nini, ni hariri gani iliyobadilika, au ni tofauti gani kati ya nakala mbili.\n\nIkiwa faili iliyopakiwa ilitoka kwa 'Hifadhi kwa Faili ya Sasa', faili ambayo ilihifadhiwa kutoka hutolewa moja kwa moja.\n\nMatokeo yanaonyeshwa hapa na kuhifadhiwa kwa faili ya maandishi katika saraka ya sasa."
+
+
+msgid "Comparison cancelled."
+msgstr "Ulinganisho umeghairiwa."
+
+
+msgid "Comparison report could not be saved."
+msgstr "Ripoti ya kulinganisha haikuweza kuhifadhiwa."
+
+
+msgid "Comparison saved as"
+msgstr "Ulinganisho umehifadhiwa kama"
+
+
+msgid "Delete Scene"
+msgstr "Futa Onyesho"
+
+
+msgid "Done"
+msgstr "Imekamilika"
+
+
+msgid "Drawn in"
+msgstr "Imetolewa ndani"
+
+
+msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
+msgstr "Huchora Onyesho hili kama picha katika dirisha kuu -- ikijumuisha vipengele ulivyoongeza au kubadilisha hapa lakini bado havijahifadhiwa.\n\nMpangilio wa Toleo la 2 hauna ukubwa wake, kwa hivyo onyesho la kukagua huiweka kwenye skrini unayochagua, na huutiririsha upya unapobadilisha.\n\nKidirisha hiki hufunga wakati onyesho la kuchungulia likiwa juu, na kila kitu kilichomo kikihifadhiwa; kitufe cha 'Rudi kwa Kihariri' cha onyesho la kuchungulia huirejesha.\n\nNi kiwakilishi, si kionyeshi cha Tasker mwenyewe: vigeu %vinaitwa badala ya kutatuliwa, rangi za nyenzo hutoka kwenye ubao wa msingi badala ya mandhari ya kifaa, na picha, video na maudhui ya wavuti huonyeshwa kama vishikilia nafasi."
+
+msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
+msgstr "Huchora Onyesho hili kama picha katika dirisha kuu, kwa ukubwa ulioandikwa hapo juu -- ikijumuisha mabadiliko ambayo bado hayajahifadhiwa.\n\nKidirisha hiki hufunga wakati onyesho la kuchungulia likiwa juu, na kila kitu kilichomo kikihifadhiwa; kitufe cha 'Rudi kwa Kihariri' cha onyesho la kuchungulia huirejesha.\n\nNi kiwakilishi, si kionyeshi cha Tasker mwenyewe: vigeu %vinaitwa badala ya kutatuliwa, na picha, video na maudhui ya wavuti huonyeshwa kama vishikilia nafasi."
+
+
+msgid "Duplicate"
+msgstr "Nakala"
+
+msgid "Dropdown menu — shown when opened"
+msgstr "Menyu kunjuzi - huonyeshwa wakati inafunguliwa"
+
+
+msgid "Dynamic and Select Variable are worked out when the Scene is shown."
+msgstr "Kibadilishi chenye Nguvu na Chagua hufanyiwa kazi wakati Onyesho linaonyeshwa."
+
+
+msgid "Dynamic value"
+msgstr "Thamani inayobadilika"
+
+
+msgid "Edit Scene"
+msgstr "Hariri Onyesho"
+
+msgid "Edit item layout"
+msgstr "Badilisha mpangilio wa kipengee"
+
+
+msgid "Edit this one's properties instead, keeping the selection."
+msgstr "Hariri sifa za huyu badala yake, ukiweka chaguo."
+
+
+msgid "Event handlers"
+msgstr "Washughulikiaji wa hafla"
+
+
+msgid "Export Scene"
+msgstr "Hamisha Onyesho"
+
+
+msgid "Geometry"
+msgstr "Jiometri"
+
+
+msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
+msgstr "Grey: MapTasker haina jedwali la hoja kwayo, kwa hivyo haiwezi kuundwa bila kubahatisha Tasker anatarajia nini ndani. Vichwa ni kambi ya MapTasker yenyewe."
+
+
+msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
+msgstr "Vijazo vilivyotolewa na maandishi yaliyopigiwa mstari kwa italiki ni %vigeu -- thamani zake huishi kwenye kifaa, si katika hifadhi rudufu, kwa hivyo zimepewa majina badala ya kubashiriwa. Picha, video, ramani na maudhui ya wavuti huonyeshwa kama vishikilia nafasi. Elea kipengee chochote kwa jiometri yake, vijiti vyake na Kazi inayoendesha."
+
+
+msgid "Health Check"
+msgstr "Uchunguzi wa Afya"
+
+
+msgid "Health Check report could not be saved."
+msgstr "Ripoti ya Ukaguzi wa Afya haikuweza kuhifadhiwa."
+
+msgid "Health Check found no errors or warnings."
+msgstr "Ukaguzi wa Afya haukupata hitilafu au maonyo."
+
+
+msgid "Health Check saved as"
+msgstr "Ukaguzi wa Afya umehifadhiwa kama"
+
+
+msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
+msgstr "Muda gani ujumbe ibukizi hukaa kwenye skrini kabla haujatoweka.\n\n'Mpaka kuondolewa' huweka kila ujumbe hadi uufunge, ambayo ni muhimu wakati ujumbe unasonga mbele kabla ya kuusoma.\n\nBarua pepe chache huweka muda wao mrefu zaidi kwa sababu huorodhesha vitu ambavyo unapaswa kusoma -- Majukumu yanayoathiriwa na kufuta au kubadilisha jina la kipengele cha Onyesho, kwa mfano. Wale huweka muda wao wenyewe chochote kinachochaguliwa hapa."
+
+
+msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
+msgstr "Katika orodha: Shift-click kwa masafa, Ctrl- au Cmd-click ili kuongeza au kuondoa moja."
+
+
+msgid "Item layout"
+msgstr "Mpangilio wa kipengee"
+
+
+msgid "Landscape"
+msgstr "Mazingira"
+
+
+msgid "Legacy"
+msgstr "Urithi"
+
+
+msgid "Legacy Scene"
+msgstr "Tukio la Urithi"
+
+
+msgid "List"
+msgstr "Orodha"
+
+
+msgid "MapTasker: view limit reached, diagram truncated"
+msgstr "MapTasker: kikomo cha kutazama kimefikiwa, mchoro umepunguzwa"
+
+
+msgid "Modifiers"
+msgstr "Virekebishaji"
+
+
+msgid "Never updated"
+msgstr "Haijasasishwa kamwe"
+
+
+msgid "No Task addresses this element by name."
+msgstr "Hakuna Jukumu linaloshughulikia kipengele hiki kwa jina."
+
+
+msgid "No XML file has been loaded.  Get an XML file first."
+msgstr "Hakuna faili ya XML iliyopakiwa.  Pata faili ya XML kwanza."
+
+
+msgid "No element matches that."
+msgstr "Hakuna kipengele kinacholingana na hicho."
+
+
+msgid "Not an HTML colour name or #hex value."
+msgstr "Sio jina la rangi ya HTML au thamani ya #hex."
+
+
+msgid "Not updated -- these name both this Scene and this element, but not as a"
+msgstr "Haijasasishwa -- hizi hutaja Onyesho hili na kipengele hiki, lakini si kama a"
+
+
+msgid "Nothing here."
+msgstr "Hakuna kitu hapa."
+
+
+msgid "Notification Duration"
+msgstr "Muda wa Arifa"
+
+
+msgid "Notification Duration:"
+msgstr "Muda wa Arifa:"
+
+
+msgid "On"
+msgstr "Washa"
+
+
+msgid "Only when"
+msgstr "Wakati tu"
+
+
+msgid "Outline every component and name it, the way the designer's tree names it."
+msgstr "Eleza kila kijenzi na ukipe jina, jinsi mti wa mbunifu unavyokitaja."
+
+
+msgid "Outline every element and name it."
+msgstr "Eleza kila kipengele na ukipe jina."
+
+
+msgid "Pick a Material icon."
+msgstr "Chagua aikoni ya Nyenzo."
+
+
+msgid "Pick an icon"
+msgstr "Chagua ikoni"
+
+
+msgid "Pick from the Scene's environment and global variables."
+msgstr "Chagua kutoka kwa mazingira ya Onyesho na anuwai za ulimwengu."
+
+
+msgid "Pick one of Material's own colour roles."
+msgstr "Chagua mojawapo ya majukumu ya rangi ya Nyenzo."
+
+
+msgid "Preview"
+msgstr "Hakiki"
+
+
+msgid "Project(s) that list it."
+msgstr "Miradi inayoorodhesha."
+
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
+msgstr "Inaomba jina jipya na kulitumia kwenye hifadhi rudufu iliyopakiwa, sasa hivi -- ikibadilisha jina la Onyesho kila mahali, ikijumuisha katika orodha ya Maonyesho ya kila Mradi ulio nayo.\n\nMajukumu yanayoonyesha au kuficha Onyesho hili kwa jina HAYAISASISHA; hao bado wanataja Scene ya zamani.\n\nSehemu ya Jina la Onyesho hapo juu ni ya kusoma tu -- hii ndiyo njia pekee ya kuibadilisha."
+
+
+msgid "Properties"
+msgstr "Mali"
+
+
+msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
+msgstr "Sifa huhaririwa kipengele kimoja kwa wakati mmoja. Kuburuta na kusogeza kila kitu kilichochaguliwa."
+
+
+msgid "Refresh"
+msgstr "Onyesha upya"
+
+
+msgid "Remove background"
+msgstr "Ondoa usuli"
+
+
+msgid "Rename Element"
+msgstr "Badilisha Kipengele Kipengele"
+
+
+msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
+msgstr "Kubadilisha jina la kipengee hapa hakufagii nakala rudufu: mpangilio wa kipengee hauna jina la Onyesho kwa ajili ya kitendo cha Kipengele cha Task kushughulikia, kwa hivyo hakuna cha kuandika upya."
+
+
+msgid "Repeats once per array entry"
+msgstr "Hurudiwa mara moja kwa kila safu ya ingizo"
+
+
+msgid "Round dragged positions and sizes to this many pixels."
+msgstr "Nafasi na saizi zilizoburutwa pande zote hadi pikseli nyingi hivi."
+
+
+msgid "Save Scene To Android Device"
+msgstr "Hifadhi Onyesho kwa Kifaa cha Android"
+
+msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Huhifadhi chelezo nzima -- kila Mradi, Wasifu, Jukumu na Mandhari ndani yake, si Tukio hili -- ikijumuisha kila hariri iliyofanywa popote katika kipindi hiki.\nImeandikwa kwa nakala mpya, iliyopigwa muhuri wa muda ya faili iliyopakiwa kwa sasa: backup.xml inakuwa backup_20260728_143005.xml.\nFaili uliyopakia haijaandikiwa kamwe, kwa hivyo inaachwa kama ilivyokuwa.\nProgramu kisha inabadilisha hadi nakala mpya, ambayo inakuwa faili ya sasa kwa uhariri na uhifadhi wowote zaidi; kuokoa tena kunabadilisha muhuri wa wakati badala ya kuongeza ya pili.\nHii inaandikia kompyuta hii pekee -- hakuna kitu kinachotumwa kwa kifaa chako cha Android."
+
+
+msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
+msgstr "Huhifadhi Onyesho hili, pamoja na vipengele vyake vyote, kama faili moja inayojitegemea ya .scn.xml -- umbizo sawa na Uhamishaji wa Tasker mwenyewe wa Scene.\n\nKazi zinazoendeshwa na vipengele vya Onyesho hazijajumuishwa; wao ni wa Mradi wao wenyewe."
+
+
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Changanua XML iliyopakiwa kwa marejeleo yaliyovunjika, Majukumu ambayo hayajarejelewa, Wasifu na Matukio, na matatizo ya kutaja.\n\nMatokeo yanaonyeshwa hapa na kuhifadhiwa kwa faili ya maandishi katika saraka ya sasa."
+
+
+msgid "Scene Components"
+msgstr "Vipengele vya Scene"
+
+
+msgid "Scene Elements"
+msgstr "Vipengele vya Scene"
+
+
+msgid "Scene Preview"
+msgstr "Muhtasari wa Onyesho"
+
+msgid "Scene Name"
+msgstr "Jina la Onyesho"
+
+
+msgid "Scene Properties"
+msgstr "Sifa za Scene"
+
+
+msgid "Scene added."
+msgstr "Onyesho limeongezwa."
+
+
+msgid "Screen"
+msgstr "Skrini"
+
+msgid "Search elements"
+msgstr "Tafuta vipengele"
+
+msgid "Scene type"
+msgstr "Aina ya eneo"
+
+
+
+msgid "Search variables"
+msgstr "Tafuta vigezo"
+
+msgid "Search icons"
+msgstr "Tafuta ikoni"
+
+
+msgid "Select a single Scene first (Scene pulldown above)."
+msgstr "Chagua Onyesho moja kwanza (Mteremko wa Onyesho hapo juu)."
+
+msgid "Select a component on the left."
+msgstr "Chagua sehemu upande wa kushoto."
+
+msgid "Select a single element to duplicate, delete or restack it."
+msgstr "Chagua kipengele kimoja ili kuiga, kufuta au kukiweka upya."
+
+msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
+msgstr "Chagua Kikomo kikubwa cha Kutazama au Mradi / Wasifu / Kazi moja ili kuona mengine."
+
+msgid "Select an element first."
+msgstr "Chagua kipengele kwanza."
+
+
+
+msgid "Select an element on the canvas or in the list."
+msgstr "Chagua kipengee kwenye turubai au kwenye orodha."
+
+
+msgid "Show what each component does when tapped, and what it writes to."
+msgstr "Onyesha kile ambacho kila kijenzi hufanya kinapoguswa, na kinaandika nini."
+
+msgid "Show the Task each element runs."
+msgstr "Onyesha Kazi ambayo kila kipengele kinaendesha."
+
+
+msgid "Show when"
+msgstr "Onyesha wakati"
+
+
+msgid "Size"
+msgstr "Ukubwa"
+
+msgid "Size must be a whole number (-1 for no layout)."
+msgstr "Ukubwa lazima iwe nambari nzima (-1 bila mpangilio)."
+
+
+msgid "Snap"
+msgstr "Snap"
+
+
+msgid "Spinner"
+msgstr "Spinner"
+
+msgid "Stop firing anything on this event."
+msgstr "Acha kupiga chochote kwenye tukio hili."
+
+msgid "Task action(s) in"
+msgstr "Vitendo vya kazi ndani"
+
+
+
+msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
+msgstr "Majukumu shughulikia Tukio hili kwa mchoro unaolingana (Mwonekano wa Kipengele). Ziangalie mwenyewe"
+
+msgid "Task(s)"
+msgstr "Kazi"
+
+msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
+msgstr "Tasker huweka Jukumu hili ndani ya Onyesho na hakuna mahali pengine popote, kwa hivyo halina jina na haliwezi kuelekezwa mahali pengine bila kulipoteza. Inapitishwa bila kuguswa."
+
+
+msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
+msgstr "Tasker inaorodhesha kipengele hiki, lakini MapTasker haijawahi kuona moja katika Onyesho lililohifadhiwa -- kwa hivyo imeongezwa ikiwa haina chochote ila aina yake na kitambulisho, na hata aina hiyo imeainishwa kutoka kwa jina lililo hapo juu (limeandikwa kama aina: \"{node_type}\"). Ikiwa Tasker haitambui, bonyeza Tendua."
+
+msgid "Tasker variable(s)"
+msgstr "Tofauti za mtekelezaji"
+
+
+msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
+msgstr "Kijenzi cha Skrini cha Tasker: mti wa kijenzi tangazo (Safu, Safu, Kiunzi, ...) unaojiweka nje, bila saizi isiyobadilika ya turubai. Anza kutoka:"
+
+
+msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
+msgstr "Majukumu yanashughulikia kipengele hiki kwa jina (Maandishi ya Kipengele, Nafasi ya Kipengele, ... misimbo 18 ya kitendo kwa jumla), kwa hivyo kukipa jina upya si hariri ya sehemu. Kidirisha cha Badilisha Jina huorodhesha kinachotegemea jina la sasa na matoleo ya kuleta Majukumu hayo pamoja."
+
+
+msgid "Text density"
+msgstr "Uzito wa maandishi"
+
+msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
+msgstr "Kazi zinazoonyesha au kuficha Onyesho hili kwa jina hazibadilishwi, na huachwa pale zilipo."
+
+msgid "That component can't go there."
+msgstr "Sehemu hiyo haiwezi kwenda huko."
+
+
+msgid "That is the file already loaded.  Choose a different one to compare against."
+msgstr "Hiyo ni faili tayari kupakiwa.  Chagua tofauti ili kulinganisha dhidi yake."
+
+msgid "The Material icon list could not be read, so type the name instead."
+msgstr "Orodha ya aikoni ya Nyenzo haikuweza kusomeka, kwa hivyo andika jina badala yake."
+
+
+msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
+msgstr "Tofauti ya Tasker kipengele hiki huandika thamani yake ndani. Tenganisha kadhaa kwa koma. Acha tupu ili kutangaza kufunga bila kuiweka."
+
+
+msgid "The Tasks that address it will be updated when this Scene is saved."
+msgstr "Majukumu yanayoishughulikia yatasasishwa Tukio hili litakapohifadhiwa."
+
+
+msgid "The loaded file was saved from"
+msgstr "Faili iliyopakiwa ilihifadhiwa kutoka"
+
+msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
+msgstr "Mpangilio wa safu moja. Tasker huchora mara moja kwa kila ingizo la chochote kinachojaza orodha, kwa hivyo unachoona hapa ni safu mlalo moja badala ya orodha."
+
+msgid "The original"
+msgstr "Ya asili"
+
+
+
+msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
+msgstr "Onyesho Asili: Vipengele vya UI vilivyowekwa katika nafasi zisizobadilika kwenye turubai ya ukubwa (Maandishi, Kitufe, Rect, Picha, Wavuti, ...)."
+
+
+msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
+msgstr "Ukubwa wa skrini ni wa onyesho hili la kuchungulia, si la Onyesho -- mpangilio wa Toleo la 2 hauna ukubwa wake, kwa hivyo badilisha 'Skrini' ili kuona inatiririka tena. Rangi zilizotajwa kwa jukumu la Nyenzo zimechorwa kutoka kwa ubao wa msingi wa Nyenzo 3; kifaa huyasuluhisha dhidi ya mada yake yenyewe, ambayo chini ya Nyenzo Unayotoka kwenye mandhari. Vijazo vilivyotolewa na maandishi ya italiki yaliyopigiwa mstari ni %vigeu. Amber inaangazia vipengele kwa 'Onyesha lini'. Elea kipengee chochote kwa virekebishaji, vigeu na vitendo vyake."
+
+
+msgid "The search did not finish. The view may be too large, or the browser is busy."
+msgstr "Utafutaji haukuisha. Mwonekano unaweza kuwa mkubwa sana, au kivinjari kina shughuli nyingi."
+
+
+msgid "The two files hold the same configuration."
+msgstr "Faili hizi mbili zina usanidi sawa."
+
+
+msgid "This Scene has no landscape layout of its own (its size is -1)."
+msgstr "Onyesho hili halina mpangilio wa mazingira wa aina yake (ukubwa wake ni -1)."
+
+msgid "This Scene has no layout for this orientation."
+msgstr "Onyesho hili halina mpangilio wa mwelekeo huu."
+
+msgid "This Scene has no UI elements."
+msgstr "Onyesho hili halina vipengele vya UI."
+
+
+
+msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
+msgstr "Onyesho hili halina kipengele cha sifa. 66 kati ya 366 Scenes MapTasker haijaona pia, kwa hivyo hii ni kawaida badala ya uharibifu."
+
+
+msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
+msgstr "Mpangilio huu wa Toleo la 2 la Scene haukuweza kusomeka, na utaachwa jinsi ulivyo."
+
+
+msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
+msgstr "Mpangilio huu wa Toleo la 2 la Scene hauna sehemu ya mizizi, kwa hivyo hakuna kitu cha kubuni."
+
+msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
+msgstr "Programu hii haina jedwali la sifa kwa aina hii ya kipengele, kwa hivyo jiometri yake pekee ndiyo inayoweza kuhaririwa hapa. Vinginevyo hupitishwa bila kuguswa."
+
+msgid "This element has no layout for this orientation."
+msgstr "Kipengele hiki hakina mpangilio wa mwelekeo huu."
+
+
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Hii itaandika Onyesho kama faili inayojitegemea kwenye kifaa cha Android, chini ya /Tasker/scenes.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nHakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Hii itaandika Onyesho kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/scenes -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, huku seva ikiendesha.\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker. Hakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+
+msgid "Tree label"
+msgstr "Lebo ya mti"
+
+
+msgid "Turn the screen on its side and let the layout re-flow into it."
+msgstr "Geuza skrini upande wake na uruhusu mpangilio utiririke tena ndani yake."
+
+
+msgid "Undo"
+msgstr "Tendua"
+
+
+msgid "Using the saved size"
+msgstr "Kwa kutumia saizi iliyohifadhiwa"
+
+
+msgid "Variable"
+msgstr "Inaweza kubadilika"
+
+
+msgid "Variables"
+msgstr "Vigezo"
+
+msgid "Version 2"
+msgstr "Toleo la 2"
+
+msgid "View Limit"
+msgstr "Kikomo cha Kutazama"
+
+msgid "What you pick goes in at the cursor. Open this again to add the next piece."
+msgstr "Unachochagua huingia kwenye kielekezi. Fungua hii tena ili kuongeza kipande kinachofuata."
+
+msgid "What you pick replaces what the field holds. Type to narrow the list down."
+msgstr "Unachochagua huchukua nafasi ya kile shamba inachoshikilia. Andika ili kupunguza orodha chini."
+
+
+
+msgid "Which kind of Scene?"
+msgstr "Scene ya aina gani?"
+
+
+
+
+msgid "Zoom"
+msgstr "Kuza"
+
+msgid "component(s)"
+msgstr "vijenzi"
+
+msgid "Writes to variable"
+msgstr "Anaandika kwa kutofautiana"
+
+
+
+msgid "connectors"
+msgstr "viunganishi"
+
+
+msgid "drag or nudge any of them and they all move together."
+msgstr "buruta au gusa yoyote kati yao na zote husogea pamoja."
+
+
+msgid "editing 1 of"
+msgstr "kuhariri 1 ya"
+
+
+msgid "element(s)"
+msgstr "vipengele"
+
+
+msgid "elements selected"
+msgstr "vipengele vilivyochaguliwa"
+
+
+msgid "none"
+msgstr "hakuna"
+
+msgid "is not a whole number"
+msgstr "sio nambari nzima"
+
+msgid "not drawn"
+msgstr "haijachorwa"
+
+msgid "lines dropped"
+msgstr "mistari imeshuka"
+
+
+msgid "pair"
+msgstr "jozi"
+
+
+msgid "pixels"
+msgstr "saizi"
+

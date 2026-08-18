@@ -1603,3 +1603,585 @@ msgstr "MapTasker: వీక్షణ పరిమితిని చేరు�
 
 msgid "hardstop view limit"
 msgstr "హార్డ్‌స్టాప్ వీక్షణ పరిమితి"
+
+msgid "(empty)"
+msgstr "(ఖాళీ)"
+
+msgid "(no name)"
+msgstr "(పేరు లేదు)"
+
+msgid "(unnamed Task)"
+msgstr "(పేరులేని పని)"
+
+msgid "(unnamed)"
+msgstr "(పేరు లేనిది)"
+
+msgid "-1 means this orientation has no layout of its own."
+msgstr "-1 అంటే ఈ విన్యాసానికి దాని స్వంత లేఅవుట్ లేదు."
+
+msgid "...and {count} more -- type above to narrow it down."
+msgstr "...మరియు ఇంకా {count} -- దాన్ని తగ్గించడానికి పైన టైప్ చేయండి."
+
+msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
+msgstr "ఒక దృశ్యం యొక్క మూలకం స్థానాలు పరికర పిక్సెల్‌లలో నిల్వ చేయబడతాయి, కానీ దాని వచన పరిమాణాలు Android యొక్క sp యూనిట్లలో నిల్వ చేయబడతాయి. రెండింటి మధ్య మార్చే నంబర్ అనేది దృశ్యం చూపబడిన ఫోన్ యొక్క ఆస్తి మరియు బ్యాకప్ ఫైల్‌లో లేదు.\n\nకనుక ఇది ఇక్కడ సెట్ చేయబడింది. వచనం దాని మూలకాలకు చాలా చిన్నదిగా కనిపిస్తే దాన్ని పెంచండి, వచనం వాటిని పొంగిపొర్లితే దాన్ని తగ్గించండి."
+
+
+msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
+msgstr "వెర్షన్ 2 సీన్‌కు దాని స్వంత పరిమాణం లేదు -- ఇది ఏ స్క్రీన్‌లో చూపబడినా దాని లోపలే ఉంచబడుతుంది, కాబట్టి బ్యాకప్ ఫైల్‌లో డ్రా చేయడానికి ఏమీ లేదు.\n\nలేఅవుట్ రీ-ఫ్లో చూడటానికి దీన్ని మార్చండి. ఒక ఫ్లో రో విభిన్నంగా చుట్టబడుతుంది మరియు %sv2_render_widthకి వ్యతిరేకంగా వ్రాసిన ఏదైనా 'ఎప్పుడు చూపు' ఖచ్చితంగా దీని గురించి అడుగుతోంది."
+
+
+msgid "Actions"
+msgstr "చర్యలు"
+
+
+msgid "Add"
+msgstr "జోడించు"
+
+
+msgid "Add Element"
+msgstr "మూలకాన్ని జోడించండి"
+
+
+msgid "Add Scene"
+msgstr "దృశ్యాన్ని జోడించండి"
+
+msgid "Add a background"
+msgstr "నేపథ్యాన్ని జోడించండి"
+
+
+msgid "Add event"
+msgstr "ఈవెంట్‌ని జోడించండి"
+
+msgid "Add action"
+msgstr "చర్యను జోడించండి"
+
+
+msgid "Add handler"
+msgstr "హ్యాండ్లర్‌ని జోడించండి"
+
+
+msgid "Add modifier"
+msgstr "మాడిఫైయర్‌ని జోడించండి"
+
+
+msgid "Add scene properties"
+msgstr "దృశ్య లక్షణాలను జోడించండి"
+
+msgid "Adds an element on top of the stack, in the middle of the Scene."
+msgstr "సన్నివేశం మధ్యలో స్టాక్ పైన ఒక మూలకాన్ని జోడిస్తుంది."
+
+msgid "Addressed by id from"
+msgstr "నుండి id ద్వారా చిరునామా"
+
+msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
+msgstr "ఎంచుకున్న భాగం పిల్లలను పట్టుకోగలిగితే లోపల జోడిస్తుంది, లేకుంటే నేరుగా దాని తర్వాత."
+
+
+
+msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
+msgstr "సన్నివేశం మధ్యలో, స్టాక్ పైన దానిని జోడిస్తుంది. మీకు కావలసిన చోటికి లాగండి."
+
+
+msgid "Also selected:"
+msgstr "అలాగే ఎంపిక చేయబడింది:"
+
+
+msgid "Also update"
+msgstr "అలాగే అప్‌డేట్ చేయండి"
+
+msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
+msgstr "అంబర్: టాస్కర్ దానిని జాబితా చేస్తుంది, కానీ MapTasker దాని యొక్క ధృవీకరించబడిన నమూనా లేదు. గ్రే: ఎంపిక ఉంచిన చోటుకి వెళ్లడం సాధ్యం కాదు."
+
+
+msgid "App icon"
+msgstr "యాప్ చిహ్నం"
+
+
+msgid "Appearance Mode"
+msgstr "ప్రదర్శన మోడ్"
+
+
+msgid "Applied in order — the one at the bottom sits on top."
+msgstr "క్రమంలో వర్తింపజేయబడింది - దిగువన ఉన్నది పైన కూర్చుంటుంది."
+
+
+msgid "Back to Editor"
+msgstr "తిరిగి ఎడిటర్కి"
+
+
+msgid "Bounds"
+msgstr "హద్దులు"
+
+
+msgid "Choose another file..."
+msgstr "మరొక ఫైల్‌ని ఎంచుకోండి..."
+
+msgid "Cancelled. Changes to this Scene were discarded."
+msgstr "రద్దు చేయబడింది. ఈ సీన్‌లో మార్పులు విస్మరించబడ్డాయి."
+
+
+msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
+msgstr "దానిని ఎంచుకోవడానికి ఒక కాంపోనెంట్‌ను క్లిక్ చేయండి, అనేక తీయడానికి అదే కంటైనర్‌లోని మరొకదానిని షిఫ్ట్-క్లిక్ చేయండి మరియు వారి స్వంత తోబుట్టువుల మధ్య వాటిని మళ్లీ ఆర్డర్ చేయడానికి లాగండి. ఒక భాగాన్ని కంటైనర్‌లోకి లేదా వెలుపలికి తరలించడం అనేది ఎడిటర్ యొక్క ఇన్ మరియు అవుట్ బటన్‌లు; అన్డు కూడా ఉంది."
+
+
+msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
+msgstr "ఎలిమెంట్‌ను ఎంచుకోవడానికి ఒక ఎలిమెంట్‌ని క్లిక్ చేయండి, అనేక తీయడానికి బ్యాక్‌గ్రౌండ్‌లో ఉన్న బాక్స్‌ను Shift-క్లిక్ చేయండి లేదా డ్రాగ్ చేయండి మరియు వాటన్నింటిని తరలించడానికి వాటిలో దేనినైనా లాగండి -- బాణం కీలను నడ్జ్ చేయండి, 10px కోసం Shift చేయండి. ఒకే మూలకం పరిమాణాన్ని మార్చడానికి హ్యాండిల్‌ను లాగండి. అన్డు, మరియు ఒక మూలకం గురించి మిగతావన్నీ ఎడిటర్‌లో తిరిగి వచ్చాయి."
+
+msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
+msgstr "ఎలిమెంట్‌ను ఎంచుకోవడానికి దాన్ని క్లిక్ చేయండి, తరలించడానికి లాగండి, పరిమాణం మార్చడానికి హ్యాండిల్‌ను లాగండి, నడ్జ్ చేయడానికి బాణం కీలను లాగండి (10px కోసం షిఫ్ట్ చేయండి). షిఫ్ట్-క్లిక్ చేయండి లేదా బ్యాక్‌గ్రౌండ్‌లో ఉన్న బాక్స్‌ను డ్రాగ్ చేయండి, ఒకేసారి అనేకం తీసుకోవడానికి."
+
+msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
+msgstr "సేవ్ చేయకుండానే మూసివేయబడుతుంది మరియు ఈ డైలాగ్ తెరిచినప్పుడు ఈ దృశ్యాన్ని తిరిగి ఉంచుతుంది -- ప్రివ్యూలో ఏదైనా తరలించబడిన లేదా పరిమాణం మార్చబడిన దానితో సహా.\n\nపేరుమార్పు అనేది ఇది వెనక్కి తీసుకోలేనిది: ఇది ధృవీకరించబడినట్లుగా లోడ్ చేయబడిన బ్యాకప్‌కు వర్తించబడుతుంది మరియు దానితో ఈ డైలాగ్‌ను మూసివేస్తుంది."
+
+msgid "Compare Files"
+msgstr "ఫైళ్లను సరిపోల్చండి"
+
+msgid "Compare With"
+msgstr "తో పోల్చండి"
+
+msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "లోడ్ చేయబడిన దానితో మరొక XML ఫైల్‌ను సరిపోల్చండి: ఏది జోడించబడింది, తీసివేయబడింది, పేరు మార్చబడింది మరియు మార్చబడింది.\n\nTaskerNet దిగుమతి ఏమి తీసుకొచ్చింది, ఏ సవరణ మార్చబడింది లేదా రెండు బ్యాకప్‌ల మధ్య తేడా ఏమిటో చూడటానికి దీన్ని ఉపయోగించండి.\n\nలోడ్ చేయబడిన ఫైల్ 'సేవ్ టు కరెంట్ ఫైల్' నుండి వచ్చినట్లయితే, అది సేవ్ చేయబడిన ఫైల్ నేరుగా అందించబడుతుంది.\n\nఫలితాలు ఇక్కడ ప్రదర్శించబడతాయి మరియు ప్రస్తుత డైరెక్టరీలోని టెక్స్ట్ ఫైల్‌లో సేవ్ చేయబడతాయి."
+
+msgid "Comparison cancelled."
+msgstr "పోలిక రద్దు చేయబడింది."
+
+msgid "Comparison report could not be saved."
+msgstr "పోలిక నివేదికను సేవ్ చేయడం సాధ్యపడలేదు."
+
+msgid "Comparison saved as"
+msgstr "పోలిక ఇలా సేవ్ చేయబడింది"
+
+msgid "Delete Scene"
+msgstr "దృశ్యాన్ని తొలగించండి"
+
+msgid "Done"
+msgstr "పూర్తయింది"
+
+msgid "Drawn in"
+msgstr "లోపలికి లాగారు"
+
+msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
+msgstr "ఈ దృశ్యాన్ని ప్రధాన విండోలో చిత్రంగా గీస్తుంది -- మీరు ఇక్కడ జోడించిన లేదా మార్చిన కానీ ఇంకా సేవ్ చేయని భాగాలతో సహా.\n\nవెర్షన్ 2 లేఅవుట్ దాని స్వంత పరిమాణాన్ని కలిగి ఉండదు, కాబట్టి ప్రివ్యూ దాన్ని మీరు ఎంచుకున్న స్క్రీన్‌లో ఉంచుతుంది మరియు మీరు దాన్ని మార్చినప్పుడు దాన్ని మళ్లీ ప్రవహిస్తుంది.\n\nప్రివ్యూ ముగిసినప్పుడు ఈ డైలాగ్ మూసివేయబడుతుంది, దానిలోని ప్రతిదీ ఉంచబడుతుంది; ప్రివ్యూ యొక్క 'బ్యాక్ టు ఎడిటర్' బటన్ దానిని తిరిగి తీసుకువస్తుంది.\n\nఇది ప్రాతినిధ్యం, టాస్కర్ యొక్క స్వంత రెండరర్ కాదు: %వేరియబుల్స్ పరిష్కరించబడటానికి బదులుగా పేరు పెట్టబడ్డాయి, మెటీరియల్ రంగులు పరికరం యొక్క థీమ్ కంటే బేస్‌లైన్ పాలెట్ నుండి వస్తాయి మరియు చిత్రాలు, వీడియో మరియు వెబ్ కంటెంట్ ప్లేస్‌హోల్డర్‌లుగా చూపబడతాయి."
+
+msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
+msgstr "ఈ దృశ్యాన్ని ప్రధాన విండోలో, పైన టైప్ చేసిన పరిమాణంలో చిత్రంగా గీస్తుంది -- ఇంకా సేవ్ చేయని మార్పులతో సహా.\n\nప్రివ్యూ ముగిసినప్పుడు ఈ డైలాగ్ మూసివేయబడుతుంది, దానిలోని ప్రతిదీ ఉంచబడుతుంది; ప్రివ్యూ యొక్క 'బ్యాక్ టు ఎడిటర్' బటన్ దానిని తిరిగి తీసుకువస్తుంది.\n\nఇది టాస్కర్ యొక్క స్వంత రెండరర్ కాదు, ప్రాతినిధ్యం: %వేరియబుల్స్ పరిష్కరించబడకుండా పేరు పెట్టబడ్డాయి మరియు చిత్రాలు, వీడియో మరియు వెబ్ కంటెంట్ ప్లేస్‌హోల్డర్‌లుగా చూపబడతాయి."
+
+msgid "Dropdown menu — shown when opened"
+msgstr "డ్రాప్‌డౌన్ మెను — తెరిచినప్పుడు చూపబడుతుంది"
+
+msgid "Duplicate"
+msgstr "నకిలీ"
+
+msgid "Dynamic and Select Variable are worked out when the Scene is shown."
+msgstr "దృశ్యం చూపబడినప్పుడు డైనమిక్ మరియు సెలెక్ట్ వేరియబుల్ పని చేస్తాయి."
+
+msgid "Dynamic value"
+msgstr "డైనమిక్ విలువ"
+
+msgid "Edit Scene"
+msgstr "దృశ్యాన్ని సవరించండి"
+
+msgid "Edit item layout"
+msgstr "అంశం లేఅవుట్‌ని సవరించండి"
+
+msgid "Edit this one's properties instead, keeping the selection."
+msgstr "ఎంపికను కొనసాగించి, బదులుగా దీని లక్షణాలను సవరించండి."
+
+msgid "Export Scene"
+msgstr "ఎగుమతి దృశ్యం"
+
+msgid "Geometry"
+msgstr "జ్యామితి"
+
+msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
+msgstr "గ్రే: మ్యాప్‌టాస్కర్‌కి దాని కోసం ఆర్గ్యుమెంట్ టేబుల్ లేదు, కాబట్టి టాస్కర్ లోపల ఏమి ఆశిస్తున్నారో ఊహించకుండా దీన్ని సృష్టించడం సాధ్యం కాదు. ముఖ్యాంశాలు MapTasker యొక్క స్వంత సమూహం."
+
+msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
+msgstr "హాచ్డ్ ఫిల్‌లు మరియు ఇటాలిక్ అండర్‌లైన్ టెక్స్ట్ %వేరియబుల్స్ -- వాటి విలువలు పరికరంలో ఉంటాయి, బ్యాకప్‌లో ఉండవు, కాబట్టి అవి ఊహించిన దానికంటే పేరు పెట్టబడ్డాయి. చిత్రాలు, వీడియో, మ్యాప్‌లు మరియు వెబ్ కంటెంట్ ప్లేస్‌హోల్డర్‌లుగా చూపబడతాయి. ఏదైనా మూలకాన్ని దాని జ్యామితి, దాని వేరియబుల్స్ మరియు అది అమలు చేసే టాస్క్‌ల కోసం హోవర్ చేయండి."
+
+msgid "Health Check report could not be saved."
+msgstr "ఆరోగ్య తనిఖీ నివేదికను సేవ్ చేయడం సాధ్యపడలేదు."
+
+msgid "Health Check saved as"
+msgstr "ఆరోగ్య తనిఖీ ఇలా సేవ్ చేయబడింది"
+
+msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
+msgstr "జాబితాలో: పరిధి కోసం Shift-క్లిక్ చేయండి, ఒకదాన్ని జోడించడానికి లేదా తీసివేయడానికి Ctrl- లేదా Cmd-క్లిక్ చేయండి."
+
+msgid "Landscape"
+msgstr "ప్రకృతి దృశ్యం"
+
+msgid "Legacy"
+msgstr "వారసత్వం"
+
+msgid "Legacy Scene"
+msgstr "లెగసీ సీన్"
+
+msgid "List"
+msgstr "జాబితా"
+
+msgid "Modifiers"
+msgstr "సవరించేవారు"
+
+msgid "Never updated"
+msgstr "ఎప్పుడూ నవీకరించబడలేదు"
+
+msgid "No Task addresses this element by name."
+msgstr "ఏ టాస్క్ ఈ ఎలిమెంట్‌ను పేరు ద్వారా పరిష్కరించదు."
+
+msgid "No XML file has been loaded.  Get an XML file first."
+msgstr "XML ఫైల్ ఏదీ లోడ్ చేయబడలేదు.  ముందుగా XML ఫైల్‌ని పొందండి."
+
+msgid "No element matches that."
+msgstr "దానికి ఏ మూలకం సరిపోలలేదు."
+
+msgid "Not an HTML colour name or #hex value."
+msgstr "HTML రంగు పేరు లేదా #హెక్స్ విలువ కాదు."
+
+msgid "Not updated -- these name both this Scene and this element, but not as a"
+msgstr "నవీకరించబడలేదు -- ఇవి ఈ దృశ్యం మరియు ఈ మూలకం రెండింటికీ పేరు పెట్టాయి, కానీ a గా కాదు"
+
+msgid "Nothing here."
+msgstr "ఇక్కడ ఏమీ లేదు."
+
+msgid "Notification Duration"
+msgstr "నోటిఫికేషన్ వ్యవధి"
+
+msgid "Only when"
+msgstr "ఎప్పుడు మాత్రమే"
+
+msgid "Outline every element and name it."
+msgstr "ప్రతి మూలకాన్ని వివరించండి మరియు దానికి పేరు పెట్టండి."
+
+msgid "Pick a Material icon."
+msgstr "మెటీరియల్ చిహ్నాన్ని ఎంచుకోండి."
+
+msgid "Pick an icon"
+msgstr "చిహ్నాన్ని ఎంచుకోండి"
+
+msgid "Pick from the Scene's environment and global variables."
+msgstr "దృశ్యం యొక్క పర్యావరణం మరియు గ్లోబల్ వేరియబుల్స్ నుండి ఎంచుకోండి."
+
+msgid "Pick one of Material's own colour roles."
+msgstr "మెటీరియల్ యొక్క స్వంత రంగు పాత్రలలో ఒకదాన్ని ఎంచుకోండి."
+
+msgid "Preview"
+msgstr "ప్రివ్యూ"
+
+msgid "Project(s) that list it."
+msgstr "దానిని జాబితా చేసే ప్రాజెక్ట్(లు)."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
+msgstr "కొత్త పేరు కోసం ప్రాంప్ట్ చేస్తుంది మరియు ప్రస్తుతం లోడ్ చేయబడిన బ్యాకప్‌కి వర్తింపజేస్తుంది -- సీన్‌ని కలిగి ఉన్న ప్రతి ప్రాజెక్ట్ యొక్క సీన్ లిస్ట్‌తో సహా ప్రతిచోటా సీన్ పేరు మార్చడం.\n\nపేరుతో ఈ దృశ్యాన్ని చూపించే లేదా దాచిపెట్టే టాస్క్‌లు అప్‌డేట్ చేయబడవు; వారు ఇప్పటికీ పాత దృశ్యం అని పేరు పెట్టారు.\n\nపైన ఉన్న సీన్ నేమ్ ఫీల్డ్ చదవడానికి మాత్రమే -- దీన్ని మార్చడానికి ఇదొక్కటే మార్గం."
+
+msgid "Properties"
+msgstr "లక్షణాలు"
+
+msgid "Remove background"
+msgstr "నేపథ్యాన్ని తీసివేయండి"
+
+msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
+msgstr "ఇక్కడ ఒక మూలకం పేరు మార్చడం బ్యాకప్‌ను స్వీప్ చేయదు: ఒక అంశం లేఅవుట్‌ని పరిష్కరించడానికి టాస్క్ యొక్క ఎలిమెంట్ చర్య కోసం దృశ్య పేరు లేదు, కాబట్టి తిరిగి వ్రాయడానికి ఏమీ లేదు."
+
+msgid "Repeats once per array entry"
+msgstr "అర్రే ఎంట్రీకి ఒకసారి పునరావృతమవుతుంది"
+
+msgid "Round dragged positions and sizes to this many pixels."
+msgstr "ఈ అనేక పిక్సెల్‌లకు గుండ్రంగా లాగబడిన స్థానాలు మరియు పరిమాణాలు."
+
+msgid "Save Scene To Android Device"
+msgstr "Android పరికరంలో దృశ్యాన్ని సేవ్ చేయండి"
+
+msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "ఈ సెషన్‌లో ఎక్కడైనా చేసిన ప్రతి ఎడిట్‌తో సహా మొత్తం బ్యాకప్‌ను -- ప్రతి ప్రాజెక్ట్, ప్రొఫైల్, టాస్క్ మరియు సీన్‌ని సేవ్ చేస్తుంది.\nఇది ప్రస్తుతం లోడ్ చేయబడిన ఫైల్ యొక్క కొత్త, టైమ్‌స్టాంప్ చేయబడిన కాపీకి వ్రాయబడింది: backup.xml backup_20260728_143005.xml అవుతుంది.\nమీరు లోడ్ చేసిన ఫైల్ ఎప్పటికీ వ్రాయబడలేదు, కనుక ఇది సరిగ్గా అలాగే ఉంచబడుతుంది.\nఅనువర్తనం తర్వాత కొత్త కాపీకి మారుతుంది, ఇది తదుపరి సవరణ మరియు సేవ్ కోసం ప్రస్తుత ఫైల్ అవుతుంది; మళ్లీ సేవ్ చేయడం అనేది రెండవదాన్ని జోడించడం కంటే టైమ్‌స్టాంప్‌ను భర్తీ చేస్తుంది.\nఇది ఈ కంప్యూటర్‌కు మాత్రమే వ్రాస్తుంది -- మీ Android పరికరానికి ఏమీ పంపబడలేదు."
+
+msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
+msgstr "ఈ దృశ్యాన్ని, దాని అన్ని అంశాలతో, ఒక స్వతంత్ర .scn.xml ఫైల్‌గా సేవ్ చేస్తుంది -- టాస్కర్ యొక్క స్వంత దృశ్య ఎగుమతి ఉత్పత్తి చేసే అదే ఫార్మాట్.\n\nసీన్ ఎలిమెంట్స్ రన్ చేసే టాస్క్‌లు చేర్చబడలేదు; వారు వారి స్వంత ప్రాజెక్ట్‌కు చెందినవారు."
+
+msgid "Scene Components"
+msgstr "దృశ్య భాగాలు"
+
+msgid "Scene Name"
+msgstr "సీన్ పేరు"
+
+msgid "Scene Preview"
+msgstr "సీన్ ప్రివ్యూ"
+
+msgid "Scene added."
+msgstr "సన్నివేశం జోడించబడింది."
+
+msgid "Scene type"
+msgstr "దృశ్య రకం"
+
+msgid "Screen"
+msgstr "స్క్రీన్"
+
+msgid "Search elements"
+msgstr "శోధన అంశాలు"
+
+msgid "Search icons"
+msgstr "శోధన చిహ్నాలు"
+
+msgid "Search variables"
+msgstr "శోధన వేరియబుల్స్"
+
+msgid "Select a component on the left."
+msgstr "ఎడమ వైపున ఒక భాగాన్ని ఎంచుకోండి."
+
+msgid "Select a single Scene first (Scene pulldown above)."
+msgstr "ముందుగా ఒకే దృశ్యాన్ని ఎంచుకోండి (పైన దృశ్యం పుల్‌డౌన్)."
+
+msgid "Select a single element to duplicate, delete or restack it."
+msgstr "డూప్లికేట్ చేయడానికి, తొలగించడానికి లేదా రీస్టాక్ చేయడానికి ఒకే మూలకాన్ని ఎంచుకోండి."
+
+msgid "Select an element on the canvas or in the list."
+msgstr "కాన్వాస్‌పై లేదా జాబితాలోని మూలకాన్ని ఎంచుకోండి."
+
+msgid "Show the Task each element runs."
+msgstr "ప్రతి ఎలిమెంట్ రన్ అయ్యే టాస్క్‌ని చూపండి."
+
+msgid "Show what each component does when tapped, and what it writes to."
+msgstr "ప్రతి భాగం నొక్కినప్పుడు ఏమి చేస్తుందో మరియు అది దేనికి వ్రాస్తుందో చూపండి."
+
+msgid "Show when"
+msgstr "ఎప్పుడు చూపించు"
+
+msgid "Size"
+msgstr "పరిమాణం"
+
+msgid "Size must be a whole number (-1 for no layout)."
+msgstr "పరిమాణం తప్పనిసరిగా పూర్తి సంఖ్య అయి ఉండాలి (లేఅవుట్ లేకుండా -1)."
+
+msgid "Snap"
+msgstr "స్నాప్"
+
+msgid "Spinner"
+msgstr "స్పిన్నర్"
+
+msgid "Stop firing anything on this event."
+msgstr "ఈ ఈవెంట్‌లో ఏదైనా కాల్చడం ఆపండి."
+
+msgid "Task action(s) in"
+msgstr "టాస్క్ యాక్షన్(లు) లో"
+
+msgid "Task(s)"
+msgstr "టాస్క్(లు)"
+
+msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
+msgstr "టాస్క్(లు) ఈ దృశ్యాన్ని మ్యాచ్ నమూనా (ఎలిమెంట్ విజిబిలిటీ) ద్వారా సంబోధిస్తుంది. వాటిని మీరే తనిఖీ చేయండి"
+
+msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
+msgstr "టాస్కర్ ఈ ఎలిమెంట్‌ని జాబితా చేస్తుంది, కానీ MapTasker సేవ్ చేయబడిన దృశ్యంలో ఒకదాన్ని చూడలేదు -- దాని రకం మరియు id తప్ప మరేమీ తీసుకోకుండా జోడించబడింది మరియు రకాన్ని కూడా ఎగువ పేరు నుండి ఊహించబడింది (రకం: \"{node_type}\" అని వ్రాయబడింది). టాస్కర్ దానిని గుర్తించకపోతే, అన్డు నొక్కండి."
+
+msgid "Tasker variable(s)"
+msgstr "టాస్కర్ వేరియబుల్(లు)"
+
+msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
+msgstr "టాస్క్‌లు ఈ ఎలిమెంట్‌ను పేరు ద్వారా సంబోధిస్తాయి (మూలకం టెక్స్ట్, ఎలిమెంట్ స్థానం, ... మొత్తం 18 యాక్షన్ కోడ్‌లు), కాబట్టి దీని పేరు మార్చడం ఫీల్డ్ సవరణ కాదు. పేరు మార్చు డైలాగ్ ప్రస్తుత పేరుపై ఆధారపడిన వాటిని జాబితా చేస్తుంది మరియు ఆ టాస్క్‌లను అందించడానికి ఆఫర్ చేస్తుంది."
+
+msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
+msgstr "పేరు ద్వారా ఈ దృశ్యాన్ని చూపించే లేదా దాచిపెట్టే విధులు మార్చబడవు మరియు అవి ఉన్న చోటే ఉంచబడతాయి."
+
+msgid "Text density"
+msgstr "వచన సాంద్రత"
+
+msgid "That component can't go there."
+msgstr "ఆ భాగం అక్కడికి వెళ్లదు."
+
+msgid "That is the file already loaded.  Choose a different one to compare against."
+msgstr "అది ఇప్పటికే లోడ్ చేయబడిన ఫైల్.  పోల్చడానికి వేరొకదాన్ని ఎంచుకోండి."
+
+msgid "The Material icon list could not be read, so type the name instead."
+msgstr "మెటీరియల్ ఐకాన్ జాబితాను చదవడం సాధ్యం కాలేదు, కాబట్టి బదులుగా పేరును టైప్ చేయండి."
+
+msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
+msgstr "టాస్కర్ వేరియబుల్ ఈ భాగం దాని విలువను వ్రాస్తుంది. అనేక కామాలతో వేరు చేయండి. బైండింగ్‌ను సెట్ చేయకుండానే ప్రకటించడానికి ఖాళీగా వదిలివేయండి."
+
+msgid "The Tasks that address it will be updated when this Scene is saved."
+msgstr "ఈ దృశ్యం సేవ్ చేయబడినప్పుడు దాన్ని పరిష్కరించే విధులు నవీకరించబడతాయి."
+
+msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
+msgstr "ఒక వరుస యొక్క లేఅవుట్. టాస్కర్ జాబితాను నింపే ప్రతి ఎంట్రీకి ఒకసారి డ్రా చేస్తాడు, కాబట్టి మీరు ఇక్కడ చూసేది జాబితా కాకుండా ఒకే వరుస."
+
+msgid "The loaded file was saved from"
+msgstr "లోడ్ చేయబడిన ఫైల్ దీని నుండి సేవ్ చేయబడింది"
+
+msgid "The original"
+msgstr "అసలు"
+
+msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
+msgstr "స్క్రీన్ పరిమాణం ఈ పరిదృశ్యం, దృశ్యం కాదు -- వెర్షన్ 2 లేఅవుట్ దాని స్వంత పరిమాణాన్ని కలిగి ఉండదు, కనుక 'స్క్రీన్' రీ-ఫ్లో చూడటానికి మార్చండి. మెటీరియల్ పాత్ర ద్వారా పేరు పెట్టబడిన రంగులు మెటీరియల్ 3 బేస్‌లైన్ పాలెట్ నుండి తీసుకోబడ్డాయి; పరికరం వాటిని దాని స్వంత థీమ్‌కు వ్యతిరేకంగా పరిష్కరిస్తుంది, ఇది మెటీరియల్ కింద మీరు వాల్‌పేపర్ నుండి వస్తుంది. హాచ్డ్ ఫిల్‌లు మరియు ఇటాలిక్ అండర్‌లైన్ టెక్స్ట్ %వేరియబుల్స్. అంబర్ అవుట్‌లైన్‌లు 'ఎప్పుడు చూపు'తో భాగాలను గుర్తు చేస్తాయి. దాని మాడిఫైయర్‌లు, వేరియబుల్స్ మరియు చర్యల కోసం ఏదైనా భాగాన్ని హోవర్ చేయండి."
+
+msgid "The two files hold the same configuration."
+msgstr "రెండు ఫైల్‌లు ఒకే కాన్ఫిగరేషన్‌ను కలిగి ఉంటాయి."
+
+msgid "This Scene has no UI elements."
+msgstr "ఈ దృశ్యంలో UI అంశాలు లేవు."
+
+msgid "This Scene has no landscape layout of its own (its size is -1)."
+msgstr "ఈ దృశ్యానికి దాని స్వంత ల్యాండ్‌స్కేప్ లేఅవుట్ లేదు (దాని పరిమాణం -1)."
+
+msgid "This Scene has no layout for this orientation."
+msgstr "ఈ దృశ్యానికి ఈ ధోరణికి లేఅవుట్ లేదు."
+
+msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
+msgstr "ఈ దృశ్యానికి ప్రాపర్టీస్ ఎలిమెంట్ లేదు. మ్యాప్‌టాస్కర్‌లోని 366 సీన్‌లలో 66 దృశ్యాలు ఏవీ లేవు, కాబట్టి ఇది డ్యామేజ్ కాకుండా సాధారణం."
+
+msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
+msgstr "ఈ దృశ్యం యొక్క వెర్షన్ 2 లేఅవుట్ చదవబడదు మరియు సరిగ్గా అలాగే ఉంచబడుతుంది."
+
+msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
+msgstr "ఈ సీన్ వెర్షన్ 2 లేఅవుట్‌లో రూట్ కాంపోనెంట్ లేదు, కాబట్టి డిజైన్ చేయడానికి ఏమీ లేదు."
+
+msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
+msgstr "ఈ యాప్‌లో ఈ ఎలిమెంట్ రకానికి సంబంధించి ప్రాపర్టీ టేబుల్ లేదు, కాబట్టి దాని జ్యామితిని మాత్రమే ఇక్కడ సవరించవచ్చు. ఇది లేకపోతే అన్‌టాచ్డ్ ద్వారా తీసుకువెళతారు."
+
+msgid "This element has no layout for this orientation."
+msgstr "ఈ మూలకానికి ఈ ధోరణికి లేఅవుట్ లేదు."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "ఇది ఆండ్రాయిడ్ పరికరంలో /Tasker/scenes కింద సీన్‌ని స్వతంత్ర ఫైల్‌గా వ్రాస్తుంది.\n\nIP చిరునామా మరియు పోర్ట్ తప్పనిసరిగా Android పరికరం యొక్క టాస్కర్ సర్వర్ సెట్టింగ్‌లకు సరిపోలాలి.\n\nదీనికి అధికార ప్రాంప్ట్ అవసరం లేదు."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "ఇది మీ Android పరికరంలో /Tasker/scenes కింద సీన్‌ని స్వతంత్ర ఫైల్‌గా వ్రాస్తుంది -- ఇది Tasker ప్రత్యక్ష కాన్ఫిగరేషన్‌లోకి దిగుమతి చేయదు.\n\n'Http సర్వర్ ఉదాహరణ' టాస్కర్ ప్రాజెక్ట్ తప్పనిసరిగా ఇన్‌స్టాల్ చేయబడి, సర్వర్ రన్ అవుతూనే Android పరికరంలో సక్రియంగా ఉండాలి.\n\nAndroid పరికరం తప్పనిసరిగా అదే నెట్‌వర్క్‌లో ఉండాలి మరియు IP చిరునామా మరియు పోర్ట్ దాని టాస్కర్ సర్వర్ సెట్టింగ్‌లకు సరిపోలాలి. దీనికి అధికార ప్రాంప్ట్ అవసరం లేదు."
+
+msgid "Tree label"
+msgstr "చెట్టు లేబుల్"
+
+msgid "Turn the screen on its side and let the layout re-flow into it."
+msgstr "స్క్రీన్‌ను దాని వైపుకు తిప్పండి మరియు లేఅవుట్‌ని దానిలోకి మళ్లీ ప్రవహించనివ్వండి."
+
+msgid "Undo"
+msgstr "అన్డు"
+
+msgid "Using the saved size"
+msgstr "సేవ్ చేసిన పరిమాణాన్ని ఉపయోగించడం"
+
+msgid "Variable"
+msgstr "వేరియబుల్"
+
+msgid "Variables"
+msgstr "వేరియబుల్స్"
+
+msgid "Version 2"
+msgstr "వెర్షన్ 2"
+
+msgid "View Limit"
+msgstr "వీక్షణ పరిమితి"
+
+msgid "What you pick goes in at the cursor. Open this again to add the next piece."
+msgstr "మీరు ఎంచుకున్నది కర్సర్‌లో చేరుతుంది. తదుపరి భాగాన్ని జోడించడానికి దీన్ని మళ్లీ తెరవండి."
+
+msgid "What you pick replaces what the field holds. Type to narrow the list down."
+msgstr "మీరు ఎంచుకున్నది ఫీల్డ్ కలిగి ఉన్న దాని స్థానంలో ఉంటుంది. జాబితాను తగ్గించడానికి టైప్ చేయండి."
+
+msgid "Which kind of Scene?"
+msgstr "ఏ రకమైన దృశ్యం?"
+
+msgid "Writes to variable"
+msgstr "వేరియబుల్‌కి వ్రాస్తుంది"
+
+msgid "Zoom"
+msgstr "జూమ్ చేయండి"
+
+msgid "component(s)"
+msgstr "భాగం(లు)"
+
+msgid "connectors"
+msgstr "కనెక్టర్లు"
+
+msgid "drag or nudge any of them and they all move together."
+msgstr "వాటిలో దేనినైనా లాగండి లేదా నడ్జ్ చేయండి మరియు అవన్నీ కలిసి కదులుతాయి."
+
+msgid "editing 1 of"
+msgstr "1 లో సవరణ"
+
+msgid "element(s)"
+msgstr "మూలకం(లు)"
+
+msgid "elements selected"
+msgstr "ఎలిమెంట్స్ ఎంచుకోబడ్డాయి"
+
+msgid "is not a whole number"
+msgstr "పూర్ణ సంఖ్య కాదు"
+
+msgid "lines dropped"
+msgstr "పంక్తులు పడిపోయాయి"
+
+msgid "none"
+msgstr "ఏదీ లేదు"
+
+msgid "not drawn"
+msgstr "డ్రా చేయలేదు"
+
+msgid "pair"
+msgstr "జత"
+
+msgid "pixels"
+msgstr "పిక్సెల్‌లు"
+
+msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
+msgstr "ఈ దృశ్యం సేవ్ చేయబడినప్పుడు వర్తించబడుతుంది, ఇప్పుడు కాదు -- సీన్‌లో రద్దు చేయి డైలాగ్ మూలకం మరియు టాస్క్‌లు రెండింటినీ సరిగ్గా అలాగే ఉంచుతుంది."
+
+msgid "Event handlers"
+msgstr "ఈవెంట్ హ్యాండ్లర్లు"
+
+msgid "Health Check"
+msgstr "ఆరోగ్య తనిఖీ"
+
+msgid "Health Check found no errors or warnings."
+msgstr "ఆరోగ్య తనిఖీలో లోపాలు లేదా హెచ్చరికలు ఏవీ కనుగొనబడలేదు."
+
+msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
+msgstr "పాప్-అప్ సందేశం కనిపించకుండా పోయే ముందు ఎంతసేపు స్క్రీన్‌పై ఉంటుంది.\n\n'తొలగించబడే వరకు' మీరు ప్రతి సందేశాన్ని మూసివేసే వరకు ఉంచుతుంది, ఇది మీరు చదవడానికి ముందు సందేశం స్క్రోల్ చేసినప్పుడు ఉపయోగకరంగా ఉంటుంది.\n\nకొన్ని సందేశాలు వాటి స్వంత ఎక్కువ వ్యవధిని సెట్ చేస్తాయి ఎందుకంటే అవి మీరు చదవవలసిన అంశాలను జాబితా చేస్తాయి -- ఉదాహరణకు, దృశ్య మూలకాన్ని తొలగించడం లేదా పేరు మార్చడం ద్వారా ప్రభావితమయ్యే విధులు. వారు ఇక్కడ ఏది ఎంచుకున్నా వారి స్వంత సమయాన్ని ఉంచుకుంటారు."
+
+msgid "Item layout"
+msgstr "అంశం లేఅవుట్"
+
+msgid "MapTasker: view limit reached, diagram truncated"
+msgstr "MapTasker: వీక్షణ పరిమితిని చేరుకున్నారు, రేఖాచిత్రం కత్తిరించబడింది"
+
+msgid "Notification Duration:"
+msgstr "నోటిఫికేషన్ వ్యవధి:"
+
+msgid "On"
+msgstr "ఆన్"
+
+msgid "Outline every component and name it, the way the designer's tree names it."
+msgstr "ప్రతి భాగాన్ని వివరించండి మరియు డిజైనర్ చెట్టు పేరు పెట్టే విధంగా పేరు పెట్టండి."
+
+msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
+msgstr "లక్షణాలు ఒక సమయంలో ఒక మూలకం సవరించబడతాయి. ఎంచుకున్న ప్రతిదాన్ని లాగడం మరియు నడ్ చేయడం."
+
+msgid "Refresh"
+msgstr "రిఫ్రెష్ చేయండి"
+
+msgid "Rename Element"
+msgstr "మూలకం పేరు మార్చండి"
+
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "విరిగిన సూచనలు, ప్రస్తావించని పనులు, ప్రొఫైల్‌లు మరియు దృశ్యాలు మరియు నామకరణ సమస్యల కోసం లోడ్ చేయబడిన XMLని స్కాన్ చేయండి.\n\nఫలితాలు ఇక్కడ ప్రదర్శించబడతాయి మరియు ప్రస్తుత డైరెక్టరీలోని టెక్స్ట్ ఫైల్‌లో సేవ్ చేయబడతాయి."
+
+msgid "Scene Elements"
+msgstr "సీన్ ఎలిమెంట్స్"
+
+msgid "Scene Properties"
+msgstr "దృశ్య లక్షణాలు"
+
+msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
+msgstr "మిగిలిన వాటిని చూడటానికి పెద్ద వీక్షణ పరిమితిని లేదా ఒకే ప్రాజెక్ట్ / ప్రొఫైల్ / టాస్క్‌ని ఎంచుకోండి."
+
+msgid "Select an element first."
+msgstr "ముందుగా ఒక మూలకాన్ని ఎంచుకోండి."
+
+msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
+msgstr "టాస్కర్ ఈ టాస్క్‌ను సీన్ లోపల ఉంచుతుంది మరియు మరెక్కడా ఉండదు, కాబట్టి దీనికి పేరు లేదు మరియు దానిని కోల్పోకుండా మరెక్కడా సూచించబడదు. ఇది తాకబడని ద్వారా తీసుకువెళుతుంది."
+
+msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
+msgstr "టాస్కర్ యొక్క స్క్రీన్ బిల్డర్: నిర్ణీత కాన్వాస్ పరిమాణం లేకుండా, దానికదే నిర్దేశించబడిన డిక్లరేటివ్ కాంపోనెంట్ ట్రీ (కాలమ్, రో, స్కాఫోల్డ్, ...). దీని నుండి ప్రారంభించండి:"
+
+msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
+msgstr "అసలు దృశ్యం: UI మూలకాలు పరిమాణ కాన్వాస్‌పై స్థిర స్థానాల్లో ఉంచబడ్డాయి (టెక్స్ట్, బటన్, రెక్ట్, ఇమేజ్, వెబ్, ...)."
+
+msgid "The search did not finish. The view may be too large, or the browser is busy."
+msgstr "అన్వేషణ పూర్తి కాలేదు. వీక్షణ చాలా పెద్దదిగా ఉండవచ్చు లేదా బ్రౌజర్ బిజీగా ఉండవచ్చు."

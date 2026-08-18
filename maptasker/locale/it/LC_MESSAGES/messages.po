@@ -1584,3 +1584,578 @@ msgstr "MapTasker: limite di visualizzazione raggiunto, arresto dell'output nel 
 
 msgid "hardstop view limit"
 msgstr "limite di visualizzazione dell'hardstop"
+
+msgid "(empty)"
+msgstr "(vuoto)"
+
+msgid "(no name)"
+msgstr "(nessun nome)"
+
+msgid "(unnamed Task)"
+msgstr "(Attività senza nome)"
+
+msgid "-1 means this orientation has no layout of its own."
+msgstr "-1 significa che questo orientamento non ha un layout proprio."
+
+msgid "...and {count} more -- type above to narrow it down."
+msgstr "...e altri {count} -- scrivi sopra per restringere il campo."
+
+msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
+msgstr "Le posizioni degli elementi di una scena vengono archiviate in pixel del dispositivo, ma le dimensioni del testo vengono archiviate nelle unità sp di Android. Il numero che converte tra i due è una proprietà del telefono su cui viene mostrata la scena e non è presente nel file di backup.\n\nQuindi è ambientato qui. Alzalo se il testo sembra troppo piccolo per i suoi elementi, abbassalo se il testo li trabocca."
+
+msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
+msgstr "Una scena della versione 2 non ha dimensioni proprie: si dispone all'interno dello schermo su cui viene mostrata, quindi non c'è nulla nel file di backup su cui disegnarla.\n\nModificarlo per vedere il layout rifluire. Una riga di flusso va a capo in modo diverso e qualsiasi \"Mostra quando\" scritto su %sv2_render_width chiede esattamente questo."
+
+msgid "Actions"
+msgstr "Azioni"
+
+msgid "Add"
+msgstr "Aggiungere"
+
+msgid "Add Element"
+msgstr "Aggiungi elemento"
+
+msgid "Add Scene"
+msgstr "Aggiungi scena"
+
+msgid "Add a background"
+msgstr "Aggiungi uno sfondo"
+
+msgid "Add action"
+msgstr "Aggiungi azione"
+
+msgid "Add event"
+msgstr "Aggiungi evento"
+
+msgid "Add handler"
+msgstr "Aggiungi gestore"
+
+msgid "Add modifier"
+msgstr "Aggiungi modificatore"
+
+msgid "Addressed by id from"
+msgstr "Indirizzato dall'ID di"
+
+msgid "Adds an element on top of the stack, in the middle of the Scene."
+msgstr "Aggiunge un elemento in cima alla pila, al centro della scena."
+
+msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
+msgstr "Aggiunge all'interno del componente selezionato se può contenere figli, altrimenti direttamente dopo di esso."
+
+msgid "(unnamed)"
+msgstr "(senza nome)"
+
+msgid "Add scene properties"
+msgstr "Aggiungi proprietà alla scena"
+
+msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
+msgstr "Lo aggiunge in cima allo stack, al centro della scena. Trascinalo dove vuoi."
+
+msgid "Also selected:"
+msgstr "Selezionato anche:"
+
+msgid "Also update"
+msgstr "Aggiorna anche"
+
+msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
+msgstr "Ambra: Tasker lo elenca, ma MapTasker non ne ha un campione confermato. Grigio: non può andare dove lo metterebbe la selezione."
+
+msgid "App icon"
+msgstr "Icona dell'app"
+
+msgid "Appearance Mode"
+msgstr "Modalità Aspetto"
+
+msgid "Applied in order — the one at the bottom sits on top."
+msgstr "Applicato in ordine: quello in basso si trova sopra."
+
+msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
+msgstr "Applicato quando questa scena viene salvata, non ora: Annulla nella finestra di dialogo Scena lascia sia l'elemento che le attività esattamente come erano."
+
+msgid "Back to Editor"
+msgstr "Torniamo all'editore"
+
+msgid "Bounds"
+msgstr "Limiti"
+
+msgid "Cancelled. Changes to this Scene were discarded."
+msgstr "Annullato. Le modifiche a questa scena sono state scartate."
+
+msgid "Choose another file..."
+msgstr "Scegli un altro file..."
+
+msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
+msgstr "Fare clic su un componente per selezionarlo, fare clic tenendo premuto il tasto Maiusc su un altro nello stesso contenitore per prenderne diversi e trascinarli per riordinarli tra i propri fratelli. Lo spostamento di un componente dentro o fuori da un contenitore avviene tramite i pulsanti Dentro e Fuori dell'editor; C'è anche l'annullamento."
+
+msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
+msgstr "Fai clic su un elemento per selezionarlo, fai clic tenendo premuto il tasto Maiusc o trascina una casella sullo sfondo per prenderne diversi e trascina uno di essi per spostarli tutti: i tasti freccia spingono, Maiusc per 10px. Trascina una maniglia per ridimensionare un singolo elemento. L'annullamento e tutto il resto relativo a un elemento sono tornati nell'editor."
+
+msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
+msgstr "Fare clic su un elemento per selezionarlo, trascinare per spostare, trascinare una maniglia per ridimensionare, i tasti freccia per spostare (Shift per 10px). Fai clic tenendo premuto il tasto Maiusc o trascina una casella sullo sfondo per scattarne diverse contemporaneamente."
+
+msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
+msgstr "Si chiude senza salvare e ripristina la scena esattamente com'era all'apertura della finestra di dialogo, incluso qualsiasi cosa spostata o ridimensionata nell'anteprima.\n\nUna Rinomina è l'unica cosa che non può essere annullata: viene applicata al backup caricato non appena viene confermato e chiude con esso questa finestra di dialogo."
+
+msgid "Compare Files"
+msgstr "Confronta file"
+
+msgid "Compare With"
+msgstr "Confronta con"
+
+msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Confronta un altro file XML con quello caricato: cosa è stato aggiunto, rimosso, rinominato e modificato.\n\nUsalo per vedere cosa ha portato un'importazione TaskerNet, cosa è cambiato una modifica o cosa c'è di diverso tra due backup.\n\nSe il file caricato proviene da \"Salva nel file corrente\", viene proposto direttamente il file da cui è stato salvato.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."
+
+msgid "Comparison cancelled."
+msgstr "Confronto annullato."
+
+msgid "Comparison report could not be saved."
+msgstr "Impossibile salvare il rapporto di confronto."
+
+msgid "Comparison saved as"
+msgstr "Confronto salvato con nome"
+
+msgid "Delete Scene"
+msgstr "Elimina scena"
+
+msgid "Done"
+msgstr "Fatto"
+
+msgid "Drawn in"
+msgstr "Attratto"
+
+msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
+msgstr "Disegna questa scena come un'immagine nella finestra principale, inclusi i componenti che hai aggiunto o modificato qui ma non ancora salvati.\n\nUn layout della versione 2 non ha dimensioni proprie, quindi l'anteprima lo dispone in una schermata scelta e la ridispone quando la modifichi.\n\nQuesta finestra di dialogo si chiude mentre l'anteprima è attiva, mantenendo tutto ciò che contiene; il pulsante \"Torna all'editor\" dell'anteprima lo riporta indietro.\n\nÈ una rappresentazione, non il renderer di Tasker: le %variabili sono denominate anziché risolte, i colori dei materiali provengono dalla tavolozza di base anziché dal tema del dispositivo e immagini, video e contenuti Web vengono visualizzati come segnaposto."
+
+msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
+msgstr "Disegna questa scena come un'immagine nella finestra principale, nella dimensione digitata sopra, comprese le modifiche non ancora salvate.\n\nQuesta finestra di dialogo si chiude mentre l'anteprima è attiva, mantenendo tutto ciò che contiene; il pulsante \"Torna all'editor\" dell'anteprima lo riporta indietro.\n\nÈ una rappresentazione, non il renderer di Tasker: le variabili % sono denominate anziché risolte e immagini, video e contenuto web vengono mostrati come segnaposto."
+
+msgid "Dropdown menu — shown when opened"
+msgstr "Menu a discesa: mostrato all'apertura"
+
+msgid "Duplicate"
+msgstr "Duplicato"
+
+msgid "Dynamic and Select Variable are worked out when the Scene is shown."
+msgstr "Dynamic e Select Variable vengono elaborati quando viene mostrata la scena."
+
+msgid "Dynamic value"
+msgstr "Valore dinamico"
+
+msgid "Edit Scene"
+msgstr "Modifica scena"
+
+msgid "Edit item layout"
+msgstr "Modifica il layout dell'elemento"
+
+msgid "Event handlers"
+msgstr "Gestori di eventi"
+
+msgid "Export Scene"
+msgstr "Esporta scena"
+
+msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
+msgstr "Grigio: MapTasker non ha una tabella degli argomenti, quindi non può essere creato senza indovinare cosa si aspetta Tasker al suo interno. Le intestazioni sono il raggruppamento di MapTasker."
+
+msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
+msgstr "I riempimenti tratteggiati e il testo sottolineato in corsivo sono variabili %: i loro valori risiedono sul dispositivo, non nel backup, quindi vengono nominati anziché indovinati. Immagini, video, mappe e contenuti web vengono visualizzati come segnaposto. Passa il mouse su qualsiasi elemento per la sua geometria, le sue variabili e le attività che esegue."
+
+msgid "Health Check"
+msgstr "Controllo dello stato di salute"
+
+msgid "Health Check found no errors or warnings."
+msgstr "Il controllo dello stato non ha rilevato errori o avvisi."
+
+msgid "Health Check report could not be saved."
+msgstr "Impossibile salvare il rapporto di controllo dello stato."
+
+msgid "Health Check saved as"
+msgstr "Controllo dello stato salvato con nome"
+
+msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
+msgstr "Quanto tempo un messaggio pop-up rimane sullo schermo prima di scomparire.\n\n\"Fino al licenziamento\" mantiene tutti i messaggi finché non li chiudi, il che è utile quando un messaggio scorre prima che tu possa leggerlo.\n\nAlcuni messaggi impostano una durata più lunga perché elencano le cose che devi leggere, ad esempio le attività interessate dall'eliminazione o dalla ridenominazione di un elemento della scena. Quelli mantengono i propri tempi qualunque sia scelto qui."
+
+msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
+msgstr "Nell'elenco: fare clic tenendo premuto Maiusc per un intervallo, fare clic tenendo premuto Ctrl o Comando per aggiungerne o rimuoverne uno."
+
+msgid "Item layout"
+msgstr "Disposizione dell'articolo"
+
+msgid "Landscape"
+msgstr "Paesaggio"
+
+msgid "Legacy"
+msgstr "Eredità"
+
+msgid "Legacy Scene"
+msgstr "Scena ereditaria"
+
+msgid "List"
+msgstr "Lista"
+
+msgid "MapTasker: view limit reached, diagram truncated"
+msgstr "MapTasker: limite di visualizzazione raggiunto, diagramma troncato"
+
+msgid "Modifiers"
+msgstr "Modificatori"
+
+msgid "Never updated"
+msgstr "Mai aggiornato"
+
+msgid "No Task addresses this element by name."
+msgstr "Nessuna attività indirizza questo elemento per nome."
+
+msgid "No XML file has been loaded.  Get an XML file first."
+msgstr "Nessun file XML è stato caricato.  Ottieni prima un file XML."
+
+msgid "No element matches that."
+msgstr "Nessun elemento corrisponde a quello."
+
+msgid "Not an HTML colour name or #hex value."
+msgstr "Non un nome di colore HTML o un valore #hex."
+
+msgid "Not updated -- these name both this Scene and this element, but not as a"
+msgstr "Non aggiornato: nominano sia questa scena che questo elemento, ma non come a"
+
+msgid "Nothing here."
+msgstr "Niente qui."
+
+msgid "Notification Duration"
+msgstr "Durata della notifica"
+
+msgid "Notification Duration:"
+msgstr "Durata della notifica:"
+
+msgid "On"
+msgstr "SU"
+
+msgid "Only when"
+msgstr "Solo quando"
+
+msgid "Outline every component and name it, the way the designer's tree names it."
+msgstr "Delinea ogni componente e assegnagli un nome, come lo chiama l'albero del progettista."
+
+msgid "Outline every element and name it."
+msgstr "Delinea ogni elemento e dagli un nome."
+
+msgid "Pick a Material icon."
+msgstr "Scegli un'icona Materiale."
+
+msgid "Pick an icon"
+msgstr "Scegli un'icona"
+
+msgid "Pick from the Scene's environment and global variables."
+msgstr "Scegli dall'ambiente della scena e dalle variabili globali."
+
+msgid "Pick one of Material's own colour roles."
+msgstr "Scegli uno dei ruoli cromatici del Materiale."
+
+msgid "Preview"
+msgstr "Anteprima"
+
+msgid "Project(s) that list it."
+msgstr "Progetti che lo elencano."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
+msgstr "Richiede un nuovo nome e lo applica subito al backup caricato, rinominando la scena ovunque, incluso nell'elenco delle scene di ogni progetto che la contiene.\n\nLe attività che mostrano o nascondono questa scena per nome NON vengono aggiornate; quelli chiamano ancora la vecchia Scena.\n\nIl campo Nome scena sopra è di sola lettura: questo è l'unico modo per modificarlo."
+
+msgid "Properties"
+msgstr "Proprietà"
+
+msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
+msgstr "Le proprietà vengono modificate un elemento alla volta. Trascinando e spingendo si sposta tutto ciò che è selezionato."
+
+msgid "Refresh"
+msgstr "Aggiorna"
+
+msgid "Remove background"
+msgstr "Rimuovi lo sfondo"
+
+msgid "Rename Element"
+msgstr "Rinomina elemento"
+
+msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
+msgstr "Rinominare un elemento qui non spazza il backup: il layout di un elemento non ha un nome di scena per l'azione Elemento di un'attività con cui indirizzarlo, quindi non c'è nulla da riscrivere."
+
+msgid "Repeats once per array entry"
+msgstr "Si ripete una volta per voce dell'array"
+
+msgid "Round dragged positions and sizes to this many pixels."
+msgstr "Arrotonda le posizioni e le dimensioni trascinate a questo numero di pixel."
+
+msgid "Save Scene To Android Device"
+msgstr "Salva scena sul dispositivo Android"
+
+msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Salva l'intero backup (ogni progetto, profilo, attività e scena al suo interno, non solo questa scena) inclusa ogni modifica apportata ovunque in questa sessione.\nViene scritto su una nuova copia con timestamp del file attualmente caricato: backup.xml diventa backup_20260728_143005.xml.\nIl file caricato non viene mai scritto, quindi viene lasciato esattamente com'era.\nL'app passa quindi alla nuova copia, che diventa il file corrente per eventuali ulteriori modifiche e salvataggi; il salvataggio di nuovo sostituisce il timestamp anziché aggiungerne un secondo.\nViene scritto solo su questo computer: non viene inviato nulla al tuo dispositivo Android."
+
+msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
+msgstr "Salva questa scena, con tutti i suoi elementi, come un file .scn.xml autonomo, lo stesso formato prodotto dall'esportazione della scena di Tasker.\n\nLe attività eseguite dagli elementi della scena non sono incluse; appartengono al proprio Progetto."
+
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Esegui la scansione del codice XML caricato per individuare riferimenti interrotti, attività, profili e scene senza riferimenti e problemi di denominazione.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."
+
+msgid "Scene Components"
+msgstr "Componenti della scena"
+
+msgid "Scene Elements"
+msgstr "Elementi di scena"
+
+msgid "Scene Name"
+msgstr "Nome della scena"
+
+msgid "Scene Preview"
+msgstr "Anteprima della scena"
+
+msgid "Scene Properties"
+msgstr "Proprietà della scena"
+
+msgid "Scene added."
+msgstr "Scena aggiunta."
+
+msgid "Scene type"
+msgstr "Tipo di scena"
+
+msgid "Screen"
+msgstr "Schermo"
+
+msgid "Search elements"
+msgstr "Cerca elementi"
+
+msgid "Search icons"
+msgstr "Icone di ricerca"
+
+msgid "Search variables"
+msgstr "Cerca variabili"
+
+msgid "Select a component on the left."
+msgstr "Seleziona un componente a sinistra."
+
+msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
+msgstr "Seleziona un limite di visualizzazione più ampio o un singolo progetto/profilo/attività per vedere il resto."
+
+msgid "Select a single Scene first (Scene pulldown above)."
+msgstr "Selezionare prima una singola scena (elenco a discesa delle scene sopra)."
+
+msgid "Select a single element to duplicate, delete or restack it."
+msgstr "Seleziona un singolo elemento per duplicarlo, eliminarlo o rimontarlo."
+
+msgid "Select an element first."
+msgstr "Seleziona prima un elemento."
+
+msgid "Select an element on the canvas or in the list."
+msgstr "Seleziona un elemento nell'area di disegno o nell'elenco."
+
+msgid "Show the Task each element runs."
+msgstr "Mostra l'attività eseguita da ciascun elemento."
+
+msgid "Show what each component does when tapped, and what it writes to."
+msgstr "Mostra cosa fa ogni componente quando viene toccato e su cosa scrive."
+
+msgid "Show when"
+msgstr "Mostra quando"
+
+msgid "Size"
+msgstr "Misurare"
+
+msgid "Size must be a whole number (-1 for no layout)."
+msgstr "La dimensione deve essere un numero intero (-1 per nessun layout)."
+
+msgid "Snap"
+msgstr "Affrettato"
+
+msgid "Spinner"
+msgstr "Filatore"
+
+msgid "Stop firing anything on this event."
+msgstr "Smettila di sparare qualsiasi cosa su questo evento."
+
+msgid "Task action(s) in"
+msgstr "Azione/i dell'attività in"
+
+msgid "Task(s)"
+msgstr "Compiti)"
+
+msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
+msgstr "Le attività affrontano questa scena tramite un modello di corrispondenza (visibilità dell'elemento). Controllali tu stesso"
+
+msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
+msgstr "Tasker mantiene questa attività all'interno della scena e da nessun'altra parte, quindi non ha nome e non può essere indirizzata altrove senza perderla. Viene portato avanti intatto."
+
+msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
+msgstr "Tasker elenca questo elemento, ma MapTasker non ne ha mai visto uno in una scena salvata, quindi viene aggiunto non portando altro che il suo tipo e id, e anche il tipo viene dedotto dal nome sopra (scritto come tipo: \"{node_type}\"). Se Tasker non lo riconosce, premi Annulla."
+
+msgid "Tasker variable(s)"
+msgstr "Variabili di Tasker"
+
+msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
+msgstr "Screen Builder di Tasker: un albero di componenti dichiarativi (colonna, riga, impalcatura, ...) che si dispone da solo, senza dimensioni fisse della tela. Inizia da:"
+
+msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
+msgstr "Le attività indirizzano questo elemento per nome (Testo elemento, Posizione elemento, ... 18 codici azione in tutto), quindi rinominarlo non è una modifica del campo. La finestra di dialogo Rinomina elenca ciò che dipende dal nome corrente e offre di portare con sé tali attività."
+
+msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
+msgstr "Le attività che mostrano o nascondono questa scena per nome non vengono modificate e rimangono dove sono."
+
+msgid "Text density"
+msgstr "Densità del testo"
+
+msgid "That component can't go there."
+msgstr "Quel componente non può andare lì."
+
+msgid "That is the file already loaded.  Choose a different one to compare against."
+msgstr "Questo è il file già caricato.  Scegline uno diverso con cui confrontarlo."
+
+msgid "The Material icon list could not be read, so type the name instead."
+msgstr "Impossibile leggere l'elenco delle icone dei materiali, quindi digita il nome."
+
+msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
+msgstr "La variabile Tasker in cui questo componente scrive il suo valore. Separarne diversi con virgole. Lasciare vuoto per dichiarare l'associazione senza impostarla."
+
+msgid "The Tasks that address it will be updated when this Scene is saved."
+msgstr "Le attività che lo affrontano verranno aggiornate quando questa scena viene salvata."
+
+msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
+msgstr "Il layout di una riga. Tasker lo disegna una volta per ogni voce di qualunque cosa riempia l'elenco, quindi quello che vedi qui è una singola riga anziché l'elenco."
+
+msgid "The loaded file was saved from"
+msgstr "Il file caricato è stato salvato da"
+
+msgid "The original"
+msgstr "L'originale"
+
+msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
+msgstr "La scena originale: elementi dell'interfaccia utente posizionati in posizioni fisse su una tela di dimensioni (testo, pulsante, rettangolo, immagine, Web, ...)."
+
+msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
+msgstr "La dimensione dello schermo è quella di questa anteprima, non quella della scena: un layout della versione 2 non ha dimensioni proprie, quindi cambia \"Schermo\" per vederlo rifluire. I colori nominati in base al ruolo del materiale vengono estratti dalla tavolozza di base del Materiale 3; il dispositivo li risolve rispetto al proprio tema, che in Material You proviene dallo sfondo. I riempimenti tratteggiati e il testo sottolineato in corsivo sono variabili %. I contorni color ambra contrassegnano i componenti con \"Mostra quando\". Passa il mouse su qualsiasi componente per i suoi modificatori, variabili e azioni."
+
+msgid "The search did not finish. The view may be too large, or the browser is busy."
+msgstr "La ricerca non è finita. La visualizzazione potrebbe essere troppo grande o il browser è occupato."
+
+msgid "The two files hold the same configuration."
+msgstr "I due file contengono la stessa configurazione."
+
+msgid "This Scene has no UI elements."
+msgstr "Questa scena non ha elementi dell'interfaccia utente."
+
+msgid "This Scene has no landscape layout of its own (its size is -1)."
+msgstr "Questa scena non ha una propria disposizione orizzontale (la sua dimensione è -1)."
+
+msgid "This Scene has no layout for this orientation."
+msgstr "Questa scena non ha layout per questo orientamento."
+
+msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
+msgstr "Questa scena non ha elementi proprietà. Anche 66 delle 366 scene che MapTasker ha visto non ne hanno, quindi si tratta di un danno normale e non di un danno."
+
+msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
+msgstr "Impossibile leggere il layout della versione 2 di questa scena e verrà lasciato esattamente così com'è."
+
+msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
+msgstr "Il layout della versione 2 di questa scena non ha un componente root, quindi non c'è nulla da progettare."
+
+msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
+msgstr "Questa app non ha una tabella delle proprietà per questo tipo di elemento, quindi qui è possibile modificare solo la sua geometria. Altrimenti viene portato avanti intatto."
+
+msgid "This element has no layout for this orientation."
+msgstr "Questo elemento non ha layout per questo orientamento."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Questo scriverà la scena come file autonomo sul dispositivo Android, in /Tasker/scene.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nPer questo non è necessaria alcuna richiesta di autorizzazione."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Questo scriverà la scena come file autonomo sul tuo dispositivo Android, in /Tasker/scene - non la importerà nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker. Per questo non è necessaria alcuna richiesta di autorizzazione."
+
+msgid "Tree label"
+msgstr "Etichetta dell'albero"
+
+msgid "Turn the screen on its side and let the layout re-flow into it."
+msgstr "Capovolgi lo schermo e lascia che il layout rifluisca al suo interno."
+
+msgid "Undo"
+msgstr "Disfare"
+
+msgid "Using the saved size"
+msgstr "Utilizzando la dimensione salvata"
+
+msgid "Variable"
+msgstr "Variabile"
+
+msgid "Variables"
+msgstr "Variabili"
+
+msgid "Version 2"
+msgstr "Versione 2"
+
+msgid "View Limit"
+msgstr "Visualizza limite"
+
+msgid "What you pick goes in at the cursor. Open this again to add the next piece."
+msgstr "Ciò che scegli va in corrispondenza del cursore. Aprilo di nuovo per aggiungere il pezzo successivo."
+
+msgid "Edit this one's properties instead, keeping the selection."
+msgstr "Modifica invece le proprietà di questo, mantenendo la selezione."
+
+msgid "Geometry"
+msgstr "Geometria"
+
+msgid "What you pick replaces what the field holds. Type to narrow the list down."
+msgstr "Ciò che scegli sostituisce ciò che contiene il campo. Digitare per restringere l'elenco."
+
+
+
+msgid "Which kind of Scene?"
+msgstr "Che tipo di scena?"
+
+
+msgid "Writes to variable"
+msgstr "Scrive nella variabile"
+
+
+msgid "Zoom"
+msgstr "Zoom"
+
+
+msgid "component(s)"
+msgstr "componente(i)"
+
+
+msgid "connectors"
+msgstr "connettori"
+
+
+msgid "drag or nudge any of them and they all move together."
+msgstr "trascina o spostane uno e si muoveranno tutti insieme."
+
+
+msgid "element(s)"
+msgstr "elementi)"
+
+msgid "is not a whole number"
+msgstr "non è un numero intero"
+
+msgid "elements selected"
+msgstr "elementi selezionati"
+
+
+msgid "lines dropped"
+msgstr "le linee sono cadute"
+
+
+msgid "none"
+msgstr "nessuno"
+
+
+msgid "not drawn"
+msgstr "non disegnato"
+
+
+msgid "pair"
+msgstr "paio"
+
+
+msgid "pixels"
+msgstr "pixel"
+
+
+msgid "editing 1 of"
+msgstr "modifica 1 di"

@@ -577,7 +577,13 @@ _XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?
 # Matches the "_YYYYMMDD_HHMMSS" suffix write_full_backup_to_current_file appends to
 # a filename's base (before the extension) -- used to strip a pre-existing one before
 # appending the current timestamp, rather than stacking a new suffix on every save.
-_TIMESTAMP_SUFFIX_RE = re.compile(r"_\d{8}_\d{6}$")
+#
+# Public because it is the only description of this naming scheme anywhere: diffload
+# reads it the other way round, to work out which file a "Save To Current File" copy was
+# made FROM, so that "Compare with the original" needs no file picker.  A second copy of
+# this pattern living over there would be free to drift away from the one that writes the
+# names.
+TIMESTAMP_SUFFIX_RE = re.compile(r"_\d{8}_\d{6}$")
 
 
 def write_full_backup_to_current_file() -> tuple[bool, str]:
@@ -588,7 +594,7 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     any Task/Profile edits made through Edit/Add Task/Profile -- applied to
     that copy. If that file is itself an earlier such copy (its name already
     ends in a "_YYYYMMDD_HHMMSS" this same scheme produced -- see
-    _TIMESTAMP_SUFFIX_RE), the new timestamp replaces the old one instead of
+    TIMESTAMP_SUFFIX_RE), the new timestamp replaces the old one instead of
     stacking another suffix on top, so repeated saves stay
     backup_20260721_143005.xml -> backup_20260721_150112.xml rather than
     growing a new suffix each time. Backs the "Save To Current File" button in
@@ -737,7 +743,7 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     # copy (i.e. its name already ends in a timestamp this same scheme produced),
     # replace that timestamp instead of appending another one -- otherwise every
     # save would tack on yet another suffix (backup_20260101_120000_20260101_130000...).
-    base_path = _TIMESTAMP_SUFFIX_RE.sub("", base_path)
+    base_path = TIMESTAMP_SUFFIX_RE.sub("", base_path)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # noqa: DTZ005
     new_file_path = f"{base_path}_{timestamp}{extension}"
 

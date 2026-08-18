@@ -38,18 +38,23 @@ from maptasker.src.primitem import PrimeItems
 #   Project 'Good'    pids 10,12 (ok), 99 (missing), tids 20,21,26,96 (96 missing),
 #                     scenes 'Menu','Backstage','Inline','Curtain' (ok), 'Ghost' (missing)
 #   Project 'Hollow'  no Profiles, no Tasks -> EMPTY-PROJECT
+#   Project 'Elsewhere'  holds Profile 14, the other half of the 'Twin' duplicate pair
+#   Profile 13/14     both named 'Twin', in different Projects -> DUPLICATE-NAME naming
+#                     the Project each copy sits in
 #   Profile 10        entry Task 20 (ok), exit Task 98 (missing) -> BROKEN-TASK-REF
 #   Profile 11        in no Project's <pids> -> ORPHAN-PROFILE, and disabled.  Runs Task
 #                     25 so that the duplicate-name pair below does not also land in the
-#                     unreachable count and blur what that test is measuring.
+#                     unreferenced count and blur what that test is measuring.
 #   Task 20 'Runner'  calls 'Helper' (ok) and 'Nowhere' (missing), shows Scene 'Menu'
 #                     (ok) and Scene 'Vanished' (missing), and %Var (unresolvable)
 #   Task 21 'Helper'  reached by Task 20
-#   Task 22 'Dead'    nothing runs it -> UNREACHABLE-TASK
-#   Task 23 'Widget'  named by a Set Widget Label action -> NOT unreachable
+#   Task 22 'Dead'    nothing runs it -> UNREFERENCED-TASK
+#   Task 23 'Widget'  named by a Set Widget Label action -> NOT unreferenced
 #   Task 24 'Dupe'    same name as Task 25 -> DUPLICATE-NAME.  Fired by Scene 'Menu'.
+#                     In Project 'Good' <tids> where Task 25 is in none, so the finding
+#                     has to render an owned copy and an unowned one side by side.
 #   Task 25 'Dupe'    run by Profile 11.
-#   Task 26 'Owned'   in Project 'Good' <tids> but nothing runs it -> UNREACHABLE-TASK,
+#   Task 26 'Owned'   in Project 'Good' <tids> but nothing runs it -> UNREFERENCED-TASK,
 #                     which is the ownership-is-not-invocation case.
 #   Profile 12        run by Project 'Good'.  Its entry Task 27 has no name at all.
 #   Task 27 (unnamed) shows Scene 'Backstage' -- the Profile > anonymous Task > Scene
@@ -65,9 +70,13 @@ from maptasker.src.primitem import PrimeItems
 _DEFECTIVE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Project sr="proj0" ve="2">
     <name>Good</name>
-    <pids>10,12,99</pids>
-    <tids>20,21,26,96</tids>
+    <pids>10,12,13,99</pids>
+    <tids>20,21,24,26,96</tids>
     <scenes>Menu,Backstage,Inline,Curtain,Ghost</scenes>
+  </Project>
+  <Project sr="proj2" ve="2">
+    <name>Elsewhere</name>
+    <pids>14</pids>
   </Project>
   <Project sr="proj1" ve="2">
     <name>Hollow</name>
@@ -90,6 +99,8 @@ _DEFECTIVE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
     <limit>true</limit>
     <mid0>27</mid0>
   </Profile>
+  <Profile sr="prof13" ve="2"><id>13</id><nme>Twin</nme><mid0>21</mid0></Profile>
+  <Profile sr="prof14" ve="2"><id>14</id><nme>Twin</nme><mid0>21</mid0></Profile>
   <Task sr="task20">
     <id>20</id>
     <nme>Runner</nme>
@@ -157,10 +168,10 @@ _VARIABLE_SCENE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 
 # A Profile naming a Task counts as a reference even when that Profile is itself an
 # orphan (Profile 11 here).  That is deliberate and worth stating: chasing the chain --
-# "the Profile is unreachable, so its Tasks are too" -- would report one broken thing as
+# "the Profile is unreferenced, so its Tasks are too" -- would report one broken thing as
 # several, when the single ORPHAN-PROFILE finding is the root cause and the only one the
 # user needs to act on.
-_UNREACHABLE_TASK_NAMES = {"Dead", "Owned"}
+_UNREFERENCED_TASK_NAMES = {"Dead", "Owned"}
 
 
 def _load(xml_text: str) -> None:
@@ -189,6 +200,16 @@ def _load(xml_text: str) -> None:
 def _findings_for(report: str, tag: str) -> list[str]:
     """The '[TAG]  where' lines of one tag, which is what the assertions match against."""
     return [line for line in report.splitlines() if line.startswith(f"[{tag}]")]
+
+
+def _block_at(report: str, anchor: str) -> str:
+    """One finding in full -- its '[TAG] where' line and the detail under it.
+
+    Findings are separated by a blank line, so a block runs from the anchor to the first
+    one.  Assertions about detail text need this rather than a plain 'in report': the
+    detail of the finding above or below would satisfy that just as happily.
+    """
+    return report[report.index(anchor) :].split("\n\n", maxsplit=1)[0]
 
 
 @pytest.fixture
@@ -247,8 +268,8 @@ def test_broken_profile_task_reference(report: str) -> None:
 def test_broken_scene_task_binding(report: str) -> None:
     """A Scene element firing a Task id that is not in the file."""
     findings = _findings_for(report, "BROKEN-SCENE-TASK")
-    assert len(findings) == 1
-    assert "Scene 'Menu'" in findings[0]
+    # Named with the Project that owns the Scene, the way every other finding is.
+    assert findings == ["[BROKEN-SCENE-TASK]  Project 'Good' > Scene 'Menu'"]
     # Named by the label the Scene designer shows, not by the raw tag.
     assert "Button 'Go'" in report
 
@@ -282,53 +303,51 @@ def test_variable_reference_is_not_reported(report: str) -> None:
 # ##################################################################################
 # Reachability.
 # ##################################################################################
-def test_unreachable_task(report: str) -> None:
+def test_unreferenced_task(report: str) -> None:
     """Exactly the Tasks nothing runs are reported, and no others.
 
     The 'and no others' half is the point: every Task in the fixture that IS run -- by a
     Profile, by a Scene element, by a Perform Task, by a widget -- has to stay out of
     this list, or the check is just reporting everything.
     """
-    findings = _findings_for(report, "UNREACHABLE-TASK")
+    findings = _findings_for(report, "UNREFERENCED-TASK")
     # Task 26 is in Project 'Good' <tids> and so is named with it; Task 22 is in no
     # Project's, and a location says nothing at all rather than inventing a placeholder.
     assert sorted(findings) == [
-        "[UNREACHABLE-TASK]  Project 'Good' > Task 'Owned' (id 26)",
-        "[UNREACHABLE-TASK]  Task 'Dead' (id 22)",
+        "[UNREFERENCED-TASK]  Project 'Good' > Task 'Owned' (id 26)",
+        "[UNREFERENCED-TASK]  Task 'Dead' (id 22)",
     ]
     for reachable in ("Runner", "Helper", "Widget", "Dupe"):
         assert not any(f"'{reachable}'" in finding for finding in findings), f"{reachable} is run by something"
 
 
-def test_unreachable_task_without_a_project_says_so(report: str) -> None:
+def test_unreferenced_task_without_a_project_says_so(report: str) -> None:
     """Belonging to no Project is part of the case for a Task nobody runs.
 
     It goes in the detail rather than the location: the location stays uniform across
     every finding so the report sorts into Project order, and 'no Project' is a fact
     about the Task, not a place to look for it.
     """
-    detail = report[report.index("Task 'Dead' (id 22)") :]
-    assert "no Project lists it" in detail.split("\n\n")[0]
+    assert "no Project lists it" in _block_at(report, "Task 'Dead' (id 22)")
     # The Task that does have one does not carry the phrase.
-    owned = report[report.index("Task 'Owned' (id 26)") :]
-    assert "no Project lists it" not in owned.split("\n\n")[0]
+    assert "no Project lists it" not in _block_at(report, "Task 'Owned' (id 26)")
 
 
-def test_task_owned_by_project_is_still_unreachable(report: str) -> None:
+def test_task_owned_by_project_is_still_unreferenced(report: str) -> None:
     """Being listed in a Project's <tids> does not make a Task reachable.
 
     <tids> records which Project a Task is filed under, not that anything runs it.
     Counting it as a reference made this check unable to fire at all against a real
     backup, where every Task a Project owns appears there -- 0 findings out of 840 Tasks.
     """
-    findings = _findings_for(report, "UNREACHABLE-TASK")
+    findings = _findings_for(report, "UNREFERENCED-TASK")
     # Task 26 'Owned' is in Project 'Good' <tids> and nothing runs it.
     assert any("'Owned'" in finding for finding in findings)
 
 
-def test_widget_task_is_not_unreachable(report: str) -> None:
+def test_widget_task_is_not_unreferenced(report: str) -> None:
     """A Task named by a Set Widget Label action is treated as launched by its widget."""
-    assert "Widget" not in "".join(_findings_for(report, "UNREACHABLE-TASK"))
+    assert "Widget" not in "".join(_findings_for(report, "UNREFERENCED-TASK"))
 
 
 def test_orphan_profile(report: str) -> None:
@@ -376,13 +395,13 @@ def test_scene_acted_on_by_an_inline_anonymous_task_is_not_unused(report: str) -
     assert "Curtain" not in "".join(_findings_for(report, "UNUSED-SCENE"))
 
 
-def test_task_called_by_an_inline_anonymous_task_is_not_unreachable(report: str) -> None:
+def test_task_called_by_an_inline_anonymous_task_is_not_unreferenced(report: str) -> None:
     """The same inline actions count as Task references too.
 
     Task 'Inline' is called only by the anonymous task inside Scene 'Inline'.  Before
     those actions were walked it read as a Task nothing runs.
     """
-    assert "'Inline'" not in "".join(_findings_for(report, "UNREACHABLE-TASK"))
+    assert "'Inline'" not in "".join(_findings_for(report, "UNREFERENCED-TASK"))
 
 
 def test_unused_scene_still_fires_when_nothing_shows_it(report: str) -> None:
@@ -429,16 +448,106 @@ def test_empty_project(report: str) -> None:
 # Hygiene.
 # ##################################################################################
 def test_duplicate_task_name(report: str) -> None:
-    """Two Tasks sharing a name.
+    """Two Tasks sharing a name, each reported with the Project holding it.
 
     Built from all_tasks rather than all_tasks_by_name, which silently overwrites a
-    collision and so could never report one.
+    collision and so could never report one.  Task 24 is in a Project and Task 25 is in
+    none, so this pins both renderings in one finding.
     """
-    findings = _findings_for(report, "DUPLICATE-NAME")
-    assert len(findings) == 1
-    assert "Dupe" in findings[0]
-    assert "24" in report
-    assert "25" in report
+    findings = [line for line in _findings_for(report, "DUPLICATE-NAME") if line.startswith("[DUPLICATE-NAME]  Task")]
+    assert findings == ["[DUPLICATE-NAME]  Task 'Dupe'"]
+
+    detail = _block_at(report, "[DUPLICATE-NAME]  Task 'Dupe'")
+    assert "id 24 in Project 'Good'" in detail
+    assert "id 25 in no Project" in detail
+    assert "same Project" not in detail
+    # The consequence that is specific to Tasks stays on the finding.
+    assert "A Perform Task naming it will run only one of them." in detail
+
+
+def test_duplicate_profile_names_say_which_project_each_is_in(report: str) -> None:
+    """Each copy of a duplicated Profile name is reported with the Project holding it.
+
+    A bare list of ids ("ids 13, 14") gives the user nowhere to go.  Which Project each
+    one sits in is the thing that turns the finding into something actionable -- most
+    often an old and a new copy of the same Project living side by side.
+    """
+    findings = [line for line in _findings_for(report, "DUPLICATE-NAME") if "Profile" in line]
+    assert findings == ["[DUPLICATE-NAME]  Profile 'Twin'"]
+
+    detail = _block_at(report, "[DUPLICATE-NAME]  Profile 'Twin'")
+    assert "id 13 in Project 'Good'" in detail
+    assert "id 14 in Project 'Elsewhere'" in detail
+    # Different Projects, so the same-Project remark stays off.
+    assert "same Project" not in detail
+
+
+def test_duplicate_tasks_in_one_project_are_called_out() -> None:
+    """Two same-named Tasks inside ONE Project get the extra remark too.
+
+    The same reasoning as the Profile case, and worse here: Tasker's list shows the same
+    two words twice AND every Perform Task naming them silently picks one.
+    """
+    _load(
+        """<TaskerData sr="" dvi="1" tv="6.3.13">
+          <Project sr="proj0" ve="2"><name>Crowded</name><pids>10</pids><tids>20,21</tids></Project>
+          <Profile sr="prof10" ve="2"><id>10</id><nme>Runs</nme><mid0>20</mid0><mid1>21</mid1></Profile>
+          <Task sr="task20"><id>20</id><nme>Twice</nme></Task>
+          <Task sr="task21"><id>21</id><nme>Twice</nme></Task>
+        </TaskerData>""",
+    )
+    text, _ = run_health_check()
+
+    detail = _block_at(text, "[DUPLICATE-NAME]")
+    assert "id 20 in Project 'Crowded'" in detail
+    assert "id 21 in Project 'Crowded'" in detail
+    assert "Two of them are in the same Project." in detail
+
+
+def test_duplicate_profiles_in_one_project_are_called_out() -> None:
+    """Two same-named Profiles inside ONE Project get an extra remark.
+
+    Across two Projects a repeated name is usually a naming habit and harmless.  Inside a
+    single Project it is the case the user cannot see their way out of, because Tasker's
+    own list shows them the same two words twice.
+    """
+    _load(
+        """<TaskerData sr="" dvi="1" tv="6.3.13">
+          <Project sr="proj0" ve="2"><name>Crowded</name><pids>10,11</pids><tids>20</tids></Project>
+          <Profile sr="prof10" ve="2"><id>10</id><nme>Same</nme><mid0>20</mid0></Profile>
+          <Profile sr="prof11" ve="2"><id>11</id><nme>Same</nme><mid0>20</mid0></Profile>
+          <Task sr="task20"><id>20</id><nme>Runs</nme></Task>
+        </TaskerData>""",
+    )
+    text, _ = run_health_check()
+
+    detail = _block_at(text, "[DUPLICATE-NAME]")
+    assert "id 10 in Project 'Crowded'" in detail
+    assert "id 11 in Project 'Crowded'" in detail
+    assert "Two of them are in the same Project." in detail
+
+
+def test_duplicate_profile_with_no_owning_project_says_so() -> None:
+    """A copy no Project holds is reported as such rather than left blank.
+
+    A blank would read as though the check did not know, when in fact 'nowhere' is the
+    answer -- and is very often the reason the duplicate went unnoticed.
+    """
+    _load(
+        """<TaskerData sr="" dvi="1" tv="6.3.13">
+          <Project sr="proj0" ve="2"><name>Held</name><pids>10</pids><tids>20</tids></Project>
+          <Profile sr="prof10" ve="2"><id>10</id><nme>Same</nme><mid0>20</mid0></Profile>
+          <Profile sr="prof11" ve="2"><id>11</id><nme>Same</nme><mid0>20</mid0></Profile>
+          <Task sr="task20"><id>20</id><nme>Runs</nme></Task>
+        </TaskerData>""",
+    )
+    text, _ = run_health_check()
+
+    detail = _block_at(text, "[DUPLICATE-NAME]")
+    assert "id 10 in Project 'Held'" in detail
+    assert "id 11 in no Project" in detail
+    # One of the two is in no Project, so they are not "in the same Project".
+    assert "same Project" not in detail
 
 
 def test_disabled_profile(report: str) -> None:
@@ -488,13 +597,13 @@ def test_report_counts_match_the_findings(report: str, counts: dict) -> None:
     assert f"{counts[INFO]} Info" in report
 
 
-def test_report_carries_the_unreachable_caveat(report: str) -> None:
-    """The limits of UNREACHABLE-TASK are stated in the report, not just in the code.
+def test_report_carries_the_unreferenced_caveat(report: str) -> None:
+    """The limits of UNREFERENCED-TASK are stated in the report, not just in the code.
 
     A report inviting someone to delete a Task their home screen widget launches, without
     saying it cannot see widgets, would be worse than no report.
     """
-    assert "NOTE ON UNREACHABLE TASKS" in report
+    assert "NOTE ON UNREFERENCED TASKS" in report
     assert "widget" in report
 
 

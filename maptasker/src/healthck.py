@@ -3,7 +3,7 @@
 #! /usr/bin/env python3
 
 #                                                                                      #
-# healthck: Scan the loaded XML for broken references, unreachable objects and naming   #
+# healthck: Scan the loaded XML for broken references, unreferenced objects and naming #
 #           problems, and report them as plain text.                                    #
 #                                                                                      #
 # Everything here reads PrimeItems.tasker_root_elements and nothing else -- no GUI, no  #
@@ -51,7 +51,7 @@ _REPORT_WIDTH = 78
 
 # A Task that fires from a Scene element and lives only inside that Scene carries a
 # negative id (see sceneedit.LEGACY_ANONYMOUS_TASK_PREFIX).  It is not in all_tasks and
-# never will be, so it is neither a broken reference nor an unreachable Task.
+# never will be, so it is neither a broken reference nor an unreferenced Task.
 _ANONYMOUS_TASK_PREFIX = "-"
 
 # "Perform Task" -- arg0 is the Task *name*.  The one Task-by-name reference in the
@@ -67,7 +67,7 @@ _SCENE_LIFECYCLE_CODES = {"46": "0", "47": "0", "48": "0", "49": "0"}
 # Tasker widget is named for the Task it launches -- so a Task named here almost certainly
 # has a widget on the home screen, and a widget is a way to run it that leaves no other
 # trace in the backup.  Counted as a reference so those Tasks are not reported dead: the
-# evidence is circumstantial, but a false "unreachable" on a Task the user taps daily is a
+# evidence is circumstantial, but a false "unreferenced" on a Task the user taps daily is a
 # much worse answer than staying quiet about one.
 _WIDGET_NAME_CODES = {"152": "0", "155": "0"}
 
@@ -103,8 +103,8 @@ class _Index:
     project_of_task: dict[str, str] = field(default_factory=dict)
     project_of_scene: dict[str, str] = field(default_factory=dict)
     # Who refers to each Task/Scene, as human-readable phrases ("Profile 'Wake' entry
-    # Task").  A Task with no entry here is unreachable; the phrases are what make an
-    # unreachable-Task report explain itself rather than just assert.
+    # Task").  A Task with no entry here is unreferenced; the phrases are what make an
+    # unreferenced-Task report explain itself rather than just assert.
     task_referrers: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
     scene_referrers: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
     # Task ids sharing a name, and the same for Profiles and Scenes.  Built from
@@ -188,7 +188,7 @@ def _in_project(where: str, project_name: str | None) -> str:
 
     Silent when nothing owns the object, rather than saying so: a Task in no Project is
     ordinary (Tasker keeps unassigned Tasks in its own Tasks tab), and a location is the
-    wrong place to raise it.  Where that fact actually matters -- an unreachable Task
+    wrong place to raise it.  Where that fact actually matters -- an unreferenced Task
     someone may be about to delete -- the check says so in the finding's detail instead.
     """
     return f"Project '{project_name}' > {where}" if project_name else where
@@ -233,7 +233,7 @@ def _index_projects(index: _Index) -> None:
             if task_id in all_tasks:
                 # Ownership only -- deliberately NOT a task_referrers entry.  <tids> says
                 # which Project a Task filed under, not that anything runs it, and counting
-                # it as a reference would make UNREACHABLE-TASK unable to fire at all: every
+                # it as a reference would make UNREFERENCED-TASK unable to fire at all: every
                 # Task a Project owns would look reachable purely by being owned.
                 index.project_of_task[task_id] = project_name
             else:
@@ -290,7 +290,8 @@ def _index_profiles(index: _Index) -> None:
 def _index_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit: object) -> None:
     """Record the Tasks a Legacy Scene's elements fire, reporting any that are missing."""
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
-    where = _describe("Scene", scene_name)
+    # project_of_scene is filled by _index_projects, which run_health_check calls first.
+    where = _in_project(_describe("Scene", scene_name), index.project_of_scene.get(scene_name))
 
     # .iter() rather than a walk over direct children: a Legacy element can hold another
     # (a WebElement carrying a RectElement, for one), and a binding on a nested element is
@@ -336,7 +337,7 @@ def _index_v2_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit
         return
 
     all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
-    where = _describe("Scene", scene_name)
+    where = _in_project(_describe("Scene", scene_name), index.project_of_scene.get(scene_name))
 
     for row in sceneedit.v2_flatten(layout):
         for handler in sceneedit.v2_handlers(row.node):
@@ -474,12 +475,13 @@ def _index_scene_inline_actions(index: _Index) -> None:
     are in no lookup table, so the walk over all_tasks above never sees them, and every
     Task and Scene they refer to was invisible to this check: a Scene destroyed only by a
     Scene button's inline task read as unused, and a Task called only from one read as
-    unreachable.
+    unreferenced.
     """
     scene_args = _scene_name_args()
 
     for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
-        where = f"{_describe('Scene', scene_name)} anonymous Task"
+        scene_where = _in_project(_describe("Scene", scene_name), index.project_of_scene.get(scene_name))
+        where = f"{scene_where} anonymous Task"
         # .iter() from the Scene root: these sit at whatever depth the element that owns
         # them sits, and are not confined to one element type.
         for number, action in enumerate(scene["xml"].iter("Action"), start=1):
@@ -502,7 +504,7 @@ def _check_reachability(index: _Index) -> None:
         owning_project = index.project_of_task.get(task_id)
         index.add(
             WARNING,
-            "UNREACHABLE-TASK",
+            "UNREFERENCED-TASK",
             _in_project(_describe("Task", task["name"], task_id), owning_project),
             "Nothing in this file runs it: no Profile, no Scene, no Perform Task action"
             # Said here rather than in the location (see _in_project): for a Task someone
@@ -544,8 +546,7 @@ def _check_reachability(index: _Index) -> None:
                 + (
                     "."
                     if not index.variable_scene_references
-                    else " under that name -- but see the note at the end, this file shows Scenes "
-                    "by variable too."
+                    else " under that name -- but see the note at the end, this file shows Scenes by variable too."
                 ),
             )
 
@@ -572,8 +573,16 @@ def _check_duplicate_names(index: _Index) -> None:
                 INFO,
                 "DUPLICATE-NAME",
                 _describe("Task", task_name),
-                f"{len(task_ids)} Tasks share this name (ids {', '.join(sorted(task_ids))}). "
-                "A Perform Task naming it will run only one of them.",
+                f"{len(task_ids)} Tasks share this name: {_where_each_is(task_ids, index.project_of_task)}."
+                + (
+                    "  Two of them are in the same Project."
+                    if _has_repeat_project(task_ids, index.project_of_task)
+                    else ""
+                )
+                # Worth saying for Tasks and not for Profiles: a Perform Task resolves by
+                # name, so a duplicate here is not just hard to tell apart in Tasker's
+                # list, it silently decides which of them every caller actually runs.
+                + "  A Perform Task naming it will run only one of them.",
             )
 
     profiles_by_name = defaultdict(list)
@@ -586,8 +595,38 @@ def _check_duplicate_names(index: _Index) -> None:
                 INFO,
                 "DUPLICATE-NAME",
                 _describe("Profile", profile_name),
-                f"{len(profile_ids)} Profiles share this name (ids {', '.join(sorted(profile_ids))}).",
+                f"{len(profile_ids)} Profiles share this name: {_where_each_is(profile_ids, index.project_of_profile)}."
+                # Which Project each copy sits in is what says whether this is a problem.
+                # Two Profiles of one name in two Projects is a naming habit; two in the
+                # same Project is the case where the user cannot tell them apart in Tasker.
+                + (
+                    "  Two of them are in the same Project."
+                    if _has_repeat_project(profile_ids, index.project_of_profile)
+                    else ""
+                ),
             )
+
+
+def _where_each_is(identifiers: list[str], project_of: dict[str, str]) -> str:
+    """ "id 42 in Project 'Home', id 91 in Project 'Work'" -- each copy and where it lives.
+
+    Sorted by Project so copies sharing one are named together, which is what makes the
+    same-Project case readable at a glance.
+    """
+    return ", ".join(
+        f"id {identifier} in " + (f"Project '{project_of[identifier]}'" if identifier in project_of else "no Project")
+        for identifier in sorted(identifiers, key=lambda item: (project_of.get(item, ""), item))
+    )
+
+
+def _has_repeat_project(identifiers: list[str], project_of: dict[str, str]) -> bool:
+    """Whether two of these objects sit in the same Project.
+
+    Only counts objects a Project actually owns: several unowned ones are not "in the same
+    Project", they are in none.
+    """
+    owners = [project_of[identifier] for identifier in identifiers if identifier in project_of]
+    return len(owners) != len(set(owners))
 
 
 def _check_hygiene(index: _Index) -> None:
@@ -668,17 +707,12 @@ def _build_report(index: _Index, when: datetime) -> str:
             f"{len(root['all_tasks'])} Tasks, "
             f"{len(root['all_scenes'])} Scenes"
         ),
-        (
-            "Findings:    "
-            f"{counts[ERROR]} Errors, "
-            f"{counts[WARNING]} Warnings, "
-            f"{counts[INFO]} Info"
-        ),
+        f"Findings:    {counts[ERROR]} Errors, {counts[WARNING]} Warnings, {counts[INFO]} Info",
         "",
     ]
 
     if not index.findings:
-        lines += ["Nothing to report -- no broken references, unreachable objects or", "naming problems found.", ""]
+        lines += ["Nothing to report -- no broken references, unreferenced objects or", "naming problems found.", ""]
         return "\n".join(lines)
 
     for severity in _SEVERITY_ORDER:
@@ -699,7 +733,7 @@ def _limitations(index: _Index) -> list[str]:
     """The closing note on what this check cannot see.
 
     Printed rather than left implied because the one finding most worth acting on --
-    UNREACHABLE-TASK -- is also the one whose false positives are unavoidable: a Task can
+    UNREFERENCED-TASK -- is also the one whose false positives are unavoidable: a Task can
     be started by a home screen widget, a Quick Settings tile, a launcher shortcut or
     another app entirely, and none of those live in a Tasker backup.  A report that
     invited someone to delete a Task they tap every morning, without saying so, would be
@@ -707,13 +741,13 @@ def _limitations(index: _Index) -> list[str]:
     """
     notes = []
 
-    if any(item.tag == "UNREACHABLE-TASK" for item in index.findings):
+    if any(item.tag == "UNREFERENCED-TASK" for item in index.findings):
         notes += [
             "",
-            "NOTE ON UNREACHABLE TASKS",
+            "NOTE ON UNREFERENCED TASKS",
             "-" * _REPORT_WIDTH,
             "A backup records what is inside Tasker, not what points at it from outside.",
-            "A Task reported unreachable may still be started by a home screen widget, a",
+            "A Task reported unreferenced may still be started by a home screen widget, a",
             "Quick Settings tile, a launcher shortcut, an intent from another app, or a",
             "plugin -- none of which appear in this file.  Check how you run it before",
             "deleting anything.  (A Task named by a Set Widget Icon/Label action is",

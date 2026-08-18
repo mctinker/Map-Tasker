@@ -102,9 +102,7 @@ DENSITY_CHOICES = ("1.0", "1.5", "2.0", "2.625", "2.75", "3.0", "3.5")
 # A colour this preview cannot know -- a %variable, or an argument the Scene left empty.
 # Hatching rather than a flat grey so it reads as "unknown" at a glance instead of as a
 # deliberate choice of grey.
-VARIABLE_FILL = (
-    "repeating-linear-gradient(45deg, rgba(148,163,184,0.45) 0 6px, rgba(148,163,184,0.12) 6px 12px)"
-)
+VARIABLE_FILL = "repeating-linear-gradient(45deg, rgba(148,163,184,0.45) 0 6px, rgba(148,163,184,0.12) 6px 12px)"
 # What a placeholder (an image we can't load, a video, a map) is drawn on.
 PLACEHOLDER_FILL = "rgba(148,163,184,0.16)"
 PLACEHOLDER_EDGE = "1px dashed rgba(148,163,184,0.85)"
@@ -494,9 +492,13 @@ def draw_scene(
     so anything that looks wrong here is wrong in the Scene rather than in the arithmetic.
     """
     background = _canvas_background(scene_element)
-    canvas = ui.element("div").classes("mt-scene-canvas").style(
-        f"position: relative; width: {width}px; height: {height}px; overflow: hidden;"
-        f"transform-origin: top left; background: {background.css};",
+    canvas = (
+        ui.element("div")
+        .classes("mt-scene-canvas")
+        .style(
+            f"position: relative; width: {width}px; height: {height}px; overflow: hidden;"
+            f"transform-origin: top left; background: {background.css};",
+        )
     )
     if background.is_variable:
         canvas.style(f"background: {VARIABLE_FILL};")
@@ -565,10 +567,15 @@ def _draw_selection(sr: str, box: tuple[int, int, int, int], *, handles: bool = 
     resize.  Which is exactly what the drawing then says.
     """
     x, y, width, height = box
-    with ui.element("div").classes("mt-selection").props(f'data-sr="{sr}"').style(
-        f"position: absolute; left: {x}px; top: {y}px; width: {width}px; height: {height}px;"
-        "box-sizing: border-box; z-index: 10; outline: 2px solid rgba(37,99,235,0.95);"
-        "outline-offset: -1px; pointer-events: none;",
+    with (
+        ui.element("div")
+        .classes("mt-selection")
+        .props(f'data-sr="{sr}"')
+        .style(
+            f"position: absolute; left: {x}px; top: {y}px; width: {width}px; height: {height}px;"
+            "box-sizing: border-box; z-index: 10; outline: 2px solid rgba(37,99,235,0.95);"
+            "outline-offset: -1px; pointer-events: none;",
+        )
     ):
         if not handles:
             return
@@ -1202,8 +1209,7 @@ def _draw_slider(
             along = f"calc({round(fraction * 100, 1)}% - 7px)"
             thumb = f"bottom: {along}; left: -4px;" if vertical else f"left: {along}; top: -4px;"
             ui.element("div").style(
-                f"position: absolute; {thumb} width: 14px; height: 14px;"
-                "border-radius: 50%; background: #2563eb;",
+                f"position: absolute; {thumb} width: 14px; height: 14px;" "border-radius: 50%; background: #2563eb;",
             )
     if height >= 26:
         ui.label(f"{minimum} – {maximum}  ({args.raw_number(4) or default})").style(
@@ -1829,11 +1835,15 @@ def draw_v2_layout(
     if editing is not None and isinstance(root, dict):
         _v2_index_paths(root)
 
-    frame = ui.element("div").classes("mt-scene-canvas").style(
-        f"position: relative; width: {width}px; height: {height}px; overflow: hidden;"
-        f"transform-origin: top left; box-sizing: border-box;"
-        f"background: {V2_MATERIAL_PALETTE['background']}; color: {V2_MATERIAL_PALETTE['onBackground']};"
-        "font-family: Roboto, system-ui, sans-serif;",
+    frame = (
+        ui.element("div")
+        .classes("mt-scene-canvas")
+        .style(
+            f"position: relative; width: {width}px; height: {height}px; overflow: hidden;"
+            f"transform-origin: top left; box-sizing: border-box;"
+            f"background: {V2_MATERIAL_PALETTE['background']}; color: {V2_MATERIAL_PALETTE['onBackground']};"
+            "font-family: Roboto, system-ui, sans-serif;",
+        )
     )
     if editing is not None:
         # The selected run, for the drag handlers to read off the canvas: where it starts and
@@ -1849,12 +1859,15 @@ def draw_v2_layout(
             return
         _v2_hull()
         if is_dialog:
-            with ui.element("div").style(
-                "position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;"
-                "background: rgba(0,0,0,0.32); padding: 24px; box-sizing: border-box;",
-            ), ui.element("div").style(
-                f"max-width: 100%; max-height: 100%; overflow: hidden; border-radius: 28px;"
-                f"background: {V2_MATERIAL_PALETTE['surface']}; box-shadow: 0 8px 24px rgba(0,0,0,0.25);",
+            with (
+                ui.element("div").style(
+                    "position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;"
+                    "background: rgba(0,0,0,0.32); padding: 24px; box-sizing: border-box;",
+                ),
+                ui.element("div").style(
+                    f"max-width: 100%; max-height: 100%; overflow: hidden; border-radius: 28px;"
+                    f"background: {V2_MATERIAL_PALETTE['surface']}; box-shadow: 0 8px 24px rgba(0,0,0,0.25);",
+                ),
             ):
                 # No fill: a dialog is the size of what is in it, which is the whole
                 # difference between it and the full-screen case below.
@@ -1896,6 +1909,7 @@ def _v2_hull() -> None:
 
 def v2_component_count(layout: dict) -> int:
     """How many components the tree holds -- the V2 counterpart of len(paint_order)."""
+
     def count(node: object) -> int:
         if not isinstance(node, dict):
             return 0
@@ -2215,7 +2229,7 @@ def _v2_modifier_drawn(modifier_type: str) -> bool:
 # Event handlers and variable bindings
 # ------------------------------------------------------------------
 def _v2_handler_lines(node: dict) -> list[str]:
-    """"click, hold -> SetVariable sd_button = Close; DismissLayout" for each handler.
+    """ "click, hold -> SetVariable sd_button = Close; DismissLayout" for each handler.
 
     A V2 component's behaviour is entirely in here -- there is no clickTask child the way a
     Legacy element has -- so a preview that showed only the layout would be hiding the half
@@ -2234,7 +2248,9 @@ def _v2_handler_lines(node: dict) -> list[str]:
             for event in handler.get("events") or []
             if isinstance(event, dict)
         )
-        actions = "; ".join(_v2_action_text(action) for action in handler.get("actions") or [] if isinstance(action, dict))
+        actions = "; ".join(
+            _v2_action_text(action) for action in handler.get("actions") or [] if isinstance(action, dict)
+        )
         if events or actions:
             lines.append(f"{events or '?'} → {actions or '(nothing)'}")
     return lines
@@ -2261,7 +2277,9 @@ def _v2_action_text(action: dict) -> str:
             pairs = ", ".join(f"{key}→{', '.join(str(v) for v in value)}" for key, value in bindings.items())
             return f"OutputToVariable {pairs}"
         return "OutputToVariable"
-    extras = ", ".join(f"{key}={value}" for key, value in action.items() if key != "type" and not isinstance(value, (dict, list)))
+    extras = ", ".join(
+        f"{key}={value}" for key, value in action.items() if key != "type" and not isinstance(value, (dict, list))
+    )
     return f"{kind}({extras})" if extras else kind
 
 
@@ -2280,7 +2298,9 @@ def _v2_binding_lines(node: dict) -> list[str]:
         if not isinstance(bindings, dict):
             continue
         for slot, variables in bindings.items():
-            names = ", ".join(str(variable) for variable in variables) if isinstance(variables, list) else str(variables)
+            names = (
+                ", ".join(str(variable) for variable in variables) if isinstance(variables, list) else str(variables)
+            )
             if names:
                 lines.append(f"{slot} → {names}")
     return lines
@@ -2443,9 +2463,7 @@ def _v2_tooltip(container: ui.element, node: dict) -> None:
     if modifiers:
         lines.append(f"{translate_string('Modifiers')}: {' → '.join(modifiers)}")
 
-    variables = sorted({
-        value for value in node.values() if isinstance(value, str) and value.startswith("%")
-    })
+    variables = sorted({value for value in node.values() if isinstance(value, str) and value.startswith("%")})
     if variables:
         lines.append(f"{translate_string('Variables')}: {', '.join(variables)}")
     if node.get("showWhen"):
@@ -2935,10 +2953,12 @@ def _v2_draw_slider(node: dict, options: PreviewOptions, depth: int) -> None:  #
 
 def _v2_draw_range_slider(node: dict, options: PreviewOptions, depth: int) -> None:  # noqa: ARG001
     """RangeSlider: two thumbs, at `start` and `end`, on a 0-1 scale of its own."""
-    _v2_draw_track([
-        max(0.0, min(1.0, _v2_float(node.get("start"), 0.0))),
-        max(0.0, min(1.0, _v2_float(node.get("end"), 1.0))),
-    ])
+    _v2_draw_track(
+        [
+            max(0.0, min(1.0, _v2_float(node.get("start"), 0.0))),
+            max(0.0, min(1.0, _v2_float(node.get("end"), 1.0))),
+        ]
+    )
 
 
 def _v2_draw_track(fractions: list[float]) -> None:
@@ -2981,9 +3001,7 @@ def _v2_draw_segmented_row(node: dict, options: PreviewOptions, depth: int) -> N
     """SegmentedButtonRow: its items joined into one control, with selectedIndices marking
     which of them are on -- a comma-separated list, because the row can allow several.
     """
-    selected = {
-        index.strip() for index in str(node.get("selectedIndices", "")).split(",") if index.strip().isdigit()
-    }
+    selected = {index.strip() for index in str(node.get("selectedIndices", "")).split(",") if index.strip().isdigit()}
     with ui.element("div").style(
         f"display: inline-flex; border: 1px solid {V2_MATERIAL_PALETTE['outline']}; border-radius: 20px;"
         f"overflow: hidden; box-sizing: border-box;",

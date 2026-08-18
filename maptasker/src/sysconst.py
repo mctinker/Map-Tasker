@@ -34,6 +34,7 @@ KEYFILE = ".maptasker.pkl"
 ERROR_FILE = ".maptasker_error.txt"
 ANALYSIS_FILE = "MapTasker_Analysis.txt"
 HEALTHCHECK_FILE = "MapTasker_HealthCheck.txt"
+COMPARE_FILE = "MapTasker_Compare.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
 SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
 

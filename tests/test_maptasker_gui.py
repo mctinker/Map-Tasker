@@ -24,6 +24,7 @@ loaded, so the English literal is what these tests compare against. reset_transl
 keeps that true regardless of what an earlier test did.
 """
 
+import contextlib
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -487,3 +488,175 @@ def test_clear_view_names_alone_leaves_the_selection_live(gui_with_selection):
     # Still the active filter, and still on screen:
     assert PrimeItems.program_arguments["single_project_name"] == "My Project"
     assert gui_with_selection.specific_project_optionmenu.value == "Project: My Project"
+
+
+# ==========================================
+# COMPARE FILES EVENT
+# ==========================================
+# The event that ties the comparison feature together: choose a file, load it without
+# disturbing the loaded one (diffload), compare (xmldiff), save and display.  Every
+# collaborator is patched here -- each has its own tests in test_diffload.py and
+# test_xmldiff.py -- so what is under test is the wiring and the guards, which is where
+# this layer's own logic lives.
+
+
+@pytest.fixture
+def _loaded_configuration():
+    """PrimeItems holding something, so the event's "nothing loaded" guard passes."""
+    previous = PrimeItems.tasker_root_elements
+    PrimeItems.tasker_root_elements = {
+        "all_projects": {},
+        "all_profiles": {},
+        "all_tasks": {"20": {"xml": None, "name": "Runner"}},
+        "all_scenes": {},
+        "all_services": [],
+    }
+    yield
+    PrimeItems.tasker_root_elements = previous
+
+
+@contextlib.contextmanager
+def _patched_collaborators(**overrides):
+    """Patch every name compare_files_event reaches for, with sensible defaults.
+
+    A context manager over an ExitStack rather than a pile of nested `with`s: the event
+    reaches for nine names, and only the one or two a given test overrides are worth
+    seeing at the call site.
+    """
+    defaults = {
+        "_choose_comparison_file": AsyncMock(return_value="/other/backup.xml"),
+        "loaded_file_path": MagicMock(return_value="/loaded/backup.xml"),
+        "load_for_comparison": MagicMock(return_value=(MagicMock(), "")),
+        "current_configuration": MagicMock(return_value=MagicMock()),
+        "order_by_age": MagicMock(side_effect=lambda a, b: (a, b)),
+        "compare": MagicMock(return_value=("a report", {"ADDED": 1, "REMOVED": 0, "RENAMED": 0, "CHANGED": 0})),
+        "write_comparison_report": MagicMock(return_value="MapTasker_Compare_01-01-2026_00-00-00.txt"),
+        "NiceGuiTextView": MagicMock(),
+        "ui": MagicMock(),
+    }
+    defaults.update(overrides)
+    with contextlib.ExitStack() as stack:
+        for name, value in defaults.items():
+            stack.enter_context(patch(f"maptasker.src.userintr.{name}", value))
+        yield
+
+
+@pytest.mark.asyncio
+async def test_compare_refuses_with_nothing_loaded(event_handler, mock_gui_instance):
+    """No XML loaded means there is nothing to compare against, and it says so."""
+    previous = PrimeItems.tasker_root_elements
+    PrimeItems.tasker_root_elements = {"all_tasks": {}}
+    chooser = AsyncMock()
+    try:
+        with patch("maptasker.src.userintr._choose_comparison_file", chooser):
+            await event_handler.compare_files_event()
+    finally:
+        PrimeItems.tasker_root_elements = previous
+
+    mock_gui_instance.display_message_box.assert_called_once()
+    assert "No XML file has been loaded" in mock_gui_instance.display_message_box.call_args[0][0]
+    chooser.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_compare_cancelled_does_nothing(event_handler, mock_gui_instance, _loaded_configuration):
+    """Backing out of the chooser writes no report and opens no view."""
+    writer = MagicMock()
+    with _patched_collaborators(
+        _choose_comparison_file=AsyncMock(return_value=""),
+        write_comparison_report=writer,
+    ):
+        await event_handler.compare_files_event()
+
+    writer.assert_not_called()
+    mock_gui_instance.display_message_box.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_compare_refuses_the_file_already_loaded(event_handler, mock_gui_instance, _loaded_configuration):
+    """Picking the loaded file is a mistake worth naming.
+
+    Left to run, it produces a report saying nothing differs -- a confusing way to find
+    out you picked the wrong file.
+    """
+    loader = MagicMock()
+    with _patched_collaborators(
+        _choose_comparison_file=AsyncMock(return_value="/loaded/backup.xml"),
+        loaded_file_path=MagicMock(return_value="/loaded/backup.xml"),
+        load_for_comparison=loader,
+    ):
+        await event_handler.compare_files_event()
+
+    loader.assert_not_called()
+    assert "already loaded" in mock_gui_instance.display_message_box.call_args[0][0]
+
+
+@pytest.mark.asyncio
+async def test_compare_reports_a_file_that_would_not_load(event_handler, mock_gui_instance, _loaded_configuration):
+    """A bad comparison file is a message, and no view."""
+    view = MagicMock()
+    with _patched_collaborators(
+        load_for_comparison=MagicMock(return_value=(None, "backup.xml could not be read.")),
+        NiceGuiTextView=view,
+    ):
+        await event_handler.compare_files_event()
+
+    mock_gui_instance.display_message_box.assert_called_once_with("backup.xml could not be read.", "Red")
+    view.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_compare_saves_and_displays(event_handler, mock_gui_instance, _loaded_configuration):
+    """The whole path: ordered by age, compared, saved, displayed."""
+    view = MagicMock()
+    order = MagicMock(side_effect=lambda a, b: (a, b))
+    with _patched_collaborators(NiceGuiTextView=view, order_by_age=order):
+        await event_handler.compare_files_event()
+
+    order.assert_called_once()
+    assert "Comparison saved as" in mock_gui_instance.display_message_box.call_args[0][0]
+    view.assert_called_once()
+    assert view.call_args.kwargs["title"] == "Misc View"
+
+
+@pytest.mark.asyncio
+async def test_compare_escapes_the_report_for_display(event_handler, mock_gui_instance, _loaded_configuration):
+    """A Tasker name holding '<' must reach the view as text, not as markup.
+
+    NiceGuiTextView's Misc branch drops its content into a <pre> with sanitize=False, so
+    the escape is the only thing standing between a Task named "<b>" and the page.
+    """
+    view = MagicMock()
+    with _patched_collaborators(
+        compare=MagicMock(return_value=("Task '<b>' & co", {"ADDED": 1, "REMOVED": 0, "RENAMED": 0, "CHANGED": 0})),
+        NiceGuiTextView=view,
+    ):
+        await event_handler.compare_files_event()
+
+    assert view.call_args.kwargs["the_data"] == "Task &#x27;&lt;b&gt;&#x27; &amp; co"
+
+
+@pytest.mark.asyncio
+async def test_compare_says_so_when_the_files_match(event_handler, mock_gui_instance, _loaded_configuration):
+    """Two identical files produce a report that looks empty, so it is said out loud."""
+    fake_ui = MagicMock()
+    with _patched_collaborators(
+        compare=MagicMock(return_value=("no differences", {"ADDED": 0, "REMOVED": 0, "RENAMED": 0, "CHANGED": 0})),
+        ui=fake_ui,
+    ):
+        await event_handler.compare_files_event()
+
+    notifications = [call.args[0] for call in fake_ui.notify.call_args_list]
+    assert any("same configuration" in text for text in notifications)
+
+
+@pytest.mark.asyncio
+async def test_compare_still_displays_when_the_save_fails(event_handler, mock_gui_instance, _loaded_configuration):
+    """A comparison whose report displayed fine is still worth showing when only the save
+    went wrong -- the same call healthck's writer makes."""
+    view = MagicMock()
+    with _patched_collaborators(write_comparison_report=MagicMock(return_value=""), NiceGuiTextView=view):
+        await event_handler.compare_files_event()
+
+    assert "could not be saved" in mock_gui_instance.display_message_box.call_args[0][0]
+    view.assert_called_once()

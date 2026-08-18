@@ -1,0 +1,2608 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: 10.0.2\n"
+"Report-Msgid-Bugs-To: https://https://github.com/mctinker/Map-Tasker/issues\n"
+"POT-Creation-Date: 2025-12-16 11:27-05:00\n"
+"PO-Revision-Date: 2025-12-16 11:27-05:00\n"
+"Last-Translator: Google Translate\n"
+"Language-Team: LANGUAGE anon\n"
+"Language: sw\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Language set to"
+msgstr "Lugha imewekwa"
+msgid "Display Options"
+msgstr "Machaguo ya Kuonyesha"
+msgid "Display Detail Level:"
+msgstr "Onyesha Kiwango cha Maelezo:"
+msgid "This determines the amount of detail displayed in the output.\n\nLevel 0 = the least detail, 5 = the most detail."
+msgstr "Hii huamua kiasi cha maelezo yanayoonyeshwa katika matokeo.\n\nKiwango cha 0 = maelezo madogo zaidi, 5 = maelezo zaidi."
+msgid "Specific Name"
+msgstr "Jina Maalum"
+msgid "Diagram"
+msgstr "Mchoro"
+msgid "Misc View"
+msgstr "Mwonekano Mbalimbali"
+msgid "Analysis"
+msgstr "Uchambuzi"
+msgid "Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top.\n\nClick the ? to get more info."
+msgstr "Bofya kitufe hiki ili uanzishe utafutaji wa mfuatano ulioweka upande wa kushoto\na uangazie zinazolingana, kuanzia juu.\n\nBofya ? kupata habari zaidi."
+msgid "Search Here"
+msgstr "Tafuta Hapa"
+msgid "Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the '?' to get more info."
+msgstr "Bofya kitufe hiki ili uanzishe utafutaji wa mfuatano ulioweka upande wa kushoto\na uangazie zinazolingana, kuanzia kona ya juu kushoto ya skrini.\n\nBofya '?' kupata habari zaidi."
+msgid "Next"
+msgstr "Inayofuata"
+msgid "Make the next matched string visible.\n\nClick the ? to get more info."
+msgstr "Fanya mfuatano unaolingana uonekane.\n\nBofya ? kupata habari zaidi."
+msgid "Make the previous matched string visible.\n\nClick the ? to get more info."
+msgstr "Fanya mfuatano uliotangulia uonekane.\n\nBofya ? ili kupata maelezo zaidi."
+msgid "Prev"
+msgstr "Iliyotangulia"
+msgid "Clear"
+msgstr "Wazi"
+msgid "Search"
+msgstr "tafuta"
+msgid "Toggle Word Wrap"
+msgstr "Geuza Ufungaji wa Neno"
+msgid "Top"
+msgstr "Juu"
+msgid "Bottom"
+msgstr "Chini"
+msgid "Display Only"
+msgstr "Onyesha Pekee"
+msgid "Display only"
+msgstr "Onyesha pekee"
+msgid "Display only the"
+msgstr "Onyesha tu"
+msgid "overrides any previous set name"
+msgstr "hubatilisha jina lolote lililotangulia"
+msgid "Click this button to search for and display only the lines that match the search string."
+msgstr "Bofya kitufe hiki ili kutafuta na kuonyesha tu mistari inayolingana na mfuatano wa utafutaji."
+msgid "Profiles Per Line:"
+msgstr "Profaili Kwa Kila Mstari:"
+msgid "Select how many Profiles\nto display per line.  The default is 6.\n\nClick the ? to get more info."
+msgstr "Chagua ni Wasifu ngapi\nutaonyeshwa kwa kila mstari.  Chaguomsingi ni 6.\n\nBofya ? kupata habari zaidi."
+msgid "Top Task"
+msgstr "Kazi ya Juu"
+msgid "Bottom Task"
+msgstr "Kazi ya Chini"
+msgid "Tree"
+msgstr "Mti"
+msgid "map_window_position"
+msgstr "ramani_dirisha_nafasi"
+msgid "Misc"
+msgstr "Nyingine"
+msgid "misc_window_position"
+msgstr "misc_window_nafasi"
+msgid "Displaying only the next 80 matches...\n"
+msgstr "Inaonyesha mechi 80 zinazofuata pekee...\n"
+msgid "N/A"
+msgstr "N/A"
+msgid "Profiles"
+msgstr "Wasifu"
+msgid "  Tasks in Project (sorted)"
+msgstr "Kazi katika Mradi (zilizopangwa)"
+msgid "Launcher Task: "
+msgstr "Kazi ya Kizindua:"
+msgid "<<< Owner=Project"
+msgstr "<<< Mmiliki=Mradi"
+msgid "Project"
+msgstr "Mradi"
+msgid "Profile"
+msgstr "Wasifu"
+msgid "Task"
+msgstr "Kazi"
+msgid "ID:"
+msgstr "ID:"
+msgid "<<< Owner="
+msgstr "<<< Mmiliki="
+msgid "Element of type"
+msgstr "Kipengele cha aina"
+msgid "\n\nActions:"
+msgstr "\n\nVitendo:"
+msgid "Action"
+msgstr "Kitendo"
+msgid "Project Global Variables"
+msgstr "Vigezo vya Mradi wa Kimataifa"
+msgid "Task: "
+msgstr "Kazi: "
+msgid "Profile: "
+msgstr "Wasifu: "
+msgid "Project: "
+msgstr "Mradi: "
+msgid "Scene: "
+msgstr "Onyesho: "
+msgid "Properties Collision Handling"
+msgstr "Ushughulikiaji wa Mgongano wa Mali"
+msgid "Run Both Together"
+msgstr "Endesha Zote Mbili Pamoja"
+msgid " Properties"
+msgstr "Mali"
+msgid "(Not referenced by any "
+msgstr "(Haijarejelewa na yoyote"
+msgid "Project:"
+msgstr "Mradi:"
+msgid "Scenes:"
+msgstr "Mandhari:"
+msgid "[Called by "
+msgstr "[Inaitwa na"
+msgid "[Calls "
+msgstr "[Inapiga simu"
+msgid "(entry)"
+msgstr "(kuingia)"
+msgid "Directory\n"
+msgstr "Saraka\n"
+msgid "Directory    (blue entries are hotlinks)\n\n"
+msgstr "Saraka (maingizo ya bluu ni viungo vya mawasiliano)\n\n"
+msgid "entire configuration"
+msgstr "usanidi mzima"
+msgid "Profile:"
+msgstr "Wasifu:"
+msgid "Task:"
+msgstr "Kazi:"
+msgid "Go to top"
+msgstr "Nenda juu"
+msgid ": Properties"
+msgstr ": Mali"
+msgid "Task "
+msgstr "Kazi"
+msgid "tasks"
+msgstr "kazi"
+msgid "Color for Background set to"
+msgstr "Rangi ya Mandharinyuma imewekwa kuwa"
+msgid "highlighted for visibility"
+msgstr "imeangaziwa kwa mwonekano"
+msgid "Found:"
+msgstr "Imepatikana:"
+msgid " [Launcher Task: "
+msgstr "[Kazi ya Kizinduzi:"
+msgid "(Not referenced by"
+msgstr "(Haijarejelewa na"
+msgid "Grand Totals"
+msgstr "Jumla kuu"
+msgid "MapTasker Runtime Options"
+msgstr "Chaguzi za Muda wa Kuendesha MapTasker"
+msgid "Just Display Everything!"
+msgstr "Onyesha Kila Kitu Tu!"
+msgid "Checks all of the below checkboxes except for 'twisty' and sets the display level to the maximum detail level."
+msgstr "Hukagua visanduku vya kuteua vilivyo hapa chini isipokuwa kwa 'twisty' na kuweka kiwango cha onyesho hadi kiwango cha juu zaidi cha maelezo."
+msgid "Display Profile and Task Action Conditions"
+msgstr "Onyesha Wasifu na Masharti ya Kitendo cha Kazi"
+msgid "Display the conditions such as 'State', 'Event', 'Time', etc. in the output."
+msgstr "Onyesha masharti kama vile 'Jimbo', 'Tukio', 'Saa', n.k. katika towe."
+msgid "Display TaskerNet Info"
+msgstr "Onyesha Maelezo ya TaskerNet"
+msgid "Include the Tasker 'preferences' in the output, if available in the XML file."
+msgstr "Jumuisha 'mapendeleo' ya Tasker katika towe, ikiwa inapatikana katika faili ya XML."
+msgid "Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the beginning of the output."
+msgstr "Onyesha saraka ya Miradi, Wasifu, Majukumu na Maonyesho yote yenye viungo vya mawasiliano mwanzoni mwa matokeo."
+msgid "Display a diagram of the configuration with all Task connections your the default text editor.\nThis option only relates to the 'Run and Exit' and 'ReRun' buttons."
+msgstr "Onyesha mchoro wa usanidi wenye miunganisho yote ya Task, kihariri chako cha maandishi chaguomsingi.\nChaguo hili linahusiana tu na vitufe vya 'Run and Out' na 'ReRun'."
+msgid "Display Prettier Output"
+msgstr "Onyesha Toleo Mzuri Zaidi"
+msgid "Align all Task action arguments and parameters for nicer output."
+msgstr "Pangilia hoja zote za Task action na vigezo kwa matokeo mazuri zaidi."
+msgid "Project/Profile/Task/Scene Names:"
+msgstr "Majina ya Mradi/Wasifu/Kazi/Maeneo:"
+msgid "Add highlighting to Project, Profile and Task names in the output."
+msgstr "Ongeza kuangazia kwa Mradi, Wasifu na Majina ya Kazi kwenye pato."
+msgid "Bold"
+msgstr "Ujasiri"
+msgid "Bold and Italicize are mutually exclusive in the Map view."
+msgstr "Bold na Italicize ni za kipekee katika mwonekano wa Ramani."
+msgid "Italicize"
+msgstr "Italicize"
+msgid "Italicize and Bold are mutually exclusive in the Map view."
+msgstr "Italicize na Bold ni za kipekee katika mwonekano wa Ramani."
+msgid "Highlight"
+msgstr "Angazia"
+msgid "Underline"
+msgstr "Piga mstari"
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near th4e bottom of the configuration output,\nand is intended to help identify Tasks that are too comple\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "Chagua ni vitendo vingapi katika Jukumu kabla ya kutoa ilani.\nOnyo huonekana karibu na sehemu ya chini ya pato la usanidi,\na inakusudiwa kusaidia kutambua Majukumu ambayo yamekamilika sana\na ambayo yanaweza kugawanywa katika Majukumu mengi.\nMpangilio wa '100' unamaanisha kuwa hakuna kikomo."
+msgid "Creates the If/Then/Else indentation options."
+msgstr "Huunda chaguo za ujongezaji Kama/Kisha/Vingine."
+msgid "If/Then/Else Indentation Amount:"
+msgstr "Ikiwa/Kisha/Vinginevyo Kiasi cha Ujongezaji:"
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'."
+msgstr "Weka kiasi cha ujongezaji kwa vizuizi vya If/Basi/Vingine.\n\nChaguo-msingi ni '4'."
+msgid "Creates the language selection dropdown."
+msgstr "Huunda menyu kunjuzi ya uteuzi wa lugha."
+msgid "Language:"
+msgstr "Lugha:"
+msgid "Creates the appearance mode selection."
+msgstr "Huunda uteuzi wa hali ya mwonekano."
+msgid "Appearance Mode:"
+msgstr "Hali ya Mwonekano:"
+msgid "Light"
+msgstr "Mwanga"
+msgid "Dark"
+msgstr "Giza"
+msgid "System"
+msgstr "Mfumo"
+msgid "Creates buttons for different views (Map, Diagram, Tree)."
+msgstr "Huunda vitufe vya maoni tofauti (Ramani, Mchoro, Mti)."
+msgid "Views"
+msgstr "Maoni"
+msgid "Show a detailed view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button, but the output is displayed inside another window rather than in a browser."
+msgstr "Onyesha mwonekano wa kina wa usanidi wako, wenye miunganisho kati ya kazi.\n\nHii ni sawa na kitufe cha 'ReRun', lakini towe huonyeshwa ndani ya dirisha lingine badala ya kwenye kivinjari."
+msgid "Show a diagrammatic view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button combined with the 'Display Configuration Outline' checkbox selected,\nbut the output is displayed inside another window rather than in a text editor."
+msgstr "Onyesha mwonekano wa mchoro wa usanidi wako, wenye miunganisho kati ya kazi.\n\nHii ni sawa na kitufe cha 'Run Run' pamoja na kisanduku cha kuteua cha 'Onyesha Muhtasari wa Usanidi' kilichochaguliwa,\nlakini towe huonyeshwa ndani ya dirisha lingine badala ya katika kihariri cha maandishi."
+msgid "Show a simple hierarchical tree view of your configuration."
+msgstr "Onyesha mwonekano rahisi wa mti wa daraja la usanidi wako."
+msgid "Creates the view limit dropdown."
+msgstr "Huunda menyu kunjuzi ya kikomo cha kutazama."
+msgid "View Limit:"
+msgstr "Kikomo cha Kutazama:"
+msgid "Unlimited"
+msgstr "Bila kikomo"
+msgid "Select the maximum number of items to display in the view to be allowed.\n\nAnything over this amount will stop the generation of the view as a means to throttle the program.\n\nNote: This is only for the 'Map' and 'Diagram' views, not the tree view."
+msgstr "Chagua idadi ya juu zaidi ya vipengee vya kuonyesha katika mwonekano unaoruhusiwa.\n\nChochote kinachozidi kiasi hiki kitasimamisha uundaji wa mwonekano kama njia ya kusukuma programu.\n\nKumbuka: Hii ni kwa ajili ya 'Ramani' na 'Mchoro' tu, wala si mwonekano wa mti."
+msgid "Reset Options"
+msgstr "Weka upya Chaguo"
+msgid "Reset all of the options to their default values, including colors, font used, and other settings.\n\nThe currently loaded XML will be cleared out."
+msgstr "Weka upya chaguo zote ziwe thamani zake chaguomsingi, ikijumuisha rangi, fonti iliyotumika na mipangilio mingineyo.\n\nXML iliyopakiwa kwa sasa itafutwa."
+msgid "Save Settings"
+msgstr "Hifadhi Mipangilio"
+msgid "Restore Settings"
+msgstr "Rejesha Mipangilio"
+msgid "Report Issue"
+msgstr "Ripoti Suala"
+msgid "Report any issues and/or suggestions to the developer.\n\nThis will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue."
+msgstr "Ripoti matatizo na/au mapendekezo yoyote kwa msanidi.\n\nHii itafungua dirisha la kivinjari kwenye ukurasa wa Masuala ya GitHub, na utahitaji akaunti ya GitHub ili kuwasilisha suala."
+msgid "Font To Use In Output:"
+msgstr "Fonti ya Kutumia Katika Pato:"
+msgid "This is a list of all of the monospaced fonts available on your system.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment."
+msgstr "Hii ni orodha ya fonti zote zenye nafasi moja zinazopatikana kwenye mfumo wako.\n\nFonti iliyochaguliwa itatumika katika matokeo yote.\n\n'Courier' au 'Courier New' inapendekezwa sana kwa Michoro ili kuhakikisha upatanishaji sahihi wa kiunganishi."
+msgid "Clear Messages"
+msgstr "Futa Ujumbe"
+msgid "Get XML from Android Device"
+msgstr "Pata XML kutoka kwa Kifaa cha Android"
+msgid "Fetch XML from an Android device.\n\nClick on the 'Get Android Help' button for more info."
+msgstr "Leta XML kutoka kifaa cha Android.\n\nBofya kitufe cha 'Pata Usaidizi wa Android' kwa maelezo zaidi."
+msgid "Get Local XML"
+msgstr "Pata XML ya Karibu"
+msgid "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands."
+msgstr "Leta XML kutoka kwa hifadhi ya ndani kwenye kompyuta hii.\n\nXML iliyoletwa itakuwa chanzo cha sasa cha amri za MapTasker."
+msgid "Display Help"
+msgstr "Usaidizi wa Kuonyesha"
+msgid "Get Android Help"
+msgstr "Pata Usaidizi wa Android"
+msgid "Browser Options"
+msgstr "Chaguzi za Kivinjari"
+msgid "Run and Exit"
+msgstr "Kimbia na Utoke"
+msgid "Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\nThe program terminates when done."
+msgstr "Tengeneza ramani ya XML ya sasa, hifadhi matokeo kama faili ya html na uonyeshe ramani katika kivinjari chaguo-msingi.\n\nProgramu itakoma ikikamilika."
+msgid "ReRun"
+msgstr "Run Rudia"
+msgid "Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output."
+msgstr "Sawa na kitufe cha 'Endesha na Uondoke',\nlakini programu inaanza tena baada ya kuonyesha towe la kivinjari."
+msgid "Exit"
+msgstr "Utgång"
+msgid "(Pick ONLY One)"
+msgstr "(Chagua Moja TU)"
+msgid "Select either a single Project, Profile, or Task to display (Map and Diagram views, and browser).\nIf a single Project is selected, all of it's Projects, Tasks and Scenes will be included.\nIf a single Profile is selected, it and all of its Tasks will be displayed."
+msgstr "Chagua ama Mradi, Wasifu, au Jukumu la kuonyesha (Mionekano ya Ramani na Mchoro na kivinjari).\nMradi mmoja ukichaguliwa, Miradi, Majukumu na Mandhari yake yote yatajumuishwa.\nIkiwa Wasifu mmoja utachaguliwa, Mradi huo na Majukumu yake yote yataonyeshwa."
+msgid "List Unnamed Items"
+msgstr "Orodhesha Vipengee Visivyotajwa"
+msgid "'List Unnamed Items' checkbox"
+msgstr "Kisanduku cha kuteua cha 'Orodhesha Vipengee Visivyo na Jina'"
+msgid "Check this if you want to see unnamed Profiles and Tasks in the\npulldown lists (above) and in the optional directory.\n\nLeaving this unchecked will leave unnamed Tasks and Profiles\nout of the pulldown lists and out of the directory,\nbut the unnamed Profile and Task details will still appear in the output."
+msgstr "Angalia hili ikiwa ungependa kuona Wasifu na Majukumu yasiyo na majina katika\norodha za kubomoa (hapo juu) na katika saraka ya hiari.\n\nKuacha kipengele hiki bila kuteua kutaacha Majukumu na Wasifu zisizo na majina\nnje ya orodha za kubomoa na kutoka kwenye saraka,\nlakini maelezo ya Wasifu na Kazi ambayo hayajatajwa bado yataonekana kwenye towe."
+msgid "Set Various Display Colors Here:"
+msgstr "Weka Rangi Mbalimbali za Kuonyesha Hapa:"
+msgid "Projects"
+msgstr "Miradi"
+msgid "Disabled Profiles"
+msgstr "Wasifu Umezimwa"
+msgid "Launcher Tasks"
+msgstr "Kazi za Kizindua"
+msgid "Profile Conditions"
+msgstr "Masharti ya Wasifu"
+msgid "Tasks"
+msgstr "Kazi"
+msgid "Unnamed Tasks"
+msgstr "Kazi Zisizo na Jina"
+msgid "(Task) Actions"
+msgstr "(Kazi) Vitendo"
+msgid "Action Conditions"
+msgstr "Masharti ya Kitendo"
+msgid "Action Labels"
+msgstr "Lebo za Vitendo"
+msgid "Action Names"
+msgstr "Majina ya Vitendo"
+msgid "Scenes"
+msgstr "Mandhari"
+msgid "Background"
+msgstr "Usuli"
+msgid "TaskerNet Information"
+msgstr "Taarifa ya TaskerNet"
+msgid "Tasker Preferences"
+msgstr "Mapendeleo ya Mfanyakazi"
+msgid "Heading"
+msgstr "Kichwa"
+msgid "Reset to Default Colors"
+msgstr "Weka upya kwa Rangi Chaguomsingi"
+msgid "Show/Edit API Key(s)"
+msgstr "Onyesha/Hariri Vifunguo vya API"
+msgid "Change Prompt"
+msgstr "Badilisha haraka"
+msgid "Model to Use:"
+msgstr "Mfano wa kutumia:"
+msgid "Extended"
+msgstr "Imepanuliwa"
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\nthen the default model list for the respective\nAI provider will be displayed.\n\nNote: Not all models have been validated and\none or more may return an error on analysis."
+msgstr "Onyesha orodha iliyopanuliwa ya miundo YOTE inayopatikana.\n\nKumbuka: Ikiwa ufunguo wa API haujawekwa kwa OpenAI au Gemini,\nbasi orodha chaguo-msingi ya mtoa huduma\nAI itaonyeshwa.\n\nKumbuka: Sio miundo yote iliyoidhinishwa na\nnhakuna au zaidi inayoweza kurejesha hitilafu kwenye uchanganuzi."
+msgid "Populates the 'Debug' tab."
+msgstr "Hujaza kichupo cha 'Debug'."
+msgid "Display this program's settings at the front of the configuration output (Map view and browser)."
+msgstr "Onyesha mipangilio ya programu hii mbele ya pato la usanidi (Mwonekano wa ramani na kivinjari)."
+msgid "API Key Options"
+msgstr "Chaguzi Muhimu za API"
+msgid "OpenAI API Key:"
+msgstr "Ufunguo wa API ya OpenAI:"
+msgid "Claude API Key:"
+msgstr "Claude API Key:"
+msgid "DeepSeek API Key:"
+msgstr "Ufunguo wa API ya DeepSeek:"
+msgid "Gemini API Key:"
+msgstr "Ufunguo wa API ya Gemini:"
+msgid "OK"
+msgstr "Sawa"
+msgid "Cancel"
+msgstr "Ghairi"
+msgid "Task 'actions' limit"
+msgstr "Kikomo cha 'vitendo' vya kazi"
+msgid "Map"
+msgstr "Ramani"
+msgid "Monospaced Font To Use"
+msgstr "Fonti Iliyo na Nafasi Moja Ya Kutumia"
+msgid "Current file set to"
+msgstr "Faili ya sasa imewekwa"
+msgid "Current File"
+msgstr "Faili ya Sasa"
+msgid "Select Project to process:"
+msgstr "Chagua Mradi wa kuchakata:"
+msgid "Select Profile to process:"
+msgstr "Chagua Wasifu ili kuchakata:"
+msgid "Select Task to process:"
+msgstr "Chagua Kazi ya kuchakata:"
+msgid "Display only Project"
+msgstr "Onyesha Mradi pekee"
+msgid "None"
+msgstr "Hakuna"
+msgid "Display all Projects, Profiles, Tasks, and Scenes."
+msgstr "Onyesha Miradi, Wasifu, na Majukumu yote."
+msgid "Display all"
+msgstr "Onyesha zote"
+msgid "Run Analysis"
+msgstr "Endesha Uchambuzi"
+msgid "Analyze"
+msgstr "Chambua"
+msgid "Project to Analyze:"
+msgstr "Mradi wa Kuchambua:"
+msgid "Profile to Analyze:"
+msgstr "Wasifu wa Kuchanganua:"
+msgid "Task to Analyze:"
+msgstr "Kazi ya Kuchambua:"
+msgid "No Projects, Profiles or Tasks to display!"
+msgstr "Hakuna Miradi, Wasifu au Kazi za kuonyesha!"
+msgid "Analysis response is in a separate Window."
+msgstr "Jibu la uchanganuzi liko kwenye Dirisha tofauti."
+msgid "View not possible.  No Projects, Profiles Tasks (or Scenes) in the current XML file.\n"
+msgstr "Mtazamo hauwezekani.  Hakuna Miradi, Kazi za Wasifu (au Mandhari) katika faili ya sasa ya XML.\n"
+msgid "Click the 'Get Local XML' or 'Get XML From Android' button to load some XML first."
+msgstr "Bofya kitufe cha 'Pata XML ya Ndani' au 'Pata XML Kutoka kwa Android' ili kupakia baadhi ya XML kwanza."
+msgid "GUI started with the '-reset' option.\n"
+msgstr "GUI ilianza na chaguo la '-reset'.\n"
+msgid "Initialization complete.\n"
+msgstr "Uanzishaji umekamilika.\n"
+msgid "Settings restored.\n"
+msgstr "Mipangilio imerejeshwa.\n"
+msgid "Program running..."
+msgstr "Mpango unaendelea..."
+msgid "Cancel button pressed.\n"
+msgstr "Kitufe cha kughairi kimebonyezwa.\n"
+msgid "Invalid XML!  Click 'Get Local XML File' to try a different XML file."
+msgstr "Bofya 'Pata XML ya Ndani' ili kujaribu faili tofauti ya XML."
+msgid "'Get XML From Android' settings cleared."
+msgstr "Mipangilio ya 'Pata XML Kutoka kwa Android' imefutwa."
+msgid "No Project(s) Found in XML!"
+msgstr "Hakuna Miradi Iliyopatikana katika XML!"
+msgid "The 'Map' view is running in the background.  Please stand by..."
+msgstr "Mwonekano wa 'Ramani' unaendelea chinichini.  Tafadhali simama karibu..."
+msgid "Map View displayed."
+msgstr "Mwonekano wa Ramani umeonyeshwa."
+msgid "msg"
+msgstr "ujumbe"
+msgid "Colors set to defaults."
+msgstr "Rangi zimewekwa kwa chaguo-msingi."
+msgid "No settings file found."
+msgstr "Hakuna faili ya mipangilio iliyopatikana."
+msgid "'Get XML From Android' canceled."
+msgstr "'Pata XML Kutoka kwa Android' imeghairiwa."
+msgid "Red"
+msgstr "Nyekundu"
+msgid "Settings reset."
+msgstr "Mipangilio imewekwa upya."
+msgid "Debug mode enabled."
+msgstr "Hali ya utatuzi imewashwa."
+msgid "Debug mode disabled."
+msgstr "Hali ya utatuzi imezimwa."
+msgid "Tasker items set back to their default colors."
+msgstr "Vipengee vya Tasklor vimewekwa nyuma kwa rangi zao chaguomsingi."
+msgid "Program updated.  Restarting..."
+msgstr "Programu imesasishwa.  Inaanza upya..."
+msgid "Error: Failed to open output in browser: your browser is not supported."
+msgstr "Hitilafu: Imeshindwa kufungua towe kwenye kivinjari: kivinjari chako hakitumiki."
+msgid "Selection ignored."
+msgstr "Uteuzi umepuuzwa."
+msgid "No color selected."
+msgstr "Hakuna rangi iliyochaguliwa."
+msgid "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!"
+msgstr "Hii haina athari kwa Kiwango cha Maelezo ya Onyesho chini ya 3. Kiwango cha Maelezo ya Onyesho kimewekwa kuwa 3!"
+msgid "'Twisty' and 'Everything' are mutually exclusive.  Unchecking 'Twisty'."
+msgstr "'Twisty' na 'Kila kitu' ni za kipekee.  Inaondoa kuteua 'Twisty'."
+msgid "Settings saved."
+msgstr "Mipangilio imehifadhiwa."
+msgid "Tree View displayed."
+msgstr "Mwonekano wa Mti umeonyeshwa."
+msgid "XML must have at least one Project."
+msgstr "XML lazima iwe na angalau Mradi mmoja."
+msgid "'Cancel' button selected.  No change to the API keys!"
+msgstr "Kitufe cha 'Ghairi' kimechaguliwa.  Hakuna mabadiliko kwa funguo za API!"
+msgid "No API keys changed."
+msgstr "Hakuna vitufe vya API vilivyobadilishwa."
+msgid "No model selected."
+msgstr "Hakuna muundo uliochaguliwa."
+msgid "No projects, profiles, or tasks have been loaded!  Load some XML and try again."
+msgstr "Hakuna miradi, wasifu, au kazi zilizopakiwa!  Pakia baadhi ya XML na ujaribu tena."
+msgid "Single Project/Profile/Task has not been selected!  Select only one and try again."
+msgstr "Mradi/Wasifu/Kazi Moja haijachaguliwa!  Chagua moja tu na ujaribu tena."
+msgid "An error occurred reading the changelog file."
+msgstr "Hitilafu ilitokea wakati wa kusoma faili ya changelog."
+msgid "The 'Diagram' view is running in the background.  Please stand by..."
+msgstr "Mwonekano wa 'Mchoro' unaendelea chinichini.  Tafadhali simama karibu..."
+msgid "Diagram View displayed."
+msgstr "Mwonekano wa Mchoro umeonyeshwa."
+msgid "'None' selected.  Displaying all Projects, Profiles and Tasks."
+msgstr "'Hakuna' iliyochaguliwa.  Inaonyesha Miradi, Wasifu na Kazi zote."
+msgid "set Off"
+msgstr "weka Zima"
+msgid "set On"
+msgstr "weka Washa"
+msgid "set to False"
+msgstr "weka kwa Uongo"
+msgid "set to True"
+msgstr "weka kuwa Kweli"
+msgid "is not named"
+msgstr "haijatajwa"
+msgid "set to"
+msgstr "kuweka kwa"
+msgid "is not set"
+msgstr "haijawekwa"
+# Restore settings text
+msgid "Android Get XML TCP IP Address"
+msgstr "Android Pata Anwani ya IP ya XML TCP"
+msgid "ndroid Get XML Port Number"
+msgstr "android Pata Nambari ya Bandari ya XML"
+msgid "Android Get XML File Location"
+msgstr "Android Pata Mahali pa Faili ya XML"
+msgid "Display Profile/Task Conditions"
+msgstr "Onyesha Wasifu/Masharti ya Kazi"
+msgid "Display Names in Bold"
+msgstr "Onyesha Majina kwa Nyembamba"
+msgid "Debug Mode"
+msgstr "Hali ya Utatuzi"
+msgid "Display Directory"
+msgstr "Orodha ya Maonyesho"
+msgid "Display Names Highlighted"
+msgstr "Majina ya Onyesho Yameangaziwa"
+msgid "Display Names Italicized"
+msgstr "Maonyesho ya Majina Yaliyowekwa Kiitaliano"
+msgid "Display Unnamed Tasks"
+msgstr "Onyesha Kazi Zisizo na Jina"
+msgid "Display Configuration Outline"
+msgstr "Muhtasari wa Usanidi wa Onyesho"
+msgid "Display Tasker Preferences"
+msgstr "Onyesha Mapendeleo ya Mtumiaji"
+msgid "Display Prettier"
+msgstr "Onyesha Mzuri Zaidi"
+msgid "Display Runtime Settings"
+msgstr "Onyesha Mipangilio ya Muda wa Kuendesha"
+msgid "Display TaskerNet Information"
+msgstr "Onyesha Taarifa ya TaskerNet"
+msgid "Hide Task Details Under Twisty"
+msgstr "Ficha Maelezo ya Kazi Chini ya Twisty"
+msgid "Display Names Underlined"
+msgstr "Majina ya Onyesho Yamepigiwa Mistari"
+msgid "Display Pretty Output"
+msgstr "Onyesha Toleo Nzuri"
+msgid "Everything toggled on successfully"
+msgstr "Kila kitu kimewashwa kwa mafanikio"
+msgid "Everything toggled off successfully"
+msgstr "Kila kitu kimezimwa kwa mafanikio"
+# AI messages
+msgid "Current prompt:"
+msgstr "Mwongozo wa sasa:"
+msgid "Enter a new prompt for the AI to use:"
+msgstr "Weka kidokezo kipya kwa AI kutumia:"
+msgid "Change the Ai Prompt"
+msgstr "Badilisha Agizo la Ai"
+msgid "Prompt change canceled."
+msgstr "Mabadiliko ya haraka yameghairiwa."
+msgid "Prompt did not change."
+msgstr "Prompt haikubadilika."
+msgid "Prompt changed to"
+msgstr "Agizo limebadilishwa kuwa"
+msgid "API key cleared."
+msgstr "Kitufe cha API kimefutwa."
+msgid "API key is invalid!"
+msgstr "Ufunguo wa API ni batili!"
+msgid "API key saved:"
+msgstr "Kitufe cha API kimehifadhiwa:"
+msgid "API key unmodified"
+msgstr "Kitufe cha API hakijabadilishwa"
+msgid "The API Key is not set for model"
+msgstr "Ufunguo wa API haujawekwa kwa mfano"
+msgid "Running"
+msgstr "Kukimbia"
+msgid "analysis with model"
+msgstr "uchambuzi na mfano"
+# Misc f" strings
+msgid "Task Action Warning Limit set to"
+msgstr "Kikomo cha Onyo la Kitendo cha Jukumu kimewekwa kuwa"
+msgid "Too much data to display (Size="
+msgstr "Data nyingi mno za kuonyesha (Ukubwa="
+msgid "View Limit="
+msgstr "Kikomo cha Kutazama="
+msgid "Select a larger 'View Limit' or a single Project / Profile / Task and try again."
+msgstr "Chagua 'Kikomo cha Kutazama' au Mradi / Wasifu / Kazi moja na ujaribu tena."
+msgid "saved as"
+msgstr "kuokolewa kama"
+msgid "Report an Issue or Request a Feature\n\n"
+msgstr "Ripoti Tatizo au Omba Kipengele\n\n"
+msgid "Go to your browser and create a new issue or feature request, providing as much detail as possible."
+msgstr "Nenda kwenye kivinjari chako na uunde suala jipya au ombi la kipengele, ukitoa maelezo mengi iwezekanavyo."
+msgid "one or unnamed!"
+msgstr "moja au bila jina!"
+msgid "View Limit set to"
+msgstr "Kikomo cha Kutazama kimewekwa"
+msgid "Video saved as"
+msgstr "Video imehifadhiwa kama"
+msgid "Font To Use set to"
+msgstr "Fonti ya Kutumia imewekwa"
+msgid "Hiding Tasks with Twisty has no effect with Display Detail Level set to"
+msgstr "Kuficha Majukumu kwa Twisty hakuna athari kwa Kiwango cha Maelezo ya Onyesho kimewekwa"
+msgid "disabled"
+msgstr "walemavu"
+msgid "Indentation Amount"
+msgstr "Kiasi cha Ujongezaji"
+msgid "Appearance mode set to"
+msgstr "Hali ya mwonekano imewekwa"
+msgid "Display Detail Level"
+msgstr "Onyesha Kiwango cha Maelezo"
+msgid "selected"
+msgstr "iliyochaguliwa"
+msgid "MapTasker Analysis >>>>>>>>>> Please stand by..."
+msgstr "Uchambuzi wa MapTasker >>>>>>>>>> Tafadhali simama karibu..."
+msgid "Analysis is running in the background.\n\nOnce complete, the program will restart and the results will appear in a new window.\n\nPlease stand by..."
+msgstr "Uchanganuzi unafanyika chinichini.\n\nBaada ya kukamilika, programu itaanza upya na matokeo yataonekana katika dirisha jipya.\n\nTafadhali simama karibu..."
+msgid "Buy Me A Coffee"
+msgstr "Ninunulie Kahawa"
+msgid "This menu is where you define your AI API keys for use by the AI 'Analyze' button.\n\nThe keys are saved across sessions.\n\nThe keys are used to access the OpenAI, Claude AI, Gemini AI, and DeepSeek AI server-based models.\n\nClick on the 'Clear' button to clear a specific API key entry.\n\nSelect 'Ok' to save the changes or 'Cancel' to back out of the changes.\n\n"
+msgstr "Menyu hii ndipo unapofafanua funguo zako za API ya AI ili zitumike na kitufe cha 'Changanua' cha AI.\n\nVifunguo huhifadhiwa katika vipindi vyote.\n\nVifunguo hutumika kufikia miundo ya seva ya OpenAI, Claude AI, Gemini AI na DeepSeek AI.\n\nBofya kitufe cha 'Futa\nChagua' ili kufuta kipengee mahususi. 'Sawa' ili kuhifadhi mabadiliko au 'Ghairi' ili kujiondoa kwenye mabadiliko.\n\n"
+msgid "The 'Profiles Per Line' setting is used to control the number of Profiles to be displayed per line when diagramming the configuration.\n\nThe smaller the number, the narrower the diagram and vice versa.\n\nFewer Profiles per line may make it easier too view the diagram connectors that extend to the right, while at the same time the Diagram wil be longer.\n\nSelecting a number will automatically re-generate the diagram with the new setting.\n\nThis setting is only valid for the currrent Diagram view, and will be reset back to the default value when the Diagram view is closed.\n\n"
+msgstr "Mipangilio ya 'Wasifu Kwa Kila Mstari' hutumika kudhibiti idadi ya Wasifu zitakazoonyeshwa kwa kila mstari wakati wa kuweka mipangilio katika mchoro.\n\nKadiri nambari inavyopungua, ndivyo mchoro unavyopungua na kinyume chake.\n\nWasifu wachache kwa kila mstari unaweza kurahisisha kuangalia viunganishi vya mchoro vinavyoenea kulia, na wakati huo huo nambari ya kuchagua Mchoro itakuwa ndefu zaidi. itaunda upya mchoro kiotomatiki kwa mpangilio mpya.\n\nMpangilio huu ni halali kwa mwonekano wa sasa wa Mchoro pekee, na utarejeshwa kwa thamani chaguomsingi mwonekano wa Mchoro utakapofungwa.\n\n"
+msgid "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the data.\n\nThe 'Search Here' button will search for and highlight every instance of the string entered in the search box, starting at the current screen.\n\nHover over any of the highlighted matching strings to see all matches.\n\nThe 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\nThe accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\nWhen the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\nThe 'Clear' button will clear the search results.\n\nThe 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
+msgstr "Kitufe cha 'Tafuta' kitatafuta na kuangazia kila tukio la mfuatano uliowekwa kwenye kisanduku cha kutafutia, kuanzia sehemu ya juu ya data.\n\nKitufe cha 'Tafuta Hapa' kitatafuta na kuangazia kila tukio la mfuatano uliowekwa kwenye kisanduku cha kutafutia, kuanzia kwenye skrini ya sasa.\n\nElea juu ya mfuatano wowote ulioangaziwa ili kuona mechi zote.\n\nKitufe cha 'Prevt' kitajaribu 'Prevt' kifuatacho. na utokeaji wa awali wa mfuatano wa utafutaji unaoonekana katika kisanduku cha kutazama maandishi, na uangazie kwa rangi tofauti.\n\nUsahihi wa kufanya mfuatano wa utafutaji uonekane si kamilifu kila wakati na uko nje ya udhibiti wa programu hii.\n\nWakati mwisho au mwanzo wa kisanduku cha kutazama maandishi umefikiwa, utafutaji utaacha na ujumbe utaonyeshwa kwa sekunde kadhaa.\n\nKitufe cha utafutaji kitafuta 'Futa'. matokeo.\n\nKitufe cha 'Onyesha Pekee' kitaonyeshwa katika dirisha la aina mbalimbali TU zinazolingana kutoka kwa matokeo ya utafutaji.\n\n"
+msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nIn order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running on your Android device.  This profile can be found at the following URL:\n\n    https://t.ly/8vI1f\n\n"
+msgstr "Kubofya kitufe hiki kutasababisha vitendo vifuatavyo:\n\n- Anwani ya IP itatumika kubandika kifaa cha Android.\n\n- Anwani ya IP na nambari ya mlango itatumika kuuliza swali kwenye kifaa cha Android na kupata orodha ya faili zinazopatikana za XML zinazopatikana katika folda ya Tasker.\n\n- Orodha ya faili za XML zilizopatikana itaonyeshwa kwenye menyu ya kubofya ambayo unaweza kuchagua ile unayotaka kuchagua. tumia.\n\n- Baada ya kuchagua faili ya XML, italetwa na kuthibitishwa kama XML halali ambayo itatumika kama ingizo la programu mara tu unapobofya kitufe cha 'Run' au 'Run'.\n\nIli hili lifanye kazi, LAZIMA uwe tayari umeingiza wasifu wa 'MapTasker List' kwenye Tasker inayoendeshwa kwenye kifaa chako cha Android.  Wasifu huu unaweza kupatikana katika URL ifuatayo:\n\n https://t.ly/8vI1f\n\n"
+
+msgid "API Key Help"
+msgstr "Usaidizi wa Muhimu wa API"
+msgid "Profiles Per Line Help"
+msgstr "Wasifu Kwa Usaidizi wa Mstari"
+msgid "Search Help"
+msgstr "Tafuta Msaada"
+msgid "List Android Files Help"
+msgstr "Orodhesha Usaidizi wa Faili za Android"
+msgid "Get XML From Android Device Help"
+msgstr "Pata XML Kutoka kwa Usaidizi wa Kifaa cha Android"
+msgid "Ai Analyze Help"
+msgstr "Ai Chambua Msaada"
+msgid "Views Help"
+msgstr "Usaidizi wa Maoni"
+msgid "View Limit Help"
+msgstr "Tazama Usaidizi wa Kikomo"
+# Critical reverse translations needed!
+msgid "Nada"
+msgstr "Nada"
+msgid "Spanish"
+msgstr "Kihispania"
+msgid "Español"
+msgstr "Kihispania"
+msgid "English"
+msgstr "Kiingereza"
+msgid "Inglés"
+msgstr "Kiingereza"
+msgid "German"
+msgstr "Kijerumani"
+msgid "Alemán"
+msgstr "Alemán"
+msgid "Simplified Chinese"
+msgstr "Kichina Kilichorahisishwa"
+msgid "Chino simplificado"
+msgstr "Chino kurahisisha"
+msgid "Traditional Chinese"
+msgstr "Kichina cha jadi"
+msgid "chino tradicional"
+msgstr "chino cha kitamaduni"
+msgid "Hindi"
+msgstr "Kihindi"
+msgid "hindi"
+msgstr "kihindi"
+msgid "French"
+msgstr "Kifaransa"
+msgid "Francés"
+msgstr "Wafaransa"
+msgid "Portuguese"
+msgstr "Kireno"
+msgid "portugués"
+msgstr "Ureno"
+msgid "Japanese"
+msgstr "Kijapani"
+msgid "japonés"
+msgstr "japonés"
+msgid "Russian"
+msgstr "Kirusi"
+msgid "ruso"
+msgstr "ruso"
+msgid "Korean"
+msgstr "msingi"
+msgid "msingi"
+msgstr "Korean"
+msgid "Kihispania"
+msgstr "Spanish"
+msgid "Kiingereza"
+msgstr "English"
+msgid "Kijerumani"
+msgstr "German"
+msgid "Kichina Kilichorahisishwa"
+msgstr "Simplified Chinese"
+msgid "Kichina cha jadi"
+msgstr "Traditional Chinese"
+msgid "Kihindi"
+msgstr "Hindi"
+msgid "Kifaransa"
+msgstr "French"
+msgid "Kireno"
+msgstr "Portuguese"
+msgid "Kijapani"
+msgstr "Japanese"
+msgid "Kirusi"
+msgstr "Russian"
+msgid "Kikorea"
+msgstr "Korean"
+msgid "Arabic"
+msgstr "Kiarabu"
+msgid "Kiarabu"
+msgstr "Arabic"
+msgid "Bengali"
+msgstr "Kibengali"
+msgid "Kibengali"
+msgstr "Bengali"
+msgid "Urdu"
+msgstr "Kiurdu"
+msgid "Kiurdu"
+msgstr "Urdu"
+msgid "Swahili"
+msgstr "kiswahili"
+msgid "kiswahili"
+msgstr "Swahili"
+msgid "Marathi"
+msgstr "Marathi"
+msgid "Teluga"
+msgstr "Teluga"
+msgid "Turkish"
+msgstr "Kituruki"
+msgid "Kituruki"
+msgstr "Turkish"
+msgid "Tamali"
+msgstr "Tamali"
+msgid "Vietnamese"
+msgstr "Kivietinamu"
+msgid "Kivietinamu"
+msgstr "Vietnamese"
+msgid "Italian"
+msgstr "Kiitaliano"
+msgid "Kiitaliano"
+msgstr "Italian"
+msgid "Ukrainian"
+msgstr "Kiukreni"
+msgid "Kiukreni"
+msgstr "Ukrainian"
+msgid "Polish"
+msgstr "Kipolandi"
+msgid "Kipolandi"
+msgstr "Polish"
+msgid "Dutch"
+msgstr "Kiholanzi"
+msgid "Kiholanzi"
+msgstr "Dutch"
+msgid "Thai"
+msgstr "Thai"
+msgid "Gujarati"
+msgstr "Kigujarati"
+msgid "Kigujarati"
+msgstr "Gujarati"
+msgid "Persian"
+msgstr "Kiajemi"
+msgid "Kiajemi"
+msgstr "Persian"
+msgid "Swedish"
+msgstr "Kiswidi"
+msgid "Kiswidi"
+msgstr "Swedish"
+msgid "Danish"
+msgstr "Kideni"
+msgid "Kideni"
+msgstr "Danish"
+msgid "Finish"
+msgstr "Maliza"
+msgid "Maliza"
+msgstr "Finish"
+msgid "Greek"
+msgstr "Kigiriki"
+msgid "Kigiriki"
+msgstr "Greek"
+msgid "Czech"
+msgstr "Kicheki"
+msgid "Kicheki"
+msgstr "Czech"
+msgid "Norwegian"
+msgstr "Kinorwe"
+msgid "Kinorwe"
+msgstr "Norwegian"
+msgid "No Profile"
+msgstr "Hakuna Wasifu"
+msgid "No Project"
+msgstr "Hakuna Mradi"
+msgid "Color"
+msgstr "Rangi"
+msgid "Debug"
+msgstr "Tatua"
+msgid "Colors"
+msgstr "Rangi"
+msgid "Calls"
+msgstr "Simu"
+msgid "Called by"
+msgstr "Inaitwa na"
+msgid "No projects found"
+msgstr "Hakuna miradi iliyopatikana"
+msgid "No profiles found"
+msgstr "Hakuna wasifu uliopatikana"
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "Tafuta faili ya Tasker XML ya kutumia kuweka ramani ya mazingira yako ya Tasker"
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "Saraka (maingizo ya bluu ni viungo vya mawasiliano)"
+msgid "(Unnamed)"
+msgstr "(Haijatajwa)"
+msgid "Up One Level to"
+msgstr "Juu Kiwango kimoja hadi"
+msgid "Owner"
+msgstr "Mmiliki"
+msgid "Properties..."
+msgstr "Sifa..."
+msgid "TaskerNet Description:"
+msgstr "Maelezo yaTaskerNet:"
+msgid "...with label:"
+msgstr "...na lebo:"
+msgid "TaskerNet search on:"
+msgstr "Utafutaji wa TaskerNet kwenye:"
+msgid "DISABLED]"
+msgstr "IMEZIMWA]"
+msgid "Entry Task"
+msgstr "Jukumu la Kuingia"
+msgid "Exit Task"
+msgstr "Ondoka kwenye Jukumu"
+msgid "description"
+msgstr "maelezo"
+msgid "Launcher"
+msgstr "Kizindua"
+msgid "CAVEATS:"
+msgstr "TAARIFA:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- Hii imejaribiwa kwenye faili yangu ya chelezo.xml pekee.  Kwa matatizo, waripoti"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- Majukumu ambayo yametambuliwa kama '(Hayajatajwa)' hayana jina na hayana jina.\n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- Majaribio yote yanafanywa ili kuhifadhi HTML iliyopachikwa (k.m. color=...>') katika sehemu za Tasker.\n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- Majina ya wasifu yanayoanza na '*' hayajulikani/ hayana jina, na jina lina masharti ya Wasifu.\n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "- Majina ya kazi ambayo yanajumuisha kitendo cha kwanza ambacho kimepachika html yatakuwa na herufi kubwa zaidi kuliko na chini ya kubadilishwa kuwa '{' na '}' mtawalia.\n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- Uumbizaji wa lebo na maelezo ya TaskerNet yenye HTML iliyopachikwa huonyeshwa kwa karibu iwezekanavyo katika mwonekano wa Ramani, lakini huenda usiwe sawa.\n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- Ufunguo wako wa API ya Google unaonyeshwa katika mapendeleo ya Tasker!\n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- Vitendo vingi lakini si vyote vya Jukumu vimepangwa na vitaonyeshwa hivyo.  Vivyo hivyo kwa masharti ya Wasifu na Programu-jalizi.\n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- Kwa chaguo -d0, Majukumu ambayo yametambulishwa kama 'Hayajatajwa/Yasiyojulikana' yataorodheshwa Kitendo chao cha kwanza pekee....\n kama vile Tasker anavyofanya.\n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- Vigeu visivyotumika ni vigeu vya kimataifa vinavyotumika katika Jukumu ambalo halijaendeshwa/kutumika.\n- Vigeu visivyorejelewa ni vigeu vya kimataifa ambavyo huenda vilitumika hapo awali, lakini havirejelewi kwa sasa (k.m. Wasifu wa Task umezimwa).\n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- Viungo vya video vya YouTube vilivyotambuliwa na '[▶️ VIDEO: url...]' ni vya moto/ vinaweza kubofya iwapo tu 'ffmpeg' imesakinishwa:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "MacOS: 'brew install ffmpeg'\n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "Linux: 'sudo apt update' na 'sudo apt install ffmpeg'\n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "Windows kupitia Winget: 'winget install ffmpeg'\n"
+msgid "Refer to"
+msgstr "Rejelea"
+msgid "Tasker Displayed Totals"
+msgstr "Jumla ya Mfanyakazi Aliyeonyeshwa"
+msgid "Total number of Projects:"
+msgstr "Jumla ya idadi ya Miradi:"
+msgid "Total number of Profiles:"
+msgstr "Jumla ya idadi ya Wasifu:"
+msgid "Total number of Tasks:"
+msgstr "Jumla ya Idadi ya Majukumu:"
+msgid "Total number of Scenes:"
+msgstr "Jumla ya Idadi ya Matukio:"
+msgid "has"
+msgstr "ina"
+msgid "actions"
+msgstr "vitendo"
+msgid "Tasks With Too Many Actions (Limit is"
+msgstr "Majukumu Yenye Vitendo Vingi Sana (Kikomo ni"
+msgid "In Project"
+msgstr "Katika Mradi"
+msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
+msgstr "Kazi zifuatazo katika Mradi wa 'Chat GPT' haziko katika Wasifu wowote"
+msgid "Actions:"
+msgstr "Vitendo:"
+msgid "Priority:"
+msgstr "Kipaumbele:"
+msgid "(exit)"
+msgstr "(Utgång)"
+msgid "(Not Found!)"
+msgstr "(Haijapatikana!)"
+msgid "Search string not found."
+msgstr "Mfuatano wa utafutaji haujapatikana."
+msgid "The end of the text has been reached."
+msgstr "Mwisho wa maandishi umefikiwa."
+msgid "Width/Height"
+msgstr "Upana/Urefu"
+msgid "Text"
+msgstr "Maandishi"
+msgid "of type"
+msgstr "ya aina"
+msgid "Top of text view reached."
+msgstr "Juu ya mwonekano wa maandishi umefikiwa."
+msgid "Top of text view displayed."
+msgstr "Juu ya mwonekano wa maandishi umeonyeshwa."
+msgid "Bottom of text view displayed."
+msgstr "Chini ya mwonekano wa maandishi umeonyeshwa."
+msgid "No search string was entered."
+msgstr "Hakuna mfuatano wa utafutaji ulioingizwa."
+msgid "Word wrap is on"
+msgstr "Ufungaji wa maneno umewashwa"
+msgid "Word wrap is off"
+msgstr "Ufungaji wa maneno umezimwa"
+msgid "Drag window to desired position and rerun the Map command."
+msgstr "Buruta dirisha hadi mahali unapotaka na utekeleze tena amri ya Ramani."
+msgid "Drag window to desired position and rerun the Diagram command."
+msgstr "Buruta dirisha kwa nafasi inayotaka na utekeleze tena amri ya Mchoro."
+msgid "Upgrade to Latest Version"
+msgstr "Pata Toleo Jipya zaidi"
+msgid "A new version of MapTasker is available."
+msgstr "Toleo jipya la MapTasker linapatikana."
+msgid "What's New?"
+msgstr "Nini Kipya?"
+msgid "Miradi"
+msgstr "Projects"
+msgid "Wasifu"
+msgstr "Profiles"
+msgid "Wasifu Umezimwa"
+msgstr "Disabled Profiles"
+msgid "Kazi za Kizindua"
+msgstr "Launcher Tasks"
+msgid "Masharti ya Wasifu"
+msgstr "Profile Conditions"
+msgid "Kazi"
+msgstr "Tasks"
+msgid "Kazi Zisizo na Jina"
+msgstr "Unnamed Tasks"
+msgid "(Kazi) Vitendo"
+msgstr "(Task) Actions"
+msgid "Masharti ya Kitendo"
+msgstr "Action Conditions"
+msgid "Lebo za Vitendo"
+msgstr "Action Labels"
+msgid "Majina ya Vitendo"
+msgstr "Action Names"
+msgid "Mandhari"
+msgstr "Scenes"
+msgid "Usuli"
+msgstr "Background"
+msgid "Taarifa ya TaskerNet"
+msgstr "TaskerNet Information"
+msgid "Mapendeleo ya Mfanyakazi"
+msgstr "Tasker Preferences"
+msgid "Angazia"
+msgstr "Highlight"
+msgid "Kichwa"
+msgstr "Heading"
+msgid "color changed to"
+msgstr "rangi imebadilishwa kuwa"
+  
+
+msgid "Giza"
+msgstr "Dark"
+msgid "Mwanga"
+msgstr "Light"
+msgid "Mfumo"
+msgstr "System"
+
+msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
+msgstr "Lenga Miradi mahususi, Wasifu, Majukumu au Mandhari. (Chagua moja tu)"
+
+msgid "Rename"
+msgstr "Badilisha jina"
+
+msgid "Export Project"
+msgstr "Mradi wa kuuza nje"
+
+msgid "Export Profile"
+msgstr "Hamisha Wasifu"
+
+msgid "Export Task"
+msgstr "Hamisha Kazi"
+
+msgid "Save"
+msgstr "Hifadhi"
+
+msgid "Overwrite"
+msgstr "Batilisha"
+
+msgid "Delete Project"
+msgstr "Futa Mradi"
+
+msgid "Delete Profile"
+msgstr "Futa Wasifu"
+
+msgid "Delete Task"
+msgstr "Futa Kazi"
+
+msgid "Its"
+msgstr "Yake"
+
+msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
+msgstr "Kazi zilizounganishwa zitawekwa -- ni za Mradi, si za Wasifu huu."
+
+msgid "It has no linked Tasks."
+msgstr "Haina Majukumu yaliyounganishwa."
+
+msgid "It will be removed from"
+msgstr "Itaondolewa kutoka"
+
+msgid "Project(s) and unlinked from"
+msgstr "Miradi na kutengwa kutoka"
+
+msgid "Profile(s) that run it. Those Profiles themselves are kept."
+msgstr "Wasifu unaoiendesha. Wasifu wenyewe huhifadhiwa."
+
+msgid "Keep Contents"
+msgstr "Weka Yaliyomo"
+
+msgid "Delete Contents"
+msgstr "Futa Yaliyomo"
+
+msgid "Adding to Project:"
+msgstr "Kuongeza kwa Mradi:"
+
+msgid "Save To Current File"
+msgstr "Hifadhi kwa Faili ya Sasa"
+
+msgid "Add Project"
+msgstr "Ongeza Mradi"
+
+msgid "Add Profile"
+msgstr "Ongeza Wasifu"
+
+msgid "Add Task"
+msgstr "Ongeza Kazi"
+
+msgid "Add an action"
+msgstr "Ongeza kitendo"
+
+msgid "Actions in this Task"
+msgstr "Vitendo katika Jukumu hili"
+
+msgid "No actions added yet."
+msgstr "Bado hakuna vitendo vilivyoongezwa."
+
+msgid "Actions & Control"
+msgstr "Vitendo na Udhibiti"
+
+msgid "Display Conditions"
+msgstr "Masharti ya Kuonyesha"
+
+msgid "Task Action Limit:"
+msgstr "Kikomo cha Shughuli:"
+
+msgid "Theme Configuration"
+msgstr "Usanidi wa Mandhari"
+
+msgid "Select a category to modify its color."
+msgstr "Chagua kategoria ili kurekebisha rangi yake."
+
+msgid "Select Category to Colorize"
+msgstr "Chagua Kitengo cha Kuweka Rangi"
+
+msgid "Choose Hex Color"
+msgstr "Chagua Rangi ya Hex"
+
+msgid "Open View In New Window"
+msgstr "Fungua Mwonekano Katika Dirisha Jipya"
+
+msgid "Close Tabs On Exit"
+msgstr "Funga Vichupo Unapotoka"
+
+msgid "Edit Project"
+msgstr "Badilisha Mradi"
+
+msgid "Edit Profile"
+msgstr "Badilisha Wasifu"
+
+msgid "Edit Task"
+msgstr "Hariri Kazi"
+
+msgid "Scene"
+msgstr "Onyesho"
+
+msgid "Execution"
+msgstr "Utekelezaji"
+
+msgid "File Operations"
+msgstr "Uendeshaji wa faili"
+
+msgid "Display Views"
+msgstr "Maoni ya Maonyesho"
+
+msgid "Application Settings"
+msgstr "Mipangilio ya Programu"
+
+msgid "Help & Information"
+msgstr "Msaada & Taarifa"
+
+msgid "0 = least detail, 5 = most detail."
+msgstr "0 = maelezo madogo zaidi, 5 = maelezo mengi zaidi."
+
+msgid "AI Analysis"
+msgstr "Uchambuzi wa AI"
+
+msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
+msgstr "Uchambuzi unaendelea chinichini.\n\nBaada ya kukamilika, matokeo yataonekana kwenye dirisha jipya.\n\nTafadhali simama karibu..."
+
+msgid "Android Get XML Port Number"
+msgstr "Android Pata Nambari ya Mlango wa XML"
+
+msgid "Android device at"
+msgstr "Kifaa cha Android kwenye"
+
+msgid "Available Android Backups"
+msgstr "Inapatikana Nakala za Android"
+
+msgid "CAVEATS"
+msgstr "TAARIFA"
+
+msgid "Cancel Entry"
+msgstr "Ghairi Ingizo"
+
+msgid "Check your IP/Port and verify the Tasker HTTP server is running"
+msgstr "Angalia IP/Mlango wako na uthibitishe kuwa seva ya Tasker HTTP inaendesha"
+
+msgid "Close"
+msgstr "Funga"
+
+msgid "Detail Level"
+msgstr "Kiwango cha Maelezo"
+
+msgid "Error"
+msgstr "Hitilafu"
+
+msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
+msgstr "Leta XML kutoka kwa kifaa cha Android.\n\nLazima uwe kwenye mtandao sawa na kifaa cha Android, na kifaa lazima kiwe kinafanya kazi na kuunganishwa.\n\n"
+
+msgid "Get Local XML File"
+msgstr "Pata Faili ya XML ya Karibu"
+
+msgid "It owns"
+msgstr "Inamiliki"
+
+msgid "No Profile Tasks Found"
+msgstr "Hakuna Majukumu ya Wasifu Yaliyopatikana"
+
+msgid "No Profiles Found"
+msgstr "Hakuna Wasifu Uliopatikana"
+
+msgid "No file loaded"
+msgstr "Hakuna faili iliyopakiwa"
+
+msgid "No scenes found"
+msgstr "Hakuna matukio yaliyopatikana"
+
+msgid "No tasks found"
+msgstr "Hakuna kazi zilizopatikana"
+
+msgid "None or unnamed!"
+msgstr "Hakuna au bila jina!"
+
+msgid "Profile(s) and"
+msgstr "Wasifu na"
+
+msgid "Prompt:"
+msgstr "Ushauri:"
+
+msgid "Save To Android"
+msgstr "Hifadhi Kwa Android"
+
+msgid "Scene to Analyze:"
+msgstr "Eneo la Kuchambua:"
+
+msgid "Scene:"
+msgstr "Onyesho:"
+
+msgid "Select XML From Android Device:"
+msgstr "Chagua XML Kutoka kwa Kifaa cha Android:"
+
+msgid "Task(s)."
+msgstr "Kazi."
+
+msgid "Unnamed Task"
+msgstr "Kazi Isiyo na Jina"
+
+msgid "Update Available!"
+msgstr "Sasisho Linapatikana!"
+
+msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
+msgstr "Utiririshaji wa moja kwa moja wa YouTube unahitaji tokeni za API za wahusika wengine. Pakua wimbo unaolengwa ili kutazama."
+
+msgid "is unreachable"
+msgstr "haipatikani"
+
+msgid "'Cancel' button selected. No change to the API keys!"
+msgstr "Kitufe cha 'Ghairi' kimechaguliwa. Hakuna mabadiliko kwa funguo za API!"
+
+msgid ".or."
+msgstr ".au."
+
+msgid "1-TCP/IP Address:"
+msgstr "Anwani ya 1-TCP/IP:"
+
+msgid "2-Port Number:"
+msgstr "2-Bandari Nambari:"
+
+msgid "3-File Location:"
+msgstr "Mahali pa Faili-3:"
+
+msgid "AI Model"
+msgstr "Mfano wa AI"
+
+msgid "Add 'If' Action"
+msgstr "Ongeza Kitendo cha 'Ikiwa'"
+
+msgid "Add App Entry"
+msgstr "Ongeza Ingizo la Programu"
+
+msgid "Add Condition"
+msgstr "Ongeza Hali"
+
+msgid "All"
+msgstr "Wote"
+
+msgid "Android IP Address"
+msgstr "Anwani ya IP ya Android"
+
+msgid "Android configuration details matched successfully!"
+msgstr "Maelezo ya usanidi wa Android yamelingana kwa mafanikio!"
+
+msgid "Changes kept."
+msgstr "Mabadiliko yamehifadhiwa."
+
+msgid "Choose a State type first."
+msgstr "Chagua aina ya Jimbo kwanza."
+
+msgid "Choose a Task"
+msgstr "Chagua Kazi"
+
+msgid "Choose a Task first."
+msgstr "Chagua Jukumu kwanza."
+
+msgid "Choose a condition type first."
+msgstr "Chagua aina ya hali kwanza."
+
+msgid "Choose an Event type first."
+msgstr "Chagua aina ya Tukio kwanza."
+
+msgid "Class (optional)"
+msgstr "Darasa (si lazima)"
+
+msgid "Cleared the search highlights."
+msgstr "Imefuta vivutio vya utafutaji."
+
+msgid "Click Here to Set XML Details"
+msgstr "Bonyeza Hapa Kuweka Maelezo ya XML"
+
+msgid "Click arrows to expand/collapse details."
+msgstr "Bofya vishale ili kupanua/kukunja maelezo."
+
+msgid "Click on a row index line number to jump directly to that match block placement:"
+msgstr "Bofya kwenye nambari ya mstari wa faharasa ili kuruka moja kwa moja kwenye uwekaji wa kizuizi cha mechi:"
+
+msgid "Click on connector to highlight"
+msgstr "Bofya kwenye kiunganishi ili kuangazia"
+
+msgid "Close Results Window"
+msgstr "Funga Dirisha la Matokeo"
+
+msgid "Condition Type"
+msgstr "Aina ya Hali"
+
+msgid "Conditions"
+msgstr "Masharti"
+
+msgid "Configure Android Connection:"
+msgstr "Sanidi Muunganisho wa Android:"
+
+msgid "Continue Task After Error"
+msgstr "Endelea Kazi Baada ya Hitilafu"
+
+msgid "Copy"
+msgstr "Nakili"
+
+msgid "Dark Mode"
+msgstr "Hali ya Giza"
+
+msgid "Day of Month"
+msgstr "Siku ya Mwezi"
+
+msgid "Delete"
+msgstr "Futa"
+
+msgid "Delete Condition"
+msgstr "Futa Hali"
+
+msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
+msgstr "Hufuta Wasifu huu pekee. Majukumu Yake ya Kuingia/Kutoka yanatunzwa -- Jukumu linamilikiwa na Mradi, sio Wasifu, na Jukumu lile lile linaweza kutumiwa na Wasifu mwingine."
+
+msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
+msgstr "Hufuta Jukumu hili na kila marejeleo yake: huondolewa kutoka kwa Majukumu ya kila Mradi unaoumiliki, na kutoka kwa Wasifu wowote unaoiendesha kama Jukumu lake la Kuingia/Kutoka. Wasifu wenyewe huhifadhiwa."
+
+msgid "Diagram View opened in a new browser window."
+msgstr "Mwonekano wa Mchoro umefunguliwa katika dirisha jipya la kivinjari."
+
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+msgstr "Onyesha orodha iliyopanuliwa ya miundo YOTE inayopatikana.\n\nKumbuka: Ikiwa ufunguo wa API haujawekwa kwa OpenAI au Gemini,\n      kisha orodha ya mfano chaguo-msingi kwa husika\n      Mtoa huduma wa AI ataonyeshwa.\n\nKumbuka: Sio mifano yote ambayo imethibitishwa na\n      moja au zaidi inaweza kurudisha hitilafu kwenye uchanganuzi.\n\nKumbuka: Kuwasha chaguo hili kwa mara ya kwanza kutafanya\n      lazimisha usakinishaji wa moduli zifuatazo\n      na utegemezi wao wote:\n      google-genai, anthropic, openai, ollama"
+
+msgid "End Time"
+msgstr "Wakati wa Mwisho"
+
+msgid "Event Type"
+msgstr "Aina ya Tukio"
+
+msgid "Every"
+msgstr "Kila"
+
+msgid "File path saved successfully!"
+msgstr "Njia ya faili imehifadhiwa!"
+
+msgid "File selection canceled."
+msgstr "Uteuzi wa faili umeghairiwa."
+
+msgid "If"
+msgstr "Kama"
+
+msgid "If condition set."
+msgstr "Ikiwa hali imewekwa."
+
+msgid "Insert just the 'If', or a complete block?"
+msgstr "Weka tu 'Ikiwa', au kizuizi kamili?"
+
+msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
+msgstr "Aina batili ya mwonekano imebainishwa. Tumia 'ramani', 'mchoro', au 'mti'."
+
+msgid "Label"
+msgstr "Lebo"
+
+msgid "Last Day Of Month"
+msgstr "Siku ya Mwisho ya Mwezi"
+
+msgid "Link"
+msgstr "Kiungo"
+
+msgid "List Files Selected"
+msgstr "Orodha ya Faili Zilizochaguliwa"
+
+msgid "List XML Files"
+msgstr "Orodhesha Faili za XML"
+
+msgid "Map View opened in a new browser window."
+msgstr "Mwonekano wa Ramani umefunguliwa katika dirisha jipya la kivinjari."
+
+msgid "Map view creation skipped: No valid XML source found or action canceled."
+msgstr "Uundaji wa mwonekano wa ramani umerukwa: Hakuna chanzo halali cha XML kilichopatikana au kitendo kimeghairiwa."
+
+msgid "Month"
+msgstr "Mwezi"
+
+msgid "Move"
+msgstr "Sogeza"
+
+msgid "Move to #"
+msgstr "Hamisha hadi #"
+
+msgid "New name"
+msgstr "Jina jipya"
+
+msgid "No XML data loaded! Please Get XML from Android or Local drive first."
+msgstr "Hakuna data ya XML iliyopakiwa! Tafadhali Pata XML kutoka kwa Android au Hifadhi ya Ndani kwanza."
+
+msgid "No XML data loaded! Please select a valid XML file first."
+msgstr "Hakuna data ya XML iliyopakiwa! Tafadhali chagua faili halali ya XML kwanza."
+
+msgid "No actions in this Task."
+msgstr "Hakuna vitendo katika Jukumu hili."
+
+msgid "No backup file is currently loaded. Use 'Get Local XML' first."
+msgstr "Hakuna faili chelezo iliyopakiwa kwa sasa. Tumia 'Pata XML ya Ndani' kwanza."
+
+msgid "No conditions on this Profile."
+msgstr "Hakuna masharti kwenye Wasifu huu."
+
+msgid "No editable arguments (code not mapped, or this condition has none)."
+msgstr "Hakuna hoja zinazoweza kuhaririwa (msimbo haujapangwa, au hali hii haina)."
+
+msgid "No editable arguments."
+msgstr "Hakuna hoja zinazoweza kuhaririwa."
+
+msgid "Not configured..."
+msgstr "Haijasanidiwa..."
+
+msgid "Odd"
+msgstr "Isiyo ya kawaida"
+
+msgid "Ok"
+msgstr "Sawa"
+
+msgid "Operator"
+msgstr "Opereta"
+
+msgid "Package"
+msgstr "Kifurushi"
+
+msgid "Pick a Task"
+msgstr "Chagua Kazi"
+
+msgid "Please enter a search term."
+msgstr "Tafadhali ingiza neno la utafutaji."
+
+msgid "Port"
+msgstr "Bandari"
+
+msgid "Position"
+msgstr "Nafasi"
+
+msgid "Priority"
+msgstr "Kipaumbele"
+
+msgid "Profile Name"
+msgstr "Jina la Wasifu"
+
+msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "Wasifu uliohifadhiwa kwa kipindi hiki pekee -- tumia 'Hifadhi Kwa Faili ya Sasa' ili uihifadhi kabisa."
+
+msgid "Profiles Per Line"
+msgstr "Profaili Kwa Mstari"
+
+msgid "Project Name"
+msgstr "Jina la Mradi"
+
+msgid "Project added."
+msgstr "Mradi umeongezwa."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
+msgstr "Inaomba jina jipya na kulitumia kwenye hifadhi rudufu iliyopakiwa, sasa hivi. Sehemu ya Jina la Mradi iliyo hapo juu ni ya kusoma tu -- hii ndiyo njia pekee ya kuibadilisha."
+
+msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
+msgstr "Vidokezo vya jina jipya na hutumika hivyo kwa hifadhi rudufu iliyopakiwa, sasa hivi. Kila kitu kingine katika kidirisha hiki kinasalia kikisubiri hadi Sawa/Hifadhi, na kidirisha kibaki wazi ili uweze kuendelea kuhariri."
+
+msgid "Remove"
+msgstr "Ondoa"
+
+msgid "Save Profile To Android Device"
+msgstr "Hifadhi Wasifu kwenye Kifaa cha Android"
+
+msgid "Save Project To Android Device"
+msgstr "Hifadhi Mradi kwa Kifaa cha Android"
+
+msgid "Save Task To Android Device"
+msgstr "Hifadhi Kazi kwenye Kifaa cha Android"
+
+msgid "Save as"
+msgstr "Hifadhi kama"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Huhifadhi chelezo nzima -- kila Mradi, Wasifu na Jukumu ndani yake, si Wasifu huu pekee -- na mabadiliko ya kidirisha hiki yakitumika, yale yale 'Ok' yangetunzwa.\nImeandikwa kwa nakala mpya, iliyopigwa muhuri wa muda ya faili iliyopakiwa kwa sasa: backup.xml inakuwa backup_20260728_143005.xml.\nFaili uliyopakia haijaandikiwa kamwe, kwa hivyo inaachwa kama ilivyokuwa.\nProgramu kisha inabadilisha hadi nakala mpya, ambayo inakuwa faili ya sasa kwa uhariri wowote zaidi na uhifadhi; kuokoa tena kunachukua nafasi ya muhuri wa muda badala ya kuongeza ya pili.\nHii inaandikia kompyuta hii pekee -- hakuna kitu kinachotumwa kwa kifaa chako cha Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Huhifadhi chelezo nzima -- kila Mradi, Wasifu na Kazi ndani yake, si Mradi huu pekee -- ikijumuisha kila hariri iliyofanywa popote katika kipindi hiki.\nImeandikwa kwa nakala mpya, iliyopigwa muhuri wa muda ya faili iliyopakiwa kwa sasa: backup.xml inakuwa backup_20260728_143005.xml.\nFaili uliyopakia haijaandikiwa kamwe, kwa hivyo inaachwa kama ilivyokuwa.\nProgramu kisha inabadilisha hadi nakala mpya, ambayo inakuwa faili ya sasa kwa uhariri wowote zaidi na uhifadhi; kuokoa tena kunachukua nafasi ya muhuri wa muda badala ya kuongeza ya pili.\nHii inaandikia kompyuta hii pekee -- hakuna kitu kinachotumwa kwa kifaa chako cha Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Huhifadhi chelezo nzima -- kila Mradi, Wasifu na Jukumu ndani yake, sio Jukumu hili pekee -- na mabadiliko ya kidirisha hiki yakitumika, yale yale 'Ok' yangetunzwa.\nImeandikwa kwa nakala mpya, iliyopigwa muhuri wa muda ya faili iliyopakiwa kwa sasa: backup.xml inakuwa backup_20260728_143005.xml.\nFaili uliyopakia haijaandikiwa kamwe, kwa hivyo inaachwa kama ilivyokuwa.\nProgramu kisha inabadilisha hadi nakala mpya, ambayo inakuwa faili ya sasa kwa uhariri wowote zaidi na uhifadhi; kuokoa tena kunachukua nafasi ya muhuri wa muda badala ya kuongeza ya pili.\nHii inaandikia kompyuta hii pekee -- hakuna kitu kinachotumwa kwa kifaa chako cha Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Huhifadhi chelezo nzima -- kila Mradi, Wasifu na Kazi ndani yake, sio huu pekee -- na Wasifu mpya ulioongezwa kwenye Mradi wake, jinsi 'Ok' unavyoiongeza.\nImeandikwa kwa nakala mpya, iliyopigwa muhuri wa muda ya faili iliyopakiwa kwa sasa: backup.xml inakuwa backup_20260728_143005.xml.\nFaili uliyopakia haijaandikiwa kamwe, kwa hivyo inaachwa kama ilivyokuwa.\nProgramu kisha inabadilisha hadi nakala mpya, ambayo inakuwa faili ya sasa kwa uhariri wowote zaidi na uhifadhi; kuokoa tena kunachukua nafasi ya muhuri wa muda badala ya kuongeza ya pili.\nHii inaandikia kompyuta hii pekee -- hakuna kitu kinachotumwa kwa kifaa chako cha Android."
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Huhifadhi chelezo nzima -- kila Mradi, Wasifu na Jukumu ndani yake, sio hili pekee -- na Jukumu jipya limeongezwa kwake, kwa njia ile ile 'Ok' huiongeza.\nImeandikwa kwa nakala mpya, iliyopigwa muhuri wa muda ya faili iliyopakiwa kwa sasa: backup.xml inakuwa backup_20260728_143005.xml.\nFaili uliyopakia haijaandikiwa kamwe, kwa hivyo inaachwa kama ilivyokuwa.\nProgramu kisha inabadilisha hadi nakala mpya, ambayo inakuwa faili ya sasa kwa uhariri wowote zaidi na uhifadhi; kuokoa tena kunachukua nafasi ya muhuri wa muda badala ya kuongeza ya pili.\nHii inaandikia kompyuta hii pekee -- hakuna kitu kinachotumwa kwa kifaa chako cha Android."
+
+msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
+msgstr "Huhifadhi Mradi huu, na kila kitu ndani yake -- kila Wasifu na Kazi -- kama faili moja inayojitegemea."
+
+msgid "Search actions"
+msgstr "Tafuta vitendo"
+
+msgid "Search..."
+msgstr "Tafuta..."
+
+msgid "Select a single Profile first (Profile pulldown above)."
+msgstr "Chagua Profaili moja kwanza (kuteremsha wasifu hapo juu)."
+
+msgid "Select a single Project first (Project pulldown above)."
+msgstr "Chagua Mradi mmoja kwanza (Kuangusha mradi hapo juu)."
+
+msgid "Select a single Task first (Task pulldown above)."
+msgstr "Chagua Task moja kwanza (Task pulldown hapo juu)."
+
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "Chagua ni vitendo vingapi katika Jukumu kabla ya kutoa onyo.\nOnyo linaonekana karibu na sehemu ya chini ya pato la usanidi,\nna inakusudiwa kusaidia kutambua Majukumu ambayo ni changamano sana\nna ambayo inaweza kugawanywa katika Majukumu mengi.\nMpangilio wa '100' unamaanisha kuwa hakuna kikomo."
+
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
+msgstr "Weka kiasi cha ujongezaji kwa vizuizi vya If/Basi/Vingine.\n\nChaguo-msingi ni '4'.\n\nHii inaathiri jinsi towe linavyoumbizwa katika Mionekano ya Ramani na Mchoro."
+
+msgid "Settings Reset!"
+msgstr "Mipangilio Weka Upya!"
+
+msgid "Shutting down MapTasker..."
+msgstr "Inazima MapTasker..."
+
+msgid "Start Time"
+msgstr "Wakati wa Kuanza"
+
+msgid "Starting AI Analysis..."
+msgstr "Inaanza Uchambuzi wa AI..."
+
+msgid "State Type"
+msgstr "Aina ya Jimbo"
+
+msgid "Submit"
+msgstr "Wasilisha"
+
+msgid "Target"
+msgstr "Lengo"
+
+msgid "Task Name"
+msgstr "Jina la Kazi"
+
+msgid "Task Uploaded to Tasker"
+msgstr "Kazi Imepakiwa kwa Tasker"
+
+msgid "Task Uploaded to Tasker."
+msgstr "Kazi Imepakiwa kwa Tasker."
+
+msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "Jukumu linalotunzwa kwa kipindi hiki pekee -- tumia 'Hifadhi Kwa Faili ya Sasa' ili kuiweka kabisa."
+
+msgid "The 'Misc' view is running in the background.  Please stand by..."
+msgstr "Mwonekano wa 'Zingine' unaendelea chinichini.  Tafadhali simama karibu..."
+
+msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
+msgstr "Kitufe cha 'Tafuta' kitatafuta na kuangazia kila tukio la mfuatano usiojali kifani uliowekwa kwenye kisanduku cha kutafutia, kuanzia sehemu ya juu ya data.\n\nItaonyesha tu matukio 200 ya kwanza ya mfuatano wa utafutaji.\n\nBofya kwenye nambari ya mstari ili kwenda kwenye mstari huo kwenye kisanduku cha kutazama maandishi.\n\nKitufe cha 'Futa' kitafuta matokeo ya utafutaji.\n\n"
+
+msgid "The change will take effect the next time you open the view."
+msgstr "Mabadiliko yataanza kutumika wakati mwingine utakapofungua mwonekano."
+
+msgid "This Task has no actions yet."
+msgstr "Jukumu hili bado halina vitendo."
+
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "Hii ni orodha ya fonti zote zinazopatikana kwenye mfumo wako, zile zenye nafasi moja kwanza na kuwekewa alama hivyo.\n\nFonti iliyochaguliwa itatumika katika matokeo yote.\n\n'Courier' au 'Courier New' inapendekezwa sana kwa Michoro ili kuhakikisha upatanishi sahihi wa kiunganishi. Fonti ambayo haina nafasi moja haitashikilia viunganishi vya Mchoro au ujongezaji wa matokeo kwenye mstari."
+
+msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
+msgstr "Hii itahifadhi Jukumu moja kwa moja kwenye Tasker inayoendeshwa kwenye kifaa cha Android kinachoendesha seva ya Tasker.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nUtaombwa mara mbili kwa uidhinishaji wa kumwandikia Tasker kwenye kifaa cha Android, na Task.na matendo yake yenyewe ndiyo yatakayobainisha mahali inapohifadhiwa kwenye kifaa."
+
+msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
+msgstr "Hii itahifadhi Jukumu moja kwa moja kwenye kipindi cha Tasker kinachotumika kwenye kifaa chako cha Android.\n\nToleo la Tasker 6.2 au zaidi inahitajika ili hii ifanye kazi.Kifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango.\nlazima ilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nUtaombwa mara mbili kwa idhini ya kumwandikia Tasker kwenye kifaa cha Android, na Jukumu litapakiwa moja kwa moja kwenye kipindi kinachotumika cha Tasker.\n\nNi lazima uondoke na uanze upya Tasker ili kuona Jukumu jipya katika Kiolesura cha Tasklor."
+
+msgid "This will save the Task directly to your current drive.\n\n"
+msgstr "Hii itahifadhi Task moja kwa moja kwenye hifadhi yako ya sasa.\n\n"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Hii itaandika Wasifu kama faili inayojitegemea kwenye kifaa cha Android, chini ya /Tasker/profiles.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nHakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Hii itaandika Wasifu kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/profiles -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' (http://spoo.me/http_svr_example) lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, seva inayoendesha (angalia madokezo ya README ya Direct XML ya Urejeshaji).\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker. Hakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Hii itaandika Wasifu kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/profiles -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, seva inayoendesha (angalia madokezo ya README ya Direct XML Retrieval).\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker. Hakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Hii itaandika Mradi, na kila kitu ndani yake -- kila Wasifu na Kazi -- kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/projects -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, huku seva ikiendesha.\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker. Hakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Hii itaandika Mradi, na kila kitu ndani yake, kama faili ya pekee kwenye kifaa cha Android, chini ya /Tasker/projects.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nHakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+msgid "Toggle Wrap"
+msgstr "Geuza Funga"
+
+msgid "Unlink"
+msgstr "Tenganisha"
+
+msgid "Value"
+msgstr "Thamani"
+
+msgid "View cleared."
+msgstr "Mwonekano umefutwa."
+
+msgid "Week-Day"
+msgstr "Wiki-Siku"
+
+msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
+msgstr "Inapowashwa, kubofya 'Ondoka' pia hufunga dirisha kuu la MapTasker na madirisha/vichupo vyovyote vya Ramani/Mchoro ulichofungua.\n\nInapozimwa, 'Toka' huzima MapTasker lakini huacha madirisha/vichupo hivyo wazi."
+
+msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
+msgstr "Inapowashwa, kila ombi la Ramani/Mchoro hufunguka katika dirisha/kichupo chake kipya, ili uweze kuweka za awali kando yake ili kulinganisha.\n\nInapozimwa, ombi hutumia tena dirisha/tabo iliyopo ya mwonekano huo, na kuchukua nafasi ya kilichomo.\n\nIache isipokuwa ungependa kulinganisha: dirisha/tabo mpya kabisa ndiyo ambayo kivinjari chako kinaweza kuzuia, kwa kuwa inafunguliwa mara tu mwonekano unapomaliza kujenga badala ya kubofya mara moja."
+
+msgid "hh:mm AM/PM or %variable"
+msgstr "hh:mm AM/PM au %kigeugeu"
+
+msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
+msgstr "Onyesha mwonekano wa 'Ramani', 'Mchoro' au 'Mti' wa usanidi wako moja kwa moja ndani ya GUI.\n\nXML lazima kwanza ipatikane kutoka kwa hifadhi ya ndani au kifaa cha Android ili mionekano ifanye kazi.\n\nIkiwa XML tayari imechukuliwa, itatumika kama ingizo kwenye mwonekano.  Kubofya kitufe cha 'Futa' kutafuta data ya kutazama.\n\nMipangilio mikubwa sana italeta muda mrefu wa uendeshaji wa Ramani na Michoro.  Kwa utendakazi bora, chagua Mradi au Wasifu mmoja ili kuweka ramani.\n\nKwa hiari, punguza kiwango cha data cha kuchakatwa kwa kutumia mpangilio wa 'Angalia Kikomo'.  Kadiri kikomo kinavyokuwa kikubwa, ndivyo pato litakavyoruhusiwa kuchorwa.  Kadiri pato linavyotolewa, ndivyo muda wa usindikaji unavyoongezeka.\n\n\nMtazamo wa Mchoro una tabia ifuatayo:\n\n - Miradi na Profaili pekee zinaweza kuonyeshwa. XML inayojumuisha Jukumu au Onyesho moja pekee haitaonyeshwa.\n\n - Bofya kwenye kiunganishi cha mlalo ili kuonyesha muunganisho mzima kwenye mchoro.\n\n\nMtazamo wa Mti una tabia ifuatayo:\n\n- Miradi pekee inaweza kuonyeshwa. XML inayojumuisha Wasifu au Jukumu au Onyesho moja pekee haitaonyeshwa.\n\n- Miradi yote, Wasifu, Kazi na Mandhari huonyeshwa bila kujali mpangilio wa jina moja.\n\n"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "MapTasker huonyesha usanidi wako wa Android Tasker kulingana na faili yako ya Tasker XML iliyopakiwa (k.m. 'backup.xml'). Onyesho litajumuisha kwa hiari Miradi, Wasifu, Majukumu na vitendo vyake, Masharti ya Wasifu/Kazi na maelezo mengine yanayohusiana na Wasifu/Kazi.\n\nMara tu faili ya XML inapopakiwa, unaweza kuhariri Miradi, Wasifu, Majukumu na Scenes zako kwa hiari.\n\n* Chaguzi za kuonyesha ni:\n    Kiwango cha 0: onyesha Kitendo cha Jukumu la kwanza pekee, kwa Majukumu yasiyo na jina pekee (kimya).\n    Kiwango cha 1 = onyesha maelezo yote ya Kitendo cha Jukumu kwa Majukumu yasiyojulikana pekee (chaguo-msingi).\n    Kiwango cha 2 = onyesha jina kamili la Kitendo cha Jukumu kwenye kila Jukumu.\n    Kiwango cha 3 = onyesha maelezo kamili ya Kitendo cha Jukumu kwenye kila Jukumu na maelezo ya kitendo.\n    Kiwango cha 4 = kiwango cha kuonyesha cha 3 pamoja na vigezo vya kimataifa vya Mradi.\n\n    Kiwango cha 5 = kiwango cha onyesho cha 4 pamoja na maelezo ya hoja ya Onyesho.\n\n* Onyesha Kila Kitu Tu: Huwasha onyesho la hali, maelezo ya TaskerNet, mapendeleo, matokeo mazuri, saraka, na muhtasari wa usanidi.\n\n* Masharti ya Kuonyesha: Washa onyesho la Wasifu na Masharti ya Kazi.\n\n* Onyesha Taarifa ya TaskerNet - Ikipatikana, onyesha taarifa ya uchapishaji ya TaskerNet.\n\n* Onyesha Mapendeleo ya Kifanyakazi - onyesha Mapendeleo ya mfumo wa Tasker.\n\n* Ficha Maelezo ya Kazi chini ya Twisty: ficha taarifa ya Task ndani ya ► na ubofye ili kuonyesha.\n\n* Onyesha Saraka ya viungo mwanzoni.\n\n* Onyesha Toleo Mzuri Zaidi: Fanya pato lisomeke zaidi na binadamu kwa kuongeza mistari mipya na ujongezaji kwa hoja zote.\n\n* Chaguzi za Majina ya Mradi/Wasifu/Kazi/Maeneo ili kuweka italicise, kwa herufi nzito, kupigia mstari na/au kuangazia majina yao.\n\n* Kikomo cha Kitendo cha Kazi: onyesha onyo ikiwa Jukumu lina zaidi ya idadi maalum ya vitendo.\n\n* Kiasi cha ujongezaji kwa Vitendo vya Kazi Ikiwa/Basi/Vingine.\n\n* Lugha: Chagua lugha ya kutumika kwa matokeo.  Chaguo msingi ni Kiingereza.\n\n* Fonti ya Kutumia: Badilisha fonti ya nafasi moja inayotumika kutoa matokeo.\n\n* Upeo wa Kutazama: Dhibiti kiasi cha wakati wa usindikaji unaotumiwa wakati wa kutoa mwonekano.\n\n* Weka upya Chaguzi: Futa kila kitu na uanze upya.\n\n* Pata Faili ya XML ya Karibu: leta faili ya chelezo/iliyosafirishwa ya XML kutoka kwa hifadhi yako ya ndani.\n\n* Hifadhi Mipangilio - Hifadhi mipangilio hii kwa matumizi ya baadaye.\n\n* Rejesha Mipangilio - Rejesha mipangilio kutoka kwa kikao kilichohifadhiwa hapo awali.\n\n* Maoni ya Maonyesho: Onyesha Ramani yako ya usanidi, Mchoro, au mwonekano wa Mti wa Miradi, Wasifu, Majukumu na Mandhari yako moja kwa moja kwenye GUI.\n\n* Pata XML kutoka kwa Kifaa cha Android: leta faili ya chelezo/iliyosafirishwa ya XML kutoka kwa kifaa cha Android.  Utaulizwa kwa anwani ya IP na nambari ya bandari ya kifaa chako cha Android, pamoja na eneo la faili kwenye kifaa.\n\n* Kichupo cha Jina Maalum: weka kipengee kimoja, maalum kilichopewa jina ili kuonyesha...\n   - Jina la Mradi: ingiza Mradi maalum wa kuonyesha.\n   - Jina la Wasifu: ingiza Profaili maalum ili kuonyesha.\n   - Jina la Kazi: ingiza Kazi maalum ya kuonyesha.\n   - Jina la Onyesho: ingiza Onyesho maalum ili kuonyesha.  Umiliki wake wa kichwa cha Mradi na\n                 Vipengele vya Onyesho (pamoja na Majukumu yoyote ambayo vipengee hivyo vinaomba) vinaonyeshwa;\n                 Wasifu wa Mradi na Mandhari yake mengine sivyo.\n   (Hizi nne ni za kipekee: ingiza moja pekee)\n\n   Ongeza na Uhariri Miradi, Wasifu na Kazi moja kwa moja kwenye GUI, na chaguo mbalimbali za kuhifadhi.\n\n* Kichupo cha rangi: chagua rangi kwa vipengele mbalimbali vya onyesho.\n              (k.m. rangi ya Miradi, Wasifu, Majukumu, n.k.).\n\n* Kichupo cha Changanua: Fanya uchanganuzi wa Mradi, Wasifu, Kazi au Onyesho dhidi ya muundo wa Ai.\n\n* Kichupo cha utatuzi: Chaguo la Mipangilio ya Muda wa Kuendesha na uwashe hali ya Utatuzi.\n\n* Toka: Toka kwenye programu (acha).\n\nVidokezo:\n\n- Tazama historia nzima ya kumbukumbu ya mabadiliko kwenye https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Kubadilisha hali ya mwonekano kutabadilisha rangi zinazotumiwa kwa matokeo kuwa thamani zao chaguomsingi.\n\n"
+
+msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+msgstr "'Kikomo cha Kutazama' ni njia ya kudhibiti muda wa uchakataji unaotumika wakati wa kutoa mwonekano.\n\n- Nambari zinawakilisha kiasi cha kiasi cha mistari ya matokeo ya kuzalishwa.\n\n- Kadiri kikomo kinavyokuwa kikubwa, ndivyo matokeo yatakayoruhusiwa kuchorwa yatakavyokuwa makubwa.  Kadiri pato linavyotolewa, ndivyo muda wa usindikaji unavyoongezeka.\n\n- Mipangilio mikubwa sana itazalisha ramani kubwa sana za matokeo na itasababisha muda zaidi wa uchakataji.  Kwenye vifaa vya zamani, hii inaweza kuchukua hadi sekunde 30 au zaidi.\n\n- Kwa kuweka kikomo, unaweza kudhibiti muda wa kuchakata unaotumiwa wakati wa kupanga usanidi kwa kutoruhusu muda mrefu zaidi.\n\n- Ikiwa kikomo kinapigwa wakati wa kuhesabu ramani, matokeo yatakoma hapo.\n\n- Unaweza kufanya majaribio na mpangilio huu ili kuona ni mpangilio gani unaofaa kwa hali yako ya utumiaji.\n\n- Kuchagua Mradi mmoja, Wasifu au Kazi ni njia nyingine ya kupunguza muda wa usindikaji.\n\n"
+
+msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
+msgstr "Kichupo cha Kuchanganua kinatumika kuendesha uchanganuzi wa Ai kwenye Wasifu wako, kwa kutumia modeli ya karibu ya llama au miundo ya Open AI, Claude au DeepSeek inayotokana na seva.\n\nHatua zifuatazo zinahitajika ili kuendesha AI dhidi ya Wasifu wako.\n\n1- Iwapo unatumia AI inayotegemea seva, lazima uwe na ufunguo halali wa API kutoka kwa mtoa huduma (k.m. OpenAI).  Unaweza kutumia kitufe cha 'Onyesha/Hariri Vifunguo vya API' kuweka funguo zako.\n\n2- Kidokezo chaguo-msingi ni: 'pendekeza maboresho katika utendaji na urahisishaji: (mradi/wasifu/kazi yako)', na hutanguliwa kiotomatiki na: 'Kutokana na yafuatayo (Mradi/Wasifu/Task) katika Tasker,'.  Ukirekebisha kidokezo, unabadilisha tu sehemu ya 'pendekeza uboreshaji...'.\n\n3- Chagua mtindo unaotaka kutumia.\n\n   o Mfano uliochaguliwa utaamua ni AI gani uchanganuzi utafanywa.\n\n4- Bonyeza kitufe cha 'Run Analysis'.  Itageuka kijani wakati data zote muhimu zimeingizwa.\n\n   o Ikiwa bado haujachagua modeli, haraka au Mradi mmoja, Wasifu au Kazi, au ufunguo halali wa API, basi utaombwa kufanya hivyo kwanza.\n\n   o Mchakato unaweza kuchukua muda na unaendelea chinichini.  Matokeo yataonekana kwenye dirisha tofauti.\n\n   o Miundo ya ndani ambayo bado haijapakiwa kwenye kompyuta yako itapakiwa chinichini mara uchanganuzi utakapoanza.\n\nVifunguo vyako vya api (ikiwa vipo), modeli, Mradi uliochaguliwa, Wasifu au Task na kidokezo cha Ai zote zitahifadhiwa katika vipindi vyote.\n\nKipengele cha 'Rudia' kitatumika chini ya vifuniko ili kuonyesha matokeo ya uchanganuzi katika dirisha jipya.\n\n"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- If you want to use the 'List XML Files' option, then you must also import the following profile into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "Hatua zifuatazo zinahitajika ili kuleta faili ya Tasker XML moja kwa moja kutoka kwa kifaa chako cha Android.\n\n1- Kifaa hiki na kifaa cha Android lazima ziwe kwenye mtandao uliopewa jina moja.\n\n2- Mradi wa Tasker 'Mfano wa Seva ya HTTP' au utendakazi unaofanana lazima usakinishwe na kufanya kazi kwenye kifaa cha Android (lazima seva iwe inaendesha):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- Iwapo unataka kutumia chaguo la 'Orodhesha Faili za XML', basi lazima pia uingize wasifu ufuatao kwenye kifaa cha Android na uhakikishe kuwa wasifu ulioletwa 'Orodha ya Tasker' umewashwa:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nUtaulizwa kwa anwani ya IP, nambari ya bandari ya kifaa chako cha Android, pamoja na eneo la faili kwenye kifaa cha Android.  Thamani chaguomsingi hutolewa, ambapo...\n\n'192.168.0.210' ndiyo anwani chaguo-msingi ya IP,\n\n'1821' ndiyo nambari ya poti chaguo-msingi ya Mfano wa Seva ya Tasker HTTP inayoendeshwa kwenye kifaa chako cha Android\n\n'/Tasker/configs/user/backup.xml' ndilo eneo chaguomsingi la faili.  Ikiwa hujui eneo la faili na tayari umeweka anwani yako ya IP na mlango, basi unaweza kuchagua kitufe cha 'Orodhesha Faili za XML' ili kupata orodha ya faili zinazopatikana za XML kwenye kifaa chako cha Android kwa uteuzi.\n\nVidokezo vya Matumizi:\n\nAnwani ya IP na mlango unaweza kupatikana kwa kusakinisha mradi wa 'Mfano wa Seva ya HTTP' kutoka kwa URL iliyo hapo juu kwenye kifaa chako cha Android. Kisha endesha kazi inayoitwa 'Sasisha Maelezo ya GD HTTP' ili kupata arifa ya Android:\n\nMaelezo ya Seva ya HTTP\nMaelezo ya seva yamesasishwa {\"jina la kifaa\":\"http://192.168.0.49:1821\"}\n\n- Ili kuchukua faili ya XML, bonyeza kitufe\n\n 'Pata XML kutoka kwa Kifaa cha Android'\n\nKisha rekebisha maadili chaguo-msingi yaliyowasilishwa katika sehemu za ingizo chini ya kitufe hiki, na kisha ubofye kitufe cha 'Ingiza na Bofya Hapa Ili Kuweka Maelezo ya XML' au 'Orodhesha Faili za XML'.\n\n- Kupiga kitufe chochote kutapiga kifaa cha Android ili kuona ikiwa kinapatikana.  Ping itaisha baada ya sekunde 10 ikiwa kifaa hakipatikani.  Hakikisha kwamba anwani ya IP ni sahihi.\n\nBofya kitufe cha 'Ghairi Ingizo' ili kurudi nje ya mchakato huu wa kuleta.\n\n"
+
+msgid "MapTasker: view limit reached, stopping output to file:  output"
+msgstr "Error 500 (Server Error)!!1500.That’s an error.There was an error. Please try again later.That’s all we know."
+
+msgid "hardstop view limit"
+msgstr "kikomo cha kutazama cha hardstop"
+
+msgid "(empty)"
+msgstr "(tupu)"
+
+msgid "(empty)"
+msgstr "(tupu)"
+
+msgid "(no name)"
+msgstr "(hakuna jina)"
+
+msgid "(no name)"
+msgstr "(hakuna jina)"
+
+msgid "(unnamed)"
+msgstr "(bila jina)"
+
+msgid "(unnamed Task)"
+msgstr "(Kazi isiyo na jina)"
+
+msgid "(unnamed)"
+msgstr "(bila jina)"
+
+msgid "-1 means this orientation has no layout of its own."
+msgstr "-1 inamaanisha mwelekeo huu hauna mpangilio wake."
+
+msgid "-1 means this orientation has no layout of its own."
+msgstr "-1 inamaanisha mwelekeo huu hauna mpangilio wake."
+
+msgid "...and {count} more -- type above to narrow it down."
+msgstr "...na {count} zaidi -- andika juu ili kuipunguza."
+
+msgid "...and {count} more -- type above to narrow it down."
+msgstr "...na {count} zaidi -- andika juu ili kuipunguza."
+
+msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
+msgstr "Nafasi za vipengee vya Scene huhifadhiwa katika pikseli za kifaa, lakini saizi zake za maandishi huhifadhiwa katika vitengo vya sp vya Android. Nambari inayobadilisha kati ya hizi mbili ni sifa ya simu ambayo Onyesho linaonyeshwa, na haiko kwenye faili ya chelezo.\n\nKwa hivyo imewekwa hapa. Inua ikiwa maandishi yanaonekana kuwa madogo sana kwa vipengele vyake, yapunguze ikiwa maandishi yamefurika."
+
+msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
+msgstr "Nafasi za vipengee vya Scene huhifadhiwa katika pikseli za kifaa, lakini saizi zake za maandishi huhifadhiwa katika vitengo vya sp vya Android. Nambari inayobadilisha kati ya hizi mbili ni sifa ya simu ambayo Onyesho linaonyeshwa, na haiko kwenye faili ya chelezo.\n\nKwa hivyo imewekwa hapa. Inua ikiwa maandishi yanaonekana kuwa madogo sana kwa vipengele vyake, yapunguze ikiwa maandishi yamefurika."
+
+msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
+msgstr "Onyesho la Toleo la 2 halina ukubwa wake -- linajiweka ndani ya skrini yoyote linaonyeshwa, kwa hivyo hakuna chochote katika faili chelezo cha kuichora.\n\nBadilisha hii ili kuona mtiririko wa mpangilio. Safu Mlalo ya Mtiririko inasongwa tofauti, na 'Onyesha wakati' yoyote iliyoandikwa dhidi ya %sv2_render_width inauliza kuhusu hili haswa."
+
+msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
+msgstr "Onyesho la Toleo la 2 halina ukubwa wake -- linajiweka ndani ya skrini yoyote linaonyeshwa, kwa hivyo hakuna chochote katika faili chelezo cha kuichora.\n\nBadilisha hii ili kuona mtiririko wa mpangilio. Safu Mlalo ya Mtiririko inasongwa tofauti, na 'Onyesha wakati' yoyote iliyoandikwa dhidi ya %sv2_render_width inauliza kuhusu hili haswa."
+
+msgid "Actions"
+msgstr "Vitendo"
+
+msgid "Add"
+msgstr "Ongeza"
+
+msgid "Add Element"
+msgstr "Ongeza Kipengele"
+
+msgid "Add Scene"
+msgstr "Ongeza Onyesho"
+
+msgid "Add a background"
+msgstr "Ongeza usuli"
+
+msgid "Add action"
+msgstr "Ongeza kitendo"
+
+msgid "Add event"
+msgstr "Ongeza tukio"
+
+msgid "Add handler"
+msgstr "Ongeza kidhibiti"
+
+msgid "Add modifier"
+msgstr "Ongeza kirekebishaji"
+
+msgid "Actions"
+msgstr "Vitendo"
+
+msgid "Add"
+msgstr "Ongeza"
+
+msgid "Add Element"
+msgstr "Ongeza Kipengele"
+
+msgid "Add scene properties"
+msgstr "Ongeza sifa za eneo"
+
+msgid "Add Scene"
+msgstr "Ongeza Onyesho"
+
+msgid "Add a background"
+msgstr "Ongeza usuli"
+
+msgid "Add action"
+msgstr "Ongeza kitendo"
+
+msgid "Addressed by id from"
+msgstr "Imeshughulikiwa na kitambulisho kutoka"
+
+msgid "Add event"
+msgstr "Ongeza tukio"
+
+msgid "Add modifier"
+msgstr "Ongeza kirekebishaji"
+
+msgid "Add scene properties"
+msgstr "Ongeza sifa za eneo"
+
+msgid "Adds an element on top of the stack, in the middle of the Scene."
+msgstr "Huongeza kipengele juu ya rafu, katikati ya Onyesho."
+
+msgid "Addressed by id from"
+msgstr "Imeshughulikiwa na kitambulisho kutoka"
+
+msgid "Adds an element on top of the stack, in the middle of the Scene."
+msgstr "Huongeza kipengele juu ya rafu, katikati ya Onyesho."
+
+msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
+msgstr "Huongeza ndani ya kijenzi kilichochaguliwa ikiwa kinaweza kushikilia watoto, vinginevyo moja kwa moja baada yake."
+
+msgid "Also selected:"
+msgstr "Imechaguliwa pia:"
+
+msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
+msgstr "Huiongeza juu ya rundo, katikati ya Onyesho. Iburute unapotaka."
+
+msgid "Also update"
+msgstr "Pia sasisha"
+
+msgid "App icon"
+msgstr "Aikoni ya programu"
+
+msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
+msgstr "Amber: Tasker inaiorodhesha, lakini MapTasker haina sampuli yake iliyothibitishwa. Grey: haiwezi kwenda ambapo uteuzi ungeiweka."
+
+msgid "App icon"
+msgstr "Aikoni ya programu"
+
+msgid "Appearance Mode"
+msgstr "Hali ya Kuonekana"
+
+msgid "Appearance Mode"
+msgstr "Hali ya Kuonekana"
+
+msgid "Applied in order — the one at the bottom sits on top."
+msgstr "Imetumika kwa mpangilio - ile iliyo chini inakaa juu."
+
+msgid "Applied in order — the one at the bottom sits on top."
+msgstr "Imetumika kwa mpangilio - ile iliyo chini inakaa juu."
+
+msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
+msgstr "Inatumika wakati Onyesho hili limehifadhiwa, sio sasa -- Ghairi kwenye kidirisha cha Onyesho huacha kipengele na Majukumu kama yalivyokuwa."
+
+msgid "Back to Editor"
+msgstr "Rudi kwa Mhariri"
+
+msgid "Back to Editor"
+msgstr "Rudi kwa Mhariri"
+
+msgid "Bounds"
+msgstr "Mipaka"
+
+msgid "Bounds"
+msgstr "Mipaka"
+
+msgid "Cancelled. Changes to this Scene were discarded."
+msgstr "Imeghairiwa. Mabadiliko kwenye Onyesho hili yametupwa."
+
+msgid "Cancelled. Changes to this Scene were discarded."
+msgstr "Imeghairiwa. Mabadiliko kwenye Onyesho hili yametupwa."
+
+msgid "Choose another file..."
+msgstr "Chagua faili nyingine..."
+
+msgid "Choose another file..."
+msgstr "Chagua faili nyingine..."
+
+msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
+msgstr "Bofya kijenzi ili kukichagua, bofya kitufe cha shift-click kwenye chombo kimoja ili kuchukua kadhaa, na uburute ili kuzipanga upya kati ya ndugu zao wenyewe. Kuhamisha kijenzi ndani au nje ya kontena ni vitufe vya kihariri vya Kuingia na Kutoka; Tendua ipo pia."
+
+msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
+msgstr "Bofya kijenzi ili kukichagua, bofya kitufe cha shift-click kwenye chombo kimoja ili kuchukua kadhaa, na uburute ili kuzipanga upya kati ya ndugu zao wenyewe. Kuhamisha kijenzi ndani au nje ya kontena ni vitufe vya kihariri vya Kuingia na Kutoka; Tendua ipo pia."
+
+msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
+msgstr "Bofya kipengee ili kukichagua, buruta ili kusogeza, buruta mpini ili kubadilisha ukubwa, vitufe vya vishale ili kugusa (Shift kwa 10px). Bofya Shift, au buruta kisanduku kwenye usuli, kuchukua kadhaa mara moja."
+
+msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
+msgstr "Bofya kipengee ili kukichagua, Shift-click au buruta kisanduku kwenye usuli kuchukua kadhaa, na buruta yoyote kati ya hizo ili kuzisogeza zote -- gusa vitufe vya vishale, Shift kwa 10px. Buruta mpini ili kubadilisha ukubwa wa kipengele kimoja. Tendua, na kila kitu kingine kuhusu kipengele, kimerudishwa kwenye kihariri."
+
+msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
+msgstr "Bofya kipengee ili kukichagua, buruta ili kusogeza, buruta mpini ili kubadilisha ukubwa, vitufe vya vishale ili kugusa (Shift kwa 10px). Bofya Shift, au buruta kisanduku kwenye usuli, kuchukua kadhaa mara moja."
+
+msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
+msgstr "Hufunga bila kuhifadhi, na hurudisha Onyesho hili nyuma jinsi ilivyokuwa wakati kidirisha hiki kilipofunguliwa -- ikijumuisha kitu chochote kilichohamishwa au kubadilishwa ukubwa katika Onyesho la Kuchungulia.\n\nKubadilisha jina ni jambo moja ambalo haliwezi kurudisha nyuma: linatumika kwa chelezo iliyopakiwa inapothibitishwa, na kufunga mazungumzo haya nayo."
+
+msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
+msgstr "Hufunga bila kuhifadhi, na hurudisha Onyesho hili nyuma jinsi ilivyokuwa wakati kidirisha hiki kilipofunguliwa -- ikijumuisha kitu chochote kilichohamishwa au kubadilishwa ukubwa katika Onyesho la Kuchungulia.\n\nKubadilisha jina ni jambo moja ambalo haliwezi kurudisha nyuma: linatumika kwa chelezo iliyopakiwa inapothibitishwa, na kufunga mazungumzo haya nayo."
+
+msgid "Compare Files"
+msgstr "Linganisha Faili"
+
+msgid "Compare Files"
+msgstr "Linganisha Faili"
+
+msgid "Compare With"
+msgstr "Linganisha Na"
+
+msgid "Compare With"
+msgstr "Linganisha Na"
+
+msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Linganisha faili nyingine ya XML dhidi ya iliyopakiwa: kilichoongezwa, kuondolewa, kubadilishwa jina na kubadilishwa.\n\nItumie kuona uletaji wa TaskerNet ulileta nini, ni hariri gani iliyobadilika, au ni tofauti gani kati ya nakala mbili.\n\nIkiwa faili iliyopakiwa ilitoka kwa 'Hifadhi kwa Faili ya Sasa', faili ambayo ilihifadhiwa kutoka hutolewa moja kwa moja.\n\nMatokeo yanaonyeshwa hapa na kuhifadhiwa kwa faili ya maandishi katika saraka ya sasa."
+
+msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Linganisha faili nyingine ya XML dhidi ya iliyopakiwa: kilichoongezwa, kuondolewa, kubadilishwa jina na kubadilishwa.\n\nItumie kuona uletaji wa TaskerNet ulileta nini, ni hariri gani iliyobadilika, au ni tofauti gani kati ya nakala mbili.\n\nIkiwa faili iliyopakiwa ilitoka kwa 'Hifadhi kwa Faili ya Sasa', faili ambayo ilihifadhiwa kutoka hutolewa moja kwa moja.\n\nMatokeo yanaonyeshwa hapa na kuhifadhiwa kwa faili ya maandishi katika saraka ya sasa."
+
+msgid "Comparison cancelled."
+msgstr "Ulinganisho umeghairiwa."
+
+msgid "Comparison cancelled."
+msgstr "Ulinganisho umeghairiwa."
+
+msgid "Comparison report could not be saved."
+msgstr "Ripoti ya kulinganisha haikuweza kuhifadhiwa."
+
+msgid "Comparison report could not be saved."
+msgstr "Ripoti ya kulinganisha haikuweza kuhifadhiwa."
+
+msgid "Comparison saved as"
+msgstr "Ulinganisho umehifadhiwa kama"
+
+msgid "Comparison saved as"
+msgstr "Ulinganisho umehifadhiwa kama"
+
+msgid "Delete Scene"
+msgstr "Futa Onyesho"
+
+msgid "Delete Scene"
+msgstr "Futa Onyesho"
+
+msgid "Done"
+msgstr "Imekamilika"
+
+msgid "Done"
+msgstr "Imekamilika"
+
+msgid "Drawn in"
+msgstr "Imetolewa ndani"
+
+msgid "Drawn in"
+msgstr "Imetolewa ndani"
+
+msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
+msgstr "Huchora Onyesho hili kama picha katika dirisha kuu -- ikijumuisha vipengele ulivyoongeza au kubadilisha hapa lakini bado havijahifadhiwa.\n\nMpangilio wa Toleo la 2 hauna ukubwa wake, kwa hivyo onyesho la kukagua huiweka kwenye skrini unayochagua, na huutiririsha upya unapobadilisha.\n\nKidirisha hiki hufunga wakati onyesho la kuchungulia likiwa juu, na kila kitu kilichomo kikihifadhiwa; kitufe cha 'Rudi kwa Kihariri' cha onyesho la kuchungulia huirejesha.\n\nNi kiwakilishi, si kionyeshi cha Tasker mwenyewe: vigeu %vinaitwa badala ya kutatuliwa, rangi za nyenzo hutoka kwenye ubao wa msingi badala ya mandhari ya kifaa, na picha, video na maudhui ya wavuti huonyeshwa kama vishikilia nafasi."
+
+msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
+msgstr "Huchora Onyesho hili kama picha katika dirisha kuu, kwa ukubwa ulioandikwa hapo juu -- ikijumuisha mabadiliko ambayo bado hayajahifadhiwa.\n\nKidirisha hiki hufunga wakati onyesho la kuchungulia likiwa juu, na kila kitu kilichomo kikihifadhiwa; kitufe cha 'Rudi kwa Kihariri' cha onyesho la kuchungulia huirejesha.\n\nNi kiwakilishi, si kionyeshi cha Tasker mwenyewe: vigeu %vinaitwa badala ya kutatuliwa, na picha, video na maudhui ya wavuti huonyeshwa kama vishikilia nafasi."
+
+msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
+msgstr "Huchora Onyesho hili kama picha katika dirisha kuu, kwa ukubwa ulioandikwa hapo juu -- ikijumuisha mabadiliko ambayo bado hayajahifadhiwa.\n\nKidirisha hiki hufunga wakati onyesho la kuchungulia likiwa juu, na kila kitu kilichomo kikihifadhiwa; kitufe cha 'Rudi kwa Kihariri' cha onyesho la kuchungulia huirejesha.\n\nNi kiwakilishi, si kionyeshi cha Tasker mwenyewe: vigeu %vinaitwa badala ya kutatuliwa, na picha, video na maudhui ya wavuti huonyeshwa kama vishikilia nafasi."
+
+msgid "Duplicate"
+msgstr "Nakala"
+
+msgid "Dropdown menu — shown when opened"
+msgstr "Menyu kunjuzi - huonyeshwa wakati inafunguliwa"
+
+msgid "Duplicate"
+msgstr "Nakala"
+
+msgid "Dynamic and Select Variable are worked out when the Scene is shown."
+msgstr "Kibadilishi chenye Nguvu na Chagua hufanyiwa kazi wakati Onyesho linaonyeshwa."
+
+msgid "Dynamic and Select Variable are worked out when the Scene is shown."
+msgstr "Kibadilishi chenye Nguvu na Chagua hufanyiwa kazi wakati Onyesho linaonyeshwa."
+
+msgid "Dynamic value"
+msgstr "Thamani inayobadilika"
+
+msgid "Dynamic value"
+msgstr "Thamani inayobadilika"
+
+msgid "Edit Scene"
+msgstr "Hariri Onyesho"
+
+msgid "Edit item layout"
+msgstr "Badilisha mpangilio wa kipengee"
+
+msgid "Edit item layout"
+msgstr "Badilisha mpangilio wa kipengee"
+
+msgid "Edit this one's properties instead, keeping the selection."
+msgstr "Hariri sifa za huyu badala yake, ukiweka chaguo."
+
+msgid "Edit this one's properties instead, keeping the selection."
+msgstr "Hariri sifa za huyu badala yake, ukiweka chaguo."
+
+msgid "Event handlers"
+msgstr "Washughulikiaji wa hafla"
+
+msgid "Event handlers"
+msgstr "Washughulikiaji wa hafla"
+
+msgid "Export Scene"
+msgstr "Hamisha Onyesho"
+
+msgid "Export Scene"
+msgstr "Hamisha Onyesho"
+
+msgid "Geometry"
+msgstr "Jiometri"
+
+msgid "Geometry"
+msgstr "Jiometri"
+
+msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
+msgstr "Grey: MapTasker haina jedwali la hoja kwayo, kwa hivyo haiwezi kuundwa bila kubahatisha Tasker anatarajia nini ndani. Vichwa ni kambi ya MapTasker yenyewe."
+
+msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
+msgstr "Grey: MapTasker haina jedwali la hoja kwayo, kwa hivyo haiwezi kuundwa bila kubahatisha Tasker anatarajia nini ndani. Vichwa ni kambi ya MapTasker yenyewe."
+
+msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
+msgstr "Vijazo vilivyotolewa na maandishi yaliyopigiwa mstari kwa italiki ni %vigeu -- thamani zake huishi kwenye kifaa, si katika hifadhi rudufu, kwa hivyo zimepewa majina badala ya kubashiriwa. Picha, video, ramani na maudhui ya wavuti huonyeshwa kama vishikilia nafasi. Elea kipengee chochote kwa jiometri yake, vijiti vyake na Kazi inayoendesha."
+
+msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
+msgstr "Vijazo vilivyotolewa na maandishi yaliyopigiwa mstari kwa italiki ni %vigeu -- thamani zake huishi kwenye kifaa, si katika hifadhi rudufu, kwa hivyo zimepewa majina badala ya kubashiriwa. Picha, video, ramani na maudhui ya wavuti huonyeshwa kama vishikilia nafasi. Elea kipengee chochote kwa jiometri yake, vijiti vyake na Kazi inayoendesha."
+
+msgid "Health Check"
+msgstr "Uchunguzi wa Afya"
+
+msgid "Health Check"
+msgstr "Uchunguzi wa Afya"
+
+msgid "Health Check report could not be saved."
+msgstr "Ripoti ya Ukaguzi wa Afya haikuweza kuhifadhiwa."
+
+msgid "Health Check found no errors or warnings."
+msgstr "Ukaguzi wa Afya haukupata hitilafu au maonyo."
+
+msgid "Health Check report could not be saved."
+msgstr "Ripoti ya Ukaguzi wa Afya haikuweza kuhifadhiwa."
+
+msgid "Health Check saved as"
+msgstr "Ukaguzi wa Afya umehifadhiwa kama"
+
+msgid "Health Check saved as"
+msgstr "Ukaguzi wa Afya umehifadhiwa kama"
+
+msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
+msgstr "Muda gani ujumbe ibukizi hukaa kwenye skrini kabla haujatoweka.\n\n'Mpaka kuondolewa' huweka kila ujumbe hadi uufunge, ambayo ni muhimu wakati ujumbe unasonga mbele kabla ya kuusoma.\n\nBarua pepe chache huweka muda wao mrefu zaidi kwa sababu huorodhesha vitu ambavyo unapaswa kusoma -- Majukumu yanayoathiriwa na kufuta au kubadilisha jina la kipengele cha Onyesho, kwa mfano. Wale huweka muda wao wenyewe chochote kinachochaguliwa hapa."
+
+msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
+msgstr "Muda gani ujumbe ibukizi hukaa kwenye skrini kabla haujatoweka.\n\n'Mpaka kuondolewa' huweka kila ujumbe hadi uufunge, ambayo ni muhimu wakati ujumbe unasonga mbele kabla ya kuusoma.\n\nBarua pepe chache huweka muda wao mrefu zaidi kwa sababu huorodhesha vitu ambavyo unapaswa kusoma -- Majukumu yanayoathiriwa na kufuta au kubadilisha jina la kipengele cha Onyesho, kwa mfano. Wale huweka muda wao wenyewe chochote kinachochaguliwa hapa."
+
+msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
+msgstr "Katika orodha: Shift-click kwa masafa, Ctrl- au Cmd-click ili kuongeza au kuondoa moja."
+
+msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
+msgstr "Katika orodha: Shift-click kwa masafa, Ctrl- au Cmd-click ili kuongeza au kuondoa moja."
+
+msgid "Item layout"
+msgstr "Mpangilio wa kipengee"
+
+msgid "Item layout"
+msgstr "Mpangilio wa kipengee"
+
+msgid "Landscape"
+msgstr "Mazingira"
+
+msgid "Landscape"
+msgstr "Mazingira"
+
+msgid "Legacy"
+msgstr "Urithi"
+
+msgid "Legacy"
+msgstr "Urithi"
+
+msgid "Legacy Scene"
+msgstr "Tukio la Urithi"
+
+msgid "Legacy Scene"
+msgstr "Tukio la Urithi"
+
+msgid "List"
+msgstr "Orodha"
+
+msgid "List"
+msgstr "Orodha"
+
+msgid "MapTasker: view limit reached, diagram truncated"
+msgstr "MapTasker: kikomo cha kutazama kimefikiwa, mchoro umepunguzwa"
+
+msgid "MapTasker: view limit reached, diagram truncated"
+msgstr "MapTasker: kikomo cha kutazama kimefikiwa, mchoro umepunguzwa"
+
+msgid "Modifiers"
+msgstr "Virekebishaji"
+
+msgid "Modifiers"
+msgstr "Virekebishaji"
+
+msgid "Never updated"
+msgstr "Haijasasishwa kamwe"
+
+msgid "Never updated"
+msgstr "Haijasasishwa kamwe"
+
+msgid "No Task addresses this element by name."
+msgstr "Hakuna Jukumu linaloshughulikia kipengele hiki kwa jina."
+
+msgid "No Task addresses this element by name."
+msgstr "Hakuna Jukumu linaloshughulikia kipengele hiki kwa jina."
+
+msgid "No XML file has been loaded.  Get an XML file first."
+msgstr "Hakuna faili ya XML iliyopakiwa.  Pata faili ya XML kwanza."
+
+msgid "No XML file has been loaded.  Get an XML file first."
+msgstr "Hakuna faili ya XML iliyopakiwa.  Pata faili ya XML kwanza."
+
+msgid "No element matches that."
+msgstr "Hakuna kipengele kinacholingana na hicho."
+
+msgid "No element matches that."
+msgstr "Hakuna kipengele kinacholingana na hicho."
+
+msgid "Not an HTML colour name or #hex value."
+msgstr "Sio jina la rangi ya HTML au thamani ya #hex."
+
+msgid "Not an HTML colour name or #hex value."
+msgstr "Sio jina la rangi ya HTML au thamani ya #hex."
+
+msgid "Not updated -- these name both this Scene and this element, but not as a"
+msgstr "Haijasasishwa -- hizi hutaja Onyesho hili na kipengele hiki, lakini si kama a"
+
+msgid "Not updated -- these name both this Scene and this element, but not as a"
+msgstr "Haijasasishwa -- hizi hutaja Onyesho hili na kipengele hiki, lakini si kama a"
+
+msgid "Nothing here."
+msgstr "Hakuna kitu hapa."
+
+msgid "Nothing here."
+msgstr "Hakuna kitu hapa."
+
+msgid "Notification Duration"
+msgstr "Muda wa Arifa"
+
+msgid "Notification Duration"
+msgstr "Muda wa Arifa"
+
+msgid "Notification Duration:"
+msgstr "Muda wa Arifa:"
+
+msgid "Notification Duration:"
+msgstr "Muda wa Arifa:"
+
+msgid "On"
+msgstr "Washa"
+
+msgid "On"
+msgstr "Washa"
+
+msgid "Only when"
+msgstr "Wakati tu"
+
+msgid "Only when"
+msgstr "Wakati tu"
+
+msgid "Outline every component and name it, the way the designer's tree names it."
+msgstr "Eleza kila kijenzi na ukipe jina, jinsi mti wa mbunifu unavyokitaja."
+
+msgid "Outline every component and name it, the way the designer's tree names it."
+msgstr "Eleza kila kijenzi na ukipe jina, jinsi mti wa mbunifu unavyokitaja."
+
+msgid "Outline every element and name it."
+msgstr "Eleza kila kipengele na ukipe jina."
+
+msgid "Outline every element and name it."
+msgstr "Eleza kila kipengele na ukipe jina."
+
+msgid "Pick a Material icon."
+msgstr "Chagua aikoni ya Nyenzo."
+
+msgid "Pick a Material icon."
+msgstr "Chagua aikoni ya Nyenzo."
+
+msgid "Pick an icon"
+msgstr "Chagua ikoni"
+
+msgid "Pick an icon"
+msgstr "Chagua ikoni"
+
+msgid "Pick from the Scene's environment and global variables."
+msgstr "Chagua kutoka kwa mazingira ya Onyesho na anuwai za ulimwengu."
+
+msgid "Pick from the Scene's environment and global variables."
+msgstr "Chagua kutoka kwa mazingira ya Onyesho na anuwai za ulimwengu."
+
+msgid "Pick one of Material's own colour roles."
+msgstr "Chagua mojawapo ya majukumu ya rangi ya Nyenzo."
+
+msgid "Pick one of Material's own colour roles."
+msgstr "Chagua mojawapo ya majukumu ya rangi ya Nyenzo."
+
+msgid "Preview"
+msgstr "Hakiki"
+
+msgid "Preview"
+msgstr "Hakiki"
+
+msgid "Project(s) that list it."
+msgstr "Miradi inayoorodhesha."
+
+msgid "Project(s) that list it."
+msgstr "Miradi inayoorodhesha."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
+msgstr "Inaomba jina jipya na kulitumia kwenye hifadhi rudufu iliyopakiwa, sasa hivi -- ikibadilisha jina la Onyesho kila mahali, ikijumuisha katika orodha ya Maonyesho ya kila Mradi ulio nayo.\n\nMajukumu yanayoonyesha au kuficha Onyesho hili kwa jina HAYAISASISHA; hao bado wanataja Scene ya zamani.\n\nSehemu ya Jina la Onyesho hapo juu ni ya kusoma tu -- hii ndiyo njia pekee ya kuibadilisha."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
+msgstr "Inaomba jina jipya na kulitumia kwenye hifadhi rudufu iliyopakiwa, sasa hivi -- ikibadilisha jina la Onyesho kila mahali, ikijumuisha katika orodha ya Maonyesho ya kila Mradi ulio nayo.\n\nMajukumu yanayoonyesha au kuficha Onyesho hili kwa jina HAYAISASISHA; hao bado wanataja Scene ya zamani.\n\nSehemu ya Jina la Onyesho hapo juu ni ya kusoma tu -- hii ndiyo njia pekee ya kuibadilisha."
+
+msgid "Properties"
+msgstr "Mali"
+
+msgid "Properties"
+msgstr "Mali"
+
+msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
+msgstr "Sifa huhaririwa kipengele kimoja kwa wakati mmoja. Kuburuta na kusogeza kila kitu kilichochaguliwa."
+
+msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
+msgstr "Sifa huhaririwa kipengele kimoja kwa wakati mmoja. Kuburuta na kusogeza kila kitu kilichochaguliwa."
+
+msgid "Refresh"
+msgstr "Onyesha upya"
+
+msgid "Refresh"
+msgstr "Onyesha upya"
+
+msgid "Remove background"
+msgstr "Ondoa usuli"
+
+msgid "Remove background"
+msgstr "Ondoa usuli"
+
+msgid "Rename Element"
+msgstr "Badilisha Kipengele Kipengele"
+
+msgid "Rename Element"
+msgstr "Badilisha Kipengele Kipengele"
+
+msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
+msgstr "Kubadilisha jina la kipengee hapa hakufagii nakala rudufu: mpangilio wa kipengee hauna jina la Onyesho kwa ajili ya kitendo cha Kipengele cha Task kushughulikia, kwa hivyo hakuna cha kuandika upya."
+
+msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
+msgstr "Kubadilisha jina la kipengee hapa hakufagii nakala rudufu: mpangilio wa kipengee hauna jina la Onyesho kwa ajili ya kitendo cha Kipengele cha Task kushughulikia, kwa hivyo hakuna cha kuandika upya."
+
+msgid "Repeats once per array entry"
+msgstr "Hurudiwa mara moja kwa kila safu ya ingizo"
+
+msgid "Repeats once per array entry"
+msgstr "Hurudiwa mara moja kwa kila safu ya ingizo"
+
+msgid "Round dragged positions and sizes to this many pixels."
+msgstr "Nafasi na saizi zilizoburutwa pande zote hadi pikseli nyingi hivi."
+
+msgid "Round dragged positions and sizes to this many pixels."
+msgstr "Nafasi na saizi zilizoburutwa pande zote hadi pikseli nyingi hivi."
+
+msgid "Save Scene To Android Device"
+msgstr "Hifadhi Onyesho kwa Kifaa cha Android"
+
+msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Huhifadhi chelezo nzima -- kila Mradi, Wasifu, Jukumu na Mandhari ndani yake, si Tukio hili -- ikijumuisha kila hariri iliyofanywa popote katika kipindi hiki.\nImeandikwa kwa nakala mpya, iliyopigwa muhuri wa muda ya faili iliyopakiwa kwa sasa: backup.xml inakuwa backup_20260728_143005.xml.\nFaili uliyopakia haijaandikiwa kamwe, kwa hivyo inaachwa kama ilivyokuwa.\nProgramu kisha inabadilisha hadi nakala mpya, ambayo inakuwa faili ya sasa kwa uhariri na uhifadhi wowote zaidi; kuokoa tena kunabadilisha muhuri wa wakati badala ya kuongeza ya pili.\nHii inaandikia kompyuta hii pekee -- hakuna kitu kinachotumwa kwa kifaa chako cha Android."
+
+msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Huhifadhi chelezo nzima -- kila Mradi, Wasifu, Jukumu na Mandhari ndani yake, si Tukio hili -- ikijumuisha kila hariri iliyofanywa popote katika kipindi hiki.\nImeandikwa kwa nakala mpya, iliyopigwa muhuri wa muda ya faili iliyopakiwa kwa sasa: backup.xml inakuwa backup_20260728_143005.xml.\nFaili uliyopakia haijaandikiwa kamwe, kwa hivyo inaachwa kama ilivyokuwa.\nProgramu kisha inabadilisha hadi nakala mpya, ambayo inakuwa faili ya sasa kwa uhariri na uhifadhi wowote zaidi; kuokoa tena kunabadilisha muhuri wa wakati badala ya kuongeza ya pili.\nHii inaandikia kompyuta hii pekee -- hakuna kitu kinachotumwa kwa kifaa chako cha Android."
+
+msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
+msgstr "Huhifadhi Onyesho hili, pamoja na vipengele vyake vyote, kama faili moja inayojitegemea ya .scn.xml -- umbizo sawa na Uhamishaji wa Tasker mwenyewe wa Scene.\n\nKazi zinazoendeshwa na vipengele vya Onyesho hazijajumuishwa; wao ni wa Mradi wao wenyewe."
+
+msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
+msgstr "Huhifadhi Onyesho hili, pamoja na vipengele vyake vyote, kama faili moja inayojitegemea ya .scn.xml -- umbizo sawa na Uhamishaji wa Tasker mwenyewe wa Scene.\n\nKazi zinazoendeshwa na vipengele vya Onyesho hazijajumuishwa; wao ni wa Mradi wao wenyewe."
+
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Changanua XML iliyopakiwa kwa marejeleo yaliyovunjika, Majukumu ambayo hayajarejelewa, Wasifu na Matukio, na matatizo ya kutaja.\n\nMatokeo yanaonyeshwa hapa na kuhifadhiwa kwa faili ya maandishi katika saraka ya sasa."
+
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Changanua XML iliyopakiwa kwa marejeleo yaliyovunjika, Majukumu ambayo hayajarejelewa, Wasifu na Matukio, na matatizo ya kutaja.\n\nMatokeo yanaonyeshwa hapa na kuhifadhiwa kwa faili ya maandishi katika saraka ya sasa."
+
+msgid "Scene Components"
+msgstr "Vipengele vya Scene"
+
+msgid "Scene Components"
+msgstr "Vipengele vya Scene"
+
+msgid "Scene Elements"
+msgstr "Vipengele vya Scene"
+
+msgid "Scene Elements"
+msgstr "Vipengele vya Scene"
+
+msgid "Scene Preview"
+msgstr "Muhtasari wa Onyesho"
+
+msgid "Scene Name"
+msgstr "Jina la Onyesho"
+
+msgid "Scene Preview"
+msgstr "Muhtasari wa Onyesho"
+
+msgid "Scene Properties"
+msgstr "Sifa za Scene"
+
+msgid "Scene Properties"
+msgstr "Sifa za Scene"
+
+msgid "Scene added."
+msgstr "Onyesho limeongezwa."
+
+msgid "Scene added."
+msgstr "Onyesho limeongezwa."
+
+msgid "Screen"
+msgstr "Skrini"
+
+msgid "Search elements"
+msgstr "Tafuta vipengele"
+
+msgid "Scene type"
+msgstr "Aina ya eneo"
+
+msgid "Screen"
+msgstr "Skrini"
+
+msgid "Search elements"
+msgstr "Tafuta vipengele"
+
+msgid "Search variables"
+msgstr "Tafuta vigezo"
+
+msgid "Search icons"
+msgstr "Tafuta ikoni"
+
+msgid "Search variables"
+msgstr "Tafuta vigezo"
+
+msgid "Select a single Scene first (Scene pulldown above)."
+msgstr "Chagua Onyesho moja kwanza (Mteremko wa Onyesho hapo juu)."
+
+msgid "Select a component on the left."
+msgstr "Chagua sehemu upande wa kushoto."
+
+msgid "Select a single element to duplicate, delete or restack it."
+msgstr "Chagua kipengele kimoja ili kuiga, kufuta au kukiweka upya."
+
+msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
+msgstr "Chagua Kikomo kikubwa cha Kutazama au Mradi / Wasifu / Kazi moja ili kuona mengine."
+
+msgid "Select an element first."
+msgstr "Chagua kipengele kwanza."
+
+msgid "Select a single Scene first (Scene pulldown above)."
+msgstr "Chagua Onyesho moja kwanza (Mteremko wa Onyesho hapo juu)."
+
+msgid "Select an element first."
+msgstr "Chagua kipengele kwanza."
+
+msgid "Select an element on the canvas or in the list."
+msgstr "Chagua kipengee kwenye turubai au kwenye orodha."
+
+msgid "Select an element on the canvas or in the list."
+msgstr "Chagua kipengee kwenye turubai au kwenye orodha."
+
+msgid "Show what each component does when tapped, and what it writes to."
+msgstr "Onyesha kile ambacho kila kijenzi hufanya kinapoguswa, na kinaandika nini."
+
+msgid "Show the Task each element runs."
+msgstr "Onyesha Kazi ambayo kila kipengele kinaendesha."
+
+msgid "Show what each component does when tapped, and what it writes to."
+msgstr "Onyesha kile ambacho kila kijenzi hufanya kinapoguswa, na kinaandika nini."
+
+msgid "Show when"
+msgstr "Onyesha wakati"
+
+msgid "Show when"
+msgstr "Onyesha wakati"
+
+msgid "Size"
+msgstr "Ukubwa"
+
+msgid "Size must be a whole number (-1 for no layout)."
+msgstr "Ukubwa lazima iwe nambari nzima (-1 bila mpangilio)."
+
+msgid "Size must be a whole number (-1 for no layout)."
+msgstr "Ukubwa lazima iwe nambari nzima (-1 bila mpangilio)."
+
+msgid "Snap"
+msgstr "Snap"
+
+msgid "Snap"
+msgstr "Snap"
+
+msgid "Spinner"
+msgstr "Spinner"
+
+msgid "Stop firing anything on this event."
+msgstr "Acha kupiga chochote kwenye tukio hili."
+
+msgid "Task action(s) in"
+msgstr "Vitendo vya kazi ndani"
+
+msgid "Spinner"
+msgstr "Spinner"
+
+msgid "Task action(s) in"
+msgstr "Vitendo vya kazi ndani"
+
+msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
+msgstr "Majukumu shughulikia Tukio hili kwa mchoro unaolingana (Mwonekano wa Kipengele). Ziangalie mwenyewe"
+
+msgid "Task(s)"
+msgstr "Kazi"
+
+msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
+msgstr "Tasker huweka Jukumu hili ndani ya Onyesho na hakuna mahali pengine popote, kwa hivyo halina jina na haliwezi kuelekezwa mahali pengine bila kulipoteza. Inapitishwa bila kuguswa."
+
+msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
+msgstr "Majukumu shughulikia Tukio hili kwa mchoro unaolingana (Mwonekano wa Kipengele). Ziangalie mwenyewe"
+
+msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
+msgstr "Tasker inaorodhesha kipengele hiki, lakini MapTasker haijawahi kuona moja katika Onyesho lililohifadhiwa -- kwa hivyo imeongezwa ikiwa haina chochote ila aina yake na kitambulisho, na hata aina hiyo imeainishwa kutoka kwa jina lililo hapo juu (limeandikwa kama aina: \"{node_type}\"). Ikiwa Tasker haitambui, bonyeza Tendua."
+
+msgid "Tasker variable(s)"
+msgstr "Tofauti za mtekelezaji"
+
+msgid "Tasker variable(s)"
+msgstr "Tofauti za mtekelezaji"
+
+msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
+msgstr "Kijenzi cha Skrini cha Tasker: mti wa kijenzi tangazo (Safu, Safu, Kiunzi, ...) unaojiweka nje, bila saizi isiyobadilika ya turubai. Anza kutoka:"
+
+msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
+msgstr "Kijenzi cha Skrini cha Tasker: mti wa kijenzi tangazo (Safu, Safu, Kiunzi, ...) unaojiweka nje, bila saizi isiyobadilika ya turubai. Anza kutoka:"
+
+msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
+msgstr "Majukumu yanashughulikia kipengele hiki kwa jina (Maandishi ya Kipengele, Nafasi ya Kipengele, ... misimbo 18 ya kitendo kwa jumla), kwa hivyo kukipa jina upya si hariri ya sehemu. Kidirisha cha Badilisha Jina huorodhesha kinachotegemea jina la sasa na matoleo ya kuleta Majukumu hayo pamoja."
+
+msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
+msgstr "Majukumu yanashughulikia kipengele hiki kwa jina (Maandishi ya Kipengele, Nafasi ya Kipengele, ... misimbo 18 ya kitendo kwa jumla), kwa hivyo kukipa jina upya si hariri ya sehemu. Kidirisha cha Badilisha Jina huorodhesha kinachotegemea jina la sasa na matoleo ya kuleta Majukumu hayo pamoja."
+
+msgid "Text density"
+msgstr "Uzito wa maandishi"
+
+msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
+msgstr "Kazi zinazoonyesha au kuficha Onyesho hili kwa jina hazibadilishwi, na huachwa pale zilipo."
+
+msgid "That component can't go there."
+msgstr "Sehemu hiyo haiwezi kwenda huko."
+
+msgid "That component can't go there."
+msgstr "Sehemu hiyo haiwezi kwenda huko."
+
+msgid "That is the file already loaded.  Choose a different one to compare against."
+msgstr "Hiyo ni faili tayari kupakiwa.  Chagua tofauti ili kulinganisha dhidi yake."
+
+msgid "The Material icon list could not be read, so type the name instead."
+msgstr "Orodha ya aikoni ya Nyenzo haikuweza kusomeka, kwa hivyo andika jina badala yake."
+
+msgid "The Material icon list could not be read, so type the name instead."
+msgstr "Orodha ya aikoni ya Nyenzo haikuweza kusomeka, kwa hivyo andika jina badala yake."
+
+msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
+msgstr "Tofauti ya Tasker kipengele hiki huandika thamani yake ndani. Tenganisha kadhaa kwa koma. Acha tupu ili kutangaza kufunga bila kuiweka."
+
+msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
+msgstr "Tofauti ya Tasker kipengele hiki huandika thamani yake ndani. Tenganisha kadhaa kwa koma. Acha tupu ili kutangaza kufunga bila kuiweka."
+
+msgid "The Tasks that address it will be updated when this Scene is saved."
+msgstr "Majukumu yanayoishughulikia yatasasishwa Tukio hili litakapohifadhiwa."
+
+msgid "The Tasks that address it will be updated when this Scene is saved."
+msgstr "Majukumu yanayoishughulikia yatasasishwa Tukio hili litakapohifadhiwa."
+
+msgid "The loaded file was saved from"
+msgstr "Faili iliyopakiwa ilihifadhiwa kutoka"
+
+msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
+msgstr "Mpangilio wa safu moja. Tasker huchora mara moja kwa kila ingizo la chochote kinachojaza orodha, kwa hivyo unachoona hapa ni safu mlalo moja badala ya orodha."
+
+msgid "The original"
+msgstr "Ya asili"
+
+msgid "The loaded file was saved from"
+msgstr "Faili iliyopakiwa ilihifadhiwa kutoka"
+
+msgid "The original"
+msgstr "Ya asili"
+
+msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
+msgstr "Onyesho Asili: Vipengele vya UI vilivyowekwa katika nafasi zisizobadilika kwenye turubai ya ukubwa (Maandishi, Kitufe, Rect, Picha, Wavuti, ...)."
+
+msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
+msgstr "Onyesho Asili: Vipengele vya UI vilivyowekwa katika nafasi zisizobadilika kwenye turubai ya ukubwa (Maandishi, Kitufe, Rect, Picha, Wavuti, ...)."
+
+msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
+msgstr "Ukubwa wa skrini ni wa onyesho hili la kuchungulia, si la Onyesho -- mpangilio wa Toleo la 2 hauna ukubwa wake, kwa hivyo badilisha 'Skrini' ili kuona inatiririka tena. Rangi zilizotajwa kwa jukumu la Nyenzo zimechorwa kutoka kwa ubao wa msingi wa Nyenzo 3; kifaa huyasuluhisha dhidi ya mada yake yenyewe, ambayo chini ya Nyenzo Unayotoka kwenye mandhari. Vijazo vilivyotolewa na maandishi ya italiki yaliyopigiwa mstari ni %vigeu. Amber inaangazia vipengele kwa 'Onyesha lini'. Elea kipengee chochote kwa virekebishaji, vigeu na vitendo vyake."
+
+msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
+msgstr "Ukubwa wa skrini ni wa onyesho hili la kuchungulia, si la Onyesho -- mpangilio wa Toleo la 2 hauna ukubwa wake, kwa hivyo badilisha 'Skrini' ili kuona inatiririka tena. Rangi zilizotajwa kwa jukumu la Nyenzo zimechorwa kutoka kwa ubao wa msingi wa Nyenzo 3; kifaa huyasuluhisha dhidi ya mada yake yenyewe, ambayo chini ya Nyenzo Unayotoka kwenye mandhari. Vijazo vilivyotolewa na maandishi ya italiki yaliyopigiwa mstari ni %vigeu. Amber inaangazia vipengele kwa 'Onyesha lini'. Elea kipengee chochote kwa virekebishaji, vigeu na vitendo vyake."
+
+msgid "The search did not finish. The view may be too large, or the browser is busy."
+msgstr "Utafutaji haukuisha. Mwonekano unaweza kuwa mkubwa sana, au kivinjari kina shughuli nyingi."
+
+msgid "The search did not finish. The view may be too large, or the browser is busy."
+msgstr "Utafutaji haukuisha. Mwonekano unaweza kuwa mkubwa sana, au kivinjari kina shughuli nyingi."
+
+msgid "The two files hold the same configuration."
+msgstr "Faili hizi mbili zina usanidi sawa."
+
+msgid "The two files hold the same configuration."
+msgstr "Faili hizi mbili zina usanidi sawa."
+
+msgid "This Scene has no landscape layout of its own (its size is -1)."
+msgstr "Onyesho hili halina mpangilio wa mazingira wa aina yake (ukubwa wake ni -1)."
+
+msgid "This Scene has no layout for this orientation."
+msgstr "Onyesho hili halina mpangilio wa mwelekeo huu."
+
+msgid "This Scene has no UI elements."
+msgstr "Onyesho hili halina vipengele vya UI."
+
+msgid "This Scene has no landscape layout of its own (its size is -1)."
+msgstr "Onyesho hili halina mpangilio wa mazingira wa aina yake (ukubwa wake ni -1)."
+
+msgid "This Scene has no layout for this orientation."
+msgstr "Onyesho hili halina mpangilio wa mwelekeo huu."
+
+msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
+msgstr "Onyesho hili halina kipengele cha sifa. 66 kati ya 366 Scenes MapTasker haijaona pia, kwa hivyo hii ni kawaida badala ya uharibifu."
+
+msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
+msgstr "Onyesho hili halina kipengele cha sifa. 66 kati ya 366 Scenes MapTasker haijaona pia, kwa hivyo hii ni kawaida badala ya uharibifu."
+
+msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
+msgstr "Mpangilio huu wa Toleo la 2 la Scene haukuweza kusomeka, na utaachwa jinsi ulivyo."
+
+msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
+msgstr "Mpangilio huu wa Toleo la 2 la Scene haukuweza kusomeka, na utaachwa jinsi ulivyo."
+
+msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
+msgstr "Mpangilio huu wa Toleo la 2 la Scene hauna sehemu ya mizizi, kwa hivyo hakuna kitu cha kubuni."
+
+msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
+msgstr "Programu hii haina jedwali la sifa kwa aina hii ya kipengele, kwa hivyo jiometri yake pekee ndiyo inayoweza kuhaririwa hapa. Vinginevyo hupitishwa bila kuguswa."
+
+msgid "This element has no layout for this orientation."
+msgstr "Kipengele hiki hakina mpangilio wa mwelekeo huu."
+
+msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
+msgstr "Programu hii haina jedwali la sifa la aina hii ya kipengele, kwa hivyo jiometri yake pekee ndiyo inayoweza kuhaririwa hapa. Vinginevyo hupitishwa bila kuguswa."
+
+msgid "This element has no layout for this orientation."
+msgstr "Kipengele hiki hakina mpangilio wa mwelekeo huu."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Hii itaandika Onyesho kama faili inayojitegemea kwenye kifaa cha Android, chini ya /Tasker/scenes.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nHakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Hii itaandika Onyesho kama faili inayojitegemea kwenye kifaa cha Android, chini ya /Tasker/scenes.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nHakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Hii itaandika Onyesho kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/scenes -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, huku seva ikiendesha.\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker. Hakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Hii itaandika Onyesho kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/scenes -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, huku seva ikiendesha.\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker. Hakuna kidokezo cha idhini kinachohitajika kwa hili."
+
+msgid "Tree label"
+msgstr "Lebo ya mti"
+
+msgid "Tree label"
+msgstr "Lebo ya mti"
+
+msgid "Turn the screen on its side and let the layout re-flow into it."
+msgstr "Geuza skrini upande wake na uruhusu mpangilio utiririke tena ndani yake."
+
+msgid "Turn the screen on its side and let the layout re-flow into it."
+msgstr "Geuza skrini upande wake na uruhusu mpangilio utiririke tena ndani yake."
+
+msgid "Undo"
+msgstr "Tendua"
+
+msgid "Undo"
+msgstr "Tendua"
+
+msgid "Using the saved size"
+msgstr "Kwa kutumia saizi iliyohifadhiwa"
+
+msgid "Using the saved size"
+msgstr "Kwa kutumia saizi iliyohifadhiwa"
+
+msgid "Variable"
+msgstr "Inaweza kubadilika"
+
+msgid "Variable"
+msgstr "Inaweza kubadilika"
+
+msgid "Variables"
+msgstr "Vigezo"
+
+msgid "Version 2"
+msgstr "Toleo la 2"
+
+msgid "View Limit"
+msgstr "Kikomo cha Kutazama"
+
+msgid "What you pick goes in at the cursor. Open this again to add the next piece."
+msgstr "Unachochagua huingia kwenye kielekezi. Fungua hii tena ili kuongeza kipande kinachofuata."
+
+msgid "What you pick replaces what the field holds. Type to narrow the list down."
+msgstr "Unachochagua huchukua nafasi ya kile shamba inachoshikilia. Andika ili kupunguza orodha chini."
+
+msgid "Version 2"
+msgstr "Toleo la 2"
+
+msgid "View Limit"
+msgstr "Kikomo cha Kutazama"
+
+msgid "Which kind of Scene?"
+msgstr "Scene ya aina gani?"
+
+msgid "What you pick goes in at the cursor. Open this again to add the next piece."
+msgstr "Unachochagua huingia kwenye kielekezi. Fungua hii tena ili kuongeza kipande kinachofuata."
+
+msgid "What you pick replaces what the field holds. Type to narrow the list down."
+msgstr "Unachochagua huchukua nafasi ya kile shamba inachoshikilia. Andika ili kupunguza orodha chini."
+
+msgid "Which kind of Scene?"
+msgstr "Scene ya aina gani?"
+
+msgid "Zoom"
+msgstr "Kuza"
+
+msgid "component(s)"
+msgstr "vijenzi"
+
+msgid "Writes to variable"
+msgstr "Anaandika kwa kutofautiana"
+
+msgid "Zoom"
+msgstr "Kuza"
+
+msgid "component(s)"
+msgstr "vijenzi"
+
+msgid "connectors"
+msgstr "viunganishi"
+
+msgid "connectors"
+msgstr "viunganishi"
+
+msgid "drag or nudge any of them and they all move together."
+msgstr "buruta au gusa yoyote kati yao na zote husogea pamoja."
+
+msgid "drag or nudge any of them and they all move together."
+msgstr "buruta au gusa yoyote kati yao na zote husogea pamoja."
+
+msgid "editing 1 of"
+msgstr "kuhariri 1 ya"
+
+msgid "editing 1 of"
+msgstr "kuhariri 1 ya"
+
+msgid "element(s)"
+msgstr "vipengele"
+
+msgid "element(s)"
+msgstr "vipengele"
+
+msgid "elements selected"
+msgstr "vipengele vilivyochaguliwa"
+
+msgid "elements selected"
+msgstr "vipengele vilivyochaguliwa"
+
+msgid "none"
+msgstr "hakuna"
+
+msgid "is not a whole number"
+msgstr "sio nambari nzima"
+
+msgid "not drawn"
+msgstr "haijachorwa"
+
+msgid "lines dropped"
+msgstr "mistari imeshuka"
+
+msgid "none"
+msgstr "hakuna"
+
+msgid "pair"
+msgstr "jozi"
+
+msgid "not drawn"
+msgstr "haijachorwa"
+
+msgid "pixels"
+msgstr "saizi"
+
+msgid "pixels"
+msgstr "saizi"

@@ -1597,3 +1597,642 @@ msgstr "Error 500 (Server Error)!!1500.That’s an error.There was an error. Ple
 
 msgid "hardstop view limit"
 msgstr "sabit durak görüntüleme sınırı"
+
+msgid "(empty)"
+msgstr "(boş)"
+
+msgid "(no name)"
+msgstr "(isim yok)"
+
+msgid "(unnamed Task)"
+msgstr "(isimsiz Görev)"
+
+msgid "(unnamed)"
+msgstr "(isimsiz)"
+
+msgid "-1 means this orientation has no layout of its own."
+msgstr "-1, bu yönlendirmenin kendine ait bir düzeni olmadığı anlamına gelir."
+
+msgid "...and {count} more -- type above to narrow it down."
+msgstr "...ve {count} tane daha -- daraltmak için yukarıya yazın."
+
+msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
+msgstr "Bir Scene'in öğe konumları cihaz piksellerinde saklanır, ancak metin boyutları Android'in sp birimlerinde saklanır. İkisi arasında dönüşüm yapan numara, Sahnenin gösterildiği telefonun bir özelliğidir ve yedekleme dosyasında yer almaz.\n\nYani burada ayarlandı. Metin öğeleri için çok küçük görünüyorsa kaldırın, metin taşarsa indirin."
+
+msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
+msgstr "Versiyon 2 Sahnesi'nin kendine ait bir boyutu yoktur; hangi ekranda gösteriliyorsa orada yer alır, dolayısıyla yedekleme dosyasında onu çizecek hiçbir şey yoktur.\n\nDüzenin yeniden akışını görmek için bunu değiştirin. Bir Akış Satırı farklı şekilde sarılır ve %sv2_render_width'e karşı yazılan herhangi bir 'Ne zaman göster' ifadesi tam olarak bunu sorar."
+
+msgid "Actions"
+msgstr "Eylemler"
+
+msgid "Add"
+msgstr "Eklemek"
+
+msgid "Add Element"
+msgstr "Öğe Ekle"
+
+msgid "Add Scene"
+msgstr "Sahne Ekle"
+
+msgid "Add a background"
+msgstr "Arka plan ekle"
+
+msgid "Add action"
+msgstr "İşlem ekle"
+
+msgid "Add handler"
+msgstr "İşleyici ekle"
+
+msgid "Add modifier"
+msgstr "Değiştirici ekle"
+
+msgid "Add scene properties"
+msgstr "Sahne özellikleri ekleme"
+
+msgid "Addressed by id from"
+msgstr "Kimden gelen kimlikle adreslendi:"
+
+msgid "Adds an element on top of the stack, in the middle of the Scene."
+msgstr "Sahnenin ortasına, yığının üstüne bir öğe ekler."
+
+msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
+msgstr "Çocukları barındırabiliyorsa seçilen bileşenin içine, aksi takdirde doğrudan arkasına eklenir."
+
+msgid "Also selected:"
+msgstr "Ayrıca seçilenler:"
+
+msgid "Also update"
+msgstr "Ayrıca güncelle"
+
+msgid "Add event"
+msgstr "Add event"
+
+msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
+msgstr "Amber: Tasker bunu listeliyor, ancak MapTasker'da onaylanmış bir örnek yok. Gri: Seçimin onu koyacağı yere gidemiyorum."
+
+msgid "App icon"
+msgstr "Uygulama simgesi"
+
+msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
+msgstr "Sahnenin ortasına, yığının üstüne ekler. İstediğiniz yere sürükleyin."
+
+msgid "Appearance Mode"
+msgstr "Görünüm Modu"
+
+
+
+msgid "Applied in order — the one at the bottom sits on top."
+msgstr "Sırayla uygulanır; alttaki üstte yer alır."
+
+
+msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
+msgstr "Bu Sahne kaydedildiğinde uygulanır, şimdi değil - Sahne iletişim kutusundaki İptal seçeneği hem öğeyi hem de Görevleri olduğu gibi bırakır."
+
+
+
+msgid "Back to Editor"
+msgstr "Editöre Geri Dön"
+
+
+msgid "Bounds"
+msgstr "Sınırlar"
+
+
+msgid "Cancelled. Changes to this Scene were discarded."
+msgstr "İptal edildi. Bu Sahnede yapılan değişiklikler iptal edildi."
+
+
+msgid "Choose another file..."
+msgstr "Başka bir dosya seç..."
+
+
+msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
+msgstr "Bir bileşeni seçmek için tıklayın, birkaçını almak için aynı kapsayıcıdaki başka bir bileşeni Shift tuşuna basarak tıklayın ve bunları kendi kardeşleri arasında yeniden sıralamak için sürükleyin. Bir bileşeni bir kabın içine veya dışına taşımak, editörün Giriş ve Çıkış düğmeleridir; Geri alma seçeneği de orada."
+
+
+msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
+msgstr "Bir öğeyi seçmek için tıklayın, birkaçını almak için arka plandaki bir kutuyu Shift tuşunu basılı tutarak tıklayın veya sürükleyin ve hepsini taşımak için bunlardan herhangi birini sürükleyin - ok tuşları itme, 10 piksel için Shift. Tek bir öğeyi yeniden boyutlandırmak için bir tutamacı sürükleyin. Geri alma ve bir öğeyle ilgili diğer her şey düzenleyiciye geri döndü."
+
+
+msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
+msgstr "Bir öğeyi seçmek için tıklayın, taşımak için sürükleyin, yeniden boyutlandırmak için bir tutamacı sürükleyin, sürüklemek için ok tuşlarını kullanın (10 piksel için Shift). Aynı anda birden fazla fotoğraf çekmek için Shift tuşunu basılı tutarak tıklayın veya arka plandaki bir kutuyu sürükleyin."
+
+
+msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
+msgstr "Kaydetmeden kapanır ve Önizleme'de taşınan veya yeniden boyutlandırılan her şey dahil olmak üzere, bu Sahneyi tam olarak bu iletişim kutusu açıldığında olduğu gibi geri koyar.\n\nYeniden Adlandırma, bunun geri alamayacağı tek şeydir: onaylandığı anda yüklenen yedeğe uygulanır ve bu iletişim kutusunu onunla kapatır."
+
+
+msgid "Compare Files"
+msgstr "Dosyaları Karşılaştır"
+
+
+msgid "Compare With"
+msgstr "Şununla Karşılaştır:"
+
+
+msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Başka bir XML dosyasını yüklenen dosyayla karşılaştırın: eklenenler, kaldırılanlar, yeniden adlandırılanlar ve değiştirilenler.\n\nTaskerNet içe aktarımının neleri getirdiğini, bir düzenlemenin neleri değiştirdiğini veya iki yedekleme arasında nelerin farklı olduğunu görmek için bunu kullanın.\n\nYüklenen dosya 'Geçerli Dosyaya Kaydet' seçeneğinden geldiyse doğrudan kaydedildiği dosya sunulur.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
+
+
+msgid "Comparison cancelled."
+msgstr "Karşılaştırma iptal edildi."
+
+
+msgid "Comparison report could not be saved."
+msgstr "Karşılaştırma raporu kaydedilemedi."
+
+
+msgid "Comparison saved as"
+msgstr "Karşılaştırma şu şekilde kaydedildi:"
+
+msgid "Drawn in"
+msgstr "Çizilmiş"
+
+msgid "Delete Scene"
+msgstr "Sahneyi Sil"
+
+msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
+msgstr "Bu Sahneyi, buraya eklediğiniz veya değiştirdiğiniz ancak henüz kaydetmediğiniz bileşenler de dahil olmak üzere ana pencerede bir resim olarak çizer.\n\nSürüm 2 düzeninin kendine ait bir boyutu yoktur; bu nedenle önizleme, onu seçtiğiniz bir ekrana yerleştirir ve onu değiştirdiğinizde yeniden akıtır.\n\nBu iletişim kutusu, önizleme açıkken, içindeki her şey tutularak kapanır; önizlemenin 'Editöre Geri Dön' düğmesi onu geri getirir.\n\nBu, Tasker'in kendi oluşturucusu değil, bir temsilidir: %değişkenler çözümlenmek yerine adlandırılır, Malzeme renkleri cihazın teması yerine taban çizgisinden gelir ve resimler, video ve web içeriği yer tutucu olarak gösterilir."
+
+msgid "Done"
+msgstr "Tamamlamak"
+
+
+
+msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
+msgstr "Bu Sahneyi, henüz kaydedilmemiş değişiklikler de dahil olmak üzere, yukarıda yazılan boyutta ana pencerede bir resim olarak çizer.\n\nBu iletişim kutusu, önizleme açıkken, içindeki her şey tutularak kapanır; önizlemenin 'Editöre Geri Dön' düğmesi onu geri getirir.\n\nBu, Tasker'in kendi oluşturucusu değil, bir temsilidir: %değişkenler çözümlenmek yerine adlandırılır ve resimler, video ve web içeriği yer tutucu olarak gösterilir."
+
+
+msgid "Duplicate"
+msgstr "Kopyalamak"
+
+msgid "Dropdown menu — shown when opened"
+msgstr "Açılır menü — açıldığında gösterilir"
+
+
+msgid "Dynamic and Select Variable are worked out when the Scene is shown."
+msgstr "Dinamik ve Değişken Seç, Sahne gösterildiğinde işlenir."
+
+
+msgid "Dynamic value"
+msgstr "Dinamik değer"
+
+
+msgid "Edit Scene"
+msgstr "Sahneyi Düzenle"
+
+msgid "Edit item layout"
+msgstr "Öğe düzenini düzenle"
+
+
+msgid "Edit this one's properties instead, keeping the selection."
+msgstr "Seçimi koruyarak bunun yerine bunun özelliklerini düzenleyin."
+
+
+msgid "Event handlers"
+msgstr "Olay işleyicileri"
+
+
+msgid "Export Scene"
+msgstr "Sahneyi Dışa Aktar"
+
+
+msgid "Geometry"
+msgstr "Geometri"
+
+
+msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
+msgstr "Gri: MapTasker'ın bunun için bir argüman tablosu yoktur, bu nedenle Tasker'ın içeride ne beklediğini tahmin etmeden oluşturulamaz. Başlıklar MapTasker'ın kendi gruplamasıdır."
+
+
+msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
+msgstr "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
+
+msgid "Health Check"
+msgstr "Sağlık Kontrolü"
+
+
+
+msgid "Health Check found no errors or warnings."
+msgstr "Durum Kontrolü herhangi bir hata veya uyarı bulamadı."
+
+
+msgid "Health Check report could not be saved."
+msgstr "Durum Denetimi raporu kaydedilemedi."
+
+msgid "Health Check saved as"
+msgstr "Health Check saved as"
+
+
+msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
+msgstr "Bir açılır mesajın kaybolmadan önce ekranda ne kadar süre kalacağı.\n\n'Kapatılana kadar' her mesajı siz kapatana kadar açık tutar; bu, bir mesajın siz okuyamadan geçip gitmesi durumunda kullanışlıdır.\n\nBirkaç mesaj, okumanız gereken şeyleri (örneğin, bir Sahne öğesinin silinmesinden veya yeniden adlandırılmasından etkilenen Görevler) listeledikleri için kendi daha uzun sürelerini belirler. Burada ne seçilirse seçilsin, kendi zamanlamalarını korurlar."
+
+
+msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
+msgstr "Listede: Bir aralık için Shift tuşunu basılı tutarak tıklayın, bir aralık eklemek veya kaldırmak için Ctrl veya Cmd tuşunu basılı tutarak tıklayın."
+
+
+msgid "Landscape"
+msgstr "Manzara"
+
+msgid "Item layout"
+msgstr "Öğe düzeni"
+
+msgid "Legacy"
+msgstr "Miras"
+
+
+msgid "Legacy Scene"
+msgstr "Eski Sahne"
+
+
+msgid "List"
+msgstr "Liste"
+
+
+
+msgid "MapTasker: view limit reached, diagram truncated"
+msgstr "MapTasker: görüntüleme sınırına ulaşıldı, diyagram kesildi"
+
+
+msgid "Modifiers"
+msgstr "Değiştiriciler"
+
+
+msgid "Never updated"
+msgstr "Hiç güncellenmedi"
+
+
+msgid "No Task addresses this element by name."
+msgstr "Hiçbir Görev bu öğeyi adıyla ele almaz."
+
+
+msgid "No XML file has been loaded.  Get an XML file first."
+msgstr "Hiçbir XML dosyası yüklenmedi.  Önce bir XML dosyası edinin."
+
+
+msgid "No element matches that."
+msgstr "Hiçbir öğe bununla eşleşmiyor."
+
+
+msgid "Not an HTML colour name or #hex value."
+msgstr "Bir HTML renk adı veya #hex değeri değil."
+
+
+msgid "Not updated -- these name both this Scene and this element, but not as a"
+msgstr "Güncellenmedi - bunlar hem bu Sahneyi hem de bu öğeyi adlandırır, ancak bir sahne olarak değil"
+
+
+msgid "Nothing here."
+msgstr "Burada hiçbir şey yok."
+
+
+msgid "Notification Duration"
+msgstr "Bildirim Süresi"
+
+msgid "On"
+msgstr "Açık"
+
+msgid "Only when"
+msgstr "Sadece ne zaman"
+
+msgid "Notification Duration:"
+msgstr "Bildirim Süresi:"
+
+
+msgid "Outline every component and name it, the way the designer's tree names it."
+msgstr "Her bileşenin ana hatlarını çizin ve tasarımcının ağacının adlandırdığı şekilde adlandırın."
+
+
+
+msgid "Outline every element and name it."
+msgstr "Her öğenin ana hatlarını çizin ve adlandırın."
+
+
+msgid "Pick an icon"
+msgstr "Bir simge seçin"
+
+msgid "Pick a Material icon."
+msgstr "Bir Malzeme simgesi seçin."
+
+msgid "Pick from the Scene's environment and global variables."
+msgstr "Sahne ortamından ve küresel değişkenlerden seçim yapın."
+
+
+msgid "Preview"
+msgstr "Önizleme"
+
+
+msgid "Project(s) that list it."
+msgstr "Listeleyen projeler."
+
+msgid "Pick one of Material's own colour roles."
+msgstr "Material'in kendi renk rollerinden birini seçin."
+
+msgid "Properties"
+msgstr "Özellikler"
+
+
+
+msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
+msgstr "Özellikler her seferinde bir öğe olarak düzenlenir. Sürükleme ve dürtme seçilen her şeyi taşır."
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
+msgstr "Yeni bir ad ister ve bunu hemen şimdi yüklenen yedeğe uygular; onu tutan her Projenin Sahne listesi de dahil olmak üzere her yerde Sahneyi yeniden adlandırır.\n\nBu Sahneyi ada göre gösteren veya gizleyen görevler güncellenmez; bunlar hala eski Sahneyi adlandırıyor.\n\nYukarıdaki Sahne Adı alanı salt okunurdur; onu değiştirmenin tek yolu budur."
+
+msgid "Refresh"
+msgstr "Yenile"
+
+
+
+
+msgid "Rename Element"
+msgstr "Öğeyi Yeniden Adlandır"
+
+msgid "Remove background"
+msgstr "Arka planı kaldır"
+
+
+msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
+msgstr "Burada bir öğeyi yeniden adlandırmak, yedeği süpürmez: bir öğe düzeninde, Görevin Öğesi eyleminin onu ele alacak Sahne adı yoktur, dolayısıyla yeniden yazılacak hiçbir şey yoktur."
+
+
+msgid "Repeats once per array entry"
+msgstr "Dizi girişi başına bir kez tekrarlanır"
+
+
+msgid "Round dragged positions and sizes to this many pixels."
+msgstr "Sürüklenen konumları ve boyutları bu kadar piksele yuvarlayın."
+
+
+msgid "Save Scene To Android Device"
+msgstr "Sahneyi Android Cihaza Kaydet"
+
+
+msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "Bu oturumun herhangi bir yerinde yapılan tüm düzenlemeler de dahil olmak üzere, yedeklemenin tamamını (yalnızca bu Sahneyi değil, içindeki her Projeyi, Profili, Görevi ve Sahneyi) kaydeder.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
+
+
+msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
+msgstr "Bu Sahneyi tüm öğeleriyle birlikte tek bir .scn.xml dosyası olarak kaydeder; Tasker'ın kendi Sahne dışa aktarımının ürettiği formatın aynısıdır.\n\nSahne öğelerinin çalıştırdığı görevler dahil değildir; kendi Projelerine aittirler."
+
+
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Yüklenen XML'i bozuk referanslar, referans gösterilmeyen Görevler, Profiller ve Sahneler ve adlandırma sorunları açısından tarayın.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
+
+msgid "Scene Components"
+msgstr "Sahne Bileşenleri"
+
+msgid "Scene Elements"
+msgstr "Sahne Öğeleri"
+
+msgid "Scene Name"
+msgstr "Sahne Adı"
+
+msgid "Scene Preview"
+msgstr "Sahne Önizlemesi"
+
+msgid "Scene Properties"
+msgstr "Sahne Özellikleri"
+
+msgid "Scene added."
+msgstr "Sahne eklendi."
+
+msgid "Scene type"
+msgstr "Sahne türü"
+
+msgid "Screen"
+msgstr "Ekran"
+
+msgid "Search elements"
+msgstr "Öğeleri ara"
+
+msgid "Search icons"
+msgstr "Arama simgeleri"
+
+msgid "Search variables"
+msgstr "Değişkenleri ara"
+
+msgid "Select a component on the left."
+msgstr "Soldan bir bileşen seçin."
+
+msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
+msgstr "Gerisini görmek için daha büyük bir Görüntüleme Sınırı veya tek bir Proje / Profil / Görev seçin."
+
+msgid "Select a single Scene first (Scene pulldown above)."
+msgstr "Önce tek bir Sahne seçin (Yukarıdaki Sahne açılır menüsü)."
+
+msgid "Select a single element to duplicate, delete or restack it."
+msgstr "Çoğaltmak, silmek veya yeniden yığınlamak için tek bir öğeyi seçin."
+
+msgid "Select an element first."
+msgstr "Önce bir öğe seçin."
+
+msgid "Select an element on the canvas or in the list."
+msgstr "Tuvalde veya listede bir öğe seçin."
+
+msgid "Show the Task each element runs."
+msgstr "Her öğenin çalıştığı Görevi gösterin."
+
+msgid "Show what each component does when tapped, and what it writes to."
+msgstr "Her bileşenin dokunulduğunda ne yaptığını ve neye yazdığını gösterin."
+
+msgid "Show when"
+msgstr "Ne zaman göster"
+
+msgid "Size"
+msgstr "Boyut"
+
+msgid "Spinner"
+msgstr "Döndürücü"
+
+msgid "Stop firing anything on this event."
+msgstr "Bu olayla ilgili herhangi bir şeyi ateşlemeyi bırakın."
+
+msgid "Task action(s) in"
+msgstr "Görev eylem(ler)i"
+
+msgid "Task(s)"
+msgstr "Görev(ler)"
+
+msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
+msgstr "Görev(ler), bu Sahneyi bir eşleşme modeliyle (Öğe Görünürlüğü) ele alır. Onları kendiniz kontrol edin"
+
+msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
+msgstr "Tasker, bu Görevi Sahnenin içinde tutar ve başka hiçbir yerde tutmaz, bu nedenle adı yoktur ve kaybolmadan başka bir yere işaret edilemez. El değmeden taşınır."
+
+msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
+msgstr "Tasker bu öğeyi listeler, ancak MapTasker kayıtlı bir Sahnede hiç böyle bir öğe görmemiştir; bu nedenle türü ve kimliği dışında hiçbir şey taşımadan eklenmiştir ve hatta tür, yukarıdaki addan çıkarılmıştır (type: \"{node_type}\" olarak yazılmıştır). Tasker bunu tanımazsa Geri Al'a basın."
+
+msgid "Tasker variable(s)"
+msgstr "Görev değişkeni/değişkenleri"
+
+msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
+msgstr "Tasker's Screen Builder: sabit bir tuval boyutu olmadan kendi kendine yayılan bildirimsel bir bileşen ağacı (Sütun, Satır, İskele, ...). Şuradan başlayın:"
+
+msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
+msgstr "Görevler bu öğeyi ada göre ele alır (Öğe Metni, Öğe Konumu, ... toplam 18 eylem kodu), dolayısıyla yeniden adlandırmak bir alan düzenlemesi değildir. Yeniden Adlandır iletişim kutusu, geçerli ada bağlı olanları listeler ve bu Görevleri yanınızda getirme tekliflerini sunar."
+
+msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
+msgstr "Bu Sahneyi ismine göre gösteren veya gizleyen görevler değiştirilmez ve oldukları yerde bırakılır."
+
+msgid "Text density"
+msgstr "Metin yoğunluğu"
+
+msgid "That component can't go there."
+msgstr "Bu bileşen oraya gidemez."
+
+msgid "Size must be a whole number (-1 for no layout)."
+msgstr "Size must be a whole number (-1 for no layout)."
+
+msgid "Snap"
+msgstr "Patlatmak"
+
+msgid "That is the file already loaded.  Choose a different one to compare against."
+msgstr "Bu zaten yüklenmiş olan dosyadır.  Karşılaştırmak için farklı bir tane seçin."
+
+
+
+msgid "The Material icon list could not be read, so type the name instead."
+msgstr "Malzeme simgesi listesi okunamadığından onun yerine adı yazın."
+
+
+msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
+msgstr "Bu bileşenin değerini yazdığı Tasker değişkeni. Birkaçını virgülle ayırın. Bağlamayı ayarlamadan bildirmek için boş bırakın."
+
+
+msgid "The Tasks that address it will be updated when this Scene is saved."
+msgstr "The Tasks that address it will be updated when this Scene is saved."
+
+
+msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
+msgstr "Bir satırın düzeni. Tasker, listeyi dolduran her giriş için onu bir kez çizer, dolayısıyla burada liste yerine tek bir satır görürsünüz."
+
+
+msgid "The loaded file was saved from"
+msgstr "Yüklenen dosya şuradan kaydedildi:"
+
+
+msgid "The original"
+msgstr "The original"
+
+
+msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
+msgstr "Orijinal Sahne: Boyutlandırılmış bir tuval üzerinde sabit konumlara yerleştirilen UI öğeleri (Metin, Düğme, Dikdörtgen, Resim, Web, ...)."
+
+
+msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
+msgstr "Ekran boyutu Sahne'nin değil, bu ön izlemenin boyutudur; Sürüm 2 düzeninin kendine ait bir boyutu yoktur, bu nedenle yeniden akışını görmek için 'Ekran'ı değiştirin. Malzeme rolüne göre adlandırılan renkler, Malzeme 3 temel paletinden alınmıştır; cihaz bunları kendi temasına göre çözer; bu Tema, Malzeme Siz'in altında duvar kağıdından gelir. Taralı dolgular ve italik altı çizili metinler %değişkenlerdir. Amber, işaret bileşenlerini 'Ne zaman göster' ile özetliyor. Değiştiricileri, değişkenleri ve eylemleri için herhangi bir bileşenin üzerine gelin."
+
+
+msgid "The search did not finish. The view may be too large, or the browser is busy."
+msgstr "Arama tamamlanmadı. Görünüm çok büyük olabilir veya tarayıcı meşgul olabilir."
+
+
+msgid "The two files hold the same configuration."
+msgstr "İki dosya aynı konfigürasyona sahiptir."
+
+msgid "This Scene has no UI elements."
+msgstr "Bu Sahnede hiçbir kullanıcı arayüzü öğesi yok."
+
+msgid "This Scene has no landscape layout of its own (its size is -1)."
+msgstr "Bu Sahnenin kendine ait bir manzara düzeni yoktur (boyutu -1'dir)."
+
+msgid "This Scene has no layout for this orientation."
+msgstr "Bu Sahnenin bu yönlendirme için düzeni yoktur."
+
+msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
+msgstr "Bu Sahnenin hiçbir özellik öğesi yoktur. MapTasker'ın gördüğü 366 Sahnenin 66'sında da hiç yok, yani bu hasardan ziyade sıradan bir durum."
+
+msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
+msgstr "Bu Sahnenin Sürüm 2 düzeninin kök bileşeni yoktur, dolayısıyla tasarlanacak hiçbir şey yoktur."
+
+msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
+msgstr "Bu uygulamanın bu eleman türü için özellik tablosu yoktur, dolayısıyla burada yalnızca geometrisi düzenlenebilir. Aksi takdirde el değmeden taşınır."
+
+msgid "This element has no layout for this orientation."
+msgstr "Bu öğenin bu yönlendirme için düzeni yoktur."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "Bu, Sahneyi bağımsız bir dosya olarak Android cihazına /Tasker/scenes altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBunun için herhangi bir yetkilendirme istemine gerek yoktur."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "Bu, Scene'i Android cihazınıza /Tasker/scenes altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışır durumdayken Android cihazında kurulu ve aktif olmalıdır.\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir. Bunun için herhangi bir yetkilendirme istemine gerek yoktur."
+
+msgid "Tree label"
+msgstr "Ağaç etiketi"
+
+msgid "Turn the screen on its side and let the layout re-flow into it."
+msgstr "Ekranı yan çevirin ve düzenin yeniden akmasına izin verin."
+
+msgid "Undo"
+msgstr "Geri al"
+
+msgid "Using the saved size"
+msgstr "Kaydedilen boyutu kullanma"
+
+msgid "Variable"
+msgstr "Değişken"
+
+msgid "Variables"
+msgstr "Değişkenler"
+
+msgid "Version 2"
+msgstr "Sürüm 2"
+
+msgid "View Limit"
+msgstr "Sınırı Görüntüle"
+
+msgid "What you pick goes in at the cursor. Open this again to add the next piece."
+msgstr "Seçtiğiniz şey imlecin yanına girer. Bir sonraki parçayı eklemek için bunu tekrar açın."
+
+msgid "What you pick replaces what the field holds. Type to narrow the list down."
+msgstr "Seçtiğiniz şey, alanın sahip olduğu şeyin yerini alır. Listeyi daraltmak için yazın."
+
+msgid "Which kind of Scene?"
+msgstr "Hangi Sahne?"
+
+msgid "Writes to variable"
+msgstr "Değişkene yazar"
+
+msgid "Zoom"
+msgstr "Yakınlaştır"
+
+msgid "component(s)"
+msgstr "bileşen(ler)"
+
+msgid "connectors"
+msgstr "konnektörler"
+
+msgid "drag or nudge any of them and they all move together."
+msgstr "herhangi birini sürükleyin veya itin; hepsi birlikte hareket eder."
+
+msgid "editing 1 of"
+msgstr "1 tanesini düzenliyor"
+
+msgid "element(s)"
+msgstr "eleman(lar)"
+
+msgid "is not a whole number"
+msgstr "bir tam sayı değil"
+
+msgid "lines dropped"
+msgstr "çizgiler düştü"
+
+msgid "none"
+msgstr "hiçbiri"
+
+msgid "not drawn"
+msgstr "çizilmemiş"
+
+msgid "pair"
+msgstr "çift"
+
+msgid "pixels"
+msgstr "piksel"
+
+msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
+msgstr "Bu Sahnenin Versiyon 2 düzeni okunamadı ve olduğu gibi bırakılacak."
+
+msgid "elements selected"
+msgstr "seçilen öğeler"

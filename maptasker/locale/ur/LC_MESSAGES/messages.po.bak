@@ -1,0 +1,2542 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: 10.0.2\n"
+"Report-Msgid-Bugs-To: https://https://github.com/mctinker/Map-Tasker/issues\n"
+"POT-Creation-Date: 2025-12-16 11:16-05:00\n"
+"PO-Revision-Date: 2025-12-16 11:16-05:00\n"
+"Last-Translator: Google Translate\n"
+"Language-Team: LANGUAGE anon\n"
+"Language: ur\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Language set to"
+msgstr "زبان سیٹ کی گئی ہے"
+msgid "Display Options"
+msgstr "ڈسپلے کے اختیارات"
+msgid "Display Detail Level:"
+msgstr "تفصیل کی سطح کی سطح:"
+msgid "This determines the amount of detail displayed in the output.\n\nLevel 0 = the least detail, 5 = the most detail."
+msgstr "یہ آؤٹ پٹ میں دکھائے جانے والے تفصیل کی مقدار کا تعین کرتا ہے۔ \n\nlevel 0 = کم سے کم تفصیل ، 5 = سب سے زیادہ تفصیل۔"
+msgid "Specific Name"
+msgstr "مخصوص نام"
+msgid "Diagram"
+msgstr "ڈایاگرام"
+msgid "Misc View"
+msgstr "متفرق نظریہ"
+msgid "Analysis"
+msgstr "تجزیہ"
+msgid "Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top.\n\nClick the ? to get more info."
+msgstr "آپ نے بائیں طرف داخل ہونے والے تار کی تلاش شروع کرنے کے لئے اس بٹن پر کلک کریں۔ مزید معلومات حاصل کرنے کے لئے۔"
+msgid "Search Here"
+msgstr "یہاں تلاش کریں"
+msgid "Click this button to initiate a search for the string you have entered to the left\nand highlight the matches, starting at the top-left corner of the screen.\n\nClick the '?' to get more info."
+msgstr "اسکرین کے اوپری بائیں کونے سے شروع کرتے ہوئے ، بائیں طرف داخل ہونے والے تار کی تلاش شروع کرنے کے لئے اس بٹن پر کلک کریں۔ مزید معلومات حاصل کرنے کے لئے۔"
+msgid "Next"
+msgstr "اگلا"
+msgid "Make the next matched string visible.\n\nClick the ? to get more info."
+msgstr "اگلی مماثل تار کو مرئی بنائیں۔\n\n کلیک کریں؟ مزید معلومات حاصل کرنے کے لئے۔"
+msgid "Make the previous matched string visible.\n\nClick the ? to get more info."
+msgstr "پچھلی مماثل اسٹرنگ کو مرئی بنائیں۔\n\nپر کلک کریں؟ مزید معلومات حاصل کرنے کے لیے۔"
+msgid "Prev"
+msgstr "prep"
+msgid "Clear"
+msgstr "صاف"
+msgid "Search"
+msgstr "تلاش"
+msgid "Toggle Word Wrap"
+msgstr "ٹوگل ورڈ لپیٹ"
+msgid "Top"
+msgstr "اوپر"
+msgid "Bottom"
+msgstr "نیچے"
+msgid "Display Only"
+msgstr "صرف ڈسپلے کریں"
+msgid "Display only"
+msgstr "صرف ڈسپلے کریں"
+msgid "Display only the"
+msgstr "صرف ڈسپلے کریں"
+msgid "overrides any previous set name"
+msgstr "کسی بھی پچھلے سیٹ نام کو اوور رائڈس"
+msgid "Click this button to search for and display only the lines that match the search string."
+msgstr "تلاش کرنے کے لئے اس بٹن پر کلک کریں اور صرف ان لائنوں کو ظاہر کریں جو تلاش کے تار سے مماثل ہیں۔"
+msgid "Profiles Per Line:"
+msgstr "فی لائن پروفائلز:"
+msgid "Select how many Profiles\nto display per line.  The default is 6.\n\nClick the ? to get more info."
+msgstr "منتخب کریں کہ کتنے پروفائلز\n فی لائن ڈسپلے کریں۔  پہلے سے طے شدہ 6.\n\n کلیک ہے؟ مزید معلومات حاصل کرنے کے لئے۔"
+msgid "Top Task"
+msgstr "ٹاپ ٹاسک"
+msgid "Bottom Task"
+msgstr "نیچے کام"
+msgid "Tree"
+msgstr "درخت"
+msgid "map_window_position"
+msgstr "میپ_ ونڈو_پوزیشن"
+msgid "Misc"
+msgstr "متفرق"
+msgid "misc_window_position"
+msgstr "misc_window_position"
+msgid "Displaying only the next 80 matches...\n"
+msgstr "صرف اگلے 80 میچوں کی نمائش ...\n"
+msgid "N/A"
+msgstr "n/a"
+msgid "Profiles"
+msgstr "پروفائلز"
+msgid "  Tasks in Project (sorted)"
+msgstr "پروجیکٹ میں کام (ترتیب دیا گیا)"
+msgid "Launcher Task: "
+msgstr "لانچر ٹاسک:"
+msgid "<<< Owner=Project"
+msgstr "<<< مالک = پروجیکٹ"
+msgid "Project"
+msgstr "پروجیکٹ"
+msgid "Profile"
+msgstr "پروفائل"
+msgid "Task"
+msgstr "کام"
+msgid "ID:"
+msgstr "ID:"
+msgid "<<< Owner="
+msgstr "<<< مالک ="
+msgid "Element of type"
+msgstr "قسم کا عنصر"
+msgid "\n\nActions:"
+msgstr "\n\nactions:"
+msgid "Action"
+msgstr "ایکشن"
+msgid "Project Global Variables"
+msgstr "پروجیکٹ عالمی متغیر"
+msgid "Task: "
+msgstr "کام: "
+msgid "Profile: "
+msgstr "فروری: "
+msgid "Project: "
+msgstr "پروجیکٹ: "
+msgid "Scene: "
+msgstr "منظر: "
+msgid "Properties Collision Handling"
+msgstr "پراپرٹیز تصادم ہینڈلنگ"
+msgid "Run Both Together"
+msgstr "دونوں ایک ساتھ چلائیں"
+msgid " Properties"
+msgstr "خصوصیات"
+msgid "(Not referenced by any "
+msgstr "(کسی کے ذریعہ حوالہ نہیں دیا گیا"
+msgid "Project:"
+msgstr "پروجیکٹ:"
+msgid "Scenes:"
+msgstr "مناظر:"
+msgid "[Called by "
+msgstr "[بذریعہ کہا جاتا ہے"
+msgid "[Calls "
+msgstr "[کالز"
+msgid "(entry)"
+msgstr "(اندراج)"
+msgid "Directory\n"
+msgstr "ڈائریکٹری\n"
+msgid "Directory    (blue entries are hotlinks)\n\n"
+msgstr "ڈائریکٹری (نیلے رنگ کے اندراجات ہاٹ لنکس ہیں)\n\n"
+msgid "entire configuration"
+msgstr "پوری ترتیب"
+msgid "Profile:"
+msgstr "فروری:"
+msgid "Task:"
+msgstr "کام:"
+msgid "Go to top"
+msgstr "اوپر جائیں"
+msgid ": Properties"
+msgstr ": خصوصیات"
+msgid "Task "
+msgstr "کام"
+msgid "tasks"
+msgstr "کام"
+msgid "Color for Background set to"
+msgstr "پس منظر کے لئے رنگین رنگ"
+msgid "highlighted for visibility"
+msgstr "مرئیت کے لئے روشنی ڈالی گئی"
+msgid "Found:"
+msgstr "ملا:"
+msgid " [Launcher Task: "
+msgstr "[لانچر ٹاسک:"
+msgid "(Not referenced by"
+msgstr "(حوالہ نہیں دیا گیا"
+msgid "Grand Totals"
+msgstr "گرینڈ کل"
+msgid "MapTasker Runtime Options"
+msgstr "میپٹاسکر رن ٹائم آپشنز"
+msgid "Just Display Everything!"
+msgstr "بس سب کچھ ڈسپلے کریں!"
+msgid "Checks all of the below checkboxes except for 'twisty' and sets the display level to the maximum detail level."
+msgstr "نیچے دیئے گئے تمام چیک باکسز کو 'Twisty' کے علاوہ چیک کرتا ہے اور ڈسپلے کی سطح کو زیادہ سے زیادہ تفصیل کی سطح پر سیٹ کرتا ہے۔"
+msgid "Display Profile and Task Action Conditions"
+msgstr "پروفائل اور ٹاسک ایکشن کی شرائط ڈسپلے کریں"
+msgid "Display the conditions such as 'State', 'Event', 'Time', etc. in the output."
+msgstr "آؤٹ پٹ میں 'ریاست' ، 'واقعہ' ، 'وقت' ، وغیرہ جیسے حالات کو ظاہر کریں۔"
+msgid "Display TaskerNet Info"
+msgstr "ٹاسکرنیٹ کی معلومات ڈسپلے کریں"
+msgid "Include the Tasker 'preferences' in the output, if available in the XML file."
+msgstr "اگر XML فائل میں دستیاب ہو تو ، ٹاسکر کی 'ترجیحات' کو آؤٹ پٹ میں شامل کریں۔"
+msgid "Display a directory of all Projects, Profiles, Tasks and Scenes with hotlinks at the beginning of the output."
+msgstr "آؤٹ پٹ کے آغاز میں ہاٹ لنکس کے ساتھ تمام منصوبوں ، پروفائلز ، کاموں اور مناظر کی ڈائرکٹری دکھائیں۔"
+msgid "Display a diagram of the configuration with all Task connections your the default text editor.\nThis option only relates to the 'Run and Exit' and 'ReRun' buttons."
+msgstr "آپ کے پہلے سے طے شدہ ٹیکسٹ ایڈیٹر کے ساتھ تمام ٹاسک کنکشن کے ساتھ ترتیب کا ایک آریھ ڈسپلے کریں۔ this n یہ آپشن صرف 'رن اینڈ ایگزٹ' اور 'ریرون' بٹنوں سے متعلق ہے۔"
+msgid "Display Prettier Output"
+msgstr "پریٹیئر آؤٹ پٹ ڈسپلے کریں"
+msgid "Align all Task action arguments and parameters for nicer output."
+msgstr "اچھے آؤٹ پٹ کے لئے تمام ٹاسک ایکشن دلائل اور پیرامیٹرز کو سیدھ کریں۔"
+msgid "Project/Profile/Task/Scene Names:"
+msgstr "پروجیکٹ/پروفائل/ٹاسک/منظر نام:"
+msgid "Add highlighting to Project, Profile and Task names in the output."
+msgstr "آؤٹ پٹ میں پروجیکٹ ، پروفائل اور ٹاسک ناموں میں نمایاں کریں۔"
+msgid "Bold"
+msgstr "بولڈ"
+msgid "Bold and Italicize are mutually exclusive in the Map view."
+msgstr "بولڈ اور اٹیلیسائز نقشہ کے نظارے میں باہمی خصوصی ہیں۔"
+msgid "Italicize"
+msgstr "italicize"
+msgid "Italicize and Bold are mutually exclusive in the Map view."
+msgstr "نقشہ کے نظارے میں italicize اور جرات مندانہ باہمی خصوصی ہیں۔"
+msgid "Highlight"
+msgstr "نمایاں کریں"
+msgid "Underline"
+msgstr "خفیہ لائن"
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near th4e bottom of the configuration output,\nand is intended to help identify Tasks that are too comple\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "کسی انتباہ کو جاری کرنے سے پہلے کسی کام میں کتنے اقدامات منتخب کریں۔\n انتباہ ترتیب آؤٹ پٹ کے نیچے Th4e کے قریب ظاہر ہوتا ہے ،\nand کا مقصد ان کاموں کی نشاندہی کرنے میں مدد کرنا ہے جو بہت زیادہ کامپل ہیں۔"
+msgid "Creates the If/Then/Else indentation options."
+msgstr "اگر/تو/اور انڈینٹیشن کے اختیارات پیدا کرتا ہے۔"
+msgid "If/Then/Else Indentation Amount:"
+msgstr "اگر/تو/دیگر اشارے کی رقم:"
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'."
+msgstr "if/پھر/پھر/locks کے لئے انڈینٹیشن کی رقم مقرر کریں۔\n\n ڈیفالٹ '4' ہے۔"
+msgid "Creates the language selection dropdown."
+msgstr "زبان کا انتخاب ڈراپ ڈاؤن تخلیق کرتا ہے۔"
+msgid "Language:"
+msgstr "زبان:"
+msgid "Creates the appearance mode selection."
+msgstr "ظاہری شکل کا انتخاب تخلیق کرتا ہے۔"
+msgid "Appearance Mode:"
+msgstr "ظاہری شکل:"
+msgid "Light"
+msgstr "روشنی"
+msgid "Dark"
+msgstr "تاریک"
+msgid "System"
+msgstr "نظام"
+msgid "Creates buttons for different views (Map, Diagram, Tree)."
+msgstr "مختلف نظاروں (نقشہ ، آریھ ، درخت) کے لئے بٹن بناتا ہے۔"
+msgid "Views"
+msgstr "خیالات"
+msgid "Show a detailed view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button, but the output is displayed inside another window rather than in a browser."
+msgstr "کاموں کے مابین رابطوں کے ساتھ ، اپنی ترتیب کا ایک تفصیلی نظریہ دکھائیں۔"
+msgid "Show a diagrammatic view of your configuration, with connections between tasks.\n\nThis is identical to the 'ReRun' button combined with the 'Display Configuration Outline' checkbox selected,\nbut the output is displayed inside another window rather than in a text editor."
+msgstr "کاموں کے مابین رابطوں کے ساتھ ، اپنی ترتیب کا ایک خاکہ نگاری کا نظارہ دکھائیں۔\n\n یہ 'ریرون' بٹن سے مماثل ہے جس میں 'ڈسپلے کنفیگریشن آؤٹ لائن' چیک باکس منتخب کیا گیا ہے ، لیکن آؤٹ پٹ ٹیکسٹ ایڈیٹر کے بجائے کسی اور ونڈو کے اندر ظاہر ہوتا ہے۔"
+msgid "Show a simple hierarchical tree view of your configuration."
+msgstr "اپنی ترتیب کے بارے میں ایک آسان درجہ بندی کے درخت کا نظارہ دکھائیں۔"
+msgid "Creates the view limit dropdown."
+msgstr "ویو کی حد ڈراپ ڈاؤن تخلیق کرتا ہے۔"
+msgid "View Limit:"
+msgstr "دیکھیں حد:"
+msgid "Unlimited"
+msgstr "لامحدود"
+msgid "Select the maximum number of items to display in the view to be allowed.\n\nAnything over this amount will stop the generation of the view as a means to throttle the program.\n\nNote: This is only for the 'Map' and 'Diagram' views, not the tree view."
+msgstr "اس نظارے میں ظاہر کرنے کے لئے آئٹمز کی زیادہ سے زیادہ تعداد کا انتخاب کریں۔\n\nاس رقم سے زیادہ کچھ نہ ہونے سے پروگرام کو گلا گھونٹنے کے ایک ذریعہ کے طور پر نظریہ کی نسل بند ہوجائے گی۔\n\n نوٹ: یہ صرف 'نقشہ' اور 'آریھ' کے نظاروں کے لئے ہے ، درختوں کا نظارہ نہیں۔"
+msgid "Reset Options"
+msgstr "دوبارہ ترتیب دینے کے اختیارات"
+msgid "Reset all of the options to their default values, including colors, font used, and other settings.\n\nThe currently loaded XML will be cleared out."
+msgstr "رنگ ، فونٹ استعمال شدہ ، اور دیگر ترتیبات سمیت ان کی پہلے سے طے شدہ اقدار پر تمام اختیارات کو دوبارہ ترتیب دیں۔\n\n فی الحال بھری ہوئی XML کو صاف کردیا جائے گا۔"
+msgid "Save Settings"
+msgstr "ترتیبات کو بچائیں"
+msgid "Restore Settings"
+msgstr "ترتیبات کو بحال کریں"
+msgid "Report Issue"
+msgstr "رپورٹ جاری کریں"
+msgid "Report any issues and/or suggestions to the developer.\n\nThis will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue."
+msgstr "کسی بھی مسئلے اور/یا تجاویز کو ڈویلپر کو رپورٹ کریں۔\n\n یہ گیتھب ایشوز پیج پر براؤزر ونڈو کھولے گا ، اور آپ کو کوئی مسئلہ پیش کرنے کے لئے گٹ ہب اکاؤنٹ کی ضرورت ہوگی۔"
+msgid "Font To Use In Output:"
+msgstr "آؤٹ پٹ میں استعمال کرنے کے لئے فونٹ:"
+msgid "This is a list of all of the monospaced fonts available on your system.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment."
+msgstr "یہ آپ کے سسٹم پر دستیاب تمام مونو اسپیسڈ فونٹس کی ایک فہرست ہے۔\n\n فونٹ منتخب کردہ تمام آؤٹ پٹ میں استعمال ہوگا۔\n\n'courier 'یا' کورئیر نیو 'کو مناسب کنیکٹر کی صف بندی کو یقینی بنانے کے لئے آریگرام کے لئے انتہائی سفارش کی جاتی ہے۔"
+msgid "Clear Messages"
+msgstr "واضح پیغامات"
+msgid "Get XML from Android Device"
+msgstr "اینڈروئیڈ ڈیوائس سے XML حاصل کریں"
+msgid "Fetch XML from an Android device.\n\nClick on the 'Get Android Help' button for more info."
+msgstr "مزید معلومات کے لئے 'Android مدد حاصل کریں' کے بٹن پر android آلہ سے XML بازیافت کریں۔\n\n کلیک کریں۔"
+msgid "Get Local XML"
+msgstr "مقامی XML حاصل کریں"
+msgid "Fetch XML from a local drive on this computer.\n\nThe XML fetched will become the current source for MapTasker commands."
+msgstr "اس کمپیوٹر پر مقامی ڈرائیو سے XML بازیافت کریں۔\n\n XML بازیافت میپٹاسکر کمانڈز کا موجودہ ذریعہ بن جائے گا۔"
+msgid "Display Help"
+msgstr "مدد ڈسپلے کریں"
+msgid "Get Android Help"
+msgstr "Android مدد حاصل کریں"
+msgid "Browser Options"
+msgstr "براؤزر کے اختیارات"
+msgid "Run and Exit"
+msgstr "چلائیں اور باہر نکلیں"
+msgid "Generate a map of the current XML, save the results as an html file and display the map in the default browser.\n\nThe program terminates when done."
+msgstr "موجودہ XML کا نقشہ تیار کریں ، نتائج کو HTML فائل کے طور پر محفوظ کریں اور نقشہ کو پہلے سے طے شدہ براؤزر میں ڈسپلے کریں۔\n\n پروگرام ختم ہونے پر ختم ہوجاتا ہے۔"
+msgid "ReRun"
+msgstr "ریرون"
+msgid "Same as the 'Run and Exit' button,\nbut the program restarts after displaying the browser output."
+msgstr "'رن اینڈ ایگزٹ' بٹن کی طرح ہی ، brose n براؤزر آؤٹ پٹ کو ظاہر کرنے کے بعد پروگرام دوبارہ شروع ہوجاتا ہے۔"
+msgid "Exit"
+msgstr "باہر نکلیں"
+msgid "(Pick ONLY One)"
+msgstr "(صرف ایک منتخب کریں)"
+msgid "Select either a single Project, Profile, or Task to display (Map and Diagram views, and browser).\nIf a single Project is selected, all of it's Projects, Tasks and Scenes will be included.\nIf a single Profile is selected, it and all of its Tasks will be displayed."
+msgstr "ظاہر کرنے کے لئے کسی ایک پروجیکٹ ، پروفائل ، یا ٹاسک (نقشہ اور آریھ کے نظارے ، اور براؤزر) کو منتخب کریں۔\n اگر کسی ایک پروجیکٹ کا انتخاب کیا گیا ہے تو ، اس کے تمام منصوبے ، کام اور مناظر شامل کیے جائیں گے۔\n اگر ایک ہی پروفائل منتخب کیا گیا ہے ، تو اس کے تمام کاموں کو ظاہر کیا جائے گا۔"
+msgid "List Unnamed Items"
+msgstr "نامعلوم اشیاء کی فہرست بنائیں"
+msgid "'List Unnamed Items' checkbox"
+msgstr "'نامعلوم اشیاء کی فہرست' چیک باکس"
+msgid "Check this if you want to see unnamed Profiles and Tasks in the\npulldown lists (above) and in the optional directory.\n\nLeaving this unchecked will leave unnamed Tasks and Profiles\nout of the pulldown lists and out of the directory,\nbut the unnamed Profile and Task details will still appear in the output."
+msgstr "اس کی جانچ پڑتال کریں کہ اگر آپ pp npuldown کی فہرستوں (اوپر) اور اختیاری ڈائرکٹری میں نامعلوم پروفائلز اور کاموں کو دیکھنا چاہتے ہیں۔\n\n اس غیر جانچ شدہ کوئ نہیں تو یہ نامعلوم کاموں اور پروفائلز کو چھوڑ دیں گے۔ پلڈاؤن کی فہرستوں میں سے n اور ڈائریکٹری سے باہر ، غیر منقولہ پروفائل اور کام کی تفصیلات اب بھی ظاہر ہوں گی۔"
+msgid "Set Various Display Colors Here:"
+msgstr "یہاں مختلف ڈسپلے رنگ مرتب کریں:"
+msgid "Projects"
+msgstr "منصوبے"
+msgid "Disabled Profiles"
+msgstr "غیر فعال پروفائلز"
+msgid "Launcher Tasks"
+msgstr "لانچر کے کام"
+msgid "Profile Conditions"
+msgstr "پروفائل کی شرائط"
+msgid "Tasks"
+msgstr "کام"
+msgid "Unnamed Tasks"
+msgstr "نامعلوم کام"
+msgid "(Task) Actions"
+msgstr "(ٹاسک) اعمال"
+msgid "Action Conditions"
+msgstr "کارروائی کے حالات"
+msgid "Action Labels"
+msgstr "ایکشن لیبل"
+msgid "Action Names"
+msgstr "ایکشن کے نام"
+msgid "Scenes"
+msgstr "مناظر"
+msgid "Background"
+msgstr "پس منظر"
+msgid "TaskerNet Information"
+msgstr "ٹاسکرنیٹ کی معلومات"
+msgid "Tasker Preferences"
+msgstr "ٹاسکر کی ترجیحات"
+msgid "Heading"
+msgstr "سرخی"
+msgid "Reset to Default Colors"
+msgstr "پہلے سے طے شدہ رنگوں میں دوبارہ ترتیب دیں"
+msgid "Show/Edit API Key(s)"
+msgstr "API کلید کو دکھائیں/ترمیم کریں (زبانیں)"
+msgid "Change Prompt"
+msgstr "فوری طور پر تبدیل کریں"
+msgid "Model to Use:"
+msgstr "استعمال کرنے کے لئے ماڈل:"
+msgid "Extended"
+msgstr "توسیع"
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\nthen the default model list for the respective\nAI provider will be displayed.\n\nNote: Not all models have been validated and\none or more may return an error on analysis."
+msgstr "تمام دستیاب ماڈلز کی ایک توسیعی فہرست ڈسپلے کریں۔\n\n نوٹ: اگر API کی کلید اوپنائی یا جیمنی کے لئے سیٹ نہیں کی گئی ہے تو ، متعلقہ\nAI فراہم کنندہ کے لئے پہلے سے طے شدہ ماڈل کی فہرست ظاہر کی جائے گی۔\n\n نوٹ: تمام ماڈلز کی توثیق نہیں کی گئی ہے اور کوئی بھی نہیں یا اس سے زیادہ تجزیہ پر کوئی غلطی واپس نہیں آسکتی ہے۔"
+msgid "Populates the 'Debug' tab."
+msgstr "'ڈیبگ' ٹیب کو مقبول کرتا ہے۔"
+msgid "Display this program's settings at the front of the configuration output (Map view and browser)."
+msgstr "اس پروگرام کی ترتیبات کو کنفیگریشن آؤٹ پٹ کے سامنے (نقشہ کا نظارہ اور براؤزر) ڈسپلے کریں۔"
+msgid "API Key Options"
+msgstr "API کلیدی اختیارات"
+msgid "OpenAI API Key:"
+msgstr "اوپنائی API کلید:"
+msgid "Claude API Key:"
+msgstr "کلاڈ API کلید:"
+msgid "DeepSeek API Key:"
+msgstr "ڈیپیسیک API کلید:"
+msgid "Gemini API Key:"
+msgstr "جیمنی API کلید:"
+msgid "OK"
+msgstr "ٹھیک ہے"
+msgid "Cancel"
+msgstr "منسوخ کریں"
+msgid "Task 'actions' limit"
+msgstr "ٹاسک 'اعمال' کی حد"
+msgid "Map"
+msgstr "نقشہ"
+msgid "Monospaced Font To Use"
+msgstr "استعمال کرنے کے لئے مونو اسپیسڈ فونٹ"
+msgid "Current file set to"
+msgstr "موجودہ فائل سیٹ کریں"
+msgid "Current File"
+msgstr "موجودہ فائل"
+msgid "Select Project to process:"
+msgstr "عمل کے لئے پروجیکٹ منتخب کریں:"
+msgid "Select Profile to process:"
+msgstr "عمل کے لئے پروفائل منتخب کریں:"
+msgid "Select Task to process:"
+msgstr "عمل کے لئے ٹاسک کو منتخب کریں:"
+msgid "Display only Project"
+msgstr "صرف پروجیکٹ ڈسپلے کریں"
+msgid "None"
+msgstr "کوئی نہیں"
+msgid "Display all Projects, Profiles, Tasks, and Scenes."
+msgstr "تمام منصوبوں ، پروفائلز اور کاموں کو ڈسپلے کریں۔"
+msgid "Display all"
+msgstr "سب کو ڈسپلے کریں"
+msgid "Run Analysis"
+msgstr "تجزیہ چلائیں"
+msgid "Analyze"
+msgstr "تجزیہ کریں"
+msgid "Project to Analyze:"
+msgstr "تجزیہ کرنے کا منصوبہ:"
+msgid "Profile to Analyze:"
+msgstr "تجزیہ کرنے کے لئے پروفائل:"
+msgid "Task to Analyze:"
+msgstr "تجزیہ کرنے کا کام:"
+msgid "No Projects, Profiles or Tasks to display!"
+msgstr "کوئی پروجیکٹ ، پروفائلز یا کام ظاہر کرنے کے لئے نہیں!"
+msgid "Analysis response is in a separate Window."
+msgstr "تجزیہ کا جواب ایک علیحدہ ونڈو میں ہے۔"
+msgid "View not possible.  No Projects, Profiles Tasks (or Scenes) in the current XML file.\n"
+msgstr "ممکن نہیں دیکھیں۔  موجودہ XML فائل میں کوئی پروجیکٹ ، پروفائلز کے کام (یا مناظر) نہیں۔\n"
+msgid "Click the 'Get Local XML' or 'Get XML From Android' button to load some XML first."
+msgstr "پہلے کچھ XML لوڈ کرنے کے لئے 'لوکل XML' یا 'Android سے XML حاصل کریں' کے بٹن پر کلک کریں۔"
+msgid "GUI started with the '-reset' option.\n"
+msgstr "GUI نے '-reset' آپشن کے ساتھ شروع کیا۔\n"
+msgid "Initialization complete.\n"
+msgstr "ابتدا مکمل.\n"
+msgid "Settings restored.\n"
+msgstr "ترتیبات بحال ہوگئیں۔\n"
+msgid "Program running..."
+msgstr "پروگرام چل رہا ہے ..."
+msgid "Cancel button pressed.\n"
+msgstr "منسوخ کریں بٹن دبائیں۔\n"
+msgid "Invalid XML!  Click 'Get Local XML File' to try a different XML file."
+msgstr "ایک مختلف XML فائل کو آزمانے کے لئے 'لوکل XML حاصل کریں' پر کلک کریں۔"
+msgid "'Get XML From Android' settings cleared."
+msgstr "'Android سے XML حاصل کریں' کی ترتیبات صاف ہوگئیں۔"
+msgid "No Project(s) Found in XML!"
+msgstr "XML میں کوئی پروجیکٹ نہیں ملا!"
+msgid "The 'Map' view is running in the background.  Please stand by..."
+msgstr "'نقشہ' کا نظارہ پس منظر میں چل رہا ہے۔  برائے مہربانی کھڑے ہو ..."
+msgid "Map View displayed."
+msgstr "نقشہ ویو ظاہر ہوتا ہے۔"
+msgid "msg"
+msgstr "ایم ایس جی"
+msgid "Colors set to defaults."
+msgstr "رنگ پہلے سے طے شدہ پر سیٹ کرتے ہیں۔"
+msgid "No settings file found."
+msgstr "کوئی ترتیبات فائل نہیں ملی۔"
+msgid "'Get XML From Android' canceled."
+msgstr "'Android سے XML حاصل کریں' منسوخ ہوگیا۔"
+msgid "Red"
+msgstr "سرخ"
+msgid "Settings reset."
+msgstr "ترتیبات دوبارہ ترتیب دیں۔"
+msgid "Debug mode enabled."
+msgstr "ڈیبگ موڈ فعال ہے۔"
+msgid "Debug mode disabled."
+msgstr "ڈیبگ موڈ غیر فعال."
+msgid "Tasker items set back to their default colors."
+msgstr "ٹاسکر آئٹمز اپنے پہلے سے طے شدہ رنگوں پر واپس کردیئے گئے ہیں۔"
+msgid "Program updated.  Restarting..."
+msgstr "پروگرام اپ ڈیٹ ہوا۔  دوبارہ شروع کرنا ..."
+msgid "Error: Failed to open output in browser: your browser is not supported."
+msgstr "غلطی: براؤزر میں آؤٹ پٹ کھولنے میں ناکام: آپ کے براؤزر کی حمایت نہیں کی گئی ہے۔"
+msgid "Selection ignored."
+msgstr "انتخاب کو نظرانداز کیا گیا۔"
+msgid "No color selected."
+msgstr "کوئی رنگ منتخب نہیں ہوا۔"
+msgid "This has no effect with Display Detail Level less than 3.  Display Detail Level set to 3!"
+msgstr "اس کا 3 سے کم ڈسپلے تفصیل کی سطح کے ساتھ کوئی اثر نہیں ہے۔ ڈسپلے تفصیل کی سطح 3 پر سیٹ کریں!"
+msgid "'Twisty' and 'Everything' are mutually exclusive.  Unchecking 'Twisty'."
+msgstr "'Twisty' اور 'ہر چیز' باہمی خصوصی ہیں۔  'Twisty' کو غیر چیکنگ کرنا۔"
+msgid "Settings saved."
+msgstr "ترتیبات محفوظ ہوگئیں۔"
+msgid "Tree View displayed."
+msgstr "درخت کا نظارہ ظاہر ہوتا ہے۔"
+msgid "XML must have at least one Project."
+msgstr "XML کے پاس کم از کم ایک پروجیکٹ ہونا ضروری ہے۔"
+msgid "'Cancel' button selected.  No change to the API keys!"
+msgstr "'منسوخ کریں' بٹن منتخب کیا گیا۔  API کیز میں کوئی تبدیلی نہیں!"
+msgid "No API keys changed."
+msgstr "کوئی API کیز تبدیل نہیں ہوئی۔"
+msgid "No model selected."
+msgstr "کوئی ماڈل منتخب نہیں ہوا۔"
+msgid "No projects, profiles, or tasks have been loaded!  Load some XML and try again."
+msgstr "کوئی پروجیکٹ ، پروفائلز ، یا کام بھری ہوئی نہیں ہیں!  کچھ XML لوڈ کریں اور دوبارہ کوشش کریں۔"
+msgid "Single Project/Profile/Task has not been selected!  Select only one and try again."
+msgstr "سنگل پروجیکٹ/پروفائل/ٹاسک کا انتخاب نہیں کیا گیا ہے!  صرف ایک کو منتخب کریں اور دوبارہ کوشش کریں۔"
+msgid "An error occurred reading the changelog file."
+msgstr "چینجلگ فائل کو پڑھنے میں ایک غلطی واقع ہوئی ہے۔"
+msgid "The 'Diagram' view is running in the background.  Please stand by..."
+msgstr "پس منظر میں 'ڈایاگرام' نظارہ چل رہا ہے۔  برائے مہربانی کھڑے ہو ..."
+msgid "Diagram View displayed."
+msgstr "ڈایاگرام ویو ظاہر ہوتا ہے۔"
+msgid "'None' selected.  Displaying all Projects, Profiles and Tasks."
+msgstr "'کوئی نہیں' منتخب.  تمام منصوبوں ، پروفائلز اور کاموں کی نمائش۔"
+msgid "set Off"
+msgstr "روانہ ہوا"
+msgid "set On"
+msgstr "سیٹ کریں"
+msgid "set to False"
+msgstr "جھوٹے پر سیٹ کریں"
+msgid "set to True"
+msgstr "سچ پر سیٹ کریں"
+msgid "is not named"
+msgstr "نام نہیں ہے"
+msgid "set to"
+msgstr "سیٹ کریں"
+msgid "is not set"
+msgstr "سیٹ نہیں ہے"
+# Restore settings text
+msgid "Android Get XML TCP IP Address"
+msgstr "Android XML TCP IP ایڈریس حاصل کریں"
+msgid "ndroid Get XML Port Number"
+msgstr "ndroid XML پورٹ نمبر حاصل کریں"
+msgid "Android Get XML File Location"
+msgstr "Android XML فائل کا مقام حاصل کریں"
+msgid "Display Profile/Task Conditions"
+msgstr "پروفائل/ٹاسک کی شرائط ڈسپلے کریں"
+msgid "Display Names in Bold"
+msgstr "بولڈ میں نام ڈسپلے کریں"
+msgid "Debug Mode"
+msgstr "ڈیبگ موڈ"
+msgid "Display Directory"
+msgstr "ڈسپلے ڈائریکٹری"
+msgid "Display Names Highlighted"
+msgstr "ڈسپلے کے ناموں کو اجاگر کیا گیا"
+msgid "Display Names Italicized"
+msgstr "ناموں کو ظاہر کریں"
+msgid "Display Unnamed Tasks"
+msgstr "نامعلوم کاموں کو ڈسپلے کریں"
+msgid "Display Configuration Outline"
+msgstr "کنفیگریشن آؤٹ لائن ڈسپلے کریں"
+msgid "Display Tasker Preferences"
+msgstr "ٹاسکر کی ترجیحات ڈسپلے کریں"
+msgid "Display Prettier"
+msgstr "پریٹیئر ڈسپلے کریں"
+msgid "Display Runtime Settings"
+msgstr "رن ٹائم کی ترتیبات ڈسپلے کریں"
+msgid "Display TaskerNet Information"
+msgstr "ٹاسکرنیٹ کی معلومات ڈسپلے کریں"
+msgid "Hide Task Details Under Twisty"
+msgstr "ٹوسٹی کے تحت ٹاسک کی تفصیلات چھپائیں"
+msgid "Display Names Underlined"
+msgstr "ناموں کو ظاہر کریں"
+msgid "Display Pretty Output"
+msgstr "خوبصورت آؤٹ پٹ ڈسپلے کریں"
+msgid "Everything toggled on successfully"
+msgstr "کامیابی کے ساتھ سب کچھ ٹوگل ہوا"
+msgid "Everything toggled off successfully"
+msgstr "ہر چیز کامیابی کے ساتھ ٹوگل ہوگئی"
+# AI messages
+msgid "Current prompt:"
+msgstr "موجودہ پرامپٹ:"
+msgid "Enter a new prompt for the AI to use:"
+msgstr "AI کو استعمال کرنے کے لئے ایک نیا اشارہ درج کریں:"
+msgid "Change the Ai Prompt"
+msgstr "AI کا اشارہ تبدیل کریں"
+msgid "Prompt change canceled."
+msgstr "فوری تبدیلی منسوخ."
+msgid "Prompt did not change."
+msgstr "اشارہ نہیں بدلا۔"
+msgid "Prompt changed to"
+msgstr "فوری طور پر تبدیل ہوگیا"
+msgid "API key cleared."
+msgstr "API کلید صاف ہوگئی۔"
+msgid "API key is invalid!"
+msgstr "API کلید غلط ہے!"
+msgid "API key saved:"
+msgstr "API کلید بچ گئی:"
+msgid "API key unmodified"
+msgstr "API کلید غیر ترمیم شدہ"
+msgid "The API Key is not set for model"
+msgstr "ماڈل کے لئے API کلید سیٹ نہیں ہے"
+msgid "Running"
+msgstr "چل رہا ہے"
+msgid "analysis with model"
+msgstr "ماڈل کے ساتھ تجزیہ"
+# Misc f" strings
+msgid "Task Action Warning Limit set to"
+msgstr "ٹاسک ایکشن انتباہ کی حد مقرر کی گئی ہے"
+msgid "Too much data to display (Size="
+msgstr "ظاہر کرنے کے لئے بہت زیادہ ڈیٹا (سائز ="
+msgid "View Limit="
+msgstr "حد دیکھیں ="
+msgid "Select a larger 'View Limit' or a single Project / Profile / Task and try again."
+msgstr "ایک بڑی 'دیکھیں حد' یا کسی ایک پروجیکٹ / پروفائل / ٹاسک کو منتخب کریں اور دوبارہ کوشش کریں۔"
+msgid "saved as"
+msgstr "بچایا جیسے"
+msgid "Report an Issue or Request a Feature\n\n"
+msgstr "کسی مسئلے کی اطلاع دیں یا کسی خصوصیت کی درخواست کریں\n\n"
+msgid "Go to your browser and create a new issue or feature request, providing as much detail as possible."
+msgstr "اپنے براؤزر پر جائیں اور ایک نیا مسئلہ یا خصوصیت کی درخواست بنائیں ، زیادہ سے زیادہ تفصیل فراہم کریں۔"
+msgid "one or unnamed!"
+msgstr "ایک یا نامعلوم!"
+msgid "View Limit set to"
+msgstr "حد مقرر کریں"
+msgid "Video saved as"
+msgstr "ویڈیو کے طور پر محفوظ کیا"
+msgid "Font To Use set to"
+msgstr "سیٹ استعمال کرنے کے لئے فونٹ"
+msgid "Hiding Tasks with Twisty has no effect with Display Detail Level set to"
+msgstr "Twisty کے ساتھ کاموں کو چھپانے کا ڈسپلے تفصیل کی سطح کے ساتھ کوئی اثر نہیں پڑتا ہے"
+msgid "disabled"
+msgstr "غیر فعال"
+msgid "Indentation Amount"
+msgstr "اشارے کی رقم"
+msgid "Appearance mode set to"
+msgstr "ظاہری شکل وضع پر سیٹ کریں"
+msgid "Display Detail Level"
+msgstr "تفصیل کی سطح ڈسپلے کریں"
+msgid "selected"
+msgstr "منتخب"
+msgid "MapTasker Analysis >>>>>>>>>> Please stand by..."
+msgstr "میپٹاسکر تجزیہ >>>>>>>>>>> براہ کرم کھڑے ہو ..."
+msgid "Analysis is running in the background.\n\nOnce complete, the program will restart and the results will appear in a new window.\n\nPlease stand by..."
+msgstr "تجزیہ پس منظر میں چل رہا ہے۔\n\nنونس مکمل ، پروگرام دوبارہ شروع ہوجائے گا اور نتائج ایک نئی ونڈو میں ظاہر ہوں گے۔"
+msgid "Buy Me A Coffee"
+msgstr "مجھے کافی خریدیں"
+msgid "This menu is where you define your AI API keys for use by the AI 'Analyze' button.\n\nThe keys are saved across sessions.\n\nThe keys are used to access the OpenAI, Claude AI, Gemini AI, and DeepSeek AI server-based models.\n\nClick on the 'Clear' button to clear a specific API key entry.\n\nSelect 'Ok' to save the changes or 'Cancel' to back out of the changes.\n\n"
+msgstr "یہ مینو وہ جگہ ہے جہاں آپ اپنی AI API کیز کی وضاحت AI 'تجزیہ' کے بٹن کے ذریعہ استعمال کرنے کے لئے کرتے ہیں۔\n\nچابیاں سیشنوں میں محفوظ ہوجاتی ہیں۔\n\nکیز اوپنائی ، کلاڈ اے آئی ، جیمنی اے آئی ، اور ڈیپیسیک AI سرور پر مبنی ماڈل پر صاف کرنے کے لئے استعمال کی جاتی ہیں۔ تبدیلیوں کو بچانے کے لئے 'ٹھیک ہے' یا تبدیلیوں سے واپس آنے کے لئے 'منسوخ'\n\n"
+msgid "The 'Profiles Per Line' setting is used to control the number of Profiles to be displayed per line when diagramming the configuration.\n\nThe smaller the number, the narrower the diagram and vice versa.\n\nFewer Profiles per line may make it easier too view the diagram connectors that extend to the right, while at the same time the Diagram wil be longer.\n\nSelecting a number will automatically re-generate the diagram with the new setting.\n\nThis setting is only valid for the currrent Diagram view, and will be reset back to the default value when the Diagram view is closed.\n\n"
+msgstr "'پروفائلز فی لائن' ترتیب کا استعمال ترتیب کو خاکہ پیش کرتے وقت فی لائن ڈسپلے کرنے کے لئے پروفائلز کی تعداد پر قابو پانے کے لئے کیا جاتا ہے۔\n\n اس تعداد کو چھوٹا ، کم آریگرام اور اس کے برعکس۔ نئی ترتیب کے ساتھ خود بخود آریگرام کو دوبارہ تیار کریں گے۔\n\n یہ ترتیب صرف کریننٹ ڈایاگرام ویو کے لئے موزوں ہے ، اور جب آریھ کا نظارہ بند ہوتا ہے تو پہلے سے طے شدہ قیمت پر دوبارہ ترتیب دیا جائے گا۔\n\n"
+msgid "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the data.\n\nThe 'Search Here' button will search for and highlight every instance of the string entered in the search box, starting at the current screen.\n\nHover over any of the highlighted matching strings to see all matches.\n\nThe 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\nThe accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\nWhen the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\nThe 'Clear' button will clear the search results.\n\nThe 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
+msgstr "'سرچ' بٹن تلاشی باکس میں داخل ہونے والے تار کی ہر مثال کی تلاش اور اجاگر کرے گا ، جس میں اعداد و شمار کے اوپری حصے میں شروع کیا گیا ہے۔ 'n' 'تلاش یہاں' بٹن تلاش کریں گے اور سرچ باکس میں داخل ہونے والے تار کی ہر مثال کو اجاگر کریں گے ، اور موجودہ اسکرین سے شروع ہونے والی '' اگلے اور کسی بھی طرح کے ملاپ سے ملنے والی اسٹرنگز کو دیکھنے کے ل '' ' اور ٹیکسٹ ویو باکس میں دکھائی دینے والی تلاش کے تار کا پچھلا واقعہ ، اور ان کو ایک مختلف رنگ میں اجاگر کریں۔\n\n تلاش کی تار کو مرئی بنانے کی درستگی ہمیشہ کامل نہیں ہوتی ہے اور اس پروگرام کے کنٹرول سے باہر ہوتی ہے۔\n\n\n جب ٹیکسٹ ویو باکس کا اختتام یا آغاز ہوتا ہے تو ، تلاش بند ہوجائے گی۔ نتائج۔\n\n 'صرف ڈسپلے' بٹن متفرق ونڈو میں صرف تلاش کے نتائج سے میچ کرتا ہے۔\n\n"
+msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nIn order for this to work, you MUST have already imported the 'MapTasker List' profile into Tasker running on your Android device.  This profile can be found at the following URL:\n\n    https://t.ly/8vI1f\n\n"
+msgstr "اس بٹن پر کلک کرنے کے نتیجے میں درج ذیل اقدامات کا نتیجہ نکلے گا:\n\n- IP ایڈریس کو اینڈروئیڈ ڈیوائس پنگ کے لئے استعمال کیا جائے گا۔\n\n- آئی پی ایڈریس اور پورٹ نمبر آپ کو Android ڈیوائس سے استفسار کرنے اور ٹاسکر فولڈر میں پائے جانے والے XML فائلوں کی فہرست حاصل کرنے کے لئے استعمال کیا جائے گا۔ استعمال کریں۔\n\n- ایک بار جب آپ نے XML فائل کا انتخاب کیا ہے تو ، اس کو درست XML کے طور پر حاصل کیا جائے گا اور اس کی تصدیق کی جائے گی جو اس کے بعد پروگرام میں ان پٹ کے طور پر استعمال ہوتا ہے جب آپ بعد میں 'رن' یا 'ریرون' بٹن پر کلک کریں۔\n\n\n اس کام کے لئے اس کے لئے آپ کے Android آلہ پر 'MAPTASKER لسٹ' کو چلانے کے لئے 'maptasker کی فہرست' کو چلانے کے لئے پہلے ہی امپورٹ کیا ہوگا۔  یہ پروفائل مندرجہ ذیل یو آر ایل پر پایا جاسکتا ہے:\n\n https://t.ly/8vI1f\n\n"
+
+msgid "API Key Help"
+msgstr "API کلیدی مدد"
+msgid "Profiles Per Line Help"
+msgstr "پروفائلز فی لائن مدد"
+msgid "Search Help"
+msgstr "مدد کی مدد"
+msgid "List Android Files Help"
+msgstr "Android فائلوں کی مدد کریں"
+msgid "Get XML From Android Device Help"
+msgstr "Android ڈیوائس مدد سے XML حاصل کریں"
+msgid "Ai Analyze Help"
+msgstr "AI مدد کا تجزیہ کریں"
+msgid "Views Help"
+msgstr "خیالات مدد"
+msgid "View Limit Help"
+msgstr "حد کی مدد دیکھیں"
+# Critical reverse translations needed!
+msgid "Nada"
+msgstr "ناڈا"
+msgid "Spanish"
+msgstr "ہسپانوی"
+msgid "Español"
+msgstr "ایسپول"
+msgid "English"
+msgstr "انگریزی"
+msgid "Inglés"
+msgstr "inglés"
+msgid "German"
+msgstr "جرمن"
+msgid "Alemán"
+msgstr "الیمن"
+msgid "Simplified Chinese"
+msgstr "آسان چینی"
+msgid "Chino simplificado"
+msgstr "چنو سادہ ہے"
+msgid "Traditional Chinese"
+msgstr "روایتی چینی"
+msgid "chino tradicional"
+msgstr "چینو ٹریڈیکونل"
+msgid "Hindi"
+msgstr "ہندی"
+msgid "hindi"
+msgstr "ہندی"
+msgid "French"
+msgstr "فرانسیسی"
+msgid "Francés"
+msgstr "فرانسیسی"
+msgid "Portuguese"
+msgstr "پرتگالی"
+msgid "portugués"
+msgstr "پرتگوز"
+msgid "Japanese"
+msgstr "جاپانی"
+msgid "japonés"
+msgstr "جپونز"
+msgid "Russian"
+msgstr "روسی"
+msgid "ruso"
+msgstr "روسو"
+msgid "Korean"
+msgstr "کورین 'ایم ایس جی ایس ٹی آر' کورینو"
+msgid "coreano"
+msgstr "کوریانو"
+msgid "ہسپانوی"
+msgstr "Spanish"
+msgid "انگریزی"
+msgstr "English"
+msgid "جرمن"
+msgstr "German"
+msgid "آسان چینی"
+msgstr "Simplified Chinese"
+msgid "روایتی چینی"
+msgstr "Traditional Chinese"
+msgid "ہندی"
+msgstr "Hindi"
+msgid "فرانسیسی"
+msgstr "French"
+msgid "پرتگالی"
+msgstr "Portuguese"
+msgid "جاپانی"
+msgstr "Japanese"
+msgid "روسی"
+msgstr "Russian"
+msgid "کورین"
+msgstr "Korean"
+msgid "Arabic"
+msgstr "عربی"
+msgid "عربی"
+msgstr "Arabic"
+msgid "Bengali"
+msgstr "بنگالی"
+msgid "بنگالی"
+msgstr "Bengali"
+msgid "Urdu"
+msgstr "اردو"
+msgid "اردو"
+msgstr "Urdu"
+msgid "Swahili"
+msgstr "سواحلی"
+msgid "سواحلی"
+msgstr "Swahili"
+msgid "Marathi"
+msgstr "مراٹھی"
+msgid "مراٹھی"
+msgstr "Marathi"
+msgid "Teluga"
+msgstr "تلگہ"
+msgid "تلگہ"
+msgstr "Teluga"
+msgid "Turkish"
+msgstr "ترک"
+msgid "ترک"
+msgstr "Turkish"
+msgid "Tamali"
+msgstr "تمالی"
+msgid "تمالی"
+msgstr "Tamali"
+msgid "Vietnamese"
+msgstr "ویتنامی"
+msgid "ویتنامی"
+msgstr "Vietnamese"
+msgid "Italian"
+msgstr "اطالوی"
+msgid "اطالوی"
+msgstr "Italian"
+msgid "Ukrainian"
+msgstr "یوکرین"
+msgid "یوکرین"
+msgstr "Ukrainian"
+msgid "Polish"
+msgstr "پولش"
+msgid "پولش"
+msgstr "Polish"
+msgid "Dutch"
+msgstr "ڈچ"
+msgid "ڈچ"
+msgstr "Dutch"
+msgid "Thai"
+msgstr "تھائی"
+msgid "تھائی"
+msgstr "Thai"
+msgid "Gujarati"
+msgstr "گجراتی"
+msgid "گجراتی"
+msgstr "Gujarati"
+msgid "Persian"
+msgstr "فارسی"
+msgid "فارسی"
+msgstr "Persian"
+msgid "Swedish"
+msgstr "سویڈش"
+msgid "سویڈش"
+msgstr "Swedish"
+msgid "Danish"
+msgstr "ڈینش"
+msgid "ڈینش"
+msgstr "Danish"
+msgid "Finish"
+msgstr "ختم"
+msgid "ختم"
+msgstr "Finish"
+msgid "Greek"
+msgstr "یونانی"
+msgid "یونانی"
+msgstr "Greek"
+msgid "Czech"
+msgstr "چیک"
+msgid "چیک"
+msgstr "Czech"
+msgid "Norwegian"
+msgstr "نارویجین"
+msgid "نارویجین"
+msgstr "Norwegian"
+msgid "No Profile"
+msgstr "کوئی پروفائل نہیں"
+msgid "No Project"
+msgstr "کوئی پروجیکٹ نہیں ہے"
+msgid "Color"
+msgstr "رنگ"
+msgid "Debug"
+msgstr "ڈیبگ"
+msgid "Colors"
+msgstr "رنگ"
+msgid "Calls"
+msgstr "کالز"
+msgid "Called by"
+msgstr "بذریعہ کہا جاتا ہے"
+msgid "No projects found"
+msgstr "کوئی پروجیکٹ نہیں ملا"
+msgid "No profiles found"
+msgstr "کوئی پروفائلز نہیں ملا"
+msgid "Locate the Tasker XML file to use to map your Tasker environment"
+msgstr "اپنے ٹاسکر کے ماحول کو نقشہ بنانے کے لئے استعمال کرنے کے لئے ٹاسکر XML فائل کا پتہ لگائیں"
+msgid "Directory    (blue entries are hotlinks)"
+msgstr "ڈائریکٹری (نیلے رنگ کے اندراجات ہاٹ لنکس ہیں)"
+msgid "(Unnamed)"
+msgstr "(نامعلوم)"
+msgid "Up One Level to"
+msgstr "ایک سطح تک"
+msgid "Owner"
+msgstr "مالک"
+msgid "Properties..."
+msgstr "خصوصیات ..."
+msgid "TaskerNet Description:"
+msgstr "ٹاسکرنیٹ کی تفصیل:"
+msgid "...with label:"
+msgstr "... لیبل کے ساتھ:"
+msgid "TaskerNet search on:"
+msgstr "ٹاسکیرنیٹ کی تلاش:"
+msgid "DISABLED]"
+msgstr "غیر مہذب"
+msgid "Entry Task"
+msgstr "اندراج کا کام"
+msgid "Exit Task"
+msgstr "باہر نکلیں ٹاسک"
+msgid "description"
+msgstr "تفصیل"
+msgid "Launcher"
+msgstr "لانچر"
+msgid "CAVEATS:"
+msgstr "انتباہات:"
+msgid "- This has only been tested on my own backup.xml file.  For problems, report them on"
+msgstr "- اس کا تجربہ صرف میرے اپنے بیک اپ. ایکس ایم ایل فائل پر کیا گیا ہے۔  پریشانیوں کے ل them ، ان کی اطلاع دیں"
+msgid "- Tasks that are identified as '(Unnamed)' have no name and are considered Anonymous.\n"
+msgstr "- ان کاموں کو جن کی شناخت '(نامعلوم)' کے طور پر کی جاتی ہے اس کا کوئی نام نہیں ہے اور انہیں گمنام سمجھا جاتا ہے۔ \n"
+msgid "- All attempts are made to retain embedded HTML (e.g. color=...>') in Tasker fields.\n"
+msgstr "- ٹاسکر کے شعبوں میں ایمبیڈڈ HTML (جیسے رنگ = ...> ') کو برقرار رکھنے کے لئے تمام کوششیں کی گئیں۔ \n"
+msgid "- Profile names starting with '*' are anonymous/unnamed, and the name consists of the Profile conditions.\n"
+msgstr "- '*' کے ساتھ شروع ہونے والے پروفائل کے نام گمنام/نامعلوم ہیں ، اور نام پروفائل کی شرائط پر مشتمل ہے۔ \n"
+msgid "- Task names that consist of the first action that has embed html will have all greater-than and less-than characters converted to '{' and '}' respectively.\n"
+msgstr "-ٹاسک کے نام جو پہلی کارروائی پر مشتمل ہیں جس نے HTML کو سرایت کیا ہے اس میں بالترتیب '{' اور '}' میں بالترتیب '' '' اور '}' میں تبدیل ہوجائے گا۔ \n"
+msgid "- The formatting of labels and TaskerNet descriptions with embedded HTML is displayed as close as possible in the Map view, but may not be exact.\n"
+msgstr "- ایمبیڈڈ HTML کے ساتھ لیبل اور ٹاسکیرنیٹ کی تفصیلات کی فارمیٹنگ نقشہ کے نظارے میں جتنا ممکن ہو قریب دکھائی جاتی ہے ، لیکن یہ عین مطابق نہیں ہوسکتا ہے۔ \n"
+msgid "- Your Google API key is displayed in the Tasker preferences!\n"
+msgstr "- آپ کی گوگل API کلید ٹاسکر کی ترجیحات میں ظاہر ہوتی ہے! \n"
+msgid "- Most but not all Task actions have been mapped and will display as such.  Likewise for Profile conditions and Plug-ins.\n"
+msgstr "- زیادہ تر لیکن تمام ٹاسک اعمال کو نقشہ بنایا گیا ہے اور اس طرح ظاہر کریں گے۔  اسی طرح پروفائل کے حالات اور پلگ ان کے لئے۔ \n"
+msgid "- For option -d0, Tasks that are identified as 'Unnamed/Anonymous' will have their first Action only listed....\n  just like Tasker does.\n"
+msgstr "- آپشن -D0 کے لئے ، ان کاموں کو جن کی شناخت 'نامعلوم/گمنام' کے طور پر کی جاتی ہے ان کی پہلی کارروائی صرف درج ہوگی .... \n جس طرح ٹاسکر کرتا ہے۔ \n"
+msgid "- Inactive variables are global variables used in a Task which has not been run/used.\n- Unreferenced variables are global variables that may have been used in the past, but are not currently referenced (e.g. the Task's Profile is disabled).\n"
+msgstr "- غیر فعال متغیرات عالمی متغیرات ہیں جو کسی ایسے کام میں استعمال ہوتے ہیں جو نہیں چلا/استعمال کیا جاتا ہے۔ \n- غیر معمولی متغیر عالمی متغیرات ہیں جو ماضی میں استعمال ہوسکتے ہیں ، لیکن فی الحال اس کا حوالہ نہیں دیا جاتا ہے (جیسے کام کا پروفائل غیر فعال ہے)۔ \n"
+msgid "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgstr "- YouTube video links identified by '[▶️ VIDEO: url...]' are hot/clickable only if 'ffmpeg' has been installed:\n"
+msgid "MacOS: 'brew install ffmpeg'\n"
+msgstr "میکوس: 'بریو انسٹال FFMPEG' \n"
+msgid "Linux: 'sudo apt update' and 'sudo apt install ffmpeg'\n"
+msgstr "لینکس: 'سوڈو اپٹ اپ ڈیٹ' اور 'سوڈو اپٹ انسٹال FFMPEG' \n"
+msgid "Windows via Winget: 'winget install ffmpeg'\n"
+msgstr "ونڈوز وے ونگیٹ: 'ونگیٹ انسٹال FFMPEG' \n"
+msgid "Refer to"
+msgstr "حوالہ دیں"
+msgid "Tasker Displayed Totals"
+msgstr "ٹاسکر نے مجموعی طور پر ظاہر کیا"
+msgid "Total number of Projects:"
+msgstr "منصوبوں کی کل تعداد:"
+msgid "Total number of Profiles:"
+msgstr "پروفائلز کی کل تعداد:"
+msgid "Total number of Tasks:"
+msgstr "کاموں کی کل تعداد:"
+msgid "Total number of Scenes:"
+msgstr "مناظر کی کل تعداد:"
+msgid "has"
+msgstr "ہے"
+msgid "actions"
+msgstr "اعمال"
+msgid "Tasks With Too Many Actions (Limit is"
+msgstr "بہت سارے اعمال کے ساتھ کام (حد ہے"
+msgid "In Project"
+msgstr "پروجیکٹ میں"
+msgid "The following Tasks in Project 'Chat GPT' are not in any Profile"
+msgstr "پروجیکٹ 'چیٹ جی پی ٹی' میں درج ذیل کام کسی بھی پروفائل میں نہیں ہیں"
+msgid "Actions:"
+msgstr "اعمال:"
+msgid "Priority:"
+msgstr "ترجیح:"
+msgid "(exit)"
+msgstr "(باہر نکلیں)"
+msgid "(Not Found!)"
+msgstr "(نہیں ملا!)"
+msgid "Search string not found."
+msgstr "تلاش کی تار نہیں ملی۔"
+msgid "The end of the text has been reached."
+msgstr "متن کا اختتام ہو چکا ہے۔"
+msgid "Width/Height"
+msgstr "چوڑائی/اونچائی"
+msgid "Text"
+msgstr "متن"
+msgid "of type"
+msgstr "قسم کا"
+msgid "Top of text view reached."
+msgstr "ٹیکسٹ ویو کے اوپر پہنچ گیا۔"
+msgid "Top of text view displayed."
+msgstr "ٹیکسٹ ویو کا سب سے اوپر دکھایا گیا ہے۔"
+msgid "Bottom of text view displayed."
+msgstr "ٹیکسٹ ویو کے نیچے دکھایا گیا ہے۔"
+msgid "No search string was entered."
+msgstr "تلاش کی کوئی تار درج نہیں کی گئی۔"
+msgid "Word wrap is on"
+msgstr "لفظ لپیٹنا آن ہے۔"
+msgid "Word wrap is off"
+msgstr "الفاظ کی لپیٹ بند ہے۔"
+msgid "Drag window to desired position and rerun the Map command."
+msgstr "ونڈو کو مطلوبہ پوزیشن پر گھسیٹیں اور میپ کمانڈ کو دوبارہ چلائیں۔"
+msgid "Drag window to desired position and rerun the Diagram command."
+msgstr "ونڈو کو مطلوبہ پوزیشن پر گھسیٹیں اور ڈایاگرام کمانڈ کو دوبارہ چلائیں۔"
+msgid "Upgrade to Latest Version"
+msgstr "تازہ ترین ورژن میں اپ گریڈ کریں۔"
+msgid "A new version of MapTasker is available."
+msgstr "MapTasker کا ایک نیا ورژن دستیاب ہے۔"
+msgid "What's New?"
+msgstr "نیا کیا ہے؟"
+msgid "پروجیکٹس"
+msgstr "Projects"
+msgid "پروفائلز"
+msgstr "Profiles"
+msgid "غیر فعال پروفائلز"
+msgstr "Disabled Profiles"
+msgid "لانچر ٹاسکس"
+msgstr "Launcher Tasks"
+msgid "پروفائل کی شرائط"
+msgstr "Profile Conditions"
+msgid "کام"
+msgstr "Tasks"
+msgid "بے نام کام"
+msgstr "Unnamed Tasks"
+msgid "(ٹاسک) اعمال"
+msgstr "(Task) Actions"
+msgid "ایکشن کی شرائط"
+msgstr "Action Conditions"
+msgid "ایکشن لیبلز"
+msgstr "Action Labels"
+msgid "ایکشن کے نام"
+msgstr "Action Names"
+msgid "مناظر"
+msgstr "Scenes"
+msgid "پس منظر"
+msgstr "Background"
+msgid "ٹاسکر نیٹ معلومات"
+msgstr "TaskerNet Information"
+msgid "ٹاسکر کی ترجیحات"
+msgstr "Tasker Preferences"
+msgid "نمایاں کریں۔"
+msgstr "Highlight"
+msgid "سرخی"
+msgstr "Heading"
+msgid "color changed to"
+msgstr "رنگ بدل گیا"
+msgid "اندھیرا"
+msgstr "Dark"
+msgid "روشنی"
+msgstr "Light"
+msgid "سسٹم"
+msgstr "System"
+
+msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
+msgstr "مخصوص پروجیکٹس، پروفائلز، ٹاسک یا مناظر کو نشانہ بنائیں۔ (صرف ایک کو منتخب کریں)"
+
+msgid "Rename"
+msgstr "نام تبدیل کریں۔"
+
+msgid "Export Project"
+msgstr "ایکسپورٹ پروجیکٹ"
+
+msgid "Export Profile"
+msgstr "پروفائل برآمد کریں۔"
+
+msgid "Export Task"
+msgstr "ایکسپورٹ ٹاسک"
+
+msgid "Save"
+msgstr "محفوظ کریں۔"
+
+msgid "Overwrite"
+msgstr "اوور رائٹ کریں۔"
+
+msgid "Delete Project"
+msgstr "پروجیکٹ کو حذف کریں۔"
+
+msgid "Delete Profile"
+msgstr "پروفائل حذف کریں۔"
+
+msgid "Delete Task"
+msgstr "ٹاسک کو حذف کریں۔"
+
+msgid "Its"
+msgstr "اس کا"
+
+msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
+msgstr "منسلک ٹاسک رکھے جائیں گے -- وہ پروجیکٹ سے تعلق رکھتے ہیں، اس پروفائل سے نہیں۔"
+
+msgid "It has no linked Tasks."
+msgstr "اس میں کوئی منسلک ٹاسکس نہیں ہیں۔"
+
+msgid "It will be removed from"
+msgstr "سے ہٹا دیا جائے گا۔"
+
+msgid "Project(s) and unlinked from"
+msgstr "پراجیکٹ(ز) اور اس سے غیر منسلک"
+
+msgid "Profile(s) that run it. Those Profiles themselves are kept."
+msgstr "پروفائل(ز) جو اسے چلاتے ہیں۔ وہ پروفائلز خود رکھے گئے ہیں۔"
+
+msgid "Keep Contents"
+msgstr "مواد رکھیں"
+
+msgid "Delete Contents"
+msgstr "مواد کو حذف کریں۔"
+
+msgid "Adding to Project:"
+msgstr "پروجیکٹ میں شامل کرنا:"
+
+msgid "Save To Current File"
+msgstr "موجودہ فائل میں محفوظ کریں۔"
+
+msgid "Add Project"
+msgstr "پروجیکٹ شامل کریں۔"
+
+msgid "Add Profile"
+msgstr "پروفائل شامل کریں۔"
+
+msgid "Add Task"
+msgstr "ٹاسک شامل کریں۔"
+
+msgid "Add an action"
+msgstr "ایک عمل شامل کریں۔"
+
+msgid "Actions in this Task"
+msgstr "اس ٹاسک میں کارروائیاں"
+
+msgid "No actions added yet."
+msgstr "ابھی تک کوئی کارروائی شامل نہیں کی گئی۔"
+
+msgid "Actions & Control"
+msgstr "اعمال اور کنٹرول"
+
+msgid "Display Conditions"
+msgstr "ڈسپلے کی شرائط"
+
+msgid "Task Action Limit:"
+msgstr "ٹاسک ایکشن کی حد:"
+
+msgid "Theme Configuration"
+msgstr "تھیم کنفیگریشن"
+
+msgid "Select a category to modify its color."
+msgstr "اس کے رنگ میں ترمیم کرنے کے لیے زمرہ منتخب کریں۔"
+
+msgid "Select Category to Colorize"
+msgstr "رنگنے کے لیے زمرہ منتخب کریں۔"
+
+msgid "Choose Hex Color"
+msgstr "ہیکس کلر کا انتخاب کریں۔"
+
+msgid "Open View In New Window"
+msgstr "نئی ونڈو میں منظر کھولیں۔"
+
+msgid "Close Tabs On Exit"
+msgstr "باہر نکلنے پر ٹیبز بند کریں۔"
+
+msgid "Edit Project"
+msgstr "پروجیکٹ میں ترمیم کریں۔"
+
+msgid "Edit Profile"
+msgstr "پروفائل میں ترمیم کریں۔"
+
+msgid "Edit Task"
+msgstr "ٹاسک میں ترمیم کریں۔"
+
+msgid "Scene"
+msgstr "منظر"
+
+msgid "Execution"
+msgstr "پھانسی"
+
+msgid "File Operations"
+msgstr "فائل آپریشنز"
+
+msgid "Display Views"
+msgstr "ڈسپلے ویوز"
+
+msgid "Application Settings"
+msgstr "درخواست کی ترتیبات"
+
+msgid "Help & Information"
+msgstr "مدد اور معلومات"
+
+msgid "0 = least detail, 5 = most detail."
+msgstr "0 = کم سے کم تفصیل، 5 = سب سے زیادہ تفصیل۔"
+
+msgid "AI Analysis"
+msgstr "AI تجزیہ"
+
+msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
+msgstr "تجزیہ پس منظر میں چل رہا ہے۔\n\nمکمل ہونے کے بعد، نتائج ایک نئی ونڈو میں ظاہر ہوں گے۔\n\nپلیز کھڑے رہیں..."
+
+msgid "Android Get XML Port Number"
+msgstr "Android XML پورٹ نمبر حاصل کریں۔"
+
+msgid "Android device at"
+msgstr "اینڈرائیڈ ڈیوائس پر"
+
+msgid "Available Android Backups"
+msgstr "دستیاب اینڈرائیڈ بیک اپ"
+
+msgid "CAVEATS"
+msgstr "CAVEATS"
+
+msgid "Cancel Entry"
+msgstr "داخلہ منسوخ کریں۔"
+
+msgid "Check your IP/Port and verify the Tasker HTTP server is running"
+msgstr "اپنا آئی پی/پورٹ چیک کریں اور تصدیق کریں کہ ٹاسکر HTTP سرور چل رہا ہے۔"
+
+msgid "Close"
+msgstr "بند"
+
+msgid "Detail Level"
+msgstr "تفصیل کی سطح"
+
+msgid "Error"
+msgstr "خرابی"
+
+msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
+msgstr "اینڈرائیڈ ڈیوائس سے XML حاصل کریں۔\n\nآپ کا اسی نیٹ ورک پر ہونا چاہیے جس پر Android ڈیوائس ہے، اور ڈیوائس کا چلنا اور منسلک ہونا چاہیے۔\n\n"
+
+msgid "Get Local XML File"
+msgstr "مقامی XML فائل حاصل کریں۔"
+
+msgid "It owns"
+msgstr "اس کا مالک ہے۔"
+
+msgid "No Profile Tasks Found"
+msgstr "کوئی پروفائل ٹاسک نہیں ملا"
+
+msgid "No Profiles Found"
+msgstr "کوئی پروفائل نہیں ملا"
+
+msgid "No file loaded"
+msgstr "کوئی فائل لوڈ نہیں ہوئی۔"
+
+msgid "No scenes found"
+msgstr "کوئی مناظر نہیں ملے"
+
+msgid "No tasks found"
+msgstr "کوئی کام نہیں ملا"
+
+msgid "None or unnamed!"
+msgstr "کوئی نہیں یا بے نام!"
+
+msgid "Profile(s) and"
+msgstr "پروفائل اور"
+
+msgid "Prompt:"
+msgstr "پرامپٹ:"
+
+msgid "Save To Android"
+msgstr "اینڈرائیڈ میں محفوظ کریں۔"
+
+msgid "Scene to Analyze:"
+msgstr "تجزیہ کرنے کا منظر:"
+
+msgid "Scene:"
+msgstr "منظر:"
+
+msgid "Select XML From Android Device:"
+msgstr "اینڈرائیڈ ڈیوائس سے XML منتخب کریں:"
+
+msgid "Task(s)."
+msgstr "کام"
+
+msgid "Unnamed Task"
+msgstr "بے نام ٹاسک"
+
+msgid "Update Available!"
+msgstr "اپ ڈیٹ دستیاب ہے!"
+
+msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
+msgstr "YouTube براہ راست سلسلہ بندی کے لیے فریق ثالث API ٹوکنز کی ضرورت ہوتی ہے۔ دیکھنے کے لیے ٹارگٹ ٹریک کو مقامی طور پر ڈاؤن لوڈ کریں۔"
+
+msgid "is unreachable"
+msgstr "ناقابل رسائی ہے"
+
+msgid "'Cancel' button selected. No change to the API keys!"
+msgstr "'منسوخ کریں' بٹن منتخب کیا گیا۔ API کیز میں کوئی تبدیلی نہیں!"
+
+msgid ".or."
+msgstr "یا"
+
+msgid "1-TCP/IP Address:"
+msgstr "1-TCP/IP پتہ:"
+
+msgid "2-Port Number:"
+msgstr "2-پورٹ نمبر:"
+
+msgid "3-File Location:"
+msgstr "3-فائل کا مقام:"
+
+msgid "AI Model"
+msgstr "اے آئی ماڈل"
+
+msgid "Add 'If' Action"
+msgstr "'اگر' ایکشن شامل کریں۔"
+
+msgid "Add App Entry"
+msgstr "ایپ انٹری شامل کریں۔"
+
+msgid "Add Condition"
+msgstr "شرط شامل کریں۔"
+
+msgid "All"
+msgstr "تمام"
+
+msgid "Android IP Address"
+msgstr "اینڈرائیڈ آئی پی ایڈریس"
+
+msgid "Android configuration details matched successfully!"
+msgstr "اینڈرائیڈ کنفیگریشن کی تفصیلات کامیابی کے ساتھ مل گئیں!"
+
+msgid "Changes kept."
+msgstr "تبدیلیاں رکھی گئیں۔"
+
+msgid "Choose a State type first."
+msgstr "پہلے ریاستی قسم کا انتخاب کریں۔"
+
+msgid "Choose a Task"
+msgstr "ایک کام کا انتخاب کریں۔"
+
+msgid "Choose a Task first."
+msgstr "پہلے ایک کام کا انتخاب کریں۔"
+
+msgid "Choose a condition type first."
+msgstr "پہلے شرط کی قسم کا انتخاب کریں۔"
+
+msgid "Choose an Event type first."
+msgstr "پہلے ایونٹ کی قسم منتخب کریں۔"
+
+msgid "Class (optional)"
+msgstr "کلاس (اختیاری)"
+
+msgid "Cleared the search highlights."
+msgstr "تلاش کی جھلکیاں صاف کیں۔"
+
+msgid "Click Here to Set XML Details"
+msgstr "XML تفصیلات سیٹ کرنے کے لیے یہاں کلک کریں۔"
+
+msgid "Click arrows to expand/collapse details."
+msgstr "تفصیلات کو پھیلانے/سکانے کے لیے تیر پر کلک کریں۔"
+
+msgid "Click on a row index line number to jump directly to that match block placement:"
+msgstr "اس میچ بلاک پلیسمنٹ پر براہ راست کودنے کے لیے قطار انڈیکس لائن نمبر پر کلک کریں:"
+
+msgid "Click on connector to highlight"
+msgstr "نمایاں کرنے کے لیے کنیکٹر پر کلک کریں۔"
+
+msgid "Close Results Window"
+msgstr "نتائج کی کھڑکی بند کریں۔"
+
+msgid "Condition Type"
+msgstr "حالت کی قسم"
+
+msgid "Conditions"
+msgstr "شرائط"
+
+msgid "Configure Android Connection:"
+msgstr "اینڈرائیڈ کنکشن کنفیگر کریں:"
+
+msgid "Continue Task After Error"
+msgstr "خرابی کے بعد کام جاری رکھیں"
+
+msgid "Copy"
+msgstr "کاپی"
+
+msgid "Dark Mode"
+msgstr "ڈارک موڈ"
+
+msgid "Day of Month"
+msgstr "مہینے کا دن"
+
+msgid "Delete"
+msgstr "حذف کریں۔"
+
+msgid "Delete Condition"
+msgstr "شرط کو حذف کریں۔"
+
+msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
+msgstr "صرف اس پروفائل کو حذف کرتا ہے۔ اس کے انٹری/ایگزٹ ٹاسک رکھے گئے ہیں -- ایک ٹاسک پروجیکٹ کی ملکیت ہے، پروفائل کی نہیں، اور اسی ٹاسک کو دوسرے پروفائلز استعمال کر سکتے ہیں۔"
+
+msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
+msgstr "اس ٹاسک اور اس سے متعلق ہر حوالہ کو حذف کرتا ہے: اسے ہر اس پروجیکٹ کے ٹاسک سے ہٹا دیا جاتا ہے جو اس کا مالک ہے، اور کسی بھی پروفائل سے جو اسے اس کے داخلے/خارج کے کام کے طور پر چلاتا ہے۔ پروفائلز خود رکھے گئے ہیں۔"
+
+msgid "Diagram View opened in a new browser window."
+msgstr "ڈایاگرام ویو ایک نئی براؤزر ونڈو میں کھلا ہے۔"
+
+msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
+msgstr "تمام دستیاب ماڈلز کی ایک توسیعی فہرست دکھائیں۔\n\nنوٹ: اگر API کلید OpenAI یا Gemini کے لیے سیٹ نہیں ہے،\n      پھر متعلقہ کے لیے پہلے سے طے شدہ ماڈل کی فہرست\n      AI فراہم کنندہ دکھایا جائے گا۔\n\nنوٹ: تمام ماڈلز کی توثیق نہیں کی گئی ہے اور\n      ایک یا زیادہ تجزیہ پر ایک غلطی واپس کر سکتے ہیں.\n\nنوٹ: پہلی بار اس اختیار کو فعال کرنے سے\n      درج ذیل ماڈیولز کی تنصیب پر مجبور کریں۔\n      اور ان کے تمام انحصار:\n      google-genai، anthropic، openai، ollama"
+
+msgid "End Time"
+msgstr "اختتامی وقت"
+
+msgid "Event Type"
+msgstr "واقعہ کی قسم"
+
+msgid "Every"
+msgstr "ہر"
+
+msgid "File path saved successfully!"
+msgstr "فائل کا راستہ کامیابی سے محفوظ ہو گیا!"
+
+msgid "File selection canceled."
+msgstr "فائل کا انتخاب منسوخ کر دیا گیا۔"
+
+msgid "If"
+msgstr "اگر"
+
+msgid "If condition set."
+msgstr "اگر شرط رکھی۔"
+
+msgid "Insert just the 'If', or a complete block?"
+msgstr "صرف 'اگر' داخل کریں، یا ایک مکمل بلاک؟"
+
+msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
+msgstr "دیکھنے کی غلط قسم بتائی گئی ہے۔ 'نقشہ'، 'ڈائیگرام'، یا 'درخت' استعمال کریں۔"
+
+msgid "Label"
+msgstr "لیبل"
+
+msgid "Last Day Of Month"
+msgstr "مہینے کا آخری دن"
+
+msgid "Link"
+msgstr "لنک"
+
+msgid "List Files Selected"
+msgstr "منتخب فائلوں کی فہرست"
+
+msgid "List XML Files"
+msgstr "XML فائلوں کی فہرست بنائیں"
+
+msgid "Map View opened in a new browser window."
+msgstr "نقشہ کا منظر ایک نئی براؤزر ونڈو میں کھلا۔"
+
+msgid "Map view creation skipped: No valid XML source found or action canceled."
+msgstr "نقشہ دیکھنے کی تخلیق کو چھوڑ دیا گیا: کوئی درست XML ذریعہ نہیں ملا یا کارروائی منسوخ ہوئی۔"
+
+msgid "Month"
+msgstr "مہینہ"
+
+msgid "Move"
+msgstr "منتقل"
+
+msgid "Move to #"
+msgstr "# پر منتقل کریں"
+
+msgid "New name"
+msgstr "نیا نام"
+
+msgid "No XML data loaded! Please Get XML from Android or Local drive first."
+msgstr "کوئی XML ڈیٹا لوڈ نہیں ہوا! براہ کرم پہلے اینڈرائیڈ یا لوکل ڈرائیو سے XML حاصل کریں۔"
+
+msgid "No XML data loaded! Please select a valid XML file first."
+msgstr "کوئی XML ڈیٹا لوڈ نہیں ہوا! براہ کرم پہلے ایک درست XML فائل منتخب کریں۔"
+
+msgid "No actions in this Task."
+msgstr "اس ٹاسک میں کوئی کارروائی نہیں ہے۔"
+
+msgid "No backup file is currently loaded. Use 'Get Local XML' first."
+msgstr "کوئی بیک اپ فائل فی الحال لوڈ نہیں ہے۔ پہلے 'Get Local XML' استعمال کریں۔"
+
+msgid "No conditions on this Profile."
+msgstr "اس پروفائل پر کوئی شرط نہیں ہے۔"
+
+msgid "No editable arguments (code not mapped, or this condition has none)."
+msgstr "کوئی قابل تدوین دلائل نہیں (کوڈ میپ نہیں ہے، یا اس شرط میں کوئی نہیں ہے)۔"
+
+msgid "No editable arguments."
+msgstr "کوئی قابل تدوین دلائل نہیں ہیں۔"
+
+msgid "Not configured..."
+msgstr "کنفیگر نہیں ہے..."
+
+msgid "Odd"
+msgstr "عجیب"
+
+msgid "Ok"
+msgstr "ٹھیک ہے"
+
+msgid "Operator"
+msgstr "آپریٹر"
+
+msgid "Package"
+msgstr "پیکج"
+
+msgid "Pick a Task"
+msgstr "ایک ٹاسک چنیں۔"
+
+msgid "Please enter a search term."
+msgstr "براہ کرم تلاش کی اصطلاح درج کریں۔"
+
+msgid "Port"
+msgstr "بندرگاہ"
+
+msgid "Position"
+msgstr "پوزیشن"
+
+msgid "Priority"
+msgstr "ترجیح"
+
+msgid "Profile Name"
+msgstr "پروفائل کا نام"
+
+msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "پروفائل صرف اس سیشن کے لیے رکھا گیا ہے -- اسے مستقل طور پر رکھنے کے لیے 'موجودہ فائل میں محفوظ کریں' کا استعمال کریں۔"
+
+msgid "Profiles Per Line"
+msgstr "پروفائلز فی لائن"
+
+msgid "Project Name"
+msgstr "پروجیکٹ کا نام"
+
+msgid "Project added."
+msgstr "پروجیکٹ شامل کیا گیا۔"
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
+msgstr "ایک نئے نام کا اشارہ کرتا ہے اور اسے ابھی بھری ہوئی بیک اپ پر لاگو کرتا ہے۔ اوپر دی گئی پروجیکٹ کا نام فیلڈ صرف پڑھنے کے لیے ہے -- اسے تبدیل کرنے کا یہی واحد طریقہ ہے۔"
+
+msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
+msgstr "ایک نئے نام کا اشارہ کرتا ہے اور ابھی اس کا اطلاق بھری ہوئی بیک اپ پر ہوتا ہے۔ اس ڈائیلاگ میں باقی سب کچھ اوکے/محفوظ ہونے تک زیر التواء رہتا ہے، اور ڈائیلاگ کھلا رہتا ہے تاکہ آپ ترمیم جاری رکھ سکیں۔"
+
+msgid "Remove"
+msgstr "ہٹا دیں۔"
+
+msgid "Save Profile To Android Device"
+msgstr "پروفائل کو اینڈرائیڈ ڈیوائس میں محفوظ کریں۔"
+
+msgid "Save Project To Android Device"
+msgstr "پروجیکٹ کو اینڈرائیڈ ڈیوائس میں محفوظ کریں۔"
+
+msgid "Save Task To Android Device"
+msgstr "ٹاسک کو اینڈرائیڈ ڈیوائس پر محفوظ کریں۔"
+
+msgid "Save as"
+msgstr "بطور محفوظ کریں۔"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "پورے بیک اپ کو محفوظ کرتا ہے -- اس میں موجود ہر پروجیکٹ، پروفائل اور ٹاسک، نہ صرف یہ پروفائل -- اس ڈائیلاگ کی ترمیمات لاگو ہونے کے ساتھ، وہی 'اوکے' رکھیں گے۔\nیہ فی الحال لوڈ کی گئی فائل کی ایک نئی، ٹائم اسٹیمپڈ کاپی پر لکھا گیا ہے: backup.xml backup_20260728_143005.xml بن جاتا ہے۔\nآپ نے جو فائل لوڈ کی ہے اسے کبھی نہیں لکھا جاتا ہے، اس لیے اسے بالکل ویسا ہی چھوڑ دیا جاتا ہے جیسا کہ تھا۔\nاس کے بعد ایپ نئی کاپی پر سوئچ کرتی ہے، جو کسی بھی مزید ترمیم اور بچت کے لیے موجودہ فائل بن جاتی ہے۔ دوبارہ محفوظ کرنا ٹائم اسٹیمپ کی جگہ لے لیتا ہے بجائے اس کے کہ دوسرا شامل کریں۔\nیہ صرف اس کمپیوٹر کو لکھتا ہے -- آپ کے Android ڈیوائس پر کچھ نہیں بھیجا جاتا ہے۔"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "پورا بیک اپ محفوظ کرتا ہے -- اس میں موجود ہر پروجیکٹ، پروفائل اور ٹاسک، نہ صرف یہ پروجیکٹ -- بشمول اس سیشن میں کہیں بھی کی گئی ہر ترمیم۔\nیہ فی الحال لوڈ کی گئی فائل کی ایک نئی، ٹائم اسٹیمپڈ کاپی پر لکھا گیا ہے: backup.xml backup_20260728_143005.xml بن جاتا ہے۔\nآپ نے جو فائل لوڈ کی ہے اسے کبھی نہیں لکھا جاتا ہے، اس لیے اسے بالکل ویسا ہی چھوڑ دیا جاتا ہے جیسا کہ تھا۔\nاس کے بعد ایپ نئی کاپی پر سوئچ کرتی ہے، جو کسی بھی مزید ترمیم اور بچت کے لیے موجودہ فائل بن جاتی ہے۔ دوبارہ محفوظ کرنا ٹائم اسٹیمپ کی جگہ لے لیتا ہے بجائے اس کے کہ دوسرا شامل کریں۔\nیہ صرف اس کمپیوٹر کو لکھتا ہے -- آپ کے Android ڈیوائس پر کچھ نہیں بھیجا جاتا ہے۔"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "پورے بیک اپ کو محفوظ کرتا ہے -- اس میں موجود ہر پروجیکٹ، پروفائل اور ٹاسک، نہ صرف یہ ٹاسک -- اس ڈائیلاگ کی ایڈیٹس لاگو ہونے کے ساتھ، وہی 'اوکے' رکھیں گے۔\nیہ فی الحال لوڈ کی گئی فائل کی ایک نئی، ٹائم اسٹیمپڈ کاپی پر لکھا گیا ہے: backup.xml backup_20260728_143005.xml بن جاتا ہے۔\nآپ نے جو فائل لوڈ کی ہے اسے کبھی نہیں لکھا جاتا ہے، اس لیے اسے بالکل ویسا ہی چھوڑ دیا جاتا ہے جیسا کہ تھا۔\nاس کے بعد ایپ نئی کاپی پر سوئچ کرتی ہے، جو کسی بھی مزید ترمیم اور بچت کے لیے موجودہ فائل بن جاتی ہے۔ دوبارہ محفوظ کرنا ٹائم اسٹیمپ کی جگہ لے لیتا ہے بجائے اس کے کہ دوسرا شامل کریں۔\nیہ صرف اس کمپیوٹر کو لکھتا ہے -- آپ کے Android ڈیوائس پر کچھ نہیں بھیجا جاتا ہے۔"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "پورے بیک اپ کو محفوظ کرتا ہے -- اس میں موجود ہر پروجیکٹ، پروفائل اور ٹاسک، نہ صرف یہ -- اس کے پروجیکٹ میں نئے پروفائل کو شامل کرنے کے ساتھ، اسی طرح 'Ok' اسے شامل کرتا ہے۔\nیہ فی الحال لوڈ کی گئی فائل کی ایک نئی، ٹائم اسٹیمپڈ کاپی پر لکھا گیا ہے: backup.xml backup_20260728_143005.xml بن جاتا ہے۔\nآپ نے جو فائل لوڈ کی ہے اسے کبھی نہیں لکھا جاتا ہے، اس لیے اسے بالکل ویسا ہی چھوڑ دیا جاتا ہے جیسا کہ تھا۔\nاس کے بعد ایپ نئی کاپی پر سوئچ کرتی ہے، جو کسی بھی مزید ترمیم اور بچت کے لیے موجودہ فائل بن جاتی ہے۔ دوبارہ محفوظ کرنا ٹائم اسٹیمپ کی جگہ لے لیتا ہے بجائے اس کے کہ دوسرا شامل کریں۔\nیہ صرف اس کمپیوٹر کو لکھتا ہے -- آپ کے Android ڈیوائس پر کچھ نہیں بھیجا جاتا ہے۔"
+
+msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "پورے بیک اپ کو محفوظ کرتا ہے -- اس میں موجود ہر پروجیکٹ، پروفائل اور ٹاسک، نہ صرف یہ -- اس میں نئے ٹاسک کو شامل کرنے کے ساتھ، اسی طرح 'Ok' اسے شامل کرتا ہے۔\nیہ فی الحال لوڈ کی گئی فائل کی ایک نئی، ٹائم اسٹیمپڈ کاپی پر لکھا گیا ہے: backup.xml backup_20260728_143005.xml بن جاتا ہے۔\nآپ نے جو فائل لوڈ کی ہے اسے کبھی نہیں لکھا جاتا ہے، اس لیے اسے بالکل ویسا ہی چھوڑ دیا جاتا ہے جیسا کہ تھا۔\nاس کے بعد ایپ نئی کاپی پر سوئچ کرتی ہے، جو کسی بھی مزید ترمیم اور بچت کے لیے موجودہ فائل بن جاتی ہے۔ دوبارہ محفوظ کرنا ٹائم اسٹیمپ کی جگہ لے لیتا ہے بجائے اس کے کہ دوسرا شامل کریں۔\nیہ صرف اس کمپیوٹر کو لکھتا ہے -- آپ کے Android ڈیوائس پر کچھ نہیں بھیجا جاتا ہے۔"
+
+msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
+msgstr "اس پروجیکٹ، اور اس میں موجود ہر چیز -- ہر پروفائل اور ٹاسک -- کو ایک اسٹینڈ فائل کے طور پر محفوظ کرتا ہے۔"
+
+msgid "Search actions"
+msgstr "تلاش کے اعمال"
+
+msgid "Search..."
+msgstr "تلاش کریں..."
+
+msgid "Select a single Profile first (Profile pulldown above)."
+msgstr "پہلے ایک پروفائل منتخب کریں (اوپر پروفائل پلڈاؤن)۔"
+
+msgid "Select a single Project first (Project pulldown above)."
+msgstr "پہلے ایک پروجیکٹ کو منتخب کریں (اوپر پروجیکٹ پل ڈاؤن)۔"
+
+msgid "Select a single Task first (Task pulldown above)."
+msgstr "پہلے ایک ہی ٹاسک کو منتخب کریں (اوپر ٹاسک پل ڈاون)۔"
+
+msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
+msgstr "انتباہ جاری کرنے سے پہلے منتخب کریں کہ ٹاسک میں کتنے اعمال ہیں۔\nانتباہ کنفیگریشن آؤٹ پٹ کے نیچے ظاہر ہوتا ہے،\nاور اس کا مقصد بہت پیچیدہ کاموں کی شناخت میں مدد کرنا ہے۔\nاور جسے ممکنہ طور پر متعدد کاموں میں تقسیم کیا جانا چاہیے۔\n'100' کی ترتیب کا مطلب ہے کہ کوئی حد نہیں ہے۔"
+
+msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
+msgstr "If/then/Else بلاکس کے لیے انڈینٹیشن کی رقم سیٹ کریں۔\n\nپہلے سے طے شدہ '4' ہے۔\n\nیہ اس بات کو متاثر کرتا ہے کہ نقشہ اور ڈایاگرام کے نظارے میں آؤٹ پٹ کو کس طرح فارمیٹ کیا جاتا ہے۔"
+
+msgid "Settings Reset!"
+msgstr "ترتیبات دوبارہ ترتیب دیں!"
+
+msgid "Shutting down MapTasker..."
+msgstr "MapTasker کو بند کیا جا رہا ہے..."
+
+msgid "Start Time"
+msgstr "آغاز کا وقت"
+
+msgid "Starting AI Analysis..."
+msgstr "AI تجزیہ شروع ہو رہا ہے..."
+
+msgid "State Type"
+msgstr "ریاست کی قسم"
+
+msgid "Submit"
+msgstr "جمع کروائیں۔"
+
+msgid "Target"
+msgstr "ہدف"
+
+msgid "Task Name"
+msgstr "ٹاسک کا نام"
+
+msgid "Task Uploaded to Tasker"
+msgstr "ٹاسک ٹاسکر پر اپ لوڈ کیا گیا۔"
+
+msgid "Task Uploaded to Tasker."
+msgstr "ٹاسک ٹاسکر پر اپ لوڈ کیا گیا۔"
+
+msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
+msgstr "ٹاسک صرف اس سیشن کے لیے رکھا گیا ہے -- اسے مستقل طور پر رکھنے کے لیے 'موجودہ فائل میں محفوظ کریں' کا استعمال کریں۔"
+
+msgid "The 'Misc' view is running in the background.  Please stand by..."
+msgstr "'متفرق' منظر پس منظر میں چل رہا ہے۔  پلیز کھڑے رہیں..."
+
+msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
+msgstr "'تلاش' بٹن ڈیٹا کے اوپری حصے سے شروع ہونے والے سرچ باکس میں درج کیس کے غیر حساس سٹرنگ کی ہر مثال کو تلاش کرے گا اور اسے نمایاں کرے گا۔\n\nیہ سرچ سٹرنگ کی صرف پہلی 200 مثالیں دکھائے گا۔\n\nٹیکسٹ ویو باکس میں اس لائن پر جانے کے لیے لائن نمبر پر کلک کریں۔\n\n'کلیئر' بٹن تلاش کے نتائج کو صاف کر دے گا۔\n\n"
+
+msgid "The change will take effect the next time you open the view."
+msgstr "اگلی بار جب آپ منظر کھولیں گے تو تبدیلی لاگو ہوگی۔"
+
+msgid "This Task has no actions yet."
+msgstr "اس ٹاسک کی ابھی تک کوئی کارروائی نہیں ہے۔"
+
+msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
+msgstr "یہ آپ کے سسٹم پر دستیاب تمام فونٹس کی فہرست ہے، پہلے مونو اسپیس والے اور اس طرح نشان زد کیے گئے ہیں۔\n\nمنتخب کردہ فونٹ تمام آؤٹ پٹ میں استعمال ہوگا۔\n\nڈایاگرام کے لیے 'کورئیر' یا 'کورئیر نیو' کی انتہائی سفارش کی جاتی ہے تاکہ کنیکٹر کی مناسب سیدھ کو یقینی بنایا جا سکے۔ ایک فونٹ جو مونو اسپیس نہیں ہے وہ ڈایاگرام کے کنیکٹرز یا آؤٹ پٹ کے انڈینٹیشن کو لائن میں نہیں رکھے گا۔"
+
+msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
+msgstr "یہ ٹاسکر سرور کو چلانے والے اینڈرائیڈ ڈیوائس پر چلنے والے ٹاسکر میں براہ راست ٹاسک کو محفوظ کرے گا۔\n\nآئی پی ایڈریس اور پورٹ کا اینڈرائیڈ ڈیوائس کے ٹاسکر سرور سیٹنگز سے مماثل ہونا چاہیے۔\n\nآپ کو Android ڈیوائس پر Tasker کو لکھنے کی اجازت کے لیے دو بار کہا جائے گا، اور Task.اور اس کے اپنے اعمال اس بات کا تعین کریں گے کہ اسے ڈیوائس پر کہاں محفوظ کیا گیا ہے۔"
+
+msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
+msgstr "یہ ٹاسک کو براہ راست آپ کے اینڈرائیڈ ڈیوائس پر ایکٹو ٹاسکر سیشن میں محفوظ کر دے گا۔\n\nاس کے کام کرنے کے لیے ٹاسکر ورژن 6.2 یا اس سے زیادہ درکار ہے۔ Android ڈیوائس کا ایک ہی نیٹ ورک پر ہونا چاہیے، اور IP ایڈریس اور پورٹ\nAndroid ڈیوائس کے Tasker سرور کی ترتیبات سے مماثل ہونا ضروری ہے۔\n\nآپ کو اینڈرائیڈ ڈیوائس پر ٹاسکر کو لکھنے کی اجازت کے لیے دو بار کہا جائے گا، اور ٹاسک کو براہ راست فعال ٹاسکر سیشن میں لوڈ کیا جائے گا۔\n\nٹاسکر UI میں نیا ٹاسک دیکھنے کے لیے آپ کو ٹاسکر سے باہر نکلنا اور دوبارہ شروع کرنا ہوگا۔"
+
+msgid "This will save the Task directly to your current drive.\n\n"
+msgstr "یہ ٹاسک کو براہ راست آپ کی موجودہ ڈرائیو میں محفوظ کر دے گا۔\n\n"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "یہ پروفائل کو ایک اسٹینڈ فائل کے طور پر Android ڈیوائس پر /Tasker/profiles کے تحت لکھے گا۔\n\nآئی پی ایڈریس اور پورٹ کا اینڈرائیڈ ڈیوائس کے ٹاسکر سرور سیٹنگز سے مماثل ہونا چاہیے۔\n\nاس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "یہ پروفائل کو آپ کے اینڈرائیڈ ڈیوائس پر /Tasker/profiles کے تحت ایک اسٹینڈ فائل کے طور پر لکھے گا -- یہ اسے Tasker کی لائیو کنفیگریشن میں درآمد نہیں کرتا ہے۔\n\n'Http سرور مثال' ٹاسکر پروجیکٹ (http://spoo.me/http_svr_example) کو Android ڈیوائس پر انسٹال اور فعال ہونا چاہیے، سرور کے ساتھ چل رہا ہے (README کے ڈائریکٹ XML بازیافت کے نوٹس دیکھیں)۔\n\nاینڈرائیڈ ڈیوائس کا ایک ہی نیٹ ورک پر ہونا چاہیے، اور آئی پی ایڈریس اور پورٹ کو اس کے ٹاسکر سرور کی سیٹنگز سے مماثل ہونا چاہیے۔ اس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "یہ پروفائل کو آپ کے اینڈرائیڈ ڈیوائس پر /Tasker/profiles کے تحت ایک اسٹینڈ فائل کے طور پر لکھے گا -- یہ اسے Tasker کی لائیو کنفیگریشن میں درآمد نہیں کرتا ہے۔\n\n'Http سرور مثال' ٹاسکر پروجیکٹ کو Android ڈیوائس پر انسٹال اور فعال ہونا چاہیے، سرور کے ساتھ چل رہا ہے (README کے ڈائریکٹ XML بازیافت نوٹس دیکھیں)۔\n\nاینڈرائیڈ ڈیوائس کا ایک ہی نیٹ ورک پر ہونا چاہیے، اور آئی پی ایڈریس اور پورٹ کو اس کے ٹاسکر سرور کی سیٹنگز سے مماثل ہونا چاہیے۔ اس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "یہ پروجیکٹ لکھے گا، اور اس میں موجود ہر چیز -- ہر پروفائل اور ٹاسک -- کو آپ کے اینڈرائیڈ ڈیوائس پر ایک اسٹینڈ فائل کے طور پر، /Tasker/projects کے تحت -- یہ اسے Tasker کی لائیو کنفیگریشن میں درآمد نہیں کرتا ہے۔\n\n'Http سرور مثال' ٹاسکر پروجیکٹ کو Android ڈیوائس پر انسٹال اور فعال ہونا چاہیے، سرور کے ساتھ چل رہا ہے۔\n\nاینڈرائیڈ ڈیوائس کا ایک ہی نیٹ ورک پر ہونا چاہیے، اور آئی پی ایڈریس اور پورٹ کو اس کے ٹاسکر سرور کی سیٹنگز سے مماثل ہونا چاہیے۔ اس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "یہ پروجیکٹ، اور اس میں موجود ہر چیز کو، اینڈرائیڈ ڈیوائس پر /Tasker/projects کے تحت ایک اسٹینڈ فائل کے طور پر لکھے گا۔\n\nآئی پی ایڈریس اور پورٹ کا اینڈرائیڈ ڈیوائس کے ٹاسکر سرور سیٹنگز سے مماثل ہونا چاہیے۔\n\nاس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
+
+msgid "Toggle Wrap"
+msgstr "ٹوگل لپیٹیں۔"
+
+msgid "Unlink"
+msgstr "لنک ختم کریں۔"
+
+msgid "Value"
+msgstr "قدر"
+
+msgid "View cleared."
+msgstr "منظر صاف ہو گیا۔"
+
+msgid "Week-Day"
+msgstr "ہفتہ کا دن"
+
+msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
+msgstr "فعال ہونے پر، 'Exit' پر کلک کرنے سے MapTasker کی مین ونڈو اور کسی بھی Map/diagram windows/tabs کو بھی بند کر دیا جاتا ہے۔\n\nغیر فعال ہونے پر، 'Exit' MapTasker کو بند کر دیتا ہے لیکن ان ونڈوز/ٹیبز کو کھلا چھوڑ دیتا ہے۔"
+
+msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
+msgstr "فعال ہونے پر، ہر نقشہ/ڈایاگرام کی درخواست اپنی نئی ونڈو/ٹیب میں کھلتی ہے، لہذا آپ موازنہ کرنے کے لیے پہلے والے کو اس کے ساتھ رکھ سکتے ہیں۔\n\nغیر فعال ہونے پر، ایک درخواست اس منظر کی موجودہ ونڈو/ٹیب کو دوبارہ استعمال کرتی ہے، اس میں موجود چیزوں کو بدل کر۔\n\nاسے چھوڑ دیں جب تک کہ آپ موازنہ نہ کرنا چاہیں: بالکل نئی ونڈو/ٹیب وہ ہے جسے آپ کا براؤزر بلاک کر سکتا ہے، کیونکہ یہ آپ کے کلک کرنے کے بجائے منظر کی تعمیر مکمل ہونے کے بعد کھل جاتا ہے۔"
+
+msgid "hh:mm AM/PM or %variable"
+msgstr "hh:mm AM/PM یا %متغیر"
+
+msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
+msgstr "براہ راست GUI کے اندر اپنی ترتیب کا 'نقشہ'، 'ڈائیگرام' یا 'ٹری' منظر دکھائیں۔\n\nXML کو پہلے لوکل ڈرائیو یا اینڈرائیڈ ڈیوائس سے حاصل کیا جانا چاہیے تاکہ ویوز کام کر سکیں۔\n\nاگر XML پہلے ہی حاصل کیا جا چکا ہے، تو اسے منظر میں ان پٹ کے طور پر استعمال کیا جائے گا۔  'کلیئر' بٹن کو دبانے سے ویو ڈیٹا صاف ہو جائے گا۔\n\nبہت بڑی کنفیگریشنز Maps اور Diagrams کے لیے رن ٹائم میں توسیع کریں گی۔  بہترین کارکردگی کے لیے، نقشہ بنانے کے لیے ایک پروجیکٹ یا پروفائل کا انتخاب کریں۔\n\nاختیاری طور پر، 'دیکھنے کی حد' کی ترتیب کا استعمال کرکے پروسیس کیے جانے والے ڈیٹا کی مقدار کو محدود کریں۔  حد جتنی بڑی ہوگی، آؤٹ پٹ اتنا ہی بڑا ہوگا جسے نقشہ بنانے کی اجازت ہوگی۔  جتنا زیادہ آؤٹ پٹ پیدا ہوتا ہے، پروسیسنگ کا وقت اتنا ہی زیادہ ہوتا ہے۔\n\n\nڈایاگرام ویو میں درج ذیل رویہ ہے:\n\n - صرف پروجیکٹس اور پروفائلز دکھائے جاسکتے ہیں۔ صرف ایک کام یا منظر پر مشتمل XML ظاہر نہیں کیا جائے گا۔\n\n - خاکے میں پورے کنکشن کو نمایاں کرنے کے لیے افقی کنیکٹر پر کلک کریں۔\n\n\nٹری ویو میں درج ذیل رویہ ہے:\n\n- صرف پروجیکٹس دکھائے جاسکتے ہیں۔ صرف ایک پروفائل یا ٹاسک یا منظر پر مشتمل XML کو ظاہر نہیں کیا جائے گا۔\n\n- تمام پروجیکٹس، پروفائلز، ٹاسکس اور سینز دکھائے جاتے ہیں قطع نظر اس کے کہ ایک نام کی ترتیب ہو۔\n\n"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "MapTasker آپ کی اپ لوڈ کردہ Tasker XML فائل (جیسے 'backup.xml') کی بنیاد پر آپ کی اینڈرائیڈ ٹاسکر کنفیگریشن دکھاتا ہے۔ ڈسپلے میں اختیاری طور پر تمام پروجیکٹس، پروفائلز، ٹاسک اور ان کے اعمال، پروفائل/ٹاسک کی شرائط اور دیگر پروفائل/ٹاسک سے متعلق معلومات شامل ہوں گی۔\n\nXML فائل لوڈ ہونے کے بعد، آپ اختیاری طور پر اپنے پروجیکٹس، پروفائلز، ٹاسکس اور سینز میں ترمیم کر سکتے ہیں۔\n\n* ڈسپلے کے اختیارات ہیں:\n    لیول 0: صرف پہلا ٹاسک ایکشن ڈسپلے کریں، صرف بے نام ٹاسکس کے لیے (خاموش)۔\n    لیول 1 = صرف نامعلوم ٹاسکس کے لیے تمام ٹاسک ایکشن کی تفصیلات دکھائیں (پہلے سے طے شدہ)۔\n    لیول 2 = ہر ٹاسک پر مکمل ٹاسک ایکشن کا نام دکھائیں۔\n    لیول 3 = ہر ٹاسک پر ایکشن کی تفصیلات کے ساتھ ٹاسک ایکشن کی مکمل تفصیلات دکھائیں۔\n    لیول 4 = ڈسپلے لیول 3 پلس پروجیکٹ کے عالمی متغیرات۔\n\n    لیول 5 = ڈسپلے لیول 4 پلس سین آرگومنٹ تفصیلات۔\n\n* بس سب کچھ دکھائیں: حالات، TaskerNet کی معلومات، ترجیحات، خوبصورت آؤٹ پٹ، ڈائریکٹری، اور کنفیگریشن آؤٹ لائن کے ڈسپلے کو آن کرتا ہے۔\n\n* ڈسپلے کنڈیشنز: پروفائل اور ٹاسک کنڈیشنز کے ڈسپلے کو آن کریں۔\n\n* TaskerNet کی معلومات دکھائیں - اگر دستیاب ہو تو TaskerNet کی اشاعت کی معلومات دکھائیں۔\n\n* ٹاسکر کی ترجیحات ڈسپلے کریں - ٹاسکر کے سسٹم کی ترجیحات کو ڈسپلے کریں۔\n\n* Twisty کے تحت ٹاسک کی تفصیلات چھپائیں: ► کے اندر ٹاسک کی معلومات چھپائیں اور ڈسپلے کرنے کے لیے کلک کریں۔\n\n* شروع میں ہائپر لنکس کی ڈائرکٹری دکھائیں۔\n\n* خوبصورت آؤٹ پٹ ڈسپلے کریں: تمام دلائل کے لیے نئی لائنیں اور انڈینٹیشن شامل کرکے آؤٹ پٹ کو مزید انسانی پڑھنے کے قابل بنائیں۔\n\n* پراجیکٹ/پروفائل/ٹاسک/منظر ناموں کے اختیارات کو ترچھا کرنے، بولڈ، انڈر لائن اور/یا ان کے ناموں کو نمایاں کرنے کے لیے۔\n\n* ٹاسک ایکشن کی حد: اگر ٹاسک میں ایکشن کی مخصوص تعداد سے زیادہ ہے تو ایک انتباہ دکھائیں۔\n\n* If/Ten/Else ٹاسک ایکشنز کے لیے انڈینٹیشن کی رقم۔\n\n* زبان: آؤٹ پٹ کے لیے استعمال ہونے والی زبان کو منتخب کریں۔  پہلے سے طے شدہ انگریزی ہے۔\n\n* استعمال کرنے کے لیے فونٹ: آؤٹ پٹ کے لیے استعمال ہونے والے مونو اسپیس فونٹ کو تبدیل کریں۔\n\n* دیکھنے کی حد: ویو تیار کرتے وقت استعمال ہونے والے پروسیسنگ وقت کی مقدار کو کنٹرول کریں۔\n\n* ری سیٹ کے اختیارات: سب کچھ صاف کریں اور نئے سرے سے شروع کریں۔\n\n* لوکل ایکس ایم ایل فائل حاصل کریں: اپنی لوکل ڈرائیو سے بیک اپ/ ایکسپورٹ شدہ ایکس ایم ایل فائل حاصل کریں۔\n\n* سیٹنگز کو محفوظ کریں - بعد میں استعمال کے لیے ان سیٹنگز کو محفوظ کریں۔\n\n* ترتیبات کو بحال کریں - پہلے سے محفوظ کردہ سیشن سے ترتیبات کو بحال کریں۔\n\n* ڈسپلے ویوز: اپنے کنفیگریشن میپ، ڈایاگرام، یا اپنے پروجیکٹس، پروفائلز، ٹاسکس اور سینز کا ٹری ویو براہ راست GUI میں دکھائیں۔\n\n* اینڈرائیڈ ڈیوائس سے ایکس ایم ایل حاصل کریں: اینڈرائیڈ ڈیوائس سے بیک اپ/ ایکسپورٹ شدہ ایکس ایم ایل فائل حاصل کریں۔  آپ سے آپ کے اینڈرائیڈ ڈیوائس کے لیے آئی پی ایڈریس اور پورٹ نمبر کے ساتھ ساتھ ڈیوائس پر فائل لوکیشن بھی پوچھا جائے گا۔\n\n* مخصوص نام کا ٹیب: ظاہر کرنے کے لیے ایک واحد، مخصوص نام والی شے درج کریں...\n   - پروجیکٹ کا نام: ڈسپلے کرنے کے لیے ایک مخصوص پروجیکٹ درج کریں۔\n   - پروفائل کا نام: ظاہر کرنے کے لیے ایک مخصوص پروفائل درج کریں۔\n   - ٹاسک کا نام: ڈسپلے کرنے کے لیے ایک مخصوص ٹاسک درج کریں۔\n   - منظر کا نام: ڈسپلے کرنے کے لیے ایک مخصوص منظر درج کریں۔  اس کی ملکیت پروجیکٹ کی سرخی اور\n                 منظر کے عناصر (علاوہ کوئی بھی ٹاسک جو ان عناصر کو کہتے ہیں) دکھائے جاتے ہیں۔\n                 پروجیکٹ کی پروفائلز اور اس کے دیگر مناظر نہیں ہیں۔\n   (یہ چار خصوصی ہیں: صرف ایک درج کریں)\n\n   مختلف بچت کے اختیارات کے ساتھ براہ راست GUI میں پروجیکٹس، پروفائلز اور ٹاسکس کو شامل اور ترمیم کریں۔\n\n* رنگوں کا ٹیب: ڈسپلے کے مختلف عناصر کے لیے رنگ منتخب کریں۔\n              (مثال کے طور پر پروجیکٹس، پروفائلز، ٹاسکس وغیرہ کے لیے رنگ)۔\n\n* تجزیہ ٹیب: Ai ماڈل کے خلاف پروجیکٹ، پروفائل، ٹاسک یا سین کے لیے تجزیہ چلائیں۔\n\n* ڈیبگ ٹیب: رن ٹائم سیٹنگز کا آپشن ڈسپلے کریں اور ڈیبگ موڈ کو آن کریں۔\n\n* باہر نکلیں: پروگرام سے باہر نکلیں (چھوڑیں)۔\n\nنوٹس:\n\n- https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md پر تبدیلی کی پوری لاگ ہسٹری دیکھیں\n\n- ظاہری شکل کو تبدیل کرنے سے آؤٹ پٹ کے لیے استعمال ہونے والے رنگ ان کی ڈیفالٹ اقدار میں بدل جائیں گے۔\n\n"
+
+msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
+msgstr "'دیکھنے کی حد' نقطہ نظر پیدا کرنے کے دوران استعمال ہونے والے پروسیسنگ وقت کی مقدار کو کنٹرول کرنے کا ایک ذریعہ ہے۔\n\n- اعداد پیدا ہونے والی آؤٹ پٹ لائنوں کی نسبتہ مقدار کی نمائندگی کرتے ہیں۔\n\n- حد جتنی بڑی ہوگی، آؤٹ پٹ اتنا ہی بڑا ہوگا جسے میپ کرنے کی اجازت ہوگی۔  جتنا زیادہ آؤٹ پٹ پیدا ہوتا ہے، پروسیسنگ کا وقت اتنا ہی زیادہ ہوتا ہے۔\n\n- بہت بڑی کنفیگریشنز بہت بڑے آؤٹ پٹ نقشے تیار کریں گی اور پروسیسنگ میں زیادہ وقت کا سبب بنے گی۔  پرانے آلات پر، اس میں 30 سیکنڈ یا اس سے زیادہ وقت لگ سکتا ہے۔\n\n- ایک حد مقرر کرکے، آپ طویل دورانیے کی اجازت نہ دے کر کنفیگریشن کی نقشہ سازی کرتے وقت استعمال ہونے والے پروسیسنگ وقت کو کنٹرول کرسکتے ہیں۔\n\n- اگر نقشہ کا حساب لگاتے وقت حد ہٹ جاتی ہے تو آؤٹ پٹ وہیں رک جائے گا۔\n\n- آپ اس ترتیب کے ساتھ تجربہ کر سکتے ہیں کہ آپ کے استعمال کے معاملے کے لیے کون سی ترتیب بہترین ہے۔\n\n- ایک پروجیکٹ، پروفائل یا ٹاسک کا انتخاب پروسیسنگ کے وقت کو محدود کرنے کا دوسرا ذریعہ ہے۔\n\n"
+
+msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.\n\nThe following steps are required in order to run AI against your Profile.\n\n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).\n\n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.\n\n3- Select the model you want to use.\n\n   o The model selected will determine with which AI the analysis is to be performed.\n\n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.\n\n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.\n\n   o The process may take some time and runs in the background.  The results will appear in a separate window.\n\n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.\n\nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.\n\nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.\n\n"
+msgstr "تجزیہ ٹیب کو آپ کے پروفائل پر Ai تجزیہ چلانے کے لیے استعمال کیا جاتا ہے، یا تو مقامی لاما ماڈل یا سرور پر مبنی Open AI، Claude یا DeepSeek ماڈلز کا استعمال کرتے ہوئے۔\n\nآپ کے پروفائل کے خلاف AI چلانے کے لیے درج ذیل اقدامات کی ضرورت ہے۔\n\n1- اگر سرور پر مبنی AI استعمال کر رہے ہیں، تو آپ کے پاس فراہم کنندہ سے ایک درست API کلید ہونی چاہیے (جیسے OpenAI)۔  آپ اپنی کلید داخل کرنے کے لیے 'API کلیدیں دکھائیں/ترمیم کریں' بٹن استعمال کر سکتے ہیں۔\n\n2- پہلے سے طے شدہ پرامپٹ ہے: 'کارکردگی اور پڑھنے کی اہلیت میں بہتری کی تجویز کریں: (آپ کا پروجیکٹ/پروفائل/ٹاسک)'، اور خود بخود اس سے پہلے ہوتا ہے: 'ٹاسک میں درج ذیل (پروجیکٹ/پروفائل/ٹاسک) کو دیکھتے ہوئے،'۔  اگر پرامپٹ میں ترمیم کر رہے ہیں، تو آپ صرف 'ترمیم کی تجویز کریں...' والے حصے میں ترمیم کر رہے ہیں۔\n\n3- وہ ماڈل منتخب کریں جسے آپ استعمال کرنا چاہتے ہیں۔\n\n   o منتخب کردہ ماڈل اس بات کا تعین کرے گا کہ کس AI کے ساتھ تجزیہ کیا جانا ہے۔\n\n4- 'تجزیہ چلائیں' کے بٹن پر کلک کریں۔  جب تمام ضروری ڈیٹا داخل ہو جائے گا تو یہ سبز ہو جائے گا۔\n\n   o اگر آپ نے ابھی تک کوئی ماڈل، پرامپٹ یا واحد پروجیکٹ، پروفائل یا ٹاسک، یا درست API کلید کا انتخاب نہیں کیا ہے، تو آپ کو پہلے ایسا کرنے کے لیے کہا جائے گا۔\n\n   o اس عمل میں کچھ وقت لگ سکتا ہے اور پس منظر میں چلتا ہے۔  نتائج الگ ونڈو میں ظاہر ہوں گے۔\n\n   o مقامی ماڈل جو ابھی تک آپ کے کمپیوٹر پر لوڈ نہیں ہوئے ہیں تجزیہ شروع ہونے کے بعد پس منظر میں لوڈ ہو جائیں گے۔\n\nآپ کی نامزد کردہ api-keys (اگر کوئی ہے)، ماڈل، منتخب پروجیکٹ، پروفائل یا ٹاسک اور Ai پرامپٹ سبھی سیشنز میں محفوظ ہو جائیں گے۔\n\nتجزیے کے نتائج کو ایک نئی ونڈو میں ظاہر کرنے کے لیے 'دوبارہ چلائیں' خصوصیت کو کور کے نیچے استعمال کیا جائے گا۔\n\n"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- If you want to use the 'List XML Files' option, then you must also import the following profile into the Android device and make sure the imported profile 'MapTasker List' is enabled:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "Tasker XML فائل کو براہ راست آپ کے Android ڈیوائس سے لانے کے لیے درج ذیل اقدامات کی ضرورت ہے۔\n\n1- یہ ڈیوائس اور اینڈرائیڈ ڈیوائس دونوں کا ایک ہی نام والے نیٹ ورک پر ہونا چاہیے۔\n\n2- ٹاسکر پروجیکٹ 'HTTP سرور مثال' یا ایک جیسی فنکشن اینڈرائیڈ ڈیوائس پر انسٹال اور فعال ہونا چاہیے (سرور چل رہا ہونا چاہیے):\n\n    https://tinyurl.com/4p5cz8sv\n\n3- اگر آپ 'List XML Files' آپشن استعمال کرنا چاہتے ہیں، تو آپ کو مندرجہ ذیل پروفائل کو بھی اینڈرائیڈ ڈیوائس میں امپورٹ کرنا ہوگا اور یقینی بنائیں کہ امپورٹڈ پروفائل 'MapTasker List' فعال ہے:\n\n    https://taskernet.com/?public&tags=maptasker&time=AllTime\n\nآپ سے آئی پی ایڈریس، آپ کے اینڈرائیڈ ڈیوائس کا پورٹ نمبر اور ساتھ ہی اینڈرائیڈ ڈیوائس پر فائل لوکیشن کے بارے میں پوچھا جائے گا۔  پہلے سے طے شدہ قدریں فراہم کی جاتی ہیں، جہاں...\n\n'192.168.0.210' پہلے سے طے شدہ IP پتہ ہے،\n\n'1821' آپ کے Android ڈیوائس پر چلنے والی Tasker HTTP سرور مثال کے لیے ڈیفالٹ پورٹ نمبر ہے۔\n\n'/Tasker/configs/user/backup.xml' ڈیفالٹ فائل لوکیشن ہے۔  اگر آپ فائل کا مقام نہیں جانتے ہیں اور آپ نے پہلے ہی اپنا IP ایڈریس اور پورٹ درج کر رکھا ہے، تو آپ انتخاب کے لیے اپنے Android ڈیوائس پر دستیاب XML فائلوں کی فہرست حاصل کرنے کے لیے 'List XML Files' بٹن کو منتخب کر سکتے ہیں۔\n\nاستعمال کے نوٹس:\n\nIP ایڈریس اور پورٹ آپ کے اینڈرائیڈ ڈیوائس پر مذکورہ یو آر ایل سے 'HTTP سرور مثال' پروجیکٹ انسٹال کر کے حاصل کیا جا سکتا ہے۔ پھر اینڈرائیڈ نوٹیفکیشن حاصل کرنے کے لیے 'اپ ڈیٹ GD HTTP معلومات' نامی ٹاسک کو چلائیں۔\n\nHTTP سرور کی معلومات\nسرور کی معلومات کو اپ ڈیٹ کیا گیا {\"device name\":\"http://192.168.0.49:1821\"}\n\n- XML فائل لانے کے لیے، بٹن پر کلک کریں۔\n\n 'Android ڈیوائس سے XML حاصل کریں'\n\nپھر اس بٹن کے نیچے ان پٹ فیلڈز میں پیش کردہ ڈیفالٹ ویلیوز میں ترمیم کریں، اور پھر 'Enter and Click Here to Set XML Details' یا 'List XML Files' بٹن پر کلک کریں۔\n\n- کسی بھی بٹن کو دبانے سے یہ دیکھنے کے لیے اینڈرائیڈ ڈیوائس پنگ کرے گا کہ آیا یہ دستیاب ہے یا نہیں۔  اگر آلہ قابل رسائی نہیں ہے تو 10 سیکنڈ کے بعد پنگ کا وقت ختم ہو جائے گا۔  یقینی بنائیں کہ آئی پی ایڈریس درست ہے۔\n\nاس بازیافت کے عمل سے واپس آنے کے لیے 'کینسل انٹری' بٹن پر کلک کریں۔\n\n"
+
+msgid "MapTasker: view limit reached, stopping output to file:  output"
+msgstr "MapTasker: دیکھنے کی حد تک پہنچ گئی، فائل میں آؤٹ پٹ کو روکنا: آؤٹ پٹ"
+
+msgid "hardstop view limit"
+msgstr "ہارڈ اسٹاپ دیکھنے کی حد"
+
+msgid "(empty)"
+msgstr "(خالی)"
+
+msgid "(no name)"
+msgstr "(کوئی نام نہیں)"
+
+msgid "(unnamed Task)"
+msgstr "(بے نام ٹاسک)"
+
+msgid "(unnamed)"
+msgstr "(بے نام)"
+
+msgid "-1 means this orientation has no layout of its own."
+msgstr "-1 کا مطلب ہے کہ اس واقفیت کی اپنی کوئی ترتیب نہیں ہے۔"
+
+msgid "...and {count} more -- type above to narrow it down."
+msgstr "...اور {count} مزید -- اسے تنگ کرنے کے لیے اوپر ٹائپ کریں۔"
+
+msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
+msgstr "ایک منظر کے عنصر کی پوزیشنیں ڈیوائس پکسلز میں محفوظ ہوتی ہیں، لیکن اس کے ٹیکسٹ سائز اینڈرائیڈ کے ایس پی یونٹس میں محفوظ ہوتے ہیں۔ وہ نمبر جو دونوں کے درمیان تبدیل ہوتا ہے وہ فون کی پراپرٹی ہے جس پر منظر دکھایا گیا ہے، اور بیک اپ فائل میں نہیں ہے۔\n\nتو یہ یہاں مقرر ہے۔ اگر متن اس کے عناصر کے لیے بہت چھوٹا لگتا ہے تو اسے بلند کریں، اگر متن ان سے زیادہ ہو جائے تو اسے کم کریں۔"
+
+msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
+msgstr "ایک ورژن 2 سین کا اپنا کوئی سائز نہیں ہوتا ہے -- یہ جس بھی اسکرین پر دکھایا جاتا ہے اس کے اندر خود کو باہر رکھتا ہے، لہذا بیک اپ فائل میں اسے کھینچنے کے لیے کچھ بھی نہیں ہے۔\n\nلے آؤٹ کا دوبارہ بہاؤ دیکھنے کے لیے اسے تبدیل کریں۔ ایک فلو قطار مختلف طریقے سے لپیٹتی ہے، اور %sv2_render_width کے خلاف لکھا ہوا کوئی بھی 'دکھائیں جب' بالکل اسی کے بارے میں پوچھ رہا ہے۔"
+
+msgid "Actions"
+msgstr "اعمال"
+
+msgid "Add"
+msgstr "شامل کریں۔"
+
+msgid "Add Element"
+msgstr "عنصر شامل کریں۔"
+
+msgid "Add Scene"
+msgstr "منظر شامل کریں۔"
+
+msgid "Add a background"
+msgstr "ایک پس منظر شامل کریں۔"
+
+msgid "Add action"
+msgstr "کارروائی شامل کریں۔"
+
+msgid "Add event"
+msgstr "ایونٹ شامل کریں۔"
+
+msgid "Add handler"
+msgstr "ہینڈلر شامل کریں۔"
+
+msgid "Add modifier"
+msgstr "ترمیم کنندہ شامل کریں۔"
+
+msgid "Add scene properties"
+msgstr "منظر کی خصوصیات شامل کریں۔"
+
+msgid "Addressed by id from"
+msgstr "سے آئی ڈی کے ذریعے مخاطب کیا گیا۔"
+
+msgid "Adds an element on top of the stack, in the middle of the Scene."
+msgstr "منظر کے وسط میں، اسٹیک کے اوپر ایک عنصر شامل کرتا ہے۔"
+
+msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
+msgstr "منتخب جزو کے اندر شامل کرتا ہے اگر یہ بچوں کو پکڑ سکتا ہے، ورنہ براہ راست اس کے بعد۔"
+
+msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
+msgstr "منظر کے وسط میں اسے اسٹیک کے اوپر شامل کرتا ہے۔ جہاں چاہیں گھسیٹیں۔"
+
+msgid "Also selected:"
+msgstr "بھی منتخب کیا گیا:"
+
+msgid "Also update"
+msgstr "اپ ڈیٹ بھی کریں۔"
+
+msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
+msgstr "امبر: ٹاسکر اس کی فہرست دیتا ہے، لیکن میپ ٹاسکر کے پاس اس کا کوئی تصدیق شدہ نمونہ نہیں ہے۔ گرے: وہاں نہیں جا سکتا جہاں انتخاب اسے ڈالے گا۔"
+
+msgid "App icon"
+msgstr "ایپ آئیکن"
+
+msgid "Appearance Mode"
+msgstr "ظاہری شکل"
+
+msgid "Applied in order — the one at the bottom sits on top."
+msgstr "ترتیب سے لاگو کیا گیا — نیچے والا سب سے اوپر بیٹھا ہے۔"
+
+msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
+msgstr "اس منظر کے محفوظ ہونے پر لاگو ہوتا ہے، ابھی نہیں -- Cancel on Scene ڈائیلاگ عنصر اور کام دونوں کو بالکل ویسا ہی چھوڑ دیتا ہے جیسا کہ وہ تھے۔"
+
+msgid "Back to Editor"
+msgstr "واپس ایڈیٹر پر"
+
+msgid "Bounds"
+msgstr "حدیں"
+
+msgid "Cancelled. Changes to this Scene were discarded."
+msgstr "منسوخ اس منظر میں کی گئی تبدیلیوں کو مسترد کر دیا گیا تھا۔"
+
+msgid "Choose another file..."
+msgstr "دوسری فائل منتخب کریں..."
+
+msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
+msgstr "کسی جزو کو منتخب کرنے کے لیے اس پر کلک کریں، کئی لینے کے لیے اسی کنٹینر میں دوسرے پر شفٹ پر کلک کریں، اور انہیں اپنے بہن بھائیوں کے درمیان دوبارہ ترتیب دینے کے لیے گھسیٹیں۔ کنٹینر کے اندر یا باہر کسی جزو کو منتقل کرنا ایڈیٹر کے اندر اور باہر بٹن ہے۔ Undo وہاں بھی ہے۔"
+
+msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
+msgstr "کسی عنصر کو منتخب کرنے کے لیے اس پر کلک کریں، کئی لینے کے لیے بیک گراؤنڈ پر ایک باکس کو شفٹ پر کلک کریں یا گھسیٹیں، اور ان میں سے کسی کو بھی گھسیٹیں تاکہ ان سب کو منتقل کیا جا سکے -- تیر والے بٹنوں کو نڈج، شفٹ 10px کے لیے۔ کسی ایک عنصر کا سائز تبدیل کرنے کے لیے ہینڈل کو گھسیٹیں۔ کالعدم کریں، اور ایک عنصر کے بارے میں باقی سب کچھ، ایڈیٹر میں واپس آ گیا ہے۔"
+
+msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
+msgstr "کسی عنصر کو منتخب کرنے کے لیے اس پر کلک کریں، منتقل کرنے کے لیے گھسیٹیں، سائز تبدیل کرنے کے لیے ایک ہینڈل کو گھسیٹیں، نوج کرنے کے لیے تیر والے بٹن (10px کے لیے شفٹ)۔ ایک ساتھ کئی لینے کے لیے، شفٹ کلک کریں، یا پس منظر پر ایک باکس کو گھسیٹیں۔"
+
+msgid "Compare Files"
+msgstr "فائلوں کا موازنہ کریں۔"
+
+msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "ایک اور XML فائل کا بھری ہوئی فائل سے موازنہ کریں: کیا شامل کیا گیا، ہٹایا گیا، نام تبدیل کیا گیا اور تبدیل کیا گیا۔\n\nاسے یہ دیکھنے کے لیے استعمال کریں کہ TaskerNet کی درآمد سے کیا لایا گیا، کیا ترمیم تبدیل ہوئی، یا دو بیک اپ کے درمیان کیا فرق ہے۔\n\nاگر بھری ہوئی فائل 'موجودہ فائل میں محفوظ کریں' سے آئی ہے، تو جس فائل سے اسے محفوظ کیا گیا تھا اسے براہ راست پیش کیا جاتا ہے۔\n\nنتائج یہاں دکھائے جاتے ہیں اور موجودہ ڈائریکٹری میں ٹیکسٹ فائل میں محفوظ کیے جاتے ہیں۔"
+
+msgid "Comparison cancelled."
+msgstr "موازنہ منسوخ کر دیا گیا۔"
+
+msgid "Comparison report could not be saved."
+msgstr "موازنہ رپورٹ محفوظ نہیں ہو سکی۔"
+
+msgid "Comparison saved as"
+msgstr "موازنہ کو بطور محفوظ کیا گیا۔"
+
+msgid "Delete Scene"
+msgstr "منظر کو حذف کریں۔"
+
+msgid "Done"
+msgstr "ہو گیا"
+
+msgid "Drawn in"
+msgstr "اندر کھینچا گیا۔"
+
+msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
+msgstr "اس منظر کو مرکزی ونڈو میں تصویر کے طور پر کھینچتا ہے -- بشمول وہ اجزاء جو آپ نے یہاں شامل کیے ہیں یا تبدیل کیے ہیں لیکن ابھی تک محفوظ نہیں ہوئے۔\n\nایک ورژن 2 لے آؤٹ کا اپنا کوئی سائز نہیں ہوتا ہے، لہذا پیش نظارہ اسے آپ کی منتخب کردہ اسکرین میں رکھتا ہے، اور جب آپ اسے تبدیل کرتے ہیں تو اسے دوبارہ بہا دیتے ہیں۔\n\nیہ ڈائیلاگ اس وقت بند ہو جاتا ہے جب پیش نظارہ ہوتا ہے، اس میں موجود ہر چیز کے ساتھ؛ پیش نظارہ کا 'بیک ٹو ایڈیٹر' بٹن اسے واپس لاتا ہے۔\n\nیہ ایک نمائندگی ہے، ٹاسکر کا اپنا پیش کنندہ نہیں: % متغیرات کو حل کرنے کے بجائے نام دیا جاتا ہے، مواد کے رنگ ڈیوائس کے تھیم کے بجائے بیس لائن پیلیٹ سے آتے ہیں، اور تصاویر، ویڈیو اور ویب مواد کو پلیس ہولڈرز کے طور پر دکھایا جاتا ہے۔"
+
+msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
+msgstr "اس منظر کو مرکزی ونڈو میں بطور تصویر کھینچتا ہے، اوپر ٹائپ کردہ سائز پر -- بشمول تبدیلیاں ابھی تک محفوظ نہیں ہیں۔\n\nیہ ڈائیلاگ اس وقت بند ہو جاتا ہے جب پیش نظارہ ہوتا ہے، اس میں موجود ہر چیز کے ساتھ؛ پیش نظارہ کا 'بیک ٹو ایڈیٹر' بٹن اسے واپس لاتا ہے۔\n\nیہ ایک نمائندگی ہے، ٹاسکر کا اپنا پیش کنندہ نہیں: % متغیرات کو حل کرنے کے بجائے نامزد کیا گیا ہے، اور تصاویر، ویڈیو اور ویب مواد کو پلیس ہولڈر کے طور پر دکھایا گیا ہے۔"
+
+msgid "Dropdown menu — shown when opened"
+msgstr "ڈراپ ڈاؤن مینو — کھولنے پر دکھایا جاتا ہے۔"
+
+msgid "Duplicate"
+msgstr "نقل"
+
+msgid "Dynamic and Select Variable are worked out when the Scene is shown."
+msgstr "جب منظر دکھایا جاتا ہے تو ڈائنامک اور سلیکٹ ویری ایبل پر کام کیا جاتا ہے۔"
+
+msgid "Dynamic value"
+msgstr "متحرک قدر"
+
+msgid "Edit Scene"
+msgstr "منظر میں ترمیم کریں۔"
+
+msgid "Edit item layout"
+msgstr "آئٹم لے آؤٹ میں ترمیم کریں۔"
+
+msgid "Edit this one's properties instead, keeping the selection."
+msgstr "انتخاب کو مدنظر رکھتے ہوئے اس کی بجائے اس کی خصوصیات میں ترمیم کریں۔"
+
+msgid "Event handlers"
+msgstr "ایونٹ ہینڈلرز"
+
+msgid "Export Scene"
+msgstr "ایکسپورٹ سین"
+
+msgid "Geometry"
+msgstr "جیومیٹری"
+
+msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
+msgstr "گرے: MapTasker کے پاس اس کے لیے کوئی دلیل ٹیبل نہیں ہے، اس لیے یہ اندازہ لگائے بغیر نہیں بنایا جا سکتا کہ Tasker اندر سے کیا توقع رکھتا ہے۔ ہیڈنگز MapTasker کی اپنی گروپنگ ہیں۔"
+
+msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
+msgstr "ہیچڈ فلز اور اٹالک انڈر لائن ٹیکسٹ % متغیر ہیں -- ان کی قدریں ڈیوائس پر رہتی ہیں، بیک اپ میں نہیں، اس لیے ان کا نام اندازہ لگانے کے بجائے رکھا گیا ہے۔ تصاویر، ویڈیو، نقشے اور ویب مواد کو پلیس ہولڈرز کے طور پر دکھایا گیا ہے۔ اس کی جیومیٹری، اس کے متغیرات اور اس کے چلنے والے کاموں کے لیے کسی بھی عنصر کو ہوور کریں۔"
+
+msgid "Health Check"
+msgstr "ہیلتھ چیک"
+
+msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
+msgstr "محفوظ کیے بغیر بند ہو جاتا ہے، اور اس منظر کو بالکل اسی طرح واپس رکھتا ہے جیسا کہ یہ ڈائیلاگ کھلنے کے وقت تھا -- بشمول پیش نظارہ میں کسی بھی چیز کو منتقل یا تبدیل کیا گیا تھا۔\n\nنام تبدیل کرنا ایک ایسی چیز ہے جو اسے واپس نہیں لے سکتی: اسے بھری ہوئی بیک اپ پر لاگو کیا جاتا ہے جیسا کہ اس کی تصدیق ہوتی ہے، اور اس کے ساتھ اس ڈائیلاگ کو بند کر دیتی ہے۔"
+
+msgid "Health Check found no errors or warnings."
+msgstr "ہیلتھ چیک میں کوئی نقص یا انتباہ نہیں ملا۔"
+
+msgid "Compare With"
+msgstr "کے ساتھ موازنہ کریں۔"
+
+msgid "Health Check report could not be saved."
+msgstr "ہیلتھ چیک کی رپورٹ محفوظ نہیں ہو سکی۔"
+
+msgid "Health Check found no errors or warnings."
+msgstr "ہیلتھ چیک میں کوئی نقص یا انتباہ نہیں ملا۔"
+
+msgid "Health Check report could not be saved."
+msgstr "ہیلتھ چیک کی رپورٹ محفوظ نہیں ہو سکی۔"
+
+msgid "Health Check saved as"
+msgstr "ہیلتھ چیک کو بطور محفوظ کیا گیا۔"
+
+msgid "Health Check saved as"
+msgstr "ہیلتھ چیک کو بطور محفوظ کیا گیا۔"
+
+msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
+msgstr "ایک پاپ اپ پیغام غائب ہونے سے پہلے کتنی دیر تک اسکرین پر رہتا ہے۔\n\n'برخاست ہونے تک' ہر پیغام کو اس وقت تک برقرار رکھتا ہے جب تک کہ آپ اسے بند نہ کر دیں، جو اس وقت مفید ہوتا ہے جب کوئی پیغام آپ کے پڑھنے سے پہلے گزر جاتا ہے۔\n\nکچھ پیغامات نے اپنا طویل دورانیہ مقرر کیا ہے کیونکہ وہ ان چیزوں کی فہرست بناتے ہیں جنہیں آپ نے پڑھنا ہے -- مثال کے طور پر منظر کے عنصر کو حذف کرنے یا اس کا نام تبدیل کرنے سے متاثر ہونے والے کام۔ یہاں جو بھی منتخب کیا جاتا ہے وہ اپنی اپنی اوقات رکھتے ہیں۔"
+
+msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
+msgstr "ایک پاپ اپ پیغام غائب ہونے سے پہلے کتنی دیر تک اسکرین پر رہتا ہے۔\n\n'برخاست ہونے تک' ہر پیغام کو اس وقت تک برقرار رکھتا ہے جب تک کہ آپ اسے بند نہ کر دیں، جو اس وقت مفید ہوتا ہے جب کوئی پیغام آپ کے پڑھنے سے پہلے گزر جاتا ہے۔\n\nکچھ پیغامات نے اپنا طویل دورانیہ مقرر کیا ہے کیونکہ وہ ان چیزوں کی فہرست بناتے ہیں جنہیں آپ نے پڑھنا ہے -- مثال کے طور پر منظر کے عنصر کو حذف کرنے یا اس کا نام تبدیل کرنے سے متاثر ہونے والے کام۔ یہاں جو بھی منتخب کیا جاتا ہے وہ اپنی اپنی اوقات رکھتے ہیں۔"
+
+msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
+msgstr "فہرست میں: ایک رینج کے لیے شفٹ پر کلک کریں، ایک کو شامل کرنے یا ہٹانے کے لیے Ctrl- یا Cmd پر کلک کریں۔"
+
+msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
+msgstr "فہرست میں: ایک رینج کے لیے شفٹ پر کلک کریں، ایک کو شامل کرنے یا ہٹانے کے لیے Ctrl- یا Cmd پر کلک کریں۔"
+
+msgid "Item layout"
+msgstr "آئٹم لے آؤٹ"
+
+msgid "Item layout"
+msgstr "آئٹم لے آؤٹ"
+
+msgid "Landscape"
+msgstr "زمین کی تزئین کی"
+
+msgid "Landscape"
+msgstr "زمین کی تزئین کی"
+
+msgid "Legacy"
+msgstr "میراث"
+
+msgid "Legacy"
+msgstr "میراث"
+
+msgid "Legacy Scene"
+msgstr "میراثی منظر"
+
+msgid "Legacy Scene"
+msgstr "میراثی منظر"
+
+msgid "List"
+msgstr "فہرست"
+
+msgid "List"
+msgstr "فہرست"
+
+msgid "MapTasker: view limit reached, diagram truncated"
+msgstr "MapTasker: دیکھنے کی حد پوری ہو گئی، خاکہ چھوٹا ہو گیا۔"
+
+msgid "MapTasker: view limit reached, diagram truncated"
+msgstr "MapTasker: دیکھنے کی حد پوری ہو گئی، خاکہ چھوٹا ہو گیا۔"
+
+msgid "Modifiers"
+msgstr "ترمیم کرنے والے"
+
+msgid "Never updated"
+msgstr "کبھی اپ ڈیٹ نہیں ہوا۔"
+
+msgid "No Task addresses this element by name."
+msgstr "کوئی ٹاسک اس عنصر کو نام سے ایڈریس نہیں کرتا ہے۔"
+
+msgid "No XML file has been loaded.  Get an XML file first."
+msgstr "کوئی XML فائل لوڈ نہیں ہوئی ہے۔  پہلے ایک XML فائل حاصل کریں۔"
+
+msgid "No element matches that."
+msgstr "کوئی عنصر اس سے میل نہیں کھاتا۔"
+
+msgid "Not an HTML colour name or #hex value."
+msgstr "HTML رنگ کا نام یا #hex قدر نہیں۔"
+
+msgid "Not updated -- these name both this Scene and this element, but not as a"
+msgstr "اپ ڈیٹ نہیں کیا گیا -- یہ اس منظر اور اس عنصر دونوں کو نام دیتے ہیں، لیکن a کے طور پر نہیں۔"
+
+msgid "Nothing here."
+msgstr "یہاں کچھ نہیں۔"
+
+msgid "Notification Duration"
+msgstr "اطلاع کا دورانیہ"
+
+msgid "Notification Duration:"
+msgstr "اطلاع کا دورانیہ:"
+
+msgid "On"
+msgstr "پر"
+
+msgid "Only when"
+msgstr "صرف جب"
+
+msgid "Outline every component and name it, the way the designer's tree names it."
+msgstr "ہر جزو کا خاکہ بنائیں اور اسے نام دیں، جس طرح ڈیزائنر کا درخت اسے نام دیتا ہے۔"
+
+msgid "Outline every element and name it."
+msgstr "ہر عنصر کا خاکہ بنائیں اور اسے نام دیں۔"
+
+msgid "Modifiers"
+msgstr "ترمیم کرنے والے"
+
+msgid "Never updated"
+msgstr "کبھی اپ ڈیٹ نہیں ہوا۔"
+
+msgid "No Task addresses this element by name."
+msgstr "کوئی ٹاسک اس عنصر کو نام سے ایڈریس نہیں کرتا ہے۔"
+
+msgid "Pick a Material icon."
+msgstr "مواد کا آئیکن منتخب کریں۔"
+
+msgid "No XML file has been loaded.  Get an XML file first."
+msgstr "کوئی XML فائل لوڈ نہیں ہوئی ہے۔  پہلے ایک XML فائل حاصل کریں۔"
+
+msgid "No element matches that."
+msgstr "کوئی عنصر اس سے میل نہیں کھاتا۔"
+
+msgid "Pick an icon"
+msgstr "ایک آئیکن چنیں۔"
+
+msgid "Not an HTML colour name or #hex value."
+msgstr "HTML رنگ کا نام یا #hex قدر نہیں۔"
+
+msgid "Not updated -- these name both this Scene and this element, but not as a"
+msgstr "اپ ڈیٹ نہیں کیا گیا -- یہ اس منظر اور اس عنصر دونوں کو نام دیتے ہیں، لیکن a کے طور پر نہیں۔"
+
+msgid "Nothing here."
+msgstr "یہاں کچھ نہیں۔"
+
+msgid "Pick from the Scene's environment and global variables."
+msgstr "منظر کے ماحول اور عالمی متغیرات سے چنیں۔"
+
+msgid "Notification Duration"
+msgstr "اطلاع کا دورانیہ"
+
+msgid "Notification Duration:"
+msgstr "اطلاع کا دورانیہ:"
+
+msgid "Pick one of Material's own colour roles."
+msgstr "مواد کے اپنے رنگین کرداروں میں سے ایک کو منتخب کریں۔"
+
+msgid "On"
+msgstr "پر"
+
+msgid "Preview"
+msgstr "پیش نظارہ"
+
+msgid "Only when"
+msgstr "صرف جب"
+
+msgid "Project(s) that list it."
+msgstr "پروجیکٹ(ز) جو اس کی فہرست دیتے ہیں۔"
+
+msgid "Outline every component and name it, the way the designer's tree names it."
+msgstr "ہر جزو کا خاکہ بنائیں اور اسے نام دیں، جس طرح ڈیزائنر کا درخت اسے نام دیتا ہے۔"
+
+msgid "Outline every element and name it."
+msgstr "ہر عنصر کا خاکہ بنائیں اور اسے نام دیں۔"
+
+msgid "Pick a Material icon."
+msgstr "مواد کا آئیکن منتخب کریں۔"
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
+msgstr "ایک نئے نام کا اشارہ کرتا ہے اور اسے بھری ہوئی بیک اپ پر لاگو کرتا ہے، ابھی -- ہر جگہ منظر کا نام تبدیل کرنا، بشمول ہر پروجیکٹ کی منظر کی فہرست میں جو اسے رکھتا ہے۔\n\nاس منظر کو نام سے دکھانے یا چھپانے والے کاموں کو اپ ڈیٹ نہیں کیا جاتا ہے۔ وہ اب بھی پرانے منظر کا نام دیتے ہیں۔\n\nاوپر دی گئی منظر نام کی فیلڈ صرف پڑھنے کے لیے ہے -- اسے تبدیل کرنے کا یہ واحد طریقہ ہے۔"
+
+msgid "Pick an icon"
+msgstr "ایک آئیکن چنیں۔"
+
+msgid "Properties"
+msgstr "پراپرٹیز"
+
+msgid "Pick from the Scene's environment and global variables."
+msgstr "منظر کے ماحول اور عالمی متغیرات سے چنیں۔"
+
+msgid "Pick one of Material's own colour roles."
+msgstr "مواد کے اپنے رنگین کرداروں میں سے ایک کو منتخب کریں۔"
+
+msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
+msgstr "پراپرٹیز میں ایک وقت میں ایک عنصر میں ترمیم کی جاتی ہے۔ منتخب کردہ ہر چیز کو گھسیٹنا اور نڈ کرنا۔"
+
+msgid "Preview"
+msgstr "پیش نظارہ"
+
+msgid "Refresh"
+msgstr "ریفریش کریں۔"
+
+msgid "Project(s) that list it."
+msgstr "پروجیکٹ(ز) جو اس کی فہرست دیتے ہیں۔"
+
+msgid "Remove background"
+msgstr "پس منظر کو ہٹا دیں۔"
+
+msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
+msgstr "ایک نئے نام کا اشارہ کرتا ہے اور اسے بھری ہوئی بیک اپ پر لاگو کرتا ہے، ابھی -- ہر جگہ منظر کا نام تبدیل کرنا، بشمول ہر پروجیکٹ کی منظر کی فہرست میں جو اسے رکھتا ہے۔\n\nاس منظر کو نام سے دکھانے یا چھپانے والے کاموں کو اپ ڈیٹ نہیں کیا جاتا ہے۔ وہ اب بھی پرانے منظر کا نام دیتے ہیں۔\n\nاوپر دی گئی منظر نام کی فیلڈ صرف پڑھنے کے لیے ہے -- اسے تبدیل کرنے کا یہ واحد طریقہ ہے۔"
+
+msgid "Properties"
+msgstr "پراپرٹیز"
+
+msgid "Rename Element"
+msgstr "عنصر کا نام تبدیل کریں۔"
+
+msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
+msgstr "پراپرٹیز میں ایک وقت میں ایک عنصر میں ترمیم کی جاتی ہے۔ منتخب کردہ ہر چیز کو گھسیٹنا اور نڈ کرنا۔"
+
+msgid "Refresh"
+msgstr "ریفریش کریں۔"
+
+msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
+msgstr "یہاں کسی عنصر کا نام تبدیل کرنے سے بیک اپ صاف نہیں ہوتا ہے: کسی آئٹم لے آؤٹ میں ٹاسک کے عنصر کی کارروائی کے لیے کوئی منظر نام نہیں ہوتا ہے، اس لیے دوبارہ لکھنے کے لیے کچھ نہیں ہے۔"
+
+msgid "Remove background"
+msgstr "پس منظر کو ہٹا دیں۔"
+
+msgid "Repeats once per array entry"
+msgstr "فی صف اندراج میں ایک بار دہرایا جاتا ہے۔"
+
+msgid "Rename Element"
+msgstr "عنصر کا نام تبدیل کریں۔"
+
+msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
+msgstr "یہاں کسی عنصر کا نام تبدیل کرنے سے بیک اپ صاف نہیں ہوتا ہے: کسی آئٹم لے آؤٹ میں ٹاسک کے عنصر کی کارروائی کے لیے کوئی منظر نام نہیں ہوتا ہے، اس لیے دوبارہ لکھنے کے لیے کچھ نہیں ہے۔"
+
+msgid "Round dragged positions and sizes to this many pixels."
+msgstr "گول گھسیٹ کر پوزیشنز اور سائز اس بہت سے پکسلز تک۔"
+
+msgid "Repeats once per array entry"
+msgstr "فی صف اندراج میں ایک بار دہرایا جاتا ہے۔"
+
+msgid "Round dragged positions and sizes to this many pixels."
+msgstr "گول گھسیٹ کر پوزیشنز اور سائز اس بہت سے پکسلز تک۔"
+
+msgid "Save Scene To Android Device"
+msgstr "منظر کو Android ڈیوائس پر محفوظ کریں۔"
+
+msgid "Save Scene To Android Device"
+msgstr "منظر کو Android ڈیوائس پر محفوظ کریں۔"
+
+msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "پورے بیک اپ کو محفوظ کرتا ہے -- اس میں موجود ہر پروجیکٹ، پروفائل، ٹاسک اور سین، نہ صرف یہ منظر -- بشمول اس سیشن میں کہیں بھی کی گئی ہر ترمیم۔\nیہ فی الحال لوڈ کی گئی فائل کی ایک نئی، ٹائم اسٹیمپڈ کاپی پر لکھا گیا ہے: backup.xml backup_20260728_143005.xml بن جاتا ہے۔\nآپ نے جو فائل لوڈ کی ہے اسے کبھی نہیں لکھا جاتا ہے، اس لیے اسے بالکل ویسا ہی چھوڑ دیا جاتا ہے جیسا کہ تھا۔\nاس کے بعد ایپ نئی کاپی پر سوئچ کرتی ہے، جو کسی بھی مزید ترمیم اور بچت کے لیے موجودہ فائل بن جاتی ہے۔ دوبارہ محفوظ کرنا ٹائم اسٹیمپ کی جگہ لے لیتا ہے بجائے اس کے کہ دوسرا شامل کریں۔\nیہ صرف اس کمپیوٹر کو لکھتا ہے -- آپ کے Android ڈیوائس پر کچھ نہیں بھیجا جاتا ہے۔"
+
+msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
+msgstr "پورے بیک اپ کو محفوظ کرتا ہے -- اس میں موجود ہر پروجیکٹ، پروفائل، ٹاسک اور سین، نہ صرف یہ منظر -- بشمول اس سیشن میں کہیں بھی کی گئی ہر ترمیم۔\nیہ فی الحال لوڈ کی گئی فائل کی ایک نئی، ٹائم اسٹیمپڈ کاپی پر لکھا گیا ہے: backup.xml backup_20260728_143005.xml بن جاتا ہے۔\nآپ نے جو فائل لوڈ کی ہے اسے کبھی نہیں لکھا جاتا ہے، اس لیے اسے بالکل ویسا ہی چھوڑ دیا جاتا ہے جیسا کہ تھا۔\nاس کے بعد ایپ نئی کاپی پر سوئچ کرتی ہے، جو کسی بھی مزید ترمیم اور بچت کے لیے موجودہ فائل بن جاتی ہے۔ دوبارہ محفوظ کرنا ٹائم اسٹیمپ کی جگہ لے لیتا ہے بجائے اس کے کہ دوسرا شامل کریں۔\nیہ صرف اس کمپیوٹر کو لکھتا ہے -- آپ کے Android ڈیوائس پر کچھ نہیں بھیجا جاتا ہے۔"
+
+msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
+msgstr "اس منظر کو اس کے تمام عناصر کے ساتھ، ایک اسٹینڈ .scn.xml فائل کے طور پر محفوظ کرتا ہے -- وہی فارمیٹ Tasker کا اپنا سین ایکسپورٹ تیار کرتا ہے۔\n\nمنظر کے عناصر کو چلانے والے کام شامل نہیں ہیں۔ وہ ان کے اپنے پروجیکٹ سے تعلق رکھتے ہیں۔"
+
+msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
+msgstr "اس منظر کو اس کے تمام عناصر کے ساتھ، ایک اسٹینڈ .scn.xml فائل کے طور پر محفوظ کرتا ہے -- وہی فارمیٹ Tasker کا اپنا سین ایکسپورٹ تیار کرتا ہے۔\n\nمنظر کے عناصر کو چلانے والے کام شامل نہیں ہیں۔ وہ ان کے اپنے پروجیکٹ سے تعلق رکھتے ہیں۔"
+
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "ٹوٹے ہوئے حوالہ جات، غیر حوالہ شدہ ٹاسک، پروفائلز اور سینز، اور نام دینے کے مسائل کے لیے بھری ہوئی XML کو اسکین کریں۔\n\nنتائج یہاں دکھائے جاتے ہیں اور موجودہ ڈائریکٹری میں ٹیکسٹ فائل میں محفوظ کیے جاتے ہیں۔"
+
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "ٹوٹے ہوئے حوالہ جات، غیر حوالہ شدہ ٹاسک، پروفائلز اور سینز، اور نام دینے کے مسائل کے لیے بھری ہوئی XML کو اسکین کریں۔\n\nنتائج یہاں دکھائے جاتے ہیں اور موجودہ ڈائریکٹری میں ٹیکسٹ فائل میں محفوظ کیے جاتے ہیں۔"
+
+msgid "Scene Components"
+msgstr "منظر کے اجزاء"
+
+msgid "Scene Components"
+msgstr "منظر کے اجزاء"
+
+msgid "Scene Elements"
+msgstr "منظر کے عناصر"
+
+msgid "Scene Elements"
+msgstr "منظر کے عناصر"
+
+msgid "Scene Name"
+msgstr "منظر کا نام"
+
+msgid "Scene Name"
+msgstr "منظر کا نام"
+
+msgid "Scene Preview"
+msgstr "منظر کا پیش نظارہ"
+
+msgid "Scene Preview"
+msgstr "منظر کا پیش نظارہ"
+
+msgid "Scene Properties"
+msgstr "منظر کی خصوصیات"
+
+msgid "Scene Properties"
+msgstr "منظر کی خصوصیات"
+
+msgid "Scene added."
+msgstr "منظر شامل کیا گیا۔"
+
+msgid "Scene added."
+msgstr "منظر شامل کیا گیا۔"
+
+msgid "Scene type"
+msgstr "منظر کی قسم"
+
+msgid "Scene type"
+msgstr "منظر کی قسم"
+
+msgid "Screen"
+msgstr "سکرین"
+
+msgid "Screen"
+msgstr "سکرین"
+
+msgid "Search elements"
+msgstr "عناصر تلاش کریں۔"
+
+msgid "Search elements"
+msgstr "عناصر تلاش کریں۔"
+
+msgid "Search icons"
+msgstr "شبیہیں تلاش کریں۔"
+
+msgid "Search icons"
+msgstr "شبیہیں تلاش کریں۔"
+
+msgid "Search variables"
+msgstr "متغیرات تلاش کریں۔"
+
+msgid "Search variables"
+msgstr "متغیرات تلاش کریں۔"
+
+msgid "Select a component on the left."
+msgstr "بائیں طرف ایک جزو منتخب کریں۔"
+
+msgid "Select a component on the left."
+msgstr "بائیں طرف ایک جزو منتخب کریں۔"
+
+msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
+msgstr "بقیہ کو دیکھنے کے لیے ایک بڑی ویو لِٹ یا ایک پروجیکٹ/پروفائل/ٹاسک منتخب کریں۔"
+
+msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
+msgstr "بقیہ کو دیکھنے کے لیے ایک بڑی ویو لِٹ یا ایک پروجیکٹ/پروفائل/ٹاسک منتخب کریں۔"
+
+msgid "Select a single Scene first (Scene pulldown above)."
+msgstr "پہلے ایک سین کو منتخب کریں (اوپر کا منظر پل ڈاون)۔"
+
+msgid "Select a single Scene first (Scene pulldown above)."
+msgstr "پہلے ایک سین کو منتخب کریں (اوپر کا منظر پل ڈاون)۔"
+
+msgid "Select a single element to duplicate, delete or restack it."
+msgstr "اسے ڈپلیکیٹ کرنے، حذف کرنے یا دوبارہ ترتیب دینے کے لیے ایک عنصر کو منتخب کریں۔"
+
+msgid "Select a single element to duplicate, delete or restack it."
+msgstr "اسے ڈپلیکیٹ کرنے، حذف کرنے یا دوبارہ ترتیب دینے کے لیے ایک عنصر کو منتخب کریں۔"
+
+msgid "Select an element first."
+msgstr "پہلے ایک عنصر کو منتخب کریں۔"
+
+msgid "Select an element first."
+msgstr "پہلے ایک عنصر کو منتخب کریں۔"
+
+msgid "Select an element on the canvas or in the list."
+msgstr "کینوس پر یا فہرست میں ایک عنصر منتخب کریں۔"
+
+msgid "Select an element on the canvas or in the list."
+msgstr "کینوس پر یا فہرست میں ایک عنصر منتخب کریں۔"
+
+msgid "Show the Task each element runs."
+msgstr "ٹاسک دکھائیں جو ہر عنصر چلتا ہے۔"
+
+msgid "Show the Task each element runs."
+msgstr "ٹاسک دکھائیں جو ہر عنصر چلتا ہے۔"
+
+msgid "Show what each component does when tapped, and what it writes to."
+msgstr "دکھائیں کہ ٹیپ کرنے پر ہر جزو کیا کرتا ہے، اور وہ کیا لکھتا ہے۔"
+
+msgid "Show what each component does when tapped, and what it writes to."
+msgstr "دکھائیں کہ ٹیپ کرنے پر ہر جزو کیا کرتا ہے، اور وہ کیا لکھتا ہے۔"
+
+msgid "Show when"
+msgstr "دکھائیں جب"
+
+msgid "Show when"
+msgstr "دکھائیں جب"
+
+msgid "Size"
+msgstr "سائز"
+
+msgid "Size"
+msgstr "سائز"
+
+msgid "Size must be a whole number (-1 for no layout)."
+msgstr "سائز ایک مکمل نمبر ہونا چاہیے (بغیر کسی ترتیب کے -1)۔"
+
+msgid "Size must be a whole number (-1 for no layout)."
+msgstr "سائز ایک مکمل نمبر ہونا چاہیے (بغیر کسی ترتیب کے -1)۔"
+
+msgid "Snap"
+msgstr "سنیپ"
+
+msgid "Snap"
+msgstr "سنیپ"
+
+msgid "Spinner"
+msgstr "اسپنر"
+
+msgid "Spinner"
+msgstr "اسپنر"
+
+msgid "Stop firing anything on this event."
+msgstr "اس تقریب پر کچھ بھی فائر کرنا بند کریں۔"
+
+msgid "Stop firing anything on this event."
+msgstr "اس تقریب پر کچھ بھی فائر کرنا بند کریں۔"
+
+msgid "Task action(s) in"
+msgstr "ٹاسک ایکشن(ز) میں"
+
+msgid "Task action(s) in"
+msgstr "ٹاسک ایکشن(ز) میں"
+
+msgid "Task(s)"
+msgstr "کام"
+
+msgid "Task(s)"
+msgstr "کام"
+
+msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
+msgstr "ٹاسک اس منظر کو میچ پیٹرن (عنصر کی مرئیت) کے ذریعے ایڈریس کرتے ہیں۔ انہیں خود چیک کریں۔"
+
+msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
+msgstr "ٹاسک اس منظر کو میچ پیٹرن (عنصر کی مرئیت) کے ذریعے ایڈریس کرتے ہیں۔ انہیں خود چیک کریں۔"
+
+msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
+msgstr "ٹاسکر اس ٹاسک کو منظر کے اندر رکھتا ہے اور کہیں اور نہیں، لہذا اس کا کوئی نام نہیں ہے اور اسے کھوئے بغیر کہیں اور اشارہ نہیں کیا جا سکتا۔ یہ اچھوت کے ذریعے کیا جاتا ہے۔"
+
+msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
+msgstr "ٹاسکر اس ٹاسک کو منظر کے اندر رکھتا ہے اور کہیں اور نہیں، لہذا اس کا کوئی نام نہیں ہے اور اسے کھوئے بغیر کہیں اور اشارہ نہیں کیا جا سکتا۔ یہ اچھوت کے ذریعے کیا جاتا ہے۔"
+
+msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
+msgstr "Tasker اس عنصر کی فہرست دیتا ہے، لیکن MapTasker نے کبھی بھی ایک محفوظ کردہ منظر میں نہیں دیکھا -- اس لیے اس میں اس کی قسم اور شناخت کے علاوہ کچھ نہیں شامل کیا جاتا ہے، اور یہاں تک کہ اوپر کے نام سے بھی قسم کا اندازہ لگایا جاتا ہے (بطور قسم لکھا جاتا ہے: \"{node_type}\")۔ اگر ٹاسکر اسے نہیں پہچانتا ہے تو، کالعدم کو دبائیں۔"
+
+msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
+msgstr "Tasker اس عنصر کی فہرست دیتا ہے، لیکن MapTasker نے کبھی بھی ایک محفوظ کردہ منظر میں نہیں دیکھا -- اس لیے اس میں اس کی قسم اور شناخت کے علاوہ کچھ نہیں شامل کیا جاتا ہے، اور یہاں تک کہ اوپر کے نام سے بھی قسم کا اندازہ لگایا جاتا ہے (بطور قسم لکھا جاتا ہے: \"{node_type}\")۔ اگر ٹاسکر اسے نہیں پہچانتا ہے تو، کالعدم کو دبائیں۔"
+
+msgid "Tasker variable(s)"
+msgstr "ٹاسکر متغیر"
+
+msgid "Tasker variable(s)"
+msgstr "ٹاسکر متغیر"
+
+msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
+msgstr "Tasker's Screen Builder: ایک اعلانیہ جزو درخت (کالم، قطار، سکیفولڈ، ...) جو خود کو باہر رکھتا ہے، بغیر کسی مقررہ کینوس کے سائز کے۔ سے شروع کریں:"
+
+msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
+msgstr "Tasker's Screen Builder: ایک اعلانیہ جزو درخت (کالم، قطار، سکیفولڈ، ...) جو خود کو باہر رکھتا ہے، بغیر کسی مقررہ کینوس کے سائز کے۔ سے شروع کریں:"
+
+msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
+msgstr "ٹاسک اس عنصر کو نام سے ایڈریس کرتے ہیں (عنصر متن، عنصر کی پوزیشن، ... مجموعی طور پر 18 ایکشن کوڈز)، لہذا اس کا نام تبدیل کرنا فیلڈ میں ترمیم نہیں ہے۔ نام تبدیل کرنے کا ڈائیلاگ فہرست کرتا ہے جو موجودہ نام پر منحصر ہے اور ان کاموں کو ساتھ لانے کی پیشکش کرتا ہے۔"
+
+msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
+msgstr "ٹاسک اس عنصر کو نام سے ایڈریس کرتے ہیں (عنصر متن، عنصر کی پوزیشن، ... مجموعی طور پر 18 ایکشن کوڈز)، لہذا اس کا نام تبدیل کرنا فیلڈ میں ترمیم نہیں ہے۔ نام تبدیل کرنے کا ڈائیلاگ فہرست کرتا ہے جو موجودہ نام پر منحصر ہے اور ان کاموں کو ساتھ لانے کی پیشکش کرتا ہے۔"
+
+msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
+msgstr "وہ کام جو اس منظر کو نام سے دکھاتے یا چھپاتے ہیں انہیں تبدیل نہیں کیا جاتا، اور وہیں چھوڑ دیا جاتا ہے۔"
+
+msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
+msgstr "وہ کام جو اس منظر کو نام سے دکھاتے یا چھپاتے ہیں انہیں تبدیل نہیں کیا جاتا، اور وہیں چھوڑ دیا جاتا ہے۔"
+
+msgid "Text density"
+msgstr "متن کی کثافت"
+
+msgid "Text density"
+msgstr "متن کی کثافت"
+
+msgid "That component can't go there."
+msgstr "وہ جزو وہاں نہیں جا سکتا۔"
+
+msgid "That component can't go there."
+msgstr "وہ جزو وہاں نہیں جا سکتا۔"
+
+msgid "That is the file already loaded.  Choose a different one to compare against."
+msgstr "وہ فائل پہلے ہی لوڈ ہے۔  موازنہ کرنے کے لیے ایک مختلف کا انتخاب کریں۔"
+
+msgid "That is the file already loaded.  Choose a different one to compare against."
+msgstr "وہ فائل پہلے ہی لوڈ ہے۔  موازنہ کرنے کے لیے ایک مختلف کا انتخاب کریں۔"
+
+msgid "The Material icon list could not be read, so type the name instead."
+msgstr "مواد کے آئیکن کی فہرست کو پڑھا نہیں جا سکا، اس لیے اس کے بجائے نام ٹائپ کریں۔"
+
+msgid "The Material icon list could not be read, so type the name instead."
+msgstr "مواد کے آئیکن کی فہرست کو پڑھا نہیں جا سکا، اس لیے اس کے بجائے نام ٹائپ کریں۔"
+
+msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
+msgstr "ٹاسکر متغیر یہ جزو اپنی قدر لکھتا ہے۔ متعدد کو کوما سے الگ کریں۔ بائنڈنگ کا اعلان کرنے کے لیے اسے سیٹ کیے بغیر خالی چھوڑ دیں۔"
+
+msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
+msgstr "ٹاسکر متغیر یہ جزو اپنی قدر لکھتا ہے۔ متعدد کو کوما سے الگ کریں۔ بائنڈنگ کا اعلان کرنے کے لیے اسے سیٹ کیے بغیر خالی چھوڑ دیں۔"
+
+msgid "The Tasks that address it will be updated when this Scene is saved."
+msgstr "اس منظر کے محفوظ ہونے پر اس سے خطاب کرنے والے کاموں کو اپ ڈیٹ کر دیا جائے گا۔"
+
+msgid "The Tasks that address it will be updated when this Scene is saved."
+msgstr "اس منظر کے محفوظ ہونے پر اس سے خطاب کرنے والے کاموں کو اپ ڈیٹ کر دیا جائے گا۔"
+
+msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
+msgstr "ایک قطار کی ترتیب۔ ٹاسکر جو بھی فہرست بھرتا ہے اس میں سے ہر اندراج میں ایک بار اسے کھینچتا ہے، لہذا آپ جو کچھ یہاں دیکھتے ہیں وہ فہرست کے بجائے ایک قطار ہے۔"
+
+msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
+msgstr "ایک قطار کی ترتیب۔ ٹاسکر جو بھی فہرست بھرتا ہے اس میں سے ہر اندراج میں ایک بار اسے کھینچتا ہے، لہذا آپ جو کچھ یہاں دیکھتے ہیں وہ فہرست کے بجائے ایک قطار ہے۔"
+
+msgid "The loaded file was saved from"
+msgstr "بھری ہوئی فائل سے محفوظ کر لی گئی۔"
+
+msgid "The loaded file was saved from"
+msgstr "بھری ہوئی فائل سے محفوظ کر لی گئی۔"
+
+msgid "The original"
+msgstr "اصل"
+
+msgid "The original"
+msgstr "اصل"
+
+msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
+msgstr "اصل منظر: UI عناصر ایک سائز کے کینوس پر مقررہ پوزیشنوں پر رکھے گئے ہیں (ٹیکسٹ، بٹن، رییکٹ، امیج، ویب، ...)۔"
+
+msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
+msgstr "اصل منظر: UI عناصر ایک سائز کے کینوس پر مقررہ پوزیشنوں پر رکھے گئے ہیں (ٹیکسٹ، بٹن، رییکٹ، امیج، ویب، ...)۔"
+
+msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
+msgstr "اسکرین کا سائز اس پیش نظارہ کا ہے، منظر کا نہیں -- ایک ورژن 2 لے آؤٹ کا اپنا کوئی سائز نہیں ہے، لہذا اسے دوبارہ بہاؤ دیکھنے کے لیے 'اسکرین' کو تبدیل کریں۔ مٹیریل رول کے نام سے منسوب رنگ میٹریل 3 بیس لائن پیلیٹ سے اخذ کیے گئے ہیں۔ ڈیوائس ان کو اپنے تھیم کے خلاف حل کرتی ہے، جو آپ کے وال پیپر سے مٹیریل کے تحت آتا ہے۔ ہیچڈ فلز اور ترچھا انڈر لائن ٹیکسٹ %متغیر ہیں۔ امبر 'جب دکھائیں' کے ساتھ نشان زد اجزاء کا خاکہ پیش کرتا ہے۔ اس کے ترمیم کنندگان، متغیرات اور اعمال کے لیے کسی بھی جزو کو ہوور کریں۔"
+
+msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
+msgstr "اسکرین کا سائز اس پیش نظارہ کا ہے، منظر کا نہیں -- ایک ورژن 2 لے آؤٹ کا اپنا کوئی سائز نہیں ہے، لہذا اسے دوبارہ بہاؤ دیکھنے کے لیے 'اسکرین' کو تبدیل کریں۔ مٹیریل رول کے نام سے منسوب رنگ میٹریل 3 بیس لائن پیلیٹ سے اخذ کیے گئے ہیں۔ ڈیوائس ان کو اپنے تھیم کے خلاف حل کرتی ہے، جو آپ کے وال پیپر سے مٹیریل کے تحت آتا ہے۔ ہیچڈ فلز اور ترچھا انڈر لائن ٹیکسٹ %متغیر ہیں۔ امبر 'جب دکھائیں' کے ساتھ نشان زد اجزاء کا خاکہ پیش کرتا ہے۔ اس کے ترمیم کنندگان، متغیرات اور اعمال کے لیے کسی بھی جزو کو ہوور کریں۔"
+
+msgid "The search did not finish. The view may be too large, or the browser is busy."
+msgstr "تلاش ختم نہیں ہوئی۔ منظر بہت بڑا ہو سکتا ہے، یا براؤزر مصروف ہے۔"
+
+msgid "The search did not finish. The view may be too large, or the browser is busy."
+msgstr "تلاش ختم نہیں ہوئی۔ منظر بہت بڑا ہو سکتا ہے، یا براؤزر مصروف ہے۔"
+
+msgid "The two files hold the same configuration."
+msgstr "دونوں فائلیں ایک ہی ترتیب رکھتی ہیں۔"
+
+msgid "The two files hold the same configuration."
+msgstr "دونوں فائلیں ایک ہی ترتیب رکھتی ہیں۔"
+
+msgid "This Scene has no UI elements."
+msgstr "اس منظر میں کوئی UI عناصر نہیں ہیں۔"
+
+msgid "This Scene has no UI elements."
+msgstr "اس منظر میں کوئی UI عناصر نہیں ہیں۔"
+
+msgid "This Scene has no landscape layout of its own (its size is -1)."
+msgstr "اس منظر کی اپنی کوئی زمین کی تزئین کی ترتیب نہیں ہے (اس کا سائز -1 ہے)۔"
+
+msgid "This Scene has no landscape layout of its own (its size is -1)."
+msgstr "اس منظر کی اپنی کوئی زمین کی تزئین کی ترتیب نہیں ہے (اس کا سائز -1 ہے)۔"
+
+msgid "This Scene has no layout for this orientation."
+msgstr "اس منظر میں اس واقفیت کے لیے کوئی ترتیب نہیں ہے۔"
+
+msgid "This Scene has no layout for this orientation."
+msgstr "اس منظر میں اس واقفیت کے لیے کوئی ترتیب نہیں ہے۔"
+
+msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
+msgstr "اس منظر میں کوئی خاصیت کا عنصر نہیں ہے۔ MapTasker کے 366 ​​مناظر میں سے 66 میں کوئی بھی نہیں ہے، لہذا یہ نقصان کے بجائے عام ہے۔"
+
+msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
+msgstr "اس منظر میں کوئی خاصیت کا عنصر نہیں ہے۔ MapTasker کے 366 ​​مناظر میں سے 66 میں کوئی بھی نہیں ہے، لہذا یہ نقصان کے بجائے عام ہے۔"
+
+msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
+msgstr "اس منظر کے ورژن 2 لے آؤٹ کو پڑھا نہیں جا سکا، اور اسے بالکل ویسا ہی چھوڑ دیا جائے گا۔"
+
+msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
+msgstr "اس منظر کے ورژن 2 لے آؤٹ کو پڑھا نہیں جا سکا، اور اسے بالکل ویسا ہی چھوڑ دیا جائے گا۔"
+
+msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
+msgstr "اس منظر کے ورژن 2 لے آؤٹ میں کوئی جڑ کا جزو نہیں ہے، لہذا ڈیزائن کرنے کے لیے کچھ بھی نہیں ہے۔"
+
+msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
+msgstr "اس منظر کے ورژن 2 لے آؤٹ میں کوئی جڑ کا جزو نہیں ہے، لہذا ڈیزائن کرنے کے لیے کچھ بھی نہیں ہے۔"
+
+msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
+msgstr "اس ایپ میں اس عنصر کی قسم کے لیے کوئی پراپرٹی ٹیبل نہیں ہے، اس لیے یہاں صرف اس کی جیومیٹری میں ترمیم کی جا سکتی ہے۔ یہ دوسری صورت میں اچھوت کے ذریعے کیا جاتا ہے."
+
+msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
+msgstr "اس ایپ میں اس عنصر کی قسم کے لیے کوئی پراپرٹی ٹیبل نہیں ہے، لہذا یہاں صرف اس کی جیومیٹری میں ترمیم کی جا سکتی ہے۔ یہ دوسری صورت میں اچھوت کے ذریعے کیا جاتا ہے."
+
+msgid "This element has no layout for this orientation."
+msgstr "اس عنصر میں اس واقفیت کے لیے کوئی ترتیب نہیں ہے۔"
+
+msgid "This element has no layout for this orientation."
+msgstr "اس عنصر میں اس واقفیت کے لیے کوئی ترتیب نہیں ہے۔"
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "یہ اینڈرائیڈ ڈیوائس پر /Tasker/scenes کے تحت سین کو ایک اسٹینڈ فائل کے طور پر لکھے گا۔\n\nآئی پی ایڈریس اور پورٹ کا اینڈرائیڈ ڈیوائس کے ٹاسکر سرور سیٹنگز سے مماثل ہونا چاہیے۔\n\nاس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
+msgstr "یہ اینڈرائیڈ ڈیوائس پر /Tasker/scenes کے تحت سین کو ایک اسٹینڈ فائل کے طور پر لکھے گا۔\n\nآئی پی ایڈریس اور پورٹ کا اینڈرائیڈ ڈیوائس کے ٹاسکر سرور سیٹنگز سے مماثل ہونا چاہیے۔\n\nاس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "یہ منظر کو آپ کے Android ڈیوائس پر /Tasker/scenes کے تحت ایک اسٹینڈ فائل کے طور پر لکھے گا -- یہ اسے Tasker کی لائیو کنفیگریشن میں درآمد نہیں کرتا ہے۔\n\n'Http سرور مثال' ٹاسکر پروجیکٹ کو Android ڈیوائس پر انسٹال اور فعال ہونا چاہیے، سرور کے ساتھ چل رہا ہے۔\n\nاینڈرائیڈ ڈیوائس کا ایک ہی نیٹ ورک پر ہونا چاہیے، اور آئی پی ایڈریس اور پورٹ کو اس کے ٹاسکر سرور کی سیٹنگز سے مماثل ہونا چاہیے۔ اس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
+msgstr "یہ منظر کو آپ کے Android ڈیوائس پر /Tasker/scenes کے تحت ایک اسٹینڈ فائل کے طور پر لکھے گا -- یہ اسے Tasker کی لائیو کنفیگریشن میں درآمد نہیں کرتا ہے۔\n\n'Http سرور مثال' ٹاسکر پروجیکٹ کو Android ڈیوائس پر انسٹال اور فعال ہونا چاہیے، سرور کے ساتھ چل رہا ہے۔\n\nاینڈرائیڈ ڈیوائس کا ایک ہی نیٹ ورک پر ہونا چاہیے، اور آئی پی ایڈریس اور پورٹ کو اس کے ٹاسکر سرور کی سیٹنگز سے مماثل ہونا چاہیے۔ اس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
+
+msgid "Tree label"
+msgstr "درخت کا لیبل"
+
+msgid "Tree label"
+msgstr "درخت کا لیبل"
+
+msgid "Turn the screen on its side and let the layout re-flow into it."
+msgstr "اسکرین کو اس کی طرف موڑ دیں اور لے آؤٹ کو اس میں دوبارہ بہنے دیں۔"
+
+msgid "Turn the screen on its side and let the layout re-flow into it."
+msgstr "اسکرین کو اس کی طرف موڑ دیں اور لے آؤٹ کو اس میں دوبارہ بہنے دیں۔"
+
+msgid "Undo"
+msgstr "کالعدم"
+
+msgid "Undo"
+msgstr "کالعدم"
+
+msgid "Using the saved size"
+msgstr "محفوظ کردہ سائز کا استعمال کرتے ہوئے"
+
+msgid "Using the saved size"
+msgstr "محفوظ کردہ سائز کا استعمال کرتے ہوئے"
+
+msgid "Variable"
+msgstr "متغیر"
+
+msgid "Variables"
+msgstr "متغیرات"
+
+msgid "Version 2"
+msgstr "ورژن 2"
+
+msgid "View Limit"
+msgstr "حد دیکھیں"
+
+msgid "What you pick goes in at the cursor. Open this again to add the next piece."
+msgstr "آپ جو منتخب کرتے ہیں وہ کرسر پر جاتا ہے۔ اگلا حصہ شامل کرنے کے لیے اسے دوبارہ کھولیں۔"
+
+msgid "What you pick replaces what the field holds. Type to narrow the list down."
+msgstr "آپ جو منتخب کرتے ہیں وہ فیلڈ کی جگہ لے لیتا ہے۔ فہرست کو کم کرنے کے لیے ٹائپ کریں۔"
+
+msgid "Variable"
+msgstr "متغیر"
+
+msgid "Variables"
+msgstr "متغیرات"
+
+msgid "Version 2"
+msgstr "ورژن 2"
+
+msgid "View Limit"
+msgstr "حد دیکھیں"
+
+msgid "What you pick goes in at the cursor. Open this again to add the next piece."
+msgstr "آپ جو منتخب کرتے ہیں وہ کرسر پر جاتا ہے۔ اگلا حصہ شامل کرنے کے لیے اسے دوبارہ کھولیں۔"
+
+msgid "Which kind of Scene?"
+msgstr "کس قسم کا سین؟"
+
+msgid "What you pick replaces what the field holds. Type to narrow the list down."
+msgstr "آپ جو منتخب کرتے ہیں وہ فیلڈ کی جگہ لے لیتا ہے۔ فہرست کو کم کرنے کے لیے ٹائپ کریں۔"
+
+msgid "Which kind of Scene?"
+msgstr "کس قسم کا سین؟"
+
+msgid "Writes to variable"
+msgstr "متغیر کو لکھتا ہے۔"
+
+msgid "Zoom"
+msgstr "زوم"
+
+msgid "Writes to variable"
+msgstr "متغیر کو لکھتا ہے۔"
+
+msgid "Zoom"
+msgstr "زوم"
+
+msgid "component(s)"
+msgstr "اجزاء"
+
+msgid "component(s)"
+msgstr "اجزاء"
+
+msgid "connectors"
+msgstr "کنیکٹر"
+
+msgid "connectors"
+msgstr "کنیکٹر"
+
+msgid "drag or nudge any of them and they all move together."
+msgstr "ان میں سے کسی کو گھسیٹیں یا دھکیلیں اور وہ سب ایک ساتھ حرکت کریں۔"
+
+msgid "drag or nudge any of them and they all move together."
+msgstr "ان میں سے کسی کو گھسیٹیں یا دھکیلیں اور وہ سب ایک ساتھ حرکت کریں۔"
+
+msgid "editing 1 of"
+msgstr "میں سے 1 میں ترمیم کرنا"
+
+msgid "editing 1 of"
+msgstr "میں سے 1 میں ترمیم کرنا"
+
+msgid "element(s)"
+msgstr "عنصر"
+
+msgid "element(s)"
+msgstr "عنصر"
+
+msgid "elements selected"
+msgstr "عناصر کو منتخب کیا گیا ہے۔"
+
+msgid "elements selected"
+msgstr "عناصر کو منتخب کیا گیا ہے۔"
+
+msgid "is not a whole number"
+msgstr "مکمل نمبر نہیں ہے۔"
+
+msgid "is not a whole number"
+msgstr "مکمل نمبر نہیں ہے۔"
+
+msgid "lines dropped"
+msgstr "لائنیں گر گئی"
+
+msgid "lines dropped"
+msgstr "لائنیں گر گئی"
+
+msgid "none"
+msgstr "کوئی نہیں"
+
+msgid "none"
+msgstr "کوئی نہیں"
+
+msgid "not drawn"
+msgstr "تیار نہیں"
+
+msgid "not drawn"
+msgstr "تیار نہیں"
+
+msgid "pair"
+msgstr "جوڑی"
+
+msgid "pair"
+msgstr "جوڑی"
+
+msgid "pixels"
+msgstr "پکسلز"
+
+msgid "pixels"
+msgstr "پکسلز"

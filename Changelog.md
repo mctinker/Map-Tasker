@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.1.3] ??-Aug-2026  # FIX
+## [12.2.0] ??-Aug-2026  # FIX
 
 ### Added
 
@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file!
 - Added: Scene Version 2 Preview now gets a bounding box around the defined elements to reflect the scene dimensions.
 - Added: Edit Scene Version 2 'Apply when' (on every modifier of every element) now offers the 'Select Variable' picker, the same one the other variable-backed fields use.
 - Added: 'Health Check' - a new button in the 'Display Views' section scans the loaded XML and reports what is broken or dead in it.
+- Added: 'Compare Files' - a new button in the 'Display Views' section compares another XML file against the loaded one and reports what was added, removed, renamed and changed.
 
 ### Changed
 
@@ -29,6 +30,7 @@ For each PID listed in the output from the above terminal command, issue the fol
       `kill -9 pid_number`
 ...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080' (e.g. kill -9 8547).
 - Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
+- Some strings defy translation.
 
 
 ## Older History Logs

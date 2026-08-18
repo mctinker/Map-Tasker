@@ -2,6 +2,7 @@
 
 import contextlib
 import html
+import os
 import pickle
 import sys
 import time
@@ -22,7 +23,16 @@ from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_changelog_file
+from maptasker.src.diffload import (
+    current_configuration,
+    load_for_comparison,
+    loaded_file_path,
+    order_by_age,
+    original_of,
+    write_comparison_report,
+)
 from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
+from maptasker.src.xmldiff import compare
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     add_logo,
@@ -186,6 +196,56 @@ def remember_local_xml_directory(gui: "MyGui", file_path: str) -> None:
     directory = str(Path(file_path).expanduser().parent)
     gui.local_xml_directory = directory
     PrimeItems.program_arguments["local_xml_directory"] = directory
+
+
+async def _choose_comparison_file(gui: "MyGui") -> str:
+    """Which XML file to compare the loaded one against, or "" if the user backed out.
+
+    When the loaded file is a "Save To Current File" copy, the file it was made from is
+    still sitting next to it (see diffload.original_of), so the commonest question --
+    "what did my own edit change?" -- is offered as a button rather than as a walk through
+    the file picker.  Otherwise, and whenever that offer is declined, this is the same
+    picker getxml_event opens, started in the same remembered directory.
+    """
+    original = original_of(loaded_file_path())
+
+    if original:
+        with ui.dialog() as dialog, ui.card().classes("min-w-[420px] p-6"):
+            ui.label(translate_string("Compare With")).classes("text-lg font-bold text-blue-600")
+            ui.label(
+                f"{translate_string('The loaded file was saved from')} {os.path.basename(original)}.",
+            ).classes("text-sm mb-2 break-all")
+            with ui.column().classes("w-full gap-2"):
+                ui.button(
+                    f"{translate_string('The original')} ({os.path.basename(original)})",
+                    on_click=lambda: dialog.submit(original),
+                ).classes("w-full")
+                ui.button(
+                    translate_string("Choose another file..."),
+                    on_click=lambda: dialog.submit("pick"),
+                ).props("outline").classes("w-full")
+                ui.button(
+                    translate_string("Cancel"),
+                    on_click=lambda: dialog.submit(""),
+                ).props("outline").classes("w-full")
+
+        choice = await dialog
+        if choice != "pick":
+            # Covers both the original and Cancel (""), and a dialog dismissed by clicking
+            # away, which resolves to None rather than to any of the three buttons.
+            return choice or ""
+
+    # The ceiling stays at home no matter where we start, for the same reason getxml_event
+    # gives: Local_File_Picker's default upper_limit is whatever directory it opens in,
+    # which would leave the user unable to navigate up out of a remembered subdirectory.
+    result = await Local_File_Picker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
+    if not result:
+        return ""
+    chosen = result[0] if isinstance(result, (list, tuple)) else result
+    # Deliberately NOT remember_local_xml_directory: that directory is where the file the
+    # user is working ON comes from, and picking something to compare against -- an archive
+    # folder, a download -- should not move it.
+    return chosen
 
 
 def _single_item_selection_message(gui: "MyGui", item_type: str, name_entered: str) -> str:
@@ -2160,6 +2220,66 @@ class MapTaskerEventHandlers:
         if not counts[ERROR] and not counts[WARNING]:
             ui.notify(translate_string("Health Check found no errors or warnings."), type="positive")
 
+    async def compare_files_event(self: "MapTaskerEventHandlers") -> None:
+        """Compare another XML file against the loaded one, display the report and save it."""
+        gui = self.gui
+        if not PrimeItems.tasker_root_elements["all_tasks"]:
+            gui.display_message_box(
+                translate_string("No XML file has been loaded.  Get an XML file first."),
+                "Red",
+            )
+            return
+
+        other_path = await _choose_comparison_file(gui)
+        if not other_path:
+            ui.notify(translate_string("Comparison cancelled."), type="warning")
+            return
+
+        # Never the file already loaded: comparing a configuration with itself is a report
+        # saying nothing differs, which is a confusing way to find out you picked the wrong
+        # file.  Said plainly instead.  Guarded on there being a loaded path at all --
+        # abspath("") is the current directory, which would match a file picked from it.
+        # realpath rather than abspath so a symlink, or a path through /tmp on a Mac (where
+        # it is a link to /private/tmp), is still recognised as the same file.
+        loaded = loaded_file_path()
+        if loaded and os.path.realpath(other_path) == os.path.realpath(loaded):
+            gui.display_message_box(
+                translate_string("That is the file already loaded.  Choose a different one to compare against."),
+                "Red",
+            )
+            return
+
+        other, error_message = load_for_comparison(other_path)
+        if other is None:
+            gui.display_message_box(error_message, "Red")
+            return
+
+        # Ordered by file date so "added" means added in the newer file, whichever way round
+        # the user picked them.  The report header names both files either way.
+        older, newer = order_by_age(other, current_configuration())
+        report, counts = compare(older, newer)
+
+        file_name = write_comparison_report(report)
+        if file_name:
+            gui.display_message_box(f"{translate_string('Comparison saved as')} {file_name}", "Green")
+        else:
+            gui.display_message_box(translate_string("Comparison report could not be saved."), "Red")
+
+        # Escaped for display only -- the file above keeps the plain text.  Same reasoning as
+        # health_check_event above: NiceGuiTextView's Misc branch drops its content into a
+        # <pre> with sanitize=False, so a Tasker name holding '<', '>' or '&' would otherwise
+        # be read as markup rather than shown as the name it is.
+        self.gui.textview = NiceGuiTextView(
+            gui,
+            title="Misc View",
+            the_data=html.escape(report),
+        )
+
+        # Two identical files produce a report that looks empty.  Worth saying out loud, so
+        # nobody is left wondering whether the comparison actually ran.
+        if not any(counts.values()):
+            ui.notify(translate_string("The two files hold the same configuration."), type="positive")
+
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS
     # ==========================================
@@ -2358,15 +2478,13 @@ class MapTaskerEventHandlers:
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
                 gui.list_files_button = (
-                    ui
-                    .button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
+                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
                     .style("background-color: #D62CFF; color: white;")
                     .classes("flex-grow text-xs")
                 )
 
                 gui.list_files_query_button = (
-                    ui
-                    .button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                    ui.button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
                     .style("background-color: #246FB6; color: #ffd941;")
                     .classes("w-10 min-w-[40px] text-xs")
                 )
@@ -2393,8 +2511,7 @@ class MapTaskerEventHandlers:
             # so clear_android_buttons() then deleted this button while believing it had deleted
             # that one -- leaving the original in place and adding a second one every time.
             gui.set_xml_details_button = (
-                ui
-                .button(
+                ui.button(
                     translate_string("Click Here to Set XML Details"),
                     on_click=gui.event_handlers.fetch_backup_event,
                 )
@@ -5960,8 +6077,7 @@ class MapTaskerEventHandlers:
             if toolbar:
                 with toolbar:
                     gui.font_out_label = (
-                        ui
-                        .label(label_text)
+                        ui.label(label_text)
                         .style(f"font-family: {font_name}; font-size: 14px;")
                         .classes("text-gray-500 italic ml-4")
                     )

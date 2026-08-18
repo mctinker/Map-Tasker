@@ -1106,6 +1106,7 @@ def v2_icon_reference(name: str) -> str:
     """A ligature name as the reference a Scene stores: "ac_unit" -> "icon:AcUnit"."""
     return f"{V2_ICON_PREFIX}{''.join(part.capitalize() for part in name.split('_'))}"
 
+
 # How much of that property the tree shows.  The ids and treeLabels this used to display are
 # a few characters; a Text's content runs to 66 in this repo's own Scenes, and a tree row is
 # one unwrapped line, so a whole paragraph would widen the pane rather than name the row.
@@ -4110,17 +4111,19 @@ LEGACY_TASK_TAGS_BY_TYPE: dict[str, tuple[str, ...]] = {
 # Element types Tasker gives a <RectElement sr="background"> to.  Transcribed from the
 # sample data: every CheckBox and every Switch has one, most Texts and EditTexts do, and the
 # eight types absent from here have one in none of the 2,186 elements.
-LEGACY_BACKGROUND_TYPES = frozenset({
-    "CheckBoxElement",
-    "EditTextElement",
-    "ImageElement",
-    "ListElement",
-    "PickerElement",
-    "SliderElement",
-    "SwitchElement",
-    "TextElement",
-    "WebElement",
-})
+LEGACY_BACKGROUND_TYPES = frozenset(
+    {
+        "CheckBoxElement",
+        "EditTextElement",
+        "ImageElement",
+        "ListElement",
+        "PickerElement",
+        "SliderElement",
+        "SwitchElement",
+        "TextElement",
+        "WebElement",
+    }
+)
 
 # An anonymous inline Task -- Tasker writes these with a negative id and stores them nowhere
 # else.  scenes.process_tasks calls them "fake" and skips them for the same reason.

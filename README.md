@@ -145,10 +145,18 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
      This file contains your saved program settings.  You can modify this file but care should be taken not to change the field formats (e.g. _do not_ change an integer to a text string).  Incorrect values will be ignored.
 
-- "MapTasker_Analysis.txt"
+- "MapTasker_Analysis_date_time.txt"
 
      This file will be created if you run the Ai analysis from the GUI, which holds the response from the analysis.  It will be displayed in a separate window along with the GUI.
 
+- MapTasker_HealthCheck_date_time.txt
+
+	This is the output from the Health Check run.
+	
+- MapTasker_Compare_date_time.txt
+
+	This is the output from the XML File Compare run.
+	
 - "maptasker.log"
 
      This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
