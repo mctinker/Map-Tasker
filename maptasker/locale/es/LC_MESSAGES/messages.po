@@ -2143,3 +2143,42 @@ msgstr "Deshacer"
 
 msgid "editing 1 of"
 msgstr "editando 1 de"
+
+msgid "Building the Map to show"
+msgstr "Construyendo el mapa para mostrar"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Haga clic en un hallazgo para verlo en la vista de mapa."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Haga clic en una variable o un lugar para verlo en la vista de mapa."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "No hay ninguna vista de mapa abierta.  Ejecute Vista de mapa y luego haga clic aquí nuevamente."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Rastree cada %variable en el XML cargado: dónde está configurada cada una, dónde se lee, cuáles se leen pero nunca se configuran, cuáles se configuran pero nunca se leen y qué nombres casi idénticos (%MyVar contra %Myvar) probablemente sean errores tipográficos.\n\nBuscado: Acciones de tareas y sus condiciones, configuración de complementos, contextos de perfil y escenas.\n\nLos resultados se muestran aquí y se guardan en un archivo de texto en el directorio actual."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "La referencia cruzada de variables no encontró variables sospechosas."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "No se pudo guardar el informe de referencia cruzada de variables."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Referencia cruzada variable guardada como"
+
+msgid "Variable Xref"
+msgstr "Referencia externa variable"
+
+msgid "detail level"
+msgstr "nivel de detalle"
+
+msgid "is no longer in the loaded configuration."
+msgstr "ya no está en la configuración cargada."
+
+msgid "whole file"
+msgstr "archivo completo"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Construí el mapa, pero no tiene línea para"

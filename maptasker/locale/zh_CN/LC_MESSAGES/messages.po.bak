@@ -1496,104 +1496,70 @@ msgstr "Error 500 (Server Error)!!1500.That’s an error.There was an error. Ple
 msgid "(empty)"
 msgstr "（空的）"
 
-msgid "(empty)"
-msgstr "（空的）"
 
 msgid "(no name)"
 msgstr "（无名）"
 
-msgid "(no name)"
-msgstr "（无名）"
 
 msgid "(unnamed Task)"
 msgstr "（未命名任务）"
 
-msgid "(unnamed Task)"
-msgstr "（未命名任务）"
 
 msgid "(unnamed)"
 msgstr "（未命名）"
 
-msgid "(unnamed)"
-msgstr "（未命名）"
 
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1 表示该方向没有自己的布局。"
 
-msgid "-1 means this orientation has no layout of its own."
-msgstr "-1 表示该方向没有自己的布局。"
 
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...还有 {count} 个 - 在上面输入以缩小范围。"
 
-msgid "...and {count} more -- type above to narrow it down."
-msgstr "...还有 {count} 个 - 在上面输入以缩小范围。"
 
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "场景的元素位置以设备像素存储，但其文本大小以 Android 的 sp 单位存储。两者之间转换的数字是显示场景的手机的属性，并且不在备份文件中。\n\n所以就设置在这里了。如果文本对于其元素来说太小，则提高它；如果文本溢出它们，则降低它。"
 
-msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
-msgstr "场景的元素位置以设备像素存储，但其文本大小以 Android 的 sp 单位存储。两者之间转换的数字是显示场景的手机的属性，并且不在备份文件中。\n\n所以就设置在这里了。如果文本对于其元素来说太小，则提高它；如果文本溢出它们，则降低它。"
 
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "版本 2 场景没有自己的大小 - 它会将自己放置在显示的任何屏幕内，因此备份文件中没有任何内容可以绘制它。\n\n更改此设置以查看布局重新流动。流行的换行方式不同，任何针对 %sv2_render_width 编写的“显示时间”都在询问这一点。"
 
-msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
-msgstr "版本 2 场景没有自己的大小 - 它会将自己放置在显示的任何屏幕内，因此备份文件中没有任何内容可以绘制它。\n\n更改此设置以查看布局重新流动。流行的换行方式不同，任何针对 %sv2_render_width 编写的“显示时间”都在询问这一点。"
 
 msgid "Actions"
 msgstr "行动"
 
-msgid "Actions"
-msgstr "行动"
 
 msgid "Add"
 msgstr "添加"
 
-msgid "Add"
-msgstr "添加"
 
 msgid "Add Element"
 msgstr "添加元素"
 
-msgid "Add Element"
-msgstr "添加元素"
 
 msgid "Add Scene"
 msgstr "添加场景"
 
-msgid "Add Scene"
-msgstr "添加场景"
 
 msgid "Add a background"
 msgstr "添加背景"
 
-msgid "Add a background"
-msgstr "添加背景"
 
 msgid "Add action"
 msgstr "添加动作"
 
-msgid "Add action"
-msgstr "添加动作"
 
 msgid "Add event"
 msgstr "添加事件"
 
-msgid "Add event"
-msgstr "添加事件"
 
 msgid "Add handler"
 msgstr "添加处理程序"
 
-msgid "Add handler"
-msgstr "添加处理程序"
 
 msgid "Add modifier"
 msgstr "添加修饰符"
 
-msgid "Add modifier"
-msgstr "添加修饰符"
 
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "在场景中间的堆栈顶部添加一个元素。"
@@ -1649,635 +1615,423 @@ msgstr "单击一个组件将其选中，按住 Shift 键并单击同一容器�
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "单击一个元素将其选中，按住 Shift 键单击或拖动背景上的一个框以选取多个元素，然后拖动其中任意一个以将它们全部移动 - 箭头键微移，Shift 移动 10 像素。拖动手柄可调整单个元素的大小。撤消以及有关元素的其他所有内容都返回到编辑器中。"
 
-msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
-msgstr "单击一个组件将其选中，按住 Shift 键并单击同一容器中的另一个组件以获取多个组件，然后拖动以在其同级组件之间重新排序。将组件移入或移出容器是编辑器的“In”和“Out”按钮；撤消也在那里。"
 
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "单击一个元素以选择它，拖动以移动，拖动手柄以调整大小，箭头键以微移（Shift 为 10 像素）。按住 Shift 键并单击，或在背景上拖动一个框，可以一次拍摄多个框。"
 
-msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
-msgstr "单击一个元素将其选中，按住 Shift 键单击或拖动背景上的一个框以选取多个元素，然后拖动其中任意一个以将它们全部移动 - 箭头键微移，Shift 移动 10 像素。拖动手柄可调整单个元素的大小。撤消以及有关元素的其他所有内容都返回到编辑器中。"
 
-msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
-msgstr "单击一个元素以选择它，拖动以移动，拖动手柄以调整大小，箭头键以微移（Shift 为 10 像素）。按住 Shift 键并单击，或在背景上拖动一个框，可以一次拍摄多个框。"
 
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "关闭而不保存，并将此场景完全恢复到此对话框打开时的状态 - 包括在预览中移动或调整大小的任何内容。\n\n重命名是无法收回的一件事：它会在确认后应用于加载的备​​份，并关闭此对话框。"
 
-msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
-msgstr "关闭而不保存，并将此场景完全恢复到此对话框打开时的状态 - 包括在预览中移动或调整大小的任何内容。\n\n重命名是无法收回的一件事：它会在确认后应用于加载的备​​份，并关闭此对话框。"
 
 msgid "Compare Files"
 msgstr "比较文件"
 
-msgid "Compare Files"
-msgstr "比较文件"
 
 msgid "Compare With"
 msgstr "比较"
 
-msgid "Compare With"
-msgstr "比较"
 
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "将另一个 XML 文件与加载的文件进行比较：添加、删除、重命名和更改的内容。\n\n使用它可以查看 TaskerNet 导入带来了什么、编辑更改了什么，或者两个备份之间有什么不同。\n\n如果加载的文件来自“保存到当前文件”，则直接提供保存该文件的文件。\n\n结果显示在此处并保存到当前目录中的文本文件中。"
 
-msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "将另一个 XML 文件与加载的文件进行比较：添加、删除、重命名和更改的内容。\n\n使用它可以查看 TaskerNet 导入带来了什么、编辑更改了什么，或者两个备份之间有什么不同。\n\n如果加载的文件来自“保存到当前文件”，则直接提供保存该文件的文件。\n\n结果显示在此处并保存到当前目录中的文本文件中。"
 
 msgid "Comparison cancelled."
 msgstr "比较已取消。"
 
-msgid "Comparison cancelled."
-msgstr "比较已取消。"
 
 msgid "Comparison report could not be saved."
 msgstr "无法保存比较报告。"
 
-msgid "Comparison report could not be saved."
-msgstr "无法保存比较报告。"
 
 msgid "Comparison saved as"
 msgstr "比较另存为"
 
-msgid "Comparison saved as"
-msgstr "比较另存为"
 
 msgid "Delete Scene"
 msgstr "删除场景"
 
-msgid "Delete Scene"
-msgstr "删除场景"
 
 msgid "Done"
 msgstr "完毕"
 
-msgid "Done"
-msgstr "完毕"
 
 msgid "Drawn in"
 msgstr "绘制在"
 
-msgid "Drawn in"
-msgstr "绘制在"
 
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "在主窗口中将此场景绘制为图片 - 包括您在此处添加或更改但尚未保存的组件。\n\n版本 2 布局没有自己的大小，因此预览会将其布局在您选择的屏幕中，并在您更改时重新排列。\n\n当预览启动时，此对话框将关闭，其中的所有内容都会保留；预览的“返回编辑器”按钮可将其返回。\n\n它是一种表示形式，而不是 Tasker 自己的渲染器：%变量是命名的而不是解析的，材质颜色来自基线调色板而不是设备的主题，图像、视频和网页内容显示为占位符。"
 
-msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
-msgstr "在主窗口中将此场景绘制为图片 - 包括您在此处添加或更改但尚未保存的组件。\n\n版本 2 布局没有自己的大小，因此预览会将其布局在您选择的屏幕中，并在您更改时重新排列。\n\n当预览启动时，此对话框将关闭，其中的所有内容都会保留；预览的“返回编辑器”按钮可将其返回。\n\n它是一种表示形式，而不是 Tasker 自己的渲染器：%变量是命名的而不是解析的，材质颜色来自基线调色板而不是设备的主题，图像、视频和网页内容显示为占位符。"
 
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "将此场景绘制为主窗口中的图片，尺寸为上面输入的尺寸 - 包括尚未保存的更改。\n\n当预览启动时，此对话框将关闭，其中的所有内容都会保留；预览的“返回编辑器”按钮可将其返回。\n\n它是一种表示，而不是 Tasker 自己的渲染器：%变量是命名的而不是解析的，图像、视频和网页内容显示为占位符。"
 
-msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
-msgstr "将此场景绘制为主窗口中的图片，尺寸为上面输入的尺寸 - 包括尚未保存的更改。\n\n当预览启动时，此对话框将关闭，其中的所有内容都会保留；预览的“返回编辑器”按钮可将其返回。\n\n它是一种表示，而不是 Tasker 自己的渲染器：%变量是命名的而不是解析的，图像、视频和网页内容显示为占位符。"
 
 msgid "Dropdown menu — shown when opened"
 msgstr "下拉菜单 — 打开时显示"
 
-msgid "Dropdown menu — shown when opened"
-msgstr "下拉菜单 — 打开时显示"
 
 msgid "Duplicate"
 msgstr "复制"
 
-msgid "Duplicate"
-msgstr "复制"
 
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "动态和选择变量是在场景显示时计算出来的。"
 
-msgid "Dynamic and Select Variable are worked out when the Scene is shown."
-msgstr "动态和选择变量是在场景显示时计算出来的。"
 
 msgid "Dynamic value"
 msgstr "动态值"
 
-msgid "Dynamic value"
-msgstr "动态值"
 
 msgid "Edit Scene"
 msgstr "编辑场景"
 
-msgid "Edit Scene"
-msgstr "编辑场景"
 
 msgid "Edit item layout"
 msgstr "编辑项目布局"
 
-msgid "Edit item layout"
-msgstr "编辑项目布局"
 
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "相反，编辑该属性，并保留选择。"
 
-msgid "Edit this one's properties instead, keeping the selection."
-msgstr "相反，编辑该属性，并保留选择。"
 
 msgid "Event handlers"
 msgstr "事件处理程序"
 
-msgid "Event handlers"
-msgstr "事件处理程序"
 
 msgid "Export Scene"
 msgstr "导出场景"
 
-msgid "Export Scene"
-msgstr "导出场景"
 
 msgid "Geometry"
 msgstr "几何学"
 
-msgid "Geometry"
-msgstr "几何学"
 
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "灰色：MapTasker 没有参数表，因此在不猜测 Tasker 期望内部内容的情况下无法创建它。标题是 MapTasker 自己的分组。"
 
-msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
-msgstr "灰色：MapTasker 没有参数表，因此在不猜测 Tasker 期望内部内容的情况下无法创建它。标题是 MapTasker 自己的分组。"
 
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "阴影填充和斜体下划线文本是%变量——它们的值存在于设备上，而不是备份中，因此它们是被命名的而不是被猜测的。图像、视频、地图和网页内容显示为占位符。将鼠标悬停在任何元素上以查看其几何形状、变量及其运行的任务。"
 
-msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
-msgstr "阴影填充和斜体下划线文本是%变量——它们的值存在于设备上，而不是备份中，因此它们是被命名的而不是被猜测的。图像、视频、地图和网页内容显示为占位符。将鼠标悬停在任何元素上以查看其几何形状、变量及其运行的任务。"
 
 msgid "Health Check"
 msgstr "健康检查"
 
-msgid "Health Check"
-msgstr "健康检查"
 
 msgid "Health Check found no errors or warnings."
 msgstr "健康检查未发现任何错误或警告。"
 
-msgid "Health Check found no errors or warnings."
-msgstr "健康检查未发现任何错误或警告。"
 
 msgid "Health Check report could not be saved."
 msgstr "无法保存健康检查报告。"
 
-msgid "Health Check report could not be saved."
-msgstr "无法保存健康检查报告。"
 
 msgid "Health Check saved as"
 msgstr "健康检查另存为"
 
-msgid "Health Check saved as"
-msgstr "健康检查另存为"
 
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "弹出消息消失前在屏幕上停留的时间。\n\n“直到关闭”会保留每条消息，直到您将其关闭，这在您无法阅读消息之前滚动过去的情况下非常有用。\n\n一些消息设置了自己较长的持续时间，因为它们列出了您必须阅读的内容 - 例如，受删除或重命名场景元素影响的任务。无论这里选择什么，它们都会保持自己的计时。"
 
-msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
-msgstr "弹出消息消失前在屏幕上停留的时间。\n\n“直到关闭”会保留每条消息，直到您将其关闭，这在您无法阅读消息之前滚动过去的情况下非常有用。\n\n一些消息设置了自己较长的持续时间，因为它们列出了您必须阅读的内容 - 例如，受删除或重命名场景元素影响的任务。无论这里选择什么，它们都会保持自己的计时。"
 
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "在列表中：按住 Shift 键单击某个范围，按住 Ctrl 或 Cmd 键单击以添加或删除一个范围。"
 
-msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
-msgstr "在列表中：按住 Shift 键单击某个范围，按住 Ctrl 或 Cmd 键单击以添加或删除一个范围。"
 
 msgid "Item layout"
 msgstr "项目布局"
 
-msgid "Item layout"
-msgstr "项目布局"
 
 msgid "Landscape"
 msgstr "景观"
 
-msgid "Landscape"
-msgstr "景观"
 
 msgid "Legacy"
 msgstr "遗产"
 
-msgid "Legacy"
-msgstr "遗产"
 
 msgid "Legacy Scene"
 msgstr "遗留场景"
 
-msgid "Legacy Scene"
-msgstr "遗留场景"
 
 msgid "List"
 msgstr "列表"
 
-msgid "List"
-msgstr "列表"
 
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker：达到视图限制，图表被截断"
 
-msgid "MapTasker: view limit reached, diagram truncated"
-msgstr "MapTasker：达到视图限制，图表被截断"
 
 msgid "Modifiers"
 msgstr "修饰符"
 
-msgid "Modifiers"
-msgstr "修饰符"
 
 msgid "Never updated"
 msgstr "从未更新过"
 
-msgid "Never updated"
-msgstr "从未更新过"
 
 msgid "No Task addresses this element by name."
 msgstr "没有任务通过名称来寻址该元素。"
 
-msgid "No Task addresses this element by name."
-msgstr "没有任务通过名称来寻址该元素。"
 
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "尚未加载任何 XML 文件。  首先获取 XML 文件。"
 
-msgid "No XML file has been loaded.  Get an XML file first."
-msgstr "尚未加载任何 XML 文件。  首先获取 XML 文件。"
 
 msgid "No element matches that."
 msgstr "没有元素与之匹配。"
 
-msgid "No element matches that."
-msgstr "没有元素与之匹配。"
 
 msgid "Not an HTML colour name or #hex value."
 msgstr "不是 HTML 颜色名称或 #hex 值。"
 
-msgid "Not an HTML colour name or #hex value."
-msgstr "不是 HTML 颜色名称或 #hex 值。"
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "未更新 - 这些名称同时命名此场景和此元素，但不是作为"
 
-msgid "Not updated -- these name both this Scene and this element, but not as a"
-msgstr "未更新 - 这些名称同时命名此场景和此元素，但不是作为"
 
 msgid "Nothing here."
 msgstr "这里什么都没有。"
 
-msgid "Nothing here."
-msgstr "这里什么都没有。"
 
 msgid "Notification Duration"
 msgstr "通知持续时间"
 
-msgid "Notification Duration"
-msgstr "通知持续时间"
 
 msgid "Notification Duration:"
 msgstr "通知持续时间："
 
-msgid "Notification Duration:"
-msgstr "通知持续时间："
 
 msgid "On"
 msgstr "在"
 
-msgid "On"
-msgstr "在"
 
 msgid "Only when"
 msgstr "仅当"
 
-msgid "Only when"
-msgstr "仅当"
 
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "概述每个组件并按照设计者的树命名方式对其进行命名。"
 
-msgid "Outline every component and name it, the way the designer's tree names it."
-msgstr "概述每个组件并按照设计者的树命名方式对其进行命名。"
 
 msgid "Outline every element and name it."
 msgstr "概述每个元素并为其命名。"
 
-msgid "Outline every element and name it."
-msgstr "概述每个元素并为其命名。"
 
 msgid "Pick a Material icon."
 msgstr "选择一个材质图标。"
 
-msgid "Pick a Material icon."
-msgstr "选择一个材质图标。"
 
 msgid "Pick an icon"
 msgstr "选择一个图标"
 
-msgid "Pick an icon"
-msgstr "选择一个图标"
 
 msgid "Pick from the Scene's environment and global variables."
 msgstr "从场景的环境和全局变量中进行选择。"
 
-msgid "Pick from the Scene's environment and global variables."
-msgstr "从场景的环境和全局变量中进行选择。"
 
 msgid "Pick one of Material's own colour roles."
 msgstr "选择 Material 自己的颜色角色之一。"
 
-msgid "Pick one of Material's own colour roles."
-msgstr "选择 Material 自己的颜色角色之一。"
 
 msgid "Preview"
 msgstr "预览"
 
-msgid "Preview"
-msgstr "预览"
 
 msgid "Project(s) that list it."
 msgstr "列出它的项目。"
 
-msgid "Project(s) that list it."
-msgstr "列出它的项目。"
 
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "提示输入新名称并将其应用于加载的备​​份，立即 - 在任何地方重命名场景，包括在包含该场景的每个项目的场景列表中。\n\n按名称显示或隐藏此场景的任务不会更新；那些仍然命名为旧场景。\n\n上面的场景名称字段是只读的——这是更改它的唯一方法。"
 
-msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
-msgstr "提示输入新名称并将其应用于加载的备​​份，立即 - 在任何地方重命名场景，包括在包含该场景的每个项目的场景列表中。\n\n按名称显示或隐藏此场景的任务不会更新；那些仍然命名为旧场景。\n\n上面的场景名称字段是只读的——这是更改它的唯一方法。"
 
 msgid "Properties"
 msgstr "特性"
 
-msgid "Properties"
-msgstr "特性"
 
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "一次编辑一个元素的属性。拖动和轻推移动所有选定的内容。"
 
-msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
-msgstr "一次编辑一个元素的属性。拖动和轻推移动所有选定的内容。"
 
 msgid "Refresh"
 msgstr "刷新"
 
-msgid "Refresh"
-msgstr "刷新"
 
 msgid "Remove background"
 msgstr "删除背景"
 
-msgid "Remove background"
-msgstr "删除背景"
 
 msgid "Rename Element"
 msgstr "重命名元素"
 
-msgid "Rename Element"
-msgstr "重命名元素"
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "在这里重命名元素不会清除备份：项目布局没有用于任务元素操作的场景名称来寻址，因此无需重写。"
 
-msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
-msgstr "在这里重命名元素不会清除备份：项目布局没有用于任务元素操作的场景名称来寻址，因此无需重写。"
 
 msgid "Repeats once per array entry"
 msgstr "每个数组条目重复一次"
 
-msgid "Repeats once per array entry"
-msgstr "每个数组条目重复一次"
 
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "将拖动的位置和大小舍入到这么多像素。"
 
-msgid "Round dragged positions and sizes to this many pixels."
-msgstr "将拖动的位置和大小舍入到这么多像素。"
 
 msgid "Save Scene To Android Device"
 msgstr "将场景保存到 Android 设备"
 
-msgid "Save Scene To Android Device"
-msgstr "将场景保存到 Android 设备"
 
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "保存整个备份 - 其中的每个项目、配置文件、任务和场景，而不仅仅是此场景 - 包​​括此会话中任何位置所做的每个编辑。\n它将写入当前加载的文件的新的带时间戳的副本：backup.xml 变为 backup_20260728_143005.xml。\n您加载的文件永远不会被写入，因此它会保持原样。\n然后应用程序切换到新副本，该副本将成为当前文件以供进一步编辑和保存；再次保存会替换时间戳，而不是添加第二个时间戳。\n这仅写入此计算机 - 不会将任何内容发送到您的 Android 设备。"
 
-msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
-msgstr "保存整个备份 - 其中的每个项目、配置文件、任务和场景，而不仅仅是此场景 - 包​​括此会话中任何位置所做的每个编辑。\n它将写入当前加载的文件的新的带时间戳的副本：backup.xml 变为 backup_20260728_143005.xml。\n您加载的文件永远不会被写入，因此它会保持原样。\n然后应用程序切换到新副本，该副本将成为当前文件以供进一步编辑和保存；再次保存会替换时间戳，而不是添加第二个时间戳。\n这仅写入此计算机 - 不会将任何内容发送到您的 Android 设备。"
 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "将此场景及其所有元素保存为一个独立的 .scn.xml 文件 - 与 Tasker 自己的场景导出生成的格式相同。\n\n不包括场景元素运行的任务；他们属于自己的项目。"
 
-msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
-msgstr "将此场景及其所有元素保存为一个独立的 .scn.xml 文件 - 与 Tasker 自己的场景导出生成的格式相同。\n\n不包括场景元素运行的任务；他们属于自己的项目。"
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "扫描加载的 XML 以查找损坏的引用、未引用的任务、配置文件和场景以及命名问题。\n\n结果显示在此处并保存到当前目录中的文本文件中。"
 
-msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "扫描加载的 XML 以查找损坏的引用、未引用的任务、配置文件和场景以及命名问题。\n\n结果显示在此处并保存到当前目录中的文本文件中。"
 
 msgid "Scene Components"
 msgstr "场景组件"
 
-msgid "Scene Components"
-msgstr "场景组件"
 
 msgid "Scene Elements"
 msgstr "场景元素"
 
-msgid "Scene Elements"
-msgstr "场景元素"
 
 msgid "Scene Name"
 msgstr "场景名称"
 
-msgid "Scene Name"
-msgstr "场景名称"
 
 msgid "Scene Preview"
 msgstr "场景预览"
 
-msgid "Scene Preview"
-msgstr "场景预览"
 
 msgid "Scene Properties"
 msgstr "场景属性"
 
-msgid "Scene Properties"
-msgstr "场景属性"
 
 msgid "Scene added."
 msgstr "场景已添加。"
 
-msgid "Scene added."
-msgstr "场景已添加。"
 
 msgid "Scene type"
 msgstr "场景类型"
 
-msgid "Scene type"
-msgstr "场景类型"
 
 msgid "Screen"
 msgstr "屏幕"
 
-msgid "Screen"
-msgstr "屏幕"
 
 msgid "Search elements"
 msgstr "搜索元素"
 
-msgid "Search elements"
-msgstr "搜索元素"
 
 msgid "Search icons"
 msgstr "搜索图标"
 
-msgid "Search icons"
-msgstr "搜索图标"
 
 msgid "Search variables"
 msgstr "搜索变量"
 
-msgid "Search variables"
-msgstr "搜索变量"
 
 msgid "Select a component on the left."
 msgstr "选择左侧的一个组件。"
 
-msgid "Select a component on the left."
-msgstr "选择左侧的一个组件。"
 
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "选择更大的查看限制或单个项目/配置文件/任务以查看其余内容。"
 
-msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
-msgstr "选择更大的查看限制或单个项目/配置文件/任务以查看其余内容。"
 
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "首先选择一个场景（上面的场景下拉菜单）。"
 
-msgid "Select a single Scene first (Scene pulldown above)."
-msgstr "首先选择一个场景（上面的场景下拉菜单）。"
 
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "选择单个元素以复制、删除或重新堆叠它。"
 
-msgid "Select a single element to duplicate, delete or restack it."
-msgstr "选择单个元素以复制、删除或重新堆叠它。"
 
 msgid "Select an element first."
 msgstr "首先选择一个元素。"
 
-msgid "Select an element first."
-msgstr "首先选择一个元素。"
 
 msgid "Select an element on the canvas or in the list."
 msgstr "选择画布上或列表中的元素。"
 
-msgid "Select an element on the canvas or in the list."
-msgstr "选择画布上或列表中的元素。"
 
 msgid "Show the Task each element runs."
 msgstr "显示每个元素运行的任务。"
 
-msgid "Show the Task each element runs."
-msgstr "显示每个元素运行的任务。"
 
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "显示每个组件在点击时执行的操作以及写入的内容。"
 
-msgid "Show what each component does when tapped, and what it writes to."
-msgstr "显示每个组件在点击时执行的操作以及写入的内容。"
 
 msgid "Show when"
 msgstr "显示时间"
 
-msgid "Show when"
-msgstr "显示时间"
 
 msgid "Size"
 msgstr "尺寸"
 
-msgid "Size"
-msgstr "尺寸"
 
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "大小必须是整数（-1 表示无布局）。"
 
-msgid "Size must be a whole number (-1 for no layout)."
-msgstr "大小必须是整数（-1 表示无布局）。"
 
 msgid "Snap"
 msgstr "折断"
 
-msgid "Snap"
-msgstr "折断"
 
 msgid "Spinner"
 msgstr "旋转器"
 
-msgid "Spinner"
-msgstr "旋转器"
 
 msgid "Stop firing anything on this event."
 msgstr "停止在此事件中发射任何内容。"
 
-msgid "Stop firing anything on this event."
-msgstr "停止在此事件中发射任何内容。"
 
 msgid "Task action(s) in"
 msgstr "任务操作"
 
-msgid "Task action(s) in"
-msgstr "任务操作"
 
 msgid "Task(s)"
 msgstr "任务"
 
-msgid "Task(s)"
-msgstr "任务"
 
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "任务通过匹配模式（元素可见性）来处理该场景。自己检查一下"
 
-msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
-msgstr "任务通过匹配模式（元素可见性）来处理该场景。自己检查一下"
 
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker 将此任务保留在场景中而不是其他地方，因此它没有名称，并且不能在不丢失它的情况下指向其他地方。它原封不动地进行着。"
 
-msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
-msgstr "Tasker 将此任务保留在场景中而不是其他地方，因此它没有名称，并且不能在不丢失它的情况下指向其他地方。它原封不动地进行着。"
 
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker 列出了这个元素，但 MapTasker 从未在保存的场景中看到过这个元素 - 因此添加它时只携带其类型和 id，甚至类型也是从上面的名称推断出来的（写为 type：“{node_type}”）。如果 Tasker 无法识别它，请按“撤消”。"
 
-msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
-msgstr "Tasker 列出了这个元素，但 MapTasker 从未在保存的场景中看到过这个元素 - 因此添加它时只携带其类型和 id，甚至类型也是从上面的名称推断出来的（写为 type：“{node_type}”）。如果 Tasker 无法识别它，请按“撤消”。"
 
 msgid "Tasker variable(s)"
 msgstr "任务执行者变量"
 
-msgid "Tasker variable(s)"
-msgstr "任务执行者变量"
 
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Tasker 的屏幕构建器：一个声明性组件树（列、行、支架等），可以自行布局，没有固定的画布大小。开始于："
 
-msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
-msgstr "Tasker 的屏幕构建器：一个声明性组件树（列、行、支架等），可以自行布局，没有固定的画布大小。开始于："
 
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "任务通过名称（元素文本、元素位置……总共 18 个操作代码）来寻址该元素，因此重命名它不是字段编辑。 “重命名”对话框列出了取决于当前名称的内容，并提供了将这些任务一起显示的选项。"
 
-msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
-msgstr "任务通过名称（元素文本、元素位置……总共 18 个操作代码）来寻址该元素，因此重命名它不是字段编辑。 “重命名”对话框列出了取决于当前名称的内容，并提供了将这些任务一起显示的选项。"
 
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "按名称显示或隐藏此场景的任务不会更改，并保留在原处。"
 
-msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
-msgstr "按名称显示或隐藏此场景的任务不会更改，并保留在原处。"
 
 msgid "Text density"
 msgstr "文字密度"
@@ -2285,167 +2039,111 @@ msgstr "文字密度"
 msgid "That component can't go there."
 msgstr "该组件不能去那里。"
 
-msgid "Text density"
-msgstr "文字密度"
 
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "那是已经加载的文件。  选择一个不同的进行比较。"
 
-msgid "That component can't go there."
-msgstr "该组件不能去那里。"
 
-msgid "That is the file already loaded.  Choose a different one to compare against."
-msgstr "那是已经加载的文件。  选择一个不同的进行比较。"
 
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "无法读取材质图标列表，因此请输入名称。"
 
-msgid "The Material icon list could not be read, so type the name instead."
-msgstr "无法读取材质图标列表，因此请输入名称。"
 
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "该组件将其值写入其中的 Tasker 变量。几个用逗号分隔。留空以声明绑定而不设置它。"
 
-msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
-msgstr "该组件将其值写入其中的 Tasker 变量。几个用逗号分隔。留空以声明绑定而不设置它。"
 
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "保存此场景时，解决该问题的任务将被更新。"
 
-msgid "The Tasks that address it will be updated when this Scene is saved."
-msgstr "保存此场景时，解决该问题的任务将被更新。"
 
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "一行的布局。 Tasker 对列表中的每个条目绘制一次，因此您在这里看到的是单行而不是列表。"
 
-msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
-msgstr "一行的布局。 Tasker 对列表中的每个条目绘制一次，因此您在这里看到的是单行而不是列表。"
 
 msgid "The loaded file was saved from"
 msgstr "加载的文件保存自"
 
-msgid "The loaded file was saved from"
-msgstr "加载的文件保存自"
 
 msgid "The original"
 msgstr "原来的"
 
-msgid "The original"
-msgstr "原来的"
 
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "原始场景：放置在大小画布上固定位置的 UI 元素（文本、按钮、矩形、图像、Web...）。"
 
-msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
-msgstr "原始场景：放置在大小画布上固定位置的 UI 元素（文本、按钮、矩形、图像、Web...）。"
 
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "屏幕大小是此预览的，而不是场景的 - 版本 2 布局没有自己的大小，因此更改“屏幕”以查看它的重新流动。由 Material 角色命名的颜色取自 Material 3 基线调色板；设备根据自己的主题来解析它们，该主题在 Material You 下来自壁纸。阴影填充和斜体下划线文本是%variables。琥珀色轮廓用“显示时间”标记组件。将鼠标悬停在任何组件上可查看其修饰符、变量和操作。"
 
-msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
-msgstr "屏幕大小是此预览的，而不是场景的 - 版本 2 布局没有自己的大小，因此更改“屏幕”以查看它的重新流动。由 Material 角色命名的颜色取自 Material 3 基线调色板；设备根据自己的主题来解析它们，该主题在 Material You 下来自壁纸。阴影填充和斜体下划线文本是%variables。琥珀色轮廓用“显示时间”标记组件。将鼠标悬停在任何组件上可查看其修饰符、变量和操作。"
 
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "搜索并未结束。视图可能太大，或者浏览器正忙。"
 
-msgid "The search did not finish. The view may be too large, or the browser is busy."
-msgstr "搜索并未结束。视图可能太大，或者浏览器正忙。"
 
 msgid "The two files hold the same configuration."
 msgstr "这两个文件包含相同的配置。"
 
-msgid "The two files hold the same configuration."
-msgstr "这两个文件包含相同的配置。"
 
 msgid "This Scene has no UI elements."
 msgstr "该场景没有 UI 元素。"
 
-msgid "This Scene has no UI elements."
-msgstr "该场景没有 UI 元素。"
 
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "该场景没有自己的景观布局（其大小为-1）。"
 
-msgid "This Scene has no landscape layout of its own (its size is -1)."
-msgstr "该场景没有自己的景观布局（其大小为-1）。"
 
 msgid "This Scene has no layout for this orientation."
 msgstr "该场景没有适合该方向的布局。"
 
-msgid "This Scene has no layout for this orientation."
-msgstr "该场景没有适合该方向的布局。"
 
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "该场景没有属性元素。 MapTasker 见过的 366 个场景中有 66 个也没有，所以这是普通的而不是损坏。"
 
-msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
-msgstr "该场景没有属性元素。 MapTasker 见过的 366 个场景中有 66 个也没有，所以这是普通的而不是损坏。"
 
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "无法读取该场景的版本 2 布局，将保持原样。"
 
-msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
-msgstr "无法读取该场景的版本 2 布局，将保持原样。"
 
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "该场景的版本 2 布局没有根组件，因此无需设计任何内容。"
 
-msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
-msgstr "该场景的版本 2 布局没有根组件，因此无需设计任何内容。"
 
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "此应用程序没有此元素类型的属性表，因此只能在此处编辑其几何形状。否则它会保持不变。"
 
-msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
-msgstr "此应用程序没有此元素类型的属性表，因此只能在此处编辑其几何形状。否则它会保持不变。"
 
 msgid "This element has no layout for this orientation."
 msgstr "该元素没有适合该方向的布局。"
 
-msgid "This element has no layout for this orientation."
-msgstr "该元素没有适合该方向的布局。"
 
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "这会将场景作为独立文件写入 Android 设备的 /Tasker/scenes 下。\n\nIP 地址和端口必须与 Android 设备的 Tasker 服务器设置匹配。\n\n为此不需要授权提示。"
 
-msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
-msgstr "这会将场景作为独立文件写入 Android 设备的 /Tasker/scenes 下。\n\nIP 地址和端口必须与 Android 设备的 Tasker 服务器设置匹配。\n\n为此不需要授权提示。"
 
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "这会将场景作为独立文件写入 Android 设备上的 /Tasker/scenes 下 - 它不会将其导入到 Tasker 的实时配置中。\n\n必须在 Android 设备上安装并激活“Http 服务器示例”Tasker 项目，并且服务器正在运行。\n\nAndroid 设备必须位于同一网络，并且 IP 地址和端口必须与其 Tasker 服务器设置匹配。为此不需要授权提示。"
 
-msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
-msgstr "这会将场景作为独立文件写入 Android 设备上的 /Tasker/scenes 下 - 它不会将其导入到 Tasker 的实时配置中。\n\n必须在 Android 设备上安装并激活“Http 服务器示例”Tasker 项目，并且服务器正在运行。\n\nAndroid 设备必须位于同一网络，并且 IP 地址和端口必须与其 Tasker 服务器设置匹配。为此不需要授权提示。"
 
 msgid "Tree label"
 msgstr "树标签"
 
-msgid "Tree label"
-msgstr "树标签"
 
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "将屏幕翻转过来，让布局重新融入其中。"
 
-msgid "Turn the screen on its side and let the layout re-flow into it."
-msgstr "将屏幕翻转过来，让布局重新融入其中。"
 
 msgid "Undo"
 msgstr "撤消"
 
-msgid "Undo"
-msgstr "撤消"
 
 msgid "Using the saved size"
 msgstr "使用保存的尺寸"
 
-msgid "Using the saved size"
-msgstr "使用保存的尺寸"
 
 msgid "Variable"
 msgstr "多变的"
 
-msgid "Variable"
-msgstr "多变的"
 
 msgid "Variables"
 msgstr "变量"
@@ -2507,62 +2205,61 @@ msgstr "一对"
 msgid "pixels"
 msgstr "像素"
 
-msgid "Variables"
-msgstr "变量"
 
-msgid "Version 2"
-msgstr "版本2"
 
-msgid "View Limit"
-msgstr "查看限制"
 
-msgid "What you pick goes in at the cursor. Open this again to add the next piece."
-msgstr "您选择的内容会出现在光标处。再次打开它以添加下一块。"
 
-msgid "What you pick replaces what the field holds. Type to narrow the list down."
-msgstr "你选择的内容会取代该字段所包含的内容。键入以缩小列表范围。"
 
-msgid "Which kind of Scene?"
-msgstr "哪种场景？"
 
-msgid "Writes to variable"
-msgstr "写入变量"
 
-msgid "Zoom"
-msgstr "飞涨"
 
-msgid "component(s)"
-msgstr "成分）"
 
-msgid "connectors"
-msgstr "连接器"
 
-msgid "drag or nudge any of them and they all move together."
-msgstr "拖动或轻推其中任何一个，它们都会一起移动。"
 
-msgid "editing 1 of"
-msgstr "编辑 1 个"
 
-msgid "element(s)"
-msgstr "元素"
 
-msgid "elements selected"
-msgstr "选定的元素"
 
-msgid "is not a whole number"
-msgstr "不是整数"
 
-msgid "lines dropped"
-msgstr "线路掉线"
 
-msgid "none"
-msgstr "没有任何"
 
-msgid "not drawn"
-msgstr "未绘制"
 
-msgid "pair"
-msgstr "一对"
 
-msgid "pixels"
-msgstr "像素"
+
+msgid "Built the Map, but it has no line for"
+msgstr "建立了地图，但没有线路"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "单击某个结果即可在地图视图中查看它。"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "单击变量或位置即可在地图视图中查看它。"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "没有打开地图视图。  运行地图视图，然后再次单击此按钮。"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "跟踪加载的 XML 中的每个 % 变量：每个变量在何处设置、在何处读取、哪些已读取但从未设置、哪些已设置但从未读取，以及哪些几乎相同的名称（%MyVar 与 %Myvar）可能是拼写错误。\n\n搜索：任务操作及其条件、插件配置、配置文件上下文和场景。\n\n结果显示在此处并保存到当前目录中的文本文件中。"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "变量交叉引用没有发现可疑变量。"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "无法保存变量交叉引用报告。"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "变量交叉引用另存为"
+
+msgid "Variable Xref"
+msgstr "可变外部参照"
+
+msgid "detail level"
+msgstr "详细程度"
+
+msgid "is no longer in the loaded configuration."
+msgstr "不再处于加载的配置中。"
+
+msgid "whole file"
+msgstr "整个文件"
+
+msgid "Building the Map to show"
+msgstr "构建地图来显示"

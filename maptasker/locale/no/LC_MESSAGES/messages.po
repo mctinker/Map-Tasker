@@ -2302,3 +2302,42 @@ msgstr "piksler"
 
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker holder denne oppgaven inne i scenen og ingen andre steder, så den har ikke noe navn og kan ikke pekes et annet sted uten å miste den. Den bæres urørt gjennom."
+
+msgid "Building the Map to show"
+msgstr "Bygg kartet som skal vises"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Bygget kartet, men det har ingen linje for"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Klikk på et funn for å se det i kartvisningen."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Ingen kartvisning er åpen.  Kjør kartvisning, og klikk deretter på denne igjen."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Spor hver %variabel i den innlastede XML-en: hvor hver enkelt er satt, hvor den er lest, hvilke er lest, men aldri satt, hvilke er satt, men aldri lest, og hvilke nesten identiske navn (%MyVar mot %Myvar) som sannsynligvis er skrivefeil.\n\nSøkte: Oppgavehandlinger og deres betingelser, plugin-konfigurasjon, profilkontekster og scener.\n\nResultatene vises her og lagres i en tekstfil i gjeldende katalog."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Variabelkryssreferanse fant ingen mistenkte variabler."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Variabel kryssreferanserapport kunne ikke lagres."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Variabel kryssreferanse lagret som"
+
+msgid "Variable Xref"
+msgstr "Variabel Xref"
+
+msgid "detail level"
+msgstr "detaljnivå"
+
+msgid "whole file"
+msgstr "hele filen"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Klikk på en variabel eller et sted for å se den i kartvisningen."
+
+msgid "is no longer in the loaded configuration."
+msgstr "er ikke lenger i den innlastede konfigurasjonen."

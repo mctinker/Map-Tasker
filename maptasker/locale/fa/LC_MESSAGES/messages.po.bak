@@ -2164,3 +2164,42 @@ msgstr "اصل"
 
 msgid "The two files hold the same configuration."
 msgstr "دو فایل دارای تنظیمات یکسانی هستند."
+
+msgid "Building the Map to show"
+msgstr "ساختن نقشه برای نشان دادن"
+
+msgid "Built the Map, but it has no line for"
+msgstr "نقشه را ساخته است، اما خطی برای آن ندارد"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "روی یک یافته کلیک کنید تا آن را در نمای نقشه ببینید."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "هر %متغیر را در XML بارگذاری شده ردیابی کنید: جایی که هر یک تنظیم می‌شود، کجا خوانده می‌شود، کدام‌ها خوانده می‌شوند اما هرگز تنظیم نمی‌شوند، کدام‌ها تنظیم شده‌اند اما هرگز خوانده نمی‌شوند، و نام‌های تقریباً یکسان (%MyVar در مقابل %Myvar) احتمالاً اشتباه املایی هستند.\n\nجستجو شده: اقدامات وظیفه و شرایط آنها، پیکربندی افزونه، زمینه‌های نمایه و صحنه‌ها.\n\nنتایج در اینجا نمایش داده می شوند و در یک فایل متنی در فهرست فعلی ذخیره می شوند."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "متغیر متقابل هیچ متغیر مشکوکی پیدا نکرد."
+
+msgid "Variable Xref"
+msgstr "متغیر Xref"
+
+msgid "detail level"
+msgstr "سطح جزئیات"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "روی یک متغیر یا مکانی کلیک کنید تا آن را در نمای نقشه ببینید."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "هیچ نمای نقشه باز نیست.  Map View را اجرا کنید، سپس دوباره روی آن کلیک کنید."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "گزارش مرجع متغییر ذخیره نشد."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "متغیر متقاطع به عنوان ذخیره شد"
+
+msgid "is no longer in the loaded configuration."
+msgstr "دیگر در پیکربندی بارگذاری شده نیست."
+
+msgid "whole file"
+msgstr "کل فایل"

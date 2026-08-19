@@ -2162,3 +2162,42 @@ msgstr "দুটি ফাইল একই কনফিগারেশন ধ�
 
 msgid "component(s)"
 msgstr "উপাদান(গুলি)"
+
+msgid "Building the Map to show"
+msgstr "দেখানোর জন্য মানচিত্র তৈরি করা হচ্ছে"
+
+msgid "Built the Map, but it has no line for"
+msgstr "মানচিত্র তৈরি, কিন্তু এটির জন্য কোন লাইন নেই"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "মানচিত্র দৃশ্যে এটি দেখতে একটি অনুসন্ধানে ক্লিক করুন৷"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "কোনো মানচিত্র দৃশ্য খোলা নেই।  ম্যাপ ভিউ চালান, তারপরে আবার ক্লিক করুন।"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "লোড করা XML-এ প্রতিটি %ভেরিয়েবল ট্রেস করুন: যেখানে প্রতিটি সেট করা আছে, কোথায় পঠিত হয়, কোনটি পঠিত হয় কিন্তু কখনই সেট হয় না, কোনটি সেট করা হয় কিন্তু কখনই পড়া হয় না এবং কোনটির কাছাকাছি-সদৃশ নাম (%Myvar এর বিপরীতে %Myvar) সম্ভবত টাইপো হতে পারে।\n\nঅনুসন্ধান করা হয়েছে: টাস্ক অ্যাকশন এবং তাদের শর্ত, প্লাগইন কনফিগারেশন, প্রোফাইল প্রসঙ্গ এবং দৃশ্য।\n\nফলাফল এখানে প্রদর্শিত হয় এবং বর্তমান ডিরেক্টরির একটি টেক্সট ফাইলে সংরক্ষিত হয়।"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "পরিবর্তনশীল ক্রস-রেফারেন্সে কোন সন্দেহজনক ভেরিয়েবল পাওয়া যায়নি।"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "পরিবর্তনশীল ক্রস-রেফারেন্স রিপোর্ট সংরক্ষণ করা যায়নি."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "পরিবর্তনশীল ক্রস-রেফারেন্স হিসাবে সংরক্ষিত"
+
+msgid "Variable Xref"
+msgstr "পরিবর্তনশীল Xref"
+
+msgid "is no longer in the loaded configuration."
+msgstr "লোড করা কনফিগারেশনে আর নেই।"
+
+msgid "whole file"
+msgstr "পুরো ফাইল"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "মানচিত্র দৃশ্যে এটি দেখতে একটি পরিবর্তনশীল বা একটি স্থান ক্লিক করুন৷"
+
+msgid "detail level"
+msgstr "বিস্তারিত স্তর"

@@ -283,7 +283,20 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # main window's content. Reuses the single shared MyGui instance (PrimeItems.mygui) rather
     # than building a new one, since this is a single-user, single-server-process desktop app.
     @ui.page("/popout/{view_type}")
-    def popout_view(view_type: str) -> None:
+    def popout_view(view_type: str, goto: str = "", scope: str = "") -> None:
+        """The Map/Diagram in its own window.
+
+        'goto' is a mapjump token, put on the URL by a clicked report finding that needed a
+        Map built for it (see MapTaskerEventHandlers.rebuild_map_for_jump).  It travels on
+        the URL rather than being pushed into this window afterwards because this page is
+        the only thing that knows when its content has finished streaming in and is
+        therefore scrollable.  NiceGUI hands a page function its query parameters, so it
+        arrives here as an ordinary argument.
+
+        'scope' is the Project the Map in this window was built for ("" for all of them),
+        recorded on the view so a later clicked finding can tell whether this window can
+        show what it points at -- see guiwins.jump_map_view.
+        """
         gui = PrimeItems.mygui
         if gui is None or view_type not in ("map", "diagram"):
             ui.label(
@@ -311,6 +324,8 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
             title=window_title,
             the_data={} if view_type == "map" else [],
             container=popout_container,
+            jump_to=goto,
+            map_scope=scope,
         )
 
     logger.info("Starting NiceGUI server mainloop")

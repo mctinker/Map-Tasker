@@ -327,12 +327,6 @@ def _font_index() -> dict[str, _Face]:
     return index
 
 
-def clear_font_cache() -> None:
-    """Discard the cached font index so newly installed fonts are picked up."""
-    _font_index.cache_clear()
-    _monospaced_families.cache_clear()
-
-
 # ##################################################################################
 # Public interface
 # ##################################################################################

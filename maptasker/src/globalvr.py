@@ -11,8 +11,19 @@ import html
 
 import defusedxml.ElementTree  # Need for type hints
 
+from maptasker.src.mapjump import VARIABLE, Target
+from maptasker.src.maputils import fix_hyperlink_name
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import NORMAL_TAB, TABLE_BACKGROUND_COLOR, TABLE_BORDER, FormatLine
+
+# The where-used counts for the table below, built once per run and reused for every
+# Project's table.  Cleared by get_variables, which runs once at the start of a Map.
+#
+# Cached rather than recomputed because varxref.build_index walks every Task action,
+# Profile and Scene in the file: cheap once, but this table is emitted once per Project
+# plus once for the unreferenced list, and doing that walk eighty times over would be the
+# slowest thing in the Map.
+_cross_reference: dict | None = None
 
 # What each built-in variable is called in Tasker's own documentation, for anywhere a person
 # has to *choose* one rather than read one -- the Version 2 Scene designer's Show When picker
@@ -227,6 +238,10 @@ def get_variables() -> None:
         Args:
 
     """
+    # A new file is being read, so anything worked out about the last one is stale.
+    global _cross_reference  # noqa: PLW0603
+    _cross_reference = None
+
     # Get all of the Tasker variables
     if not (global_variables := PrimeItems.xml_root.findall("Variable")):
         return
@@ -257,7 +272,82 @@ def get_variables() -> None:
         }
 
 
+def _get_cross_reference() -> dict:
+    """{variable name: its varxref record}, for the names this table can show.
+
+    Locals are left out: they are scoped to one Task, Profile or Scene, and this table is
+    the file's global variables.  Built on first use rather than at import, so a Map run
+    that never reaches detail level 4 never pays for it.
+    """
+    global _cross_reference  # noqa: PLW0603
+    if _cross_reference is None:
+        # Imported here and not at module scope because varxref imports THIS module for
+        # tasker_global_variables: at module scope the two would be a cycle, and neither
+        # would import at all.  varxref is the lower of the two -- healthck reads its
+        # findings as well -- so the deferred import belongs on this side.
+        from maptasker.src import varxref  # noqa: PLC0415
+
+        index = varxref.build_index()
+        _cross_reference = {
+            variable.name: variable for (name, owner), variable in index.variables.items() if owner == ""
+        }
+    return _cross_reference
+
+
+def _usage_cell(references: list, table_definition: str) -> str:
+    """One Set or Read cell: how many, linked to the Tasks it happens in.
+
+    The count is the useful thing at a glance -- a zero in the Set column beside a
+    non-zero Read is a variable being read that nothing fills.  The link is what turns
+    the table from a list into an index, and it only appears when the directory is on:
+    the 'tasks_<name>' anchors it jumps to are written by proclist.add_task_hyperlink,
+    which is itself gated on that same setting, so linking without it would produce
+    hyperlinks that land nowhere.
+    """
+    if not references:
+        return f"{table_definition}0</td>"
+
+    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+    # Ordered, de-duplicated: a Task that sets a variable four times is one place to look.
+    task_names = list(
+        dict.fromkeys(
+            all_tasks[reference.scope_id]["name"]
+            for reference in references
+            if reference.scope_id in all_tasks and all_tasks[reference.scope_id]["name"]
+        ),
+    )
+    count = len(references)
+    if not task_names or not PrimeItems.program_arguments["directory"]:
+        return f"{table_definition}{count}</td>"
+
+    # Tooltip lists every Task; the link goes to the first, which is where a reader
+    # starts.  Both are escaped -- a Task name is the user's text and can hold quotes.
+    tooltip = html.escape(", ".join(task_names), quote=True)
+    anchor = fix_hyperlink_name(task_names[0])
+    return f'{table_definition}<a href="#tasks_{anchor}" title="{tooltip}">{count}</a></td>'
+
+
+def _usage_cells(key: str, table_definition: str) -> str:
+    """The Set and Read cells for one variable, or empty cells if it is not in the index."""
+    variable = _get_cross_reference().get(key)
+    if variable is None:
+        return f"{table_definition}&nbsp;</td>{table_definition}&nbsp;</td>"
+    return _usage_cell(variable.sets, table_definition) + _usage_cell(variable.reads, table_definition)
+
+
 # Print the variables (Project's or Unreferenced)
+def _variable_anchor(name: str, wanted: bool) -> str:
+    """The id attribute that lets a report finding jump to this variable's row, or "".
+
+    The id sits on the <tr> itself rather than on an anchor element inside it, which is
+    the shape everything else in the Map uses (see mapjump.anchor_html).  A row is already
+    a real element to highlight, and an <a> written between a <tr> and its <td>s is not
+    valid table markup -- the browser would hoist it out of the table before the jump ever
+    ran, leaving the id somewhere above the variable it names.
+    """
+    return f' id="{Target(VARIABLE, name).anchor}"' if wanted else ""
+
+
 def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> None:
     """Parameters:
         - color_to_use (str): The color to use for the table definition.
@@ -286,9 +376,16 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
         if project is not None and project != "":
             # Does this variable have a list of Projects?
             if PrimeItems.variables[key]["project"]:
+                # A variable used in three Projects gets a row in each of their tables, but
+                # an HTML id may only appear once in a document -- so the anchor goes on the
+                # row in the FIRST Project that uses it, and the rest are plain rows.  A jump
+                # to the variable then lands on a real use of it rather than on nothing.
+                first_project = PrimeItems.variables[key]["project"][0]["xml"]
                 variable_output_lines.extend(
                     [
-                        f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>"
+                        f"<tr{_variable_anchor(key, variable_project['xml'] is first_project)}>"
+                        f"{table_definition}{key}</td>{table_definition}{value['value']}</td>"
+                        f"{_usage_cells(key, table_definition)}</tr>"
                         for variable_project in PrimeItems.variables[key]["project"]
                         if variable_project["xml"] == project
                     ],
@@ -298,7 +395,9 @@ def print_the_variables(color_to_use: str, project: defusedxml.ElementTree) -> N
         elif PrimeItems.variables[key]["verified"] and not PrimeItems.variables[key]["project"]:
             # It is an unrefereenced variable.
             variable_output_lines.append(
-                f"<tr>{table_definition}{key}</td>{table_definition}{value['value']}</td></tr>",
+                f"<tr{_variable_anchor(key, True)}>"
+                f"{table_definition}{key}</td>{table_definition}{value['value']}</td>"
+                f"{_usage_cells(key, table_definition)}</tr>",
             )
 
     return variable_output_lines
@@ -352,7 +451,7 @@ def output_variables(heading: str, project: defusedxml.ElementTree) -> None:
         )
 
         # Define table
-        table_definition = f'{TABLE_BORDER}<table cellspacing="1" cellpadding="2" border="1" style="height:16px; margin-left: 20;color:{color_to_use};background-color:{TABLE_BACKGROUND_COLOR};font-family:{PrimeItems.program_arguments["font"]};text-align:left">\n<tr>\n<th>Name</th>\n<th>Value</th>\n</tr>'
+        table_definition = f'{TABLE_BORDER}<table cellspacing="1" cellpadding="2" border="1" style="height:16px; margin-left: 20;color:{color_to_use};background-color:{TABLE_BACKGROUND_COLOR};font-family:{PrimeItems.program_arguments["font"]};text-align:left">\n<tr>\n<th>Name</th>\n<th>Value</th>\n<th>Set</th>\n<th>Read</th>\n</tr>'
         PrimeItems.output_lines.add_line_to_output(
             5,
             table_definition,

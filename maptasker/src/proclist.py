@@ -13,6 +13,7 @@ import defusedxml
 
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import build_tooltip_span
+from maptasker.src.mapjump import SCENE, TASK, Target, anchor_html
 from maptasker.src.maputils import find_owning_project_for_scene
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
@@ -303,7 +304,7 @@ def add_directory_hyperlink() -> None:
         None
     """
     directory_item = f"{PrimeItems.directory_items['current_item']}"
-    directory = f'<a id="{directory_item}"</a>\n'
+    directory = f'<a id="{directory_item}"></a>\n'
     PrimeItems.output_lines.add_line_to_output(
         5,
         directory,
@@ -340,6 +341,41 @@ def debug_task_id(list_type: str) -> str:
         if id_loc != -1:
             return f"{list_type}{id_loc}"
     return list_type
+
+
+# ################################################################################
+# The anchor that lets a report finding jump to this Task/Scene in the Map view.
+# ################################################################################
+def item_anchor(list_type: str, the_item: str, the_task: defusedxml) -> str:
+    """The mapjump anchor for the Task or Scene about to be output, or "" if there is none.
+
+    Where each identity comes from, and why not from the output line's text:
+
+      "Scene:"   -- the_item IS the Scene name, which is how Tasker keys a Scene.
+      "--Task:"  -- the_item IS the Task's id (a Task fired by a Scene element; see
+                    handle_task above, which looks the Task up by it).
+      "Task:"    -- the Task's "sr" attribute, read off the element the caller handed us.
+                    Every Task reaches here through tasks.output_task_list, which walks
+                    one Task at a time and passes that Task's own element down beside its
+                    one output line, so this element is this line's Task.  The line's text
+                    would not do: it carries the name, and two Tasks may share one.
+
+    "" when there is no Task element to read (the Map can be asked for a Task the file
+    turns out not to hold) -- an anchor is only worth writing when it is the right one.
+    """
+    if "&#45;&#45;Task:" in list_type:
+        task = PrimeItems.tasker_root_elements["all_tasks"].get(the_item)
+        return anchor_html(Target(TASK, the_item, task["name"] if task else "")) if task else ""
+
+    if list_type == "Scene:":
+        return anchor_html(Target(SCENE, the_item, the_item))
+
+    if "Task:" in list_type and the_task is not None:
+        task_id = the_task.attrib.get("sr", "")[4:]
+        task = PrimeItems.tasker_root_elements["all_tasks"].get(task_id)
+        return anchor_html(Target(TASK, task_id, task["name"] if task else "")) if task else ""
+
+    return ""
 
 
 # ################################################################################
@@ -383,6 +419,10 @@ def format_item(
         output_line,
         color_to_use,
     )
+
+    # Mark this Task/Scene's place so a report finding can be clicked and land on it.
+    if anchor := item_anchor(list_type, the_item, the_task):
+        PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Add this Task/Scene to the output as a list item
     PrimeItems.output_lines.add_line_to_output(

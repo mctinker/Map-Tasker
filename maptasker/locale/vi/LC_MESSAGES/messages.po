@@ -2349,3 +2349,42 @@ msgstr "đôi"
 msgid "pixels"
 msgstr "pixel"
 
+
+msgid "Built the Map, but it has no line for"
+msgstr "Đã xây dựng Bản đồ nhưng không có đường dành cho"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Bấm vào một phát hiện để xem nó trong chế độ xem Bản đồ."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Bấm vào một biến hoặc một địa điểm để xem nó trong chế độ xem Bản đồ."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Không có chế độ xem Bản đồ nào được mở.  Chạy Chế độ xem bản đồ, sau đó nhấp lại vào đây."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Theo dõi mọi biến % trong XML được tải: nơi mỗi biến được đặt, nơi nó được đọc, biến nào được đọc nhưng không bao giờ được đặt, biến nào được đặt nhưng không bao giờ đọc và tên nào gần giống nhau (%MyVar so với %Myvar) có thể là lỗi chính tả.\n\nĐã tìm kiếm: Hành động nhiệm vụ và điều kiện của chúng, cấu hình plugin, Bối cảnh hồ sơ và Cảnh.\n\nKết quả được hiển thị ở đây và được lưu vào một tệp văn bản trong thư mục hiện tại."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Tham chiếu chéo biến không tìm thấy biến nghi ngờ."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Không thể lưu báo cáo tham chiếu chéo biến."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Tham chiếu chéo biến được lưu dưới dạng"
+
+msgid "Variable Xref"
+msgstr "Xref biến"
+
+msgid "detail level"
+msgstr "mức độ chi tiết"
+
+msgid "is no longer in the loaded configuration."
+msgstr "không còn trong cấu hình được tải."
+
+msgid "whole file"
+msgstr "toàn bộ tập tin"
+
+msgid "Building the Map to show"
+msgstr "Xây dựng bản đồ để hiển thị"

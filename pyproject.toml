@@ -98,7 +98,11 @@ dev = [
 include = ["pyproject.toml", "maptasker/custom_overrides/**/*.py", "maptasker/src/**/*.py", "scripts/**/*.py"]
 respect-gitignore = true
 line-length = 120
+show-fixes = true
+src = ['src',]
 # editor.formatOnSaveMode = "modificationsIfAvailable"
+
+[tool.ruff.lint]
 select = [
     'A',    # Builtins
     'ANN',  # Annotations
@@ -160,23 +164,20 @@ ignore = [
     "S606",     # No shell
     "B009",     # Do not perform function calls in argument defaults
     "T201",     # Print found
-    "ANN101",   # Missing type annotation for self
     ]
-show-fixes = true
-src = ['src',]
 
 [tool.ruff.lint.pycodestyle]
 ignore-overlong-task-comments = true
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 docstring-quotes = 'double'
 multiline-quotes = 'double'
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 # Unlike Flake8, default to a complexity level of 15.
 max-complexity = 20
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # https://beta.ruff.rs/docs/rules/
 '__init__.py' = ['F401','F403','F405',]
 'tests/*' = ['ANN', 'ARG', 'INP001', 'S101',]
@@ -189,7 +190,7 @@ max-statements = 120
 max-locals = 20
 max-nested-blocks = 10
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = 'all'
 
 [tool.ruff.format]

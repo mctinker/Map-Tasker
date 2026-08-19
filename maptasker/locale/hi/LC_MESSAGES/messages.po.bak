@@ -2142,3 +2142,42 @@ msgstr "मूल"
 
 msgid "The two files hold the same configuration."
 msgstr "दोनों फ़ाइलें समान कॉन्फ़िगरेशन रखती हैं।"
+
+msgid "Building the Map to show"
+msgstr "दिखाने के लिए मानचित्र बनाना"
+
+msgid "Built the Map, but it has no line for"
+msgstr "मानचित्र बनाया, लेकिन इसमें कोई रेखा नहीं है"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "किसी खोज को मानचित्र दृश्य में देखने के लिए उस पर क्लिक करें।"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "किसी चर या स्थान को मानचित्र दृश्य में देखने के लिए उस पर क्लिक करें।"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "कोई मानचित्र दृश्य खुला नहीं है.  मानचित्र दृश्य चलाएँ, फिर इस पर दोबारा क्लिक करें।"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "लोड किए गए XML में प्रत्येक %वेरिएबल को ट्रेस करें: जहां प्रत्येक को सेट किया गया है, जहां इसे पढ़ा जाता है, जो पढ़ा जाता है लेकिन कभी सेट नहीं किया जाता है, जो सेट किया जाता है लेकिन कभी पढ़ा नहीं जाता है, और जो लगभग समान नाम (%MyVar बनाम %MyVar) संभावित टाइपो हैं।\n\nखोजा गया: कार्य क्रियाएँ और उनकी स्थितियाँ, प्लगइन कॉन्फ़िगरेशन, प्रोफ़ाइल संदर्भ और दृश्य।\n\nपरिणाम यहां प्रदर्शित होते हैं और वर्तमान निर्देशिका में एक टेक्स्ट फ़ाइल में सहेजे जाते हैं।"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "परिवर्तनीय क्रॉस-रेफरेंस रिपोर्ट सहेजी नहीं जा सकी."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "वेरिएबल क्रॉस-रेफरेंस को इस रूप में सहेजा गया"
+
+msgid "detail level"
+msgstr "विवरण स्तर"
+
+msgid "is no longer in the loaded configuration."
+msgstr "अब लोडेड कॉन्फ़िगरेशन में नहीं है."
+
+msgid "whole file"
+msgstr "संपूर्ण फ़ाइल"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "वेरिएबल क्रॉस-रेफरेंस में कोई संदिग्ध वेरिएबल नहीं मिला।"
+
+msgid "Variable Xref"
+msgstr "परिवर्तनीय Xref"

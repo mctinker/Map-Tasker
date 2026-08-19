@@ -18,6 +18,7 @@ from maptasker.src.getids import get_ids
 from maptasker.src.globalvr import output_variables
 from maptasker.src.guiutils import get_taskid_from_unnamed_task
 from maptasker.src.kidapp import get_kid_app
+from maptasker.src.mapjump import PROJECT, Target, anchor_html
 from maptasker.src.maputils import find_owning_profile, find_owning_project, find_owning_project_for_scene
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
@@ -460,6 +461,14 @@ def get_extra_and_output_project(
         )
         # Okay, we've output the Project name.  Get rid of just the Project name (and then add the full Project line).
         _ = PrimeItems.output_lines.output_lines.pop()
+
+    # Mark this Project's place so a report finding can be clicked and land on it (mapjump).
+    # Its own line rather than the front of the Project's line: format_line_list_item
+    # dispatches on what a line contains, and the Project line is styled and indented from
+    # end to end -- an anchor inside it would be styled and indented along with it.  Emitted
+    # after the single-Project reset above, which pops the last line off the output.
+    if anchor := anchor_html(Target(PROJECT, project_name, project_name)):
+        PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     PrimeItems.output_lines.add_line_to_output(
         2,

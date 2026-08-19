@@ -1625,32 +1625,22 @@ msgstr "...మరియు ఇంకా {count} -- దాన్ని తగ్�
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "ఒక దృశ్యం యొక్క మూలకం స్థానాలు పరికర పిక్సెల్‌లలో నిల్వ చేయబడతాయి, కానీ దాని వచన పరిమాణాలు Android యొక్క sp యూనిట్లలో నిల్వ చేయబడతాయి. రెండింటి మధ్య మార్చే నంబర్ అనేది దృశ్యం చూపబడిన ఫోన్ యొక్క ఆస్తి మరియు బ్యాకప్ ఫైల్‌లో లేదు.\n\nకనుక ఇది ఇక్కడ సెట్ చేయబడింది. వచనం దాని మూలకాలకు చాలా చిన్నదిగా కనిపిస్తే దాన్ని పెంచండి, వచనం వాటిని పొంగిపొర్లితే దాన్ని తగ్గించండి."
 
-msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
-msgstr "ఒక దృశ్యం యొక్క మూలకం స్థానాలు పరికర పిక్సెల్‌లలో నిల్వ చేయబడతాయి, కానీ దాని వచన పరిమాణాలు Android యొక్క sp యూనిట్లలో నిల్వ చేయబడతాయి. రెండింటి మధ్య మార్చే నంబర్ అనేది దృశ్యం చూపబడిన ఫోన్ యొక్క ఆస్తి మరియు బ్యాకప్ ఫైల్‌లో లేదు.\n\nకనుక ఇది ఇక్కడ సెట్ చేయబడింది. వచనం దాని మూలకాలకు చాలా చిన్నదిగా కనిపిస్తే దాన్ని పెంచండి, వచనం వాటిని పొంగిపొర్లితే దాన్ని తగ్గించండి."
 
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "వెర్షన్ 2 సీన్‌కు దాని స్వంత పరిమాణం లేదు -- ఇది ఏ స్క్రీన్‌లో చూపబడినా దాని లోపలే ఉంచబడుతుంది, కాబట్టి బ్యాకప్ ఫైల్‌లో డ్రా చేయడానికి ఏమీ లేదు.\n\nలేఅవుట్ రీ-ఫ్లో చూడటానికి దీన్ని మార్చండి. ఒక ఫ్లో రో విభిన్నంగా చుట్టబడుతుంది మరియు %sv2_render_widthకి వ్యతిరేకంగా వ్రాసిన ఏదైనా 'ఎప్పుడు చూపు' ఖచ్చితంగా దీని గురించి అడుగుతోంది."
 
-msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
-msgstr "వెర్షన్ 2 సీన్‌కు దాని స్వంత పరిమాణం లేదు -- ఇది ఏ స్క్రీన్‌లో చూపబడినా దాని లోపలే ఉంచబడుతుంది, కాబట్టి బ్యాకప్ ఫైల్‌లో డ్రా చేయడానికి ఏమీ లేదు.\n\nలేఅవుట్ రీ-ఫ్లో చూడటానికి దీన్ని మార్చండి. ఒక ఫ్లో రో విభిన్నంగా చుట్టబడుతుంది మరియు %sv2_render_widthకి వ్యతిరేకంగా వ్రాసిన ఏదైనా 'ఎప్పుడు చూపు' ఖచ్చితంగా దీని గురించి అడుగుతోంది."
 
 msgid "Actions"
 msgstr "చర్యలు"
 
-msgid "Actions"
-msgstr "చర్యలు"
 
 msgid "Add"
 msgstr "జోడించు"
 
-msgid "Add"
-msgstr "జోడించు"
 
 msgid "Add Element"
 msgstr "మూలకాన్ని జోడించండి"
 
-msgid "Add Element"
-msgstr "మూలకాన్ని జోడించండి"
 
 msgid "Add Scene"
 msgstr "దృశ్యాన్ని జోడించండి"
@@ -1658,8 +1648,6 @@ msgstr "దృశ్యాన్ని జోడించండి"
 msgid "Add a background"
 msgstr "నేపథ్యాన్ని జోడించండి"
 
-msgid "Add a background"
-msgstr "నేపథ్యాన్ని జోడించండి"
 
 msgid "Add event"
 msgstr "ఈవెంట్‌ని జోడించండి"
@@ -1667,20 +1655,14 @@ msgstr "ఈవెంట్‌ని జోడించండి"
 msgid "Add action"
 msgstr "చర్యను జోడించండి"
 
-msgid "Add event"
-msgstr "ఈవెంట్‌ని జోడించండి"
 
 msgid "Add handler"
 msgstr "హ్యాండ్లర్‌ని జోడించండి"
 
-msgid "Add handler"
-msgstr "హ్యాండ్లర్‌ని జోడించండి"
 
 msgid "Add modifier"
 msgstr "మాడిఫైయర్‌ని జోడించండి"
 
-msgid "Add modifier"
-msgstr "మాడిఫైయర్‌ని జోడించండి"
 
 msgid "Add scene properties"
 msgstr "దృశ్య లక్షణాలను జోడించండి"
@@ -1694,23 +1676,15 @@ msgstr "నుండి id ద్వారా చిరునామా"
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "ఎంచుకున్న భాగం పిల్లలను పట్టుకోగలిగితే లోపల జోడిస్తుంది, లేకుంటే నేరుగా దాని తర్వాత."
 
-msgid "Adds an element on top of the stack, in the middle of the Scene."
-msgstr "సన్నివేశం మధ్యలో స్టాక్ పైన ఒక మూలకాన్ని జోడిస్తుంది."
 
-msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
-msgstr "ఎంచుకున్న భాగం పిల్లలను పట్టుకోగలిగితే లోపల జోడిస్తుంది, లేకుంటే నేరుగా దాని తర్వాత."
 
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "సన్నివేశం మధ్యలో, స్టాక్ పైన దానిని జోడిస్తుంది. మీకు కావలసిన చోటికి లాగండి."
 
-msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
-msgstr "సన్నివేశం మధ్యలో, స్టాక్ పైన దానిని జోడిస్తుంది. మీకు కావలసిన చోటికి లాగండి."
 
 msgid "Also selected:"
 msgstr "అలాగే ఎంపిక చేయబడింది:"
 
-msgid "Also selected:"
-msgstr "అలాగే ఎంపిక చేయబడింది:"
 
 msgid "Also update"
 msgstr "అలాగే అప్‌డేట్ చేయండి"
@@ -1718,38 +1692,26 @@ msgstr "అలాగే అప్‌డేట్ చేయండి"
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "అంబర్: టాస్కర్ దానిని జాబితా చేస్తుంది, కానీ MapTasker దాని యొక్క ధృవీకరించబడిన నమూనా లేదు. గ్రే: ఎంపిక ఉంచిన చోటుకి వెళ్లడం సాధ్యం కాదు."
 
-msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
-msgstr "అంబర్: టాస్కర్ దానిని జాబితా చేస్తుంది, కానీ MapTasker దాని యొక్క ధృవీకరించబడిన నమూనా లేదు. గ్రే: ఎంపిక ఉంచిన చోటుకి వెళ్లడం సాధ్యం కాదు."
 
 msgid "App icon"
 msgstr "యాప్ చిహ్నం"
 
-msgid "App icon"
-msgstr "యాప్ చిహ్నం"
 
 msgid "Appearance Mode"
 msgstr "ప్రదర్శన మోడ్"
 
-msgid "Appearance Mode"
-msgstr "ప్రదర్శన మోడ్"
 
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "క్రమంలో వర్తింపజేయబడింది - దిగువన ఉన్నది పైన కూర్చుంటుంది."
 
-msgid "Applied in order — the one at the bottom sits on top."
-msgstr "క్రమంలో వర్తింపజేయబడింది - దిగువన ఉన్నది పైన కూర్చుంటుంది."
 
 msgid "Back to Editor"
 msgstr "తిరిగి ఎడిటర్కి"
 
-msgid "Back to Editor"
-msgstr "తిరిగి ఎడిటర్కి"
 
 msgid "Bounds"
 msgstr "హద్దులు"
 
-msgid "Bounds"
-msgstr "హద్దులు"
 
 msgid "Choose another file..."
 msgstr "మరొక ఫైల్‌ని ఎంచుకోండి..."
@@ -1757,14 +1719,10 @@ msgstr "మరొక ఫైల్‌ని ఎంచుకోండి..."
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "రద్దు చేయబడింది. ఈ సీన్‌లో మార్పులు విస్మరించబడ్డాయి."
 
-msgid "Choose another file..."
-msgstr "మరొక ఫైల్‌ని ఎంచుకోండి..."
 
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "దానిని ఎంచుకోవడానికి ఒక కాంపోనెంట్‌ను క్లిక్ చేయండి, అనేక తీయడానికి అదే కంటైనర్‌లోని మరొకదానిని షిఫ్ట్-క్లిక్ చేయండి మరియు వారి స్వంత తోబుట్టువుల మధ్య వాటిని మళ్లీ ఆర్డర్ చేయడానికి లాగండి. ఒక భాగాన్ని కంటైనర్‌లోకి లేదా వెలుపలికి తరలించడం అనేది ఎడిటర్ యొక్క ఇన్ మరియు అవుట్ బటన్‌లు; అన్డు కూడా ఉంది."
 
-msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
-msgstr "దానిని ఎంచుకోవడానికి ఒక కాంపోనెంట్‌ను క్లిక్ చేయండి, అనేక తీయడానికి అదే కంటైనర్‌లోని మరొకదానిని షిఫ్ట్-క్లిక్ చేయండి మరియు వారి స్వంత తోబుట్టువుల మధ్య వాటిని మళ్లీ ఆర్డర్ చేయడానికి లాగండి. ఒక భాగాన్ని కంటైనర్‌లోకి లేదా వెలుపలికి తరలించడం అనేది ఎడిటర్ యొక్క ఇన్ మరియు అవుట్ బటన్‌లు; అన్డు కూడా ఉంది."
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "ఎలిమెంట్‌ను ఎంచుకోవడానికి ఒక ఎలిమెంట్‌ని క్లిక్ చేయండి, అనేక తీయడానికి బ్యాక్‌గ్రౌండ్‌లో ఉన్న బాక్స్‌ను Shift-క్లిక్ చేయండి లేదా డ్రాగ్ చేయండి మరియు వాటన్నింటిని తరలించడానికి వాటిలో దేనినైనా లాగండి -- బాణం కీలను నడ్జ్ చేయండి, 10px కోసం Shift చేయండి. ఒకే మూలకం పరిమాణాన్ని మార్చడానికి హ్యాండిల్‌ను లాగండి. అన్డు, మరియు ఒక మూలకం గురించి మిగతావన్నీ ఎడిటర్‌లో తిరిగి వచ్చాయి."
@@ -2227,3 +2185,42 @@ msgstr "అసలు దృశ్యం: UI మూలకాలు పరిమ�
 
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "అన్వేషణ పూర్తి కాలేదు. వీక్షణ చాలా పెద్దదిగా ఉండవచ్చు లేదా బ్రౌజర్ బిజీగా ఉండవచ్చు."
+
+msgid "Building the Map to show"
+msgstr "చూపించడానికి మ్యాప్‌ను రూపొందిస్తోంది"
+
+msgid "Built the Map, but it has no line for"
+msgstr "మ్యాప్‌ని నిర్మించారు, కానీ దీనికి లైన్ లేదు"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "మ్యాప్ వీక్షణలో దాన్ని చూడటానికి కనుగొనడాన్ని క్లిక్ చేయండి."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "మ్యాప్ వీక్షణలో చూడటానికి వేరియబుల్ లేదా స్థలాన్ని క్లిక్ చేయండి."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "మ్యాప్ వీక్షణ ఏదీ తెరవబడలేదు.  మ్యాప్ వీక్షణను అమలు చేసి, ఆపై దీన్ని మళ్లీ క్లిక్ చేయండి."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "లోడ్ చేయబడిన XMLలో ప్రతి %వేరియబుల్‌ను ట్రేస్ చేయండి: ప్రతి ఒక్కటి ఎక్కడ సెట్ చేయబడింది, ఎక్కడ చదవబడింది, చదవబడినది కానీ సెట్ చేయబడలేదు, సెట్ చేయబడదు కానీ చదవలేదు మరియు ఏవి దాదాపు ఒకేలాంటి పేర్లు (%Myvar వ్యతిరేకంగా %Myvar) అక్షరదోషాలు కావచ్చు.\n\nశోధించినవి: టాస్క్ చర్యలు మరియు వాటి షరతులు, ప్లగ్ఇన్ కాన్ఫిగరేషన్, ప్రొఫైల్ సందర్భాలు మరియు దృశ్యాలు.\n\nఫలితాలు ఇక్కడ ప్రదర్శించబడతాయి మరియు ప్రస్తుత డైరెక్టరీలోని టెక్స్ట్ ఫైల్‌లో సేవ్ చేయబడతాయి."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "వేరియబుల్ క్రాస్-రిఫరెన్స్‌లో అనుమానిత వేరియబుల్స్ ఏవీ కనుగొనబడలేదు."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "వేరియబుల్ క్రాస్-రిఫరెన్స్ రిపోర్ట్ సేవ్ చేయబడలేదు."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "వేరియబుల్ క్రాస్-రిఫరెన్స్ ఇలా సేవ్ చేయబడింది"
+
+msgid "Variable Xref"
+msgstr "వేరియబుల్ Xref"
+
+msgid "detail level"
+msgstr "వివరాల స్థాయి"
+
+msgid "is no longer in the loaded configuration."
+msgstr "లోడ్ చేయబడిన కాన్ఫిగరేషన్‌లో లేదు."
+
+msgid "whole file"
+msgstr "మొత్తం ఫైల్"

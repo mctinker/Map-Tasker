@@ -2158,3 +2158,42 @@ msgstr "Vrátit zpět"
 
 msgid "Version 2"
 msgstr "Verze 2"
+
+msgid "Building the Map to show"
+msgstr "Vytvoření mapy k zobrazení"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Postavil mapu, ale nemá pro ni žádnou linku"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Kliknutím na proměnnou nebo místo je zobrazíte v zobrazení mapy."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Není otevřeno žádné zobrazení mapy.  Spusťte Map View a poté znovu klikněte na toto."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Sledujte každou proměnnou % v načteném XML: kde je každá nastavena, kde se čte, které jsou čteny, ale nikdy nejsou nastaveny, které jsou nastaveny, ale nikdy nečteny, a které téměř identické názvy (%MyVar proti %Myvar) jsou pravděpodobně překlepy.\n\nHledané: Akce úkolů a jejich podmínky, konfigurace pluginu, kontexty profilu a scény.\n\nZde se zobrazí výsledky a uloží se do textového souboru v aktuálním adresáři."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Křížová reference proměnných nenalezla žádné podezřelé proměnné."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Přehled křížových odkazů proměnných nelze uložit."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Křížový odkaz proměnných uložen jako"
+
+msgid "Variable Xref"
+msgstr "Proměnná Xref"
+
+msgid "is no longer in the loaded configuration."
+msgstr "již není v načtené konfiguraci."
+
+msgid "detail level"
+msgstr "úroveň detailů"
+
+msgid "whole file"
+msgstr "celý soubor"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Kliknutím na nález jej zobrazíte v zobrazení mapy."

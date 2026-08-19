@@ -2287,3 +2287,42 @@ msgstr "XML-файл не загружен.  Сначала получите XML
 
 msgid "Properties"
 msgstr "Характеристики"
+
+msgid "Building the Map to show"
+msgstr "Создание карты для показа"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Построил карту, но на ней нет линии для"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Щелкните находку, чтобы увидеть ее в представлении карты."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Щелкните переменную или место, чтобы увидеть ее в представлении карты."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Отслеживайте каждую переменную % в загруженном XML: где каждая из них установлена, где она считывается, какие читаются, но никогда не устанавливаются, какие устанавливаются, но никогда не читаются, и какие почти идентичные имена (%MyVar против %Myvar), скорее всего, являются опечатками.\n\nПоиск: действия задачи и их условия, конфигурация плагина, контексты профиля и сцены.\n\nРезультаты отображаются здесь и сохраняются в текстовый файл в текущем каталоге."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Перекрестная ссылка на переменную не выявила подозрительных переменных."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Не удалось сохранить отчет о перекрестных ссылках переменных."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Перекрестная ссылка на переменную сохранена как"
+
+msgid "Variable Xref"
+msgstr "Переменная внешняя ссылка"
+
+msgid "detail level"
+msgstr "уровень детализации"
+
+msgid "is no longer in the loaded configuration."
+msgstr "больше не находится в загруженной конфигурации."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Ни один вид карты не открыт.  Запустите «Просмотр карты», затем щелкните еще раз."
+
+msgid "whole file"
+msgstr "весь файл"

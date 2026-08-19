@@ -2288,3 +2288,42 @@ msgstr "جوڑی"
 msgid "pixels"
 msgstr "پکسلز"
 
+
+msgid "Built the Map, but it has no line for"
+msgstr "نقشہ بنایا، لیکن اس کے لیے کوئی لائن نہیں ہے۔"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "نقشہ کے منظر میں دیکھنے کے لیے متغیر یا جگہ پر کلک کریں۔"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "نقشہ کا کوئی منظر کھلا نہیں ہے۔  Map View کو چلائیں، پھر اس پر دوبارہ کلک کریں۔"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "بھری ہوئی XML میں ہر %متغیر کا سراغ لگائیں: جہاں ہر ایک سیٹ ہے، کہاں پڑھا جاتا ہے، جو پڑھا جاتا ہے لیکن کبھی سیٹ نہیں ہوتا، جو سیٹ ہوتا ہے لیکن کبھی پڑھا نہیں جاتا، اور کون سے قریب ایک جیسے نام (%MyVar بمقابلہ %Myvar) ٹائپ کی غلطیوں کا امکان ہے۔\n\nتلاش کیا گیا: ٹاسک ایکشنز اور ان کی شرائط، پلگ ان کنفیگریشن، پروفائل سیاق و سباق اور مناظر۔\n\nنتائج یہاں دکھائے جاتے ہیں اور موجودہ ڈائریکٹری میں ٹیکسٹ فائل میں محفوظ کیے جاتے ہیں۔"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "متغیر کراس ریفرنس میں کوئی مشتبہ متغیر نہیں ملا۔"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "متغیر کراس ریفرنس رپورٹ کو محفوظ نہیں کیا جا سکا۔"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "متغیر کراس حوالہ بطور محفوظ کیا گیا۔"
+
+msgid "Variable Xref"
+msgstr "متغیر Xref"
+
+msgid "whole file"
+msgstr "پوری فائل"
+
+msgid "Building the Map to show"
+msgstr "دکھانے کے لیے نقشہ بنانا"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "نقشہ کے منظر میں اسے دیکھنے کے لیے تلاش پر کلک کریں۔"
+
+msgid "detail level"
+msgstr "تفصیل کی سطح"
+
+msgid "is no longer in the loaded configuration."
+msgstr "اب لوڈ شدہ ترتیب میں نہیں ہے۔"

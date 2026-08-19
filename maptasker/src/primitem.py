@@ -177,6 +177,13 @@ class PrimeItems:
     found_named_items: ClassVar[dict] = initial_found_named_items()
     grand_totals: ClassVar[dict] = initial_grand_totals()
     directory_items: ClassVar[dict] = initial_directory_items()
+    # Every mapjump anchor id written into the Map so far this run.  An id may appear in a
+    # document only once, and a Task listed by two Profiles (or by a Profile and again in
+    # "Tasks not in any Profile") is output twice -- so the second sighting is written
+    # without an anchor and a jump lands on the Task's first appearance.  Emptied wherever
+    # directory_items is, and for the same reason: both describe one run's output, and
+    # refresh_our_output throws that output away and starts it again mid-run.
+    emitted_anchors: ClassVar[set] = set()
     tasker_root_elements: ClassVar[dict] = initial_tasker_root_elements()
     directories: ClassVar[list] = []
     variables: ClassVar[dict] = {}
@@ -232,7 +239,7 @@ class PrimeItems:
     }
     languages_translated: ClassVar[dict[str, str]] = {}
     language_set: bool = False
-    appearance_translated: ClassVar[dict[str, str]] = {}
+    # appearance_translated: ClassVar[dict[str, str]] = {}
     mygui: ClassVar = None
 
 
@@ -256,6 +263,7 @@ class PrimeItemsReset:
         PrimeItems.found_named_items = initial_found_named_items()
         PrimeItems.grand_totals = initial_grand_totals()
         PrimeItems.directory_items = initial_directory_items()
+        PrimeItems.emitted_anchors = set()
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
         PrimeItems.directories = []
         PrimeItems.xml_tree = None

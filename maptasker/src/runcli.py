@@ -532,7 +532,6 @@ def process_cli() -> None:
             None
     """
     gui_flag = "g"
-    reset_flag = "reset"
     version_flag = "v"
     debug_flag = "debug"
 

@@ -2957,7 +2957,7 @@ def _v2_draw_range_slider(node: dict, options: PreviewOptions, depth: int) -> No
         [
             max(0.0, min(1.0, _v2_float(node.get("start"), 0.0))),
             max(0.0, min(1.0, _v2_float(node.get("end"), 1.0))),
-        ]
+        ],
     )
 
 

@@ -1632,32 +1632,22 @@ msgstr "Åtgärder"
 msgid "Add modifier"
 msgstr "Lägg till modifierare"
 
-msgid "Add a background"
-msgstr "Lägg till en bakgrund"
 
 msgid "Add event"
 msgstr "Lägg till händelse"
 
-msgid "Add handler"
-msgstr "Lägg till hanterare"
 
 msgid "Add scene properties"
 msgstr "Lägg till scenegenskaper"
 
-msgid "Add scene properties"
-msgstr "Lägg till scenegenskaper"
 
 msgid "Addressed by id from"
 msgstr "Adresseras av id från"
 
-msgid "Addressed by id from"
-msgstr "Adresseras av id från"
 
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "Lägger till ett element ovanpå stapeln, i mitten av scenen."
 
-msgid "Adds an element on top of the stack, in the middle of the Scene."
-msgstr "Lägger till ett element ovanpå stapeln, i mitten av scenen."
 
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "Lägger till det ovanpå stapeln, i mitten av scenen. Dra den dit du vill ha den."
@@ -1665,14 +1655,10 @@ msgstr "Lägger till det ovanpå stapeln, i mitten av scenen. Dra den dit du vil
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "Lägger till inuti den valda komponenten om den kan hålla barn, annars direkt efter den."
 
-msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
-msgstr "Lägger till det ovanpå stapeln, i mitten av scenen. Dra den dit du vill ha den."
 
 msgid "Also selected:"
 msgstr "Även valt:"
 
-msgid "Also selected:"
-msgstr "Även valt:"
 
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Amber: Tasker listar det, men MapTasker har inget bekräftat urval av det. Grey: kan inte gå dit urvalet skulle placera det."
@@ -1680,32 +1666,22 @@ msgstr "Amber: Tasker listar det, men MapTasker har inget bekräftat urval av de
 msgid "Also update"
 msgstr "Uppdatera också"
 
-msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
-msgstr "Amber: Tasker listar det, men MapTasker har inget bekräftat urval av det. Grey: kan inte gå dit urvalet skulle placera det."
 
 msgid "App icon"
 msgstr "App-ikon"
 
-msgid "App icon"
-msgstr "App-ikon"
 
 msgid "Appearance Mode"
 msgstr "Utseendeläge"
 
-msgid "Appearance Mode"
-msgstr "Utseendeläge"
 
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "Appliceras i ordning — den längst ner sitter överst."
 
-msgid "Applied in order — the one at the bottom sits on top."
-msgstr "Appliceras i ordning — den längst ner sitter överst."
 
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "Tillämpas när den här scenen sparas, inte nu -- Avbryt i dialogrutan Scen lämnar både elementet och uppgifterna precis som de var."
 
-msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
-msgstr "Tillämpas när den här scenen sparas, inte nu -- Avbryt i dialogrutan Scen lämnar både elementet och uppgifterna precis som de var."
 
 msgid "Back to Editor"
 msgstr "Tillbaka till Editor"
@@ -1713,35 +1689,23 @@ msgstr "Tillbaka till Editor"
 msgid "Bounds"
 msgstr "Gräns"
 
-msgid "Back to Editor"
-msgstr "Tillbaka till Editor"
 
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "Avbruten. Ändringar av den här scenen ignorerades."
 
-msgid "Bounds"
-msgstr "Gräns"
 
-msgid "Cancelled. Changes to this Scene were discarded."
-msgstr "Avbruten. Ändringar av den här scenen ignorerades."
 
 msgid "Choose another file..."
 msgstr "Välj en annan fil..."
 
-msgid "Choose another file..."
-msgstr "Välj en annan fil..."
 
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "Klicka på en komponent för att välja den, skift-klicka på en annan i samma behållare för att ta flera och dra för att ordna om dem bland sina egna syskon. Att flytta en komponent in i eller ut ur en behållare är redigerarens In- och Ut-knappar; Ångra finns där också."
 
-msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
-msgstr "Klicka på en komponent för att välja den, skift-klicka på en annan i samma behållare för att ta flera och dra för att ordna om dem bland sina egna syskon. Att flytta en komponent in i eller ut ur en behållare är redigerarens In- och Ut-knappar; Ångra finns där också."
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "Klicka på ett element för att markera det, Shift-klicka eller dra en ruta i bakgrunden för att ta flera, och dra någon av dem för att flytta dem alla -- piltangenterna knuffar, Shift för 10px. Dra ett handtag för att ändra storlek på ett enskilt element. Ångra, och allt annat om ett element, är tillbaka i redigeraren."
 
-msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
-msgstr "Klicka på ett element för att markera det, Shift-klicka eller dra en ruta i bakgrunden för att ta flera, och dra någon av dem för att flytta dem alla -- piltangenterna knuffar, Shift för 10px. Dra ett handtag för att ändra storlek på ett enskilt element. Ångra, och allt annat om ett element, är tillbaka i redigeraren."
 
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "Klicka på ett element för att markera det, dra för att flytta, dra ett handtag för att ändra storlek, piltangenterna för att knuffa (Skift för 10px). Skift-klicka eller dra en ruta i bakgrunden för att ta flera samtidigt."
@@ -1749,23 +1713,15 @@ msgstr "Klicka på ett element för att markera det, dra för att flytta, dra et
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "Stängs utan att spara och återställer scenen precis som den var när den här dialogrutan öppnades -- inklusive allt som flyttats eller ändrats i förhandsgranskningen.\n\nEtt Byt namn är det enda detta inte kan ta tillbaka: det tillämpas på den laddade säkerhetskopian när den bekräftas och stänger den här dialogrutan med den."
 
-msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
-msgstr "Klicka på ett element för att markera det, dra för att flytta, dra ett handtag för att ändra storlek, piltangenterna för att knuffa (Skift för 10px). Skift-klicka eller dra en ruta i bakgrunden för att ta flera samtidigt."
 
-msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
-msgstr "Stängs utan att spara och återställer scenen precis som den var när den här dialogrutan öppnades -- inklusive allt som flyttats eller ändrats i förhandsgranskningen.\n\nEtt Byt namn är det enda detta inte kan ta tillbaka: det tillämpas på den laddade säkerhetskopian när den bekräftas och stänger den här dialogrutan med den."
 
 msgid "Compare Files"
 msgstr "Jämför filer"
 
-msgid "Compare Files"
-msgstr "Jämför filer"
 
 msgid "Compare With"
 msgstr "Jämför med"
 
-msgid "Compare With"
-msgstr "Jämför med"
 
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Jämför en annan XML-fil med den laddade: vad som lades till, togs bort, döptes om och ändrades.\n\nAnvänd den för att se vad en TaskerNet-import förde in, vad en redigering ändrade eller vad som skiljer sig mellan två säkerhetskopior.\n\nOm den laddade filen kom från \"Spara till aktuell fil\", erbjuds filen den sparades från direkt.\n\nResultaten visas här och sparas i en textfil i den aktuella katalogen."
@@ -1776,8 +1732,6 @@ msgstr "Jämförelse sparad som"
 msgid "Comparison cancelled."
 msgstr "Jämförelsen avbröts."
 
-msgid "Comparison saved as"
-msgstr "Jämförelse sparad som"
 
 msgid "Delete Scene"
 msgstr "Ta bort scen"
@@ -1785,44 +1739,30 @@ msgstr "Ta bort scen"
 msgid "Done"
 msgstr "Gjort"
 
-msgid "Done"
-msgstr "Gjort"
 
 msgid "Drawn in"
 msgstr "Dras in"
 
-msgid "Drawn in"
-msgstr "Dras in"
 
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "Ritar den här scenen som en bild i huvudfönstret -- inklusive de komponenter du har lagt till eller ändrat här men ännu inte sparat.\n\nEn version 2-layout har ingen egen storlek, så förhandsgranskningen lägger upp den på en skärm du väljer och återflödar den när du ändrar det.\n\nDen här dialogrutan stängs medan förhandsgranskningen är uppe, med allt i den bevarat; förhandsgranskningens \"Back to Editor\"-knapp tar tillbaka den.\n\nDet är en representation, inte Taskers egen renderare: %variabler namnges snarare än lösas, Materialfärger kommer från baslinjepaletten snarare än enhetens tema, och bilder, video och webbinnehåll visas som platshållare."
 
-msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
-msgstr "Ritar den här scenen som en bild i huvudfönstret -- inklusive de komponenter du har lagt till eller ändrat här men ännu inte sparat.\n\nEn version 2-layout har ingen egen storlek, så förhandsgranskningen lägger upp den på en skärm du väljer och återflödar den när du ändrar det.\n\nDen här dialogrutan stängs medan förhandsgranskningen är uppe, med allt i den bevarat; förhandsgranskningens \"Back to Editor\"-knapp tar tillbaka den.\n\nDet är en representation, inte Taskers egen renderare: %variabler namnges snarare än lösas, Materialfärger kommer från baslinjepaletten snarare än enhetens tema, och bilder, video och webbinnehåll visas som platshållare."
 
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "Ritar den här scenen som en bild i huvudfönstret, i storleken som anges ovan -- inklusive ändringar som ännu inte har sparats.\n\nDen här dialogrutan stängs medan förhandsgranskningen är uppe, med allt i den bevarat; förhandsgranskningens \"Back to Editor\"-knapp tar tillbaka den.\n\nDet är en representation, inte Taskers egen renderare: %variabler namnges istället för att lösas, och bilder, video och webbinnehåll visas som platshållare."
 
-msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
-msgstr "Ritar den här scenen som en bild i huvudfönstret, i storleken som anges ovan -- inklusive ändringar som ännu inte har sparats.\n\nDen här dialogrutan stängs medan förhandsgranskningen är uppe, med allt i den bevarat; förhandsgranskningens \"Back to Editor\"-knapp tar tillbaka den.\n\nDet är en representation, inte Taskers egen renderare: %variabler namnges istället för att lösas, och bilder, video och webbinnehåll visas som platshållare."
 
 msgid "Dropdown menu — shown when opened"
 msgstr "Rullgardinsmeny — visas när den öppnas"
 
-msgid "Dropdown menu — shown when opened"
-msgstr "Rullgardinsmeny — visas när den öppnas"
 
 msgid "Duplicate"
 msgstr "Duplicera"
 
-msgid "Duplicate"
-msgstr "Duplicera"
 
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Dynamic och Select Variable utarbetas när scenen visas."
 
-msgid "Dynamic and Select Variable are worked out when the Scene is shown."
-msgstr "Dynamic och Select Variable utarbetas när scenen visas."
 
 msgid "Dynamic value"
 msgstr "Dynamiskt värde"
@@ -1830,50 +1770,34 @@ msgstr "Dynamiskt värde"
 msgid "Edit Scene"
 msgstr "Redigera scen"
 
-msgid "Edit Scene"
-msgstr "Redigera scen"
 
 msgid "Edit item layout"
 msgstr "Redigera objektlayout"
 
-msgid "Edit item layout"
-msgstr "Redigera objektlayout"
 
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "Redigera dennas egenskaper istället, behåll markeringen."
 
-msgid "Edit this one's properties instead, keeping the selection."
-msgstr "Redigera dennas egenskaper istället, behåll markeringen."
 
 msgid "Event handlers"
 msgstr "Händelsehanterare"
 
-msgid "Event handlers"
-msgstr "Händelsehanterare"
 
 msgid "Export Scene"
 msgstr "Exportera scen"
 
-msgid "Export Scene"
-msgstr "Exportera scen"
 
 msgid "Geometry"
 msgstr "Geometri"
 
-msgid "Geometry"
-msgstr "Geometri"
 
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "Grey: MapTasker har ingen argumenttabell för det, så det kan inte skapas utan att gissa vad Tasker förväntar sig inuti. Rubriker är MapTaskers egen gruppering."
 
-msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
-msgstr "Grey: MapTasker har ingen argumenttabell för det, så det kan inte skapas utan att gissa vad Tasker förväntar sig inuti. Rubriker är MapTaskers egen gruppering."
 
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "Krockade fyllningar och kursiv understruken text är %variabler -- deras värden finns på enheten, inte i säkerhetskopian, så de namnges snarare än gissade på. Bilder, video, kartor och webbinnehåll visas som platshållare. Håll muspekaren över ett element för dess geometri, dess variabler och uppgifterna som det kör."
 
-msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
-msgstr "Krockade fyllningar och kursiv understruken text är %variabler -- deras värden finns på enheten, inte i säkerhetskopian, så de namnges snarare än gissade på. Bilder, video, kartor och webbinnehåll visas som platshållare. Håll muspekaren över ett element för dess geometri, dess variabler och uppgifterna som det kör."
 
 msgid "Health Check found no errors or warnings."
 msgstr "Health Check hittade inga fel eller varningar."
@@ -1881,80 +1805,54 @@ msgstr "Health Check hittade inga fel eller varningar."
 msgid "Health Check"
 msgstr "Hälsokontroll"
 
-msgid "Health Check found no errors or warnings."
-msgstr "Health Check hittade inga fel eller varningar."
 
 msgid "Health Check report could not be saved."
 msgstr "Hälsokontrollrapporten kunde inte sparas."
 
-msgid "Health Check report could not be saved."
-msgstr "Hälsokontrollrapporten kunde inte sparas."
 
 msgid "Health Check saved as"
 msgstr "Health Check sparad som"
 
-msgid "Health Check saved as"
-msgstr "Health Check sparad som"
 
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "Hur länge ett popup-meddelande stannar på skärmen innan det försvinner.\n\n\"Tills det avvisas\" behåller varje meddelande tills du stänger det, vilket är användbart när ett meddelande rullar förbi innan du kan läsa det.\n\nNågra meddelanden anger sin egen längre varaktighet eftersom de listar saker du måste läsa - de uppgifter som påverkas av att ta bort eller byta namn på ett Scene-element, till exempel. De håller sin egen timing vad som än väljs här."
 
-msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
-msgstr "Hur länge ett popup-meddelande stannar på skärmen innan det försvinner.\n\n\"Tills det avvisas\" behåller varje meddelande tills du stänger det, vilket är användbart när ett meddelande rullar förbi innan du kan läsa det.\n\nNågra meddelanden anger sin egen längre varaktighet eftersom de listar saker du måste läsa - de uppgifter som påverkas av att ta bort eller byta namn på ett Scene-element, till exempel. De håller sin egen timing vad som än väljs här."
 
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "I listan: Skift-klicka för ett område, Ctrl- eller Cmd-klicka för att lägga till eller ta bort ett."
 
-msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
-msgstr "I listan: Skift-klicka för ett område, Ctrl- eller Cmd-klicka för att lägga till eller ta bort ett."
 
 msgid "Item layout"
 msgstr "Objektlayout"
 
-msgid "Item layout"
-msgstr "Objektlayout"
 
 msgid "Landscape"
 msgstr "Landskap"
 
-msgid "Landscape"
-msgstr "Landskap"
 
 msgid "Legacy"
 msgstr "Arv"
 
-msgid "Legacy"
-msgstr "Arv"
 
 msgid "Legacy Scene"
 msgstr "Äldre scen"
 
-msgid "Legacy Scene"
-msgstr "Äldre scen"
 
 msgid "List"
 msgstr "Lista"
 
-msgid "List"
-msgstr "Lista"
 
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: visningsgräns nådd, diagram trunkerat"
 
-msgid "MapTasker: view limit reached, diagram truncated"
-msgstr "MapTasker: visningsgräns nådd, diagram trunkerat"
 
 msgid "Modifiers"
 msgstr "Modifierare"
 
-msgid "Modifiers"
-msgstr "Modifierare"
 
 msgid "Never updated"
 msgstr "Aldrig uppdaterad"
 
-msgid "Never updated"
-msgstr "Aldrig uppdaterad"
 
 msgid "No Task addresses this element by name."
 msgstr "Ingen uppgift adresserar detta element med namn."
@@ -1962,14 +1860,10 @@ msgstr "Ingen uppgift adresserar detta element med namn."
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "Ingen XML-fil har laddats.  Skaffa en XML-fil först."
 
-msgid "No XML file has been loaded.  Get an XML file first."
-msgstr "Ingen XML-fil har laddats.  Skaffa en XML-fil först."
 
 msgid "No element matches that."
 msgstr "Inget element matchar det."
 
-msgid "No element matches that."
-msgstr "Inget element matchar det."
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "Inte uppdaterad -- dessa namnger både denna scen och detta element, men inte som en"
@@ -1977,20 +1871,14 @@ msgstr "Inte uppdaterad -- dessa namnger både denna scen och detta element, men
 msgid "Not an HTML colour name or #hex value."
 msgstr "Inte ett HTML-färgnamn eller #hex-värde."
 
-msgid "Not updated -- these name both this Scene and this element, but not as a"
-msgstr "Inte uppdaterad -- dessa namnger både denna scen och detta element, men inte som en"
 
 msgid "Nothing here."
 msgstr "Ingenting här."
 
-msgid "Nothing here."
-msgstr "Ingenting här."
 
 msgid "Notification Duration"
 msgstr "Aviseringstid"
 
-msgid "Notification Duration"
-msgstr "Aviseringstid"
 
 msgid "Only when"
 msgstr "Bara när"
@@ -2016,20 +1904,14 @@ msgstr "Projekt som listar det."
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "Frågar efter ett nytt namn och tillämpar det på den laddade säkerhetskopian just nu -- byter namn på scenen överallt, inklusive i scenlistan för varje projekt som innehåller den.\n\nUppgifter som visar eller döljer den här scenen med namn uppdateras INTE; de heter fortfarande den gamla scenen.\n\nFältet Scennamn ovan är skrivskyddat -- detta är det enda sättet att ändra det."
 
-msgid "Only when"
-msgstr "Bara när"
 
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "Egenskaper redigeras ett element i taget. Dra och knuffar flyttar allt valt."
 
-msgid "Outline every component and name it, the way the designer's tree names it."
-msgstr "Beskriv varje komponent och namnge den, som designerns träd namnger den."
 
 msgid "Refresh"
 msgstr "Uppdatera"
 
-msgid "Pick a Material icon."
-msgstr "Välj en materialikon."
 
 msgid "Remove background"
 msgstr "Ta bort bakgrund"
@@ -2040,20 +1922,12 @@ msgstr "Välj från scenens miljö och globala variabler."
 msgid "Rename Element"
 msgstr "Byt namn på element"
 
-msgid "Pick one of Material's own colour roles."
-msgstr "Välj en av Materials egna färgroller."
 
-msgid "Preview"
-msgstr "Förhandsvisning"
 
-msgid "Project(s) that list it."
-msgstr "Projekt som listar det."
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "Att byta namn på ett element här sveper inte säkerhetskopian: en objektlayout har inget scennamn för en aktivitetselementåtgärd att adressera den med, så det finns inget att skriva om."
 
-msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
-msgstr "Frågar efter ett nytt namn och tillämpar det på den laddade säkerhetskopian just nu -- byter namn på scenen överallt, inklusive i scenlistan för varje projekt som innehåller den.\n\nUppgifter som visar eller döljer den här scenen med namn uppdateras INTE; de heter fortfarande den gamla scenen.\n\nFältet Scennamn ovan är skrivskyddat -- detta är det enda sättet att ändra det."
 
 msgid "Properties"
 msgstr "Egenskaper"
@@ -2061,11 +1935,7 @@ msgstr "Egenskaper"
 msgid "Repeats once per array entry"
 msgstr "Upprepas en gång per arraypost"
 
-msgid "Refresh"
-msgstr "Uppdatera"
 
-msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
-msgstr "Att byta namn på ett element här sveper inte säkerhetskopian: en objektlayout har inget scennamn för en aktivitetselementåtgärd att adressera den med, så det finns inget att skriva om."
 
 msgid "Save Scene To Android Device"
 msgstr "Spara scen till Android-enhet"
@@ -2079,26 +1949,18 @@ msgstr "Sparar hela säkerhetskopian -- varje projekt, profil, uppgift och scen 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "Sparar den här scenen, med alla dess element, som en fristående .scn.xml-fil -- samma format som Taskers egen Scene-export producerar.\n\nUppgifter som scenens element kör ingår inte; de tillhör sitt eget projekt."
 
-msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
-msgstr "Sparar den här scenen, med alla dess element, som en fristående .scn.xml-fil -- samma format som Taskers egen Scene-export producerar.\n\nUppgifter som scenens element kör ingår inte; de tillhör sitt eget projekt."
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Skanna den inlästa XML-filen efter trasiga referenser, uppgifter utan referens, profiler och scener och namnproblem.\n\nResultaten visas här och sparas i en textfil i den aktuella katalogen."
 
-msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "Skanna den inlästa XML-filen efter trasiga referenser, uppgifter utan referens, profiler och scener och namnproblem.\n\nResultaten visas här och sparas i en textfil i den aktuella katalogen."
 
 msgid "Scene Components"
 msgstr "Scenkomponenter"
 
-msgid "Scene Components"
-msgstr "Scenkomponenter"
 
 msgid "Scene Elements"
 msgstr "Scenelement"
 
-msgid "Scene Elements"
-msgstr "Scenelement"
 
 msgid "Scene Name"
 msgstr "Scennamn"
@@ -2106,74 +1968,50 @@ msgstr "Scennamn"
 msgid "Scene Preview"
 msgstr "Förhandsvisning av scen"
 
-msgid "Scene Preview"
-msgstr "Förhandsvisning av scen"
 
 msgid "Scene Properties"
 msgstr "Scenegenskaper"
 
-msgid "Scene Properties"
-msgstr "Scenegenskaper"
 
 msgid "Scene added."
 msgstr "Scen tillagd."
 
-msgid "Scene added."
-msgstr "Scen tillagd."
 
 msgid "Scene type"
 msgstr "Scentyp"
 
-msgid "Scene type"
-msgstr "Scentyp"
 
 msgid "Screen"
 msgstr "Skärm"
 
-msgid "Screen"
-msgstr "Skärm"
 
 msgid "Search elements"
 msgstr "Sökelement"
 
-msgid "Search elements"
-msgstr "Sökelement"
 
 msgid "Search icons"
 msgstr "Sök ikoner"
 
-msgid "Search icons"
-msgstr "Sök ikoner"
 
 msgid "Search variables"
 msgstr "Sök variabler"
 
-msgid "Search variables"
-msgstr "Sök variabler"
 
 msgid "Select a component on the left."
 msgstr "Välj en komponent till vänster."
 
-msgid "Select a component on the left."
-msgstr "Välj en komponent till vänster."
 
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "Välj en större visningsgräns eller ett enstaka projekt/profil/uppgift för att se resten."
 
-msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
-msgstr "Välj en större visningsgräns eller ett enstaka projekt/profil/uppgift för att se resten."
 
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "Välj en enskild scen först (scen-rullgardinsmenyn ovan)."
 
-msgid "Select a single Scene first (Scene pulldown above)."
-msgstr "Välj en enskild scen först (scen-rullgardinsmenyn ovan)."
 
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "Välj ett enskilt element för att duplicera, ta bort eller stapla om det."
 
-msgid "Select a single element to duplicate, delete or restack it."
-msgstr "Välj ett enskilt element för att duplicera, ta bort eller stapla om det."
 
 msgid "Select an element first."
 msgstr "Välj ett element först."
@@ -2181,8 +2019,6 @@ msgstr "Välj ett element först."
 msgid "Select an element on the canvas or in the list."
 msgstr "Välj ett element på duken eller i listan."
 
-msgid "Select an element on the canvas or in the list."
-msgstr "Välj ett element på duken eller i listan."
 
 msgid "Show the Task each element runs."
 msgstr "Visa uppgiften som varje element körs."
@@ -2190,14 +2026,10 @@ msgstr "Visa uppgiften som varje element körs."
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "Visa vad varje komponent gör när den trycks på och vad den skriver till."
 
-msgid "Show what each component does when tapped, and what it writes to."
-msgstr "Visa vad varje komponent gör när den trycks på och vad den skriver till."
 
 msgid "Show when"
 msgstr "Visa när"
 
-msgid "Show when"
-msgstr "Visa när"
 
 msgid "Size"
 msgstr "Storlek"
@@ -2214,11 +2046,7 @@ msgstr "Sluta skjuta någonting på den här händelsen."
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "Storleken måste vara ett heltal (-1 för ingen layout)."
 
-msgid "Snap"
-msgstr "Knäppa"
 
-msgid "Spinner"
-msgstr "Spinnare"
 
 msgid "Task action(s) in"
 msgstr "Uppgiftsåtgärd(er) i"
@@ -2229,8 +2057,6 @@ msgstr "Uppgifter"
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "Task(s) address this Scene by a match pattern (Element Visibility). Kontrollera dem själv"
 
-msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
-msgstr "Task(s) address this Scene by a match pattern (Element Visibility). Kontrollera dem själv"
 
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker håller denna uppgift inne i scenen och ingen annanstans, så den har inget namn och kan inte pekas någon annanstans utan att förlora den. Den förs genom orörd."
@@ -2238,20 +2064,14 @@ msgstr "Tasker håller denna uppgift inne i scenen och ingen annanstans, så den
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker listar detta element, men MapTasker har aldrig sett en i en sparad scen -- så den läggs till med inget annat än dess typ och id, och till och med typen härleds från namnet ovan (skrivet som typ: \"{node_type}\"). Om Tasker inte känner igen det, tryck på Ångra."
 
-msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
-msgstr "Tasker listar detta element, men MapTasker har aldrig sett en i en sparad scen -- så den läggs till med inget annat än dess typ och id, och till och med typen härleds från namnet ovan (skrivet som typ: \"{node_type}\"). Om Tasker inte känner igen det, tryck på Ångra."
 
 msgid "Tasker variable(s)"
 msgstr "Taskervariabel(er)"
 
-msgid "Tasker variable(s)"
-msgstr "Taskervariabel(er)"
 
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "Uppgifter adresserar detta element med namn (Element Text, Element Position, ... Totalt 18 åtgärdskoder), så att byta namn på det är inte en fältredigering. Dialogrutan Byt namn listar vad som beror på det aktuella namnet och erbjuder att ta med dessa uppgifter."
 
-msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
-msgstr "Uppgifter adresserar detta element med namn (Element Text, Element Position, ... Totalt 18 åtgärdskoder), så att byta namn på det är inte en fältredigering. Dialogrutan Byt namn listar vad som beror på det aktuella namnet och erbjuder att ta med dessa uppgifter."
 
 msgid "Text density"
 msgstr "Textdensitet"
@@ -2262,8 +2082,6 @@ msgstr "Uppgifter som visar eller döljer den här scenen med namn ändras inte 
 msgid "That component can't go there."
 msgstr "Den komponenten kan inte gå dit."
 
-msgid "Text density"
-msgstr "Textdensitet"
 
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "Det är filen som redan är laddad.  Välj en annan att jämföra med."
@@ -2280,20 +2098,14 @@ msgstr "Tasker-variabeln som denna komponent skriver in sitt värde i. Separera 
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "Layouten av en rad. Tasker ritar det en gång per post av vad som fyller listan, så det du ser här är en enda rad snarare än listan."
 
-msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
-msgstr "Layouten av en rad. Tasker ritar det en gång per post av vad som fyller listan, så det du ser här är en enda rad snarare än listan."
 
 msgid "The loaded file was saved from"
 msgstr "Den laddade filen sparades från"
 
-msgid "The loaded file was saved from"
-msgstr "Den laddade filen sparades från"
 
 msgid "The original"
 msgstr "Originalet"
 
-msgid "The original"
-msgstr "Originalet"
 
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "Sökandet avslutades inte. Vyn kan vara för stor eller så är webbläsaren upptagen."
@@ -2307,38 +2119,26 @@ msgstr "Skärmstorleken är den här förhandsvisningens, inte scenens - en vers
 msgid "The two files hold the same configuration."
 msgstr "De två filerna har samma konfiguration."
 
-msgid "The search did not finish. The view may be too large, or the browser is busy."
-msgstr "Sökandet avslutades inte. Vyn kan vara för stor eller så är webbläsaren upptagen."
 
 msgid "This Scene has no UI elements."
 msgstr "Den här scenen har inga UI-element."
 
-msgid "This Scene has no UI elements."
-msgstr "Den här scenen har inga UI-element."
 
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "Den här scenen har ingen egen landskapslayout (storleken är -1)."
 
-msgid "This Scene has no landscape layout of its own (its size is -1)."
-msgstr "Den här scenen har ingen egen landskapslayout (storleken är -1)."
 
 msgid "This Scene has no layout for this orientation."
 msgstr "Den här scenen har ingen layout för denna orientering."
 
-msgid "This Scene has no layout for this orientation."
-msgstr "Den här scenen har ingen layout för denna orientering."
 
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "Den här scenen har inget egenskapselement. 66 av de 366 scener som MapTasker har sett har inga heller, så detta är vanligt snarare än skada."
 
-msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
-msgstr "Den här scenen har inget egenskapselement. 66 av de 366 scener som MapTasker har sett har inga heller, så detta är vanligt snarare än skada."
 
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "Den här scenens version 2-layout kunde inte läsas och kommer att lämnas exakt som den är."
 
-msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
-msgstr "Den här scenens version 2-layout kunde inte läsas och kommer att lämnas exakt som den är."
 
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "Den här scenens version 2-layout har ingen rotkomponent, så det finns inget att designa."
@@ -2346,20 +2146,14 @@ msgstr "Den här scenens version 2-layout har ingen rotkomponent, så det finns 
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "Den här appen har ingen egenskapstabell för den här elementtypen, så endast dess geometri kan redigeras här. I övrigt bärs den genom orörd."
 
-msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
-msgstr "Den här appen har ingen egenskapstabell för den här elementtypen, så endast dess geometri kan redigeras här. I övrigt bärs den genom orörd."
 
 msgid "This element has no layout for this orientation."
 msgstr "Detta element har ingen layout för denna orientering."
 
-msgid "This element has no layout for this orientation."
-msgstr "Detta element har ingen layout för denna orientering."
 
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Detta kommer att skriva scenen som en fristående fil på Android-enheten, under /Tasker/scener.\n\nIP-adressen och porten måste matcha Android-enhetens Tasker-serverinställningar.\n\nIngen auktoriseringsfråga behövs för detta."
 
-msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
-msgstr "Detta kommer att skriva scenen som en fristående fil på Android-enheten, under /Tasker/scener.\n\nIP-adressen och porten måste matcha Android-enhetens Tasker-serverinställningar.\n\nIngen auktoriseringsfråga behövs för detta."
 
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Detta kommer att skriva scenen som en fristående fil på din Android-enhet, under /Tasker/scener -- den importerar den inte till Taskers livekonfiguration.\n\nTasker-projektet 'Http-serverexempel' måste vara installerat och aktivt på Android-enheten, med servern igång.\n\nAndroid-enheten måste vara på samma nätverk och IP-adressen och porten måste matcha dess Tasker-serverinställningar. Ingen auktoriseringsfråga behövs för detta."
@@ -2370,134 +2164,90 @@ msgstr "Träd etikett"
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "Vänd skärmen på sidan och låt layouten flyta in i den igen."
 
-msgid "Turn the screen on its side and let the layout re-flow into it."
-msgstr "Vänd skärmen på sidan och låt layouten flyta in i den igen."
 
 msgid "Undo"
 msgstr "Ångra"
 
-msgid "Undo"
-msgstr "Ångra"
 
 msgid "Using the saved size"
 msgstr "Använder den sparade storleken"
 
-msgid "Using the saved size"
-msgstr "Använder den sparade storleken"
 
 msgid "Variable"
 msgstr "Variabel"
 
-msgid "Variable"
-msgstr "Variabel"
 
 msgid "Variables"
 msgstr "Variabler"
 
-msgid "Variables"
-msgstr "Variabler"
 
 msgid "Version 2"
 msgstr "Version 2"
 
-msgid "Version 2"
-msgstr "Version 2"
 
 msgid "View Limit"
 msgstr "Visa gräns"
 
-msgid "View Limit"
-msgstr "Visa gräns"
 
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "Det du väljer kommer in vid markören. Öppna denna igen för att lägga till nästa bit."
 
-msgid "What you pick goes in at the cursor. Open this again to add the next piece."
-msgstr "Det du väljer kommer in vid markören. Öppna denna igen för att lägga till nästa bit."
 
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "Det du väljer ersätter det som fältet innehåller. Skriv för att begränsa listan."
 
-msgid "What you pick replaces what the field holds. Type to narrow the list down."
-msgstr "Det du väljer ersätter det som fältet innehåller. Skriv för att begränsa listan."
 
 msgid "Which kind of Scene?"
 msgstr "Vilken typ av scen?"
 
-msgid "Which kind of Scene?"
-msgstr "Vilken typ av scen?"
 
 msgid "Writes to variable"
 msgstr "Skriver till variabel"
 
-msgid "Writes to variable"
-msgstr "Skriver till variabel"
 
 msgid "Zoom"
 msgstr "Zoom"
 
-msgid "Zoom"
-msgstr "Zoom"
 
 msgid "component(s)"
 msgstr "komponent(er)"
 
-msgid "component(s)"
-msgstr "komponent(er)"
 
 msgid "connectors"
 msgstr "kontakter"
 
-msgid "connectors"
-msgstr "kontakter"
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "dra eller knuffa på någon av dem och de rör sig alla tillsammans."
 
-msgid "drag or nudge any of them and they all move together."
-msgstr "dra eller knuffa på någon av dem och de rör sig alla tillsammans."
 
 msgid "editing 1 of"
 msgstr "redigera 1 av"
 
-msgid "editing 1 of"
-msgstr "redigera 1 av"
 
 msgid "element(s)"
 msgstr "element"
 
-msgid "element(s)"
-msgstr "element"
 
 msgid "lines dropped"
 msgstr "rader tappade"
 
-msgid "lines dropped"
-msgstr "rader tappade"
 
 msgid "none"
 msgstr "ingen"
 
-msgid "none"
-msgstr "ingen"
 
 msgid "not drawn"
 msgstr "inte ritad"
 
-msgid "not drawn"
-msgstr "inte ritad"
 
 msgid "pair"
 msgstr "par"
 
-msgid "pair"
-msgstr "par"
 
 msgid "pixels"
 msgstr "pixlar"
 
-msgid "pixels"
-msgstr "pixlar"
 
 msgid "Notification Duration:"
 msgstr "Aviseringslängd:"
@@ -2519,3 +2269,42 @@ msgstr "valda element"
 
 msgid "is not a whole number"
 msgstr "är inte ett heltal"
+
+msgid "Building the Map to show"
+msgstr "Bygg kartan att visa"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Byggde kartan, men den har ingen linje för"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Klicka på en variabel eller en plats för att se den i kartvyn."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Ingen kartvy är öppen.  Kör Map View och klicka sedan på detta igen."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Spåra varje %variabel i den inlästa XML-filen: där var och en är satt, var den läses, vilka läses men aldrig ställs in, vilka ställs men aldrig läses, och vilka nästan identiska namn (%MyVar mot %Myvar) som sannolikt är stavfel.\n\nSökte: Uppgiftsåtgärder och deras villkor, plugin-konfiguration, profilsammanhang och scener.\n\nResultaten visas här och sparas i en textfil i den aktuella katalogen."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Variable Cross-Reference hittade inga misstänkta variabler."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Variabel korsreferensrapport kunde inte sparas."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Variabel korsreferens sparad som"
+
+msgid "Variable Xref"
+msgstr "Variabel Xref"
+
+msgid "detail level"
+msgstr "detaljnivå"
+
+msgid "is no longer in the loaded configuration."
+msgstr "är inte längre i den inlästa konfigurationen."
+
+msgid "whole file"
+msgstr "hela filen"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Klicka på ett fynd för att se det i kartvyn."

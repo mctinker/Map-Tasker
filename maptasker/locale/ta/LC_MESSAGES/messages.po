@@ -2326,3 +2326,42 @@ msgstr "பிக்சல்கள்"
 
 msgid "Version 2"
 msgstr "பதிப்பு 2"
+
+msgid "Building the Map to show"
+msgstr "காண்பிக்க வரைபடத்தை உருவாக்குதல்"
+
+msgid "Built the Map, but it has no line for"
+msgstr "வரைபடத்தை உருவாக்கியது, ஆனால் அதற்கு எந்த வரியும் இல்லை"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "வரைபடக் காட்சியில் அதைக் காண ஒரு கண்டுபிடிப்பைக் கிளிக் செய்யவும்."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "வரைபடக் காட்சியில் பார்க்க ஒரு மாறி அல்லது இடத்தைக் கிளிக் செய்யவும்."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "வரைபடக் காட்சி எதுவும் திறக்கப்படவில்லை.  வரைபடக் காட்சியை இயக்கவும், பின்னர் இதை மீண்டும் கிளிக் செய்யவும்."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "ஏற்றப்பட்ட XML இல் உள்ள ஒவ்வொரு %மாறியையும் கண்டறியவும்: ஒவ்வொன்றும் எங்கு அமைக்கப்பட்டுள்ளது, எங்கு படிக்கப்படுகிறது, படிக்கப்பட்டவை ஆனால் அமைக்கப்படவே இல்லை, அமைக்கப்படவில்லை ஆனால் படிக்கவே இல்லை, மற்றும் எந்தெந்தப் பெயர்கள் (%MyVar எதிராக %Myvar) எழுத்துப் பிழைகள் இருக்கலாம்.\n\nதேடப்பட்டது: பணி நடவடிக்கைகள் மற்றும் அவற்றின் நிபந்தனைகள், செருகுநிரல் உள்ளமைவு, சுயவிவர சூழல்கள் மற்றும் காட்சிகள்.\n\nமுடிவுகள் இங்கே காட்டப்பட்டு, தற்போதைய கோப்பகத்தில் உள்ள உரைக் கோப்பில் சேமிக்கப்படும்."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "மாறி குறுக்கு குறிப்பு எந்த சந்தேகத்திற்கிடமான மாறிகள் இல்லை."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "மாறி குறுக்கு குறிப்பு அறிக்கையை சேமிக்க முடியவில்லை."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "மாறி குறுக்கு குறிப்பு இவ்வாறு சேமிக்கப்பட்டது"
+
+msgid "Variable Xref"
+msgstr "மாறி Xref"
+
+msgid "detail level"
+msgstr "விவர நிலை"
+
+msgid "is no longer in the loaded configuration."
+msgstr "ஏற்றப்பட்ட கட்டமைப்பில் இல்லை."
+
+msgid "whole file"
+msgstr "முழு கோப்பு"

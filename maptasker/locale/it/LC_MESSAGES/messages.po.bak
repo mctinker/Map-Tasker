@@ -2101,47 +2101,31 @@ msgstr "Geometria"
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "Ciò che scegli sostituisce ciò che contiene il campo. Digitare per restringere l'elenco."
 
-msgid "What you pick goes in at the cursor. Open this again to add the next piece."
-msgstr "Ciò che scegli va in corrispondenza del cursore. Aprilo di nuovo per aggiungere il pezzo successivo."
 
-msgid "What you pick replaces what the field holds. Type to narrow the list down."
-msgstr "Ciò che scegli sostituisce ciò che contiene il campo. Digitare per restringere l'elenco."
 
 msgid "Which kind of Scene?"
 msgstr "Che tipo di scena?"
 
-msgid "Which kind of Scene?"
-msgstr "Che tipo di scena?"
 
 msgid "Writes to variable"
 msgstr "Scrive nella variabile"
 
-msgid "Writes to variable"
-msgstr "Scrive nella variabile"
 
 msgid "Zoom"
 msgstr "Zoom"
 
-msgid "Zoom"
-msgstr "Zoom"
 
 msgid "component(s)"
 msgstr "componente(i)"
 
-msgid "component(s)"
-msgstr "componente(i)"
 
 msgid "connectors"
 msgstr "connettori"
 
-msgid "connectors"
-msgstr "connettori"
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "trascina o spostane uno e si muoveranno tutti insieme."
 
-msgid "drag or nudge any of them and they all move together."
-msgstr "trascina o spostane uno e si muoveranno tutti insieme."
 
 msgid "element(s)"
 msgstr "elementi)"
@@ -2152,38 +2136,65 @@ msgstr "non è un numero intero"
 msgid "elements selected"
 msgstr "elementi selezionati"
 
-msgid "is not a whole number"
-msgstr "non è un numero intero"
 
 msgid "lines dropped"
 msgstr "le linee sono cadute"
 
-msgid "lines dropped"
-msgstr "le linee sono cadute"
 
 msgid "none"
 msgstr "nessuno"
 
-msgid "none"
-msgstr "nessuno"
 
 msgid "not drawn"
 msgstr "non disegnato"
 
-msgid "not drawn"
-msgstr "non disegnato"
 
 msgid "pair"
 msgstr "paio"
 
-msgid "pair"
-msgstr "paio"
 
 msgid "pixels"
 msgstr "pixel"
 
-msgid "pixels"
-msgstr "pixel"
 
 msgid "editing 1 of"
 msgstr "modifica 1 di"
+
+msgid "Building the Map to show"
+msgstr "Costruire la mappa da mostrare"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Ha costruito la mappa, ma non ha una linea per"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Fai clic su un risultato per visualizzarlo nella visualizzazione Mappa."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Fai clic su una variabile o su un luogo per visualizzarlo nella visualizzazione Mappa."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Nessuna visualizzazione mappa è aperta.  Esegui Visualizzazione mappa, quindi fai di nuovo clic su questo."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Traccia ogni %variabile nell'XML caricato: dove ciascuna è impostata, dove viene letta, quali vengono lette ma mai impostate, quali vengono impostate ma mai lette e quali nomi quasi identici (%MyVar contro %Myvar) sono probabilmente errori di battitura.\n\nRicerca: azioni delle attività e relative condizioni, configurazione del plug-in, contesti del profilo e scene.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Il riferimento incrociato delle variabili non ha trovato variabili sospette."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Impossibile salvare il report dei riferimenti incrociati variabili."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Riferimento incrociato variabile salvato con nome"
+
+msgid "Variable Xref"
+msgstr "Xrif variabile"
+
+msgid "detail level"
+msgstr "livello di dettaglio"
+
+msgid "is no longer in the loaded configuration."
+msgstr "non è più nella configurazione caricata."
+
+msgid "whole file"
+msgstr "intero fascicolo"

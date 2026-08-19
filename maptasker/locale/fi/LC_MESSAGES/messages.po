@@ -2162,3 +2162,42 @@ msgstr "Valitsemasi menee kohdistimeen. Avaa tämä uudelleen lisätäksesi seur
 
 msgid "Comparison report could not be saved."
 msgstr "Vertailuraporttia ei voitu tallentaa."
+
+msgid "Building the Map to show"
+msgstr "Kartan rakentaminen näytettäväksi"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Napsauta löytöä nähdäksesi sen karttanäkymässä."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Jäljitä ladatun XML:n jokainen %muuttuja: missä jokainen muuttuja on asetettu, missä se luetaan, mitkä luetaan, mutta ei koskaan asetettu, mitkä asetetaan, mutta joita ei koskaan lueta ja mitkä lähes identtiset nimet (%MyVar vastaan ​​%Myvar) ovat todennäköisesti kirjoitusvirheitä.\n\nHaettu: Tehtävätoiminnot ja niiden ehdot, laajennuksen asetukset, profiilikontekstit ja kohtaukset.\n\nTulokset näytetään tässä ja tallennetaan tekstitiedostoon nykyisessä hakemistossa."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Muuttujien ristiviittaus ei löytänyt epäilyttäviä muuttujia."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Muuttujan ristiviittaus tallennettu nimellä"
+
+msgid "Variable Xref"
+msgstr "Muuttuva Xref"
+
+msgid "detail level"
+msgstr "yksityiskohtien taso"
+
+msgid "whole file"
+msgstr "koko tiedosto"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Rakensi kartan, mutta sillä ei ole linjaa"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Napsauta muuttujaa tai paikkaa nähdäksesi sen karttanäkymässä."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Mikään karttanäkymä ei ole auki.  Suorita karttanäkymä ja napsauta tätä uudelleen."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Muuttujan ristiviittausraporttia ei voitu tallentaa."
+
+msgid "is no longer in the loaded configuration."
+msgstr "ei ole enää ladatussa kokoonpanossa."

@@ -13,6 +13,7 @@ from maptasker.src import condition, tasks
 from maptasker.src.actione import fix_json
 from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import build_tooltip_span, format_html
+from maptasker.src.mapjump import PROFILE, Target, anchor_html
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
@@ -450,6 +451,13 @@ def build_profile_line(
     # Do final alignment of the HTML string...must include the Profile name.
     if PrimeItems.program_arguments["pretty"] and condition_text:
         profile_info = align_html_text(profile_info)
+
+    # Mark this Profile's place so a report finding can be clicked and land on it (mapjump).
+    # The id comes from the "sr" attribute the same way get_profile_name reads it, rather
+    # than from the name: two Profiles may share a name, and an unnamed one has none.
+    anchor = anchor_html(Target(PROFILE, profile.attrib.get("sr", "")[4:], unmodified_profile_name, project_name))
+    if anchor:
+        PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Fix the column alignment of the final html string
     # Output the Profile line

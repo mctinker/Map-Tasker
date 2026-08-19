@@ -2144,3 +2144,42 @@ msgstr "Denne scenes version 2-layout har ingen rodkomponent, så der er ikke no
 
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "Det, du vælger, går ind ved markøren. Åbn dette igen for at tilføje det næste stykke."
+
+msgid "Building the Map to show"
+msgstr "Byg kortet til at vise"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Byggede kortet, men det har ingen linje til"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Klik på et fund for at se det i kortvisningen."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Klik på en variabel eller et sted for at se den i kortvisningen."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Ingen kortvisning er åben.  Kør kortvisning, og klik derefter på dette igen."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Spor hver %variabel i den indlæste XML: hvor hver enkelt er sat, hvor den læses, hvilke læses, men aldrig indstilles, hvilke er sat, men aldrig læst, og hvilke næsten identiske navne (%MyVar mod %Myvar) der sandsynligvis er stavefejl.\n\nSøgte: Opgavehandlinger og deres betingelser, plugin-konfiguration, profilkontekster og scener.\n\nResultaterne vises her og gemmes i en tekstfil i den aktuelle mappe."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Variabel krydsreference fandt ingen mistænkelige variabler."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Variabel krydsreferencerapport kunne ikke gemmes."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Variabel krydsreference gemt som"
+
+msgid "Variable Xref"
+msgstr "Variabel Xref"
+
+msgid "detail level"
+msgstr "detaljeniveau"
+
+msgid "is no longer in the loaded configuration."
+msgstr "er ikke længere i den indlæste konfiguration."
+
+msgid "whole file"
+msgstr "hele filen"

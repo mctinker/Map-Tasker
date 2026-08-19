@@ -2,6 +2,7 @@
 
 import contextlib
 import html
+import json
 import os
 import pickle
 import sys
@@ -10,19 +11,15 @@ import webbrowser
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
+from urllib.parse import urlencode
 
 from nicegui import Event, context, run, ui
 
-from maptasker.src import profedit, projedit, sceneedit, taskedit
+from maptasker.src import mapjump, profedit, projedit, sceneedit, taskedit
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
-from maptasker.src.frontmtr import output_the_front_matter
-from maptasker.src.getfile import Local_File_Picker
-from maptasker.src.getids import get_ids
-from maptasker.src.getputer import save_restore_args
-from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.diffload import (
     current_configuration,
     load_for_comparison,
@@ -31,8 +28,11 @@ from maptasker.src.diffload import (
     original_of,
     write_comparison_report,
 )
-from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
-from maptasker.src.xmldiff import compare
+from maptasker.src.frontmtr import output_the_front_matter
+from maptasker.src.getfile import Local_File_Picker
+from maptasker.src.getids import get_ids
+from maptasker.src.getputer import save_restore_args
+from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     add_logo,
@@ -103,6 +103,7 @@ from maptasker.src.guiwins import (
     suspended_scene_editor,
 )
 from maptasker.src.guiwins2 import APIKeyDialog
+from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
 from maptasker.src.maputil2 import (
     file_exists_on_android,
@@ -126,7 +127,7 @@ from maptasker.src.primitem import (
     initial_found_named_items,
     initial_grand_totals,
 )
-from maptasker.src.rungui import capture_gui_state
+from maptasker.src.rungui import SELECTION_KEYS, capture_gui_state
 from maptasker.src.sysconst import (
     ALL_OBJECTS_MESSAGE,
     ANALYSIS_FILE,
@@ -151,6 +152,8 @@ from maptasker.src.userhelp import (
     VIEW_HELP_TEXT,
     VIEWLIMIT_HELP_TEXT,
 )
+from maptasker.src.varxref import build_report, run_variable_xref, suspects, write_variable_xref_report
+from maptasker.src.xmldiff import compare
 
 if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
@@ -241,11 +244,10 @@ async def _choose_comparison_file(gui: "MyGui") -> str:
     result = await Local_File_Picker(local_xml_start_directory(gui), upper_limit="~", multiple=False)
     if not result:
         return ""
-    chosen = result[0] if isinstance(result, (list, tuple)) else result
     # Deliberately NOT remember_local_xml_directory: that directory is where the file the
     # user is working ON comes from, and picking something to compare against -- an archive
     # folder, a download -- should not move it.
-    return chosen
+    return result[0] if isinstance(result, (list, tuple)) else result
 
 
 def _single_item_selection_message(gui: "MyGui", item_type: str, name_entered: str) -> str:
@@ -330,7 +332,6 @@ class MyGui:
             sys.exit()
 
         # Now restore the settings and update the fields if not resetting.
-        self.default_language = "English"
         if not PrimeItems.program_arguments["reset"]:
             self.event_handlers.restore_settings_event()
 
@@ -392,13 +393,13 @@ class MyGui:
         logger.info("Setting defaults")
         self.is_updating = False  # Indicator for when we're in the middle of an update to prevent recursive calls
         self.display_detail_level = DEFAULT_DISPLAY_DETAIL_LEVEL
-        self.conditions = self.preferences = self.taskernet = self.debug = self.everything = self.clear_settings = (
-            self.reset
-        ) = self.restore = self.exit = self.bold = self.highlight = self.italicize = self.underline = (
-            self.go_program
-        ) = self.outline = self.rerun = self.list_files = self.runtime = self.save = self.twisty = self.directory = (
-            self.pretty
-        ) = self.fetched_backup_from_android = False
+        self.conditions = self.preferences = self.taskernet = self.debug = self.everything = self.reset = (
+            self.restore
+        ) = self.exit = self.bold = self.highlight = self.italicize = self.underline = self.outline = self.rerun = (
+            self.list_files
+        ) = self.runtime = self.save = self.twisty = self.directory = self.pretty = self.fetched_backup_from_android = (
+            False
+        )
         self.single_project_name = ""
         self.single_profile_name = ""
         self.single_task_name = ""
@@ -407,20 +408,16 @@ class MyGui:
         self.appearance_mode = "system"
 
         self.indent = 4
-        self.color_labels = []
         self.android_ipaddr = ""
         self.android_port = ""
         self.android_file = ""
         self.android_auth_key = ""  # Cached Tasker HTTP API key for Save To Android (see save_task_to_android_event).
         self.android_auth_key_ipaddr = ""
         self.android_auth_key_port = ""
-        if self.first_time:
-            self.all_messages = {}
         self.color_lookup = {}  # Setup default dictionary as empty list
         self.saved_background_color = "#3e1414"
         self.font = OUTPUT_FONT
         self.gui = True
-        self.color_row = 4
         self.message = ""
         self.ai_model = ""
         self.ai_name = ""
@@ -1367,11 +1364,17 @@ def _open_popout_window(path: str, new_window: bool = False) -> None:
     generated file once, on load, so the windows left open do keep showing what they were built
     with rather than all changing together.
     """
-    view_name = path.rsplit("/", 1)[-1]
+    # The query string is deliberately NOT part of the window name.  The Map's path carries
+    # "?goto=...&scope=..." (see view_event), and a name built from the whole path therefore
+    # changed with every finding clicked and every Project shown -- so each one opened a
+    # window of its own and only re-clicking the very same item reused anything, which is
+    # exactly what "Open View In New Window" being off is supposed to prevent.  The name
+    # identifies the VIEW; what that view is currently showing belongs in the URL alone.
+    view_name = path.rsplit("/", 1)[-1].split("?", 1)[0]
     window_name = f"maptasker_{view_name}_{time.time_ns()}" if new_window else f"maptasker_{view_name}"
     ui.run_javascript(
         "window.mapTaskerPopouts = window.mapTaskerPopouts || []; "
-        f"const popout = window.open('{path}', '{window_name}'); "
+        f"const popout = window.open({json.dumps(path)}, {json.dumps(window_name)}); "
         "if (popout) { "
         "  if (!window.mapTaskerPopouts.includes(popout)) window.mapTaskerPopouts.push(popout); "
         "  try { popout.focus(); } catch (e) {} "
@@ -1470,9 +1473,11 @@ def _unapplied_project_edits(field_refs: dict) -> list[str]:
 
     logger.error(f"Edit Project dialog has unapplied editable field(s): {', '.join(unknown)}")
     return [
-        f"Cannot save Project: the field(s) {', '.join(unknown)} are edited in this dialog but "
-        "are not written to the Project before it is saved, so saving now would leave them out. "
-        "See guiwins.EDIT_PROJECT_INERT_FIELDS.",
+        (
+            f"Cannot save Project: the field(s) {', '.join(unknown)} are edited in this dialog but "
+            "are not written to the Project before it is saved, so saving now would leave them out. "
+            "See guiwins.EDIT_PROJECT_INERT_FIELDS."
+        ),
     ]
 
 
@@ -1986,11 +1991,26 @@ class MapTaskerEventHandlers:
     # ==========================================
     # 2. Display View: Map, Diagram, Misc or Tree
     # ==========================================
-    async def view_event(self: "MapTaskerEventHandlers", view_type: str) -> None:
+    async def view_event(
+        self: "MapTaskerEventHandlers",
+        view_type: str,
+        goto: str = "",
+        overrides: dict | None = None,
+    ) -> None:
         """Triggered when Map, Diagram, or Tree buttons are clicked.
 
         Uses run.io_bound to run blocking file generations in a background thread,
         allowing thread-safe access to internal PrimeItems variables.
+
+        'goto' is a mapjump token the finished Map view scrolls to and highlights once it
+        has streamed in -- how a clicked report finding is delivered to a Map that had to
+        be built for it (see rebuild_map_for_jump).
+
+        'overrides' are settings this one build needs that the GUI does not currently hold
+        -- a detail level high enough to list the actions being jumped to, say.  Applied
+        AFTER capture_gui_state, since that overwrites program_arguments wholesale from the
+        GUI, and left to the caller to put back: the GUI's own widgets are untouched, so
+        nothing the user can see changes.
         """
         # max_limit = 9999999
         window_title = f"{view_type.capitalize()} View"
@@ -2002,6 +2022,8 @@ class MapTaskerEventHandlers:
 
         # Plug all of our settings back into PrimeItems.program_arguments
         capture_gui_state(gui, {})
+        if overrides:
+            PrimeItems.program_arguments.update(overrides)
 
         # Start this view generation with a clean slate: found_named_items only ever
         # gets set to True (projects.py/profiles.py/tasks.py/scenes.py, once
@@ -2032,6 +2054,10 @@ class MapTaskerEventHandlers:
         # this because they route through lineout.refresh_our_output, which rebuilds
         # both dicts mid-run; a single Scene never calls it, which is how this surfaced.
         PrimeItems.directory_items = initial_directory_items()
+        #  - emitted_anchors: the same story as the directory.  Left populated from an
+        #    earlier view, every object looks already-anchored, so the second view carries
+        #    no mapjump anchors at all and a clicked finding has nothing to land on.
+        PrimeItems.emitted_anchors = set()
         PrimeItems.grand_totals = initial_grand_totals()
 
         # Map view
@@ -2084,7 +2110,18 @@ class MapTaskerEventHandlers:
             PrimeItems.output_lines.output_lines.clear()
 
             # Display the map in its own browser window/tab rather than the main window.
-            _open_popout_window("/popout/map", getattr(gui, "open_view_in_new_window", False))
+            # A "goto" rides along on the URL rather than being pushed into the window
+            # afterwards: the popout is its own page with its own timing, and only it knows
+            # when the Map has finished streaming in and is therefore scrollable.
+            #
+            # "scope" says which Project this Map was built for -- always, not just for a
+            # jump -- so that a later clicked finding can tell whether the Map already on
+            # screen is one that can show what it points at, or whether it has to build its
+            # own.  Read here rather than remembered on PrimeItems because the popout is
+            # constructed after this call returns, by which time any overrides for this one
+            # build have been put back.
+            query = urlencode({"goto": goto, "scope": PrimeItems.program_arguments.get("single_project_name") or ""})
+            _open_popout_window(f"/popout/map?{query}", getattr(gui, "open_view_in_new_window", False))
 
             # Check for hard stop limit and notify user if output was truncated
             if output_length > gui.view_limit:
@@ -2187,6 +2224,68 @@ class MapTaskerEventHandlers:
         )
         ui.notify(translate_string("View cleared."), type="info", position="bottom")
 
+    async def rebuild_map_for_jump(self: "MapTaskerEventHandlers", target: mapjump.Target) -> None:
+        """Build a Map that holds this object, and open it scrolled to it.
+
+        What a clicked report finding falls back to when no Map on screen can show it --
+        because none is open, because the one that is shows a single Project, or because
+        its detail level leaves out the Tasks and actions the finding is about.
+
+        The build is deliberately the whole configuration at a detail level high enough for
+        this object: those are the two settings that decide whether the Map contains it at
+        all, and a click that says "take me there" is worth honouring rather than answering
+        with a second reason it cannot.  Nothing the user can see changes -- the overrides
+        go into program_arguments for this one build and are put straight back, while the
+        pulldowns and the detail selector keep whatever they held.  The next Map View press
+        is therefore exactly the Map they asked for, not the one this needed.
+
+        Not silently: the settings are not the user's, so the notification says which ones
+        this went past.
+        """
+        level = max(PrimeItems.program_arguments.get("display_detail_level", 0), mapjump.minimum_detail_level(target))
+        # Narrowed to the Project that owns what was clicked, rather than built whole.  A
+        # click asks to be shown one thing, and a Map of one Project is both the answer to
+        # that and a great deal quicker to build and to read than a Map of everything.
+        #
+        # Whole file only when there is no Project to narrow to: an orphan Profile, a Scene
+        # no Project lists, a Task filed under none -- exactly the objects the reachability
+        # findings are about -- and a variable, which the Map indexes per Project but the
+        # cross-reference does not attribute to one.
+        overrides = dict.fromkeys(SELECTION_KEYS, "")
+        overrides["display_detail_level"] = level
+        scope = mapjump.scope_for(target)
+        if scope:
+            overrides["single_project_name"] = scope
+
+        # Say which settings this went past, and only those: the point of saying anything is
+        # that the Map on screen afterwards is not the one the user's own settings would have
+        # produced.  Worked out by comparing the overrides against what is actually set, so
+        # that a user already on this Project at this detail level is told nothing at all.
+        changed = {key for key, value in overrides.items() if PrimeItems.program_arguments.get(key, "") != value}
+        reasons = []
+        if changed & set(SELECTION_KEYS):
+            reasons.append(f"{translate_string('Project')} '{scope}'" if scope else translate_string("whole file"))
+        if "display_detail_level" in changed:
+            reasons.append(f"{translate_string('detail level')} {level}")
+        ui.notify(
+            f"{translate_string('Building the Map to show')} {target.label}"
+            + (f" ({', '.join(reasons)})" if reasons else "")
+            + " ...",
+            type="info",
+            position="top",
+        )
+
+        # Put back exactly what was there, key by key -- including any key that was absent,
+        # which must go back to being absent rather than to an empty string.
+        saved = {key: PrimeItems.program_arguments[key] for key in overrides if key in PrimeItems.program_arguments}
+        absent = [key for key in overrides if key not in PrimeItems.program_arguments]
+        try:
+            await self.view_event("map", goto=target.token(), overrides=overrides)
+        finally:
+            PrimeItems.program_arguments.update(saved)
+            for key in absent:
+                PrimeItems.program_arguments.pop(key, None)
+
     def health_check_event(self: "MapTaskerEventHandlers") -> None:
         """Scan the loaded configuration for problems, display the report and save it to a file."""
         gui = self.gui
@@ -2197,28 +2296,85 @@ class MapTaskerEventHandlers:
             )
             return
 
-        report, counts = run_health_check()
-        file_name = write_health_check_report(report)
+        rows, counts = run_health_check()
+        file_name = write_health_check_report(rows)
 
         if file_name:
             gui.display_message_box(f"{translate_string('Health Check saved as')} {file_name}", "Green")
         else:
             gui.display_message_box(translate_string("Health Check report could not be saved."), "Red")
 
-        # Escaped for display only -- the file above keeps the plain text.  NiceGuiTextView's
-        # Misc branch drops its content into a <pre> with sanitize=False, so a Tasker name
-        # holding '<', '>' or '&' would otherwise be read as markup rather than shown as the
-        # name it is.  Same failure the 12.1.1 fix addressed for variable values.
+        # The same report, written a second way: the file above holds the plain text, this
+        # holds the HTML, and both come from the one list of rows so the two can never
+        # disagree.  html_report does the escaping -- NiceGuiTextView's Misc branch drops
+        # its content into a <pre> with sanitize=False, so a Tasker name holding '<', '>'
+        # or '&' would otherwise be read as markup rather than shown as the name it is
+        # (the failure the 12.1.1 fix addressed for variable values).  It also wraps the
+        # row naming each finding's location so that clicking it takes the user to that
+        # object in the Map view; guiwins.enable_finding_clicks wires the click up.
         self.gui.textview = NiceGuiTextView(
             gui,
             title="Misc View",
-            the_data=html.escape(report),
+            the_data=mapjump.html_report(rows),
         )
 
         # A clean bill of health is worth saying out loud: an empty-looking report should not
         # leave the user wondering whether the check actually ran.
         if not counts[ERROR] and not counts[WARNING]:
             ui.notify(translate_string("Health Check found no errors or warnings."), type="positive")
+        elif any(row.target for row in rows):
+            ui.notify(
+                translate_string("Click a finding to see it in the Map view."),
+                type="info",
+                position="bottom",
+            )
+
+    def variable_xref_event(self: "MapTaskerEventHandlers") -> None:
+        """Build the variable where-used index, display it and save it to a file."""
+        gui = self.gui
+        if not PrimeItems.tasker_root_elements["all_tasks"]:
+            gui.display_message_box(
+                translate_string("No XML file has been loaded.  Get an XML file first."),
+                "Red",
+            )
+            return
+
+        rows, index = run_variable_xref()
+        file_name = write_variable_xref_report(rows)
+
+        if file_name:
+            gui.display_message_box(f"{translate_string('Variable Cross-Reference saved as')} {file_name}", "Green")
+        else:
+            gui.display_message_box(translate_string("Variable Cross-Reference report could not be saved."), "Red")
+
+        # Displayed without the where-used index, which the saved file above keeps in
+        # full: on a large configuration the whole report is 18,000 lines and a megabyte,
+        # and it is the reference half rather than the part anybody reads on screen.
+        #
+        # html_report does the escaping (see health_check_event) and marks every place the
+        # report names -- the variables themselves, and the action each is first set or
+        # read at -- so clicking one takes the user there in the Map view.
+        shown = build_report(index, include_index=False)
+        self.gui.textview = NiceGuiTextView(
+            gui,
+            title="Misc View",
+            the_data=mapjump.html_report(shown),
+        )
+
+        # A configuration with nothing wrong in it produces a report whose first section
+        # says so and then 10,000 lines of index.  Worth saying out loud, so a clean result
+        # is not mistaken for the feature having failed to run.
+        if not suspects(index):
+            ui.notify(
+                translate_string("Variable Cross-Reference found no suspect variables."),
+                type="positive",
+            )
+        elif any(row.target or row.pieces for row in shown):
+            ui.notify(
+                translate_string("Click a variable or a place to see it in the Map view."),
+                type="info",
+                position="bottom",
+            )
 
     async def compare_files_event(self: "MapTaskerEventHandlers") -> None:
         """Compare another XML file against the loaded one, display the report and save it."""
@@ -2428,6 +2584,13 @@ class MapTaskerEventHandlers:
                 container.querySelectorAll('.connector-highlight').forEach(el => {{
                     el.classList.remove('connector-highlight');
                 }});
+
+                // ...and the outline left on whatever a clicked report finding jumped to
+                // (see mapjump.jump_js).  "Clear" means the view is back to how it was
+                // rendered, whichever of the three ways something on it came to stand out.
+                container.querySelectorAll('.{mapjump.HIGHLIGHT_CLASS}').forEach(el => {{
+                    el.classList.remove('{mapjump.HIGHLIGHT_CLASS}');
+                }});
             """)
 
         ui.notify(translate_string("Cleared the search highlights."), type="info")
@@ -2478,13 +2641,15 @@ class MapTaskerEventHandlers:
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
                 gui.list_files_button = (
-                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
+                    ui
+                    .button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
                     .style("background-color: #D62CFF; color: white;")
                     .classes("flex-grow text-xs")
                 )
 
                 gui.list_files_query_button = (
-                    ui.button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                    ui
+                    .button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
                     .style("background-color: #246FB6; color: #ffd941;")
                     .classes("w-10 min-w-[40px] text-xs")
                 )
@@ -2511,7 +2676,8 @@ class MapTaskerEventHandlers:
             # so clear_android_buttons() then deleted this button while believing it had deleted
             # that one -- leaving the original in place and adding a second one every time.
             gui.set_xml_details_button = (
-                ui.button(
+                ui
+                .button(
                     translate_string("Click Here to Set XML Details"),
                     on_click=gui.event_handlers.fetch_backup_event,
                 )
@@ -2599,8 +2765,7 @@ class MapTaskerEventHandlers:
                 # Built after the name is stored, so the "is anything still selected?" check
                 # sees this selection too.
                 the_view.specific_name_msg = _single_item_selection_message(the_view, my_name, name_entered)
-            else:
-                the_view.single_name_msg = all_objects
+
             # Update the pulldown menus.
             update_tasker_object_menus(
                 the_view,
@@ -3138,6 +3303,14 @@ class MapTaskerEventHandlers:
         ui.notify(f"Renamed to '{new_name}'.", type="positive")
         rename_dialog.close()
         parent_dialog.close()
+
+    def set_project_enabled_event(self, edited_project: projedit.EditableProject, enabled: bool) -> None:
+        """Enables or disables the Project being edited. Unlike its Profile
+        counterpart (set_profile_enabled_event), this reaches the live
+        in-memory backup immediately -- see projedit.set_project_enabled for
+        why the Edit Project dialog has to work that way.
+        """
+        projedit.set_project_enabled(edited_project, enabled)
 
     def save_project_to_current_file_event(
         self,
@@ -4807,8 +4980,8 @@ class MapTaskerEventHandlers:
         # 1. Instantiate the Dialog Class
         api_key_dialog = APIKeyDialog(the_view)
 
-        # 2. Keep the class reference safely stored if needed elsewhere
-        the_view.ai_apikey_dialog_instance = api_key_dialog
+        # # 2. Keep the class reference safely stored if needed elsewhere
+        # the_view.ai_apikey_dialog_instance = api_key_dialog
 
         # 3. Explicitly open it!
         api_key_dialog.open()
@@ -5468,7 +5641,7 @@ class MapTaskerEventHandlers:
 
         raw = choice.value if hasattr(choice, "value") else choice
         by_label = {translate_string(label): milliseconds for label, milliseconds in NOTIFY_TIMEOUT_CHOICES}
-        by_label.update({label: milliseconds for label, milliseconds in NOTIFY_TIMEOUT_CHOICES})
+        by_label.update(dict(NOTIFY_TIMEOUT_CHOICES))
 
         if isinstance(raw, str) and raw in by_label:
             milliseconds = by_label[raw]
@@ -6077,7 +6250,8 @@ class MapTaskerEventHandlers:
             if toolbar:
                 with toolbar:
                     gui.font_out_label = (
-                        ui.label(label_text)
+                        ui
+                        .label(label_text)
                         .style(f"font-family: {font_name}; font-size: 14px;")
                         .classes("text-gray-500 italic ml-4")
                     )

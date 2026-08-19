@@ -4122,7 +4122,7 @@ LEGACY_BACKGROUND_TYPES = frozenset(
         "SwitchElement",
         "TextElement",
         "WebElement",
-    }
+    },
 )
 
 # An anonymous inline Task -- Tasker writes these with a negative id and stores them nowhere

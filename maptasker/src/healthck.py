@@ -22,7 +22,20 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from maptasker.src import varxref
 from maptasker.src.actionc import action_codes
+from maptasker.src.mapjump import (
+    PROFILE,
+    PROJECT,
+    SCENE,
+    TASK,
+    VARIABLE,
+    Row,
+    Target,
+    actions_in_map_order,
+    describe,
+    text_report,
+)
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -85,6 +98,20 @@ class Finding:
     tag: str
     where: str
     detail: str
+    # When the detail line names several things -- the copies of a duplicated name -- the
+    # line broken into (text, target) pieces that join back into `detail`.  Empty for the
+    # findings whose detail is prose, which is nearly all of them.
+    detail_pieces: list[tuple[str, Target | None]] = field(default_factory=list)
+    # Where clicking this finding's location line goes in the Map view.  None for a
+    # finding whose subject is a NAME rather than an object -- DUPLICATE-NAME's heading
+    # names the name several Tasks share, and no one of them is the subject of it, so its
+    # copies are linked from the detail line instead (see detail_pieces).
+    target: Target | None = None
+    # The other objects this finding is about: every other copy of a duplicated name, or
+    # the second spelling of a near-duplicate variable.  Nothing renders these yet -- a Row
+    # points at one thing, and the report's detail line already names them all in prose --
+    # so they are here for the renderer that will offer each one separately.
+    related: list[Target] = field(default_factory=list)
 
 
 @dataclass
@@ -117,9 +144,35 @@ class _Index:
     variable_scene_references: int = 0
     findings: list[Finding] = field(default_factory=list)
 
-    def add(self, severity: str, tag: str, where: str, detail: str) -> None:
-        """Record one finding."""
-        self.findings.append(Finding(severity, tag, where, detail))
+    def add(
+        self,
+        severity: str,
+        tag: str,
+        where: Target | str,
+        detail: str | list[tuple[str, Target | None]],
+        target: Target | None = None,
+        related: list[Target] | None = None,
+    ) -> None:
+        """Record one finding.
+
+        'where' is normally the Target of the object the finding is about, and its label is
+        what gets printed -- so the location line and the jump can never disagree.  A plain
+        string is for the handful of findings whose subject is a name rather than an object.
+
+        'target' overrides where the click goes without changing what is printed.  A broken
+        Perform Task prints the calling Task as its location, because that is the object the
+        reader is being sent to look at, but the jump is worth making finer than that: it
+        goes to the action itself.
+
+        'detail' may be given as pieces instead of a sentence, for the one finding whose
+        detail line names several objects (see _duplicate_detail).  The printed text is
+        then joined from them, so the two cannot say different things.
+        """
+        location = where if isinstance(where, str) else where.label
+        jump = target or (where if isinstance(where, Target) else None)
+        pieces = [] if isinstance(detail, str) else list(detail)
+        text = detail if isinstance(detail, str) else "".join(part for part, _ in pieces)
+        self.findings.append(Finding(severity, tag, location, text, pieces, jump, related or []))
 
 
 def _scene_name_args() -> dict[str, str]:
@@ -172,28 +225,6 @@ def _element_text(element: defusedxml.ElementTree.Element, tag: str) -> str:
     return (child.text or "").strip() if child is not None else ""
 
 
-def _describe(kind: str, name: str, identifier: str = "") -> str:
-    """An object's name for the report: Task 'Wake Up' (id 118), or Task (id 118) unnamed."""
-    if name:
-        return f"{kind} '{name}'" + (f" (id {identifier})" if identifier else "")
-    return f"{kind} (id {identifier}) [unnamed]" if identifier else f"{kind} [unnamed]"
-
-
-def _in_project(where: str, project_name: str | None) -> str:
-    """Put the owning Project in front of an object's name, when a Project owns it.
-
-    Every finding's location reads the same way because of this -- "Project 'Home' >
-    Task 'Wake Up' (id 118)" -- which is what lets the report be sorted by location and
-    come out grouped by Project.
-
-    Silent when nothing owns the object, rather than saying so: a Task in no Project is
-    ordinary (Tasker keeps unassigned Tasks in its own Tasks tab), and a location is the
-    wrong place to raise it.  Where that fact actually matters -- an unreferenced Task
-    someone may be about to delete -- the check says so in the finding's detail instead.
-    """
-    return f"Project '{project_name}' > {where}" if project_name else where
-
-
 def _split_ids(element: defusedxml.ElementTree.Element, tag: str) -> list[str]:
     """A Project's <pids>/<tids> as a list of ids.
 
@@ -216,7 +247,7 @@ def _index_projects(index: _Index) -> None:
     all_scenes = PrimeItems.tasker_root_elements["all_scenes"]
 
     for project_name, project in all_projects.items():
-        where = _describe("Project", project_name)
+        where = Target(PROJECT, project_name, project_name)
 
         for profile_id in _split_ids(project["xml"], "pids"):
             if profile_id in all_profiles:
@@ -266,10 +297,7 @@ def _index_profiles(index: _Index) -> None:
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
 
     for profile_id, profile in all_profiles.items():
-        where = _in_project(
-            _describe("Profile", profile["name"], profile_id),
-            index.project_of_profile.get(profile_id),
-        )
+        where = Target(PROFILE, profile_id, profile["name"], index.project_of_profile.get(profile_id, ""))
 
         # <mid0> is the entry Task, <mid1> the exit Task (see profiles.get_profile_tasks).
         for tag, task_type in (("mid0", "entry"), ("mid1", "exit")):
@@ -277,7 +305,7 @@ def _index_profiles(index: _Index) -> None:
             if not task_id:
                 continue
             if task_id in all_tasks:
-                index.task_referrers[task_id].append(f"{where} {task_type} Task")
+                index.task_referrers[task_id].append(where.with_text(f"{task_type} Task").label)
             else:
                 index.add(
                     ERROR,
@@ -291,7 +319,7 @@ def _index_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit: o
     """Record the Tasks a Legacy Scene's elements fire, reporting any that are missing."""
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
     # project_of_scene is filled by _index_projects, which run_health_check calls first.
-    where = _in_project(_describe("Scene", scene_name), index.project_of_scene.get(scene_name))
+    where = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
 
     # .iter() rather than a walk over direct children: a Legacy element can hold another
     # (a WebElement carrying a RectElement, for one), and a binding on a nested element is
@@ -313,7 +341,7 @@ def _index_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit: o
                 continue
             event = SCENE_TASK_TYPES[binding.tag]
             if task_id in all_tasks:
-                index.task_referrers[task_id].append(f"{where} {label} {event}")
+                index.task_referrers[task_id].append(where.with_text(f"{label} {event}").label)
             else:
                 index.add(
                     ERROR,
@@ -337,7 +365,7 @@ def _index_v2_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit
         return
 
     all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
-    where = _in_project(_describe("Scene", scene_name), index.project_of_scene.get(scene_name))
+    where = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
 
     for row in sceneedit.v2_flatten(layout):
         for handler in sceneedit.v2_handlers(row.node):
@@ -349,7 +377,7 @@ def _index_v2_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit
                     continue
                 entry = all_tasks_by_name.get(task_name)
                 if entry:
-                    index.task_referrers[entry["id"]].append(f"{where} component '{row.label}'")
+                    index.task_referrers[entry["id"]].append(where.with_text(f"component '{row.label}'").label)
                 else:
                     index.add(
                         ERROR,
@@ -382,7 +410,7 @@ def _index_one_action(
     index: _Index,
     action: defusedxml.ElementTree.Element,
     number: int,
-    where: str,
+    where: Target,
     scene_args: dict[str, str],
 ) -> None:
     """Record what one action refers to, wherever that action lives.
@@ -405,13 +433,17 @@ def _index_one_action(
         if _is_resolvable(called):
             entry = all_tasks_by_name.get(called)
             if entry:
-                index.task_referrers[entry["id"]].append(f"{where} action {number}")
+                index.task_referrers[entry["id"]].append(where.at_action(number).label)
             else:
+                # Printed as the calling Task, jumped to as the action inside it: the
+                # location is what the reader needs to recognise, the action is where the
+                # fix is made, and on a Task of two hundred actions those are far apart.
                 index.add(
                     ERROR,
                     "BROKEN-PERFORM-TASK",
                     where,
                     f"action {number} (Perform Task) calls '{called}', which is not in this file.",
+                    target=where.at_action(number),
                 )
 
     elif code in _WIDGET_NAME_CODES:
@@ -419,7 +451,9 @@ def _index_one_action(
         if _is_resolvable(widget_name):
             entry = all_tasks_by_name.get(widget_name)
             if entry:
-                index.task_referrers[entry["id"]].append(f"{where} action {number} (home screen widget)")
+                index.task_referrers[entry["id"]].append(
+                f"{where.at_action(number).label} (home screen widget)",
+            )
 
     elif code in scene_args:
         scene_name = _string_argument(action, scene_args[code])
@@ -434,13 +468,14 @@ def _index_one_action(
             index.variable_scene_references += 1
             return
         if scene_name in all_scenes:
-            index.scene_referrers[scene_name].append(f"{where} action {number}")
+            index.scene_referrers[scene_name].append(where.at_action(number).label)
         else:
             index.add(
                 ERROR,
                 "BROKEN-SCENE-ACTION",
                 where,
                 f"action {number} refers to Scene '{scene_name}', which is not in this file.",
+                target=where.at_action(number),
             )
 
 
@@ -460,9 +495,9 @@ def _index_actions(index: _Index) -> None:
     scene_args = _scene_name_args()
 
     for task_id, task in all_tasks.items():
-        where = _in_project(_describe("Task", task["name"], task_id), index.project_of_task.get(task_id))
+        where = Target(TASK, task_id, task["name"], index.project_of_task.get(task_id, ""))
 
-        for number, action in enumerate(task["xml"].findall("Action"), start=1):
+        for number, action in enumerate(actions_in_map_order(task["xml"]), start=1):
             _index_one_action(index, action, number, where, scene_args)
 
 
@@ -480,8 +515,8 @@ def _index_scene_inline_actions(index: _Index) -> None:
     scene_args = _scene_name_args()
 
     for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
-        scene_where = _in_project(_describe("Scene", scene_name), index.project_of_scene.get(scene_name))
-        where = f"{scene_where} anonymous Task"
+        scene_target = Target(SCENE, scene_name, scene_name, index.project_of_scene.get(scene_name, ""))
+        where = scene_target.with_text("anonymous Task")
         # .iter() from the Scene root: these sit at whatever depth the element that owns
         # them sits, and are not confined to one element type.
         for number, action in enumerate(scene["xml"].iter("Action"), start=1):
@@ -505,9 +540,9 @@ def _check_reachability(index: _Index) -> None:
         index.add(
             WARNING,
             "UNREFERENCED-TASK",
-            _in_project(_describe("Task", task["name"], task_id), owning_project),
+            Target(TASK, task_id, task["name"], owning_project or ""),
             "Nothing in this file runs it: no Profile, no Scene, no Perform Task action"
-            # Said here rather than in the location (see _in_project): for a Task someone
+            # Said here rather than in the location (see mapjump.in_project): for a Task someone
             # may be about to delete, belonging to no Project at all is part of the case.
             + ("" if owning_project else ", and no Project lists it")
             + ".  It may still be launched from outside the backup -- see the note at the end.",
@@ -518,7 +553,7 @@ def _check_reachability(index: _Index) -> None:
             index.add(
                 WARNING,
                 "ORPHAN-PROFILE",
-                _describe("Profile", profile["name"], profile_id),
+                Target(PROFILE, profile_id, profile["name"]),
                 "No Project lists it in <pids>, so Tasker will not run it.",
             )
 
@@ -530,7 +565,7 @@ def _check_reachability(index: _Index) -> None:
             index.add(
                 WARNING,
                 "ORPHAN-SCENE",
-                _describe("Scene", scene_name),
+                Target(SCENE, scene_name, scene_name),
                 "No Project lists it in <scenes>.",
             )
         elif not index.scene_referrers.get(scene_name):
@@ -541,7 +576,7 @@ def _check_reachability(index: _Index) -> None:
             index.add(
                 INFO,
                 "UNUSED-SCENE",
-                _in_project(_describe("Scene", scene_name), index.project_of_scene[scene_name]),
+                Target(SCENE, scene_name, scene_name, index.project_of_scene[scene_name]),
                 "No action shows, hides, destroys or changes an element of it"
                 + (
                     "."
@@ -555,7 +590,7 @@ def _check_reachability(index: _Index) -> None:
             index.add(
                 WARNING,
                 "EMPTY-PROJECT",
-                _describe("Project", project_name),
+                Target(PROJECT, project_name, project_name),
                 "Holds no Profiles and no Tasks.",
             )
 
@@ -569,20 +604,18 @@ def _check_duplicate_names(index: _Index) -> None:
     """
     for task_name, task_ids in sorted(index.task_ids_by_name.items()):
         if len(task_ids) > 1:
+            pieces = _duplicate_detail(TASK, "Tasks", task_name, task_ids, index.project_of_task)
             index.add(
                 INFO,
                 "DUPLICATE-NAME",
-                _describe("Task", task_name),
-                f"{len(task_ids)} Tasks share this name: {_where_each_is(task_ids, index.project_of_task)}."
-                + (
-                    "  Two of them are in the same Project."
-                    if _has_repeat_project(task_ids, index.project_of_task)
-                    else ""
-                )
+                describe("Task", task_name),
                 # Worth saying for Tasks and not for Profiles: a Perform Task resolves by
                 # name, so a duplicate here is not just hard to tell apart in Tasker's
                 # list, it silently decides which of them every caller actually runs.
-                + "  A Perform Task naming it will run only one of them.",
+                [*pieces, ("  A Perform Task naming it will run only one of them.", None)],
+                # No target on the finding: the subject is the name, not any one of the
+                # Tasks carrying it.  Each copy is a link inside the detail line instead.
+                related=_copies(TASK, sorted(task_ids), index.project_of_task, task_name),
             )
 
     profiles_by_name = defaultdict(list)
@@ -594,17 +627,35 @@ def _check_duplicate_names(index: _Index) -> None:
             index.add(
                 INFO,
                 "DUPLICATE-NAME",
-                _describe("Profile", profile_name),
-                f"{len(profile_ids)} Profiles share this name: {_where_each_is(profile_ids, index.project_of_profile)}."
-                # Which Project each copy sits in is what says whether this is a problem.
-                # Two Profiles of one name in two Projects is a naming habit; two in the
-                # same Project is the case where the user cannot tell them apart in Tasker.
-                + (
-                    "  Two of them are in the same Project."
-                    if _has_repeat_project(profile_ids, index.project_of_profile)
-                    else ""
-                ),
+                describe("Profile", profile_name),
+                _duplicate_detail(PROFILE, "Profiles", profile_name, profile_ids, index.project_of_profile),
+                related=_copies(PROFILE, sorted(profile_ids), index.project_of_profile, profile_name),
             )
+
+
+def _duplicate_detail(
+    kind: str,
+    plural: str,
+    name: str,
+    identifiers: list[str],
+    project_of: dict[str, str],
+) -> list[tuple[str, Target | None]]:
+    """The detail line for a duplicated name, with each copy in it a link of its own.
+
+    Built as pieces rather than as a sentence because this is the one finding whose
+    location line has nothing to point at -- the subject is a name, and the objects
+    carrying it are named only here.  Which Project each copy sits in is also what says
+    whether this is a problem at all: two of one name in two Projects is a naming habit,
+    two in the same Project is the case where the user cannot tell them apart in Tasker.
+    """
+    pieces: list[tuple[str, Target | None]] = [(f"{len(identifiers)} {plural} share this name: ", None)]
+    for position, (phrase, identifier) in enumerate(_each_copy(identifiers, project_of)):
+        if position:
+            pieces.append((", ", None))
+        pieces.append((phrase, Target(kind, identifier, name, project_of.get(identifier, ""))))
+    same_project = "  Two of them are in the same Project." if _has_repeat_project(identifiers, project_of) else ""
+    pieces.append((f".{same_project}", None))
+    return pieces
 
 
 def _where_each_is(identifiers: list[str], project_of: dict[str, str]) -> str:
@@ -613,10 +664,29 @@ def _where_each_is(identifiers: list[str], project_of: dict[str, str]) -> str:
     Sorted by Project so copies sharing one are named together, which is what makes the
     same-Project case readable at a glance.
     """
-    return ", ".join(
-        f"id {identifier} in " + (f"Project '{project_of[identifier]}'" if identifier in project_of else "no Project")
+    return ", ".join(text for text, _ in _each_copy(identifiers, project_of))
+
+
+def _each_copy(identifiers: list[str], project_of: dict[str, str]) -> list[tuple[str, str]]:
+    """The (phrase, id) pairs _where_each_is joins, in the order it joins them.
+
+    Kept apart from the joining so the rendered report can make each copy clickable in
+    place: DUPLICATE-NAME is a finding about a name, so its location line has nothing to
+    point at, and the copies named here are the only places to go.
+    """
+    return [
+        (
+            f"id {identifier} in "
+            + (f"Project '{project_of[identifier]}'" if identifier in project_of else "no Project"),
+            identifier,
+        )
         for identifier in sorted(identifiers, key=lambda item: (project_of.get(item, ""), item))
-    )
+    ]
+
+
+def _copies(kind: str, identifiers: list[str], project_of: dict[str, str], name: str) -> list[Target]:
+    """Every object sharing a duplicated name, as somewhere to go and look at each one."""
+    return [Target(kind, identifier, name, project_of.get(identifier, "")) for identifier in identifiers]
 
 
 def _has_repeat_project(identifiers: list[str], project_of: dict[str, str]) -> bool:
@@ -627,6 +697,53 @@ def _has_repeat_project(identifiers: list[str], project_of: dict[str, str]) -> b
     """
     owners = [project_of[identifier] for identifier in identifiers if identifier in project_of]
     return len(owners) != len(set(owners))
+
+
+# What each variable problem is worth on this report's scale.  A near-duplicate and a
+# variable nothing sets are both "probably not what you intended" -- they misbehave
+# quietly, by reading empty, rather than failing outright the way a broken reference does,
+# so neither is an ERROR.  A variable nothing reads costs nothing at run time; it is
+# tidying, and so INFO.
+_VARIABLE_SEVERITY = {
+    varxref.NEAR_DUPLICATE: WARNING,
+    varxref.NEVER_SET: WARNING,
+    varxref.NEVER_READ: INFO,
+}
+
+
+def _check_variables(index: _Index) -> None:
+    """Fold the variable cross-reference's problems into this report.
+
+    The cross-reference builds its own index -- it reads arguments, conditions, plugin
+    bundles and Scene layouts, none of which this module's passes collect -- so this is a
+    second walk over the file rather than a filter over _Index.  Worth the second walk:
+    the alternative is that a user who never presses Variable Xref never learns that a
+    Task reads %SheetId while an action sets %SheetID.
+
+    Tags are prefixed VAR- so they sort together and can be searched for as a group, and
+    are un-translated like every other tag here.
+    """
+    for suspect in varxref.suspects(varxref.build_index()):
+        # A near-duplicate's subject names both spellings ("%SheetID / %SheetId"); every
+        # other class names one variable, and the split leaves it alone.
+        names = [name.strip() for name in suspect.subject.split("/") if name.strip()]
+        variables = [Target(VARIABLE, name, name) for name in names]
+
+        # A click goes to the first place the finding NAMES, not to the variable itself.
+        # The variable's own row in the Map's table restates the finding and nothing more --
+        # for "read but never set" it reads "0 set, 1 read" -- while the place that reads it
+        # is the thing to go and look at.  suspect.places runs parallel to its detail lines,
+        # and a near-duplicate's begin with the names themselves, so the variables are
+        # stepped over to reach the first real location.
+        place = next((item for item in suspect.places if item is not None and item.kind != VARIABLE), None)
+        index.add(
+            _VARIABLE_SEVERITY[suspect.tag],
+            f"VAR-{suspect.tag}",
+            f"Variable {suspect.subject}",
+            suspect.sentence,
+            target=place or (variables[0] if variables else None),
+            related=variables,
+        )
 
 
 def _check_hygiene(index: _Index) -> None:
@@ -640,10 +757,7 @@ def _check_hygiene(index: _Index) -> None:
             index.add(
                 INFO,
                 "DISABLED-PROFILE",
-                _in_project(
-                    _describe("Profile", profile["name"], profile_id),
-                    index.project_of_profile.get(profile_id),
-                ),
+                Target(PROFILE, profile_id, profile["name"], index.project_of_profile.get(profile_id, "")),
                 "Disabled in Tasker, so none of its Tasks will run.",
             )
 
@@ -658,7 +772,7 @@ def _check_hygiene(index: _Index) -> None:
                 index.add(
                     INFO,
                     "LARGE-TASK",
-                    _in_project(_describe("Task", task["name"], task_id), index.project_of_task.get(task_id)),
+                    Target(TASK, task_id, task["name"], index.project_of_task.get(task_id, "")),
                     f"{count} actions, above your warning limit of {limit}. "
                     "Consider splitting it into several Tasks.",
                 )
@@ -686,8 +800,14 @@ def _counts(findings: list[Finding]) -> dict:
     return {severity: sum(1 for item in findings if item.severity == severity) for severity in _SEVERITY_ORDER}
 
 
-def _build_report(index: _Index, when: datetime) -> str:
-    """Render the findings as the plain text that is both saved and displayed."""
+def _build_report(index: _Index, when: datetime) -> list[Row]:
+    """Render the findings, one Row per line of the report.
+
+    Rows rather than strings so the report can be written twice from one source: as the
+    plain text that is saved (mapjump.text_report) and as the HTML shown in the GUI
+    (mapjump.html_report), where the line naming each finding's location is clickable.
+    Every row but those carries no target and renders as plain text in both.
+    """
     root = PrimeItems.tasker_root_elements
     counts = _counts(index.findings)
     rule = "=" * _REPORT_WIDTH
@@ -713,20 +833,30 @@ def _build_report(index: _Index, when: datetime) -> str:
 
     if not index.findings:
         lines += ["Nothing to report -- no broken references, unreferenced objects or", "naming problems found.", ""]
-        return "\n".join(lines)
+        return [Row(line) for line in lines]
+
+    rows = [Row(line) for line in lines]
 
     for severity in _SEVERITY_ORDER:
         of_this_severity = [item for item in index.findings if item.severity == severity]
         if not of_this_severity:
             continue
-        lines += ["", _SEVERITY_HEADINGS[severity], thin_rule]
+        rows += [Row(""), Row(_SEVERITY_HEADINGS[severity]), Row(thin_rule)]
         # Sorted by tag so every instance of one problem reads as a group, which is what
         # makes a long report skimmable -- and what makes two reports diff cleanly.
         for item in sorted(of_this_severity, key=lambda finding: (finding.tag, finding.where)):
-            lines += [f"[{item.tag}]  {item.where}", f"    {item.detail}", ""]
+            # The location line is the clickable one.  Not the detail line: the detail is
+            # what is wrong, the location is the thing to go and look at, and a whole
+            # paragraph lighting up under the pointer reads as a mistake rather than an
+            # offer.
+            detail_row = (
+                Row.of_pieces([("    ", None), *item.detail_pieces])
+                if item.detail_pieces
+                else Row(f"    {item.detail}")
+            )
+            rows += [Row(f"[{item.tag}]  {item.where}", item.target), detail_row, Row("")]
 
-    lines += _limitations(index)
-    return "\n".join(lines)
+    return rows + [Row(line) for line in _limitations(index)]
 
 
 def _limitations(index: _Index) -> list[str]:
@@ -773,8 +903,11 @@ def _limitations(index: _Index) -> list[str]:
     return notes
 
 
-def run_health_check() -> tuple[str, dict]:
-    """Scan the loaded configuration and return (report text, counts by severity).
+def run_health_check() -> tuple[list[Row], dict]:
+    """Scan the loaded configuration and return (report rows, counts by severity).
+
+    Rows rather than finished text: the caller saves them as plain text and shows them as
+    HTML, and the two have to be the same report (see _build_report).
 
     Safe to call with nothing loaded -- the tables are empty and the report says so --
     but the GUI checks first so it can say something more useful than "0 Projects".
@@ -795,11 +928,12 @@ def run_health_check() -> tuple[str, dict]:
 
     _check_reachability(index)
     _check_hygiene(index)
+    _check_variables(index)
 
     return _build_report(index, datetime.now()), _counts(index.findings)  # noqa: DTZ005
 
 
-def write_health_check_report(report: str) -> str:
+def write_health_check_report(rows: list[Row]) -> str:
     """Write the report to a timestamped file in the current runtime directory.
 
     Returns the file name written, or "" if the write failed -- the caller reports the
@@ -818,7 +952,7 @@ def write_health_check_report(report: str) -> str:
         return ""
     try:
         with open(os.path.join(os.getcwd(), file_name), "w", encoding="utf-8") as output_file:
-            output_file.write(report)
+            output_file.write(text_report(rows))
     except OSError as error:
         logger.error(f"Health Check report could not be written: {error}")
         return ""

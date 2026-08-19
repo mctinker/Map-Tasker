@@ -1607,14 +1607,10 @@ msgstr "கடினமான பார்வை வரம்பு"
 msgid "(empty)"
 msgstr "(காலி)"
 
-msgid "(empty)"
-msgstr "(காலி)"
 
 msgid "(no name)"
 msgstr "(பெயர் இல்லை)"
 
-msgid "(no name)"
-msgstr "(பெயர் இல்லை)"
 
 msgid "(unnamed Task)"
 msgstr "(பெயரிடப்படாத பணி)"
@@ -1622,95 +1618,63 @@ msgstr "(பெயரிடப்படாத பணி)"
 msgid "(unnamed)"
 msgstr "(பெயரிடப்படாத)"
 
-msgid "(unnamed Task)"
-msgstr "(பெயரிடப்படாத பணி)"
 
-msgid "(unnamed)"
-msgstr "(பெயரிடப்படாத)"
 
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1 என்பது இந்த நோக்குநிலைக்கு அதன் சொந்த தளவமைப்பு இல்லை."
 
-msgid "-1 means this orientation has no layout of its own."
-msgstr "-1 என்பது இந்த நோக்குநிலைக்கு அதன் சொந்த தளவமைப்பு இல்லை."
 
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "... மேலும் {எண்ணுங்கள்} -- அதைக் குறைக்க மேலே தட்டச்சு செய்யவும்."
 
-msgid "...and {count} more -- type above to narrow it down."
-msgstr "... மேலும் {எண்ணுங்கள்} -- அதைக் குறைக்க மேலே தட்டச்சு செய்யவும்."
 
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "ஒரு காட்சியின் உறுப்பு நிலைகள் சாதன பிக்சல்களில் சேமிக்கப்படும், ஆனால் அதன் உரை அளவுகள் Android இன் sp அலகுகளில் சேமிக்கப்படும். இரண்டிற்கும் இடையே மாற்றும் எண், காட்சி காட்டப்பட்ட மொபைலின் சொத்து, அது காப்பு கோப்பில் இல்லை.\n\nஎனவே அது இங்கே அமைக்கப்பட்டுள்ளது. உரை அதன் உறுப்புகளுக்கு மிகவும் சிறியதாகத் தோன்றினால் அதை உயர்த்தவும், உரை அவற்றைப் பாய்ச்சினால் அதைக் குறைக்கவும்."
 
-msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
-msgstr "ஒரு காட்சியின் உறுப்பு நிலைகள் சாதன பிக்சல்களில் சேமிக்கப்படும், ஆனால் அதன் உரை அளவுகள் Android இன் sp அலகுகளில் சேமிக்கப்படும். இரண்டிற்கும் இடையே மாற்றும் எண், காட்சி காட்டப்பட்ட மொபைலின் சொத்து, அது காப்பு கோப்பில் இல்லை.\n\nஎனவே அது இங்கே அமைக்கப்பட்டுள்ளது. உரை அதன் உறுப்புகளுக்கு மிகவும் சிறியதாகத் தோன்றினால் அதை உயர்த்தவும், உரை அவற்றைப் பாய்ச்சினால் அதைக் குறைக்கவும்."
 
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "ஒரு பதிப்பு 2 காட்சிக்கு அதன் சொந்த அளவு இல்லை -- அது எந்தத் திரையில் காட்டப்படுகிறதோ, அதற்குள் அது தன்னைத்தானே வைக்கிறது, எனவே அதை வரைவதற்கு காப்பு கோப்பில் எதுவும் இல்லை.\n\nதளவமைப்பு மறு ஓட்டத்தைப் பார்க்க இதை மாற்றவும். ஒரு ஃப்ளோ வரிசை வேறுபட்டது, மேலும் %sv2_render_width க்கு எதிராக எழுதப்பட்ட எந்த 'எப்போது காட்டு' என்பதும் இதைப் பற்றி கேட்கும்."
 
-msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
-msgstr "ஒரு பதிப்பு 2 காட்சிக்கு அதன் சொந்த அளவு இல்லை -- அது எந்தத் திரையில் காட்டப்படுகிறதோ, அதற்குள் அது தன்னைத்தானே வைக்கிறது, எனவே அதை வரைவதற்கு காப்பு கோப்பில் எதுவும் இல்லை.\n\nதளவமைப்பு மறு ஓட்டத்தைப் பார்க்க இதை மாற்றவும். ஒரு ஃப்ளோ வரிசை வேறுபட்டது, மேலும் %sv2_render_width க்கு எதிராக எழுதப்பட்ட எந்த 'எப்போது காட்டு' என்பதும் இதைப் பற்றி கேட்கும்."
 
 msgid "Actions"
 msgstr "செயல்கள்"
 
-msgid "Actions"
-msgstr "செயல்கள்"
 
 msgid "Add"
 msgstr "சேர்"
 
-msgid "Add"
-msgstr "சேர்"
 
 msgid "Add Element"
 msgstr "உறுப்பு சேர்க்கவும்"
 
-msgid "Add Element"
-msgstr "உறுப்பு சேர்க்கவும்"
 
 msgid "Add Scene"
 msgstr "காட்சியைச் சேர்க்கவும்"
 
-msgid "Add Scene"
-msgstr "காட்சியைச் சேர்க்கவும்"
 
 msgid "Add a background"
 msgstr "பின்னணியைச் சேர்க்கவும்"
 
-msgid "Add a background"
-msgstr "பின்னணியைச் சேர்க்கவும்"
 
 msgid "Add action"
 msgstr "செயலைச் சேர்க்கவும்"
 
-msgid "Add action"
-msgstr "செயலைச் சேர்க்கவும்"
 
 msgid "Add event"
 msgstr "நிகழ்வைச் சேர்க்கவும்"
 
-msgid "Add event"
-msgstr "நிகழ்வைச் சேர்க்கவும்"
 
 msgid "Add handler"
 msgstr "கையாளுபவரைச் சேர்க்கவும்"
 
-msgid "Add handler"
-msgstr "கையாளுபவரைச் சேர்க்கவும்"
 
 msgid "Add modifier"
 msgstr "மாற்றியைச் சேர்க்கவும்"
 
-msgid "Add modifier"
-msgstr "மாற்றியைச் சேர்க்கவும்"
 
 msgid "Add scene properties"
 msgstr "காட்சி பண்புகளைச் சேர்க்கவும்"
 
-msgid "Add scene properties"
-msgstr "காட்சி பண்புகளைச் சேர்க்கவும்"
 
 msgid "Addressed by id from"
 msgstr "ஐடி மூலம் முகவரியிடப்பட்டது"
@@ -1718,74 +1682,50 @@ msgstr "ஐடி மூலம் முகவரியிடப்பட்ட�
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "காட்சியின் நடுவில் அடுக்கின் மேல் ஒரு உறுப்பைச் சேர்க்கிறது."
 
-msgid "Adds an element on top of the stack, in the middle of the Scene."
-msgstr "காட்சியின் நடுவில் அடுக்கின் மேல் ஒரு உறுப்பைச் சேர்க்கிறது."
 
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "தேர்ந்தெடுக்கப்பட்ட கூறுகளை அது குழந்தைகளை வைத்திருக்க முடிந்தால், அதற்குப் பிறகு நேரடியாக சேர்க்கிறது."
 
-msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
-msgstr "தேர்ந்தெடுக்கப்பட்ட கூறுகளை அது குழந்தைகளை வைத்திருக்க முடிந்தால், அதற்குப் பிறகு நேரடியாக சேர்க்கிறது."
 
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "காட்சியின் நடுவில், அடுக்கின் மேல் அதைச் சேர்க்கிறது. நீங்கள் விரும்பும் இடத்தில் இழுக்கவும்."
 
-msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
-msgstr "காட்சியின் நடுவில், அடுக்கின் மேல் அதைச் சேர்க்கிறது. நீங்கள் விரும்பும் இடத்தில் இழுக்கவும்."
 
 msgid "Also selected:"
 msgstr "மேலும் தேர்ந்தெடுக்கப்பட்டது:"
 
-msgid "Also selected:"
-msgstr "மேலும் தேர்ந்தெடுக்கப்பட்டது:"
 
 msgid "Also update"
 msgstr "மேலும் புதுப்பிக்கவும்"
 
-msgid "Also update"
-msgstr "மேலும் புதுப்பிக்கவும்"
 
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Amber: Tasker அதை பட்டியலிடுகிறது, ஆனால் MapTasker இல் அதன் உறுதிப்படுத்தப்பட்ட மாதிரி இல்லை. சாம்பல்: தேர்வு வைக்கும் இடத்திற்குச் செல்ல முடியாது."
 
-msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
-msgstr "Amber: Tasker அதை பட்டியலிடுகிறது, ஆனால் MapTasker இல் அதன் உறுதிப்படுத்தப்பட்ட மாதிரி இல்லை. சாம்பல்: தேர்வு வைக்கும் இடத்திற்குச் செல்ல முடியாது."
 
 msgid "App icon"
 msgstr "பயன்பாட்டு ஐகான்"
 
-msgid "App icon"
-msgstr "பயன்பாட்டு ஐகான்"
 
 msgid "Appearance Mode"
 msgstr "தோற்ற முறை"
 
-msgid "Appearance Mode"
-msgstr "தோற்ற முறை"
 
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "வரிசையாகப் பயன்படுத்தப்பட்டது - கீழே உள்ளவர் மேலே அமர்ந்திருக்கிறார்."
 
-msgid "Applied in order — the one at the bottom sits on top."
-msgstr "வரிசையாகப் பயன்படுத்தப்படுகிறது - கீழே உள்ளவர் மேலே அமர்ந்திருக்கிறார்."
 
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "இந்தக் காட்சி சேமிக்கப்படும்போது பயன்படுத்தப்படும், இப்போது இல்லை -- காட்சியில் ரத்துசெய் டயலாக் உறுப்பு மற்றும் பணிகள் இரண்டையும் அப்படியே இருக்கும்."
 
-msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
-msgstr "இந்தக் காட்சி சேமிக்கப்படும்போது பயன்படுத்தப்படும், இப்போது இல்லை -- காட்சியில் ரத்துசெய் டயலாக் உறுப்பு மற்றும் பணிகள் இரண்டையும் அப்படியே இருக்கும்."
 
 msgid "Back to Editor"
 msgstr "எடிட்டருக்குத் திரும்பு"
 
-msgid "Back to Editor"
-msgstr "எடிட்டருக்குத் திரும்பு"
 
 msgid "Bounds"
 msgstr "எல்லைகள்"
 
-msgid "Bounds"
-msgstr "எல்லைகள்"
 
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "ரத்து செய்யப்பட்டது. இந்தக் காட்சியில் மாற்றங்கள் நிராகரிக்கப்பட்டன."
@@ -1793,50 +1733,34 @@ msgstr "ரத்து செய்யப்பட்டது. இந்தக
 msgid "Choose another file..."
 msgstr "மற்றொரு கோப்பைத் தேர்ந்தெடுக்கவும்..."
 
-msgid "Choose another file..."
-msgstr "மற்றொரு கோப்பைத் தேர்ந்தெடுக்கவும்..."
 
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "ஒரு கூறுகளைத் தேர்ந்தெடுக்க அதைக் கிளிக் செய்யவும், பலவற்றை எடுக்க அதே கொள்கலனில் உள்ள இன்னொன்றை ஷிப்ட்-கிளிக் செய்யவும், மேலும் அவர்களது சொந்த உடன்பிறப்புகளிடையே மறுவரிசைப்படுத்த இழுக்கவும். ஒரு கொள்கலனுக்குள் அல்லது வெளியே ஒரு கூறுகளை நகர்த்துவது எடிட்டரின் இன் மற்றும் அவுட் பொத்தான்கள் ஆகும்; அன்டூவும் இருக்கிறது."
 
-msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
-msgstr "ஒரு கூறுகளைத் தேர்ந்தெடுக்க அதைக் கிளிக் செய்யவும், பலவற்றை எடுக்க அதே கொள்கலனில் உள்ள இன்னொன்றை ஷிப்ட்-கிளிக் செய்யவும், மேலும் அவர்களது சொந்த உடன்பிறப்புகளிடையே மறுவரிசைப்படுத்த இழுக்கவும். ஒரு கொள்கலனுக்குள் அல்லது வெளியே ஒரு கூறுகளை நகர்த்துவது எடிட்டரின் இன் மற்றும் அவுட் பொத்தான்கள் ஆகும்; அன்டூவும் இருக்கிறது."
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "ஒரு உறுப்பைத் தேர்ந்தெடுக்க, அதைத் தேர்ந்தெடுக்க, ஷிப்ட்-கிளிக் செய்யவும் அல்லது பின்னணியில் உள்ள பெட்டியை இழுக்கவும், பலவற்றை எடுக்கவும், அவற்றில் ஏதேனும் ஒன்றை இழுக்கவும் -- அம்புக்குறி விசைகள் நட்ஜ், 10pxக்கு Shift. ஒரு தனிமத்தின் அளவை மாற்ற, கைப்பிடியை இழுக்கவும். செயல்தவிர் மற்றும் ஒரு உறுப்பைப் பற்றிய மற்ற அனைத்தும் எடிட்டரில் மீண்டும் வந்துள்ளன."
 
-msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
-msgstr "ஒரு உறுப்பைத் தேர்ந்தெடுக்க, அதைத் தேர்ந்தெடுக்க, ஷிப்ட்-கிளிக் செய்யவும் அல்லது பின்னணியில் உள்ள பெட்டியை இழுக்கவும், பலவற்றை எடுக்கவும், அவற்றில் ஏதேனும் ஒன்றை இழுக்கவும் -- அம்புக்குறி விசைகள் நட்ஜ், 10pxக்கு Shift. ஒரு தனிமத்தின் அளவை மாற்ற, கைப்பிடியை இழுக்கவும். செயல்தவிர் மற்றும் ஒரு உறுப்பைப் பற்றிய மற்ற அனைத்தும் எடிட்டரில் மீண்டும் வந்துள்ளன."
 
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "ஒரு உறுப்பைத் தேர்ந்தெடுக்க அதைக் கிளிக் செய்யவும், நகர்த்துவதற்கு இழுக்கவும், மறுஅளவாக்க ஒரு கைப்பிடியை இழுக்கவும், அம்புக்குறி விசைகளை நகர்த்தவும் (10px க்கு Shift). ஒரே நேரத்தில் பலவற்றை எடுக்க, ஷிப்ட் கிளிக் செய்யவும் அல்லது பின்னணியில் ஒரு பெட்டியை இழுக்கவும்."
 
-msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
-msgstr "ஒரு உறுப்பைத் தேர்ந்தெடுக்க அதைக் கிளிக் செய்யவும், நகர்த்துவதற்கு இழுக்கவும், மறுஅளவாக்க ஒரு கைப்பிடியை இழுக்கவும், அம்புக்குறி விசைகளை நகர்த்தவும் (10px க்கு Shift). ஒரே நேரத்தில் பலவற்றை எடுக்க, ஷிப்ட் கிளிக் செய்யவும் அல்லது பின்னணியில் ஒரு பெட்டியை இழுக்கவும்."
 
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "சேமிக்காமலேயே மூடப்படும், மேலும் இந்த உரையாடல் திறக்கும் போது இருந்ததைப் போலவே இந்தக் காட்சியையும் வைக்கும் -- முன்னோட்டத்தில் நகர்த்தப்பட்ட அல்லது மறுஅளவிடப்பட்ட எதுவும் உட்பட.\n\nமறுபெயரிடுதல் என்பது இது திரும்பப் பெற முடியாத ஒன்றாகும்: இது உறுதிப்படுத்தப்பட்டவுடன் ஏற்றப்பட்ட காப்புப்பிரதியில் பயன்படுத்தப்பட்டு, அதனுடன் இந்த உரையாடலை மூடுகிறது."
 
-msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
-msgstr "சேமிக்காமலேயே மூடப்படும், மேலும் இந்த உரையாடல் திறக்கும் போது இருந்ததைப் போலவே இந்தக் காட்சியையும் வைக்கும் -- முன்னோட்டத்தில் நகர்த்தப்பட்ட அல்லது மறுஅளவிடப்பட்ட எதுவும் உட்பட.\n\nமறுபெயரிடுதல் என்பது இது திரும்பப் பெற முடியாத ஒன்றாகும்: இது உறுதிப்படுத்தப்பட்டவுடன் ஏற்றப்பட்ட காப்புப்பிரதியில் பயன்படுத்தப்பட்டு, அதனுடன் இந்த உரையாடலை மூடுகிறது."
 
 msgid "Compare Files"
 msgstr "கோப்புகளை ஒப்பிடுக"
 
-msgid "Compare Files"
-msgstr "கோப்புகளை ஒப்பிடுக"
 
 msgid "Compare With"
 msgstr "உடன் ஒப்பிடு"
 
-msgid "Compare With"
-msgstr "உடன் ஒப்பிடு"
 
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "ஏற்றப்பட்டவற்றுடன் மற்றொரு XML கோப்பை ஒப்பிடுக: என்ன சேர்க்கப்பட்டது, நீக்கப்பட்டது, மறுபெயரிடப்பட்டது மற்றும் மாற்றப்பட்டது.\n\nTaskerNet இறக்குமதி என்ன கொண்டு வந்தது, என்ன திருத்தம் மாற்றப்பட்டது அல்லது இரண்டு காப்புப்பிரதிகளுக்கு இடையே என்ன வித்தியாசம் உள்ளது என்பதைப் பார்க்க இதைப் பயன்படுத்தவும்.\n\nஏற்றப்பட்ட கோப்பு 'தற்போதைய கோப்பில் சேமி' என்பதிலிருந்து வந்திருந்தால், அது சேமித்த கோப்பு நேரடியாக வழங்கப்படும்.\n\nமுடிவுகள் இங்கே காட்டப்பட்டு, தற்போதைய கோப்பகத்தில் உள்ள உரைக் கோப்பில் சேமிக்கப்படும்."
 
-msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "ஏற்றப்பட்டவற்றுடன் மற்றொரு XML கோப்பை ஒப்பிடுக: என்ன சேர்க்கப்பட்டது, நீக்கப்பட்டது, மறுபெயரிடப்பட்டது மற்றும் மாற்றப்பட்டது.\n\nTaskerNet இறக்குமதி என்ன கொண்டு வந்தது, என்ன திருத்தம் மாற்றப்பட்டது அல்லது இரண்டு காப்புப்பிரதிகளுக்கு இடையே என்ன வித்தியாசம் உள்ளது என்பதைப் பார்க்க இதைப் பயன்படுத்தவும்.\n\nஏற்றப்பட்ட கோப்பு 'தற்போதைய கோப்பில் சேமி' என்பதிலிருந்து வந்திருந்தால், அது சேமித்த கோப்பு நேரடியாக வழங்கப்படும்.\n\nமுடிவுகள் இங்கே காட்டப்பட்டு, தற்போதைய கோப்பகத்தில் உள்ள உரைக் கோப்பில் சேமிக்கப்படும்."
 
 msgid "Comparison cancelled."
 msgstr "ஒப்பீடு ரத்து செய்யப்பட்டது."
@@ -1844,26 +1768,18 @@ msgstr "ஒப்பீடு ரத்து செய்யப்பட்ட�
 msgid "Comparison report could not be saved."
 msgstr "ஒப்பீட்டு அறிக்கையைச் சேமிக்க முடியவில்லை."
 
-msgid "Comparison report could not be saved."
-msgstr "ஒப்பீட்டு அறிக்கையைச் சேமிக்க முடியவில்லை."
 
 msgid "Comparison saved as"
 msgstr "ஒப்பீடு இவ்வாறு சேமிக்கப்பட்டது"
 
-msgid "Comparison saved as"
-msgstr "ஒப்பீடு இவ்வாறு சேமிக்கப்பட்டது"
 
 msgid "Delete Scene"
 msgstr "காட்சியை நீக்கு"
 
-msgid "Delete Scene"
-msgstr "காட்சியை நீக்கு"
 
 msgid "Done"
 msgstr "முடிந்தது"
 
-msgid "Done"
-msgstr "முடிந்தது"
 
 msgid "Drawn in"
 msgstr "உள்ளே இழுக்கப்பட்டது"
@@ -1871,14 +1787,10 @@ msgstr "உள்ளே இழுக்கப்பட்டது"
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "இந்த காட்சியை பிரதான சாளரத்தில் ஒரு படமாக வரைகிறது -- நீங்கள் இங்கு சேர்த்த அல்லது மாற்றிய ஆனால் இன்னும் சேமிக்கப்படாத கூறுகள் உட்பட.\n\nபதிப்பு 2 தளவமைப்புக்கு அதன் சொந்த அளவு இல்லை, எனவே முன்னோட்டமானது நீங்கள் தேர்ந்தெடுக்கும் திரையில் அதை இடுகிறது, மேலும் நீங்கள் அதை மாற்றும்போது அதை மீண்டும் பாயும்.\n\nமுன்னோட்டம் இருக்கும் போது, ​​அதில் உள்ள அனைத்தையும் வைத்து இந்த உரையாடல் மூடப்படும்; முன்னோட்டத்தின் 'பேக் டு எடிட்டருக்கு' பொத்தான் அதை மீண்டும் கொண்டுவருகிறது.\n\nஇது ஒரு பிரதிநிதித்துவம், டாஸ்கரின் சொந்த ரெண்டரர் அல்ல: %மாறிகள் தீர்க்கப்படுவதற்குப் பதிலாக பெயரிடப்பட்டுள்ளன, சாதனத்தின் கருப்பொருளைக் காட்டிலும் மெட்டீரியல் வண்ணங்கள் அடிப்படைத் தட்டுகளிலிருந்து வருகின்றன, மேலும் படங்கள், வீடியோ மற்றும் இணைய உள்ளடக்கம் ஆகியவை ஒதுக்கிடங்களாகக் காட்டப்படும்."
 
-msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
-msgstr "இந்த காட்சியை பிரதான சாளரத்தில் ஒரு படமாக வரைகிறது -- நீங்கள் இங்கு சேர்த்த அல்லது மாற்றிய ஆனால் இன்னும் சேமிக்கப்படாத கூறுகள் உட்பட.\n\nபதிப்பு 2 தளவமைப்புக்கு அதன் சொந்த அளவு இல்லை, எனவே முன்னோட்டமானது நீங்கள் தேர்ந்தெடுக்கும் திரையில் அதை இடுகிறது, மேலும் நீங்கள் அதை மாற்றும்போது அதை மீண்டும் பாயும்.\n\nமுன்னோட்டம் இருக்கும் போது, ​​அதில் உள்ள அனைத்தையும் வைத்து இந்த உரையாடல் மூடப்படும்; முன்னோட்டத்தின் 'பேக் டு எடிட்டருக்கு' பொத்தான் அதை மீண்டும் கொண்டுவருகிறது.\n\nஇது ஒரு பிரதிநிதித்துவம், டாஸ்கரின் சொந்த ரெண்டரர் அல்ல: %மாறிகள் தீர்க்கப்படுவதற்குப் பதிலாக பெயரிடப்பட்டுள்ளன, சாதனத்தின் கருப்பொருளைக் காட்டிலும் மெட்டீரியல் வண்ணங்கள் அடிப்படைத் தட்டுகளிலிருந்து வருகின்றன, மேலும் படங்கள், வீடியோ மற்றும் இணைய உள்ளடக்கம் ஆகியவை ஒதுக்கிடங்களாகக் காட்டப்படும்."
 
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "இந்த காட்சியை பிரதான சாளரத்தில் மேலே தட்டச்சு செய்த அளவில் ஒரு படமாக வரைகிறது -- இதுவரை சேமிக்கப்படாத மாற்றங்கள் உட்பட.\n\nமுன்னோட்டம் இருக்கும் போது, ​​அதில் உள்ள அனைத்தையும் வைத்து இந்த உரையாடல் மூடப்படும்; முன்னோட்டத்தின் 'பேக் டு எடிட்டருக்கு' பொத்தான் அதை மீண்டும் கொண்டுவருகிறது.\n\nஇது ஒரு பிரதிநிதித்துவம், டாஸ்கரின் சொந்த ரெண்டரர் அல்ல: %மாறிகள் தீர்க்கப்படுவதற்குப் பதிலாக பெயரிடப்பட்டுள்ளன, மேலும் படங்கள், வீடியோ மற்றும் இணைய உள்ளடக்கம் ஆகியவை ஒதுக்கிடங்களாகக் காட்டப்படும்."
 
-msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
-msgstr "இந்த காட்சியை பிரதான சாளரத்தில் மேலே தட்டச்சு செய்த அளவில் ஒரு படமாக வரைகிறது -- இதுவரை சேமிக்கப்படாத மாற்றங்கள் உட்பட.\n\nமுன்னோட்டம் இருக்கும் போது, ​​அதில் உள்ள அனைத்தையும் வைத்து இந்த உரையாடல் மூடப்படும்; முன்னோட்டத்தின் 'பேக் டு எடிட்டருக்கு' பொத்தான் அதை மீண்டும் கொண்டுவருகிறது.\n\nஇது ஒரு பிரதிநிதித்துவம், டாஸ்கரின் சொந்த ரெண்டரர் அல்ல: %மாறிகள் தீர்க்கப்படுவதற்குப் பதிலாக பெயரிடப்பட்டுள்ளன, மேலும் படங்கள், வீடியோ மற்றும் இணைய உள்ளடக்கம் ஆகியவை ஒதுக்கிடங்களாகக் காட்டப்படும்."
 
 msgid "Duplicate"
 msgstr "நகல்"
@@ -1886,20 +1798,14 @@ msgstr "நகல்"
 msgid "Dropdown menu — shown when opened"
 msgstr "கீழ்தோன்றும் மெனு - திறக்கும் போது காட்டப்படும்"
 
-msgid "Duplicate"
-msgstr "நகல்"
 
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "காட்சி காட்டப்படும் போது மாறும் மற்றும் தேர்ந்தெடு மாறி செயல்படும்."
 
-msgid "Dynamic and Select Variable are worked out when the Scene is shown."
-msgstr "காட்சி காட்டப்படும் போது மாறும் மற்றும் தேர்ந்தெடு மாறி செயல்படும்."
 
 msgid "Dynamic value"
 msgstr "டைனமிக் மதிப்பு"
 
-msgid "Dynamic value"
-msgstr "டைனமிக் மதிப்பு"
 
 msgid "Edit Scene"
 msgstr "காட்சியைத் திருத்தவும்"
@@ -1907,26 +1813,18 @@ msgstr "காட்சியைத் திருத்தவும்"
 msgid "Edit item layout"
 msgstr "உருப்படியின் அமைப்பைத் திருத்தவும்"
 
-msgid "Edit item layout"
-msgstr "உருப்படியின் அமைப்பைத் திருத்தவும்"
 
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "தேர்வை வைத்து, இதற்குப் பதிலாக அதன் பண்புகளைத் திருத்தவும்."
 
-msgid "Edit this one's properties instead, keeping the selection."
-msgstr "தேர்வை வைத்து, இதற்குப் பதிலாக அதன் பண்புகளைத் திருத்தவும்."
 
 msgid "Event handlers"
 msgstr "நிகழ்வு நடத்துபவர்கள்"
 
-msgid "Event handlers"
-msgstr "நிகழ்வு நடத்துபவர்கள்"
 
 msgid "Export Scene"
 msgstr "ஏற்றுமதி காட்சி"
 
-msgid "Export Scene"
-msgstr "ஏற்றுமதி காட்சி"
 
 msgid "Geometry"
 msgstr "வடிவியல்"
@@ -1934,8 +1832,6 @@ msgstr "வடிவியல்"
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "சாம்பல்: MapTasker க்கு வாத அட்டவணை இல்லை, எனவே Tasker உள்ளே என்ன எதிர்பார்க்கிறார் என்பதை யூகிக்காமல் உருவாக்க முடியாது. தலைப்புகள் MapTasker இன் சொந்த குழுவாகும்."
 
-msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
-msgstr "சாம்பல்: MapTasker க்கு வாத அட்டவணை இல்லை, எனவே Tasker உள்ளே என்ன எதிர்பார்க்கிறார் என்பதை யூகிக்காமல் உருவாக்க முடியாது. தலைப்புகள் MapTasker இன் சொந்த குழுவாகும்."
 
 msgid "Health Check"
 msgstr "சுகாதார சோதனை"
@@ -1943,14 +1839,10 @@ msgstr "சுகாதார சோதனை"
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "ஹேட்ச் ஃபில்ஸ் மற்றும் சாய்வு அடிக்கோடிட்ட உரை ஆகியவை % மாறிகள் -- அவற்றின் மதிப்புகள் சாதனத்தில் இருக்கும், காப்புப்பிரதியில் இல்லை, எனவே யூகிக்கப்படுவதற்குப் பதிலாக அவை பெயரிடப்பட்டுள்ளன. படங்கள், வீடியோ, வரைபடங்கள் மற்றும் இணைய உள்ளடக்கம் ஆகியவை ஒதுக்கிடங்களாகக் காட்டப்படுகின்றன. எந்த உறுப்பையும் அதன் வடிவியல், அதன் மாறிகள் மற்றும் அது இயங்கும் பணிகளுக்கு வட்டமிடுங்கள்."
 
-msgid "Health Check"
-msgstr "சுகாதார சோதனை"
 
 msgid "Health Check found no errors or warnings."
 msgstr "உடல்நலப் பரிசோதனையில் பிழைகள் அல்லது எச்சரிக்கைகள் எதுவும் இல்லை."
 
-msgid "Health Check found no errors or warnings."
-msgstr "உடல்நலப் பரிசோதனையில் பிழைகள் அல்லது எச்சரிக்கைகள் எதுவும் இல்லை."
 
 msgid "Health Check saved as"
 msgstr "சுகாதார சோதனை இவ்வாறு சேமிக்கப்பட்டது"
@@ -1958,8 +1850,6 @@ msgstr "சுகாதார சோதனை இவ்வாறு சேமி
 msgid "Health Check report could not be saved."
 msgstr "சுகாதார சோதனை அறிக்கையைச் சேமிக்க முடியவில்லை."
 
-msgid "Health Check saved as"
-msgstr "சுகாதார சோதனை இவ்வாறு சேமிக்கப்பட்டது"
 
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "ஒரு பாப்-அப் செய்தி மறைவதற்கு முன் எவ்வளவு நேரம் திரையில் இருக்கும்.\n\n'நீக்கப்படும் வரை' ஒவ்வொரு செய்தியையும் நீங்கள் மூடும் வரை தொடர்ந்து வைத்திருக்கும், இது ஒரு செய்தியை நீங்கள் படிக்கும் முன் உருட்டும் போது பயனுள்ளதாக இருக்கும்.\n\nஒரு சில செய்திகள் அவற்றின் சொந்த நீண்ட காலத்தை அமைக்கின்றன, ஏனெனில் அவை நீங்கள் படிக்க வேண்டிய விஷயங்களைப் பட்டியலிடுகின்றன -- உதாரணமாக ஒரு காட்சி உறுப்பை நீக்குவது அல்லது மறுபெயரிடுவதால் ஏற்படும் பணிகள். இங்கே எதைத் தேர்ந்தெடுத்தாலும் அவர்கள் தங்கள் நேரத்தைக் கடைப்பிடிக்கின்றனர்."
@@ -1973,125 +1863,83 @@ msgstr "பட்டியலில்: வரம்பிற்கு Shift க
 msgid "Landscape"
 msgstr "நிலப்பரப்பு"
 
-msgid "Item layout"
-msgstr "பொருள் தளவமைப்பு"
 
 msgid "Legacy"
 msgstr "மரபு"
 
-msgid "Landscape"
-msgstr "நிலப்பரப்பு"
 
-msgid "Legacy"
-msgstr "மரபு"
 
 msgid "Legacy Scene"
 msgstr "மரபுக் காட்சி"
 
-msgid "Legacy Scene"
-msgstr "மரபுக் காட்சி"
 
 msgid "List"
 msgstr "பட்டியல்"
 
-msgid "List"
-msgstr "பட்டியல்"
 
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: பார்வை வரம்பை அடைந்தது, வரைபடம் துண்டிக்கப்பட்டது"
 
-msgid "MapTasker: view limit reached, diagram truncated"
-msgstr "MapTasker: பார்வை வரம்பை அடைந்தது, வரைபடம் துண்டிக்கப்பட்டது"
 
 msgid "Modifiers"
 msgstr "மாற்றியமைப்பவர்கள்"
 
-msgid "Modifiers"
-msgstr "மாற்றியமைப்பவர்கள்"
 
 msgid "Never updated"
 msgstr "ஒருபோதும் புதுப்பிக்கப்படவில்லை"
 
-msgid "Never updated"
-msgstr "ஒருபோதும் புதுப்பிக்கப்படவில்லை"
 
 msgid "No Task addresses this element by name."
 msgstr "எந்த பணியும் இந்த உறுப்பை பெயரால் குறிப்பிடவில்லை."
 
-msgid "No Task addresses this element by name."
-msgstr "எந்த பணியும் இந்த உறுப்பை பெயரால் குறிப்பிடவில்லை."
 
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "XML கோப்பு ஏற்றப்படவில்லை.  முதலில் ஒரு XML கோப்பைப் பெறவும்."
 
-msgid "No XML file has been loaded.  Get an XML file first."
-msgstr "XML கோப்பு ஏற்றப்படவில்லை.  முதலில் ஒரு XML கோப்பைப் பெறவும்."
 
 msgid "No element matches that."
 msgstr "எந்த உறுப்பும் பொருந்தவில்லை."
 
-msgid "No element matches that."
-msgstr "எந்த உறுப்பும் பொருந்தவில்லை."
 
 msgid "Not an HTML colour name or #hex value."
 msgstr "HTML வண்ணப் பெயர் அல்லது #ஹெக்ஸ் மதிப்பு அல்ல."
 
-msgid "Not an HTML colour name or #hex value."
-msgstr "HTML வண்ணப் பெயர் அல்லது #ஹெக்ஸ் மதிப்பு அல்ல."
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "புதுப்பிக்கப்படவில்லை -- இவை இந்த காட்சி மற்றும் இந்த உறுப்பு இரண்டையும் பெயரிடுகின்றன, ஆனால் ஒரு என அல்ல"
 
-msgid "Not updated -- these name both this Scene and this element, but not as a"
-msgstr "புதுப்பிக்கப்படவில்லை -- இவை இந்த காட்சி மற்றும் இந்த உறுப்பு இரண்டையும் பெயரிடுகின்றன, ஆனால் ஒரு என அல்ல"
 
 msgid "Nothing here."
 msgstr "இங்கே எதுவும் இல்லை."
 
-msgid "Nothing here."
-msgstr "இங்கே எதுவும் இல்லை."
 
 msgid "Notification Duration"
 msgstr "அறிவிப்பு காலம்"
 
-msgid "Notification Duration"
-msgstr "அறிவிப்பு காலம்"
 
 msgid "Notification Duration:"
 msgstr "அறிவிப்பு காலம்:"
 
-msgid "Notification Duration:"
-msgstr "அறிவிப்பு காலம்:"
 
 msgid "On"
 msgstr "அன்று"
 
-msgid "On"
-msgstr "அன்று"
 
 msgid "Only when"
 msgstr "எப்போது மட்டும்"
 
-msgid "Only when"
-msgstr "எப்போது மட்டும்"
 
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "ஒவ்வொரு கூறுகளையும் கோடிட்டு, வடிவமைப்பாளரின் மரம் அதற்குப் பெயரிடும் விதத்தில் பெயரிடவும்."
 
-msgid "Outline every component and name it, the way the designer's tree names it."
-msgstr "ஒவ்வொரு கூறுகளையும் கோடிட்டு, வடிவமைப்பாளரின் மரம் அதற்குப் பெயரிடும் விதத்தில் பெயரிடவும்."
 
 msgid "Outline every element and name it."
 msgstr "ஒவ்வொரு உறுப்புக்கும் கோடிட்டு அதற்கு பெயரிடவும்."
 
-msgid "Outline every element and name it."
-msgstr "ஒவ்வொரு உறுப்புக்கும் கோடிட்டு அதற்கு பெயரிடவும்."
 
 msgid "Pick a Material icon."
 msgstr "மெட்டீரியல் ஐகானைத் தேர்ந்தெடுக்கவும்."
 
-msgid "Pick a Material icon."
-msgstr "மெட்டீரியல் ஐகானைத் தேர்ந்தெடுக்கவும்."
 
 msgid "Pick an icon"
 msgstr "ஐகானைத் தேர்ந்தெடுக்கவும்"
@@ -2120,14 +1968,10 @@ msgstr "புதுப்பிக்கவும்"
 msgid "Remove background"
 msgstr "பின்னணியை அகற்று"
 
-msgid "Pick an icon"
-msgstr "ஐகானைத் தேர்ந்தெடுக்கவும்"
 
 msgid "Rename Element"
 msgstr "உறுப்பு மறுபெயரிடவும்"
 
-msgid "Pick from the Scene's environment and global variables."
-msgstr "காட்சியின் சூழல் மற்றும் உலகளாவிய மாறிகளிலிருந்து தேர்ந்தெடுக்கவும்."
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "இங்கே உள்ள ஒரு உறுப்பை மறுபெயரிடுவது காப்புப்பிரதியைத் துடைக்காது: ஒரு உருப்படியின் தளவமைப்பில் அதை நிவர்த்தி செய்ய ஒரு பணியின் உறுப்பு நடவடிக்கைக்கான காட்சிப் பெயர் இல்லை, எனவே மீண்டும் எழுத எதுவும் இல்லை."
@@ -2135,236 +1979,150 @@ msgstr "இங்கே உள்ள ஒரு உறுப்பை மறு�
 msgid "Pick one of Material's own colour roles."
 msgstr "மெட்டீரியலின் சொந்த வண்ணப் பாத்திரங்களில் ஒன்றைத் தேர்ந்தெடுக்கவும்."
 
-msgid "Preview"
-msgstr "முன்னோட்டம்"
 
 msgid "Repeats once per array entry"
 msgstr "ஒரு வரிசை நுழைவுக்கு ஒரு முறை நிகழும்"
 
-msgid "Project(s) that list it."
-msgstr "அதை பட்டியலிடும் திட்டம்(கள்)."
 
-msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
-msgstr "ஒரு புதிய பெயரைத் தூண்டுகிறது மற்றும் ஏற்றப்பட்ட காப்புப்பிரதிக்கு அதைப் பயன்படுத்துகிறது -- காட்சியை எல்லா இடங்களிலும் மறுபெயரிடுகிறது, அதை வைத்திருக்கும் ஒவ்வொரு திட்டப்பணியின் காட்சிப் பட்டியல் உட்பட.\n\nஇந்தக் காட்சியை பெயரால் காண்பிக்கும் அல்லது மறைக்கும் பணிகள் புதுப்பிக்கப்படாது; அவர்கள் இன்னும் பழைய காட்சி என்று பெயரிடுகிறார்கள்.\n\nமேலே உள்ள காட்சிப் பெயர் புலம் படிக்க மட்டுமே -- இதை மாற்றுவதற்கான ஒரே வழி இதுதான்."
 
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "இந்த பல பிக்சல்களுக்கு வட்டமாக இழுக்கப்பட்ட நிலைகள் மற்றும் அளவுகள்."
 
-msgid "Properties"
-msgstr "பண்புகள்"
 
 msgid "Save Scene To Android Device"
 msgstr "Android சாதனத்தில் காட்சியைச் சேமிக்கவும்"
 
-msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
-msgstr "பண்புகள் ஒரு நேரத்தில் ஒரு உறுப்பு திருத்தப்படும். தேர்ந்தெடுத்த அனைத்தையும் இழுத்து அசைத்து நகர்த்தவும்."
 
-msgid "Refresh"
-msgstr "புதுப்பிக்கவும்"
 
-msgid "Remove background"
-msgstr "பின்னணியை அகற்று"
 
-msgid "Rename Element"
-msgstr "உறுப்பு மறுபெயரிடவும்"
 
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "இந்த அமர்வில் எங்கும் செய்யப்பட்ட ஒவ்வொரு திருத்தம் உட்பட, இந்தக் காட்சி மட்டுமல்ல, அதில் உள்ள ஒவ்வொரு திட்டப்பணி, சுயவிவரம், பணி மற்றும் காட்சி -- முழு காப்புப்பிரதியையும் சேமிக்கிறது.\nதற்போது ஏற்றப்பட்ட கோப்பின் புதிய, நேரமுத்திரை நகலில் இது எழுதப்பட்டுள்ளது: backup.xml backup_20260728_143005.xml ஆக மாறும்.\nநீங்கள் ஏற்றிய கோப்பு ஒருபோதும் எழுதப்படவில்லை, எனவே அது அப்படியே உள்ளது.\nபயன்பாடு புதிய நகலுக்கு மாறுகிறது, இது மேலும் எடிட்டிங் மற்றும் சேமிப்பிற்கான தற்போதைய கோப்பாக மாறும்; இரண்டாவது ஒன்றைச் சேர்ப்பதற்குப் பதிலாக மீண்டும் சேமிப்பது நேர முத்திரையை மாற்றுகிறது.\nஇது இந்தக் கணினிக்கு மட்டுமே எழுதும் -- உங்கள் Android சாதனத்திற்கு எதுவும் அனுப்பப்படவில்லை."
 
-msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
-msgstr "இங்கே உள்ள ஒரு உறுப்பை மறுபெயரிடுவது காப்புப்பிரதியைத் துடைக்காது: ஒரு உருப்படியின் தளவமைப்பில் அதை நிவர்த்தி செய்ய ஒரு பணியின் உறுப்பு நடவடிக்கைக்கான காட்சிப் பெயர் இல்லை, எனவே மீண்டும் எழுத எதுவும் இல்லை."
 
-msgid "Repeats once per array entry"
-msgstr "ஒரு வரிசை நுழைவுக்கு ஒரு முறை நிகழும்"
 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "இந்த காட்சியை, அதன் அனைத்து கூறுகளுடன், ஒரு தனியான .scn.xml கோப்பாக சேமிக்கிறது -- டாஸ்கரின் சொந்த காட்சி ஏற்றுமதி உருவாக்கும் அதே வடிவம்.\n\nகாட்சியின் கூறுகள் இயங்கும் பணிகள் சேர்க்கப்படவில்லை; அவர்கள் தங்கள் சொந்த திட்டத்திற்கு சொந்தமானவர்கள்."
 
-msgid "Round dragged positions and sizes to this many pixels."
-msgstr "இந்த பல பிக்சல்களுக்கு வட்டமாக இழுக்கப்பட்ட நிலைகள் மற்றும் அளவுகள்."
 
-msgid "Save Scene To Android Device"
-msgstr "Android சாதனத்தில் காட்சியைச் சேமிக்கவும்"
 
-msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
-msgstr "இந்த அமர்வில் எங்கும் செய்யப்பட்ட ஒவ்வொரு திருத்தம் உட்பட, இந்தக் காட்சி மட்டுமல்ல, அதில் உள்ள ஒவ்வொரு திட்டப்பணி, சுயவிவரம், பணி மற்றும் காட்சி -- முழு காப்புப்பிரதியையும் சேமிக்கிறது.\nதற்போது ஏற்றப்பட்ட கோப்பின் புதிய, நேரமுத்திரை நகலில் இது எழுதப்பட்டுள்ளது: backup.xml backup_20260728_143005.xml ஆக மாறும்.\nநீங்கள் ஏற்றிய கோப்பு ஒருபோதும் எழுதப்படவில்லை, எனவே அது அப்படியே உள்ளது.\nபயன்பாடு புதிய நகலுக்கு மாறுகிறது, இது மேலும் எடிட்டிங் மற்றும் சேமிப்பிற்கான தற்போதைய கோப்பாக மாறும்; இரண்டாவது ஒன்றைச் சேர்ப்பதற்குப் பதிலாக மீண்டும் சேமிப்பது நேர முத்திரையை மாற்றுகிறது.\nஇது இந்தக் கணினிக்கு மட்டுமே எழுதும் -- உங்கள் Android சாதனத்திற்கு எதுவும் அனுப்பப்படவில்லை."
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "உடைந்த குறிப்புகள், குறிப்பிடப்படாத பணிகள், சுயவிவரங்கள் மற்றும் காட்சிகள் மற்றும் பெயரிடும் சிக்கல்களுக்கு ஏற்றப்பட்ட XML ஐ ஸ்கேன் செய்யவும்.\n\nமுடிவுகள் இங்கே காட்டப்பட்டு, தற்போதைய கோப்பகத்தில் உள்ள உரைக் கோப்பில் சேமிக்கப்படும்."
 
-msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
-msgstr "இந்த காட்சியை, அதன் அனைத்து கூறுகளுடன், ஒரு தனியான .scn.xml கோப்பாக சேமிக்கிறது -- டாஸ்கரின் சொந்த காட்சி ஏற்றுமதி உருவாக்கும் அதே வடிவம்.\n\nகாட்சியின் கூறுகள் இயங்கும் பணிகள் சேர்க்கப்படவில்லை; அவர்கள் தங்கள் சொந்த திட்டத்திற்கு சொந்தமானவர்கள்."
 
-msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "உடைந்த குறிப்புகள், குறிப்பிடப்படாத பணிகள், சுயவிவரங்கள் மற்றும் காட்சிகள் மற்றும் பெயரிடும் சிக்கல்களுக்கு ஏற்றப்பட்ட XML ஐ ஸ்கேன் செய்யவும்.\n\nமுடிவுகள் இங்கே காட்டப்பட்டு, தற்போதைய கோப்பகத்தில் உள்ள உரைக் கோப்பில் சேமிக்கப்படும்."
 
 msgid "Scene Components"
 msgstr "காட்சி கூறுகள்"
 
-msgid "Scene Components"
-msgstr "காட்சி கூறுகள்"
 
 msgid "Scene Elements"
 msgstr "காட்சி கூறுகள்"
 
-msgid "Scene Elements"
-msgstr "காட்சி கூறுகள்"
 
 msgid "Scene Name"
 msgstr "காட்சி பெயர்"
 
-msgid "Scene Name"
-msgstr "காட்சி பெயர்"
 
 msgid "Scene Preview"
 msgstr "காட்சி முன்னோட்டம்"
 
-msgid "Scene Preview"
-msgstr "காட்சி முன்னோட்டம்"
 
 msgid "Scene Properties"
 msgstr "காட்சி பண்புகள்"
 
-msgid "Scene Properties"
-msgstr "காட்சி பண்புகள்"
 
 msgid "Scene added."
 msgstr "காட்சி சேர்க்கப்பட்டது."
 
-msgid "Scene added."
-msgstr "காட்சி சேர்க்கப்பட்டது."
 
 msgid "Scene type"
 msgstr "காட்சி வகை"
 
-msgid "Scene type"
-msgstr "காட்சி வகை"
 
 msgid "Screen"
 msgstr "திரை"
 
-msgid "Screen"
-msgstr "திரை"
 
 msgid "Search elements"
 msgstr "தேடல் கூறுகள்"
 
-msgid "Search elements"
-msgstr "தேடல் கூறுகள்"
 
 msgid "Search icons"
 msgstr "தேடல் சின்னங்கள்"
 
-msgid "Search icons"
-msgstr "தேடல் சின்னங்கள்"
 
 msgid "Search variables"
 msgstr "தேடல் மாறிகள்"
 
-msgid "Search variables"
-msgstr "தேடல் மாறிகள்"
 
 msgid "Select a component on the left."
 msgstr "இடதுபுறத்தில் ஒரு கூறுகளைத் தேர்ந்தெடுக்கவும்."
 
-msgid "Select a component on the left."
-msgstr "இடதுபுறத்தில் ஒரு கூறுகளைத் தேர்ந்தெடுக்கவும்."
 
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "மீதமுள்ளவற்றைக் காண, ஒரு பெரிய பார்வை வரம்பை அல்லது ஒரு திட்டம் / சுயவிவரம் / பணியைத் தேர்ந்தெடுக்கவும்."
 
-msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
-msgstr "மீதமுள்ளவற்றைக் காண, ஒரு பெரிய பார்வை வரம்பை அல்லது ஒரு திட்டம் / சுயவிவரம் / பணியைத் தேர்ந்தெடுக்கவும்."
 
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "முதலில் ஒரு காட்சியைத் தேர்ந்தெடுக்கவும் (மேலே உள்ள காட்சியை இழுக்கவும்)."
 
-msgid "Select a single Scene first (Scene pulldown above)."
-msgstr "முதலில் ஒரு காட்சியைத் தேர்ந்தெடுக்கவும் (மேலே உள்ள காட்சியை இழுக்கவும்)."
 
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "நகலெடுக்க, நீக்க அல்லது மறுதொடக்கம் செய்ய ஒற்றை உறுப்பைத் தேர்ந்தெடுக்கவும்."
 
-msgid "Select a single element to duplicate, delete or restack it."
-msgstr "நகலெடுக்க, நீக்க அல்லது மறுதொடக்கம் செய்ய ஒற்றை உறுப்பைத் தேர்ந்தெடுக்கவும்."
 
 msgid "Select an element first."
 msgstr "முதலில் ஒரு உறுப்பைத் தேர்ந்தெடுக்கவும்."
 
-msgid "Select an element first."
-msgstr "முதலில் ஒரு உறுப்பைத் தேர்ந்தெடுக்கவும்."
 
 msgid "Select an element on the canvas or in the list."
 msgstr "கேன்வாஸில் அல்லது பட்டியலில் உள்ள உறுப்பைத் தேர்ந்தெடுக்கவும்."
 
-msgid "Select an element on the canvas or in the list."
-msgstr "கேன்வாஸில் அல்லது பட்டியலில் உள்ள உறுப்பைத் தேர்ந்தெடுக்கவும்."
 
 msgid "Show the Task each element runs."
 msgstr "ஒவ்வொரு உறுப்பு இயங்கும் பணியைக் காட்டு."
 
-msgid "Show the Task each element runs."
-msgstr "ஒவ்வொரு உறுப்பு இயங்கும் பணியைக் காட்டு."
 
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "ஒவ்வொரு கூறுகளும் தட்டும்போது என்ன செய்கிறது, அது எதை எழுதுகிறது என்பதைக் காட்டு."
 
-msgid "Show what each component does when tapped, and what it writes to."
-msgstr "ஒவ்வொரு கூறுகளும் தட்டும்போது என்ன செய்கிறது, அது எதை எழுதுகிறது என்பதைக் காட்டு."
 
 msgid "Show when"
 msgstr "எப்போது காட்டு"
 
-msgid "Show when"
-msgstr "எப்போது காட்டு"
 
 msgid "Size"
 msgstr "அளவு"
 
-msgid "Size"
-msgstr "அளவு"
 
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "அளவு முழு எண்ணாக இருக்க வேண்டும் (தளவமைப்பு இல்லாததற்கு -1)."
 
-msgid "Size must be a whole number (-1 for no layout)."
-msgstr "அளவு முழு எண்ணாக இருக்க வேண்டும் (தளவமைப்பு இல்லாததற்கு -1)."
 
 msgid "Snap"
 msgstr "ஸ்னாப்"
 
-msgid "Snap"
-msgstr "ஸ்னாப்"
 
 msgid "Spinner"
 msgstr "ஸ்பின்னர்"
 
-msgid "Spinner"
-msgstr "ஸ்பின்னர்"
 
 msgid "Stop firing anything on this event."
 msgstr "இந்த நிகழ்வில் எதையும் சுடுவதை நிறுத்துங்கள்."
 
-msgid "Stop firing anything on this event."
-msgstr "இந்த நிகழ்வில் எதையும் சுடுவதை நிறுத்துங்கள்."
 
 msgid "Task action(s) in"
 msgstr "பணி நடவடிக்கை(கள்)."
 
-msgid "Task action(s) in"
-msgstr "பணி நடவடிக்கை(கள்)."
 
 msgid "Task(s)"
 msgstr "பணி(கள்)"
 
-msgid "Task(s)"
-msgstr "பணி(கள்)"
 
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "பணி(கள்) இந்தக் காட்சியை ஒரு பொருத்த முறை (உறுப்புத் தெரிவுநிலை) மூலம் குறிப்பிடுகிறது. அவற்றை நீங்களே சரிபார்க்கவும்"
 
-msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
-msgstr "பணி(கள்) இந்தக் காட்சியை ஒரு பொருத்த முறை (உறுப்புத் தெரிவுநிலை) மூலம் குறிப்பிடுகிறது. அவற்றை நீங்களே சரிபார்க்கவும்"
 
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker இந்த உறுப்பைப் பட்டியலிடுகிறது, ஆனால் MapTasker சேமித்த காட்சியில் ஒன்றைப் பார்த்ததில்லை -- அதன் வகை மற்றும் ஐடியைத் தவிர வேறு எதையும் கொண்டு சேர்க்கப்படவில்லை, மேலும் வகை கூட மேலே உள்ள பெயரிலிருந்து அனுமானிக்கப்படுகிறது (வகை: \"{node_type}\" என எழுதப்பட்டுள்ளது). Tasker அதை அடையாளம் காணவில்லை என்றால், செயல்தவிர் என்பதை அழுத்தவும்."
@@ -2372,32 +2130,22 @@ msgstr "Tasker இந்த உறுப்பைப் பட்டியலி
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "டாஸ்கர் இந்த பணியை காட்சிக்குள்ளேயே வைத்திருக்கிறார், வேறு எங்கும் இல்லை, எனவே இதற்கு பெயர் இல்லை, அதை இழக்காமல் வேறு எங்கும் சுட்டிக்காட்ட முடியாது. இது தீண்டப்படாத வழியாக கொண்டு செல்லப்படுகிறது."
 
-msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
-msgstr "Tasker இந்த உறுப்பைப் பட்டியலிடுகிறது, ஆனால் MapTasker சேமித்த காட்சியில் ஒன்றைப் பார்த்ததில்லை -- அதன் வகை மற்றும் ஐடியைத் தவிர வேறு எதையும் கொண்டு சேர்க்கப்படவில்லை, மேலும் வகை கூட மேலே உள்ள பெயரிலிருந்து அனுமானிக்கப்படுகிறது (வகை: \"{node_type}\" என எழுதப்பட்டுள்ளது). Tasker அதை அடையாளம் காணவில்லை என்றால், செயல்தவிர் என்பதை அழுத்தவும்."
 
 msgid "Tasker variable(s)"
 msgstr "டாஸ்கர் மாறி(கள்)"
 
-msgid "Tasker variable(s)"
-msgstr "டாஸ்கர் மாறி(கள்)"
 
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "டாஸ்கரின் ஸ்க்ரீன் பில்டர்: நிலையான கேன்வாஸ் அளவு இல்லாமல், தன்னைத்தானே அமைக்கும் ஒரு அறிவிப்பு கூறு மரம் (நெடுவரிசை, வரிசை, சாரக்கட்டு, ...). இதிலிருந்து தொடங்கவும்:"
 
-msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
-msgstr "டாஸ்கரின் ஸ்க்ரீன் பில்டர்: நிலையான கேன்வாஸ் அளவு இல்லாமல், தன்னைத்தானே அமைக்கும் ஒரு அறிவிப்பு கூறு மரம் (நெடுவரிசை, வரிசை, சாரக்கட்டு, ...). இதிலிருந்து தொடங்கவும்:"
 
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "பணிகள் இந்த உறுப்பைப் பெயரால் குறிப்பிடுகின்றன (உறுப்பு உரை, உறுப்பு நிலை, ... மொத்தம் 18 செயல் குறியீடுகள்), எனவே இதை மறுபெயரிடுவது புலத்தில் திருத்தம் அல்ல. மறுபெயரிடு உரையாடல் தற்போதைய பெயரைச் சார்ந்தது மற்றும் அந்த பணிகளைக் கொண்டு வருவதைப் பட்டியலிடுகிறது."
 
-msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
-msgstr "பணிகள் இந்த உறுப்பைப் பெயரால் குறிப்பிடுகின்றன (உறுப்பு உரை, உறுப்பு நிலை, ... மொத்தம் 18 செயல் குறியீடுகள்), எனவே இதை மறுபெயரிடுவது புலத்தில் திருத்தம் அல்ல. மறுபெயரிடு உரையாடல் தற்போதைய பெயரைச் சார்ந்தது மற்றும் அந்த பணிகளைக் கொண்டு வருவதைப் பட்டியலிடுகிறது."
 
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "இந்தக் காட்சியை பெயரால் காண்பிக்கும் அல்லது மறைக்கும் பணிகள் மாற்றப்படாது, அவை இருக்கும் இடத்திலேயே விடப்படும்."
 
-msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
-msgstr "இந்தக் காட்சியை பெயரால் காண்பிக்கும் அல்லது மறைக்கும் பணிகள் மாற்றப்படாது, அவை இருக்கும் இடத்திலேயே விடப்படும்."
 
 msgid "That component can't go there."
 msgstr "அந்த கூறு அங்கு செல்ல முடியாது."
@@ -2408,11 +2156,7 @@ msgstr "உரை அடர்த்தி"
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "அது ஏற்கனவே ஏற்றப்பட்ட கோப்பு.  ஒப்பிடுவதற்கு வேறு ஒன்றைத் தேர்ந்தெடுக்கவும்."
 
-msgid "That component can't go there."
-msgstr "அந்த கூறு அங்கு செல்ல முடியாது."
 
-msgid "That is the file already loaded.  Choose a different one to compare against."
-msgstr "அது ஏற்கனவே ஏற்றப்பட்ட கோப்பு.  ஒப்பிடுவதற்கு வேறு ஒன்றைத் தேர்ந்தெடுக்கவும்."
 
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "மெட்டீரியல் ஐகான் பட்டியலைப் படிக்க முடியவில்லை, அதற்குப் பதிலாக பெயரை உள்ளிடவும்."
@@ -2423,26 +2167,18 @@ msgstr "இந்தக் காட்சி சேமிக்கப்பட�
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "டாஸ்கர் மாறி இந்த கூறு அதன் மதிப்பை எழுதுகிறது. பலவற்றை காற்புள்ளியால் பிரிக்கவும். பிணைப்பை அமைக்காமல் அதை அறிவிக்க காலியாக விடவும்."
 
-msgid "The Tasks that address it will be updated when this Scene is saved."
-msgstr "இந்தக் காட்சி சேமிக்கப்படும்போது, ​​அதைக் குறிக்கும் பணிகள் புதுப்பிக்கப்படும்."
 
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "ஒரு வரிசையின் தளவமைப்பு. பட்டியலை நிரப்பும் ஒவ்வொரு நுழைவுக்கும் டாஸ்கர் அதை ஒருமுறை வரைவார், எனவே நீங்கள் இங்கே பார்ப்பது பட்டியலை விட ஒற்றை வரிசையாக இருக்கும்."
 
-msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
-msgstr "ஒரு வரிசையின் தளவமைப்பு. பட்டியலை நிரப்பும் ஒவ்வொரு நுழைவுக்கும் டாஸ்கர் அதை ஒருமுறை வரைவார், எனவே நீங்கள் இங்கே பார்ப்பது பட்டியலை விட ஒற்றை வரிசையாக இருக்கும்."
 
 msgid "The loaded file was saved from"
 msgstr "ஏற்றப்பட்ட கோப்பு சேமிக்கப்பட்டது"
 
-msgid "The loaded file was saved from"
-msgstr "ஏற்றப்பட்ட கோப்பு சேமிக்கப்பட்டது"
 
 msgid "The original"
 msgstr "அசல்"
 
-msgid "The original"
-msgstr "அசல்"
 
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "அசல் காட்சி: UI கூறுகள் அளவுள்ள கேன்வாஸில் நிலையான நிலைகளில் வைக்கப்பட்டுள்ளன (உரை, பொத்தான், நேர், படம், வலை, ...)."
@@ -2450,8 +2186,6 @@ msgstr "அசல் காட்சி: UI கூறுகள் அளவு�
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "திரையின் அளவு இந்த மாதிரிக்காட்சியுடையது, காட்சியின் அளவு அல்ல -- பதிப்பு 2 தளவமைப்புக்கு அதன் சொந்த அளவு இல்லை, எனவே 'திரை'யை மாற்றவும். மெட்டீரியல் ரோல் மூலம் பெயரிடப்பட்ட வண்ணங்கள் மெட்டீரியல் 3 பேஸ்லைன் பேலட்டிலிருந்து எடுக்கப்படுகின்றன; சாதனம் அதன் சொந்த கருப்பொருளுக்கு எதிராக அவற்றைத் தீர்க்கிறது, இது மெட்டீரியலின் கீழ் நீங்கள் வால்பேப்பரில் இருந்து வருகிறது. ஹேட்ச் ஃபில்ஸ் மற்றும் சாய்வு அடிக்கோடிட்ட உரை ஆகியவை % மாறிகள். ஆம்பர் அவுட்லைன்கள் 'எப்போது ஷோ' மூலம் கூறுகளைக் குறிக்கின்றன. அதன் மாற்றிகள், மாறிகள் மற்றும் செயல்களுக்கு எந்த கூறுகளையும் வட்டமிடுங்கள்."
 
-msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
-msgstr "திரையின் அளவு இந்த மாதிரிக்காட்சியுடையது, காட்சியின் அளவு அல்ல -- பதிப்பு 2 தளவமைப்புக்கு அதன் சொந்த அளவு இல்லை, எனவே 'திரை'யை மாற்றவும். மெட்டீரியல் ரோல் மூலம் பெயரிடப்பட்ட வண்ணங்கள் மெட்டீரியல் 3 பேஸ்லைன் பேலட்டிலிருந்து எடுக்கப்படுகின்றன; சாதனம் அதன் சொந்த கருப்பொருளுக்கு எதிராக அவற்றைத் தீர்க்கிறது, இது மெட்டீரியலின் கீழ் நீங்கள் வால்பேப்பரில் இருந்து வருகிறது. ஹேட்ச் ஃபில்ஸ் மற்றும் சாய்வு அடிக்கோடிட்ட உரை ஆகியவை % மாறிகள். ஆம்பர் அவுட்லைன்கள் 'எப்போது ஷோ' மூலம் கூறுகளைக் குறிக்கின்றன. அதன் மாற்றிகள், மாறிகள் மற்றும் செயல்களுக்கு எந்த கூறுகளையும் வட்டமிடுங்கள்."
 
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "தேடல் முடிவடையவில்லை. பார்வை மிகப் பெரியதாக இருக்கலாம் அல்லது உலாவி பிஸியாக இருக்கலாம்."
@@ -2459,20 +2193,14 @@ msgstr "தேடல் முடிவடையவில்லை. பார்
 msgid "The two files hold the same configuration."
 msgstr "இரண்டு கோப்புகளும் ஒரே கட்டமைப்பைக் கொண்டுள்ளன."
 
-msgid "The two files hold the same configuration."
-msgstr "இரண்டு கோப்புகளும் ஒரே கட்டமைப்பைக் கொண்டுள்ளன."
 
 msgid "This Scene has no UI elements."
 msgstr "இந்தக் காட்சியில் UI கூறுகள் இல்லை."
 
-msgid "This Scene has no UI elements."
-msgstr "இந்தக் காட்சியில் UI கூறுகள் இல்லை."
 
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "இந்தக் காட்சிக்கு அதன் சொந்த நிலப்பரப்பு அமைப்பு இல்லை (அதன் அளவு -1)."
 
-msgid "This Scene has no landscape layout of its own (its size is -1)."
-msgstr "இந்தக் காட்சிக்கு அதன் சொந்த நிலப்பரப்பு அமைப்பு இல்லை (அதன் அளவு -1)."
 
 msgid "This Scene has no layout for this orientation."
 msgstr "இந்தக் காட்சியில் இந்த நோக்குநிலைக்கான தளவமைப்பு இல்லை."
@@ -2480,8 +2208,6 @@ msgstr "இந்தக் காட்சியில் இந்த நோக
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "இந்த காட்சியில் பண்புகள் உறுப்பு இல்லை. மேப்டாஸ்கரின் 366 காட்சிகளில் 66 காட்சிகள் எதுவும் இல்லை, எனவே இது சேதத்தை விட சாதாரணமானது."
 
-msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
-msgstr "இந்த காட்சியில் பண்புகள் உறுப்பு இல்லை. மேப்டாஸ்கரின் 366 காட்சிகளில் 66 காட்சிகள் எதுவும் இல்லை, எனவே இது சேதத்தை விட சாதாரணமானது."
 
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "இந்தக் காட்சியின் பதிப்பு 2 தளவமைப்பைப் படிக்க முடியவில்லை, அது அப்படியே விடப்படும்."
@@ -2495,20 +2221,14 @@ msgstr "இந்த காட்சியின் பதிப்பு 2 த�
 msgid "This element has no layout for this orientation."
 msgstr "இந்த உறுப்புக்கு இந்த நோக்குநிலைக்கான தளவமைப்பு இல்லை."
 
-msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
-msgstr "இந்த ஆப்ஸில் இந்த உறுப்பு வகைக்கான சொத்து அட்டவணை இல்லை, எனவே அதன் வடிவவியலை மட்டும் இங்கே திருத்த முடியும். அது மற்றபடி தீண்டப்படாமல் கொண்டு செல்லப்படுகிறது."
 
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "இது /Tasker/scenes என்பதன் கீழ், ஆண்ட்ராய்ட் சாதனத்தில் காட்சியை ஒரு தனிக் கோப்பாக எழுதும்.\n\nIP முகவரி மற்றும் போர்ட் ஆகியவை Android சாதனத்தின் Tasker சர்வர் அமைப்புகளுடன் பொருந்த வேண்டும்.\n\nஇதற்கு எந்த அனுமதியும் தேவையில்லை."
 
-msgid "This element has no layout for this orientation."
-msgstr "இந்த உறுப்புக்கு இந்த நோக்குநிலைக்கான தளவமைப்பு இல்லை."
 
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "இது உங்கள் Android சாதனத்தில், /Tasker/scenes என்பதன் கீழ், காட்சியை ஒரு முழுமையான கோப்பாக எழுதும் -- இது Tasker இன் நேரடி உள்ளமைவில் இறக்குமதி செய்யாது.\n\n'Http Server Example' Tasker Project ஆனது ஆண்ட்ராய்டு சாதனத்தில், சர்வர் இயங்கும் நிலையில் நிறுவப்பட்டு செயலில் இருக்க வேண்டும்.\n\nAndroid சாதனம் ஒரே நெட்வொர்க்கில் இருக்க வேண்டும், மேலும் IP முகவரி மற்றும் போர்ட் அதன் Tasker சேவையக அமைப்புகளுடன் பொருந்த வேண்டும். இதற்கு எந்த அனுமதியும் தேவையில்லை."
 
-msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
-msgstr "இது உங்கள் Android சாதனத்தில், /Tasker/scenes என்பதன் கீழ், காட்சியை ஒரு முழுமையான கோப்பாக எழுதும் -- இது Tasker இன் நேரடி உள்ளமைவில் இறக்குமதி செய்யாது.\n\n'Http Server Example' Tasker Project ஆனது ஆண்ட்ராய்டு சாதனத்தில், சர்வர் இயங்கும் நிலையில் நிறுவப்பட்டு செயலில் இருக்க வேண்டும்.\n\nAndroid சாதனம் ஒரே நெட்வொர்க்கில் இருக்க வேண்டும், மேலும் IP முகவரி மற்றும் போர்ட் அதன் Tasker சேவையக அமைப்புகளுடன் பொருந்த வேண்டும். இதற்கு எந்த அனுமதியும் தேவையில்லை."
 
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "திரையை அதன் பக்கத்தில் திருப்பி, அமைப்பை மீண்டும் அதில் பாயட்டும்."
@@ -2519,11 +2239,7 @@ msgstr "செயல்தவிர்"
 msgid "Tree label"
 msgstr "மர முத்திரை"
 
-msgid "Turn the screen on its side and let the layout re-flow into it."
-msgstr "திரையை அதன் பக்கத்தில் திருப்பி, அமைப்பை மீண்டும் அதில் பாயட்டும்."
 
-msgid "Undo"
-msgstr "செயல்தவிர்"
 
 msgid "Using the saved size"
 msgstr "சேமிக்கப்பட்ட அளவைப் பயன்படுத்துதல்"
@@ -2555,98 +2271,97 @@ msgstr "பெரிதாக்கு"
 msgid "component(s)"
 msgstr "கூறு(கள்)"
 
-msgid "Using the saved size"
-msgstr "சேமிக்கப்பட்ட அளவைப் பயன்படுத்துதல்"
 
 msgid "connectors"
 msgstr "இணைப்பிகள்"
 
-msgid "Variable"
-msgstr "மாறி"
 
-msgid "Variables"
-msgstr "மாறிகள்"
 
-msgid "View Limit"
-msgstr "பார்வை வரம்பு"
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "அவற்றில் ஏதேனும் ஒன்றை இழுக்கவும் அல்லது அசைக்கவும், அவை அனைத்தும் ஒன்றாக நகரும்."
 
-msgid "What you pick goes in at the cursor. Open this again to add the next piece."
-msgstr "நீங்கள் தேர்ந்தெடுத்தது கர்சரில் செல்கிறது. அடுத்த பகுதியைச் சேர்க்க இதை மீண்டும் திறக்கவும்."
 
-msgid "What you pick replaces what the field holds. Type to narrow the list down."
-msgstr "நீங்கள் தேர்ந்தெடுப்பது புலத்தில் உள்ளதை மாற்றிவிடும். பட்டியலைக் குறைக்க தட்டச்சு செய்யவும்."
 
 msgid "editing 1 of"
 msgstr "எடிட்டிங் 1 இன்"
 
-msgid "Which kind of Scene?"
-msgstr "எந்த மாதிரியான காட்சி?"
 
 msgid "element(s)"
 msgstr "உறுப்பு(கள்)"
 
-msgid "Writes to variable"
-msgstr "மாறிக்கு எழுதுகிறார்"
 
-msgid "Zoom"
-msgstr "பெரிதாக்கு"
 
 msgid "elements selected"
 msgstr "தேர்ந்தெடுக்கப்பட்ட கூறுகள்"
 
-msgid "component(s)"
-msgstr "கூறு(கள்)"
 
 msgid "is not a whole number"
 msgstr "முழு எண் அல்ல"
 
-msgid "connectors"
-msgstr "இணைப்பிகள்"
 
-msgid "drag or nudge any of them and they all move together."
-msgstr "அவற்றில் ஏதேனும் ஒன்றை இழுக்கவும் அல்லது அசைக்கவும், அவை அனைத்தும் ஒன்றாக நகரும்."
 
 msgid "lines dropped"
 msgstr "கோடுகள் கைவிடப்பட்டன"
 
-msgid "editing 1 of"
-msgstr "எடிட்டிங் 1 இன்"
 
 msgid "none"
 msgstr "எதுவும் இல்லை"
 
-msgid "element(s)"
-msgstr "உறுப்பு(கள்)"
 
-msgid "elements selected"
-msgstr "தேர்ந்தெடுக்கப்பட்ட கூறுகள்"
 
 msgid "not drawn"
 msgstr "வரையப்படவில்லை"
 
-msgid "is not a whole number"
-msgstr "முழு எண் அல்ல"
 
 msgid "pair"
 msgstr "ஜோடி"
 
-msgid "none"
-msgstr "எதுவும் இல்லை"
 
 msgid "pixels"
 msgstr "பிக்சல்கள்"
 
-msgid "not drawn"
-msgstr "வரையப்படவில்லை"
 
-msgid "pair"
-msgstr "ஜோடி"
 
-msgid "pixels"
-msgstr "பிக்சல்கள்"
 
 msgid "Version 2"
 msgstr "பதிப்பு 2"
+
+msgid "Building the Map to show"
+msgstr "காண்பிக்க வரைபடத்தை உருவாக்குதல்"
+
+msgid "Built the Map, but it has no line for"
+msgstr "வரைபடத்தை உருவாக்கியது, ஆனால் அதற்கு எந்த வரியும் இல்லை"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "வரைபடக் காட்சியில் அதைக் காண ஒரு கண்டுபிடிப்பைக் கிளிக் செய்யவும்."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "வரைபடக் காட்சியில் பார்க்க ஒரு மாறி அல்லது இடத்தைக் கிளிக் செய்யவும்."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "வரைபடக் காட்சி எதுவும் திறக்கப்படவில்லை.  வரைபடக் காட்சியை இயக்கவும், பின்னர் இதை மீண்டும் கிளிக் செய்யவும்."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "ஏற்றப்பட்ட XML இல் உள்ள ஒவ்வொரு %மாறியையும் கண்டறியவும்: ஒவ்வொன்றும் எங்கு அமைக்கப்பட்டுள்ளது, எங்கு படிக்கப்படுகிறது, படிக்கப்பட்டவை ஆனால் அமைக்கப்படவே இல்லை, அமைக்கப்படவில்லை ஆனால் படிக்கவே இல்லை, மற்றும் எந்தெந்தப் பெயர்கள் (%MyVar எதிராக %Myvar) எழுத்துப் பிழைகள் இருக்கலாம்.\n\nதேடப்பட்டது: பணி நடவடிக்கைகள் மற்றும் அவற்றின் நிபந்தனைகள், செருகுநிரல் உள்ளமைவு, சுயவிவர சூழல்கள் மற்றும் காட்சிகள்.\n\nமுடிவுகள் இங்கே காட்டப்பட்டு, தற்போதைய கோப்பகத்தில் உள்ள உரைக் கோப்பில் சேமிக்கப்படும்."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "மாறி குறுக்கு குறிப்பு எந்த சந்தேகத்திற்கிடமான மாறிகள் இல்லை."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "மாறி குறுக்கு குறிப்பு அறிக்கையை சேமிக்க முடியவில்லை."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "மாறி குறுக்கு குறிப்பு இவ்வாறு சேமிக்கப்பட்டது"
+
+msgid "Variable Xref"
+msgstr "மாறி Xref"
+
+msgid "detail level"
+msgstr "விவர நிலை"
+
+msgid "is no longer in the loaded configuration."
+msgstr "ஏற்றப்பட்ட கட்டமைப்பில் இல்லை."
+
+msgid "whole file"
+msgstr "முழு கோப்பு"

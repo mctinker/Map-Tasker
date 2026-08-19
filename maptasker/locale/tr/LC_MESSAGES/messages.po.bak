@@ -1679,104 +1679,68 @@ msgstr "Sahnenin ortasına, yığının üstüne ekler. İstediğiniz yere sür�
 msgid "Appearance Mode"
 msgstr "Görünüm Modu"
 
-msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
-msgstr "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 
-msgid "App icon"
-msgstr "App icon"
 
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "Sırayla uygulanır; alttaki üstte yer alır."
 
-msgid "Appearance Mode"
-msgstr "Görünüm Modu"
 
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "Bu Sahne kaydedildiğinde uygulanır, şimdi değil - Sahne iletişim kutusundaki İptal seçeneği hem öğeyi hem de Görevleri olduğu gibi bırakır."
 
-msgid "Applied in order — the one at the bottom sits on top."
-msgstr "Sırayla uygulanır; alttaki üstte yer alır."
 
-msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
-msgstr "Bu Sahne kaydedildiğinde uygulanır, şimdi değil - Sahne iletişim kutusundaki İptal seçeneği hem öğeyi hem de Görevleri olduğu gibi bırakır."
 
 msgid "Back to Editor"
 msgstr "Editöre Geri Dön"
 
-msgid "Back to Editor"
-msgstr "Editöre Geri Dön"
 
 msgid "Bounds"
 msgstr "Sınırlar"
 
-msgid "Bounds"
-msgstr "Sınırlar"
 
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "İptal edildi. Bu Sahnede yapılan değişiklikler iptal edildi."
 
-msgid "Cancelled. Changes to this Scene were discarded."
-msgstr "İptal edildi. Bu Sahnede yapılan değişiklikler iptal edildi."
 
 msgid "Choose another file..."
 msgstr "Başka bir dosya seç..."
 
-msgid "Choose another file..."
-msgstr "Başka bir dosya seç..."
 
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "Bir bileşeni seçmek için tıklayın, birkaçını almak için aynı kapsayıcıdaki başka bir bileşeni Shift tuşuna basarak tıklayın ve bunları kendi kardeşleri arasında yeniden sıralamak için sürükleyin. Bir bileşeni bir kabın içine veya dışına taşımak, editörün Giriş ve Çıkış düğmeleridir; Geri alma seçeneği de orada."
 
-msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
-msgstr "Bir bileşeni seçmek için tıklayın, birkaçını almak için aynı kapsayıcıdaki başka bir bileşeni Shift tuşuna basarak tıklayın ve bunları kendi kardeşleri arasında yeniden sıralamak için sürükleyin. Bir bileşeni bir kabın içine veya dışına taşımak, editörün Giriş ve Çıkış düğmeleridir; Geri alma seçeneği de orada."
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "Bir öğeyi seçmek için tıklayın, birkaçını almak için arka plandaki bir kutuyu Shift tuşunu basılı tutarak tıklayın veya sürükleyin ve hepsini taşımak için bunlardan herhangi birini sürükleyin - ok tuşları itme, 10 piksel için Shift. Tek bir öğeyi yeniden boyutlandırmak için bir tutamacı sürükleyin. Geri alma ve bir öğeyle ilgili diğer her şey düzenleyiciye geri döndü."
 
-msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
-msgstr "Bir öğeyi seçmek için tıklayın, birkaçını almak için arka plandaki bir kutuyu Shift tuşunu basılı tutarak tıklayın veya sürükleyin ve hepsini taşımak için bunlardan herhangi birini sürükleyin - ok tuşları itme, 10 piksel için Shift. Tek bir öğeyi yeniden boyutlandırmak için bir tutamacı sürükleyin. Geri alma ve bir öğeyle ilgili diğer her şey düzenleyiciye geri döndü."
 
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "Bir öğeyi seçmek için tıklayın, taşımak için sürükleyin, yeniden boyutlandırmak için bir tutamacı sürükleyin, sürüklemek için ok tuşlarını kullanın (10 piksel için Shift). Aynı anda birden fazla fotoğraf çekmek için Shift tuşunu basılı tutarak tıklayın veya arka plandaki bir kutuyu sürükleyin."
 
-msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
-msgstr "Bir öğeyi seçmek için tıklayın, taşımak için sürükleyin, yeniden boyutlandırmak için bir tutamacı sürükleyin, sürüklemek için ok tuşlarını kullanın (10 piksel için Shift). Aynı anda birden fazla fotoğraf çekmek için Shift tuşunu basılı tutarak tıklayın veya arka plandaki bir kutuyu sürükleyin."
 
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "Kaydetmeden kapanır ve Önizleme'de taşınan veya yeniden boyutlandırılan her şey dahil olmak üzere, bu Sahneyi tam olarak bu iletişim kutusu açıldığında olduğu gibi geri koyar.\n\nYeniden Adlandırma, bunun geri alamayacağı tek şeydir: onaylandığı anda yüklenen yedeğe uygulanır ve bu iletişim kutusunu onunla kapatır."
 
-msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
-msgstr "Kaydetmeden kapanır ve Önizleme'de taşınan veya yeniden boyutlandırılan her şey dahil olmak üzere, bu Sahneyi tam olarak bu iletişim kutusu açıldığında olduğu gibi geri koyar.\n\nYeniden Adlandırma, bunun geri alamayacağı tek şeydir: onaylandığı anda yüklenen yedeğe uygulanır ve bu iletişim kutusunu onunla kapatır."
 
 msgid "Compare Files"
 msgstr "Dosyaları Karşılaştır"
 
-msgid "Compare Files"
-msgstr "Dosyaları Karşılaştır"
 
 msgid "Compare With"
 msgstr "Şununla Karşılaştır:"
 
-msgid "Compare With"
-msgstr "Şununla Karşılaştır:"
 
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Başka bir XML dosyasını yüklenen dosyayla karşılaştırın: eklenenler, kaldırılanlar, yeniden adlandırılanlar ve değiştirilenler.\n\nTaskerNet içe aktarımının neleri getirdiğini, bir düzenlemenin neleri değiştirdiğini veya iki yedekleme arasında nelerin farklı olduğunu görmek için bunu kullanın.\n\nYüklenen dosya 'Geçerli Dosyaya Kaydet' seçeneğinden geldiyse doğrudan kaydedildiği dosya sunulur.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
 
-msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "Başka bir XML dosyasını yüklenen dosyayla karşılaştırın: eklenenler, kaldırılanlar, yeniden adlandırılanlar ve değiştirilenler.\n\nTaskerNet içe aktarımının neleri getirdiğini, bir düzenlemenin neleri değiştirdiğini veya iki yedekleme arasında nelerin farklı olduğunu görmek için bunu kullanın.\n\nYüklenen dosya 'Geçerli Dosyaya Kaydet' seçeneğinden geldiyse doğrudan kaydedildiği dosya sunulur.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
 
 msgid "Comparison cancelled."
 msgstr "Karşılaştırma iptal edildi."
 
-msgid "Comparison cancelled."
-msgstr "Karşılaştırma iptal edildi."
 
 msgid "Comparison report could not be saved."
 msgstr "Karşılaştırma raporu kaydedilemedi."
 
-msgid "Comparison report could not be saved."
-msgstr "Karşılaştırma raporu kaydedilemedi."
 
 msgid "Comparison saved as"
 msgstr "Karşılaştırma şu şekilde kaydedildi:"
@@ -1793,17 +1757,11 @@ msgstr "Bu Sahneyi, buraya eklediğiniz veya değiştirdiğiniz ancak henüz kay
 msgid "Done"
 msgstr "Tamamlamak"
 
-msgid "Drawn in"
-msgstr "Çizilmiş"
 
-msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
-msgstr "Bu Sahneyi, buraya eklediğiniz veya değiştirdiğiniz ancak henüz kaydetmediğiniz bileşenler de dahil olmak üzere ana pencerede bir resim olarak çizer.\n\nSürüm 2 düzeninin kendine ait bir boyutu yoktur; bu nedenle önizleme, onu seçtiğiniz bir ekrana yerleştirir ve onu değiştirdiğinizde yeniden akıtır.\n\nBu iletişim kutusu, önizleme açıkken, içindeki her şey tutularak kapanır; önizlemenin 'Editöre Geri Dön' düğmesi onu geri getirir.\n\nBu, Tasker'in kendi oluşturucusu değil, bir temsilidir: %değişkenler çözümlenmek yerine adlandırılır, Malzeme renkleri cihazın teması yerine taban çizgisinden gelir ve resimler, video ve web içeriği yer tutucu olarak gösterilir."
 
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "Bu Sahneyi, henüz kaydedilmemiş değişiklikler de dahil olmak üzere, yukarıda yazılan boyutta ana pencerede bir resim olarak çizer.\n\nBu iletişim kutusu, önizleme açıkken, içindeki her şey tutularak kapanır; önizlemenin 'Editöre Geri Dön' düğmesi onu geri getirir.\n\nBu, Tasker'in kendi oluşturucusu değil, bir temsilidir: %değişkenler çözümlenmek yerine adlandırılır ve resimler, video ve web içeriği yer tutucu olarak gösterilir."
 
-msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
-msgstr "Bu Sahneyi, henüz kaydedilmemiş değişiklikler de dahil olmak üzere, yukarıda yazılan boyutta ana pencerede bir resim olarak çizer.\n\nBu iletişim kutusu, önizleme açıkken, içindeki her şey tutularak kapanır; önizlemenin 'Editöre Geri Dön' düğmesi onu geri getirir.\n\nBu, Tasker'in kendi oluşturucusu değil, bir temsilidir: %değişkenler çözümlenmek yerine adlandırılır ve resimler, video ve web içeriği yer tutucu olarak gösterilir."
 
 msgid "Duplicate"
 msgstr "Kopyalamak"
@@ -1811,20 +1769,14 @@ msgstr "Kopyalamak"
 msgid "Dropdown menu — shown when opened"
 msgstr "Açılır menü — açıldığında gösterilir"
 
-msgid "Duplicate"
-msgstr "Kopyalamak"
 
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Dinamik ve Değişken Seç, Sahne gösterildiğinde işlenir."
 
-msgid "Dynamic and Select Variable are worked out when the Scene is shown."
-msgstr "Dinamik ve Değişken Seç, Sahne gösterildiğinde işlenir."
 
 msgid "Dynamic value"
 msgstr "Dinamik değer"
 
-msgid "Dynamic value"
-msgstr "Dinamik değer"
 
 msgid "Edit Scene"
 msgstr "Sahneyi Düzenle"
@@ -1832,38 +1784,26 @@ msgstr "Sahneyi Düzenle"
 msgid "Edit item layout"
 msgstr "Öğe düzenini düzenle"
 
-msgid "Edit item layout"
-msgstr "Öğe düzenini düzenle"
 
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "Seçimi koruyarak bunun yerine bunun özelliklerini düzenleyin."
 
-msgid "Edit this one's properties instead, keeping the selection."
-msgstr "Seçimi koruyarak bunun yerine bunun özelliklerini düzenleyin."
 
 msgid "Event handlers"
 msgstr "Olay işleyicileri"
 
-msgid "Event handlers"
-msgstr "Olay işleyicileri"
 
 msgid "Export Scene"
 msgstr "Sahneyi Dışa Aktar"
 
-msgid "Export Scene"
-msgstr "Sahneyi Dışa Aktar"
 
 msgid "Geometry"
 msgstr "Geometri"
 
-msgid "Geometry"
-msgstr "Geometri"
 
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "Gri: MapTasker'ın bunun için bir argüman tablosu yoktur, bu nedenle Tasker'ın içeride ne beklediğini tahmin etmeden oluşturulamaz. Başlıklar MapTasker'ın kendi gruplamasıdır."
 
-msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
-msgstr "Gri: MapTasker'ın bunun için bir argüman tablosu yoktur, bu nedenle Tasker'ın içeride ne beklediğini tahmin etmeden oluşturulamaz. Başlıklar MapTasker'ın kendi gruplamasıdır."
 
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
@@ -1871,17 +1811,11 @@ msgstr "Hatched fills and italic underlined text are %variables -- their values 
 msgid "Health Check"
 msgstr "Sağlık Kontrolü"
 
-msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
-msgstr "Taralı dolgular ve italik altı çizili metinler %değişkenlerdir; değerleri yedeklemede değil cihazda bulunur, dolayısıyla tahmin edilmek yerine adlandırılırlar. Resimler, videolar, haritalar ve web içeriği yer tutucu olarak gösterilir. Geometrisi, değişkenleri ve çalıştırdığı Görevler için herhangi bir öğenin üzerine gelin."
 
-msgid "Health Check"
-msgstr "Sağlık Kontrolü"
 
 msgid "Health Check found no errors or warnings."
 msgstr "Durum Kontrolü herhangi bir hata veya uyarı bulamadı."
 
-msgid "Health Check found no errors or warnings."
-msgstr "Durum Kontrolü herhangi bir hata veya uyarı bulamadı."
 
 msgid "Health Check report could not be saved."
 msgstr "Durum Denetimi raporu kaydedilemedi."
@@ -1889,20 +1823,14 @@ msgstr "Durum Denetimi raporu kaydedilemedi."
 msgid "Health Check saved as"
 msgstr "Health Check saved as"
 
-msgid "Health Check saved as"
-msgstr "Durum Kontrolü şu şekilde kaydedildi:"
 
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "Bir açılır mesajın kaybolmadan önce ekranda ne kadar süre kalacağı.\n\n'Kapatılana kadar' her mesajı siz kapatana kadar açık tutar; bu, bir mesajın siz okuyamadan geçip gitmesi durumunda kullanışlıdır.\n\nBirkaç mesaj, okumanız gereken şeyleri (örneğin, bir Sahne öğesinin silinmesinden veya yeniden adlandırılmasından etkilenen Görevler) listeledikleri için kendi daha uzun sürelerini belirler. Burada ne seçilirse seçilsin, kendi zamanlamalarını korurlar."
 
-msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
-msgstr "Bir açılır mesajın kaybolmadan önce ekranda ne kadar süre kalacağı.\n\n'Kapatılana kadar' her mesajı siz kapatana kadar açık tutar; bu, bir mesajın siz okuyamadan geçip gitmesi durumunda kullanışlıdır.\n\nBirkaç mesaj, okumanız gereken şeyleri (örneğin, bir Sahne öğesinin silinmesinden veya yeniden adlandırılmasından etkilenen Görevler) listeledikleri için kendi daha uzun sürelerini belirler. Burada ne seçilirse seçilsin, kendi zamanlamalarını korurlar."
 
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "Listede: Bir aralık için Shift tuşunu basılı tutarak tıklayın, bir aralık eklemek veya kaldırmak için Ctrl veya Cmd tuşunu basılı tutarak tıklayın."
 
-msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
-msgstr "Listede: Bir aralık için Shift tuşunu basılı tutarak tıklayın, bir aralık eklemek veya kaldırmak için Ctrl veya Cmd tuşunu basılı tutarak tıklayın."
 
 msgid "Landscape"
 msgstr "Manzara"
@@ -1913,77 +1841,51 @@ msgstr "Öğe düzeni"
 msgid "Legacy"
 msgstr "Miras"
 
-msgid "Landscape"
-msgstr "Landscape"
 
 msgid "Legacy Scene"
 msgstr "Eski Sahne"
 
-msgid "Legacy"
-msgstr "Miras"
 
 msgid "List"
 msgstr "Liste"
 
-msgid "Legacy Scene"
-msgstr "Eski Sahne"
 
-msgid "List"
-msgstr "Liste"
 
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: görüntüleme sınırına ulaşıldı, diyagram kesildi"
 
-msgid "MapTasker: view limit reached, diagram truncated"
-msgstr "MapTasker: view limit reached, diagram truncated"
 
 msgid "Modifiers"
 msgstr "Değiştiriciler"
 
-msgid "Modifiers"
-msgstr "Değiştiriciler"
 
 msgid "Never updated"
 msgstr "Hiç güncellenmedi"
 
-msgid "Never updated"
-msgstr "Hiç güncellenmedi"
 
 msgid "No Task addresses this element by name."
 msgstr "Hiçbir Görev bu öğeyi adıyla ele almaz."
 
-msgid "No Task addresses this element by name."
-msgstr "Hiçbir Görev bu öğeyi adıyla ele almaz."
 
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "Hiçbir XML dosyası yüklenmedi.  Önce bir XML dosyası edinin."
 
-msgid "No XML file has been loaded.  Get an XML file first."
-msgstr "Hiçbir XML dosyası yüklenmedi.  Önce bir XML dosyası edinin."
 
 msgid "No element matches that."
 msgstr "Hiçbir öğe bununla eşleşmiyor."
 
-msgid "No element matches that."
-msgstr "Hiçbir öğe bununla eşleşmiyor."
 
 msgid "Not an HTML colour name or #hex value."
 msgstr "Bir HTML renk adı veya #hex değeri değil."
 
-msgid "Not an HTML colour name or #hex value."
-msgstr "Bir HTML renk adı veya #hex değeri değil."
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "Güncellenmedi - bunlar hem bu Sahneyi hem de bu öğeyi adlandırır, ancak bir sahne olarak değil"
 
-msgid "Not updated -- these name both this Scene and this element, but not as a"
-msgstr "Not updated -- these name both this Scene and this element, but not as a"
 
 msgid "Nothing here."
 msgstr "Burada hiçbir şey yok."
 
-msgid "Nothing here."
-msgstr "Burada hiçbir şey yok."
 
 msgid "Notification Duration"
 msgstr "Bildirim Süresi"
@@ -1997,23 +1899,15 @@ msgstr "Sadece ne zaman"
 msgid "Notification Duration:"
 msgstr "Bildirim Süresi:"
 
-msgid "On"
-msgstr "Açık"
 
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "Her bileşenin ana hatlarını çizin ve tasarımcının ağacının adlandırdığı şekilde adlandırın."
 
-msgid "Only when"
-msgstr "Sadece ne zaman"
 
-msgid "Outline every component and name it, the way the designer's tree names it."
-msgstr "Outline every component and name it, the way the designer's tree names it."
 
 msgid "Outline every element and name it."
 msgstr "Her öğenin ana hatlarını çizin ve adlandırın."
 
-msgid "Outline every element and name it."
-msgstr "Her öğenin ana hatlarını çizin ve adlandırın."
 
 msgid "Pick an icon"
 msgstr "Bir simge seçin"
@@ -2024,14 +1918,10 @@ msgstr "Bir Malzeme simgesi seçin."
 msgid "Pick from the Scene's environment and global variables."
 msgstr "Sahne ortamından ve küresel değişkenlerden seçim yapın."
 
-msgid "Pick an icon"
-msgstr "Bir simge seçin"
 
 msgid "Preview"
 msgstr "Önizleme"
 
-msgid "Pick from the Scene's environment and global variables."
-msgstr "Sahne ortamından ve küresel değişkenlerden seçim yapın."
 
 msgid "Project(s) that list it."
 msgstr "Listeleyen projeler."
@@ -2042,11 +1932,7 @@ msgstr "Material'in kendi renk rollerinden birini seçin."
 msgid "Properties"
 msgstr "Özellikler"
 
-msgid "Preview"
-msgstr "Preview"
 
-msgid "Project(s) that list it."
-msgstr "Listeleyen projeler."
 
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "Özellikler her seferinde bir öğe olarak düzenlenir. Sürükleme ve dürtme seçilen her şeyi taşır."
@@ -2057,14 +1943,8 @@ msgstr "Yeni bir ad ister ve bunu hemen şimdi yüklenen yedeğe uygular; onu tu
 msgid "Refresh"
 msgstr "Yenile"
 
-msgid "Properties"
-msgstr "Özellikler"
 
-msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
-msgstr "Özellikler her seferinde bir öğe olarak düzenlenir. Sürükleme ve dürtme seçilen her şeyi taşır."
 
-msgid "Refresh"
-msgstr "Yenile"
 
 msgid "Rename Element"
 msgstr "Öğeyi Yeniden Adlandır"
@@ -2072,44 +1952,30 @@ msgstr "Öğeyi Yeniden Adlandır"
 msgid "Remove background"
 msgstr "Arka planı kaldır"
 
-msgid "Rename Element"
-msgstr "Öğeyi Yeniden Adlandır"
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "Burada bir öğeyi yeniden adlandırmak, yedeği süpürmez: bir öğe düzeninde, Görevin Öğesi eyleminin onu ele alacak Sahne adı yoktur, dolayısıyla yeniden yazılacak hiçbir şey yoktur."
 
-msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
-msgstr "Burada bir öğeyi yeniden adlandırmak, yedeği süpürmez: bir öğe düzeninde, Görevin Öğesi eyleminin onu ele alacak Sahne adı yoktur, dolayısıyla yeniden yazılacak hiçbir şey yoktur."
 
 msgid "Repeats once per array entry"
 msgstr "Dizi girişi başına bir kez tekrarlanır"
 
-msgid "Repeats once per array entry"
-msgstr "Dizi girişi başına bir kez tekrarlanır"
 
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "Sürüklenen konumları ve boyutları bu kadar piksele yuvarlayın."
 
-msgid "Round dragged positions and sizes to this many pixels."
-msgstr "Sürüklenen konumları ve boyutları bu kadar piksele yuvarlayın."
 
 msgid "Save Scene To Android Device"
 msgstr "Sahneyi Android Cihaza Kaydet"
 
-msgid "Save Scene To Android Device"
-msgstr "Sahneyi Android Cihaza Kaydet"
 
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Bu oturumun herhangi bir yerinde yapılan tüm düzenlemeler de dahil olmak üzere, yedeklemenin tamamını (yalnızca bu Sahneyi değil, içindeki her Projeyi, Profili, Görevi ve Sahneyi) kaydeder.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
 
-msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
-msgstr "Bu oturumun herhangi bir yerinde yapılan tüm düzenlemeler de dahil olmak üzere, yedeklemenin tamamını (yalnızca bu Sahneyi değil, içindeki her Projeyi, Profili, Görevi ve Sahneyi) kaydeder.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "Bu Sahneyi tüm öğeleriyle birlikte tek bir .scn.xml dosyası olarak kaydeder; Tasker'ın kendi Sahne dışa aktarımının ürettiği formatın aynısıdır.\n\nSahne öğelerinin çalıştırdığı görevler dahil değildir; kendi Projelerine aittirler."
 
-msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
-msgstr "Bu Sahneyi tüm öğeleriyle birlikte tek bir .scn.xml dosyası olarak kaydeder; Tasker'ın kendi Sahne dışa aktarımının ürettiği formatın aynısıdır.\n\nSahne öğelerinin çalıştırdığı görevler dahil değildir; kendi Projelerine aittirler."
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Yüklenen XML'i bozuk referanslar, referans gösterilmeyen Görevler, Profiller ve Sahneler ve adlandırma sorunları açısından tarayın.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
@@ -2225,65 +2091,43 @@ msgstr "Patlatmak"
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "Bu zaten yüklenmiş olan dosyadır.  Karşılaştırmak için farklı bir tane seçin."
 
-msgid "That component can't go there."
-msgstr "That component can't go there."
 
-msgid "That is the file already loaded.  Choose a different one to compare against."
-msgstr "Bu zaten yüklenmiş olan dosyadır.  Karşılaştırmak için farklı bir tane seçin."
 
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "Malzeme simgesi listesi okunamadığından onun yerine adı yazın."
 
-msgid "The Material icon list could not be read, so type the name instead."
-msgstr "Malzeme simgesi listesi okunamadığından onun yerine adı yazın."
 
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "Bu bileşenin değerini yazdığı Tasker değişkeni. Birkaçını virgülle ayırın. Bağlamayı ayarlamadan bildirmek için boş bırakın."
 
-msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
-msgstr "Bu bileşenin değerini yazdığı Tasker değişkeni. Birkaçını virgülle ayırın. Bağlamayı ayarlamadan bildirmek için boş bırakın."
 
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "The Tasks that address it will be updated when this Scene is saved."
 
-msgid "The Tasks that address it will be updated when this Scene is saved."
-msgstr "Bu Sahne kaydedildiğinde bunu ele alan Görevler güncellenecektir."
 
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "Bir satırın düzeni. Tasker, listeyi dolduran her giriş için onu bir kez çizer, dolayısıyla burada liste yerine tek bir satır görürsünüz."
 
-msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
-msgstr "Bir satırın düzeni. Tasker, listeyi dolduran her giriş için onu bir kez çizer, dolayısıyla burada liste yerine tek bir satır görürsünüz."
 
 msgid "The loaded file was saved from"
 msgstr "Yüklenen dosya şuradan kaydedildi:"
 
-msgid "The loaded file was saved from"
-msgstr "Yüklenen dosya şuradan kaydedildi:"
 
 msgid "The original"
 msgstr "The original"
 
-msgid "The original"
-msgstr "Orijinal"
 
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "Orijinal Sahne: Boyutlandırılmış bir tuval üzerinde sabit konumlara yerleştirilen UI öğeleri (Metin, Düğme, Dikdörtgen, Resim, Web, ...)."
 
-msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
-msgstr "Orijinal Sahne: Boyutlandırılmış bir tuval üzerinde sabit konumlara yerleştirilen UI öğeleri (Metin, Düğme, Dikdörtgen, Resim, Web, ...)."
 
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "Ekran boyutu Sahne'nin değil, bu ön izlemenin boyutudur; Sürüm 2 düzeninin kendine ait bir boyutu yoktur, bu nedenle yeniden akışını görmek için 'Ekran'ı değiştirin. Malzeme rolüne göre adlandırılan renkler, Malzeme 3 temel paletinden alınmıştır; cihaz bunları kendi temasına göre çözer; bu Tema, Malzeme Siz'in altında duvar kağıdından gelir. Taralı dolgular ve italik altı çizili metinler %değişkenlerdir. Amber, işaret bileşenlerini 'Ne zaman göster' ile özetliyor. Değiştiricileri, değişkenleri ve eylemleri için herhangi bir bileşenin üzerine gelin."
 
-msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
-msgstr "Ekran boyutu Sahne'nin değil, bu ön izlemenin boyutudur; Sürüm 2 düzeninin kendine ait bir boyutu yoktur, bu nedenle yeniden akışını görmek için 'Ekran'ı değiştirin. Malzeme rolüne göre adlandırılan renkler, Malzeme 3 temel paletinden alınmıştır; cihaz bunları kendi temasına göre çözer; bu Tema, Malzeme Siz'in altında duvar kağıdından gelir. Taralı dolgular ve italik altı çizili metinler %değişkenlerdir. Amber, işaret bileşenlerini 'Ne zaman göster' ile özetliyor. Değiştiricileri, değişkenleri ve eylemleri için herhangi bir bileşenin üzerine gelin."
 
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "Arama tamamlanmadı. Görünüm çok büyük olabilir veya tarayıcı meşgul olabilir."
 
-msgid "The search did not finish. The view may be too large, or the browser is busy."
-msgstr "Arama tamamlanmadı. Görünüm çok büyük olabilir veya tarayıcı meşgul olabilir."
 
 msgid "The two files hold the same configuration."
 msgstr "İki dosya aynı konfigürasyona sahiptir."
@@ -2392,3 +2236,42 @@ msgstr "Bu Sahnenin Versiyon 2 düzeni okunamadı ve olduğu gibi bırakılacak.
 
 msgid "elements selected"
 msgstr "seçilen öğeler"
+
+msgid "Building the Map to show"
+msgstr "Gösterilecek Haritayı Oluşturma"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Haritayı oluşturdum ancak bunun için bir çizgi yok"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Harita görünümünde görmek için bir bulguyu tıklayın."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Harita görünümünde görmek için bir değişkeni veya yeri tıklayın."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Hiçbir Harita görünümü açık değil.  Harita Görünümü'nü çalıştırın ve ardından buna tekrar tıklayın."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Yüklenen XML'deki her %değişkenin izini sürün: her birinin nerede ayarlandığı, nerede okunduğu, hangilerinin okunduğu ancak hiçbir zaman ayarlanmadığı, hangilerinin ayarlandığı ancak hiçbir zaman okunmadığı ve hangi neredeyse aynı adların (%MyVar ve %Myvar) muhtemelen yazım hatası olduğu.\n\nAranan: Görev eylemleri ve koşulları, eklenti yapılandırması, Profil bağlamları ve Sahneler.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Değişken Çapraz Referansı şüpheli değişken bulamadı."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Değişken Çapraz Referans raporu kaydedilemedi."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Değişken Çapraz Referans olarak kaydedildi"
+
+msgid "Variable Xref"
+msgstr "Değişken Dış Referans"
+
+msgid "detail level"
+msgstr "ayrıntı düzeyi"
+
+msgid "is no longer in the loaded configuration."
+msgstr "artık yüklü konfigürasyonda değil."
+
+msgid "whole file"
+msgstr "tüm dosya"

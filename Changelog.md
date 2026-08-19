@@ -12,14 +12,17 @@ All notable changes to this project will be documented in this file!
 - Added: Edit Scene Version 2 'Apply when' (on every modifier of every element) now offers the 'Select Variable' picker, the same one the other variable-backed fields use.
 - Added: 'Health Check' - a new button in the 'Display Views' section scans the loaded XML and reports what is broken or dead in it.
 - Added: 'Compare Files' - a new button in the 'Display Views' section compares another XML file against the loaded one and reports what was added, removed, renamed and changed.
+- Added: 'Variable Xref' - a new command to provide an in-depth cross-reference analysis of all the variables in the XML configuration.
+- Added: 'Disable/Enable' toggle switch when Editing a Project.
 
 ### Changed
 
-- Changed: Version 2 Scene 'type' field in the Map view is merged in with it's arguments.  It's arguments are now idented in the Map view.
+- Changed: Version 2 Scene 'type' field (e.g. 'type: Text') in the Map view is merged in with it's arguments.  It's arguments are now indented in the Map view.
 
 ### Fixed
 
-- Fixed:
+- Fixed: Added missing text translations
+- Fixed: 'Open View in New Window' checkbox, when unchecked, only reuses the window if for the same object.  Fixed so that it reuses the same (Diagram or Map view) window regardless, if unchecked.
 
 ### Known Issue
 
@@ -37,18 +40,18 @@ For each PID listed in the output from the above terminal command, issue the fol
 
 ## [12.1.2] 13-Aug-2026
 
-- Added: Editing a Version 2 Scene 'Text' element now offers 'Enabled', 'Content Format' and 'Link color' settings.
-- Added: The Version 2 Scene 'Weight' modifier is now picked from the font weights ('Thin' through 'Black'), 'Dynamic' or 'Select Variable', rather than typed as a number.
-- Added: Version 2 Scene modifiers 'Shadow', 'Scale', 'Rotate', 'Offset', 'Blur', 'FillHeight', 'HorizontalScroll' and 'Clickable' can now be added and edited by name, and every modifier can be given an 'Apply when' condition. 'Size' gained 'All', 'SizeIn' gained 'Min width'/'Min height', and 'Fill Width'/'Fill Size' gained 'Fraction'.
-- Added: A Version 2 Scene 'Icon' argument can now be picked from a grid of Material icons.
-- Added: A Version 2 Scene colour argument can now be set to one of Material's own colour roles.
-- Changed: Every colour argument in Scene editing now offers the colour picker and swatch that 'Link color' has — the Version 2 'Colour', 'Button colour', 'Text colour' and modifier colours, and the Legacy element colours ('Text Color', 'Border XColor', 'Background_Color' and the rest). A Legacy colour is stored the way Tasker writes it, #AARRGGBB with the alpha first, and is converted for the picker and back again so that a half-transparent colour stays half-transparent.
-- Changed: A Version 2 Scene 'Text', 'Button' or 'IconButton' element with no 'Tree label' now reads by what it says or shows rather than by its component id — "Text 'Empty Scene'" instead of "Text 'Text2'", "Button 'Cancel'" instead of "Button 'button_1'", "IconButton 'Close'" instead of "IconButton 'IconBtn1'" — in the designer's tree, at the head of its inspector, and on the preview. An element whose 'Content Format' is 'Html' reads by its words rather than its markup: "Text 'Bold heading'", not "Text '&lt;b&gt;Bold&lt;/b&gt; heading'".
-- Changed: The Scene preview now draws the Version 2 'Shadow', 'Scale', 'Rotate', 'Offset', 'Blur', 'FillHeight' and 'HorizontalScroll' modifiers, the 'Fraction' of a 'Fill Width'/'Fill Size'/'Fill Height', and a 'Weight' as the weight the text is drawn in. Only 'WindowDrag' is still reported as not drawn, a picture having no way to show that a window can be dragged.
-- Changed: The Scene preview now draws a Version 2 'Text' element whose 'Content Format' is 'Html' as its text rather than its markup, with tappable links — both '<a>' links and the bare URLs and email addresses Android makes tappable itself — in the element's 'Link color'.
-- Fixed: Version 2 Scene icons written as 'symbol:' (Material Symbols) drew as nothing in the Scene preview; only the older 'icon:' form was recognised. An icon naming an installed app's own icon, which is on the phone rather than in the backup, now draws a stand-in naming the app instead of being left blank.
-- Fixed: The 'Notification Duration' setting is ignored for startup-related messages.
-- Fixed: Typing a new X, Y, Width or Height for a Legacy Scene element had no effect: the value reverted as soon as another element was selected.
+- Added: Editing a Version 2 Scene 'Text' element now includes 'Enabled', 'Content Format', and 'Link color' settings.
+- Added: The Version 2 Scene 'Weight' modifier is now selected from named font weights ('Thin' through 'Black'), 'Dynamic', or 'Select Variable' instead of being typed as a number.
+- Added: Eight Version 2 Scene modifiers ('Shadow', 'Scale', 'Rotate', 'Offset', 'Blur', 'FillHeight', 'HorizontalScroll', 'Clickable') can now be added and edited by name, and all modifiers now accept an 'Apply when' condition. Additionally, 'Size', 'SizeIn', 'Fill Width', and 'Fill Size' gained new specific framing options.
+- Added: Version 2 Scene 'Icon' arguments can now be selected directly from a Material icons grid.
+- Added: Version 2 Scene colour arguments can now be mapped directly to Material color roles.
+- Changed: All Scene colour arguments now feature a unified colour picker and swatch system. Legacy `#AARRGGBB` values are automatically converted to preserve transparency settings seamlessly.
+- Changed: Version 2 'Text', 'Button', and 'IconButton' elements without a 'Tree label' are now identified by their visible content or plain text instead of generic IDs. HTML-formatted elements automatically strip markup tags in these label views.
+- Changed: The Scene preview now visually renders most Version 2 modifiers, fractions, and text font weights in real time. Only 'WindowDrag' remains unrendered due to its interactive nature.
+- Changed: HTML-formatted Version 2 'Text' elements now preview as rendered text with clickable links styled in the designated 'Link color'. This applies to standard `<a>` tags as well as auto-detected URLs and email addresses.
+- Fixed: Resolved an issue where Version 2 Scene icons using the `symbol:` prefix or local app icons rendered as blank in the preview. Missing app icons now display an informative stand-in label.
+- Fixed: Startup-related messages no longer bypass the configured 'Notification Duration' setting.
+- Fixed: Resolved a bug where manually typed X, Y, Width, or Height values for Legacy Scene elements reverted upon switching selection.
 
 ## [12.1.0-12.1.1] 12-Aug-2026
 

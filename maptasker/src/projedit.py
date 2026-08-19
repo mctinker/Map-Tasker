@@ -1,8 +1,11 @@
-"""projedit: build an editable model of a Project and apply Add/Rename/Delete to it.
+"""projedit: build an editable model of a Project and apply Add/Rename/Enable/Delete to it.
 
 Unlike a Profile or Task, a Project has no content of its own to author --
-just a name and the Profiles/Tasks attached to it via <pids>/<tids> (see
-profedit.add_profile_to_project/add_task_to_project) -- Add/Rename apply
+just a name, whether it is enabled (see is_project_enabled/set_project_enabled,
+which read and write the <enbl> child Tasker marks a disabled Project with --
+NOT the <limit> a Profile uses, and the opposite polarity), and the
+Profiles/Tasks attached to it via <pids>/<tids> (see
+profedit.add_profile_to_project/add_task_to_project) -- Add/Rename/Enable apply
 straight to the live in-memory backup, same as every other in-app edit.
 
 Delete needs its own care: a Project's <pids>/<tids> is the only place that
@@ -62,6 +65,11 @@ ANDROID_PROJECT_LOCATION = "Tasker/projects"
 # last-modified stamp the importing device restamps anyway. <cdate> is deliberately
 # NOT here -- Tasker keeps it in exports.
 EXPORT_OMITTED_PROJECT_TAGS = ("clr", "id", "mdate")
+# The child Tasker writes on a Project it has disabled, and the value that means it.
+# Deliberately NOT the <limit>true</limit> a Profile uses -- different tag, and the
+# opposite polarity (see is_project_enabled).
+PROJECT_ENABLED_TAG = "enbl"
+DISABLED_PROJECT_VALUE = "false"
 _PROJECT_SR_RE = re.compile(r"^proj(\d+)$")
 
 
@@ -190,6 +198,39 @@ def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str)
     child.text = text
 
 
+def _set_child_text_in_tag_order(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
+    """_set_child_text, but a child being created for the first time is inserted in
+    Tasker's own child order instead of appended.
+
+    A Project's lowercase children run strictly alphabetically in every backup --
+    all 876 Project elements across this repo's 42 sample XML files, without
+    exception (cdate, clr, enbl, id, mdate, name, pc, pids, scenes, tids) -- with
+    the uppercase-tagged ones (Img, Kid, Share, ProfileVariable) after them all.
+    So the insertion point is the first sibling that either sorts after this tag or
+    is one of those uppercase children; appending only happens when there is
+    neither.
+
+    Same reasoning as render_standalone_project_xml's pids-before-tids fix-up: what
+    is exported has to look like what Tasker writes.  Existing children are left
+    where they are -- only the text is updated -- since anything already in the
+    element is already in Tasker's order.
+    """
+    child = parent.find(tag)
+    if child is None:
+        # Match parent's actual Element class -- see _set_child_text's identical note.
+        child = type(parent)(tag)
+        position = next(
+            (
+                index
+                for index, sibling in enumerate(parent)
+                if not sibling.tag.islower() or sibling.tag > tag
+            ),
+            len(parent),
+        )
+        parent.insert(position, child)
+    child.text = text
+
+
 def touch_project_mdate(project_element: defusedxml.ElementTree.Element) -> None:
     """Stamps a Project's <mdate> with the current time -- real Tasker Projects
     use <mdate> for "last modified", not <edate> the way Task/Profile do (see
@@ -217,6 +258,73 @@ def register_new_project(edited_project: EditableProject) -> None:
         "xml": edited_project.project_element,
         "name": edited_project.project_name,
     }
+
+
+def is_project_enabled(edited_project: EditableProject) -> bool:
+    """Whether this Project is enabled -- reads its <enbl> child: "false" means
+    disabled, and the tag's absence (or any other value, "true" included) means
+    enabled.
+
+    Note this is the INVERSE of how a Profile records the same thing, and a
+    different tag: a Profile is disabled by the PRESENCE of <limit>true</limit>
+    (profedit.is_profile_enabled, profiles.build_profile_line), whereas a Project
+    is disabled by an <enbl> that says false.  Neither tag appears on the other
+    kind of element, so the polarity is per-tag, not something to normalize away.
+
+    Matching what Tasker itself writes: across this repo's 42 sample XML files,
+    exactly one of 876 Project elements carries <enbl> at all -- backup.xml's
+    disabled "Test", carrying "false" -- so Tasker emits the tag only for a
+    Project it has disabled, which is why absence has to read as enabled.
+    """
+    enbl = edited_project.project_element.find(PROJECT_ENABLED_TAG)
+    return enbl is None or enbl.text != DISABLED_PROJECT_VALUE
+
+
+def set_project_enabled(edited_project: EditableProject, enabled: bool) -> None:
+    """Enables or disables the Project by removing/setting its <enbl>false</enbl>
+    child -- the Project counterpart of profedit.set_profile_enabled, though the
+    tag and its polarity differ (see is_project_enabled).
+
+    Enabling REMOVES the tag rather than writing <enbl>true</enbl>.  Both read as
+    enabled, but absence is what Tasker's own backups show for an enabled Project
+    (875 of 876 sample Project elements have no <enbl>), so a Project toggled off
+    and back on ends up byte-identical to one that was never touched, instead of
+    carrying a tag no Tasker-produced file would have there.
+
+    Unlike its Profile counterpart, this writes through to the LIVE Project
+    element as well as the edited copy, and does it the moment the toggle is
+    flipped rather than at save time.  Both of Edit Project's saves render from
+    the live tree by name (write_standalone_project_xml/save_project_to_android
+    take project_name, not this copy -- see guiwins.EDIT_PROJECT_INERT_FIELDS and
+    userintr._unapplied_project_edits for the trap that creates), and "Save To
+    Current File" writes the whole live backup, so a disable left on the copy
+    alone would be missing from all three.  Applying immediately also matches
+    what the rest of this dialog already does: Rename and Delete both hit the
+    live tree as soon as they are confirmed.
+
+    The copy is still updated so is_project_enabled -- which reads it -- keeps
+    reporting what the switch shows.  After a Rename the two are the same object
+    (rename_project_in_live_tree registers the copy as the live element), which
+    is why this is written to be idempotent rather than assuming two distinct
+    elements.
+
+    A brand-new Project that has not been registered yet (Add Project) has no
+    live element to write to; only its copy is updated, and register_new_project
+    carries the <enbl> in with it.
+    """
+    elements = [edited_project.project_element]
+    live_element = resolve_project_by_name(edited_project.project_name)
+    if live_element is not None and live_element is not edited_project.project_element:
+        elements.append(live_element)
+
+    for element in elements:
+        if enabled:
+            enbl = element.find(PROJECT_ENABLED_TAG)
+            if enbl is not None:
+                element.remove(enbl)
+        else:
+            _set_child_text_in_tag_order(element, PROJECT_ENABLED_TAG, DISABLED_PROJECT_VALUE)
+        touch_project_mdate(element)
 
 
 def rename_project_in_live_tree(old_name: str, edited_project: EditableProject) -> None:

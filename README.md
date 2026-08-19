@@ -157,6 +157,10 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
 	This is the output from the XML File Compare run.
 	
+- MapTasker_VarXref_date_time.txt
+
+This is the output from the Variable Xref (cross reference) run.
+	
 - "maptasker.log"
 
      This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.

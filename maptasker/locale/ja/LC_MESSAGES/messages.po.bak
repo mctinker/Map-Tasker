@@ -1593,8 +1593,6 @@ msgstr "(名前のないタスク)"
 msgid "(unnamed)"
 msgstr "(名前なし)"
 
-msgid "(unnamed)"
-msgstr "(名前なし)"
 
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1 は、この方向に独自のレイアウトがないことを意味します。"
@@ -1602,134 +1600,90 @@ msgstr "-1 は、この方向に独自のレイアウトがないことを意味
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...さらに {count} 個 -- 上に入力して絞り込みます。"
 
-msgid "...and {count} more -- type above to narrow it down."
-msgstr "...さらに {count} 個 -- 上に入力して絞り込みます。"
 
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "シーンの要素の位置はデバイスのピクセルで保存されますが、テキストのサイズは Android の sp 単位で保存されます。 2 つの間で変換される数値は、シーンが表示される電話機のプロパティであり、バックアップ ファイルには含まれません。\n\nということでここで設定しました。テキストが要素に対して小さすぎる場合は値を上げ、テキストが要素からはみ出す場合は値を下げます。"
 
-msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
-msgstr "シーンの要素の位置はデバイスのピクセルで保存されますが、テキストのサイズは Android の sp 単位で保存されます。 2 つの間で変換される数値は、シーンが表示される電話機のプロパティであり、バックアップ ファイルには含まれません。\n\nということでここで設定しました。テキストが要素に対して小さすぎる場合は値を上げ、テキストが要素からはみ出す場合は値を下げます。"
 
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "バージョン 2 シーンには独自のサイズがありません。シーンが表示されるあらゆる画面内に配置されるため、バックアップ ファイルには描画対象となるものが何もありません。\n\nレイアウトの再フローを確認するには、これを変更します。フロー行のラップ方法は異なり、%sv2_render_width に対して記述された「表示時期」はまさにこれについて尋ねています。"
 
-msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
-msgstr "バージョン 2 シーンには独自のサイズがありません。シーンが表示されるあらゆる画面内に配置されるため、バックアップ ファイルには描画対象となるものが何もありません。\n\nレイアウトの再フローを確認するには、これを変更します。フロー行のラップ方法は異なり、%sv2_render_width に対して記述された「表示時期」はまさにこれについて尋ねています。"
 
 msgid "Actions"
 msgstr "アクション"
 
-msgid "Actions"
-msgstr "アクション"
 
 msgid "Add"
 msgstr "追加"
 
-msgid "Add"
-msgstr "追加"
 
 msgid "Add Element"
 msgstr "要素の追加"
 
-msgid "Add Element"
-msgstr "要素の追加"
 
 msgid "Add Scene"
 msgstr "シーンの追加"
 
-msgid "Add Scene"
-msgstr "シーンの追加"
 
 msgid "Add a background"
 msgstr "背景を追加する"
 
-msgid "Add a background"
-msgstr "背景を追加する"
 
 msgid "Add action"
 msgstr "アクションの追加"
 
-msgid "Add action"
-msgstr "アクションの追加"
 
 msgid "Add event"
 msgstr "イベントを追加"
 
-msgid "Add event"
-msgstr "イベントを追加"
 
 msgid "Add handler"
 msgstr "ハンドラーの追加"
 
-msgid "Add handler"
-msgstr "ハンドラーの追加"
 
 msgid "Add modifier"
 msgstr "修飾子の追加"
 
-msgid "Add modifier"
-msgstr "修飾子の追加"
 
 msgid "Add scene properties"
 msgstr "シーンのプロパティを追加する"
 
-msgid "Add scene properties"
-msgstr "シーンのプロパティを追加する"
 
 msgid "Addressed by id from"
 msgstr "からの ID でアドレス指定されます"
 
-msgid "Addressed by id from"
-msgstr "からの ID でアドレス指定されます"
 
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "要素をスタックの一番上、シーンの中央に追加します。"
 
-msgid "Adds an element on top of the stack, in the middle of the Scene."
-msgstr "要素をスタックの一番上、シーンの中央に追加します。"
 
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "選択したコンポーネントが子を保持できる場合はその内部に追加し、そうでない場合はその直後に追加します。"
 
-msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
-msgstr "選択したコンポーネントが子を保持できる場合はその内部に追加し、そうでない場合はその直後に追加します。"
 
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "スタックの最上部、シーンの中央に追加します。目的の場所にドラッグします。"
 
-msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
-msgstr "スタックの最上部、シーンの中央に追加します。目的の場所にドラッグします。"
 
 msgid "Also selected:"
 msgstr "こちらも選択:"
 
-msgid "Also selected:"
-msgstr "こちらも選択:"
 
 msgid "Also update"
 msgstr "アップデートもする"
 
-msgid "Also update"
-msgstr "アップデートもする"
 
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "アンバー: Tasker にはそれがリストされていますが、MapTasker にはそのサンプルが確認されていません。グレー: 選択範囲で配置される場所に移動できません。"
 
-msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
-msgstr "アンバー: Tasker にはそれがリストされていますが、MapTasker にはそのサンプルが確認されていません。グレー: 選択範囲で配置される場所に移動できません。"
 
 msgid "App icon"
 msgstr "アプリアイコン"
 
-msgid "App icon"
-msgstr "アプリアイコン"
 
 msgid "Appearance Mode"
 msgstr "アピアランスモード"
 
-msgid "Appearance Mode"
-msgstr "アピアランスモード"
 
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "順番に適用されます。下にあるものが上に配置されます。"
@@ -1737,53 +1691,35 @@ msgstr "順番に適用されます。下にあるものが上に配置されま
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "今ではなく、このシーンが保存されるときに適用されます -- [シーン] ダイアログでキャンセルすると、要素とタスクの両方がそのまま残ります。"
 
-msgid "Applied in order — the one at the bottom sits on top."
-msgstr "順番に適用されます。下にあるものが上に配置されます。"
 
-msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
-msgstr "今ではなく、このシーンが保存されるときに適用されます -- [シーン] ダイアログでキャンセルすると、要素とタスクの両方がそのまま残ります。"
 
 msgid "Back to Editor"
 msgstr "編集者に戻る"
 
-msgid "Back to Editor"
-msgstr "編集者に戻る"
 
 msgid "Bounds"
 msgstr "境界"
 
-msgid "Bounds"
-msgstr "境界"
 
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "キャンセル。このシーンへの変更は破棄されました。"
 
-msgid "Cancelled. Changes to this Scene were discarded."
-msgstr "キャンセル。このシーンへの変更は破棄されました。"
 
 msgid "Choose another file..."
 msgstr "別のファイルを選択してください..."
 
-msgid "Choose another file..."
-msgstr "別のファイルを選択してください..."
 
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "コンポーネントをクリックして選択し、同じコンテナ内の別のコンポーネントを Shift キーを押しながらクリックして複数のコンポーネントを取得し、ドラッグして兄弟間で並べ替えます。コンポーネントをコンテナに出入りさせるには、エディタの [In] ボタンと [Out] ボタンを使用します。アンドゥもあります。"
 
-msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
-msgstr "コンポーネントをクリックして選択し、同じコンテナ内の別のコンポーネントを Shift キーを押しながらクリックして複数のコンポーネントを取得し、ドラッグして兄弟間で並べ替えます。コンポーネントをコンテナに出入りするには、エディタの [In] ボタンと [Out] ボタンを使用します。アンドゥもあります。"
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "要素をクリックして選択し、Shift キーを押しながら背景のボックスをクリックまたはドラッグして複数の要素を選択し、それらのいずれかをドラッグしてすべてを移動します。矢印キーで微調整し、Shift キーを 10 ピクセル押します。ハンドルをドラッグして 1 つの要素のサイズを変更します。元に戻す操作、および要素に関するその他すべての操作がエディターに戻ります。"
 
-msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
-msgstr "要素をクリックして選択し、Shift キーを押しながら背景のボックスをクリックまたはドラッグして複数の要素を選択し、それらのいずれかをドラッグしてすべてを移動します。矢印キーで微調整し、Shift キーを 10 ピクセル押します。ハンドルをドラッグして 1 つの要素のサイズを変更します。元に戻す操作、および要素に関するその他すべての操作がエディターに戻ります。"
 
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "要素をクリックして選択し、ドラッグして移動し、ハンドルをドラッグしてサイズを変更し、矢印キーで微調整します (10 ピクセルの場合は Shift)。一度に複数の写真を撮るには、Shift キーを押しながらクリックするか、背景上のボックスをドラッグします。"
 
-msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
-msgstr "要素をクリックして選択し、ドラッグして移動し、ハンドルをドラッグしてサイズを変更し、矢印キーで微調整します (10 ピクセルの場合は Shift)。一度に複数の写真を撮るには、Shift キーを押しながらクリックするか、背景上のボックスをドラッグします。"
 
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "保存せずに閉じ、このシーンをこのダイアログを開いたときとまったく同じ状態に戻します (プレビューで移動したりサイズ変更したものも含め)。\n\n名前の変更は、この操作で元に戻すことができない唯一の機能です。名前の変更は、ロードされたバックアップが確認されると適用され、それとともにこのダイアログを閉じます。"
@@ -1791,35 +1727,23 @@ msgstr "保存せずに閉じ、このシーンをこのダイアログを開い
 msgid "Compare Files"
 msgstr "ファイルを比較する"
 
-msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
-msgstr "保存せずに閉じ、このシーンをこのダイアログを開いたときとまったく同じ状態に戻します (プレビューで移動したりサイズ変更したものも含め)。\n\n名前の変更は、この操作で元に戻すことができない唯一の機能です。名前の変更は、ロードされたバックアップが確認されると適用され、それとともにこのダイアログを閉じます。"
 
-msgid "Compare Files"
-msgstr "ファイルを比較する"
 
 msgid "Compare With"
 msgstr "比較する"
 
-msgid "Compare With"
-msgstr "比較する"
 
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "別の XML ファイルとロードされた XML ファイルを比較し、何が追加、削除、名前変更、および変更されたかを確認します。\n\nこれを使用して、TaskerNet インポートによって何が取り込まれたのか、編集によって何が変更されたのか、または 2 つのバックアップの違いを確認します。\n\nロードされたファイルが「現在のファイルに保存」からのものである場合、保存されたファイルが直接提供されます。\n\n結果はここに表示され、現在のディレクトリのテキスト ファイルに保存されます。"
 
-msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "別の XML ファイルとロードされた XML ファイルを比較し、何が追加、削除、名前変更、および変更されたかを確認します。\n\nこれを使用して、TaskerNet インポートによって何が取り込まれたのか、編集によって何が変更されたのか、または 2 つのバックアップの違いを確認します。\n\nロードされたファイルが「現在のファイルに保存」からのものである場合、保存されたファイルが直接提供されます。\n\n結果はここに表示され、現在のディレクトリのテキスト ファイルに保存されます。"
 
 msgid "Comparison cancelled."
 msgstr "比較はキャンセルされました。"
 
-msgid "Comparison cancelled."
-msgstr "比較はキャンセルされました。"
 
 msgid "Comparison report could not be saved."
 msgstr "比較レポートを保存できませんでした。"
 
-msgid "Comparison report could not be saved."
-msgstr "比較レポートを保存できませんでした。"
 
 msgid "Comparison saved as"
 msgstr "比較を次の名前で保存"
@@ -1827,8 +1751,6 @@ msgstr "比較を次の名前で保存"
 msgid "Done"
 msgstr "終わり"
 
-msgid "Comparison saved as"
-msgstr "比較を次の名前で保存"
 
 msgid "Delete Scene"
 msgstr "シーンの削除"
@@ -1836,23 +1758,15 @@ msgstr "シーンの削除"
 msgid "Drawn in"
 msgstr "引き込まれます"
 
-msgid "Done"
-msgstr "終わり"
 
-msgid "Drawn in"
-msgstr "引き込まれます"
 
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "ここで追加または変更したがまだ保存されていないコンポーネントを含む、このシーンをメイン ウィンドウに画像として描画します。\n\nバージョン 2 のレイアウトには独自のサイズがないため、プレビューは選択した画面にレイアウトし、変更すると再フローします。\n\nこのダイアログは、プレビューが表示されている間は閉じられ、その内容はすべて保持されます。プレビューの「エディタに戻る」ボタンを押すと元に戻ります。\n\nこれは表現であり、Tasker 独自のレンダラーではありません。% 変数は解決されるのではなく名前が付けられ、マテリアルの色はデバイスのテーマではなくベースライン パレットから取得され、画像、ビデオ、Web コンテンツはプレースホルダーとして表示されます。"
 
-msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
-msgstr "ここで追加または変更したがまだ保存されていないコンポーネントを含む、このシーンをメイン ウィンドウに画像として描画します。\n\nバージョン 2 のレイアウトには独自のサイズがないため、プレビューは選択した画面にレイアウトし、変更すると再フローします。\n\nこのダイアログは、プレビューが表示されている間は閉じられ、その内容はすべて保持されます。プレビューの「エディタに戻る」ボタンを押すと元に戻ります。\n\nこれは表現であり、Tasker 独自のレンダラーではありません。% 変数は解決されるのではなく名前が付けられ、マテリアルの色はデバイスのテーマではなくベースライン パレットから取得され、画像、ビデオ、Web コンテンツはプレースホルダーとして表示されます。"
 
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "このシーンを、まだ保存されていない変更を含め、上で入力したサイズでメイン ウィンドウに画像として描画します。\n\nこのダイアログは、プレビューが表示されている間は閉じられ、その内容はすべて保持されます。プレビューの「エディタに戻る」ボタンを押すと元に戻ります。\n\nこれは表現であり、Tasker 独自のレンダラーではありません。% 変数は解決されるのではなく名前が付けられ、画像、ビデオ、Web コンテンツはプレースホルダーとして表示されます。"
 
-msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
-msgstr "まだ保存されていない変更も含め、上で入力したサイズで、このシーンをメイン ウィンドウに画像として描画します。\n\nこのダイアログは、プレビューが表示されている間は閉じられ、その内容はすべて保持されます。プレビューの「エディタに戻る」ボタンを押すと元に戻ります。\n\nこれは表現であり、Tasker 独自のレンダラーではありません。% 変数は解決されるのではなく名前が付けられ、画像、ビデオ、Web コンテンツはプレースホルダーとして表示されます。"
 
 msgid "Dropdown menu — shown when opened"
 msgstr "ドロップダウン メニュー — 開くと表示されます"
@@ -1944,185 +1858,99 @@ msgstr "それに一致する要素はありません。"
 msgid "Not an HTML colour name or #hex value."
 msgstr "HTML カラー名または #hex 値ではありません。"
 
-msgid "Dropdown menu — shown when opened"
-msgstr "ドロップダウン メニュー — 開くと表示されます"
 
-msgid "Duplicate"
-msgstr "重複"
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "更新されていません -- これらは、このシーンとこの要素の両方に名前を付けていますが、"
 
-msgid "Dynamic and Select Variable are worked out when the Scene is shown."
-msgstr "動的および選択変数は、シーンが表示されているときに計算されます。"
 
-msgid "Dynamic value"
-msgstr "動的値"
 
-msgid "Edit Scene"
-msgstr "シーンの編集"
 
 msgid "Nothing here."
 msgstr "ここには何もありません。"
 
-msgid "Edit item layout"
-msgstr "アイテムのレイアウトを編集する"
 
-msgid "Edit this one's properties instead, keeping the selection."
-msgstr "代わりに、選択を維持したまま、このプロパティを編集します。"
 
 msgid "Notification Duration"
 msgstr "通知期間"
 
-msgid "Event handlers"
-msgstr "イベントハンドラー"
 
-msgid "Export Scene"
-msgstr "シーンのエクスポート"
 
-msgid "Geometry"
-msgstr "ジオメトリ"
 
-msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
-msgstr "グレー: MapTasker には引数テーブルがないため、Tasker が内部で何を期待しているかを推測せずに作成することはできません。見出しは MapTasker 独自のグループ化です。"
 
 msgid "Notification Duration:"
 msgstr "通知期間:"
 
-msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
-msgstr "ハッチングされた塗りつぶしと斜体の下線付きのテキストは %変数です。これらの値はバックアップではなくデバイス上に存在するため、推測されるのではなく名前が付けられます。画像、ビデオ、地図、Web コンテンツがプレースホルダーとして表示されます。任意の要素にマウスを移動すると、そのジオメトリ、その変数、および実行されるタスクが表示されます。"
 
 msgid "On"
 msgstr "の上"
 
-msgid "Health Check"
-msgstr "健康診断"
 
-msgid "Health Check found no errors or warnings."
-msgstr "ヘルスチェックではエラーや警告は見つかりませんでした。"
 
-msgid "Health Check report could not be saved."
-msgstr "ヘルスチェックレポートを保存できませんでした。"
 
 msgid "Only when"
 msgstr "ときのみ"
 
-msgid "Health Check saved as"
-msgstr "ヘルスチェックの名前を付けて保存"
 
-msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
-msgstr "ポップアップ メッセージが消えるまでに画面上に留まる時間。\n\n「閉じるまで」では、メッセージを閉じるまですべてのメッセージが表示されます。これは、メッセージを読む前にスクロールしてしまった場合に便利です。\n\nいくつかのメッセージでは、読まなければならない内容 (たとえば、シーン要素の削除や名前変更によって影響を受けるタスク) がリストされているため、独自に長い期間が設定されています。ここで何を選択しても、それらは独自のタイミングを保ちます。"
 
-msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
-msgstr "リスト内: Shift キーを押しながらクリックして範囲を指定し、Ctrl キーまたは Cmd キーを押しながらクリックして追加または削除します。"
 
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "すべてのコンポーネントの概要を説明し、デザイナーのツリーが名前を付ける方法で名前を付けます。"
 
-msgid "Item layout"
-msgstr "アイテムのレイアウト"
 
-msgid "Landscape"
-msgstr "風景"
 
 msgid "Outline every element and name it."
 msgstr "すべての要素の概要を説明し、名前を付けます。"
 
-msgid "Legacy"
-msgstr "遺産"
 
-msgid "Legacy Scene"
-msgstr "レガシーシーン"
 
-msgid "List"
-msgstr "リスト"
 
 msgid "Pick a Material icon."
 msgstr "マテリアルアイコンを選択します。"
 
-msgid "MapTasker: view limit reached, diagram truncated"
-msgstr "MapTasker: 表示制限に達したため、図が切り詰められました"
 
-msgid "Modifiers"
-msgstr "修飾子"
 
-msgid "Never updated"
-msgstr "決して更新されない"
 
 msgid "Pick an icon"
 msgstr "アイコンを選択してください"
 
-msgid "No Task addresses this element by name."
-msgstr "この要素を名前で指定するタスクはありません。"
 
-msgid "No XML file has been loaded.  Get an XML file first."
-msgstr "XML ファイルがロードされていません。  まず XML ファイルを取得します。"
 
 msgid "Pick from the Scene's environment and global variables."
 msgstr "シーンの環境変数とグローバル変数から選択します。"
 
-msgid "No element matches that."
-msgstr "それに一致する要素はありません。"
 
-msgid "Not an HTML colour name or #hex value."
-msgstr "HTML カラー名または #hex 値ではありません。"
 
 msgid "Pick one of Material's own colour roles."
 msgstr "マテリアル独自の色の役割の 1 つを選択します。"
 
-msgid "Not updated -- these name both this Scene and this element, but not as a"
-msgstr "更新されていません -- これらは、このシーンとこの要素の両方に名前を付けていますが、"
 
 msgid "Preview"
 msgstr "プレビュー"
 
-msgid "Nothing here."
-msgstr "ここには何もありません。"
 
-msgid "Notification Duration"
-msgstr "通知期間"
 
 msgid "Project(s) that list it."
 msgstr "それをリストするプロジェクト。"
 
-msgid "Notification Duration:"
-msgstr "通知期間:"
 
-msgid "On"
-msgstr "の上"
 
-msgid "Only when"
-msgstr "ときのみ"
 
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "新しい名前の入力を求めるプロンプトが表示され、ロードされたバックアップにそれが適用されます。シーンを保持するすべてのプロジェクトのシーン リストを含め、あらゆる場所でシーンの名前が変更されます。\n\nこのシーンを名前で表示または非表示にするタスクは更新されません。それらは今でも古いシーンに名前を付けています。\n\n上のシーン名フィールドは読み取り専用です。これがそれを変更する唯一の方法です。"
 
-msgid "Outline every component and name it, the way the designer's tree names it."
-msgstr "すべてのコンポーネントの概要を説明し、デザイナーのツリーが名前を付ける方法で名前を付けます。"
 
-msgid "Outline every element and name it."
-msgstr "すべての要素の概要を説明し、名前を付けます。"
 
-msgid "Pick a Material icon."
-msgstr "マテリアルアイコンを選択します。"
 
 msgid "Properties"
 msgstr "プロパティ"
 
-msgid "Pick an icon"
-msgstr "アイコンを選択してください"
 
-msgid "Pick from the Scene's environment and global variables."
-msgstr "シーンの環境変数とグローバル変数から選択します。"
 
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "プロパティは一度に 1 要素ずつ編集されます。ドラッグして微調整すると、選択したすべてが移動します。"
 
-msgid "Pick one of Material's own colour roles."
-msgstr "マテリアル独自の色の役割の 1 つを選択します。"
 
-msgid "Preview"
-msgstr "プレビュー"
 
 msgid "Refresh"
 msgstr "リフレッシュ"
@@ -2130,32 +1958,20 @@ msgstr "リフレッシュ"
 msgid "Remove background"
 msgstr "背景を削除する"
 
-msgid "Project(s) that list it."
-msgstr "それをリストするプロジェクト。"
 
-msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
-msgstr "プロパティは一度に 1 要素ずつ編集されます。ドラッグして微調整すると、選択したすべてが移動します。"
 
-msgid "Remove background"
-msgstr "背景を削除する"
 
 msgid "Rename Element"
 msgstr "要素の名前を変更"
 
-msgid "Rename Element"
-msgstr "要素の名前を変更"
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "ここで要素の名前を変更しても、バックアップはスイープされません。アイテム レイアウトには、タスクの要素アクションに対応するためのシーン名がないため、書き換えるものはありません。"
 
-msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
-msgstr "ここで要素の名前を変更しても、バックアップはスイープされません。アイテム レイアウトには、タスクの要素アクションに対応するためのシーン名がないため、書き換えるものはありません。"
 
 msgid "Repeats once per array entry"
 msgstr "配列エントリごとに 1 回繰り返します"
 
-msgid "Repeats once per array entry"
-msgstr "配列エントリごとに 1 回繰り返します"
 
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "ドラッグされた位置とサイズをこのピクセル数に丸めます。"
@@ -2163,14 +1979,10 @@ msgstr "ドラッグされた位置とサイズをこのピクセル数に丸め
 msgid "Save Scene To Android Device"
 msgstr "シーンを Android デバイスに保存"
 
-msgid "Save Scene To Android Device"
-msgstr "シーンを Android デバイスに保存"
 
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "このセッション内の任意の場所で行われたすべての編集を含む、バックアップ全体 (このシーンだけでなく、その中のすべてのプロジェクト、プロファイル、タスク、シーン) を保存します。\nこれは、現在ロードされているファイルのタイムスタンプ付きの新しいコピーに書き込まれます。backup.xml は、backup_20260728_143005.xml になります。\nロードしたファイルは決して書き込まれないため、そのまま残されます。\nその後、アプリは新しいコピーに切り替わり、それが現在のファイルとなり、その後の編集や保存が可能になります。再度保存すると、2 番目のタイムスタンプが追加されるのではなく、タイムスタンプが置き換えられます。\nこれはこのコンピュータにのみ書き込みます。Android デバイスには何も送信されません。"
 
-msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
-msgstr "このセッション内の任意の場所で行われたすべての編集を含む、バックアップ全体 (このシーンだけでなく、その中のすべてのプロジェクト、プロファイル、タスク、シーン) を保存します。\nこれは、現在ロードされているファイルのタイムスタンプ付きの新しいコピーに書き込まれます。backup.xml は、backup_20260728_143005.xml になります。\nロードしたファイルは決して書き込まれないため、そのまま残されます。\nその後、アプリは新しいコピーに切り替わり、それが現在のファイルとなり、その後の編集や保存が可能になります。再度保存すると、2 番目のタイムスタンプが追加されるのではなく、タイムスタンプが置き換えられます。\nこれはこのコンピュータにのみ書き込みます。Android デバイスには何も送信されません。"
 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "このシーンとそのすべての要素を 1 つのスタンドアロン .scn.xml ファイルとして保存します。これは、Tasker 独自のシーン エクスポートが生成するのと同じ形式です。\n\nシーンの要素が実行するタスクは含まれません。彼らは独自のプロジェクトに属しています。"
@@ -2178,65 +1990,43 @@ msgstr "このシーンとそのすべての要素を 1 つのスタンドアロ
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "ロードされた XML をスキャンして、壊れた参照、参照されていないタスク、プロファイル、シーン、および名前付けの問題を調べます。\n\n結果はここに表示され、現在のディレクトリのテキスト ファイルに保存されます。"
 
-msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
-msgstr "このシーンとそのすべての要素を 1 つのスタンドアロン .scn.xml ファイルとして保存します。これは、Tasker 独自のシーン エクスポートが生成するのと同じ形式です。\n\nシーンの要素が実行するタスクは含まれません。彼らは独自のプロジェクトに属しています。"
 
-msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "ロードされた XML をスキャンして、壊れた参照、参照されていないタスク、プロファイル、シーン、および名前付けの問題を調べます。\n\n結果はここに表示され、現在のディレクトリのテキスト ファイルに保存されます。"
 
 msgid "Scene Components"
 msgstr "シーンコンポーネント"
 
-msgid "Scene Components"
-msgstr "シーンコンポーネント"
 
 msgid "Scene Elements"
 msgstr "シーンの要素"
 
-msgid "Scene Elements"
-msgstr "シーンの要素"
 
 msgid "Scene Name"
 msgstr "シーン名"
 
-msgid "Scene Name"
-msgstr "シーン名"
 
 msgid "Scene Preview"
 msgstr "シーンのプレビュー"
 
-msgid "Scene Preview"
-msgstr "シーンのプレビュー"
 
 msgid "Scene Properties"
 msgstr "シーンのプロパティ"
 
-msgid "Scene Properties"
-msgstr "シーンのプロパティ"
 
 msgid "Scene added."
 msgstr "シーンが追加されました。"
 
-msgid "Scene added."
-msgstr "シーンが追加されました。"
 
 msgid "Scene type"
 msgstr "シーンタイプ"
 
-msgid "Scene type"
-msgstr "シーンタイプ"
 
 msgid "Screen"
 msgstr "画面"
 
-msgid "Screen"
-msgstr "画面"
 
 msgid "Search elements"
 msgstr "検索要素"
 
-msgid "Search elements"
-msgstr "検索要素"
 
 msgid "Search variables"
 msgstr "検索変数"
@@ -2244,62 +2034,42 @@ msgstr "検索変数"
 msgid "Search icons"
 msgstr "検索アイコン"
 
-msgid "Search variables"
-msgstr "検索変数"
 
 msgid "Select a component on the left."
 msgstr "左側でコンポーネントを選択します。"
 
-msgid "Select a component on the left."
-msgstr "左側でコンポーネントを選択します。"
 
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "残りを表示するには、より大きな表示制限を選択するか、単一のプロジェクト/プロファイル/タスクを選択します。"
 
-msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
-msgstr "残りを表示するには、より大きな表示制限を選択するか、単一のプロジェクト/プロファイル/タスクを選択します。"
 
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "まず 1 つのシーンを選択します (上の [シーン] プルダウン)。"
 
-msgid "Select a single Scene first (Scene pulldown above)."
-msgstr "まず 1 つのシーンを選択します (上の [シーン] プルダウン)。"
 
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "単一の要素を選択して、複製、削除、または再スタックします。"
 
-msgid "Select a single element to duplicate, delete or restack it."
-msgstr "単一の要素を選択して、複製、削除、または再スタックします。"
 
 msgid "Select an element first."
 msgstr "まず要素を選択します。"
 
-msgid "Select an element first."
-msgstr "まず要素を選択します。"
 
 msgid "Select an element on the canvas or in the list."
 msgstr "キャンバスまたはリスト内の要素を選択します。"
 
-msgid "Select an element on the canvas or in the list."
-msgstr "キャンバスまたはリスト内の要素を選択します。"
 
 msgid "Show the Task each element runs."
 msgstr "各要素が実行するタスクを表示します。"
 
-msgid "Show the Task each element runs."
-msgstr "各要素が実行するタスクを表示します。"
 
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "各コンポーネントがタップされたときに何を行うか、また何に書き込むかを示します。"
 
-msgid "Show what each component does when tapped, and what it writes to."
-msgstr "各コンポーネントがタップされたときに何を行うか、また何に書き込むかを示します。"
 
 msgid "Show when"
 msgstr "いつ表示するか"
 
-msgid "Show when"
-msgstr "いつ表示するか"
 
 msgid "Size"
 msgstr "サイズ"
@@ -2307,23 +2077,15 @@ msgstr "サイズ"
 msgid "Snap"
 msgstr "スナップ"
 
-msgid "Size"
-msgstr "サイズ"
 
 msgid "Spinner"
 msgstr "スピナー"
 
-msgid "Snap"
-msgstr "スナップ"
 
-msgid "Spinner"
-msgstr "スピナー"
 
 msgid "Stop firing anything on this event."
 msgstr "このイベントでは何も発砲しないでください。"
 
-msgid "Stop firing anything on this event."
-msgstr "このイベントでは何も発砲しないでください。"
 
 msgid "Task action(s) in"
 msgstr "のタスクアクション"
@@ -2331,89 +2093,59 @@ msgstr "のタスクアクション"
 msgid "Task(s)"
 msgstr "タスク"
 
-msgid "Task action(s) in"
-msgstr "のタスクアクション"
 
-msgid "Task(s)"
-msgstr "タスク"
 
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "タスクは、一致パターン (要素の可視性) によってこのシーンに対応します。自分で確認してください"
 
-msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
-msgstr "タスクは、一致パターン (要素の可視性) によってこのシーンに対応します。自分で確認してください"
 
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker はこのタスクをシーン内に保持し、他の場所には保持しないため、名前がなく、タスクを失うことなく他の場所を指すことはできません。そのままそのまま貫かれています。"
 
-msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
-msgstr "Tasker はこのタスクをシーン内に保持し、他の場所には保持しないため、名前がなく、タスクを失うことなく他の場所を指すことはできません。そのままそのまま貫かれています。"
 
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker はこの要素をリストしますが、MapTasker は保存されたシーンでこの要素を見たことがありません。そのため、そのタイプと ID だけを持って追加され、タイプさえも上記の名前 (type: \"{node_type}\" として記述されます) から推測されます。 Tasker がそれを認識しない場合は、「元に戻す」を押してください。"
 
-msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
-msgstr "Tasker はこの要素をリストしますが、MapTasker は保存されたシーンでこの要素を見たことがありません。そのため、そのタイプと ID だけを持って追加され、タイプさえも上記の名前 (type: \"{node_type}\" として記述されます) から推測されます。 Tasker がそれを認識しない場合は、「元に戻す」を押してください。"
 
 msgid "Tasker variable(s)"
 msgstr "タスクカー変数"
 
-msgid "Tasker variable(s)"
-msgstr "タスクカー変数"
 
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Tasker's Screen Builder: キャンバス サイズが固定されていない、それ自体をレイアウトする宣言型コンポーネント ツリー (列、行、足場など)。以下から開始します:"
 
-msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
-msgstr "Tasker's Screen Builder: キャンバス サイズが固定されていない、それ自体をレイアウトする宣言型コンポーネント ツリー (列、行、足場など)。以下から開始します:"
 
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "タスクはこの要素を名前 (要素テキスト、要素位置、... 合計 18 のアクション コード) でアドレス指定するため、名前の変更はフィールド編集ではありません。 [名前の変更] ダイアログには、現在の名前に依存するものがリストされ、それらのタスクを含めることが提案されます。"
 
-msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
-msgstr "タスクはこの要素を名前 (要素テキスト、要素位置、... 合計 18 のアクション コード) でアドレス指定するため、名前の変更はフィールド編集ではありません。 [名前の変更] ダイアログには、現在の名前に依存するものがリストされ、それらのタスクを含めることが提案されます。"
 
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "このシーンを名前で表示または非表示にするタスクは変更されず、そのまま残ります。"
 
-msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
-msgstr "このシーンを名前で表示または非表示にするタスクは変更されず、そのまま残ります。"
 
 msgid "Text density"
 msgstr "文字の密度"
 
-msgid "Text density"
-msgstr "文字の密度"
 
 msgid "That component can't go there."
 msgstr "そのコンポーネントはそこに移動できません。"
 
-msgid "That component can't go there."
-msgstr "そのコンポーネントはそこに移動できません。"
 
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "それはすでにロードされているファイルです。  比較する別のものを選択してください。"
 
-msgid "That is the file already loaded.  Choose a different one to compare against."
-msgstr "それはすでにロードされているファイルです。  比較する別のものを選択してください。"
 
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "マテリアル アイコン リストを読み取れなかったため、代わりに名前を入力してください。"
 
-msgid "The Material icon list could not be read, so type the name instead."
-msgstr "マテリアル アイコン リストを読み取れなかったため、代わりに名前を入力してください。"
 
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "このコンポーネントが値を書き込む Tasker 変数。複数の場合はカンマで区切ります。バインディングを設定せずに宣言するには、空のままにします。"
 
-msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
-msgstr "このコンポーネントが値を書き込む Tasker 変数。複数の場合はカンマで区切ります。バインディングを設定せずに宣言するには、空のままにします。"
 
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "このシーンが保存されると、それに対処するタスクが更新されます。"
 
-msgid "The Tasks that address it will be updated when this Scene is saved."
-msgstr "このシーンが保存されると、それに対処するタスクが更新されます。"
 
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "1列のレイアウトです。 Tasker は、リストを満たすエントリごとに 1 回描画するため、ここに表示されるのはリストではなく 1 行です。"
@@ -2421,20 +2153,14 @@ msgstr "1列のレイアウトです。 Tasker は、リストを満たすエン
 msgid "The loaded file was saved from"
 msgstr "ロードされたファイルは次の場所から保存されました"
 
-msgid "The loaded file was saved from"
-msgstr "ロードされたファイルは次の場所から保存されました"
 
 msgid "The original"
 msgstr "オリジナル"
 
-msgid "The original"
-msgstr "オリジナル"
 
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "元のシーン: サイズ設定されたキャンバス上の固定位置に配置された UI 要素 (テキスト、ボタン、Rect、画像、Web など)。"
 
-msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
-msgstr "元のシーン: サイズ設定されたキャンバス上の固定位置に配置された UI 要素 (テキスト、ボタン、Rect、画像、Web など)。"
 
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "画面のサイズはシーンのサイズではなく、このプレビューのサイズです。バージョン 2 のレイアウトには独自のサイズがないため、「画面」を変更して再フローしてください。マテリアルの役割によって名前が付けられた色は、マテリアル 3 のベースライン パレットから描画されます。デバイスは、マテリアルの下にある壁紙から取得した独自のテーマに基づいてそれらを解決します。ハッチングされた塗りつぶしと斜体の下線付きテキストは %変数です。黄色のアウトラインはコンポーネントに「表示時期」をマークします。コンポーネントにカーソルを置くと、その修飾子、変数、アクションが表示されます。"
@@ -2442,38 +2168,26 @@ msgstr "画面のサイズはシーンのサイズではなく、このプレビ
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "検索は終了しませんでした。ビューが大きすぎるか、ブラウザがビジー状態である可能性があります。"
 
-msgid "The search did not finish. The view may be too large, or the browser is busy."
-msgstr "検索は終了しませんでした。ビューが大きすぎるか、ブラウザがビジー状態である可能性があります。"
 
 msgid "The two files hold the same configuration."
 msgstr "2 つのファイルは同じ構成を保持します。"
 
-msgid "The two files hold the same configuration."
-msgstr "2 つのファイルは同じ構成を保持します。"
 
 msgid "This Scene has no UI elements."
 msgstr "このシーンには UI 要素がありません。"
 
-msgid "This Scene has no UI elements."
-msgstr "このシーンには UI 要素がありません。"
 
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "このシーンには独自のランドスケープ レイアウトがありません (サイズは -1)。"
 
-msgid "This Scene has no landscape layout of its own (its size is -1)."
-msgstr "このシーンには独自のランドスケープ レイアウトがありません (サイズは -1)。"
 
 msgid "This Scene has no layout for this orientation."
 msgstr "このシーンには、この向きのレイアウトがありません。"
 
-msgid "This Scene has no layout for this orientation."
-msgstr "このシーンには、この向きのレイアウトがありません。"
 
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "このシーンにはプロパティ要素がありません。 MapTasker が見た 366 のシーンのうち 66 には何もなかったので、これは損傷ではなく普通の現象です。"
 
-msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
-msgstr "このシーンにはプロパティ要素がありません。 MapTasker が見た 366 のシーンのうち 66 には何もなかったので、これは損傷ではなく普通の現象です。"
 
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "このシーンのバージョン 2 レイアウトにはルート コンポーネントがないため、デザインするものは何もありません。"
@@ -2481,20 +2195,14 @@ msgstr "このシーンのバージョン 2 レイアウトにはルート コ�
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "このシーンのバージョン 2 レイアウトは読み取れなかったため、そのまま残されます。"
 
-msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
-msgstr "このシーンのバージョン 2 レイアウトにはルート コンポーネントがないため、デザインするものは何もありません。"
 
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "このアプリにはこの要素タイプのプロパティ テーブルがないため、ここで編集できるのはそのジオメトリのみです。それ以外の場合はそのまま引き継がれます。"
 
-msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
-msgstr "このアプリにはこの要素タイプのプロパティ テーブルがないため、ここで編集できるのはそのジオメトリのみです。それ以外の場合はそのまま引き継がれます。"
 
 msgid "This element has no layout for this orientation."
 msgstr "この要素には、この向きのレイアウトがありません。"
 
-msgid "This element has no layout for this orientation."
-msgstr "この要素には、この向きのレイアウトがありません。"
 
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "これにより、シーンがスタンドアロン ファイルとして Android デバイスの /Tasker/scenes に書き込まれます。\n\nIP アドレスとポートは、Android デバイスの Tasker サーバー設定と一致する必要があります。\n\nこれには認証プロンプトは必要ありません。"
@@ -2502,158 +2210,145 @@ msgstr "これにより、シーンがスタンドアロン ファイルとし�
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "これにより、シーンがスタンドアロン ファイルとして Android デバイスの /Tasker/scenes に書き込まれます。Tasker のライブ構成にはインポートされません。\n\n「Http Server Example」Tasker プロジェクトは、サーバーが実行されている Android デバイスにインストールされ、アクティブになっている必要があります。\n\nAndroid デバイスは同じネットワーク上にある必要があり、IP アドレスとポートは Tasker サーバーの設定と一致する必要があります。これには認証プロンプトは必要ありません。"
 
-msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
-msgstr "これにより、シーンがスタンドアロン ファイルとして Android デバイスの /Tasker/scenes に書き込まれます。Tasker のライブ構成にはインポートされません。\n\n「Http Server Example」Tasker プロジェクトは、サーバーが実行されている Android デバイスにインストールされ、アクティブになっている必要があります。\n\nAndroid デバイスは同じネットワーク上にある必要があり、IP アドレスとポートは Tasker サーバーの設定と一致する必要があります。これには認証プロンプトは必要ありません。"
 
 msgid "Tree label"
 msgstr "ツリーラベル"
 
-msgid "Tree label"
-msgstr "ツリーラベル"
 
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "画面を横にして、レイアウトを再び画面に流し込みます。"
 
-msgid "Turn the screen on its side and let the layout re-flow into it."
-msgstr "画面を横にして、レイアウトを再び画面に流し込みます。"
 
 msgid "Undo"
 msgstr "元に戻す"
 
-msgid "Undo"
-msgstr "元に戻す"
 
 msgid "Using the saved size"
 msgstr "保存したサイズを使用する"
 
-msgid "Using the saved size"
-msgstr "保存したサイズを使用する"
 
 msgid "Variable"
 msgstr "変数"
 
-msgid "Variable"
-msgstr "変数"
 
 msgid "Variables"
 msgstr "変数"
 
-msgid "Variables"
-msgstr "変数"
 
 msgid "Version 2"
 msgstr "バージョン2"
 
-msgid "Version 2"
-msgstr "バージョン2"
 
 msgid "View Limit"
 msgstr "閲覧制限"
 
-msgid "View Limit"
-msgstr "閲覧制限"
 
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "選択した内容がカーソルの位置に表示されます。次の部分を追加するには、これを再度開きます。"
 
-msgid "What you pick goes in at the cursor. Open this again to add the next piece."
-msgstr "選択した内容がカーソルの位置に表示されます。次の部分を追加するには、これを再度開きます。"
 
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "選択した内容がフィールドに保持されている内容に置き換わります。と入力してリストを絞り込みます。"
 
-msgid "What you pick replaces what the field holds. Type to narrow the list down."
-msgstr "選択した内容がフィールドに保持されている内容に置き換わります。と入力してリストを絞り込みます。"
 
 msgid "Which kind of Scene?"
 msgstr "どのようなシーンですか？"
 
-msgid "Which kind of Scene?"
-msgstr "どのようなシーンですか？"
 
 msgid "Writes to variable"
 msgstr "変数に書き込みます"
 
-msgid "Writes to variable"
-msgstr "変数に書き込みます"
 
 msgid "Zoom"
 msgstr "ズーム"
 
-msgid "Zoom"
-msgstr "ズーム"
 
 msgid "component(s)"
 msgstr "コンポーネント"
 
-msgid "component(s)"
-msgstr "コンポーネント"
 
 msgid "connectors"
 msgstr "コネクタ"
 
-msgid "connectors"
-msgstr "コネクタ"
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "それらのいずれかをドラッグまたはナッジすると、すべてが一緒に移動します。"
 
-msgid "drag or nudge any of them and they all move together."
-msgstr "それらのいずれかをドラッグまたはナッジすると、すべてが一緒に移動します。"
 
 msgid "editing 1 of"
 msgstr "1 件を編集中"
 
-msgid "editing 1 of"
-msgstr "1 件を編集中"
 
 msgid "element(s)"
 msgstr "要素"
 
-msgid "element(s)"
-msgstr "要素"
 
 msgid "elements selected"
 msgstr "選択された要素"
 
-msgid "elements selected"
-msgstr "選択された要素"
 
 msgid "is not a whole number"
 msgstr "整数ではありません"
 
-msgid "is not a whole number"
-msgstr "整数ではありません"
 
 msgid "lines dropped"
 msgstr "行が削除されました"
 
-msgid "lines dropped"
-msgstr "行が削除されました"
 
 msgid "none"
 msgstr "なし"
 
-msgid "none"
-msgstr "なし"
 
 msgid "not drawn"
 msgstr "描かれていない"
 
-msgid "not drawn"
-msgstr "描かれていない"
 
 msgid "pair"
 msgstr "ペア"
 
-msgid "pair"
-msgstr "ペア"
 
 msgid "pixels"
 msgstr "ピクセル"
 
-msgid "pixels"
-msgstr "ピクセル"
 
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "サイズは整数でなければなりません (レイアウトがない場合は -1)。"
+
+msgid "Building the Map to show"
+msgstr "表示するマップを構築する"
+
+msgid "Built the Map, but it has no line for"
+msgstr "マップを作成しましたが、その行がありません"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "検出結果をクリックすると、マップ ビューで表示されます。"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "変数または場所をクリックすると、マップ ビューで表示されます。"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "開いているマップ ビューはありません。  マップビューを実行し、これをもう一度クリックします。"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "ロードされた XML 内のすべての %変数をトレースします。各変数が設定されている場所、読み取られている場所、読み取られているが設定されていないもの、設定されているが読み取られないもの、およびタイプミスの可能性が高いほぼ同一の名前 (%MyVar と %Myvar) はどれですか。\n\n検索対象: タスク アクションとその条件、プラグイン設定、プロファイル コンテキスト、およびシーン。\n\n結果はここに表示され、現在のディレクトリのテキスト ファイルに保存されます。"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "変数相互参照を次の名前で保存しました"
+
+msgid "detail level"
+msgstr "詳細レベル"
+
+msgid "whole file"
+msgstr "ファイル全体"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "変数相互参照により、疑わしい変数は見つかりませんでした。"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "変数相互参照レポートを保存できませんでした。"
+
+msgid "Variable Xref"
+msgstr "変数外部参照"
+
+msgid "is no longer in the loaded configuration."
+msgstr "はロードされた構成には含まれなくなりました。"

@@ -1599,14 +1599,10 @@ msgstr "-1 означает, что эта ориентация не имеет 
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...и еще {count} — введите выше, чтобы сузить список."
 
-msgid "...and {count} more -- type above to narrow it down."
-msgstr "...и еще {count} — введите выше, чтобы сузить список."
 
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "Позиции элементов сцены хранятся в пикселях устройства, а размеры текста хранятся в единицах sp Android. Число, которое преобразуется между ними, является свойством телефона, на котором отображается сцена, и не находится в файле резервной копии.\n\nИтак, это установлено здесь. Поднимите его, если текст выглядит слишком маленьким для своих элементов, и опустите, если текст выходит за их пределы."
 
-msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
-msgstr "Позиции элементов сцены хранятся в пикселях устройства, а размеры текста хранятся в единицах sp Android. Число, которое преобразуется между ними, является свойством телефона, на котором отображается сцена, и не находится в файле резервной копии.\n\nИтак, это установлено здесь. Поднимите его, если текст выглядит слишком маленьким для своих элементов, и опустите, если текст выходит за их пределы."
 
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "Сцена Версии 2 не имеет собственного размера — она располагается внутри любого экрана, на котором она отображается, поэтому в резервном файле нет ничего, на чем можно было бы ее нарисовать.\n\nИзмените это, чтобы увидеть перекомпоновку макета. Строка потока переносится по-другому, и любое «Показать когда», написанное для %sv2_render_width, спрашивает именно об этом."
@@ -1614,131 +1610,87 @@ msgstr "Сцена Версии 2 не имеет собственного ра�
 msgid "Actions"
 msgstr "Действия"
 
-msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
-msgstr "Сцена Версии 2 не имеет собственного размера — она располагается внутри любого экрана, на котором она отображается, поэтому в резервном файле нет ничего, на чем можно было бы ее нарисовать.\n\nИзмените это, чтобы увидеть перекомпоновку макета. Строка потока переносится по-другому, и любое «Показать когда», написанное для %sv2_render_width, спрашивает именно об этом."
 
 msgid "Add"
 msgstr "Добавлять"
 
-msgid "Actions"
-msgstr "Действия"
 
-msgid "Add"
-msgstr "Добавлять"
 
 msgid "Add Element"
 msgstr "Добавить элемент"
 
-msgid "Add Element"
-msgstr "Добавить элемент"
 
 msgid "Add Scene"
 msgstr "Добавить сцену"
 
-msgid "Add Scene"
-msgstr "Добавить сцену"
 
 msgid "Add a background"
 msgstr "Добавить фон"
 
-msgid "Add a background"
-msgstr "Добавить фон"
 
 msgid "Add action"
 msgstr "Добавить действие"
 
-msgid "Add action"
-msgstr "Добавить действие"
 
 msgid "Add event"
 msgstr "Добавить событие"
 
-msgid "Add event"
-msgstr "Добавить событие"
 
 msgid "Add handler"
 msgstr "Добавить обработчик"
 
-msgid "Add handler"
-msgstr "Добавить обработчик"
 
 msgid "Add modifier"
 msgstr "Добавить модификатор"
 
-msgid "Add modifier"
-msgstr "Добавить модификатор"
 
 msgid "Add scene properties"
 msgstr "Добавить свойства сцены"
 
-msgid "Add scene properties"
-msgstr "Добавить свойства сцены"
 
 msgid "Addressed by id from"
 msgstr "Адресован по идентификатору от"
 
-msgid "Addressed by id from"
-msgstr "Адресован по идентификатору от"
 
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "Добавляет элемент поверх стека, в середине сцены."
 
-msgid "Adds an element on top of the stack, in the middle of the Scene."
-msgstr "Добавляет элемент поверх стека, в середине сцены."
 
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "Добавляет внутри выбранного компонента, если он может содержать дочерние элементы, в противном случае сразу после него."
 
-msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
-msgstr "Добавляет внутри выбранного компонента, если он может содержать дочерние элементы, в противном случае сразу после него."
 
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "Добавляет его поверх стека, в середину сцены. Перетащите его туда, куда вы хотите."
 
-msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
-msgstr "Добавляет его поверх стека, в середину сцены. Перетащите его туда, куда вы хотите."
 
 msgid "Also selected:"
 msgstr "Также выбрано:"
 
-msgid "Also selected:"
-msgstr "Также выбрано:"
 
 msgid "Also update"
 msgstr "Также обновите"
 
-msgid "Also update"
-msgstr "Также обновите"
 
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Желтый: Tasker его перечисляет, но у MapTasker нет подтвержденного образца. Серый: не могу пойти туда, куда указывает выбор."
 
-msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
-msgstr "Желтый: Tasker его перечисляет, но у MapTasker нет подтвержденного образца. Серый: не могу пойти туда, куда указывает выбор."
 
 msgid "App icon"
 msgstr "Значок приложения"
 
-msgid "App icon"
-msgstr "Значок приложения"
 
 msgid "Appearance Mode"
 msgstr "Режим внешнего вида"
 
-msgid "Appearance Mode"
-msgstr "Режим внешнего вида"
 
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "Применяется по порядку — тот, что внизу, сидит сверху."
 
-msgid "Applied in order — the one at the bottom sits on top."
-msgstr "Применяется по порядку — тот, что внизу, сидит сверху."
 
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "Применяется при сохранении этой сцены, а не сейчас. Отмена в диалоговом окне «Сцена» оставляет и элемент, и задачи такими же, какими они были."
 
-msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
-msgstr "Применяется при сохранении этой сцены, а не сейчас. Отмена в диалоговом окне «Сцена» оставляет и элемент, и задачи такими же, какими они были."
 
 msgid "Bounds"
 msgstr "Границы"
@@ -1746,8 +1698,6 @@ msgstr "Границы"
 msgid "Back to Editor"
 msgstr "Вернуться в редактор"
 
-msgid "Bounds"
-msgstr "Границы"
 
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "Отменено. Изменения этой сцены были отменены."
@@ -1755,32 +1705,22 @@ msgstr "Отменено. Изменения этой сцены были отм
 msgid "Choose another file..."
 msgstr "Выбрать другой файл..."
 
-msgid "Cancelled. Changes to this Scene were discarded."
-msgstr "Отменено. Изменения этой сцены были отменены."
 
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "Щелкните компонент, чтобы выбрать его, нажмите, удерживая клавишу Shift, другой компонент в том же контейнере, чтобы взять несколько, и перетащите, чтобы переупорядочить их между своими родственными компонентами. Перемещение компонента в контейнер или из контейнера осуществляется кнопками «Вход» и «Выход» редактора; Отмена тоже есть."
 
-msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
-msgstr "Щелкните компонент, чтобы выбрать его, нажмите, удерживая клавишу Shift, другой компонент в том же контейнере, чтобы взять несколько, и перетащите, чтобы переупорядочить их между своими родственными компонентами. Перемещение компонента в контейнер или из контейнера осуществляется кнопками «Вход» и «Выход» редактора; Отмена тоже есть."
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "Щелкните элемент, чтобы выбрать его, щелкните, удерживая клавишу Shift, или перетащите прямоугольник на фоне, чтобы взять несколько, и перетащите любой из них, чтобы переместить их все — клавиши со стрелками перемещают, Shift — на 10 пикселей. Перетащите маркер, чтобы изменить размер одного элемента. Отмена и все остальное, связанное с элементом, снова находится в редакторе."
 
-msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
-msgstr "Щелкните элемент, чтобы выбрать его, щелкните, удерживая клавишу Shift, или перетащите прямоугольник на фоне, чтобы взять несколько, и перетащите любой из них, чтобы переместить их все — клавиши со стрелками перемещают, Shift — на 10 пикселей. Перетащите маркер, чтобы изменить размер одного элемента. Отмена и все остальное, связанное с элементом, снова находится в редакторе."
 
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "Щелкните элемент, чтобы выбрать его, перетащите, чтобы переместить, перетащите маркер, чтобы изменить размер, клавиши со стрелками, чтобы сдвинуть (Shift для 10 пикселей). Щелкните, удерживая клавишу Shift, или перетащите рамку на фон, чтобы сделать несколько снимков одновременно."
 
-msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
-msgstr "Щелкните элемент, чтобы выбрать его, перетащите, чтобы переместить, перетащите маркер, чтобы изменить размер, клавиши со стрелками, чтобы сдвинуть (Shift для 10 пикселей). Щелкните, удерживая клавишу Shift, или перетащите рамку на фон, чтобы сделать несколько снимков одновременно."
 
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "Закрывается без сохранения и возвращает эту сцену точно так, как она была при открытии этого диалогового окна, включая все, что было перемещено или изменено в предварительном просмотре.\n\nПереименование — это единственное, что нельзя вернуть обратно: оно применяется к загруженной резервной копии по мере ее подтверждения и закрывает это диалоговое окно."
 
-msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
-msgstr "Закрывается без сохранения и возвращает эту сцену точно так, как она была при открытии этого диалогового окна, включая все, что было перемещено или изменено в предварительном просмотре.\n\nПереименование — это единственное, что нельзя вернуть обратно: оно применяется к загруженной резервной копии по мере ее подтверждения и закрывает это диалоговое окно."
 
 msgid "Compare Files"
 msgstr "Сравнить файлы"
@@ -1788,20 +1728,14 @@ msgstr "Сравнить файлы"
 msgid "Compare With"
 msgstr "Сравнить с"
 
-msgid "Compare With"
-msgstr "Сравнить с"
 
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Сравните другой XML-файл с загруженным: что было добавлено, удалено, переименовано и изменено.\n\nИспользуйте его, чтобы увидеть, что привнес импорт TaskerNet, какие изменения были изменены или чем отличаются две резервные копии.\n\nЕсли загруженный файл был получен из «Сохранить в текущий файл», напрямую предлагается файл, из которого он был сохранен.\n\nРезультаты отображаются здесь и сохраняются в текстовый файл в текущем каталоге."
 
-msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "Сравните другой XML-файл с загруженным: что было добавлено, удалено, переименовано и изменено.\n\nИспользуйте его, чтобы увидеть, что привнес импорт TaskerNet, какие изменения были изменены или чем отличаются две резервные копии.\n\nЕсли загруженный файл был получен из «Сохранить в текущий файл», напрямую предлагается файл, из которого он был сохранен.\n\nРезультаты отображаются здесь и сохраняются в текстовый файл в текущем каталоге."
 
 msgid "Comparison cancelled."
 msgstr "Сравнение отменено."
 
-msgid "Comparison cancelled."
-msgstr "Сравнение отменено."
 
 msgid "Comparison saved as"
 msgstr "Сравнение сохранено как"
@@ -1809,8 +1743,6 @@ msgstr "Сравнение сохранено как"
 msgid "Comparison report could not be saved."
 msgstr "Не удалось сохранить отчет о сравнении."
 
-msgid "Comparison saved as"
-msgstr "Сравнение сохранено как"
 
 msgid "Delete Scene"
 msgstr "Удалить сцену"
@@ -1818,8 +1750,6 @@ msgstr "Удалить сцену"
 msgid "Done"
 msgstr "Сделанный"
 
-msgid "Delete Scene"
-msgstr "Удалить сцену"
 
 msgid "Drawn in"
 msgstr "Втянутый"
@@ -1833,14 +1763,10 @@ msgstr "Рисует эту сцену как изображение в глав
 msgid "Dropdown menu — shown when opened"
 msgstr "Выпадающее меню — отображается при открытии."
 
-msgid "Dropdown menu — shown when opened"
-msgstr "Выпадающее меню — отображается при открытии."
 
 msgid "Duplicate"
 msgstr "Дублировать"
 
-msgid "Duplicate"
-msgstr "Дублировать"
 
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Динамика и выбор переменной обрабатываются при отображении сцены."
@@ -1848,20 +1774,14 @@ msgstr "Динамика и выбор переменной обрабатыва
 msgid "Edit Scene"
 msgstr "Редактировать сцену"
 
-msgid "Edit Scene"
-msgstr "Редактировать сцену"
 
 msgid "Edit item layout"
 msgstr "Изменить макет элемента"
 
-msgid "Edit item layout"
-msgstr "Изменить макет элемента"
 
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "Вместо этого отредактируйте его свойства, сохранив выделение."
 
-msgid "Edit this one's properties instead, keeping the selection."
-msgstr "Вместо этого отредактируйте его свойства, сохранив выделение."
 
 msgid "Event handlers"
 msgstr "Обработчики событий"
@@ -1869,20 +1789,14 @@ msgstr "Обработчики событий"
 msgid "Export Scene"
 msgstr "Экспортировать сцену"
 
-msgid "Export Scene"
-msgstr "Экспортировать сцену"
 
 msgid "Geometry"
 msgstr "Геометрия"
 
-msgid "Geometry"
-msgstr "Геометрия"
 
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "Серый: MapTasker не имеет для него таблицы аргументов, поэтому его нельзя создать, не угадав, что Tasker ожидает внутри. Заголовки — это собственная группировка MapTasker."
 
-msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
-msgstr "Серый: MapTasker не имеет для него таблицы аргументов, поэтому его нельзя создать, не угадав, что Tasker ожидает внутри. Заголовки — это собственная группировка MapTasker."
 
 msgid "Health Check"
 msgstr "Проверка здоровья"
@@ -1890,38 +1804,26 @@ msgstr "Проверка здоровья"
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "Заштрихованные заливки и подчеркнутый курсивом текст — это %variables: их значения хранятся на устройстве, а не в резервной копии, поэтому они называются, а не угадываются. Изображения, видео, карты и веб-контент отображаются в качестве заполнителей. Наведите указатель мыши на любой элемент, чтобы увидеть его геометрию, переменные и выполняемые им задачи."
 
-msgid "Health Check"
-msgstr "Проверка здоровья"
 
 msgid "Health Check found no errors or warnings."
 msgstr "Проверка работоспособности не обнаружила ошибок или предупреждений."
 
-msgid "Health Check found no errors or warnings."
-msgstr "Проверка работоспособности не обнаружила ошибок или предупреждений."
 
 msgid "Health Check report could not be saved."
 msgstr "Не удалось сохранить отчет о проверке работоспособности."
 
-msgid "Health Check report could not be saved."
-msgstr "Не удалось сохранить отчет о проверке работоспособности."
 
 msgid "Health Check saved as"
 msgstr "Проверка работоспособности сохранена как"
 
-msgid "Health Check saved as"
-msgstr "Проверка работоспособности сохранена как"
 
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "В списке: щелкните, удерживая клавишу Shift, для выбора диапазона, щелкните, удерживая клавишу Ctrl или Cmd, чтобы добавить или удалить его."
 
-msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
-msgstr "В списке: щелкните, удерживая клавишу Shift, для выбора диапазона, щелкните, удерживая клавишу Ctrl или Cmd, чтобы добавить или удалить его."
 
 msgid "Item layout"
 msgstr "Макет элемента"
 
-msgid "Item layout"
-msgstr "Макет элемента"
 
 msgid "Landscape"
 msgstr "Пейзаж"
@@ -1932,8 +1834,6 @@ msgstr "Наследие"
 msgid "Legacy Scene"
 msgstr "Наследие сцены"
 
-msgid "Legacy Scene"
-msgstr "Наследие сцены"
 
 msgid "List"
 msgstr "Список"
@@ -1953,8 +1853,6 @@ msgstr "Это не имя цвета HTML или значение #hex."
 msgid "Modifiers"
 msgstr "Модификаторы"
 
-msgid "Never updated"
-msgstr "Никогда не обновлялся"
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "Не обновлено — они называют и эту сцену, и этот элемент, но не как"
@@ -1968,62 +1866,40 @@ msgstr "No Task обращается к этому элементу по име�
 msgid "Notification Duration"
 msgstr "Продолжительность уведомления"
 
-msgid "No element matches that."
-msgstr "Ни один элемент не соответствует этому."
 
-msgid "Not an HTML colour name or #hex value."
-msgstr "Это не имя цвета HTML или значение #hex."
 
 msgid "Notification Duration:"
 msgstr "Продолжительность уведомления:"
 
-msgid "Nothing here."
-msgstr "Ничего здесь."
 
 msgid "On"
 msgstr "На"
 
-msgid "Notification Duration"
-msgstr "Продолжительность уведомления"
 
-msgid "Notification Duration:"
-msgstr "Продолжительность уведомления:"
 
 msgid "Only when"
 msgstr "Только когда"
 
-msgid "Only when"
-msgstr "Только когда"
 
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "Обрисуйте каждый компонент и назовите его так, как его называет дерево дизайнера."
 
-msgid "Outline every component and name it, the way the designer's tree names it."
-msgstr "Обрисуйте каждый компонент и назовите его так, как его называет дерево дизайнера."
 
 msgid "Outline every element and name it."
 msgstr "Обрисуйте каждый элемент и назовите его."
 
-msgid "Outline every element and name it."
-msgstr "Обрисуйте каждый элемент и назовите его."
 
 msgid "Pick a Material icon."
 msgstr "Выберите значок «Материал»."
 
-msgid "Pick a Material icon."
-msgstr "Выберите значок «Материал»."
 
 msgid "Pick an icon"
 msgstr "Выберите значок"
 
-msgid "Pick an icon"
-msgstr "Выберите значок"
 
 msgid "Pick from the Scene's environment and global variables."
 msgstr "Выберите среду сцены и глобальные переменные."
 
-msgid "Pick from the Scene's environment and global variables."
-msgstr "Выберите среду сцены и глобальные переменные."
 
 msgid "Pick one of Material's own colour roles."
 msgstr "Выберите одну из собственных цветовых ролей Material."
@@ -2031,23 +1907,15 @@ msgstr "Выберите одну из собственных цветовых �
 msgid "Preview"
 msgstr "Предварительный просмотр"
 
-msgid "Pick one of Material's own colour roles."
-msgstr "Выберите одну из собственных цветовых ролей Material."
 
 msgid "Project(s) that list it."
 msgstr "Проект(ы), в которых он указан."
 
-msgid "Preview"
-msgstr "Предварительный просмотр"
 
-msgid "Project(s) that list it."
-msgstr "Проект(ы), в которых он указан."
 
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "Запрашивает новое имя и прямо сейчас применяет его к загруженной резервной копии, переименовывая сцену повсюду, в том числе в списке сцен каждого проекта, в котором она содержится.\n\nЗадачи, которые показывают или скрывают эту сцену по имени, НЕ обновляются; они до сих пор называют старую Сцену.\n\nПоле «Название сцены» выше доступно только для чтения — это единственный способ изменить его."
 
-msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
-msgstr "Запрашивает новое имя и прямо сейчас применяет его к загруженной резервной копии, переименовывая сцену повсюду, в том числе в списке сцен каждого проекта, в котором она содержится.\n\nЗадачи, которые показывают или скрывают эту сцену по имени, НЕ обновляются; они до сих пор называют старую Сцену.\n\nПоле «Название сцены» выше доступно только для чтения — это единственный способ изменить его."
 
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "Свойства редактируются по одному элементу за раз. Перетаскивание и подталкивание перемещают все выбранное."
@@ -2058,116 +1926,78 @@ msgstr "Удалить фон"
 msgid "Refresh"
 msgstr "Обновить"
 
-msgid "Remove background"
-msgstr "Удалить фон"
 
 msgid "Rename Element"
 msgstr "Переименовать элемент"
 
-msgid "Rename Element"
-msgstr "Переименовать элемент"
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "Переименование элемента здесь не приводит к удалению резервной копии: макет элемента не имеет имени сцены для действия элемента задачи, по которому можно было бы обратиться к нему, поэтому перезаписывать нечего."
 
-msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
-msgstr "Переименование элемента здесь не приводит к удалению резервной копии: макет элемента не имеет имени сцены для действия элемента задачи, по которому можно было бы обратиться к нему, поэтому перезаписывать нечего."
 
 msgid "Repeats once per array entry"
 msgstr "Повторяется один раз для каждой записи массива"
 
-msgid "Repeats once per array entry"
-msgstr "Повторяется один раз для каждой записи массива"
 
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "Округлите положение и размер перетаскивания до указанного количества пикселей."
 
-msgid "Round dragged positions and sizes to this many pixels."
-msgstr "Округлите положение и размер перетаскивания до указанного количества пикселей."
 
 msgid "Save Scene To Android Device"
 msgstr "Сохранить сцену на устройстве Android"
 
-msgid "Save Scene To Android Device"
-msgstr "Сохранить сцену на устройстве Android"
 
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Сохраняет всю резервную копию — каждый проект, профиль, задачу и сцену в ней, а не только эту сцену — включая все изменения, сделанные где-либо в этом сеансе.\nОн записывается в новую копию загруженного в данный момент файла с отметкой времени: backup.xml становится backup_20260728_143005.xml.\nЗагруженный вами файл никогда не записывается, поэтому он остается таким, каким был.\nЗатем приложение переключается на новую копию, которая становится текущим файлом для дальнейшего редактирования и сохранения; повторное сохранение заменяет временную метку, а не добавляет вторую.\nЗапись осуществляется только на этот компьютер — на ваше устройство Android ничего не отправляется."
 
-msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
-msgstr "Сохраняет всю резервную копию — каждый проект, профиль, задачу и сцену в ней, а не только эту сцену — включая все изменения, сделанные где-либо в этом сеансе.\nОн записывается в новую копию загруженного в данный момент файла с отметкой времени: backup.xml становится backup_20260728_143005.xml.\nЗагруженный вами файл никогда не записывается, поэтому он остается таким, каким был.\nЗатем приложение переключается на новую копию, которая становится текущим файлом для дальнейшего редактирования и сохранения; повторное сохранение заменяет временную метку, а не добавляет вторую.\nЗапись осуществляется только на этот компьютер — на ваше устройство Android ничего не отправляется."
 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "Сохраняет эту сцену со всеми ее элементами как один отдельный файл .scn.xml — тот же формат, который создает собственный экспорт сцены Tasker.\n\nЗадачи, выполняемые элементами Сцены, не включены; они принадлежат своему собственному Проекту."
 
-msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
-msgstr "Сохраняет эту сцену со всеми ее элементами как один отдельный файл .scn.xml — тот же формат, который создает собственный экспорт сцены Tasker.\n\nЗадачи, выполняемые элементами Сцены, не включены; они принадлежат своему собственному Проекту."
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Сканируйте загруженный XML на наличие неработающих ссылок, задач, профилей и сцен, на которые нет ссылок, а также проблем с именованием.\n\nРезультаты отображаются здесь и сохраняются в текстовый файл в текущем каталоге."
 
-msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "Сканируйте загруженный XML на наличие неработающих ссылок, задач, профилей и сцен, на которые нет ссылок, а также проблем с именованием.\n\nРезультаты отображаются здесь и сохраняются в текстовый файл в текущем каталоге."
 
 msgid "Scene Components"
 msgstr "Компоненты сцены"
 
-msgid "Scene Components"
-msgstr "Компоненты сцены"
 
 msgid "Scene Elements"
 msgstr "Элементы сцены"
 
-msgid "Scene Elements"
-msgstr "Элементы сцены"
 
 msgid "Scene Name"
 msgstr "Название сцены"
 
-msgid "Scene Name"
-msgstr "Название сцены"
 
 msgid "Scene Preview"
 msgstr "Предварительный просмотр сцены"
 
-msgid "Scene Preview"
-msgstr "Предварительный просмотр сцены"
 
 msgid "Scene Properties"
 msgstr "Свойства сцены"
 
-msgid "Scene Properties"
-msgstr "Свойства сцены"
 
 msgid "Scene added."
 msgstr "Сцена добавлена."
 
-msgid "Scene added."
-msgstr "Сцена добавлена."
 
 msgid "Scene type"
 msgstr "Тип сцены"
 
-msgid "Scene type"
-msgstr "Тип сцены"
 
 msgid "Screen"
 msgstr "Экран"
 
-msgid "Screen"
-msgstr "Экран"
 
 msgid "Search elements"
 msgstr "Элементы поиска"
 
-msgid "Search elements"
-msgstr "Элементы поиска"
 
 msgid "Search icons"
 msgstr "Значки поиска"
 
-msgid "Search icons"
-msgstr "Значки поиска"
 
 msgid "Search variables"
 msgstr "Поиск переменных"
@@ -2178,74 +2008,50 @@ msgstr "Выберите компонент слева."
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "Выберите больший предел просмотра или один проект/профиль/задачу, чтобы увидеть остальные."
 
-msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
-msgstr "Выберите больший предел просмотра или один проект/профиль/задачу, чтобы увидеть остальные."
 
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "Сначала выберите одну сцену (раскрывающееся меню «Сцена» выше)."
 
-msgid "Select a single Scene first (Scene pulldown above)."
-msgstr "Сначала выберите одну сцену (раскрывающееся меню «Сцена» выше)."
 
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "Выберите один элемент, чтобы дублировать, удалить или переместить его."
 
-msgid "Select a single element to duplicate, delete or restack it."
-msgstr "Выберите один элемент, чтобы дублировать, удалить или переместить его."
 
 msgid "Select an element first."
 msgstr "Сначала выберите элемент."
 
-msgid "Select an element first."
-msgstr "Сначала выберите элемент."
 
 msgid "Select an element on the canvas or in the list."
 msgstr "Выберите элемент на холсте или в списке."
 
-msgid "Select an element on the canvas or in the list."
-msgstr "Выберите элемент на холсте или в списке."
 
 msgid "Show the Task each element runs."
 msgstr "Покажите задачу, которую выполняет каждый элемент."
 
-msgid "Show the Task each element runs."
-msgstr "Покажите задачу, которую выполняет каждый элемент."
 
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "Покажите, что делает каждый компонент при нажатии и во что он записывает."
 
-msgid "Show what each component does when tapped, and what it writes to."
-msgstr "Покажите, что делает каждый компонент при нажатии и во что он записывает."
 
 msgid "Show when"
 msgstr "Показать, когда"
 
-msgid "Show when"
-msgstr "Показать, когда"
 
 msgid "Size"
 msgstr "Размер"
 
-msgid "Size"
-msgstr "Размер"
 
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "Размер должен быть целым числом (-1 при отсутствии макета)."
 
-msgid "Size must be a whole number (-1 for no layout)."
-msgstr "Размер должен быть целым числом (-1 при отсутствии макета)."
 
 msgid "Snap"
 msgstr "Щелчок"
 
-msgid "Snap"
-msgstr "Щелчок"
 
 msgid "Spinner"
 msgstr "Спиннер"
 
-msgid "Spinner"
-msgstr "Спиннер"
 
 msgid "Task action(s) in"
 msgstr "Действия задачи в"
@@ -2253,20 +2059,14 @@ msgstr "Действия задачи в"
 msgid "Stop firing anything on this event."
 msgstr "Прекратите что-либо стрелять по этому событию."
 
-msgid "Task action(s) in"
-msgstr "Действия задачи в"
 
 msgid "Task(s)"
 msgstr "Задача(и)"
 
-msgid "Task(s)"
-msgstr "Задача(и)"
 
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "Задачи обращаются к этой сцене по шаблону соответствия (Видимость элемента). Проверьте их сами"
 
-msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
-msgstr "Задачи обращаются к этой сцене по шаблону соответствия (Видимость элемента). Проверьте их сами"
 
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker хранит эту задачу внутри сцены и нигде больше, поэтому у нее нет имени, и ее нельзя указать куда-то еще, не потеряв ее. Оно осуществляется нетронутым."
@@ -2274,62 +2074,42 @@ msgstr "Tasker хранит эту задачу внутри сцены и ни�
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker перечисляет этот элемент, но MapTasker никогда не видел его в сохраненной сцене, поэтому он добавляется только с его типом и идентификатором, и даже тип выводится из имени выше (записанного как type: «{node_type}»). Если Tasker не распознает его, нажмите «Отменить»."
 
-msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
-msgstr "Tasker перечисляет этот элемент, но MapTasker никогда не видел его в сохраненной сцене, поэтому он добавляется только с его типом и идентификатором, и даже тип выводится из имени выше (записанного как type: «{node_type}»). Если Tasker не распознает его, нажмите «Отменить»."
 
 msgid "Tasker variable(s)"
 msgstr "Переменные Tasker"
 
-msgid "Tasker variable(s)"
-msgstr "Переменные Tasker"
 
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Tasker's Screen Builder: декларативное дерево компонентов (Столбец, Строка, Scaffold,...), которое размещается само по себе, без фиксированного размера холста. Начните с:"
 
-msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
-msgstr "Tasker's Screen Builder: декларативное дерево компонентов (Столбец, Строка, Scaffold,...), которое размещается само по себе, без фиксированного размера холста. Начните с:"
 
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "Задачи обращаются к этому элементу по имени (Текст элемента, Положение элемента,... всего 18 кодов действий), поэтому его переименование не является редактированием поля. В диалоговом окне «Переименование» указано, что зависит от текущего имени, и предлагается перенести эти задачи."
 
-msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
-msgstr "Задачи обращаются к этому элементу по имени (Текст элемента, Положение элемента,... всего 18 кодов действий), поэтому его переименование не является редактированием поля. В диалоговом окне «Переименование» указано, что зависит от текущего имени, и предлагается перенести эти задачи."
 
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "Задачи, которые показывают или скрывают эту сцену по имени, не изменяются и остаются там, где они есть."
 
-msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
-msgstr "Задачи, которые показывают или скрывают эту сцену по имени, не изменяются и остаются там, где они есть."
 
 msgid "Text density"
 msgstr "Плотность текста"
 
-msgid "Text density"
-msgstr "Плотность текста"
 
 msgid "That component can't go there."
 msgstr "Этот компонент не может туда попасть."
 
-msgid "That component can't go there."
-msgstr "Этот компонент не может туда попасть."
 
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "Это уже загруженный файл.  Выберите другой для сравнения."
 
-msgid "That is the file already loaded.  Choose a different one to compare against."
-msgstr "Это уже загруженный файл.  Выберите другой для сравнения."
 
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "Список значков материалов не удалось прочитать, поэтому вместо этого введите имя."
 
-msgid "The Material icon list could not be read, so type the name instead."
-msgstr "Список значков материалов не удалось прочитать, поэтому вместо этого введите имя."
 
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "Переменная Tasker, в которую этот компонент записывает свое значение. Разделите несколько запятыми. Оставьте пустым, чтобы объявить привязку без ее установки."
 
-msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
-msgstr "Переменная Tasker, в которую этот компонент записывает свое значение. Разделите несколько запятыми. Оставьте пустым, чтобы объявить привязку без ее установки."
 
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "Задачи, связанные с этим, будут обновлены при сохранении этой сцены."
@@ -2412,50 +2192,30 @@ msgstr "То, что вы выбираете, попадает в курсор. 
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "То, что вы выбираете, заменяет то, что содержится в поле. Введите, чтобы сузить список."
 
-msgid "The Tasks that address it will be updated when this Scene is saved."
-msgstr "Задачи, связанные с этим, будут обновлены при сохранении этой сцены."
 
 msgid "Which kind of Scene?"
 msgstr "Какая сцена?"
 
-msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
-msgstr "Расположение в один ряд. Tasker рисует его один раз для каждой записи того, что заполняет список, поэтому вы видите здесь одну строку, а не список."
 
 msgid "Writes to variable"
 msgstr "Записывает в переменную"
 
-msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
-msgstr "Исходная сцена: элементы пользовательского интерфейса, расположенные в фиксированных позициях на холсте определенного размера (текст, кнопка, прямоугольник, изображение, веб-сайт, ...)."
 
 msgid "Zoom"
 msgstr "Увеличить"
 
-msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
-msgstr "Размер экрана соответствует размеру этого предварительного просмотра, а не размера сцены — макет версии 2 не имеет собственного размера, поэтому измените «Экран», чтобы увидеть его перекомпоновку. Цвета, названные ролью «Материал», берутся из базовой палитры «Материал 3»; устройство разрешает их в соответствии со своей собственной темой, которая в разделе «Материал вы» взята из обоев. Заштрихованные заливки и подчеркнутый курсивом текст являются %переменными. Желтые контуры обозначают компоненты с помощью «Показать когда». Наведите курсор на любой компонент, чтобы увидеть его модификаторы, переменные и действия."
 
-msgid "The search did not finish. The view may be too large, or the browser is busy."
-msgstr "Поиски не закончились. Возможно, представление слишком велико или браузер занят."
 
-msgid "The two files hold the same configuration."
-msgstr "Эти два файла содержат одинаковую конфигурацию."
 
 msgid "component(s)"
 msgstr "компонент(ы)"
 
-msgid "This Scene has no landscape layout of its own (its size is -1)."
-msgstr "Эта сцена не имеет собственного ландшафтного макета (ее размер равен -1)."
 
-msgid "This Scene has no layout for this orientation."
-msgstr "Эта сцена не имеет макета для этой ориентации."
 
 msgid "connectors"
 msgstr "разъемы"
 
-msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
-msgstr "Эта сцена не имеет элемента свойств. В 66 из 366 сцен, просмотренных MapTasker, их тоже нет, так что это скорее обычное явление, чем повреждение."
 
-msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
-msgstr "Макет этой сцены версии 2 не удалось прочитать, и он будет оставлен таким, какой он есть."
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "перетащите или подтолкните любого из них, и все они начнут двигаться вместе."
@@ -2463,107 +2223,55 @@ msgstr "перетащите или подтолкните любого из н�
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "Макет версии 2 этой сцены не имеет корневого компонента, поэтому проектировать нечего."
 
-msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
-msgstr "В этом приложении нет таблицы свойств для этого типа элемента, поэтому здесь можно редактировать только его геометрию. В остальном он выполняется нетронутым."
 
 msgid "editing 1 of"
 msgstr "редактирование 1 из"
 
-msgid "This element has no layout for this orientation."
-msgstr "Этот элемент не имеет макета для этой ориентации."
 
-msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
-msgstr "При этом сцена будет записана как отдельный файл на устройстве Android в папке /Tasker/scenes.\n\nIP-адрес и порт должны соответствовать настройкам сервера Tasker устройства Android.\n\nДля этого не требуется запрос на авторизацию."
 
 msgid "element(s)"
 msgstr "элемент(ы)"
 
-msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
-msgstr "При этом сцена будет записана как отдельный файл на ваше устройство Android в папке /Tasker/scenes — она не будет импортирована в живую конфигурацию Tasker.\n\nПроект Tasker «Пример HTTP-сервера» должен быть установлен и активен на устройстве Android с работающим сервером.\n\nУстройство Android должно находиться в той же сети, а IP-адрес и порт должны соответствовать настройкам его сервера Tasker. Для этого не требуется запрос на авторизацию."
 
-msgid "Tree label"
-msgstr "Метка дерева"
 
 msgid "elements selected"
 msgstr "выбранные элементы"
 
-msgid "Turn the screen on its side and let the layout re-flow into it."
-msgstr "Поверните экран набок и позвольте макету снова влиться в него."
 
-msgid "Undo"
-msgstr "Отменить"
 
 msgid "is not a whole number"
 msgstr "это не целое число"
 
-msgid "Variable"
-msgstr "Переменная"
 
-msgid "Variables"
-msgstr "Переменные"
 
 msgid "lines dropped"
 msgstr "линии опущены"
 
-msgid "Version 2"
-msgstr "Версия 2"
 
 msgid "none"
 msgstr "никто"
 
-msgid "View Limit"
-msgstr "Посмотреть лимит"
 
 msgid "pair"
 msgstr "пара"
 
-msgid "What you pick goes in at the cursor. Open this again to add the next piece."
-msgstr "То, что вы выбираете, попадает в курсор. Откройте это снова, чтобы добавить следующую часть."
 
-msgid "What you pick replaces what the field holds. Type to narrow the list down."
-msgstr "То, что вы выбираете, заменяет то, что содержится в поле. Введите, чтобы сузить список."
 
-msgid "Which kind of Scene?"
-msgstr "Какая сцена?"
 
-msgid "Writes to variable"
-msgstr "Записывает в переменную"
 
-msgid "Zoom"
-msgstr "Увеличить"
 
-msgid "component(s)"
-msgstr "компонент(ы)"
 
-msgid "connectors"
-msgstr "разъемы"
 
-msgid "drag or nudge any of them and they all move together."
-msgstr "перетащите или подтолкните любого из них, и все они начнут двигаться вместе."
 
-msgid "editing 1 of"
-msgstr "редактирование 1 из"
 
-msgid "element(s)"
-msgstr "элемент(ы)"
 
-msgid "elements selected"
-msgstr "выбранные элементы"
 
-msgid "is not a whole number"
-msgstr "это не целое число"
 
-msgid "lines dropped"
-msgstr "линии опущены"
 
-msgid "none"
-msgstr "никто"
 
 msgid "not drawn"
 msgstr "не нарисовано"
 
-msgid "pair"
-msgstr "пара"
 
 msgid "pixels"
 msgstr "пиксели"
@@ -2579,3 +2287,42 @@ msgstr "XML-файл не загружен.  Сначала получите XML
 
 msgid "Properties"
 msgstr "Характеристики"
+
+msgid "Building the Map to show"
+msgstr "Создание карты для показа"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Построил карту, но на ней нет линии для"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Щелкните находку, чтобы увидеть ее в представлении карты."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Щелкните переменную или место, чтобы увидеть ее в представлении карты."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Отслеживайте каждую переменную % в загруженном XML: где каждая из них установлена, где она считывается, какие читаются, но никогда не устанавливаются, какие устанавливаются, но никогда не читаются, и какие почти идентичные имена (%MyVar против %Myvar), скорее всего, являются опечатками.\n\nПоиск: действия задачи и их условия, конфигурация плагина, контексты профиля и сцены.\n\nРезультаты отображаются здесь и сохраняются в текстовый файл в текущем каталоге."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Перекрестная ссылка на переменную не выявила подозрительных переменных."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Не удалось сохранить отчет о перекрестных ссылках переменных."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Перекрестная ссылка на переменную сохранена как"
+
+msgid "Variable Xref"
+msgstr "Переменная внешняя ссылка"
+
+msgid "detail level"
+msgstr "уровень детализации"
+
+msgid "is no longer in the loaded configuration."
+msgstr "больше не находится в загруженной конфигурации."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Ни один вид карты не открыт.  Запустите «Просмотр карты», затем щелкните еще раз."
+
+msgid "whole file"
+msgstr "весь файл"

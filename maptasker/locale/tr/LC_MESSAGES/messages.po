@@ -2236,3 +2236,42 @@ msgstr "Bu Sahnenin Versiyon 2 düzeni okunamadı ve olduğu gibi bırakılacak.
 
 msgid "elements selected"
 msgstr "seçilen öğeler"
+
+msgid "Building the Map to show"
+msgstr "Gösterilecek Haritayı Oluşturma"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Haritayı oluşturdum ancak bunun için bir çizgi yok"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Harita görünümünde görmek için bir bulguyu tıklayın."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Harita görünümünde görmek için bir değişkeni veya yeri tıklayın."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Hiçbir Harita görünümü açık değil.  Harita Görünümü'nü çalıştırın ve ardından buna tekrar tıklayın."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Yüklenen XML'deki her %değişkenin izini sürün: her birinin nerede ayarlandığı, nerede okunduğu, hangilerinin okunduğu ancak hiçbir zaman ayarlanmadığı, hangilerinin ayarlandığı ancak hiçbir zaman okunmadığı ve hangi neredeyse aynı adların (%MyVar ve %Myvar) muhtemelen yazım hatası olduğu.\n\nAranan: Görev eylemleri ve koşulları, eklenti yapılandırması, Profil bağlamları ve Sahneler.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Değişken Çapraz Referansı şüpheli değişken bulamadı."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Değişken Çapraz Referans raporu kaydedilemedi."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Değişken Çapraz Referans olarak kaydedildi"
+
+msgid "Variable Xref"
+msgstr "Değişken Dış Referans"
+
+msgid "detail level"
+msgstr "ayrıntı düzeyi"
+
+msgid "is no longer in the loaded configuration."
+msgstr "artık yüklü konfigürasyonda değil."
+
+msgid "whole file"
+msgstr "tüm dosya"

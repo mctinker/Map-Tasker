@@ -1607,422 +1607,282 @@ msgstr "हार्डस्टॉप दृश्य मर्यादा"
 msgid "(empty)"
 msgstr "(रिक्त)"
 
-msgid "(empty)"
-msgstr "(रिक्त)"
 
 msgid "(no name)"
 msgstr "(नाव नाही)"
 
-msgid "(no name)"
-msgstr "(नाव नाही)"
 
 msgid "(unnamed Task)"
 msgstr "(नाव नसलेले कार्य)"
 
-msgid "(unnamed Task)"
-msgstr "(नाव नसलेले कार्य)"
 
 msgid "(unnamed)"
 msgstr "(नाव नसलेले)"
 
-msgid "(unnamed)"
-msgstr "(नाव नसलेले)"
 
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1 म्हणजे या अभिमुखतेचा स्वतःचा कोणताही लेआउट नाही."
 
-msgid "-1 means this orientation has no layout of its own."
-msgstr "-1 म्हणजे या अभिमुखतेचा स्वतःचा कोणताही लेआउट नाही."
 
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...आणि आणखी {count} -- ते कमी करण्यासाठी वर टाइप करा."
 
-msgid "...and {count} more -- type above to narrow it down."
-msgstr "...आणि आणखी {count} -- ते कमी करण्यासाठी वर टाइप करा."
 
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "सीनच्या घटकांची स्थिती डिव्हाइस पिक्सेलमध्ये संग्रहित केली जाते, परंतु त्याचे मजकूर आकार Android च्या sp युनिटमध्ये संग्रहित केले जातात. दोघांमध्ये रूपांतरित होणारा क्रमांक हा फोनचा गुणधर्म आहे ज्यावर सीन दाखवला आहे आणि तो बॅकअप फाइलमध्ये नाही.\n\nम्हणून ते येथे सेट केले आहे. जर मजकूर त्याच्या घटकांसाठी खूप लहान दिसत असेल तर तो वाढवा, जर मजकूर ओव्हरफ्लो झाला तर तो कमी करा."
 
-msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
-msgstr "सीनच्या घटकांची स्थिती डिव्हाइस पिक्सेलमध्ये संग्रहित केली जाते, परंतु त्याचे मजकूर आकार Android च्या sp युनिटमध्ये संग्रहित केले जातात. दोघांमध्ये रूपांतरित होणारा क्रमांक हा फोनचा गुणधर्म आहे ज्यावर सीन दाखवला आहे आणि तो बॅकअप फाइलमध्ये नाही.\n\nम्हणून ते येथे सेट केले आहे. जर मजकूर त्याच्या घटकांसाठी खूप लहान दिसत असेल तर तो वाढवा, जर मजकूर ओव्हरफ्लो झाला तर तो कमी करा."
 
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "आवृत्ती 2 सीनचा स्वतःचा आकार नसतो -- तो ज्या स्क्रीनवर दाखवला जातो त्याच्या आत तो स्वतःला ठेवतो, त्यामुळे बॅकअप फाइलमध्ये त्यावर काढण्यासाठी काहीही नसते.\n\nलेआउट री-फ्लो पाहण्यासाठी हे बदला. एक प्रवाह पंक्ती वेगळ्या प्रकारे गुंडाळते, आणि %sv2_render_width विरुद्ध लिहिलेली कोणतीही 'केव्हा दाखवा' नेमके याबद्दल विचारत आहे."
 
-msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
-msgstr "आवृत्ती 2 सीनचा स्वतःचा आकार नसतो -- तो ज्या स्क्रीनवर दाखवला जातो त्याच्या आत तो स्वतःला ठेवतो, त्यामुळे बॅकअप फाइलमध्ये त्यावर काढण्यासाठी काहीही नसते.\n\nलेआउट री-फ्लो पाहण्यासाठी हे बदला. एक प्रवाह पंक्ती वेगळ्या प्रकारे गुंडाळते, आणि %sv2_render_width विरुद्ध लिहिलेली कोणतीही 'केव्हा दाखवा' नेमके याबद्दल विचारत आहे."
 
 msgid "Actions"
 msgstr "क्रिया"
 
-msgid "Actions"
-msgstr "क्रिया"
 
 msgid "Add"
 msgstr "ॲड"
 
-msgid "Add"
-msgstr "ॲड"
 
 msgid "Add Element"
 msgstr "घटक जोडा"
 
-msgid "Add Element"
-msgstr "घटक जोडा"
 
 msgid "Add Scene"
 msgstr "देखावा जोडा"
 
-msgid "Add Scene"
-msgstr "देखावा जोडा"
 
 msgid "Add a background"
 msgstr "पार्श्वभूमी जोडा"
 
-msgid "Add a background"
-msgstr "पार्श्वभूमी जोडा"
 
 msgid "Add action"
 msgstr "क्रिया जोडा"
 
-msgid "Add action"
-msgstr "क्रिया जोडा"
 
 msgid "Add event"
 msgstr "कार्यक्रम जोडा"
 
-msgid "Add event"
-msgstr "कार्यक्रम जोडा"
 
 msgid "Add handler"
 msgstr "हँडलर जोडा"
 
-msgid "Add handler"
-msgstr "हँडलर जोडा"
 
 msgid "Add modifier"
 msgstr "सुधारक जोडा"
 
-msgid "Add modifier"
-msgstr "सुधारक जोडा"
 
 msgid "Add scene properties"
 msgstr "दृश्य गुणधर्म जोडा"
 
-msgid "Add scene properties"
-msgstr "दृश्य गुणधर्म जोडा"
 
 msgid "Addressed by id from"
 msgstr "कडून आयडीद्वारे संबोधित केले"
 
-msgid "Addressed by id from"
-msgstr "कडून आयडीद्वारे संबोधित केले"
 
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "दृश्याच्या मध्यभागी, स्टॅकच्या शीर्षस्थानी एक घटक जोडते."
 
-msgid "Adds an element on top of the stack, in the middle of the Scene."
-msgstr "दृश्याच्या मध्यभागी, स्टॅकच्या शीर्षस्थानी एक घटक जोडते."
 
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "निवडलेल्या घटकाच्या आत जोडते जर ते मुलांना ठेवू शकत असेल, अन्यथा थेट नंतर."
 
-msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
-msgstr "निवडलेल्या घटकाच्या आत जोडते जर ते मुलांना ठेवू शकत असेल, अन्यथा थेट नंतर."
 
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "ते स्टॅकच्या शीर्षस्थानी, दृश्याच्या मध्यभागी जोडते. तुम्हाला पाहिजे तिथे ड्रॅग करा."
 
-msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
-msgstr "ते स्टॅकच्या शीर्षस्थानी, दृश्याच्या मध्यभागी जोडते. तुम्हाला पाहिजे तिथे ड्रॅग करा."
 
 msgid "Also selected:"
 msgstr "तसेच निवडले:"
 
-msgid "Also selected:"
-msgstr "तसेच निवडले:"
 
 msgid "Also update"
 msgstr "तसेच अपडेट करा"
 
-msgid "Also update"
-msgstr "तसेच अपडेट करा"
 
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "अंबर: टास्करने त्याची यादी केली आहे, परंतु मॅपटास्करकडे त्याचा कोणताही पुष्टी केलेला नमुना नाही. राखाडी: निवड जिथे ठेवेल तिथे जाऊ शकत नाही."
 
-msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
-msgstr "अंबर: टास्करने त्याची यादी केली आहे, परंतु मॅपटास्करकडे त्याचा कोणताही पुष्टी केलेला नमुना नाही. राखाडी: निवड जिथे ठेवेल तिथे जाऊ शकत नाही."
 
 msgid "App icon"
 msgstr "ॲप चिन्ह"
 
-msgid "App icon"
-msgstr "ॲप चिन्ह"
 
 msgid "Appearance Mode"
 msgstr "देखावा मोड"
 
-msgid "Appearance Mode"
-msgstr "देखावा मोड"
 
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "क्रमाने लागू केले - तळाशी असलेले शीर्षस्थानी बसते."
 
-msgid "Applied in order — the one at the bottom sits on top."
-msgstr "क्रमाने लागू केले - तळाशी असलेले शीर्षस्थानी बसते."
 
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "जेव्हा हे दृश्य सेव्ह केले जाते तेव्हा लागू केले जाते, आता नाही -- दृश्यावर रद्द करा डायलॉग घटक आणि कार्ये दोन्ही जसे होते तसेच सोडते."
 
-msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
-msgstr "जेव्हा हे दृश्य सेव्ह केले जाते तेव्हा लागू केले जाते, आता नाही -- दृश्यावर रद्द करा डायलॉग घटक आणि कार्ये दोन्ही जसे होते तसेच सोडते."
 
 msgid "Back to Editor"
 msgstr "संपादकाकडे परत"
 
-msgid "Back to Editor"
-msgstr "संपादकाकडे परत"
 
 msgid "Bounds"
 msgstr "सीमा"
 
-msgid "Bounds"
-msgstr "सीमा"
 
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "रद्द केले. या दृश्यातील बदल टाकून दिले."
 
-msgid "Cancelled. Changes to this Scene were discarded."
-msgstr "रद्द केले. या दृश्यातील बदल टाकून दिले."
 
 msgid "Choose another file..."
 msgstr "दुसरी फाइल निवडा..."
 
-msgid "Choose another file..."
-msgstr "दुसरी फाइल निवडा..."
 
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "घटक निवडण्यासाठी त्यावर क्लिक करा, अनेक घेण्यासाठी त्याच कंटेनरमधील दुसऱ्यावर शिफ्ट-क्लिक करा आणि त्यांना त्यांच्या स्वतःच्या भावंडांमध्ये पुनर्क्रमित करण्यासाठी ड्रॅग करा. कंटेनरमध्ये किंवा बाहेर घटक हलवणे ही संपादकाची इन आणि आउट बटणे आहे; पूर्ववत देखील आहे."
 
-msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
-msgstr "घटक निवडण्यासाठी त्यावर क्लिक करा, अनेक घेण्यासाठी त्याच कंटेनरमधील दुसऱ्यावर शिफ्ट-क्लिक करा आणि त्यांना त्यांच्या स्वतःच्या भावंडांमध्ये पुनर्क्रमित करण्यासाठी ड्रॅग करा. कंटेनरमध्ये किंवा बाहेर घटक हलवणे ही संपादकाची इन आणि आउट बटणे आहे; पूर्ववत देखील आहे."
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "घटक निवडण्यासाठी त्यावर क्लिक करा, अनेक घेण्यासाठी पार्श्वभूमीवरील बॉक्स शिफ्ट-क्लिक करा किंवा ड्रॅग करा आणि ते सर्व हलविण्यासाठी त्यापैकी कोणतेही ड्रॅग करा -- बाण की नज, 10px साठी Shift. एका घटकाचा आकार बदलण्यासाठी हँडल ड्रॅग करा. पूर्ववत करा आणि घटकाबद्दल इतर सर्व काही, संपादकात परत आले आहे."
 
-msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
-msgstr "घटक निवडण्यासाठी त्यावर क्लिक करा, अनेक घेण्यासाठी पार्श्वभूमीवरील बॉक्स शिफ्ट-क्लिक करा किंवा ड्रॅग करा आणि ते सर्व हलविण्यासाठी त्यापैकी कोणतेही ड्रॅग करा -- बाण की नज, 10px साठी Shift. एका घटकाचा आकार बदलण्यासाठी हँडल ड्रॅग करा. पूर्ववत करा आणि घटकाबद्दल इतर सर्व काही, संपादकात परत आले आहे."
 
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "घटक निवडण्यासाठी त्यावर क्लिक करा, हलविण्यासाठी ड्रॅग करा, आकार बदलण्यासाठी हँडल ड्रॅग करा, नज करण्यासाठी बाण की (10px साठी शिफ्ट). एकाच वेळी अनेक घेण्यासाठी शिफ्ट-क्लिक करा किंवा बॅकग्राउंडवर बॉक्स ड्रॅग करा."
 
-msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
-msgstr "घटक निवडण्यासाठी त्यावर क्लिक करा, हलविण्यासाठी ड्रॅग करा, आकार बदलण्यासाठी हँडल ड्रॅग करा, नज करण्यासाठी बाण की (10px साठी शिफ्ट). एकाच वेळी अनेक घेण्यासाठी शिफ्ट-क्लिक करा किंवा बॅकग्राउंडवर बॉक्स ड्रॅग करा."
 
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "सेव्ह न करता बंद होते, आणि हा डायलॉग उघडला तेव्हा होता तसाच हा सीन परत ठेवतो -- प्रिव्ह्यूमध्ये हलवलेले किंवा आकार बदललेल्या कोणत्याही गोष्टीसह.\n\nपुनर्नामित ही एक गोष्ट आहे जी ती परत घेऊ शकत नाही: ते लोड केलेल्या बॅकअपवर लागू केले जाते जसे की त्याची पुष्टी होते आणि त्याच्यासह हा संवाद बंद होतो."
 
-msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
-msgstr "सेव्ह न करता बंद होते, आणि हा डायलॉग उघडला तेव्हा होता तसाच हा सीन परत ठेवतो -- प्रिव्ह्यूमध्ये हलवलेले किंवा आकार बदललेल्या कोणत्याही गोष्टीसह.\n\nपुनर्नामित ही एक गोष्ट आहे जी ती परत घेऊ शकत नाही: ते लोड केलेल्या बॅकअपवर लागू केले जाते जसे की त्याची पुष्टी होते आणि त्याच्यासह हा संवाद बंद होतो."
 
 msgid "Compare Files"
 msgstr "फाइल्सची तुलना करा"
 
-msgid "Compare Files"
-msgstr "फाइल्सची तुलना करा"
 
 msgid "Compare With"
 msgstr "सह तुलना करा"
 
-msgid "Compare With"
-msgstr "सह तुलना करा"
 
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "लोड केलेल्या दुसऱ्या XML फाईलची तुलना करा: काय जोडले, काढले, पुनर्नामित केले आणि बदलले.\n\nTaskerNet इंपोर्टने काय आणले, संपादनात काय बदल झाला किंवा दोन बॅकअपमध्ये काय फरक आहे हे पाहण्यासाठी त्याचा वापर करा.\n\nलोड केलेली फाइल 'सेव्ह टू करंट फाइल' वरून आली असल्यास, ती जतन केलेली फाइल थेट ऑफर केली जाते.\n\nपरिणाम येथे प्रदर्शित केले जातात आणि वर्तमान निर्देशिकेतील मजकूर फाइलमध्ये जतन केले जातात."
 
-msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "लोड केलेल्या दुसऱ्या XML फाईलची तुलना करा: काय जोडले, काढले, पुनर्नामित केले आणि बदलले.\n\nTaskerNet इंपोर्टने काय आणले, संपादनात काय बदल झाला किंवा दोन बॅकअपमध्ये काय फरक आहे हे पाहण्यासाठी त्याचा वापर करा.\n\nलोड केलेली फाइल 'सेव्ह टू करंट फाइल' वरून आली असल्यास, ती जतन केलेली फाइल थेट ऑफर केली जाते.\n\nपरिणाम येथे प्रदर्शित केले जातात आणि वर्तमान निर्देशिकेतील मजकूर फाइलमध्ये जतन केले जातात."
 
 msgid "Comparison cancelled."
 msgstr "तुलना रद्द केली."
 
-msgid "Comparison cancelled."
-msgstr "तुलना रद्द केली."
 
 msgid "Comparison report could not be saved."
 msgstr "तुलना अहवाल जतन करता आला नाही."
 
-msgid "Comparison report could not be saved."
-msgstr "तुलना अहवाल जतन करता आला नाही."
 
 msgid "Comparison saved as"
 msgstr "तुलना म्हणून सेव्ह केली"
 
-msgid "Comparison saved as"
-msgstr "तुलना म्हणून सेव्ह केली"
 
 msgid "Delete Scene"
 msgstr "दृश्य हटवा"
 
-msgid "Delete Scene"
-msgstr "दृश्य हटवा"
 
 msgid "Done"
 msgstr "झाले"
 
-msgid "Done"
-msgstr "झाले"
 
 msgid "Drawn in"
 msgstr "मध्ये काढले"
 
-msgid "Drawn in"
-msgstr "मध्ये काढले"
 
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "हे दृश्य मुख्य विंडोमध्ये चित्र म्हणून काढते -- तुम्ही येथे जोडलेले किंवा बदललेले परंतु अद्याप जतन केलेले नसलेल्या घटकांसह.\n\nआवृत्ती 2 लेआउटचा स्वतःचा आकार नसतो, म्हणून पूर्वावलोकन ते तुम्ही निवडलेल्या स्क्रीनमध्ये मांडते आणि जेव्हा तुम्ही ते बदलता तेव्हा ते पुन्हा प्रवाहित होते.\n\nपूर्वावलोकन चालू असताना हा संवाद बंद होतो, त्यात सर्वकाही ठेवलेले असते; पूर्वावलोकनाचे 'बॅक टू एडिटर' बटण ते परत आणते.\n\nहे एक प्रतिनिधित्व आहे, टास्करचे स्वतःचे प्रस्तुतकर्ता नाही: %व्हेरिएबल्सचे निराकरण करण्याऐवजी नाव दिले जाते, सामग्रीचे रंग डिव्हाइसच्या थीमऐवजी बेसलाइन पॅलेटमधून येतात आणि प्रतिमा, व्हिडिओ आणि वेब सामग्री प्लेसहोल्डर म्हणून दर्शविली जाते."
 
-msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
-msgstr "हे दृश्य मुख्य विंडोमध्ये चित्र म्हणून काढते -- तुम्ही येथे जोडलेले किंवा बदललेले परंतु अद्याप जतन केलेले नसलेल्या घटकांसह.\n\nआवृत्ती 2 लेआउटचा स्वतःचा आकार नसतो, म्हणून पूर्वावलोकन ते तुम्ही निवडलेल्या स्क्रीनमध्ये मांडते आणि जेव्हा तुम्ही ते बदलता तेव्हा ते पुन्हा प्रवाहित होते.\n\nपूर्वावलोकन चालू असताना हा संवाद बंद होतो, त्यात सर्वकाही ठेवलेले असते; पूर्वावलोकनाचे 'बॅक टू एडिटर' बटण ते परत आणते.\n\nहे एक प्रतिनिधित्व आहे, टास्करचे स्वतःचे प्रस्तुतकर्ता नाही: %व्हेरिएबल्सचे निराकरण करण्याऐवजी नाव दिले जाते, सामग्रीचे रंग डिव्हाइसच्या थीमऐवजी बेसलाइन पॅलेटमधून येतात आणि प्रतिमा, व्हिडिओ आणि वेब सामग्री प्लेसहोल्डर म्हणून दर्शविली जाते."
 
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "हे दृश्य मुख्य विंडोमध्ये, वर टाईप केलेल्या आकारात चित्राप्रमाणे काढते -- अद्याप जतन न केलेल्या बदलांसह.\n\nपूर्वावलोकन चालू असताना हा संवाद बंद होतो, त्यात सर्वकाही ठेवलेले असते; पूर्वावलोकनाचे 'बॅक टू एडिटर' बटण ते परत आणते.\n\nहे एक प्रतिनिधित्व आहे, टास्करचे स्वतःचे प्रस्तुतकर्ता नाही: %व्हेरिएबल्सचे निराकरण करण्याऐवजी नाव दिले जाते आणि प्रतिमा, व्हिडिओ आणि वेब सामग्री प्लेसहोल्डर म्हणून दर्शविली जाते."
 
-msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
-msgstr "हे दृश्य मुख्य विंडोमध्ये, वर टाईप केलेल्या आकारात चित्राप्रमाणे काढते -- अद्याप जतन न केलेल्या बदलांसह.\n\nपूर्वावलोकन चालू असताना हा संवाद बंद होतो, त्यात सर्वकाही ठेवलेले असते; पूर्वावलोकनाचे 'बॅक टू एडिटर' बटण ते परत आणते.\n\nहे एक प्रतिनिधित्व आहे, टास्करचे स्वतःचे प्रस्तुतकर्ता नाही: %व्हेरिएबल्सचे निराकरण करण्याऐवजी नाव दिले जाते आणि प्रतिमा, व्हिडिओ आणि वेब सामग्री प्लेसहोल्डर म्हणून दर्शविली जाते."
 
 msgid "Dropdown menu — shown when opened"
 msgstr "ड्रॉपडाउन मेनू — उघडल्यावर दाखवले जाते"
 
-msgid "Dropdown menu — shown when opened"
-msgstr "ड्रॉपडाउन मेनू — उघडल्यावर दाखवले जाते"
 
 msgid "Duplicate"
 msgstr "डुप्लिकेट"
 
-msgid "Duplicate"
-msgstr "डुप्लिकेट"
 
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "सीन दाखवल्यावर डायनॅमिक आणि सिलेक्ट व्हेरिएबलचे काम केले जाते."
 
-msgid "Dynamic and Select Variable are worked out when the Scene is shown."
-msgstr "सीन दाखवल्यावर डायनॅमिक आणि सिलेक्ट व्हेरिएबलचे काम केले जाते."
 
 msgid "Dynamic value"
 msgstr "डायनॅमिक मूल्य"
 
-msgid "Dynamic value"
-msgstr "डायनॅमिक मूल्य"
 
 msgid "Edit Scene"
 msgstr "दृश्य संपादित करा"
 
-msgid "Edit Scene"
-msgstr "दृश्य संपादित करा"
 
 msgid "Edit item layout"
 msgstr "आयटम लेआउट संपादित करा"
 
-msgid "Edit item layout"
-msgstr "आयटम लेआउट संपादित करा"
 
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "निवड ठेवून, त्याऐवजी त्याचे गुणधर्म संपादित करा."
 
-msgid "Edit this one's properties instead, keeping the selection."
-msgstr "निवड ठेवून, त्याऐवजी त्याचे गुणधर्म संपादित करा."
 
 msgid "Event handlers"
 msgstr "कार्यक्रम हाताळणारे"
 
-msgid "Event handlers"
-msgstr "कार्यक्रम हाताळणारे"
 
 msgid "Export Scene"
 msgstr "एक्सपोर्ट सीन"
 
-msgid "Export Scene"
-msgstr "एक्सपोर्ट सीन"
 
 msgid "Geometry"
 msgstr "भूमिती"
 
-msgid "Geometry"
-msgstr "भूमिती"
 
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "राखाडी: MapTasker कडे कोणतेही वितर्क सारणी नाही, त्यामुळे Tasker आत काय अपेक्षित आहे याचा अंदाज न घेता ते तयार केले जाऊ शकत नाही. हेडिंग हे MapTasker चे स्वतःचे ग्रुपिंग आहेत."
 
-msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
-msgstr "राखाडी: MapTasker कडे कोणतेही वितर्क सारणी नाही, त्यामुळे Tasker आत काय अपेक्षित आहे याचा अंदाज न घेता ते तयार केले जाऊ शकत नाही. हेडिंग हे MapTasker चे स्वतःचे ग्रुपिंग आहेत."
 
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "हॅच केलेले फिल्स आणि इटॅलिक अधोरेखित मजकूर हे % व्हेरिएबल्स आहेत -- त्यांची मूल्ये डिव्हाइसवर राहतात, बॅकअपमध्ये नाहीत, म्हणून त्यांना अंदाज लावण्याऐवजी नाव दिले जाते. प्रतिमा, व्हिडिओ, नकाशे आणि वेब सामग्री प्लेसहोल्डर म्हणून दर्शविली आहे. कोणत्याही घटकाची भूमिती, त्याचे व्हेरिएबल्स आणि ते चालवलेल्या कार्यांसाठी फिरवा."
 
-msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
-msgstr "हॅच केलेले फिल्स आणि इटॅलिक अधोरेखित मजकूर हे % व्हेरिएबल्स आहेत -- त्यांची मूल्ये डिव्हाइसवर राहतात, बॅकअपमध्ये नाहीत, म्हणून त्यांना अंदाज लावण्याऐवजी नाव दिले जाते. प्रतिमा, व्हिडिओ, नकाशे आणि वेब सामग्री प्लेसहोल्डर म्हणून दर्शविली आहे. कोणत्याही घटकाची भूमिती, त्याचे व्हेरिएबल्स आणि ते चालवलेल्या कार्यांसाठी फिरवा."
 
 msgid "Health Check"
 msgstr "आरोग्य तपासणी"
 
-msgid "Health Check"
-msgstr "आरोग्य तपासणी"
 
 msgid "Health Check found no errors or warnings."
 msgstr "आरोग्य तपासणीमध्ये कोणतीही त्रुटी किंवा इशारे आढळले नाहीत."
 
-msgid "Health Check found no errors or warnings."
-msgstr "आरोग्य तपासणीमध्ये कोणतीही त्रुटी किंवा इशारे आढळले नाहीत."
 
 msgid "Health Check report could not be saved."
 msgstr "आरोग्य तपासणी अहवाल जतन करता आला नाही."
 
-msgid "Health Check report could not be saved."
-msgstr "आरोग्य तपासणी अहवाल जतन करता आला नाही."
 
 msgid "Health Check saved as"
 msgstr "आरोग्य तपासणी म्हणून जतन"
 
-msgid "Health Check saved as"
-msgstr "आरोग्य तपासणी म्हणून जतन"
 
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "पॉप-अप संदेश अदृश्य होण्यापूर्वी किती वेळ स्क्रीनवर राहतो.\n\n'डिसमिस करेपर्यंत' प्रत्येक मेसेज तुम्ही बंद करेपर्यंत ठेवतो, जेव्हा एखादा मेसेज तुम्ही तो वाचण्याआधी स्क्रोल होतो तेव्हा उपयोगी ठरतो.\n\nकाही संदेश त्यांचा स्वतःचा दीर्घ कालावधी सेट करतात कारण ते तुम्हाला वाचायच्या गोष्टींची यादी करतात -- उदाहरणार्थ, दृश्य घटक हटवल्याने किंवा पुनर्नामित केल्याने प्रभावित होणारी कार्ये. येथे जे काही निवडले आहे ते ते स्वतःचे वेळ पाळतात."
 
-msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
-msgstr "पॉप-अप संदेश अदृश्य होण्यापूर्वी किती वेळ स्क्रीनवर राहतो.\n\n'डिसमिस करेपर्यंत' प्रत्येक मेसेज तुम्ही बंद करेपर्यंत ठेवतो, जेव्हा एखादा मेसेज तुम्ही तो वाचण्याआधी स्क्रोल होतो तेव्हा उपयोगी ठरतो.\n\nकाही संदेश त्यांचा स्वतःचा दीर्घ कालावधी सेट करतात कारण ते तुम्हाला वाचायच्या गोष्टींची यादी करतात -- उदाहरणार्थ, दृश्य घटक हटवल्याने किंवा पुनर्नामित केल्याने प्रभावित होणारी कार्ये. येथे जे काही निवडले आहे ते ते स्वतःचे वेळ पाळतात."
 
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "सूचीमध्ये: श्रेणीसाठी शिफ्ट-क्लिक करा, एक जोडण्यासाठी किंवा काढण्यासाठी Ctrl- किंवा Cmd-क्लिक करा."
 
-msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
-msgstr "सूचीमध्ये: श्रेणीसाठी शिफ्ट-क्लिक करा, एक जोडण्यासाठी किंवा काढण्यासाठी Ctrl- किंवा Cmd-क्लिक करा."
 
 msgid "Item layout"
 msgstr "आयटम लेआउट"
 
-msgid "Item layout"
-msgstr "आयटम लेआउट"
 
 msgid "Landscape"
 msgstr "लँडस्केप"
 
-msgid "Landscape"
-msgstr "लँडस्केप"
 
 msgid "Legacy"
 msgstr "वारसा"
 
-msgid "Legacy"
-msgstr "वारसा"
 
 msgid "Legacy Scene"
 msgstr "वारसा देखावा"
 
-msgid "Legacy Scene"
-msgstr "वारसा देखावा"
 
 msgid "List"
 msgstr "यादी"
@@ -2030,35 +1890,23 @@ msgstr "यादी"
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: दृश्य मर्यादा गाठली, आकृती कापली"
 
-msgid "List"
-msgstr "यादी"
 
 msgid "Modifiers"
 msgstr "सुधारक"
 
-msgid "MapTasker: view limit reached, diagram truncated"
-msgstr "MapTasker: दृश्य मर्यादा गाठली, आकृती कापली"
 
 msgid "Never updated"
 msgstr "कधीही अपडेट केले नाही"
 
-msgid "Modifiers"
-msgstr "सुधारक"
 
-msgid "Never updated"
-msgstr "कधीही अपडेट केले नाही"
 
 msgid "No Task addresses this element by name."
 msgstr "कोणतेही कार्य या घटकाला नावाने संबोधित करत नाही."
 
-msgid "No Task addresses this element by name."
-msgstr "कोणतेही कार्य या घटकाला नावाने संबोधित करत नाही."
 
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "कोणतीही XML फाइल लोड केलेली नाही.  प्रथम XML फाइल मिळवा."
 
-msgid "No XML file has been loaded.  Get an XML file first."
-msgstr "कोणतीही XML फाइल लोड केलेली नाही.  प्रथम XML फाइल मिळवा."
 
 msgid "No element matches that."
 msgstr "कोणताही घटक त्याच्याशी जुळत नाही."
@@ -2066,107 +1914,71 @@ msgstr "कोणताही घटक त्याच्याशी जुळ
 msgid "Not an HTML colour name or #hex value."
 msgstr "HTML रंगाचे नाव किंवा #hex मूल्य नाही."
 
-msgid "No element matches that."
-msgstr "कोणताही घटक त्याच्याशी जुळत नाही."
 
-msgid "Not an HTML colour name or #hex value."
-msgstr "HTML रंगाचे नाव किंवा #hex मूल्य नाही."
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "अद्ययावत नाही -- हे दृश्य आणि हा घटक दोन्ही नावे ठेवतात, परंतु a म्हणून नाही"
 
-msgid "Not updated -- these name both this Scene and this element, but not as a"
-msgstr "अद्ययावत नाही -- हे दृश्य आणि हा घटक दोन्ही नावे ठेवतात, परंतु a म्हणून नाही"
 
 msgid "Nothing here."
 msgstr "इथे काहीही नाही."
 
-msgid "Nothing here."
-msgstr "इथे काहीही नाही."
 
 msgid "Notification Duration"
 msgstr "सूचना कालावधी"
 
-msgid "Notification Duration"
-msgstr "सूचना कालावधी"
 
 msgid "Notification Duration:"
 msgstr "सूचना कालावधी:"
 
-msgid "Notification Duration:"
-msgstr "सूचना कालावधी:"
 
 msgid "On"
 msgstr "चालू"
 
-msgid "On"
-msgstr "चालू"
 
 msgid "Only when"
 msgstr "फक्त तेव्हाच"
 
-msgid "Only when"
-msgstr "फक्त तेव्हाच"
 
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "प्रत्येक घटकाची रूपरेषा काढा आणि त्यास नाव द्या, ज्या प्रकारे डिझाइनरच्या झाडाचे नाव आहे."
 
-msgid "Outline every component and name it, the way the designer's tree names it."
-msgstr "प्रत्येक घटकाची रूपरेषा काढा आणि त्यास नाव द्या, ज्या प्रकारे डिझाइनरच्या झाडाचे नाव आहे."
 
 msgid "Outline every element and name it."
 msgstr "प्रत्येक घटकाची रूपरेषा काढा आणि त्याला नाव द्या."
 
-msgid "Outline every element and name it."
-msgstr "प्रत्येक घटकाची रूपरेषा काढा आणि त्याला नाव द्या."
 
 msgid "Pick a Material icon."
 msgstr "मटेरियल आयकॉन निवडा."
 
-msgid "Pick a Material icon."
-msgstr "मटेरियल आयकॉन निवडा."
 
 msgid "Pick an icon"
 msgstr "एक चिन्ह निवडा"
 
-msgid "Pick an icon"
-msgstr "एक चिन्ह निवडा"
 
 msgid "Pick from the Scene's environment and global variables."
 msgstr "दृश्याच्या वातावरणातून आणि जागतिक चलांमधून निवडा."
 
-msgid "Pick from the Scene's environment and global variables."
-msgstr "दृश्याच्या वातावरणातून आणि जागतिक चलांमधून निवडा."
 
 msgid "Pick one of Material's own colour roles."
 msgstr "मटेरियलच्या स्वतःच्या रंगीत भूमिकांपैकी एक निवडा."
 
-msgid "Pick one of Material's own colour roles."
-msgstr "मटेरियलच्या स्वतःच्या रंगीत भूमिकांपैकी एक निवडा."
 
 msgid "Preview"
 msgstr "पूर्वावलोकन"
 
-msgid "Preview"
-msgstr "पूर्वावलोकन"
 
 msgid "Project(s) that list it."
 msgstr "प्रकल्प(चे) जे त्याची यादी करतात."
 
-msgid "Project(s) that list it."
-msgstr "प्रकल्प(चे) जे त्याची यादी करतात."
 
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "नवीन नावासाठी प्रॉम्प्ट करते आणि लोड केलेल्या बॅकअपवर ते आत्ता लागू करते -- ते धारण करणाऱ्या प्रत्येक प्रोजेक्टच्या सीन सूचीसह सर्वत्र दृश्याचे नाव बदलणे.\n\nहे दृश्य नावाने दाखवणारी किंवा लपवणारी कार्ये अपडेट केलेली नाहीत; ते अजूनही जुन्या दृश्याला नाव देतात.\n\nवरील सीन नेम फील्ड केवळ वाचनीय आहे -- ते बदलण्याचा हा एकमेव मार्ग आहे."
 
-msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
-msgstr "नवीन नावासाठी प्रॉम्प्ट करते आणि लोड केलेल्या बॅकअपवर ते आत्ता लागू करते -- ते धारण करणाऱ्या प्रत्येक प्रोजेक्टच्या सीन सूचीसह सर्वत्र दृश्याचे नाव बदलणे.\n\nहे दृश्य नावाने दाखवणारी किंवा लपवणारी कार्ये अपडेट केलेली नाहीत; ते अजूनही जुन्या दृश्याला नाव देतात.\n\nवरील सीन नेम फील्ड केवळ वाचनीय आहे -- ते बदलण्याचा हा एकमेव मार्ग आहे."
 
 msgid "Properties"
 msgstr "गुणधर्म"
 
-msgid "Properties"
-msgstr "गुणधर्म"
 
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "गुणधर्म एका वेळी एक घटक संपादित केले जातात. निवडलेल्या प्रत्येक गोष्टीला ड्रॅग आणि नडिंग हलवा."
@@ -2177,86 +1989,56 @@ msgstr "रिफ्रेश करा"
 msgid "Remove background"
 msgstr "पार्श्वभूमी काढा"
 
-msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
-msgstr "गुणधर्म एका वेळी एक घटक संपादित केले जातात. निवडलेल्या प्रत्येक गोष्टीला ड्रॅग आणि नडिंग हलवा."
 
 msgid "Rename Element"
 msgstr "घटकाचे नाव बदला"
 
-msgid "Refresh"
-msgstr "रिफ्रेश करा"
 
-msgid "Remove background"
-msgstr "पार्श्वभूमी काढा"
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "येथे घटकाचे नाव बदलल्याने बॅकअप स्वीप होत नाही: आयटम लेआउटमध्ये टास्कच्या एलिमेंट क्रियेसाठी कोणतेही दृश्य नाव नाही, त्यामुळे पुन्हा लिहिण्यासारखे काहीही नाही."
 
-msgid "Rename Element"
-msgstr "घटकाचे नाव बदला"
 
-msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
-msgstr "येथे घटकाचे नाव बदलल्याने बॅकअप स्वीप होत नाही: आयटम लेआउटमध्ये टास्कच्या एलिमेंट क्रियेसाठी कोणतेही दृश्य नाव नाही, त्यामुळे पुन्हा लिहिण्यासारखे काहीही नाही."
 
 msgid "Repeats once per array entry"
 msgstr "प्रति ॲरे एंट्री एकदा पुनरावृत्ती होते"
 
-msgid "Repeats once per array entry"
-msgstr "प्रति ॲरे एंट्री एकदा पुनरावृत्ती होते"
 
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "गोलाकार ड्रॅग पोझिशन्स आणि आकार या अनेक पिक्सेल."
 
-msgid "Round dragged positions and sizes to this many pixels."
-msgstr "गोलाकार ड्रॅग पोझिशन्स आणि आकार या अनेक पिक्सेल."
 
 msgid "Save Scene To Android Device"
 msgstr "Android डिव्हाइसवर देखावा जतन करा"
 
-msgid "Save Scene To Android Device"
-msgstr "Android डिव्हाइसवर देखावा जतन करा"
 
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "या सत्रात कोठेही केलेल्या प्रत्येक संपादनासह - संपूर्ण बॅकअप - प्रत्येक प्रकल्प, प्रोफाइल, कार्य आणि दृश्य जतन करते, केवळ हे दृश्य नाही.\nहे सध्या लोड केलेल्या फाइलच्या नवीन, टाइमस्टॅम्प केलेल्या प्रतीवर लिहिलेले आहे: backup.xml backup_20260728_143005.xml होते.\nतुम्ही लोड केलेली फाइल कधीही लिहिली जात नाही, त्यामुळे ती जशी होती तशीच ठेवली जाते.\nॲप नंतर नवीन कॉपीवर स्विच करते, जी कोणत्याही पुढील संपादन आणि जतन करण्यासाठी वर्तमान फाइल बनते; पुन्हा सेव्ह केल्याने टाइमस्टॅम्प दुसरा जोडण्याऐवजी बदलतो.\nहे फक्त या संगणकावर लिहिते -- तुमच्या Android डिव्हाइसवर काहीही पाठवले जात नाही."
 
-msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
-msgstr "या सत्रात कोठेही केलेल्या प्रत्येक संपादनासह - संपूर्ण बॅकअप - प्रत्येक प्रकल्प, प्रोफाइल, कार्य आणि दृश्य जतन करते, केवळ हे दृश्य नाही.\nहे सध्या लोड केलेल्या फाइलच्या नवीन, टाइमस्टॅम्प केलेल्या प्रतीवर लिहिलेले आहे: backup.xml backup_20260728_143005.xml होते.\nतुम्ही लोड केलेली फाइल कधीही लिहिली जात नाही, त्यामुळे ती जशी होती तशीच ठेवली जाते.\nॲप नंतर नवीन कॉपीवर स्विच करते, जी कोणत्याही पुढील संपादन आणि जतन करण्यासाठी वर्तमान फाइल बनते; पुन्हा सेव्ह केल्याने टाइमस्टॅम्प दुसरा जोडण्याऐवजी बदलतो.\nहे फक्त या संगणकावर लिहिते -- तुमच्या Android डिव्हाइसवर काहीही पाठवले जात नाही."
 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "हे दृश्य, त्याच्या सर्व घटकांसह, एक स्वतंत्र .scn.xml फाइल म्हणून जतन करते -- त्याच स्वरूपाचे Tasker चे स्वतःचे दृश्य निर्यात करते.\n\nसीनचे घटक चालवलेली कार्ये समाविष्ट केलेली नाहीत; ते त्यांच्याच प्रकल्पाचे आहेत."
 
-msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
-msgstr "हे दृश्य, त्याच्या सर्व घटकांसह, एक स्वतंत्र .scn.xml फाइल म्हणून जतन करते -- त्याच स्वरूपाचे Tasker चे स्वतःचे दृश्य निर्यात करते.\n\nसीनचे घटक चालवलेली कार्ये समाविष्ट केलेली नाहीत; ते त्यांच्याच प्रकल्पाचे आहेत."
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "तुटलेले संदर्भ, संदर्भ नसलेली कार्ये, प्रोफाइल आणि दृश्ये आणि नामकरण समस्यांसाठी लोड केलेले XML स्कॅन करा.\n\nपरिणाम येथे प्रदर्शित केले जातात आणि वर्तमान निर्देशिकेतील मजकूर फाइलमध्ये जतन केले जातात."
 
-msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "तुटलेले संदर्भ, संदर्भ नसलेली कार्ये, प्रोफाइल आणि दृश्ये आणि नामकरण समस्यांसाठी लोड केलेले XML स्कॅन करा.\n\nपरिणाम येथे प्रदर्शित केले जातात आणि वर्तमान निर्देशिकेतील मजकूर फाइलमध्ये जतन केले जातात."
 
 msgid "Scene Components"
 msgstr "देखावा घटक"
 
-msgid "Scene Components"
-msgstr "देखावा घटक"
 
 msgid "Scene Elements"
 msgstr "दृश्य घटक"
 
-msgid "Scene Elements"
-msgstr "दृश्य घटक"
 
 msgid "Scene Name"
 msgstr "दृश्याचे नाव"
 
-msgid "Scene Name"
-msgstr "दृश्याचे नाव"
 
 msgid "Scene Preview"
 msgstr "दृश्य पूर्वावलोकन"
 
-msgid "Scene Preview"
-msgstr "दृश्य पूर्वावलोकन"
 
 msgid "Scene Properties"
 msgstr "देखावा गुणधर्म"
@@ -2264,14 +2046,10 @@ msgstr "देखावा गुणधर्म"
 msgid "Scene added."
 msgstr "दृश्य जोडले."
 
-msgid "Scene added."
-msgstr "दृश्य जोडले."
 
 msgid "Scene type"
 msgstr "देखावा प्रकार"
 
-msgid "Scene type"
-msgstr "देखावा प्रकार"
 
 msgid "Screen"
 msgstr "पडदा"
@@ -2279,8 +2057,6 @@ msgstr "पडदा"
 msgid "Search elements"
 msgstr "शोध घटक"
 
-msgid "Search elements"
-msgstr "शोध घटक"
 
 msgid "Search icons"
 msgstr "चिन्ह शोधा"
@@ -2294,8 +2070,6 @@ msgstr "व्हेरिएबल्स शोधा"
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "उर्वरित पाहण्यासाठी मोठी दृश्य मर्यादा किंवा एकच प्रकल्प / प्रोफाइल / कार्य निवडा."
 
-msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
-msgstr "उर्वरित पाहण्यासाठी मोठी दृश्य मर्यादा किंवा एकच प्रकल्प / प्रोफाइल / कार्य निवडा."
 
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "डुप्लिकेट करण्यासाठी, हटवण्यासाठी किंवा पुन्हा स्टॅक करण्यासाठी एकच घटक निवडा."
@@ -2303,8 +2077,6 @@ msgstr "डुप्लिकेट करण्यासाठी, हटवण
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "प्रथम एक दृश्य निवडा (वरील दृश्य पुलडाउन)."
 
-msgid "Select a single element to duplicate, delete or restack it."
-msgstr "डुप्लिकेट करण्यासाठी, हटवण्यासाठी किंवा पुन्हा स्टॅक करण्यासाठी एकच घटक निवडा."
 
 msgid "Select an element first."
 msgstr "प्रथम एक घटक निवडा."
@@ -2312,8 +2084,6 @@ msgstr "प्रथम एक घटक निवडा."
 msgid "Select an element on the canvas or in the list."
 msgstr "कॅनव्हासवर किंवा सूचीमधील घटक निवडा."
 
-msgid "Select an element on the canvas or in the list."
-msgstr "कॅनव्हासवर किंवा सूचीमधील घटक निवडा."
 
 msgid "Show the Task each element runs."
 msgstr "प्रत्येक घटक चालू असलेले कार्य दर्शवा."
@@ -2324,14 +2094,10 @@ msgstr "टॅप केल्यावर प्रत्येक घटक �
 msgid "Show when"
 msgstr "केव्हा दाखवा"
 
-msgid "Show when"
-msgstr "केव्हा दाखवा"
 
 msgid "Size"
 msgstr "आकार"
 
-msgid "Size"
-msgstr "आकार"
 
 msgid "Spinner"
 msgstr "स्पिनर"
@@ -2348,8 +2114,6 @@ msgstr "या कार्यक्रमावर काहीही गोळ
 msgid "Task action(s) in"
 msgstr "मध्ये कार्य क्रिया"
 
-msgid "Task action(s) in"
-msgstr "मध्ये कार्य क्रिया"
 
 msgid "Task(s)"
 msgstr "कार्य"
@@ -2360,26 +2124,18 @@ msgstr "Tasker हे टास्क सीनमध्ये ठेवतो �
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "कार्य(ले) या दृश्याला मॅच पॅटर्नद्वारे संबोधित करतात (घटक दृश्यमानता). ते स्वतः तपासा"
 
-msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
-msgstr "Tasker हे टास्क सीनमध्ये ठेवतो आणि इतर कुठेही नाही, त्यामुळे त्याचे नाव नाही आणि ते गमावल्याशिवाय इतरत्र निर्देशित केले जाऊ शकत नाही. ते अस्पृश्य माध्यमातून वाहून जाते."
 
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker हा घटक सूचीबद्ध करतो, परंतु MapTasker ने जतन केलेल्या दृश्यात कधीही पाहिलेले नाही -- म्हणून त्यात त्याचा प्रकार आणि आयडी शिवाय काहीही जोडले गेले नाही आणि वरील नावावरून देखील प्रकाराचा अंदाज लावला जातो (प्रकार: \"{node_type}\" असे लिहिलेले). Tasker ते ओळखत नसल्यास, पूर्ववत करा दाबा."
 
-msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
-msgstr "Tasker हा घटक सूचीबद्ध करतो, परंतु MapTasker ने जतन केलेल्या दृश्यात कधीही पाहिलेले नाही -- म्हणून त्यात त्याचा प्रकार आणि आयडी शिवाय काहीही जोडले गेले नाही आणि वरील नावावरून देखील प्रकाराचा अंदाज लावला जातो (प्रकार: \"{node_type}\" असे लिहिलेले). Tasker ते ओळखत नसल्यास, पूर्ववत करा दाबा."
 
 msgid "Tasker variable(s)"
 msgstr "टास्कर व्हेरिएबल"
 
-msgid "Tasker variable(s)"
-msgstr "टास्कर व्हेरिएबल"
 
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Tasker's Screen Builder: एक घोषणात्मक घटक वृक्ष (स्तंभ, पंक्ती, स्कॅफोल्ड, ...) जो स्वतःला बाहेर ठेवतो, निश्चित कॅनव्हास आकाराशिवाय. येथून प्रारंभ करा:"
 
-msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
-msgstr "Tasker's Screen Builder: एक घोषणात्मक घटक वृक्ष (स्तंभ, पंक्ती, स्कॅफोल्ड, ...) जो स्वतःला बाहेर ठेवतो, निश्चित कॅनव्हास आकाराशिवाय. येथून प्रारंभ करा:"
 
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "कार्ये या घटकाला नावाने संबोधित करतात (घटक मजकूर, घटक स्थिती, ... एकूण 18 क्रिया कोड), त्यामुळे त्याचे नाव बदलणे फील्ड संपादन नाही. पुनर्नामित संवाद सध्याच्या नावावर काय अवलंबून आहे याची यादी करतो आणि ती कार्ये सोबत आणण्याची ऑफर देतो."
@@ -2393,8 +2149,6 @@ msgstr "मजकूर घनता"
 msgid "That component can't go there."
 msgstr "तो घटक तिथे जाऊ शकत नाही."
 
-msgid "That component can't go there."
-msgstr "तो घटक तिथे जाऊ शकत नाही."
 
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "साहित्य चिन्ह सूची वाचता आली नाही, म्हणून त्याऐवजी नाव टाइप करा."
@@ -2405,41 +2159,27 @@ msgstr "टास्कर व्हेरिएबल हा घटक त्�
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "ती फाइल आधीच लोड केलेली आहे.  विरुद्ध तुलना करण्यासाठी भिन्न निवडा."
 
-msgid "The Material icon list could not be read, so type the name instead."
-msgstr "साहित्य चिन्ह सूची वाचता आली नाही, म्हणून त्याऐवजी नाव टाइप करा."
 
-msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
-msgstr "टास्कर व्हेरिएबल हा घटक त्याचे मूल्य त्यात लिहितो. अनेकांना स्वल्पविरामाने विभक्त करा. बंधनकारक सेट न करता घोषित करण्यासाठी रिक्त सोडा."
 
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "हे सीन सेव्ह केल्यावर ते संबोधित करणारी टास्क अपडेट केली जातील."
 
-msgid "The Tasks that address it will be updated when this Scene is saved."
-msgstr "हे सीन सेव्ह केल्यावर ते संबोधित करणारी टास्क अपडेट केली जातील."
 
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "एका पंक्तीचा लेआउट. Tasker सूचीमध्ये भरलेल्या प्रत्येक एंट्रीमध्ये एकदा ते काढतो, त्यामुळे तुम्ही येथे जे पाहता ते सूचीऐवजी एकच पंक्ती आहे."
 
-msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
-msgstr "एका पंक्तीचा लेआउट. Tasker सूचीमध्ये भरलेल्या प्रत्येक एंट्रीमध्ये एकदा ते काढतो, त्यामुळे तुम्ही येथे जे पाहता ते सूचीऐवजी एकच पंक्ती आहे."
 
 msgid "The loaded file was saved from"
 msgstr "वरून लोड केलेली फाईल सेव्ह केली होती"
 
-msgid "The loaded file was saved from"
-msgstr "वरून लोड केलेली फाईल सेव्ह केली होती"
 
 msgid "The original"
 msgstr "मूळ"
 
-msgid "The original"
-msgstr "मूळ"
 
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "मूळ दृश्य: UI घटक आकाराच्या कॅनव्हासवर निश्चित स्थानांवर ठेवलेले आहेत (मजकूर, बटण, रेक्ट, प्रतिमा, वेब, ...)."
 
-msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
-msgstr "मूळ दृश्य: UI घटक आकाराच्या कॅनव्हासवर निश्चित स्थानांवर ठेवलेले आहेत (मजकूर, बटण, रेक्ट, प्रतिमा, वेब, ...)."
 
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "स्क्रीनचा आकार हा या पूर्वावलोकनाचा आहे, सीनचा नाही -- आवृत्ती 2 लेआउटचा स्वतःचा आकार नाही, म्हणून तो पुन्हा प्रवाहित पाहण्यासाठी 'स्क्रीन' बदला. मटेरियल रोल द्वारे नाव दिलेले रंग मटेरियल 3 बेसलाइन पॅलेटमधून काढले जातात; डिव्हाइस त्यांना त्याच्या स्वतःच्या थीमवर सोडवते, जे मटेरिअल अंतर्गत तुम्ही वॉलपेपरमधून येते. हॅच केलेले फिल आणि तिर्यक अधोरेखित मजकूर %व्हेरिएबल्स आहेत. अंबर 'केव्हा दाखवा' सह घटक चिन्हांकित करते. कोणतेही घटक त्याचे सुधारक, चल आणि क्रियांसाठी फिरवा."
@@ -2471,14 +2211,10 @@ msgstr "या दृश्याच्या आवृत्ती 2 लेआ�
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "या ॲपमध्ये या घटक प्रकारासाठी कोणतेही गुणधर्म सारणी नाही, त्यामुळे केवळ त्याची भूमिती येथे संपादित केली जाऊ शकते. ते अन्यथा अस्पृश्य माध्यमातून वाहून जाते."
 
-msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
-msgstr "स्क्रीनचा आकार हा या पूर्वावलोकनाचा आहे, सीनचा नाही -- आवृत्ती 2 लेआउटचा स्वतःचा आकार नाही, म्हणून तो पुन्हा प्रवाहित पाहण्यासाठी 'स्क्रीन' बदला. मटेरियल रोल द्वारे नाव दिलेले रंग मटेरियल 3 बेसलाइन पॅलेटमधून काढले जातात; डिव्हाइस त्यांना त्याच्या स्वतःच्या थीमवर सोडवते, जे मटेरिअल अंतर्गत तुम्ही वॉलपेपरमधून येते. हॅच केलेले फिल आणि तिर्यक अधोरेखित मजकूर %व्हेरिएबल्स आहेत. अंबर 'केव्हा दाखवा' सह घटक चिन्हांकित करते. कोणतेही घटक त्याचे सुधारक, चल आणि क्रियांसाठी फिरवा."
 
 msgid "This element has no layout for this orientation."
 msgstr "या घटकाकडे या अभिमुखतेसाठी कोणतेही लेआउट नाही."
 
-msgid "The search did not finish. The view may be too large, or the browser is busy."
-msgstr "शोध संपला नाही. दृश्य खूप मोठे असू शकते किंवा ब्राउझर व्यस्त आहे."
 
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "हे Android डिव्हाइसवर /Tasker/scenes अंतर्गत दृश्य एक स्वतंत्र फाइल म्हणून लिहेल.\n\nIP पत्ता आणि पोर्ट Android डिव्हाइसच्या Tasker सर्व्हर सेटिंग्जशी जुळले पाहिजे.\n\nयासाठी कोणतीही अधिकृत सूचना आवश्यक नाही."
@@ -2486,185 +2222,152 @@ msgstr "हे Android डिव्हाइसवर /Tasker/scenes अंत�
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "हे तुमच्या Android डिव्हाइसवर /Tasker/scenes अंतर्गत दृश्य एक स्वतंत्र फाइल म्हणून लिहेल -- ते Tasker च्या थेट कॉन्फिगरेशनमध्ये आयात करत नाही.\n\n'Http सर्व्हर उदाहरण' टास्कर प्रोजेक्ट Android डिव्हाइसवर स्थापित आणि सक्रिय असणे आवश्यक आहे, सर्व्हर चालू आहे.\n\nAndroid डिव्हाइस समान नेटवर्कवर असणे आवश्यक आहे आणि IP पत्ता आणि पोर्ट त्याच्या Tasker सर्व्हर सेटिंग्जशी जुळणे आवश्यक आहे. यासाठी कोणतीही अधिकृत सूचना आवश्यक नाही."
 
-msgid "The two files hold the same configuration."
-msgstr "दोन फाइल्समध्ये समान कॉन्फिगरेशन आहे."
 
 msgid "Tree label"
 msgstr "झाड लेबल"
 
-msgid "This Scene has no UI elements."
-msgstr "या दृश्यात कोणतेही UI घटक नाहीत."
 
-msgid "This Scene has no landscape layout of its own (its size is -1)."
-msgstr "या दृश्याचा स्वतःचा कोणताही लँडस्केप लेआउट नाही (त्याचा आकार -1 आहे)."
 
-msgid "This Scene has no layout for this orientation."
-msgstr "या दृश्यात या अभिमुखतेसाठी कोणतेही लेआउट नाही."
 
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "स्क्रीन त्याच्या बाजूला वळवा आणि त्यात लेआउट पुन्हा वाहू द्या."
 
-msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
-msgstr "या सीनमध्ये कोणतेही गुणधर्म घटक नाहीत. MapTasker ने पाहिलेल्या 366 पैकी 66 सीन्समध्ये एकही नाही, त्यामुळे हे नुकसान होण्याऐवजी सामान्य आहे."
 
 msgid "Undo"
 msgstr "पूर्ववत करा"
 
-msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
-msgstr "या दृश्याची आवृत्ती 2 लेआउट वाचता आली नाही आणि ती तशीच ठेवली जाईल."
 
-msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
-msgstr "या दृश्याच्या आवृत्ती 2 लेआउटमध्ये कोणतेही मूळ घटक नाहीत, त्यामुळे डिझाइन करण्यासाठी काहीही नाही."
 
 msgid "Using the saved size"
 msgstr "जतन केलेला आकार वापरणे"
 
-msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
-msgstr "या ॲपमध्ये या घटक प्रकारासाठी कोणतेही गुणधर्म सारणी नाही, त्यामुळे केवळ त्याची भूमिती येथे संपादित केली जाऊ शकते. ते अन्यथा अस्पृश्य माध्यमातून वाहून जाते."
 
 msgid "Variable"
 msgstr "चल"
 
-msgid "This element has no layout for this orientation."
-msgstr "या घटकाकडे या अभिमुखतेसाठी कोणतेही लेआउट नाही."
 
 msgid "Variables"
 msgstr "चल"
 
-msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
-msgstr "हे Android डिव्हाइसवर /Tasker/scenes अंतर्गत दृश्य एक स्वतंत्र फाइल म्हणून लिहेल.\n\nIP पत्ता आणि पोर्ट Android डिव्हाइसच्या Tasker सर्व्हर सेटिंग्जशी जुळले पाहिजे.\n\nयासाठी कोणतीही अधिकृत सूचना आवश्यक नाही."
 
 msgid "Version 2"
 msgstr "आवृत्ती २"
 
-msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
-msgstr "हे तुमच्या Android डिव्हाइसवर /Tasker/scenes अंतर्गत दृश्य एक स्वतंत्र फाइल म्हणून लिहेल -- ते Tasker च्या थेट कॉन्फिगरेशनमध्ये आयात करत नाही.\n\n'Http सर्व्हर उदाहरण' टास्कर प्रोजेक्ट Android डिव्हाइसवर स्थापित आणि सक्रिय असणे आवश्यक आहे, सर्व्हर चालू आहे.\n\nAndroid डिव्हाइस समान नेटवर्कवर असणे आवश्यक आहे आणि IP पत्ता आणि पोर्ट त्याच्या Tasker सर्व्हर सेटिंग्जशी जुळणे आवश्यक आहे. यासाठी कोणतीही अधिकृत सूचना आवश्यक नाही."
 
-msgid "Tree label"
-msgstr "झाड लेबल"
 
-msgid "Turn the screen on its side and let the layout re-flow into it."
-msgstr "स्क्रीन त्याच्या बाजूला वळवा आणि त्यात लेआउट पुन्हा वाहू द्या."
 
 msgid "View Limit"
 msgstr "मर्यादा पहा"
 
-msgid "Undo"
-msgstr "पूर्ववत करा"
 
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "तुम्ही जे निवडता ते कर्सरवर जाते. पुढील भाग जोडण्यासाठी हे पुन्हा उघडा."
 
-msgid "Using the saved size"
-msgstr "जतन केलेला आकार वापरणे"
 
-msgid "Variable"
-msgstr "चल"
 
-msgid "Variables"
-msgstr "चल"
 
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "तुम्ही जे निवडता ते फील्डमध्ये काय आहे ते बदलते. सूची कमी करण्यासाठी टाइप करा."
 
-msgid "Version 2"
-msgstr "आवृत्ती २"
 
 msgid "Which kind of Scene?"
 msgstr "कोणत्या प्रकारचे सीन?"
 
-msgid "View Limit"
-msgstr "मर्यादा पहा"
 
-msgid "What you pick goes in at the cursor. Open this again to add the next piece."
-msgstr "तुम्ही जे निवडता ते कर्सरवर जाते. पुढील भाग जोडण्यासाठी हे पुन्हा उघडा."
 
 msgid "Writes to variable"
 msgstr "व्हेरिएबलवर लिहितो"
 
-msgid "What you pick replaces what the field holds. Type to narrow the list down."
-msgstr "तुम्ही जे निवडता ते फील्डमध्ये काय आहे ते बदलते. सूची कमी करण्यासाठी टाइप करा."
 
 msgid "Zoom"
 msgstr "झूम करा"
 
-msgid "Which kind of Scene?"
-msgstr "कोणत्या प्रकारचे सीन?"
 
-msgid "Writes to variable"
-msgstr "व्हेरिएबलवर लिहितो"
 
-msgid "Zoom"
-msgstr "झूम करा"
 
 msgid "component(s)"
 msgstr "घटक"
 
-msgid "component(s)"
-msgstr "घटक"
 
 msgid "connectors"
 msgstr "कनेक्टर"
 
-msgid "connectors"
-msgstr "कनेक्टर"
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "त्यांपैकी कोणासही ड्रॅग करा किंवा धक्का द्या आणि ते सर्व एकत्र हलवा."
 
-msgid "drag or nudge any of them and they all move together."
-msgstr "त्यांपैकी कोणासही ड्रॅग करा किंवा धक्का द्या आणि ते सर्व एकत्र हलवा."
 
 msgid "editing 1 of"
 msgstr "1 चे संपादन"
 
-msgid "editing 1 of"
-msgstr "1 चे संपादन"
 
 msgid "element(s)"
 msgstr "घटक"
 
-msgid "element(s)"
-msgstr "घटक"
 
 msgid "elements selected"
 msgstr "घटक निवडले"
 
-msgid "elements selected"
-msgstr "घटक निवडले"
 
 msgid "is not a whole number"
 msgstr "पूर्ण संख्या नाही"
 
-msgid "is not a whole number"
-msgstr "पूर्ण संख्या नाही"
 
 msgid "lines dropped"
 msgstr "ओळी सोडल्या"
 
-msgid "lines dropped"
-msgstr "ओळी सोडल्या"
 
 msgid "none"
 msgstr "काहीही नाही"
 
-msgid "none"
-msgstr "काहीही नाही"
 
 msgid "not drawn"
 msgstr "काढलेले नाही"
 
-msgid "not drawn"
-msgstr "काढलेले नाही"
 
 msgid "pair"
 msgstr "जोडी"
 
-msgid "pair"
-msgstr "जोडी"
 
 msgid "pixels"
 msgstr "पिक्सेल"
 
-msgid "pixels"
-msgstr "पिक्सेल"
+
+msgid "Building the Map to show"
+msgstr "दाखवण्यासाठी नकाशा तयार करत आहे"
+
+msgid "Built the Map, but it has no line for"
+msgstr "नकाशा तयार केला, परंतु त्यासाठी कोणतीही ओळ नाही"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "नकाशा दृश्यात पाहण्यासाठी शोधावर क्लिक करा."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "नकाशा दृश्यात पाहण्यासाठी व्हेरिएबल किंवा ठिकाणावर क्लिक करा."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "कोणतेही नकाशा दृश्य उघडलेले नाही.  नकाशा दृश्य चालवा, नंतर यावर पुन्हा क्लिक करा."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "लोड केलेल्या XML मधील प्रत्येक % व्हेरिएबल ट्रेस करा: जिथे प्रत्येक सेट केला आहे, कुठे वाचला जातो, जो वाचला जातो पण कधीच सेट केला जात नाही, जी सेट केली जाते पण कधीही वाचली जात नाही आणि कोणती जवळपास सारखी नावे (%Myvar विरुद्ध %Myvar) टायपिंगची शक्यता असते.\n\nशोधले: कार्य क्रिया आणि त्यांच्या अटी, प्लगइन कॉन्फिगरेशन, प्रोफाइल संदर्भ आणि दृश्ये.\n\nपरिणाम येथे प्रदर्शित केले जातात आणि वर्तमान निर्देशिकेतील मजकूर फाइलमध्ये जतन केले जातात."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "व्हेरिएबल क्रॉस-रेफरन्स रिपोर्ट जतन करता आला नाही."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "व्हेरिएबल क्रॉस-रेफरन्स म्हणून जतन केले"
+
+msgid "whole file"
+msgstr "संपूर्ण फाइल"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "व्हेरिएबल क्रॉस-रेफरन्समध्ये कोणतेही संशयित चल आढळले नाहीत."
+
+msgid "Variable Xref"
+msgstr "व्हेरिएबल Xref"
+
+msgid "is no longer in the loaded configuration."
+msgstr "यापुढे लोड केलेल्या कॉन्फिगरेशनमध्ये नाही."
+
+msgid "detail level"
+msgstr "तपशील पातळी"

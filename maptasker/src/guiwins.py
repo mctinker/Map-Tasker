@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, app, context, ui
 
-from maptasker.src import profedit, projedit, sceneedit, sceneview, taskedit
+from maptasker.src import mapjump, profedit, projedit, sceneedit, sceneview, taskedit
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import EDIT_SCENE
 from maptasker.src.format import css_color
@@ -33,6 +33,8 @@ from maptasker.src.sysconst import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from nicegui.elements.select import Select
 
     from maptasker.src.userintr import MyGui
 
@@ -553,7 +555,8 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                 ),
                             ).props("flat color=blue dense")
                             move_to_input = (
-                                ui.number(
+                                ui
+                                .number(
                                     translate_string("Move to #"),
                                     value=action.act_number,
                                     min=0,
@@ -874,7 +877,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         ).props("flat color=red dense")
                     else:
                         picker = (
-                            ui.select(task_names, label=translate_string("Choose a Task"), with_input=True)
+                            ui
+                            .select(task_names, label=translate_string("Choose a Task"), with_input=True)
                             .classes("flex-1")
                             .props("dense")
                         )
@@ -1021,7 +1025,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                 value=text_initial(rep_value_key, values["rep_value"]),
                             ).classes("w-24")
                             field_refs[rep_unit_key] = (
-                                ui.select(
+                                ui
+                                .select(
                                     ["Hours", "Minutes"],
                                     value=text_initial(rep_unit_key, values["rep_unit"]),
                                 )
@@ -1146,7 +1151,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
 
             with ui.row().classes("w-full items-center gap-2 mt-2"):
                 add_type_picker = (
-                    ui.select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
+                    ui
+                    .select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
                     .classes("w-48")
                     .props("dense")
                 )
@@ -1166,7 +1172,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in event_rows
                 }
                 event_type_picker = (
-                    ui.select(event_options, label=translate_string("Event Type"), with_input=True)
+                    ui
+                    .select(event_options, label=translate_string("Event Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -1182,7 +1189,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in state_rows
                 }
                 state_type_picker = (
-                    ui.select(state_options, label=translate_string("State Type"), with_input=True)
+                    ui
+                    .select(state_options, label=translate_string("State Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -1193,9 +1201,9 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                 state_type_picker.bind_visibility_from(add_type_picker, "value", backward=lambda v: v == "State")
 
                 def add_condition_clicked(
-                    type_picker=add_type_picker,
-                    event_picker=event_type_picker,
-                    state_picker=state_type_picker,
+                    type_picker: Select = add_type_picker,
+                    event_picker: Select = event_type_picker,
+                    state_picker: Select = state_type_picker,
                 ) -> None:
                     if type_picker.value == "Event":
                         self.event_handlers.add_event_condition_to_profile_event(edited_profile, event_picker.value)
@@ -1417,7 +1425,9 @@ EDIT_PROJECT_INERT_FIELDS: frozenset[str] = frozenset({"name", "project_save_pat
 def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
     """Builds and opens the Edit Project dialog: Rename the Project (the Name
     field is read-only -- Rename prompts for the new one, see build_rename_dialog),
-    delete it -- with a choice of what happens to the Profiles/Tasks it owns, see
+    enable/disable it (projedit.set_project_enabled, the Project counterpart of the
+    Enabled/Disabled switch Edit Profile has), delete it -- with a choice of what
+    happens to the Profiles/Tasks it owns, see
     build_delete_project_dialog -- or save it, and everything it owns, as one
     standalone .prj.xml file, either locally (projedit.write_standalone_project_xml)
     or onto the Android device under /Tasker/projects (projedit.save_project_to_android,
@@ -1436,6 +1446,30 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
         field_refs["name"] = (
             ui.input(translate_string("Project Name"), value=project_name).props("readonly").classes("w-full")
         )
+
+        # Enabled/Disabled, presented exactly as Edit Profile offers it (see
+        # _build_profile_editor_body's identical switch).  What it writes is not the
+        # same though: a Project is disabled by <enbl>false</enbl>, not by the
+        # <limit>true</limit> a Profile uses -- see projedit.is_project_enabled.
+        #
+        # Deliberately NOT registered in field_refs: projedit.set_project_enabled writes
+        # straight through to the live Project element the moment the switch is flipped,
+        # the way Rename and Delete here already do, so there is nothing left for a save
+        # to apply.  Putting it in field_refs would instead trip _unapplied_project_edits
+        # (see EDIT_PROJECT_INERT_FIELDS above) -- correctly, since that guard has no way
+        # to tell an already-applied field from an unapplied one.
+        enabled_switch = ui.switch(
+            value=projedit.is_project_enabled(edited_project),
+            on_change=lambda e: self.event_handlers.set_project_enabled_event(edited_project, e.value),
+        ).classes("mt-2")
+        enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
+        with enabled_switch:
+            ui.tooltip(
+                translate_string(
+                    "Disables the Project in the loaded backup, right now -- like Rename, this takes "
+                    "effect immediately rather than waiting for a save, and Cancel does not undo it.",
+                ),
+            )
 
         field_refs["project_save_path"] = ui.input(
             translate_string("Save as"),
@@ -1671,7 +1705,8 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
         # search box belongs above the chips it filters.  Its on_change closes over
         # search_changed, which is defined below -- resolved at call time, not at creation.
         search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -1812,7 +1847,7 @@ def _build_rename_legacy_element_dialog(
 
 
 def _build_add_legacy_element_dialog(
-    scene_element: object,
+    _scene_element: object,
     on_pick: Callable[[str], None],
 ) -> None:
     """The Legacy Scene's "Add Element" dialog -- the same shape as the Version 2 one above,
@@ -1880,7 +1915,8 @@ def _build_add_legacy_element_dialog(
                 ui.tooltip("\n\n".join(lines)).style("white-space: pre-line").classes("max-w-sm")
 
         search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2024,7 +2060,8 @@ def _build_show_when_dialog(
         # box below the list it filters is a search box nobody finds.  Its on_change closes
         # over search_changed, defined below and resolved at call time.
         search_input = (
-            ui.input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2145,7 +2182,8 @@ def _build_colour_field(item: dict, prop: sceneedit.V2Prop) -> None:
     and silently dropping what they typed would be worse than showing it in red.
     """
     field = (
-        ui.color_input(
+        ui
+        .color_input(
             label=translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: colour_changed(d, k, str(e.value or "")),
@@ -2200,7 +2238,8 @@ def _build_icon_field(item: dict, prop: sceneedit.V2Prop) -> None:
     the component will show are the same answer.
     """
     field = (
-        ui.input(
+        ui
+        .input(
             translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: icon_changed(d, k, str(e.value or "")),
@@ -2250,7 +2289,8 @@ def _build_icon_dialog(field: ui.input) -> None:
             dialog.close()
 
         search_input = (
-            ui.input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2279,7 +2319,8 @@ def _build_icon_dialog(field: ui.input) -> None:
                         # the row that needs turning is the .q-btn__content inside it, so the
                         # tiles come out half stacked and half side by side.
                         tile = (
-                            ui.button(on_click=lambda _e=None, n=name: pick(n))
+                            ui
+                            .button(on_click=lambda _e=None, n=name: pick(n))
                             .props(
                                 "flat dense no-caps stack",
                             )
@@ -2378,7 +2419,8 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     state_select = (
-        ui.select(
+        ui
+        .select(
             list(field.states),
             value=state or None,
             label=translate_string(field.label),
@@ -2394,7 +2436,8 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     dynamic_input = (
-        ui.input(
+        ui
+        .input(
             translate_string("Dynamic value"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_DYNAMIC_STATE),
             on_change=lambda _e=None: write(),
@@ -2409,7 +2452,8 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
     )
 
     variable_input = (
-        ui.input(
+        ui
+        .input(
             translate_string("Variable"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_VARIABLE_STATE),
             on_change=lambda _e=None: write(),
@@ -2632,7 +2676,8 @@ def _build_v2_designer(
             # The indent is drawn rather than nested so every row stays one flat, clickable
             # strip -- nested containers would make the click target of a deep node a sliver.
             label = (
-                ui.label(f"{'  ' * row.depth}{row.label}")
+                ui
+                .label(f"{'  ' * row.depth}{row.label}")
                 .classes(classes)
                 .on("click", lambda _e=None, path=row.path: select(path))
             )
@@ -2710,7 +2755,8 @@ def _build_v2_designer(
             _build_icon_field(target, prop)
         else:
             text_input = (
-                ui.input(
+                ui
+                .input(
                     translate_string(prop.label),
                     value=str(value),
                     on_change=lambda e, k=prop.key, d=target: sceneedit.v2_set_prop(d, k, str(e.value or "")),
@@ -2962,7 +3008,8 @@ def _build_v2_designer(
             section.props(f'caption="{caption()}"')
 
         section = (
-            ui.expansion(
+            ui
+            .expansion(
                 translate_string(name),
                 icon=_V2_CATEGORY_ICONS.get(name, "tune"),
                 caption=caption(),
@@ -3566,7 +3613,7 @@ def _emit_canvas_editing(root: str, snap: int) -> None:
                 emitEvent('mt_scene_nudge', {{ root, dx: move[0], dy: move[1] }});
             }});
         }})();
-        """,
+        """,  # noqa: S608
     )
 
 
@@ -3988,7 +4035,8 @@ def _build_legacy_designer(
 
     header = ui.row().classes("w-full items-center gap-2 mt-2")
     canvas_pane = (
-        ui.element("div")
+        ui
+        .element("div")
         .classes(
             f"mt-scene-wrap {root_class} w-full border rounded overflow-hidden",
         )
@@ -4906,7 +4954,8 @@ def _build_item_layout_dialog(holder: object, on_closed: Callable[[], None]) -> 
         with ui.row().classes("w-full gap-2 mt-2"):
             for key, label in sceneedit.SCENE_DIMENSION_FIELDS[:2]:
                 field_refs[key] = (
-                    ui.input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
+                    ui
+                    .input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
                     .props("dense")
                     .classes("w-36")
                     .on(
@@ -4990,7 +5039,8 @@ def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event
             settling["busy"] = False
 
     field = (
-        ui.color_input(
+        ui
+        .color_input(
             label=translate_string(arg.arg_name),
             value=sceneedit.legacy_colour_to_css(arg.current_value),
             preview=True,
@@ -5195,7 +5245,8 @@ def _build_scene_editor_body(
     with ui.row().classes("w-full gap-2 mt-2"):
         for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
             field_refs[key] = (
-                ui.input(
+                ui
+                .input(
                     translate_string(label),
                     value=scene_element.findtext(key, sceneedit.UNSET_DIMENSION),
                 )
@@ -6403,6 +6454,133 @@ def forget_views(master_gui: MyGui) -> None:
     master_gui.textview = False
 
 
+# Pages whose report rows are already wired to the jump handler.  Same guard, and for the
+# same reason, as _CANVAS_EVENT_CLIENTS above: ui.on() subscribes for the page it is called
+# from, and a second subscription would run every jump twice.
+_FINDING_CLICK_CLIENTS: weakref.WeakSet = weakref.WeakSet()
+
+
+async def jump_map_view(master_gui: MyGui, target: mapjump.Target) -> bool:
+    """Scroll an open Map view to a Target and highlight it.  False if none could.
+
+    Only a Map built for the Project this object needs is used.  Merely CONTAINING the
+    object is not enough: a Map of the whole file contains everything, so without this a
+    click would keep landing in whatever wide Map happened to be open and the user would
+    never see the Map of one Project they asked for -- which is exactly what happened the
+    first time this shipped.  Nothing is reused across scopes, so the Map on screen after a
+    click is always the one that click would have built.
+
+    Tries the most recently opened Map view first.  With "Open View In New Window" on,
+    several can be up at once, showing different runs, and the one the user is most likely
+    looking at is the last one they asked for.  Any that turns out not to hold this object
+    is passed over rather than treated as a failure, so the answer is "no Map on screen has
+    it", not "the first one I tried didn't".
+
+    A view whose page has gone away between live_views() pruning it and this reaching it
+    raises rather than answering; that is one more Map without the object, not an error to
+    report.
+    """
+    wanted = mapjump.scope_for(target)
+    for view in reversed(live_views(master_gui)):
+        if not str(getattr(view, "title", "")).startswith("Map"):
+            continue
+        if getattr(view, "map_scope", "") != wanted:
+            continue
+        try:
+            landed = await view.scroll_area.client.run_javascript(mapjump.jump_js(target.anchor), timeout=5)
+        except (TimeoutError, RuntimeError, AttributeError):
+            continue
+        if landed:
+            return True
+    return False
+
+
+def _report_view_failure(task: asyncio.Task) -> None:
+    """Log whatever a view's rendering task raised, instead of losing it.
+
+    Cancellation is ordinary -- a view whose page went away mid-render -- and says nothing.
+    """
+    if task.cancelled():
+        return
+    error = task.exception()
+    if error is not None:
+        logger.exception("Rendering a view failed", exc_info=error)
+
+
+def register_finding_clicks(master_gui: MyGui) -> None:
+    """Subscribe this page's report-jump event, once, while the layout is still being built.
+
+    Called from initialize_screen for exactly the reason _register_canvas_events is, and it
+    is the whole reason clicking a finding did nothing at first: ui.on adds its listener to
+    client.layout, and adding one to an element the browser already has makes NiceGUI
+    re-render that element and everything under it.  Registering this from the report view's
+    own background task -- later than any dialog -- meant the re-render tore out the click
+    listener enable_finding_clicks had just installed on the report's container, so the
+    spans were there, styled and focusable, and a click reached nothing at all.
+
+    A report view still calls this itself, so a page built without going through
+    initialize_screen is not left without the plumbing; the guard makes that call a no-op.
+    """
+    client = context.client
+    if client in _FINDING_CLICK_CLIENTS:
+        return
+    _FINDING_CLICK_CLIENTS.add(client)
+
+    async def jump(event: Event) -> None:
+        """Take one clicked report row to where it points."""
+        target = mapjump.Target.from_token(str((event.args or {}).get("target", "")))
+        if target is None:
+            return
+
+        # A report is a snapshot.  The object it named can have been renamed or deleted in
+        # the editor since, so say so rather than scrolling to nothing.
+        if not mapjump.exists(target):
+            ui.notify(
+                f"{target.label} {translate_string('is no longer in the loaded configuration.')}",
+                type="warning",
+                position="top",
+            )
+            return
+
+        if await jump_map_view(master_gui, target):
+            return
+
+        # Nothing on screen can show it.  Whether that is because no Map is open, because
+        # the one that is covers a single Project, or because its detail level leaves the
+        # Tasks and actions out is not worth telling apart here -- the answer to all three
+        # is the same Map, so build it (see rebuild_map_for_jump, which says what it is
+        # doing and why).
+        handlers = getattr(master_gui, "event_handlers", None)
+        if handlers is None:
+            ui.notify(
+                translate_string("No Map view is open.  Run Map View, then click this again."),
+                type="warning",
+                position="top",
+            )
+            return
+        await handlers.rebuild_map_for_jump(target)
+
+    ui.on("mt_jump", jump)
+
+
+def enable_finding_clicks(view: NiceGuiTextView) -> None:
+    """Install the browser-side click listener for one rendered report.
+
+    DOM work only.  The Python subscription that acts on what this emits is registered at
+    page build time instead -- see register_finding_clicks for why it cannot be done from
+    here.  The call below is the no-op guard for a page that never went through
+    initialize_screen; on the main window it has already happened.
+    """
+    # Everything here needs an active NiceGUI slot, and this runs from process_data's
+    # background task, where there is none: the slot stack is per-task and empty, so
+    # ui.run_javascript cannot tell which client to target and context.client -- which
+    # register_finding_clicks reads -- raises outright.  Re-entering the scroll area
+    # restores both, the same way _enable_connector_highlighting does.
+    with view.scroll_area:
+        register_finding_clicks(view.master_gui)
+        ui.run_javascript(mapjump.click_wiring_js(f"c{view.scroll_area.id}"))
+
+
 def resolve_dark_mode(appearance_mode: str | None) -> bool:
     """Whether the saved appearance mode means "dark" -- "system" asks the OS, as colrmode does."""
     if appearance_mode == "system":
@@ -6568,7 +6746,8 @@ class NiceGuiTreeView:
                     # Render the native responsive Tree component
                     # Injected custom fonts to preserve monospace formatting matches
                     self.tree = (
-                        ui.tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
+                        ui
+                        .tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
                         .classes("w-full text-base")
                         .style(f"font-family: '{self.master_gui.font}', monospace;")
                     )
@@ -6605,7 +6784,8 @@ class NiceGuiTreeView:
                 # Extract the name and clean out the raw HTML markup fragments
                 raw_name = item.get("name", "Unnamed")
                 clean_name = (
-                    raw_name.replace("&nbsp;", " ")
+                    raw_name
+                    .replace("&nbsp;", " ")
                     .replace("&#9940;", "⛔")
                     .replace("&#11013;", "⬅️")
                     .replace("&#11157;", "➡️")
@@ -6770,7 +6950,8 @@ class NiceGuiSceneView:
                     # would reserve room for the canvas at full size however far it is
                     # scaled down.
                     self.canvas_wrap = (
-                        ui.element("div")
+                        ui
+                        .element("div")
                         .classes(f"mt-scene-wrap {CANVAS_PREVIEW_ROOT}")
                         .style(
                             "position: relative; width: 100%; overflow: hidden;",
@@ -6813,7 +6994,8 @@ class NiceGuiSceneView:
     def _build_density_control(self) -> None:
         """Legacy only: the sp-to-pixel number that is not in the backup file."""
         density_select = (
-            ui.select(
+            ui
+            .select(
                 list(sceneview.DENSITY_CHOICES),
                 value=str(sceneview.DEFAULT_DENSITY),
                 label=translate_string("Text density"),
@@ -6869,7 +7051,8 @@ class NiceGuiSceneView:
         device, which is why it is a control and not a number in the file.
         """
         screen_select = (
-            ui.select(
+            ui
+            .select(
                 [name for name, _width, _height in sceneview.V2_SCREENS],
                 value=self.screen,
                 label=translate_string("Screen"),
@@ -7218,17 +7401,30 @@ class NiceGuiTextView:
         title: str,
         the_data: list | dict,
         container: ui.column | None = None,
+        jump_to: str = "",
+        map_scope: str = "",
     ) -> None:
         """Initialize the NiceGuiTextView.
 
         If `container` is given, the view is built inside it directly instead of the
         master GUI's main content_container -- used to render into a separate popped-out
         browser window/tab without disturbing the main window's layout.
+
+        `jump_to` is a mapjump token this view scrolls to and highlights the moment its
+        content has finished streaming in -- how a clicked report finding reaches a Map
+        that had to be built for it.  Acted on there and not before, because a chunk that
+        has not arrived cannot be scrolled to.
+
+        `map_scope` is the Project a Map view was built for ("" for the whole file).  It is
+        what lets a later clicked finding tell a Map that can show what it points at from
+        one that merely contains it -- see jump_map_view.
         """
         self.master_gui = master_gui
         self.title = title
         self.is_map = isinstance(the_data, dict)
         self.external_container = container
+        self.jump_to = jump_to
+        self.map_scope = map_scope
         # Search caching (see search_event). The token identifies the content currently in
         # this view: 0 means "not searchable as a stable document yet" -- process_data streams
         # the content in chunk by chunk, so anything cached about the DOM mid-stream would be
@@ -7241,6 +7437,11 @@ class NiceGuiTextView:
         register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
         self._task = asyncio.create_task(self.process_data(the_data))
+        # A bare create_task drops whatever the coroutine raises on the floor: the view is
+        # left half-built and the app says nothing, which is a long way to debug from.  Every
+        # failure in here shows up as "the view did not finish", so it is worth a line in the
+        # log saying which one it was.
+        self._task.add_done_callback(_report_view_failure)
 
     def _mark_content_ready(self) -> None:
         """Marks this view's content as fully streamed in, under a fresh content token.
@@ -7252,6 +7453,39 @@ class NiceGuiTextView:
         self._content_generation += 1
         self._content_token = self._content_generation
         self._last_search = None
+
+    async def _deliver_jump(self) -> None:
+        """Take this freshly built Map to the object a clicked report finding asked for.
+
+        Runs once and then forgets the token: this is the delivery of one click, not a
+        property of the view, and a later reload of the same page should not silently jump
+        somewhere the user has since scrolled away from.
+
+        Says so when the object turns out not to be there after all.  The rebuild that led
+        here already went to the whole configuration at a detail level chosen for this
+        object, so the remaining explanations are narrow -- the view limit cut the Map short
+        before reaching it, or it is one of the things the Map has no line for (a variable
+        the Map's own variable table does not list, for one) -- and either way the useful
+        thing to say is that it is not there, not to guess which.
+        """
+        token, self.jump_to = self.jump_to, ""
+        target = mapjump.Target.from_token(token) if token else None
+        if target is None:
+            return
+
+        with self.scroll_area:
+            try:
+                landed = await ui.run_javascript(mapjump.jump_js(target.anchor), timeout=5)
+            except (TimeoutError, RuntimeError):
+                # The page went away, or never finished connecting, between the content
+                # arriving and this asking it to scroll.  There is nobody left to tell.
+                return
+            if not landed:
+                ui.notify(
+                    f"{translate_string('Built the Map, but it has no line for')} {target.label}",
+                    type="warning",
+                    position="top",
+                )
 
     def invalidate_search_cache(self) -> None:
         """Drops the cached search results, without touching the browser-side text index.
@@ -7316,7 +7550,8 @@ class NiceGuiTextView:
                     # settings drawer, and a reset that changed the value without moving the
                     # control would leave the two disagreeing on screen.
                     self.profiles_per_line_select = (
-                        ui.select(
+                        ui
+                        .select(
                             options=[str(n) for n in range(11)],
                             value=str(self.master_gui.profiles_per_line),
                             label=translate_string("Profiles Per Line"),
@@ -7362,14 +7597,16 @@ class NiceGuiTextView:
                     background_style = f" background-color: {background} !important;"
 
             self.scroll_area = (
-                ui.scroll_area()
+                ui
+                .scroll_area()
                 # min-w-0 keeps this a flex child that can't be stretched wider than its container by
                 # long unbreakable content; without it the default flex min-width:auto lets the box
                 # (and the whole page) grow past the viewport once the full content has streamed in.
                 .classes(
                     f"w-full max-w-full min-w-0 block {scroll_height_classes} "
                     f"border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
-                ).style(
+                )
+                .style(
                     # The font the output was generated with, which process_data() then
                     # reconciles against the file it actually reads. Deliberately not
                     # master_gui.font -- see the note there on why that can be stale.
@@ -7405,6 +7642,12 @@ class NiceGuiTextView:
             with self.scroll_area:
                 content_str = "\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data)
                 ui.html(f"<pre style='{html_style}'>{content_str}</pre>", sanitize=False)
+            # A report rendered by mapjump.html_report marks the rows that point at
+            # something in the Map (see its FINDING_CLASS).  Tested for rather than assumed,
+            # since this branch also shows reports that carry no such rows at all -- the
+            # file comparison, and any report from a build before those rows existed.
+            if mapjump.FINDING_CLASS in content_str:
+                enable_finding_clicks(self)
             self._mark_content_ready()
             return
 
@@ -7504,6 +7747,10 @@ class NiceGuiTextView:
             if PrimeItems.diagram_limit_msg and hasattr(self, "diagram_message_label"):
                 self.diagram_message_label.set_text(PrimeItems.diagram_limit_msg)
             self._mark_content_ready()
+            # Everything is on the page now, so a report finding that asked for this Map can
+            # finally be taken to.  Last, deliberately: the anchor it wants may be in the
+            # chunk that only just arrived.
+            await self._deliver_jump()
             return  # noqa: TRY300
 
         except FileNotFoundError:
@@ -7537,6 +7784,7 @@ class NiceGuiTextView:
                 const outerContainer = document.getElementById("c{self.scroll_area.id}");
                 if (!outerContainer || outerContainer.dataset.connectorClickWired) return;
                 outerContainer.dataset.connectorClickWired = "1";
+{mapjump.REVEAL_ANCESTORS_JS}
 
                 // Quasar's own q-scroll-area styling sets "contain: strict" on outerContainer,
                 // which creates a new containing block for position:fixed descendants -- a button
@@ -7562,11 +7810,7 @@ class NiceGuiTextView:
                             // land in the wrong place. Force that chunk to lay out for real first
                             // -- it's the one we're about to scroll to anyway, so there's no
                             // wasted work, and leaving it visible afterward is harmless.
-                            for (let a = target; a; a = a.parentElement) {{
-                                if (getComputedStyle(a).contentVisibility === "auto") {{
-                                    a.style.contentVisibility = "visible";
-                                }}
-                            }}
+                            mtRevealAncestors(target);
                             // Instant, not smooth: the jump can cover tens of thousands of pixels
                             // on a large diagram, where an animated scroll would be slow to land
                             // and distracting rather than helpful.
@@ -8096,6 +8340,7 @@ class NiceGuiTextView:
                             return lambda: (
                                 results_dialog.close(),
                                 client.run_javascript(f"""
+{mapjump.REVEAL_ANCESTORS_JS}
                                     // Restore any previously-clicked match back to the standard
                                     // highlight color before marking the newly-clicked one, so
                                     // only the match the user just jumped to stands out.
@@ -8110,11 +8355,7 @@ class NiceGuiTextView:
                                         // skipped by content-visibility: auto was never laid
                                         // out, so scrollIntoView() on a descendant of it lands
                                         // in the wrong place until it's forced to render.
-                                        for (let a = el; a; a = a.parentElement) {{
-                                            if (getComputedStyle(a).contentVisibility === "auto") {{
-                                                a.style.contentVisibility = "visible";
-                                            }}
-                                        }}
+                                        mtRevealAncestors(el);
                                         el.classList.add('search-highlight-active');
                                         el.style.backgroundColor = '#ff5722';
                                         el.style.color = '#ffffff';
@@ -8426,7 +8667,6 @@ def _initialize_gui_settings(self: MyGui) -> None:
     self.italicize = None
     self.underline = None
     self.highlight = None
-    self.color_labels = None
     self.color_lookup = None
     self.twisty = None
     self.indent = None
@@ -8491,15 +8731,12 @@ def _initialize_feature_flags(self: MyGui) -> None:
     self.restore = False
     self.runtime = False
     self.save = False
-    self.checked_ffmpeg = False
-    self.have_ffmpeg = False
     self.close_tabs_on_exit = False
     self.open_view_in_new_window = False
 
 
 def _initialize_data_structures(self: MyGui) -> None:
     """Initializes data structures used by the application."""
-    self.all_messages = {}
     self.conditions = None  # Consider if this should be initialized to a dict or list
     self.named_item = None  # Consider if this should be initialized to a specific type
     self.single_profile_name = None
@@ -8507,7 +8744,6 @@ def _initialize_data_structures(self: MyGui) -> None:
     self.single_scene_name = None
     self.single_task_name = None
     self.tab_to_use = None  # Consider if this should be initialized to a default tab
-    self.check_boxes = []
 
 
 def _initialize_runtime_options(self: MyGui) -> None:
@@ -8515,7 +8751,6 @@ def _initialize_runtime_options(self: MyGui) -> None:
     self.debug = None
     self.exit = None
     self.file = None  # Consider if this should be initialized to an empty string or specific file object
-    self.go_program = None
     self.preferences = None
     self.rerun = None
     self.reset = None
@@ -8798,6 +9033,48 @@ def inject_shared_head_styles() -> None:
             .connector-jump-button:hover {
                 background-color: #1d4ed8;
             }
+
+            /* =========================================================================
+               MAP VIEW: WHERE A CLICKED REPORT FINDING LANDS (see mapjump.py)
+               ========================================================================= */
+            /* The anchors themselves are empty and must stay that way -- they mark a
+               position between two lines, and anything that gave them a box would push
+               the output around. */
+            .mt-anchor {
+                display: none;
+            }
+            /* An outline rather than a background: the Map's own colours are the user's,
+               picked against their chosen output background, and painting over one of
+               them would hide the very line the jump just went to the trouble of finding.
+               The pulse runs once and stops -- long enough to catch the eye on a dense
+               page, not so long that it becomes the thing you are reading around. */
+            .mt-jump-target {
+                outline: 2px solid #ff5722;
+                outline-offset: 2px;
+                border-radius: 3px;
+                animation: mt-jump-pulse 0.9s ease-out 2;
+            }
+            @keyframes mt-jump-pulse {
+                0%   { background-color: rgba(255, 87, 34, 0.35); }
+                100% { background-color: rgba(255, 87, 34, 0.00); }
+            }
+
+            /* A report row that points at something in the Map.  Dotted rather than solid
+               underline, and no colour of its own: the reports are read in a <pre> as
+               columns of tagged lines, and a row of blue links down the left would fight
+               the tags for attention.  It has to LOOK different from the rows that do
+               nothing, though -- a click that does nothing reads as a broken feature. */
+            .mt-finding {
+                cursor: pointer;
+                text-decoration: underline dotted;
+                text-underline-offset: 3px;
+            }
+            .mt-finding:hover,
+            .mt-finding:focus {
+                background-color: rgba(59, 130, 246, 0.18);
+                text-decoration: underline solid;
+                outline: none;
+            }
         </style>
     """)
 
@@ -8814,6 +9091,9 @@ def initialize_screen(self: MyGui) -> None:
     # While the layout is still being built, rather than when a Scene designer first opens --
     # see _register_canvas_events for why the timing is the whole point.
     _register_canvas_events()
+    # Same timing, same reason: a clicked Health Check finding emits an event this has to be
+    # subscribed to before the browser has the layout (see register_finding_clicks).
+    register_finding_clicks(self)
 
     # =========================================================================
     # 1. HEADER
@@ -8838,7 +9118,8 @@ def initialize_screen(self: MyGui) -> None:
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
     # =========================================================================
     with (
-        ui.left_drawer(value=True, fixed=True)
+        ui
+        .left_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
@@ -8852,7 +9133,8 @@ def initialize_screen(self: MyGui) -> None:
 
         # Detail level pulldown
         self.sidebar_detail_option = (
-            ui.select(
+            ui
+            .select(
                 options=["0", "1", "2", "3", "4", "5"],
                 value=str(self.display_detail_level),
                 label=translate_string("Detail Level"),
@@ -8911,7 +9193,8 @@ def initialize_screen(self: MyGui) -> None:
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
     with (
-        ui.right_drawer(value=True, fixed=True)
+        ui
+        .right_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
@@ -8945,7 +9228,8 @@ def initialize_screen(self: MyGui) -> None:
         )
 
         self.close_tabs_on_exit_checkbox = (
-            ui.checkbox(translate_string("Close Tabs On Exit"))
+            ui
+            .checkbox(translate_string("Close Tabs On Exit"))
             .bind_value(self, "close_tabs_on_exit")
             .classes("text-xs mt-1")
         )
@@ -8959,7 +9243,8 @@ def initialize_screen(self: MyGui) -> None:
             ).style("white-space: pre-line")
 
         self.open_view_in_new_window_checkbox = (
-            ui.checkbox(translate_string("Open View In New Window"))
+            ui
+            .checkbox(translate_string("Open View In New Window"))
             .bind_value(self, "open_view_in_new_window")
             .classes("text-xs mt-1")
         )
@@ -9033,6 +9318,27 @@ def initialize_screen(self: MyGui) -> None:
                 ),
             ).style("white-space: pre-line")
 
+        # Full width and coloured through "color" for the same two reasons the two buttons
+        # above are: the drawer is w-80 and this label will not fit beside another, and
+        # Quasar's own bg-primary beats a Tailwind bg-* class added here.
+        self.variable_xref_button = ui.button(
+            translate_string("Variable Xref"),
+            color="teal",
+            on_click=self.event_handlers.variable_xref_event,
+            icon="manage_search",
+        ).classes("w-full justify-center")
+        with self.variable_xref_button:
+            ui.tooltip(
+                translate_string(
+                    "Trace every %variable in the loaded XML: where each one is set, where it is "
+                    "read, which are read but never set, which are set but never read, and which "
+                    "near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: "
+                    "Task actions and their conditions, plugin configuration, Profile contexts and "
+                    "Scenes.\n\nResults are displayed here and saved to a text file in the current "
+                    "directory.",
+                ),
+            ).style("white-space: pre-line")
+
         ui.button(translate_string("Clear"), on_click=self.event_handlers.clear_view_event).classes("bg-blue-500")
 
         ui.label(translate_string("Application Settings")).classes(
@@ -9085,7 +9391,8 @@ def initialize_screen(self: MyGui) -> None:
                 none_translatesd = translate_string("None")
                 with ui.row().classes("gap-2 w-full m-0 p-0 items-start"):
                     self.specific_project_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_project_name_event(e.value) if e.value else None
@@ -9098,7 +9405,8 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_profile_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_profile_name_event(e.value) if e.value else None
@@ -9111,7 +9419,8 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_task_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_task_name_event(e.value) if e.value else None
@@ -9124,7 +9433,8 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_scene_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_scene_name_event(e.value) if e.value else None
@@ -9198,7 +9508,8 @@ def initialize_screen(self: MyGui) -> None:
 
                 with ui.column().classes("gap-1 w-full mt-1"):
                     self.color_objects_options = (
-                        ui.select(
+                        ui
+                        .select(
                             options=[
                                 "Projects",
                                 "Profiles",
@@ -9226,7 +9537,8 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.color_picker_input = (
-                        ui.color_input(
+                        ui
+                        .color_input(
                             label=translate_string("Choose Hex Color"),
                             value="#3f99ff",
                             on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value),
@@ -9247,7 +9559,8 @@ def initialize_screen(self: MyGui) -> None:
                         ui.checkbox(translate_string("Debug Mode")).bind_value(self, "debug").classes("text-xs")
                     )
                     self.runtime_checkbox = (
-                        ui.checkbox(translate_string("Display Runtime Settings"))
+                        ui
+                        .checkbox(translate_string("Display Runtime Settings"))
                         .bind_value(self, "runtime")
                         .classes("text-xs")
                     )
@@ -9329,7 +9642,8 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
 
             # Extra model list checkbox with chained tooltip
             self.aimodel_extend_checkbox = (
-                ui.checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
+                ui
+                .checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
                 .tooltip(
                     translate_string(
                         "Display an extended list of ALL available models.\n\n"
@@ -9357,7 +9671,8 @@ def _create_name_display_options_section(self: MyGui) -> None:
 
     # 1. Create the Section Label with an inline native tooltip
     self.display_names_label = (
-        ui.label(translate_string("Project/Profile/Task/Scene Names:"))
+        ui
+        .label(translate_string("Project/Profile/Task/Scene Names:"))
         .classes("text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 leading-none")
         .tooltip(translate_string("Add highlighting to Project, Profile and Task names in the output."))
     )
@@ -9653,7 +9968,8 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
         # tears that panel down again.
         with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0") as self.android_button_row:
             self.get_backup_button = (
-                ui.button(
+                ui
+                .button(
                     translate_string("Get XML from Android Device"),
                     on_click=self.event_handlers.get_xml_from_android_event,
                 )

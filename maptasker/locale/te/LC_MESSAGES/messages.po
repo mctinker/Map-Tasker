@@ -2185,3 +2185,42 @@ msgstr "అసలు దృశ్యం: UI మూలకాలు పరిమ�
 
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "అన్వేషణ పూర్తి కాలేదు. వీక్షణ చాలా పెద్దదిగా ఉండవచ్చు లేదా బ్రౌజర్ బిజీగా ఉండవచ్చు."
+
+msgid "Building the Map to show"
+msgstr "చూపించడానికి మ్యాప్‌ను రూపొందిస్తోంది"
+
+msgid "Built the Map, but it has no line for"
+msgstr "మ్యాప్‌ని నిర్మించారు, కానీ దీనికి లైన్ లేదు"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "మ్యాప్ వీక్షణలో దాన్ని చూడటానికి కనుగొనడాన్ని క్లిక్ చేయండి."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "మ్యాప్ వీక్షణలో చూడటానికి వేరియబుల్ లేదా స్థలాన్ని క్లిక్ చేయండి."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "మ్యాప్ వీక్షణ ఏదీ తెరవబడలేదు.  మ్యాప్ వీక్షణను అమలు చేసి, ఆపై దీన్ని మళ్లీ క్లిక్ చేయండి."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "లోడ్ చేయబడిన XMLలో ప్రతి %వేరియబుల్‌ను ట్రేస్ చేయండి: ప్రతి ఒక్కటి ఎక్కడ సెట్ చేయబడింది, ఎక్కడ చదవబడింది, చదవబడినది కానీ సెట్ చేయబడలేదు, సెట్ చేయబడదు కానీ చదవలేదు మరియు ఏవి దాదాపు ఒకేలాంటి పేర్లు (%Myvar వ్యతిరేకంగా %Myvar) అక్షరదోషాలు కావచ్చు.\n\nశోధించినవి: టాస్క్ చర్యలు మరియు వాటి షరతులు, ప్లగ్ఇన్ కాన్ఫిగరేషన్, ప్రొఫైల్ సందర్భాలు మరియు దృశ్యాలు.\n\nఫలితాలు ఇక్కడ ప్రదర్శించబడతాయి మరియు ప్రస్తుత డైరెక్టరీలోని టెక్స్ట్ ఫైల్‌లో సేవ్ చేయబడతాయి."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "వేరియబుల్ క్రాస్-రిఫరెన్స్‌లో అనుమానిత వేరియబుల్స్ ఏవీ కనుగొనబడలేదు."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "వేరియబుల్ క్రాస్-రిఫరెన్స్ రిపోర్ట్ సేవ్ చేయబడలేదు."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "వేరియబుల్ క్రాస్-రిఫరెన్స్ ఇలా సేవ్ చేయబడింది"
+
+msgid "Variable Xref"
+msgstr "వేరియబుల్ Xref"
+
+msgid "detail level"
+msgstr "వివరాల స్థాయి"
+
+msgid "is no longer in the loaded configuration."
+msgstr "లోడ్ చేయబడిన కాన్ఫిగరేషన్‌లో లేదు."
+
+msgid "whole file"
+msgstr "మొత్తం ఫైల్"

@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 import maptasker.src.tasks as tasks  # noqa: PLR0402
 from maptasker.src.error import error_handler
 from maptasker.src.guiutils import get_taskid_from_unnamed_task
+from maptasker.src.mapjump import TASK, Target, anchor_attribute
 from maptasker.src.maputils import (
     count_consecutive_substr,
     count_unique_substring,
@@ -68,6 +69,7 @@ def output_list_of_actions(
     action_count: int,
     alist: list,
     the_item: str,
+    task_id: str = "",
 ) -> None:
     """
     Output the list of Task Actions
@@ -76,9 +78,22 @@ def output_list_of_actions(
         :param action_count: count of Task actions
         :param alist: list of task actions
         :param the_item: the specific Task's detailed line
+        :param task_id: id of the Task these Actions belong to, for the mapjump anchor
 
     Returns: the count of the number of times the program has been called
     """
+
+    # Anchor each action so a report finding naming one ("action 4") can be clicked and
+    # land on that action rather than on the top of a Task with two hundred of them.
+    #
+    # An id on the action's own line rather than an anchor element on a line of its own,
+    # which is how every other object here is anchored, for two reasons.  There are as many
+    # actions as there are lines in the Map, and a line apiece would roughly double the
+    # output -- and the view limit (see NiceGuiTextView) counts lines, so it would halve the
+    # size of configuration the Map view can show.  And an <a> written here would not
+    # survive anyway: see mapjump.anchor_attribute for what lineout.handle_action does to
+    # whatever it finds in this slot.
+    task_target = Target(TASK, task_id) if task_id else None
 
     # Go through all Actions in Task Action list
     _ensure_argument_alignment = ensure_argument_alignment
@@ -107,10 +122,11 @@ def output_list_of_actions(
                 )
 
                 #  Output the Action count = line number of action (fill to 2 leading zeros)
+                anchor = anchor_attribute(task_target.at_action(action_count)) if task_target else ""
                 PrimeItems.output_lines.add_line_to_output(
                     2,
                     f"Action: {str(action_count).zfill(2)}</span> {updated_action}",
-                    ["", "action_color", FormatLine.dont_add_end_span],
+                    [anchor, "action_color", FormatLine.dont_add_end_span],
                 )
                 action_count += 1
             if (
@@ -242,7 +258,7 @@ def get_task_actions_and_output(
                             FormatLine.dont_format_line,
                         )
 
-                output_list_of_actions(action_count, alist, the_item)
+                output_list_of_actions(action_count, alist, the_item, task_id)
                 # End list if Scene Task
                 if "&#45;&#45;Task:" in list_type:
                     PrimeItems.output_lines.add_line_to_output(

@@ -2261,3 +2261,42 @@ msgstr "Exportar cena"
 
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "Selecione um limite de visualização maior ou um único projeto/perfil/tarefa para ver o resto."
+
+msgid "Building the Map to show"
+msgstr "Construindo o mapa para mostrar"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Construiu o Mapa, mas não tem linha para"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Clique em uma descoberta para vê-la na visualização do mapa."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Clique em uma variável ou local para vê-lo na visualização do mapa."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Nenhuma visualização de mapa está aberta.  Execute o Map View e clique novamente."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Rastreie cada %variável no XML carregado: onde cada uma está definida, onde é lida, quais são lidas mas nunca definidas, quais são definidas mas nunca lidas e quais nomes quase idênticos (%MyVar contra %Myvar) são prováveis ​​erros de digitação.\n\nPesquisado: Ações de tarefas e suas condições, configuração de plugins, contextos de perfil e cenas.\n\nOs resultados são exibidos aqui e salvos em um arquivo de texto no diretório atual."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "A Referência Cruzada de Variáveis ​​não encontrou variáveis ​​suspeitas."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "O relatório de referência cruzada de variáveis ​​não pôde ser salvo."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Referência cruzada de variáveis ​​salva como"
+
+msgid "detail level"
+msgstr "nível de detalhe"
+
+msgid "is no longer in the loaded configuration."
+msgstr "não está mais na configuração carregada."
+
+msgid "Variable Xref"
+msgstr "Refex variável"
+
+msgid "whole file"
+msgstr "arquivo inteiro"

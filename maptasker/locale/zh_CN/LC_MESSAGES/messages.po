@@ -2224,3 +2224,42 @@ msgstr "像素"
 
 
 
+
+msgid "Built the Map, but it has no line for"
+msgstr "建立了地图，但没有线路"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "单击某个结果即可在地图视图中查看它。"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "单击变量或位置即可在地图视图中查看它。"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "没有打开地图视图。  运行地图视图，然后再次单击此按钮。"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "跟踪加载的 XML 中的每个 % 变量：每个变量在何处设置、在何处读取、哪些已读取但从未设置、哪些已设置但从未读取，以及哪些几乎相同的名称（%MyVar 与 %Myvar）可能是拼写错误。\n\n搜索：任务操作及其条件、插件配置、配置文件上下文和场景。\n\n结果显示在此处并保存到当前目录中的文本文件中。"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "变量交叉引用没有发现可疑变量。"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "无法保存变量交叉引用报告。"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "变量交叉引用另存为"
+
+msgid "Variable Xref"
+msgstr "可变外部参照"
+
+msgid "detail level"
+msgstr "详细程度"
+
+msgid "is no longer in the loaded configuration."
+msgstr "不再处于加载的配置中。"
+
+msgid "whole file"
+msgstr "整个文件"
+
+msgid "Building the Map to show"
+msgstr "构建地图来显示"

@@ -2164,3 +2164,42 @@ msgstr "Το πρωτότυπο"
 
 msgid "The two files hold the same configuration."
 msgstr "Τα δύο αρχεία έχουν την ίδια διαμόρφωση."
+
+msgid "Building the Map to show"
+msgstr "Δημιουργία του χάρτη για εμφάνιση"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Έφτιαξε τον χάρτη, αλλά δεν έχει γραμμή για"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Κάντε κλικ σε ένα εύρημα για να το δείτε στην προβολή χάρτη."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Κάντε κλικ σε μια μεταβλητή ή σε ένα μέρος για να τη δείτε στην προβολή χάρτη."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Δεν είναι ανοιχτή η προβολή χάρτη.  Εκτελέστε την Προβολή χάρτη και, στη συνέχεια, κάντε ξανά κλικ σε αυτό."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Ανιχνεύστε κάθε %μεταβλητή στο φορτωμένο XML: πού ορίζεται η κάθε μία, πού διαβάζεται, ποιες διαβάζονται αλλά δεν ορίζονται ποτέ, ποιες ορίζονται αλλά ποτέ δεν διαβάζονται και ποια σχεδόν πανομοιότυπα ονόματα (%MyVar έναντι %Myvar) είναι πιθανά τυπογραφικά λάθη.\n\nΑναζήτηση: Ενέργειες εργασιών και οι συνθήκες τους, διαμόρφωση προσθηκών, περιβάλλοντα προφίλ και σκηνές.\n\nΤα αποτελέσματα εμφανίζονται εδώ και αποθηκεύονται σε ένα αρχείο κειμένου στον τρέχοντα κατάλογο."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Η παραπομπή μεταβλητής δεν βρήκε ύποπτες μεταβλητές."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Δεν ήταν δυνατή η αποθήκευση της αναφοράς διασταυρούμενης αναφοράς μεταβλητής."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Η μεταβλητή παραπομπή αποθηκεύτηκε ως"
+
+msgid "Variable Xref"
+msgstr "Μεταβλητή Xref"
+
+msgid "detail level"
+msgstr "επίπεδο λεπτομέρειας"
+
+msgid "is no longer in the loaded configuration."
+msgstr "δεν είναι πλέον στη φορτωμένη διαμόρφωση."
+
+msgid "whole file"
+msgstr "ολόκληρο το αρχείο"

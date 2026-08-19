@@ -2123,3 +2123,42 @@ msgstr "Das Original"
 
 msgid "The two files hold the same configuration."
 msgstr "Die beiden Dateien enthalten dieselbe Konfiguration."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Verfolgen Sie jede %-Variable im geladenen XML: wo jede Variable festgelegt ist, wo sie gelesen wird, welche gelesen, aber nie festgelegt werden, welche festgelegt, aber nie gelesen werden und bei welchen nahezu identischen Namen (%MyVar gegenüber %Myvar) wahrscheinlich Tippfehler vorliegen.\n\nGesucht: Aufgabenaktionen und ihre Bedingungen, Plugin-Konfiguration, Profilkontexte und Szenen.\n\nDie Ergebnisse werden hier angezeigt und in einer Textdatei im aktuellen Verzeichnis gespeichert."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Der Variablenquerverweis hat keine verdächtigen Variablen gefunden."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Der Variablen-Querverweisbericht konnte nicht gespeichert werden."
+
+msgid "Variable Xref"
+msgstr "Variable XRef"
+
+msgid "detail level"
+msgstr "Detailebene"
+
+msgid "is no longer in the loaded configuration."
+msgstr "befindet sich nicht mehr in der geladenen Konfiguration."
+
+msgid "whole file"
+msgstr "ganze Datei"
+
+msgid "Building the Map to show"
+msgstr "Erstellen der anzuzeigenden Karte"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Klicken Sie auf eine Variable oder einen Ort, um sie in der Kartenansicht anzuzeigen."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Es ist keine Kartenansicht geöffnet.  Führen Sie die Kartenansicht aus und klicken Sie dann erneut darauf."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Variablenquerverweis gespeichert als"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Die Karte wurde erstellt, aber es gibt keine Zeile dafür"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Klicken Sie auf einen Fund, um ihn in der Kartenansicht anzuzeigen."

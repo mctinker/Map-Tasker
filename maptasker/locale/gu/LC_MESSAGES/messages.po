@@ -2164,3 +2164,42 @@ msgstr "મૂળ"
 
 msgid "The two files hold the same configuration."
 msgstr "બે ફાઇલો સમાન રૂપરેખાંકન ધરાવે છે."
+
+msgid "Building the Map to show"
+msgstr "બતાવવા માટે નકશો બનાવી રહ્યા છીએ"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "નકશા દૃશ્યમાં જોવા માટે ચલ અથવા સ્થાન પર ક્લિક કરો."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "કોઈ નકશા દૃશ્ય ખુલ્લું નથી.  નકશા દૃશ્ય ચલાવો, પછી આને ફરીથી ક્લિક કરો."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "લોડ કરેલ XML માં દરેક % ચલને ટ્રેસ કરો: જ્યાં દરેક સેટ છે, જ્યાં તે વાંચવામાં આવે છે, જે વાંચવામાં આવે છે પરંતુ ક્યારેય સેટ નથી, જે સેટ છે પરંતુ ક્યારેય વાંચતા નથી, અને કયા નજીકના-સમાન નામો (%Myvar ની સામે %Myvar) ટાઈપો થવાની સંભાવના છે.\n\nશોધ્યું: કાર્ય ક્રિયાઓ અને તેમની શરતો, પ્લગઇન ગોઠવણી, પ્રોફાઇલ સંદર્ભો અને દ્રશ્યો.\n\nપરિણામો અહીં પ્રદર્શિત થાય છે અને વર્તમાન ડિરેક્ટરીમાં ટેક્સ્ટ ફાઇલમાં સાચવવામાં આવે છે."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "વેરિયેબલ ક્રોસ-રેફરન્સમાં કોઈ શંકાસ્પદ ચલ મળ્યા નથી."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "વેરિયેબલ ક્રોસ-રેફરન્સ રિપોર્ટ સાચવી શકાયો નથી."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "વેરિયેબલ ક્રોસ-રેફરન્સ તરીકે સાચવેલ"
+
+msgid "Variable Xref"
+msgstr "ચલ Xref"
+
+msgid "is no longer in the loaded configuration."
+msgstr "હવે લોડ થયેલ રૂપરેખાંકનમાં નથી."
+
+msgid "whole file"
+msgstr "આખી ફાઇલ"
+
+msgid "Built the Map, but it has no line for"
+msgstr "નકશો બનાવ્યો, પરંતુ તેના માટે કોઈ લાઇન નથી"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "નકશા દૃશ્યમાં તેને જોવા માટે શોધ પર ક્લિક કરો."
+
+msgid "detail level"
+msgstr "વિગતવાર સ્તર"

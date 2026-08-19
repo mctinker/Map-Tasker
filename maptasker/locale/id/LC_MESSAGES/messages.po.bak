@@ -2152,3 +2152,42 @@ msgstr "Yang asli"
 
 msgid "The two files hold the same configuration."
 msgstr "Kedua file tersebut memiliki konfigurasi yang sama."
+
+msgid "Building the Map to show"
+msgstr "Membangun Peta untuk ditampilkan"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Membangun Peta, tetapi tidak memiliki garis"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Klik temuan untuk melihatnya dalam tampilan Peta."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Klik variabel atau tempat untuk melihatnya dalam tampilan Peta."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Tidak ada tampilan Peta yang terbuka.  Jalankan Tampilan Peta, lalu klik ini lagi."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Lacak setiap %variabel dalam XML yang dimuat: di mana masing-masing variabel disetel, di mana ia dibaca, mana yang dibaca tetapi tidak pernah disetel, mana yang disetel tetapi tidak pernah dibaca, dan nama mana yang hampir identik (%MyVar versus %Myvar) yang kemungkinan besar salah ketik.\n\nDicari: Tindakan tugas dan kondisinya, konfigurasi plugin, Konteks profil, dan Adegan.\n\nHasilnya ditampilkan di sini dan disimpan ke file teks di direktori saat ini."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Variabel Cross-Reference tidak ditemukan variabel yang dicurigai."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Laporan Referensi Silang Variabel tidak dapat disimpan."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Referensi Silang Variabel disimpan sebagai"
+
+msgid "Variable Xref"
+msgstr "Variabel Xref"
+
+msgid "detail level"
+msgstr "tingkat detail"
+
+msgid "is no longer in the loaded configuration."
+msgstr "tidak lagi dalam konfigurasi yang dimuat."
+
+msgid "whole file"
+msgstr "seluruh berkas"

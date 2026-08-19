@@ -2137,3 +2137,42 @@ msgstr "L'original"
 
 msgid "The two files hold the same configuration."
 msgstr "Les deux fichiers contiennent la même configuration."
+
+msgid "Building the Map to show"
+msgstr "Construire la carte à afficher"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Cliquez sur un résultat pour le voir dans la vue Carte."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Cliquez sur une variable ou un lieu pour le voir dans la vue Carte."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "La référence croisée des variables n’a trouvé aucune variable suspecte."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Référence croisée de variable enregistrée sous"
+
+msgid "detail level"
+msgstr "niveau de détail"
+
+msgid "whole file"
+msgstr "dossier entier"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Construit la carte, mais elle n'a pas de ligne pour"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Aucune vue Carte n'est ouverte.  Exécutez Map View, puis cliquez à nouveau dessus."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Tracez chaque %variable dans le XML chargé : où chacune est définie, où elle est lue, lesquelles sont lues mais jamais définies, lesquelles sont définies mais jamais lues et quels noms presque identiques (%MyVar contre %Myvar) sont probablement des fautes de frappe.\n\nRecherche : actions de tâches et leurs conditions, configuration du plugin, contextes de profil et scènes.\n\nLes résultats sont affichés ici et enregistrés dans un fichier texte dans le répertoire actuel."
+
+msgid "Variable Xref"
+msgstr "Xréf variable"
+
+msgid "is no longer in the loaded configuration."
+msgstr "n'est plus dans la configuration chargée."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Le rapport de référence croisée des variables n'a pas pu être enregistré."

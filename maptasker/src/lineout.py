@@ -95,8 +95,11 @@ class LineOut:
             PrimeItems.ai["output_lines"].clear()
         self.output_lines.clear()
 
-        # Clear the directory, grand totals, etc.
+        # Clear the directory, grand totals, etc.  emitted_anchors goes with them: the
+        # output those anchors were written into has just been thrown away, so every object
+        # about to be written again needs its anchor again (see PrimeItems.emitted_anchors).
         PrimeItems.directory_items = initial_directory_items()
+        PrimeItems.emitted_anchors = set()
         PrimeItems.grand_totals = initial_grand_totals()
         PrimeItems.task_action_warnings = {}
 
@@ -174,7 +177,7 @@ class LineOut:
 
         if PrimeItems.program_arguments["directory"] and PrimeItems.directory_items["current_item"]:
             directory_item = PrimeItems.directory_items["current_item"]
-            directory = f'<a id="{directory_item}"</a>\n'
+            directory = f'<a id="{directory_item}"></a>\n'
         return f"{directory}{arg1}{element}{arg3}"
 
     # Find the color attribute/class and add the tab attribute to it.

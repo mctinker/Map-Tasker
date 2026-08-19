@@ -2269,3 +2269,42 @@ msgstr "valda element"
 
 msgid "is not a whole number"
 msgstr "är inte ett heltal"
+
+msgid "Building the Map to show"
+msgstr "Bygg kartan att visa"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Byggde kartan, men den har ingen linje för"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Klicka på en variabel eller en plats för att se den i kartvyn."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Ingen kartvy är öppen.  Kör Map View och klicka sedan på detta igen."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Spåra varje %variabel i den inlästa XML-filen: där var och en är satt, var den läses, vilka läses men aldrig ställs in, vilka ställs men aldrig läses, och vilka nästan identiska namn (%MyVar mot %Myvar) som sannolikt är stavfel.\n\nSökte: Uppgiftsåtgärder och deras villkor, plugin-konfiguration, profilsammanhang och scener.\n\nResultaten visas här och sparas i en textfil i den aktuella katalogen."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Variable Cross-Reference hittade inga misstänkta variabler."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Variabel korsreferensrapport kunde inte sparas."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Variabel korsreferens sparad som"
+
+msgid "Variable Xref"
+msgstr "Variabel Xref"
+
+msgid "detail level"
+msgstr "detaljnivå"
+
+msgid "is no longer in the loaded configuration."
+msgstr "är inte längre i den inlästa konfigurationen."
+
+msgid "whole file"
+msgstr "hela filen"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Klicka på ett fynd för att se det i kartvyn."

@@ -2313,3 +2313,42 @@ msgstr "ピクセル"
 
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "サイズは整数でなければなりません (レイアウトがない場合は -1)。"
+
+msgid "Building the Map to show"
+msgstr "表示するマップを構築する"
+
+msgid "Built the Map, but it has no line for"
+msgstr "マップを作成しましたが、その行がありません"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "検出結果をクリックすると、マップ ビューで表示されます。"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "変数または場所をクリックすると、マップ ビューで表示されます。"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "開いているマップ ビューはありません。  マップビューを実行し、これをもう一度クリックします。"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "ロードされた XML 内のすべての %変数をトレースします。各変数が設定されている場所、読み取られている場所、読み取られているが設定されていないもの、設定されているが読み取られないもの、およびタイプミスの可能性が高いほぼ同一の名前 (%MyVar と %Myvar) はどれですか。\n\n検索対象: タスク アクションとその条件、プラグイン設定、プロファイル コンテキスト、およびシーン。\n\n結果はここに表示され、現在のディレクトリのテキスト ファイルに保存されます。"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "変数相互参照を次の名前で保存しました"
+
+msgid "detail level"
+msgstr "詳細レベル"
+
+msgid "whole file"
+msgstr "ファイル全体"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "変数相互参照により、疑わしい変数は見つかりませんでした。"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "変数相互参照レポートを保存できませんでした。"
+
+msgid "Variable Xref"
+msgstr "変数外部参照"
+
+msgid "is no longer in the loaded configuration."
+msgstr "はロードされた構成には含まれなくなりました。"

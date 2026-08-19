@@ -2164,3 +2164,42 @@ msgstr "Додайте фон"
 
 msgid "Add handler"
 msgstr "Додати обробник"
+
+msgid "Building the Map to show"
+msgstr "Створення карти для показу"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Створив карту, але на ній немає лінії для"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Натисніть знахідку, щоб побачити її на карті."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Клацніть змінну або місце, щоб побачити її на карті."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Немає відкритих карт.  Запустіть Map View, потім знову натисніть це."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Відстежте кожну змінну % у завантаженому XML: де встановлено кожну змінну, де вона зчитується, які читаються, але ніколи не встановлюються, які встановлюються, але ніколи не читаються, і які майже ідентичні імена (%MyVar проти %Myvar) є ймовірними помилками.\n\nПошук: дії завдань та їх умови, конфігурація плагінів, контексти профілю та сцени.\n\nРезультати відображаються тут і зберігаються в текстовому файлі в поточному каталозі."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Перехресне посилання на змінну не виявило підозрілих змінних."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Не вдалося зберегти звіт про перехресне посилання змінної."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Перехресне посилання змінної збережено як"
+
+msgid "Variable Xref"
+msgstr "Змінна Xref"
+
+msgid "detail level"
+msgstr "рівень деталізації"
+
+msgid "is no longer in the loaded configuration."
+msgstr "більше не знаходиться в завантаженій конфігурації."
+
+msgid "whole file"
+msgstr "весь файл"

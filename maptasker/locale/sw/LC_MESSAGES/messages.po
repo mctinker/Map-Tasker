@@ -2306,3 +2306,42 @@ msgstr "jozi"
 msgid "pixels"
 msgstr "saizi"
 
+
+msgid "Building the Map to show"
+msgstr "Kuunda Ramani ya kuonyesha"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Imeunda Ramani, lakini haina mstari wa"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Bofya utafutaji ili kuiona katika mwonekano wa Ramani."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Bofya kigezo au mahali ili kukiona kwenye mwonekano wa Ramani."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Hakuna mwonekano wa Ramani uliofunguliwa.  Endesha Mwonekano wa Ramani, kisha ubofye hii tena."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Fuatilia kila kigezo % katika XML iliyopakiwa: ambapo kila moja imewekwa, inaposomwa, ambayo inasomwa lakini haijawekwa, ambayo imewekwa lakini haijasomwa kamwe, na ambayo majina yanayokaribia kufanana (%MyVar dhidi ya %Myvar) yana uwezekano wa kuchapa.\n\nImetafutwa: Vitendo vya Jukumu na hali zao, usanidi wa programu-jalizi, Miktadha ya Wasifu na Maonyesho.\n\nMatokeo yanaonyeshwa hapa na kuhifadhiwa kwa faili ya maandishi katika saraka ya sasa."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Marejeleo Mtambuka yanayobadilika haikupata vigeuzo vinavyoshukiwa."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Ripoti ya Marejeleo Mtambuka ya Tofauti haikuweza kuhifadhiwa."
+
+msgid "Variable Xref"
+msgstr "Kigezo cha Xref"
+
+msgid "is no longer in the loaded configuration."
+msgstr "haipo tena katika usanidi uliopakiwa."
+
+msgid "whole file"
+msgstr "faili nzima"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Rejea-tofauti inayobadilika imehifadhiwa kama"
+
+msgid "detail level"
+msgstr "kiwango cha maelezo"

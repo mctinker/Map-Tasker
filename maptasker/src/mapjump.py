@@ -1,0 +1,545 @@
+"""mapjump: what a reported object is, and how to find it again in the Map view."""
+
+#! /usr/bin/env python3
+
+#                                                                                      #
+# mapjump: the identity of an object a report points at, the anchor that identity gets  #
+#          in the generated Map, and the browser-side jump to it.                       #
+#                                                                                      #
+# Two reports name objects: healthck's findings and varxref's references.  Both used to #
+# describe an object only in prose ("Project 'Home' > Task 'Wake Up' (id 118)"), which  #
+# reads well and can be sorted, but cannot be clicked: prose cannot tell two Tasks of   #
+# the same name apart -- which is the very thing DUPLICATE-NAME exists to report -- and #
+# an unnamed Task has no name to go on at all.                                          #
+#                                                                                      #
+# Target below carries the identity alongside the prose.  Target.label reproduces what  #
+# the two reports printed before this module existed, character for character, so the   #
+# saved reports are unchanged; Target.anchor is the same identity as an HTML id, which  #
+# is what the Map view is given so a click can land on it.                              #
+#                                                                                      #
+# Identity is by id wherever Tasker has one (Task, Profile) and by name only where it   #
+# does not -- Tasker keys Projects and Scenes by name itself, so there is nothing else   #
+# to use.                                                                               #
+#                                                                                       #
+# No GUI imports here.  healthck and varxref both promise to read nothing but            #
+# PrimeItems.tasker_root_elements and to be testable without standing up a GUI, and      #
+# they import this; the JavaScript below is inert text as far as this module is          #
+# concerned, handed to guiwins to run.                                                   #
+#                                                                                       #
+# MIT License   Refer to https://opensource.org/license/mit                             #
+#
+from __future__ import annotations
+
+import json
+from dataclasses import dataclass, field, replace
+from html import escape
+from urllib.parse import quote, unquote
+
+from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import (
+    DISPLAY_DETAIL_LEVEL_all_parameters,
+    DISPLAY_DETAIL_LEVEL_everything,
+)
+
+# What kind of thing a Target names.  Deliberately not an Enum: these are written into
+# HTML ids and into the token that crosses into the browser and back, so they are strings
+# in both directions anyway, and an Enum would only add a conversion at each boundary.
+PROJECT = "project"
+PROFILE = "profile"
+TASK = "task"
+SCENE = "scene"
+VARIABLE = "variable"
+
+# How each kind is named in a report.  "Task" covers an action too -- an action is not a
+# thing of its own here, it is a position inside a Task (see Target.action), which is
+# exactly how both reports word it: "Task 'Wake Up' (id 118) action 4".
+_KIND_LABELS = {
+    PROJECT: "Project",
+    PROFILE: "Profile",
+    TASK: "Task",
+    SCENE: "Scene",
+    VARIABLE: "Variable",
+}
+
+# Kinds Tasker itself keys by id.  Everything else is keyed by name, and saying so in one
+# place is what keeps Target.label from printing "(id Home)" for a Project.
+_KEYED_BY_ID = frozenset({PROFILE, TASK})
+
+# The class every anchor emitted into the Map carries.  It marks an element as a marker
+# rather than content: the jump highlights the element the anchor precedes, not the
+# (empty, invisible) anchor itself -- see jump_js below.  A variable's row carries the id
+# without this class, which is how jump_js tells "this marks the thing" from "this IS the
+# thing" (see anchor_attribute for the other way an id gets written).
+ANCHOR_CLASS = "mt-anchor"
+
+# The class the jump puts on whatever it lands on.  Styled in guiwins.inject_shared_head_styles.
+HIGHLIGHT_CLASS = "mt-jump-target"
+
+# How many colon-separated fields Target.token writes.  Named so that adding one cannot be
+# done without the reader that counts them being updated in the same breath.
+_TOKEN_FIELDS = 5
+
+
+@dataclass(frozen=True)
+class Target:
+    """One object a report points at, in a form the Map view can find again.
+
+    Frozen because a Target is an identity, not a workspace: at_action() and with_text()
+    return new ones rather than mutating a shared record, which is what lets a Task's
+    Target be built once per Task and then have per-action Targets derived from it inside
+    the loop over its actions.
+    """
+
+    kind: str
+    # The Task/Profile id, or the Project/Scene/variable name -- see _KEYED_BY_ID.
+    key: str
+    name: str = ""  # display name; "" when the object has none
+    project: str = ""  # owning Project's name; "" when no Project owns it
+    action: int = 0  # 1-based action number, when the target is a position inside a Task
+    within: str = ""  # a place with no anchor of its own: "entry Task", "component 'Send'"
+    scope_id: str = ""  # varxref's scope: a Task id, "scene:<name>" or "profile:<id>"
+
+    @property
+    def anchor(self) -> str:
+        """The HTML id this object carries in the generated Map.
+
+        Names are percent-encoded because an HTML id may not hold a space and a Tasker
+        name routinely does; the encoding is reversible, so an anchor can be read back
+        into the name it came from when debugging a jump that went nowhere.
+
+        An action number only refines a Task's anchor.  A Scene's inline anonymous task
+        also has actions (see healthck's scene walk), but the Map gives those no anchor
+        of their own, so the Scene's own anchor is returned rather than one that is
+        guaranteed to match nothing -- the same rule the reports follow when they decline
+        to link to an object that is not in the file.
+        """
+        base = f"mt-{self.kind}-{quote(self.key, safe='')}"
+        return f"{base}-a{self.action}" if self.action and self.kind == TASK else base
+
+    @property
+    def label(self) -> str:
+        """This object's name as the reports print it.
+
+        The whole of healthck's and varxref's old _describe/_in_project pair, plus the
+        suffixes their callers used to append by hand.  Order matters and is theirs:
+        the place inside the object ("anonymous Task") comes before the position inside
+        that place ("action 4").
+        """
+        identifier = self.key if self.kind in _KEYED_BY_ID else ""
+        phrase = in_project(describe(_KIND_LABELS[self.kind], self.name, identifier), self.project)
+        if self.within:
+            phrase = f"{phrase} {self.within}"
+        return f"{phrase} action {self.action}" if self.action else phrase
+
+    def at_action(self, number: int) -> Target:
+        """This object, at one of its actions."""
+        return replace(self, action=number)
+
+    def with_text(self, text: str) -> Target:
+        """This object, at a place inside it that the Map gives no anchor of its own."""
+        return replace(self, within=text)
+
+    def token(self) -> str:
+        """This target as one string, for crossing into the browser and back.
+
+        What a jump needs travels, and nothing else: the kind and key say what to look for,
+        the action number refines it, the name is what a search fallback would type into the
+        box, and the owning Project is which Map has to be built to contain any of it (see
+        scope_for).
+
+        The Project is here because it is load-bearing, not prose.  It was left out at
+        first, on the grounds that the report had already printed it -- and the jump then
+        rebuilt the whole configuration every time, because the Target that came back from
+        the browser had no Project on it to narrow to.  'within' really is prose ("entry
+        Task", "component 'Send'") and really is left out.
+        """
+        return ":".join(
+            (
+                self.kind,
+                quote(self.key, safe=""),
+                str(self.action),
+                quote(self.name, safe=""),
+                quote(self.project, safe=""),
+            ),
+        )
+
+    @classmethod
+    def from_token(cls, token: str) -> Target | None:
+        """The Target a token came from, or None if it is not one.
+
+        Partial by design -- a token carries identity, not prose -- so the result is
+        good for finding the object and no good for re-printing the finding.
+        None rather than an exception: the token arrives from the browser, and a report
+        rendered by an older run of MapTasker is a stale click, not a program error.
+        """
+        parts = token.split(":")
+        if len(parts) != _TOKEN_FIELDS or parts[0] not in _KIND_LABELS:
+            return None
+        kind, key, action, name, project = parts
+        return cls(
+            kind=kind,
+            key=unquote(key),
+            name=unquote(name),
+            project=unquote(project),
+            action=int(action or 0),
+        )
+
+
+def describe(kind: str, name: str, identifier: str = "") -> str:
+    """An object's name for a report: Task 'Wake Up' (id 118), or Task (id 118) [unnamed].
+
+    Shared by healthck and varxref, which each carried their own copy of this.  Also
+    called directly, rather than through a Target, where what is being described is a
+    NAME rather than an object -- healthck's DUPLICATE-NAME heading names the name that
+    several Tasks share, and no one Task is the subject of it.
+    """
+    if name:
+        return f"{kind} '{name}'" + (f" (id {identifier})" if identifier else "")
+    return f"{kind} (id {identifier}) [unnamed]" if identifier else f"{kind} [unnamed]"
+
+
+def in_project(where: str, project_name: str | None) -> str:
+    """Put the owning Project in front of an object's name, when a Project owns it.
+
+    Every location in both reports reads the same way because of this -- "Project 'Home' >
+    Task 'Wake Up' (id 118)" -- which is what lets a report be sorted by location and come
+    out grouped by Project.
+
+    Silent when nothing owns the object, rather than saying so: a Task in no Project is
+    ordinary (Tasker keeps unassigned Tasks in its own Tasks tab), and a location is the
+    wrong place to raise it.  Where that fact actually matters -- an unreferenced Task
+    someone may be about to delete -- healthck says so in the finding's detail instead.
+    """
+    return f"Project '{project_name}' > {where}" if project_name else where
+
+
+def minimum_detail_level(target: Target) -> int:
+    """The lowest detail level at which the Map SHOWS what a finding about this is about.
+
+    Not merely the level at which the object has an anchor -- landing on a line that does
+    not say the thing is no better than not landing at all.  Every figure below was
+    measured against a real backup rather than read off the option's description:
+
+      Projects, Profiles          any level.  The finding is about the object itself, and
+                                  its own line is on the Map from level 0.
+      Tasks and their actions     DISPLAY_DETAIL_LEVEL_all_parameters.  Actions appear one
+                                  level below that, but bare: "03: Perform Task", with no
+                                  sign of WHICH Task it performs -- which is the whole of a
+                                  BROKEN-PERFORM-TASK finding.  At this level the same line
+                                  reads "03: Perform Task Name=Fetch Windspeed".
+      Scenes                      DISPLAY_DETAIL_LEVEL_everything.  A Scene's elements are
+                                  drawn from level 2, but their properties -- the
+                                  "Text=%Charging %Battery" a variable finding is pointing
+                                  at -- only at the top level.  A finding about a Scene is
+                                  always about something inside it, so a bare
+                                  "Scene: Launcher" answers nothing.
+      Variables                   DISPLAY_DETAIL_LEVEL_everything.  The two variable tables
+                                  are gated a level below, but the top level walks more of
+                                  the file, so globalvr collects more variables to list.
+
+    A floor, never a ceiling: a user already higher keeps what they have.  The cost of the
+    higher floors is small now that a jump narrows the Map to one Project -- for the Project
+    in the example above, level 3 is 1,144 lines against 979 at level 2.
+    """
+    if target.kind in (VARIABLE, SCENE):
+        return DISPLAY_DETAIL_LEVEL_everything
+    if target.kind == TASK:
+        return DISPLAY_DETAIL_LEVEL_all_parameters
+    return 0
+
+
+def actions_in_map_order(task_element: object) -> list:
+    """A Task's actions in the order the Map numbers them.
+
+    NOT document order.  Tasker writes a Task's actions as act0, act1, act10, act11, act12,
+    act13, act14, act2, act3 ... -- sorted as text, not as numbers -- and findall("Action")
+    hands them back exactly that way.  The Map sorts them numerically on that same attribute
+    before printing them (tasks.get_actions, via shelsort.shell_sort with
+    do_arguments=True), so the eighth element in the file can be the third action on screen.
+
+    Anything counting actions has to count them the way the Map does, or it reports a number
+    the user cannot find: a broken Perform Task at act2 was reported as "action 8", and its
+    jump highlighted whatever really was eighth.  That is a wrong answer in the report's own
+    prose, not only in the jump.
+
+    Sorted with a key that matches shell_sort's comparison on well-formed data.  An action
+    whose sr is missing or not a number cannot be placed by it -- shell_sort gives up on
+    those too -- so they keep their document order at the end rather than raising.
+    """
+
+    def position(item: tuple[int, object]) -> tuple[int, int, int]:
+        index, action = item
+        suffix = str(getattr(action, "attrib", {}).get("sr", ""))[3:]
+        return (0, int(suffix), index) if suffix.isdigit() else (1, 0, index)
+
+    return [action for _, action in sorted(enumerate(task_element.findall("Action")), key=position)]
+
+
+def scope_for(target: Target) -> str:
+    """The Project a Map has to be narrowed to for this object to be in it, or "" for all.
+
+    One function so the two sides of a jump cannot disagree: the check for whether a Map
+    already on screen can be reused, and the rebuild that runs when none can.  If they
+    answered differently, a click would either rebuild a Map it already had or reuse one
+    that shows the wrong thing.
+
+    "" where there is no Project to narrow to -- an orphan Profile, a Scene no Project
+    lists, a Task filed under none, and variables, which the Map indexes per Project but
+    the cross-reference does not attribute to one.
+    """
+    return target.key if target.kind == PROJECT else target.project
+
+
+def exists(target: Target) -> bool:
+    """Whether the object a Target names is still in the loaded configuration.
+
+    A report is a snapshot.  Between running one and clicking a line of it, the Task it
+    names can have been renamed, moved or deleted in the editor -- so a jump asks this
+    first and says what happened rather than scrolling to nothing.
+
+    Variables are exempt: PrimeItems.variables is filled in while the Map is BUILT
+    (globalvr.get_variables), so before the first Map run of a session it is empty, and
+    answering "no such variable" then would be wrong for every one of them.
+    """
+    tables = {
+        PROJECT: "all_projects",
+        PROFILE: "all_profiles",
+        TASK: "all_tasks",
+        SCENE: "all_scenes",
+    }
+    table = tables.get(target.kind)
+    return True if table is None else target.key in PrimeItems.tasker_root_elements[table]
+
+
+# ##################################################################################
+# Reports: one line of a report, rendered as text for the file and HTML for the GUI.
+# ##################################################################################
+# The class every clickable line of a rendered report carries.
+FINDING_CLASS = "mt-finding"
+
+
+@dataclass
+class Row:
+    """One line of a report, and what clicking it should go to.
+
+    The reports are written twice over -- as the plain text that is saved to a file, and
+    as the HTML that is shown in the GUI -- and the two must say the same thing.  Building
+    a list of these instead of a list of strings is what keeps them from drifting: the
+    text is written once, and each renderer below decides only how to wrap it.
+    """
+
+    text: str
+    target: Target | None = None
+    # For a line that names more than one thing -- two spellings of a near-duplicate
+    # variable, the several Tasks sharing a name -- the line broken into (text, target)
+    # pieces that join back into `text`.  Built by of_pieces below rather than by hand, so
+    # the two can never disagree.
+    pieces: list[tuple[str, Target | None]] = field(default_factory=list)
+
+    @classmethod
+    def of_pieces(cls, pieces: list[tuple[str, Target | None]]) -> Row:
+        """A line assembled from parts, each of which may point somewhere of its own."""
+        return cls("".join(text for text, _ in pieces), None, list(pieces))
+
+
+def text_report(rows: list[Row]) -> str:
+    """The report as the plain text that gets saved.  Byte for byte what it always was."""
+    return "\n".join(row.text for row in rows)
+
+
+def _clickable(text: str, target: Target | None) -> str:
+    """One piece of a rendered report: wrapped when it points somewhere, escaped either way.
+
+    role/tabindex rather than an <a href>: this is not a link to anywhere, it is a control
+    that asks the Map view to move, and a real href would offer a "copy link address" that
+    leads nowhere.  Both are what make it reachable by keyboard -- see click_wiring_js.
+    """
+    if target is None:
+        return escape(text)
+    return (
+        f'<span class="{FINDING_CLASS}" data-mt-target="{escape(target.token())}"'
+        f' role="link" tabindex="0">{escape(text)}</span>'
+    )
+
+
+def html_report(rows: list[Row]) -> str:
+    """The report as HTML, with every row that has a target made clickable.
+
+    Escaped here, once, rather than by the caller: NiceGuiTextView drops this straight
+    into a <pre> with sanitize=False, so a Tasker name holding '<', '>' or '&' would
+    otherwise be read as markup rather than shown as the name it is.  Doing it per row
+    is what lets the wrappers be added at all -- escaping the finished HTML would escape
+    them too.
+
+    A row broken into pieces has each piece wrapped separately; otherwise the whole line
+    is one control.
+    """
+    return "\n".join(
+        (
+            "".join(_clickable(text, target) for text, target in row.pieces)
+            if row.pieces
+            else _clickable(row.text, row.target)
+        )
+        for row in rows
+    )
+
+
+def click_wiring_js(container_id: str) -> str:
+    """JavaScript that makes the rendered rows of a report clickable.
+
+    One delegated listener on the container rather than a handler per row: a health check
+    of a large configuration runs to hundreds of findings, and this way the count does not
+    matter.  The guard makes it safe to call again for the same container -- a second
+    listener would emit every click twice, and the jump would run twice over.
+    """
+    return f"""
+        const container = document.getElementById({json.dumps(container_id)});
+        if (!container || container.dataset.mtFindingClicks) return;
+        container.dataset.mtFindingClicks = "1";
+
+        const jump = (event) => {{
+            const row = event.target.closest('[data-mt-target]');
+            if (!row) return;
+            event.preventDefault();
+            emitEvent('mt_jump', {{ target: row.dataset.mtTarget }});
+        }};
+        container.addEventListener('click', jump);
+        // Enter and Space, so a row reached by tabbing behaves like the control it says
+        // it is.  Space would otherwise scroll the report out from under the user.
+        container.addEventListener('keydown', (event) => {{
+            if (event.key === 'Enter' || event.key === ' ') jump(event);
+        }});
+    """
+
+
+# ##################################################################################
+# Anchors in the generated Map.
+# ##################################################################################
+def anchor_html(target: Target) -> str:
+    """The empty anchor element that marks this object's place in the Map output.
+
+    Emitted whatever the settings, unlike the directory's own anchors
+    (lineout.add_directory_link), which appear only when the "directory" option is on and
+    are keyed by name.  A health check has to be able to reach an object whether or not
+    the user asked for a directory, and has to reach the right one of two Tasks sharing a
+    name, so this is a second, id-keyed set of anchors rather than a change to those.  The
+    "mt-" prefix keeps the two namespaces from ever colliding.
+
+    "" for an object already anchored in this run.  The Map lists a Task once per Profile
+    that runs it, so a shared Task is written several times over -- and an id may appear in
+    a document only once.  The first sighting keeps the anchor and the rest go without, so
+    a jump lands on the Task's first appearance rather than on whichever of several
+    identical ids the browser happened to settle on.
+    """
+    anchor_id = target.anchor
+    if anchor_id in PrimeItems.emitted_anchors:
+        return ""
+    PrimeItems.emitted_anchors.add(anchor_id)
+    return f'<a id="{anchor_id}" class="{ANCHOR_CLASS}"></a>'
+
+
+def anchor_attribute(target: Target) -> str:
+    """This object's anchor as a bare id="..." attribute, for a line with no room for an element.
+
+    Task actions are anchored this way and nothing else is.  lineout.handle_action wraps
+    each action in a deliberately unclosed '<div ' and lets the browser fold the following
+    '<span class="action_color actiontab"' into that div's own attribute list -- which is
+    how the div ends up carrying the action's colour and indentation.  An <a> element
+    written into that gap is swallowed the same way and never becomes an element at all;
+    worse, it hands the div its own class and hides every action line.  An id, being an
+    attribute already, is absorbed exactly as intended: the div keeps its colour and gains
+    the id, and the jump lands on the div, which is the whole action line.
+
+    Returns a trailing space with the attribute, and "" for an object already anchored in
+    this run -- see anchor_html for why.
+    """
+    anchor_id = target.anchor
+    if anchor_id in PrimeItems.emitted_anchors:
+        return ""
+    PrimeItems.emitted_anchors.add(anchor_id)
+    return f'id="{anchor_id}" '
+
+
+# ##################################################################################
+# The browser side.
+# ##################################################################################
+# Reveal an element that a chunk skipped by "content-visibility: auto" never laid out.
+#
+# NiceGuiTextView.process_data streams the Map/Diagram into chunks marked
+# content-visibility: auto so the browser can skip layout and paint for the parts that are
+# off screen.  The saving is real and worth keeping, but an element inside a skipped chunk
+# has no position yet, so scrollIntoView() on it lands somewhere else entirely.  Forcing
+# the chunk visible first is the fix, and it is needed by every jump in the app -- this
+# one, the search results dialog, and the Diagram's connector jump buttons -- which is why
+# it is defined once here instead of a third time in guiwins.
+REVEAL_ANCESTORS_JS = """
+            function mtRevealAncestors(element) {
+                for (let node = element; node; node = node.parentElement) {
+                    if (getComputedStyle(node).contentVisibility === "auto") {
+                        node.style.contentVisibility = "visible";
+                    }
+                }
+            }
+"""
+
+
+def jump_js(anchor_id: str) -> str:
+    """JavaScript that scrolls the Map view to an anchor and highlights what it marks.
+
+    Returns a script that does nothing at all when the anchor is not on the page: a Map
+    built for a single Project, cut short at the view limit, or generated before this
+    object existed simply has no such id, and the caller decides what to do about that
+    (rebuild, or fall back to a text search).  Reporting "not found" back to Python is the
+    caller's business too -- hence the boolean this evaluates to.
+
+    What gets highlighted is the element the anchor MARKS, not the anchor: object anchors
+    are empty and invisible, and sit immediately before the line they belong to, so the
+    next element is the Project/Profile/Task/Scene line itself.  A variable's id is on its
+    own table row instead, because a row is a real element already and an empty anchor
+    inside a <table> would not survive the browser's table fix-up.
+    """
+    # "return" at the top level, and an IIFE inside it: ui.run_javascript() compiles what it
+    # is given as the body of a function, so a bare expression's value never comes back --
+    # only an explicit return does.  The same shape the search JS in guiwins uses.
+    return f"""
+        return (() => {{
+{REVEAL_ANCESTORS_JS}
+            const anchor = document.getElementById({json.dumps(anchor_id)});
+            if (!anchor) return false;
+            mtRevealAncestors(anchor);
+
+            // With the "twisty" option on, a Task's line and everything under it sit inside
+            // a collapsed <details> (see twisty.add_twisty).  Scrolling to something the
+            // browser is not displaying does nothing at all, so open every one of them on
+            // the way down first -- the user asked to be taken here.
+            for (let box = anchor.closest('details'); box; box = box.parentElement?.closest('details')) {{
+                box.open = true;
+            }}
+
+            // An empty marker highlights what follows it; anything else (a variable's own
+            // table row) IS the target.
+            //
+            // "What follows it" is the next element with something in it, not simply the
+            // next element: the output pipeline puts a <br>, and sometimes an empty
+            // wrapper, between an anchor and the line it belongs to (see
+            // lineout.handle_project and handle_profile).  Highlighting a line break draws
+            // an outline around nothing, which reads as the jump having failed.
+            let target = anchor;
+            if (anchor.classList.contains({ANCHOR_CLASS!r})) {{
+                target = anchor.nextElementSibling;
+                while (target && !target.textContent.trim()) {{
+                    target = target.nextElementSibling;
+                }}
+                target = target || anchor.parentElement;
+            }}
+            if (!target) return false;
+
+            document.querySelectorAll('.{HIGHLIGHT_CLASS}').forEach(
+                (element) => element.classList.remove('{HIGHLIGHT_CLASS}'),
+            );
+            mtRevealAncestors(target);
+            target.classList.add('{HIGHLIGHT_CLASS}');
+            target.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+            return true;
+        }})();
+    """

@@ -2140,3 +2140,42 @@ msgstr "عناصر)"
 
 msgid "not drawn"
 msgstr "لم يتم رسمها"
+
+msgid "Building the Map to show"
+msgstr "بناء الخريطة للعرض"
+
+msgid "Built the Map, but it has no line for"
+msgstr "تم إنشاء الخريطة، ولكن لا يوجد بها خط"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "انقر فوق أحد النتائج لرؤيته في عرض الخريطة."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "لا يوجد عرض للخريطة مفتوح.  قم بتشغيل عرض الخريطة، ثم انقر فوق هذا مرة أخرى."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "تتبع كل % متغير في XML المحمل: حيث يتم تعيين كل واحد، ومكان قراءته، والتي تتم قراءتها ولكن لم يتم تعيينها مطلقًا، والتي يتم تعيينها ولكن لا تتم قراءتها مطلقًا، وأي الأسماء شبه المتطابقة (%MyVar مقابل %Myvar) من المحتمل أن تكون أخطاء مطبعية.\n\nتم البحث: إجراءات المهمة وشروطها وتكوين البرنامج المساعد وسياقات الملف الشخصي والمشاهد.\n\nيتم عرض النتائج هنا وحفظها في ملف نصي في الدليل الحالي."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "لم يعثر المرجع الترافقي المتغير على أي متغيرات مشبوهة."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "لا يمكن حفظ تقرير المرجع الترافقي المتغير."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "تم حفظ المرجع الترافقي المتغير باسم"
+
+msgid "Variable Xref"
+msgstr "المرجع المتغير"
+
+msgid "is no longer in the loaded configuration."
+msgstr "لم يعد في التكوين المحمل."
+
+msgid "whole file"
+msgstr "الملف بأكمله"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "انقر على متغير أو مكان لرؤيته في عرض الخريطة."
+
+msgid "detail level"
+msgstr "مستوى التفاصيل"

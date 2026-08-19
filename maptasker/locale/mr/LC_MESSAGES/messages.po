@@ -2332,3 +2332,42 @@ msgstr "जोडी"
 msgid "pixels"
 msgstr "पिक्सेल"
 
+
+msgid "Building the Map to show"
+msgstr "दाखवण्यासाठी नकाशा तयार करत आहे"
+
+msgid "Built the Map, but it has no line for"
+msgstr "नकाशा तयार केला, परंतु त्यासाठी कोणतीही ओळ नाही"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "नकाशा दृश्यात पाहण्यासाठी शोधावर क्लिक करा."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "नकाशा दृश्यात पाहण्यासाठी व्हेरिएबल किंवा ठिकाणावर क्लिक करा."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "कोणतेही नकाशा दृश्य उघडलेले नाही.  नकाशा दृश्य चालवा, नंतर यावर पुन्हा क्लिक करा."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "लोड केलेल्या XML मधील प्रत्येक % व्हेरिएबल ट्रेस करा: जिथे प्रत्येक सेट केला आहे, कुठे वाचला जातो, जो वाचला जातो पण कधीच सेट केला जात नाही, जी सेट केली जाते पण कधीही वाचली जात नाही आणि कोणती जवळपास सारखी नावे (%Myvar विरुद्ध %Myvar) टायपिंगची शक्यता असते.\n\nशोधले: कार्य क्रिया आणि त्यांच्या अटी, प्लगइन कॉन्फिगरेशन, प्रोफाइल संदर्भ आणि दृश्ये.\n\nपरिणाम येथे प्रदर्शित केले जातात आणि वर्तमान निर्देशिकेतील मजकूर फाइलमध्ये जतन केले जातात."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "व्हेरिएबल क्रॉस-रेफरन्स रिपोर्ट जतन करता आला नाही."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "व्हेरिएबल क्रॉस-रेफरन्स म्हणून जतन केले"
+
+msgid "whole file"
+msgstr "संपूर्ण फाइल"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "व्हेरिएबल क्रॉस-रेफरन्समध्ये कोणतेही संशयित चल आढळले नाहीत."
+
+msgid "Variable Xref"
+msgstr "व्हेरिएबल Xref"
+
+msgid "is no longer in the loaded configuration."
+msgstr "यापुढे लोड केलेल्या कॉन्फिगरेशनमध्ये नाही."
+
+msgid "detail level"
+msgstr "तपशील पातळी"

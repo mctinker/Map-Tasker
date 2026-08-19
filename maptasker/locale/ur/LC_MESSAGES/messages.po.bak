@@ -1791,65 +1791,43 @@ msgstr "کے ساتھ موازنہ کریں۔"
 msgid "Health Check report could not be saved."
 msgstr "ہیلتھ چیک کی رپورٹ محفوظ نہیں ہو سکی۔"
 
-msgid "Health Check found no errors or warnings."
-msgstr "ہیلتھ چیک میں کوئی نقص یا انتباہ نہیں ملا۔"
 
-msgid "Health Check report could not be saved."
-msgstr "ہیلتھ چیک کی رپورٹ محفوظ نہیں ہو سکی۔"
 
 msgid "Health Check saved as"
 msgstr "ہیلتھ چیک کو بطور محفوظ کیا گیا۔"
 
-msgid "Health Check saved as"
-msgstr "ہیلتھ چیک کو بطور محفوظ کیا گیا۔"
 
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "ایک پاپ اپ پیغام غائب ہونے سے پہلے کتنی دیر تک اسکرین پر رہتا ہے۔\n\n'برخاست ہونے تک' ہر پیغام کو اس وقت تک برقرار رکھتا ہے جب تک کہ آپ اسے بند نہ کر دیں، جو اس وقت مفید ہوتا ہے جب کوئی پیغام آپ کے پڑھنے سے پہلے گزر جاتا ہے۔\n\nکچھ پیغامات نے اپنا طویل دورانیہ مقرر کیا ہے کیونکہ وہ ان چیزوں کی فہرست بناتے ہیں جنہیں آپ نے پڑھنا ہے -- مثال کے طور پر منظر کے عنصر کو حذف کرنے یا اس کا نام تبدیل کرنے سے متاثر ہونے والے کام۔ یہاں جو بھی منتخب کیا جاتا ہے وہ اپنی اپنی اوقات رکھتے ہیں۔"
 
-msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
-msgstr "ایک پاپ اپ پیغام غائب ہونے سے پہلے کتنی دیر تک اسکرین پر رہتا ہے۔\n\n'برخاست ہونے تک' ہر پیغام کو اس وقت تک برقرار رکھتا ہے جب تک کہ آپ اسے بند نہ کر دیں، جو اس وقت مفید ہوتا ہے جب کوئی پیغام آپ کے پڑھنے سے پہلے گزر جاتا ہے۔\n\nکچھ پیغامات نے اپنا طویل دورانیہ مقرر کیا ہے کیونکہ وہ ان چیزوں کی فہرست بناتے ہیں جنہیں آپ نے پڑھنا ہے -- مثال کے طور پر منظر کے عنصر کو حذف کرنے یا اس کا نام تبدیل کرنے سے متاثر ہونے والے کام۔ یہاں جو بھی منتخب کیا جاتا ہے وہ اپنی اپنی اوقات رکھتے ہیں۔"
 
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "فہرست میں: ایک رینج کے لیے شفٹ پر کلک کریں، ایک کو شامل کرنے یا ہٹانے کے لیے Ctrl- یا Cmd پر کلک کریں۔"
 
-msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
-msgstr "فہرست میں: ایک رینج کے لیے شفٹ پر کلک کریں، ایک کو شامل کرنے یا ہٹانے کے لیے Ctrl- یا Cmd پر کلک کریں۔"
 
 msgid "Item layout"
 msgstr "آئٹم لے آؤٹ"
 
-msgid "Item layout"
-msgstr "آئٹم لے آؤٹ"
 
 msgid "Landscape"
 msgstr "زمین کی تزئین کی"
 
-msgid "Landscape"
-msgstr "زمین کی تزئین کی"
 
 msgid "Legacy"
 msgstr "میراث"
 
-msgid "Legacy"
-msgstr "میراث"
 
 msgid "Legacy Scene"
 msgstr "میراثی منظر"
 
-msgid "Legacy Scene"
-msgstr "میراثی منظر"
 
 msgid "List"
 msgstr "فہرست"
 
-msgid "List"
-msgstr "فہرست"
 
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: دیکھنے کی حد پوری ہو گئی، خاکہ چھوٹا ہو گیا۔"
 
-msgid "MapTasker: view limit reached, diagram truncated"
-msgstr "MapTasker: دیکھنے کی حد پوری ہو گئی، خاکہ چھوٹا ہو گیا۔"
 
 msgid "Modifiers"
 msgstr "ترمیم کرنے والے"
@@ -1893,527 +1871,339 @@ msgstr "ہر جزو کا خاکہ بنائیں اور اسے نام دیں، ج�
 msgid "Outline every element and name it."
 msgstr "ہر عنصر کا خاکہ بنائیں اور اسے نام دیں۔"
 
-msgid "Modifiers"
-msgstr "ترمیم کرنے والے"
 
-msgid "Never updated"
-msgstr "کبھی اپ ڈیٹ نہیں ہوا۔"
 
-msgid "No Task addresses this element by name."
-msgstr "کوئی ٹاسک اس عنصر کو نام سے ایڈریس نہیں کرتا ہے۔"
 
 msgid "Pick a Material icon."
 msgstr "مواد کا آئیکن منتخب کریں۔"
 
-msgid "No XML file has been loaded.  Get an XML file first."
-msgstr "کوئی XML فائل لوڈ نہیں ہوئی ہے۔  پہلے ایک XML فائل حاصل کریں۔"
 
-msgid "No element matches that."
-msgstr "کوئی عنصر اس سے میل نہیں کھاتا۔"
 
 msgid "Pick an icon"
 msgstr "ایک آئیکن چنیں۔"
 
-msgid "Not an HTML colour name or #hex value."
-msgstr "HTML رنگ کا نام یا #hex قدر نہیں۔"
 
-msgid "Not updated -- these name both this Scene and this element, but not as a"
-msgstr "اپ ڈیٹ نہیں کیا گیا -- یہ اس منظر اور اس عنصر دونوں کو نام دیتے ہیں، لیکن a کے طور پر نہیں۔"
 
-msgid "Nothing here."
-msgstr "یہاں کچھ نہیں۔"
 
 msgid "Pick from the Scene's environment and global variables."
 msgstr "منظر کے ماحول اور عالمی متغیرات سے چنیں۔"
 
-msgid "Notification Duration"
-msgstr "اطلاع کا دورانیہ"
 
-msgid "Notification Duration:"
-msgstr "اطلاع کا دورانیہ:"
 
 msgid "Pick one of Material's own colour roles."
 msgstr "مواد کے اپنے رنگین کرداروں میں سے ایک کو منتخب کریں۔"
 
-msgid "On"
-msgstr "پر"
 
 msgid "Preview"
 msgstr "پیش نظارہ"
 
-msgid "Only when"
-msgstr "صرف جب"
 
 msgid "Project(s) that list it."
 msgstr "پروجیکٹ(ز) جو اس کی فہرست دیتے ہیں۔"
 
-msgid "Outline every component and name it, the way the designer's tree names it."
-msgstr "ہر جزو کا خاکہ بنائیں اور اسے نام دیں، جس طرح ڈیزائنر کا درخت اسے نام دیتا ہے۔"
 
-msgid "Outline every element and name it."
-msgstr "ہر عنصر کا خاکہ بنائیں اور اسے نام دیں۔"
 
-msgid "Pick a Material icon."
-msgstr "مواد کا آئیکن منتخب کریں۔"
 
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "ایک نئے نام کا اشارہ کرتا ہے اور اسے بھری ہوئی بیک اپ پر لاگو کرتا ہے، ابھی -- ہر جگہ منظر کا نام تبدیل کرنا، بشمول ہر پروجیکٹ کی منظر کی فہرست میں جو اسے رکھتا ہے۔\n\nاس منظر کو نام سے دکھانے یا چھپانے والے کاموں کو اپ ڈیٹ نہیں کیا جاتا ہے۔ وہ اب بھی پرانے منظر کا نام دیتے ہیں۔\n\nاوپر دی گئی منظر نام کی فیلڈ صرف پڑھنے کے لیے ہے -- اسے تبدیل کرنے کا یہ واحد طریقہ ہے۔"
 
-msgid "Pick an icon"
-msgstr "ایک آئیکن چنیں۔"
 
 msgid "Properties"
 msgstr "پراپرٹیز"
 
-msgid "Pick from the Scene's environment and global variables."
-msgstr "منظر کے ماحول اور عالمی متغیرات سے چنیں۔"
 
-msgid "Pick one of Material's own colour roles."
-msgstr "مواد کے اپنے رنگین کرداروں میں سے ایک کو منتخب کریں۔"
 
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "پراپرٹیز میں ایک وقت میں ایک عنصر میں ترمیم کی جاتی ہے۔ منتخب کردہ ہر چیز کو گھسیٹنا اور نڈ کرنا۔"
 
-msgid "Preview"
-msgstr "پیش نظارہ"
 
 msgid "Refresh"
 msgstr "ریفریش کریں۔"
 
-msgid "Project(s) that list it."
-msgstr "پروجیکٹ(ز) جو اس کی فہرست دیتے ہیں۔"
 
 msgid "Remove background"
 msgstr "پس منظر کو ہٹا دیں۔"
 
-msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
-msgstr "ایک نئے نام کا اشارہ کرتا ہے اور اسے بھری ہوئی بیک اپ پر لاگو کرتا ہے، ابھی -- ہر جگہ منظر کا نام تبدیل کرنا، بشمول ہر پروجیکٹ کی منظر کی فہرست میں جو اسے رکھتا ہے۔\n\nاس منظر کو نام سے دکھانے یا چھپانے والے کاموں کو اپ ڈیٹ نہیں کیا جاتا ہے۔ وہ اب بھی پرانے منظر کا نام دیتے ہیں۔\n\nاوپر دی گئی منظر نام کی فیلڈ صرف پڑھنے کے لیے ہے -- اسے تبدیل کرنے کا یہ واحد طریقہ ہے۔"
 
-msgid "Properties"
-msgstr "پراپرٹیز"
 
 msgid "Rename Element"
 msgstr "عنصر کا نام تبدیل کریں۔"
 
-msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
-msgstr "پراپرٹیز میں ایک وقت میں ایک عنصر میں ترمیم کی جاتی ہے۔ منتخب کردہ ہر چیز کو گھسیٹنا اور نڈ کرنا۔"
 
-msgid "Refresh"
-msgstr "ریفریش کریں۔"
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "یہاں کسی عنصر کا نام تبدیل کرنے سے بیک اپ صاف نہیں ہوتا ہے: کسی آئٹم لے آؤٹ میں ٹاسک کے عنصر کی کارروائی کے لیے کوئی منظر نام نہیں ہوتا ہے، اس لیے دوبارہ لکھنے کے لیے کچھ نہیں ہے۔"
 
-msgid "Remove background"
-msgstr "پس منظر کو ہٹا دیں۔"
 
 msgid "Repeats once per array entry"
 msgstr "فی صف اندراج میں ایک بار دہرایا جاتا ہے۔"
 
-msgid "Rename Element"
-msgstr "عنصر کا نام تبدیل کریں۔"
 
-msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
-msgstr "یہاں کسی عنصر کا نام تبدیل کرنے سے بیک اپ صاف نہیں ہوتا ہے: کسی آئٹم لے آؤٹ میں ٹاسک کے عنصر کی کارروائی کے لیے کوئی منظر نام نہیں ہوتا ہے، اس لیے دوبارہ لکھنے کے لیے کچھ نہیں ہے۔"
 
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "گول گھسیٹ کر پوزیشنز اور سائز اس بہت سے پکسلز تک۔"
 
-msgid "Repeats once per array entry"
-msgstr "فی صف اندراج میں ایک بار دہرایا جاتا ہے۔"
 
-msgid "Round dragged positions and sizes to this many pixels."
-msgstr "گول گھسیٹ کر پوزیشنز اور سائز اس بہت سے پکسلز تک۔"
 
 msgid "Save Scene To Android Device"
 msgstr "منظر کو Android ڈیوائس پر محفوظ کریں۔"
 
-msgid "Save Scene To Android Device"
-msgstr "منظر کو Android ڈیوائس پر محفوظ کریں۔"
 
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "پورے بیک اپ کو محفوظ کرتا ہے -- اس میں موجود ہر پروجیکٹ، پروفائل، ٹاسک اور سین، نہ صرف یہ منظر -- بشمول اس سیشن میں کہیں بھی کی گئی ہر ترمیم۔\nیہ فی الحال لوڈ کی گئی فائل کی ایک نئی، ٹائم اسٹیمپڈ کاپی پر لکھا گیا ہے: backup.xml backup_20260728_143005.xml بن جاتا ہے۔\nآپ نے جو فائل لوڈ کی ہے اسے کبھی نہیں لکھا جاتا ہے، اس لیے اسے بالکل ویسا ہی چھوڑ دیا جاتا ہے جیسا کہ تھا۔\nاس کے بعد ایپ نئی کاپی پر سوئچ کرتی ہے، جو کسی بھی مزید ترمیم اور بچت کے لیے موجودہ فائل بن جاتی ہے۔ دوبارہ محفوظ کرنا ٹائم اسٹیمپ کی جگہ لے لیتا ہے بجائے اس کے کہ دوسرا شامل کریں۔\nیہ صرف اس کمپیوٹر کو لکھتا ہے -- آپ کے Android ڈیوائس پر کچھ نہیں بھیجا جاتا ہے۔"
 
-msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
-msgstr "پورے بیک اپ کو محفوظ کرتا ہے -- اس میں موجود ہر پروجیکٹ، پروفائل، ٹاسک اور سین، نہ صرف یہ منظر -- بشمول اس سیشن میں کہیں بھی کی گئی ہر ترمیم۔\nیہ فی الحال لوڈ کی گئی فائل کی ایک نئی، ٹائم اسٹیمپڈ کاپی پر لکھا گیا ہے: backup.xml backup_20260728_143005.xml بن جاتا ہے۔\nآپ نے جو فائل لوڈ کی ہے اسے کبھی نہیں لکھا جاتا ہے، اس لیے اسے بالکل ویسا ہی چھوڑ دیا جاتا ہے جیسا کہ تھا۔\nاس کے بعد ایپ نئی کاپی پر سوئچ کرتی ہے، جو کسی بھی مزید ترمیم اور بچت کے لیے موجودہ فائل بن جاتی ہے۔ دوبارہ محفوظ کرنا ٹائم اسٹیمپ کی جگہ لے لیتا ہے بجائے اس کے کہ دوسرا شامل کریں۔\nیہ صرف اس کمپیوٹر کو لکھتا ہے -- آپ کے Android ڈیوائس پر کچھ نہیں بھیجا جاتا ہے۔"
 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "اس منظر کو اس کے تمام عناصر کے ساتھ، ایک اسٹینڈ .scn.xml فائل کے طور پر محفوظ کرتا ہے -- وہی فارمیٹ Tasker کا اپنا سین ایکسپورٹ تیار کرتا ہے۔\n\nمنظر کے عناصر کو چلانے والے کام شامل نہیں ہیں۔ وہ ان کے اپنے پروجیکٹ سے تعلق رکھتے ہیں۔"
 
-msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
-msgstr "اس منظر کو اس کے تمام عناصر کے ساتھ، ایک اسٹینڈ .scn.xml فائل کے طور پر محفوظ کرتا ہے -- وہی فارمیٹ Tasker کا اپنا سین ایکسپورٹ تیار کرتا ہے۔\n\nمنظر کے عناصر کو چلانے والے کام شامل نہیں ہیں۔ وہ ان کے اپنے پروجیکٹ سے تعلق رکھتے ہیں۔"
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "ٹوٹے ہوئے حوالہ جات، غیر حوالہ شدہ ٹاسک، پروفائلز اور سینز، اور نام دینے کے مسائل کے لیے بھری ہوئی XML کو اسکین کریں۔\n\nنتائج یہاں دکھائے جاتے ہیں اور موجودہ ڈائریکٹری میں ٹیکسٹ فائل میں محفوظ کیے جاتے ہیں۔"
 
-msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
-msgstr "ٹوٹے ہوئے حوالہ جات، غیر حوالہ شدہ ٹاسک، پروفائلز اور سینز، اور نام دینے کے مسائل کے لیے بھری ہوئی XML کو اسکین کریں۔\n\nنتائج یہاں دکھائے جاتے ہیں اور موجودہ ڈائریکٹری میں ٹیکسٹ فائل میں محفوظ کیے جاتے ہیں۔"
 
 msgid "Scene Components"
 msgstr "منظر کے اجزاء"
 
-msgid "Scene Components"
-msgstr "منظر کے اجزاء"
 
 msgid "Scene Elements"
 msgstr "منظر کے عناصر"
 
-msgid "Scene Elements"
-msgstr "منظر کے عناصر"
 
 msgid "Scene Name"
 msgstr "منظر کا نام"
 
-msgid "Scene Name"
-msgstr "منظر کا نام"
 
 msgid "Scene Preview"
 msgstr "منظر کا پیش نظارہ"
 
-msgid "Scene Preview"
-msgstr "منظر کا پیش نظارہ"
 
 msgid "Scene Properties"
 msgstr "منظر کی خصوصیات"
 
-msgid "Scene Properties"
-msgstr "منظر کی خصوصیات"
 
 msgid "Scene added."
 msgstr "منظر شامل کیا گیا۔"
 
-msgid "Scene added."
-msgstr "منظر شامل کیا گیا۔"
 
 msgid "Scene type"
 msgstr "منظر کی قسم"
 
-msgid "Scene type"
-msgstr "منظر کی قسم"
 
 msgid "Screen"
 msgstr "سکرین"
 
-msgid "Screen"
-msgstr "سکرین"
 
 msgid "Search elements"
 msgstr "عناصر تلاش کریں۔"
 
-msgid "Search elements"
-msgstr "عناصر تلاش کریں۔"
 
 msgid "Search icons"
 msgstr "شبیہیں تلاش کریں۔"
 
-msgid "Search icons"
-msgstr "شبیہیں تلاش کریں۔"
 
 msgid "Search variables"
 msgstr "متغیرات تلاش کریں۔"
 
-msgid "Search variables"
-msgstr "متغیرات تلاش کریں۔"
 
 msgid "Select a component on the left."
 msgstr "بائیں طرف ایک جزو منتخب کریں۔"
 
-msgid "Select a component on the left."
-msgstr "بائیں طرف ایک جزو منتخب کریں۔"
 
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "بقیہ کو دیکھنے کے لیے ایک بڑی ویو لِٹ یا ایک پروجیکٹ/پروفائل/ٹاسک منتخب کریں۔"
 
-msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
-msgstr "بقیہ کو دیکھنے کے لیے ایک بڑی ویو لِٹ یا ایک پروجیکٹ/پروفائل/ٹاسک منتخب کریں۔"
 
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "پہلے ایک سین کو منتخب کریں (اوپر کا منظر پل ڈاون)۔"
 
-msgid "Select a single Scene first (Scene pulldown above)."
-msgstr "پہلے ایک سین کو منتخب کریں (اوپر کا منظر پل ڈاون)۔"
 
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "اسے ڈپلیکیٹ کرنے، حذف کرنے یا دوبارہ ترتیب دینے کے لیے ایک عنصر کو منتخب کریں۔"
 
-msgid "Select a single element to duplicate, delete or restack it."
-msgstr "اسے ڈپلیکیٹ کرنے، حذف کرنے یا دوبارہ ترتیب دینے کے لیے ایک عنصر کو منتخب کریں۔"
 
 msgid "Select an element first."
 msgstr "پہلے ایک عنصر کو منتخب کریں۔"
 
-msgid "Select an element first."
-msgstr "پہلے ایک عنصر کو منتخب کریں۔"
 
 msgid "Select an element on the canvas or in the list."
 msgstr "کینوس پر یا فہرست میں ایک عنصر منتخب کریں۔"
 
-msgid "Select an element on the canvas or in the list."
-msgstr "کینوس پر یا فہرست میں ایک عنصر منتخب کریں۔"
 
 msgid "Show the Task each element runs."
 msgstr "ٹاسک دکھائیں جو ہر عنصر چلتا ہے۔"
 
-msgid "Show the Task each element runs."
-msgstr "ٹاسک دکھائیں جو ہر عنصر چلتا ہے۔"
 
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "دکھائیں کہ ٹیپ کرنے پر ہر جزو کیا کرتا ہے، اور وہ کیا لکھتا ہے۔"
 
-msgid "Show what each component does when tapped, and what it writes to."
-msgstr "دکھائیں کہ ٹیپ کرنے پر ہر جزو کیا کرتا ہے، اور وہ کیا لکھتا ہے۔"
 
 msgid "Show when"
 msgstr "دکھائیں جب"
 
-msgid "Show when"
-msgstr "دکھائیں جب"
 
 msgid "Size"
 msgstr "سائز"
 
-msgid "Size"
-msgstr "سائز"
 
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "سائز ایک مکمل نمبر ہونا چاہیے (بغیر کسی ترتیب کے -1)۔"
 
-msgid "Size must be a whole number (-1 for no layout)."
-msgstr "سائز ایک مکمل نمبر ہونا چاہیے (بغیر کسی ترتیب کے -1)۔"
 
 msgid "Snap"
 msgstr "سنیپ"
 
-msgid "Snap"
-msgstr "سنیپ"
 
 msgid "Spinner"
 msgstr "اسپنر"
 
-msgid "Spinner"
-msgstr "اسپنر"
 
 msgid "Stop firing anything on this event."
 msgstr "اس تقریب پر کچھ بھی فائر کرنا بند کریں۔"
 
-msgid "Stop firing anything on this event."
-msgstr "اس تقریب پر کچھ بھی فائر کرنا بند کریں۔"
 
 msgid "Task action(s) in"
 msgstr "ٹاسک ایکشن(ز) میں"
 
-msgid "Task action(s) in"
-msgstr "ٹاسک ایکشن(ز) میں"
 
 msgid "Task(s)"
 msgstr "کام"
 
-msgid "Task(s)"
-msgstr "کام"
 
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "ٹاسک اس منظر کو میچ پیٹرن (عنصر کی مرئیت) کے ذریعے ایڈریس کرتے ہیں۔ انہیں خود چیک کریں۔"
 
-msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
-msgstr "ٹاسک اس منظر کو میچ پیٹرن (عنصر کی مرئیت) کے ذریعے ایڈریس کرتے ہیں۔ انہیں خود چیک کریں۔"
 
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "ٹاسکر اس ٹاسک کو منظر کے اندر رکھتا ہے اور کہیں اور نہیں، لہذا اس کا کوئی نام نہیں ہے اور اسے کھوئے بغیر کہیں اور اشارہ نہیں کیا جا سکتا۔ یہ اچھوت کے ذریعے کیا جاتا ہے۔"
 
-msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
-msgstr "ٹاسکر اس ٹاسک کو منظر کے اندر رکھتا ہے اور کہیں اور نہیں، لہذا اس کا کوئی نام نہیں ہے اور اسے کھوئے بغیر کہیں اور اشارہ نہیں کیا جا سکتا۔ یہ اچھوت کے ذریعے کیا جاتا ہے۔"
 
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker اس عنصر کی فہرست دیتا ہے، لیکن MapTasker نے کبھی بھی ایک محفوظ کردہ منظر میں نہیں دیکھا -- اس لیے اس میں اس کی قسم اور شناخت کے علاوہ کچھ نہیں شامل کیا جاتا ہے، اور یہاں تک کہ اوپر کے نام سے بھی قسم کا اندازہ لگایا جاتا ہے (بطور قسم لکھا جاتا ہے: \"{node_type}\")۔ اگر ٹاسکر اسے نہیں پہچانتا ہے تو، کالعدم کو دبائیں۔"
 
-msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
-msgstr "Tasker اس عنصر کی فہرست دیتا ہے، لیکن MapTasker نے کبھی بھی ایک محفوظ کردہ منظر میں نہیں دیکھا -- اس لیے اس میں اس کی قسم اور شناخت کے علاوہ کچھ نہیں شامل کیا جاتا ہے، اور یہاں تک کہ اوپر کے نام سے بھی قسم کا اندازہ لگایا جاتا ہے (بطور قسم لکھا جاتا ہے: \"{node_type}\")۔ اگر ٹاسکر اسے نہیں پہچانتا ہے تو، کالعدم کو دبائیں۔"
 
 msgid "Tasker variable(s)"
 msgstr "ٹاسکر متغیر"
 
-msgid "Tasker variable(s)"
-msgstr "ٹاسکر متغیر"
 
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Tasker's Screen Builder: ایک اعلانیہ جزو درخت (کالم، قطار، سکیفولڈ، ...) جو خود کو باہر رکھتا ہے، بغیر کسی مقررہ کینوس کے سائز کے۔ سے شروع کریں:"
 
-msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
-msgstr "Tasker's Screen Builder: ایک اعلانیہ جزو درخت (کالم، قطار، سکیفولڈ، ...) جو خود کو باہر رکھتا ہے، بغیر کسی مقررہ کینوس کے سائز کے۔ سے شروع کریں:"
 
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "ٹاسک اس عنصر کو نام سے ایڈریس کرتے ہیں (عنصر متن، عنصر کی پوزیشن، ... مجموعی طور پر 18 ایکشن کوڈز)، لہذا اس کا نام تبدیل کرنا فیلڈ میں ترمیم نہیں ہے۔ نام تبدیل کرنے کا ڈائیلاگ فہرست کرتا ہے جو موجودہ نام پر منحصر ہے اور ان کاموں کو ساتھ لانے کی پیشکش کرتا ہے۔"
 
-msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
-msgstr "ٹاسک اس عنصر کو نام سے ایڈریس کرتے ہیں (عنصر متن، عنصر کی پوزیشن، ... مجموعی طور پر 18 ایکشن کوڈز)، لہذا اس کا نام تبدیل کرنا فیلڈ میں ترمیم نہیں ہے۔ نام تبدیل کرنے کا ڈائیلاگ فہرست کرتا ہے جو موجودہ نام پر منحصر ہے اور ان کاموں کو ساتھ لانے کی پیشکش کرتا ہے۔"
 
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "وہ کام جو اس منظر کو نام سے دکھاتے یا چھپاتے ہیں انہیں تبدیل نہیں کیا جاتا، اور وہیں چھوڑ دیا جاتا ہے۔"
 
-msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
-msgstr "وہ کام جو اس منظر کو نام سے دکھاتے یا چھپاتے ہیں انہیں تبدیل نہیں کیا جاتا، اور وہیں چھوڑ دیا جاتا ہے۔"
 
 msgid "Text density"
 msgstr "متن کی کثافت"
 
-msgid "Text density"
-msgstr "متن کی کثافت"
 
 msgid "That component can't go there."
 msgstr "وہ جزو وہاں نہیں جا سکتا۔"
 
-msgid "That component can't go there."
-msgstr "وہ جزو وہاں نہیں جا سکتا۔"
 
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "وہ فائل پہلے ہی لوڈ ہے۔  موازنہ کرنے کے لیے ایک مختلف کا انتخاب کریں۔"
 
-msgid "That is the file already loaded.  Choose a different one to compare against."
-msgstr "وہ فائل پہلے ہی لوڈ ہے۔  موازنہ کرنے کے لیے ایک مختلف کا انتخاب کریں۔"
 
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "مواد کے آئیکن کی فہرست کو پڑھا نہیں جا سکا، اس لیے اس کے بجائے نام ٹائپ کریں۔"
 
-msgid "The Material icon list could not be read, so type the name instead."
-msgstr "مواد کے آئیکن کی فہرست کو پڑھا نہیں جا سکا، اس لیے اس کے بجائے نام ٹائپ کریں۔"
 
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "ٹاسکر متغیر یہ جزو اپنی قدر لکھتا ہے۔ متعدد کو کوما سے الگ کریں۔ بائنڈنگ کا اعلان کرنے کے لیے اسے سیٹ کیے بغیر خالی چھوڑ دیں۔"
 
-msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
-msgstr "ٹاسکر متغیر یہ جزو اپنی قدر لکھتا ہے۔ متعدد کو کوما سے الگ کریں۔ بائنڈنگ کا اعلان کرنے کے لیے اسے سیٹ کیے بغیر خالی چھوڑ دیں۔"
 
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "اس منظر کے محفوظ ہونے پر اس سے خطاب کرنے والے کاموں کو اپ ڈیٹ کر دیا جائے گا۔"
 
-msgid "The Tasks that address it will be updated when this Scene is saved."
-msgstr "اس منظر کے محفوظ ہونے پر اس سے خطاب کرنے والے کاموں کو اپ ڈیٹ کر دیا جائے گا۔"
 
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "ایک قطار کی ترتیب۔ ٹاسکر جو بھی فہرست بھرتا ہے اس میں سے ہر اندراج میں ایک بار اسے کھینچتا ہے، لہذا آپ جو کچھ یہاں دیکھتے ہیں وہ فہرست کے بجائے ایک قطار ہے۔"
 
-msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
-msgstr "ایک قطار کی ترتیب۔ ٹاسکر جو بھی فہرست بھرتا ہے اس میں سے ہر اندراج میں ایک بار اسے کھینچتا ہے، لہذا آپ جو کچھ یہاں دیکھتے ہیں وہ فہرست کے بجائے ایک قطار ہے۔"
 
 msgid "The loaded file was saved from"
 msgstr "بھری ہوئی فائل سے محفوظ کر لی گئی۔"
 
-msgid "The loaded file was saved from"
-msgstr "بھری ہوئی فائل سے محفوظ کر لی گئی۔"
 
 msgid "The original"
 msgstr "اصل"
 
-msgid "The original"
-msgstr "اصل"
 
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "اصل منظر: UI عناصر ایک سائز کے کینوس پر مقررہ پوزیشنوں پر رکھے گئے ہیں (ٹیکسٹ، بٹن، رییکٹ، امیج، ویب، ...)۔"
 
-msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
-msgstr "اصل منظر: UI عناصر ایک سائز کے کینوس پر مقررہ پوزیشنوں پر رکھے گئے ہیں (ٹیکسٹ، بٹن، رییکٹ، امیج، ویب، ...)۔"
 
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "اسکرین کا سائز اس پیش نظارہ کا ہے، منظر کا نہیں -- ایک ورژن 2 لے آؤٹ کا اپنا کوئی سائز نہیں ہے، لہذا اسے دوبارہ بہاؤ دیکھنے کے لیے 'اسکرین' کو تبدیل کریں۔ مٹیریل رول کے نام سے منسوب رنگ میٹریل 3 بیس لائن پیلیٹ سے اخذ کیے گئے ہیں۔ ڈیوائس ان کو اپنے تھیم کے خلاف حل کرتی ہے، جو آپ کے وال پیپر سے مٹیریل کے تحت آتا ہے۔ ہیچڈ فلز اور ترچھا انڈر لائن ٹیکسٹ %متغیر ہیں۔ امبر 'جب دکھائیں' کے ساتھ نشان زد اجزاء کا خاکہ پیش کرتا ہے۔ اس کے ترمیم کنندگان، متغیرات اور اعمال کے لیے کسی بھی جزو کو ہوور کریں۔"
 
-msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
-msgstr "اسکرین کا سائز اس پیش نظارہ کا ہے، منظر کا نہیں -- ایک ورژن 2 لے آؤٹ کا اپنا کوئی سائز نہیں ہے، لہذا اسے دوبارہ بہاؤ دیکھنے کے لیے 'اسکرین' کو تبدیل کریں۔ مٹیریل رول کے نام سے منسوب رنگ میٹریل 3 بیس لائن پیلیٹ سے اخذ کیے گئے ہیں۔ ڈیوائس ان کو اپنے تھیم کے خلاف حل کرتی ہے، جو آپ کے وال پیپر سے مٹیریل کے تحت آتا ہے۔ ہیچڈ فلز اور ترچھا انڈر لائن ٹیکسٹ %متغیر ہیں۔ امبر 'جب دکھائیں' کے ساتھ نشان زد اجزاء کا خاکہ پیش کرتا ہے۔ اس کے ترمیم کنندگان، متغیرات اور اعمال کے لیے کسی بھی جزو کو ہوور کریں۔"
 
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "تلاش ختم نہیں ہوئی۔ منظر بہت بڑا ہو سکتا ہے، یا براؤزر مصروف ہے۔"
 
-msgid "The search did not finish. The view may be too large, or the browser is busy."
-msgstr "تلاش ختم نہیں ہوئی۔ منظر بہت بڑا ہو سکتا ہے، یا براؤزر مصروف ہے۔"
 
 msgid "The two files hold the same configuration."
 msgstr "دونوں فائلیں ایک ہی ترتیب رکھتی ہیں۔"
 
-msgid "The two files hold the same configuration."
-msgstr "دونوں فائلیں ایک ہی ترتیب رکھتی ہیں۔"
 
 msgid "This Scene has no UI elements."
 msgstr "اس منظر میں کوئی UI عناصر نہیں ہیں۔"
 
-msgid "This Scene has no UI elements."
-msgstr "اس منظر میں کوئی UI عناصر نہیں ہیں۔"
 
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "اس منظر کی اپنی کوئی زمین کی تزئین کی ترتیب نہیں ہے (اس کا سائز -1 ہے)۔"
 
-msgid "This Scene has no landscape layout of its own (its size is -1)."
-msgstr "اس منظر کی اپنی کوئی زمین کی تزئین کی ترتیب نہیں ہے (اس کا سائز -1 ہے)۔"
 
 msgid "This Scene has no layout for this orientation."
 msgstr "اس منظر میں اس واقفیت کے لیے کوئی ترتیب نہیں ہے۔"
 
-msgid "This Scene has no layout for this orientation."
-msgstr "اس منظر میں اس واقفیت کے لیے کوئی ترتیب نہیں ہے۔"
 
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "اس منظر میں کوئی خاصیت کا عنصر نہیں ہے۔ MapTasker کے 366 ​​مناظر میں سے 66 میں کوئی بھی نہیں ہے، لہذا یہ نقصان کے بجائے عام ہے۔"
 
-msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
-msgstr "اس منظر میں کوئی خاصیت کا عنصر نہیں ہے۔ MapTasker کے 366 ​​مناظر میں سے 66 میں کوئی بھی نہیں ہے، لہذا یہ نقصان کے بجائے عام ہے۔"
 
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "اس منظر کے ورژن 2 لے آؤٹ کو پڑھا نہیں جا سکا، اور اسے بالکل ویسا ہی چھوڑ دیا جائے گا۔"
 
-msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
-msgstr "اس منظر کے ورژن 2 لے آؤٹ کو پڑھا نہیں جا سکا، اور اسے بالکل ویسا ہی چھوڑ دیا جائے گا۔"
 
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "اس منظر کے ورژن 2 لے آؤٹ میں کوئی جڑ کا جزو نہیں ہے، لہذا ڈیزائن کرنے کے لیے کچھ بھی نہیں ہے۔"
 
-msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
-msgstr "اس منظر کے ورژن 2 لے آؤٹ میں کوئی جڑ کا جزو نہیں ہے، لہذا ڈیزائن کرنے کے لیے کچھ بھی نہیں ہے۔"
 
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "اس ایپ میں اس عنصر کی قسم کے لیے کوئی پراپرٹی ٹیبل نہیں ہے، اس لیے یہاں صرف اس کی جیومیٹری میں ترمیم کی جا سکتی ہے۔ یہ دوسری صورت میں اچھوت کے ذریعے کیا جاتا ہے."
 
-msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
-msgstr "اس ایپ میں اس عنصر کی قسم کے لیے کوئی پراپرٹی ٹیبل نہیں ہے، لہذا یہاں صرف اس کی جیومیٹری میں ترمیم کی جا سکتی ہے۔ یہ دوسری صورت میں اچھوت کے ذریعے کیا جاتا ہے."
 
 msgid "This element has no layout for this orientation."
 msgstr "اس عنصر میں اس واقفیت کے لیے کوئی ترتیب نہیں ہے۔"
 
-msgid "This element has no layout for this orientation."
-msgstr "اس عنصر میں اس واقفیت کے لیے کوئی ترتیب نہیں ہے۔"
 
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "یہ اینڈرائیڈ ڈیوائس پر /Tasker/scenes کے تحت سین کو ایک اسٹینڈ فائل کے طور پر لکھے گا۔\n\nآئی پی ایڈریس اور پورٹ کا اینڈرائیڈ ڈیوائس کے ٹاسکر سرور سیٹنگز سے مماثل ہونا چاہیے۔\n\nاس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
 
-msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
-msgstr "یہ اینڈرائیڈ ڈیوائس پر /Tasker/scenes کے تحت سین کو ایک اسٹینڈ فائل کے طور پر لکھے گا۔\n\nآئی پی ایڈریس اور پورٹ کا اینڈرائیڈ ڈیوائس کے ٹاسکر سرور سیٹنگز سے مماثل ہونا چاہیے۔\n\nاس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
 
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "یہ منظر کو آپ کے Android ڈیوائس پر /Tasker/scenes کے تحت ایک اسٹینڈ فائل کے طور پر لکھے گا -- یہ اسے Tasker کی لائیو کنفیگریشن میں درآمد نہیں کرتا ہے۔\n\n'Http سرور مثال' ٹاسکر پروجیکٹ کو Android ڈیوائس پر انسٹال اور فعال ہونا چاہیے، سرور کے ساتھ چل رہا ہے۔\n\nاینڈرائیڈ ڈیوائس کا ایک ہی نیٹ ورک پر ہونا چاہیے، اور آئی پی ایڈریس اور پورٹ کو اس کے ٹاسکر سرور کی سیٹنگز سے مماثل ہونا چاہیے۔ اس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
 
-msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
-msgstr "یہ منظر کو آپ کے Android ڈیوائس پر /Tasker/scenes کے تحت ایک اسٹینڈ فائل کے طور پر لکھے گا -- یہ اسے Tasker کی لائیو کنفیگریشن میں درآمد نہیں کرتا ہے۔\n\n'Http سرور مثال' ٹاسکر پروجیکٹ کو Android ڈیوائس پر انسٹال اور فعال ہونا چاہیے، سرور کے ساتھ چل رہا ہے۔\n\nاینڈرائیڈ ڈیوائس کا ایک ہی نیٹ ورک پر ہونا چاہیے، اور آئی پی ایڈریس اور پورٹ کو اس کے ٹاسکر سرور کی سیٹنگز سے مماثل ہونا چاہیے۔ اس کے لیے اجازت نامے کی ضرورت نہیں ہے۔"
 
 msgid "Tree label"
 msgstr "درخت کا لیبل"
 
-msgid "Tree label"
-msgstr "درخت کا لیبل"
 
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "اسکرین کو اس کی طرف موڑ دیں اور لے آؤٹ کو اس میں دوبارہ بہنے دیں۔"
 
-msgid "Turn the screen on its side and let the layout re-flow into it."
-msgstr "اسکرین کو اس کی طرف موڑ دیں اور لے آؤٹ کو اس میں دوبارہ بہنے دیں۔"
 
 msgid "Undo"
 msgstr "کالعدم"
 
-msgid "Undo"
-msgstr "کالعدم"
 
 msgid "Using the saved size"
 msgstr "محفوظ کردہ سائز کا استعمال کرتے ہوئے"
 
-msgid "Using the saved size"
-msgstr "محفوظ کردہ سائز کا استعمال کرتے ہوئے"
 
 msgid "Variable"
 msgstr "متغیر"
@@ -2433,29 +2223,15 @@ msgstr "آپ جو منتخب کرتے ہیں وہ کرسر پر جاتا ہے۔ 
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "آپ جو منتخب کرتے ہیں وہ فیلڈ کی جگہ لے لیتا ہے۔ فہرست کو کم کرنے کے لیے ٹائپ کریں۔"
 
-msgid "Variable"
-msgstr "متغیر"
 
-msgid "Variables"
-msgstr "متغیرات"
 
-msgid "Version 2"
-msgstr "ورژن 2"
 
-msgid "View Limit"
-msgstr "حد دیکھیں"
 
-msgid "What you pick goes in at the cursor. Open this again to add the next piece."
-msgstr "آپ جو منتخب کرتے ہیں وہ کرسر پر جاتا ہے۔ اگلا حصہ شامل کرنے کے لیے اسے دوبارہ کھولیں۔"
 
 msgid "Which kind of Scene?"
 msgstr "کس قسم کا سین؟"
 
-msgid "What you pick replaces what the field holds. Type to narrow the list down."
-msgstr "آپ جو منتخب کرتے ہیں وہ فیلڈ کی جگہ لے لیتا ہے۔ فہرست کو کم کرنے کے لیے ٹائپ کریں۔"
 
-msgid "Which kind of Scene?"
-msgstr "کس قسم کا سین؟"
 
 msgid "Writes to variable"
 msgstr "متغیر کو لکھتا ہے۔"
@@ -2463,80 +2239,91 @@ msgstr "متغیر کو لکھتا ہے۔"
 msgid "Zoom"
 msgstr "زوم"
 
-msgid "Writes to variable"
-msgstr "متغیر کو لکھتا ہے۔"
 
-msgid "Zoom"
-msgstr "زوم"
 
 msgid "component(s)"
 msgstr "اجزاء"
 
-msgid "component(s)"
-msgstr "اجزاء"
 
 msgid "connectors"
 msgstr "کنیکٹر"
 
-msgid "connectors"
-msgstr "کنیکٹر"
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "ان میں سے کسی کو گھسیٹیں یا دھکیلیں اور وہ سب ایک ساتھ حرکت کریں۔"
 
-msgid "drag or nudge any of them and they all move together."
-msgstr "ان میں سے کسی کو گھسیٹیں یا دھکیلیں اور وہ سب ایک ساتھ حرکت کریں۔"
 
 msgid "editing 1 of"
 msgstr "میں سے 1 میں ترمیم کرنا"
 
-msgid "editing 1 of"
-msgstr "میں سے 1 میں ترمیم کرنا"
 
 msgid "element(s)"
 msgstr "عنصر"
 
-msgid "element(s)"
-msgstr "عنصر"
 
 msgid "elements selected"
 msgstr "عناصر کو منتخب کیا گیا ہے۔"
 
-msgid "elements selected"
-msgstr "عناصر کو منتخب کیا گیا ہے۔"
 
 msgid "is not a whole number"
 msgstr "مکمل نمبر نہیں ہے۔"
 
-msgid "is not a whole number"
-msgstr "مکمل نمبر نہیں ہے۔"
 
 msgid "lines dropped"
 msgstr "لائنیں گر گئی"
 
-msgid "lines dropped"
-msgstr "لائنیں گر گئی"
 
 msgid "none"
 msgstr "کوئی نہیں"
 
-msgid "none"
-msgstr "کوئی نہیں"
 
 msgid "not drawn"
 msgstr "تیار نہیں"
 
-msgid "not drawn"
-msgstr "تیار نہیں"
 
 msgid "pair"
 msgstr "جوڑی"
 
-msgid "pair"
-msgstr "جوڑی"
 
 msgid "pixels"
 msgstr "پکسلز"
 
-msgid "pixels"
-msgstr "پکسلز"
+
+msgid "Built the Map, but it has no line for"
+msgstr "نقشہ بنایا، لیکن اس کے لیے کوئی لائن نہیں ہے۔"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "نقشہ کے منظر میں دیکھنے کے لیے متغیر یا جگہ پر کلک کریں۔"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "نقشہ کا کوئی منظر کھلا نہیں ہے۔  Map View کو چلائیں، پھر اس پر دوبارہ کلک کریں۔"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "بھری ہوئی XML میں ہر %متغیر کا سراغ لگائیں: جہاں ہر ایک سیٹ ہے، کہاں پڑھا جاتا ہے، جو پڑھا جاتا ہے لیکن کبھی سیٹ نہیں ہوتا، جو سیٹ ہوتا ہے لیکن کبھی پڑھا نہیں جاتا، اور کون سے قریب ایک جیسے نام (%MyVar بمقابلہ %Myvar) ٹائپ کی غلطیوں کا امکان ہے۔\n\nتلاش کیا گیا: ٹاسک ایکشنز اور ان کی شرائط، پلگ ان کنفیگریشن، پروفائل سیاق و سباق اور مناظر۔\n\nنتائج یہاں دکھائے جاتے ہیں اور موجودہ ڈائریکٹری میں ٹیکسٹ فائل میں محفوظ کیے جاتے ہیں۔"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "متغیر کراس ریفرنس میں کوئی مشتبہ متغیر نہیں ملا۔"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "متغیر کراس ریفرنس رپورٹ کو محفوظ نہیں کیا جا سکا۔"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "متغیر کراس حوالہ بطور محفوظ کیا گیا۔"
+
+msgid "Variable Xref"
+msgstr "متغیر Xref"
+
+msgid "whole file"
+msgstr "پوری فائل"
+
+msgid "Building the Map to show"
+msgstr "دکھانے کے لیے نقشہ بنانا"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "نقشہ کے منظر میں اسے دیکھنے کے لیے تلاش پر کلک کریں۔"
+
+msgid "detail level"
+msgstr "تفصیل کی سطح"
+
+msgid "is no longer in the loaded configuration."
+msgstr "اب لوڈ شدہ ترتیب میں نہیں ہے۔"

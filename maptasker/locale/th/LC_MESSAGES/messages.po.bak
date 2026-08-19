@@ -2162,3 +2162,42 @@ msgstr "component(s)"
 
 msgid "not drawn"
 msgstr "ไม่ได้วาด"
+
+msgid "Building the Map to show"
+msgstr "การสร้างแผนที่เพื่อแสดง"
+
+msgid "Built the Map, but it has no line for"
+msgstr "สร้างแผนที่แล้ว แต่ไม่มีเส้นสำหรับ"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "คลิกสิ่งที่ค้นพบเพื่อดูในมุมมองแผนที่"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "คลิกตัวแปรหรือสถานที่เพื่อดูในมุมมองแผนที่"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "ไม่มีมุมมองแผนที่เปิดอยู่  เรียกใช้ Map View จากนั้นคลิกที่นี่อีกครั้ง"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "ติดตามตัวแปร % ทุกรายการใน XML ที่โหลด: ตำแหน่งที่แต่ละรายการถูกตั้งค่า ตำแหน่งที่อ่าน ตำแหน่งที่อ่านแต่ไม่เคยตั้งค่า ซึ่งถูกตั้งค่าแต่ไม่เคยอ่าน และชื่อใดที่เกือบจะเหมือนกัน (%MyVar กับ %Myvar) มีแนวโน้มที่จะพิมพ์ผิด\n\nค้นหา: การดำเนินการของงานและเงื่อนไข การกำหนดค่าปลั๊กอิน บริบทโปรไฟล์และฉาก\n\nผลลัพธ์จะแสดงที่นี่และบันทึกลงในไฟล์ข้อความในไดเร็กทอรีปัจจุบัน"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "ตัวอ้างอิงโยงตัวแปร ไม่พบตัวแปรต้องสงสัย"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "ไม่สามารถบันทึกรายงานตัวอ้างอิงโยงของตัวแปรได้"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "บันทึกการอ้างอิงโยงตัวแปรเป็น"
+
+msgid "detail level"
+msgstr "ระดับรายละเอียด"
+
+msgid "is no longer in the loaded configuration."
+msgstr "ไม่อยู่ในการกำหนดค่าที่โหลดอีกต่อไป"
+
+msgid "Variable Xref"
+msgstr "ตัวแปร Xref"
+
+msgid "whole file"
+msgstr "ไฟล์ทั้งหมด"

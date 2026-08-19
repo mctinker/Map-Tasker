@@ -2314,3 +2314,42 @@ msgstr "또한 업데이트"
 
 msgid "Zoom"
 msgstr "줌"
+
+msgid "Building the Map to show"
+msgstr "보여줄 지도 만들기"
+
+msgid "Built the Map, but it has no line for"
+msgstr "지도를 만들었으나 선이 없습니다."
+
+msgid "Click a finding to see it in the Map view."
+msgstr "결과를 클릭하면 지도 보기에서 볼 수 있습니다."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "변수나 장소를 클릭하면 지도 보기에서 볼 수 있습니다."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "지도 보기가 열려 있지 않습니다.  맵뷰를 실행한 후 다시 클릭하세요."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "로드된 XML의 모든 %변수를 추적합니다. 각 변수가 설정된 위치, 읽은 위치, 읽었지만 설정되지 않은 변수, 설정되었지만 읽혀지지 않은 변수, 오타가 있을 가능성이 있는 거의 동일한 이름(%MyVar 대 %Myvar)을 추적합니다.\n\n검색됨: 작업 동작 및 해당 조건, 플러그인 구성, 프로필 컨텍스트 및 장면.\n\n결과는 여기에 표시되고 현재 디렉터리의 텍스트 파일에 저장됩니다."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "변수 상호 참조에서 의심스러운 변수를 찾을 수 없습니다."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "변수 상호 참조 보고서를 저장할 수 없습니다."
+
+msgid "Variable Xref"
+msgstr "변수 외부 참조"
+
+msgid "detail level"
+msgstr "세부 수준"
+
+msgid "is no longer in the loaded configuration."
+msgstr "더 이상 로드된 구성에 없습니다."
+
+msgid "whole file"
+msgstr "전체 파일"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "변수 상호 참조가 다음으로 저장됨"

@@ -2188,3 +2188,42 @@ msgstr "像素"
 
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "按名稱顯示或隱藏此場景的任務不會更改，並保留在原處。"
+
+msgid "Building the Map to show"
+msgstr "建構地圖來顯示"
+
+msgid "Built the Map, but it has no line for"
+msgstr "建立了地圖，但沒有線路"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "點擊某個結果即可在地圖視圖中查看它。"
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "單擊變數或位置即可在地圖視圖中查看它。"
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "沒有打開地圖視圖。  運行地圖視圖，然後再次按一下此按鈕。"
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "追蹤載入的 XML 中的每個 % 變數：每個變數在何處設定、在何處讀取、哪些已讀取但從未設定、哪些已設定但從未讀取，以及哪些幾乎相同的名稱（%MyVar 與 %Myvar）可能是拼字錯誤。\n\n搜尋：任務操作及其條件、插件配置、設定檔上下文和場景。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "變數交叉引用沒有發現可疑變數。"
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "無法儲存變數交叉引用報表。"
+
+msgid "Variable Xref"
+msgstr "可變外部參照"
+
+msgid "detail level"
+msgstr "詳細程度"
+
+msgid "is no longer in the loaded configuration."
+msgstr "不再處於載入的配置中。"
+
+msgid "Variable Cross-Reference saved as"
+msgstr "變數交叉引用另存為"
+
+msgid "whole file"
+msgstr "整份文件"

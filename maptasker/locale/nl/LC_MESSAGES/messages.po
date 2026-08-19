@@ -2319,3 +2319,42 @@ msgid "not drawn"
 msgstr "niet getekend"
 
 
+
+msgid "Building the Map to show"
+msgstr "De kaart bouwen om te laten zien"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Heeft de kaart gebouwd, maar er is geen lijn voor"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Klik op een bevinding om deze in de kaartweergave te bekijken."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Klik op een variabele of een plaats om deze in de kaartweergave te bekijken."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Er is geen kaartweergave geopend.  Voer Kaartweergave uit en klik nogmaals hierop."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Traceer elke %variabele in de geladen XML: waar elke variabele is ingesteld, waar deze wordt gelezen, welke zijn gelezen maar nooit zijn ingesteld, welke zijn ingesteld maar nooit zijn gelezen, en welke bijna identieke namen (%MyVar tegen %Myvar) waarschijnlijk typefouten zijn.\n\nGezocht: taakacties en hun voorwaarden, plug-inconfiguratie, profielcontexten en scènes.\n\nDe resultaten worden hier weergegeven en opgeslagen in een tekstbestand in de huidige map."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Variabele kruisverwijzing heeft geen verdachte variabelen gevonden."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Variabel kruisverwijzingsrapport kan niet worden opgeslagen."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Variabele kruisverwijzing opgeslagen als"
+
+msgid "Variable Xref"
+msgstr "Variabele Xref"
+
+msgid "detail level"
+msgstr "detailniveau"
+
+msgid "is no longer in the loaded configuration."
+msgstr "bevindt zich niet langer in de geladen configuratie."
+
+msgid "whole file"
+msgstr "hele bestand"

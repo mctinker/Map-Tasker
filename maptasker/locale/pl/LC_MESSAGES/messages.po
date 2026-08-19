@@ -2289,3 +2289,42 @@ msgstr "Obróć ekran na bok i pozwól, aby układ ponownie do niego wpłynął.
 
 msgid "Bounds"
 msgstr "Miedza"
+
+msgid "Building the Map to show"
+msgstr "Tworzenie mapy do pokazania"
+
+msgid "Built the Map, but it has no line for"
+msgstr "Zbudowałem mapę, ale nie ma na niej linii"
+
+msgid "Click a finding to see it in the Map view."
+msgstr "Kliknij wynik, aby wyświetlić go w widoku mapy."
+
+msgid "Click a variable or a place to see it in the Map view."
+msgstr "Kliknij zmienną lub miejsce, aby zobaczyć je w widoku mapy."
+
+msgid "No Map view is open.  Run Map View, then click this again."
+msgstr "Żaden widok mapy nie jest otwarty.  Uruchom widok mapy, a następnie kliknij to ponownie."
+
+msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Śledź każdą %zmienną w załadowanym formacie XML: gdzie każda z nich jest ustawiona, gdzie jest czytana, które są odczytywane, ale nigdy nie ustawiane, które są ustawiane, ale nigdy nie czytane i które prawie identyczne nazwy (%MyVar i %Myvar) są prawdopodobnie literówkami.\n\nSzukane: Akcje zadań i ich warunki, konfiguracja wtyczek, Konteksty profili i Sceny.\n\nWyniki są tutaj wyświetlane i zapisywane w pliku tekstowym w bieżącym katalogu."
+
+msgid "Variable Cross-Reference found no suspect variables."
+msgstr "Odsyłacz do zmiennych nie znalazł żadnych podejrzanych zmiennych."
+
+msgid "Variable Cross-Reference report could not be saved."
+msgstr "Nie można zapisać raportu o zmiennych powiązaniach."
+
+msgid "Variable Cross-Reference saved as"
+msgstr "Zmienne powiązanie zapisane jako"
+
+msgid "Variable Xref"
+msgstr "Zmienny odnośnik zewnętrzny"
+
+msgid "detail level"
+msgstr "poziom szczegółowości"
+
+msgid "is no longer in the loaded configuration."
+msgstr "nie znajduje się już w załadowanej konfiguracji."
+
+msgid "whole file"
+msgstr "cały plik"
