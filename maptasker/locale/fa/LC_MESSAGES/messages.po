@@ -2203,3 +2203,6 @@ msgstr "دیگر در پیکربندی بارگذاری شده نیست."
 
 msgid "whole file"
 msgstr "کل فایل"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "پروژه را در نسخه پشتیبان بارگذاری شده در حال حاضر غیرفعال می کند - مانند تغییر نام، این کار بلافاصله به جای اینکه منتظر ذخیره باشد، اعمال می شود و لغو آن را لغو نمی کند."

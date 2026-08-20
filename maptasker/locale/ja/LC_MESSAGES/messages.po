@@ -2352,3 +2352,6 @@ msgstr "変数外部参照"
 
 msgid "is no longer in the loaded configuration."
 msgstr "はロードされた構成には含まれなくなりました。"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "ロードされたバックアップ内のプロジェクトを今すぐ無効にします。名前の変更と同様に、これは保存を待たずにすぐに有効になり、キャンセルでは元に戻されません。"

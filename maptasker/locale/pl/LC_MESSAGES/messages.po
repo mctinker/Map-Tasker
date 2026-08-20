@@ -2328,3 +2328,6 @@ msgstr "nie znajduje się już w załadowanej konfiguracji."
 
 msgid "whole file"
 msgstr "cały plik"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Wyłącza projekt w załadowanej kopii zapasowej w tej chwili — podobnie jak w przypadku opcji Zmień nazwę, działa to natychmiast, zamiast czekać na zapisanie, a Anulowanie nie cofa tej czynności."

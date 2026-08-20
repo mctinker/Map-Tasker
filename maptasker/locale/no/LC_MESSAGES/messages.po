@@ -2341,3 +2341,6 @@ msgstr "Klikk på en variabel eller et sted for å se den i kartvisningen."
 
 msgid "is no longer in the loaded configuration."
 msgstr "er ikke lenger i den innlastede konfigurasjonen."
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Deaktiverer prosjektet i den innlastede sikkerhetskopien, akkurat nå -- som Gi nytt navn, trer dette i kraft umiddelbart i stedet for å vente på en lagring, og Avbryt angre det ikke."

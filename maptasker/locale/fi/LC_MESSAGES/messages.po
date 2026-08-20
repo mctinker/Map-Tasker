@@ -2201,3 +2201,6 @@ msgstr "Muuttujan ristiviittausraporttia ei voitu tallentaa."
 
 msgid "is no longer in the loaded configuration."
 msgstr "ei ole enää ladatussa kokoonpanossa."
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Poistaa projektin käytöstä ladatussa varmuuskopiossa juuri nyt – kuten Nimeä uudelleen, tämä tulee voimaan välittömästi sen sijaan, että odotaisi tallennusta, eikä Peruuta peruuta sitä."

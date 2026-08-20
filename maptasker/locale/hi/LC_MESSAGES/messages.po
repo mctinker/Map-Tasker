@@ -2181,3 +2181,6 @@ msgstr "वेरिएबल क्रॉस-रेफरेंस में �
 
 msgid "Variable Xref"
 msgstr "परिवर्तनीय Xref"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "लोड किए गए बैकअप में प्रोजेक्ट को अभी अक्षम कर देता है - जैसे नाम बदलें, यह सेव की प्रतीक्षा करने के बजाय तुरंत प्रभावी होता है, और रद्द करें इसे पूर्ववत नहीं करता है।"

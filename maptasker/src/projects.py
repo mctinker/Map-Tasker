@@ -27,7 +27,7 @@ from maptasker.src.profiles import process_profiles
 from maptasker.src.property import get_properties
 from maptasker.src.scenes import process_project_scenes
 from maptasker.src.share import share
-from maptasker.src.sysconst import NORMAL_TAB, UNNAMED_ITEM, FormatLine
+from maptasker.src.sysconst import DISABLED, NORMAL_TAB, UNNAMED_ITEM, FormatLine
 from maptasker.src.taskflag import get_priority
 from maptasker.src.twisty import add_twisty, remove_twisty
 
@@ -383,6 +383,10 @@ def get_extra_and_output_project(
     """
     Add extra info to Project output line as appropriate and then output it.
 
+    "Extra info" is the launcher Task, the '[DISABLED]' marker if the Project is
+    disabled, and -- at the maximum display detail level only -- its Kid app and
+    priority.
+
         :param project: Project xml element
         :param project_name: name of Project
         :param launcher_task_info: details about (any) launcher Task
@@ -399,6 +403,25 @@ def get_extra_and_output_project(
         if kid_app_info:
             kid_app_info = format_html("project_color", "", kid_app_info, True)
         priority = get_priority(project, False)
+
+    # Look for a disabled Project.  A Project carries its own disabled marker,
+    # <enbl>false</enbl> -- a different tag from the <limit>true</limit> a Profile
+    # uses (see profiles.build_profile_line), and the opposite polarity: for a
+    # Project it is the value "false" that means disabled, so the tag missing
+    # altogether -- which is how Tasker writes every enabled Project -- reads as
+    # enabled.  Read here the same way build_profile_line reads its own tag rather
+    # than through projedit.is_project_enabled (which writes it from Edit Project's
+    # Enabled/Disabled switch), keeping this output path free of the editing modules.
+    #
+    # Reuses the disabled-Profile color: it is the color of the [DISABLED] marker
+    # everywhere it appears, so the two read as the same indicator, which is what
+    # they are.
+    enbl = project.find("enbl")
+    disabled = (
+        format_html("disabled_profile_color", "", DISABLED, True)
+        if enbl is not None and enbl.text == "false"
+        else ""
+    )
 
     # Make the Project name bold, italcize and/or highlighted if requested
     project_name_altered = add_name_attribute(project_name)
@@ -433,7 +456,7 @@ def get_extra_and_output_project(
     )
 
     # Set up the final Project output line.
-    final_project_line = f"{project_name_details} {launcher_task_info}{priority}{kid_app_info}"
+    final_project_line = f"{project_name_details} {launcher_task_info}{disabled}{priority}{kid_app_info}"
 
     # Pretty it up?
     if PrimeItems.program_arguments["pretty"]:

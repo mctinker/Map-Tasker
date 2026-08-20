@@ -23,7 +23,7 @@
 
 # MapTasker
 
-## Display/Edit the Tasker Project(s), Profile(s), Task(s), and Scene(s) in your browser based on Tasker's backup or exported XML file
+## Display/Edit/Analyze the Tasker Project(s), Profile(s), Task(s), and Scene(s) in your browser based on Tasker's backup or exported XML file
 
 Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)
@@ -37,7 +37,7 @@ This is an application in support of [Tasker](https://tasker.joaoapps.com/) that
 
 I found that my Tasker Projects/Profiles/Tasks/Scenes were becoming unmanageable, and my phone was too small to navigate over my Projects, Profiles, Tasks, and Scenes.  So I wrote a Python program to provide a complete map of my entire configuration in my web browser based on my Tasker backup XML file that I saved to my local desktop drive.
 
-Over time, I refined the map by providing many additional options, including the ability to edit Tasker objects.
+Over time, I refined the map by providing many additional options, including the ability to edit Tasker objects and provide in-depth analysis of the Tasker configuration.
 
 The Tasker backup or other Tasker exported XML can either be manually uploaded to your PC/Mac/Linux/cloud drive, or this program can retrieve it directly from your Android device (see [Note 2](#2)).
 
@@ -61,7 +61,8 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.
 - Automatic update detection and optional installation of new versions.
 - Enhanced search capabilities.
-- Add and Edit Projects, Profiles, and Tasks (see [Note 6](#6))
+- Add and Edit Projects, Profiles, Tasks, and Scenes (see [Note 6](#6))
+- Analyze the health of of the Tasker XML as well as the numerous variables throughout the configuration.
 
 ## Program Dependencies
 
@@ -75,22 +76,6 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 
 &nbsp;&nbsp;&nbsp;This requires a valid API key if using the server-based analysis and/or Ollama to be installed for local analysis  (See [Note 3](#3)).
 
-## Project Structure
-
-A brief overview of the main files and their purpose:
-
-- `maptasker/`: Contains the core application code.
-  - `maptasker/src/`: The main Python source files for MapTasker's logic.
-  - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
-  - `maptasker/custom_overrides/`: Contains custom modifications to third-party libraries.
-  - `maptasker/locale`: language files for translations.
-- `documentation_images/`: Images used within this README and other documentation.
-- `tests/`: Contains test scripts and related files for ensuring code quality.
-- `main.py`: The main entry point script for running MapTasker from a cloned repository.
-- `LICENSE`: The MIT License file for the project.
-- `README.md`: This file.
-- `Changelog.md`: A log of changes made in each version.
-- `pyproject.toml`: Project metadata and build system configuration.
 
 ## Installation
 
@@ -169,6 +154,23 @@ This is the output from the Variable Xref (cross reference) run.
 
 ## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 
+## Project Structure
+
+A brief overview of the main files and their purpose:
+
+- `maptasker/`: Contains the core application code.
+  - `maptasker/src/`: The main Python source files for MapTasker's logic.
+  - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
+  - `maptasker/custom_overrides/`: Contains custom modifications to third-party libraries.
+  - `maptasker/locale`: language files for translations.
+- `documentation_images/`: Images used within this README and other documentation.
+- `tests/`: Contains test scripts and related files for ensuring code quality.
+- `main.py`: The main entry point script for running MapTasker from a cloned repository.
+- `LICENSE`: The MIT License file for the project.
+- `README.md`: This file.
+- `Changelog.md`: A log of changes made in each version.
+- `pyproject.toml`: Project metadata and build system configuration.
+
 ## License
 
 This project is licensed under the [MIT License](./LICENSE).
@@ -246,49 +248,10 @@ Llama based models are supported via [Ollama](https://ollama.com/), which you mu
 The supporting AI modules are not installed by default when MapTasker is installed.  Instead, they are dynamically installed upon first-use of the specific AI request.  In this way, if you do not plan to use AI, then you do not incur the overhead.
 
 
-### 6
-**MapTasker Editing Caveats**
+## Application Editing and Analysis Caveats
+**MapTasker Editing and Analysis Caveats**
 
-- Not all edits are available
-
-   Certain Task actions and Profile states and event may have arguments that can only be determined under Android and/or within Tasker.  In this case, they are not (yet) available to be added/edited.
-   
-- Extra Arguments in Tasks
-
-	In some cases, you will be prompted for action arguments that do not appear when adding the same under Tasker.  From what I can tell, this is due to the fact that Tasker's argument definition specifications support older versions of Tasker, in which such arguments are still supported.  For example, the 'Flash' action prompts for a 'Title' under MapTasker, but the current beta 6.5.6 of Tasker does not.  In this case, Tasker should just ignore this argument when it is found in the action.
-	
-- Save Tasks to Android (Tasker import) --> Requires Tasker 6.2 or higher.
-
-	This function actually loads the item into the pre-existing Tasker session on your Android device.  Since there is no 'Refresh View' in Tasker, it may be necessary to exit and restart Tasker to actually see the added Task.
-	If Tasker is not running, you will be notified with an error message in the GUI.
-	The current implementation saves the Task under the 'Base' (Home) Project.
-	
-- Single Object Edit
-
-	All edits work off a single Project, Profile, or Task, which must be preselected before the edit can occur.  Adding a Task requires a single Project to be selected.  Likewise for adding Profiles.
-
-- Profile State and Event conditions
-
-	Adding a State or Event condition is a 2-to-3 step process.  First you must add the State or Condition, and then once added, select it to add/modify it's arguments. 
-
-- Save to Current File
-
-	This command makes a copy of your current file and updates the copy.  It then reads back the modified copy which becomes your new 'current file'.  The original is never changed.
-	
-- Edit Options
-
-	'Cancel' just cancels Task action edits and Profile state/event edits.  
-	'Ok': make the change in memory only.
-	'Rename' and 'Delete' are self explanatory.
-	'Save to Android': saves Tasks to the current Tasker session.  Saves Profiles and Projects to /Tasker/profiles and /Tasker/projects, respectively.  
-	'Save to Current File': see 6, above.  
-	'Export': Save as the single Project, Profile or Task to the current directory with the given name.
-	
-- Validation and Defaults
-
-	MapTasker does not do any extensive validation of arguments.  Additionally, default settings for arguments are not all populated.	
-	
-- Remember, this is NOT Tasker.  So the look and feel will be somewhat different.  It may feel a little clunky at first.  Suggestions are welcome.
+Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats,txt) document for details.
 
 
 ## To-Do List (in no particular order)
@@ -328,6 +291,22 @@ The supporting AI modules are not installed by default when MapTasker is install
 - [x] Multilingual Support
 
 - [x] Edit Support
+
+- [x] Health Checkup and Variable Cross-reference
+
+- [ ] Edit 'Undo' function
+
+- [ ] Structure Search
+
+- [ ] Interactive Diagram view
+
+- [ ] Capture Android Device Apps and Icons
+
+- [ ] Export Map to Portable Formats (Markdown / JSON / PDF)
+
+- [ ] Export Edits Directoly Into Tasker
+
+- [ ] Roundtrip (Device-to/from Android) Data Validation
 
 - [ ] Support additional plugins
 

@@ -2345,3 +2345,6 @@ msgstr "Rejea-tofauti inayobadilika imehifadhiwa kama"
 
 msgid "detail level"
 msgstr "kiwango cha maelezo"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Huzima Mradi katika hifadhi rudufu iliyopakiwa, sasa hivi -- kama vile Badilisha Jina, hii huanza kutumika mara moja badala ya kungoja uhifadhi, na Ghairi haitendui."

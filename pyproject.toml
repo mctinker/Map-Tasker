@@ -1,7 +1,7 @@
 [project]
 name = "maptasker"
-version = "12.2.0"
-description = "Utility to display/edit your entire Android 'Tasker' configuration in your browser."
+version = "13.0.0"
+description = "Utility to display/edit/analyze your entire Android 'Tasker' configuration in your browser."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
 ]
@@ -68,6 +68,7 @@ exclude = [
   "/.gitignore",
   "/docs",
   ".claude",
+  "/*.po",
 ]
 
 [[tool.uv.index]]

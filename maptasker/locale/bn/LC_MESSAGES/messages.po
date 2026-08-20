@@ -2201,3 +2201,6 @@ msgstr "মানচিত্র দৃশ্যে এটি দেখতে �
 
 msgid "detail level"
 msgstr "বিস্তারিত স্তর"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "এখনই লোড করা ব্যাকআপে প্রজেক্টকে নিষ্ক্রিয় করে -- যেমন পুনঃনামকরণ, এটি সংরক্ষণের জন্য অপেক্ষা করার পরিবর্তে অবিলম্বে কার্যকর হয়, এবং বাতিল এটিকে পূর্বাবস্থায় ফেরায় না।"

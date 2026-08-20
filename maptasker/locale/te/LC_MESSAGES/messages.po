@@ -2224,3 +2224,6 @@ msgstr "లోడ్ చేయబడిన కాన్ఫిగరేషన్�
 
 msgid "whole file"
 msgstr "మొత్తం ఫైల్"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "లోడ్ చేయబడిన బ్యాకప్‌లో ప్రాజెక్ట్‌ను నిలిపివేస్తుంది, ప్రస్తుతం -- పేరు మార్చడం వంటిది, ఇది సేవ్ కోసం వేచి ఉండకుండా వెంటనే ప్రభావం చూపుతుంది మరియు రద్దు చేయడం చర్యరద్దు చేయదు."

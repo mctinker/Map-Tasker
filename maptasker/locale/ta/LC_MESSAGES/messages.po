@@ -2365,3 +2365,6 @@ msgstr "ஏற்றப்பட்ட கட்டமைப்பில் இ�
 
 msgid "whole file"
 msgstr "முழு கோப்பு"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "இப்போது ஏற்றப்பட்ட காப்புப்பிரதியில் திட்டத்தை முடக்குகிறது -- மறுபெயரிடுவது போல, சேமிப்பிற்காகக் காத்திருப்பதற்குப் பதிலாக இது உடனடியாகச் செயல்படும், மேலும் ரத்துசெய்தல் அதைச் செயல்தவிர்க்காது."

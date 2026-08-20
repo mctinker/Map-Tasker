@@ -2327,3 +2327,6 @@ msgstr "تفصیل کی سطح"
 
 msgid "is no longer in the loaded configuration."
 msgstr "اب لوڈ شدہ ترتیب میں نہیں ہے۔"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "ابھی بھری ہوئی بیک اپ میں پروجیکٹ کو غیر فعال کر دیتا ہے -- جیسے کہ نام تبدیل کریں، یہ بچت کا انتظار کرنے کے بجائے فوری طور پر اثر انداز ہوتا ہے، اور کینسل اسے کالعدم نہیں کرتا ہے۔"

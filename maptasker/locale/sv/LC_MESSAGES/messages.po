@@ -2308,3 +2308,6 @@ msgstr "hela filen"
 
 msgid "Click a finding to see it in the Map view."
 msgstr "Klicka på ett fynd för att se det i kartvyn."
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Inaktiverar projektet i den laddade säkerhetskopian just nu -- liksom Byt namn, träder detta i kraft omedelbart snarare än att vänta på en lagring, och Avbryt ångrar det inte."

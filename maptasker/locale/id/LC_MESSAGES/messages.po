@@ -2191,3 +2191,6 @@ msgstr "tidak lagi dalam konfigurasi yang dimuat."
 
 msgid "whole file"
 msgstr "seluruh berkas"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Menonaktifkan Proyek dalam cadangan yang dimuat, saat ini -- seperti Ganti Nama, ini akan langsung berlaku, bukan menunggu penyimpanan, dan Batal tidak membatalkannya."

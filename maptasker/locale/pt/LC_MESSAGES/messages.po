@@ -2300,3 +2300,6 @@ msgstr "Refex variável"
 
 msgid "whole file"
 msgstr "arquivo inteiro"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Desativa o projeto no backup carregado agora - como Renomear, isso entra em vigor imediatamente, em vez de aguardar o salvamento, e Cancelar não o desfaz."

@@ -2227,3 +2227,6 @@ msgstr "變數交叉引用另存為"
 
 msgid "whole file"
 msgstr "整份文件"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "立即停用已載入的備份中的項目 - 與重新命名一樣，這會立即生效，而不是等待儲存，並且取消不會撤銷它。"

@@ -2371,3 +2371,6 @@ msgstr "यापुढे लोड केलेल्या कॉन्फि
 
 msgid "detail level"
 msgstr "तपशील पातळी"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "लोड केलेल्या बॅकअपमध्ये प्रॉजेक्ट अक्षम करते, आत्ता -- नाव बदला प्रमाणे, हे सेव्हची वाट पाहण्याऐवजी लगेच प्रभावी होते आणि रद्द केल्याने ते पूर्ववत होत नाही."

@@ -2353,3 +2353,6 @@ msgstr "전체 파일"
 
 msgid "Variable Cross-Reference saved as"
 msgstr "변수 상호 참조가 다음으로 저장됨"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "지금 당장 로드된 백업에서 프로젝트를 비활성화합니다. 이름 바꾸기와 마찬가지로 이는 저장을 기다리지 않고 즉시 적용되며 취소는 실행 취소하지 않습니다."

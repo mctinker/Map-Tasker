@@ -2203,3 +2203,6 @@ msgstr "більше не знаходиться в завантаженій к�
 
 msgid "whole file"
 msgstr "весь файл"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Вимикає проект у завантаженій резервній копії прямо зараз — як і «Перейменувати», це набуває чинності негайно, а не чекає збереження, а «Скасувати» не скасовує його."

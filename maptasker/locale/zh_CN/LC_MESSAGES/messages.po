@@ -2263,3 +2263,6 @@ msgstr "整个文件"
 
 msgid "Building the Map to show"
 msgstr "构建地图来显示"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "立即禁用加载的备份中的项目 - 与重命名一样，这会立即生效，而不是等待保存，并且取消不会撤消它。"

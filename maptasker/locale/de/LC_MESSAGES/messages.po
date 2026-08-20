@@ -2162,3 +2162,6 @@ msgstr "Die Karte wurde erstellt, aber es gibt keine Zeile dafür"
 
 msgid "Click a finding to see it in the Map view."
 msgstr "Klicken Sie auf einen Fund, um ihn in der Kartenansicht anzuzeigen."
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Deaktiviert das Projekt im geladenen Backup sofort – wie bei „Umbenennen“ wird dies sofort wirksam, anstatt auf eine Speicherung zu warten, und „Abbrechen“ macht es nicht rückgängig."

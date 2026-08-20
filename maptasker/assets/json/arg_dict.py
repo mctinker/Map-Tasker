@@ -1,9 +1,9 @@
 from collections import namedtuple
 
     # Define the namedtuples
-    ActionCode = namedtuple(
+   ActionCode = namedtuple(
         "ActionCode",
-        ["redirect", "args", "name", "category", "canfail"],
+         ["redirect", "args", "name", "category", "canfail"],
     )
     ArgumentCode = namedtuple(
         "ArgumentCode",

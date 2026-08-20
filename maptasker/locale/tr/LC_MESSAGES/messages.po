@@ -2275,3 +2275,6 @@ msgstr "artık yüklü konfigürasyonda değil."
 
 msgid "whole file"
 msgstr "tüm dosya"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Yüklenen yedeklemede Projeyi hemen devre dışı bırakır - Yeniden Adlandır gibi, bu, kaydetmeyi beklemek yerine hemen etkili olur ve İptal bunu geri almaz."

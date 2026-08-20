@@ -2179,3 +2179,6 @@ msgstr "انقر على متغير أو مكان لرؤيته في عرض الخ
 
 msgid "detail level"
 msgstr "مستوى التفاصيل"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "تعطيل المشروع في النسخة الاحتياطية المحملة، الآن - مثل إعادة التسمية، يصبح هذا ساري المفعول على الفور بدلاً من انتظار الحفظ، ولا يؤدي الإلغاء إلى التراجع عنه."

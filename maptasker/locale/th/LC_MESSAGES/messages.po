@@ -2201,3 +2201,6 @@ msgstr "ตัวแปร Xref"
 
 msgid "whole file"
 msgstr "ไฟล์ทั้งหมด"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "ปิดการใช้งานโปรเจ็กต์ในการสำรองข้อมูลที่โหลดไว้ในขณะนี้ เช่นเดียวกับการเปลี่ยนชื่อ ซึ่งจะมีผลทันทีแทนที่จะรอการบันทึก และการยกเลิกจะไม่เลิกทำ"

@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [12.2.0] ??-Aug-2026  # FIX
+## [13.0.0] 20-Aug-2026
 
 ### Added
 
@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: Added missing text translations
 - Fixed: 'Open View in New Window' checkbox, when unchecked, only reuses the window if for the same object.  Fixed so that it reuses the same (Diagram or Map view) window regardless, if unchecked.
+- Fixed: Disabled Projects are not identified as such in the Map view.
 
 ### Known Issue
 

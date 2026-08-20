@@ -2326,3 +2326,6 @@ msgstr "Ни один вид карты не открыт.  Запустите �
 
 msgid "whole file"
 msgstr "весь файл"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Отключает проект в загруженной резервной копии прямо сейчас — как и «Переименование», это вступает в силу немедленно, а не ждет сохранения, а «Отмена» не отменяет его."

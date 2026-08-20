@@ -2197,3 +2197,6 @@ msgstr "celý soubor"
 
 msgid "Click a finding to see it in the Map view."
 msgstr "Kliknutím na nález jej zobrazíte v zobrazení mapy."
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Zakáže projekt v načtené záloze, právě teď – stejně jako Přejmenovat se to projeví okamžitě a nečeká na uložení a Storno to nezruší."

@@ -2183,3 +2183,6 @@ msgstr "er ikke længere i den indlæste konfiguration."
 
 msgid "whole file"
 msgstr "hele filen"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Deaktiverer projektet i den indlæste sikkerhedskopi lige nu -- ligesom Omdøb, træder dette i kraft med det samme i stedet for at vente på en lagring, og Annuller fortryder det ikke."

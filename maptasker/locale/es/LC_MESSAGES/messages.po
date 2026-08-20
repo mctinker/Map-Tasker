@@ -2182,3 +2182,6 @@ msgstr "archivo completo"
 
 msgid "Built the Map, but it has no line for"
 msgstr "Construí el mapa, pero no tiene línea para"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Deshabilita el Proyecto en la copia de seguridad cargada, ahora mismo; al igual que Cambiar nombre, esto surte efecto inmediatamente en lugar de esperar a que se guarde, y Cancelar no lo deshace."

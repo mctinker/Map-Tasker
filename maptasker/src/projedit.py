@@ -275,6 +275,12 @@ def is_project_enabled(edited_project: EditableProject) -> bool:
     exactly one of 876 Project elements carries <enbl> at all -- backup.xml's
     disabled "Test", carrying "false" -- so Tasker emits the tag only for a
     Project it has disabled, which is why absence has to read as enabled.
+
+    projects.get_extra_and_output_project reads the same tag its own way to put
+    the '[DISABLED]' marker on a disabled Project's Map view line -- the same
+    split profiles.build_profile_line and profedit.is_profile_enabled have for a
+    Profile's <limit>.  Change the tag or its polarity here and that reader has
+    to change with it.
     """
     enbl = edited_project.project_element.find(PROJECT_ENABLED_TAG)
     return enbl is None or enbl.text != DISABLED_PROJECT_VALUE

@@ -2388,3 +2388,6 @@ msgstr "toàn bộ tập tin"
 
 msgid "Building the Map to show"
 msgstr "Xây dựng bản đồ để hiển thị"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Tắt Dự án trong bản sao lưu đã tải ngay bây giờ -- giống như Đổi tên, thao tác này có hiệu lực ngay lập tức thay vì chờ lưu và Hủy sẽ không hoàn tác tác vụ đó."

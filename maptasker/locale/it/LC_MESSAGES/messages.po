@@ -2198,3 +2198,6 @@ msgstr "non è più nella configurazione caricata."
 
 msgid "whole file"
 msgstr "intero fascicolo"
+
+msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
+msgstr "Disabilita subito il progetto nel backup caricato: come Rinomina, ha effetto immediatamente anziché attendere un salvataggio e Annulla non lo annulla."
