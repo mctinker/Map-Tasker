@@ -251,7 +251,7 @@ The supporting AI modules are not installed by default when MapTasker is install
 ## Application Editing and Analysis Caveats
 **MapTasker Editing and Analysis Caveats**
 
-Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats,txt) document for details.
+Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/caveats.txt) document for details.
 
 
 ## To-Do List (in no particular order)

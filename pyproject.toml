@@ -68,7 +68,6 @@ exclude = [
   "/.gitignore",
   "/docs",
   ".claude",
-  "/*.po",
 ]
 
 [[tool.uv.index]]

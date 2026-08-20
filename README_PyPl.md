@@ -1,6 +1,6 @@
 # MapTasker
 
-## Display the Tasker Project/Profile/Task/Scene hierarchy on in your browser based on Tasker's backup or exported XML file (e.g. backup.xml)
+## Display, analyze and edit the Tasker Project/Profile/Task/Scene configuration from within your browser, based on Tasker's exported XML file (e.g. backup.xml)
 
 This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run in your default browser.
 
