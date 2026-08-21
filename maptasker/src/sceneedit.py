@@ -81,6 +81,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
+from maptasker.src import sessundo
+from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
 from maptasker.src.sysconst import SCENE_TASK_TYPES
@@ -2952,10 +2954,11 @@ def register_new_scene(edited_scene: EditableScene) -> None:
     follow it with add_scene_to_project: registration alone leaves the Scene in
     a table nothing walks (see that function).
     """
-    PrimeItems.tasker_root_elements.setdefault("all_scenes", {})[edited_scene.scene_name] = {
-        "xml": edited_scene.scene_element,
-        "name": edited_scene.scene_name,
-    }
+    with sessundo.undoable(f"Add Scene '{edited_scene.scene_name}'"):
+        PrimeItems.tasker_root_elements.setdefault("all_scenes", {})[edited_scene.scene_name] = {
+            "xml": edited_scene.scene_element,
+            "name": edited_scene.scene_name,
+        }
 
 
 def add_scene_to_project(scene_name: str, project_name: str) -> None:
@@ -2976,16 +2979,17 @@ def add_scene_to_project(scene_name: str, project_name: str) -> None:
     immediately for every other view in the same session.  No-op if project_name
     isn't a known Project (defense in depth; the GUI only offers real names).
     """
-    project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
-    if project_entry is None:
-        return
+    with sessundo.undoable(f"Add Scene '{scene_name}' to Project '{project_name}'"):
+        project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+        if project_entry is None:
+            return
 
-    project_element = project_entry["xml"]
-    existing_names = _project_scene_names(project_element)
-    if scene_name not in existing_names:
-        existing_names.append(scene_name)
-    _set_child_text(project_element, "scenes", ",".join(existing_names))
-    touch_project_mdate(project_element)
+        project_element = project_entry["xml"]
+        existing_names = _project_scene_names(project_element)
+        if scene_name not in existing_names:
+            existing_names.append(scene_name)
+        _set_child_text(project_element, "scenes", ",".join(existing_names))
+        touch_project_mdate(project_element)
 
 
 def _project_scene_names(project_element: defusedxml.ElementTree.Element) -> list[str]:
@@ -3049,49 +3053,50 @@ def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene) 
     No-op if old_name isn't registered (defense in depth; the GUI should only
     ever pass a name that was just loaded via load_scene_for_edit).
     """
-    all_scenes = PrimeItems.tasker_root_elements.get("all_scenes", {})
-    entry = all_scenes.get(old_name)
-    if entry is None:
-        return
+    with sessundo.undoable(f"Edit Scene '{old_name}'"):
+        all_scenes = PrimeItems.tasker_root_elements.get("all_scenes", {})
+        entry = all_scenes.get(old_name)
+        if entry is None:
+            return
 
-    # Element renames the designer deferred, applied here because here is where this copy
-    # stops being a copy.  Matched against old_name: a Task that addresses this Scene names
-    # it as it was, and renaming a Scene has never rewritten those (see this module's
-    # docstring), so the Scene name in a Task action is still the one it came in under.
-    if edited_scene.element_renames:
-        apply_element_renames_to_tasks(old_name, edited_scene.element_renames)
-        edited_scene.element_renames.clear()
+        # Element renames the designer deferred, applied here because here is where this copy
+        # stops being a copy.  Matched against old_name: a Task that addresses this Scene names
+        # it as it was, and renaming a Scene has never rewritten those (see this module's
+        # docstring), so the Scene name in a Task action is still the one it came in under.
+        if edited_scene.element_renames:
+            apply_element_renames_to_tasks(old_name, edited_scene.element_renames)
+            edited_scene.element_renames.clear()
 
-    live_element = entry["xml"]
-    edited_element = edited_scene.scene_element
-    if live_element is not edited_element:
-        live_element.attrib.clear()
-        live_element.attrib.update(edited_element.attrib)
-        for child in list(live_element):
-            live_element.remove(child)
-        for child in list(edited_element):
-            live_element.append(child)
-    # From here on the model and the tree are the same element, so a second save
-    # from the still-open dialog transplants onto itself and is a no-op.
-    edited_scene.scene_element = live_element
+        live_element = entry["xml"]
+        edited_element = edited_scene.scene_element
+        if live_element is not edited_element:
+            live_element.attrib.clear()
+            live_element.attrib.update(edited_element.attrib)
+            for child in list(live_element):
+                live_element.remove(child)
+            for child in list(edited_element):
+                live_element.append(child)
+        # From here on the model and the tree are the same element, so a second save
+        # from the still-open dialog transplants onto itself and is a no-op.
+        edited_scene.scene_element = live_element
 
-    new_name = live_element.findtext("nme", "") or old_name
-    if new_name != old_name:
-        del all_scenes[old_name]
-        for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
-            project_element = project_entry["xml"]
-            scene_names = _project_scene_names(project_element)
-            if old_name not in scene_names:
-                continue
-            # Positional replace, not remove-then-append: a Project's <scenes>
-            # order is the order its Scenes are listed in every view, and a
-            # rename is not a reordering.
-            scene_names[scene_names.index(old_name)] = new_name
-            _set_project_scene_names(project_element, scene_names)
-            touch_project_mdate(project_element)
+        new_name = live_element.findtext("nme", "") or old_name
+        if new_name != old_name:
+            del all_scenes[old_name]
+            for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+                project_element = project_entry["xml"]
+                scene_names = _project_scene_names(project_element)
+                if old_name not in scene_names:
+                    continue
+                # Positional replace, not remove-then-append: a Project's <scenes>
+                # order is the order its Scenes are listed in every view, and a
+                # rename is not a reordering.
+                scene_names[scene_names.index(old_name)] = new_name
+                _set_project_scene_names(project_element, scene_names)
+                touch_project_mdate(project_element)
 
-    all_scenes[new_name] = {"xml": live_element, "name": new_name}
-    edited_scene.scene_name = new_name
+        all_scenes[new_name] = {"xml": live_element, "name": new_name}
+        edited_scene.scene_name = new_name
 
 
 def count_scene_references(scene_name: str) -> int:
@@ -3122,21 +3127,22 @@ def delete_scene(scene_name: str) -> list[str]:
     top-level Task owned by a Project, which is left exactly where it is (the
     same call the Delete Task dialog spells out in reverse).
     """
-    all_scenes = PrimeItems.tasker_root_elements.get("all_scenes", {})
-    if scene_name not in all_scenes:
-        return [f"Scene '{scene_name}' no longer exists."]
+    with sessundo.undoable(f"Delete Scene '{scene_name}'"):
+        all_scenes = PrimeItems.tasker_root_elements.get("all_scenes", {})
+        if scene_name not in all_scenes:
+            return [f"Scene '{scene_name}' no longer exists."]
 
-    for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
-        project_element = project_entry["xml"]
-        scene_names = _project_scene_names(project_element)
-        if scene_name not in scene_names:
-            continue
-        scene_names.remove(scene_name)
-        _set_project_scene_names(project_element, scene_names)
-        touch_project_mdate(project_element)
+        for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+            project_element = project_entry["xml"]
+            scene_names = _project_scene_names(project_element)
+            if scene_name not in scene_names:
+                continue
+            scene_names.remove(scene_name)
+            _set_project_scene_names(project_element, scene_names)
+            touch_project_mdate(project_element)
 
-    del all_scenes[scene_name]
-    return []
+        del all_scenes[scene_name]
+        return []
 
 
 def sanitize_filename(name: str) -> str:
@@ -3206,13 +3212,21 @@ def render_standalone_scene_xml(scene_name: str) -> str:
     return ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_scene_xml(scene_name: str, output_path: str) -> None:
+def write_standalone_scene_xml(scene_name: str, output_path: str) -> str:
     """Write a Scene as a standalone .scn.xml file.  Raises OSError on failure,
     ValueError if the Scene no longer exists.
+
+    A safety copy of anything already at `output_path` is taken first, into a
+    MapTasker_Backups folder beside it -- see presave.backup_local_file.  Taken here
+    rather than at the buttons that call this, so no export path can be added later that
+    quietly skips it.  Returns the copy's path, or "" if there was nothing to copy or the
+    copy failed (which does not stop the write -- see presave's module comment).
     """
     rendered = render_standalone_scene_xml(scene_name)
+    _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
         out_file.write(rendered)
+    return safety_copy
 
 
 def save_scene_to_android(scene_name: str, ip_address: str, ip_port: str) -> tuple[int, str]:
@@ -4365,12 +4379,13 @@ def apply_element_renames_to_tasks(scene_name: str, renames: list[tuple[str, str
     Called from apply_edited_scene_to_live_tree and nowhere else -- see
     EditableScene.element_renames on why this cannot happen while the dialog is still open.
     """
-    changed = 0
-    for old_name, new_name in renames:
-        for _task_name, argument in find_element_name_actions(scene_name, old_name):
-            argument.text = new_name
-            changed += 1
-    return changed
+    with sessundo.undoable(f"Rename Scene '{scene_name}' elements in the Tasks that use them"):
+        changed = 0
+        for old_name, new_name in renames:
+            for _task_name, argument in find_element_name_actions(scene_name, old_name):
+                argument.text = new_name
+                changed += 1
+        return changed
 
 
 def legacy_rename_element(

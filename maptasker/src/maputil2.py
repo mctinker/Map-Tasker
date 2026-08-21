@@ -586,29 +586,32 @@ _XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?
 TIMESTAMP_SUFFIX_RE = re.compile(r"_\d{8}_\d{6}$")
 
 
-def write_full_backup_to_current_file() -> tuple[bool, str]:
-    """Writes the entire current Tasker backup -- every Project, Profile, Task,
-    Scene, everything -- out to a brand-new, timestamped copy of whatever file
-    it was loaded from (PrimeItems.file_to_get), e.g. backup.xml ->
-    backup_20260721_143005.xml, with the current in-memory state -- including
-    any Task/Profile edits made through Edit/Add Task/Profile -- applied to
-    that copy. If that file is itself an earlier such copy (its name already
-    ends in a "_YYYYMMDD_HHMMSS" this same scheme produced -- see
-    TIMESTAMP_SUFFIX_RE), the new timestamp replaces the old one instead of
-    stacking another suffix on top, so repeated saves stay
-    backup_20260721_143005.xml -> backup_20260721_150112.xml rather than
-    growing a new suffix each time. Backs the "Save To Current File" button in
-    those dialogs (see
-    userintr.py's save_*_to_current_file_event handlers, which then switch the
-    app over to the new copy -- see userintr._reload_saved_copy_and_refresh --
-    so it becomes "the current file" for any further editing/saving), as
-    opposed to their "Save"/"Export Task/Profile" button, which exports
-    just the one Task/Profile as a standalone file instead.
+def render_full_backup_xml(*, indent: bool = True) -> str:
+    """Render the entire in-memory Tasker backup -- every Project, Profile, Task,
+    Scene and everything else the loaded file holds -- as one XML string, with every
+    edit made this session applied to it.
 
-    The original file is deliberately never opened for writing -- only read,
-    via the deep copy below -- so it's left exactly as it was; every "Save To
-    Current File" click produces a new, independent snapshot alongside it
-    rather than mutating it in place.
+    This is "what the loaded configuration currently IS", and it has two callers that
+    want exactly that and nothing else: write_full_backup_to_current_file below, which
+    writes it to a new file, and sessundo, which keeps it as an undo checkpoint.  Both
+    have to agree byte for byte on what the configuration is, so there is one renderer
+    rather than two -- an undo that restored a slightly different reconciliation than
+    the one a save writes would be a worse bug than having no undo.
+
+    `indent` separates the two, and it decides more than whitespace.  ETW.indent MUTATES
+    the tree it is given -- it writes .text and .tail on every element in it -- so the
+    indented render is the one that has to work on a deep copy.  The un-indented render
+    does not, and so it does not take one: it builds a throwaway root that REFERENCES the
+    live elements, serializes it, and drops it.  That is the whole difference in cost, and
+    on a real 8 MB backup it is most of the time this function takes -- roughly 1.6 of 1.8
+    seconds is copying, against about 0.2 to serialize.  A save can afford that once; an
+    undo checkpoint, taken on every edit the user commits, cannot.
+
+    So the rule the two branches share: the un-indented render's tree is made of live
+    elements and NOTHING may modify it.  Adding a mutation below that runs for both would
+    be editing the user's loaded configuration as a side effect of reading it.
+
+    WHY THIS IS A RECONCILIATION AND NOT A SERIALIZE.
 
     An edit to a Project that already existed when the backup was loaded (e.g.
     profedit.add_profile_to_project's <pids> update) lands directly on the live
@@ -628,12 +631,14 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     afterward (see apply_edited_profile_to_live_tree/register_new_profile/
     apply_edited_task_to_live_tree/register_new_task).
 
-    This reconciles all four: starting from a deep copy of the original tree
-    (preserving Settings, Variables, and anything else this app doesn't track in
-    a table of its own), it splices in each all_projects/all_profiles/all_tasks/
-    all_scenes entry's *current* element in place of whatever the tree's own
-    matching child holds (or appends it, for one added via Add Project/Add
-    Profile/Add Task/Add Scene that never existed in the original file at all).
+    This reconciles all four: starting from the original tree (preserving Settings,
+    Variables, and anything else this app doesn't track in a table of its own), it
+    splices in each all_projects/all_profiles/all_tasks/all_scenes entry's *current*
+    element in place of whatever the tree's own matching child holds, appends the ones
+    added via Add Project/Add Profile/Add Task/Add Scene that never existed in the
+    original file at all, and drops the tree's children that the tables no longer have
+    -- which is how a Delete reaches the file.  See the comment on that third case
+    below; it was missing, and a deleted item came back on the next load.
     Project is matched by <name> rather than <id> -- unlike all_profiles/
     all_tasks, all_projects is keyed by name, not id
     (taskerd.move_xml_to_table(..., get_id=False, "name")), so matching it by
@@ -641,32 +646,39 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     every one of them into the output on every single save.  Scene is matched by
     <nme>, since a Scene has no <id> at all -- see _element_match_key.
 
-    Returns (True, new_file_path) on success, or (False, error_message) if
-    there's no current file to copy from, or the write itself fails.
+    The caller must have a backup loaded: PrimeItems.xml_root is the tree this
+    starts from, and there is nothing to render without one.
+
+    Raises:
+        ValueError: if no backup is loaded (PrimeItems.xml_root is None).
     """
-    file_to_get = PrimeItems.file_to_get
-    # PrimeItems.file_to_get is sometimes an open file object (.name is its path) and
-    # sometimes just the path itself as a plain string (e.g. getxml_event's own direct
-    # assignment, or the self-healing load in userintr.open_add_task_dialog_event/
-    # MyGui.__init__) -- getattr(..., "name", file_to_get) handles both, matching the
-    # same pattern already used for this ambiguity elsewhere (see userintr.py's
-    # check_name error path).
-    file_path = getattr(file_to_get, "name", file_to_get) if file_to_get else ""
-    if not file_path or not isinstance(file_path, str):
-        return False, "No backup file is currently loaded to save back to."
-
     if PrimeItems.xml_root is None:
-        return False, "No backup data is currently loaded."
+        msg = "No backup data is currently loaded."
+        raise ValueError(msg)
 
-    root_copy = copy.deepcopy(PrimeItems.xml_root)
+    root = PrimeItems.xml_root
+    # The root the render is built on, and its children as a plain list to reconcile.
+    #
+    # For a file that is one deep copy of the whole tree, which the indent pass is then
+    # free to write all over.  For a checkpoint it is a bare root of the same class holding
+    # the LIVE children -- no copying at all, and nothing below may modify it.  A bare root
+    # rather than the loaded one because appending to that would reorder the user's own
+    # tree; its class is read off the tree because the parse is defusedxml's and its
+    # Element is not necessarily ETW's (the same reason projedit reads it off there).
+    if indent:
+        rendered_root = copy.deepcopy(root)
+    else:
+        rendered_root = type(root)(root.tag, dict(root.attrib))
+        rendered_root.text, rendered_root.tail = root.text, root.tail
+    children = list(rendered_root) if indent else list(root)
 
     def _element_id_key(element: ETW.Element) -> str | None:
         # Always the element's own <id> child -- never a table's dict key. all_profiles/
         # all_tasks happen to be keyed by <id> already (stable across a rename -- only
         # <nme> changes), but all_projects is keyed by <name>, which a Rename DOES change.
         # Matching Projects by name broke exactly that case: renaming "Test" to "Zz" left
-        # root_copy's still-"Test"-named element unmatched (orphaned, never removed) while
-        # the renamed copy got appended as a *second* Project -- both under different names,
+        # the rendered file's still-"Test"-named child unmatched (orphaned, never removed)
+        # while the renamed copy got appended as a *second* Project -- both under different names,
         # so the "old name is gone" and "no duplicates" checks both failed even though no id
         # was reused. <id> doesn't change across a Rename (only <name> does), so matching on
         # it correctly finds and replaces the old element for every case: an untouched
@@ -687,12 +699,13 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
         # Matching a Scene by name is only safe because sceneedit was built around this
         # constraint: projedit/profedit edit a detached deep copy and swap it into the
         # table afterward, which is fine when the match key is <id> (a rename doesn't
-        # change it) but would strand a renamed Scene -- root_copy's element would still
+        # change it) but would strand a renamed Scene -- the tree's own element would still
         # say the old name, nothing would match, and the save would emit both.
         # sceneedit.apply_edited_scene_to_live_tree therefore copies the edit *onto* the
-        # live element rather than swapping objects, and root_copy is deep-copied from
-        # that same live tree at the top of this function -- so both sides always carry
-        # the same name by the time this runs.  Change one of those two and this breaks.
+        # live element rather than swapping objects, and the children this renders are
+        # that same live tree's (or copies of it, taken above) -- so both sides always
+        # carry the same name by the time this runs.  Change one of those two and this
+        # breaks.
         if tag == "Scene":
             return (element.findtext("nme", "") or "").strip() or None
         return _element_id_key(element)
@@ -703,40 +716,130 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
         ("Task", "all_tasks"),
         ("Scene", "all_scenes"),
     ):
-        existing_by_id = {}
-        last_index_of_tag = -1
-        for index, child in enumerate(root_copy):
-            if child.tag != tag:
-                continue
-            last_index_of_tag = index
-            child_id = _element_match_key(child, tag)
-            if child_id is not None:
-                existing_by_id[child_id] = child
-
+        # What the lookup tables say this tag's elements are, right now, by match key.
+        # Every one of the three outcomes below is decided against this one dictionary:
+        # a tree child whose key is in it is REPLACED by the table's version, a key in it
+        # that no tree child carries is APPENDED as something newly added, and a tree child
+        # whose key is NOT in it has been DELETED and is dropped.
+        current_by_key = {}
+        # Table entries with no match key at all: never seen in practice -- every
+        # Project/Profile/Task in this repo's own sample backup has an <id> and every
+        # Scene an <nme> -- but they cannot be matched, so they are carried along as
+        # additions rather than risking two different key-less elements colliding on a
+        # shared None key.
+        keyless_additions = []
         for entry in PrimeItems.tasker_root_elements.get(table_name, {}).values():
-            current_element = copy.deepcopy(entry["xml"])
-            current_id = _element_match_key(current_element, tag)
-            old_element = existing_by_id.get(current_id) if current_id is not None else None
-            if old_element is not None:
-                index = list(root_copy).index(old_element)
-                root_copy.remove(old_element)
-                root_copy.insert(index, current_element)
+            current_element = copy.deepcopy(entry["xml"]) if indent else entry["xml"]
+            current_key = _element_match_key(current_element, tag)
+            if current_key is None:
+                keyless_additions.append(current_element)
             else:
-                # Brand-new Project/Profile/Task/Scene (e.g. from Add Project/Add
-                # Profile/Add Task/Add Scene), or one with no match key at all (never
-                # seen in practice -- every Project/Profile/Task in this repo's own
-                # sample backup has an <id> and every Scene an <nme> -- but handled the
-                # same safe way rather than risking two different key-less elements
-                # colliding on a shared None key): insert it next to
-                # its own kind rather than at the very end of the file, so the
-                # top-level <Setting>/<Profile>/<Project>/<Scene>/<Task>/<Variable>
-                # grouping that real Tasker backups always use stays intact.
-                insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(root_copy)
-                root_copy.insert(insert_at, current_element)
-                last_index_of_tag = insert_at
+                current_by_key[current_key] = current_element
 
-    ETW.indent(root_copy, space="\t")
-    xml_text = _XML_DECLARATION + ETW.tostring(root_copy, encoding="unicode") + "\n"
+        # DROPPING IS WHY THIS IS A REBUILT LIST AND NOT AN IN-PLACE PATCH.
+        #
+        # Until this existed, the reconciliation could only replace a child or add one, so
+        # a Delete never reached the file: delete_task/delete_profile/delete_scene take the
+        # item out of the lookup tables (which is what makes it disappear from the Map, the
+        # Diagram, the Tree and every pulldown) but leave the tree's own child alone, on
+        # purpose -- the tree is not what the application reads.  Rendering straight from
+        # that tree wrote the deleted item back out, so "delete the Task, Save To Current
+        # File" produced a file with the Task still in it, and reloading it brought the
+        # Task back.  Silently: nothing in the GUI said the delete had not taken.
+        rebuilt = []
+        matched_keys = set()
+        last_index_of_tag = -1
+        for child in children:
+            if child.tag != tag:
+                rebuilt.append(child)
+                continue
+            child_key = _element_match_key(child, tag)
+            if child_key is None:
+                # Unidentifiable, so it cannot be shown to have been deleted either.  Kept:
+                # dropping a child on a guess is the one outcome here with no way back.
+                rebuilt.append(child)
+            elif child_key in current_by_key:
+                rebuilt.append(current_by_key[child_key])
+                matched_keys.add(child_key)
+            else:
+                continue  # Deleted from the tables -- and so from the file.
+            last_index_of_tag = len(rebuilt) - 1
+
+        for current_key, current_element in current_by_key.items():
+            if current_key in matched_keys:
+                continue
+            # Brand-new Project/Profile/Task/Scene (e.g. from Add Project/Add Profile/Add
+            # Task/Add Scene): insert it next to its own kind rather than at the very end
+            # of the file, so the top-level <Setting>/<Profile>/<Project>/<Scene>/<Task>/
+            # <Variable> grouping that real Tasker backups always use stays intact.
+            insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(rebuilt)
+            rebuilt.insert(insert_at, current_element)
+            last_index_of_tag = insert_at
+
+        for current_element in keyless_additions:
+            insert_at = last_index_of_tag + 1 if last_index_of_tag >= 0 else len(rebuilt)
+            rebuilt.insert(insert_at, current_element)
+            last_index_of_tag = insert_at
+
+        children = rebuilt
+
+    rendered_root[:] = children
+
+    if indent:
+        ETW.indent(rendered_root, space="\t")
+    return _XML_DECLARATION + ETW.tostring(rendered_root, encoding="unicode") + "\n"
+
+
+def write_full_backup_to_current_file() -> tuple[bool, str]:
+    """Writes the entire current Tasker backup -- every Project, Profile, Task,
+    Scene, everything -- out to a brand-new, timestamped copy of whatever file
+    it was loaded from (PrimeItems.file_to_get), e.g. backup.xml ->
+    backup_20260721_143005.xml, with the current in-memory state -- including
+    any Task/Profile edits made through Edit/Add Task/Profile -- applied to
+    that copy. If that file is itself an earlier such copy (its name already
+    ends in a "_YYYYMMDD_HHMMSS" this same scheme produced -- see
+    TIMESTAMP_SUFFIX_RE), the new timestamp replaces the old one instead of
+    stacking another suffix on top, so repeated saves stay
+    backup_20260721_143005.xml -> backup_20260721_150112.xml rather than
+    growing a new suffix each time. Backs the "Save To Current File" button in
+    those dialogs (see
+    userintr.py's save_*_to_current_file_event handlers, which then switch the
+    app over to the new copy -- see userintr._reload_saved_copy_and_refresh --
+    so it becomes "the current file" for any further editing/saving), as
+    opposed to their "Save"/"Export Task/Profile" button, which exports
+    just the one Task/Profile as a standalone file instead.
+
+    The original file is deliberately never opened for writing -- only read,
+    via render_full_backup_xml's deep copy -- so it's left exactly as it was;
+    every "Save To
+    Current File" click produces a new, independent snapshot alongside it
+    rather than mutating it in place.
+
+    What actually goes IN the file is render_full_backup_xml's job (above): this
+    function is only the naming and the write.  The two were one function until
+    session undo needed the same reconciled render without a file to put it in.
+
+    Returns (True, new_file_path) on success, or (False, error_message) if
+    there's no current file to copy from, or the write itself fails.
+    """
+    file_to_get = PrimeItems.file_to_get
+    # PrimeItems.file_to_get is sometimes an open file object (.name is its path) and
+    # sometimes just the path itself as a plain string (e.g. getxml_event's own direct
+    # assignment, or the self-healing load in userintr.open_add_task_dialog_event/
+    # MyGui.__init__) -- getattr(..., "name", file_to_get) handles both, matching the
+    # same pattern already used for this ambiguity elsewhere (see userintr.py's
+    # check_name error path).
+    file_path = getattr(file_to_get, "name", file_to_get) if file_to_get else ""
+    if not file_path or not isinstance(file_path, str):
+        return False, "No backup file is currently loaded to save back to."
+
+    if PrimeItems.xml_root is None:
+        return False, "No backup data is currently loaded."
+
+    try:
+        xml_text = render_full_backup_xml()
+    except ValueError as e:
+        return False, str(e)
 
     base_path, extension = os.path.splitext(file_path)
     # If the file we're copying from is itself an earlier "Save To Current File"
@@ -746,6 +849,14 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     base_path = TIMESTAMP_SUFFIX_RE.sub("", base_path)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # noqa: DTZ005
     new_file_path = f"{base_path}_{timestamp}{extension}"
+
+    # Normally there is nothing at that name and this does nothing -- the name has this
+    # second's timestamp in it.  It matters for the one case that collides: two saves
+    # within the same second generate the same name, and the second would overwrite the
+    # first without it.  Lazy import to avoid a circular one (mirrors getbakup).
+    from maptasker.src.presave import backup_local_file  # noqa: PLC0415
+
+    backup_local_file(new_file_path)
 
     try:
         with open(new_file_path, "w", encoding="utf-8") as out_file:

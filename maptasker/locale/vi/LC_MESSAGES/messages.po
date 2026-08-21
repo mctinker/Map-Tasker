@@ -1584,9 +1584,6 @@ msgstr "Chế độ xem Sơ đồ đã mở trong cửa sổ trình duyệt mớ
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 msgstr "Hiển thị chế độ xem 'Bản đồ', 'Sơ đồ' hoặc 'Cây' cho cấu hình của bạn trực tiếp trong GUI.\n\nTrước tiên, XML phải được lấy từ ổ đĩa cục bộ hoặc thiết bị Android để chế độ xem hoạt động.\n\nNếu XML đã được tìm nạp, nó sẽ được sử dụng làm đầu vào cho dạng xem.  Nhấn nút 'Xóa' sẽ xóa dữ liệu xem.\n\nCấu hình rất lớn sẽ phải chịu thời gian chạy kéo dài cho Bản đồ và Sơ đồ.  Để có hiệu suất tốt nhất, hãy chọn một Dự án hoặc Hồ sơ để lập bản đồ.\n\nTùy chọn, giới hạn lượng dữ liệu cần xử lý bằng cách sử dụng cài đặt 'Giới hạn chế độ xem'.  Giới hạn càng lớn thì đầu ra được phép ánh xạ càng lớn.  Càng tạo ra nhiều đầu ra thì thời gian xử lý càng lớn.\n\n\nChế độ xem Sơ đồ có hành vi sau:\n\n - Chỉ có thể hiển thị Dự án và Hồ sơ. XML chỉ bao gồm một Tác vụ hoặc Cảnh duy nhất sẽ không được hiển thị.\n\n - Click vào đầu nối ngang để bôi đen toàn bộ đầu nối trong sơ đồ.\n\n\nChế độ xem dạng cây có hành vi sau:\n\n- Chỉ có thể hiển thị Dự án. XML chỉ bao gồm một Cấu hình hoặc Nhiệm vụ hoặc Cảnh duy nhất sẽ không được hiển thị.\n\n- Tất cả Dự án, Hồ sơ, Nhiệm vụ và Cảnh đều được hiển thị bất kể cài đặt tên duy nhất.\n\n"
 
-msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "MapTasker hiển thị cấu hình Android Tasker của bạn dựa trên tệp XML Tasker đã tải lên của bạn (ví dụ: 'backup.xml'). Màn hình sẽ tùy chọn bao gồm tất cả các Dự án, Hồ sơ, Nhiệm vụ và hành động của chúng, các điều kiện của Hồ sơ/Nhiệm vụ và các thông tin liên quan đến Hồ sơ/Nhiệm vụ khác.\n\nSau khi tệp XML được tải, bạn có thể tùy ý chỉnh sửa Dự án, Hồ sơ, Nhiệm vụ và Cảnh của mình.\n\n* Tùy chọn hiển thị là:\n    Cấp độ 0: chỉ hiển thị hành động Nhiệm vụ đầu tiên, chỉ dành cho Nhiệm vụ không tên (im lặng).\n    Cấp 1 = chỉ hiển thị tất cả chi tiết hành động Nhiệm vụ cho các Nhiệm vụ không xác định (mặc định).\n    Cấp độ 2 = hiển thị đầy đủ tên hành động Nhiệm vụ trên mỗi Nhiệm vụ.\n    Cấp độ 3 = hiển thị đầy đủ chi tiết hành động Nhiệm vụ trên mỗi Nhiệm vụ kèm theo chi tiết hành động.\n    Cấp 4 = cấp độ hiển thị 3 cộng với các biến toàn cục của Dự án.\n\n    Cấp 5 = cấp độ hiển thị 4 cộng với chi tiết đối số Cảnh.\n\n* Just Display Everything: Bật hiển thị các điều kiện, thông tin TaskerNet, tùy chọn, đầu ra đẹp, thư mục và sơ lược cấu hình.\n\n* Điều kiện hiển thị: Bật hiển thị điều kiện Profile và Task.\n\n* Hiển thị thông tin TaskerNet - Nếu có, hiển thị thông tin xuất bản TaskerNet.\n\n* Hiển thị Tùy chọn Tác vụ - hiển thị Tùy chọn hệ thống của Tác vụ.\n\n* Ẩn Chi tiết Nhiệm vụ trong Twisty: ẩn thông tin Nhiệm vụ trong ► và nhấp để hiển thị.\n\n* Hiển thị thư mục các siêu liên kết lúc đầu.\n\n* Hiển thị đầu ra đẹp hơn: Làm cho đầu ra dễ đọc hơn bằng cách thêm dòng mới và thụt lề cho tất cả các đối số.\n\n* Tùy chọn Tên dự án/Hồ sơ/Nhiệm vụ/Cảnh để in nghiêng, in đậm, gạch chân và/hoặc đánh dấu tên của chúng.\n\n* Giới hạn hành động nhiệm vụ: hiển thị cảnh báo nếu Nhiệm vụ có nhiều hơn số lượng hành động được chỉ định.\n\n* Số lượng thụt lề cho các Tác vụ Nếu/Thì/Khác.\n\n* Ngôn ngữ: Chọn ngôn ngữ sẽ được sử dụng cho đầu ra.  Mặc định là tiếng Anh.\n\n* Font To Use: Thay đổi phông chữ đơn cách được sử dụng cho đầu ra.\n\n* Giới hạn chế độ xem: Kiểm soát lượng thời gian xử lý được sử dụng khi tạo chế độ xem.\n\n* Tùy chọn đặt lại: Xóa mọi thứ và bắt đầu lại.\n\n* Nhận tệp XML cục bộ: tìm nạp tệp XML sao lưu/xuất từ ​​ổ đĩa cục bộ của bạn.\n\n* Lưu cài đặt - Lưu các cài đặt này để sử dụng sau.\n\n* Khôi phục cài đặt - Khôi phục cài đặt từ phiên đã lưu trước đó.\n\n* Hiển thị Chế độ xem: Hiển thị Bản đồ, Sơ đồ hoặc Chế độ xem dạng cây cấu hình của Dự án, Hồ sơ, Nhiệm vụ và Cảnh của bạn trực tiếp trong GUI.\n\n* Nhận XML từ thiết bị Android: tìm nạp tệp XML sao lưu/xuất từ ​​thiết bị Android.  Bạn sẽ được yêu cầu địa chỉ IP và số cổng cho thiết bị Android của mình cũng như vị trí tệp trên thiết bị.\n\n* Tab Tên cụ thể: nhập một mục có tên cụ thể để hiển thị...\n   - Project Name: nhập Project cụ thể cần hiển thị.\n   - Profile Name: nhập Profile cụ thể để hiển thị.\n   - Tên nhiệm vụ: nhập Nhiệm vụ cụ thể cần hiển thị.\n   - Scene Name: nhập Scene cụ thể cần hiển thị.  Tiêu đề của Dự án sở hữu nó và\n                 Các thành phần của Cảnh (cộng với bất kỳ Nhiệm vụ nào mà các thành phần đó gọi ra) được hiển thị;\n                 Hồ sơ Dự án và các Cảnh khác của nó thì không.\n   (Bốn cái này là độc quyền: chỉ nhập một)\n\n   Thêm và chỉnh sửa dự án, hồ sơ và nhiệm vụ trực tiếp trong GUI, với nhiều tùy chọn lưu khác nhau.\n\n* Tab Màu sắc: chọn màu cho các thành phần khác nhau của màn hình.\n              (ví dụ: màu cho Dự án, Hồ sơ, Nhiệm vụ, v.v.).\n\n* Tab Phân tích: Chạy phân tích cho Dự án, Hồ sơ, Nhiệm vụ hoặc Cảnh dựa trên mô hình Ai.\n\n* Tab gỡ lỗi: Hiển thị tùy chọn Cài đặt thời gian chạy và bật chế độ Gỡ lỗi.\n\n* Thoát: Thoát khỏi chương trình (thoát).\n\nGhi chú:\n\n- Xem toàn bộ lịch sử nhật ký thay đổi tại https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Thay đổi chế độ hiển thị sẽ thay đổi màu sắc được sử dụng cho đầu ra về giá trị mặc định.\n\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 msgstr "'Giới hạn chế độ xem' là phương tiện để kiểm soát lượng thời gian xử lý được sử dụng khi tạo chế độ xem.\n\n- Các con số biểu thị số lượng dòng đầu ra tương đối được tạo ra.\n\n- Giới hạn càng lớn thì đầu ra được phép ánh xạ càng lớn.  Càng tạo ra nhiều đầu ra thì thời gian xử lý càng lớn.\n\n- Cấu hình rất lớn sẽ tạo ra bản đồ đầu ra rất lớn và sẽ gây ra thời gian xử lý lâu hơn.  Trên các thiết bị cũ hơn, quá trình này có thể mất tới 30 giây trở lên.\n\n- Bằng cách đặt giới hạn, bạn có thể kiểm soát thời gian xử lý được sử dụng khi ánh xạ cấu hình bằng cách không cho phép thời lượng dài hơn.\n\n- Nếu đạt đến giới hạn khi tính toán bản đồ, đầu ra sẽ dừng ở đó.\n\n- Bạn có thể thử nghiệm cài đặt này để xem cài đặt nào phù hợp nhất với trường hợp sử dụng của bạn.\n\n- Chọn một Dự án, Hồ sơ hoặc Nhiệm vụ là một phương tiện khác để hạn chế thời gian xử lý.\n\n"
 
@@ -1605,606 +1602,455 @@ msgstr "giới hạn lượt xem hardstop"
 msgid "(empty)"
 msgstr "(trống)"
 
-
 msgid "(no name)"
 msgstr "(không có tên)"
-
 
 msgid "(unnamed Task)"
 msgstr "(Nhiệm vụ không tên)"
 
-
 msgid "(unnamed)"
 msgstr "(vô danh)"
-
 
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1 có nghĩa là hướng này không có bố cục riêng."
 
-
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...và {count} thông tin khác -- nhập vào bên trên để thu hẹp phạm vi."
-
 
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "Vị trí thành phần của Cảnh được lưu trữ bằng pixel của thiết bị nhưng kích thước văn bản của nó được lưu trữ trong đơn vị sp của Android. Số chuyển đổi giữa hai số này là thuộc tính của điện thoại mà Cảnh được hiển thị trên đó và không có trong tệp sao lưu.\n\nVì vậy, nó được đặt ở đây. Tăng nó lên nếu văn bản trông quá nhỏ so với các thành phần của nó, hạ thấp nó xuống nếu văn bản tràn chúng."
 
-
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "Cảnh Phiên bản 2 không có kích thước riêng -- nó nằm bên trong bất kỳ màn hình nào nó được hiển thị, vì vậy không có gì trong tệp sao lưu để vẽ nó.\n\nThay đổi điều này để xem lại bố cục. Một Hàng Dòng kết thúc theo cách khác và bất kỳ 'Hiển thị khi' nào được viết dựa trên %sv2_render_width đều hỏi về chính xác điều này."
-
 
 msgid "Actions"
 msgstr "hành động"
 
-
 msgid "Add"
 msgstr "Thêm vào"
-
 
 msgid "Add Element"
 msgstr "Thêm phần tử"
 
-
 msgid "Add Scene"
 msgstr "Thêm cảnh"
-
 
 msgid "Add a background"
 msgstr "Thêm nền"
 
-
 msgid "Add action"
 msgstr "Thêm hành động"
-
 
 msgid "Add event"
 msgstr "Thêm sự kiện"
 
-
 msgid "Add handler"
 msgstr "Thêm trình xử lý"
-
 
 msgid "Add modifier"
 msgstr "Thêm công cụ sửa đổi"
 
-
 msgid "Add scene properties"
 msgstr "Thêm thuộc tính cảnh"
-
 
 msgid "Addressed by id from"
 msgstr "Địa chỉ theo id từ"
 
-
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "Thêm một phần tử lên trên ngăn xếp, ở giữa Cảnh."
-
 
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "Thêm vào bên trong thành phần đã chọn nếu nó có thể chứa phần tử con, nếu không thì ngay sau nó."
 
-
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "Thêm nó lên trên ngăn xếp, ở giữa Cảnh. Kéo nó vào nơi bạn muốn."
-
 
 msgid "Also selected:"
 msgstr "Cũng được chọn:"
 
-
 msgid "Also update"
 msgstr "Đồng thời cập nhật"
-
 
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Màu hổ phách: Tasker liệt kê nó, nhưng MapTasker không có mẫu nào được xác nhận về nó. Màu xám: không thể đi đến nơi được lựa chọn."
 
-
 msgid "App icon"
 msgstr "Biểu tượng ứng dụng"
-
 
 msgid "Appearance Mode"
 msgstr "Chế độ xuất hiện"
 
-
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "Áp dụng theo thứ tự - cái ở dưới cùng nằm ở trên."
-
 
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "Áp dụng khi Cảnh này được lưu, không phải bây giờ -- Hủy trên hộp thoại Cảnh sẽ giữ nguyên cả phần tử và Nhiệm vụ như cũ."
 
-
 msgid "Back to Editor"
 msgstr "Quay lại Trình chỉnh sửa"
-
 
 msgid "Bounds"
 msgstr "Giới hạn"
 
-
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "Đã hủy. Những thay đổi đối với Cảnh này đã bị loại bỏ."
-
 
 msgid "Choose another file..."
 msgstr "Chọn một tập tin khác..."
 
-
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "Bấm vào một thành phần để chọn nó, giữ shift và bấm vào một thành phần khác trong cùng vùng chứa để lấy một số thành phần và kéo để sắp xếp lại chúng giữa các thành phần anh em của chúng. Di chuyển một thành phần vào hoặc ra khỏi vùng chứa là các nút Vào và Ra của trình chỉnh sửa; Hoàn tác cũng ở đó."
-
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "Nhấp vào một phần tử để chọn nó, Shift-click hoặc kéo một hộp trên nền để chụp một vài phần tử và kéo bất kỳ phần tử nào trong số chúng để di chuyển tất cả -- các phím mũi tên di chuyển, Shift trong 10px. Kéo tay cầm để thay đổi kích thước của một phần tử. Hoàn tác và mọi thứ khác về một phần tử đều quay lại trong trình chỉnh sửa."
 
-
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "Nhấp vào một phần tử để chọn nó, kéo để di chuyển, kéo núm điều khiển để thay đổi kích thước, các phím mũi tên để dịch chuyển (Shift cho 10px). Nhấn Shift hoặc kéo một hộp trên nền để chụp nhiều hộp cùng một lúc."
-
 
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "Đóng mà không lưu và đặt Cảnh này trở lại chính xác như khi hộp thoại này mở -- bao gồm mọi thứ được di chuyển hoặc thay đổi kích thước trong Bản xem trước.\n\nĐổi tên là thứ mà thao tác này không thể lấy lại: nó được áp dụng cho bản sao lưu đã tải khi nó được xác nhận và đóng hộp thoại này với nó."
 
-
 msgid "Compare Files"
 msgstr "So sánh tập tin"
-
 
 msgid "Compare With"
 msgstr "So sánh với"
 
-
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "So sánh một tệp XML khác với tệp đã tải: những gì đã được thêm, xóa, đổi tên và thay đổi.\n\nSử dụng nó để xem quá trình nhập TaskerNet mang lại điều gì, chỉnh sửa đã thay đổi gì hoặc có gì khác biệt giữa hai bản sao lưu.\n\nNếu tệp đã tải đến từ 'Lưu vào tệp hiện tại', tệp được lưu từ đó sẽ được cung cấp trực tiếp.\n\nKết quả được hiển thị ở đây và được lưu vào một tệp văn bản trong thư mục hiện tại."
-
 
 msgid "Comparison cancelled."
 msgstr "Đã hủy so sánh."
 
-
 msgid "Comparison report could not be saved."
 msgstr "Không thể lưu báo cáo so sánh."
-
 
 msgid "Comparison saved as"
 msgstr "So sánh được lưu dưới dạng"
 
-
 msgid "Delete Scene"
 msgstr "Xóa cảnh"
-
 
 msgid "Done"
 msgstr "Xong"
 
-
 msgid "Drawn in"
 msgstr "Vẽ vào"
-
 
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "Vẽ Cảnh này dưới dạng ảnh trong cửa sổ chính -- bao gồm các thành phần bạn đã thêm hoặc thay đổi ở đây nhưng chưa được lưu.\n\nBố cục Phiên bản 2 không có kích thước riêng nên bản xem trước sẽ hiển thị bố cục đó trong màn hình bạn chọn và hiển thị lại khi bạn thay đổi kích thước đó.\n\nHộp thoại này sẽ đóng khi bản xem trước hoàn tất, mọi thứ trong đó vẫn được giữ nguyên; nút 'Quay lại trình chỉnh sửa' của bản xem trước sẽ đưa nó trở lại.\n\nNó là một bản trình bày chứ không phải trình kết xuất của riêng Tasker: % biến được đặt tên thay vì được giải quyết, Màu vật liệu đến từ bảng màu cơ bản chứ không phải chủ đề của thiết bị và hình ảnh, video và nội dung web được hiển thị dưới dạng phần giữ chỗ."
 
-
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "Vẽ Cảnh này dưới dạng ảnh trong cửa sổ chính, với kích thước đã nhập ở trên -- bao gồm cả những thay đổi chưa được lưu.\n\nHộp thoại này sẽ đóng khi bản xem trước hoàn tất, mọi thứ trong đó vẫn được giữ nguyên; nút 'Quay lại trình chỉnh sửa' của bản xem trước sẽ đưa nó trở lại.\n\nNó là một bản trình bày chứ không phải trình kết xuất của riêng Tasker: % biến được đặt tên thay vì được giải quyết và hình ảnh, video và nội dung web được hiển thị dưới dạng phần giữ chỗ."
-
 
 msgid "Dropdown menu — shown when opened"
 msgstr "Menu thả xuống - hiển thị khi mở"
 
-
 msgid "Duplicate"
 msgstr "Nhân bản"
-
 
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Biến động và Chọn biến được xử lý khi Cảnh được hiển thị."
 
-
 msgid "Dynamic value"
 msgstr "Giá trị động"
-
 
 msgid "Edit Scene"
 msgstr "Chỉnh sửa cảnh"
 
-
 msgid "Edit item layout"
 msgstr "Chỉnh sửa bố cục mục"
-
 
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "Thay vào đó, hãy chỉnh sửa thuộc tính của cái này, giữ nguyên vùng chọn."
 
-
 msgid "Event handlers"
 msgstr "Trình xử lý sự kiện"
-
 
 msgid "Export Scene"
 msgstr "Xuất cảnh"
 
-
 msgid "Geometry"
 msgstr "Hình học"
-
 
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "Màu xám: MapTasker không có bảng đối số cho nó, vì vậy không thể tạo nó nếu không đoán được Tasker mong đợi điều gì bên trong. Các tiêu đề là nhóm riêng của MapTasker."
 
-
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "Các phần tô đậm và văn bản được gạch chân in nghiêng là các biến % -- giá trị của chúng tồn tại trên thiết bị chứ không phải trong bản sao lưu, vì vậy chúng được đặt tên thay vì được đoán. Hình ảnh, video, bản đồ và nội dung web được hiển thị dưới dạng phần giữ chỗ. Di chuột qua bất kỳ phần tử nào để xem hình học, các biến và Nhiệm vụ mà nó chạy."
-
 
 msgid "Health Check"
 msgstr "Kiểm tra sức khỏe"
 
-
 msgid "Health Check found no errors or warnings."
 msgstr "Kiểm tra sức khỏe không tìm thấy lỗi hoặc cảnh báo nào."
-
 
 msgid "Health Check report could not be saved."
 msgstr "Không thể lưu báo cáo Kiểm tra tình trạng."
 
-
 msgid "Health Check saved as"
 msgstr "Kiểm tra tình trạng được lưu dưới dạng"
-
 
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "Khoảng thời gian tin nhắn bật lên hiển thị trên màn hình trước khi biến mất.\n\n'Cho đến khi bị loại bỏ' sẽ giữ nguyên mọi tin nhắn cho đến khi bạn đóng nó lại, điều này rất hữu ích khi một tin nhắn cuộn qua trước khi bạn có thể đọc được.\n\nMột số tin nhắn tự đặt thời lượng dài hơn vì chúng liệt kê những thứ bạn phải đọc -- chẳng hạn như các Nhiệm vụ bị ảnh hưởng khi xóa hoặc đổi tên thành phần Cảnh. Những người giữ thời gian riêng của họ bất cứ điều gì được chọn ở đây."
 
-
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "Trong danh sách: Shift-click cho một phạm vi, Ctrl- hoặc Cmd-click để thêm hoặc xóa một phạm vi."
-
 
 msgid "Item layout"
 msgstr "Bố cục mục"
 
-
 msgid "Landscape"
 msgstr "Phong cảnh"
-
 
 msgid "Legacy"
 msgstr "Di sản"
 
-
 msgid "Legacy Scene"
 msgstr "Cảnh kế thừa"
-
 
 msgid "List"
 msgstr "Danh sách"
 
-
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: đã đạt đến giới hạn lượt xem, sơ đồ bị cắt bớt"
-
 
 msgid "Modifiers"
 msgstr "sửa đổi"
 
-
 msgid "Never updated"
 msgstr "Chưa bao giờ cập nhật"
-
 
 msgid "No Task addresses this element by name."
 msgstr "Không có tác vụ nào đề cập đến phần tử này theo tên."
 
-
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "Không có tệp XML nào được tải.  Trước tiên hãy lấy một tệp XML."
-
 
 msgid "No element matches that."
 msgstr "Không có yếu tố nào phù hợp với điều đó."
 
-
 msgid "Not an HTML colour name or #hex value."
 msgstr "Không phải tên màu HTML hoặc giá trị #hex."
-
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "Chưa được cập nhật -- những tên này cho cả Cảnh này và thành phần này, nhưng không phải là một"
 
-
 msgid "Nothing here."
 msgstr "Không có gì ở đây."
-
 
 msgid "Notification Duration"
 msgstr "Thời lượng thông báo"
 
-
 msgid "Notification Duration:"
 msgstr "Thời lượng thông báo:"
-
 
 msgid "On"
 msgstr "TRÊN"
 
-
 msgid "Only when"
 msgstr "Chỉ khi"
-
 
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "Phác thảo mọi thành phần và đặt tên cho nó, theo cách mà nhà thiết kế đặt tên cho nó."
 
-
 msgid "Outline every element and name it."
 msgstr "Phác thảo mọi yếu tố và đặt tên cho nó."
-
 
 msgid "Pick a Material icon."
 msgstr "Chọn biểu tượng Material."
 
-
 msgid "Pick an icon"
 msgstr "Chọn một biểu tượng"
-
 
 msgid "Pick from the Scene's environment and global variables."
 msgstr "Chọn từ môi trường của Cảnh và các biến toàn cục."
 
-
 msgid "Pick one of Material's own colour roles."
 msgstr "Chọn một trong các vai trò màu sắc riêng của Material."
-
 
 msgid "Preview"
 msgstr "Xem trước"
 
-
 msgid "Project(s) that list it."
 msgstr "(Các) dự án liệt kê nó."
-
 
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "Nhắc tên mới và áp dụng tên đó cho bản sao lưu đã tải ngay bây giờ -- đổi tên Cảnh ở mọi nơi, kể cả trong danh sách Cảnh của mọi Dự án chứa nó.\n\nCác tác vụ hiển thị hoặc ẩn Cảnh này theo tên KHÔNG được cập nhật; những người vẫn đặt tên cho Cảnh cũ.\n\nTrường Tên cảnh ở trên ở dạng chỉ đọc -- đây là cách duy nhất để thay đổi nó."
 
-
 msgid "Properties"
 msgstr "Của cải"
-
 
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "Các thuộc tính được chỉnh sửa từng phần tử một. Kéo và di chuyển mọi thứ đã chọn."
 
-
 msgid "Refresh"
 msgstr "Làm cho khỏe lại"
-
 
 msgid "Remove background"
 msgstr "Xóa nền"
 
-
 msgid "Rename Element"
 msgstr "Đổi tên phần tử"
-
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "Việc đổi tên một phần tử ở đây không quét sạch bản sao lưu: bố cục mục không có tên Cảnh cho hành động Phần tử của Nhiệm vụ để giải quyết nó, vì vậy không có gì để viết lại."
 
-
 msgid "Repeats once per array entry"
 msgstr "Lặp lại một lần cho mỗi mục nhập mảng"
-
 
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "Làm tròn các vị trí và kích thước được kéo đến nhiều pixel này."
 
-
 msgid "Save Scene To Android Device"
 msgstr "Lưu cảnh vào thiết bị Android"
-
 
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Lưu toàn bộ bản sao lưu -- mọi Dự án, Hồ sơ, Nhiệm vụ và Cảnh trong đó, không chỉ Cảnh này -- bao gồm mọi chỉnh sửa được thực hiện ở bất kỳ đâu trong phiên này.\nNó được ghi vào một bản sao mới có dấu thời gian của tệp hiện được tải: backup.xml trở thành backup_20260728_143005.xml.\nTệp bạn đã tải không bao giờ được ghi vào, vì vậy nó vẫn được giữ nguyên như cũ.\nSau đó, ứng dụng sẽ chuyển sang bản sao mới, bản sao này sẽ trở thành tệp hiện tại để chỉnh sửa và lưu thêm; lưu lại sẽ thay thế dấu thời gian thay vì thêm dấu thời gian thứ hai.\nĐiều này chỉ ghi vào máy tính này -- không có gì được gửi tới thiết bị Android của bạn."
 
-
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "Lưu Cảnh này, với tất cả các thành phần của nó, dưới dạng một tệp .scn.xml độc lập -- có cùng định dạng mà quá trình xuất Cảnh của Tasker tạo ra.\n\nNhiệm vụ mà các phần tử của Cảnh chạy không được bao gồm; họ thuộc về Dự án của riêng họ."
-
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Quét XML đã tải để tìm các tham chiếu bị hỏng, Nhiệm vụ, Cấu hình và Cảnh không được tham chiếu cũng như các vấn đề về đặt tên.\n\nKết quả được hiển thị ở đây và được lưu vào một tệp văn bản trong thư mục hiện tại."
 
-
 msgid "Scene Components"
 msgstr "Thành phần cảnh"
-
 
 msgid "Scene Elements"
 msgstr "Yếu tố cảnh"
 
-
 msgid "Scene Name"
 msgstr "Tên cảnh"
-
 
 msgid "Scene Preview"
 msgstr "Xem trước cảnh"
 
-
 msgid "Scene Properties"
 msgstr "Thuộc tính cảnh"
-
 
 msgid "Scene added."
 msgstr "Đã thêm cảnh."
 
-
 msgid "Scene type"
 msgstr "Loại cảnh"
-
 
 msgid "Screen"
 msgstr "Màn hình"
 
-
 msgid "Search elements"
 msgstr "Phần tử tìm kiếm"
-
 
 msgid "Search icons"
 msgstr "Biểu tượng tìm kiếm"
 
-
 msgid "Search variables"
 msgstr "Tìm kiếm biến"
-
 
 msgid "Select a component on the left."
 msgstr "Chọn một thành phần ở bên trái."
 
-
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "Chọn Giới hạn xem lớn hơn hoặc một Dự án/Hồ sơ/Nhiệm vụ duy nhất để xem phần còn lại."
-
 
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "Trước tiên hãy chọn một Cảnh duy nhất (Cảnh kéo xuống ở trên)."
 
-
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "Chọn một phần tử để sao chép, xóa hoặc đóng gói lại nó."
-
 
 msgid "Select an element first."
 msgstr "Chọn một phần tử đầu tiên."
 
-
 msgid "Select an element on the canvas or in the list."
 msgstr "Chọn một phần tử trên khung vẽ hoặc trong danh sách."
-
 
 msgid "Show the Task each element runs."
 msgstr "Hiển thị tác vụ mà mỗi phần tử chạy."
 
-
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "Hiển thị mỗi thành phần sẽ làm gì khi được nhấn và nội dung nó ghi vào."
-
 
 msgid "Show when"
 msgstr "Hiển thị khi nào"
 
-
 msgid "Size"
 msgstr "Kích cỡ"
-
 
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "Kích thước phải là số nguyên (-1 nếu không có bố cục)."
 
-
 msgid "Snap"
 msgstr "Chụp nhanh"
-
 
 msgid "Spinner"
 msgstr "Máy quay"
 
-
 msgid "Stop firing anything on this event."
 msgstr "Ngừng bắn bất cứ thứ gì vào sự kiện này."
-
 
 msgid "Task action(s) in"
 msgstr "(Các) hành động nhiệm vụ trong"
 
-
 msgid "Task(s)"
 msgstr "(Các) nhiệm vụ"
-
 
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "(Các) nhiệm vụ giải quyết Cảnh này bằng một mẫu khớp (Chế độ hiển thị phần tử). Hãy tự mình kiểm tra chúng"
 
-
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker giữ Nhiệm vụ này bên trong Cảnh và không ở đâu khác, vì vậy nó không có tên và không thể trỏ đến nơi khác mà không làm mất nó. Nó được mang đi xuyên suốt mà không bị ảnh hưởng."
-
 
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker liệt kê phần tử này, nhưng MapTasker chưa bao giờ nhìn thấy phần tử này trong Cảnh đã lưu -- vì vậy nó được thêm vào không mang theo gì ngoài loại và id của nó, và thậm chí loại được suy ra từ tên ở trên (được viết dưới dạng loại: \"{node_type}\"). Nếu Tasker không nhận ra nó, hãy nhấn Hoàn tác."
 
-
 msgid "Tasker variable(s)"
 msgstr "(Các) biến tác vụ"
-
 
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Trình tạo màn hình của tác vụ: một cây thành phần khai báo (Cột, Hàng, Giàn giáo, ...) tự sắp xếp, không có kích thước canvas cố định. Bắt đầu từ:"
 
-
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "Nhiệm vụ xử lý phần tử này theo tên (Văn bản phần tử, Vị trí phần tử, ... tổng cộng 18 mã hành động), vì vậy việc đổi tên nó không phải là một chỉnh sửa trường. Hộp thoại Đổi tên liệt kê những gì phụ thuộc vào tên hiện tại và đề xuất thực hiện các Nhiệm vụ đó."
-
 
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "Các tác vụ hiển thị hoặc ẩn Cảnh này theo tên sẽ không bị thay đổi và được giữ nguyên."
 
-
 msgid "Text density"
 msgstr "Mật độ văn bản"
-
 
 msgid "That component can't go there."
 msgstr "Thành phần đó không thể đến đó."
 
-
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "Đó là tập tin đã được tải.  Chọn một cái khác để so sánh."
-
 
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "Không thể đọc được danh sách biểu tượng Vật liệu, vì vậy hãy nhập tên."
 
-
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "Biến Tasker mà thành phần này ghi giá trị của nó vào. Phân cách một số bằng dấu phẩy. Để trống để khai báo ràng buộc mà không cần thiết lập nó."
-
 
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "Nhiệm vụ giải quyết nó sẽ được cập nhật khi Cảnh này được lưu."
 
-
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "Bố cục của một hàng. Tasker vẽ nó một lần cho mỗi mục nhập bất kỳ thứ gì lấp đầy danh sách, vì vậy những gì bạn thấy ở đây là một hàng chứ không phải danh sách."
-
 
 msgid "The loaded file was saved from"
 msgstr "Tệp đã tải đã được lưu từ"
 
-
 msgid "The original"
 msgstr "Bản gốc"
-
 
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "Cảnh ban đầu: Các thành phần giao diện người dùng được đặt ở các vị trí cố định trên khung vẽ có kích thước (Văn bản, Nút, Hình chữ nhật, Hình ảnh, Web, ...)."
 
-
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "Kích thước màn hình là của bản xem trước này, không phải của Cảnh -- bố cục Phiên bản 2 không có kích thước riêng, vì vậy hãy thay đổi 'Màn hình' để xem nó hiển thị lại. Các màu được đặt tên theo vai trò Vật liệu được lấy từ bảng màu cơ sở của Vật liệu 3; thiết bị giải quyết chúng theo chủ đề riêng của nó, trong Chất liệu, Bạn đến từ hình nền. Các phần tô đậm và văn bản được gạch chân in nghiêng là các biến %. Amber phác thảo các thành phần đánh dấu bằng 'Hiển thị khi nào'. Di chuột bất kỳ thành phần nào để xem các sửa đổi, biến và hành động của nó."
 
-
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "Cuộc tìm kiếm vẫn chưa kết thúc. Chế độ xem có thể quá lớn hoặc trình duyệt đang bận."
-
 
 msgid "The two files hold the same configuration."
 msgstr "Hai tập tin giữ cùng một cấu hình."
@@ -2212,83 +2058,62 @@ msgstr "Hai tập tin giữ cùng một cấu hình."
 msgid "This Scene has no UI elements."
 msgstr "Cảnh này không có thành phần UI."
 
-
-
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "Cảnh này không có bố cục cảnh quan riêng (kích thước của nó là -1)."
-
 
 msgid "This Scene has no layout for this orientation."
 msgstr "Cảnh này không có bố cục cho hướng này."
 
-
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "Cảnh này không có phần tử thuộc tính. 66 trong số 366 Cảnh MapTasker đã thấy cũng không có cảnh nào, vì vậy đây là hiện tượng bình thường chứ không phải là hư hỏng."
-
 
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "Không thể đọc được bố cục Phiên bản 2 của Cảnh này và sẽ được giữ nguyên như cũ."
 
-
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "Bố cục Phiên bản 2 của Cảnh này không có thành phần gốc nên không có gì để thiết kế."
-
 
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "Ứng dụng này không có bảng thuộc tính cho loại phần tử này, vì vậy chỉ có thể chỉnh sửa hình dạng của nó ở đây. Mặt khác, nó được vận chuyển qua mà không bị ảnh hưởng."
 
-
 msgid "This element has no layout for this orientation."
 msgstr "Phần tử này không có bố cục cho hướng này."
-
 
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Thao tác này sẽ ghi Cảnh dưới dạng một tệp độc lập vào thiết bị Android, trong /Tasker/scenes.\n\nĐịa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị Android.\n\nKhông cần có lời nhắc ủy quyền cho việc này."
 
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Thao tác này sẽ ghi Cảnh dưới dạng tệp độc lập vào thiết bị Android của bạn, trong /Tasker/scenes -- nó không nhập cảnh vào cấu hình trực tiếp của Tác vụ.\n\nDự án tác vụ 'Ví dụ về máy chủ http' phải được cài đặt và hoạt động trên thiết bị Android với máy chủ đang chạy.\n\nThiết bị Android phải nằm trên cùng một mạng, đồng thời Địa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị đó. Không cần có lời nhắc ủy quyền cho việc này."
-
 
 msgid "Tree label"
 msgstr "Nhãn cây"
 
-
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "Xoay màn hình sang một bên và để bố cục hiển thị lại vào đó."
-
 
 msgid "Undo"
 msgstr "Hoàn tác"
 
-
 msgid "Using the saved size"
 msgstr "Sử dụng kích thước đã lưu"
-
 
 msgid "Variable"
 msgstr "Biến"
 
-
 msgid "Variables"
 msgstr "Biến"
-
 
 msgid "Version 2"
 msgstr "Phiên bản 2"
 
-
 msgid "View Limit"
 msgstr "Giới hạn lượt xem"
-
 
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "Những gì bạn chọn sẽ xuất hiện ở con trỏ. Mở cái này một lần nữa để thêm phần tiếp theo."
 
-
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "Những gì bạn chọn sẽ thay thế những gì trường chứa. Nhập để thu hẹp danh sách."
-
 
 msgid "Which kind of Scene?"
 msgstr "Loại cảnh nào?"
@@ -2296,59 +2121,44 @@ msgstr "Loại cảnh nào?"
 msgid "Writes to variable"
 msgstr "Ghi vào biến"
 
-
 msgid "Zoom"
 msgstr "Phóng"
-
-
 
 msgid "component(s)"
 msgstr "(các) thành phần"
 
-
 msgid "connectors"
 msgstr "đầu nối"
-
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "kéo hoặc đẩy bất kỳ cái nào trong số chúng và tất cả chúng đều di chuyển cùng nhau."
 
-
 msgid "editing 1 of"
 msgstr "chỉnh sửa 1 trong số"
-
 
 msgid "element(s)"
 msgstr "(các) phần tử"
 
-
 msgid "elements selected"
 msgstr "yếu tố được chọn"
-
 
 msgid "is not a whole number"
 msgstr "không phải là một số nguyên"
 
-
 msgid "lines dropped"
 msgstr "dòng bị rơi"
-
 
 msgid "none"
 msgstr "không có"
 
-
 msgid "not drawn"
 msgstr "không được vẽ"
-
 
 msgid "pair"
 msgstr "đôi"
 
-
 msgid "pixels"
 msgstr "pixel"
-
 
 msgid "Built the Map, but it has no line for"
 msgstr "Đã xây dựng Bản đồ nhưng không có đường dành cho"

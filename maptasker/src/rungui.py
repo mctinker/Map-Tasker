@@ -30,6 +30,8 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ARGUMENT_NAMES, logger
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from maptasker.src.userintr import MyGui
 
 
@@ -184,6 +186,50 @@ def get_first_text_entry(data: dict) -> str:
     return ""
 
 
+# Settings one view build needs that the GUI's own widgets do not hold -- see
+# MapTaskerEventHandlers.rebuild_map_for_jump, which builds a Map of the Project a clicked
+# report finding lives in while the pulldowns still name whatever single item the user was
+# looking at.
+#
+# They are held here, and re-asserted by capture_gui_state below, rather than simply written
+# into program_arguments once, because capture_gui_state does not only run where a view build
+# calls it: intercepted_sio_emit runs it from NiceGUI's outbox loop for any message that goes
+# out while gui.event is set, and view_event sets that flag for the whole of the build.  A
+# notification emitted while the Map was being built therefore copied the GUI's own
+# single-item selection straight back over the overrides, mid-build, and the Map came out
+# showing that item instead of the Project that was clicked -- leaving the finding's anchor
+# nowhere in it and the view reporting "Built the Map, but it has no line for ...".
+#
+# Whether that landed before or after the build had read the values it needed was pure
+# timing, which is why it showed on Windows and not on macOS.  Re-asserting them takes the
+# timing out of it: for as long as a build holds overrides, no capture can undo them.
+_active_overrides: dict = {}
+
+
+@contextlib.contextmanager
+def held_overrides(overrides: dict | None) -> Iterator[None]:
+    """Put `overrides` into program_arguments and KEEP them there for the duration of a build.
+
+    The caller still owns putting the original values back afterwards -- this only guarantees
+    that nothing quietly reverts them while the build that needs them is still running.
+
+    Nested rather than replaced, and restored to exactly what was held before, so that this
+    says nothing about whether builds can overlap; it just cannot be the thing that breaks if
+    they ever do.
+    """
+    global _active_overrides  # noqa: PLW0603
+    if not overrides:
+        yield
+        return
+    previous = _active_overrides
+    _active_overrides = {**previous, **overrides}
+    PrimeItems.program_arguments.update(overrides)
+    try:
+        yield
+    finally:
+        _active_overrides = previous
+
+
 def capture_gui_state(user_input: MyGui, data: dict) -> None:
     """Capture the current state of the GUI and save it to PrimeItems.
     Parameters:
@@ -208,6 +254,10 @@ def capture_gui_state(user_input: MyGui, data: dict) -> None:
         PrimeItems.program_arguments["indent"] = int(PrimeItems.program_arguments.get("indent", 4))
         # Update colors based on the current MyGui instance
         PrimeItems.colors_to_use = do_colors(user_input)
+
+    # A build in flight outranks whatever the widgets currently say: its overrides go back on
+    # top of everything captured above.  No-op unless one is actually holding some.
+    PrimeItems.program_arguments.update(_active_overrides)
 
 
 # Get the program arguments from GUI

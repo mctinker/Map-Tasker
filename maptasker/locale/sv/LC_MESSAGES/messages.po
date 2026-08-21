@@ -1566,9 +1566,6 @@ msgstr "hh:mm AM/PM eller %variabel"
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 msgstr "Visa \"Karta\", \"Diagram\" eller \"Träd\" över din konfiguration direkt i GUI.\n\nXML måste först hämtas från antingen den lokala enheten eller Android-enheten för att vyerna ska fungera.\n\nOm XML redan har hämtats kommer den att användas som indata till vyn.  Om du trycker på \"Rensa\"-knappen rensas vydata.\n\nMycket stora konfigurationer kommer att medföra utökade körtider för kartor och diagram.  För bästa prestanda, välj ett enstaka projekt eller en profil att mappa.\n\nAlternativt kan du begränsa mängden data som ska bearbetas genom att använda inställningen \"Visa gräns\".  Ju större gränsen är, desto större utdata som kommer att tillåtas att mappas.  Ju mer utdata som genereras, desto längre behandlingstid.\n\n\nDiagramvyn har följande beteende:\n\n - Endast projekt och profiler kan visas. XML som bara består av en enda uppgift eller scen kommer inte att visas.\n\n - Klicka på en horisontell koppling för att markera hela kopplingen i diagrammet.\n\n\nTrädvyn har följande beteende:\n\n- Endast projekt kan visas. XML som bara består av en enskild profil eller uppgift eller scen kommer inte att visas.\n\n- Alla projekt, profiler, uppgifter och scener visas oavsett namninställningen.\n\n"
 
-msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "MapTasker visar din Android Tasker-konfiguration baserat på din uppladdade Tasker XML-fil (t.ex. \"backup.xml\"). Displayen kommer valfritt att inkludera alla projekt, profiler, uppgifter och deras åtgärder, profil-/uppgiftsvillkor och annan profil-/uppgiftsrelaterad information.\n\nNär XML-filen har laddats kan du valfritt redigera dina projekt, profiler, uppgifter och scener.\n\n* Visningsalternativ är:\n    Nivå 0: visa endast den första uppgiftsåtgärden, endast för namnlösa uppgifter (tyst).\n    Nivå 1 = visa alla uppgifter om uppgiftsåtgärder endast för okända uppgifter (standard).\n    Nivå 2 = visa fullständigt uppgiftsåtgärdsnamn på varje uppgift.\n    Nivå 3 = visa fullständiga uppgifter om uppgiftsåtgärder för varje uppgift med åtgärdsdetaljer.\n    Nivå 4 = visningsnivå 3 plus Projekts globala variabler.\n\n    Nivå 5 = visningsnivå 4 plus detaljer för sceneargument.\n\n* Visa bara allt: Slår på visningen av villkor, TaskerNet-information, inställningar, vacker utdata, katalog och konfigurationsöversikt.\n\n* Visningsvillkor: Slå på visningen av profil- och uppgiftsvillkor.\n\n* Visa TaskerNet Info - Om tillgängligt, visa TaskerNet publiceringsinformation.\n\n* Visa Tasker-inställningar - visa Taskers systeminställningar.\n\n* Göm uppgiftsinformation under Twisty: dölj uppgiftsinformation inom ► och klicka för att visa.\n\n* Visa katalog med hyperlänkar i början.\n\n* Visa snyggare utdata: Gör utdata mer läsbart för människor genom att lägga till rader och indrag för alla argument.\n\n* Alternativ för projekt/profil/uppgift/scennamn för att kursivera, fetstil, understryka och/eller markera deras namn.\n\n* Task Action Limit: visa en varning om uppgiften har fler än det angivna antalet åtgärder.\n\n* Indragsbelopp för If/Then/Else Task Actions.\n\n* Språk: Välj det språk som ska användas för utmatningen.  Standard är engelska.\n\n* Teckensnitt att använda: Ändra monospace-teckensnittet som används för utskriften.\n\n* View Limit: Styr mängden bearbetningstid som används när vyn genereras.\n\n* Återställningsalternativ: Rensa allt och börja om.\n\n* Hämta lokal XML-fil: hämta den säkerhetskopierade/exporterade XML-filen från din lokala enhet.\n\n* Spara inställningar - Spara dessa inställningar för senare användning.\n\n* Återställ inställningar - Återställ inställningarna från en tidigare sparad session.\n\n* Visa vyer: Visa din konfigurationskarta, diagram eller trädvy över dina projekt, profiler, uppgifter och scener direkt i GUI.\n\n* Hämta XML från Android-enhet: hämta den säkerhetskopierade/exporterade XML-filen från Android-enhet.  Du kommer att bli tillfrågad om IP-adressen och portnumret för din Android-enhet, samt filplatsen på enheten.\n\n* Fliken Specifikt namn: ange ett enda, specifikt namngivet objekt för att visa...\n   - Projektnamn: ange ett specifikt projekt som ska visas.\n   - Profilnamn: ange en specifik profil som ska visas.\n   - Uppgiftsnamn: ange en specifik uppgift som ska visas.\n   - Scennamn: ange en specifik scen som ska visas.  Dess ägande Projects rubrik och\n                 Scenens element (plus eventuella uppgifter som dessa element anropar) visas;\n                 Projektets profiler och dess andra scener är inte det.\n   (Dessa fyra är exklusiva: ange endast en)\n\n   Lägg till och redigera projekt, profiler och uppgifter direkt i GUI, med olika sparaalternativ.\n\n* Fliken Färger: välj färger för olika delar av skärmen.\n              (t.ex. färg för projekt, profiler, uppgifter, etc.).\n\n* Fliken Analys: Kör analysen för ett projekt, en profil, en uppgift eller en scen mot en Ai-modell.\n\n* Debug-fliken: Visa alternativet Runtime Settings och aktivera felsökningsläget.\n\n* Avsluta: Avsluta programmet (avsluta).\n\nAnmärkningar:\n\n- Se hela historiken för ändringsloggen på https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Om du ändrar utseendeläget ändras färgerna som används för utskriften till deras standardvärden.\n\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 msgstr "\"Visningsgränsen\" är ett sätt att kontrollera mängden bearbetningstid som används när vyn genereras.\n\n- Siffrorna representerar det relativa antalet utgångslinjer som ska genereras.\n\n– Ju större gräns, desto större utdata som kommer att tillåtas mappas.  Ju mer utdata som genereras, desto längre behandlingstid.\n\n- Mycket stora konfigurationer kommer att generera mycket stora utdatakartor och kommer att orsaka längre bearbetningstid.  På äldre enheter kan detta ta upp till 30 sekunder eller mer.\n\n- Genom att sätta en gräns kan du styra bearbetningstiden som används vid kartläggning av en konfiguration genom att inte tillåta längre varaktigheter.\n\n- Om gränsen nås vid beräkning av kartan kommer utmatningen att stanna där.\n\n- Du kan experimentera med den här inställningen för att se vilken inställning som är bäst för ditt användningsfall.\n\n- Att välja ett enstaka projekt, profil eller uppgift är ett annat sätt att begränsa handläggningstiden.\n\n"
 
@@ -1632,22 +1629,17 @@ msgstr "Åtgärder"
 msgid "Add modifier"
 msgstr "Lägg till modifierare"
 
-
 msgid "Add event"
 msgstr "Lägg till händelse"
-
 
 msgid "Add scene properties"
 msgstr "Lägg till scenegenskaper"
 
-
 msgid "Addressed by id from"
 msgstr "Adresseras av id från"
 
-
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "Lägger till ett element ovanpå stapeln, i mitten av scenen."
-
 
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "Lägger till det ovanpå stapeln, i mitten av scenen. Dra den dit du vill ha den."
@@ -1655,10 +1647,8 @@ msgstr "Lägger till det ovanpå stapeln, i mitten av scenen. Dra den dit du vil
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "Lägger till inuti den valda komponenten om den kan hålla barn, annars direkt efter den."
 
-
 msgid "Also selected:"
 msgstr "Även valt:"
-
 
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Amber: Tasker listar det, men MapTasker har inget bekräftat urval av det. Grey: kan inte gå dit urvalet skulle placera det."
@@ -1666,22 +1656,17 @@ msgstr "Amber: Tasker listar det, men MapTasker har inget bekräftat urval av de
 msgid "Also update"
 msgstr "Uppdatera också"
 
-
 msgid "App icon"
 msgstr "App-ikon"
-
 
 msgid "Appearance Mode"
 msgstr "Utseendeläge"
 
-
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "Appliceras i ordning — den längst ner sitter överst."
 
-
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "Tillämpas när den här scenen sparas, inte nu -- Avbryt i dialogrutan Scen lämnar både elementet och uppgifterna precis som de var."
-
 
 msgid "Back to Editor"
 msgstr "Tillbaka till Editor"
@@ -1689,23 +1674,17 @@ msgstr "Tillbaka till Editor"
 msgid "Bounds"
 msgstr "Gräns"
 
-
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "Avbruten. Ändringar av den här scenen ignorerades."
-
-
 
 msgid "Choose another file..."
 msgstr "Välj en annan fil..."
 
-
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "Klicka på en komponent för att välja den, skift-klicka på en annan i samma behållare för att ta flera och dra för att ordna om dem bland sina egna syskon. Att flytta en komponent in i eller ut ur en behållare är redigerarens In- och Ut-knappar; Ångra finns där också."
 
-
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "Klicka på ett element för att markera det, Shift-klicka eller dra en ruta i bakgrunden för att ta flera, och dra någon av dem för att flytta dem alla -- piltangenterna knuffar, Shift för 10px. Dra ett handtag för att ändra storlek på ett enskilt element. Ångra, och allt annat om ett element, är tillbaka i redigeraren."
-
 
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "Klicka på ett element för att markera det, dra för att flytta, dra ett handtag för att ändra storlek, piltangenterna för att knuffa (Skift för 10px). Skift-klicka eller dra en ruta i bakgrunden för att ta flera samtidigt."
@@ -1713,15 +1692,11 @@ msgstr "Klicka på ett element för att markera det, dra för att flytta, dra et
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "Stängs utan att spara och återställer scenen precis som den var när den här dialogrutan öppnades -- inklusive allt som flyttats eller ändrats i förhandsgranskningen.\n\nEtt Byt namn är det enda detta inte kan ta tillbaka: det tillämpas på den laddade säkerhetskopian när den bekräftas och stänger den här dialogrutan med den."
 
-
-
 msgid "Compare Files"
 msgstr "Jämför filer"
 
-
 msgid "Compare With"
 msgstr "Jämför med"
-
 
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Jämför en annan XML-fil med den laddade: vad som lades till, togs bort, döptes om och ändrades.\n\nAnvänd den för att se vad en TaskerNet-import förde in, vad en redigering ändrade eller vad som skiljer sig mellan två säkerhetskopior.\n\nOm den laddade filen kom från \"Spara till aktuell fil\", erbjuds filen den sparades från direkt.\n\nResultaten visas här och sparas i en textfil i den aktuella katalogen."
@@ -1732,37 +1707,29 @@ msgstr "Jämförelse sparad som"
 msgid "Comparison cancelled."
 msgstr "Jämförelsen avbröts."
 
-
 msgid "Delete Scene"
 msgstr "Ta bort scen"
 
 msgid "Done"
 msgstr "Gjort"
 
-
 msgid "Drawn in"
 msgstr "Dras in"
-
 
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "Ritar den här scenen som en bild i huvudfönstret -- inklusive de komponenter du har lagt till eller ändrat här men ännu inte sparat.\n\nEn version 2-layout har ingen egen storlek, så förhandsgranskningen lägger upp den på en skärm du väljer och återflödar den när du ändrar det.\n\nDen här dialogrutan stängs medan förhandsgranskningen är uppe, med allt i den bevarat; förhandsgranskningens \"Back to Editor\"-knapp tar tillbaka den.\n\nDet är en representation, inte Taskers egen renderare: %variabler namnges snarare än lösas, Materialfärger kommer från baslinjepaletten snarare än enhetens tema, och bilder, video och webbinnehåll visas som platshållare."
 
-
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "Ritar den här scenen som en bild i huvudfönstret, i storleken som anges ovan -- inklusive ändringar som ännu inte har sparats.\n\nDen här dialogrutan stängs medan förhandsgranskningen är uppe, med allt i den bevarat; förhandsgranskningens \"Back to Editor\"-knapp tar tillbaka den.\n\nDet är en representation, inte Taskers egen renderare: %variabler namnges istället för att lösas, och bilder, video och webbinnehåll visas som platshållare."
-
 
 msgid "Dropdown menu — shown when opened"
 msgstr "Rullgardinsmeny — visas när den öppnas"
 
-
 msgid "Duplicate"
 msgstr "Duplicera"
 
-
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Dynamic och Select Variable utarbetas när scenen visas."
-
 
 msgid "Dynamic value"
 msgstr "Dynamiskt värde"
@@ -1770,34 +1737,26 @@ msgstr "Dynamiskt värde"
 msgid "Edit Scene"
 msgstr "Redigera scen"
 
-
 msgid "Edit item layout"
 msgstr "Redigera objektlayout"
-
 
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "Redigera dennas egenskaper istället, behåll markeringen."
 
-
 msgid "Event handlers"
 msgstr "Händelsehanterare"
-
 
 msgid "Export Scene"
 msgstr "Exportera scen"
 
-
 msgid "Geometry"
 msgstr "Geometri"
-
 
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "Grey: MapTasker har ingen argumenttabell för det, så det kan inte skapas utan att gissa vad Tasker förväntar sig inuti. Rubriker är MapTaskers egen gruppering."
 
-
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "Krockade fyllningar och kursiv understruken text är %variabler -- deras värden finns på enheten, inte i säkerhetskopian, så de namnges snarare än gissade på. Bilder, video, kartor och webbinnehåll visas som platshållare. Håll muspekaren över ett element för dess geometri, dess variabler och uppgifterna som det kör."
-
 
 msgid "Health Check found no errors or warnings."
 msgstr "Health Check hittade inga fel eller varningar."
@@ -1805,54 +1764,41 @@ msgstr "Health Check hittade inga fel eller varningar."
 msgid "Health Check"
 msgstr "Hälsokontroll"
 
-
 msgid "Health Check report could not be saved."
 msgstr "Hälsokontrollrapporten kunde inte sparas."
-
 
 msgid "Health Check saved as"
 msgstr "Health Check sparad som"
 
-
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "Hur länge ett popup-meddelande stannar på skärmen innan det försvinner.\n\n\"Tills det avvisas\" behåller varje meddelande tills du stänger det, vilket är användbart när ett meddelande rullar förbi innan du kan läsa det.\n\nNågra meddelanden anger sin egen längre varaktighet eftersom de listar saker du måste läsa - de uppgifter som påverkas av att ta bort eller byta namn på ett Scene-element, till exempel. De håller sin egen timing vad som än väljs här."
-
 
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "I listan: Skift-klicka för ett område, Ctrl- eller Cmd-klicka för att lägga till eller ta bort ett."
 
-
 msgid "Item layout"
 msgstr "Objektlayout"
-
 
 msgid "Landscape"
 msgstr "Landskap"
 
-
 msgid "Legacy"
 msgstr "Arv"
-
 
 msgid "Legacy Scene"
 msgstr "Äldre scen"
 
-
 msgid "List"
 msgstr "Lista"
-
 
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: visningsgräns nådd, diagram trunkerat"
 
-
 msgid "Modifiers"
 msgstr "Modifierare"
 
-
 msgid "Never updated"
 msgstr "Aldrig uppdaterad"
-
 
 msgid "No Task addresses this element by name."
 msgstr "Ingen uppgift adresserar detta element med namn."
@@ -1860,10 +1806,8 @@ msgstr "Ingen uppgift adresserar detta element med namn."
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "Ingen XML-fil har laddats.  Skaffa en XML-fil först."
 
-
 msgid "No element matches that."
 msgstr "Inget element matchar det."
-
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "Inte uppdaterad -- dessa namnger både denna scen och detta element, men inte som en"
@@ -1871,14 +1815,11 @@ msgstr "Inte uppdaterad -- dessa namnger både denna scen och detta element, men
 msgid "Not an HTML colour name or #hex value."
 msgstr "Inte ett HTML-färgnamn eller #hex-värde."
 
-
 msgid "Nothing here."
 msgstr "Ingenting här."
 
-
 msgid "Notification Duration"
 msgstr "Aviseringstid"
-
 
 msgid "Only when"
 msgstr "Bara när"
@@ -1904,14 +1845,11 @@ msgstr "Projekt som listar det."
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "Frågar efter ett nytt namn och tillämpar det på den laddade säkerhetskopian just nu -- byter namn på scenen överallt, inklusive i scenlistan för varje projekt som innehåller den.\n\nUppgifter som visar eller döljer den här scenen med namn uppdateras INTE; de heter fortfarande den gamla scenen.\n\nFältet Scennamn ovan är skrivskyddat -- detta är det enda sättet att ändra det."
 
-
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "Egenskaper redigeras ett element i taget. Dra och knuffar flyttar allt valt."
 
-
 msgid "Refresh"
 msgstr "Uppdatera"
-
 
 msgid "Remove background"
 msgstr "Ta bort bakgrund"
@@ -1922,20 +1860,14 @@ msgstr "Välj från scenens miljö och globala variabler."
 msgid "Rename Element"
 msgstr "Byt namn på element"
 
-
-
-
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "Att byta namn på ett element här sveper inte säkerhetskopian: en objektlayout har inget scennamn för en aktivitetselementåtgärd att adressera den med, så det finns inget att skriva om."
-
 
 msgid "Properties"
 msgstr "Egenskaper"
 
 msgid "Repeats once per array entry"
 msgstr "Upprepas en gång per arraypost"
-
-
 
 msgid "Save Scene To Android Device"
 msgstr "Spara scen till Android-enhet"
@@ -1949,18 +1881,14 @@ msgstr "Sparar hela säkerhetskopian -- varje projekt, profil, uppgift och scen 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "Sparar den här scenen, med alla dess element, som en fristående .scn.xml-fil -- samma format som Taskers egen Scene-export producerar.\n\nUppgifter som scenens element kör ingår inte; de tillhör sitt eget projekt."
 
-
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Skanna den inlästa XML-filen efter trasiga referenser, uppgifter utan referens, profiler och scener och namnproblem.\n\nResultaten visas här och sparas i en textfil i den aktuella katalogen."
-
 
 msgid "Scene Components"
 msgstr "Scenkomponenter"
 
-
 msgid "Scene Elements"
 msgstr "Scenelement"
-
 
 msgid "Scene Name"
 msgstr "Scennamn"
@@ -1968,50 +1896,38 @@ msgstr "Scennamn"
 msgid "Scene Preview"
 msgstr "Förhandsvisning av scen"
 
-
 msgid "Scene Properties"
 msgstr "Scenegenskaper"
-
 
 msgid "Scene added."
 msgstr "Scen tillagd."
 
-
 msgid "Scene type"
 msgstr "Scentyp"
-
 
 msgid "Screen"
 msgstr "Skärm"
 
-
 msgid "Search elements"
 msgstr "Sökelement"
-
 
 msgid "Search icons"
 msgstr "Sök ikoner"
 
-
 msgid "Search variables"
 msgstr "Sök variabler"
-
 
 msgid "Select a component on the left."
 msgstr "Välj en komponent till vänster."
 
-
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "Välj en större visningsgräns eller ett enstaka projekt/profil/uppgift för att se resten."
-
 
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "Välj en enskild scen först (scen-rullgardinsmenyn ovan)."
 
-
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "Välj ett enskilt element för att duplicera, ta bort eller stapla om det."
-
 
 msgid "Select an element first."
 msgstr "Välj ett element först."
@@ -2019,17 +1935,14 @@ msgstr "Välj ett element först."
 msgid "Select an element on the canvas or in the list."
 msgstr "Välj ett element på duken eller i listan."
 
-
 msgid "Show the Task each element runs."
 msgstr "Visa uppgiften som varje element körs."
 
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "Visa vad varje komponent gör när den trycks på och vad den skriver till."
 
-
 msgid "Show when"
 msgstr "Visa när"
-
 
 msgid "Size"
 msgstr "Storlek"
@@ -2046,8 +1959,6 @@ msgstr "Sluta skjuta någonting på den här händelsen."
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "Storleken måste vara ett heltal (-1 för ingen layout)."
 
-
-
 msgid "Task action(s) in"
 msgstr "Uppgiftsåtgärd(er) i"
 
@@ -2057,21 +1968,17 @@ msgstr "Uppgifter"
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "Task(s) address this Scene by a match pattern (Element Visibility). Kontrollera dem själv"
 
-
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker håller denna uppgift inne i scenen och ingen annanstans, så den har inget namn och kan inte pekas någon annanstans utan att förlora den. Den förs genom orörd."
 
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker listar detta element, men MapTasker har aldrig sett en i en sparad scen -- så den läggs till med inget annat än dess typ och id, och till och med typen härleds från namnet ovan (skrivet som typ: \"{node_type}\"). Om Tasker inte känner igen det, tryck på Ångra."
 
-
 msgid "Tasker variable(s)"
 msgstr "Taskervariabel(er)"
 
-
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "Uppgifter adresserar detta element med namn (Element Text, Element Position, ... Totalt 18 åtgärdskoder), så att byta namn på det är inte en fältredigering. Dialogrutan Byt namn listar vad som beror på det aktuella namnet och erbjuder att ta med dessa uppgifter."
-
 
 msgid "Text density"
 msgstr "Textdensitet"
@@ -2081,7 +1988,6 @@ msgstr "Uppgifter som visar eller döljer den här scenen med namn ändras inte 
 
 msgid "That component can't go there."
 msgstr "Den komponenten kan inte gå dit."
-
 
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "Det är filen som redan är laddad.  Välj en annan att jämföra med."
@@ -2098,14 +2004,11 @@ msgstr "Tasker-variabeln som denna komponent skriver in sitt värde i. Separera 
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "Layouten av en rad. Tasker ritar det en gång per post av vad som fyller listan, så det du ser här är en enda rad snarare än listan."
 
-
 msgid "The loaded file was saved from"
 msgstr "Den laddade filen sparades från"
 
-
 msgid "The original"
 msgstr "Originalet"
-
 
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "Sökandet avslutades inte. Vyn kan vara för stor eller så är webbläsaren upptagen."
@@ -2119,26 +2022,20 @@ msgstr "Skärmstorleken är den här förhandsvisningens, inte scenens - en vers
 msgid "The two files hold the same configuration."
 msgstr "De två filerna har samma konfiguration."
 
-
 msgid "This Scene has no UI elements."
 msgstr "Den här scenen har inga UI-element."
-
 
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "Den här scenen har ingen egen landskapslayout (storleken är -1)."
 
-
 msgid "This Scene has no layout for this orientation."
 msgstr "Den här scenen har ingen layout för denna orientering."
-
 
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "Den här scenen har inget egenskapselement. 66 av de 366 scener som MapTasker har sett har inga heller, så detta är vanligt snarare än skada."
 
-
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "Den här scenens version 2-layout kunde inte läsas och kommer att lämnas exakt som den är."
-
 
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "Den här scenens version 2-layout har ingen rotkomponent, så det finns inget att designa."
@@ -2146,14 +2043,11 @@ msgstr "Den här scenens version 2-layout har ingen rotkomponent, så det finns 
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "Den här appen har ingen egenskapstabell för den här elementtypen, så endast dess geometri kan redigeras här. I övrigt bärs den genom orörd."
 
-
 msgid "This element has no layout for this orientation."
 msgstr "Detta element har ingen layout för denna orientering."
 
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Detta kommer att skriva scenen som en fristående fil på Android-enheten, under /Tasker/scener.\n\nIP-adressen och porten måste matcha Android-enhetens Tasker-serverinställningar.\n\nIngen auktoriseringsfråga behövs för detta."
-
 
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Detta kommer att skriva scenen som en fristående fil på din Android-enhet, under /Tasker/scener -- den importerar den inte till Taskers livekonfiguration.\n\nTasker-projektet 'Http-serverexempel' måste vara installerat och aktivt på Android-enheten, med servern igång.\n\nAndroid-enheten måste vara på samma nätverk och IP-adressen och porten måste matcha dess Tasker-serverinställningar. Ingen auktoriseringsfråga behövs för detta."
@@ -2164,90 +2058,68 @@ msgstr "Träd etikett"
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "Vänd skärmen på sidan och låt layouten flyta in i den igen."
 
-
 msgid "Undo"
 msgstr "Ångra"
-
 
 msgid "Using the saved size"
 msgstr "Använder den sparade storleken"
 
-
 msgid "Variable"
 msgstr "Variabel"
-
 
 msgid "Variables"
 msgstr "Variabler"
 
-
 msgid "Version 2"
 msgstr "Version 2"
-
 
 msgid "View Limit"
 msgstr "Visa gräns"
 
-
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "Det du väljer kommer in vid markören. Öppna denna igen för att lägga till nästa bit."
-
 
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "Det du väljer ersätter det som fältet innehåller. Skriv för att begränsa listan."
 
-
 msgid "Which kind of Scene?"
 msgstr "Vilken typ av scen?"
-
 
 msgid "Writes to variable"
 msgstr "Skriver till variabel"
 
-
 msgid "Zoom"
 msgstr "Zoom"
-
 
 msgid "component(s)"
 msgstr "komponent(er)"
 
-
 msgid "connectors"
 msgstr "kontakter"
-
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "dra eller knuffa på någon av dem och de rör sig alla tillsammans."
 
-
 msgid "editing 1 of"
 msgstr "redigera 1 av"
-
 
 msgid "element(s)"
 msgstr "element"
 
-
 msgid "lines dropped"
 msgstr "rader tappade"
-
 
 msgid "none"
 msgstr "ingen"
 
-
 msgid "not drawn"
 msgstr "inte ritad"
-
 
 msgid "pair"
 msgstr "par"
 
-
 msgid "pixels"
 msgstr "pixlar"
-
 
 msgid "Notification Duration:"
 msgstr "Aviseringslängd:"

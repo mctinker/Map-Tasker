@@ -437,6 +437,37 @@ def find_owning_profile(task_name: str) -> str:
     return ""
 
 
+# Find owning Project given a Task name
+def find_owning_project_for_task(task_name: str) -> str:
+    """
+    Find the owning Project given a Task name.
+
+    A Task belongs to a Project in one of two ways, and both have to be tried: it is
+    listed directly in the Project's <tids> (what the GUI's Add Task does -- see
+    profedit.add_task_to_project), or it is reached through the Profile that runs it as
+    an Entry/Exit Task, in which case the Project owns the *Profile*.  The direct listing
+    goes first because it is the definitive one; the Profile route is the fallback.
+
+    Args:
+        task_name (str): The Task name.
+
+    Returns:
+        str: The owning Project name, or an empty string if not found.
+    """
+    task_id = next(
+        (k for k, v in PrimeItems.tasker_root_elements["all_tasks"].items() if v["name"] == task_name),
+        "",
+    )
+    if task_id:
+        for project_name, project_value in PrimeItems.tasker_root_elements["all_projects"].items():
+            if task_id in get_ids(False, project_value["xml"], project_name, []):
+                return project_name
+
+    # Not attached to a Project directly -- go by whichever Profile runs it.
+    profile_name = find_owning_profile(task_name)
+    return find_owning_project(profile_name) if profile_name else ""
+
+
 # Find owning Project given a Profile name
 def find_owning_project(profile_name: str) -> str:
     """

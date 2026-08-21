@@ -184,6 +184,17 @@ class PrimeItems:
     # directory_items is, and for the same reason: both describe one run's output, and
     # refresh_our_output throws that output away and starts it again mid-run.
     emitted_anchors: ClassVar[set] = set()
+    # Where each object ended up in the Diagram that was last built: {mapjump anchor id:
+    # (line, column, length)}, in the coordinates of the rendered diagram file, with column
+    # and length counted in UTF-16 code units so the browser can use them as given.  Filled
+    # by diagram.network_map; read by mapjump.diagram_placement so a Find result or a report
+    # finding can be taken to the Diagram as precisely as it is taken to the Map.  Empty
+    # until a Diagram has been built, which is the same thing as "no Diagram to jump into".
+    diagram_anchors: ClassVar[dict] = {}
+    # The same, mid-build and before the positions are final: {anchor: (row, drawn text)}
+    # in netmap_output's own line numbering.  Lives on PrimeItems rather than in diagram.py
+    # only so that it is emptied wherever the rest of a run's output is.
+    diagram_object_seeds: ClassVar[dict] = {}
     tasker_root_elements: ClassVar[dict] = initial_tasker_root_elements()
     directories: ClassVar[list] = []
     variables: ClassVar[dict] = {}
@@ -264,6 +275,8 @@ class PrimeItemsReset:
         PrimeItems.grand_totals = initial_grand_totals()
         PrimeItems.directory_items = initial_directory_items()
         PrimeItems.emitted_anchors = set()
+        PrimeItems.diagram_anchors = {}
+        PrimeItems.diagram_object_seeds = {}
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
         PrimeItems.directories = []
         PrimeItems.xml_tree = None

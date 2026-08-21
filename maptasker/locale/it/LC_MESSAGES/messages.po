@@ -1567,9 +1567,6 @@ msgstr "hh:mm AM/PM o % variabile"
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 msgstr "Visualizza la vista \"Mappa\", \"Diagramma\" o \"Albero\" della tua configurazione direttamente nella GUI.\n\nAffinché le visualizzazioni funzionino, è necessario prima ottenere XML dall'unità locale o dal dispositivo Android.\n\nSe l'XML è già stato recuperato, verrà utilizzato come input per la vista.  Premendo il pulsante \"Cancella\" si cancelleranno i dati di visualizzazione.\n\nConfigurazioni molto grandi comporteranno tempi di esecuzione prolungati per mappe e diagrammi.  Per prestazioni ottimali, seleziona un singolo progetto o profilo da mappare.\n\nFacoltativamente, limitare la quantità di dati da elaborare utilizzando l'impostazione \"Limite visualizzazione\".  Maggiore è il limite, maggiore sarà l'output che potrà essere mappato.  Maggiore è l'output generato, maggiore è il tempo di elaborazione.\n\n\nLa vista diagramma ha il seguente comportamento:\n\n - È possibile visualizzare solo progetti e profili. L'XML costituito da una sola attività o scena non verrà visualizzato.\n\n - Fare clic su un connettore orizzontale per evidenziare l'intera connessione nello schema.\n\n\nLa visualizzazione ad albero ha il seguente comportamento:\n\n- È possibile visualizzare solo i progetti. L'XML costituito da un solo profilo, attività o scena non verrà visualizzato.\n\n- Tutti i progetti, i profili, le attività e le scene vengono visualizzati indipendentemente dall'impostazione del nome singolo.\n\n"
 
-msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "MapTasker mostra la configurazione di Android Tasker in base al file XML Tasker caricato (ad esempio \"backup.xml\"). La visualizzazione includerà facoltativamente tutti i progetti, i profili, le attività e le relative azioni, le condizioni del profilo/attività e altre informazioni relative al profilo/attività.\n\nUna volta caricato il file XML, puoi facoltativamente modificare progetti, profili, attività e scene.\n\n* Le opzioni di visualizzazione sono:\n    Livello 0: visualizza solo l'azione della prima attività, solo per le attività senza nome (silenzioso).\n    Livello 1 = visualizza tutti i dettagli dell'azione dell'attività solo per le attività sconosciute (impostazione predefinita).\n    Livello 2 = visualizza il nome completo dell'azione dell'attività su ogni attività.\n    Livello 3 = visualizza i dettagli completi dell'azione dell'attività su ogni attività con i dettagli dell'azione.\n    Livello 4 = livello di visualizzazione 3 più le variabili globali del progetto.\n\n    Livello 5 = livello di visualizzazione 4 più i dettagli dell'argomento Scena.\n\n* Visualizza semplicemente tutto: attiva la visualizzazione delle condizioni, delle informazioni di TaskerNet, delle preferenze, dell'output carino, della directory e dello schema di configurazione.\n\n* Condizioni di visualizzazione: attiva la visualizzazione delle condizioni del profilo e dell'attività.\n\n* Visualizza informazioni TaskerNet: se disponibile, visualizza le informazioni di pubblicazione di TaskerNet.\n\n* Visualizza le preferenze di Tasker: visualizza le preferenze di sistema di Tasker.\n\n* Nascondi i dettagli dell'attività in Twisty: nascondi le informazioni sull'attività in ► e fai clic per visualizzarle.\n\n* Visualizza la directory dei collegamenti ipertestuali all'inizio.\n\n* Visualizza output più gradevole: rendi l'output più leggibile dall'uomo aggiungendo ritorni a capo e rientri per tutti gli argomenti.\n\n* Opzioni Nomi progetto/profilo/attività/scena per mettere in corsivo, in grassetto, sottolineare e/o evidenziare i loro nomi.\n\n* Limite azioni attività: visualizza un avviso se l'attività ha un numero di azioni superiore a quello specificato.\n\n* Quantità di rientro per le azioni dell'attività If/Then/Else.\n\n* Lingua: selezionare la lingua da utilizzare per l'output.  L'impostazione predefinita è l'inglese.\n\n* Carattere da utilizzare: modifica il carattere a spaziatura fissa utilizzato per l'output.\n\n* Limite visualizzazione: controlla la quantità di tempo di elaborazione utilizzata durante la generazione della visualizzazione.\n\n* Opzioni di ripristino: cancella tutto e ricomincia da capo.\n\n* Ottieni file XML locale: recupera il file XML di backup/esportato dall'unità locale.\n\n* Salva impostazioni: salva queste impostazioni per un uso successivo.\n\n* Ripristina impostazioni: ripristina le impostazioni da una sessione salvata in precedenza.\n\n* Visualizza visualizzazioni: visualizza la mappa di configurazione, il diagramma o la visualizzazione ad albero dei tuoi progetti, profili, attività e scene direttamente nella GUI.\n\n* Ottieni XML dal dispositivo Android: recupera il file XML di backup/esportato dal dispositivo Android.  Ti verrà chiesto l'indirizzo IP e il numero di porta del tuo dispositivo Android, nonché la posizione del file sul dispositivo.\n\n* Scheda Nome specifico: inserisci un singolo elemento con nome specifico da visualizzare...\n   - Nome progetto: inserisci un progetto specifico da visualizzare.\n   - Nome profilo: inserisci un profilo specifico da visualizzare.\n   - Nome attività: inserisci un'attività specifica da visualizzare.\n   - Nome scena: inserisci una scena specifica da visualizzare.  L'intestazione del progetto proprietario e il file\n                 Vengono visualizzati gli elementi della scena (più eventuali attività richiamate da tali elementi);\n                 i Profili del Progetto e le sue altre Scene non lo sono.\n   (Questi quattro sono esclusivi: inseriscine solo uno)\n\n   Aggiungi e modifica progetti, profili e attività direttamente nella GUI, con varie opzioni di salvataggio.\n\n* Scheda Colori: seleziona i colori per i vari elementi del display.\n              (ad esempio colore per progetti, profili, attività, ecc.).\n\n* Scheda Analizza: esegui l'analisi per un progetto, profilo, attività o scena rispetto a un modello Ai.\n\n* Scheda Debug: visualizza l'opzione Impostazioni runtime e attiva la modalità Debug.\n\n* Esci: esce dal programma (esci).\n\nNote:\n\n- Visualizza l'intera cronologia del registro delle modifiche su https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- La modifica della modalità aspetto riporterà i colori utilizzati per l'output ai valori predefiniti.\n\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 msgstr "Il \"Limite di visualizzazione\" è un mezzo per controllare la quantità di tempo di elaborazione utilizzato durante la generazione della vista.\n\n- I numeri rappresentano la quantità relativa di linee di output da generare.\n\n- Maggiore è il limite, maggiore sarà l'output che potrà essere mappato.  Maggiore è l'output generato, maggiore è il tempo di elaborazione.\n\n- Configurazioni molto grandi genereranno mappe di output molto grandi e causeranno tempi di elaborazione maggiori.  Sui dispositivi più vecchi, l'operazione può richiedere fino a 30 secondi o più.\n\n- Impostando un limite, è possibile controllare il tempo di elaborazione utilizzato durante la mappatura di una configurazione non consentendo durate più lunghe.\n\n- Se il limite viene raggiunto durante il calcolo della mappa, l'output si fermerà lì.\n\n- Puoi sperimentare questa impostazione per vedere quale è la migliore per il tuo caso d'uso.\n\n- Selezionare un singolo progetto, profilo o attività è un altro mezzo per limitare il tempo di elaborazione.\n\n"
 
@@ -2101,31 +2098,23 @@ msgstr "Geometria"
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "Ciò che scegli sostituisce ciò che contiene il campo. Digitare per restringere l'elenco."
 
-
-
 msgid "Which kind of Scene?"
 msgstr "Che tipo di scena?"
-
 
 msgid "Writes to variable"
 msgstr "Scrive nella variabile"
 
-
 msgid "Zoom"
 msgstr "Zoom"
-
 
 msgid "component(s)"
 msgstr "componente(i)"
 
-
 msgid "connectors"
 msgstr "connettori"
 
-
 msgid "drag or nudge any of them and they all move together."
 msgstr "trascina o spostane uno e si muoveranno tutti insieme."
-
 
 msgid "element(s)"
 msgstr "elementi)"
@@ -2136,26 +2125,20 @@ msgstr "non è un numero intero"
 msgid "elements selected"
 msgstr "elementi selezionati"
 
-
 msgid "lines dropped"
 msgstr "le linee sono cadute"
-
 
 msgid "none"
 msgstr "nessuno"
 
-
 msgid "not drawn"
 msgstr "non disegnato"
-
 
 msgid "pair"
 msgstr "paio"
 
-
 msgid "pixels"
 msgstr "pixel"
-
 
 msgid "editing 1 of"
 msgstr "modifica 1 di"
@@ -2201,3 +2184,84 @@ msgstr "intero fascicolo"
 
 msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
 msgstr "Disabilita subito il progetto nel backup caricato: come Rinomina, ha effetto immediatamente anziché attendere un salvataggio e Annulla non lo annulla."
+
+msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
+msgstr "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nLe caselle si combinano: scegli un trigger e un'azione per trovare i profili che si attivano in quel modo ed esegui un'attività che lo fa.\n\nI risultati ritornano come un elenco di oggetti; fare clic su uno per accedervi.\n\n"
+
+msgid "Changes Pending"
+msgstr "Modifiche in sospeso"
+
+msgid "Changes made to the loaded XML this session, newest first.  Undo steps back through them one at a time.  Nothing here has been written to a file."
+msgstr "Modifiche apportate all'XML caricato in questa sessione, a partire dalla più recente.  Annulla i passaggi indietro uno alla volta.  Niente qui è stato scritto in un file."
+
+msgid "Choose an action, a trigger, an app, a Scene or some text."
+msgstr "Scegli un'azione, un trigger, un'app, una scena o del testo."
+
+msgid "Edit History"
+msgstr "Modifica cronologia"
+
+msgid "Editing"
+msgstr "Modifica"
+
+msgid "Find in"
+msgstr "Trova dentro"
+
+msgid "Find results could not be saved."
+msgstr "Impossibile salvare i risultati della ricerca."
+
+msgid "Find results saved as"
+msgstr "Trova i risultati salvati con nome"
+
+msgid "Help"
+msgstr "Aiuto"
+
+msgid "In no Project"
+msgstr "In nessun progetto"
+
+msgid "List every change made to the loaded XML this session, newest first."
+msgstr "Elenca tutte le modifiche apportate all'XML caricato in questa sessione, iniziando dalla più recente."
+
+msgid "Narrow to Project"
+msgstr "Limita al progetto"
+
+msgid "No changes to undo."
+msgstr "Nessuna modifica da annullare."
+
+msgid "Nothing has been changed yet."
+msgstr "Non è stato ancora cambiato nulla."
+
+msgid "Nothing in the loaded configuration answers this."
+msgstr "Niente nella configurazione caricata risponde a questa domanda."
+
+msgid "Nothing is saved until you press Ok, Save or Export."
+msgstr "Non viene salvato nulla finché non si preme Ok, Salva o Esporta."
+
+msgid "Redid"
+msgstr "Rifatto"
+
+msgid "Redo"
+msgstr "Rifare"
+
+msgid "Run a Find first."
+msgstr "Eseguire prima una ricerca."
+
+msgid "Save Results"
+msgstr "Salva risultati"
+
+msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
+msgstr "Ripristina l'ultima modifica apportata all'XML caricato: una modifica, un'aggiunta, un'eliminazione o una ridenominazione, in uno qualsiasi dei pannelli Modifica.\n\nQuesto cambia ciò che viene caricato, non qualsiasi file: non viene toccato nulla sul disco o sul dispositivo Android."
+
+msgid "Undid"
+msgstr "Annullato"
+
+msgid "Updating MapTasker in the background.  Please stand by..."
+msgstr "Aggiornamento di MapTasker in background.  Per favore, restate in attesa..."
+
+msgid "does not belong to a Project, so there is nowhere to attach a new"
+msgstr "non appartiene a un progetto, quindi non è possibile allegarne uno nuovo"
+
+msgid "found for"
+msgstr "trovato per"
+
+msgid "of"
+msgstr "Di"

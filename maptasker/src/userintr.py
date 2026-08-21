@@ -15,7 +15,7 @@ from urllib.parse import urlencode
 
 from nicegui import Event, context, run, ui
 
-from maptasker.src import mapjump, profedit, projedit, sceneedit, taskedit
+from maptasker.src import mapjump, presave, profedit, projedit, sceneedit, sessundo, taskedit
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
@@ -52,6 +52,7 @@ from maptasker.src.guiutils import (
     is_no_selection,
     list_tasker_objects,
     ping_android_device,
+    refresh_object_action_buttons,
     refresh_tasker_object_pulldowns,
     reload_gui,
     reset_single_item_pulldowns,
@@ -115,6 +116,9 @@ from maptasker.src.maputil3 import validate_xml_file
 from maptasker.src.maputils import (
     append_to_filename,
     clear_tasker_data,
+    find_owning_project,
+    find_owning_project_for_scene,
+    find_owning_project_for_task,
     get_current_local_time_auto_timezone,
     make_hex_color,
     rename_file,
@@ -127,7 +131,7 @@ from maptasker.src.primitem import (
     initial_found_named_items,
     initial_grand_totals,
 )
-from maptasker.src.rungui import SELECTION_KEYS, capture_gui_state
+from maptasker.src.rungui import SELECTION_KEYS, capture_gui_state, held_overrides
 from maptasker.src.sysconst import (
     ALL_OBJECTS_MESSAGE,
     ANALYSIS_FILE,
@@ -1239,6 +1243,14 @@ class MyGui:
                 # 2. Always release the lock so user interaction still works
                 self.is_updating = False
 
+        # The Edit/Add buttons follow the single-item selection (see
+        # refresh_object_action_buttons).  This path sets single_<item>_name directly
+        # rather than going through process_name_event, so it has to refresh them
+        # itself -- otherwise a restored Project comes back with its pulldown filled in
+        # but only "Add Project" on screen.  Unconditional: a name that failed
+        # check_name above leaves nothing selected, which is equally worth reflecting.
+        refresh_object_action_buttons(self)
+
     def tasklimit_set(self, limit: str | int) -> None:
         """
         Set the limit for the number of Task actions before issuing a warning.
@@ -1446,6 +1458,52 @@ def _confirmed_single_scene_name(gui: MyGui) -> str:
     return name if name in options else ""
 
 
+def _project_for_new_object(gui: MyGui, item_label: str) -> tuple[str, str]:
+    """The Project a new Profile/Task/Scene should be attached to, given whatever the
+    'Specific Name' tab currently has selected, plus the message to tell the user when
+    there isn't one.
+
+    Returns (project_name, "") when a Project was worked out, or ("", message) when
+    none could be -- callers notify with the message and go no further.
+
+    A selected Project is used as-is.  The other three selections are mutually exclusive
+    with it (see process_name_event), so with a Profile, Task or Scene selected there is
+    no Project selection to read -- but there is still exactly one Project that owns the
+    selected object, and that is the one the new object belongs in.  Resolving it here is
+    what lets "Add Profile"/"Add Task"/"Add Scene" work straight off a Profile/Task/Scene
+    selection instead of stopping to demand a Project the user has already implied.
+
+    item_label names the *new* object ("Profile"/"Task"/"Scene") purely for the message.
+
+    An object with no owning Project is a real possibility rather than an oversight -- a
+    Task attached to no Project at all, a Scene no Project lists -- so that case keeps
+    asking for a Project, naming the object that led nowhere so it is clear why.
+    """
+    if project_name := _confirmed_single_project_name(gui):
+        return project_name, ""
+
+    select_a_project = translate_string("Select a single Project first (Project pulldown above).")
+
+    # Whichever of the other three is selected, and how to get from it to its Project.
+    for label, resolve in (
+        ("Profile", find_owning_project),
+        ("Task", find_owning_project_for_task),
+        ("Scene", find_owning_project_for_scene),
+    ):
+        selected_name = getattr(gui, f"single_{label.lower()}_name", "")
+        if is_no_selection(selected_name):
+            continue
+        if owning_project := resolve(selected_name):
+            return owning_project, ""
+        no_owner = translate_string("does not belong to a Project, so there is nowhere to attach a new")
+        return "", (
+            f"{translate_string(label)} '{selected_name}' {no_owner} "
+            f"{translate_string(item_label)}.  {select_a_project}"
+        )
+
+    return "", select_a_project
+
+
 def _unapplied_project_edits(field_refs: dict) -> list[str]:
     """Guards the Edit Project dialog's two by-name saves against a field being added to
     it without the apply step those saves would then need.  Returns error strings, empty
@@ -1561,8 +1619,12 @@ def _finish_new_scene(gui: MyGui, edited_scene: sceneedit.EditableScene, project
     Scene the owning Project's <scenes> doesn't name is invisible to every view
     (see sceneedit.add_scene_to_project).
     """
-    sceneedit.register_new_scene(edited_scene)
-    sceneedit.add_scene_to_project(edited_scene.scene_name, project_name)
+    # One step to take back, not two: registering the Scene and attaching it to its
+    # Project are one thing the user did.  undoable is re-entrant, so the mutators'
+    # own blocks inside this one add nothing to the history.
+    with sessundo.undoable(f"Add Scene '{edited_scene.scene_name}'"):
+        sceneedit.register_new_scene(edited_scene)
+        sceneedit.add_scene_to_project(edited_scene.scene_name, project_name)
     refresh_tasker_object_pulldowns(gui)
 
     # Select the new Scene as the app-wide single-Scene filter and show it in the
@@ -1627,6 +1689,35 @@ def _reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool
     display_current_file(gui, new_file_path)
     refresh_tasker_object_pulldowns(gui)
     return True, ""
+
+
+# Which lookup table answers "is this single-item selection still a real item?", per
+# SINGLE_ITEM_LABELS.  The two *_by_name tables are the ones keyed the way the pulldowns
+# name things: all_profiles and all_tasks are keyed by id, so checking those would say no
+# to every Profile and Task there is.
+_SELECTION_TABLES = {
+    "Project": "all_projects",
+    "Profile": "all_profiles_by_name",
+    "Task": "all_tasks_by_name",
+    "Scene": "all_scenes",
+}
+
+
+def _single_selection_still_exists(gui: MyGui) -> bool:
+    """Whether the 'Specific Name' selection, if there is one, still names something.
+
+    An Undo can take away the very item that is selected -- undoing an Add removes it,
+    undoing a Rename puts a different name on it -- and a selection naming nothing is not
+    harmless: PrimeItems.program_arguments still carries it, so the next Map or Diagram
+    would be built filtered on an item that is not there and come back empty.
+    """
+    for label in SINGLE_ITEM_LABELS:
+        name = getattr(gui, f"single_{label.lower()}_name", "")
+        if is_no_selection(name):
+            continue
+        if name not in PrimeItems.tasker_root_elements.get(_SELECTION_TABLES[label], {}):
+            return False
+    return True
 
 
 def _apply_edited_task(edited_task: taskedit.EditableTask, field_refs: dict) -> bool:
@@ -1708,13 +1799,17 @@ def _finish_new_task(
     _validate_and_apply_new_task has succeeded (and, for Save, only after its
     standalone file write has too).
     """
-    taskedit.register_new_task(edited_task, name_value)
-    if on_created is not None:
-        on_created(edited_task.task_id)
-
     target_project_name = field_refs.get("target_project_name") if field_refs else None
-    if target_project_name:
-        profedit.add_task_to_project(edited_task.task_id, target_project_name)
+
+    # One step to take back, not two or three: registering the Task, whatever on_created
+    # links it to, and attaching it to its Project are one thing the user did.  undoable is
+    # re-entrant, so the mutators' own blocks inside this one add nothing to the history.
+    with sessundo.undoable(f"Add Task '{name_value}'"):
+        taskedit.register_new_task(edited_task, name_value)
+        if on_created is not None:
+            on_created(edited_task.task_id)
+        if target_project_name:
+            profedit.add_task_to_project(edited_task.task_id, target_project_name)
 
     refresh_tasker_object_pulldowns(gui)
 
@@ -1839,8 +1934,12 @@ def _finish_new_profile(
     once _validate_and_apply_new_profile has succeeded (and, for Save, only
     after its standalone file write has too).
     """
-    profedit.register_new_profile(edited_profile, name_value)
-    profedit.add_profile_to_project(edited_profile, project_name)
+    # One step to take back, not two: registering the Profile and attaching it to its
+    # Project are one thing the user did.  undoable is re-entrant, so the mutators'
+    # own blocks inside this one add nothing to the history.
+    with sessundo.undoable(f"Add Profile '{name_value}'"):
+        profedit.register_new_profile(edited_profile, name_value)
+        profedit.add_profile_to_project(edited_profile, project_name)
     refresh_tasker_object_pulldowns(gui)
 
     # Select the new Profile as the app-wide single-Profile filter and show it
@@ -2011,6 +2110,10 @@ class MapTaskerEventHandlers:
         AFTER capture_gui_state, since that overwrites program_arguments wholesale from the
         GUI, and left to the caller to put back: the GUI's own widgets are untouched, so
         nothing the user can see changes.
+
+        Applying them here is not on its own enough to make them STAY applied -- capture_gui_state
+        runs again, off NiceGUI's outbox loop, for messages this build itself sends.  A caller
+        passing overrides must hold them across this call with rungui.held_overrides.
         """
         # max_limit = 9999999
         window_title = f"{view_type.capitalize()} View"
@@ -2280,11 +2383,56 @@ class MapTaskerEventHandlers:
         saved = {key: PrimeItems.program_arguments[key] for key in overrides if key in PrimeItems.program_arguments}
         absent = [key for key in overrides if key not in PrimeItems.program_arguments]
         try:
-            await self.view_event("map", goto=target.token(), overrides=overrides)
+            # held_overrides, not just the update view_event does, because the build is not
+            # the only thing writing these: capture_gui_state re-copies the GUI's own
+            # single-item selection over program_arguments from NiceGUI's outbox loop, and
+            # one of this build's own notifications is enough to trigger it.  See its
+            # definition in rungui for what that cost.
+            with held_overrides(overrides):
+                await self.view_event("map", goto=target.token(), overrides=overrides)
         finally:
             PrimeItems.program_arguments.update(saved)
             for key in absent:
                 PrimeItems.program_arguments.pop(key, None)
+
+    def _step_edit_history(self: "MapTaskerEventHandlers", *, forwards: bool) -> None:
+        """Shared body of the Undo and Redo buttons -- the two differ only in which way
+        they walk the history and what they say afterwards.
+
+        Refreshing the pulldowns is not cosmetic: the restore replaced every lookup table,
+        so an option list built from the old ones would offer names that no longer resolve.
+        Whatever single Project/Profile/Task/Scene was selected is deliberately left alone;
+        if the step removed it, refresh_tasker_object_pulldowns drops it from the options
+        the same way a file load does.
+        """
+        succeeded, message = sessundo.redo() if forwards else sessundo.undo()
+        if not succeeded:
+            ui.notify(message, type="warning")
+            return
+
+        refresh_tasker_object_pulldowns(self.gui)
+        # Only when the step actually took the selected item away -- undoing an edit to
+        # some other Task must not clear the Project the user is looking at.
+        #
+        # display_selected_object_labels is the other half of that reset and not optional:
+        # reset_single_item_selection clears the names and the pulldowns, and this is what
+        # repaints the three places the old name is still written on screen -- the
+        # "Current <item> selection" line, the "Display only ..." caption under the
+        # pulldowns, and the Analyze tab's four targets.  The pair is always used together
+        # (see guiutils.list_tasker_objects, which loads a new file the same way).
+        if not _single_selection_still_exists(self.gui):
+            reset_single_item_selection(self.gui)
+            display_selected_object_labels(self.gui)
+        action = translate_string("Redid") if forwards else translate_string("Undid")
+        ui.notify(f"{action}: {message}", type="positive")
+
+    def undo_edit_event(self: "MapTaskerEventHandlers") -> None:
+        """Take back the last change made to the loaded configuration -- see sessundo."""
+        self._step_edit_history(forwards=False)
+
+    def redo_edit_event(self: "MapTaskerEventHandlers") -> None:
+        """Put back the last change Undo took away -- see sessundo."""
+        self._step_edit_history(forwards=True)
 
     def health_check_event(self: "MapTaskerEventHandlers") -> None:
         """Scan the loaded configuration for problems, display the report and save it to a file."""
@@ -2973,14 +3121,17 @@ class MapTaskerEventHandlers:
 
         def _write() -> None:
             try:
-                taskedit.write_standalone_task_xml(edited_task, save_path)
+                safety_copy = taskedit.write_standalone_task_xml(edited_task, save_path)
             except OSError as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
 
             taskedit.apply_edited_task_to_live_tree(edited_task)
 
-            ui.notify(f"Saved to {save_path}", type="positive")
+            # The write took a copy of anything already at that path (see presave);
+            # say so, so the user knows where it went.
+            replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
+            ui.notify(f"Saved to {save_path}.{replaced_note}", type="positive")
             dialog.close()
 
         # Unlike Add Task's Save, this export had no up-front save_path_exists
@@ -3403,12 +3554,15 @@ class MapTaskerEventHandlers:
 
         def _write() -> None:
             try:
-                projedit.write_standalone_project_xml(edited_project.project_name, save_path)
+                safety_copy = projedit.write_standalone_project_xml(edited_project.project_name, save_path)
             except (OSError, ValueError) as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
 
-            ui.notify(f"Saved Project '{edited_project.project_name}' to {save_path}", type="positive")
+            # The write took a copy of anything already at that path (see presave);
+            # say so, so the user knows where it went.
+            replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
+            ui.notify(f"Saved Project '{edited_project.project_name}' to {save_path}.{replaced_note}", type="positive")
             dialog.close()
 
         if projedit.save_path_exists(save_path):
@@ -3510,9 +3664,9 @@ class MapTaskerEventHandlers:
         Scene type only to be told afterwards that nothing was loaded.
         """
         the_view = self.gui
-        project_name = _confirmed_single_project_name(the_view)
+        project_name, no_project_message = _project_for_new_object(the_view, "Scene")
         if not project_name:
-            ui.notify(translate_string("Select a single Project first (Project pulldown above)."), type="warning")
+            ui.notify(no_project_message, type="warning")
             return
 
         # See open_add_task_dialog_event's identical self-healing load: the toolbar's
@@ -3805,12 +3959,15 @@ class MapTaskerEventHandlers:
 
         def _write() -> None:
             try:
-                sceneedit.write_standalone_scene_xml(edited_scene.scene_name, save_path)
+                safety_copy = sceneedit.write_standalone_scene_xml(edited_scene.scene_name, save_path)
             except (OSError, ValueError) as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
 
-            ui.notify(f"Saved Scene '{edited_scene.scene_name}' to {save_path}", type="positive")
+            # The write took a copy of anything already at that path (see presave);
+            # say so, so the user knows where it went.
+            replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
+            ui.notify(f"Saved Scene '{edited_scene.scene_name}' to {save_path}.{replaced_note}", type="positive")
             dialog.close()
 
         if sceneedit.save_path_exists(save_path):
@@ -3869,6 +4026,17 @@ class MapTaskerEventHandlers:
             return
 
         def _upload() -> None:
+            # Copy whatever is already at that path on the device before /upload writes over
+            # it.  The device keeps no versions and has no undo, so this is the only copy of
+            # it there will ever be; it is pulled back here rather than left beside the
+            # original -- see presave.backup_android_file.  A copy that fails is reported and
+            # the save goes ahead: presave's module comment says why it must never block one.
+            copied, safety_copy = presave.backup_android_file(ip_address, ip_port, device_path)
+            if not copied:
+                ui.notify(
+                    f"Could not copy the file already on the device first: {safety_copy}",
+                    type="warning",
+                )
             return_code, result = sceneedit.save_scene_to_android(edited_scene.scene_name, ip_address, ip_port)
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
@@ -3878,7 +4046,9 @@ class MapTaskerEventHandlers:
             self.gui.android_ipaddr = ip_address
             self.gui.android_port = ip_port
 
-            ui.notify(f"Scene saved to Android device at {result}", type="positive")
+            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
+            saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
+            ui.notify(f"Scene saved to Android device at {result}.{saved_note}", type="positive")
             android_dialog.close()
             parent_dialog.close()
 
@@ -4055,9 +4225,9 @@ class MapTaskerEventHandlers:
         know which Project it belongs to.
         """
         the_view = self.gui
-        project_name = _confirmed_single_project_name(the_view)
+        project_name, no_project_message = _project_for_new_object(the_view, "Profile")
         if not project_name:
-            ui.notify(translate_string("Select a single Project first (Project pulldown above)."), type="warning")
+            ui.notify(no_project_message, type="warning")
             return
 
         # See open_add_task_dialog_event's identical self-healing load: the toolbar's
@@ -4207,14 +4377,17 @@ class MapTaskerEventHandlers:
 
         def _write() -> None:
             try:
-                profedit.write_standalone_profile_xml(edited_profile, save_path)
+                safety_copy = profedit.write_standalone_profile_xml(edited_profile, save_path)
             except OSError as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
 
             profedit.apply_edited_profile_to_live_tree(edited_profile)
 
-            ui.notify(f"Saved to {save_path}", type="positive")
+            # The write took a copy of anything already at that path (see presave);
+            # say so, so the user knows where it went.
+            replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
+            ui.notify(f"Saved to {save_path}.{replaced_note}", type="positive")
             dialog.close()
 
         # Unlike Add Profile's Save, this export had no up-front save_path_exists
@@ -4292,14 +4465,17 @@ class MapTaskerEventHandlers:
 
         save_path = field_refs["save_path"].value.strip()
         try:
-            profedit.write_standalone_profile_xml(edited_profile, save_path)
+            safety_copy = profedit.write_standalone_profile_xml(edited_profile, save_path)
         except OSError as e:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
 
         _finish_new_profile(self.gui, edited_profile, name_value, project_name)
 
-        ui.notify(f"Saved to {save_path}", type="positive")
+        # The write took a copy of anything already at that path (see presave);
+        # say so, so the user knows where it went.
+        replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
+        ui.notify(f"Saved to {save_path}.{replaced_note}", type="positive")
         dialog.close()
 
     def keep_new_profile_event(
@@ -4435,6 +4611,17 @@ class MapTaskerEventHandlers:
         profile_name = field_refs["name"].value.strip()
 
         def _upload() -> None:
+            # Copy whatever is already at that path on the device before /upload writes over
+            # it.  The device keeps no versions and has no undo, so this is the only copy of
+            # it there will ever be; it is pulled back here rather than left beside the
+            # original -- see presave.backup_android_file.  A copy that fails is reported and
+            # the save goes ahead: presave's module comment says why it must never block one.
+            copied, safety_copy = presave.backup_android_file(ip_address, ip_port, device_path)
+            if not copied:
+                ui.notify(
+                    f"Could not copy the file already on the device first: {safety_copy}",
+                    type="warning",
+                )
             return_code, result = profedit.save_profile_to_android(edited_profile, ip_address, ip_port, profile_name)
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
@@ -4444,14 +4631,19 @@ class MapTaskerEventHandlers:
             self.gui.android_ipaddr = ip_address
             self.gui.android_port = ip_port
 
-            if is_new_profile:
-                profedit.register_new_profile(edited_profile, profile_name)
-                profedit.add_profile_to_project(edited_profile, project_name)
-            else:
-                profedit.apply_edited_profile_to_live_tree(edited_profile)
+            # Grouped so registering the Profile and attaching it to its Project are one
+            # step to take back rather than two -- same reason _finish_new_profile does.
+            with sessundo.undoable(f"Add Profile '{profile_name}'" if is_new_profile else f"Edit Profile '{profile_name}'"):
+                if is_new_profile:
+                    profedit.register_new_profile(edited_profile, profile_name)
+                    profedit.add_profile_to_project(edited_profile, project_name)
+                else:
+                    profedit.apply_edited_profile_to_live_tree(edited_profile)
             refresh_tasker_object_pulldowns(self.gui)
 
-            ui.notify(f"Profile saved to Android device at {result}", type="positive")
+            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
+            saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
+            ui.notify(f"Profile saved to Android device at {result}.{saved_note}", type="positive")
             android_dialog.close()
             parent_dialog.close()
 
@@ -4512,6 +4704,17 @@ class MapTaskerEventHandlers:
             return
 
         def _upload() -> None:
+            # Copy whatever is already at that path on the device before /upload writes over
+            # it.  The device keeps no versions and has no undo, so this is the only copy of
+            # it there will ever be; it is pulled back here rather than left beside the
+            # original -- see presave.backup_android_file.  A copy that fails is reported and
+            # the save goes ahead: presave's module comment says why it must never block one.
+            copied, safety_copy = presave.backup_android_file(ip_address, ip_port, device_path)
+            if not copied:
+                ui.notify(
+                    f"Could not copy the file already on the device first: {safety_copy}",
+                    type="warning",
+                )
             return_code, result = projedit.save_project_to_android(edited_project.project_name, ip_address, ip_port)
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
@@ -4521,7 +4724,9 @@ class MapTaskerEventHandlers:
             self.gui.android_ipaddr = ip_address
             self.gui.android_port = ip_port
 
-            ui.notify(f"Project saved to Android device at {result}", type="positive")
+            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
+            saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
+            ui.notify(f"Project saved to Android device at {result}.{saved_note}", type="positive")
             android_dialog.close()
             parent_dialog.close()
 
@@ -4548,9 +4753,9 @@ class MapTaskerEventHandlers:
         way to know which Project it belongs to.
         """
         the_view = self.gui
-        project_name = _confirmed_single_project_name(the_view)
+        project_name, no_project_message = _project_for_new_object(the_view, "Task")
         if not project_name:
-            ui.notify(translate_string("Select a single Project first (Project pulldown above)."), type="warning")
+            ui.notify(no_project_message, type="warning")
             return
 
         # The toolbar's "Current File" only means a filename is known (see
@@ -4757,14 +4962,17 @@ class MapTaskerEventHandlers:
 
         save_path = field_refs["save_path"].value.strip()
         try:
-            taskedit.write_standalone_task_xml(edited_task, save_path)
+            safety_copy = taskedit.write_standalone_task_xml(edited_task, save_path)
         except OSError as e:
             ui.notify(f"Could not save file: {e}", type="negative")
             return
 
         _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
 
-        ui.notify(f"Saved to {save_path}", type="positive")
+        # The write took a copy of anything already at that path (see presave);
+        # say so, so the user knows where it went.
+        replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
+        ui.notify(f"Saved to {save_path}.{replaced_note}", type="positive")
         dialog.close()
 
     def keep_new_task_event(
@@ -5532,6 +5740,11 @@ class MapTaskerEventHandlers:
             - Calls the update function.
             - Reruns the program to pick up the update."""
         the_view = self.gui
+        ui.notify(
+            translate_string("Updating MapTasker in the background.  Please stand by..."),
+            type="positive",
+            timeout=5.0,
+        )
         update_maptasker()
         the_view.display_message_box(translate_string("Program updated.  Restarting..."), "Green")
         # Create the Change Log file to be read and displayed after a program update.
@@ -5614,15 +5827,43 @@ class MapTaskerEventHandlers:
         # Add the changelog to the help text.
         if query_name == "help":
             changes = get_changelog_file(CHANGELOG_URL, "##", 11)
-            # Bypass the version number and transl;ate the rest of the help text.
-            temp = help_text.find("Help\n\n")
-            help_text = f"{help_text[:temp]}\n\n" + translate_string(help_text[temp:])
+            # HELP is "MapTasker <version> Help\n\n" glued onto userhelp.INFO_TEXT, and the
+            # heading has to be split back off before anything is looked up: the version
+            # number must not go through gettext, and it must not be part of the msgid
+            # either, or every release would invalidate the whole help translation.
+            #
+            # The slice has to land PAST the marker rather than on it.  What the catalogs
+            # hold is INFO_TEXT alone -- that is what sync_missing_msgids.py collects (see
+            # its help_text_strings()) and what it writes -- so asking for "Help\n\n" plus
+            # INFO_TEXT asks for a msgid no catalog has, and gettext answers a miss by
+            # handing back what it was given.  That returned the English help screen in
+            # every one of the 33 languages, silently, because a miss looks exactly like a
+            # translation into English.
+            marker = "Help\n\n"
+            temp = help_text.find(marker)
+            if temp == -1:
+                # HELP always carries the marker, so this is unreachable today; it is here
+                # so that a reworded heading degrades to an untranslated screen rather than
+                # to a garbled one sliced at index -1.
+                help_text = translate_string(help_text)
+            else:
+                help_text = (
+                    f"{help_text[:temp]}{translate_string('Help')}\n\n"
+                    f"{translate_string(help_text[temp + len(marker) :])}"
+                )
             help_text = help_text + "\n".join(changes)
+        else:
+            # Every other screen is a whole userhelp constant and so is a msgid in its own
+            # right.  Translated here rather than at the create_popup_window call below,
+            # because the "help" branch above has already translated its own piece -- and
+            # the assembled version number, help text and changelog it produces is not a
+            # msgid, so passing that through gettext a second time could only ever miss.
+            help_text = translate_string(help_text)
 
         # Create the dialog container on the main thread
         __package__dialog = create_popup_window(
             f"{translate_string(title)}",
-            f"{translate_string(help_text)}",
+            help_text,
             close_button=True,
         )
 

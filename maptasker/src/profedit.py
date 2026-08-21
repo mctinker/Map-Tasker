@@ -46,8 +46,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import taskedit
+from maptasker.src import sessundo, taskedit
 from maptasker.src.actionc import action_codes
+from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
 
@@ -1074,12 +1075,20 @@ def render_standalone_profile_xml(edited_profile: EditableProfile) -> str:
     return ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_profile_xml(edited_profile: EditableProfile, output_path: str) -> None:
+def write_standalone_profile_xml(edited_profile: EditableProfile, output_path: str) -> str:
     """Write the edited Profile (plus its linked Task(s)) as a standalone XML file.
     Raises OSError on failure.
+
+    A safety copy of anything already at `output_path` is taken first, into a
+    MapTasker_Backups folder beside it -- see presave.backup_local_file.  Taken here
+    rather than at the buttons that call this, so no export path can be added later that
+    quietly skips it.  Returns the copy's path, or "" if there was nothing to copy or the
+    copy failed (which does not stop the write -- see presave's module comment).
     """
+    _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
         out_file.write(render_standalone_profile_xml(edited_profile))
+    return safety_copy
 
 
 def save_profile_to_android(
@@ -1140,14 +1149,15 @@ def register_new_profile(edited_profile: EditableProfile, profile_name: str) -> 
     or after a successful Save To Android import (see
     userintr.save_profile_to_android_event's is_new_profile branch).
     """
-    PrimeItems.tasker_root_elements["all_profiles"][edited_profile.profile_id] = {
-        "xml": edited_profile.profile_element,
-        "name": profile_name,
-    }
-    PrimeItems.tasker_root_elements["all_profiles_by_name"][profile_name] = {
-        "xml": edited_profile.profile_element,
-        "id": edited_profile.profile_id,
-    }
+    with sessundo.undoable(f"Add Profile '{profile_name}'"):
+        PrimeItems.tasker_root_elements["all_profiles"][edited_profile.profile_id] = {
+            "xml": edited_profile.profile_element,
+            "name": profile_name,
+        }
+        PrimeItems.tasker_root_elements["all_profiles_by_name"][profile_name] = {
+            "xml": edited_profile.profile_element,
+            "id": edited_profile.profile_id,
+        }
 
 
 def add_profile_to_project(edited_profile: EditableProfile, project_name: str) -> None:
@@ -1180,22 +1190,23 @@ def add_profile_to_project(edited_profile: EditableProfile, project_name: str) -
     every other view in the same session. No-op if project_name isn't a known
     Project (defense in depth; the GUI should only offer real Project names).
     """
-    project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
-    if project_entry is None:
-        return
+    with sessundo.undoable(f"Add a Profile to Project '{project_name}'"):
+        project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+        if project_entry is None:
+            return
 
-    project_element = project_entry["xml"]
-    pids_element = project_element.find("pids")
-    existing_ids = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
-    if edited_profile.profile_id not in existing_ids:
-        existing_ids.append(edited_profile.profile_id)
-    _set_child_text(project_element, "pids", ",".join(existing_ids))
+        project_element = project_entry["xml"]
+        pids_element = project_element.find("pids")
+        existing_ids = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
+        if edited_profile.profile_id not in existing_ids:
+            existing_ids.append(edited_profile.profile_id)
+        _set_child_text(project_element, "pids", ",".join(existing_ids))
 
-    for task_id in (edited_profile.entry_task_id, edited_profile.exit_task_id):
-        if task_id:
-            add_task_to_project(task_id, project_name)
+        for task_id in (edited_profile.entry_task_id, edited_profile.exit_task_id):
+            if task_id:
+                add_task_to_project(task_id, project_name)
 
-    touch_project_mdate(project_element)
+        touch_project_mdate(project_element)
 
 
 def add_task_to_project(task_id: str, project_name: str) -> None:
@@ -1221,17 +1232,18 @@ def add_task_to_project(task_id: str, project_name: str) -> None:
     No-op if project_name isn't a known Project (defense in depth; the GUI
     should only offer real Project names).
     """
-    project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
-    if project_entry is None:
-        return
+    with sessundo.undoable(f"Add a Task to Project '{project_name}'"):
+        project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
+        if project_entry is None:
+            return
 
-    project_element = project_entry["xml"]
-    tids_element = project_element.find("tids")
-    existing_ids = tids_element.text.split(",") if tids_element is not None and tids_element.text else []
-    if task_id not in existing_ids:
-        existing_ids.append(task_id)
-    _set_child_text(project_element, "tids", ",".join(existing_ids))
-    touch_project_mdate(project_element)
+        project_element = project_entry["xml"]
+        tids_element = project_element.find("tids")
+        existing_ids = tids_element.text.split(",") if tids_element is not None and tids_element.text else []
+        if task_id not in existing_ids:
+            existing_ids.append(task_id)
+        _set_child_text(project_element, "tids", ",".join(existing_ids))
+        touch_project_mdate(project_element)
 
 
 def count_profile_tasks(profile_name: str) -> int:
@@ -1278,23 +1290,24 @@ def delete_profile(profile_name: str) -> list[str]:
     leaving a dangling id behind would make the Profile appear to still exist in
     whichever view walked that Project.
     """
-    resolved = resolve_profile_by_name(profile_name)
-    if resolved is None:
-        return [f"Profile '{profile_name}' no longer exists."]
-    profile_id, _ = resolved
+    with sessundo.undoable(f"Delete Profile '{profile_name}'"):
+        resolved = resolve_profile_by_name(profile_name)
+        if resolved is None:
+            return [f"Profile '{profile_name}' no longer exists."]
+        profile_id, _ = resolved
 
-    for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
-        project_element = project_entry["xml"]
-        pids_element = project_element.find("pids")
-        existing_ids = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
-        if profile_id not in existing_ids:
-            continue
-        _set_child_text(project_element, "pids", ",".join(i for i in existing_ids if i != profile_id))
-        touch_project_mdate(project_element)
+        for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+            project_element = project_entry["xml"]
+            pids_element = project_element.find("pids")
+            existing_ids = pids_element.text.split(",") if pids_element is not None and pids_element.text else []
+            if profile_id not in existing_ids:
+                continue
+            _set_child_text(project_element, "pids", ",".join(i for i in existing_ids if i != profile_id))
+            touch_project_mdate(project_element)
 
-    PrimeItems.tasker_root_elements.get("all_profiles", {}).pop(profile_id, None)
-    PrimeItems.tasker_root_elements.get("all_profiles_by_name", {}).pop(profile_name, None)
-    return []
+        PrimeItems.tasker_root_elements.get("all_profiles", {}).pop(profile_id, None)
+        PrimeItems.tasker_root_elements.get("all_profiles_by_name", {}).pop(profile_name, None)
+        return []
 
 
 def validate_new_profile_requirements(edited_profile: EditableProfile) -> list[str]:
@@ -1330,20 +1343,21 @@ def apply_edited_profile_to_live_tree(edited_profile: EditableProfile) -> None:
     register_new_profile first; same as apply_edited_task_to_live_tree's
     identical no-op for a brand-new Task.
     """
-    all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
-    entry = all_profiles.get(edited_profile.profile_id)
-    if entry is None:
-        return
+    with sessundo.undoable(f"Edit Profile '{edited_profile.profile_element.findtext('nme', '') or edited_profile.profile_id}'"):
+        all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
+        entry = all_profiles.get(edited_profile.profile_id)
+        if entry is None:
+            return
 
-    old_name = entry["name"]
-    new_name = edited_profile.profile_element.findtext("nme", "") or old_name
+        old_name = entry["name"]
+        new_name = edited_profile.profile_element.findtext("nme", "") or old_name
 
-    all_profiles[edited_profile.profile_id] = {"xml": edited_profile.profile_element, "name": new_name}
+        all_profiles[edited_profile.profile_id] = {"xml": edited_profile.profile_element, "name": new_name}
 
-    all_profiles_by_name = PrimeItems.tasker_root_elements.setdefault("all_profiles_by_name", {})
-    if old_name in all_profiles_by_name and old_name != new_name:
-        del all_profiles_by_name[old_name]
-    all_profiles_by_name[new_name] = {"xml": edited_profile.profile_element, "id": edited_profile.profile_id}
+        all_profiles_by_name = PrimeItems.tasker_root_elements.setdefault("all_profiles_by_name", {})
+        if old_name in all_profiles_by_name and old_name != new_name:
+            del all_profiles_by_name[old_name]
+        all_profiles_by_name[new_name] = {"xml": edited_profile.profile_element, "id": edited_profile.profile_id}
 
 
 def apply_profile_rename(edited_profile: EditableProfile, new_name: str) -> list[str]:
@@ -1401,19 +1415,20 @@ def rename_profile_in_live_tree(edited_profile: EditableProfile) -> str:
     splices into the saved file, so the new name survives a save; updating only
     the table's "name" field would leave the written XML carrying the old one.
     """
-    all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
-    entry = all_profiles.get(edited_profile.profile_id)
-    if entry is None:
-        return ""
+    with sessundo.undoable(f"Rename Profile to '{edited_profile.profile_element.findtext('nme', '')}'"):
+        all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
+        entry = all_profiles.get(edited_profile.profile_id)
+        if entry is None:
+            return ""
 
-    old_name = entry["name"]
-    new_name = edited_profile.profile_element.findtext("nme", "") or old_name
-    live_element = entry["xml"]
-    _set_child_text(live_element, "nme", new_name)
-    entry["name"] = new_name
+        old_name = entry["name"]
+        new_name = edited_profile.profile_element.findtext("nme", "") or old_name
+        live_element = entry["xml"]
+        _set_child_text(live_element, "nme", new_name)
+        entry["name"] = new_name
 
-    all_profiles_by_name = PrimeItems.tasker_root_elements.setdefault("all_profiles_by_name", {})
-    if old_name in all_profiles_by_name and old_name != new_name:
-        del all_profiles_by_name[old_name]
-    all_profiles_by_name[new_name] = {"xml": live_element, "id": edited_profile.profile_id}
-    return old_name
+        all_profiles_by_name = PrimeItems.tasker_root_elements.setdefault("all_profiles_by_name", {})
+        if old_name in all_profiles_by_name and old_name != new_name:
+            del all_profiles_by_name[old_name]
+        all_profiles_by_name[new_name] = {"xml": live_element, "id": edited_profile.profile_id}
+        return old_name

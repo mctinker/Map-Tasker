@@ -48,6 +48,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
+from maptasker.src import sessundo
+from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 
 BASE_PROJECT_NAME = "Base"
@@ -254,10 +256,11 @@ def register_new_project(edited_project: EditableProject) -> None:
     standalone-file/Save-To-Android path to also call this from, unlike
     profedit.register_new_profile/taskedit.register_new_task.
     """
-    PrimeItems.tasker_root_elements.setdefault("all_projects", {})[edited_project.project_name] = {
-        "xml": edited_project.project_element,
-        "name": edited_project.project_name,
-    }
+    with sessundo.undoable(f"Add Project '{edited_project.project_name}'"):
+        PrimeItems.tasker_root_elements.setdefault("all_projects", {})[edited_project.project_name] = {
+            "xml": edited_project.project_element,
+            "name": edited_project.project_name,
+        }
 
 
 def is_project_enabled(edited_project: EditableProject) -> bool:
@@ -344,13 +347,14 @@ def rename_project_in_live_tree(old_name: str, edited_project: EditableProject) 
     No-op if old_name isn't registered (defense in depth; the GUI should only
     ever pass a name that was just loaded via load_project_for_edit).
     """
-    all_projects = PrimeItems.tasker_root_elements.get("all_projects", {})
-    if old_name not in all_projects:
-        return
+    with sessundo.undoable(f"Rename Project '{old_name}'"):
+        all_projects = PrimeItems.tasker_root_elements.get("all_projects", {})
+        if old_name not in all_projects:
+            return
 
-    new_name = edited_project.project_element.findtext("name", "") or old_name
-    del all_projects[old_name]
-    all_projects[new_name] = {"xml": edited_project.project_element, "name": new_name}
+        new_name = edited_project.project_element.findtext("name", "") or old_name
+        del all_projects[old_name]
+        all_projects[new_name] = {"xml": edited_project.project_element, "name": new_name}
 
 
 def _project_child_ids(project_element: defusedxml.ElementTree.Element, tag: str) -> list[str]:
@@ -528,13 +532,21 @@ def render_standalone_project_xml(project_name: str) -> str:
     return ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_project_xml(project_name: str, output_path: str) -> None:
+def write_standalone_project_xml(project_name: str, output_path: str) -> str:
     """Write a Project (plus every Profile/Task it owns) as a standalone XML
     file. Raises OSError on failure, ValueError if the Project no longer exists.
+
+    A safety copy of anything already at `output_path` is taken first, into a
+    MapTasker_Backups folder beside it -- see presave.backup_local_file.  Taken here
+    rather than at the buttons that call this, so no export path can be added later that
+    quietly skips it.  Returns the copy's path, or "" if there was nothing to copy or the
+    copy failed (which does not stop the write -- see presave's module comment).
     """
     rendered = render_standalone_project_xml(project_name)
+    _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
         out_file.write(rendered)
+    return safety_copy
 
 
 def save_project_to_android(project_name: str, ip_address: str, ip_port: str) -> tuple[int, str]:
@@ -582,23 +594,24 @@ def delete_profiles_and_tasks_of_project(project_name: str) -> None:
     delete_project. First delete-a-Profile/Task primitive in the app; scoped
     to this cascade only, not exposed as a standalone button.
     """
-    live_element = resolve_project_by_name(project_name)
-    if live_element is None:
-        return
+    with sessundo.undoable(f"Delete the contents of Project '{project_name}'"):
+        live_element = resolve_project_by_name(project_name)
+        if live_element is None:
+            return
 
-    all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
-    all_profiles_by_name = PrimeItems.tasker_root_elements.get("all_profiles_by_name", {})
-    for profile_id in _project_child_ids(live_element, "pids"):
-        entry = all_profiles.pop(profile_id, None)
-        if entry is not None:
-            all_profiles_by_name.pop(entry["name"], None)
+        all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
+        all_profiles_by_name = PrimeItems.tasker_root_elements.get("all_profiles_by_name", {})
+        for profile_id in _project_child_ids(live_element, "pids"):
+            entry = all_profiles.pop(profile_id, None)
+            if entry is not None:
+                all_profiles_by_name.pop(entry["name"], None)
 
-    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
-    all_tasks_by_name = PrimeItems.tasker_root_elements.get("all_tasks_by_name", {})
-    for task_id in _project_child_ids(live_element, "tids"):
-        entry = all_tasks.pop(task_id, None)
-        if entry is not None:
-            all_tasks_by_name.pop(entry["name"], None)
+        all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+        all_tasks_by_name = PrimeItems.tasker_root_elements.get("all_tasks_by_name", {})
+        for task_id in _project_child_ids(live_element, "tids"):
+            entry = all_tasks.pop(task_id, None)
+            if entry is not None:
+                all_tasks_by_name.pop(entry["name"], None)
 
 
 def move_project_contents_to_base(project_name: str) -> str:
@@ -649,21 +662,22 @@ def delete_project(project_name: str, *, keep_contents: bool) -> list[str]:
     and source would be the same Project, so there's nothing meaningful to
     move -- Base can only be deleted with its contents (or renamed first).
     """
-    if project_name == BASE_PROJECT_NAME and keep_contents:
-        return [
-            f"'{BASE_PROJECT_NAME}' can't be deleted with 'Keep Contents' -- "
-            f"there's no other default Project to move its contents into. "
-            f"Use 'Delete Contents', or rename it first.",
-        ]
+    with sessundo.undoable(f"Delete Project '{project_name}'"):
+        if project_name == BASE_PROJECT_NAME and keep_contents:
+            return [
+                f"'{BASE_PROJECT_NAME}' can't be deleted with 'Keep Contents' -- "
+                f"there's no other default Project to move its contents into. "
+                f"Use 'Delete Contents', or rename it first.",
+            ]
 
-    all_projects = PrimeItems.tasker_root_elements.get("all_projects", {})
-    if project_name not in all_projects:
-        return [f"Project '{project_name}' no longer exists."]
+        all_projects = PrimeItems.tasker_root_elements.get("all_projects", {})
+        if project_name not in all_projects:
+            return [f"Project '{project_name}' no longer exists."]
 
-    if keep_contents:
-        move_project_contents_to_base(project_name)
-    else:
-        delete_profiles_and_tasks_of_project(project_name)
+        if keep_contents:
+            move_project_contents_to_base(project_name)
+        else:
+            delete_profiles_and_tasks_of_project(project_name)
 
-    del all_projects[project_name]
-    return []
+        del all_projects[project_name]
+        return []

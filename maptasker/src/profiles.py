@@ -615,10 +615,13 @@ def align_html_text(html_string: str) -> str:
     # Setup the intial spacing
     spaces_before_position += 20
 
-    # Handle 'Configuration Parameter(s):'
-    config_position = html_string.find("Configuration Parameter(s):")
-    if config_position != -1:
-        spaces_before_position += config_position - position_start - 6
+    # NOTE: do not derive any extra indentation from where 'Configuration Parameter(s):'
+    # sits in the string.  That offset is a raw *markup* offset -- it counts every
+    # character of the '&nbsp;' entities reformat_html() has already sprinkled through
+    # the condition (six characters apiece), so a plugin Event with configuration
+    # parameters produced an indent of over a thousand spaces.  Wrapped, that pushed
+    # several blank lines between every argument.  Every continuation line is aligned
+    # by spaces_before_position alone, which is a count of rendered columns.
 
     # Format Priority and '[(icon)DISABLED]'
     html_string = html_string.replace(" Priority:", "<br>Priority:").replace(

@@ -2,28 +2,29 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.0.0] 20-Aug-2026
+## [13.0.1] ??-Aug-2026  # FIX
 
 ### Added
 
-- Added: Edit Scene Drag and Drop in Preview - Version 2 Scene element(s) up-and-down the tree view, and Legacy Scene element(s) move x-and-y coordinates.
-- Added: Edit Scene 'Text' - Missing arguments have been added to provide full edit-text argument support.
-- Added: Scene Version 2 Preview now gets a bounding box around the defined elements to reflect the scene dimensions.
-- Added: Edit Scene Version 2 'Apply when' (on every modifier of every element) now offers the 'Select Variable' picker, the same one the other variable-backed fields use.
-- Added: 'Health Check' - a new button in the 'Display Views' section scans the loaded XML and reports what is broken or dead in it.
-- Added: 'Compare Files' - a new button in the 'Display Views' section compares another XML file against the loaded one and reports what was added, removed, renamed and changed.
-- Added: 'Variable Xref' - a new command to provide an in-depth cross-reference analysis of all the variables in the XML configuration.
-- Added: 'Disable/Enable' toggle switch when Editing a Project.
+- Added: 'Find...' on the Map and Diagram view toolbars - a structured search that asks the loaded configuration a question rather than scanning the text on screen.  Ask for every Task performing a given action, every Profile a given trigger fires, everything that references a given app or a given Scene, or any combination of those, optionally narrowed to one Project.  Every entry the pulldowns offer is one your configuration actually uses, with a count beside it, and the boxes combine - pick a trigger and an action together and you get the Profiles that trigger that way AND run a Task that does that.  Results come back as a clickable list of objects grouped by Project; clicking one takes you to it, building the Map for it if what is on screen cannot show it.  'Save Results' writes the list to a MapTasker_Find file.  Unlike 'Search', the answer is read from the XML, so it does not change with the detail level, the Project selection, or whether a Map has been run.
+- Added: A 'Find...' result clicked in the Diagram view now lands on the exact object in the Diagram, the way one clicked in the Map lands on the exact line there.  The Diagram is plain text and carries no anchors, so the line each Project, Profile, Task and Scene is drawn on is recorded as the diagram is built.  That is what lets a click tell two Tasks of the same name apart - it goes to the one you clicked rather than to the first one drawn with that name.  An object the Diagram on screen does not hold (it was built for a single Project, or cut short at the view limit) falls back to the Map, which is built to show it.
+- Added: 'Changes Pending' message while editing a Project, Profile, Task or Scene.  It appears as soon as something has been changed and stays until the change is saved.
+- Added: 'Undo' and 'Redo' in the new 'Editing' section of the main window.  These cover every edit panel, not just the Scene designer: an edit, an Add, a Delete or a Rename of a Project, Profile, Task or Scene can be taken back, and put back again.  The line beneath the buttons always names what the next press would do.  Deleting a Project along with its contents is a single step - one 'Undo' brings back the Project, its Profiles and its Tasks together.  Undo affects only the loaded XML; no file, and nothing on the Android device, is touched.
+- Added: 'Edit History' button, listing every change made to the loaded XML this session, newest first.
+- Added: When exporting a Project, Profile, Task, or Scene locally, or saving one to the Android device — the old version is copied into a MapTasker_Backups folder first if it aslready exists, so that an overwrite never loses what was already there. That folder sits beside the file for a local save and in the current directory for an Android one, the post-save message tells you where the copy landed, and the ten most recent copies of any given file are retained.
 
 ### Changed
 
-- Changed: Version 2 Scene 'type' field (e.g. 'type: Text') in the Map view is merged in with it's arguments.  It's arguments are now indented in the Map view.
+- Changed: Updated the README and associated sample images.
+- Changed: Only display dthe 'Add' and 'Edit' buttons for the specific single Tasker object selected.
+- Changed: Moved the 'Undo', 'Redo', and 'Edit History' buttons to the container with the 'Add' and 'Edit' buttons.
+- Changed: Updated the help ('Display Help' button) to include the recently added commands/functions.
 
 ### Fixed
 
-- Fixed: Added missing text translations
-- Fixed: 'Open View in New Window' checkbox, when unchecked, only reuses the window if for the same object.  Fixed so that it reuses the same (Diagram or Map view) window regardless, if unchecked.
-- Fixed: Disabled Projects are not identified as such in the Map view.
+- Fixed: Deleting a Task, Profile or Scene and then using 'Save to Current File' wrote the deleted item back into the saved file, so it reappeared when that file was loaded.  Nothing indicated the delete had not taken.  Deletes are now written out correctly.
+- Fixed: Hotlinks in the Health Check and Variable Xref are not working on Windows 11.
+- Fixed: Possible program error on exit on Windows 11.
 
 ### Known Issue
 
@@ -38,6 +39,21 @@ For each PID listed in the output from the above terminal command, issue the fol
 
 
 ## Older History Logs
+
+## [13.0.0] 20-Aug-2026
+
+- Added: Edit Scene Drag and Drop in Preview - Version 2 Scene element(s) up-and-down the tree view, and Legacy Scene element(s) move x-and-y coordinates.
+- Added: Edit Scene 'Text' - Missing arguments have been added to provide full edit-text argument support.
+- Added: Scene Version 2 Preview now gets a bounding box around the defined elements to reflect the scene dimensions.
+- Added: Edit Scene Version 2 'Apply when' (on every modifier of every element) now offers the 'Select Variable' picker, the same one the other variable-backed fields use.
+- Added: 'Health Check' - a new button in the 'Display Views' section scans the loaded XML and reports what is broken or dead in it.
+- Added: 'Compare Files' - a new button in the 'Display Views' section compares another XML file against the loaded one and reports what was added, removed, renamed and changed.
+- Added: 'Variable Xref' - a new command to provide an in-depth cross-reference analysis of all the variables in the XML configuration.
+- Added: 'Disable/Enable' toggle switch when Editing a Project.
+- Changed: Version 2 Scene 'type' field (e.g. 'type: Text') in the Map view is merged in with it's arguments.  It's arguments are now indented in the Map view.
+- Fixed: Added missing text translations
+- Fixed: 'Open View in New Window' checkbox, when unchecked, only reuses the window if for the same object.  Fixed so that it reuses the same (Diagram or Map view) window regardless, if unchecked.
+- Fixed: Disabled Projects are not identified as such in the Map view.
 
 ## [12.1.2] 13-Aug-2026
 

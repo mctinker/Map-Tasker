@@ -1580,9 +1580,6 @@ msgstr "ss:dd AM/PM veya %değişken"
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 msgstr "Yapılandırmanızın 'Harita', 'Diyagram' veya 'Ağaç' görünümünü doğrudan GUI içinde görüntüleyin.\n\nGörünümlerin çalışması için öncelikle XML'in yerel sürücüden veya Android cihazından alınması gerekir.\n\nXML zaten getirildiyse görünüme girdi olarak kullanılacaktır.  'Temizle' düğmesine basmak görünüm verilerini temizleyecektir.\n\nÇok büyük konfigürasyonlar, Haritalar ve Diyagramlar için daha uzun çalışma sürelerine neden olacaktır.  En iyi performansı elde etmek için eşlenecek tek bir Proje veya Profil seçin.\n\nİsteğe bağlı olarak 'Görüntüleme Sınırı' ayarını kullanarak işlenecek veri miktarını sınırlayın.  Sınır ne kadar büyük olursa, eşlenmesine izin verilecek çıktı da o kadar büyük olur.  Ne kadar çok çıktı üretilirse işlem süresi de o kadar artar.\n\n\nDiyagram Görünümü aşağıdaki davranışa sahiptir:\n\n - Yalnızca Projeler ve Profiller görüntülenebilir. Yalnızca tek bir Görev veya Sahneden oluşan XML görüntülenmez.\n\n - Diyagramdaki bağlantının tamamını vurgulamak için yatay bir konnektöre tıklayın.\n\n\nAğaç Görünümü aşağıdaki davranışa sahiptir:\n\n- Yalnızca Projeler görüntülenebilir. Yalnızca tek bir Profil veya Görev veya Sahneden oluşan XML görüntülenmez.\n\n- Tek ad ayarına bakılmaksızın tüm Projeler, Profiller, Görevler ve Sahneler görüntülenir.\n\n"
 
-msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "MapTasker, yüklediğiniz Tasker XML dosyasına (ör. 'backup.xml') dayalı olarak Android Tasker yapılandırmanızı görüntüler. Ekran isteğe bağlı olarak tüm Projeleri, Profilleri, Görevleri ve bunların eylemlerini, Profil/Görev koşullarını ve Profil/Görevle ilgili diğer bilgileri içerecektir.\n\nXML dosyası yüklendikten sonra isteğe bağlı olarak Projelerinizi, Profillerinizi, Görevlerinizi ve Sahnelerinizi düzenleyebilirsiniz.\n\n* Ekran seçenekleri şunlardır:\n    Düzey 0: Yalnızca adsız Görevler için (sessiz) yalnızca ilk Görev eylemini görüntüler.\n    Düzey 1 = yalnızca bilinmeyen Görevler için tüm Görev eylemi ayrıntılarını görüntüler (varsayılan).\n    Düzey 2 = her Görevde tam Görev eylemi adını görüntüler.\n    Seviye 3 = her Görevde, eylem ayrıntılarıyla birlikte tam Görev eylem ayrıntılarını görüntüler.\n    Düzey 4 = 3'ün görüntüleme düzeyi artı Projenin genel değişkenleri.\n\n    Seviye 5 = 4'ün görüntü seviyesi artı Sahne argümanı ayrıntıları.\n\n* Sadece Her Şeyi Görüntüle: Koşulların, TaskerNet bilgilerinin, tercihlerin, güzel çıktının, dizinin ve yapılandırma taslağının görüntülenmesini açar.\n\n* Görüntüleme Koşulları: Profil ve Görev koşullarının görüntülenmesini açın.\n\n* TaskerNet Bilgilerini Görüntüle - Varsa, TaskerNet yayınlama bilgilerini görüntüleyin.\n\n* Tasker Tercihlerini Görüntüle - Tasker'ın sistem Tercihlerini görüntüleyin.\n\n* Twisty altında Görev Ayrıntılarını Gizle: Görev bilgilerini ► içinde gizleyin ve görüntülemek için tıklayın.\n\n* Başlangıçta köprülerin Dizini'ni görüntüleyin.\n\n* Daha Güzel Çıktı Görüntüle: Tüm argümanlar için yeni satırlar ve girintiler ekleyerek çıktıyı insanlar tarafından daha okunabilir hale getirin.\n\n* Adlarını italik, kalın, altı çizili ve/veya vurgulamak için Proje/Profil/Görev/Sahne Adları seçenekleri.\n\n* Görev Eylem Sınırı: Görevin belirtilen sayıda eylemden fazla olması durumunda bir uyarı görüntüler.\n\n* If/Then/Else Görev Eylemleri için girinti miktarı.\n\n* Dil: Çıkış için kullanılacak dili seçin.  Varsayılan İngilizce'dir.\n\n* Kullanılacak Yazı Tipi: Çıktı için kullanılan tek aralıklı yazı tipini değiştirin.\n\n* Görünüm Limiti: Görünümü oluştururken kullanılan işlem süresini kontrol edin.\n\n* Sıfırlama Seçenekleri: Her şeyi temizleyin ve yeniden başlayın.\n\n* Yerel XML Dosyasını Al: yedeklenen/dışa aktarılan XML dosyasını yerel sürücünüzden alın.\n\n* Ayarları Kaydet - Bu ayarları daha sonra kullanmak üzere kaydedin.\n\n* Ayarları Geri Yükle - Daha önce kaydedilmiş bir oturumdaki ayarları geri yükleyin.\n\n* Ekran Görünümleri: Projelerinizin, Profillerinizin, Görevlerinizin ve Sahnelerinizin yapılandırma Haritasını, Diyagramını veya Ağaç görünümünü doğrudan GUI'de görüntüleyin.\n\n* Android Cihazdan XML Al: Yedeklenen/dışa aktarılan XML dosyasını Android cihazdan alın.  Android cihazınızın IP adresi ve port numarasının yanı sıra cihazdaki dosya konumu da istenecektir.\n\n* Özel Ad sekmesi: görüntülenecek tek, belirli bir adlandırılmış öğe girin...\n   - Proje Adı: görüntülenecek belirli bir Proje girin.\n   - Profil Adı: görüntülenecek belirli bir Profil girin.\n   - Görev Adı: görüntülenecek belirli bir Görev girin.\n   - Sahne Adı: görüntülenecek belirli bir Sahne girin.  Sahip olduğu Projenin başlığı ve\n                 Sahnenin öğeleri (artı bu öğelerin çağırdığı Görevler) görüntülenir;\n                 Projenin Profilleri ve diğer Sahneleri değildir.\n   (Bu dördü özeldir: yalnızca birini girin)\n\n   Çeşitli kaydetme seçenekleriyle Projeleri, Profilleri ve Görevleri doğrudan GUI'ye ekleyin ve düzenleyin.\n\n* Renkler sekmesi: ekranın çeşitli öğeleri için renkleri seçin.\n              (örneğin Projeler, Profiller, Görevler vb. için renk).\n\n* Analiz sekmesi: Bir Proje, Profil, Görev veya Sahne analizini bir Yapay Zeka modeline göre çalıştırın.\n\n* Hata Ayıklama sekmesi: Çalışma Zamanı Ayarları seçeneğini görüntüleyin ve Hata Ayıklama modunu açın.\n\n* Çıkış: Programdan çıkın (çıkış).\n\nNotlar:\n\n- Değişiklik günlüğü geçmişinin tamamını https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md adresinde görüntüleyin\n\n- Görünüm modunun değiştirilmesi, çıktı için kullanılan renkleri varsayılan değerlerine değiştirecektir.\n\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 msgstr "'Görüntüleme Sınırı', görünümü oluştururken kullanılan işlem süresini kontrol etmenin bir yoludur.\n\n- Sayılar, üretilecek çıktı satırlarının göreceli miktarını temsil eder.\n\n- Sınır ne kadar büyük olursa, eşlenmesine izin verilecek çıktı da o kadar büyük olur.  Ne kadar çok çıktı üretilirse işlem süresi de o kadar artar.\n\n- Çok büyük konfigürasyonlar çok büyük çıktı haritaları üretecek ve daha fazla işlem süresine neden olacaktır.  Eski cihazlarda bu işlem 30 saniye veya daha uzun sürebilir.\n\n- Bir limit belirleyerek, bir konfigürasyonu eşlerken daha uzun sürelere izin vermeyerek kullanılan işlem süresini kontrol edebilirsiniz.\n\n- Harita hesaplanırken sınıra ulaşılırsa çıktı orada duracaktır.\n\n- Kullanım durumunuz için hangi ayarın en iyi olduğunu görmek için bu ayarla denemeler yapabilirsiniz.\n\n- Tek bir Proje, Profil veya Görev seçmek, işlem süresini sınırlamanın başka bir yoludur.\n\n"
 
@@ -1679,68 +1676,50 @@ msgstr "Sahnenin ortasına, yığının üstüne ekler. İstediğiniz yere sür�
 msgid "Appearance Mode"
 msgstr "Görünüm Modu"
 
-
-
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "Sırayla uygulanır; alttaki üstte yer alır."
-
 
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "Bu Sahne kaydedildiğinde uygulanır, şimdi değil - Sahne iletişim kutusundaki İptal seçeneği hem öğeyi hem de Görevleri olduğu gibi bırakır."
 
-
-
 msgid "Back to Editor"
 msgstr "Editöre Geri Dön"
-
 
 msgid "Bounds"
 msgstr "Sınırlar"
 
-
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "İptal edildi. Bu Sahnede yapılan değişiklikler iptal edildi."
-
 
 msgid "Choose another file..."
 msgstr "Başka bir dosya seç..."
 
-
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "Bir bileşeni seçmek için tıklayın, birkaçını almak için aynı kapsayıcıdaki başka bir bileşeni Shift tuşuna basarak tıklayın ve bunları kendi kardeşleri arasında yeniden sıralamak için sürükleyin. Bir bileşeni bir kabın içine veya dışına taşımak, editörün Giriş ve Çıkış düğmeleridir; Geri alma seçeneği de orada."
-
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "Bir öğeyi seçmek için tıklayın, birkaçını almak için arka plandaki bir kutuyu Shift tuşunu basılı tutarak tıklayın veya sürükleyin ve hepsini taşımak için bunlardan herhangi birini sürükleyin - ok tuşları itme, 10 piksel için Shift. Tek bir öğeyi yeniden boyutlandırmak için bir tutamacı sürükleyin. Geri alma ve bir öğeyle ilgili diğer her şey düzenleyiciye geri döndü."
 
-
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "Bir öğeyi seçmek için tıklayın, taşımak için sürükleyin, yeniden boyutlandırmak için bir tutamacı sürükleyin, sürüklemek için ok tuşlarını kullanın (10 piksel için Shift). Aynı anda birden fazla fotoğraf çekmek için Shift tuşunu basılı tutarak tıklayın veya arka plandaki bir kutuyu sürükleyin."
-
 
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "Kaydetmeden kapanır ve Önizleme'de taşınan veya yeniden boyutlandırılan her şey dahil olmak üzere, bu Sahneyi tam olarak bu iletişim kutusu açıldığında olduğu gibi geri koyar.\n\nYeniden Adlandırma, bunun geri alamayacağı tek şeydir: onaylandığı anda yüklenen yedeğe uygulanır ve bu iletişim kutusunu onunla kapatır."
 
-
 msgid "Compare Files"
 msgstr "Dosyaları Karşılaştır"
-
 
 msgid "Compare With"
 msgstr "Şununla Karşılaştır:"
 
-
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Başka bir XML dosyasını yüklenen dosyayla karşılaştırın: eklenenler, kaldırılanlar, yeniden adlandırılanlar ve değiştirilenler.\n\nTaskerNet içe aktarımının neleri getirdiğini, bir düzenlemenin neleri değiştirdiğini veya iki yedekleme arasında nelerin farklı olduğunu görmek için bunu kullanın.\n\nYüklenen dosya 'Geçerli Dosyaya Kaydet' seçeneğinden geldiyse doğrudan kaydedildiği dosya sunulur.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
-
 
 msgid "Comparison cancelled."
 msgstr "Karşılaştırma iptal edildi."
 
-
 msgid "Comparison report could not be saved."
 msgstr "Karşılaştırma raporu kaydedilemedi."
-
 
 msgid "Comparison saved as"
 msgstr "Karşılaştırma şu şekilde kaydedildi:"
@@ -1757,11 +1736,8 @@ msgstr "Bu Sahneyi, buraya eklediğiniz veya değiştirdiğiniz ancak henüz kay
 msgid "Done"
 msgstr "Tamamlamak"
 
-
-
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "Bu Sahneyi, henüz kaydedilmemiş değişiklikler de dahil olmak üzere, yukarıda yazılan boyutta ana pencerede bir resim olarak çizer.\n\nBu iletişim kutusu, önizleme açıkken, içindeki her şey tutularak kapanır; önizlemenin 'Editöre Geri Dön' düğmesi onu geri getirir.\n\nBu, Tasker'in kendi oluşturucusu değil, bir temsilidir: %değişkenler çözümlenmek yerine adlandırılır ve resimler, video ve web içeriği yer tutucu olarak gösterilir."
-
 
 msgid "Duplicate"
 msgstr "Kopyalamak"
@@ -1769,14 +1745,11 @@ msgstr "Kopyalamak"
 msgid "Dropdown menu — shown when opened"
 msgstr "Açılır menü — açıldığında gösterilir"
 
-
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Dinamik ve Değişken Seç, Sahne gösterildiğinde işlenir."
 
-
 msgid "Dynamic value"
 msgstr "Dinamik değer"
-
 
 msgid "Edit Scene"
 msgstr "Sahneyi Düzenle"
@@ -1784,26 +1757,20 @@ msgstr "Sahneyi Düzenle"
 msgid "Edit item layout"
 msgstr "Öğe düzenini düzenle"
 
-
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "Seçimi koruyarak bunun yerine bunun özelliklerini düzenleyin."
-
 
 msgid "Event handlers"
 msgstr "Olay işleyicileri"
 
-
 msgid "Export Scene"
 msgstr "Sahneyi Dışa Aktar"
-
 
 msgid "Geometry"
 msgstr "Geometri"
 
-
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "Gri: MapTasker'ın bunun için bir argüman tablosu yoktur, bu nedenle Tasker'ın içeride ne beklediğini tahmin etmeden oluşturulamaz. Başlıklar MapTasker'ın kendi gruplamasıdır."
-
 
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
@@ -1811,11 +1778,8 @@ msgstr "Hatched fills and italic underlined text are %variables -- their values 
 msgid "Health Check"
 msgstr "Sağlık Kontrolü"
 
-
-
 msgid "Health Check found no errors or warnings."
 msgstr "Durum Kontrolü herhangi bir hata veya uyarı bulamadı."
-
 
 msgid "Health Check report could not be saved."
 msgstr "Durum Denetimi raporu kaydedilemedi."
@@ -1823,14 +1787,11 @@ msgstr "Durum Denetimi raporu kaydedilemedi."
 msgid "Health Check saved as"
 msgstr "Health Check saved as"
 
-
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "Bir açılır mesajın kaybolmadan önce ekranda ne kadar süre kalacağı.\n\n'Kapatılana kadar' her mesajı siz kapatana kadar açık tutar; bu, bir mesajın siz okuyamadan geçip gitmesi durumunda kullanışlıdır.\n\nBirkaç mesaj, okumanız gereken şeyleri (örneğin, bir Sahne öğesinin silinmesinden veya yeniden adlandırılmasından etkilenen Görevler) listeledikleri için kendi daha uzun sürelerini belirler. Burada ne seçilirse seçilsin, kendi zamanlamalarını korurlar."
 
-
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "Listede: Bir aralık için Shift tuşunu basılı tutarak tıklayın, bir aralık eklemek veya kaldırmak için Ctrl veya Cmd tuşunu basılı tutarak tıklayın."
-
 
 msgid "Landscape"
 msgstr "Manzara"
@@ -1841,51 +1802,38 @@ msgstr "Öğe düzeni"
 msgid "Legacy"
 msgstr "Miras"
 
-
 msgid "Legacy Scene"
 msgstr "Eski Sahne"
-
 
 msgid "List"
 msgstr "Liste"
 
-
-
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: görüntüleme sınırına ulaşıldı, diyagram kesildi"
-
 
 msgid "Modifiers"
 msgstr "Değiştiriciler"
 
-
 msgid "Never updated"
 msgstr "Hiç güncellenmedi"
-
 
 msgid "No Task addresses this element by name."
 msgstr "Hiçbir Görev bu öğeyi adıyla ele almaz."
 
-
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "Hiçbir XML dosyası yüklenmedi.  Önce bir XML dosyası edinin."
-
 
 msgid "No element matches that."
 msgstr "Hiçbir öğe bununla eşleşmiyor."
 
-
 msgid "Not an HTML colour name or #hex value."
 msgstr "Bir HTML renk adı veya #hex değeri değil."
-
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "Güncellenmedi - bunlar hem bu Sahneyi hem de bu öğeyi adlandırır, ancak bir sahne olarak değil"
 
-
 msgid "Nothing here."
 msgstr "Burada hiçbir şey yok."
-
 
 msgid "Notification Duration"
 msgstr "Bildirim Süresi"
@@ -1899,15 +1847,11 @@ msgstr "Sadece ne zaman"
 msgid "Notification Duration:"
 msgstr "Bildirim Süresi:"
 
-
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "Her bileşenin ana hatlarını çizin ve tasarımcının ağacının adlandırdığı şekilde adlandırın."
 
-
-
 msgid "Outline every element and name it."
 msgstr "Her öğenin ana hatlarını çizin ve adlandırın."
-
 
 msgid "Pick an icon"
 msgstr "Bir simge seçin"
@@ -1918,10 +1862,8 @@ msgstr "Bir Malzeme simgesi seçin."
 msgid "Pick from the Scene's environment and global variables."
 msgstr "Sahne ortamından ve küresel değişkenlerden seçim yapın."
 
-
 msgid "Preview"
 msgstr "Önizleme"
-
 
 msgid "Project(s) that list it."
 msgstr "Listeleyen projeler."
@@ -1932,8 +1874,6 @@ msgstr "Material'in kendi renk rollerinden birini seçin."
 msgid "Properties"
 msgstr "Özellikler"
 
-
-
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "Özellikler her seferinde bir öğe olarak düzenlenir. Sürükleme ve dürtme seçilen her şeyi taşır."
 
@@ -1943,39 +1883,29 @@ msgstr "Yeni bir ad ister ve bunu hemen şimdi yüklenen yedeğe uygular; onu tu
 msgid "Refresh"
 msgstr "Yenile"
 
-
-
-
 msgid "Rename Element"
 msgstr "Öğeyi Yeniden Adlandır"
 
 msgid "Remove background"
 msgstr "Arka planı kaldır"
 
-
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "Burada bir öğeyi yeniden adlandırmak, yedeği süpürmez: bir öğe düzeninde, Görevin Öğesi eyleminin onu ele alacak Sahne adı yoktur, dolayısıyla yeniden yazılacak hiçbir şey yoktur."
-
 
 msgid "Repeats once per array entry"
 msgstr "Dizi girişi başına bir kez tekrarlanır"
 
-
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "Sürüklenen konumları ve boyutları bu kadar piksele yuvarlayın."
-
 
 msgid "Save Scene To Android Device"
 msgstr "Sahneyi Android Cihaza Kaydet"
 
-
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Bu oturumun herhangi bir yerinde yapılan tüm düzenlemeler de dahil olmak üzere, yedeklemenin tamamını (yalnızca bu Sahneyi değil, içindeki her Projeyi, Profili, Görevi ve Sahneyi) kaydeder.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
 
-
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "Bu Sahneyi tüm öğeleriyle birlikte tek bir .scn.xml dosyası olarak kaydeder; Tasker'ın kendi Sahne dışa aktarımının ürettiği formatın aynısıdır.\n\nSahne öğelerinin çalıştırdığı görevler dahil değildir; kendi Projelerine aittirler."
-
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Yüklenen XML'i bozuk referanslar, referans gösterilmeyen Görevler, Profiller ve Sahneler ve adlandırma sorunları açısından tarayın.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
@@ -2091,43 +2021,32 @@ msgstr "Patlatmak"
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "Bu zaten yüklenmiş olan dosyadır.  Karşılaştırmak için farklı bir tane seçin."
 
-
-
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "Malzeme simgesi listesi okunamadığından onun yerine adı yazın."
-
 
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "Bu bileşenin değerini yazdığı Tasker değişkeni. Birkaçını virgülle ayırın. Bağlamayı ayarlamadan bildirmek için boş bırakın."
 
-
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "The Tasks that address it will be updated when this Scene is saved."
-
 
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "Bir satırın düzeni. Tasker, listeyi dolduran her giriş için onu bir kez çizer, dolayısıyla burada liste yerine tek bir satır görürsünüz."
 
-
 msgid "The loaded file was saved from"
 msgstr "Yüklenen dosya şuradan kaydedildi:"
-
 
 msgid "The original"
 msgstr "The original"
 
-
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "Orijinal Sahne: Boyutlandırılmış bir tuval üzerinde sabit konumlara yerleştirilen UI öğeleri (Metin, Düğme, Dikdörtgen, Resim, Web, ...)."
-
 
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "Ekran boyutu Sahne'nin değil, bu ön izlemenin boyutudur; Sürüm 2 düzeninin kendine ait bir boyutu yoktur, bu nedenle yeniden akışını görmek için 'Ekran'ı değiştirin. Malzeme rolüne göre adlandırılan renkler, Malzeme 3 temel paletinden alınmıştır; cihaz bunları kendi temasına göre çözer; bu Tema, Malzeme Siz'in altında duvar kağıdından gelir. Taralı dolgular ve italik altı çizili metinler %değişkenlerdir. Amber, işaret bileşenlerini 'Ne zaman göster' ile özetliyor. Değiştiricileri, değişkenleri ve eylemleri için herhangi bir bileşenin üzerine gelin."
 
-
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "Arama tamamlanmadı. Görünüm çok büyük olabilir veya tarayıcı meşgul olabilir."
-
 
 msgid "The two files hold the same configuration."
 msgstr "İki dosya aynı konfigürasyona sahiptir."

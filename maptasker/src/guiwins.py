@@ -11,11 +11,12 @@ import json
 import os
 import re
 import weakref
+import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to serialize, never to parse
 from typing import TYPE_CHECKING
 
 from nicegui import Event, app, context, ui
 
-from maptasker.src import mapjump, profedit, projedit, sceneedit, sceneview, taskedit
+from maptasker.src import mapfind, mapjump, profedit, projedit, sceneedit, sceneview, sessundo, taskedit
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import EDIT_SCENE
 from maptasker.src.format import css_color
@@ -32,8 +33,9 @@ from maptasker.src.sysconst import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Coroutine
 
+    import defusedxml.ElementTree
     from nicegui.elements.select import Select
 
     from maptasker.src.userintr import MyGui
@@ -150,6 +152,255 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
 
     dialog.open()
     return dialog
+
+
+# ==========================================
+# 2b. "CHANGES PENDING"
+#
+# The one indicator the four Edit dialogs -- Project, Profile, Task and Scene -- share: a
+# line that appears as soon as the item has been changed, and is gone again once there is
+# nothing left to save.
+#
+# WHY IT IS A COMPARISON AND NOT A FLAG.  The obvious build is a boolean every handler that
+# changes something sets, and it would have started lying within a week, because a change
+# reaches these dialogs by three completely different routes:  through widget values that
+# are only read at save time (an action's arguments, a condition's fields, a Scene's
+# dimensions); through handlers that hit the working copy the moment they run (Add/Copy/
+# Move/Delete Action, Add/Delete Condition, Link/Unlink Task, the Enabled toggles, Rename);
+# and -- in a Scene -- through a Preview window that goes on dragging elements about while
+# this dialog is closed.  That is dozens of separate places, across guiwins.py and
+# userintr.py, each of which would have to remember to set the flag, and the first one that
+# forgot would leave the message off after a real edit.
+#
+# So the dialog remembers what it opened with and keeps asking whether it still matches:
+# the edited element, serialized, plus the value of every field widget the dialog registered
+# in field_refs.  Nothing has to announce a change, so nothing can fail to -- an edit made
+# anywhere reaches the message by the same route as an edit made anywhere else.
+#
+# It only ever errs one way, and that is the way to err: it can say there is something to
+# save when what is left of the edit is trivial, and it cannot say there is nothing to save
+# when there is.  Typing a field back to what it was does take the message down again, which
+# a flag could not do -- but undoing by *button* often will not, because the undo is not a
+# byte-for-byte one: flipping a Project's Enabled switch off and back on restamps its
+# <mdate> (projedit.touch_project_mdate), and a Profile's leaves <limit> at the end of the
+# element rather than where it started.  The message stays up in both cases, correctly:
+# saving really would write a different file than the one that was loaded.
+#
+# WHAT COUNTS AS SAVED.  The message is measured against the state the dialog opened with,
+# not against the file, so a change that was applied to the loaded backup the moment it was
+# made -- a Rename, an Enabled toggle -- still counts as pending: it is in memory and not in
+# any file, and the buttons that put it in one are the ones this message is pointing at.
+# Every Ok/Save/Export path closes its dialog on success and so takes the message with it;
+# the ones that fail deliberately leave the dialog open, and the message with it, because
+# there is still something unsaved.
+# ==========================================
+# How often an open Edit dialog re-checks itself, in seconds.  Comfortably faster than anyone
+# can notice the message is missing, and each check is one Project/Profile/Task/Scene element
+# serialized -- not the backup, and not the Map.
+PENDING_CHANGES_POLL_SECONDS = 1.0
+
+# field_refs keys that say where a save GOES rather than what is being saved.  Typing a
+# different export path is not an edit to the item -- there would be nothing for Cancel to
+# discard -- so it must not raise the message.  Every other key in field_refs is content.
+PENDING_CHANGES_IGNORED_FIELDS: frozenset[str] = frozenset(
+    {"save_path", "project_save_path", "scene_save_path"},
+)
+
+
+def editor_state(
+    element: defusedxml.ElementTree.Element,
+    field_refs: dict,
+    *extra: object,
+) -> tuple:
+    """Everything about an Edit dialog that a change could show up in, as one comparable
+    value -- see the section comment above for what this is for.
+
+    `element` is the working copy the dialog edits (never the live tree's), which is where
+    every immediately-applied change lands, and `field_refs` the dialog's own widget table,
+    which is where the rest of them wait until a save reads it.  Read afresh on every call
+    rather than held: field_refs is rebuilt from scratch by the Task and Profile dialogs'
+    render passes, and a Scene's element is re-pointed at the live one once it is applied.
+
+    `extra` is for state that is neither -- pass anything a dialog keeps outside its element
+    and its widgets, already reduced to something comparable (the Version 2 Scene designer's
+    decoded layout and the Legacy designer's queued element renames are the only two; see
+    build_edit_scene_dialog).
+
+    Entries in field_refs that aren't widgets are skipped, not guessed at: the Scene dialog
+    parks its designers' callback tables in there too, and those are not values a user typed.
+    """
+    return (
+        ETW.tostring(element),
+        tuple(
+            (key, str(field_refs[key].value))
+            for key in sorted(field_refs)
+            if key not in PENDING_CHANGES_IGNORED_FIELDS and hasattr(field_refs[key], "value")
+        ),
+        *extra,
+    )
+
+
+class PendingChangesBanner:
+    """The "Changes Pending" line itself: built hidden, wherever the dialog wants it, then
+    told what to watch once the dialog's body is finished -- see watch().
+
+    Two calls rather than one because the two happen at different times.  Where the message
+    belongs is above the button row, but what counts as "unchanged" cannot be read until
+    everything below it has been built, since building is what fills field_refs.
+    """
+
+    def __init__(self) -> None:
+        with ui.row().classes("w-full items-center gap-2 mt-2") as self.row:
+            ui.icon("pending_actions").classes("text-orange-600")
+            ui.label(translate_string("Changes Pending")).classes("text-sm font-bold text-orange-600")
+            ui.label(
+                translate_string("Nothing is saved until you press Ok, Save or Export."),
+            ).classes("text-xs text-gray-500 italic")
+        self.row.visible = False
+
+    def watch(self, dialog: ui.dialog, state: Callable[[], object]) -> None:
+        """Start watching `state`, which is whatever editor_state() says about this dialog.
+
+        Call it once the dialog's body is fully built: what `state` returns at that moment is
+        the "unchanged" everything afterwards is measured against.
+        """
+        opened_as = state()
+
+        def refresh() -> None:
+            # A NiceGUI dialog is hidden rather than destroyed, so this timer outlives the
+            # dialog being closed, and a closed dialog has no message to show.  Skipping is
+            # right where cancelling would not be: Preview closes the Edit Scene dialog to
+            # get at the screen behind it and re-opens that same dialog afterwards (see
+            # suspended_scene_editor), and what was dragged about in the preview meanwhile
+            # is exactly what this has to report when it comes back.
+            if dialog.value:
+                # Assigning the value it already has is a no-op in NiceGUI -- a bindable
+                # property drops an unchanged set before it reaches the client -- so this
+                # sends nothing over the wire on the ticks where nothing has changed.
+                self.row.visible = state() != opened_as
+
+        ui.timer(PENDING_CHANGES_POLL_SECONDS, refresh)
+
+
+# ==========================================
+# 2c. SESSION UNDO
+#
+# The drawer's Undo/Redo pair and the history behind them.  What they act on lives in
+# sessundo.py; this is only the three controls, and the one thing they have to get right is
+# never offering an Undo that would not do anything -- see _refresh below.
+# ==========================================
+# How often the Undo/Redo buttons re-read whether there is anything to undo.
+#
+# Polled rather than pushed, for the same reason "Changes Pending" is a comparison rather
+# than a flag (see section 2b): an edit reaches the history from eighteen mutators across
+# four modules, several of them nested inside each other, and each one of those would have
+# to remember to refresh these buttons.  Asking sessundo four times a second costs two list
+# lookups and cannot be forgotten.
+UNDO_BUTTONS_POLL_SECONDS = 0.25
+
+
+def build_edit_history_dialog() -> None:
+    """Lists what the session's Undo would step back through, most recent first.
+
+    Read-only, and deliberately so.  Jumping straight to an arbitrary point in the list is
+    the obvious next feature and is not this one: every entry is a whole configuration, so
+    "go back four steps" would silently discard three edits that are not on screen.  Undo,
+    one press at a time, keeps the user looking at what each press actually did.
+    """
+    entries = sessundo.history()
+
+    with ui.dialog() as history_dialog, ui.card().classes("min-w-[420px] max-w-[680px] w-full p-6"):
+        ui.label(translate_string("Edit History")).classes("text-lg font-bold")
+        ui.label(
+            translate_string(
+                "Changes made to the loaded XML this session, newest first.  Undo steps back "
+                "through them one at a time.  Nothing here has been written to a file.",
+            ),
+        ).classes("text-xs text-gray-500")
+
+        if not entries:
+            ui.label(translate_string("Nothing has been changed yet.")).classes("mt-3 italic text-gray-500")
+        else:
+            with ui.column().classes("w-full gap-0 mt-3 max-h-80 overflow-auto"):
+                for position, (label, when) in enumerate(entries, start=1):
+                    with ui.row().classes("w-full items-baseline gap-2 py-1 border-b"):
+                        # The next press of Undo takes the first one back, which is worth
+                        # saying outright -- the list is otherwise just a list.
+                        ui.label("<" if position == 1 else f"{position}.").classes(
+                            "text-xs font-mono text-gray-400 w-8 shrink-0",
+                        )
+                        ui.label(label).classes("text-sm grow break-all")
+                        ui.label(when.strftime("%H:%M:%S")).classes("text-xs font-mono text-gray-400 shrink-0")
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Close"), on_click=history_dialog.close).props("outline")
+
+    history_dialog.open()
+
+
+def _create_undo_section(self: MyGui) -> None:
+    """The Undo/Redo pair and the Edit History button, in the 'Specific Name' tab's
+    Editing group -- alongside the Edit/Add buttons whose work they take back.
+
+    Undo lives out here rather than in the Edit dialogs because what it takes back is not
+    one dialog's business: deleting a Project reaches its Profiles and their Tasks, and the
+    dialog that started it is closed by the time the user wants it back.  It is also why
+    these are safe to press from here -- a NiceGUI dialog covers the page while it is
+    open, so an Undo cannot land underneath an editor still holding the elements it would
+    replace.
+    """
+    with ui.row().classes("w-full justify-center gap-2 gap-y-0 mt-0"):
+        self.undo_edit_button = ui.button(
+            translate_string("Undo"),
+            icon="undo",
+            on_click=self.event_handlers.undo_edit_event,
+        ).classes("bg-blue-500")
+        self.redo_edit_button = ui.button(
+            translate_string("Redo"),
+            icon="redo",
+            on_click=self.event_handlers.redo_edit_event,
+        ).classes("bg-blue-500")
+    with self.undo_edit_button:
+        ui.tooltip(
+            translate_string(
+                "Take back the last change made to the loaded XML -- an edit, an Add, a "
+                "Delete or a Rename, in any of the Edit panels.\n\nThis changes what is "
+                "loaded, not any file: nothing on disk or on the Android device is touched.",
+            ),
+        ).style("white-space: pre-line")
+
+    # What the next press would do.  A button that says only "Undo" is a button most people
+    # will not press, because they cannot tell what they are about to lose.
+    self.undo_next_label = ui.label().classes("w-full text-xs text-gray-500 italic text-center")
+
+    self.edit_history_button = ui.button(
+        translate_string("Edit History"),
+        color="teal",
+        icon="history",
+        on_click=build_edit_history_dialog,
+    ).classes("w-full justify-center")
+    with self.edit_history_button:
+        ui.tooltip(
+            translate_string(
+                "List every change made to the loaded XML this session, newest first.",
+            ),
+        ).style("white-space: pre-line")
+
+    def _refresh() -> None:
+        # Assigning a value a NiceGUI element already has is dropped before it reaches the
+        # client, so the ticks where nothing has changed send nothing over the wire -- the
+        # same property "Changes Pending" leans on.
+        self.undo_edit_button.set_enabled(sessundo.can_undo())
+        self.redo_edit_button.set_enabled(sessundo.can_redo())
+        if next_undo := sessundo.next_undo_label():
+            self.undo_next_label.text = f"{translate_string('Undo')}: {next_undo}"
+        elif next_redo := sessundo.next_redo_label():
+            self.undo_next_label.text = f"{translate_string('Redo')}: {next_redo}"
+        else:
+            self.undo_next_label.text = translate_string("No changes to undo.")
+
+    _refresh()
+    ui.timer(UNDO_BUTTONS_POLL_SECONDS, _refresh)
 
 
 def _refresh_position_options(
@@ -647,6 +898,13 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             translate_string("Save as"),
             value=taskedit.default_save_path(task_name),
         ).classes("w-full mt-2")
+
+        # Everything a change to this Task can be in is either the working copy's element --
+        # every Add/Copy/Move/Delete Action, an action's Enabled switch, its If condition,
+        # a Rename -- or a widget in field_refs, which is where the Priority, labels and
+        # argument values sit until a save reads them.  See editor_state.
+        pending_changes = PendingChangesBanner()
+        pending_changes.watch(dialog, lambda: editor_state(edited_task.task_element, field_refs))
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
@@ -1254,6 +1512,14 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             value=profedit.default_save_path(profile_name),
         ).classes("w-full mt-2")
 
+        # Add/Delete Condition, Link/Unlink Task, the Enabled toggle and a Rename all land on
+        # the working copy's element as they happen; every condition's own fields wait in
+        # field_refs until a save reads them, as does whatever is sitting picked but not yet
+        # linked in an Entry/Exit Task picker (see userintr._link_pending_task_pickers) --
+        # which is a pending change too, since a save would apply it.  See editor_state.
+        pending_changes = PendingChangesBanner()
+        pending_changes.watch(dialog, lambda: editor_state(edited_profile.profile_element, field_refs))
+
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             delete_profile_button = ui.button(
@@ -1475,6 +1741,16 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
             translate_string("Save as"),
             value=projedit.default_project_save_path(project_name),
         ).classes("w-full mt-2")
+
+        # This dialog has no field that waits for a save -- the Name is read-only and the
+        # "Save as" path is not part of the Project (see PENDING_CHANGES_IGNORED_FIELDS) --
+        # so what raises the message here is the Enabled toggle, which writes <enbl> onto
+        # the copy as it is flipped.  That is still something to save: it is in the loaded
+        # backup and in no file, which is what the message says.  Rename is the other
+        # immediate change and cannot leave one behind, because it closes this dialog
+        # (confirm_rename_project_event).
+        pending_changes = PendingChangesBanner()
+        pending_changes.watch(dialog, lambda: editor_state(edited_project.project_element, field_refs))
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
@@ -5539,6 +5815,25 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
             value=sceneedit.default_scene_save_path(scene_name),
         ).classes("w-full mt-2")
 
+        # The two Scene-only pieces of state, for the same reason revert_session has to take
+        # them separately: a Version 2 session leaves the element alone from beginning to end
+        # -- its work is in the decoded layout dict until a save encodes it back into <lj> --
+        # so comparing elements alone would call a reordered, retyped, half-rebuilt V2 Scene
+        # unchanged; and element_renames is a list of renames held pending against the live
+        # Tasks, which is unsaved work by definition.  Both are reduced to their repr here
+        # because the value has to be a snapshot: the dict is the live one the designer goes
+        # on editing, so keeping it would only ever be compared against itself.
+        pending_changes = PendingChangesBanner()
+        pending_changes.watch(
+            dialog,
+            lambda: editor_state(
+                edited_scene.scene_element,
+                field_refs,
+                repr(field_refs.get("v2_layout")),
+                repr(edited_scene.element_renames),
+            ),
+        )
+
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             cancel_button = ui.button(translate_string("Cancel"), on_click=cancel).props("outline")
             with cancel_button:
@@ -6507,6 +6802,89 @@ def _report_view_failure(task: asyncio.Task) -> None:
         logger.exception("Rendering a view failed", exc_info=error)
 
 
+async def jump_diagram_view(master_gui: MyGui, target: mapjump.Target) -> bool:
+    """Scroll an open Diagram view to a Target and highlight it.  False if none could.
+
+    The Diagram's counterpart to jump_map_view.  Where the Map is addressed by the anchor
+    ids it carries, the Diagram is addressed by the line the object was drawn on, recorded
+    while the diagram was built (see diagram.py's note above flatten_with_quotes) and
+    looked up here.  That is what makes the jump land on THIS Task rather than on the first
+    Task drawn with the same name, which is ordinary in Tasker.
+
+    Falls back to matching the drawn text when there is no recorded line: a Diagram built
+    before this version, or one whose file is on disk from an earlier run.  Weaker, and
+    knowingly so -- it cannot tell two copies of a name apart -- but better than refusing
+    to move.
+
+    Most recently opened Diagram first, and any that turns out not to hold the object is
+    passed over, exactly as jump_map_view treats its Maps: with "Open View In New Window"
+    on, several can be up at once showing different runs.
+    """
+    placement = mapjump.diagram_placement(target)
+    patterns = mapjump.diagram_patterns(target)
+    # Nothing to go on at all: an object the Diagram neither recorded nor draws a line for
+    # -- an unnamed Task, a variable.  Answered here rather than with a match on something
+    # else that happens to be nearby.
+    if placement is None and not patterns:
+        return False
+    for view in reversed(live_views(master_gui)):
+        if not str(getattr(view, "title", "")).startswith("Diagram"):
+            continue
+        try:
+            landed = await view.scroll_area.client.run_javascript(
+                mapjump.diagram_jump_js(f"c{view.scroll_area.id}", patterns, placement),
+                timeout=5,
+            )
+        except (TimeoutError, RuntimeError, AttributeError):
+            continue
+        if landed:
+            return True
+    return False
+
+
+async def go_to_target(master_gui: MyGui, target: mapjump.Target, prefer_diagram: bool = False) -> None:
+    """Take one clicked row -- a report finding, or a Find result -- to what it points at.
+
+    The whole of what a click does, in one place, because there are now two things that
+    emit one: the reports' clickable rows (see register_finding_clicks) and the Find
+    results list, which is a NiceGUI dialog and reaches this directly rather than through
+    the browser.
+
+    prefer_diagram is set by a Find run from a Diagram view, where the user is looking at
+    the Diagram and expects the answer to appear in it.  It is a preference and not a
+    demand: a Diagram that does not hold the object -- or an object the Diagram draws no
+    line for at all -- falls through to the Map, which can always be built to show it.
+    """
+    # A report, and a set of results, are both snapshots.  The object named can have been
+    # renamed or deleted in the editor since, so say so rather than scrolling to nothing.
+    if not mapjump.exists(target):
+        ui.notify(
+            f"{target.label} {translate_string('is no longer in the loaded configuration.')}",
+            type="warning",
+            position="top",
+        )
+        return
+
+    if prefer_diagram and await jump_diagram_view(master_gui, target):
+        return
+    if await jump_map_view(master_gui, target):
+        return
+
+    # Nothing on screen can show it.  Whether that is because no Map is open, because the
+    # one that is covers a single Project, or because its detail level leaves the Tasks and
+    # actions out is not worth telling apart here -- the answer to all three is the same
+    # Map, so build it (see rebuild_map_for_jump, which says what it is doing and why).
+    handlers = getattr(master_gui, "event_handlers", None)
+    if handlers is None:
+        ui.notify(
+            translate_string("No Map view is open.  Run Map View, then click this again."),
+            type="warning",
+            position="top",
+        )
+        return
+    await handlers.rebuild_map_for_jump(target)
+
+
 def register_finding_clicks(master_gui: MyGui) -> None:
     """Subscribe this page's report-jump event, once, while the layout is still being built.
 
@@ -6529,36 +6907,8 @@ def register_finding_clicks(master_gui: MyGui) -> None:
     async def jump(event: Event) -> None:
         """Take one clicked report row to where it points."""
         target = mapjump.Target.from_token(str((event.args or {}).get("target", "")))
-        if target is None:
-            return
-
-        # A report is a snapshot.  The object it named can have been renamed or deleted in
-        # the editor since, so say so rather than scrolling to nothing.
-        if not mapjump.exists(target):
-            ui.notify(
-                f"{target.label} {translate_string('is no longer in the loaded configuration.')}",
-                type="warning",
-                position="top",
-            )
-            return
-
-        if await jump_map_view(master_gui, target):
-            return
-
-        # Nothing on screen can show it.  Whether that is because no Map is open, because
-        # the one that is covers a single Project, or because its detail level leaves the
-        # Tasks and actions out is not worth telling apart here -- the answer to all three
-        # is the same Map, so build it (see rebuild_map_for_jump, which says what it is
-        # doing and why).
-        handlers = getattr(master_gui, "event_handlers", None)
-        if handlers is None:
-            ui.notify(
-                translate_string("No Map view is open.  Run Map View, then click this again."),
-                type="warning",
-                position="top",
-            )
-            return
-        await handlers.rebuild_map_for_jump(target)
+        if target is not None:
+            await go_to_target(master_gui, target)
 
     ui.on("mt_jump", jump)
 
@@ -7433,6 +7783,10 @@ class NiceGuiTextView:
         self._content_token = 0
         self._content_generation = 0
         self._last_search: tuple[str, list, int, bool] | None = None
+        # The last structured question asked of this view (see find_event).  Held so that
+        # re-opening Find comes back to the query whose result row the user just followed,
+        # rather than to an empty dialog they have to fill in again.
+        self._find_query: mapfind.Query | None = None
         self.build_ui()
         register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
@@ -7537,6 +7891,26 @@ class NiceGuiTextView:
                 ui.button(translate_string("Clear"), on_click=self.master_gui.event_handlers.clear_event).classes(
                     "bg-blue-600",
                 )
+                # Structured search, alongside the text one rather than replacing it: the
+                # two answer different questions (see find_event).  Offered on the Map and
+                # the Diagram and nowhere else -- it answers with objects in the loaded
+                # configuration, which is what those two views draw; the Misc view shows
+                # reports, which have their own clickable rows already.
+                if self.is_map or is_diagram:
+                    find_button = ui.button(translate_string("Find..."), on_click=self.find_event).classes(
+                        "bg-blue-600",
+                    )
+                    with find_button:
+                        ui.tooltip(
+                            translate_string(
+                                "'Find...' asks the loaded configuration a question rather than searching the "
+                                "text on screen: every Task performing a given action, every Profile a given "
+                                "trigger fires, everything that names a given app or Scene.\n\n"
+                                "The boxes combine -- pick a trigger and an action to find the Profiles that "
+                                "trigger that way and run a Task that does that.\n\n"
+                                "Results come back as a list of objects; click one to be taken to it.\n\n",
+                            ),
+                        ).style("white-space: pre-line")
                 ui.separator().props("vertical")
                 ui.button(translate_string("Top"), on_click=lambda: self.scroll("top")).classes("bg-blue-600")
                 ui.button(translate_string("Bottom"), on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
@@ -8387,6 +8761,218 @@ class NiceGuiTextView:
 
         results_dialog.open()
 
+    def find_event(self) -> None:
+        """Open this view's Find dialog: ask the configuration a question, not the page.
+
+        The faceted counterpart to search_event, and the reason both exist.  Search crawls
+        the rendered text and highlights every occurrence of a string in place, which
+        answers "where does this word appear" and nothing else.  This asks the loaded XML
+        for objects -- Tasks that perform an action, Profiles a context triggers, anything
+        naming an app or a Scene -- and answers with a list of them, each row a click away
+        from the object itself.  On a configuration of 200 Projects that is the difference
+        between a Map that can be read and one that can be navigated.
+
+        The index is rebuilt every time this opens rather than cached on the view.  It is
+        a single pass over the XML (60ms on an 840-Task backup, against 1.5ms for a query),
+        and the configuration underneath can have been edited since the last Find -- a
+        cached index would keep offering an action of a Task that has been deleted, and
+        keep hiding one just added.
+        """
+        if not PrimeItems.tasker_root_elements["all_tasks"]:
+            ui.notify(translate_string("No XML file has been loaded.  Get an XML file first."), type="warning")
+            return
+
+        index = mapfind.build_index()
+        # A Find run from the Diagram shows its answers in the Diagram where it can (see
+        # go_to_target).  Decided here, from the view the button was pressed on, rather
+        # than from whatever view happens to be frontmost when a row is clicked.
+        from_diagram = self.title.startswith("Diagram")
+
+        with ui.dialog() as dialog, ui.card().classes("w-[900px] max-w-full p-6"):
+            ui.label(
+                f"{translate_string('Find in')} {self.title}",
+            ).classes("text-lg font-bold text-blue-600")
+            ui.label(
+                translate_string(
+                    "Each box narrows the answer, and they combine: a trigger and an action together "
+                    "find the Profiles that trigger that way AND run a Task that does that. Every entry "
+                    "offered is one this configuration actually uses, and the number beside it is how "
+                    "many places carry it.",
+                ),
+            ).classes("text-xs text-gray-500 italic mb-3")
+
+            pickers = {}
+            with ui.row().classes("w-full items-center gap-2"):
+                for facet in mapfind.FACETS:
+                    choices = index.choices(facet)
+                    pickers[facet] = (
+                        ui
+                        .select(
+                            {choice.value: choice.label for choice in choices},
+                            label=translate_string(mapfind.FACET_LABELS[facet]),
+                            with_input=True,
+                            clearable=True,
+                        )
+                        .classes("flex-1 min-w-[180px]")
+                        .props("dense")
+                    )
+
+            with ui.row().classes("w-full items-center gap-2 mt-2"):
+                text_input = (
+                    ui
+                    .input(label=translate_string("Text (name, label or argument)"))
+                    .classes("flex-1")
+                    .props("dense clearable")
+                )
+                project_select = (
+                    ui
+                    .select(
+                        {"": translate_string("Every Project")}
+                        | {name: name for name in index.projects},
+                        value="",
+                        label=translate_string("Narrow to Project"),
+                        with_input=True,
+                    )
+                    .classes("w-64")
+                    .props("dense")
+                )
+
+            summary = ui.label("").classes("text-sm font-bold mt-3")
+            results_area = ui.scroll_area().classes(
+                "w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded",
+            )
+            # What the last Find produced, so "Save Results" writes exactly the list on
+            # screen rather than re-running a query the user may have edited since.
+            produced: dict = {"query": None, "hits": [], "total": 0}
+
+            def jump_to(target: mapjump.Target) -> Callable[[], Coroutine]:
+                """One result row's click: close the list, then go to the object.
+
+                Closed first because the dialog is modal -- a jump behind it scrolls a view
+                the user cannot see.  The query is remembered on the view, so pressing Find
+                again comes back to this same list rather than to an empty dialog.
+
+                The jump then runs inside the VIEW's slot rather than the dialog's, which
+                is not decoration: closing the dialog deletes it (see the "hide" handler
+                below), and everything the jump does afterwards -- ui.notify above all --
+                resolves its client through whatever slot is active.  Left in the dialog's,
+                the first notification raised "The parent element this slot belongs to has
+                been deleted" from inside NiceGUI and the jump died there, silently, having
+                already closed the only thing on screen.  The same re-entry, for the same
+                reason, as _enable_connector_highlighting's.
+                """
+
+                async def go() -> None:
+                    dialog.close()
+                    with self.scroll_area:
+                        await go_to_target(self.master_gui, target, prefer_diagram=from_diagram)
+
+                return go
+
+            def show(query: mapfind.Query) -> None:
+                """Run the query and draw its answer."""
+                self._find_query = query
+                produced.update(query=query, hits=[], total=0)
+                results_area.clear()
+                if query.is_empty:
+                    summary.set_text("")
+                    ui.notify(
+                        translate_string("Choose an action, a trigger, an app, a Scene or some text."),
+                        type="warning",
+                    )
+                    return
+
+                hits, total = mapfind.run_query(index, query)
+                produced.update(hits=hits, total=total)
+                summary.set_text(
+                    f"{len(hits)} {translate_string('of')} {total} {translate_string('found for')}: {query.phrase()}"
+                    if total > len(hits)
+                    else f"{total} {translate_string('found for')}: {query.phrase()}",
+                )
+
+                with results_area, ui.column().classes("w-full gap-1"):
+                    if not hits:
+                        ui.label(
+                            translate_string("Nothing in the loaded configuration answers this."),
+                        ).classes("text-sm text-gray-500 italic")
+                        return
+                    project = None
+                    for hit in hits:
+                        if hit.project != project:
+                            project = hit.project
+                            ui.label(
+                                f"{translate_string('Project')} '{project}'"
+                                if project
+                                else translate_string("In no Project"),
+                            ).classes("text-xs font-bold text-orange-500 mt-2")
+                        with ui.row().classes(
+                            "w-full items-baseline py-1 border-b dark:border-gray-700 hover:bg-blue-50 "
+                            "dark:hover:bg-blue-950 px-2 rounded transition-colors",
+                        ):
+                            ui.link(hit.where, "#").on("click", jump_to(hit.target)).classes(
+                                "text-blue-600 dark:text-blue-400 font-mono text-sm shrink-0 "
+                                "decoration-dotted hover:underline",
+                            )
+                            if hit.detail:
+                                ui.label(hit.detail).classes("text-xs text-gray-500 dark:text-gray-400 truncate")
+
+            def run() -> None:
+                """The Find button: build the query out of the widgets and answer it."""
+                show(
+                    mapfind.Query(
+                        action=pickers[mapfind.ACTION].value or "",
+                        trigger=pickers[mapfind.TRIGGER].value or "",
+                        app=pickers[mapfind.APP].value or "",
+                        scene=pickers[mapfind.SCENE_FACET].value or "",
+                        text=text_input.value or "",
+                        project=project_select.value or "",
+                    ),
+                )
+
+            def save() -> None:
+                """Write the list on screen to a file, as the other reports do.
+
+                The same Rows the results list is drawn from, so the file and the screen
+                cannot disagree -- and every location line in it stays clickable if the
+                saved report is ever opened in the Misc view.
+                """
+                query = produced["query"]
+                if query is None:
+                    ui.notify(translate_string("Run a Find first."), type="warning")
+                    return
+                rows = mapfind.report_rows(query, produced["hits"], produced["total"], index)
+                file_name = mapfind.write_find_report(rows)
+                if file_name:
+                    ui.notify(f"{translate_string('Find results saved as')} {file_name}", type="positive")
+                else:
+                    ui.notify(translate_string("Find results could not be saved."), type="negative")
+
+            with ui.row().classes("w-full justify-end mt-4 gap-2"):
+                ui.button(translate_string("Find"), on_click=run).classes("bg-blue-600 text-white px-4")
+                ui.button(translate_string("Save Results"), on_click=save).classes("bg-blue-600 text-white px-4")
+                ui.button(translate_string("Close"), on_click=dialog.close).classes("bg-red-500 text-white px-4")
+
+            # A fresh dialog is built per press, so the one being replaced is disposed of
+            # rather than left in the page: this is a control the user reaches for over and
+            # over while narrowing a search, and a stack of dead dialogs (each holding a
+            # results list of up to 500 rows) is a page that grows all afternoon.
+            dialog.on("hide", dialog.delete)
+
+            # Come back to the question that was last asked, rather than to a blank dialog:
+            # a result row's click closes this, and the next press of Find is nearly always
+            # the same query with one more row to look at.
+            previous = self._find_query
+            if previous is not None:
+                pickers[mapfind.ACTION].set_value(previous.action or None)
+                pickers[mapfind.TRIGGER].set_value(previous.trigger or None)
+                pickers[mapfind.APP].set_value(previous.app or None)
+                pickers[mapfind.SCENE_FACET].set_value(previous.scene or None)
+                text_input.set_value(previous.text)
+                project_select.set_value(previous.project)
+                show(previous)
+
+        dialog.open()
+
     def extract_first_font_name(self: MyGui, text: str) -> str:
         """
         Scans the given text to identify and return the font name
@@ -9224,14 +9810,15 @@ def initialize_screen(self: MyGui) -> None:
             color="orange",
             on_click=lambda: get_rid_of_windows_and_exit(self),
         ).classes(
-            "w-full bg-red-600 text-white mt-2 justify-center",
+            "w-full bg-red-600 text-white mt-0 justify-center",
         )
 
         self.close_tabs_on_exit_checkbox = (
             ui
             .checkbox(translate_string("Close Tabs On Exit"))
             .bind_value(self, "close_tabs_on_exit")
-            .classes("text-xs mt-1")
+            .props("dense")
+            .classes("text-xs mt-0")
         )
         with self.close_tabs_on_exit_checkbox:
             ui.tooltip(
@@ -9246,7 +9833,9 @@ def initialize_screen(self: MyGui) -> None:
             ui
             .checkbox(translate_string("Open View In New Window"))
             .bind_value(self, "open_view_in_new_window")
-            .classes("text-xs mt-1")
+            .props("dense")
+            .classes("text-xs mt-0")
+            .style("margin-top:-6px")
         )
         with self.open_view_in_new_window_checkbox:
             ui.tooltip(
@@ -9260,14 +9849,14 @@ def initialize_screen(self: MyGui) -> None:
             ).style("white-space: pre-line")
 
         ui.label(translate_string("File Operations")).classes(
-            "text-xs font-bold uppercase text-gray-400 mt-4 self-center",
-        )
+            "text-xs font-bold uppercase text-gray-400 mt-3 self-center",
+        ).style("margin-top:5px")
         _create_file_and_message_buttons_section(self)
 
         ui.label(translate_string("Display Views")).classes(
-            "text-xs font-bold uppercase text-gray-400 mt-4 self-center",
+            "text-xs font-bold uppercase text-gray-400 mt-3 self-center",
         )
-        with ui.row().classes("w-full justify-center gap-2 gap-y-0 mt-1"):
+        with ui.row().classes("w-full justify-center gap-2 gap-y-0 mt-0"):
             ui.button(translate_string("Map"), on_click=lambda: self.event_handlers.view_event("map")).classes(
                 "bg-blue-500",
             )
@@ -9282,12 +9871,17 @@ def initialize_screen(self: MyGui) -> None:
         # Coloured through the "color" prop rather than a bg-* class, the way the Get XML and
         # Exit buttons are.  Quasar puts its own bg-primary on every button, and that wins over
         # a Tailwind bg-* added here -- a bg-teal-600 class renders plain blue.
-        self.health_check_button = ui.button(
-            translate_string("Health Check"),
-            color="teal",
-            on_click=self.event_handlers.health_check_event,
-            icon="health_and_safety",
-        ).classes("w-full justify-center")
+        self.health_check_button = (
+            ui
+            .button(
+                translate_string("Health Check"),
+                color="teal",
+                on_click=self.event_handlers.health_check_event,
+                icon="health_and_safety",
+            )
+            .classes("w-full justify-center mt-0")
+            .style("margin-top:-6px")
+        )
         with self.health_check_button:
             ui.tooltip(
                 translate_string(
@@ -9300,12 +9894,17 @@ def initialize_screen(self: MyGui) -> None:
         # Full width and coloured through "color" for the same two reasons the Health Check
         # button above is: the drawer is w-80 and this label is longer still, and Quasar's own
         # bg-primary beats a Tailwind bg-* class added here.
-        self.compare_files_button = ui.button(
-            translate_string("Compare Files"),
-            color="teal",
-            on_click=self.event_handlers.compare_files_event,
-            icon="difference",
-        ).classes("w-full justify-center")
+        self.compare_files_button = (
+            ui
+            .button(
+                translate_string("Compare Files"),
+                color="teal",
+                on_click=self.event_handlers.compare_files_event,
+                icon="difference",
+            )
+            .classes("w-full justify-center")
+            .style("margin-top:-6px")
+        )
         with self.compare_files_button:
             ui.tooltip(
                 translate_string(
@@ -9321,12 +9920,17 @@ def initialize_screen(self: MyGui) -> None:
         # Full width and coloured through "color" for the same two reasons the two buttons
         # above are: the drawer is w-80 and this label will not fit beside another, and
         # Quasar's own bg-primary beats a Tailwind bg-* class added here.
-        self.variable_xref_button = ui.button(
-            translate_string("Variable Xref"),
-            color="teal",
-            on_click=self.event_handlers.variable_xref_event,
-            icon="manage_search",
-        ).classes("w-full justify-center")
+        self.variable_xref_button = (
+            ui
+            .button(
+                translate_string("Variable Xref"),
+                color="teal",
+                on_click=self.event_handlers.variable_xref_event,
+                icon="manage_search",
+            )
+            .classes("w-full justify-center")
+            .style("margin-top:-6px")
+        )
         with self.variable_xref_button:
             ui.tooltip(
                 translate_string(
@@ -9343,12 +9947,12 @@ def initialize_screen(self: MyGui) -> None:
 
         ui.label(translate_string("Application Settings")).classes(
             "text-xs font-bold uppercase text-gray-400 mt-4 self-center",
-        )
+        ).style("margin-top:5px")
         _create_settings_buttons_section(self)
 
         ui.label(translate_string("Help & Information")).classes(
             "text-xs font-bold uppercase text-gray-400 mt-4 gap-w-0 m-0 p-0 leading-none self-center",
-        )
+        ).style("margin-top:5px")
         _create_help_options_section(self)
 
     # =========================================================================
@@ -9451,48 +10055,94 @@ def initialize_screen(self: MyGui) -> None:
                     translate_string("List Unnamed Items"),
                     on_change=self.event_handlers.list_unnamed_items_event,
                 ).classes("mt-1 text-xs")
-                with ui.row().classes("gap-2 m-0 p-0"):
-                    self.edit_project_button = ui.button(
-                        translate_string("Edit Project"),
-                        on_click=self.event_handlers.open_edit_project_dialog_event,
-                    ).classes("w-64 mt-2 bg-blue-500")
-                    self.add_project_button = ui.button(
-                        translate_string("Add Project"),
-                        on_click=self.event_handlers.open_add_project_dialog_event,
-                    ).classes("w-64 mt-2 bg-blue-500")
-                with ui.row().classes("gap-2 m-0 p-0"):
-                    self.edit_profile_button = ui.button(
-                        translate_string("Edit Profile"),
-                        on_click=self.event_handlers.open_edit_profile_dialog_event,
-                    ).classes("w-64 mt-2 bg-blue-500")
-                    self.add_profile_button = ui.button(
-                        translate_string("Add Profile"),
-                        on_click=self.event_handlers.open_add_profile_dialog_event,
-                    ).classes("w-64 mt-2 bg-blue-500")
-                with ui.row().classes("gap-2 m-0 p-0"):
-                    self.edit_task_button = ui.button(
-                        translate_string("Edit Task"),
-                        on_click=self.event_handlers.open_edit_task_dialog_event,
-                    ).classes("w-64 mt-2 bg-blue-500")
-                    self.add_task_button = ui.button(
-                        translate_string("Add Task"),
-                        on_click=self.event_handlers.open_add_task_dialog_event,
-                    ).classes("w-64 mt-2 bg-blue-500")
-                # The Scene pair is the only one of the four behind a switch -- Scene
-                # editing is still filling in (see sceneedit.py).  Not built at all when
-                # config.EDIT_SCENE is False, rather than built-and-hidden: nothing else
-                # reads these two attributes, so leaving them unset is enough, and it
-                # keeps a disabled feature from occupying a row of the tab.
-                if EDIT_SCENE:
-                    with ui.row().classes("gap-2 m-0 p-0"):
-                        self.edit_scene_button = ui.button(
-                            translate_string("Edit Scene"),
-                            on_click=self.event_handlers.open_edit_scene_dialog_event,
-                        ).classes("w-64 mt-2 bg-blue-500")
-                        self.add_scene_button = ui.button(
-                            translate_string("Add Scene"),
-                            on_click=self.event_handlers.open_add_scene_dialog_event,
-                        ).classes("w-64 mt-2 bg-blue-500")
+                # The Edit/Add pairs on the left, the Editing (Undo/Redo/History) group
+                # pinned to the right: "justify-between" with nothing between them puts
+                # each against its own edge however wide the window is.  Editing sits here
+                # rather than in the drawer because it belongs with the buttons whose work
+                # it takes back -- an Undo is only ever wanted after one of these was used.
+                #
+                # wrap=False is what keeps it pinned rather than merely placed: this panel
+                # sits between two drawers and is only ~650px wide, so a wrapping row drops
+                # the Editing group underneath the Edit/Add pairs as soon as both are shown
+                # -- which is most of the time.  The Edit/Add buttons give up their fixed
+                # width to pay for it (see their flex-1 below).
+                with ui.row(wrap=False).classes("w-full items-start justify-between gap-4 m-0 p-0"):
+                    # All eight Edit/Add buttons are built here, but only the ones the
+                    # current pulldown selection can actually drive are ever on screen --
+                    # guiutils.refresh_object_action_buttons hides the rest (and any row
+                    # left with nothing in it) every time the selection changes, starting
+                    # with the call at the end of this block.  Each row is held on self so
+                    # it can be hidden along with its pair.
+                    # flex-1/min-w-0: takes whatever the Editing group leaves rather than
+                    # a fixed width, so nothing overflows the panel at any window size.
+                    # Each button flexes within it, capped at 12rem -- the cap is what keeps
+                    # a row showing one button the same width as each half of a row showing
+                    # two, instead of the lone button stretching to the whole column.
+                    with ui.column().classes("flex-1 min-w-0 gap-0 m-0 p-0"):
+                        with ui.row().classes("w-full gap-2 m-0 p-0") as self.project_buttons_row:
+                            self.edit_project_button = ui.button(
+                                translate_string("Edit Project"),
+                                on_click=self.event_handlers.open_edit_project_dialog_event,
+                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                            self.add_project_button = ui.button(
+                                translate_string("Add Project"),
+                                on_click=self.event_handlers.open_add_project_dialog_event,
+                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                        with ui.row().classes("w-full gap-2 m-0 p-0") as self.profile_buttons_row:
+                            self.edit_profile_button = ui.button(
+                                translate_string("Edit Profile"),
+                                on_click=self.event_handlers.open_edit_profile_dialog_event,
+                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                            self.add_profile_button = ui.button(
+                                translate_string("Add Profile"),
+                                on_click=self.event_handlers.open_add_profile_dialog_event,
+                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                        with ui.row().classes("w-full gap-2 m-0 p-0") as self.task_buttons_row:
+                            self.edit_task_button = ui.button(
+                                translate_string("Edit Task"),
+                                on_click=self.event_handlers.open_edit_task_dialog_event,
+                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                            self.add_task_button = ui.button(
+                                translate_string("Add Task"),
+                                on_click=self.event_handlers.open_add_task_dialog_event,
+                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                        # The Scene pair is the only one of the four behind a switch -- Scene
+                        # editing is still filling in (see sceneedit.py).  Not built at all when
+                        # config.EDIT_SCENE is False, rather than built-and-hidden: nothing else
+                        # reads these two attributes, so leaving them unset is enough, and it
+                        # keeps a disabled feature from occupying a row of the tab.
+                        if EDIT_SCENE:
+                            with ui.row().classes("w-full gap-2 m-0 p-0") as self.scene_buttons_row:
+                                self.edit_scene_button = ui.button(
+                                    translate_string("Edit Scene"),
+                                    on_click=self.event_handlers.open_edit_scene_dialog_event,
+                                ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                                self.add_scene_button = ui.button(
+                                    translate_string("Add Scene"),
+                                    on_click=self.event_handlers.open_add_scene_dialog_event,
+                                ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+
+                    # "shrink-0" so the Editing group keeps its width and stays hard against
+                    # the right edge instead of being squeezed as the Edit/Add rows come and
+                    # go with the selection.
+                    with ui.column().classes("w-56 shrink-0 gap-1 m-0 p-0 mt-2 items-center"):
+                        ui.label(translate_string("Editing")).classes(
+                            "text-xs font-bold uppercase text-gray-400 self-center",
+                        )
+                        _create_undo_section(self)
+
+                # Set the buttons to match whatever is selected right now, rather than
+                # leaving them as built (all eight visible) until the first selection
+                # change.  On start-up that means just "Add Project" -- the one action
+                # needing no selection, and nothing is selected yet at this point (the
+                # restore runs after initialize_screen).  On a rebuild, though -- a
+                # language change re-runs this whole function (see reload_gui) -- there
+                # very much can be a live selection to match.
+                from maptasker.src.guiutils import (  # noqa: PLC0415  Avoid circular import
+                    refresh_object_action_buttons,
+                )
+
+                refresh_object_action_buttons(self)
 
             # --- TAB 2: COLORS (MINIMIZED SPACING) ---
             with ui.tab_panel(self.tab_colors).classes("p-2 m-0") as self.gui_color_panel:

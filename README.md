@@ -61,6 +61,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.
 - Automatic update detection and optional installation of new versions.
 - Enhanced search capabilities.
+- Structured 'Find' in the Map and Diagram views: ask for every Task performing a given action, every Profile a given trigger fires, or everything that references a given app or Scene, and get back a clickable list of the objects rather than highlighted text.
 - Add and Edit Projects, Profiles, Tasks, and Scenes (see [Note 6](#6))
 - Analyze the health of of the Tasker XML as well as the numerous variables throughout the configuration.
 
@@ -148,7 +149,15 @@ This is the output from the Variable Xref (cross reference) run.
 	
 - "maptasker.log"
 
-     This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
+  This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
+
+- MapTasker_Backups_date_time directory
+
+  Backups files from 'Export' or 'Save to Android', in which the file already existed and an overwrite would occur.
+
+  - MapTasker_Find_date_time.txt
+
+  The saved results of the structured search, from the Map and Diagram views, via the 'Find' command.
 
 - hidden files: system settings, run counter, last 'version checked' date, and API keys.
 
@@ -296,7 +305,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Edit 'Undo' function
 
-- [ ] Structure Search
+- [x] Structure Search
 
 - [ ] Interactive Diagram view
 

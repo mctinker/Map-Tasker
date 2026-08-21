@@ -1561,9 +1561,6 @@ msgstr "hh:mm AM/PM 또는 %변수"
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 msgstr "GUI 내에서 직접 구성의 '지도', '다이어그램' 또는 '트리' 보기를 표시합니다.\n\n뷰가 작동하려면 먼저 로컬 드라이브나 Android 장치에서 XML을 가져와야 합니다.\n\nXML을 이미 가져온 경우 뷰에 대한 입력으로 사용됩니다.  '지우기' 버튼을 누르면 보기 데이터가 지워집니다.\n\n매우 큰 구성으로 인해 맵 및 다이어그램의 실행 시간이 연장됩니다.  최상의 성능을 위해서는 매핑할 단일 프로젝트 또는 프로필을 선택하세요.\n\n선택적으로 '보기 제한' 설정을 사용하여 처리할 데이터의 양을 제한합니다.  제한이 클수록 매핑할 수 있는 출력도 커집니다.  생성되는 출력이 많을수록 처리 시간이 길어집니다.\n\n\n다이어그램 보기에는 다음과 같은 동작이 있습니다.\n\n - 프로젝트와 프로필만 표시할 수 있습니다. 단일 태스크 또는 장면으로만 구성된 XML은 표시되지 않습니다.\n\n - 다이어그램에서 전체 연결을 강조 표시하려면 수평 커넥터를 클릭하세요.\n\n\n트리 보기에는 다음과 같은 동작이 있습니다.\n\n- 프로젝트만 표시할 수 있습니다. 단일 프로필, 작업 또는 장면으로만 구성된 XML은 표시되지 않습니다.\n\n- 단일 이름 설정에 관계없이 모든 프로젝트, 프로필, 작업 및 장면이 표시됩니다.\n\n"
 
-msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "MapTasker는 업로드된 Tasker XML 파일(예: 'backup.xml')을 기반으로 Android Tasker 구성을 표시합니다. 디스플레이에는 선택적으로 모든 프로젝트, 프로필, 작업 및 해당 작업, 프로필/작업 조건 및 기타 프로필/작업 관련 정보가 포함됩니다.\n\nXML 파일이 로드되면 선택적으로 프로젝트, 프로필, 작업 및 장면을 편집할 수 있습니다.\n\n* 표시 옵션은 다음과 같습니다.\n    수준 0: 첫 번째 작업 작업만 표시하고 이름이 지정되지 않은 작업에 대해서만 표시합니다(자동).\n    수준 1 = 알 수 없는 작업에 대한 모든 작업 세부 정보만 표시합니다(기본값).\n    레벨 2 = 모든 태스크에 전체 태스크 작업 이름을 표시합니다.\n    레벨 3 = 작업 세부 정보와 함께 모든 작업에 대한 전체 작업 작업 세부 정보를 표시합니다.\n    레벨 4 = 표시 레벨 3과 프로젝트의 전역 변수.\n\n    수준 5 = 표시 수준 4와 장면 인수 세부정보.\n\n* Just Display Everything: 조건, TaskerNet 정보, 기본 설정, 예쁜 출력, 디렉터리 및 구성 개요 표시를 켭니다.\n\n* 표시 조건: 프로필 및 작업 조건 표시를 켭니다.\n\n* TaskerNet 정보 표시 - 가능한 경우 TaskerNet 게시 정보를 표시합니다.\n\n* Tasker 기본 설정 표시 - Tasker의 시스템 기본 설정을 표시합니다.\n\n* Twisty에서 작업 세부 정보 숨기기: ► 내에서 작업 정보를 숨기고 클릭하여 표시합니다.\n\n* 시작 시 하이퍼링크의 디렉토리를 표시합니다.\n\n* 더 예쁜 출력 표시: 모든 인수에 줄 바꿈과 들여쓰기를 추가하여 출력을 사람이 더 읽기 쉽게 만듭니다.\n\n* 프로젝트/프로필/작업/장면 이름 옵션을 사용하여 이름을 이탤릭체, 굵게, 밑줄 및/또는 강조 표시할 수 있습니다.\n\n* 작업 작업 제한: 작업에 지정된 작업 수보다 많은 경우 경고를 표시합니다.\n\n* If/Then/Else 작업 동작의 들여쓰기 크기입니다.\n\n* 언어: 출력에 사용할 언어를 선택합니다.  기본값은 영어입니다.\n\n* 사용할 글꼴: 출력에 사용되는 모노스페이스 글꼴을 변경합니다.\n\n* 보기 제한: 보기 생성 시 사용되는 처리 시간을 제어합니다.\n\n* 재설정 옵션: 모든 것을 지우고 새로 시작하세요.\n\n* 로컬 XML 파일 가져오기: 로컬 드라이브에서 백업/내보낸 XML 파일을 가져옵니다.\n\n* 설정 저장 - 나중에 사용할 수 있도록 이 설정을 저장합니다.\n\n* 설정 복원 - 이전에 저장한 세션에서 설정을 복원합니다.\n\n* 디스플레이 보기: 프로젝트, 프로필, 작업 및 장면의 구성 지도, 다이어그램 또는 트리 보기를 GUI에 직접 표시합니다.\n\n* Android 장치에서 XML 가져오기: Android 장치에서 백업/내보낸 XML 파일을 가져옵니다.  Android 장치의 IP 주소와 포트 번호는 물론 장치의 파일 위치를 묻는 메시지가 표시됩니다.\n\n* 특정 이름 탭: 표시할 특정 이름의 단일 항목을 입력합니다...\n   - 프로젝트 이름: 표시할 특정 프로젝트를 입력합니다.\n   - 프로필 이름: 표시할 특정 프로필을 입력합니다.\n   - 작업 이름: 표시할 특정 작업을 입력합니다.\n   - 장면 이름: 표시할 특정 장면을 입력합니다.  소유한 프로젝트의 제목과\n                 장면의 요소(및 해당 요소가 호출하는 모든 작업)가 표시됩니다.\n                 프로젝트의 프로필과 다른 장면은 그렇지 않습니다.\n   (이 4개는 제외됩니다. 하나만 입력하세요)\n\n   다양한 저장 옵션을 사용하여 GUI에서 직접 프로젝트, 프로필 및 작업을 추가하고 편집합니다.\n\n* 색상 탭: 디스플레이의 다양한 요소에 대한 색상을 선택합니다.\n              (예: 프로젝트, 프로필, 작업 등의 색상)\n\n* 분석 탭: Ai 모델에 대해 프로젝트, 프로필, 작업 또는 장면에 대한 분석을 실행합니다.\n\n* 디버그 탭: 런타임 설정 옵션을 표시하고 디버그 모드를 켭니다.\n\n* 종료: 프로그램을 종료(quit)합니다.\n\n참고:\n\n- https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md 에서 전체 변경 로그 기록을 확인하세요.\n\n- 모양 모드를 변경하면 출력에 사용되는 색상이 기본값으로 변경됩니다.\n\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 msgstr "'View Limit'은 뷰를 생성할 때 사용되는 처리 시간을 제어하는 ​​수단입니다.\n\n- 숫자는 생성될 출력 라인의 상대적인 양을 나타냅니다.\n\n- 제한이 클수록 매핑할 수 있는 출력도 커집니다.  생성되는 출력이 많을수록 처리 시간이 길어집니다.\n\n- 매우 큰 구성은 매우 큰 출력 맵을 생성하고 처리 시간이 길어집니다.  이전 장치에서는 이 작업에 최대 30초 이상이 걸릴 수 있습니다.\n\n- 제한을 설정하면 더 긴 기간을 허용하지 않고 구성을 매핑할 때 사용되는 처리 시간을 제어할 수 있습니다.\n\n- 지도 계산 시 한계에 도달하면 출력이 거기서 중지됩니다.\n\n- 이 설정을 실험하여 사용 사례에 가장 적합한 설정을 확인할 수 있습니다.\n\n- 단일 프로젝트, 프로필 또는 작업을 선택하는 것은 처리 시간을 제한하는 또 다른 방법입니다.\n\n"
 
@@ -1585,86 +1582,65 @@ msgstr "(비어 있는)"
 msgid "(no name)"
 msgstr "(이름 없음)"
 
-
 msgid "(unnamed Task)"
 msgstr "(이름 없는 작업)"
-
 
 msgid "(unnamed)"
 msgstr "(이름 없음)"
 
-
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1은 이 방향에 자체 레이아웃이 없음을 의미합니다."
-
 
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...외 {count}개 -- 범위를 좁히려면 위에 입력하세요."
 
-
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "Scene의 요소 위치는 기기 픽셀로 저장되지만 텍스트 크기는 Android의 sp 단위로 저장됩니다. 둘 사이를 변환하는 숫자는 Scene이 표시되는 휴대폰의 속성이며 백업 파일에는 없습니다.\n\n그래서 여기에 설정되었습니다. 텍스트가 해당 요소에 비해 너무 작게 보이면 높이고, 텍스트가 넘치면 낮추십시오."
-
 
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "버전 2 장면에는 자체 크기가 없습니다. 표시되는 화면 내부에 배치되므로 백업 파일에 그릴 내용이 없습니다.\n\n레이아웃 리플로우를 보려면 이를 변경하세요. 흐름 행은 다르게 래핑되며 %sv2_render_width에 대해 작성된 '표시 시기'는 정확히 이에 대해 묻습니다."
 
-
 msgid "Actions"
 msgstr "행위"
-
 
 msgid "Add"
 msgstr "추가하다"
 
-
 msgid "Add Element"
 msgstr "요소 추가"
-
 
 msgid "Add Scene"
 msgstr "장면 추가"
 
-
 msgid "Add a background"
 msgstr "배경 추가"
-
 
 msgid "Add action"
 msgstr "작업 추가"
 
-
 msgid "Add event"
 msgstr "이벤트 추가"
-
 
 msgid "Add handler"
 msgstr "핸들러 추가"
 
-
 msgid "Add modifier"
 msgstr "수정자 추가"
-
 
 msgid "Add scene properties"
 msgstr "장면 속성 추가"
 
-
 msgid "Addressed by id from"
 msgstr "다음의 ID로 주소 지정:"
-
 
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "장면 중앙의 스택 상단에 요소를 추가합니다."
 
-
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "자식을 포함할 수 있으면 선택한 구성 요소 내부에 추가하고, 그렇지 않으면 바로 뒤에 추가합니다."
 
-
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "장면 중앙의 스택 상단에 추가합니다. 원하는 위치로 드래그하세요."
-
 
 msgid "Also selected:"
 msgstr "또한 선택됨:"
@@ -1672,14 +1648,11 @@ msgstr "또한 선택됨:"
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "호박색: Tasker가 이를 나열했지만 MapTasker에 확인된 샘플이 없습니다. 회색: 선택한 곳으로 갈 수 없습니다."
 
-
 msgid "App icon"
 msgstr "앱 아이콘"
 
-
 msgid "Appearance Mode"
 msgstr "외모 모드"
-
 
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "지금은 적용되지 않고 이 장면이 저장될 때 적용됩니다. 장면 대화 상자에서 취소하면 요소와 작업이 모두 그대로 유지됩니다."
@@ -1687,22 +1660,17 @@ msgstr "지금은 적용되지 않고 이 장면이 저장될 때 적용됩니�
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "순서대로 적용됩니다. 맨 아래에 있는 것이 맨 위에 놓입니다."
 
-
 msgid "Back to Editor"
 msgstr "편집기로 돌아가기"
-
 
 msgid "Bounds"
 msgstr "범위"
 
-
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "취소. 이 장면의 변경사항이 삭제되었습니다."
 
-
 msgid "Choose another file..."
 msgstr "다른 파일을 선택하세요..."
-
 
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "구성 요소를 클릭하여 선택하고, 동일한 컨테이너에서 다른 구성 요소를 Shift 키를 누른 채 클릭하여 여러 구성 요소를 선택한 다음 드래그하여 형제 사이에서 재정렬합니다. 구성 요소를 컨테이너 안팎으로 이동하는 것은 편집기의 In 및 Out 버튼입니다. 실행 취소도 있습니다."
@@ -1710,90 +1678,68 @@ msgstr "구성 요소를 클릭하여 선택하고, 동일한 컨테이너에서
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "요소를 클릭하여 선택하고 배경에 있는 상자를 Shift 키를 누른 채로 클릭하거나 드래그하여 여러 개를 선택한 다음 그 중 하나를 드래그하여 모두 이동합니다. 화살표 키는 조금씩 이동하고 Shift는 10px씩 이동합니다. 단일 요소의 크기를 조정하려면 핸들을 드래그하세요. 실행 취소 및 요소에 대한 다른 모든 내용이 편집기로 돌아갑니다."
 
-
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "요소를 클릭하여 선택하고, 드래그하여 이동하고, 핸들을 드래그하여 크기를 조정하고, 화살표 키를 눌러 이동하세요(Shift는 10px). 한 번에 여러 개를 촬영하려면 Shift 키를 누른 채 클릭하거나 배경의 상자를 드래그하세요."
-
 
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "저장하지 않고 닫고 미리보기에서 이동하거나 크기를 조정한 모든 항목을 포함하여 이 대화상자를 열었을 때와 똑같이 이 장면을 되돌립니다.\n\n이름 바꾸기는 되돌릴 수 없는 것입니다. 확인된 대로 로드된 백업에 적용되고 이와 함께 이 대화 상자가 닫힙니다."
 
-
 msgid "Compare Files"
 msgstr "파일 비교"
-
 
 msgid "Compare With"
 msgstr "비교"
 
-
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "다른 XML 파일을 로드된 파일과 비교합니다. 즉, 추가, 제거, 이름 변경 및 변경된 내용을 비교합니다.\n\n이를 사용하여 TaskerNet 가져오기가 가져온 내용, 편집 내용이 변경된 내용 또는 두 백업 간의 차이점을 확인하세요.\n\n로드된 파일이 '현재 파일에 저장'에서 가져온 경우 저장된 파일이 직접 제공됩니다.\n\n결과는 여기에 표시되고 현재 디렉터리의 텍스트 파일에 저장됩니다."
-
 
 msgid "Comparison cancelled."
 msgstr "비교가 취소되었습니다."
 
-
 msgid "Comparison report could not be saved."
 msgstr "비교 보고서를 저장할 수 없습니다."
-
 
 msgid "Comparison saved as"
 msgstr "비교가 다음으로 저장됨"
 
-
 msgid "Delete Scene"
 msgstr "장면 삭제"
-
 
 msgid "Done"
 msgstr "완료"
 
-
 msgid "Drawn in"
 msgstr "그려져 있다"
-
 
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "여기에서 추가하거나 변경했지만 아직 저장하지 않은 구성 요소를 포함하여 이 장면을 기본 창에 그림으로 그립니다.\n\n버전 2 레이아웃에는 자체 크기가 없으므로 미리보기는 사용자가 선택한 화면에 레이아웃을 배치하고 이를 변경할 때 다시 플로우합니다.\n\n미리보기가 실행되는 동안 이 대화상자는 닫히고 그 안의 모든 내용은 그대로 유지됩니다. 미리보기의 '편집기로 돌아가기' 버튼을 누르면 다시 표시됩니다.\n\n이는 Tasker의 자체 렌더러가 아닌 표현입니다. %변수는 해결되지 않고 이름이 지정되고, 재료 색상은 장치 테마가 아닌 기본 팔레트에서 나오며, 이미지, 비디오 및 웹 콘텐츠는 자리 표시자로 표시됩니다."
 
-
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "아직 저장되지 않은 변경 사항을 포함하여 위에서 입력한 크기로 이 장면을 기본 창에 그림으로 그립니다.\n\n미리보기가 실행되는 동안 이 대화상자는 닫히고 그 안의 모든 내용은 그대로 유지됩니다. 미리보기의 '편집기로 돌아가기' 버튼을 누르면 다시 표시됩니다.\n\n이는 Tasker의 자체 렌더러가 아닌 표현입니다. %변수는 해결되지 않고 이름이 지정되며 이미지, 비디오 및 웹 콘텐츠는 자리 표시자로 표시됩니다."
-
 
 msgid "Dropdown menu — shown when opened"
 msgstr "드롭다운 메뉴 — 열면 표시됨"
 
-
 msgid "Duplicate"
 msgstr "복제하다"
-
 
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Dynamic 및 Select Variable은 Scene이 표시될 때 작동됩니다."
 
-
 msgid "Dynamic value"
 msgstr "동적 가치"
-
 
 msgid "Edit Scene"
 msgstr "장면 편집"
 
-
 msgid "Edit item layout"
 msgstr "항목 레이아웃 편집"
-
 
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "대신 선택 항목을 유지하면서 이 항목의 속성을 편집하세요."
 
-
 msgid "Event handlers"
 msgstr "이벤트 핸들러"
-
 
 msgid "Geometry"
 msgstr "기하학"
@@ -1804,74 +1750,56 @@ msgstr "장면 내보내기"
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "회색: MapTasker에는 인수 테이블이 없으므로 Tasker가 내부에서 무엇을 기대하는지 추측하지 않고는 생성할 수 없습니다. 제목은 MapTasker 자체 그룹입니다."
 
-
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "빗금친 채우기와 기울임꼴 밑줄이 그어진 텍스트는 %변수입니다. 해당 값은 백업이 아닌 장치에 있으므로 추측하기보다는 이름이 지정됩니다. 이미지, 비디오, 지도 및 웹 콘텐츠가 자리 표시자로 표시됩니다. 해당 지오메트리, 변수 및 실행되는 작업에 대한 요소를 마우스로 가리킵니다."
-
 
 msgid "Health Check"
 msgstr "건강검진"
 
-
 msgid "Health Check found no errors or warnings."
 msgstr "상태 점검에서 오류나 경고가 발견되지 않았습니다."
-
 
 msgid "Health Check report could not be saved."
 msgstr "상태 점검 보고서를 저장할 수 없습니다."
 
-
 msgid "Health Check saved as"
 msgstr "상태 확인이 다음 이름으로 저장되었습니다."
-
 
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "팝업 메시지가 사라지기 전에 화면에 남아 있는 시간입니다.\n\n'해제될 때까지'는 모든 메시지를 닫을 때까지 유지하므로 메시지를 읽기 전에 스크롤하여 지나갈 때 유용합니다.\n\n몇몇 메시지는 읽어야 할 항목(예: 장면 요소 삭제 또는 이름 변경으로 영향을 받는 작업)을 나열하기 때문에 더 긴 기간을 설정합니다. 여기서 선택한 것은 무엇이든 자신의 타이밍을 유지합니다."
 
-
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "목록에서: 범위를 Shift 키를 누른 채 클릭하고, 범위를 추가하거나 제거하려면 Ctrl 또는 Cmd 키를 누른 채 클릭하세요."
-
 
 msgid "Item layout"
 msgstr "아이템 레이아웃"
 
-
 msgid "Landscape"
 msgstr "풍경"
-
 
 msgid "Legacy"
 msgstr "유산"
 
-
 msgid "Legacy Scene"
 msgstr "레거시 장면"
-
 
 msgid "List"
 msgstr "목록"
 
-
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: 보기 제한에 도달하여 다이어그램이 잘렸습니다."
-
 
 msgid "Modifiers"
 msgstr "수정자"
 
-
 msgid "Never updated"
 msgstr "업데이트되지 않음"
-
 
 msgid "No Task addresses this element by name."
 msgstr "어떤 작업도 이 요소를 이름으로 처리하지 않습니다."
 
-
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "XML 파일이 로드되지 않았습니다.  먼저 XML 파일을 받으세요."
-
 
 msgid "Not an HTML colour name or #hex value."
 msgstr "HTML 색상 이름이나 #hex 값이 아닙니다."
@@ -1879,162 +1807,122 @@ msgstr "HTML 색상 이름이나 #hex 값이 아닙니다."
 msgid "No element matches that."
 msgstr "일치하는 요소가 없습니다."
 
-
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "업데이트되지 않음 - 이 장면과 요소의 이름을 모두 지정하지만"
-
 
 msgid "Nothing here."
 msgstr "여기에는 아무것도 없습니다."
 
-
 msgid "Notification Duration"
 msgstr "알림 기간"
-
 
 msgid "Notification Duration:"
 msgstr "알림 기간:"
 
-
 msgid "On"
 msgstr "~에"
-
 
 msgid "Only when"
 msgstr "오직 언제"
 
-
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "모든 구성 요소의 개요를 설명하고 디자이너 트리의 이름을 지정하는 방식으로 이름을 지정합니다."
-
 
 msgid "Outline every element and name it."
 msgstr "모든 요소의 윤곽을 잡고 이름을 지정합니다."
 
-
 msgid "Pick a Material icon."
 msgstr "머티리얼 아이콘을 선택하세요."
-
 
 msgid "Pick an icon"
 msgstr "아이콘을 선택하세요"
 
-
 msgid "Pick from the Scene's environment and global variables."
 msgstr "장면의 환경과 전역 변수에서 선택하세요."
-
 
 msgid "Pick one of Material's own colour roles."
 msgstr "Material의 자체 색상 역할 중 하나를 선택하세요."
 
-
 msgid "Preview"
 msgstr "시사"
-
 
 msgid "Project(s) that list it."
 msgstr "이를 나열하는 프로젝트입니다."
 
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "새 이름을 묻는 메시지를 표시하고 로드된 백업에 즉시 적용합니다. 이를 포함하는 모든 프로젝트의 장면 목록을 포함하여 모든 곳에서 장면 이름을 바꿉니다.\n\n이름으로 이 장면을 표시하거나 숨기는 작업은 업데이트되지 않습니다. 여전히 이전 Scene의 이름이 지정됩니다.\n\n위의 Scene Name 필드는 읽기 전용입니다. 변경할 수 있는 유일한 방법입니다."
-
 
 msgid "Properties"
 msgstr "속성"
 
-
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "속성은 한 번에 한 요소씩 편집됩니다. 드래그하고 살짝 움직여 선택한 모든 항목을 이동합니다."
-
 
 msgid "Refresh"
 msgstr "새로 고치다"
 
-
 msgid "Remove background"
 msgstr "배경 제거"
-
 
 msgid "Rename Element"
 msgstr "요소 이름 바꾸기"
 
-
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "여기에서 요소 이름을 바꾸면 백업이 스윕되지 않습니다. 항목 레이아웃에는 이를 처리할 작업 요소 작업에 대한 장면 이름이 없으므로 다시 작성할 것이 없습니다."
-
 
 msgid "Repeats once per array entry"
 msgstr "배열 항목당 한 번씩 반복됩니다."
 
-
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "드래그한 위치와 크기를 이 픽셀 수로 반올림합니다."
-
 
 msgid "Save Scene To Android Device"
 msgstr "Android 기기에 장면 저장"
 
-
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "이 세션에서 수행된 모든 편집 내용을 포함하여 이 장면뿐만 아니라 포함된 모든 프로젝트, 프로필, 작업 및 장면의 전체 백업을 저장합니다.\n현재 로드된 파일의 새로운 타임스탬프 복사본에 기록됩니다. backup.xml은 backup_20260728_143005.xml이 됩니다.\n로드한 파일은 기록되지 않으므로 그대로 유지됩니다.\n그런 다음 앱은 추가 편집 및 저장을 위해 현재 파일이 되는 새 복사본으로 전환합니다. 다시 저장하면 두 번째 타임스탬프를 추가하는 대신 타임스탬프가 대체됩니다.\n이 컴퓨터에만 기록됩니다. Android 기기에는 아무 것도 전송되지 않습니다."
-
 
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "모든 요소와 함께 이 장면을 하나의 독립형 .scn.xml 파일로 저장합니다. 이는 Tasker의 자체 장면 내보내기에서 생성되는 것과 동일한 형식입니다.\n\n장면의 요소가 실행하는 작업은 포함되지 않습니다. 그들은 자신의 프로젝트에 속합니다."
 
-
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "로드된 XML에서 끊어진 참조, 참조되지 않은 작업, 프로필 및 장면, 이름 지정 문제를 스캔합니다.\n\n결과는 여기에 표시되고 현재 디렉터리의 텍스트 파일에 저장됩니다."
-
 
 msgid "Scene Components"
 msgstr "장면 구성요소"
 
-
 msgid "Scene Elements"
 msgstr "장면 요소"
-
 
 msgid "Scene Name"
 msgstr "장면 이름"
 
-
 msgid "Scene Preview"
 msgstr "장면 미리보기"
-
 
 msgid "Scene Properties"
 msgstr "장면 속성"
 
-
 msgid "Scene added."
 msgstr "장면이 추가되었습니다."
-
 
 msgid "Scene type"
 msgstr "장면 유형"
 
-
 msgid "Screen"
 msgstr "화면"
-
 
 msgid "Search elements"
 msgstr "검색 요소"
 
-
 msgid "Search icons"
 msgstr "검색 아이콘"
-
 
 msgid "Search variables"
 msgstr "검색변수"
 
-
 msgid "Select a component on the left."
 msgstr "왼쪽에서 구성 요소를 선택합니다."
-
 
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "나머지를 보려면 더 큰 보기 제한 또는 단일 프로젝트/프로필/작업을 선택하세요."
@@ -2042,211 +1930,158 @@ msgstr "나머지를 보려면 더 큰 보기 제한 또는 단일 프로젝트/
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "먼저 단일 장면을 선택합니다(위의 장면 풀다운)."
 
-
-
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "단일 요소를 선택하여 복제, 삭제 또는 다시 쌓을 수 있습니다."
-
 
 msgid "Select an element first."
 msgstr "먼저 요소를 선택하세요."
 
-
 msgid "Select an element on the canvas or in the list."
 msgstr "캔버스 또는 목록에서 요소를 선택합니다."
-
 
 msgid "Show the Task each element runs."
 msgstr "각 요소가 실행하는 작업을 표시합니다."
 
-
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "각 구성 요소를 탭하면 무엇을 하는지, 무엇을 쓰는지 보여줍니다."
-
 
 msgid "Show when"
 msgstr "언제 표시"
 
-
 msgid "Size"
 msgstr "크기"
-
 
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "크기는 정수여야 합니다(레이아웃이 없는 경우 -1)."
 
-
 msgid "Snap"
 msgstr "스냅"
-
 
 msgid "Spinner"
 msgstr "스피너"
 
-
 msgid "Stop firing anything on this event."
 msgstr "이 이벤트에 대한 발사를 중지하세요."
-
 
 msgid "Task action(s) in"
 msgstr "작업 작업"
 
-
 msgid "Task(s)"
 msgstr "작업"
-
 
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "작업은 일치 패턴(요소 가시성)으로 이 장면을 처리합니다. 직접 확인해보세요"
 
-
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker는 이 태스크를 씬 내부가 아닌 다른 곳에 보관하므로 이름이 없으며 이를 잃지 않고 다른 곳을 가리킬 수 없습니다. 손대지 않은 채 전달됩니다."
-
 
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker는 이 요소를 나열하지만 MapTasker는 저장된 장면에서 요소를 본 적이 없습니다. 따라서 유형과 ID만 전달하여 추가되며 유형도 위의 이름에서 유추됩니다(유형: \"{node_type}\"으로 작성됨). Tasker가 인식하지 못하는 경우 실행 취소를 누르세요."
 
-
 msgid "Tasker variable(s)"
 msgstr "태스커 변수"
-
 
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Tasker's Screen Builder: 고정된 캔버스 크기 없이 자체적으로 배치되는 선언적 구성 요소 트리(열, 행, 비계 등)입니다. 다음에서 시작:"
 
-
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "작업에서는 이 요소를 이름(요소 텍스트, 요소 위치, ... 총 18개의 작업 코드)으로 지정하므로 이름을 바꾸는 것은 필드 편집이 아닙니다. 이름 바꾸기 대화 상자에는 현재 이름에 따라 달라지는 항목이 나열되고 해당 작업을 함께 가져오도록 제안됩니다."
-
 
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "이름으로 이 장면을 표시하거나 숨기는 작업은 변경되지 않고 그대로 유지됩니다."
 
-
 msgid "Text density"
 msgstr "텍스트 밀도"
-
 
 msgid "That component can't go there."
 msgstr "그 구성 요소는 거기에 갈 수 없습니다."
 
-
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "이미 로드된 파일입니다.  비교할 다른 것을 선택하십시오."
-
 
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "머티리얼 아이콘 목록을 읽을 수 없으므로 대신 이름을 입력하세요."
 
-
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "이 구성 요소가 값을 쓰는 Tasker 변수입니다. 여러 개를 쉼표로 구분하세요. 바인딩을 설정하지 않고 선언하려면 비워 두세요."
-
 
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "이 장면이 저장되면 이를 해결하는 작업이 업데이트됩니다."
 
-
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "한 행의 레이아웃. Tasker는 목록을 채우는 항목마다 한 번씩 그립니다. 따라서 여기에 표시되는 내용은 목록이 아닌 단일 행입니다."
-
 
 msgid "The loaded file was saved from"
 msgstr "로드된 파일은 다음 위치에 저장되었습니다."
 
-
 msgid "The original"
 msgstr "원본"
-
 
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "원본 장면: 크기가 지정된 캔버스(텍스트, 버튼, 사각형, 이미지, 웹 등)의 고정 위치에 배치된 UI 요소입니다."
 
-
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "화면 크기는 장면이 아닌 이 미리보기의 크기입니다. 버전 2 레이아웃에는 자체 크기가 없으므로 '화면'을 변경하여 리플로우를 확인하세요. 머티리얼 역할에 따라 명명된 색상은 머티리얼 3 기준선 팔레트에서 그려집니다. 장치는 배경 화면에서 가져온 Material You 아래의 자체 테마에 대해 문제를 해결합니다. 빗금친 채우기와 기울임꼴 밑줄이 그어진 텍스트는 %변수입니다. 황색 윤곽선은 'Show when'으로 구성요소를 표시합니다. 수정자, 변수 및 작업에 대한 구성 요소를 마우스로 가리킵니다."
-
 
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "검색이 완료되지 않았습니다. 보기가 너무 크거나 브라우저가 사용 중일 수 있습니다."
 
-
 msgid "The two files hold the same configuration."
 msgstr "두 파일은 동일한 구성을 유지합니다."
-
 
 msgid "This Scene has no UI elements."
 msgstr "이 장면에는 UI 요소가 없습니다."
 
-
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "이 씬에는 자체 가로 레이아웃이 없습니다(크기는 -1)."
-
 
 msgid "This Scene has no layout for this orientation."
 msgstr "이 장면에는 이 방향에 대한 레이아웃이 없습니다."
 
-
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "이 장면에는 속성 요소가 없습니다. MapTasker가 본 366개의 장면 중 66개에는 아무 것도 없으므로 이는 손상이라기보다는 평범한 수준입니다."
-
 
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "이 장면의 버전 2 레이아웃을 읽을 수 없으며 그대로 유지됩니다."
 
-
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "이 장면의 버전 2 레이아웃에는 루트 구성 요소가 없으므로 디자인할 것이 없습니다."
-
 
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "이 앱에는 이 요소 유형에 대한 속성 테이블이 없으므로 여기서는 형상만 편집할 수 있습니다. 그렇지 않으면 손대지 않은 채 전달됩니다."
 
-
 msgid "This element has no layout for this orientation."
 msgstr "이 요소에는 이 방향에 대한 레이아웃이 없습니다."
-
 
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "이렇게 하면 Scene이 Android 기기의 /Tasker/scenes 아래에 독립 실행형 파일로 기록됩니다.\n\nIP 주소와 포트는 Android 장치의 Tasker 서버 설정과 일치해야 합니다.\n\n이를 위해서는 승인 프롬프트가 필요하지 않습니다."
 
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "이렇게 하면 Scene이 Android 장치의 /Tasker/scenes 아래에 독립 실행형 파일로 기록됩니다. Tasker의 라이브 구성으로 가져오지는 않습니다.\n\n'Http Server 예제' Tasker 프로젝트는 서버가 실행 중인 Android 장치에 설치되고 활성화되어야 합니다.\n\nAndroid 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트는 Tasker 서버 설정과 일치해야 합니다. 이를 위해서는 승인 프롬프트가 필요하지 않습니다."
-
 
 msgid "Tree label"
 msgstr "트리 라벨"
 
-
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "화면을 옆으로 돌리고 레이아웃이 다시 흐르도록 합니다."
-
 
 msgid "Undo"
 msgstr "끄르다"
 
-
 msgid "Using the saved size"
 msgstr "저장된 크기 사용"
-
 
 msgid "Variable"
 msgstr "변하기 쉬운"
 
-
 msgid "Variables"
 msgstr "변수"
-
 
 msgid "Version 2"
 msgstr "버전 2"
 
-
 msgid "View Limit"
 msgstr "조회수 제한"
-
 
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "선택한 내용이 커서에 들어갑니다. 다음 부분을 추가하려면 이것을 다시여십시오."
@@ -2254,23 +2089,17 @@ msgstr "선택한 내용이 커서에 들어갑니다. 다음 부분을 추가�
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "당신이 선택하는 것이 필드에 있는 것을 대체합니다. 목록 범위를 좁히려면 입력하세요."
 
-
-
 msgid "Which kind of Scene?"
 msgstr "어떤 종류의 장면인가요?"
-
 
 msgid "Writes to variable"
 msgstr "변수에 씁니다."
 
-
 msgid "component(s)"
 msgstr "구성요소"
 
-
 msgid "connectors"
 msgstr "커넥터"
-
 
 msgid "drag or nudge any of them and they all move together."
 msgstr "그 중 하나를 드래그하거나 조금씩 움직이면 모두 함께 움직입니다."
@@ -2278,10 +2107,8 @@ msgstr "그 중 하나를 드래그하거나 조금씩 움직이면 모두 함�
 msgid "editing 1 of"
 msgstr "중 1개 편집"
 
-
 msgid "element(s)"
 msgstr "강요)"
-
 
 msgid "elements selected"
 msgstr "선택한 요소"
@@ -2289,25 +2116,20 @@ msgstr "선택한 요소"
 msgid "is not a whole number"
 msgstr "정수가 아니다"
 
-
-
 msgid "none"
 msgstr "없음"
 
 msgid "lines dropped"
 msgstr "줄이 떨어졌다"
 
-
 msgid "not drawn"
 msgstr "그려지지 않은"
-
 
 msgid "pair"
 msgstr "쌍"
 
 msgid "pixels"
 msgstr "픽셀"
-
 
 msgid "Also update"
 msgstr "또한 업데이트"
@@ -2356,3 +2178,99 @@ msgstr "변수 상호 참조가 다음으로 저장됨"
 
 msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
 msgstr "지금 당장 로드된 백업에서 프로젝트를 비활성화합니다. 이름 바꾸기와 마찬가지로 이는 저장을 기다리지 않고 즉시 적용되며 취소는 실행 취소하지 않습니다."
+
+msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
+msgstr "'찾기...'는 화면의 텍스트를 검색하는 대신 로드된 구성에 질문을 합니다. 즉, 특정 작업을 수행하는 모든 작업, 특정 트리거가 실행하는 모든 프로필, 특정 앱 또는 장면의 이름을 지정하는 모든 것입니다.\n\n상자가 결합되어 트리거와 작업을 선택하여 해당 방식으로 트리거되는 프로필을 찾고 해당 작업을 실행합니다.\n\n결과는 개체 목록으로 반환됩니다. 하나를 클릭하면 해당 항목으로 이동됩니다.\n\n"
+
+msgid "Changes Pending"
+msgstr "변경사항 보류 중"
+
+msgid "Changes made to the loaded XML this session, newest first.  Undo steps back through them one at a time.  Nothing here has been written to a file."
+msgstr "이번 세션에서 로드된 XML에 대한 변경 사항이 최신 항목부터 표시됩니다.  한 번에 하나씩 뒤로 단계를 실행 취소하세요.  여기에는 파일에 기록된 내용이 없습니다."
+
+msgid "Choose an action, a trigger, an app, a Scene or some text."
+msgstr "작업, 트리거, 앱, 장면 또는 일부 텍스트를 선택하세요."
+
+msgid "Each box narrows the answer, and they combine: a trigger and an action together find the Profiles that trigger that way AND run a Task that does that. Every entry offered is one this configuration actually uses, and the number beside it is how many places carry it."
+msgstr "각 상자는 답변의 범위를 좁히고 결합합니다. 트리거와 작업이 함께 해당 방식으로 트리거되는 프로필을 찾고 해당 작업을 실행합니다. 제공되는 모든 항목은 이 구성이 실제로 사용하는 항목이며 옆에 있는 숫자는 해당 항목을 운반하는 장소 수입니다."
+
+msgid "Edit History"
+msgstr "편집 기록"
+
+msgid "Editing"
+msgstr "편집"
+
+msgid "Every Project"
+msgstr "모든 프로젝트"
+
+msgid "Find"
+msgstr "찾다"
+
+msgid "Find in"
+msgstr "찾기"
+
+msgid "Find results could not be saved."
+msgstr "찾기 결과를 저장할 수 없습니다."
+
+msgid "Find results saved as"
+msgstr "다음 이름으로 저장된 결과 찾기"
+
+msgid "Find..."
+msgstr "찾다..."
+
+msgid "Help"
+msgstr "돕다"
+
+msgid "In no Project"
+msgstr "프로젝트 없음"
+
+msgid "List every change made to the loaded XML this session, newest first."
+msgstr "이번 세션에서 로드된 XML에 적용된 모든 변경 사항을 최신 항목부터 나열합니다."
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Notification Duration: How long a pop-up message stays on screen before it disappears.  'Until dismissed' keeps every message up until you close it.\n\n* Dark Mode: Switch the GUI between light and dark appearance.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Report Issue: Open the GitHub Issues page in your browser to report a problem or suggestion to the developer.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Clear: Clear the Map/Diagram/Tree view data currently held and displayed.\n\n* Health Check: Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.  Click a finding to be taken to it in the Map.\n\n* Compare Files: Compare another XML file against the loaded one to see what was added, removed, renamed and changed.\n\n* Variable Xref: Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names are likely typos.\n\n* Open View In New Window: Open each Map/Diagram request in its own new window/tab rather than reusing that view's existing one.\n\n* Close Tabs On Exit: Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n   - List XML Files: List the XML files found on the Android device so you can select one rather than typing its location.\n   - Cancel Entry: Back out of the Android fetch process.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n   - List Unnamed Items: Include unnamed Profiles and Tasks in the four pulldowns above.\n\n   Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with various save options...\n   - Add Project/Profile/Task/Scene: Create a new object and add it to the loaded XML.\n   - Edit Project/Profile/Task/Scene: Modify the object currently selected in the pulldowns above.\n   - Rename: Give the object being edited a new name.\n   - Delete: Remove the object being edited from the loaded XML.\n   - Duplicate: Make a copy of the selected Scene element.\n   - Preview: Display the Scene being edited as it will appear.\n   - Save / Export: Write the object out to a standalone XML file of your choosing.\n   - Save To Current File: Write the entire configuration to a new, timestamped file beside the loaded one.\n   - Save To Android: Write the object back to your Android device.\n     (A safety copy of anything a save is about to overwrite is kept in the 'MapTasker_Backups' folder.)\n\n   Editing commands...\n   - Undo: Back out the most recent Add/Edit/Delete/Rename change made to the loaded XML.  This changes what is loaded, not any file.\n   - Redo: Reapply the change most recently backed out by 'Undo'.\n   - Edit History: List every change made to the loaded XML this session, newest first.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n   - Reset to Default Colors: Restore every color to its default value.\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n   - Show/Edit API Key(s): Enter or change the API keys used by the server-based AI models.\n   - Change Prompt: Modify the prompt sent to the AI model.\n   - Run Analysis: Submit the selected Project/Profile/Task and prompt to the selected model.\n   - Extended: List all available models rather than just the default set.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Map/Diagram/Tree view toolbar commands are...\n   - Search: Highlight every instance of the case-insensitive text entered in the search box, up to the first 200.  Click a line number to go to that line.\n   - Find...: (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene.  Click a result to be taken to it.\n   - Save Results: Save the 'Find...' results to a text file.\n   - Top / Bottom: Jump to the beginning or the end of the displayed output.\n   - Toggle Wrap: Turn line wrapping on or off in the displayed output.\n   - Profiles Per Line: (Diagram only) The number of Profiles drawn side-by-side on a single line.\n\n* Display Help: Display this help text.\n\n* Get Android Help: Display the help for fetching the XML file from your Android device.\n\n* '?' buttons: Display the help specific to the section in which the button appears.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "MapTasker는 업로드된 Tasker XML 파일(예: 'backup.xml')을 기반으로 Android Tasker 구성을 표시합니다. 디스플레이에는 선택적으로 모든 프로젝트, 프로필, 작업 및 해당 작업, 프로필/작업 조건 및 기타 프로필/작업 관련 정보가 포함됩니다.\n\nXML 파일이 로드되면 선택적으로 프로젝트, 프로필, 작업 및 장면을 편집할 수 있습니다.\n\n* 표시 옵션은 다음과 같습니다.\n    수준 0: 첫 번째 작업 작업만 표시하고 이름이 지정되지 않은 작업에 대해서만 표시합니다(자동).\n    수준 1 = 알 수 없는 작업에 대한 모든 작업 세부 정보만 표시합니다(기본값).\n    레벨 2 = 모든 태스크에 전체 태스크 작업 이름을 표시합니다.\n    레벨 3 = 작업 세부 정보와 함께 모든 작업에 대한 전체 작업 작업 세부 정보를 표시합니다.\n    레벨 4 = 표시 레벨 3과 프로젝트의 전역 변수.\n\n    수준 5 = 표시 수준 4와 장면 인수 세부정보.\n\n* Just Display Everything: 조건, TaskerNet 정보, 기본 설정, 예쁜 출력, 디렉터리 및 구성 개요 표시를 켭니다.\n\n* 표시 조건: 프로필 및 작업 조건 표시를 켭니다.\n\n* TaskerNet 정보 표시 - 가능한 경우 TaskerNet 게시 정보를 표시합니다.\n\n* Tasker 기본 설정 표시 - Tasker의 시스템 기본 설정을 표시합니다.\n\n* Twisty에서 작업 세부 정보 숨기기: ► 내에서 작업 정보를 숨기고 클릭하여 표시합니다.\n\n* 시작 부분에 하이퍼링크의 디렉토리를 표시합니다.\n\n* 더 예쁜 출력 표시: 모든 인수에 줄 바꿈과 들여쓰기를 추가하여 출력을 사람이 더 읽기 쉽게 만듭니다.\n\n* 프로젝트/프로필/작업/장면 이름 옵션을 사용하여 이름을 이탤릭체, 굵게, 밑줄 및/또는 강조 표시할 수 있습니다.\n\n* 작업 작업 제한: 작업에 지정된 작업 수보다 많은 경우 경고를 표시합니다.\n\n* If/Then/Else 작업 동작의 들여쓰기 크기입니다.\n\n* 언어: 출력에 사용할 언어를 선택합니다.  기본값은 영어입니다.\n\n* 사용할 글꼴: 출력에 사용되는 모노스페이스 글꼴을 변경합니다.\n\n* 보기 제한: 보기 생성 시 사용되는 처리 시간을 제어합니다.\n\n* 알림 기간: 팝업 메시지가 사라지기 전에 화면에 남아 있는 시간입니다.  '해제될 때까지'는 모든 메시지를 닫을 때까지 보관합니다.\n\n* 다크 모드: 밝은 모습과 어두운 모습 사이에서 GUI를 전환합니다.\n\n* 재설정 옵션: 모든 것을 지우고 새로 시작하세요.\n\n* 로컬 XML 파일 가져오기: 로컬 드라이브에서 백업/내보낸 XML 파일을 가져옵니다.\n\n* 설정 저장 - 나중에 사용할 수 있도록 이 설정을 저장합니다.\n\n* 설정 복원 - 이전에 저장한 세션에서 설정을 복원합니다.\n\n* 문제 보고: 브라우저에서 GitHub 문제 페이지를 열어 문제나 제안 사항을 개발자에게 보고합니다.\n\n* 디스플레이 보기: 프로젝트, 프로필, 작업 및 장면의 구성 지도, 다이어그램 또는 트리 보기를 GUI에 직접 표시합니다.\n\n* 지우기: 현재 보유되어 표시된 지도/도표/트리 보기 데이터를 지웁니다.\n\n* 상태 점검: 로드된 XML에서 끊어진 참조, 참조되지 않은 작업, 프로필 및 장면, 이름 지정 문제를 검사합니다.  지도에서 해당 항목으로 이동하려면 결과를 클릭하세요.\n\n* 파일 비교: 다른 XML 파일을 로드된 파일과 비교하여 추가, 제거, 이름 변경 및 변경된 내용을 확인합니다.\n\n* 변수 외부 참조: 로드된 XML의 모든 %변수를 추적합니다. 각 항목이 설정된 위치, 읽혀진 위치, 읽혔지만 설정되지 않은 항목, 설정되었지만 읽혀지지 않은 항목, 거의 동일한 이름은 오타가 있을 수 있습니다.\n\n* 새 창에서 보기 열기: 해당 보기의 기존 창을 재사용하는 대신 새 창/탭에서 각 맵/다이어그램 요청을 엽니다.\n\n* 종료 시 탭 닫기: '종료'를 하면 기본 MapTasker 창과 열려 있는 모든 맵/다이어그램 창/탭도 닫힙니다.\n\n* Android 장치에서 XML 가져오기: Android 장치에서 백업/내보낸 XML 파일을 가져옵니다.  Android 장치의 IP 주소와 포트 번호는 물론 장치의 파일 위치를 묻는 메시지가 표시됩니다.\n\n   - XML ​​파일 나열: 위치를 입력하는 대신 선택할 수 있도록 Android 장치에 있는 XML 파일을 나열합니다.\n   - 항목 취소: Android 가져오기 프로세스에서 돌아갑니다.\n\n* 특정 이름 탭: 표시할 특정 이름의 단일 항목을 입력합니다...\n   - 프로젝트 이름: 표시할 특정 프로젝트를 입력합니다.\n   - 프로필 이름: 표시할 특정 프로필을 입력합니다.\n   - 작업 이름: 표시할 특정 작업을 입력합니다.\n   - 장면 이름: 표시할 특정 장면을 입력합니다.  소유한 프로젝트의 제목과\n                 장면의 요소(및 해당 요소가 호출하는 모든 작업)가 표시됩니다.\n                 프로젝트의 프로필과 다른 장면은 그렇지 않습니다.\n   (이 4개는 제외됩니다. 하나만 입력하세요)\n   - 이름 없는 항목 나열: 위의 4개 풀다운에 이름 없는 프로필 및 작업을 포함합니다.\n\n   다양한 저장 옵션을 사용하여 GUI에서 직접 프로젝트, 프로필, 작업 및 장면을 추가하고 편집합니다...\n   - 프로젝트/프로필/작업/장면 추가: 새 개체를 생성하고 로드된 XML에 추가합니다.\n   - 프로젝트/프로필/작업/장면 편집: 위 풀다운에서 현재 선택된 개체를 수정합니다.\n   - 이름 바꾸기: 편집 중인 개체에 새 이름을 지정합니다.\n   - 삭제: 로드된 XML에서 편집 중인 개체를 제거합니다.\n   - 복제: 선택한 장면 요소의 복사본을 만듭니다.\n   - 미리보기: 편집 중인 Scene을 그대로 보여줍니다.\n   - 저장/내보내기: 선택한 독립형 XML 파일에 개체를 씁니다.\n   - 현재 파일에 저장: 로드된 파일 옆에 있는 새로운 타임스탬프 파일에 전체 구성을 기록합니다.\n   - Android에 저장: 개체를 Android 장치에 다시 씁니다.\n     (저장 내용을 덮어쓰려는 내용의 안전한 복사본은 'MapTasker_Backups' 폴더에 보관됩니다.)\n\n   명령 편집 중...\n   - 실행 취소: 로드된 XML에 대한 가장 최근의 추가/편집/삭제/이름 변경 변경 사항을 취소합니다.  이는 파일이 아닌 로드된 내용을 변경합니다.\n   - Redo: 가장 최근에 'Undo'를 통해 취소된 변경 사항을 다시 적용합니다.\n   - 편집 내역: 이번 세션에서 로드된 XML에 적용된 모든 변경 사항을 최신 항목부터 나열합니다.\n\n* 색상 탭: 디스플레이의 다양한 요소에 대한 색상을 선택합니다.\n              (예: 프로젝트, 프로필, 작업 등의 색상)\n   - 기본 색상으로 재설정: 모든 색상을 기본값으로 복원합니다.\n\n* 분석 탭: Ai 모델에 대해 프로젝트, 프로필, 작업 또는 장면에 대한 분석을 실행합니다.\n   - API 키 표시/수정: 서버 기반 AI 모델에서 사용하는 API 키를 입력하거나 변경합니다.\n   - 프롬프트 변경: AI 모델에 전송되는 프롬프트를 수정합니다.\n   - 분석 실행: 선택한 프로젝트/프로필/작업을 제출하고 선택한 모델에 프롬프트를 표시합니다.\n   - 확장: 기본 세트뿐만 아니라 사용 가능한 모든 모델을 나열합니다.\n\n* 디버그 탭: 런타임 설정 옵션을 표시하고 디버그 모드를 켭니다.\n\n* 맵/다이어그램/트리 뷰 도구 모음 명령은...\n   - 검색: 검색 상자에 입력된 대소문자를 구분하지 않는 텍스트의 모든 인스턴스를 처음 200개까지 강조 표시합니다. 해당 줄로 이동하려면 줄 번호를 클릭하세요.\n   - 찾기...: (지도 및 다이어그램에만 해당) 화면의 텍스트를 검색하는 대신 로드된 구성에 질문을 하십시오. 지정된 작업을 수행하는 모든 작업, 지정된 트리거가 실행하는 모든 프로필, 지정된 앱 또는 장면의 이름을 지정하는 모든 것.  결과를 클릭하면 해당 결과로 이동됩니다.\n   - 결과 저장: '찾기...' 결과를 텍스트 파일로 저장합니다.\n   - 상단/하단: 표시된 출력의 시작 또는 끝으로 이동합니다.\n   - 줄 바꿈 전환: 표시된 출력에서 ​​줄 바꿈을 켜거나 끕니다.\n   - 라인당 프로필 수: (다이어그램만 해당) 단일 라인에 나란히 그려진 프로필 수입니다.\n\n* 도움말 표시: 이 도움말 텍스트를 표시합니다.\n\n* Android 도움말 받기: Android 기기에서 XML 파일을 가져오기 위한 도움말을 표시합니다.\n\n* '?' 버튼: 버튼이 나타나는 섹션과 관련된 도움말을 표시합니다.\n\n* 종료: 프로그램을 종료(quit)합니다.\n\n참고:\n\n- https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md에서 전체 변경 로그 기록을 확인하세요.\n\n- 모양 모드를 변경하면 출력에 사용되는 색상이 기본값으로 변경됩니다.\n\n"
+
+msgid "Narrow to Project"
+msgstr "프로젝트로 좁히기"
+
+msgid "No changes to undo."
+msgstr "실행취소할 변경사항이 없습니다."
+
+msgid "Nothing has been changed yet."
+msgstr "아직 아무것도 변경되지 않았습니다."
+
+msgid "Nothing in the loaded configuration answers this."
+msgstr "로드된 구성에는 이에 대한 답변이 없습니다."
+
+msgid "Redid"
+msgstr "레디드"
+
+msgid "Redo"
+msgstr "다시 하다"
+
+msgid "Run a Find first."
+msgstr "먼저 찾기를 실행하세요."
+
+msgid "Save Results"
+msgstr "결과 저장"
+
+msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
+msgstr "편집 패널에서 로드된 XML에 대한 마지막 변경 사항(편집, 추가, 삭제 또는 이름 바꾸기)을 되돌립니다.\n\n이는 파일이 아닌 로드된 내용을 변경합니다. 디스크나 Android 장치의 어떤 것도 건드리지 않습니다."
+
+msgid "Text (name, label or argument)"
+msgstr "텍스트(이름, 레이블 또는 인수)"
+
+msgid "Undid"
+msgstr "취소됨"
+
+msgid "Updating MapTasker in the background.  Please stand by..."
+msgstr "백그라운드에서 MapTasker를 업데이트하는 중입니다.  기다려주세요..."
+
+msgid "does not belong to a Project, so there is nowhere to attach a new"
+msgstr "프로젝트에 속하지 않으므로 새 프로젝트를 첨부할 곳이 없습니다."
+
+msgid "found for"
+msgstr "다음을 위해 발견됨"
+
+msgid "of"
+msgstr "~의"

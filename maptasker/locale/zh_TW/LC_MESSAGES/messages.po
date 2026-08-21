@@ -1476,9 +1476,6 @@ msgstr "關閉結果視窗"
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 msgstr "直接在 GUI 中顯示配置的「地圖」、「圖表」或「樹」視圖。\n\n必須先從本機磁碟機或 Android 裝置取得 XML，視圖才能正常運作。\n\n如果已取得 XML，它將用作視圖的輸入。  點擊“清除”按鈕將清除視圖資料。\n\n非常大的配置將導致地圖和圖表的運行時間延長。  為了獲得最佳效能，請選擇要對應的單一項目或設定檔。\n\n（可選）使用「查看限制」設定來限制要處理的資料量。  限制越大，允許映射的輸出就越大。  產生的輸出越多，處理時間就越長。\n\n\n圖表視圖具有以下行為：\n\n - 只能顯示項目和設定檔。僅包含單一任務或場景的 XML 將不會顯示。\n\n - 按一下水平連接器以突出顯示圖中的整個連接。\n\n\n樹視圖具有以下行為：\n\n- 只能顯示項目。僅包含單一設定檔、任務或場景的 XML 將不會顯示。\n\n- 無論單一名稱設定如何，都會顯示所有項目、設定檔、任務和場景。\n\n"
 
-msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "MapTasker 根据您上传的 Tasker XML 文件（例如“backup.xml”）显示您的 Android Tasker 配置。顯示將可選地包括所有項目、設定檔、任務及其操作、設定檔/任務條件和其他設定檔/任務相關資訊。\n\n加载 XML 文件后，您可以选择编辑项目、配置文件、任务和场景。\n\n* 顯示選項有：\n    等級 0：僅顯示第一個任務操作，僅適用於未命名的任務（靜默）。\n    等級 1 = 僅顯示未知任務的所有任務操作詳細資訊（預設）。\n    等級 2 = 顯示每個任務的完整任務操作名稱。\n    等級 3 = 顯示每個任務的完整任務操作詳細資訊以及操作詳細資訊。\n    等級 4 = 顯示等級 3 加上項目的全域變數。\n\n    等級 5 = 顯示等級 4 加上場景參數詳細資訊。\n\n* 仅显示所有内容：打开条件、TaskerNet 信息、首选项、漂亮输出、目录和配置大纲的显示。\n\n* 显示条件：打开配置文件和任务条件的显示。\n\n* 顯示 TaskerNet 資訊 - 如果可用，顯示 TaskerNet 發佈資訊。\n\n* 显示 Tasker 首选项 - 显示 Tasker 的系统首选项。\n\n* 在 Twisty 下隱藏任務詳細資料：將 ► 內的任務資訊隱藏，然後按一下顯示。\n\n* 在開頭顯示超連結目錄。\n\n* 顯示更漂亮的輸出：透過為所有參數添加換行符和縮進，使輸出更易於閱讀。\n\n* 項目/設定檔/任務/場景名稱選項可將其名稱設定為斜體、粗體、底線和/或反白顯示。\n\n* 任务操作限制：如果任务的操作数量超过指定数量，则显示警告。\n\n* If/Then/Else 任務操作的縮排量。\n\n* 語言：選擇輸出所使用的語言。  預設為英語。\n\n* 要使用的字體：變更用於輸出的等寬字體。\n\n* 視圖限制：控制產生視圖時所使用的處理時間量。\n\n* 重置選項：清除所有內容並重新開始。\n\n* 取得本機 XML 檔案：從本機磁碟機取得備份/匯出的 XML 檔案。\n\n* 儲存設定 - 儲存這些設定以供日後使用。\n\n* 恢复设置 - 从以前保存的会话中恢复设置。\n\n* 顯示檢視：直接在 GUI 中顯示項目、設定檔、任務和場景的設定圖、圖表或樹狀視圖。\n\n* 從 Android 裝置取得 XML：從 Android 裝置取得備份/匯出的 XML 檔案。  系統會要求您提供 Android 裝置的 IP 位址和連接埠號，以及裝置上的檔案位置。\n\n* 特定名稱標籤：輸入要顯示的單一特定命名項目...\n   - 項目名稱：輸入要顯示的特定項目。\n   - 設定檔名稱：輸入要顯示的特定設定檔。\n   - 任務名稱：輸入要顯示的特定任務。\n   - 場景名稱：輸入要顯示的特定場景。  其所屬項目的標題和\n                 显示场景的元素（以及这些元素调用的任何任务）；\n                 專案的設定檔及其其他場景不是。\n   （這四項是唯一的：只輸入一項）\n\n   直接在 GUI 中新增和編輯項目、設定檔和任務，並具有各種儲存選項。\n\n* 顏色標籤：為顯示的各種元素選擇顏色。\n              （例如項目、設定檔、任務等的顏色）。\n\n* 分析標籤：針對 Ai 模型執行專案、設定檔、任務或場景的分析。\n\n* 偵錯選項卡：顯示運行時設定選項並開啟偵錯模式。\n\n* 退出：退出程序（退出）。\n\n注意事項：\n\n- 在 https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md 查看整個變更日誌歷史記錄\n\n- 變更外觀模式會將用於輸出的顏色變更為其預設值。\n\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 msgstr "「視圖限制」是一種控制產生視圖時所使用的處理時間量的方法。\n\n- 數字表示要產生的輸出行的相對數量。\n\n- 限制越大，允許映射的輸出就越大。  產生的輸出越多，處理時間就越長。\n\n- 非常大的配置將產生非常大的輸出圖並導致更長的處理時間。  在較舊的設備上，這可能需要長達 30 秒或更長時間。\n\n- 透過設定限制，您可以透過不允許更長的持續時間來控制映射配置時使用的處理時間。\n\n- 如果計算地圖時達到限制，輸出將停止。\n\n- 您可以嘗試此設置，看看哪種設置最適合您的使用案例。\n\n- 選擇單一項目、設定檔或任務是限制處理時間的另一種方法。\n\n"
 
@@ -1536,46 +1533,35 @@ msgstr "新增背景"
 msgid "Add action"
 msgstr "添加動作"
 
-
 msgid "Add event"
 msgstr "新增事件"
-
 
 msgid "Add handler"
 msgstr "新增處理程序"
 
-
 msgid "Add modifier"
 msgstr "新增修飾符"
-
 
 msgid "Add scene properties"
 msgstr "新增場景屬性"
 
-
 msgid "Addressed by id from"
 msgstr "由 id 尋址"
-
 
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "在場景中間的堆疊頂端新增一個元素。"
 
-
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "如果所選組件可以容納子組件，則添加到其內部，否則直接添加到其之後。"
-
 
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "將其新增至堆疊頂部、場景中間。將其拖曳到您想要的位置。"
 
-
 msgid "Also selected:"
 msgstr "還選擇了："
 
-
 msgid "Also update"
 msgstr "也更新"
-
 
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Amber：Tasker 列出了它，但 MapTasker 並沒有確認它的樣本。灰色：無法到達選擇將其放置的位置。"
@@ -1583,179 +1569,134 @@ msgstr "Amber：Tasker 列出了它，但 MapTasker 並沒有確認它的樣本�
 msgid "App icon"
 msgstr "應用程式圖標"
 
-
 msgid "Appearance Mode"
 msgstr "外觀模式"
-
-
 
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "依序套用－底部的位於頂部。"
 
-
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "儲存此場景時套用，而不是現在 - “場景”對話方塊上的「取消」會使元素和任務保持原樣。"
-
 
 msgid "Back to Editor"
 msgstr "返回編輯器"
 
-
 msgid "Bounds"
 msgstr "界線"
-
 
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "取消。對此場景的變更被丟棄。"
 
-
 msgid "Choose another file..."
 msgstr "選擇另一個文件..."
-
 
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "按一下元件將其選中，按住 Shift 鍵並點擊同一容器中的另一個元件以取得多個元件，然後拖曳以在其同級元件之間重新排序。將元件移入或移出容器是編輯器的“In”和“Out”按鈕；撤銷也在那裡。"
 
-
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "點擊一個元素將其選中，按住 Shift 鍵單擊或拖曳背景上的一個框以選取多個元素，然後拖曳其中任何一個以將它們全部移動 - 箭頭鍵微移，Shift 移動 10 像素。拖曳手把可調整單一元素的大小。撤銷以及有關元素的其他所有內容都會返回到編輯器中。"
-
 
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "點擊一個元素以選擇它，拖曳以移動，拖曳手柄以調整大小，箭頭鍵以微移（Shift 為 10 像素）。按住 Shift 鍵並點擊，或在背景上拖曳一個框，可以一次拍攝多個框。"
 
-
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "關閉而不儲存，並將此場景完全恢復到此對話方塊開啟時的狀態 - 包括在預覽中移動或調整大小的任何內容。\n\n重新命名是無法收回的一件事：它會在確認後套用至載入的備份，並關閉此對話方塊。"
-
 
 msgid "Compare Files"
 msgstr "比較文件"
 
-
 msgid "Compare With"
 msgstr "比較"
-
 
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "將另一個 XML 檔案與已載入的檔案進行比較：新增、刪除、重新命名和變更的內容。\n\n使用它可以查看 TaskerNet 導入帶來了什麼、編輯更改了什麼，或者兩個備份之間有什麼不同。\n\n如果載入的檔案來自“儲存到目前檔案”，則直接提供儲存該檔案的檔案。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"
 
-
 msgid "Comparison cancelled."
 msgstr "比較已取消。"
-
 
 msgid "Comparison report could not be saved."
 msgstr "無法儲存比較報告。"
 
-
 msgid "Comparison saved as"
 msgstr "比較另存為"
-
 
 msgid "Delete Scene"
 msgstr "刪除場景"
 
-
 msgid "Done"
 msgstr "完畢"
-
 
 msgid "Drawn in"
 msgstr "繪製在"
 
-
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "在主視窗中將此場景繪製為圖片 - 包括您在此處新增或變更但尚未儲存的元件。\n\n版本 2 佈局沒有自己的大小，因此預覽會將其佈局在您選擇的畫面中，並在您更改時重新排列。\n\n當預覽啟動時，此對話方塊將關閉，其中的所有內容都會保留；預覽的「返回編輯器」按鈕可將其返回。\n\n它是一種表示形式，而不是 Tasker 自己的渲染器：%變數是命名的而不是解析的，材質顏色來自基線調色板而不是設備的主題，圖像、視訊和網頁內容顯示為佔位符。"
-
 
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "將此場景繪製為主視窗中的圖片，尺寸為上面輸入的尺寸 - 包括尚未儲存的變更。\n\n當預覽啟動時，此對話方塊將關閉，其中的所有內容都會保留；預覽的「返回編輯器」按鈕可將其返回。\n\n它是一種表示，而不是 Tasker 自己的渲染器：%變數是命名的而不是解析的，圖像、影片和網頁內容顯示為佔位符。"
 
-
 msgid "Dropdown menu — shown when opened"
 msgstr "下拉式選單 — 開啟時顯示"
-
 
 msgid "Duplicate"
 msgstr "複製"
 
-
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "動態和選擇變數是在場景顯示時計算出來的。"
-
 
 msgid "Dynamic value"
 msgstr "動態值"
 
-
 msgid "Edit Scene"
 msgstr "編輯場景"
-
 
 msgid "Edit item layout"
 msgstr "編輯項目佈局"
 
-
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "相反，編輯該屬性，並保留選擇。"
-
 
 msgid "Event handlers"
 msgstr "事件處理程序"
 
-
 msgid "Export Scene"
 msgstr "匯出場景"
-
 
 msgid "Geometry"
 msgstr "幾何學"
 
-
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "灰色：MapTasker 沒有參數表，因此在不猜測 Tasker 期望內部內容的情況下無法建立它。標題是 MapTasker 自己的分組。"
-
 
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "陰影填充和斜體下劃線文字是%變數——它們的值存在於設備上，而不是備份中，因此它們是被命名的而不是被猜測的。圖像、影片、地圖和網頁內容顯示為佔位符。將滑鼠懸停在任何元素上以查看其幾何形狀、變數及其運行的任務。"
 
-
 msgid "Health Check"
 msgstr "健康檢查"
-
 
 msgid "Health Check found no errors or warnings."
 msgstr "健康檢查未發現任何錯誤或警告。"
 
-
 msgid "Health Check report could not be saved."
 msgstr "無法保存健康檢查報告。"
-
 
 msgid "Health Check saved as"
 msgstr "健康檢查另存為"
 
-
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "彈出訊息消失前在螢幕上停留的時間。\n\n「直到關閉」會保留每個訊息，直到您將其關閉，這在您無法閱讀訊息之前滾動過去的情況下非常有用。\n\n有些訊息設定了自己較長的持續時間，因為它們列出了您必須閱讀的內容 - 例如，受刪除或重命名場景元素影響的任務。無論這裡選擇什麼，它們都會保持自己的計時。"
-
 
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "在清單中：按住 Shift 鍵點選某個範圍，按住 Ctrl 或 Cmd 鍵點選以新增或刪除範圍。"
 
-
 msgid "Item layout"
 msgstr "專案佈局"
-
 
 msgid "Landscape"
 msgstr "景觀"
 
-
 msgid "Legacy"
 msgstr "遺產"
-
 
 msgid "Legacy Scene"
 msgstr "遺留場景"
@@ -1763,187 +1704,140 @@ msgstr "遺留場景"
 msgid "List"
 msgstr "清單"
 
-
-
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker：達到視圖限制，圖表被截斷"
-
 
 msgid "Modifiers"
 msgstr "修飾符"
 
-
 msgid "Never updated"
 msgstr "從未更新過"
-
 
 msgid "No Task addresses this element by name."
 msgstr "沒有任務透過名稱來定址該元素。"
 
-
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "尚未載入任何 XML 檔案。  首先取得 XML 檔案。"
-
 
 msgid "No element matches that."
 msgstr "沒有元素與之匹配。"
 
-
 msgid "Not an HTML colour name or #hex value."
 msgstr "不是 HTML 顏色名稱或 #hex 值。"
-
 
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "未更新 - 這些名稱同時命名此場景和此元素，但不是作為"
 
-
 msgid "Nothing here."
 msgstr "這裡什麼都沒有。"
-
 
 msgid "Notification Duration"
 msgstr "通知持續時間"
 
-
 msgid "Notification Duration:"
 msgstr "通知持續時間："
-
 
 msgid "On"
 msgstr "在"
 
-
 msgid "Only when"
 msgstr "僅當"
-
 
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "概述每個組件並按照設計者的樹命名方式對其進行命名。"
 
-
 msgid "Outline every element and name it."
 msgstr "概述每個元素並為其命名。"
-
 
 msgid "Pick a Material icon."
 msgstr "選擇一個材質圖示。"
 
-
 msgid "Pick an icon"
 msgstr "選擇一個圖標"
-
 
 msgid "Pick from the Scene's environment and global variables."
 msgstr "從場景的環境和全域變數中進行選擇。"
 
-
 msgid "Pick one of Material's own colour roles."
 msgstr "選擇 Material 自己的顏色角色之一。"
-
 
 msgid "Preview"
 msgstr "預覽"
 
-
 msgid "Project(s) that list it."
 msgstr "列出它的項目。"
-
 
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "提示輸入新名稱並將其應用於載入的備份，立即 - 在任何地方重新命名場景，包括在包含該場景的每個項目的場景清單中。\n\n按名稱顯示或隱藏此場景的任務不會更新；那些仍然命名為舊場景。\n\n上面的場景名稱欄位是唯讀的——這是更改它的唯一方法。"
 
-
 msgid "Properties"
 msgstr "特性"
-
 
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "一次編輯一個元素的屬性。拖曳並輕推移動所有選定的內容。"
 
-
 msgid "Refresh"
 msgstr "重新整理"
-
 
 msgid "Remove background"
 msgstr "刪除背景"
 
-
 msgid "Rename Element"
 msgstr "重新命名元素"
-
 
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "在這裡重命名元素不會清除備份：專案佈局沒有用於任務元素操作的場景名稱來尋址，因此無需重寫。"
 
-
 msgid "Repeats once per array entry"
 msgstr "每個數組條目重複一次"
-
 
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "將拖曳的位置和大小舍入到這麼多像素。"
 
-
 msgid "Save Scene To Android Device"
 msgstr "將場景儲存到 Android 設備"
-
 
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "儲存整個備份 - 其中的每個項目、設定檔、任務和場景，而不僅僅是此場景 - 包​​括此會話中任何位置所做的每個編輯。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
 
-
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "將此場景及其所有元素儲存為一個獨立的 .scn.xml 檔案 - 與 Tasker 自己的場景匯出產生的格式相同。\n\n不包括場景元素運行的任務；他們屬於自己的專案。"
-
 
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "掃描載入的 XML 以尋找損壞的引用、未引用的任務、設定檔和場景以及命名問題。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"
 
-
 msgid "Scene Components"
 msgstr "場景組件"
-
 
 msgid "Scene Elements"
 msgstr "場景元素"
 
-
 msgid "Scene Name"
 msgstr "場景名稱"
-
 
 msgid "Scene Preview"
 msgstr "場景預覽"
 
-
 msgid "Scene Properties"
 msgstr "場景屬性"
-
 
 msgid "Scene added."
 msgstr "場景已新增。"
 
-
 msgid "Scene type"
 msgstr "場景類型"
-
 
 msgid "Screen"
 msgstr "螢幕"
 
-
 msgid "Search elements"
 msgstr "搜尋元素"
-
 
 msgid "Search icons"
 msgstr "搜尋圖示"
 
-
 msgid "Search variables"
 msgstr "搜尋變數"
-
 
 msgid "Select a component on the left."
 msgstr "選擇左側的一個組件。"
@@ -2083,44 +1977,29 @@ msgstr "這會將場景作為獨立檔案寫入 Android 裝置上的 /Tasker/sce
 msgid "Tree label"
 msgstr "樹標籤"
 
-
-
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "將螢幕翻轉過來，讓佈局重新融入其中。"
-
 
 msgid "Undo"
 msgstr "撤銷"
 
-
-
 msgid "Using the saved size"
 msgstr "使用已儲存的尺寸"
-
 
 msgid "Variable"
 msgstr "多變的"
 
-
 msgid "Variables"
 msgstr "變數"
-
 
 msgid "Version 2"
 msgstr "版本2"
 
-
-
-
 msgid "View Limit"
 msgstr "查看限制"
 
-
-
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "您選擇的內容會出現在遊標處。再次打開它以添加下一塊。"
-
-
 
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "你選擇的內容會取代該欄位所包含的內容。鍵入以縮小清單範圍。"
@@ -2128,63 +2007,47 @@ msgstr "你選擇的內容會取代該欄位所包含的內容。鍵入以縮小
 msgid "Which kind of Scene?"
 msgstr "哪種場景？"
 
-
-
 msgid "Writes to variable"
 msgstr "寫入變數"
 
 msgid "Zoom"
 msgstr "飛漲"
 
-
-
 msgid "component(s)"
 msgstr "成分）"
-
 
 msgid "connectors"
 msgstr "連接器"
 
-
 msgid "drag or nudge any of them and they all move together."
 msgstr "拖曳或輕推其中任何一個，它們都會一起移動。"
-
 
 msgid "editing 1 of"
 msgstr "編輯 1 個"
 
-
 msgid "element(s)"
 msgstr "元素"
-
 
 msgid "elements selected"
 msgstr "選定的元素"
 
-
 msgid "is not a whole number"
 msgstr "不是整數"
-
 
 msgid "lines dropped"
 msgstr "線路掉線"
 
-
 msgid "none"
 msgstr "沒有任何"
-
 
 msgid "not drawn"
 msgstr "未繪製"
 
-
 msgid "pair"
 msgstr "一對"
 
-
 msgid "pixels"
 msgstr "像素"
-
 
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "按名稱顯示或隱藏此場景的任務不會更改，並保留在原處。"

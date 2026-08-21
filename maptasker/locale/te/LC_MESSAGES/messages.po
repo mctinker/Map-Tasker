@@ -1586,9 +1586,6 @@ msgstr "hh:mm AM/PM లేదా %వేరియబుల్"
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 msgstr "మీ కాన్ఫిగరేషన్ యొక్క 'మ్యాప్', 'రేఖాచిత్రం' లేదా 'ట్రీ' వీక్షణను నేరుగా GUIలో ప్రదర్శించండి.\n\nవీక్షణలు పనిచేయాలంటే ముందుగా XML తప్పనిసరిగా లోకల్ డ్రైవ్ లేదా Android పరికరం నుండి పొందాలి.\n\nXML ఇప్పటికే పొందబడి ఉంటే, అది వీక్షణకు ఇన్‌పుట్‌గా ఉపయోగించబడుతుంది.  'క్లియర్' బటన్‌ను నొక్కితే వీక్షణ డేటా క్లియర్ అవుతుంది.\n\nచాలా పెద్ద కాన్ఫిగరేషన్‌లు మ్యాప్స్ మరియు రేఖాచిత్రాల కోసం పొడిగించిన రన్ టైమ్‌లను కలిగి ఉంటాయి.  ఉత్తమ పనితీరు కోసం, మ్యాప్ చేయడానికి ఒకే ప్రాజెక్ట్ లేదా ప్రొఫైల్‌ని ఎంచుకోండి.\n\nఐచ్ఛికంగా, 'వీక్షణ పరిమితి' సెట్టింగ్‌ని ఉపయోగించడం ద్వారా ప్రాసెస్ చేయాల్సిన డేటా మొత్తాన్ని పరిమితం చేయండి.  పెద్ద పరిమితి, మ్యాప్ చేయడానికి అనుమతించబడే అవుట్‌పుట్ పెద్దది.  ఎక్కువ అవుట్‌పుట్ ఉత్పత్తి చేయబడితే, ప్రాసెసింగ్ సమయం ఎక్కువ.\n\n\nరేఖాచిత్రం వీక్షణ క్రింది ప్రవర్తనను కలిగి ఉంది:\n\n - ప్రాజెక్ట్‌లు మరియు ప్రొఫైల్‌లు మాత్రమే ప్రదర్శించబడతాయి. ఒకే టాస్క్ లేదా సీన్‌తో కూడిన XML ప్రదర్శించబడదు.\n\n - రేఖాచిత్రంలో మొత్తం కనెక్షన్‌ని హైలైట్ చేయడానికి క్షితిజ సమాంతర కనెక్టర్‌పై క్లిక్ చేయండి.\n\n\nట్రీ వ్యూ కింది ప్రవర్తనను కలిగి ఉంది:\n\n- ప్రాజెక్ట్‌లు మాత్రమే ప్రదర్శించబడతాయి. ఒకే ప్రొఫైల్ లేదా టాస్క్ లేదా దృశ్యంతో కూడిన XML ప్రదర్శించబడదు.\n\n- ఒకే పేరు సెట్టింగ్‌తో సంబంధం లేకుండా అన్ని ప్రాజెక్ట్‌లు, ప్రొఫైల్‌లు, టాస్క్‌లు మరియు దృశ్యాలు ప్రదర్శించబడతాయి.\n\n"
 
-msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "MapTasker మీరు అప్‌లోడ్ చేసిన Tasker XML ఫైల్ (ఉదా. 'backup.xml') ఆధారంగా మీ Android టాస్కర్ కాన్ఫిగరేషన్‌ని ప్రదర్శిస్తుంది. డిస్‌ప్లే ఐచ్ఛికంగా అన్ని ప్రాజెక్ట్‌లు, ప్రొఫైల్‌లు, టాస్క్‌లు మరియు వాటి చర్యలు, ప్రొఫైల్/టాస్క్ షరతులు మరియు ఇతర ప్రొఫైల్/టాస్క్ సంబంధిత సమాచారాన్ని కలిగి ఉంటుంది.\n\nXML ఫైల్ లోడ్ అయిన తర్వాత, మీరు మీ ప్రాజెక్ట్‌లు, ప్రొఫైల్‌లు, టాస్క్‌లు మరియు దృశ్యాలను ఐచ్ఛికంగా సవరించవచ్చు.\n\n* ప్రదర్శన ఎంపికలు:\n    స్థాయి 0: మొదటి టాస్క్ చర్యను మాత్రమే ప్రదర్శించండి, పేరులేని పనులకు మాత్రమే (నిశ్శబ్దం).\n    స్థాయి 1 = తెలియని టాస్క్‌ల కోసం మాత్రమే అన్ని టాస్క్ యాక్షన్ వివరాలను ప్రదర్శించండి (డిఫాల్ట్).\n    స్థాయి 2 = ప్రతి టాస్క్‌పై పూర్తి టాస్క్ యాక్షన్ పేరును ప్రదర్శించండి.\n    స్థాయి 3 = చర్య వివరాలతో ప్రతి టాస్క్‌పై పూర్తి టాస్క్ యాక్షన్ వివరాలను ప్రదర్శించండి.\n    స్థాయి 4 = 3 ప్లస్ ప్రాజెక్ట్ యొక్క గ్లోబల్ వేరియబుల్స్ యొక్క ప్రదర్శన స్థాయి.\n\n    స్థాయి 5 = ప్రదర్శన స్థాయి 4 ప్లస్ సీన్ ఆర్గ్యుమెంట్ వివరాలు.\n\n* ప్రతిదీ ప్రదర్శించండి: షరతులు, టాస్కర్‌నెట్ సమాచారం, ప్రాధాన్యతలు, అందమైన అవుట్‌పుట్, డైరెక్టరీ మరియు కాన్ఫిగరేషన్ అవుట్‌లైన్ ప్రదర్శనను ఆన్ చేస్తుంది.\n\n* ప్రదర్శన షరతులు: ప్రొఫైల్ మరియు టాస్క్ షరతుల ప్రదర్శనను ఆన్ చేయండి.\n\n* టాస్కర్‌నెట్ సమాచారాన్ని ప్రదర్శించు - అందుబాటులో ఉంటే, టాస్కర్‌నెట్ ప్రచురణ సమాచారాన్ని ప్రదర్శించండి.\n\n* టాస్కర్ ప్రాధాన్యతలను ప్రదర్శించు - టాస్కర్ యొక్క సిస్టమ్ ప్రాధాన్యతలను ప్రదర్శించు.\n\n* ట్విస్టీ కింద టాస్క్ వివరాలను దాచండి: ► లోపల టాస్క్ సమాచారాన్ని దాచి, ప్రదర్శించడానికి క్లిక్ చేయండి.\n\n* ప్రారంభంలో హైపర్‌లింక్‌ల డైరెక్టరీని ప్రదర్శించండి.\n\n* ప్రెట్టీయర్ అవుట్‌పుట్‌ని ప్రదర్శించండి: అన్ని ఆర్గ్యుమెంట్‌ల కోసం కొత్త లైన్‌లు మరియు ఇండెంటేషన్‌ని జోడించడం ద్వారా అవుట్‌పుట్‌ను మరింత మానవులు చదవగలిగేలా చేయండి.\n\n* ప్రాజెక్ట్/ప్రొఫైల్/టాస్క్/దృశ్యం పేర్లు ఇటాలిక్, బోల్డ్, అండర్‌లైన్ మరియు/లేదా వాటి పేర్లను హైలైట్ చేయడానికి ఎంపికలు.\n\n* టాస్క్ యాక్షన్ పరిమితి: టాస్క్‌లో పేర్కొన్న చర్యల కంటే ఎక్కువ ఉంటే హెచ్చరికను ప్రదర్శించండి.\n\n* ఒకవేళ/అప్పుడు/లేకపోతే టాస్క్ చర్యల కోసం ఇండెంటేషన్ మొత్తం.\n\n* భాష: అవుట్‌పుట్ కోసం ఉపయోగించాల్సిన భాషను ఎంచుకోండి.  డిఫాల్ట్ ఇంగ్లీష్.\n\n* ఉపయోగించడానికి ఫాంట్: అవుట్‌పుట్ కోసం ఉపయోగించే మోనోస్పేస్ ఫాంట్‌ను మార్చండి.\n\n* వీక్షణ పరిమితి: వీక్షణను రూపొందించేటప్పుడు ఉపయోగించే ప్రాసెసింగ్ సమయాన్ని నియంత్రించండి.\n\n* రీసెట్ ఎంపికలు: అన్నింటినీ క్లియర్ చేసి, మళ్లీ ప్రారంభించండి.\n\n* స్థానిక XML ఫైల్‌ను పొందండి: మీ స్థానిక డ్రైవ్ నుండి బ్యాకప్/ఎగుమతి చేసిన XML ఫైల్‌ను పొందండి.\n\n* సెట్టింగ్‌లను సేవ్ చేయండి - తర్వాత ఉపయోగం కోసం ఈ సెట్టింగ్‌లను సేవ్ చేయండి.\n\n* సెట్టింగ్‌లను పునరుద్ధరించండి - గతంలో సేవ్ చేసిన సెషన్ నుండి సెట్టింగ్‌లను పునరుద్ధరించండి.\n\n* ప్రదర్శన వీక్షణలు: మీ ప్రాజెక్ట్‌లు, ప్రొఫైల్‌లు, టాస్క్‌లు మరియు దృశ్యాల యొక్క మీ కాన్ఫిగరేషన్ మ్యాప్, రేఖాచిత్రం లేదా ట్రీ వీక్షణను నేరుగా GUIలో ప్రదర్శించండి.\n\n* Android పరికరం నుండి XMLని పొందండి: Android పరికరం నుండి బ్యాకప్/ఎగుమతి చేసిన XML ఫైల్‌ను పొందండి.  మీరు మీ Android పరికరం కోసం IP చిరునామా మరియు పోర్ట్ నంబర్, అలాగే పరికరంలోని ఫైల్ లొకేషన్ కోసం అడగబడతారు.\n\n* నిర్దిష్ట పేరు ట్యాబ్: ప్రదర్శించడానికి ఒక నిర్దిష్ట పేరున్న అంశాన్ని నమోదు చేయండి...\n   - ప్రాజెక్ట్ పేరు: ప్రదర్శించడానికి నిర్దిష్ట ప్రాజెక్ట్‌ను నమోదు చేయండి.\n   - ప్రొఫైల్ పేరు: ప్రదర్శించడానికి నిర్దిష్ట ప్రొఫైల్‌ను నమోదు చేయండి.\n   - టాస్క్ పేరు: ప్రదర్శించడానికి నిర్దిష్ట టాస్క్‌ని నమోదు చేయండి.\n   - దృశ్యం పేరు: ప్రదర్శించడానికి నిర్దిష్ట దృశ్యాన్ని నమోదు చేయండి.  దాని స్వంత ప్రాజెక్ట్ యొక్క శీర్షిక మరియు\n                 సన్నివేశం యొక్క మూలకాలు (ప్లస్ ఏవైనా టాస్క్‌లు ఆ ఎలిమెంట్స్ ప్రేరేపిస్తాయి) ప్రదర్శించబడతాయి;\n                 ప్రాజెక్ట్ యొక్క ప్రొఫైల్‌లు మరియు దాని ఇతర దృశ్యాలు లేవు.\n   (ఈ నాలుగు ప్రత్యేకమైనవి: ఒక్కటి మాత్రమే నమోదు చేయండి)\n\n   వివిధ సేవ్ ఎంపికలతో నేరుగా GUIలో ప్రాజెక్ట్‌లు, ప్రొఫైల్‌లు మరియు టాస్క్‌లను జోడించండి మరియు సవరించండి.\n\n* రంగుల ట్యాబ్: ప్రదర్శనలోని వివిధ అంశాల కోసం రంగులను ఎంచుకోండి.\n              (ఉదా. ప్రాజెక్ట్‌లు, ప్రొఫైల్‌లు, టాస్క్‌లు మొదలైన వాటికి రంగు).\n\n* ట్యాబ్‌ను విశ్లేషించండి: Ai మోడల్‌కు వ్యతిరేకంగా ప్రాజెక్ట్, ప్రొఫైల్, టాస్క్ లేదా దృశ్యం కోసం విశ్లేషణను అమలు చేయండి.\n\n* డీబగ్ ట్యాబ్: రన్‌టైమ్ సెట్టింగ్‌ల ఎంపికను ప్రదర్శించండి మరియు డీబగ్ మోడ్‌ను ఆన్ చేయండి.\n\n* నిష్క్రమించు: ప్రోగ్రామ్ నుండి నిష్క్రమించు (నిష్క్రమించు).\n\nగమనికలు:\n\n- https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md లో మొత్తం మార్పు లాగ్ చరిత్రను వీక్షించండి\n\n- ప్రదర్శన మోడ్‌ను మార్చడం వలన అవుట్‌పుట్ కోసం ఉపయోగించే రంగులు వాటి డిఫాల్ట్ విలువలకు మార్చబడతాయి.\n\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 msgstr "వీక్షణ పరిమితి' అనేది వీక్షణను రూపొందించేటప్పుడు ఉపయోగించే ప్రాసెసింగ్ సమయాన్ని నియంత్రించే సాధనం.\n\n- సంఖ్యలు ఉత్పత్తి చేయవలసిన అవుట్‌పుట్ లైన్‌ల సాపేక్ష మొత్తాన్ని సూచిస్తాయి.\n\n- పెద్ద పరిమితి, మ్యాప్ చేయడానికి అనుమతించబడే అవుట్‌పుట్ పెద్దది.  ఎక్కువ అవుట్‌పుట్ ఉత్పత్తి చేయబడితే, ప్రాసెసింగ్ సమయం ఎక్కువ.\n\n- చాలా పెద్ద కాన్ఫిగరేషన్‌లు చాలా పెద్ద అవుట్‌పుట్ మ్యాప్‌లను ఉత్పత్తి చేస్తాయి మరియు ఎక్కువ ప్రాసెసింగ్ సమయాన్ని కలిగిస్తాయి.  పాత పరికరాలలో, దీనికి గరిష్టంగా 30 సెకన్లు లేదా అంతకంటే ఎక్కువ సమయం పట్టవచ్చు.\n\n- పరిమితిని సెట్ చేయడం ద్వారా, మీరు కాన్ఫిగరేషన్‌ను మ్యాపింగ్ చేసేటప్పుడు ఉపయోగించే ప్రాసెసింగ్ సమయాన్ని ఎక్కువ వ్యవధిని అనుమతించకుండా నియంత్రించవచ్చు.\n\n- మ్యాప్‌ను లెక్కించేటప్పుడు పరిమితిని కొట్టినట్లయితే, అవుట్‌పుట్ అక్కడే ఆగిపోతుంది.\n\n- మీ వినియోగ సందర్భంలో ఏ సెట్టింగ్ ఉత్తమమో చూడడానికి మీరు ఈ సెట్టింగ్‌తో ప్రయోగాలు చేయవచ్చు.\n\n- ప్రాసెసింగ్ సమయాన్ని పరిమితం చేయడానికి ఒకే ప్రాజెక్ట్, ప్రొఫైల్ లేదా టాస్క్‌ని ఎంచుకోవడం మరొక మార్గం.\n\n"
 
@@ -1625,22 +1622,17 @@ msgstr "...మరియు ఇంకా {count} -- దాన్ని తగ్�
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "ఒక దృశ్యం యొక్క మూలకం స్థానాలు పరికర పిక్సెల్‌లలో నిల్వ చేయబడతాయి, కానీ దాని వచన పరిమాణాలు Android యొక్క sp యూనిట్లలో నిల్వ చేయబడతాయి. రెండింటి మధ్య మార్చే నంబర్ అనేది దృశ్యం చూపబడిన ఫోన్ యొక్క ఆస్తి మరియు బ్యాకప్ ఫైల్‌లో లేదు.\n\nకనుక ఇది ఇక్కడ సెట్ చేయబడింది. వచనం దాని మూలకాలకు చాలా చిన్నదిగా కనిపిస్తే దాన్ని పెంచండి, వచనం వాటిని పొంగిపొర్లితే దాన్ని తగ్గించండి."
 
-
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "వెర్షన్ 2 సీన్‌కు దాని స్వంత పరిమాణం లేదు -- ఇది ఏ స్క్రీన్‌లో చూపబడినా దాని లోపలే ఉంచబడుతుంది, కాబట్టి బ్యాకప్ ఫైల్‌లో డ్రా చేయడానికి ఏమీ లేదు.\n\nలేఅవుట్ రీ-ఫ్లో చూడటానికి దీన్ని మార్చండి. ఒక ఫ్లో రో విభిన్నంగా చుట్టబడుతుంది మరియు %sv2_render_widthకి వ్యతిరేకంగా వ్రాసిన ఏదైనా 'ఎప్పుడు చూపు' ఖచ్చితంగా దీని గురించి అడుగుతోంది."
-
 
 msgid "Actions"
 msgstr "చర్యలు"
 
-
 msgid "Add"
 msgstr "జోడించు"
 
-
 msgid "Add Element"
 msgstr "మూలకాన్ని జోడించండి"
-
 
 msgid "Add Scene"
 msgstr "దృశ్యాన్ని జోడించండి"
@@ -1648,21 +1640,17 @@ msgstr "దృశ్యాన్ని జోడించండి"
 msgid "Add a background"
 msgstr "నేపథ్యాన్ని జోడించండి"
 
-
 msgid "Add event"
 msgstr "ఈవెంట్‌ని జోడించండి"
 
 msgid "Add action"
 msgstr "చర్యను జోడించండి"
 
-
 msgid "Add handler"
 msgstr "హ్యాండ్లర్‌ని జోడించండి"
 
-
 msgid "Add modifier"
 msgstr "మాడిఫైయర్‌ని జోడించండి"
-
 
 msgid "Add scene properties"
 msgstr "దృశ్య లక్షణాలను జోడించండి"
@@ -1676,15 +1664,11 @@ msgstr "నుండి id ద్వారా చిరునామా"
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "ఎంచుకున్న భాగం పిల్లలను పట్టుకోగలిగితే లోపల జోడిస్తుంది, లేకుంటే నేరుగా దాని తర్వాత."
 
-
-
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "సన్నివేశం మధ్యలో, స్టాక్ పైన దానిని జోడిస్తుంది. మీకు కావలసిన చోటికి లాగండి."
 
-
 msgid "Also selected:"
 msgstr "అలాగే ఎంపిక చేయబడింది:"
-
 
 msgid "Also update"
 msgstr "అలాగే అప్‌డేట్ చేయండి"
@@ -1692,26 +1676,20 @@ msgstr "అలాగే అప్‌డేట్ చేయండి"
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "అంబర్: టాస్కర్ దానిని జాబితా చేస్తుంది, కానీ MapTasker దాని యొక్క ధృవీకరించబడిన నమూనా లేదు. గ్రే: ఎంపిక ఉంచిన చోటుకి వెళ్లడం సాధ్యం కాదు."
 
-
 msgid "App icon"
 msgstr "యాప్ చిహ్నం"
-
 
 msgid "Appearance Mode"
 msgstr "ప్రదర్శన మోడ్"
 
-
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "క్రమంలో వర్తింపజేయబడింది - దిగువన ఉన్నది పైన కూర్చుంటుంది."
-
 
 msgid "Back to Editor"
 msgstr "తిరిగి ఎడిటర్కి"
 
-
 msgid "Bounds"
 msgstr "హద్దులు"
-
 
 msgid "Choose another file..."
 msgstr "మరొక ఫైల్‌ని ఎంచుకోండి..."
@@ -1719,10 +1697,8 @@ msgstr "మరొక ఫైల్‌ని ఎంచుకోండి..."
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "రద్దు చేయబడింది. ఈ సీన్‌లో మార్పులు విస్మరించబడ్డాయి."
 
-
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "దానిని ఎంచుకోవడానికి ఒక కాంపోనెంట్‌ను క్లిక్ చేయండి, అనేక తీయడానికి అదే కంటైనర్‌లోని మరొకదానిని షిఫ్ట్-క్లిక్ చేయండి మరియు వారి స్వంత తోబుట్టువుల మధ్య వాటిని మళ్లీ ఆర్డర్ చేయడానికి లాగండి. ఒక భాగాన్ని కంటైనర్‌లోకి లేదా వెలుపలికి తరలించడం అనేది ఎడిటర్ యొక్క ఇన్ మరియు అవుట్ బటన్‌లు; అన్డు కూడా ఉంది."
-
 
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "ఎలిమెంట్‌ను ఎంచుకోవడానికి ఒక ఎలిమెంట్‌ని క్లిక్ చేయండి, అనేక తీయడానికి బ్యాక్‌గ్రౌండ్‌లో ఉన్న బాక్స్‌ను Shift-క్లిక్ చేయండి లేదా డ్రాగ్ చేయండి మరియు వాటన్నింటిని తరలించడానికి వాటిలో దేనినైనా లాగండి -- బాణం కీలను నడ్జ్ చేయండి, 10px కోసం Shift చేయండి. ఒకే మూలకం పరిమాణాన్ని మార్చడానికి హ్యాండిల్‌ను లాగండి. అన్డు, మరియు ఒక మూలకం గురించి మిగతావన్నీ ఎడిటర్‌లో తిరిగి వచ్చాయి."

@@ -1586,9 +1586,6 @@ msgstr "hh:mm AM/PM અથવા % ચલ"
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.\n\nXML must first be obtained from the either local drive or Android device for the views to work.\n\nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.\n\nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.\n\nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n\nThe Diagram View has the following behavior:\n\n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.\n\n - Click on a horizontal connector to highlight the entire connection in the diagram.\n\n\nThe Tree View has the following behavior:\n\n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.\n\n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.\n\n"
 msgstr "સીધા GUI ની અંદર તમારા રૂપરેખાંકનનું 'નકશો', 'ડાયાગ્રામ' અથવા 'ટ્રી' દૃશ્ય પ્રદર્શિત કરો.\n\nદૃશ્યો કાર્ય કરવા માટે XML પ્રથમ સ્થાનિક ડ્રાઇવ અથવા Android ઉપકરણમાંથી મેળવવી આવશ્યક છે.\n\nજો XML પહેલેથી જ આનયન કરવામાં આવ્યું હોય, તો તેનો ઉપયોગ વ્યૂમાં ઇનપુટ તરીકે કરવામાં આવશે.  'ક્લિયર' બટન દબાવવાથી વ્યુ ડેટા સાફ થઈ જશે.\n\nખૂબ મોટા રૂપરેખાંકનો નકશા અને આકૃતિઓ માટે વિસ્તૃત રન ટાઈમ ભોગવશે.  શ્રેષ્ઠ પ્રદર્શન માટે, મેપ કરવા માટે એક પ્રોજેક્ટ અથવા પ્રોફાઇલ પસંદ કરો.\n\nવૈકલ્પિક રીતે, 'જુઓ મર્યાદા' સેટિંગનો ઉપયોગ કરીને પ્રક્રિયા કરવાના ડેટાની માત્રાને મર્યાદિત કરો.  મર્યાદા જેટલી મોટી હશે, તેટલું મોટું આઉટપુટ કે જેને મેપ કરવાની મંજૂરી આપવામાં આવશે.  જેટલો વધુ આઉટપુટ જનરેટ થાય છે, તેટલો પ્રોસેસિંગ સમય વધારે છે.\n\n\nડાયાગ્રામ વ્યૂમાં નીચેની વર્તણૂક છે:\n\n - ફક્ત પ્રોજેક્ટ્સ અને પ્રોફાઇલ્સ પ્રદર્શિત કરી શકાય છે. માત્ર એક જ કાર્ય અથવા દ્રશ્યનો સમાવેશ કરતું XML પ્રદર્શિત કરવામાં આવશે નહીં.\n\n - ડાયાગ્રામમાં સમગ્ર કનેક્શનને હાઇલાઇટ કરવા માટે આડા કનેક્ટર પર ક્લિક કરો.\n\n\nટ્રી વ્યુમાં નીચેની વર્તણૂક છે:\n\n- ફક્ત પ્રોજેક્ટ્સ પ્રદર્શિત કરી શકાય છે. માત્ર એક જ પ્રોફાઇલ અથવા કાર્ય અથવા દ્રશ્યનો સમાવેશ કરતી XML પ્રદર્શિત કરવામાં આવશે નહીં.\n\n- સિંગલ નેમ સેટિંગને ધ્યાનમાં લીધા વિના તમામ પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, ટાસ્ક્સ અને સીન્સ પ્રદર્શિત થાય છે.\n\n"
 
-msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n\n   Add and Edit Projects, Profiles and Tasks directly in the GUI, with various save options.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
-msgstr "MapTasker તમારી અપલોડ કરેલી Tasker XML ફાઇલ (દા.ત. 'backup.xml')ના આધારે તમારું એન્ડ્રોઇડ ટાસ્કર કન્ફિગરેશન દર્શાવે છે. ડિસ્પ્લેમાં વૈકલ્પિક રીતે તમામ પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, ટાસ્ક્સ અને તેમની ક્રિયાઓ, પ્રોફાઇલ/ટાસ્ક શરતો અને અન્ય પ્રોફાઇલ/ટાસ્ક સંબંધિત માહિતી શામેલ હશે.\n\nએકવાર XML ફાઇલ લોડ થઈ જાય, પછી તમે વૈકલ્પિક રીતે તમારા પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, કાર્યો અને દ્રશ્યોને સંપાદિત કરી શકો છો.\n\n* પ્રદર્શન વિકલ્પો છે:\n    સ્તર 0: પ્રથમ કાર્ય ક્રિયા પ્રદર્શિત કરો, ફક્ત નામ વગરના કાર્યો માટે (શાંત).\n    સ્તર 1 = અજ્ઞાત કાર્યો માટે જ તમામ કાર્ય ક્રિયા વિગતો દર્શાવો (ડિફૉલ્ટ).\n    સ્તર 2 = દરેક કાર્ય પર સંપૂર્ણ કાર્ય ક્રિયા નામ દર્શાવો.\n    સ્તર 3 = ક્રિયા વિગતો સાથે દરેક કાર્ય પર સંપૂર્ણ કાર્ય ક્રિયા વિગતો દર્શાવો.\n    સ્તર 4 = 3 વત્તા પ્રોજેક્ટના વૈશ્વિક ચલોનું પ્રદર્શન સ્તર.\n\n    સ્તર 5 = 4 વત્તા દ્રશ્ય દલીલ વિગતોનું પ્રદર્શન સ્તર.\n\n* ફક્ત બધું જ પ્રદર્શિત કરો: શરતો, TaskerNet માહિતી, પસંદગીઓ, સુંદર આઉટપુટ, ડિરેક્ટરી અને રૂપરેખાંકન રૂપરેખાનું પ્રદર્શન ચાલુ કરો.\n\n* ડિસ્પ્લે શરતો: પ્રોફાઇલ અને ટાસ્ક શરતોનું પ્રદર્શન ચાલુ કરો.\n\n* TaskerNet માહિતી દર્શાવો - જો ઉપલબ્ધ હોય, તો TaskerNet પ્રકાશન માહિતી પ્રદર્શિત કરો.\n\n* ડિસ્પ્લે ટાસ્કર પસંદગીઓ - ટાસ્કરની સિસ્ટમ પસંદગીઓ દર્શાવો.\n\n* Twisty હેઠળ કાર્ય વિગતો છુપાવો: ► અંદર કાર્ય માહિતી છુપાવો અને પ્રદર્શિત કરવા માટે ક્લિક કરો.\n\n* શરૂઆતમાં હાઇપરલિંક્સની ડિરેક્ટરી દર્શાવો.\n\n* સુંદર આઉટપુટ દર્શાવો: તમામ દલીલો માટે નવી લાઇન અને ઇન્ડેન્ટેશન ઉમેરીને આઉટપુટને વધુ માનવ-વાંચી શકાય તેવું બનાવો.\n\n* પ્રોજેક્ટ/પ્રોફાઇલ/ટાસ્ક/સીન નેમ્સના વિકલ્પો ઇટાલિક, બોલ્ડ, અન્ડરલાઇન અને/અથવા તેમના નામોને હાઇલાઇટ કરવા માટે.\n\n* કાર્ય ક્રિયા મર્યાદા: જો કાર્યમાં નિર્દિષ્ટ સંખ્યા કરતા વધુ ક્રિયાઓ હોય તો ચેતવણી પ્રદર્શિત કરો.\n\n* જો/તો/અન્ય કાર્ય ક્રિયાઓ માટે ઇન્ડેન્ટેશન રકમ.\n\n* ભાષા: આઉટપુટ માટે ઉપયોગમાં લેવાતી ભાષા પસંદ કરો.  મૂળભૂત અંગ્રેજી છે.\n\n* ઉપયોગ કરવા માટે ફોન્ટ: આઉટપુટ માટે ઉપયોગમાં લેવાતા મોનોસ્પેસ ફોન્ટ બદલો.\n\n* દૃશ્ય મર્યાદા: વ્યુ જનરેટ કરતી વખતે ઉપયોગમાં લેવાતા પ્રોસેસિંગ સમયની માત્રાને નિયંત્રિત કરો.\n\n* રીસેટ વિકલ્પો: બધું સાફ કરો અને નવેસરથી પ્રારંભ કરો.\n\n* સ્થાનિક XML ફાઇલ મેળવો: તમારી સ્થાનિક ડ્રાઇવમાંથી બેકઅપ/નિકાસ કરાયેલ XML ફાઇલ મેળવો.\n\n* સેટિંગ્સ સાચવો - પછીના ઉપયોગ માટે આ સેટિંગ્સને સાચવો.\n\n* પુનઃસ્થાપિત સેટિંગ્સ - અગાઉ સાચવેલા સત્રમાંથી સેટિંગ્સ પુનઃસ્થાપિત કરો.\n\n* પ્રદર્શિત દૃશ્યો: તમારા રૂપરેખાંકન નકશા, ડાયાગ્રામ અથવા તમારા પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, કાર્યો અને દ્રશ્યો સીધા જ GUI માં પ્રદર્શિત કરો.\n\n* Android ઉપકરણમાંથી XML મેળવો: Android ઉપકરણમાંથી બેકઅપ/નિકાસ કરેલ XML ફાઇલ મેળવો.  તમને તમારા Android ઉપકરણ માટે IP સરનામું અને પોર્ટ નંબર તેમજ ઉપકરણ પરની ફાઇલ સ્થાન માટે પૂછવામાં આવશે.\n\n* વિશિષ્ટ નામ ટૅબ: પ્રદર્શિત કરવા માટે એક, વિશિષ્ટ નામવાળી આઇટમ દાખલ કરો...\n   - પ્રોજેક્ટનું નામ: પ્રદર્શિત કરવા માટે ચોક્કસ પ્રોજેક્ટ દાખલ કરો.\n   - પ્રોફાઇલ નામ: પ્રદર્શિત કરવા માટે ચોક્કસ પ્રોફાઇલ દાખલ કરો.\n   - કાર્યનું નામ: પ્રદર્શિત કરવા માટે ચોક્કસ કાર્ય દાખલ કરો.\n   - દ્રશ્યનું નામ: પ્રદર્શિત કરવા માટે ચોક્કસ દ્રશ્ય દાખલ કરો.  તેની માલિકીના પ્રોજેક્ટનું મથાળું અને ધ\n                 દ્રશ્યના ઘટકો (વત્તા કોઈપણ કાર્યો જે તે તત્વોને બોલાવે છે) પ્રદર્શિત થાય છે;\n                 પ્રોજેક્ટની રૂપરેખાઓ અને તેના અન્ય દ્રશ્યો નથી.\n   (આ ચાર વિશિષ્ટ છે: ફક્ત એક જ દાખલ કરો)\n\n   વિવિધ સેવ વિકલ્પો સાથે સીધા જ GUI માં પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ અને કાર્યો ઉમેરો અને સંપાદિત કરો.\n\n* રંગો ટેબ: ડિસ્પ્લેના વિવિધ ઘટકો માટે રંગો પસંદ કરો.\n              (દા.ત. પ્રોજેક્ટ્સ, પ્રોફાઇલ્સ, ટાસ્ક વગેરે માટેનો રંગ).\n\n* વિશ્લેષણ ટેબ: એઆઈ મોડેલ સામે પ્રોજેક્ટ, પ્રોફાઇલ, કાર્ય અથવા દ્રશ્ય માટે વિશ્લેષણ ચલાવો.\n\n* ડીબગ ટેબ: રનટાઇમ સેટિંગ્સ વિકલ્પ દર્શાવો અને ડીબગ મોડ ચાલુ કરો.\n\n* બહાર નીકળો: પ્રોગ્રામમાંથી બહાર નીકળો (બહાર નીકળો).\n\nનોંધો:\n\n- https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md પર સમગ્ર ફેરફાર લોગ ઇતિહાસ જુઓ\n\n- દેખાવ મોડ બદલવાથી આઉટપુટ માટે ઉપયોગમાં લેવાતા રંગો તેમના ડિફોલ્ટ મૂલ્યોમાં બદલાશે.\n\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.\n\n- The numbers represent the relative amount of output lines to be generated.\n\n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.\n\n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.\n\n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.\n\n- If the limit is hit when calculating the map, the output will stop there.\n\n- You can experiment with this setting to see which setting is best for your use case.\n\n- Selecting a single Project, Profile or Task is another means to limit the processing time.\n\n"
 msgstr "'વ્યૂ લિમિટ' એ વ્યુ જનરેટ કરતી વખતે ઉપયોગમાં લેવાતા પ્રોસેસિંગ સમયની માત્રાને નિયંત્રિત કરવાનું એક માધ્યમ છે.\n\n- સંખ્યાઓ જનરેટ કરવાની આઉટપુટ લાઇનની સંબંધિત રકમનું પ્રતિનિધિત્વ કરે છે.\n\n- મર્યાદા જેટલી મોટી હશે, તેટલું મોટું આઉટપુટ કે જેને મેપ કરવાની મંજૂરી આપવામાં આવશે.  જેટલો વધુ આઉટપુટ જનરેટ થાય છે, તેટલો પ્રોસેસિંગ સમય વધારે છે.\n\n- ખૂબ મોટી રૂપરેખાંકનો ખૂબ મોટા આઉટપુટ નકશાઓ જનરેટ કરશે અને વધુ પ્રોસેસિંગ સમયનું કારણ બનશે.  જૂના ઉપકરણો પર, આમાં 30 સેકન્ડ કે તેથી વધુ સમય લાગી શકે છે.\n\n- મર્યાદા સુયોજિત કરીને, તમે લાંબા સમયની મંજૂરી ન આપીને રૂપરેખાંકનને મેપ કરતી વખતે ઉપયોગમાં લેવાતા પ્રોસેસિંગ સમયને નિયંત્રિત કરી શકો છો.\n\n- જો નકશાની ગણતરી કરતી વખતે મર્યાદા હિટ થાય છે, તો આઉટપુટ ત્યાં બંધ થઈ જશે.\n\n- તમારા ઉપયોગના કેસ માટે કઈ સેટિંગ શ્રેષ્ઠ છે તે જોવા માટે તમે આ સેટિંગ સાથે પ્રયોગ કરી શકો છો.\n\n- એક પ્રોજેક્ટ, પ્રોફાઇલ અથવા કાર્ય પસંદ કરવું એ પ્રક્રિયાના સમયને મર્યાદિત કરવા માટેનું બીજું માધ્યમ છે.\n\n"
 
@@ -2206,3 +2203,84 @@ msgstr "વિગતવાર સ્તર"
 
 msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
 msgstr "અત્યારે લોડ કરેલા બેકઅપમાં પ્રોજેક્ટને અક્ષમ કરે છે -- જેમ કે નામ બદલો, આ સેવની રાહ જોવાને બદલે તરત જ અસર કરે છે, અને રદ કરવાથી તેને પૂર્વવત્ થતું નથી."
+
+msgid "Changes Pending"
+msgstr "ફેરફારો બાકી છે"
+
+msgid "Each box narrows the answer, and they combine: a trigger and an action together find the Profiles that trigger that way AND run a Task that does that. Every entry offered is one this configuration actually uses, and the number beside it is how many places carry it."
+msgstr "દરેક બોક્સ જવાબને સંકુચિત કરે છે, અને તેઓ ભેગા થાય છે: એક ટ્રિગર અને ક્રિયા મળીને પ્રોફાઇલ્સ શોધે છે જે તે રીતે ટ્રિગર કરે છે અને તે કરે છે તે કાર્ય ચલાવે છે. આ રૂપરેખાંકન વાસ્તવમાં ઉપયોગમાં લેવાતી દરેક એન્ટ્રી ઓફર કરે છે, અને તેની બાજુમાંનો નંબર તે કેટલી જગ્યાએ વહન કરે છે તે છે."
+
+msgid "Edit History"
+msgstr "ઇતિહાસ સંપાદિત કરો"
+
+msgid "Editing"
+msgstr "સંપાદન"
+
+msgid "Every Project"
+msgstr "દરેક પ્રોજેક્ટ"
+
+msgid "Find in"
+msgstr "માં શોધો"
+
+msgid "Find results could not be saved."
+msgstr "પરિણામો શોધો સાચવી શકાયા નથી."
+
+msgid "Find..."
+msgstr "શોધો..."
+
+msgid "Help"
+msgstr "મદદ"
+
+msgid "In no Project"
+msgstr "કોઈ પ્રોજેક્ટમાં"
+
+msgid "List every change made to the loaded XML this session, newest first."
+msgstr "આ સત્રમાં લોડ થયેલ XML માં કરવામાં આવેલ દરેક ફેરફારની યાદી બનાવો, સૌથી નવા પહેલા."
+
+msgid "Narrow to Project"
+msgstr "પ્રોજેક્ટ માટે સાંકડી"
+
+msgid "No changes to undo."
+msgstr "પૂર્વવત્ કરવા માટે કોઈ ફેરફારો નથી."
+
+msgid "Nothing has been changed yet."
+msgstr "હજુ સુધી કંઈ બદલાયું નથી."
+
+msgid "Nothing in the loaded configuration answers this."
+msgstr "લોડ કરેલ રૂપરેખાંકનમાં કંઈપણ આનો જવાબ આપતું નથી."
+
+msgid "Nothing is saved until you press Ok, Save or Export."
+msgstr "જ્યાં સુધી તમે ઓકે, સેવ અથવા એક્સપોર્ટ નહીં દબાવો ત્યાં સુધી કંઈપણ સાચવવામાં આવતું નથી."
+
+msgid "Redid"
+msgstr "રેડીડ"
+
+msgid "Redo"
+msgstr "ફરી કરો"
+
+msgid "Run a Find first."
+msgstr "પ્રથમ શોધ ચલાવો."
+
+msgid "Save Results"
+msgstr "પરિણામો સાચવો"
+
+msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
+msgstr "લોડ કરેલ XML માં કરેલ છેલ્લો ફેરફાર પાછો લો -- સંપાદન, ઉમેરો, કાઢી નાખો અથવા નામ બદલો, કોઈપણ સંપાદન પેનલમાં.\n\nઆ જે લોડ થાય છે તે બદલી નાખે છે, કોઈપણ ફાઇલને નહીં: ડિસ્ક પર અથવા Android ઉપકરણ પર કંઈપણ સ્પર્શતું નથી."
+
+msgid "Text (name, label or argument)"
+msgstr "ટેક્સ્ટ (નામ, લેબલ અથવા દલીલ)"
+
+msgid "Undid"
+msgstr "પૂર્વવત્"
+
+msgid "Updating MapTasker in the background.  Please stand by..."
+msgstr "પૃષ્ઠભૂમિમાં MapTasker અપડેટ કરી રહ્યું છે.  મહેરબાની કરીને ઊભા રહો..."
+
+msgid "does not belong to a Project, so there is nowhere to attach a new"
+msgstr "પ્રોજેક્ટ સાથે સંબંધિત નથી, તેથી નવું જોડવા માટે ક્યાંય નથી"
+
+msgid "found for"
+msgstr "માટે જોવા મળે છે"
+
+msgid "of"
+msgstr "ના"

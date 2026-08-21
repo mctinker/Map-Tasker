@@ -495,10 +495,16 @@ def display_selected_object_labels(self: "MyGui") -> None:
     # the literal "None", so a translated "Keiner"/"Aucun" read as a real selection, and
     # with nothing selected the loop simply fell through and left the previous item's name
     # on screen -- still naming a Task moments after it was set back to None.
-    selected_label = next((label for label in SINGLE_ITEM_LABELS if not is_no_selection(to_display[label])), "")
+    selected_label = selected_single_item_label(self)
     self.currently_selected_label.set_text(
         f"Current {selected_label} selection: {to_display[selected_label]}" if selected_label else "",
     )
+
+    # The Edit/Add buttons below the pulldowns follow that same selection: only the ones
+    # it can actually drive are shown.  Done here because every path that changes the
+    # selection ends up in this function (update_tasker_object_menus calls it), so the
+    # buttons can't be left describing a selection that has moved on.
+    refresh_object_action_buttons(self)
 
     # 2. Render the "Analyze" Tab panel context natively
     with self.tab_analyze:
@@ -828,6 +834,89 @@ def is_no_selection(name: str) -> bool:
     "None", producing "Display only Task 'None'."
     """
     return not name or name in ("None", translate_string("None"))
+
+
+# Which 'Specific Name' selections each Edit/Add button is shown for: a tuple of
+# single-item labels ("Project"/"Profile"/"Task"/"Scene"), any one of which puts the
+# button on screen, or an empty tuple for a button that is always shown.
+#
+# Each Edit button goes with its own item -- open_edit_project_dialog_event and its
+# three siblings (userintr.py) read single_<item>_name and refuse to open without it.
+# Add Project is the always-shown one: a Project is the top of the hierarchy, so there
+# is nothing to attach it to and nothing to select first.
+#
+# The other three Add buttons appear for two selections each.  A selected *Project* is
+# the one they can act on directly -- the new Profile/Task/Scene is attached straight to
+# it (see open_add_task_dialog_event), which is the only way they know where it belongs.
+# They are also shown alongside their own kind, so "Add Profile" sits next to "Edit
+# Profile" where it is looked for; the four selections are mutually exclusive, though,
+# so no Project is selected in that case and the handler still asks for one before it
+# can do anything.
+OBJECT_ACTION_BUTTONS = (
+    ("edit_project_button", ("Project",)),
+    ("add_project_button", ()),
+    ("edit_profile_button", ("Profile",)),
+    ("add_profile_button", ("Project", "Profile")),
+    ("edit_task_button", ("Task",)),
+    ("add_task_button", ("Project", "Task")),
+    ("edit_scene_button", ("Scene",)),
+    ("add_scene_button", ("Project", "Scene")),
+)
+
+# The rows those buttons sit in, in the order guiwins.initialize_screen builds them, and
+# which buttons are in each.  A row with nothing left to show is hidden along with its
+# buttons, so the tab closes up rather than keeping an empty gap where the pair was.
+OBJECT_ACTION_ROWS = (
+    ("project_buttons_row", ("edit_project_button", "add_project_button")),
+    ("profile_buttons_row", ("edit_profile_button", "add_profile_button")),
+    ("task_buttons_row", ("edit_task_button", "add_task_button")),
+    ("scene_buttons_row", ("edit_scene_button", "add_scene_button")),
+)
+
+
+def selected_single_item_label(self: object) -> str:
+    """The label ("Project"/"Profile"/"Task"/"Scene") of the single item currently
+    selected in the 'Specific Name' tab, or "" when nothing is selected.
+
+    The four selections are mutually exclusive (see process_name_event, which clears
+    every one of them before setting the one just picked), so at most one label can
+    come back.  Goes through is_no_selection rather than testing for "None", since
+    "nothing selected" reaches the single_xxx_name attributes in three different forms.
+    """
+    return next(
+        (
+            label
+            for label in SINGLE_ITEM_LABELS
+            if not is_no_selection(getattr(self, f"single_{label.lower()}_name", ""))
+        ),
+        "",
+    )
+
+
+def refresh_object_action_buttons(self: object) -> None:
+    """Show only the 'Specific Name' Edit/Add buttons the current selection can actually
+    drive, and hide the rest, rows included.
+
+    All eight used to be on screen at once, whatever was selected, so most of them were
+    dead ends at any given moment: with a Task selected, "Edit Project"/"Edit Profile"/
+    "Edit Scene" had nothing to open and answered a click with a "Select a single ...
+    first" notification.  OBJECT_ACTION_BUTTONS says which selection each one belongs
+    with instead.
+
+    Safe to call whenever the selection may have changed, including before the buttons
+    exist and when config.EDIT_SCENE left the Scene pair unbuilt -- a missing attribute
+    is simply skipped.
+    """
+    selected = selected_single_item_label(self)
+    is_visible = {attribute: not shown_for or selected in shown_for for attribute, shown_for in OBJECT_ACTION_BUTTONS}
+    for attribute, visible in is_visible.items():
+        if (button := getattr(self, attribute, None)) is not None:
+            button.set_visibility(visible)
+    for row_attribute, attributes in OBJECT_ACTION_ROWS:
+        if (row := getattr(self, row_attribute, None)) is not None:
+            row.set_visibility(
+                any(is_visible[attribute] for attribute in attributes if getattr(self, attribute, None) is not None),
+            )
 
 
 def clear_single_item_view_names(self: object) -> None:

@@ -29,9 +29,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
+from maptasker.src import sessundo
 from maptasker.src.actionc import action_codes
 from maptasker.src.actiont import lookup_values
 from maptasker.src.bundle import bundles
+from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
 from maptasker.src.shelsort import shell_sort
@@ -1634,22 +1636,23 @@ def rename_task_in_live_tree(edited_task: EditableTask) -> str:
     into the saved file, so the new name survives a save; updating only the table's
     "name" field would leave the written XML still carrying the old one.
     """
-    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
-    entry = all_tasks.get(edited_task.task_id)
-    if entry is None:
-        return ""
+    with sessundo.undoable(f"Rename Task to '{edited_task.task_element.findtext('nme', '')}'"):
+        all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+        entry = all_tasks.get(edited_task.task_id)
+        if entry is None:
+            return ""
 
-    old_name = entry["name"]
-    new_name = edited_task.task_element.findtext("nme", "") or old_name
-    live_element = entry["xml"]
-    _set_child_text(live_element, "nme", new_name)
-    entry["name"] = new_name
+        old_name = entry["name"]
+        new_name = edited_task.task_element.findtext("nme", "") or old_name
+        live_element = entry["xml"]
+        _set_child_text(live_element, "nme", new_name)
+        entry["name"] = new_name
 
-    all_tasks_by_name = PrimeItems.tasker_root_elements.setdefault("all_tasks_by_name", {})
-    if old_name in all_tasks_by_name and old_name != new_name:
-        del all_tasks_by_name[old_name]
-    all_tasks_by_name[new_name] = {"xml": live_element, "id": edited_task.task_id}
-    return old_name
+        all_tasks_by_name = PrimeItems.tasker_root_elements.setdefault("all_tasks_by_name", {})
+        if old_name in all_tasks_by_name and old_name != new_name:
+            del all_tasks_by_name[old_name]
+        all_tasks_by_name[new_name] = {"xml": live_element, "id": edited_task.task_id}
+        return old_name
 
 
 def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
@@ -1707,12 +1710,20 @@ def render_standalone_task_xml(edited_task: EditableTask) -> str:
     return ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_task_xml(edited_task: EditableTask, output_path: str) -> None:
+def write_standalone_task_xml(edited_task: EditableTask, output_path: str) -> str:
     """Write the edited Task as a standalone TaskerData/Task XML file, matching
     Tasker's own single-task export/import format. Raises OSError on failure.
+
+    A safety copy of anything already at `output_path` is taken first, into a
+    MapTasker_Backups folder beside it -- see presave.backup_local_file.  Taken here
+    rather than at the buttons that call this, so no export path can be added later that
+    quietly skips it.  Returns the copy's path, or "" if there was nothing to copy or the
+    copy failed (which does not stop the write -- see presave's module comment).
     """
+    _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
         out_file.write(render_standalone_task_xml(edited_task))
+    return safety_copy
 
 
 def save_task_to_android(
@@ -1878,14 +1889,15 @@ def register_new_task(edited_task: EditableTask, task_name: str) -> None:
     or after a successful Save To Android import (see
     userintr.save_task_to_android_event's is_new_task branch).
     """
-    PrimeItems.tasker_root_elements["all_tasks"][edited_task.task_id] = {
-        "xml": edited_task.task_element,
-        "name": task_name,
-    }
-    PrimeItems.tasker_root_elements["all_tasks_by_name"][task_name] = {
-        "xml": edited_task.task_element,
-        "id": edited_task.task_id,
-    }
+    with sessundo.undoable(f"Add Task '{task_name}'"):
+        PrimeItems.tasker_root_elements["all_tasks"][edited_task.task_id] = {
+            "xml": edited_task.task_element,
+            "name": task_name,
+        }
+        PrimeItems.tasker_root_elements["all_tasks_by_name"][task_name] = {
+            "xml": edited_task.task_element,
+            "id": edited_task.task_id,
+        }
 
 
 def apply_edited_task_to_live_tree(edited_task: EditableTask) -> None:
@@ -1907,20 +1919,21 @@ def apply_edited_task_to_live_tree(edited_task: EditableTask) -> None:
     Task, saved via Save To Android before ever reaching register_new_task) --
     call once, right after a successful Save (local or to Android).
     """
-    all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
-    entry = all_tasks.get(edited_task.task_id)
-    if entry is None:
-        return
+    with sessundo.undoable(f"Edit Task '{edited_task.task_element.findtext('nme', '') or edited_task.task_id}'"):
+        all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
+        entry = all_tasks.get(edited_task.task_id)
+        if entry is None:
+            return
 
-    old_name = entry["name"]
-    new_name = edited_task.task_element.findtext("nme", "") or old_name
+        old_name = entry["name"]
+        new_name = edited_task.task_element.findtext("nme", "") or old_name
 
-    all_tasks[edited_task.task_id] = {"xml": edited_task.task_element, "name": new_name}
+        all_tasks[edited_task.task_id] = {"xml": edited_task.task_element, "name": new_name}
 
-    all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
-    if old_name in all_tasks_by_name and old_name != new_name:
-        del all_tasks_by_name[old_name]
-    all_tasks_by_name[new_name] = {"xml": edited_task.task_element, "id": edited_task.task_id}
+        all_tasks_by_name = PrimeItems.tasker_root_elements["all_tasks_by_name"]
+        if old_name in all_tasks_by_name and old_name != new_name:
+            del all_tasks_by_name[old_name]
+        all_tasks_by_name[new_name] = {"xml": edited_task.task_element, "id": edited_task.task_id}
 
 
 def _project_task_ids(project_element: defusedxml.ElementTree.Element) -> list[str]:
@@ -1992,24 +2005,25 @@ def delete_task(task_name: str) -> list[str]:
     well want to repoint at a replacement Task, and silently editing other Tasks'
     actions here would be a much wider mutation than "delete this Task".
     """
-    resolved = resolve_task_by_name(task_name)
-    if resolved is None:
-        return [f"Task '{task_name}' no longer exists."]
-    task_id, _ = resolved
+    with sessundo.undoable(f"Delete Task '{task_name}'"):
+        resolved = resolve_task_by_name(task_name)
+        if resolved is None:
+            return [f"Task '{task_name}' no longer exists."]
+        task_id, _ = resolved
 
-    for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
-        project_element = project_entry["xml"]
-        existing_ids = _project_task_ids(project_element)
-        if task_id not in existing_ids:
-            continue
-        _set_child_text(project_element, "tids", ",".join(i for i in existing_ids if i != task_id))
-        touch_project_mdate(project_element)
+        for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values():
+            project_element = project_entry["xml"]
+            existing_ids = _project_task_ids(project_element)
+            if task_id not in existing_ids:
+                continue
+            _set_child_text(project_element, "tids", ",".join(i for i in existing_ids if i != task_id))
+            touch_project_mdate(project_element)
 
-    for profile_entry in PrimeItems.tasker_root_elements.get("all_profiles", {}).values():
-        profile_element = profile_entry["xml"]
-        for child in [c for c in profile_element if "mid" in c.tag and c.text == task_id]:
-            profile_element.remove(child)
+        for profile_entry in PrimeItems.tasker_root_elements.get("all_profiles", {}).values():
+            profile_element = profile_entry["xml"]
+            for child in [c for c in profile_element if "mid" in c.tag and c.text == task_id]:
+                profile_element.remove(child)
 
-    PrimeItems.tasker_root_elements.get("all_tasks", {}).pop(task_id, None)
-    PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}).pop(task_name, None)
-    return []
+        PrimeItems.tasker_root_elements.get("all_tasks", {}).pop(task_id, None)
+        PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}).pop(task_name, None)
+        return []

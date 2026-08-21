@@ -53,6 +53,7 @@ from maptasker.src.diagutil import (
 )
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
+from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Target
 
 # Avoid circular import error: guiwins has the proper import statement for configure_progress_bar,
 # the function, of which, is in guiutil2.
@@ -79,6 +80,158 @@ try:
     profiles_per_line = PrimeItems.program_arguments["profiles_per_line"]
 except (AttributeError, KeyError):
     PrimeItems.program_arguments["profiles_per_line"] = DIAGRAM_PROFILES_PER_LINE
+
+
+# ##################################################################################
+# Where each object ends up in the drawn diagram.
+# ##################################################################################
+# The Diagram used to be the one view a report finding could not be taken to.  The Map
+# carries a mapjump anchor on every Project, Profile, Task and action (see
+# mapjump.anchor_html), and an id is all a jump needs; the Diagram is plain text, so there
+# is nothing to put an id on.  Matching the text an object is DRAWN as gets close, and is
+# still the fallback, but it cannot tell two Tasks of the same name apart -- and naming a
+# Task twice is ordinary in Tasker.
+#
+# So the position is recorded as the diagram is built, and travels with it: {anchor id:
+# (line, column, length)} in PrimeItems.diagram_anchors, in the coordinates of the file the
+# Diagram view renders.  Column and length are in UTF-16 code units, which is what a
+# browser counts in -- a Task name holding an emoji is one character to Python and two to
+# JavaScript, and a column that disagreed with the browser by one per emoji would highlight
+# the wrong span of a line it had otherwise found perfectly.
+#
+# Recording a position is not as simple as noting len(netmap_output), because a box is not
+# written when it is built.  Profile and Scene boxes accumulate across a three-line buffer
+# -- six or eight of them side by side -- and Task lines accumulate in a list of their own;
+# both are appended to the output later, and a box's row is only known then.  So an object
+# is NOTED against its buffer as it is drawn, and the notes are resolved to rows when that
+# buffer is flushed (see _flush_boxes and _flush_tasks).
+#
+# Everything after that is a remap.  Four steps move a row between being noted and being
+# rendered, and each is applied here in the same breath as the connector seeds' own
+# remapping, which goes through the last two of them:
+#
+#   add_blanks_above_called_tasks   inserts the blank lines the call arrows are drawn into
+#   the view limit's cut            drops everything past the line the diagram stops at
+#   build_network_map's bar sweep   drops the lines left holding nothing but '|'
+#   network_map's file write        inserts the spacers written between Projects
+#
+# A missing anchor is ordinary rather than an error: a Diagram built for one Project has no
+# line for anything outside it, and one built by a MapTasker older than this has no
+# anchors at all.  Both fall back to the text match -- see mapjump.diagram_jump_js.
+# ##################################################################################
+# What a box is closed with, for extending a located name to the whole box it sits in.
+_BOX_WALL = "\u2551"
+
+# Objects noted against the three-line box buffer, waiting for it to be flushed.  Always
+# the middle line of the three, which is the only one a name is written on.
+_pending_boxes: list[tuple[str, str]] = []
+
+# Objects noted against the Task-line buffer: (index in that buffer, anchor, snippet).
+_pending_tasks: list[tuple[int, str, str]] = []
+
+
+def _note_box(target: Target, snippet: str) -> None:
+    """Record that this object has just been drawn into the box buffer's middle line."""
+    _pending_boxes.append((target.anchor, snippet))
+
+
+def _note_task(index: int, target: Target, snippet: str) -> None:
+    """Record that this Task has just been drawn as line `index` of the Task buffer."""
+    _pending_tasks.append((index, target.anchor, snippet))
+
+
+def _record(row: int, anchor: str, snippet: str) -> None:
+    """Fix one noted object at a row of netmap_output.
+
+    First sighting wins, exactly as mapjump.anchor_html decides it for the Map: the Diagram
+    draws a Task once per Profile that runs it and again under any Scene that fires it, and
+    a jump should land on the Task's own line under its Profile rather than on whichever
+    copy happened to be written last.
+    """
+    seeds = PrimeItems.diagram_object_seeds
+    if anchor not in seeds:
+        seeds[anchor] = (row, snippet)
+
+
+def _flush_boxes(output_lines: list) -> None:
+    """Append a finished row of boxes, and fix every box noted into it at its line.
+
+    print_3_lines by another name.  The row is taken before the append rather than after,
+    since it is the append that makes it a row at all.
+    """
+    row = len(PrimeItems.netmap_output) + 1  # The middle of the three lines.
+    print_3_lines(output_lines)
+    for anchor, snippet in _pending_boxes:
+        _record(row, anchor, snippet)
+    _pending_boxes.clear()
+
+
+def _flush_tasks(output_lines: list) -> None:
+    """Append a finished run of Task lines, and fix every Task noted into it at its line."""
+    base = len(PrimeItems.netmap_output)
+    print_all(output_lines)
+    for index, anchor, snippet in _pending_tasks:
+        _record(base + index, anchor, snippet)
+    _pending_tasks.clear()
+
+
+def _remap_object_seeds(old_to_new: dict[int, int]) -> None:
+    """Move every recorded object to where its line has just moved to.
+
+    A row with no entry in the map is a row that no longer exists -- cut off at the view
+    limit, or swept away as a bar-only line -- and the object on it is dropped rather than
+    left pointing at whatever ended up there instead.
+    """
+    PrimeItems.diagram_object_seeds = {
+        anchor: (old_to_new[row], snippet)
+        for anchor, (row, snippet) in PrimeItems.diagram_object_seeds.items()
+        if row in old_to_new
+    }
+
+
+def _keep_object_seeds_before(cut: int) -> None:
+    """Drop every object drawn past the line the view limit cut the diagram at.
+
+    Those lines are about to be deleted outright, and an object still pointing into them
+    would be a jump into whatever the file ends with.
+    """
+    PrimeItems.diagram_object_seeds = {
+        anchor: placement for anchor, placement in PrimeItems.diagram_object_seeds.items() if placement[0] < cut
+    }
+
+
+def _utf16_length(text: str) -> int:
+    """How many UTF-16 code units this text is -- how the browser counts a string index.
+
+    Python indexes by code point, JavaScript by UTF-16 code unit, and the two differ by one
+    for every astral character: an emoji in a Task name (Tasker allows them, and real
+    configurations use them) is one to Python and two to the browser.  Converting here is
+    what lets the browser take the column as given rather than searching for the name again.
+    """
+    return len(text.encode("utf-16-le")) // 2
+
+
+def _place(line: str, snippet: str, boxed: bool) -> tuple[int, int]:
+    """Where in this rendered line the object's name sits: (column, length), browser-counted.
+
+    (0, 0) when the name cannot be found on the line after all, which the Diagram view
+    reads as "the whole line" -- the line is still the right one to be taken to, and
+    highlighting all of it says so more honestly than highlighting nothing.  Reachable
+    because remove_icon rubs out a blank next to an arrow to keep a line with an icon in it
+    aligned, which can fall inside a name.
+
+    A box's name is extended to the wall that closes it, so a Profile jumped to is
+    highlighted as the box the eye reads it as rather than as bare text inside one.
+    """
+    at = line.find(snippet)
+    if at < 0:
+        return (0, 0)
+    end = at + len(snippet)
+    if boxed:
+        closing = line.find(_BOX_WALL, end)
+        if closing != -1:
+            end = closing + 1
+    return (_utf16_length(line[:at]), _utf16_length(line[at:end]))
 
 
 def flatten_with_quotes(string_list: list) -> str:
@@ -150,6 +303,23 @@ def add_quotes(
     # Build lines for the Profile's Tasks as well.
     line = f"{blank * position_for_anchor}{angle}{task_name}{task_type}{called_by_tasks}{call_tasks}"
     last_upward_bar.append(position_for_anchor)
+    # Note where this Task is being drawn, against the buffer rather than the output: these
+    # lines are appended to the diagram later, and only then is the row known (see
+    # _flush_tasks).
+    #
+    # The id comes from the Task's own element, NOT from prime_task -- which was looked up
+    # by name, and all_tasks_by_name keeps one entry per name (taskerd.py), so two Tasks
+    # called 'Backup' both resolve to whichever of them the table kept.  Both are drawn
+    # here, on lines of their own, and taking the id from the element is what lets a jump
+    # tell them apart; going through the name table would file the second one's line under
+    # the first one's id and land every click on the first.
+    task_id = task["xml"].findtext("id") if task.get("xml") is not None else ""
+    if task_id:
+        _note_task(
+            len(output_task_lines),
+            Target(kind=TASK, key=task_id, name=real_task_name),
+            f"{angle}{task_name}",
+        )
     output_task_lines.append(line)
     if task_name not in found_tasks:
         found_tasks.append(task_name)
@@ -215,7 +385,7 @@ def output_the_task(
     # We have a full row of Profiles.  Print the Tasks out.
     if print_tasks:
         if output_task_lines:
-            print_all(output_task_lines)
+            _flush_tasks(output_task_lines)
             output_task_lines = []
         last_upward_bar = []
 
@@ -366,7 +536,7 @@ def process_scene_tasks(
             task_list.append([task, position_for_anchor])
 
     if output_task_lines:
-        print_all(output_task_lines)
+        _flush_tasks(output_task_lines)
 
     return task_list, output_task_lines
 
@@ -403,12 +573,15 @@ def print_all_scenes(scenes: list) -> None:
         if scene_counter > 8:
             # We have 8 columns.  Print them out and reset.
             include_heading(f"{blank * 7}{scenes_translated}", output_scene_lines)
-            print_3_lines(output_scene_lines)
+            _flush_boxes(output_scene_lines)
             scene_counter = 1
             output_scene_lines = [filler, filler, filler]
 
         # Start/continue building our outlines
         output_scene_lines, position_for_anchor = build_box(scene, output_scene_lines)
+        # Noted after the box is built, and after any flush above it, so the note belongs to
+        # the buffer this Scene actually went into rather than to the row before it.
+        _note_box(Target(kind=SCENE, key=scene, name=scene), f"{_BOX_WALL} {scene}")
 
         # Process Scene's Tasks
         task_list, output_task_lines = process_scene_tasks(
@@ -419,7 +592,7 @@ def print_all_scenes(scenes: list) -> None:
 
     # Print any remaining Scenes
     include_heading(f"{blank * 7}{scenes_translated}", output_scene_lines)
-    print_3_lines(output_scene_lines)
+    _flush_boxes(output_scene_lines)
 
     # Print out the Scenes' Tasks
     for task in task_list:
@@ -435,7 +608,7 @@ def print_all_scenes(scenes: list) -> None:
             task[1],
         )
     if task_list:
-        print_all(output_task_lines)
+        _flush_tasks(output_task_lines)
 
 
 # Process Tasks not in any Profile
@@ -1470,7 +1643,11 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
     """
     name_stoppers = ["(entry)", "(exit)", "[Called by ", "[Calls "]
     new_output_lines = []
-    for line in output_lines:
+    # Where each line ends up once the blanks have been inserted above it.  Every object
+    # recorded while the diagram was drawn is sitting on one of these lines, and this is the
+    # first of the four steps that move it (see the note above flatten_with_quotes).
+    old_to_new = {}
+    for old_row, line in enumerate(output_lines):
         task_line = line.find(angle)
         if task_line != -1:
             # We have a task line.  Now get the Task name.
@@ -1489,9 +1666,11 @@ def add_blanks_above_called_tasks(output_lines: list) -> None:
                 )
 
         # Add the original line to the new output lines.
+        old_to_new[old_row] = len(new_output_lines)
         new_output_lines.append(line)
 
     output_lines.clear()
+    _remap_object_seeds(old_to_new)
     return new_output_lines
 
 
@@ -1563,6 +1742,7 @@ def handle_calls(output_lines: list, progress: dict) -> None:
     # adds or removes any) has left the line numbering exactly as check_limit saw it.
     if cut_at is not None:
         del output_lines[cut_at:]
+        _keep_object_seeds_before(cut_at)
 
     return output_lines
 
@@ -1598,7 +1778,7 @@ def build_profile_box(
     if (
         profile_counter > PrimeItems.program_arguments["profiles_per_line"]
     ):  # profiles_per_line defined as global variable
-        print_3_lines(output_profile_lines)
+        _flush_boxes(output_profile_lines)
         profile_counter = 1
         print_tasks = True
         output_profile_lines = [filler, filler, filler]
@@ -1606,7 +1786,7 @@ def build_profile_box(
         # Do Tasks under previous Profile.
         if output_task_lines:
             # Print the Task lines associated with these 6 Profiles.
-            print_all(output_task_lines)
+            _flush_tasks(output_task_lines)
             output_task_lines = []
     else:
         print_tasks = False
@@ -1664,6 +1844,20 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
                 output_task_lines,
                 print_tasks,
             )
+            # Note where this Profile was drawn.  Here rather than inside build_profile_box,
+            # because that one also draws the "No Profile" box that do_tasks_with_no_profile
+            # asks it for -- a heading, not an object, and nothing to be taken to.
+            #
+            # By name, since that is all the network map holds: outline.py keys a Project's
+            # Profiles by name, so two Profiles of one name in one Project already share a
+            # single box in the drawing.  One box, one anchor -- there is no second position
+            # for an id to tell apart.
+            owner = PrimeItems.tasker_root_elements["all_profiles_by_name"].get(profile)
+            if owner:
+                _note_box(
+                    Target(kind=PROFILE, key=owner["id"], name=profile, project=project_name),
+                    f"{_BOX_WALL} {profile}",
+                )
 
             # Go through the Profile's Tasks
             found_tasks = print_all_tasks(
@@ -1690,9 +1884,9 @@ def print_profiles_and_tasks(project_name: str, profiles: dict) -> None:
 
     # Print any remaining Profile boxes and their associated Tasks
     if output_profile_lines[0] != filler:
-        print_all(output_profile_lines)
+        _flush_boxes(output_profile_lines)
         if output_task_lines:
-            print_all(output_task_lines)
+            _flush_tasks(output_task_lines)
 
     # Map the Scenes
     if print_scenes:
@@ -1783,8 +1977,10 @@ def build_network_map(data: dict, progress: dict) -> None:
             # Calculate fractional float between 0.0 and 1.0
             progress["progress_bar"].set_value(idx / total_projects)
 
-        # Print Project as a box
+        # Print Project as a box.  The row is the middle of the three print_box writes.
+        row = len(PrimeItems.netmap_output) + 1
         print_box(project, project_text, 1)
+        _record(row, Target(kind=PROJECT, key=project, name=project).anchor, f"{_BOX_WALL} {project_text} {project}")
         # Print all of the Project's Profiles and their Tasks
         print_profiles_and_tasks(project, profiles)
 
@@ -1806,6 +2002,7 @@ def build_network_map(data: dict, progress: dict) -> None:
     PrimeItems.diagram_connector_seeds = [
         (old_to_new_row[row], col) for row, col in PrimeItems.diagram_connector_seeds if row in old_to_new_row
     ]
+    _remap_object_seeds(old_to_new_row)
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
 
     # Translate the output lines if needed
@@ -1845,6 +2042,12 @@ def network_map(network: dict) -> None:
 
     PrimeItems.netmap_output = []
     PrimeItems.called_task_tracker = {}
+    # Emptied here rather than where they are first written, so that a second run cannot
+    # leave the previous diagram's objects standing in this one's line numbers.
+    PrimeItems.diagram_object_seeds = {}
+    PrimeItems.diagram_anchors = {}
+    _pending_boxes.clear()
+    _pending_tasks.clear()
 
     # datetime object containing current date and time
     # now = datetime.now()
@@ -1925,6 +2128,22 @@ def network_map(network: dict) -> None:
             if row in netmap_to_file_line
         ]
         PrimeItems.diagram_connectors = compute_diagram_connector_groups(final_lines, remapped_seeds)
+
+        # The last step for the object seeds: onto the file's own line numbering, and then
+        # from "the name is somewhere on this line" to the exact span of it, measured
+        # against the line as written.  Resolved here rather than in the browser because
+        # this is the only place that holds both the finished line and the name that was
+        # drawn into it -- remove_icon has run by now, and a column worked out before it
+        # would be a column off by one on every line it touched.
+        anchors = {}
+        for anchor, (row, snippet) in PrimeItems.diagram_object_seeds.items():
+            file_line = netmap_to_file_line.get(row)
+            if file_line is None or file_line >= len(final_lines):
+                continue
+            anchors[anchor] = (file_line, *_place(final_lines[file_line], snippet, _BOX_WALL in snippet))
+        PrimeItems.diagram_anchors = anchors
+        logger.debug(f"diagram: {len(PrimeItems.diagram_anchors)} object anchors recorded")
+        PrimeItems.diagram_object_seeds = {}
 
         # Cleanup
         PrimeItems.netmap_output = []

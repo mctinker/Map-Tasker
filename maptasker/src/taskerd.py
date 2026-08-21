@@ -9,7 +9,7 @@ import re
 
 import defusedxml.ElementTree as ET  # noqa: N817
 
-from maptasker.src import condition
+from maptasker.src import condition, sessundo
 from maptasker.src.actione import get_action_code
 from maptasker.src.error import error_handler
 from maptasker.src.maputil2 import strip_html_tags, truncate_string
@@ -45,58 +45,29 @@ def move_xml_to_table(all_xml: list, get_id: bool, name_qualifier: str) -> dict:
     return new_table
 
 
-# Load all of the Projects, Profiles and Tasks into a format we can easily
-# navigate through.
-# Optimized
-def get_the_xml_data() -> bool:
-    # Put this code into a while loop in the event we have to re-call it again.
-    """Gets the XML data from a Tasker backup file and returns it in a dictionary.
-    Parameters:
-        - None
-    Returns:
-        - int: 0 if successful, 1 if bad XML, 2 if not a Tasker backup file, 3 if not a valid Tasker backup file.
-    Processing Logic:
-        - Put code into a while loop in case it needs to be re-called.
-        - Defines XML parser with ISO encoding.
-        - If encoding error, rewrites XML with proper encoding and tries again.
-        - If any other error, logs and exits.
-        - Returns 1 if bad XML and not in GUI mode.
-        - Returns 1 if bad XML and in GUI mode.
-        - Gets XML root.
-        - Checks for valid Tasker backup file.
-        - Moves all data into dictionaries.
-        - Returns all data in a dictionary."""
-    file_to_parse = PrimeItems.file_to_get.name
-    counter = 0
-    anchor = "Anchor ...with label:\n"
+# The name Tasker gives an Anchor action's label in the text get_first_action renders,
+# used below to turn an unnamed Anchor Task into a readable name.  Was a local in
+# get_the_xml_data until build_tasker_tables was split out of it.
+_ANCHOR_LABEL = "Anchor ...with label:\n"
 
-    # # Count the lines to see if we should issue a status.
-    # with open(file_to_parse, "rb") as f:
-    #     count = sum(1 for _ in f)
-    # if count > 15000:
-    #     print("Parsing XML file...")
 
-    _rewrite_xml = rewrite_xml
-    # Validate the XML file by parsing it twice if necessary.
-    while True:
-        try:
-            xmlp = ET.XMLParser(encoding="utf-8")
-            PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
-            break
-        # If error, rewrite thqat file with correct encoding.  Try this twice and then call it quits if still fails.
-        except (ET.ParseError, UnicodeDecodeError) as e:
-            counter += 1
-            if counter > 2 or isinstance(e, ET.ParseError):
-                error_handler(f"Error in {file_to_parse}: {e}", 1)
-                return 1
-            _rewrite_xml(file_to_parse)
+def build_tasker_tables() -> None:
+    """Build PrimeItems.tasker_root_elements from PrimeItems.xml_root -- the
+    Project/Profile/Task/Scene/Setting lookup tables the whole application navigates
+    the backup through, including the derived names an unnamed Profile or Task is
+    listed under.
 
-    if PrimeItems.xml_tree is None:
-        return 1 if not PrimeItems.program_arguments["gui"] else _handle_gui_error("Bad XML file")
+    Split out of get_the_xml_data (which still calls it, and is still the only way a
+    file becomes the loaded configuration) so that sessundo can rebuild the tables
+    after replacing xml_root with an undo checkpoint, without a file, a parse, or any
+    of the validation that only makes sense the first time.
 
-    PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
-    if PrimeItems.xml_root.tag != "TaskerData":
-        return _handle_gui_error("Invalid Tasker backup XML file", code=3)
+    It writes into the global rather than returning a dict, and that is deliberate --
+    see diffload.py's module comment for the trap: profiles.conditions_to_name, called
+    from the unnamed-Profile pass below, writes its derived name back through
+    PrimeItems.tasker_root_elements itself.  A version that filled a local dict would
+    have that pass writing into whatever table the global happened to hold instead.
+    """
 
     # Extract and transform data into Projects, Profiles, Tasks, Scenes and Services
     _move_xml_to_table = move_xml_to_table
@@ -168,8 +139,8 @@ def get_the_xml_data() -> bool:
             # Get the first Task Action and user it as the Task name.
             first_action = _get_first_action(value["xml"])
             # Handle special case of 'Anchor ...with label:\n'
-            if anchor in first_action:
-                first_action = 'Anchor "' + first_action.split(anchor, 1)[1]
+            if _ANCHOR_LABEL in first_action:
+                first_action = 'Anchor "' + first_action.split(_ANCHOR_LABEL, 1)[1]
 
             # Put the new name back into PrimeItems.tasker_root_elements["all_tasks"]
             value["name"] = f"{first_action.rstrip()}.{key!s} (Unnamed)"
@@ -184,6 +155,71 @@ def get_the_xml_data() -> bool:
     PrimeItems.tasker_root_elements["all_tasks"] = dict(temp)
     temp = sorted(PrimeItems.tasker_root_elements["all_tasks_by_name"].items())
     PrimeItems.tasker_root_elements["all_tasks_by_name"] = dict(temp)
+
+
+# Load all of the Projects, Profiles and Tasks into a format we can easily
+# navigate through.
+# Optimized
+def get_the_xml_data() -> bool:
+    # Put this code into a while loop in the event we have to re-call it again.
+    """Gets the XML data from a Tasker backup file and returns it in a dictionary.
+    Parameters:
+        - None
+    Returns:
+        - int: 0 if successful, 1 if bad XML, 2 if not a Tasker backup file, 3 if not a valid Tasker backup file.
+    Processing Logic:
+        - Put code into a while loop in case it needs to be re-called.
+        - Defines XML parser with ISO encoding.
+        - If encoding error, rewrites XML with proper encoding and tries again.
+        - If any other error, logs and exits.
+        - Returns 1 if bad XML and not in GUI mode.
+        - Returns 1 if bad XML and in GUI mode.
+        - Gets XML root.
+        - Checks for valid Tasker backup file.
+        - Moves all data into dictionaries.
+        - Returns all data in a dictionary."""
+    file_to_parse = PrimeItems.file_to_get.name
+    counter = 0
+
+    # # Count the lines to see if we should issue a status.
+    # with open(file_to_parse, "rb") as f:
+    #     count = sum(1 for _ in f)
+    # if count > 15000:
+    #     print("Parsing XML file...")
+
+    _rewrite_xml = rewrite_xml
+    # Validate the XML file by parsing it twice if necessary.
+    while True:
+        try:
+            xmlp = ET.XMLParser(encoding="utf-8")
+            PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
+            break
+        # If error, rewrite thqat file with correct encoding.  Try this twice and then call it quits if still fails.
+        except (ET.ParseError, UnicodeDecodeError) as e:
+            counter += 1
+            if counter > 2 or isinstance(e, ET.ParseError):
+                error_handler(f"Error in {file_to_parse}: {e}", 1)
+                return 1
+            _rewrite_xml(file_to_parse)
+
+    if PrimeItems.xml_tree is None:
+        return 1 if not PrimeItems.program_arguments["gui"] else _handle_gui_error("Bad XML file")
+
+    PrimeItems.xml_root = PrimeItems.xml_tree.getroot()
+    if PrimeItems.xml_root.tag != "TaskerData":
+        return _handle_gui_error("Invalid Tasker backup XML file", code=3)
+
+    # A different configuration is now the loaded one, so the session's undo history no
+    # longer describes it -- see sessundo.clear() for what undoing into another file's
+    # checkpoint would do.  Here rather than at the buttons that load a file (Get XML, the
+    # Android fetch, the switch to the copy a "Save To Current File" just wrote) because
+    # this is the one place all of them go through, and the one this must not be missed at.
+    #
+    # diffload puts the history back afterwards: it comes through here too, to parse the
+    # file being compared against, and that load does not replace what the user has open.
+    sessundo.clear()
+
+    build_tasker_tables()
     return 0
 
 

@@ -1,4 +1,4 @@
-"""mapjump: what a reported object is, and how to find it again in the Map view."""
+"""mapjump: what a reported object is, and how to find it again in the Map or Diagram view."""
 
 #! /usr/bin/env python3
 
@@ -540,6 +540,215 @@ def jump_js(anchor_id: str) -> str:
             mtRevealAncestors(target);
             target.classList.add('{HIGHLIGHT_CLASS}');
             target.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+            return true;
+        }})();
+    """
+
+
+# ##################################################################################
+# The Diagram view.
+# ##################################################################################
+# The Diagram has no anchors and cannot be given any: it is plain text whose line numbers
+# must line up 1:1 with PrimeItems.diagram_connectors (see guiwins' process_data), so an id
+# written into it would be a line of the diagram.
+#
+# What it has instead is a record of where each object was DRAWN -- see diagram.py's note
+# above flatten_with_quotes, and diagram_placement below.  That is the primary way in, and
+# it is as exact as the Map's anchors: it tells two Tasks of one name apart, because it
+# knows which line each was drawn on rather than what either was called.
+#
+# The text match below is the fallback for when there is no record: a Diagram built for one
+# Project holds nothing outside it, one cut short at the view limit stops before the rest,
+# and one built by a MapTasker older than this recorded nothing at all.  It is weaker, and
+# is treated as such -- it lands on the first copy of a duplicated name, and it has nothing
+# to offer for a Task action, since the Diagram draws no actions.
+#
+# The forms below are diagram.py's own, and are the whole of what it draws an object as:
+#
+#   Project    ║ Project: Home ║          print_box(project, "Project:", 1)
+#   Profile    ║ Wake Up ║               build_box via build_profile_box
+#   Scene      ║ Launcher ║              build_box via print_all_scenes, after "Scenes:"
+#   Task       └─ Wake Up                add_quotes, then " (entry)"/" [Calls ..." etc.
+#
+# A Profile and a Scene are drawn identically, which is why both patterns are offered for
+# either and the first match on the page wins -- the alternative, guessing, would be no
+# more accurate and would fail outright where the guess was wrong.
+def _diagram_project_prefix() -> str:
+    """How the Diagram labels a Project box, in whatever language it was drawn in.
+
+    diagram.build_network_map's own rule, repeated rather than imported: importing
+    diagram here would pull the whole output pipeline into a module healthck and varxref
+    rely on being able to import without one.  The language check is theirs too -- English
+    and Arabic are left untranslated there, so translating here would look for a label the
+    Diagram never wrote.
+    """
+    from maptasker.src.maputil2 import translate_string  # noqa: PLC0415  GUI-free, but only needed here
+
+    if PrimeItems.program_arguments.get("language", "English") in ("Arabic", "English"):
+        return "Project: "
+    return f"{translate_string('Project:')} "
+
+
+def diagram_patterns(target: Target) -> list[str]:
+    """The text this object is drawn as in the Diagram, likeliest form first.
+
+    Empty for an object the Diagram has no line for -- an unnamed Task, which the Diagram
+    draws under a derived name this cannot reconstruct, and a variable, which it does not
+    draw at all.  The caller turns that into "the Diagram has no line for this" rather
+    than into a search that quietly matches something else.
+    """
+    name = target.name.strip()
+    if not name or target.kind == VARIABLE:
+        return []
+    if target.kind == PROJECT:
+        return [f"║ {_diagram_project_prefix()}{name} ║"]
+    if target.kind == TASK:
+        # The trailing space is what keeps "Test1" from landing on "Test13": every Task
+        # line diagram.py writes continues past the name, with a type marker, a call
+        # annotation or the padding that carries the connector bars.
+        return [f"└─ {name} ", f"└─ {name}"]
+    return [f"║ {name} ║"]
+
+
+def diagram_placement(target: Target) -> tuple[int, int, int] | None:
+    """Where the Diagram that was last built drew this object: (line, column, length).
+
+    None when it did not draw it -- a Diagram narrowed to one Project, one cut short at the
+    view limit, one built before this version recorded anything, or no Diagram at all.  The
+    caller falls back to matching the drawn text, which is what this replaced.
+
+    An action is answered by its Task's own line.  The Diagram draws no actions, so a Find
+    result pointing at "action 5 of Task 118" has nowhere finer to land than Task 118 --
+    and landing there is the right answer rather than a failure to be reported.
+    """
+    anchors = getattr(PrimeItems, "diagram_anchors", None)
+    if not anchors:
+        return None
+    return anchors.get(replace(target, action=0).anchor)
+
+
+def diagram_jump_js(container_id: str, patterns: list[str], placement: tuple[int, int, int] | None = None) -> str:
+    """JavaScript that scrolls the Diagram view to an object and highlights it.
+
+    Two ways of finding it, and the difference between them is the difference between
+    "a Task called Backup" and "THIS Task called Backup".
+
+    With a placement, the line was recorded as the diagram was drawn (see diagram.py's
+    note above flatten_with_quotes) and is followed exactly: the walk counts newlines to
+    the line and UTF-16 code units across it, which is what the recorded column was
+    measured in.  Two Tasks of the same name land on their own lines, and a Task drawn
+    several times lands on the first drawing, as it does in the Map.
+
+    Without one, the drawn text is matched instead -- the fallback for a Diagram that does
+    not hold this object, or that was built by a version of MapTasker with no seeds in it.
+    A name can appear in more than one place, so the first is taken.
+
+    Evaluates to false when neither finds anything, which is the caller's cue to build a
+    Map instead.
+    """
+    return f"""
+        return (() => {{
+{REVEAL_ANCESTORS_JS}
+            const container = document.getElementById({json.dumps(container_id)});
+            if (!container) return false;
+            const patterns = {json.dumps(patterns)};
+            const placement = {json.dumps(list(placement) if placement else None)};
+            if (!patterns.length && !placement) return false;
+
+            // Any highlight left by a previous jump goes first, in both views' shared class,
+            // so only the object just asked for is marked.
+            document.querySelectorAll('.{HIGHLIGHT_CLASS}').forEach(
+                (element) => element.classList.remove('{HIGHLIGHT_CLASS}'),
+            );
+
+            const walker = () => document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+
+            // The recorded line, as a node and an offset into it.  The diagram is streamed
+            // in as chunks of many lines each, and a connector span splits a line's text
+            // into several nodes, so neither the line nor the column can be reached by
+            // indexing anything -- both are counted across the text nodes in order.
+            function seek(lineNumber, column) {{
+                let line = 0;
+                const crawl = walker();
+                for (let node = crawl.nextNode(); node; node = crawl.nextNode()) {{
+                    const text = node.nodeValue;
+                    if (!text.length) continue;
+                    let from = 0;
+                    while (from <= text.length) {{
+                        if (line === lineNumber) {{
+                            const rest = text.indexOf("\\n", from);
+                            const end = rest === -1 ? text.length : rest;
+                            if (column <= end - from) return {{ node: node, offset: from + column }};
+                            column -= end - from;
+                            // The line ends in this node and the column is past the end of
+                            // it, so it is not a column on this line at all -- walking on
+                            // into the next one would answer with a position on the wrong
+                            // line, which is worse than not answering.
+                            if (rest !== -1) return null;
+                            break;   // The line continues in the next node.
+                        }}
+                        const next = text.indexOf("\\n", from);
+                        if (next === -1) break;
+                        line += 1;
+                        from = next + 1;
+                    }}
+                }}
+                return null;
+            }}
+
+            // The fallback: the first line holding one of the forms this object is drawn
+            // as, preferring the earlier forms.  One walk, keeping the best so far, since a
+            // later pattern matching an earlier line must not beat the first pattern
+            // matching a later one -- "Test1" without its trailing space matches the line
+            // drawn for "Test13", which is exactly what the ordering is there to settle.
+            function search() {{
+                let best = null;
+                const crawl = walker();
+                for (let node = crawl.nextNode(); node; node = crawl.nextNode()) {{
+                    const text = node.nodeValue;
+                    for (let rank = 0; rank < patterns.length; rank++) {{
+                        if (best && best.rank <= rank) break;
+                        const at = text.indexOf(patterns[rank]);
+                        if (at >= 0) best = {{ rank: rank, node: node, offset: at, length: patterns[rank].length }};
+                    }}
+                    if (best && best.rank === 0) break;
+                }}
+                return best;
+            }}
+
+            let found = null;
+            if (placement) {{
+                const spot = seek(placement[0], placement[1]);
+                if (spot) {{
+                    // A length of zero is "the name could not be placed on the line after
+                    // all" (see diagram._place): the line is still the right one, so all of
+                    // it that is in this node is marked rather than nothing at all.
+                    const rest = spot.node.nodeValue.indexOf("\\n", spot.offset);
+                    const toEnd = (rest === -1 ? spot.node.nodeValue.length : rest) - spot.offset;
+                    found = {{ node: spot.node, offset: spot.offset, length: placement[2] || toEnd }};
+                }}
+            }}
+            if (!found) found = search();
+            if (!found) return false;
+
+            // Clamped to the node the span starts in.  A name is drawn as one unbroken run
+            // of text, so this is the whole of it; the clamp is there for the case where a
+            // connector span has split the line between the start and the end, where
+            // highlighting the first part of the name is still an answer.
+            const end = Math.min(found.offset + found.length, found.node.nodeValue.length);
+            const span = document.createElement('span');
+            span.className = '{HIGHLIGHT_CLASS}';
+            const range = document.createRange();
+            range.setStart(found.node, found.offset);
+            range.setEnd(found.node, end);
+            range.surroundContents(span);
+            mtRevealAncestors(span);
+            span.scrollIntoView({{block: 'center', inline: 'nearest', behavior: 'auto'}});
+            // Back to column 1, as the connector jump buttons do: a wide diagram scrolled
+            // sideways puts the reader in the middle of a line.
+            for (let box = span.parentElement; box; box = box.parentElement) {{
+                if (box.scrollWidth > box.clientWidth) box.scrollLeft = 0;
+            }}
             return true;
         }})();
     """
