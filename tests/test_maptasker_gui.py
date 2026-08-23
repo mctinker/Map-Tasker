@@ -26,6 +26,7 @@ keeps that true regardless of what an earlier test did.
 
 import contextlib
 from unittest.mock import AsyncMock, MagicMock, patch
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from maptasker.src.guiutils import (
@@ -71,7 +72,7 @@ def mock_gui_instance():
 
     # Initialize basic state variables matching _initialize_gui_settings
     gui.is_updating = False
-    gui.display_detail_level = "3"
+    gui.display_detail_level = 3
     gui.view_limit = 10000
     gui.task_action_warning_limit = 20
     gui.font = "Courier New"
@@ -237,7 +238,9 @@ def test_detail_selected_event(event_handler, mock_gui_instance):
 
     event_handler.detail_selected_event(mock_event)
 
-    assert mock_gui_instance.display_detail_level == "5"
+    # An int on the GUI object -- every reader of display_detail_level compares it
+    # numerically -- and the string the pulldown's own options are made of.
+    assert mock_gui_instance.display_detail_level == 5
     assert mock_gui_instance.sidebar_detail_option.value == "5"
 
 
@@ -306,9 +309,14 @@ async def test_view_event_map_execution_flow(
 
     # Verify background execution handoff of the blocking HTML build
     mock_io_bound.assert_awaited_once_with(build_html, "")
-    # Verify the rendered view is handed to its own page
+    # Verify the rendered view is handed to its own page.  The path and the query are
+    # checked apart from one another: the path is what identifies the page, while the
+    # query carries the jump target and the Project the Map was built for, and those two
+    # keys have to reach the popout whether or not this run has anything to put in them.
     mock_popout.assert_called_once()
-    assert mock_popout.call_args.args[0] == "/popout/map"
+    opened = urlparse(mock_popout.call_args.args[0])
+    assert opened.path == "/popout/map"
+    assert parse_qs(opened.query, keep_blank_values=True) == {"goto": [""], "scope": [""]}
 
 
 @pytest.mark.asyncio

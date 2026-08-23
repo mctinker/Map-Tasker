@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.0.1] ??-Aug-2026  # FIX
+## [13.0.1] 23-Aug-2026
 
 ### Added
 
@@ -49,6 +49,7 @@ For each PID listed in the output from the above terminal command, issue the fol
 - Added: 'Health Check' - a new button in the 'Display Views' section scans the loaded XML and reports what is broken or dead in it.
 - Added: 'Compare Files' - a new button in the 'Display Views' section compares another XML file against the loaded one and reports what was added, removed, renamed and changed.
 - Added: 'Variable Xref' - a new command to provide an in-depth cross-reference analysis of all the variables in the XML configuration.
+
 - Added: 'Disable/Enable' toggle switch when Editing a Project.
 - Changed: Version 2 Scene 'type' field (e.g. 'type: Text') in the Map view is merged in with it's arguments.  It's arguments are now indented in the Map view.
 - Fixed: Added missing text translations
@@ -95,8 +96,8 @@ For each PID listed in the output from the above terminal command, issue the fol
 - Fixed: The 'Bottom' button scrolls to the end of the Map/Diagram/Misc views with the last line still below the bottom of the window.
 ## [12.0.2] 05-Aug-2026
 
-- Added: Search results are nmow cahced for faster repeat searchs in the Map and Diagram views.
-- Changed: Set as current directory if a different diretory is selected from the 'Get Locxal XML File'.
+- Added: Search results are now cached for faster repeat searchs in the Map and Diagram views.
+- Changed: Set as current directory if a different directory is selected from the 'Get Locxal XML File'.
 - Fixed: Numerous GUI text translations are missing.
 - Fixed: <section> and <span> html tags are not recognized in TaskerNet descriptions.
 - Fixed: Cleaned up some formatting issues of TaskerNet descriptions.

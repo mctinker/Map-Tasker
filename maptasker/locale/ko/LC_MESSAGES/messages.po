@@ -2274,3 +2274,6 @@ msgstr "다음을 위해 발견됨"
 
 msgid "of"
 msgstr "~의"
+
+msgid "Nothing is saved until you press Ok, Save or Export."
+msgstr "확인, 저장 또는 내보내기를 누르기 전까지는 아무것도 저장되지 않습니다."

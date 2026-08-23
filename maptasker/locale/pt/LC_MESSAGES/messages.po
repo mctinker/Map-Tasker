@@ -2246,3 +2246,30 @@ msgstr "Refiz"
 
 msgid "Redo"
 msgstr "Refazer"
+
+msgid "Run a Find first."
+msgstr "Execute um Find primeiro."
+
+msgid "Save Results"
+msgstr "Salvar resultados"
+
+msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
+msgstr "Retire a última alteração feita no XML carregado - uma edição, uma adição, uma exclusão ou uma renomeação, em qualquer um dos painéis de edição.\n\nIsso altera o que é carregado, não qualquer arquivo: nada no disco ou no dispositivo Android é tocado."
+
+msgid "Text (name, label or argument)"
+msgstr "Texto (nome, rótulo ou argumento)"
+
+msgid "Updating MapTasker in the background.  Please stand by..."
+msgstr "Atualizando MapTasker em segundo plano.  Por favor, aguarde..."
+
+msgid "does not belong to a Project, so there is nowhere to attach a new"
+msgstr "não pertence a um projeto, portanto não há lugar para anexar um novo"
+
+msgid "found for"
+msgstr "encontrado para"
+
+msgid "of"
+msgstr "de"
+
+msgid "Undid"
+msgstr "Desfazer"

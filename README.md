@@ -63,7 +63,8 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Enhanced search capabilities.
 - Structured 'Find' in the Map and Diagram views: ask for every Task performing a given action, every Profile a given trigger fires, or everything that references a given app or Scene, and get back a clickable list of the objects rather than highlighted text.
 - Add and Edit Projects, Profiles, Tasks, and Scenes (see [Note 6](#6))
-- Analyze the health of of the Tasker XML as well as the numerous variables throughout the configuration.
+- Analyze the health of the Tasker XML as well as the numerous variables throughout the configuration.
+- Compare an XML file against the loaded XML. 
 
 ## Program Dependencies
 
@@ -303,7 +304,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Health Checkup and Variable Cross-reference
 
-- [ ] Edit 'Undo' function
+- [x] Edit 'Undo/Redo' function
 
 - [x] Structure Search
 
@@ -313,7 +314,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Export Map to Portable Formats (Markdown / JSON / PDF)
 
-- [ ] Export Edits Directoly Into Tasker
+- [ ] Export Edits Directly Into Tasker
 
 - [ ] Roundtrip (Device-to/from Android) Data Validation
 

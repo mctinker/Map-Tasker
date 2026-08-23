@@ -29,6 +29,7 @@ from maptasker.src.healthck import (
     run_health_check,
     write_health_check_report,
 )
+from maptasker.src.mapjump import text_report
 from maptasker.src.primitem import PrimeItems
 
 # One Project holding a sound Profile, a sound Task and a Scene, plus one of every
@@ -197,6 +198,18 @@ def _load(xml_text: str) -> None:
     PrimeItems.tasker_root_elements = tables
 
 
+def _run() -> tuple[str, dict]:
+    """The health check as (report text, counts by severity).
+
+    run_health_check returns Rows -- one per line, each carrying where clicking it goes --
+    because the report is rendered twice, as saved text and as clickable HTML.  These tests
+    are about what the report SAYS, which is the text half, so the rows are rendered here
+    with the same function that writes the file.
+    """
+    rows, totals = run_health_check()
+    return text_report(rows), totals
+
+
 def _findings_for(report: str, tag: str) -> list[str]:
     """The '[TAG]  where' lines of one tag, which is what the assertions match against."""
     return [line for line in report.splitlines() if line.startswith(f"[{tag}]")]
@@ -216,7 +229,7 @@ def _block_at(report: str, anchor: str) -> str:
 def report() -> str:
     """The health check report for the defective fixture."""
     _load(_DEFECTIVE_XML)
-    text, _ = run_health_check()
+    text, _ = _run()
     return text
 
 
@@ -224,7 +237,7 @@ def report() -> str:
 def counts() -> dict:
     """The severity counts for the defective fixture."""
     _load(_DEFECTIVE_XML)
-    _, totals = run_health_check()
+    _, totals = _run()
     return totals
 
 
@@ -293,11 +306,21 @@ def test_broken_scene_action(report: str) -> None:
 def test_variable_reference_is_not_reported(report: str) -> None:
     """A reference holding a variable is skipped rather than called broken.
 
-    '%Var' is decided on the device at run time.  Reporting it would be a false alarm on
-    a configuration that works, which is the one failure mode that would make the whole
-    report untrustworthy.
+    '%Var' is decided on the device at run time.  Reporting it as a broken reference would
+    be a false alarm on a configuration that works, which is the one failure mode that
+    would make the whole report untrustworthy.
+
+    Only the BROKEN-* findings are searched, not the whole report: the variable checks
+    have every right to say something about %Var -- it is read and never set, which is
+    VAR-NEVER-SET's job -- and a blanket "%Var is nowhere in the report" would forbid
+    that too.
     """
-    assert "%Var" not in report
+    broken = [line for line in report.splitlines() if line.startswith("[BROKEN-")]
+    assert not [line for line in broken if "%Var" in line]
+    # The Perform Task holding it is still reported, for the sound-looking name on the
+    # line above it, so its absence here is the variable being skipped and not the whole
+    # Task going unchecked.
+    assert _findings_for(report, "BROKEN-PERFORM-TASK")
 
 
 # ##################################################################################
@@ -427,7 +450,7 @@ def test_scene_named_by_a_variable_makes_unused_scene_say_so() -> None:
     report has to say why it cannot be trusted as a delete list.
     """
     _load(_VARIABLE_SCENE_XML)
-    text, _ = run_health_check()
+    text, _ = _run()
 
     findings = _findings_for(text, "UNUSED-SCENE")
     assert len(findings) == 2
@@ -496,7 +519,7 @@ def test_duplicate_tasks_in_one_project_are_called_out() -> None:
           <Task sr="task21"><id>21</id><nme>Twice</nme></Task>
         </TaskerData>""",
     )
-    text, _ = run_health_check()
+    text, _ = _run()
 
     detail = _block_at(text, "[DUPLICATE-NAME]")
     assert "id 20 in Project 'Crowded'" in detail
@@ -519,7 +542,7 @@ def test_duplicate_profiles_in_one_project_are_called_out() -> None:
           <Task sr="task20"><id>20</id><nme>Runs</nme></Task>
         </TaskerData>""",
     )
-    text, _ = run_health_check()
+    text, _ = _run()
 
     detail = _block_at(text, "[DUPLICATE-NAME]")
     assert "id 10 in Project 'Crowded'" in detail
@@ -541,7 +564,7 @@ def test_duplicate_profile_with_no_owning_project_says_so() -> None:
           <Task sr="task20"><id>20</id><nme>Runs</nme></Task>
         </TaskerData>""",
     )
-    text, _ = run_health_check()
+    text, _ = _run()
 
     detail = _block_at(text, "[DUPLICATE-NAME]")
     assert "id 10 in Project 'Held'" in detail
@@ -572,11 +595,11 @@ def test_large_task_respects_the_warning_limit() -> None:
     """
     _load(_DEFECTIVE_XML)
     # Task 'Runner' has 6 actions.  The default limit of 100 disables the check entirely.
-    report_at_default, _ = run_health_check()
+    report_at_default, _ = _run()
     assert not _findings_for(report_at_default, "LARGE-TASK")
 
     PrimeItems.program_arguments["task_action_warning_limit"] = 5
-    report_at_five, _ = run_health_check()
+    report_at_five, _ = _run()
     findings = _findings_for(report_at_five, "LARGE-TASK")
     assert findings == ["[LARGE-TASK]  Project 'Good' > Task 'Runner' (id 20)"]
 
@@ -616,7 +639,7 @@ def test_clean_configuration_reports_nothing() -> None:
           <Task sr="task20"><id>20</id><nme>Works</nme></Task>
         </TaskerData>""",
     )
-    text, totals = run_health_check()
+    text, totals = _run()
     assert totals == {ERROR: 0, WARNING: 0, INFO: 0}
     assert "Nothing to report" in text
 
@@ -630,9 +653,12 @@ def test_report_is_written_to_the_runtime_directory(tmp_path: object, monkeypatc
     """
     monkeypatch.chdir(tmp_path)
     _load(_DEFECTIVE_XML)
-    text, _ = run_health_check()
+    # The rows themselves here rather than _run()'s rendered text: the writer takes the
+    # rows and renders them itself, and this test is partly about it rendering them the
+    # same way the display does.
+    rows, _ = run_health_check()
 
-    file_name = write_health_check_report(text)
+    file_name = write_health_check_report(rows)
 
     # MapTasker_HealthCheck_MM-DD-YYYY_HH-MM-SS.txt
     assert re.fullmatch(
@@ -644,4 +670,4 @@ def test_report_is_written_to_the_runtime_directory(tmp_path: object, monkeypatc
     # Saved as the plain text it was built as -- the HTML escaping for display happens in
     # the GUI handler, on a copy, and must not reach the file.
     with open(written, encoding="utf-8") as saved:
-        assert saved.read() == text
+        assert saved.read() == text_report(rows)

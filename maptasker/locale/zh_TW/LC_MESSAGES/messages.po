@@ -2093,3 +2093,102 @@ msgstr "整份文件"
 
 msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
 msgstr "立即停用已載入的備份中的項目 - 與重新命名一樣，這會立即生效，而不是等待儲存，並且取消不會撤銷它。"
+
+msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
+msgstr "「尋找...」向載入的配置詢問一個問題，而不是搜尋畫面上的文字：執行給定操作的每個任務、給定觸發器觸發的每個設定檔、命名給定應用程式或場景的所有內容。\n\n這些框結合起來——選擇一個觸發器和一個操作來尋找以這種方式觸發的設定檔並運行執行該操作的任務。\n\n結果以物件清單的形式傳回；按一下其中一個即可前往該位置。\n\n"
+
+msgid "Changes Pending"
+msgstr "更改待定"
+
+msgid "Changes made to the loaded XML this session, newest first.  Undo steps back through them one at a time.  Nothing here has been written to a file."
+msgstr "本次會話對載入的 XML 進行的更改，最新的在前。  撤銷步驟一次退一步。  這裡沒有任何內容被寫入文件。"
+
+msgid "Choose an action, a trigger, an app, a Scene or some text."
+msgstr "選擇一個操作、觸發器、應用程式、場景或一些文字。"
+
+msgid "Each box narrows the answer, and they combine: a trigger and an action together find the Profiles that trigger that way AND run a Task that does that. Every entry offered is one this configuration actually uses, and the number beside it is how many places carry it."
+msgstr "每個框都縮小了答案，它們結合在一起：觸發器和操作一起找到以這種方式觸發的配置文件並運行執行此操作的任務。提供的每個條目都是該配置實際使用的一個，旁邊的數字表示有多少個地方攜帶它。"
+
+msgid "Edit History"
+msgstr "編輯歷史記錄"
+
+msgid "Editing"
+msgstr "編輯"
+
+msgid "Every Project"
+msgstr "每個項目"
+
+msgid "Find"
+msgstr "尋找"
+
+msgid "Find in"
+msgstr "尋找於"
+
+msgid "Find results could not be saved."
+msgstr "無法保存查找結果。"
+
+msgid "Find results saved as"
+msgstr "查找結果另存為"
+
+msgid "Find..."
+msgstr "尋找..."
+
+msgid "Help"
+msgstr "幫助"
+
+msgid "In no Project"
+msgstr "在沒有項目中"
+
+msgid "List every change made to the loaded XML this session, newest first."
+msgstr "列出本次會話對載入的 XML 所做的所有更改，最新的在最前面。"
+
+msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.\n\nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.\n\n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n\n    Level 5 = display level of 4 plus Scene argument details.\n\n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.\n\n* Display Conditions: Turn on the display of Profile and Task conditions.\n\n* Display TaskerNet Info - If available, display TaskerNet publishing information.\n\n* Display Tasker Preferences - display Tasker's system Preferences.\n\n* Hide Task Details under Twisty: hide Task information within ► and click to display.\n\n* Display Directory of hyperlinks at beginning.\n\n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.\n\n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.\n\n* Task Action Limit: display a warning if the Task has more than the specified number of actions.\n\n* Indentation amount for If/Then/Else Task Actions.\n\n* Language: Select the language to be used for the output.  The default is English.\n\n* Font To Use: Change the monospace font used for the output.\n\n* View Limit: Control the amount of processing time used when generating the view.\n\n* Notification Duration: How long a pop-up message stays on screen before it disappears.  'Until dismissed' keeps every message up until you close it.\n\n* Dark Mode: Switch the GUI between light and dark appearance.\n\n* Reset Options: Clear everything and start anew.\n\n* Get Local XML File: fetch the backup/exported XML file from your local drive.\n\n* Save Settings - Save these settings for later use.\n\n* Restore Settings - Restore the settings from a previously saved session.\n\n* Report Issue: Open the GitHub Issues page in your browser to report a problem or suggestion to the developer.\n\n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.\n\n* Clear: Clear the Map/Diagram/Tree view data currently held and displayed.\n\n* Health Check: Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.  Click a finding to be taken to it in the Map.\n\n* Compare Files: Compare another XML file against the loaded one to see what was added, removed, renamed and changed.\n\n* Variable Xref: Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names are likely typos.\n\n* Open View In New Window: Open each Map/Diagram request in its own new window/tab rather than reusing that view's existing one.\n\n* Close Tabs On Exit: Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.\n\n   - List XML Files: List the XML files found on the Android device so you can select one rather than typing its location.\n   - Cancel Entry: Back out of the Android fetch process.\n\n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n   - List Unnamed Items: Include unnamed Profiles and Tasks in the four pulldowns above.\n\n   Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with various save options...\n   - Add Project/Profile/Task/Scene: Create a new object and add it to the loaded XML.\n   - Edit Project/Profile/Task/Scene: Modify the object currently selected in the pulldowns above.\n   - Rename: Give the object being edited a new name.\n   - Delete: Remove the object being edited from the loaded XML.\n   - Duplicate: Make a copy of the selected Scene element.\n   - Preview: Display the Scene being edited as it will appear.\n   - Save / Export: Write the object out to a standalone XML file of your choosing.\n   - Save To Current File: Write the entire configuration to a new, timestamped file beside the loaded one.\n   - Save To Android: Write the object back to your Android device.\n     (A safety copy of anything a save is about to overwrite is kept in the 'MapTasker_Backups' folder.)\n\n   Editing commands...\n   - Undo: Back out the most recent Add/Edit/Delete/Rename change made to the loaded XML.  This changes what is loaded, not any file.\n   - Redo: Reapply the change most recently backed out by 'Undo'.\n   - Edit History: List every change made to the loaded XML this session, newest first.\n\n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n   - Reset to Default Colors: Restore every color to its default value.\n\n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n   - Show/Edit API Key(s): Enter or change the API keys used by the server-based AI models.\n   - Change Prompt: Modify the prompt sent to the AI model.\n   - Run Analysis: Submit the selected Project/Profile/Task and prompt to the selected model.\n   - Extended: List all available models rather than just the default set.\n\n* Debug tab: Display Runtime Settings option and turn on Debug mode.\n\n* Map/Diagram/Tree view toolbar commands are...\n   - Search: Highlight every instance of the case-insensitive text entered in the search box, up to the first 200.  Click a line number to go to that line.\n   - Find...: (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene.  Click a result to be taken to it.\n   - Save Results: Save the 'Find...' results to a text file.\n   - Top / Bottom: Jump to the beginning or the end of the displayed output.\n   - Toggle Wrap: Turn line wrapping on or off in the displayed output.\n   - Profiles Per Line: (Diagram only) The number of Profiles drawn side-by-side on a single line.\n\n* Display Help: Display this help text.\n\n* Get Android Help: Display the help for fetching the XML file from your Android device.\n\n* '?' buttons: Display the help specific to the section in which the button appears.\n\n* Exit: Exit the program (quit).\n\nNotes:\n\n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n\n- Changing the appearance mode will change the colors used for the output to their default values.\n\n"
+msgstr "MapTasker 會根據您上傳的 Tasker XML 檔案（例如「backup.xml」）顯示您的 Android Tasker 配置。顯示將可選地包括所有項目、設定檔、任務及其操作、設定檔/任務條件和其他設定檔/任務相關資訊。\n\n載入 XML 檔案後，您可以選擇編輯專案、設定檔、任務和場景。\n\n* 顯示選項有：\n    等級 0：僅顯示第一個任務操作，僅適用於未命名的任務（靜默）。\n    等級 1 = 僅顯示未知任務的所有任務操作詳細資訊（預設）。\n    等級 2 = 顯示每個任務的完整任務操作名稱。\n    等級 3 = 顯示每個任務的完整任務操作詳細資訊以及操作詳細資訊。\n    等級 4 = 顯示等級 3 加上項目的全域變數。\n\n    等級 5 = 顯示等級 4 加上場景參數詳細資訊。\n\n* 僅顯示所有內容：開啟條件、TaskerNet 資訊、首選項、漂亮輸出、目錄和配置大綱的顯示。\n\n* 顯示條件：開啟設定檔和任務條件的顯示。\n\n* 顯示 TaskerNet 資訊 - 如果可用，顯示 TaskerNet 發佈資訊。\n\n* 顯示 Tasker 首選項 - 顯示 Tasker 的系統首選項。\n\n* 在 Twisty 下隱藏任務詳細資料：將 ► 內的任務資訊隱藏，然後按一下顯示。\n\n* 在開頭顯示超連結目錄。\n\n* 顯示更漂亮的輸出：透過為所有參數添加換行符和縮進，使輸出更易於閱讀。\n\n* 項目/設定檔/任務/場景名稱選項可將其名稱設定為斜體、粗體、底線和/或反白顯示。\n\n* 任務操作限制：如果任務的操作數量超過指定數量，則顯示警告。\n\n* If/Then/Else 任務操作的縮排量。\n\n* 語言：選擇輸出所使用的語言。  預設為英語。\n\n* 要使用的字體：變更用於輸出的等寬字體。\n\n* 視圖限制：控制產生視圖時所使用的處理時間量。\n\n* 通知持續時間：彈出訊息消失之前在螢幕上停留的時間。  「直到關閉」會保留每個訊息，直到您將其關閉。\n\n* 深色模式：在淺色和深色外觀之間切換 GUI。\n\n* 重置選項：清除所有內容並重新開始。\n\n* 取得本機 XML 檔案：從本機磁碟機取得備份/匯出的 XML 檔案。\n\n* 儲存設定 - 儲存這些設定以供日後使用。\n\n* 恢復設定 - 從先前儲存的會話中恢復設定。\n\n* 回報問題：在瀏覽器中開啟 GitHub Issues 頁面，向開發者回報問題或建議。\n\n* 顯示檢視：直接在 GUI 中顯示項目、設定檔、任務和場景的設定圖、圖表或樹狀視圖。\n\n* 清除：清除目前已儲存和顯示的地圖/圖表/樹狀視圖資料。\n\n* 健康檢查：掃描載入的 XML 是否有損壞的引用、未引用的任務、設定檔和場景以及命名問題。  按一下要在地圖中找到的結果。\n\n* 比較檔案：將另一個 XML 檔案與載入的檔案進行比較，以查看新增、刪除、重新命名和變更的內容。\n\n* 變數外部引用：追蹤載入的 XML 中的每個%變數：每個變數在哪裡設定、在哪裡讀取、哪些已讀取但從未設定、哪些已設定但從未讀取、哪些幾乎相同的名稱可能是拼字錯誤。\n\n* 在新視窗中開啟視圖：在其自己的新視窗/標籤中開啟每個地圖/圖表請求，而不是重複使用該視圖的現有視圖。\n\n* 退出時關閉標籤：「退出」同時關閉 MapTasker 主視窗及其開啟的任何地圖/圖表視窗/選項卡。\n\n* 從 Android 裝置取得 XML：從 Android 裝置取得備份/匯出的 XML 檔案。  系統會要求您提供 Android 裝置的 IP 位址和連接埠號，以及裝置上的檔案位置。\n\n   - 列出 XML 文件：列出 Android 裝置上找到的 XML 文件，以便您可以選擇一個文件，而無需鍵入其位置。\n   - 取消輸入：退出 Android 取得程序。\n\n* 特定名稱標籤：輸入要顯示的單一特定命名項目...\n   - 項目名稱：輸入要顯示的特定項目。\n   - 設定檔名稱：輸入要顯示的特定設定檔。\n   - 任務名稱：輸入要顯示的特定任務。\n   - 場景名稱：輸入要顯示的特定場景。  其所屬項目的標題和\n                 顯示場景的元素（以及這些元素調用的任何任務）；\n                 專案的設定檔及其其他場景不是。\n   （這四項是唯一的：只輸入一項）\n   - 列出未命名的項目：在上面的四個下拉清單中包含未命名的設定檔和任務。\n\n   直接在 GUI 中新增和編輯項目、設定檔、任務和場景，並具有各種儲存選項...\n   - 新增專案/設定檔/任務/場景：建立一個新物件並將其新增至已載入的 XML 中。\n   - 編輯項目/設定檔/任務/場景：修改目前在上面的下拉式選單中所選的物件。\n   - 重新命名：為正在編輯的物件指定一個新名稱。\n   - 刪除：從已載入的 XML 中刪除正在編輯的物件。\n   - 複製：製作所選場景元素的副本。\n   - 預覽：按原樣顯示正在編輯的場景。\n   - 儲存/匯出：將物件寫入您選擇的獨立 XML 檔案。\n   - 儲存到目前檔案：將整個設定寫入已載入檔案旁邊的一個新的帶有時間戳記的檔案中。\n   - 儲存到 Android：將物件寫回您的 Android 裝置。\n     （儲存將要覆蓋的任何內容的安全副本都保存在「MapTasker_Backups」資料夾中。）\n\n   編輯命令...\n   - 撤銷：撤銷對載入的 XML 所做的最新新增/編輯/刪除/重新命名變更。  這會更改載入的內容，而不是任何檔案。\n   - 重做：重新套用最近透過「撤銷」取消的變更。\n   - 編輯歷史記錄：列出本次會話對載入的 XML 所做的所有更改，最新的在前。\n\n* 顏色標籤：為顯示的各種元素選擇顏色。\n              （例如項目、設定檔、任務等的顏色）。\n   - 重設為預設顏色：將每種顏色恢復為其預設值。\n\n* 分析標籤：針對 Ai 模型執行專案、設定檔、任務或場景的分析。\n   - 顯示/編輯 API 金鑰：輸入或變更基於伺服器的 AI 模型所使用的 API 金鑰。\n   - 更改提示：修改發送到AI模型的提示。\n   - 執行分析：將選定的項目/設定檔/任務和提示提交到選定的模型。\n   - 擴充：列出所有可用模型，而不僅僅是預設集。\n\n* 偵錯選項卡：顯示運行時設定選項並開啟偵錯模式。\n\n* 地圖/圖表/樹狀視圖工具列指令是...\n   - 搜尋：在搜尋方塊中輸入的不區分大小寫的文字的每個實例，最多為前 200 個。點擊行號即可轉到該行。\n   - 尋找...：（僅限地圖和圖表）向載入的配置詢問問題，而不是搜尋畫面上的文字：執行給定操作的每個任務、給定觸發器觸發的每個設定檔、命名給定應用程式或場景的所有內容。  按一下要轉到的結果。\n   - 儲存結果：將「尋找...」結果儲存到文字檔案。\n   - 頂部/底部：跳到顯示輸出的開頭或結尾。\n   - 切換換行：在顯示的輸出中開啟或關閉換行。\n   - 每行輪廓數：（僅限圖表）單行上並排繪製的輪廓數。\n\n* 顯示幫助：顯示此幫助文字。\n\n* 取得 Android 說明：顯示從 Android 裝置取得 XML 檔案的協助。\n\n* '?'按鈕：顯示特定於該按鈕出現的部分的幫助。\n\n* 退出：退出程序（退出）。\n\n注意事項：\n\n- 在 https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md 查看整個變更日誌歷史記錄\n\n- 變更外觀模式會將用於輸出的顏色變更為其預設值。\n\n"
+
+msgid "Narrow to Project"
+msgstr "縮小到專案範圍"
+
+msgid "No changes to undo."
+msgstr "沒有要撤銷的變更。"
+
+msgid "Nothing has been changed yet."
+msgstr "一切還沒改變。"
+
+msgid "Nothing in the loaded configuration answers this."
+msgstr "載入的配置中沒有任何內容可以回答這個問題。"
+
+msgid "Nothing is saved until you press Ok, Save or Export."
+msgstr "在您按「確定」、「儲存」或「匯出」之前，不會儲存任何內容。"
+
+msgid "Redid"
+msgstr "雷迪德"
+
+msgid "Redo"
+msgstr "重做"
+
+msgid "Run a Find first."
+msgstr "首先運行查找。"
+
+msgid "Save Results"
+msgstr "保存結果"
+
+msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
+msgstr "取回對載入的 XML 所做的最後變更 - 在任何編輯面板中進行編輯、新增、刪除或重新命名。\n\n這會更改載入的內容，而不是任何檔案：磁碟或 Android 裝置上的任何內容都不會受到影響。"
+
+msgid "Text (name, label or argument)"
+msgstr "文字（名稱、標籤或參數）"
+
+msgid "Undid"
+msgstr "取消"
+
+msgid "Updating MapTasker in the background.  Please stand by..."
+msgstr "在背景更新 MapTasker。  請稍等..."
+
+msgid "does not belong to a Project, so there is nowhere to attach a new"
+msgstr "不屬於項目，因此沒有地方可以附加新的"
+
+msgid "found for"
+msgstr "找到了"
+
+msgid "of"
+msgstr "的"

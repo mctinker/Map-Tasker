@@ -2278,3 +2278,6 @@ msgstr "gevonden voor"
 
 msgid "of"
 msgstr "van"
+
+msgid "Save Results"
+msgstr "Resultaten opslaan"

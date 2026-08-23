@@ -2299,3 +2299,6 @@ msgstr "یافت شده برای"
 
 msgid "of"
 msgstr "از"
+
+msgid "Find..."
+msgstr "پیدا کن..."
