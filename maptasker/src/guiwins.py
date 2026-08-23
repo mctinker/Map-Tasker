@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, app, context, ui
 
-from maptasker.src import mapfind, mapjump, profedit, projedit, sceneedit, sceneview, sessundo, taskedit
+from maptasker.src import diagintr, mapfind, mapjump, profedit, projedit, sceneedit, sceneview, sessundo, taskedit
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import EDIT_SCENE
 from maptasker.src.format import css_color
@@ -806,8 +806,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                 ),
                             ).props("flat color=blue dense")
                             move_to_input = (
-                                ui
-                                .number(
+                                ui.number(
                                     translate_string("Move to #"),
                                     value=action.act_number,
                                     min=0,
@@ -1135,8 +1134,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         ).props("flat color=red dense")
                     else:
                         picker = (
-                            ui
-                            .select(task_names, label=translate_string("Choose a Task"), with_input=True)
+                            ui.select(task_names, label=translate_string("Choose a Task"), with_input=True)
                             .classes("flex-1")
                             .props("dense")
                         )
@@ -1283,8 +1281,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                 value=text_initial(rep_value_key, values["rep_value"]),
                             ).classes("w-24")
                             field_refs[rep_unit_key] = (
-                                ui
-                                .select(
+                                ui.select(
                                     ["Hours", "Minutes"],
                                     value=text_initial(rep_unit_key, values["rep_unit"]),
                                 )
@@ -1409,8 +1406,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
 
             with ui.row().classes("w-full items-center gap-2 mt-2"):
                 add_type_picker = (
-                    ui
-                    .select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
+                    ui.select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
                     .classes("w-48")
                     .props("dense")
                 )
@@ -1430,8 +1426,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in event_rows
                 }
                 event_type_picker = (
-                    ui
-                    .select(event_options, label=translate_string("Event Type"), with_input=True)
+                    ui.select(event_options, label=translate_string("Event Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -1447,8 +1442,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in state_rows
                 }
                 state_type_picker = (
-                    ui
-                    .select(state_options, label=translate_string("State Type"), with_input=True)
+                    ui.select(state_options, label=translate_string("State Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -1981,8 +1975,7 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
         # search box belongs above the chips it filters.  Its on_change closes over
         # search_changed, which is defined below -- resolved at call time, not at creation.
         search_input = (
-            ui
-            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2191,8 +2184,7 @@ def _build_add_legacy_element_dialog(
                 ui.tooltip("\n\n".join(lines)).style("white-space: pre-line").classes("max-w-sm")
 
         search_input = (
-            ui
-            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2336,8 +2328,7 @@ def _build_show_when_dialog(
         # box below the list it filters is a search box nobody finds.  Its on_change closes
         # over search_changed, defined below and resolved at call time.
         search_input = (
-            ui
-            .input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
+            ui.input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2458,8 +2449,7 @@ def _build_colour_field(item: dict, prop: sceneedit.V2Prop) -> None:
     and silently dropping what they typed would be worse than showing it in red.
     """
     field = (
-        ui
-        .color_input(
+        ui.color_input(
             label=translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: colour_changed(d, k, str(e.value or "")),
@@ -2514,8 +2504,7 @@ def _build_icon_field(item: dict, prop: sceneedit.V2Prop) -> None:
     the component will show are the same answer.
     """
     field = (
-        ui
-        .input(
+        ui.input(
             translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: icon_changed(d, k, str(e.value or "")),
@@ -2565,8 +2554,7 @@ def _build_icon_dialog(field: ui.input) -> None:
             dialog.close()
 
         search_input = (
-            ui
-            .input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
+            ui.input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2595,8 +2583,7 @@ def _build_icon_dialog(field: ui.input) -> None:
                         # the row that needs turning is the .q-btn__content inside it, so the
                         # tiles come out half stacked and half side by side.
                         tile = (
-                            ui
-                            .button(on_click=lambda _e=None, n=name: pick(n))
+                            ui.button(on_click=lambda _e=None, n=name: pick(n))
                             .props(
                                 "flat dense no-caps stack",
                             )
@@ -2695,8 +2682,7 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     state_select = (
-        ui
-        .select(
+        ui.select(
             list(field.states),
             value=state or None,
             label=translate_string(field.label),
@@ -2712,8 +2698,7 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     dynamic_input = (
-        ui
-        .input(
+        ui.input(
             translate_string("Dynamic value"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_DYNAMIC_STATE),
             on_change=lambda _e=None: write(),
@@ -2728,8 +2713,7 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
     )
 
     variable_input = (
-        ui
-        .input(
+        ui.input(
             translate_string("Variable"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_VARIABLE_STATE),
             on_change=lambda _e=None: write(),
@@ -2952,8 +2936,7 @@ def _build_v2_designer(
             # The indent is drawn rather than nested so every row stays one flat, clickable
             # strip -- nested containers would make the click target of a deep node a sliver.
             label = (
-                ui
-                .label(f"{'  ' * row.depth}{row.label}")
+                ui.label(f"{'  ' * row.depth}{row.label}")
                 .classes(classes)
                 .on("click", lambda _e=None, path=row.path: select(path))
             )
@@ -3031,8 +3014,7 @@ def _build_v2_designer(
             _build_icon_field(target, prop)
         else:
             text_input = (
-                ui
-                .input(
+                ui.input(
                     translate_string(prop.label),
                     value=str(value),
                     on_change=lambda e, k=prop.key, d=target: sceneedit.v2_set_prop(d, k, str(e.value or "")),
@@ -3284,8 +3266,7 @@ def _build_v2_designer(
             section.props(f'caption="{caption()}"')
 
         section = (
-            ui
-            .expansion(
+            ui.expansion(
                 translate_string(name),
                 icon=_V2_CATEGORY_ICONS.get(name, "tune"),
                 caption=caption(),
@@ -4311,8 +4292,7 @@ def _build_legacy_designer(
 
     header = ui.row().classes("w-full items-center gap-2 mt-2")
     canvas_pane = (
-        ui
-        .element("div")
+        ui.element("div")
         .classes(
             f"mt-scene-wrap {root_class} w-full border rounded overflow-hidden",
         )
@@ -5230,8 +5210,7 @@ def _build_item_layout_dialog(holder: object, on_closed: Callable[[], None]) -> 
         with ui.row().classes("w-full gap-2 mt-2"):
             for key, label in sceneedit.SCENE_DIMENSION_FIELDS[:2]:
                 field_refs[key] = (
-                    ui
-                    .input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
+                    ui.input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
                     .props("dense")
                     .classes("w-36")
                     .on(
@@ -5315,8 +5294,7 @@ def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event
             settling["busy"] = False
 
     field = (
-        ui
-        .color_input(
+        ui.color_input(
             label=translate_string(arg.arg_name),
             value=sceneedit.legacy_colour_to_css(arg.current_value),
             preview=True,
@@ -5521,8 +5499,7 @@ def _build_scene_editor_body(
     with ui.row().classes("w-full gap-2 mt-2"):
         for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
             field_refs[key] = (
-                ui
-                .input(
+                ui.input(
                     translate_string(label),
                     value=scene_element.findtext(key, sceneedit.UNSET_DIMENSION),
                 )
@@ -6652,33 +6629,167 @@ def _connectors_by_line() -> dict[int, list[tuple[int, int, int]]]:
     return by_line
 
 
+def _diagram_spans(
+    line_num: int,
+    line: str,
+    connectors_by_line: dict[int, list[tuple[int, int, int]]],
+    nodes_by_line: dict[int, list[dict]],
+) -> list[tuple[int, int, str]]:
+    """Every span to wrap on this line, in column order and never overlapping.
+
+    Two kinds of span want the same characters now: a connector's run of box-drawing
+    characters, and an object's name.  A Task is drawn as "└─ Backup", and the "─" in that
+    prefix is a connector character -- so a horizontal run passing close by can, rarely,
+    grow into it.  An element cannot be in two spans at once, so the object name wins and
+    the connector is clipped around it: losing a character off the end of a connector costs
+    a click target that the rest of the same connector still offers, while losing one off a
+    name costs the name its click target outright.
+    """
+    claimed = []
+    for node in nodes_by_line.get(line_num, []):
+        start, end = node["col"], node["col"] + node["len"]
+        if start >= len(line) or end <= start:
+            continue
+        claimed.append(
+            (
+                start,
+                min(end, len(line)),
+                f'<span class="{diagintr.NODE_CLASS}" data-anchor="{node["anchor"]}" '
+                f'data-node="{node["index"]}" data-kind="{node["kind"]}" tabindex="0">',
+            ),
+        )
+    claimed.sort()
+
+    spans = list(claimed)
+    for col_start, col_end, connector_id in sorted(connectors_by_line.get(line_num, [])):
+        start, end = max(col_start, 0), min(col_end, len(line))
+        opening = f'<span class="connector" data-connector-id="{connector_id}">'
+        # Split around every name this run touches, keeping the pieces that are still the
+        # connector's own.  Almost always one piece, unchanged.
+        for name_start, name_end, _ in claimed:
+            if name_start >= end or name_end <= start:
+                continue
+            if start < name_start:
+                spans.append((start, name_start, opening))
+            start = max(start, name_end)
+        if start < end:
+            spans.append((start, end, opening))
+    spans.sort()
+    return spans
+
+
+def _create_diagram_tools(view: NiceGuiTextView) -> None:
+    """The Diagram view's own controls: zoom, folding, and a way back to a plain diagram.
+
+    Everything here is a shortcut for something the diagram itself already offers -- a
+    Project folds by clicking its top border, a chain lights up by shift-clicking a Task --
+    with the exception of zoom, which has nowhere else to live.  They are on the toolbar
+    because a diagram of forty Projects is a lot of borders to click, and because a control
+    on screen is how anyone finds out that the diagram does this at all.
+
+    The state label is the one thing here that is not a button: it is written to from the
+    browser (see diagintr.report) rather than from Python, since every one of these actions
+    happens in the page and never comes back.
+    """
+    ui.separator().props("vertical")
+    with ui.row().classes("items-center gap-1"):
+        zoom_out = ui.button(
+            icon="zoom_out", on_click=lambda: view._diagram_command("zoom", 1 / 1.15)
+        ).props(  # noqa: SLF001
+            "flat dense",
+        )
+        with zoom_out:
+            ui.tooltip(translate_string("Zoom out.  Ctrl/⌘ and the scroll wheel does the same."))
+        zoom_in = ui.button(icon="zoom_in", on_click=lambda: view._diagram_command("zoom", 1.15)).props(
+            "flat dense"
+        )  # noqa: SLF001
+        with zoom_in:
+            ui.tooltip(translate_string("Zoom in.  Ctrl/⌘ and the scroll wheel does the same."))
+        collapse = ui.button(
+            icon="unfold_less", on_click=lambda: view._diagram_command("collapse-all")
+        ).props(  # noqa: SLF001
+            "flat dense",
+        )
+        with collapse:
+            ui.tooltip(
+                translate_string(
+                    "Collapse every Project down to its title bar.\n\n"
+                    "One Project on its own collapses by clicking the top edge of its box.",
+                ),
+            ).style("white-space: pre-line")
+        expand = ui.button(icon="unfold_more", on_click=lambda: view._diagram_command("expand-all")).props(
+            "flat dense"
+        )  # noqa: SLF001
+        with expand:
+            ui.tooltip(translate_string("Expand every collapsed Project."))
+        reset = ui.button(icon="restart_alt", on_click=lambda: view._diagram_command("reset")).props(
+            "flat dense"
+        )  # noqa: SLF001
+        with reset:
+            ui.tooltip(translate_string("Back to the whole diagram: no zoom, nothing folded, nothing filtered."))
+        # The one place the gestures are written down.  Everything the diagram does on a
+        # click is discoverable by trying it, but only if you already suspect it is there.
+        help_button = ui.button(icon="help_outline").props("flat dense")
+        with help_button:
+            ui.tooltip(
+                translate_string(
+                    "The diagram is clickable:\n\n"
+                    "Click a Project, Profile, Task or Scene name to be taken to it in the Map.\n\n"
+                    "Shift-click a Task to light up the whole chain of calls it takes part in -- "
+                    "everything it calls, everything that calls it, and the arrows between them.\n\n"
+                    "Right-click any name for the rest: collapse its Project, show only that "
+                    "Project, follow its chain.\n\n"
+                    "Click the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\n"
+                    "Ctrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain.",
+                ),
+            ).style("white-space: pre-line")
+    view.diagram_state_label = ui.label("").classes("text-xs text-gray-400 italic ml-1")
+
+
 def _wrap_diagram_line(
     line_num: int,
     line: str,
     connectors_by_line: dict[int, list[tuple[int, int, int]]],
+    nodes_by_line: dict[int, list[dict]],
+    folds_by_line: dict[int, str],
 ) -> str:
-    """Escape a Diagram line for HTML, wrapping each connector's characters in a clickable span."""
-    ranges = connectors_by_line.get(line_num)
-    if not ranges:
-        return _escape_html_text(line)
+    """One Diagram line as its own element, with its connectors and its names inside it.
 
+    A line is an element rather than a run of text between two newlines because the
+    interactive view has to be able to take one away -- folding a Project hides its lines,
+    and there is no way to hide a stretch of text that is not an element.
+
+    The newline is inside the element and hidden with it, in a span of its own that is
+    never displayed: the line elements are blocks, so the browser breaks between them
+    anyway, and a newline that rendered as well would double-space the whole diagram.  It
+    is still in the text, though, and that is deliberate -- the view's search index and the
+    jump into the Diagram both count lines by counting newlines through the text nodes, and
+    a document with none would leave both of them measuring one enormous line.  An
+    otherwise empty line carries a zero-width space for the same kind of reason: an empty
+    block has no height, and the blank lines in a diagram are the ones the connectors are
+    drawn down.
+    """
     pieces = []
     cursor = 0
-    for col_start, col_end, connector_id in sorted(ranges):
-        col_start = max(col_start, cursor)  # noqa: PLW2901
-        if col_start >= col_end or col_start >= len(line):
+    for start, end, opening in _diagram_spans(line_num, line, connectors_by_line, nodes_by_line):
+        start = max(start, cursor)  # noqa: PLW2901
+        if start >= end:
             continue
-        col_end = min(col_end, len(line))  # noqa: PLW2901
-        if col_start > cursor:
-            pieces.append(_escape_html_text(line[cursor:col_start]))
-        pieces.append(
-            f'<span class="connector" data-connector-id="{connector_id}">'
-            f"{_escape_html_text(line[col_start:col_end])}</span>",
-        )
-        cursor = col_end
+        if start > cursor:
+            pieces.append(_escape_html_text(line[cursor:start]))
+        pieces.append(f"{opening}{_escape_html_text(line[start:end])}</span>")
+        cursor = end
     if cursor < len(line):
         pieces.append(_escape_html_text(line[cursor:]))
-    return "".join(pieces)
+    if not pieces:
+        pieces.append("&#8203;")
+
+    fold = folds_by_line.get(line_num)
+    fold_attribute = f' data-fold="{fold}" data-fold-state="open"' if fold else ""
+    return (
+        f'<span class="{diagintr.LINE_CLASS}" data-line="{line_num}"{fold_attribute}>'
+        f'{"".join(pieces)}<span class="mt-dnl">\n</span></span>'
+    )
 
 
 # ##################################################################################
@@ -6755,6 +6866,25 @@ def forget_views(master_gui: MyGui) -> None:
 _FINDING_CLICK_CLIENTS: weakref.WeakSet = weakref.WeakSet()
 
 
+def _bring_to_front(view: NiceGuiTextView) -> None:
+    """Raise the window a jump has just landed in, so the user is looking at the answer.
+
+    Only for a jump answered by a view that was ALREADY open.  The other path --
+    rebuild_map_for_jump -- ends in window.open(), which raises the window it opens on its
+    own; this is the case that had nothing doing it (see mapjump.bring_to_front_js).
+
+    Not awaited.  The window is being raised for the user's benefit and nothing here
+    depends on the outcome, so there is no reason to hold the jump open for a round trip --
+    and a browser that declines to raise the window is not a failure to report.  The
+    request is still sent: NiceGUI's run_javascript queues the message eagerly and only the
+    response needs awaiting.
+
+    A view whose page has gone away raises rather than answering, which is one more window
+    that cannot be raised; the caller is already treating that as "not this one".
+    """
+    view.scroll_area.client.run_javascript(mapjump.bring_to_front_js())
+
+
 async def jump_map_view(master_gui: MyGui, target: mapjump.Target) -> bool:
     """Scroll an open Map view to a Target and highlight it.  False if none could.
 
@@ -6783,6 +6913,8 @@ async def jump_map_view(master_gui: MyGui, target: mapjump.Target) -> bool:
             continue
         try:
             landed = await view.scroll_area.client.run_javascript(mapjump.jump_js(target.anchor), timeout=5)
+            if landed:
+                _bring_to_front(view)
         except (TimeoutError, RuntimeError, AttributeError):
             continue
         if landed:
@@ -6822,19 +6954,29 @@ async def jump_diagram_view(master_gui: MyGui, target: mapjump.Target) -> bool:
     """
     placement = mapjump.diagram_placement(target)
     patterns = mapjump.diagram_patterns(target)
+    anchor = mapjump.diagram_anchor(target)
     # Nothing to go on at all: an object the Diagram neither recorded nor draws a line for
     # -- an unnamed Task, a variable.  Answered here rather than with a match on something
-    # else that happens to be nearby.
-    if placement is None and not patterns:
+    # else that happens to be nearby.  An anchor counts as something to go on: an
+    # interactive Diagram carries one on every name it drew, including the unnamed Task's,
+    # which is drawn under a derived name no pattern can reconstruct.
+    if placement is None and not patterns and not anchor:
         return False
     for view in reversed(live_views(master_gui)):
         if not str(getattr(view, "title", "")).startswith("Diagram"):
             continue
         try:
             landed = await view.scroll_area.client.run_javascript(
-                mapjump.diagram_jump_js(f"c{view.scroll_area.id}", patterns, placement),
+                mapjump.diagram_jump_js(
+                    f"c{view.scroll_area.id}",
+                    patterns,
+                    placement,
+                    anchor,
+                ),
                 timeout=5,
             )
+            if landed:
+                _bring_to_front(view)
         except (TimeoutError, RuntimeError, AttributeError):
             continue
         if landed:
@@ -6929,6 +7071,43 @@ def enable_finding_clicks(view: NiceGuiTextView) -> None:
     with view.scroll_area:
         register_finding_clicks(view.master_gui)
         ui.run_javascript(mapjump.click_wiring_js(f"c{view.scroll_area.id}"))
+
+
+def search_jump_js(target_id: str) -> str:
+    """JavaScript that takes a view to one clicked search result and marks it as the current one.
+
+    Lifted out of the results dialog that builds it (see _report_search_results) so that
+    what it does can be stated in one place and tested.  A search hit is not an object in
+    the configuration -- it is a run of characters on a line -- which is why this lives here
+    rather than beside mapjump's jumps to Projects, Profiles, Tasks and Scenes.
+
+    Instant, not smooth, exactly as those are: a match can be forty thousand pixels from
+    where the reader is, and an animated scroll over that distance is slow to land and
+    distracting rather than helpful.  Landing at the top of the view rather than the middle
+    is this one's own choice and deliberate -- a search result is read forwards from the
+    line that matched.
+    """
+    return f"""
+{mapjump.REVEAL_ANCESTORS_JS}
+        // Restore any previously-clicked match back to the standard highlight color before
+        // marking the newly-clicked one, so only the match the user just jumped to stands out.
+        document.querySelectorAll('.search-highlight-active').forEach(el => {{
+            el.classList.remove('search-highlight-active');
+            el.style.backgroundColor = '#ffd941';
+            el.style.color = '#000000';
+        }});
+        const el = document.getElementById("{target_id}");
+        if (el) {{
+            // As in the Diagram connector jump buttons: a chunk skipped by
+            // content-visibility: auto was never laid out, so scrollIntoView() on a
+            // descendant of it lands in the wrong place until it's forced to render.
+            mtRevealAncestors(el);
+            el.classList.add('search-highlight-active');
+            el.style.backgroundColor = '#ff5722';
+            el.style.color = '#ffffff';
+            el.scrollIntoView({{ behavior: 'auto', block: 'start' }});
+        }}
+    """
 
 
 def resolve_dark_mode(appearance_mode: str | None) -> bool:
@@ -7096,8 +7275,7 @@ class NiceGuiTreeView:
                     # Render the native responsive Tree component
                     # Injected custom fonts to preserve monospace formatting matches
                     self.tree = (
-                        ui
-                        .tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
+                        ui.tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
                         .classes("w-full text-base")
                         .style(f"font-family: '{self.master_gui.font}', monospace;")
                     )
@@ -7134,8 +7312,7 @@ class NiceGuiTreeView:
                 # Extract the name and clean out the raw HTML markup fragments
                 raw_name = item.get("name", "Unnamed")
                 clean_name = (
-                    raw_name
-                    .replace("&nbsp;", " ")
+                    raw_name.replace("&nbsp;", " ")
                     .replace("&#9940;", "⛔")
                     .replace("&#11013;", "⬅️")
                     .replace("&#11157;", "➡️")
@@ -7300,8 +7477,7 @@ class NiceGuiSceneView:
                     # would reserve room for the canvas at full size however far it is
                     # scaled down.
                     self.canvas_wrap = (
-                        ui
-                        .element("div")
+                        ui.element("div")
                         .classes(f"mt-scene-wrap {CANVAS_PREVIEW_ROOT}")
                         .style(
                             "position: relative; width: 100%; overflow: hidden;",
@@ -7344,8 +7520,7 @@ class NiceGuiSceneView:
     def _build_density_control(self) -> None:
         """Legacy only: the sp-to-pixel number that is not in the backup file."""
         density_select = (
-            ui
-            .select(
+            ui.select(
                 list(sceneview.DENSITY_CHOICES),
                 value=str(sceneview.DEFAULT_DENSITY),
                 label=translate_string("Text density"),
@@ -7401,8 +7576,7 @@ class NiceGuiSceneView:
         device, which is why it is a control and not a number in the file.
         """
         screen_select = (
-            ui
-            .select(
+            ui.select(
                 [name for name, _width, _height in sceneview.V2_SCREENS],
                 value=self.screen,
                 label=translate_string("Screen"),
@@ -7924,8 +8098,7 @@ class NiceGuiTextView:
                     # settings drawer, and a reset that changed the value without moving the
                     # control would leave the two disagreeing on screen.
                     self.profiles_per_line_select = (
-                        ui
-                        .select(
+                        ui.select(
                             options=[str(n) for n in range(11)],
                             value=str(self.master_gui.profiles_per_line),
                             label=translate_string("Profiles Per Line"),
@@ -7934,6 +8107,7 @@ class NiceGuiTextView:
                         .classes("w-40")
                         .props("dense")
                     )
+                    _create_diagram_tools(self)
                     self.diagram_message_label = ui.label("").classes("text-orange-400 italic ml-4")
 
             self.wrap_enabled = "Diagram" not in self.title
@@ -7971,16 +8145,14 @@ class NiceGuiTextView:
                     background_style = f" background-color: {background} !important;"
 
             self.scroll_area = (
-                ui
-                .scroll_area()
+                ui.scroll_area()
                 # min-w-0 keeps this a flex child that can't be stretched wider than its container by
                 # long unbreakable content; without it the default flex min-width:auto lets the box
                 # (and the whole page) grow past the viewport once the full content has streamed in.
                 .classes(
                     f"w-full max-w-full min-w-0 block {scroll_height_classes} "
                     f"border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
-                )
-                .style(
+                ).style(
                     # The font the output was generated with, which process_data() then
                     # reconciles against the file it actually reads. Deliberately not
                     # master_gui.font -- see the note there on why that can be stale.
@@ -8071,6 +8243,12 @@ class NiceGuiTextView:
                 del html_lines[0]  # Remove the first line if it matches the unwanted header
 
             connectors_by_line = _connectors_by_line() if is_diagram else None
+            # What makes the Diagram clickable rather than merely drawn -- see diagintr.
+            # Empty for a Diagram file left on disk by an older run, in which case the
+            # lines below are wrapped exactly as they always were.
+            diagram_model = diagintr.model() if is_diagram else {}
+            nodes_by_line = diagintr.nodes_by_line(diagram_model)
+            folds_by_line = diagintr.folds_by_line(diagram_model)
 
             # The Diagram view's click-to-highlight feature wraps every connector character in its
             # own <span> (tens of thousands of them on a large diagram, since a run only merges
@@ -8096,9 +8274,17 @@ class NiceGuiTextView:
             with self.scroll_area:
                 for i in range(0, len(html_lines), chunk_size):
                     chunk_lines = html_lines[i : i + chunk_size]
-                    if connectors_by_line is not None:
-                        chunk_content = "\n".join(
-                            _wrap_diagram_line(i + offset, line, connectors_by_line)
+                    if is_diagram:
+                        # No separator: each line carries its own newline, hidden inside the
+                        # element that can be folded away with it (see _wrap_diagram_line).
+                        chunk_content = "".join(
+                            _wrap_diagram_line(
+                                i + offset,
+                                line,
+                                connectors_by_line or {},
+                                nodes_by_line,
+                                folds_by_line,
+                            )
                             for offset, line in enumerate(chunk_lines)
                         )
                     else:
@@ -8107,13 +8293,26 @@ class NiceGuiTextView:
                     chunk_style = (
                         html_style + f" content-visibility: auto; contain-intrinsic-size: auto {chunk_height}px;"
                     )
-                    ui.html(chunk_content, sanitize=False).classes("w-full block max-w-full").style(chunk_style)
+                    chunk = ui.html(chunk_content, sanitize=False).classes("w-full block max-w-full").style(chunk_style)
+                    # How many lines this chunk holds, so that zooming can re-reserve the
+                    # right amount of scrollbar space for it while it is still unrendered --
+                    # the height above was worked out against the unzoomed line height.
+                    if is_diagram:
+                        chunk.props(f"data-lines={len(chunk_lines)}")
                     await asyncio.sleep(0.01)  # Yields loop to keep WebSocket alive
 
             if connectors_by_line:
                 self._enable_connector_highlighting()
                 if hasattr(self, "diagram_message_label"):
                     self.diagram_message_label.set_text(translate_string("Click on connector to highlight"))
+            if diagram_model.get("nodes"):
+                self._enable_diagram_interaction(diagram_model)
+                # Replaces the connector hint rather than joining it: both are about
+                # clicking the diagram, and this one covers the connectors too.
+                if hasattr(self, "diagram_message_label"):
+                    self.diagram_message_label.set_text(
+                        translate_string("Click a name for its Map entry \u00b7 shift-click a Task for its call chain"),
+                    )
             # A diagram cut short at the view limit (diagram.check_limit) says so here, in place
             # of the connector hint: that the diagram stops early is the more important of the
             # two things to tell the user, and this is the Map view's view_limit_msg field by
@@ -8133,6 +8332,28 @@ class NiceGuiTextView:
         # Apply the fallback generation if the file does not exist
         self._process_fallback_data(the_data)
         self._mark_content_ready()
+
+    def _enable_diagram_interaction(self, diagram_model: dict) -> None:
+        """Wire up the Diagram view's clickable nodes, folds, chains and zoom.
+
+        The DOM half of it.  The Python half is one subscription -- the same "mt_jump" a
+        clicked report finding raises -- so that a node click and a report row are answered
+        by the very same code (see go_to_target): the Diagram is one more thing that points
+        at the Map, not a second way of getting there.
+
+        Needs an active NiceGUI slot for both, and this runs from process_data's background
+        task where the slot stack is empty, hence the scroll area re-entry -- the same
+        reason, spelled out at greater length, as in _enable_connector_highlighting.
+        """
+        with self.scroll_area:
+            register_finding_clicks(self.master_gui)
+            status_id = f"c{self.diagram_state_label.id}" if hasattr(self, "diagram_state_label") else ""
+            ui.run_javascript(diagintr.interaction_js(f"c{self.scroll_area.id}", status_id, diagram_model))
+
+    def _diagram_command(self, name: str, argument: float | None = None) -> None:
+        """Carry one of the Diagram toolbar's buttons to the view it belongs to."""
+        with self.scroll_area:
+            ui.run_javascript(diagintr.command_js(f"c{self.scroll_area.id}", name, argument))
 
     def _enable_connector_highlighting(self) -> None:
         """Wires up click-to-highlight for Diagram view connector spans.
@@ -8713,29 +8934,7 @@ class NiceGuiTextView:
                         def make_jump_callback(target_id: str = item["elementId"]) -> None:
                             return lambda: (
                                 results_dialog.close(),
-                                client.run_javascript(f"""
-{mapjump.REVEAL_ANCESTORS_JS}
-                                    // Restore any previously-clicked match back to the standard
-                                    // highlight color before marking the newly-clicked one, so
-                                    // only the match the user just jumped to stands out.
-                                    document.querySelectorAll('.search-highlight-active').forEach(el => {{
-                                        el.classList.remove('search-highlight-active');
-                                        el.style.backgroundColor = '#ffd941';
-                                        el.style.color = '#000000';
-                                    }});
-                                    const el = document.getElementById("{target_id}");
-                                    if (el) {{
-                                        // As in the Diagram connector jump buttons: a chunk
-                                        // skipped by content-visibility: auto was never laid
-                                        // out, so scrollIntoView() on a descendant of it lands
-                                        // in the wrong place until it's forced to render.
-                                        mtRevealAncestors(el);
-                                        el.classList.add('search-highlight-active');
-                                        el.style.backgroundColor = '#ff5722';
-                                        el.style.color = '#ffffff';
-                                        el.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
-                                    }}
-                                """),
+                                client.run_javascript(search_jump_js(target_id)),
                             )
 
                         with ui.row().classes(
@@ -8806,8 +9005,7 @@ class NiceGuiTextView:
                 for facet in mapfind.FACETS:
                     choices = index.choices(facet)
                     pickers[facet] = (
-                        ui
-                        .select(
+                        ui.select(
                             {choice.value: choice.label for choice in choices},
                             label=translate_string(mapfind.FACET_LABELS[facet]),
                             with_input=True,
@@ -8819,16 +9017,13 @@ class NiceGuiTextView:
 
             with ui.row().classes("w-full items-center gap-2 mt-2"):
                 text_input = (
-                    ui
-                    .input(label=translate_string("Text (name, label or argument)"))
+                    ui.input(label=translate_string("Text (name, label or argument)"))
                     .classes("flex-1")
                     .props("dense clearable")
                 )
                 project_select = (
-                    ui
-                    .select(
-                        {"": translate_string("Every Project")}
-                        | {name: name for name in index.projects},
+                    ui.select(
+                        {"": translate_string("Every Project")} | {name: name for name in index.projects},
                         value="",
                         label=translate_string("Narrow to Project"),
                         with_input=True,
@@ -8885,9 +9080,11 @@ class NiceGuiTextView:
                 hits, total = mapfind.run_query(index, query)
                 produced.update(hits=hits, total=total)
                 summary.set_text(
-                    f"{len(hits)} {translate_string('of')} {total} {translate_string('found for')}: {query.phrase()}"
-                    if total > len(hits)
-                    else f"{total} {translate_string('found for')}: {query.phrase()}",
+                    (
+                        f"{len(hits)} {translate_string('of')} {total} {translate_string('found for')}: {query.phrase()}"
+                        if total > len(hits)
+                        else f"{total} {translate_string('found for')}: {query.phrase()}"
+                    ),
                 )
 
                 with results_area, ui.column().classes("w-full gap-1"):
@@ -8901,9 +9098,11 @@ class NiceGuiTextView:
                         if hit.project != project:
                             project = hit.project
                             ui.label(
-                                f"{translate_string('Project')} '{project}'"
-                                if project
-                                else translate_string("In no Project"),
+                                (
+                                    f"{translate_string('Project')} '{project}'"
+                                    if project
+                                    else translate_string("In no Project")
+                                ),
                             ).classes("text-xs font-bold text-orange-500 mt-2")
                         with ui.row().classes(
                             "w-full items-baseline py-1 border-b dark:border-gray-700 hover:bg-blue-50 "
@@ -9621,6 +9820,145 @@ def inject_shared_head_styles() -> None:
             }
 
             /* =========================================================================
+               DIAGRAM VIEW: THE INTERACTIVE LAYER (see diagintr.py)
+               =========================================================================
+               The rule everything here obeys: not one of these may change the width of a
+               character or the position of a column.  The diagram's boxes and the
+               connectors joining them were laid out against each other in Python, so a
+               highlight with padding, a fold arrow taking up a column, or a zoom that
+               scaled anything but the font would pull the drawing apart. */
+
+            /* Each line is its own element so that folding can take it away.  A block,
+               because the browser then breaks between lines by itself -- the newline is
+               still in the text (the search index and the jump into the Diagram both count
+               lines by counting newlines) but is never displayed, or the diagram would come
+               out double-spaced. */
+            .mt-dline {
+                display: block;
+            }
+            .mt-dnl {
+                display: none;
+            }
+            .mt-dline.mt-hidden {
+                display: none;
+            }
+
+            /* The fold arrow for a Project, drawn in the margin: absolutely positioned, so
+               it occupies no column, and pulled left into the scroll area's own padding. */
+            .mt-dline[data-fold] {
+                cursor: pointer;
+                /* So the arrow below is positioned against THIS line and nothing else.  Left
+                   to find its own containing block it would take whichever ancestor happens
+                   to be positioned -- Quasar's scroll content here, the page there -- and
+                   land somewhere different in each. */
+                position: relative;
+            }
+            .mt-dline[data-fold]::before {
+                /* The character itself, not a CSS "\\25be" escape: this block is an ordinary
+                   Python string, in which a backslash and two digits is an OCTAL escape --
+                   so the escape never reached the browser, and what did was U+0015 followed
+                   by a literal "be" sitting in the margin of every Project. */
+                content: "▾";
+                /* Out of flow, so it occupies no column: it sits over the five blanks a
+                   Project box is always indented by (diagutil.print_box), which is the only
+                   place on the line that is guaranteed to be empty.  At a fixed size for the
+                   same reason -- a control is not part of the drawing, and one measured in em
+                   would grow with the zoom until it covered the box it belongs to. */
+                position: absolute;
+                font-size: 12px;
+                opacity: 0.55;
+                font-weight: bold;
+            }
+            .mt-dline[data-fold][data-fold-state="closed"]::before {
+                content: "▸";
+                opacity: 1;
+                color: #f97316;
+            }
+            .mt-dline[data-fold]:hover::before {
+                opacity: 1;
+            }
+
+            /* A clickable object name.  An underline on hover rather than a box: an outline
+               would be drawn outside the character cell and overlap the box wall next to
+               it, which reads as the diagram having moved. */
+            .mt-dnode {
+                cursor: pointer;
+            }
+            .mt-dnode:hover,
+            .mt-dnode:focus-visible {
+                text-decoration: underline;
+                text-underline-offset: 2px;
+                outline: none;
+            }
+
+            /* Following one chain of calls: the Tasks in it and the arrows between them
+               stay lit, and the rest of the diagram is greyed rather than hidden -- where a
+               chain runs is as much of the answer as which Tasks are in it.  One class on
+               the container does it, so that following a chain costs nothing on a large
+               diagram; the exemption is only for the lines the chain's Tasks are drawn on,
+               so that their "[Calls ...]" annotations stay readable.
+
+               Greyed by colour and not by opacity, which is what it was at first: opacity
+               makes a group, and nothing inside a group can be more opaque than the group
+               is -- so the chain's own arrows faded along with the diagram they were drawn
+               over.  A colour is inherited instead, and any element setting its own wins. */
+            .mt-chaining .mt-dline:not(.mt-chain-line) {
+                color: #6b7280 !important;
+            }
+            .mt-chain {
+                background-color: #22c55e !important;
+                color: #000000 !important;
+                font-weight: bold;
+            }
+            .mt-chain-connector {
+                background-color: #86efac !important;
+                color: #000000 !important;
+            }
+
+            /* The menu a right-click on a node opens.  Parented to the body, for the reason
+               the connector jump buttons are: the scroll area sets "contain: strict", which
+               would clip anything positioned inside it to the scroll box. */
+            .mt-dmenu {
+                position: fixed;
+                z-index: 1100;
+                min-width: 190px;
+                padding: 4px;
+                background-color: #1f2937;
+                color: #f9fafb;
+                border: 1px solid #4b5563;
+                border-radius: 6px;
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+                font-family: system-ui, sans-serif;
+                font-size: 0.8125rem;
+            }
+            .mt-dmenu-title {
+                padding: 4px 10px 6px;
+                font-weight: 700;
+                color: #fbbf24;
+                border-bottom: 1px solid #374151;
+                margin-bottom: 4px;
+                max-width: 320px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .mt-dmenu-item {
+                display: block;
+                width: 100%;
+                padding: 6px 10px;
+                text-align: left;
+                background: none;
+                border: none;
+                color: inherit;
+                font: inherit;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .mt-dmenu-item:hover {
+                background-color: #2563eb;
+            }
+
+            /* =========================================================================
                MAP VIEW: WHERE A CLICKED REPORT FINDING LANDS (see mapjump.py)
                ========================================================================= */
             /* The anchors themselves are empty and must stay that way -- they mark a
@@ -9704,8 +10042,7 @@ def initialize_screen(self: MyGui) -> None:
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
     # =========================================================================
     with (
-        ui
-        .left_drawer(value=True, fixed=True)
+        ui.left_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
@@ -9719,8 +10056,7 @@ def initialize_screen(self: MyGui) -> None:
 
         # Detail level pulldown
         self.sidebar_detail_option = (
-            ui
-            .select(
+            ui.select(
                 options=["0", "1", "2", "3", "4", "5"],
                 value=str(self.display_detail_level),
                 label=translate_string("Detail Level"),
@@ -9779,8 +10115,7 @@ def initialize_screen(self: MyGui) -> None:
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
     with (
-        ui
-        .right_drawer(value=True, fixed=True)
+        ui.right_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
@@ -9814,8 +10149,7 @@ def initialize_screen(self: MyGui) -> None:
         )
 
         self.close_tabs_on_exit_checkbox = (
-            ui
-            .checkbox(translate_string("Close Tabs On Exit"))
+            ui.checkbox(translate_string("Close Tabs On Exit"))
             .bind_value(self, "close_tabs_on_exit")
             .props("dense")
             .classes("text-xs mt-0")
@@ -9830,8 +10164,7 @@ def initialize_screen(self: MyGui) -> None:
             ).style("white-space: pre-line")
 
         self.open_view_in_new_window_checkbox = (
-            ui
-            .checkbox(translate_string("Open View In New Window"))
+            ui.checkbox(translate_string("Open View In New Window"))
             .bind_value(self, "open_view_in_new_window")
             .props("dense")
             .classes("text-xs mt-0")
@@ -9872,8 +10205,7 @@ def initialize_screen(self: MyGui) -> None:
         # Exit buttons are.  Quasar puts its own bg-primary on every button, and that wins over
         # a Tailwind bg-* added here -- a bg-teal-600 class renders plain blue.
         self.health_check_button = (
-            ui
-            .button(
+            ui.button(
                 translate_string("Health Check"),
                 color="teal",
                 on_click=self.event_handlers.health_check_event,
@@ -9895,8 +10227,7 @@ def initialize_screen(self: MyGui) -> None:
         # button above is: the drawer is w-80 and this label is longer still, and Quasar's own
         # bg-primary beats a Tailwind bg-* class added here.
         self.compare_files_button = (
-            ui
-            .button(
+            ui.button(
                 translate_string("Compare Files"),
                 color="teal",
                 on_click=self.event_handlers.compare_files_event,
@@ -9921,8 +10252,7 @@ def initialize_screen(self: MyGui) -> None:
         # above are: the drawer is w-80 and this label will not fit beside another, and
         # Quasar's own bg-primary beats a Tailwind bg-* class added here.
         self.variable_xref_button = (
-            ui
-            .button(
+            ui.button(
                 translate_string("Variable Xref"),
                 color="teal",
                 on_click=self.event_handlers.variable_xref_event,
@@ -9954,6 +10284,11 @@ def initialize_screen(self: MyGui) -> None:
             "text-xs font-bold uppercase text-gray-400 mt-4 gap-w-0 m-0 p-0 leading-none self-center",
         ).style("margin-top:5px")
         _create_help_options_section(self)
+
+        # The "Buy Me A Coffee" logo and button close out the drawer.  add_logo() re-enters
+        # gui_right_drawer itself rather than nesting inside a wrapper here, so the bottom
+        # spacing (mt-auto) lives on the elements it creates, not on a container.
+        add_logo(self, "coffee")
 
     # =========================================================================
     # 4. MAIN BODY CONTENT AREA
@@ -9995,8 +10330,7 @@ def initialize_screen(self: MyGui) -> None:
                 none_translatesd = translate_string("None")
                 with ui.row().classes("gap-2 w-full m-0 p-0 items-start"):
                     self.specific_project_optionmenu = (
-                        ui
-                        .select(
+                        ui.select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_project_name_event(e.value) if e.value else None
@@ -10009,8 +10343,7 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_profile_optionmenu = (
-                        ui
-                        .select(
+                        ui.select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_profile_name_event(e.value) if e.value else None
@@ -10023,8 +10356,7 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_task_optionmenu = (
-                        ui
-                        .select(
+                        ui.select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_task_name_event(e.value) if e.value else None
@@ -10037,8 +10369,7 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_scene_optionmenu = (
-                        ui
-                        .select(
+                        ui.select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_scene_name_event(e.value) if e.value else None
@@ -10080,32 +10411,56 @@ def initialize_screen(self: MyGui) -> None:
                     # two, instead of the lone button stretching to the whole column.
                     with ui.column().classes("flex-1 min-w-0 gap-0 m-0 p-0"):
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.project_buttons_row:
-                            self.edit_project_button = ui.button(
-                                translate_string("Edit Project"),
-                                on_click=self.event_handlers.open_edit_project_dialog_event,
-                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
-                            self.add_project_button = ui.button(
-                                translate_string("Add Project"),
-                                on_click=self.event_handlers.open_add_project_dialog_event,
-                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                            self.edit_project_button = (
+                                ui.button(
+                                    translate_string("Edit Project"),
+                                    on_click=self.event_handlers.open_edit_project_dialog_event,
+                                )
+                                .classes("flex-1 min-w-0 mt-2 bg-blue-500")
+                                .style("max-width:12rem")
+                            )
+                            self.add_project_button = (
+                                ui.button(
+                                    translate_string("Add Project"),
+                                    on_click=self.event_handlers.open_add_project_dialog_event,
+                                )
+                                .classes("flex-1 min-w-0 mt-2 bg-blue-500")
+                                .style("max-width:12rem")
+                            )
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.profile_buttons_row:
-                            self.edit_profile_button = ui.button(
-                                translate_string("Edit Profile"),
-                                on_click=self.event_handlers.open_edit_profile_dialog_event,
-                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
-                            self.add_profile_button = ui.button(
-                                translate_string("Add Profile"),
-                                on_click=self.event_handlers.open_add_profile_dialog_event,
-                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                            self.edit_profile_button = (
+                                ui.button(
+                                    translate_string("Edit Profile"),
+                                    on_click=self.event_handlers.open_edit_profile_dialog_event,
+                                )
+                                .classes("flex-1 min-w-0 mt-2 bg-blue-500")
+                                .style("max-width:12rem")
+                            )
+                            self.add_profile_button = (
+                                ui.button(
+                                    translate_string("Add Profile"),
+                                    on_click=self.event_handlers.open_add_profile_dialog_event,
+                                )
+                                .classes("flex-1 min-w-0 mt-2 bg-blue-500")
+                                .style("max-width:12rem")
+                            )
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.task_buttons_row:
-                            self.edit_task_button = ui.button(
-                                translate_string("Edit Task"),
-                                on_click=self.event_handlers.open_edit_task_dialog_event,
-                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
-                            self.add_task_button = ui.button(
-                                translate_string("Add Task"),
-                                on_click=self.event_handlers.open_add_task_dialog_event,
-                            ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                            self.edit_task_button = (
+                                ui.button(
+                                    translate_string("Edit Task"),
+                                    on_click=self.event_handlers.open_edit_task_dialog_event,
+                                )
+                                .classes("flex-1 min-w-0 mt-2 bg-blue-500")
+                                .style("max-width:12rem")
+                            )
+                            self.add_task_button = (
+                                ui.button(
+                                    translate_string("Add Task"),
+                                    on_click=self.event_handlers.open_add_task_dialog_event,
+                                )
+                                .classes("flex-1 min-w-0 mt-2 bg-blue-500")
+                                .style("max-width:12rem")
+                            )
                         # The Scene pair is the only one of the four behind a switch -- Scene
                         # editing is still filling in (see sceneedit.py).  Not built at all when
                         # config.EDIT_SCENE is False, rather than built-and-hidden: nothing else
@@ -10113,14 +10468,22 @@ def initialize_screen(self: MyGui) -> None:
                         # keeps a disabled feature from occupying a row of the tab.
                         if EDIT_SCENE:
                             with ui.row().classes("w-full gap-2 m-0 p-0") as self.scene_buttons_row:
-                                self.edit_scene_button = ui.button(
-                                    translate_string("Edit Scene"),
-                                    on_click=self.event_handlers.open_edit_scene_dialog_event,
-                                ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
-                                self.add_scene_button = ui.button(
-                                    translate_string("Add Scene"),
-                                    on_click=self.event_handlers.open_add_scene_dialog_event,
-                                ).classes("flex-1 min-w-0 mt-2 bg-blue-500").style("max-width:12rem")
+                                self.edit_scene_button = (
+                                    ui.button(
+                                        translate_string("Edit Scene"),
+                                        on_click=self.event_handlers.open_edit_scene_dialog_event,
+                                    )
+                                    .classes("flex-1 min-w-0 mt-2 bg-blue-500")
+                                    .style("max-width:12rem")
+                                )
+                                self.add_scene_button = (
+                                    ui.button(
+                                        translate_string("Add Scene"),
+                                        on_click=self.event_handlers.open_add_scene_dialog_event,
+                                    )
+                                    .classes("flex-1 min-w-0 mt-2 bg-blue-500")
+                                    .style("max-width:12rem")
+                                )
 
                     # "shrink-0" so the Editing group keeps its width and stays hard against
                     # the right edge instead of being squeezed as the Edit/Add rows come and
@@ -10158,8 +10521,7 @@ def initialize_screen(self: MyGui) -> None:
 
                 with ui.column().classes("gap-1 w-full mt-1"):
                     self.color_objects_options = (
-                        ui
-                        .select(
+                        ui.select(
                             options=[
                                 "Projects",
                                 "Profiles",
@@ -10187,8 +10549,7 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.color_picker_input = (
-                        ui
-                        .color_input(
+                        ui.color_input(
                             label=translate_string("Choose Hex Color"),
                             value="#3f99ff",
                             on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value),
@@ -10209,13 +10570,10 @@ def initialize_screen(self: MyGui) -> None:
                         ui.checkbox(translate_string("Debug Mode")).bind_value(self, "debug").classes("text-xs")
                     )
                     self.runtime_checkbox = (
-                        ui
-                        .checkbox(translate_string("Display Runtime Settings"))
+                        ui.checkbox(translate_string("Display Runtime Settings"))
                         .bind_value(self, "runtime")
                         .classes("text-xs")
                     )
-
-            add_logo(self, "coffee")
 
         self.content_container = ui.column().classes("w-full max-w-full min-w-0 p-0 m-0 mt-6")
 
@@ -10292,8 +10650,7 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
 
             # Extra model list checkbox with chained tooltip
             self.aimodel_extend_checkbox = (
-                ui
-                .checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
+                ui.checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
                 .tooltip(
                     translate_string(
                         "Display an extended list of ALL available models.\n\n"
@@ -10321,8 +10678,7 @@ def _create_name_display_options_section(self: MyGui) -> None:
 
     # 1. Create the Section Label with an inline native tooltip
     self.display_names_label = (
-        ui
-        .label(translate_string("Project/Profile/Task/Scene Names:"))
+        ui.label(translate_string("Project/Profile/Task/Scene Names:"))
         .classes("text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 leading-none")
         .tooltip(translate_string("Add highlighting to Project, Profile and Task names in the output."))
     )
@@ -10618,8 +10974,7 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
         # tears that panel down again.
         with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0") as self.android_button_row:
             self.get_backup_button = (
-                ui
-                .button(
+                ui.button(
                     translate_string("Get XML from Android Device"),
                     on_click=self.event_handlers.get_xml_from_android_event,
                 )

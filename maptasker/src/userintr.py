@@ -140,6 +140,7 @@ from maptasker.src.sysconst import (
     DIAGRAM_PROFILES_PER_LINE,
     KEYFILE,
     NOTIFY_TIMEOUT_DEFAULT,
+    POPOUT_WINDOW_PREFIX,
     TAB_NAMES,
     TYPES_OF_COLOR_NAMES,
     VIEW_LIMIT_DEFAULT,
@@ -230,11 +231,15 @@ async def _choose_comparison_file(gui: "MyGui") -> str:
                 ui.button(
                     translate_string("Choose another file..."),
                     on_click=lambda: dialog.submit("pick"),
-                ).props("outline").classes("w-full")
+                ).props(
+                    "outline"
+                ).classes("w-full")
                 ui.button(
                     translate_string("Cancel"),
                     on_click=lambda: dialog.submit(""),
-                ).props("outline").classes("w-full")
+                ).props(
+                    "outline"
+                ).classes("w-full")
 
         choice = await dialog
         if choice != "pick":
@@ -1355,6 +1360,33 @@ class MyGui:
         )
 
 
+def popout_window_name(path: str, new_window: bool = False) -> str:
+    """What the browser window holding this view is called.
+
+    Its own function, and not private, because two places have to agree on it: this, which
+    opens the window under the name, and the Diagram, which goes looking for the Map's
+    window by name so it can raise it when a clicked object is answered by the Map already
+    on screen (see diagintr).  A Diagram searching for a name nothing was opened under
+    would quietly never raise anything, which is the kind of disagreement that shows up as
+    a feature simply not working.
+
+    The query string is deliberately NOT part of the name.  The Map's path carries
+    "?goto=...&scope=..." (see view_event), and a name built from the whole path therefore
+    changed with every finding clicked and every Project shown -- so each one opened a
+    window of its own and only re-clicking the very same item reused anything, which is
+    exactly what "Open View In New Window" being off is supposed to prevent.  The name
+    identifies the VIEW; what that view is currently showing belongs in the URL alone.
+
+    With "Open View In New Window" on, a unique suffix is appended: a name nothing has
+    claimed yet behaves exactly like "_blank", which is what makes every request a fresh
+    window.  The stable part stays at the front so the name is still recognisably this
+    view's.
+    """
+    view_name = path.rsplit("/", 1)[-1].split("?", 1)[0]
+    stable_name = f"{POPOUT_WINDOW_PREFIX}{view_name}"
+    return f"{stable_name}_{time.time_ns()}" if new_window else stable_name
+
+
 def _open_popout_window(path: str, new_window: bool = False) -> None:
     """Opens a Map/Diagram popout window and remembers it in the browser so 'Close Tabs On Exit'
     (see get_rid_of_windows_and_exit in guiwins.py) can close it later -- window.open()'s return
@@ -1376,14 +1408,8 @@ def _open_popout_window(path: str, new_window: bool = False) -> None:
     generated file once, on load, so the windows left open do keep showing what they were built
     with rather than all changing together.
     """
-    # The query string is deliberately NOT part of the window name.  The Map's path carries
-    # "?goto=...&scope=..." (see view_event), and a name built from the whole path therefore
-    # changed with every finding clicked and every Project shown -- so each one opened a
-    # window of its own and only re-clicking the very same item reused anything, which is
-    # exactly what "Open View In New Window" being off is supposed to prevent.  The name
-    # identifies the VIEW; what that view is currently showing belongs in the URL alone.
-    view_name = path.rsplit("/", 1)[-1].split("?", 1)[0]
-    window_name = f"maptasker_{view_name}_{time.time_ns()}" if new_window else f"maptasker_{view_name}"
+    # See popout_window_name for what the name is and why it is shaped that way.
+    window_name = popout_window_name(path, new_window)
     ui.run_javascript(
         "window.mapTaskerPopouts = window.mapTaskerPopouts || []; "
         f"const popout = window.open({json.dumps(path)}, {json.dumps(window_name)}); "
@@ -2789,15 +2815,13 @@ class MapTaskerEventHandlers:
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
                 gui.list_files_button = (
-                    ui
-                    .button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
+                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
                     .style("background-color: #D62CFF; color: white;")
                     .classes("flex-grow text-xs")
                 )
 
                 gui.list_files_query_button = (
-                    ui
-                    .button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                    ui.button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
                     .style("background-color: #246FB6; color: #ffd941;")
                     .classes("w-10 min-w-[40px] text-xs")
                 )
@@ -2824,8 +2848,7 @@ class MapTaskerEventHandlers:
             # so clear_android_buttons() then deleted this button while believing it had deleted
             # that one -- leaving the original in place and adding a second one every time.
             gui.set_xml_details_button = (
-                ui
-                .button(
+                ui.button(
                     translate_string("Click Here to Set XML Details"),
                     on_click=gui.event_handlers.fetch_backup_event,
                 )
@@ -4633,7 +4656,9 @@ class MapTaskerEventHandlers:
 
             # Grouped so registering the Profile and attaching it to its Project are one
             # step to take back rather than two -- same reason _finish_new_profile does.
-            with sessundo.undoable(f"Add Profile '{profile_name}'" if is_new_profile else f"Edit Profile '{profile_name}'"):
+            with sessundo.undoable(
+                f"Add Profile '{profile_name}'" if is_new_profile else f"Edit Profile '{profile_name}'"
+            ):
                 if is_new_profile:
                     profedit.register_new_profile(edited_profile, profile_name)
                     profedit.add_profile_to_project(edited_profile, project_name)
@@ -6491,8 +6516,7 @@ class MapTaskerEventHandlers:
             if toolbar:
                 with toolbar:
                     gui.font_out_label = (
-                        ui
-                        .label(label_text)
+                        ui.label(label_text)
                         .style(f"font-family: {font_name}; font-size: 14px;")
                         .classes("text-gray-500 italic ml-4")
                     )

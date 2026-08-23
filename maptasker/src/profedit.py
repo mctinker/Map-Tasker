@@ -1343,7 +1343,9 @@ def apply_edited_profile_to_live_tree(edited_profile: EditableProfile) -> None:
     register_new_profile first; same as apply_edited_task_to_live_tree's
     identical no-op for a brand-new Task.
     """
-    with sessundo.undoable(f"Edit Profile '{edited_profile.profile_element.findtext('nme', '') or edited_profile.profile_id}'"):
+    with sessundo.undoable(
+        f"Edit Profile '{edited_profile.profile_element.findtext('nme', '') or edited_profile.profile_id}'"
+    ):
         all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
         entry = all_profiles.get(edited_profile.profile_id)
         if entry is None:

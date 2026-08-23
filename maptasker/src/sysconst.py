@@ -40,6 +40,15 @@ FIND_FILE = "MapTasker_Find.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
 SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
 
+# What every Map/Diagram popout window is named, plus the view it holds: "maptasker_map",
+# "maptasker_diagram", and with "Open View In New Window" on a unique suffix after that.
+# The name is how a second request finds the window a view already has open (see
+# userintr._open_popout_window) -- and how the Diagram finds the Map window to raise when a
+# click on an object is answered by the Map already on screen (see diagintr).  Written down
+# here because those two must agree: a Diagram looking for a name nothing was opened under
+# would quietly never raise anything.
+POPOUT_WINDOW_PREFIX = "maptasker_"
+
 #  List of color arguments and their names
 #  Two different key/value structures in one:
 #    1- Used as lookup for color selection in GUI.  E.g. key=Disabled Profiles

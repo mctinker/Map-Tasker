@@ -2,29 +2,27 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.0.1] 23-Aug-2026
+## [13.0.2] ??-Aug-2026  # FIX
 
 ### Added
 
-- Added: 'Find...' on the Map and Diagram view toolbars - a structured search that asks the loaded configuration a question rather than scanning the text on screen.  Ask for every Task performing a given action, every Profile a given trigger fires, everything that references a given app or a given Scene, or any combination of those, optionally narrowed to one Project.  Every entry the pulldowns offer is one your configuration actually uses, with a count beside it, and the boxes combine - pick a trigger and an action together and you get the Profiles that trigger that way AND run a Task that does that.  Results come back as a clickable list of objects grouped by Project; clicking one takes you to it, building the Map for it if what is on screen cannot show it.  'Save Results' writes the list to a MapTasker_Find file.  Unlike 'Search', the answer is read from the XML, so it does not change with the detail level, the Project selection, or whether a Map has been run.
-- Added: A 'Find...' result clicked in the Diagram view now lands on the exact object in the Diagram, the way one clicked in the Map lands on the exact line there.  The Diagram is plain text and carries no anchors, so the line each Project, Profile, Task and Scene is drawn on is recorded as the diagram is built.  That is what lets a click tell two Tasks of the same name apart - it goes to the one you clicked rather than to the first one drawn with that name.  An object the Diagram on screen does not hold (it was built for a single Project, or cut short at the view limit) falls back to the Map, which is built to show it.
-- Added: 'Changes Pending' message while editing a Project, Profile, Task or Scene.  It appears as soon as something has been changed and stays until the change is saved.
-- Added: 'Undo' and 'Redo' in the new 'Editing' section of the main window.  These cover every edit panel, not just the Scene designer: an edit, an Add, a Delete or a Rename of a Project, Profile, Task or Scene can be taken back, and put back again.  The line beneath the buttons always names what the next press would do.  Deleting a Project along with its contents is a single step - one 'Undo' brings back the Project, its Profiles and its Tasks together.  Undo affects only the loaded XML; no file, and nothing on the Android device, is touched.
-- Added: 'Edit History' button, listing every change made to the loaded XML this session, newest first.
-- Added: When exporting a Project, Profile, Task, or Scene locally, or saving one to the Android device — the old version is copied into a MapTasker_Backups folder first if it aslready exists, so that an overwrite never loses what was already there. That folder sits beside the file for a local save and in the current directory for an Android one, the post-save message tells you where the copy landed, and the ten most recent copies of any given file are retained.
+- Added: The Diagram view is now interactive:
+  - Click any Project, Profile, Task or Scene name to be taken straight to it into the Map view.
+  - Shift-click a Task to light up the whole chain of calls it takes part in: everything it calls, everything that calls it, and every arrow between them.  The rest of the diagram greys out so the chain stands on its own.  Esc puts it back.
+  - Click the ▾ beside a Project to collapse it down to its box, and the ▸ to bring it back.  'Collapse All' and 'Expand All' are on the Diagram toolbar.
+  - Right-click any name for the rest: collapse its Project, show only that Project, or follow its call chain.
+  - Zoom with the toolbar buttons or with Ctrl (⌘) and the scroll wheel.
+- Added: A 'Find...' result or a report finding taken to the Diagram now lands on the object's own name rather than on as much of the line as happened to fit.
 
 ### Changed
 
-- Changed: Updated the README and associated sample images.
-- Changed: Only display dthe 'Add' and 'Edit' buttons for the specific single Tasker object selected.
-- Changed: Moved the 'Undo', 'Redo', and 'Edit History' buttons to the container with the 'Add' and 'Edit' buttons.
-- Changed: Updated the help ('Display Help' button) to include the recently added commands/functions.
+- Changed: Clicking a line number in the Search results now goes straight to the match rather than scrolling to it, which on a large Map meant a long animated slide before it landed.
+- Changed: Moved 'Buy Me A Coffee' to the main screen from the 'Debug' tab.
 
 ### Fixed
 
-- Fixed: Deleting a Task, Profile or Scene and then using 'Save to Current File' wrote the deleted item back into the saved file, so it reappeared when that file was loaded.  Nothing indicated the delete had not taken.  Deletes are now written out correctly.
-- Fixed: Hotlinks in the Health Check and Variable Xref are not working on Windows 11.
-- Fixed: Possible program error on exit on Windows 11.
+- Fixed: Shift-clicking a Task name in the Diagram no longer leaves part of the window highlighted in blue.
+- Fixed: A 'Find...' result now goes straight to the target rather than animating/scrolling it's way to it.
 
 ### Known Issue
 
@@ -40,6 +38,28 @@ For each PID listed in the output from the above terminal command, issue the fol
 
 ## Older History Logs
 
+## [13.0.1] 23-Aug-2026
+
+### Added
+
+- Added: 'Find':  A new structured "Find..." tool on the Map and Diagram toolbars queries your XML configuration directly to display clickable, project-grouped lists of tasks, profiles, apps, or scenes based on dropdown combinations of active items and counts. Because it reads the underlying XML rather than screen text, its results remain accurate regardless of view settings, detail levels, or project selections.
+- Added: A 'Find...' result clicked in the Diagram view now lands on the exact object in the Diagram, the way one clicked in the Map lands on the exact line there.
+- Added: 'Undo' and 'Redo' in the new 'Editing' section of the main window.
+- Added: 'Edit History' button, listing every change made to the loaded XML this session, newest first.
+- Added: When exporting a Project, Profile, Task, or Scene locally, or saving one to the Android device — the old version is copied into a MapTasker_Backups folder first if it aslready exists, so that an overwrite never loses what was already there. That folder sits beside the file for a local save and in the current directory for an Android one, the post-save message tells you where the copy landed, and the ten most recent copies of any given file are retained.
+
+### Changed
+
+- Changed: Updated the README and associated sample images.
+- Changed: Only display dthe 'Add' and 'Edit' buttons for the specific single Tasker object selected.
+- Changed: Moved the 'Undo', 'Redo', and 'Edit History' buttons to the container with the 'Add' and 'Edit' buttons.
+- Changed: Updated the help ('Display Help' button) to include the recently added commands/functions.
+
+### Fixed
+
+- Fixed: Deleting a Task, Profile or Scene and then using 'Save to Current File' wrote the deleted item back into the saved file, so it reappeared when that file was loaded.  Nothing indicated the delete had not taken.  Deletes are now written out correctly.
+- Fixed: Hotlinks in the Health Check and Variable Xref are not working on Windows 11.
+- Fixed: Possible program error on exit on Windows 11.
 ## [13.0.0] 20-Aug-2026
 
 - Added: Edit Scene Drag and Drop in Preview - Version 2 Scene element(s) up-and-down the tree view, and Legacy Scene element(s) move x-and-y coordinates.

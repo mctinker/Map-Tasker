@@ -776,7 +776,9 @@ def _scan_v2_scene(
                 if key in _V2_VALUE_KEYS:
                     # Same two-way binding as a Legacy input element: a TextInput's value
                     # is both what it shows and where what the user types goes.
-                    _record_write(index, text, Reference(SET, where, label, scope_id, place), plural=False, also_read=True)
+                    _record_write(
+                        index, text, Reference(SET, where, label, scope_id, place), plural=False, also_read=True
+                    )
                 else:
                     _record_reads(index, text, Reference(READ, where, label, scope_id, place))
 

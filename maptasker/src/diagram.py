@@ -38,6 +38,7 @@ from maptasker.src.diagcnst import (
     straight_line,
     task_delimeter,
 )
+from maptasker.src import diagintr
 from maptasker.src.diagutil import (
     add_output_line,
     build_box,
@@ -124,33 +125,50 @@ _BOX_WALL = "\u2551"
 
 # Objects noted against the three-line box buffer, waiting for it to be flushed.  Always
 # the middle line of the three, which is the only one a name is written on.
-_pending_boxes: list[tuple[str, str]] = []
+_pending_boxes: list[tuple[Target, str]] = []
 
-# Objects noted against the Task-line buffer: (index in that buffer, anchor, snippet).
-_pending_tasks: list[tuple[int, str, str]] = []
+# Objects noted against the Task-line buffer: (index in that buffer, target, snippet).
+_pending_tasks: list[tuple[int, Target, str]] = []
 
 
 def _note_box(target: Target, snippet: str) -> None:
     """Record that this object has just been drawn into the box buffer's middle line."""
-    _pending_boxes.append((target.anchor, snippet))
+    _pending_boxes.append((target, snippet))
 
 
 def _note_task(index: int, target: Target, snippet: str) -> None:
     """Record that this Task has just been drawn as line `index` of the Task buffer."""
-    _pending_tasks.append((index, target.anchor, snippet))
+    _pending_tasks.append((index, target, snippet))
 
 
-def _record(row: int, anchor: str, snippet: str) -> None:
+def _record(row: int, target: Target, snippet: str) -> None:
     """Fix one noted object at a row of netmap_output.
 
-    First sighting wins, exactly as mapjump.anchor_html decides it for the Map: the Diagram
-    draws a Task once per Profile that runs it and again under any Scene that fires it, and
-    a jump should land on the Task's own line under its Profile rather than on whichever
-    copy happened to be written last.
+    Two records, because two questions are being asked and they have different answers.
+
+    WHERE A JUMP LANDS is diagram_object_seeds, and there first sighting wins, exactly as
+    mapjump.anchor_html decides it for the Map: the Diagram draws a Task once per Profile
+    that runs it and again under any Scene that fires it, and a jump should land on the
+    Task's own line under its Profile rather than on whichever copy happened to be written
+    last.
+
+    WHAT IS CLICKABLE is diagram_object_placements, and there every drawing counts.  These
+    used to be the same record, and the copies simply went unrecorded -- so the second and
+    later drawings of a Task were drawn as plain text: not clickable, not lit up by a chain
+    running through them, and invisible to the call edges that happened to point at one.
+    The first one worked, which is what made it look like a rule rather than a gap.
+
+    The Target is kept alongside, in a table of its own.  The position moves -- four
+    separate passes remap it before the diagram is written -- and the identity does not, so
+    the two are held apart: the positions are remapped over and over, while the identity is
+    written once and only read at the end, when the interactive Diagram view's node model is
+    assembled (see diagintr.build_model).
     """
     seeds = PrimeItems.diagram_object_seeds
-    if anchor not in seeds:
-        seeds[anchor] = (row, snippet)
+    if target.anchor not in seeds:
+        seeds[target.anchor] = (row, snippet)
+        PrimeItems.diagram_object_targets[target.anchor] = target
+    PrimeItems.diagram_object_placements.append((target.anchor, row, snippet))
 
 
 def _flush_boxes(output_lines: list) -> None:
@@ -161,8 +179,8 @@ def _flush_boxes(output_lines: list) -> None:
     """
     row = len(PrimeItems.netmap_output) + 1  # The middle of the three lines.
     print_3_lines(output_lines)
-    for anchor, snippet in _pending_boxes:
-        _record(row, anchor, snippet)
+    for target, snippet in _pending_boxes:
+        _record(row, target, snippet)
     _pending_boxes.clear()
 
 
@@ -170,8 +188,8 @@ def _flush_tasks(output_lines: list) -> None:
     """Append a finished run of Task lines, and fix every Task noted into it at its line."""
     base = len(PrimeItems.netmap_output)
     print_all(output_lines)
-    for index, anchor, snippet in _pending_tasks:
-        _record(base + index, anchor, snippet)
+    for index, target, snippet in _pending_tasks:
+        _record(base + index, target, snippet)
     _pending_tasks.clear()
 
 
@@ -187,6 +205,27 @@ def _remap_object_seeds(old_to_new: dict[int, int]) -> None:
         for anchor, (row, snippet) in PrimeItems.diagram_object_seeds.items()
         if row in old_to_new
     }
+    PrimeItems.diagram_object_placements = [
+        (anchor, old_to_new[row], snippet)
+        for anchor, row, snippet in PrimeItems.diagram_object_placements
+        if row in old_to_new
+    ]
+
+
+def _remap_call_edges(old_to_new: dict[int, int]) -> None:
+    """Move every recorded call to where the two Task lines it joins have just moved to.
+
+    The same journey the object seeds make, and made in the same breath as theirs so the
+    two cannot drift apart -- an edge whose rows no longer agree with the anchors on them
+    is an edge that would highlight the wrong Tasks.  An edge losing either end (cut off at
+    the view limit, or swept away with a bar-only line) is dropped whole: half a call is
+    not a link in a chain.
+    """
+    PrimeItems.diagram_call_edges = {
+        index: {**edge, "caller_row": old_to_new[edge["caller_row"]], "called_row": old_to_new[edge["called_row"]]}
+        for index, edge in PrimeItems.diagram_call_edges.items()
+        if edge["caller_row"] in old_to_new and edge["called_row"] in old_to_new
+    }
 
 
 def _keep_object_seeds_before(cut: int) -> None:
@@ -198,6 +237,9 @@ def _keep_object_seeds_before(cut: int) -> None:
     PrimeItems.diagram_object_seeds = {
         anchor: placement for anchor, placement in PrimeItems.diagram_object_seeds.items() if placement[0] < cut
     }
+    PrimeItems.diagram_object_placements = [
+        placement for placement in PrimeItems.diagram_object_placements if placement[1] < cut
+    ]
 
 
 def _utf16_length(text: str) -> int:
@@ -211,7 +253,7 @@ def _utf16_length(text: str) -> int:
     return len(text.encode("utf-16-le")) // 2
 
 
-def _place(line: str, snippet: str, boxed: bool) -> tuple[int, int]:
+def _place(line: str, snippet: str, boxed: bool, start: int = 0) -> tuple[int, int]:
     """Where in this rendered line the object's name sits: (column, length), browser-counted.
 
     (0, 0) when the name cannot be found on the line after all, which the Diagram view
@@ -222,8 +264,14 @@ def _place(line: str, snippet: str, boxed: bool) -> tuple[int, int]:
 
     A box's name is extended to the wall that closes it, so a Profile jumped to is
     highlighted as the box the eye reads it as rather than as bare text inside one.
+
+    'start' is where to begin looking, in code points, and is how a line holding the same
+    name twice gives up both of them.  Two Profiles drawn side by side can run the very same
+    Task, which puts "└─ Wear Location Menu" on the line twice; searching from the front
+    each time would answer with the first one for both, and the two would be handed to the
+    view as one span drawn over itself.
     """
-    at = line.find(snippet)
+    at = line.find(snippet, start)
     if at < 0:
         return (0, 0)
     end = at + len(snippet)
@@ -952,6 +1000,13 @@ def compute_diagram_connector_groups(lines: list, seeds: list) -> dict:
 
     Returns a dict of {group_id: [(line_num, col_start, col_end), ...]}, matching the structure the
     GUI Diagram view (guiwins.py) expects in PrimeItems.diagram_connectors.
+
+    Each seed also names the call it was dropped for (see draw_arrows_to_called_task), and
+    that travels with the group it grows into: PrimeItems.diagram_connector_calls ends up
+    holding {group_id: [call index, ...]}, which is what lets the interactive view follow a
+    chain of calls from connector to connector rather than treating each as an unrelated
+    run of characters.  A list rather than one index because two calls whose runs touch are
+    one group -- geometry decides the groups, and the calls that fall in one all claim it.
     """
     # How many cells of interruption (foreign connector characters and/or blanks) a straight run
     # can bridge over before giving up and treating the run as genuinely ended.
@@ -977,11 +1032,21 @@ def compute_diagram_connector_groups(lines: list, seeds: list) -> dict:
 
     visited: set = set()
     groups: dict = {}
+    group_of_cell: dict = {}
+    calls_by_group: dict = {}
     group_id = 0
 
-    for row, col in seeds:
+    for row, col, call_index in seeds:
         seed_cell = find_diagram_connector_seed_cell(lines, row, col)
-        if seed_cell is None or seed_cell in visited:
+        if seed_cell is None:
+            continue
+        # A seed landing on a connector already grown from an earlier seed adds its call to
+        # that group rather than being discarded: three seeds are dropped per call, and two
+        # calls whose runs touch share the one group.
+        if seed_cell in visited:
+            existing = group_of_cell.get(seed_cell)
+            if existing is not None and call_index not in calls_by_group[existing]:
+                calls_by_group[existing].append(call_index)
             continue
 
         # Flood-fill this connector's connected cells, following only the directions each
@@ -999,6 +1064,9 @@ def compute_diagram_connector_groups(lines: list, seeds: list) -> dict:
                 stack.append((nr, nc))
 
         groups[group_id] = cells
+        calls_by_group[group_id] = [call_index]
+        for cell in cells:
+            group_of_cell[cell] = group_id
         group_id += 1
 
     # Compact each group's cells into per-row (line_num, col_start, col_end) ranges.
@@ -1020,6 +1088,7 @@ def compute_diagram_connector_groups(lines: list, seeds: list) -> dict:
             ranges.append((r, start, prev + 1))
         ranges_by_group[gid] = ranges
 
+    PrimeItems.diagram_connector_calls = calls_by_group
     return ranges_by_group
 
 
@@ -1074,7 +1143,7 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
     # draw_arrows_to_called_task(): this corner is a second guaranteed-good anchor into the same
     # connector, so the connector still gets a working seed even if one of the two is ever thrown
     # off (e.g. by an unrelated bug in a later cleanup pass). See compute_diagram_connector_groups().
-    PrimeItems.diagram_connector_seeds.append((line_to_modify, called_task_position))
+    PrimeItems.diagram_connector_seeds.append((line_to_modify, called_task_position, connectors["call_index"]))
 
     # Add left arrows to called Task line.  First find next available blank line.
     line_to_modify1 = called_line_num - called_line_index
@@ -1106,7 +1175,7 @@ def add_down_and_up_arrows(connectors: dict, output_lines: list) -> None:
         + output_lines[line_to_modify1][caller_task_position:]
     )
     # Extra seed -- see the matching comment above for right_arrow_corner_down.
-    PrimeItems.diagram_connector_seeds.append((line_to_modify1, caller_task_position))
+    PrimeItems.diagram_connector_seeds.append((line_to_modify1, caller_task_position, connectors["call_index"]))
 
     # Return the top-most modified output line hnumber.
     return line_to_modify, line_to_modify1
@@ -1157,6 +1226,18 @@ def draw_arrows_to_called_task(
     # Bump the count of the calls to this task.  This is used to determine the displacement of the bottom connector line number.
     PrimeItems.called_task_tracker[called_task_name]["counter"] += 1
 
+    # The call this connector is about to be drawn for, recorded before any of it is drawn:
+    # the two Task lines it joins are known here and nowhere further down, and every seed
+    # dropped below carries this index so the finished connector can be traced back to it.
+    call_index = len(PrimeItems.diagram_call_edges)
+    PrimeItems.diagram_call_edges[call_index] = {
+        "caller_row": caller_line_num,
+        "called_row": called_line_num,
+        "caller_name": connector.get("caller_task_name", ""),
+        "called_name": called_task_name,
+        "project": connector.get("project_name", ""),
+    }
+
     # Add up and down arrows to the connection points.
     connectors = {
         "caller_line_index": caller_line_index,
@@ -1167,6 +1248,7 @@ def draw_arrows_to_called_task(
         "called_task_position": called_task_position,
         "up_down_location": up_down_location,
     }
+    connectors["call_index"] = call_index
     line_to_modify, line_to_modify1 = add_down_and_up_arrows(connectors, output_lines)
 
     # Fill called line with left arrows.  Figure out if we are top-down or bottom-up,
@@ -1184,7 +1266,7 @@ def draw_arrows_to_called_task(
     # upper_corner_arrow (a non-bar connector character) at up_down_location below, in the loop's
     # x == 0 case, so this cell is guaranteed to survive remove_empty_strings() (which only drops
     # lines that are nothing but bar/space/backslash). See compute_diagram_connector_groups().
-    PrimeItems.diagram_connector_seeds.append((start_line, up_down_location))
+    PrimeItems.diagram_connector_seeds.append((start_line, up_down_location, call_index))
 
     # Now traverse the output list from the calling/called Task to the called/calling Task,
     # inserting a up/down/corner arrow along the way.
@@ -1694,7 +1776,18 @@ def handle_calls(output_lines: list, progress: dict) -> None:
     # unconditionally up front (rather than further down, past the exceeded_limit early
     # return below) so build_network_map()'s later read of this attribute never sees it
     # missing just because the map was too large to fully draw.
+    #
+    # Each seed is (row, column, call index): which of the calls below it belongs to, so
+    # that the connector grown from it can be named as "Backup calls Restore" rather than
+    # as an anonymous run of box-drawing characters.  That is what turns one connector
+    # into a link in a call chain the interactive view can follow.
     PrimeItems.diagram_connector_seeds = []
+    # One entry per call drawn, keyed by the index the seeds refer to it by: {caller_row,
+    # called_row, caller_name, called_name, project}, rows in output_lines' own numbering
+    # here and remapped onto the rendered file's alongside the seeds.  Keyed rather than a
+    # plain list because a remap DROPS the calls whose lines no longer exist, and a seed
+    # already holding index 7 must not be left pointing at whatever slid into that slot.
+    PrimeItems.diagram_call_edges = {}
 
     # Go through the output and add blanks above the called tasks, one for each caller.
     output_lines = add_blanks_above_called_tasks(output_lines)
@@ -1980,7 +2073,7 @@ def build_network_map(data: dict, progress: dict) -> None:
         # Print Project as a box.  The row is the middle of the three print_box writes.
         row = len(PrimeItems.netmap_output) + 1
         print_box(project, project_text, 1)
-        _record(row, Target(kind=PROJECT, key=project, name=project).anchor, f"{_BOX_WALL} {project_text} {project}")
+        _record(row, Target(kind=PROJECT, key=project, name=project), f"{_BOX_WALL} {project_text} {project}")
         # Print all of the Project's Profiles and their Tasks
         print_profiles_and_tasks(project, profiles)
 
@@ -2000,8 +2093,11 @@ def build_network_map(data: dict, progress: dict) -> None:
         old_to_new_row[old_row] = new_row
         new_row += 1
     PrimeItems.diagram_connector_seeds = [
-        (old_to_new_row[row], col) for row, col in PrimeItems.diagram_connector_seeds if row in old_to_new_row
+        (old_to_new_row[row], col, call)
+        for row, col, call in PrimeItems.diagram_connector_seeds
+        if row in old_to_new_row
     ]
+    _remap_call_edges(old_to_new_row)
     _remap_object_seeds(old_to_new_row)
     PrimeItems.netmap_output = remove_empty_strings(PrimeItems.netmap_output)
 
@@ -2045,7 +2141,12 @@ def network_map(network: dict) -> None:
     # Emptied here rather than where they are first written, so that a second run cannot
     # leave the previous diagram's objects standing in this one's line numbers.
     PrimeItems.diagram_object_seeds = {}
+    PrimeItems.diagram_object_targets = {}
+    PrimeItems.diagram_object_placements = []
     PrimeItems.diagram_anchors = {}
+    PrimeItems.diagram_call_edges = {}
+    PrimeItems.diagram_connector_calls = {}
+    PrimeItems.diagram_model = {}
     _pending_boxes.clear()
     _pending_tasks.clear()
 
@@ -2123,10 +2224,11 @@ def network_map(network: dict) -> None:
             mapfile.close()
 
         remapped_seeds = [
-            (netmap_to_file_line[row], col)
-            for row, col in PrimeItems.diagram_connector_seeds
+            (netmap_to_file_line[row], col, call)
+            for row, col, call in PrimeItems.diagram_connector_seeds
             if row in netmap_to_file_line
         ]
+        _remap_call_edges(netmap_to_file_line)
         PrimeItems.diagram_connectors = compute_diagram_connector_groups(final_lines, remapped_seeds)
 
         # The last step for the object seeds: onto the file's own line numbering, and then
@@ -2142,8 +2244,41 @@ def network_map(network: dict) -> None:
                 continue
             anchors[anchor] = (file_line, *_place(final_lines[file_line], snippet, _BOX_WALL in snippet))
         PrimeItems.diagram_anchors = anchors
+
+        # And the same for every OTHER drawing of each object, which is what the interactive
+        # view makes clickable (see _record).  Resolved in draw order, keeping a cursor per
+        # line: a Task run by two Profiles drawn side by side is written on that line twice,
+        # and each drawing has to be given the copy of the name it is actually drawn as
+        # rather than both being handed the first.
+        placements = []
+        claimed: dict[int, int] = {}
+        for anchor, row, snippet in PrimeItems.diagram_object_placements:
+            file_line = netmap_to_file_line.get(row)
+            if file_line is None or file_line >= len(final_lines):
+                continue
+            line = final_lines[file_line]
+            column, length = _place(line, snippet, _BOX_WALL in snippet, claimed.get(file_line, 0))
+            if length:
+                # In code points, which is what the next search along this line counts in;
+                # the column recorded is in UTF-16 units, which is what the browser counts in.
+                claimed[file_line] = line.find(snippet, claimed.get(file_line, 0)) + len(snippet)
+            placements.append((anchor, file_line, column, length))
+        PrimeItems.diagram_object_placements = placements
         logger.debug(f"diagram: {len(PrimeItems.diagram_anchors)} object anchors recorded")
         PrimeItems.diagram_object_seeds = {}
+
+        # Everything the interactive Diagram view acts on, assembled now that every position
+        # is final -- see diagintr.build_model.  Built here rather than in the view because
+        # this is the only place that holds the finished lines, the anchors resolved onto
+        # them and the connectors grown from their seeds all at once.
+        PrimeItems.diagram_model = diagintr.build_model(final_lines)
+        PrimeItems.diagram_object_placements = []
+        logger.debug(
+            f"diagram: {len(PrimeItems.diagram_model['nodes'])} clickable nodes, "
+            f"{len(PrimeItems.diagram_model['regions'])} foldable Projects, "
+            f"{len(PrimeItems.diagram_model['edges'])} calls",
+        )
+        PrimeItems.diagram_object_targets = {}
 
         # Cleanup
         PrimeItems.netmap_output = []

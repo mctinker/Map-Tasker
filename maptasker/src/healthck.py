@@ -452,8 +452,8 @@ def _index_one_action(
             entry = all_tasks_by_name.get(widget_name)
             if entry:
                 index.task_referrers[entry["id"]].append(
-                f"{where.at_action(number).label} (home screen widget)",
-            )
+                    f"{where.at_action(number).label} (home screen widget)",
+                )
 
     elif code in scene_args:
         scene_name = _string_argument(action, scene_args[code])

@@ -195,6 +195,29 @@ class PrimeItems:
     # in netmap_output's own line numbering.  Lives on PrimeItems rather than in diagram.py
     # only so that it is emptied wherever the rest of a run's output is.
     diagram_object_seeds: ClassVar[dict] = {}
+    # Which object each of those anchors IS: {anchor: mapjump.Target}.  Held apart from the
+    # positions because a position is remapped four times before the diagram is written and
+    # an identity never is -- see diagram._record.  Read once, when the interactive Diagram
+    # view's model is assembled, and emptied straight afterwards.
+    diagram_object_targets: ClassVar[dict] = {}
+    # Every drawing of every object, not just the first: [(anchor, row, drawn text)] while
+    # the diagram is being built, and [(anchor, line, column, length)] once it is written.
+    # diagram_anchors above answers "where does a jump to this object land"; this answers
+    # "which pieces of the drawing ARE this object", which is a different question wherever
+    # the Diagram draws one twice -- a Task run by two Profiles, or fired by a Scene as well.
+    diagram_object_placements: ClassVar[list] = []
+    # Every call the Diagram drew a connector for: {call index: {caller_row, called_row,
+    # caller_name, called_name, project}}, in the rendered file's line numbering by the time
+    # the diagram is finished.  The call index is what each connector seed carries, which is
+    # how a run of box-drawing characters is traced back to the two Tasks it joins.
+    diagram_call_edges: ClassVar[dict] = {}
+    # Which calls each finished connector belongs to: {connector group id: [call index, ...]}.
+    # Filled by diagram.compute_diagram_connector_groups, as the other half of the same fact.
+    diagram_connector_calls: ClassVar[dict] = {}
+    # The whole of what the interactive Diagram view acts on -- nodes, foldable Project
+    # regions and call edges, all in the rendered file's coordinates.  Assembled by
+    # diagintr.build_model once the diagram is written; read by the view when it renders.
+    diagram_model: ClassVar[dict] = {}
     tasker_root_elements: ClassVar[dict] = initial_tasker_root_elements()
     directories: ClassVar[list] = []
     variables: ClassVar[dict] = {}
@@ -277,6 +300,11 @@ class PrimeItemsReset:
         PrimeItems.emitted_anchors = set()
         PrimeItems.diagram_anchors = {}
         PrimeItems.diagram_object_seeds = {}
+        PrimeItems.diagram_object_targets = {}
+        PrimeItems.diagram_object_placements = []
+        PrimeItems.diagram_call_edges = {}
+        PrimeItems.diagram_connector_calls = {}
+        PrimeItems.diagram_model = {}
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
         PrimeItems.directories = []
         PrimeItems.xml_tree = None

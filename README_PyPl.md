@@ -2,7 +2,18 @@
 
 ## Display, analyze and edit the Tasker Project/Profile/Task/Scene configuration from within your browser, based on Tasker's exported XML file (e.g. backup.xml)
 
-This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run in your default browser.
+This is an application in support of [Tasker](https://tasker.joaoapps.com/) that is intended to run in your desktop's default browser.
+
+## Key Features
+
+- Fine tune the display of the Tasker configuration (Map view)
+- Create a Diagram and Tree of the configuration (Diagram view, Tree view)
+- Import/Export XML directly from/to Android
+- Analyze a Tasker object using Ai
+- Add and Edit Tasker objects (Projects, Profiles, Tasks, and Scenes)
+- Easily identify issues with the configuration
+
+Sample output can be found [here.](https://github.com/mctinker/Map-Tasker/wiki)
 
 ## Installation:
 
@@ -19,9 +30,5 @@ If the auto-updater does not work, then use one of the following:
 - via uv: `uv pip install --upgrade maptasker`
 - via pip: `pip install --upgrade maptasker`
 
-The older desktop version is available if needed:
-
-- via uv: `uv add maptasker==10.2.7`
-- via pip: `pip install maptasker==10.2.7`
 
 For further details, refer to [the project on Github.](https://github.com/mctinker/Map-Tasker)

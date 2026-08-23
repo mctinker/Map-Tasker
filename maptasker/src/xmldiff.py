@@ -140,7 +140,7 @@ class Entry:
 
     @property
     def tag(self) -> str:
-        """"TASK-CHANGED" -- what the report prints in brackets."""
+        """ "TASK-CHANGED" -- what the report prints in brackets."""
         return f"{self.kind.upper()}-{self.category}"
 
 
@@ -294,7 +294,7 @@ def _action_code_name(code: str) -> str:
 
 
 def _action_at(action: defusedxml.ElementTree.Element, position: int) -> str:
-    """"2. Say" -- one action, numbered as the user sees it in Tasker."""
+    """ "2. Say" -- one action, numbered as the user sees it in Tasker."""
     return f"{position}. {_action_code_name(_text(action, 'code'))}"
 
 
@@ -444,8 +444,7 @@ def _task_details(
             )
         elif opcode == "insert":
             details.extend(
-                f"+ inserted at {index + 1}:  {_action_at(after_actions[index], index + 1)}"
-                for index in range(j1, j2)
+                f"+ inserted at {index + 1}:  {_action_at(after_actions[index], index + 1)}" for index in range(j1, j2)
             )
         else:
             details.extend(_pair_replaced_actions(before_actions, after_actions, i1, i2, j1, j2))
@@ -552,11 +551,10 @@ def _project_variable_details(
     Project variable gaining a value looked like the first time this ran against two real
     backups -- accurate, and no use to anybody.
     """
+
     def variables(project: defusedxml.ElementTree.Element) -> dict[str, str]:
         return {
-            _text(item, "pvn"): _text(item, "pvv")
-            for item in project.findall("ProfileVariable")
-            if _text(item, "pvn")
+            _text(item, "pvn"): _text(item, "pvv") for item in project.findall("ProfileVariable") if _text(item, "pvn")
         }
 
     was, now = variables(before), variables(after)
@@ -586,7 +584,7 @@ def _scene_elements(scene: defusedxml.ElementTree.Element) -> dict[str, defusedx
 
 
 def _scene_element_label(element: defusedxml.ElementTree.Element) -> str:
-    """"Button 'Cancel'" -- a Scene element as its designer names it.
+    """ "Button 'Cancel'" -- a Scene element as its designer names it.
 
     The name is arg0, the same place sceneedit.legacy_element_label reads it from; it is
     reproduced here rather than imported so this module stays free of the Scene editor.
@@ -786,9 +784,7 @@ def _compare_named_values(kind: str, was: dict[str, str], now: dict[str, str], e
     An object-level comparison would miss these entirely -- they sit at the top level of
     the file, in no Project and no table.
     """
-    entries.extend(
-        Entry(kind, ADDED, f"{kind} {name}", [f"'{now[name]}'"]) for name in sorted(now.keys() - was.keys())
-    )
+    entries.extend(Entry(kind, ADDED, f"{kind} {name}", [f"'{now[name]}'"]) for name in sorted(now.keys() - was.keys()))
     entries.extend(
         Entry(kind, REMOVED, f"{kind} {name}", [f"'{was[name]}'"]) for name in sorted(was.keys() - now.keys())
     )
@@ -808,7 +804,7 @@ def _counts(entries: list[Entry]) -> dict:
 # The report.
 # ##################################################################################
 def _totals(side: _Side) -> str:
-    """"4 Projects, 7 Profiles, 6 Tasks, 3 Scenes"."""
+    """ "4 Projects, 7 Profiles, 6 Tasks, 3 Scenes"."""
     return ", ".join(f"{len(side.objects[kind])} {kind}s" for kind, _, _, _ in _KINDS)
 
 

@@ -418,9 +418,7 @@ def get_extra_and_output_project(
     # they are.
     enbl = project.find("enbl")
     disabled = (
-        format_html("disabled_profile_color", "", DISABLED, True)
-        if enbl is not None and enbl.text == "false"
-        else ""
+        format_html("disabled_profile_color", "", DISABLED, True) if enbl is not None and enbl.text == "false" else ""
     )
 
     # Make the Project name bold, italcize and/or highlighted if requested

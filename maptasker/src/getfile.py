@@ -8,7 +8,12 @@ from nicegui import events, ui
 
 class Local_File_Picker(ui.dialog):
     def __init__(
-        self, directory: str, *, upper_limit: str | None = ..., multiple: bool = False, show_hidden_files: bool = False,
+        self,
+        directory: str,
+        *,
+        upper_limit: str | None = ...,
+        multiple: bool = False,
+        show_hidden_files: bool = False,
     ) -> None:
         """Local File Picker
 

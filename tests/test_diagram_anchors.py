@@ -16,7 +16,7 @@ import os
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import diagram, mapjump, taskerd
+from maptasker.src import diagintr, diagram, guiwins, mapjump, taskerd, userintr
 from maptasker.src.mapjump import PROFILE, PROJECT, TASK, Target, diagram_placement
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_FILE
@@ -246,9 +246,14 @@ class _Output:
         """Swallow the line -- this test is about the diagram file, not the Map."""
 
 
-def _drawn(tmp_path: object) -> list[str]:
-    """Build a real diagram from the fixture and hand back the file it wrote, line by line."""
-    root = ET.fromstring(_DIAGRAM_XML)  # noqa: S314  (fixture text, defined in this file)
+def _load(xml: str, calls: dict) -> dict:
+    """Put a configuration in front of the diagram code, and hand back its object tables.
+
+    The whole of what diagram.network_map reads: the parsed tables, the runtime arguments,
+    and the caller/called links outline.py's own pass would have filled in ('calls' maps a
+    Task name to the names it calls, which is what makes an arrow get drawn).
+    """
+    root = ET.fromstring(xml)  # noqa: S314  (fixture text, defined in this file)
     PrimeItems.xml_root = root
     PrimeItems.slash = "/"
     PrimeItems.output_lines = _Output()
@@ -280,19 +285,15 @@ def _drawn(tmp_path: object) -> list[str]:
         tables["all_tasks_by_name"].setdefault(task["name"], {"xml": task["xml"], "id": key})
     PrimeItems.tasker_root_elements = tables
 
-    # What outline.py's own pass fills in, and what makes the diagram draw a call arrow.
-    tables["all_tasks_by_name"]["Backup"]["call_tasks"] = ["Restore"]
-    tables["all_tasks_by_name"]["Restore"]["called_by"] = ["Backup"]
+    for caller, called in calls.items():
+        tables["all_tasks_by_name"][caller]["call_tasks"] = called
+        for each in called:
+            tables["all_tasks_by_name"][each]["called_by"] = [caller]
+    return tables
 
-    network = {
-        "Home": {
-            "Wake Up": [{"xml": tables["all_tasks"]["20"]["xml"], "name": "Backup"}],
-            "Wind Down": [{"xml": tables["all_tasks"]["21"]["xml"], "name": "Backup"}],
-            "Nightly": [{"xml": tables["all_tasks"]["22"]["xml"], "name": "Restore"}],
-            "Scenes": ["Menu"],
-        },
-    }
 
+def _render(tmp_path: object, network: dict) -> list[str]:
+    """Draw the diagram and hand back the file it wrote, line by line."""
     here = os.getcwd()
     os.chdir(tmp_path)
     try:
@@ -301,6 +302,22 @@ def _drawn(tmp_path: object) -> list[str]:
             return written.read().split("\n")
     finally:
         os.chdir(here)
+
+
+def _drawn(tmp_path: object) -> list[str]:
+    """Build a real diagram from the fixture and hand back the file it wrote, line by line."""
+    tables = _load(_DIAGRAM_XML, {"Backup": ["Restore"]})
+    return _render(
+        tmp_path,
+        {
+            "Home": {
+                "Wake Up": [{"xml": tables["all_tasks"]["20"]["xml"], "name": "Backup"}],
+                "Wind Down": [{"xml": tables["all_tasks"]["21"]["xml"], "name": "Backup"}],
+                "Nightly": [{"xml": tables["all_tasks"]["22"]["xml"], "name": "Restore"}],
+                "Scenes": ["Menu"],
+            },
+        },
+    )
 
 
 def _span(lines: list[str], placement: tuple[int, int, int]) -> str:
@@ -390,6 +407,38 @@ def test_the_jump_script_escapes_its_newline() -> None:
     assert '"\n"' not in script
 
 
+def test_neither_jump_scrolls_smoothly() -> None:
+    """A jump sets the position outright; it does not animate its way there.
+
+    Two reasons, and the second is why this is a test rather than a preference.
+
+    A jump crosses tens of thousands of pixels on a large Map or Diagram, where an animated
+    scroll is slow to land and distracting rather than helpful.
+
+    And a smooth scroll is an animation, which does not run on a page the browser is not
+    displaying.  A jump is delivered the moment the output has finished streaming in, which
+    is exactly when its window may not be the one in front -- a popout opened behind, or one
+    the user clicked away from while it built.  The animation then never starts and never
+    recovers: the Map sits at the top with the object highlighted forty thousand pixels down.
+    That shipped, and this is what would have caught it.
+
+    Every script that takes a view somewhere is checked, not just the one that was wrong:
+    the reason applies to all of them, and the next one written should have to answer for
+    itself here rather than quietly pick the other behaviour.
+    """
+    scripts = (
+        mapjump.jump_js("mt-task-20"),
+        mapjump.diagram_jump_js("c1", ["║ Wake Up ║"], (5, 2, 11), "mt-profile-10"),
+        diagintr.interaction_js("c1", "c2", {"nodes": [{"anchor": "a"}], "regions": [], "edges": []}),
+        guiwins.search_jump_js("search-hit-42"),
+    )
+
+    for script in scripts:
+        assert "scrollIntoView" in script
+        assert "behavior: 'smooth'" not in script
+        assert 'behavior: "smooth"' not in script
+
+
 def test_the_jump_script_carries_the_placement_it_was_given() -> None:
     """The line, column and length reach the browser as the numbers they are."""
     script = mapjump.diagram_jump_js("c1", [], (12, 8, 9))
@@ -402,3 +451,350 @@ def test_the_jump_script_says_so_when_there_is_no_placement() -> None:
     script = mapjump.diagram_jump_js("c1", ["║ Wake Up ║"])
 
     assert "const placement = null;" in script
+
+
+# ##################################################################################
+# The interaction model: what makes the drawn Diagram clickable.
+# ##################################################################################
+# Three Projects, so that folding and filtering have boundaries to get right, and a chain
+# of calls that crosses from one Project into another -- 'Backup' calls 'Restore', which
+# calls 'Notify Team' over in 'Work'.  A chain that stops at a Project boundary would look
+# perfectly correct on a one-Project fixture.
+#
+# 'Shared Menu' is run by two of Home's Profiles, so the Diagram draws it twice.  One
+# drawing is not enough to notice that only the first of them was ever made clickable.
+_MODEL_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
+  <Project sr="proj0" ve="2"><name>Home</name><pids>10,11</pids><tids>20,21,24</tids><scenes>Menu</scenes></Project>
+  <Project sr="proj1" ve="2"><name>Travel</name><pids>12</pids><tids>22</tids></Project>
+  <Project sr="proj2" ve="2"><name>Work</name><pids>13</pids><tids>23</tids></Project>
+  <Profile sr="prof10" ve="2"><id>10</id><nme>Wake Up</nme><mid0>20</mid0></Profile>
+  <Profile sr="prof11" ve="2"><id>11</id><nme>Wind Down</nme><mid0>21</mid0></Profile>
+  <Profile sr="prof12" ve="2"><id>12</id><nme>Airplane</nme><mid0>22</mid0></Profile>
+  <Profile sr="prof13" ve="2"><id>13</id><nme>Standup</nme><mid0>23</mid0></Profile>
+  <Task sr="task20" ve="2"><id>20</id><nme>Backup</nme><Action sr="act0"><code>548</code></Action></Task>
+  <Task sr="task21" ve="2"><id>21</id><nme>Restore</nme><Action sr="act0"><code>548</code></Action></Task>
+  <Task sr="task22" ve="2"><id>22</id><nme>Pack</nme><Action sr="act0"><code>548</code></Action></Task>
+  <Task sr="task23" ve="2"><id>23</id><nme>Notify Team</nme><Action sr="act0"><code>548</code></Action></Task>
+  <Task sr="task24" ve="2"><id>24</id><nme>Shared Menu</nme><Action sr="act0"><code>548</code></Action></Task>
+  <Scene sr="scene0" ve="2"><nme>Menu</nme></Scene>
+</TaskerData>"""
+
+_BACKUP = Target(kind=TASK, key="20", name="Backup")
+_RESTORE = Target(kind=TASK, key="21", name="Restore")
+_PACK = Target(kind=TASK, key="22", name="Pack")
+_NOTIFY = Target(kind=TASK, key="23", name="Notify Team")
+_SHARED = Target(kind=TASK, key="24", name="Shared Menu")  # Drawn under two Profiles.
+
+
+@pytest.fixture
+def modelled(tmp_path: object) -> tuple[list[str], dict]:
+    """A three-Project diagram, as its rendered lines and the model built from them."""
+    tables = _load(_MODEL_XML, {"Backup": ["Restore"], "Restore": ["Notify Team"]})
+    lines = _render(
+        tmp_path,
+        {
+            "Home": {
+                "Wake Up": [
+                    {"xml": tables["all_tasks"]["20"]["xml"], "name": "Backup"},
+                    {"xml": tables["all_tasks"]["24"]["xml"], "name": "Shared Menu"},
+                ],
+                "Wind Down": [
+                    {"xml": tables["all_tasks"]["21"]["xml"], "name": "Restore"},
+                    {"xml": tables["all_tasks"]["24"]["xml"], "name": "Shared Menu"},
+                ],
+                "Scenes": ["Menu"],
+            },
+            "Travel": {"Airplane": [{"xml": tables["all_tasks"]["22"]["xml"], "name": "Pack"}]},
+            "Work": {"Standup": [{"xml": tables["all_tasks"]["23"]["xml"], "name": "Notify Team"}]},
+        },
+    )
+    return lines, PrimeItems.diagram_model
+
+
+def _node(model: dict, target: Target) -> dict:
+    """The model's first entry for one object -- the Diagram may have drawn it more than once."""
+    return next(node for node in model["nodes"] if node["anchor"] == target.anchor)
+
+
+def _nodes_for(model: dict, target: Target) -> list[dict]:
+    """Every entry the model holds for one object: one per time the Diagram drew it."""
+    return [node for node in model["nodes"] if node["anchor"] == target.anchor]
+
+
+def test_every_node_covers_exactly_the_name_it_was_drawn_as(modelled: tuple[list[str], dict]) -> None:
+    """A node is what the browser wraps, so its span has to be the name and nothing else.
+
+    Counted in code points here, not UTF-16 as the anchors are: this is the column the
+    renderer slices the Python string by (see diagintr._char_span), and the two disagreeing
+    is exactly the kind of off-by-an-emoji that would wrap the wrong characters.
+    """
+    lines, model = modelled
+
+    drawn = {node["anchor"]: lines[node["line"]][node["col"] : node["col"] + node["len"]] for node in model["nodes"]}
+
+    assert drawn[Target(kind=PROJECT, key="Home", name="Home").anchor] == "║ Project: Home ║"
+    assert drawn[Target(kind=PROFILE, key="10", name="Wake Up").anchor] == "║ Wake Up ║"
+    assert drawn["mt-scene-Menu"] == "║ Menu ║"
+    # The "└─ " a Task line is drawn with is left out: it is drawing, not name, and the
+    # "─" in it is a connector character that a span cannot share.
+    assert drawn[_BACKUP.anchor] == "Backup"
+    assert drawn[_NOTIFY.anchor] == "Notify Team"
+
+
+def test_every_drawing_of_a_task_is_a_node_of_its_own(modelled: tuple[list[str], dict]) -> None:
+    """A Task run by two Profiles is drawn twice, and both drawings have to be clickable.
+
+    The Diagram draws a Task once per Profile that runs it.  Only the first drawing used to
+    be recorded, so the rest were rendered as plain text -- not clickable, not lit by a
+    chain running through them.  The first one worked, which is what made a gap look like a
+    rule.
+
+    They are the same object, so they share an anchor and therefore a token, a chain and a
+    jump; what differs is where each one sits.
+    """
+    lines, model = modelled
+    drawings = _nodes_for(model, _SHARED)
+
+    assert len(drawings) > 1, "the fixture is meant to draw this Task under two Profiles"
+    assert len({node["line"] for node in drawings}) == len(drawings)
+    for node in drawings:
+        assert lines[node["line"]][node["col"] : node["col"] + node["len"]] == _SHARED.name
+        assert node["token"] == drawings[0]["token"]
+    # And a jump still lands on the first of them, as it always has.
+    assert PrimeItems.diagram_anchors[_SHARED.anchor][0] == drawings[0]["line"]
+
+
+def test_a_node_knows_which_project_it_was_drawn_in(modelled: tuple[list[str], dict]) -> None:
+    """Which is what decides the Map a click on it can be answered by (mapjump.scope_for)."""
+    _, model = modelled
+
+    assert _node(model, _BACKUP)["project"] == "Home"
+    assert _node(model, _PACK)["project"] == "Travel"
+    assert _node(model, _NOTIFY)["project"] == "Work"
+    assert _node(model, _BACKUP)["token"] == Target(kind=TASK, key="20", name="Backup", project="Home").token()
+
+
+def test_each_project_gets_a_region_that_stops_at_the_next_one(modelled: tuple[list[str], dict]) -> None:
+    """A fold or a filter is a range of lines, and the ranges may not overlap or leave gaps."""
+    lines, model = modelled
+    regions = model["regions"]
+
+    assert [region["name"] for region in regions] == ["Home", "Travel", "Work"]
+    for region in regions:
+        assert lines[region["line"]].strip().startswith("║ Project:")
+        # The box's top border opens the region, and the fold starts under its bottom one.
+        assert lines[region["start"]].strip().startswith("╔")
+        assert region["start"] < region["line"] < region["fold"] <= region["end"]
+    for earlier, later in zip(regions, regions[1:], strict=False):
+        assert earlier["end"] < later["start"]
+
+
+def test_a_fold_leaves_the_project_box_standing(modelled: tuple[list[str], dict]) -> None:
+    """Everything under the box goes; the box itself stays, still naming the Project.
+
+    A Project folded down to a nameless rectangle would be a fold nobody could read, and --
+    since the arrow that unfolds it is drawn on the name line -- one nobody could undo.
+    """
+    lines, model = modelled
+    home = model["regions"][0]
+
+    kept = lines[home["start"] : home["fold"]]
+
+    assert len(kept) == 3  # noqa: PLR2004  A box is a top border, a name and a bottom border.
+    assert "Project: Home" in kept[1]
+    assert home["line"] in diagintr.folds_by_line(model)
+
+
+def test_the_call_edges_join_the_tasks_the_arrows_were_drawn_between(
+    modelled: tuple[list[str], dict],
+) -> None:
+    """The call graph, in the Diagram's own terms, is what a chain highlight walks."""
+    _, model = modelled
+
+    edges = {(edge["caller"], edge["called"]) for edge in model["edges"]}
+
+    assert (_BACKUP.anchor, _RESTORE.anchor) in edges
+    assert (_RESTORE.anchor, _NOTIFY.anchor) in edges
+    # 'Pack' calls nothing and is called by nothing, so no edge may name it.
+    assert not [edge for edge in model["edges"] if _PACK.anchor in (edge["caller"], edge["called"])]
+
+
+def test_every_edge_carries_the_connector_that_was_drawn_for_it(modelled: tuple[list[str], dict]) -> None:
+    """Without this a chain lights up its Tasks and none of the arrows between them."""
+    _, model = modelled
+
+    assert model["edges"]
+    for edge in model["edges"]:
+        assert edge["groups"], f"{edge} has no connector"
+        for group in edge["groups"]:
+            assert group in PrimeItems.diagram_connectors
+
+
+def test_a_chain_of_calls_crosses_a_project_boundary(modelled: tuple[list[str], dict]) -> None:
+    """Walked here the way the browser walks it, since that is the claim being made."""
+    _, model = modelled
+    reachable = {_BACKUP.anchor}
+    for _ in model["edges"]:  # Enough passes to close over the longest possible chain.
+        for edge in model["edges"]:
+            if edge["caller"] in reachable:
+                reachable.add(edge["called"])
+
+    assert reachable == {_BACKUP.anchor, _RESTORE.anchor, _NOTIFY.anchor}
+
+
+# ##################################################################################
+# Rendering the model into the view.
+# ##################################################################################
+def _rendered(lines: list[str], model: dict) -> list[str]:
+    """Every line of the diagram as the Diagram view writes it into the page."""
+    nodes, folds = diagintr.nodes_by_line(model), diagintr.folds_by_line(model)
+    connectors = guiwins._connectors_by_line()  # noqa: SLF001
+    return [guiwins._wrap_diagram_line(num, line, connectors, nodes, folds) for num, line in enumerate(lines)]  # noqa: SLF001
+
+
+def test_every_rendered_line_is_an_element_that_keeps_its_own_newline(
+    modelled: tuple[list[str], dict],
+) -> None:
+    """Folding hides an element, so every line needs one -- and its newline has to go with it.
+
+    The newline stays in the text rather than being dropped for the block layout, because
+    the view's search index and the jump into the Diagram both count lines by counting
+    newlines through the text nodes.
+    """
+    lines, model = modelled
+
+    rendered = _rendered(lines, model)
+
+    for num, markup in enumerate(rendered):
+        assert markup.startswith(f'<span class="{diagintr.LINE_CLASS}" data-line="{num}"')
+        assert markup.endswith("<span class=\"mt-dnl\">\n</span></span>")
+    # An empty line still has to occupy one: an empty block has no height, and the blank
+    # lines in a diagram are the ones the connectors are drawn down.
+    assert "&#8203;" in _rendered([""], {"nodes": [], "regions": []})[0]
+
+
+def test_a_rendered_name_is_wrapped_as_a_clickable_node(modelled: tuple[list[str], dict]) -> None:
+    """With the anchor on it, which is how a jump finds it and a click says what it is."""
+    lines, model = modelled
+    backup = _node(model, _BACKUP)
+
+    markup = _rendered(lines, model)[backup["line"]]
+
+    assert f'data-anchor="{_BACKUP.anchor}"' in markup
+    assert f'data-node="{backup["index"]}" data-kind="task"' in markup
+    assert ">Backup</span>" in markup
+
+
+def test_a_name_and_a_connector_never_claim_the_same_character() -> None:
+    """An element can only be in one span, and the name is the one worth keeping.
+
+    A Task is drawn as "└─ Backup", and the "─" in that prefix is a connector character, so
+    a horizontal run growing along the line can reach into it.  The name wins and the
+    connector is clipped around it: losing a character off the end of a connector costs a
+    click target the rest of that same connector still offers, while losing one off a name
+    costs the name its click target outright.
+    """
+    line = "──── Backup ────"
+    node = {"anchor": _BACKUP.anchor, "index": 0, "kind": TASK, "col": 5, "len": 6}
+
+    spans = guiwins._diagram_spans(0, line, {0: [(0, len(line), 7)]}, {0: [node]})  # noqa: SLF001
+
+    # In column order, never overlapping, and the name's span is exactly the name.
+    assert [(start, end) for start, end, _ in spans] == [(0, 5), (5, 11), (11, 16)]
+    assert [line[start:end] for start, end, _ in spans] == ["──── ", "Backup", " ────"]
+    assert diagintr.NODE_CLASS in spans[1][2]
+    assert all("connector" in spans[at][2] for at in (0, 2))
+
+
+def test_a_project_line_carries_its_fold_control(modelled: tuple[list[str], dict]) -> None:
+    """The one control the Diagram draws itself, on the line that names the Project."""
+    lines, model = modelled
+    home = model["regions"][0]
+
+    markup = _rendered(lines, model)[home["line"]]
+
+    assert f'data-fold="{home["anchor"]}" data-fold-state="open"' in markup
+
+
+# ##################################################################################
+# The script the interactive view is handed.
+# ##################################################################################
+def test_the_jump_script_prefers_the_anchor_it_was_given() -> None:
+    """An element is an exact answer; counting to a line and clamping to a node is not."""
+    script = mapjump.diagram_jump_js("c1", ["║ Wake Up ║"], (5, 2, 11), "mt-profile-10")
+
+    assert 'const anchor = "mt-profile-10";' in script
+    assert "CSS.escape(anchor)" in script
+
+
+def test_an_action_is_answered_by_its_tasks_anchor() -> None:
+    """The Diagram draws no actions, so the anchor asked for is the Task's own."""
+    assert mapjump.diagram_anchor(_BACKUP.at_action(4)) == _BACKUP.anchor
+
+
+def test_the_diagram_looks_for_the_name_the_map_window_is_opened_under() -> None:
+    """The one fact the Diagram and the popout opener have to agree on.
+
+    A click on an object is answered by the Map already on screen, and the Diagram raises
+    that window itself, from inside the click -- a browser grants that while a page has user
+    activation and refuses once the round trip to Python has lapsed it.  Raising it means
+    finding it, and it is found BY NAME among the handles the main window kept.  Look for a
+    name nothing was opened under and nothing is ever raised: the Map scrolls to the object
+    behind the Diagram and the click reads as having done nothing.
+
+    Both "Open View In New Window" settings, because the name grows a unique suffix under
+    one of them and a prefix match is what has to keep working.
+    """
+    script = diagintr.interaction_js("c1", "c2", {"nodes": [], "regions": [], "edges": []})
+
+    reused = userintr.popout_window_name("/popout/map?goto=x&scope=y", new_window=False)
+    fresh = userintr.popout_window_name("/popout/map?goto=x&scope=y", new_window=True)
+
+    assert f'const MAP_WINDOW_PREFIX = "{reused}";' in script
+    assert fresh.startswith(reused)
+    # And not the Diagram's own window, which is the one already in front.
+    assert not userintr.popout_window_name("/popout/diagram").startswith(reused)
+
+
+def test_raising_a_window_never_conjures_one() -> None:
+    """Opening a name nothing has claimed creates a blank window, which is worse than nothing.
+
+    The server-side half of the raise (for a jump that did not come from a click, so has no
+    user activation to spend) asks for the window by its own name.  That name always exists
+    -- it is this window's -- unless the view is not in a popout at all, which is what the
+    guard is for.
+    """
+    script = mapjump.bring_to_front_js()
+
+    assert "if (!window.name) return true;" in script
+    assert script.index("if (!window.name)") < script.index("window.open")
+
+
+def test_the_chain_gesture_is_taken_over_before_the_browser_selects_text() -> None:
+    """Shift-click means "show me this chain" here, and "extend the selection to there" to
+    the browser -- which paints the diagram blue from the caret down to the name clicked,
+    competing with the green the chain is drawn in.
+
+    The listener has to be mousedown.  That is when the browser makes the selection, so a
+    click handler -- where the chain gesture is actually read -- is already too late: by
+    then the blue is on the page.  Asserted because the fix is invisible in the code that
+    matters (onClick) and lives in a handler that would look redundant to anyone tidying up.
+    """
+    script = diagintr.interaction_js("c1", "c2", {"nodes": [], "regions": [], "edges": []})
+
+    assert 'addEventListener("mousedown"' in script
+    # Only the gesture is taken over: selecting and copying diagram text still works.
+    assert 'if (event.shiftKey && event.target.closest && event.target.closest("." + cls.node))' in script
+    # And a selection left over from something else is put away before a chain is drawn.
+    assert "if (selection && !selection.isCollapsed) selection.removeAllRanges();" in script
+
+
+def test_the_interaction_script_carries_the_model_and_its_class_names() -> None:
+    """The browser acts entirely on what is handed to it here; nothing is looked up twice."""
+    model = {"nodes": [{"anchor": "a"}], "regions": [], "edges": []}
+
+    script = diagintr.interaction_js("c1", "c2", model)
+
+    assert '"c1"' in script
+    assert '"anchor": "a"' in script
+    assert f'"line": "{diagintr.LINE_CLASS}"' in script

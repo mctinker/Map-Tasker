@@ -73,6 +73,7 @@ class _Parsed(NamedTuple):
     root: object | None
     scratch: str
 
+
 # program_arguments keys this forces for the duration of an isolated load.  See
 # _parsed_in_isolation for why each one has to be forced rather than merely saved.
 _FORCED_ARGUMENTS = {"gui": True, "directory": False}
@@ -121,12 +122,15 @@ def load_for_comparison(file_path: str) -> tuple[Configuration | None, str]:
         if parsed.return_code != 0:
             return None, _failure_message(parsed, file_path)
 
-        return Configuration(
-            path=file_path,
-            tables=parsed.tables,
-            root=parsed.root,
-            when=_modified_time(file_path),
-        ), ""
+        return (
+            Configuration(
+                path=file_path,
+                tables=parsed.tables,
+                root=parsed.root,
+                when=_modified_time(file_path),
+            ),
+            "",
+        )
 
 
 def _failure_message(parsed: _Parsed, file_path: str) -> str:

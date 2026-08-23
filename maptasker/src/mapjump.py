@@ -474,6 +474,12 @@ def anchor_attribute(target: Target) -> str:
 # it is defined once here instead of a third time in guiwins.
 REVEAL_ANCESTORS_JS = """
             function mtRevealAncestors(element) {
+                // A line the interactive Diagram view has folded away or filtered out is
+                // hidden outright, and scrolling to something with no box is scrolling to
+                // nowhere -- so ask that view to open it back up first.  The hook is absent
+                // on every other page and on a Diagram with no model behind it, which is why
+                // it is asked for rather than called (see diagintr.interaction_js).
+                if (window.mtDiagramReveal) window.mtDiagramReveal(element);
                 for (let node = element; node; node = node.parentElement) {
                     if (getComputedStyle(node).contentVisibility === "auto") {
                         node.style.contentVisibility = "visible";
@@ -481,6 +487,53 @@ REVEAL_ANCESTORS_JS = """
                 }
             }
 """
+
+
+def bring_to_front_js() -> str:
+    """JavaScript that raises the window it runs in, for a jump that landed in another one.
+
+    A jump answered by a view already on screen used to be silent from the user's side.  The
+    Map really did scroll to the object -- but the Map is a window of its own, and clicking
+    an object in the Diagram left the Diagram in front, so the answer sat in a window nobody
+    was looking at.  It only appeared once the user thought to switch tabs, which reads as
+    the click having done nothing.  The first click of a session was the exception and hid
+    the problem: no Map exists yet, so it goes the long way round through
+    rebuild_map_for_jump, and window.open() raises the new window on the way past.
+
+    Three ways of asking, because raising a window is a thing browsers restrict rather than
+    a thing they simply do, and which one is allowed depends on who is asking.  Each is
+    tried and none is required to work:
+
+      window.focus()                        the direct request, granted least often.
+      window.opener.open('', window.name)   asking the window that OPENED this one to raise
+                                            it, which is the case browsers are most willing
+                                            to allow -- and the same call _open_popout_window
+                                            already relies on to re-navigate a named popout
+                                            from a server-pushed script.
+      window.open('', window.name)          the same lookup, from here, for a window with no
+                                            opener left to ask (one the user reloaded, or
+                                            reached by its URL).
+
+    The empty URL matters in the last two: opening a name that already exists with no URL
+    finds that window and navigates nowhere, so the view is raised without being rebuilt.
+    A name that exists is a precondition, not a hope -- this only ever runs in a window that
+    was opened under one (see _open_popout_window), and the guard on window.name is what
+    keeps it from conjuring a blank popup if that ever stops being true.
+    """
+    return """
+        (() => {
+            try { window.focus(); } catch (error) {}
+            if (!window.name) return true;
+            try {
+                if (window.opener && !window.opener.closed) {
+                    window.opener.open('', window.name);
+                    return true;
+                }
+            } catch (error) {}
+            try { window.open('', window.name); } catch (error) {}
+            return true;
+        })();
+    """
 
 
 def jump_js(anchor_id: str) -> str:
@@ -539,7 +592,20 @@ def jump_js(anchor_id: str) -> str:
             );
             mtRevealAncestors(target);
             target.classList.add('{HIGHLIGHT_CLASS}');
-            target.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+            // Instant, not smooth -- the same choice the Diagram's jumps make, and for one
+            // more reason besides theirs.
+            //
+            // Theirs: a jump crosses tens of thousands of pixels on a large output, where an
+            // animated scroll is slow to land and distracting rather than helpful.
+            //
+            // And: a smooth scroll is an animation, and an animation does not run on a page
+            // the browser is not displaying.  This jump is delivered the moment the Map has
+            // finished streaming in, which is precisely when its window may not be the one in
+            // front -- a popout the browser opened behind, or one the user has clicked away
+            // from while it built.  The animation then never starts, never recovers, and
+            // leaves a Map sitting at the top with the object highlighted 40,000 pixels down
+            // where nobody will see it.  Setting the position outright works either way.
+            target.scrollIntoView({{ behavior: 'auto', block: 'center' }});
             return true;
         }})();
     """
@@ -627,11 +693,31 @@ def diagram_placement(target: Target) -> tuple[int, int, int] | None:
     return anchors.get(replace(target, action=0).anchor)
 
 
-def diagram_jump_js(container_id: str, patterns: list[str], placement: tuple[int, int, int] | None = None) -> str:
+def diagram_anchor(target: Target) -> str:
+    """The id this object's name carries in an interactive Diagram, or "".
+
+    The same normalisation diagram_placement makes: the Diagram draws no actions, so an
+    action's Target is answered by the Task that holds it.  Kept beside it so the element
+    looked up and the line fallen back to can never be two different objects.
+    """
+    return replace(target, action=0).anchor if target.kind != VARIABLE else ""
+
+
+def diagram_jump_js(
+    container_id: str,
+    patterns: list[str],
+    placement: tuple[int, int, int] | None = None,
+    anchor: str = "",
+) -> str:
     """JavaScript that scrolls the Diagram view to an object and highlights it.
 
-    Two ways of finding it, and the difference between them is the difference between
-    "a Task called Backup" and "THIS Task called Backup".
+    Three ways of finding it, tried in that order.
+
+    The anchor, when the Diagram on screen is an interactive one: every object's name is
+    wrapped in an element carrying its id, so this is a lookup and the answer is exact.
+
+    Then the two that came before it, and the difference between them is the difference
+    between "a Task called Backup" and "THIS Task called Backup".
 
     With a placement, the line was recorded as the diagram was drawn (see diagram.py's
     note above flatten_with_quotes) and is followed exactly: the walk counts newlines to
@@ -653,7 +739,8 @@ def diagram_jump_js(container_id: str, patterns: list[str], placement: tuple[int
             if (!container) return false;
             const patterns = {json.dumps(patterns)};
             const placement = {json.dumps(list(placement) if placement else None)};
-            if (!patterns.length && !placement) return false;
+            const anchor = {json.dumps(anchor)};
+            if (!patterns.length && !placement && !anchor) return false;
 
             // Any highlight left by a previous jump goes first, in both views' shared class,
             // so only the object just asked for is marked.
@@ -663,11 +750,39 @@ def diagram_jump_js(container_id: str, patterns: list[str], placement: tuple[int
 
             const walker = () => document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
 
-            // The recorded line, as a node and an offset into it.  The diagram is streamed
-            // in as chunks of many lines each, and a connector span splits a line's text
-            // into several nodes, so neither the line nor the column can be reached by
-            // indexing anything -- both are counted across the text nodes in order.
+            // The recorded line, as a node and an offset into it.
+            //
+            // The interactive Diagram view gives every line an element of its own carrying
+            // its number (see diagintr), so the line is asked for directly and only the
+            // column is counted -- across that one line's text nodes, which a connector or
+            // an object name splits it into.
+            //
+            // The walk below is what this did before there were line elements, and is kept
+            // for a Diagram rendered without them.  It cannot simply be used for both: the
+            // newline that ends a line now sits in a hidden element of its own, so counting
+            // newlines through the text nodes arrives at column 0 of the wanted line already
+            // standing at the END of the previous line's newline node -- the right position,
+            // in a node with no line text left in it to highlight.
+            function seekWithinLine(lineElement, column) {{
+                const crawl = document.createTreeWalker(lineElement, NodeFilter.SHOW_TEXT);
+                for (let node = crawl.nextNode(); node; node = crawl.nextNode()) {{
+                    const text = node.nodeValue;
+                    const ends = text.indexOf("\\n");
+                    const usable = ends === -1 ? text.length : ends;
+                    if (column < usable || (column === usable && ends !== -1)) {{
+                        return {{ node: node, offset: column }};
+                    }}
+                    column -= usable;
+                    // The line ends in this node and the column is past the end of it, so it
+                    // is not a column on this line at all.
+                    if (ends !== -1) return null;
+                }}
+                return null;
+            }}
+
             function seek(lineNumber, column) {{
+                const lineElement = container.querySelector('[data-line="' + lineNumber + '"]');
+                if (lineElement) return seekWithinLine(lineElement, column);
                 let line = 0;
                 const crawl = walker();
                 for (let node = crawl.nextNode(); node; node = crawl.nextNode()) {{
@@ -714,6 +829,24 @@ def diagram_jump_js(container_id: str, patterns: list[str], placement: tuple[int
                     if (best && best.rank === 0) break;
                 }}
                 return best;
+            }}
+
+            // The interactive Diagram wraps every object's name in an element of its own
+            // (see diagintr), and an element is an exact answer: no counting, no clamping,
+            // and the whole name rather than as much of it as fits in one text node.  The
+            // two below are what this did before there were elements, and remain the answer
+            // for a Diagram rendered from a file an older run left on disk.
+            if (anchor) {{
+                const element = container.querySelector('[data-anchor="' + CSS.escape(anchor) + '"]');
+                if (element) {{
+                    element.classList.add('{HIGHLIGHT_CLASS}');
+                    mtRevealAncestors(element);
+                    element.scrollIntoView({{block: 'center', inline: 'nearest', behavior: 'auto'}});
+                    for (let box = element.parentElement; box; box = box.parentElement) {{
+                        if (box.scrollWidth > box.clientWidth) box.scrollLeft = 0;
+                    }}
+                    return true;
+                }}
             }}
 
             let found = null;

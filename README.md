@@ -308,7 +308,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Structure Search
 
-- [ ] Interactive Diagram view
+- [x] Interactive Diagram view
 
 - [ ] Capture Android Device Apps and Icons
 

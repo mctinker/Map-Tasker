@@ -1234,7 +1234,7 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
     elif logo_name == "coffee":
         img_src = f"{_LOGO_URL_PATH}/bmc-logo-no-background.png"
         size_classes = "w-[36px] h-[54px]"
-        parent = self.gui_debug_panel  # tab_debug is the tab button, not its content panel
+        parent = self.gui_right_drawer  # sits at the bottom of the right-hand action panel
     else:
         if "rutroh_error" in globals():
             rutroh_error("Invalid logo type")
@@ -1250,8 +1250,11 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                 # Render the dark version (hidden by default, shown when dark class is applied)
                 ui.image(dark_src).classes(f"{size_classes} hidden dark:block object-contain")
             else:
-                # Flags and Coffee do not change based on dark mode status
-                ui.image(img_src).classes(f"{size_classes} object-contain")
+                # Flags and Coffee do not change based on dark mode status.  The coffee logo is
+                # the last thing in the right drawer's flex column, so mt-auto drops it to the
+                # bottom of the drawer whenever the buttons above leave room to spare.
+                extra_classes = " mt-auto" if logo_name == "coffee" else ""
+                ui.image(img_src).classes(f"{size_classes} object-contain{extra_classes}")
 
         except Exception as e:  # noqa: BLE001
             if "rutroh_error" in globals():
@@ -1259,7 +1262,7 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
 
         # 3. Handle the structural coffee button appending
         if logo_name == "coffee":
-            with ui.row().classes("items-center gap-2 mt-2"):
+            with ui.row().classes("w-full items-center justify-center gap-2 mt-2 mb-2"):
                 self.coffee_button = ui.button(
                     translate_string("Buy Me A Coffee"),
                     on_click=self.event_handlers.coffee_event,

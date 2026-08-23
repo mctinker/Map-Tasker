@@ -222,11 +222,7 @@ def _set_child_text_in_tag_order(parent: defusedxml.ElementTree.Element, tag: st
         # Match parent's actual Element class -- see _set_child_text's identical note.
         child = type(parent)(tag)
         position = next(
-            (
-                index
-                for index, sibling in enumerate(parent)
-                if not sibling.tag.islower() or sibling.tag > tag
-            ),
+            (index for index, sibling in enumerate(parent) if not sibling.tag.islower() or sibling.tag > tag),
             len(parent),
         )
         parent.insert(position, child)
