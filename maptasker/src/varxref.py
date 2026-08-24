@@ -45,6 +45,7 @@ from maptasker.src.mapjump import (
     TASK,
     VARIABLE,
     Row,
+    Scope,
     Target,
     actions_in_map_order,
     describe,
@@ -310,6 +311,17 @@ class Reference:
     # what the report prints and what two references are deduplicated on; this is where a
     # click on that line goes.
     target: Target | None = None
+    # The element whose .text holds this value.  Nothing in this module reads it -- a
+    # report prints `where` and `detail` -- but mapswap rewrites the places this scan
+    # finds, and a second walk written to go and fetch the elements again would be a
+    # second definition of "everywhere a variable appears" to keep in step with this one.
+    # None where there is nothing to rewrite: an output variable a plugin declares through
+    # RELEVANT_VARIABLES is named nowhere in the file.
+    element: defusedxml.ElementTree.Element | None = None
+    # Version 2 Scenes only, whose values live inside a gzipped JSON blob rather than in
+    # an element: (component path, property key), which sceneedit.v2_node_at resolves
+    # against a freshly decoded layout.  `element` is the <Scene> itself for these.
+    path: tuple = ()
 
 
 @dataclass
@@ -355,6 +367,10 @@ class VariableIndex:
     # re-deriving the phrase per variable.  Targets rather than phrases since it is both:
     # .label is the phrase, and the Target is what makes the group heading clickable.
     scope_locations: dict[str, Target] = field(default_factory=dict)
+    # What the scan was limited to.  Named `scope` to match mapfind.FindIndex; not to be
+    # confused with scope_locations or with a VARIABLE's scope (global/local), which is a
+    # different thing entirely and older -- this one is "which objects were looked at".
+    scope: Scope = field(default_factory=Scope)
 
     def _scope_for(self, name: str) -> str:
         """This name's scope, with what the file itself says taking precedence.
@@ -495,6 +511,30 @@ def _string_arguments(action: defusedxml.ElementTree.Element) -> dict[str, str]:
     return arguments
 
 
+def _argument_elements(node: defusedxml.ElementTree.Element) -> dict:
+    """{arg id: the element whose .text holds the value} -- what _string_arguments reads.
+
+    Deliberately the same two shapes, in the same precedence, as that function: these two
+    have to agree about what an argument is, or a reference would be recorded against one
+    element and rewritten in another.
+
+    The <Int> case is why this is not simply "the child carrying that sr": a numeric
+    argument the user has bound a variable to holds it in a <var> child, so the <var> is
+    the element a rewrite has to touch, not the <Int> around it.
+    """
+    elements = {}
+    for child in node.findall("Str"):
+        sr = child.attrib.get("sr", "")
+        if sr.startswith("arg"):
+            elements[sr[3:]] = child
+    for child in node.findall("Int"):
+        sr = child.attrib.get("sr", "")
+        bound = child.find("var")
+        if sr.startswith("arg") and bound is not None and bound.text:
+            elements.setdefault(sr[3:], bound)
+    return elements
+
+
 def _argument_label(code: str, arg_id: str) -> str:
     """ "Variable Set, Name=" -- the action and the argument a reference was found in.
 
@@ -546,7 +586,15 @@ def _record_write(
     for position, match in enumerate(matches):
         name = f"%{match.group(1)}"
         entry = index.entry(name, reference.scope_id)
-        read_here = Reference(READ, reference.where, reference.detail, reference.scope_id, reference.target)
+        read_here = Reference(
+            READ,
+            reference.where,
+            reference.detail,
+            reference.scope_id,
+            reference.target,
+            reference.element,
+            reference.path,
+        )
         if plural or position == 0:
             entry.sets.append(reference)
             if also_read:
@@ -588,6 +636,7 @@ def _scan_action(
         )
 
     arguments = _string_arguments(action)
+    argument_elements = _argument_elements(action)
     targets = write_arguments.get(code, set())
 
     # An in-place action writes back into the variable it reads, but only in one
@@ -612,12 +661,12 @@ def _scan_action(
             _record_write(
                 index,
                 text,
-                Reference(SET, where, detail, scope_id, place),
+                Reference(SET, where, detail, scope_id, place, argument_elements.get(arg_id)),
                 plural=(code, arg_id) in _PLURAL_WRITE_ARGS,
                 also_read=arg_id in writes_back,
             )
         else:
-            _record_reads(index, text, Reference(READ, where, detail, scope_id, place))
+            _record_reads(index, text, Reference(READ, where, detail, scope_id, place, argument_elements.get(arg_id)))
 
     # A plugin action keeps its configuration in a <Bundle> rather than in <Str> arguments,
     # and 1741 actions in a real backup to hand carry one.  Every variable named in there is
@@ -629,16 +678,17 @@ def _scan_action(
         label = f"{_argument_label(code, '')} (plugin configuration)"
         for element in bundle.iter():
             if element.text:
-                _record_reads(index, element.text, Reference(READ, where, label, scope_id, place))
+                _record_reads(index, element.text, Reference(READ, where, label, scope_id, place, element))
 
     # The action's own condition -- 'If %HearMute Is Not Set'.  These live in <lhs>/<rhs>
     # rather than in an <Str sr="argN">, and skipping them loses a large share of every
     # read in a real configuration.
     for condition in action.iter("Condition"):
         for tag in ("lhs", "rhs"):
-            side = _element_text(condition, tag)
+            side_element = condition.find(tag)
+            side = (side_element.text or "").strip() if side_element is not None else ""
             if side:
-                _record_reads(index, side, Reference(READ, where, f"if {tag}", scope_id, place))
+                _record_reads(index, side, Reference(READ, where, f"if {tag}", scope_id, place, side_element))
 
     index.actions_scanned += 1
 
@@ -656,12 +706,13 @@ def _scan_conditions(
     """Record the variables named on either side of every condition under an element."""
     for condition in element.iter("Condition"):
         for tag in ("lhs", "rhs"):
-            side = _element_text(condition, tag)
+            side_element = condition.find(tag)
+            side = (side_element.text or "").strip() if side_element is not None else ""
             if side:
-                _record_reads(index, side, Reference(READ, where, f"condition {tag}", scope_id, place))
+                _record_reads(index, side, Reference(READ, where, f"condition {tag}", scope_id, place, side_element))
 
 
-def _scan_profiles(index: VariableIndex, owners: dict[str, str]) -> None:
+def _scan_profiles(index: VariableIndex, owners: dict[str, str], scope: Scope) -> None:
     """Record what a Profile's contexts read.
 
     A Profile context tests the world; it does not assign to anything, so everything here
@@ -674,6 +725,8 @@ def _scan_profiles(index: VariableIndex, owners: dict[str, str]) -> None:
     out of <Str sr="argN"> like every other.
     """
     for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
+        if not scope.allows(PROFILE, profile_id):
+            continue
         place = Target(PROFILE, profile_id, profile["name"], owners.get(profile_id, ""))
         where = place.label
         scope_id = f"profile:{profile_id}"
@@ -691,9 +744,14 @@ def _scan_profiles(index: VariableIndex, owners: dict[str, str]) -> None:
                 continue
 
             label = f"{context.tag} context"
-            for text in _string_arguments(context).values():
+            context_elements = _argument_elements(context)
+            for arg_id, text in _string_arguments(context).items():
                 if text:
-                    _record_reads(index, text, Reference(READ, where, label, scope_id, place))
+                    _record_reads(
+                        index,
+                        text,
+                        Reference(READ, where, label, scope_id, place, context_elements.get(arg_id)),
+                    )
             _scan_conditions(index, context, where, scope_id, place)
 
 
@@ -721,14 +779,21 @@ def _scan_legacy_scene(
             continue
         label = sceneedit.legacy_element_label(element)
         value_arg = _LEGACY_VALUE_ARGS.get(element.tag)
+        value_elements = _argument_elements(element)
         for arg_id, text in _string_arguments(element).items():
             if not text:
                 continue
             if arg_id == value_arg:
                 detail = f"{label} value (two-way)"
-                _record_write(index, text, Reference(SET, where, detail, scope_id, place), plural=False, also_read=True)
+                _record_write(
+                    index,
+                    text,
+                    Reference(SET, where, detail, scope_id, place, value_elements.get(arg_id)),
+                    plural=False,
+                    also_read=True,
+                )
             else:
-                _record_reads(index, text, Reference(READ, where, label, scope_id, place))
+                _record_reads(index, text, Reference(READ, where, label, scope_id, place, value_elements.get(arg_id)))
 
 
 def _v2_strings(value: object) -> list[str]:
@@ -773,17 +838,30 @@ def _scan_v2_scene(
                 if "%" not in text:
                     continue
                 label = f"component '{row.label}' {key}"
+                # (component path, property key) rather than an element: the value sits
+                # inside the gzipped JSON of <lj>, and the decoded layout this loop is
+                # walking is a throwaway -- a reference into it would address nothing by
+                # the time anybody wanted to write to it.  The path survives a re-decode.
+                where_in_layout = (row.path, key)
                 if key in _V2_VALUE_KEYS:
                     # Same two-way binding as a Legacy input element: a TextInput's value
                     # is both what it shows and where what the user types goes.
                     _record_write(
-                        index, text, Reference(SET, where, label, scope_id, place), plural=False, also_read=True
+                        index,
+                        text,
+                        Reference(SET, where, label, scope_id, place, scene["xml"], where_in_layout),
+                        plural=False,
+                        also_read=True,
                     )
                 else:
-                    _record_reads(index, text, Reference(READ, where, label, scope_id, place))
+                    _record_reads(
+                        index,
+                        text,
+                        Reference(READ, where, label, scope_id, place, scene["xml"], where_in_layout),
+                    )
 
 
-def _scan_scenes(index: VariableIndex, write_arguments: dict, implicit_writes: dict) -> None:
+def _scan_scenes(index: VariableIndex, write_arguments: dict, implicit_writes: dict, scope: Scope) -> None:
     """Walk every Scene: its elements, and the anonymous Tasks living inside it.
 
     sceneedit is imported here rather than at module scope, and passed down rather than
@@ -795,6 +873,8 @@ def _scan_scenes(index: VariableIndex, write_arguments: dict, implicit_writes: d
 
     owners = _project_of_scene()
     for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
+        if not scope.allows(SCENE, scene_name):
+            continue
         place = Target(SCENE, scene_name, scene_name, owners.get(scene_name, ""))
         scope_id = f"scene:{scene_name}"
         index.scope_locations[scope_id] = place
@@ -845,12 +925,28 @@ def _scan_declarations(index: VariableIndex) -> None:
         entry.value = (children[1].text or "").strip() if len(children) > 1 and children[1].text else ""
 
 
-def build_index() -> VariableIndex:
+def build_index(scope: Scope | None = None) -> VariableIndex:
     """Scan the loaded configuration and return the where-used index.
+
+    Scans EVERYTHING by default, and that default is load-bearing rather than merely
+    convenient.  Two of the three callers must see the whole file whatever the app happens
+    to be displaying:
+
+      healthck folds suspects() into its own report, and its report is about the whole
+      configuration.  Worse than the inconsistency, a scoped index would make its findings
+      wrong: "read but never set" is decided by not having seen a setter, and narrowed to
+      one Task nearly every global in the file becomes a false alarm.
+
+      globalvr builds the standalone Variable Cross-Reference report, which is a
+      whole-file document by definition.
+
+    Only the rename passes a scope, because only the rename is about to WRITE, and what it
+    may write to is what the user can see.  Pass mapjump.current_scope() for that.
 
     Safe to call with nothing loaded -- the tables are empty and the report says so.
     """
-    index = VariableIndex()
+    scope = scope if scope is not None else Scope()
+    index = VariableIndex(scope=scope)
     write_arguments = _write_arguments()
     implicit_writes = _implicit_writes()
     owners = _project_of_task()
@@ -858,6 +954,8 @@ def build_index() -> VariableIndex:
     _scan_declarations(index)
 
     for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
+        if not scope.allows(TASK, task_id):
+            continue
         place = Target(TASK, task_id, task["name"], owners.get(task_id, ""))
         index.scope_locations[task_id] = place
         index.tasks_scanned += 1
@@ -872,8 +970,8 @@ def build_index() -> VariableIndex:
                 implicit_writes,
             )
 
-    _scan_profiles(index, _project_of_profile())
-    _scan_scenes(index, write_arguments, implicit_writes)
+    _scan_profiles(index, _project_of_profile(), scope)
+    _scan_scenes(index, write_arguments, implicit_writes, scope)
 
     _reclassify_written_built_ins(index)
     return index
@@ -1431,6 +1529,17 @@ def _limitations(index: VariableIndex, thin_rule: str) -> list[str]:
     depends on.
     """
     lines = ["", "LIMITATIONS", thin_rule]
+
+    # First, because it changes what every other number in the report means: a variable
+    # showing "set 0, read 3" in a scoped run is set nowhere IN THAT OBJECT, which is not
+    # the same claim at all, and the suspects section leans on exactly those zeroes.
+    if not index.scope.is_everything:
+        lines += [
+            f"Limited to {index.scope.phrase}, which is what the app is displaying.  Nothing",
+            "outside it was read, so every count here is a count within that one object --",
+            "a variable set elsewhere and only read here will show 'set 0'.",
+            "",
+        ]
 
     if index.indirect_references:
         lines += [

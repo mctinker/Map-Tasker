@@ -2281,3 +2281,93 @@ msgstr "van"
 
 msgid "Save Results"
 msgstr "Resultaten opslaan"
+
+msgid "...to this name"
+msgstr "...naar deze naam"
+
+msgid "...with this one"
+msgstr "...met deze"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Terug naar het volledige diagram: geen zoom, niets ingeklapt, niets gefilterd."
+
+msgid "Cannot be changed"
+msgstr "Kan niet worden gewijzigd"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Wijzig één ding overal waar het voorkomt. Er worden geen wijzigingen doorgevoerd totdat u \"Voorbeeld bekijken\" selecteert en vervolgens \"Vervangen\" klikt, en elke wijziging kan daarna eenvoudig worden teruggedraaid."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Kies een variabele en typ de nieuwe naam."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Kies een actie om te vervangen, en een actie om die te vervangen door."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Klik op een naam om de bijbehorende vermelding in de kaart te openen · klik met de shift-toets op een taak om de aanroepende keten te bekijken"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Vouw elk project in tot zijn titelbalk.\n\nEen enkel project kan worden ingeklapt door op de bovenrand van zijn vak te klikken."
+
+msgid "Expand every collapsed Project."
+msgstr "Breid elk project uit dat momenteel is ingeklapt."
+
+msgid "Limited to"
+msgstr "Beperkt tot"
+
+msgid "Nothing here would change."
+msgstr "Geen van dit zou veranderen."
+
+msgid "Nothing is ticked."
+msgstr "Geen enkele optie is aangevinkt."
+
+msgid "Nothing was changed."
+msgstr "Er zijn geen veranderingen geweest."
+
+msgid "Press Preview first."
+msgstr "Eerst de persvoorstelling."
+
+msgid "Rename this variable"
+msgstr "Geef deze variabele een andere naam."
+
+msgid "Replace"
+msgstr "Vervangen"
+
+msgid "Replace preview could not be saved."
+msgstr "Het opslaan van de preview is niet mogelijk."
+
+msgid "Replace preview saved as"
+msgstr "Vervang de voorgeschiedenis die is opgeslagen als"
+
+msgid "Replace this action"
+msgstr "Vervang deze actie"
+
+msgid "Save Preview"
+msgstr "Opslaan als voorbeeld"
+
+msgid "Task action"
+msgstr "Taak actie"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Het diagram is klikbaar:\n\nKlik op de naam van een Project, Profiel, Taak of Scène om naar deze te navigeren in de kaart.\n\nKlik met de Shift-toets op een Taak om de volledige reeks van oproepen weer te geven waarin deze betrokken is – alles wat deze aanroept, alles wat deze aanroept, en de pijlen ertussen.\n\nKlik met de rechtermuisknop op elke naam om de rest te doen: vouw het Project op, laat alleen dat Project zien, volg de ketting.\n\nKlik op de ▾ naast een Project om deze te laten inklappen, en op de ▸ om deze weer te openen.\n\nGebruik Ctrl (of ⌘) en de scrollwiel om te zoomen. Met Esc kan een ketting worden opgeruimd."
+
+msgid "Undo is available."
+msgstr "De mogelijkheid om te annuleren is beschikbaar."
+
+msgid "Variable name"
+msgstr "Naam van de variabele"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Vergroot. Met Ctrl/⌘ en de scrollwiel wordt hetzelfde effect bereikt."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Zoom uit. Met Ctrl/⌘ en de scrollwiel kan dit ook."
+
+msgid "changed"
+msgstr "veranderd"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "verwijder de selectie voor een enkel item om de volledige configuratie te bereiken"
+
+msgid "more"
+msgstr "meer"

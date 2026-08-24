@@ -2296,3 +2296,93 @@ msgstr "z"
 
 msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "„Znajdź…” zadaje pytanie załadowanej konfiguracji, zamiast przeszukiwać tekst na ekranie: każde zadanie wykonujące daną akcję, każdy profil uruchamiany przez dany wyzwalacz, wszystko, co nazywa daną aplikację lub scenę.\n\nPola łączą się — wybierz wyzwalacz i akcję, aby znaleźć profile uruchamiające się w ten sposób i uruchom zadanie, które to robi.\n\nWyniki zwracane są w postaci listy obiektów; kliknij jeden, aby zostać do niego przeniesionym.\n\n"
+
+msgid "...to this name"
+msgstr "...na to imię"
+
+msgid "...with this one"
+msgstr "...z tym"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Wracając do całego diagramu: bez powiększenia, nic złożonego, nic przefiltrowanego."
+
+msgid "Cannot be changed"
+msgstr "Nie można tego zmienić"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Zmieniaj jedną rzecz w każdym miejscu, w którym się pojawia. Żadne zmiany nie są wprowadzane, dopóki nie naciśniesz przycisku \"Przegląd\", a następnie \"Zastąp\", a każda zmiana będzie można anulować po jednym kliknięciu \"Anuluj\"."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Wybierz zmienną i wpisz nową nazwę."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Wybierz akcję, którą chcesz zastąpić, oraz akcję, którą chcesz ją zastąpić."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Kliknij nazwę, aby wyświetlić jej wpis w mapie · kliknij i przytrzymaj (shift) przycisk myszy, aby zobaczyć łańcuch połączeń dla konkretnego zadania"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Zredukuj każdy projekt do jego nagłówka.\n\nJeden projekt, po kliknięciu górnego brzegu jego okna, automatycznie się zredukuje."
+
+msgid "Expand every collapsed Project."
+msgstr "Rozwiń każdy zawijany projekt."
+
+msgid "Limited to"
+msgstr "Ograniczone do"
+
+msgid "Nothing here would change."
+msgstr "Nic tu się nie zmieni."
+
+msgid "Nothing is ticked."
+msgstr "Żadne pole nie jest zaznaczone."
+
+msgid "Nothing was changed."
+msgstr "Nic się nie zmieniło."
+
+msgid "Press Preview first."
+msgstr "Najpierw zapowiedź dla mediów."
+
+msgid "Rename this variable"
+msgstr "Zmień nazwę tej zmiennej"
+
+msgid "Replace"
+msgstr "Zamień"
+
+msgid "Replace preview could not be saved."
+msgstr "Nie udało się zapisać wersji próbnej."
+
+msgid "Replace preview saved as"
+msgstr "Zastąp podgląd zapisany jako"
+
+msgid "Replace this action"
+msgstr "Zastąp tę czynność"
+
+msgid "Save Preview"
+msgstr "Zapisz wersję próbkową"
+
+msgid "Task action"
+msgstr "Działanie w ramach zadania"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Diagram jest interaktywny:\n\nKliknięcie nazwy Projektu, Profilu, Zadania lub Sceny przeniesie Cię do niej na mapie.\n\nKliknięcie przyciskiem Shift przy nazwie Zadania spowoduje zaznaczenie całej łańcucha połączeń, w których uczestniczy – wszystkich, do których ono dzwoni, oraz wszystkich, które do niego dzwonią, oraz strzałek między nimi.\n\nKliknięcie prawym przyciskiem myszy przy dowolnej nazwie, aby: rozwinąć Projekt, wyświetlić tylko dany Projekt, lub przejrzeć jego łańcuch.\n\nKliknięcie przycisku ▾ obok Projektu spowoduje jego rozwinięcie, a ▸ – jego zwinięcie.\n\nUżycie klawiszy Ctrl (lub ⌘) i kółka myszy powoduje powiększenie widoku. Naciśnięcie klawisza Esc usuwa łańcuch."
+
+msgid "Undo is available."
+msgstr "Funkcja \"Coś\" jest dostępna."
+
+msgid "Variable name"
+msgstr "Nazwa zmiennej"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Przybliż. Użyj klawiszy Ctrl/⌘ i koła myszy, aby wykonać to samo."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Przesuń widok. Użyj klawiszy Ctrl/⌘ i kółka myszy, aby wykonać to samo."
+
+msgid "changed"
+msgstr "zmieniony"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "usuń pojedynczy wybór, aby uzyskać pełną konfigurację"
+
+msgid "more"
+msgstr "więcej"

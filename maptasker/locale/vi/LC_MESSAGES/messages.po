@@ -2300,3 +2300,93 @@ msgstr "tìm thấy cho"
 
 msgid "of"
 msgstr "của"
+
+msgid "...to this name"
+msgstr "...đến cái tên này"
+
+msgid "...with this one"
+msgstr "...và cái này"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Về bản vẽ tổng thể: không phóng to, không gấp, không lọc."
+
+msgid "Cannot be changed"
+msgstr "Không thể thay đổi"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Thay đổi một điều ở mọi nơi mà nó xuất hiện. Không có sự thay đổi nào xảy ra cho đến khi bạn nhấn vào \"Xem trước\" và sau đó chọn \"Thay thế\", và mọi thay đổi đều có thể hoàn tác sau đó."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Chọn một biến, sau đó nhập tên mới."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Chọn một hành động để thay thế, và một hành động để thay thế nó."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Nhấn vào tên để xem thông tin bản đồ · nhấn và giữ phím Shift để xem chuỗi cuộc gọi liên quan"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Thu nhỏ mọi dự án xuống đến thanh tiêu đề.\n\nMột dự án có thể được thu nhỏ bằng cách nhấp vào cạnh trên của ô chứa dự án đó."
+
+msgid "Expand every collapsed Project."
+msgstr "Mở rộng tất cả các dự án đã được thu gọn."
+
+msgid "Limited to"
+msgstr "Giới hạn ở"
+
+msgid "Nothing here would change."
+msgstr "Không có điều gì ở đây sẽ thay đổi."
+
+msgid "Nothing is ticked."
+msgstr "Không có mục nào được đánh dấu."
+
+msgid "Nothing was changed."
+msgstr "Không có gì thay đổi."
+
+msgid "Press Preview first."
+msgstr "Đầu tiên, hãy xem trước thông tin báo chí."
+
+msgid "Rename this variable"
+msgstr "Thay đổi tên biến này"
+
+msgid "Replace"
+msgstr "Thay thế"
+
+msgid "Replace preview could not be saved."
+msgstr "Không thể lưu lại bản xem trước."
+
+msgid "Replace preview saved as"
+msgstr "Thay thế bản xem trước đã lưu"
+
+msgid "Replace this action"
+msgstr "Thay thế hành động này"
+
+msgid "Save Preview"
+msgstr "Lưu bản xem trước"
+
+msgid "Task action"
+msgstr "hành động nhiệm vụ"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Hình ảnh có thể nhấp:\n\nNhấp vào tên của một Dự án, Hồ sơ, Công việc hoặc Cảnh để chuyển đến đó trên bản đồ.\n\nNhấp tổ hợp phím Shift vào một Công việc để hiển thị toàn bộ chuỗi các cuộc gọi mà nó tham gia – tất cả các cuộc gọi mà nó thực hiện, tất cả các cuộc gọi mà nó nhận, và các mũi tên nối chúng.\n\nNhấp chuột phải vào bất kỳ tên nào để thực hiện các thao tác khác: thu gọn Dự án, chỉ hiển thị Dự án đó, hoặc theo dõi chuỗi của nó.\n\nNhấp vào biểu tượng ▾ bên cạnh một Dự án để thu gọn, và ▸ để khôi phục.\n\nSử dụng tổ hợp phím Ctrl (hoặc ⌘) và cần số để phóng to. Nhấn phím Esc để xóa một chuỗi."
+
+msgid "Undo is available."
+msgstr "Chức năng \"Hoàn tác\" có sẵn."
+
+msgid "Variable name"
+msgstr "Tên biến"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Phóng to. Sử dụng tổ hợp phím Ctrl/⌘ và cần trượt để thực hiện chức năng tương tự."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Thu nhỏ.  Ctrl/⌘ và con lăn cũng làm như vậy."
+
+msgid "changed"
+msgstr "đã thay đổi"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "huy bỏ lựa chọn chỉ một mục để đạt được cấu hình đầy đủ"
+
+msgid "more"
+msgstr "thêm"

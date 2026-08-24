@@ -2284,3 +2284,93 @@ msgstr "funnet for"
 
 msgid "of"
 msgstr "av"
+
+msgid "...to this name"
+msgstr "...til dette navnet"
+
+msgid "...with this one"
+msgstr "...med denne"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Tilbake til hele diagrammet: ingen forstørring, ingenting er sammenrullet, ingenting er filtrert."
+
+msgid "Cannot be changed"
+msgstr "Kan ikke endres"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Endre én ting overalt hvor den dukker opp. Ingen endringer blir gjort før du trykker på \"Forhåndsvisning\" og deretter \"Erstatt\", og hver endring vil være mulig å angre på etterpå."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Velg en variabel, og skriv inn det nye navnet."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Velg en handling som skal erstattes, og en handling som skal erstatte den."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Klikk på et navn for å få tilgang til kartinformasjonen · bruk Shift-tasten for å klikke på en oppgave og se dens tilknyttede prosesser"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Få alle prosjektene til å vises med sine titler.\n\nEt enkelt prosjekt kan sammenkastes ved å klikke på den øverste kanten av sin boks."
+
+msgid "Expand every collapsed Project."
+msgstr "Utvid hvert utvidet prosjekt."
+
+msgid "Limited to"
+msgstr "Begrenset til"
+
+msgid "Nothing here would change."
+msgstr "Ingenting her ville endre seg."
+
+msgid "Nothing is ticked."
+msgstr "Ingenting er markert."
+
+msgid "Nothing was changed."
+msgstr "Ingenting var endret."
+
+msgid "Press Preview first."
+msgstr "Først pressepresentasjonen."
+
+msgid "Rename this variable"
+msgstr "Endre navnet på denne variabelen"
+
+msgid "Replace"
+msgstr "Erstatt"
+
+msgid "Replace preview could not be saved."
+msgstr "Muligheten til å lagre forhåndsvisningen ble ikke opprettet."
+
+msgid "Replace preview saved as"
+msgstr "Erstatt forhåndsvisningen som er lagret"
+
+msgid "Replace this action"
+msgstr "Erstatt denne handlingen"
+
+msgid "Save Preview"
+msgstr "Lagre forhåndsvisning"
+
+msgid "Task action"
+msgstr "Oppgavehandling"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Diagrammet er klikkbart:\n\nKlikk på et prosjekt, en profil, en oppgave eller en scenes navn for å bli ført til den i kartet.\n\nKlikk med venstre museknapp på en oppgave for å fremheve hele kjeden av samtaler den er involvert i – alt den kaller, alt som kaller den, og pilene mellom dem.\n\nKlikk høyre museknapp på et hvilket som helst navn for å utforske videre: utvid prosjektet, vis kun det prosjektet, følg kjeden.\n\nKlikk på ▾-symbolet ved siden av et prosjekt for å utvide det, og ▸-symbolet for å trekke det tilbake.\n\nBruk Ctrl (eller ⌘) og hjulet for å zoome. Esc fjerner en kjede."
+
+msgid "Undo is available."
+msgstr "Funksjonen «Angre» er tilgjengelig."
+
+msgid "Variable name"
+msgstr "Variabelnavn"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Zoome inn. Bruk Ctrl/⌘ og hjulet for å gjøre det samme."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Zoom ut. Bruk Ctrl/⌘ og musehjulet for å oppnå samme effekt."
+
+msgid "changed"
+msgstr "endret"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "Fjern valg av enkeltstående element for å nå hele konfigurasjonen."
+
+msgid "more"
+msgstr "mer"

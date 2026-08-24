@@ -2290,3 +2290,93 @@ msgstr "Belum ada yang berubah."
 
 msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
 msgstr "Ambil kembali perubahan terakhir yang dilakukan pada XML yang dimuat -- edit, Tambah, Hapus, atau Ganti Nama, di panel Edit mana pun.\n\nIni mengubah apa yang dimuat, bukan file apa pun: tidak ada apa pun di disk atau perangkat Android yang disentuh."
+
+msgid "...to this name"
+msgstr "...के इस नाम"
+
+msgid "...with this one"
+msgstr "...और यह"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "वापस पूरे आरेख पर: कोई ज़ूम नहीं, कुछ भी मोड़ा नहीं, कुछ भी फ़िल्टर नहीं किया।"
+
+msgid "Cannot be changed"
+msgstr "नहीं बदला जा सकता"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "बदलें एक चीज हर जगह जहाँ वह दिखाई देता है। कोई भी बदलाव तब तक नहीं होता जब तक आप \"पूर्व्यू\" दबाएँ और फिर \"बदलें\" दबाएँ, और प्रत्येक बदलाव के बाद \"अनडू\" का उपयोग कर सकते हैं।"
+
+msgid "Choose a variable, and type the new name."
+msgstr "चुनें एक चर, और नए नाम को टाइप करें।"
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "चुनें कि कौन सा कार्य बदलना है, और किस कार्य से बदलना है।"
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "क्लिक करें नाम के लिए उसके मानचित्र प्रविष्टि · टास्क के लिए शिफ्ट-क्लिक करें उसके कॉल चेन"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "संक्षेप में, प्रत्येक परियोजना को उसके शीर्षक पट्टी तक कम करें।\n\nएक परियोजना को एक ही क्लिक करके उसके बॉक्स के ऊपरी किनारे पर क्लिक करके संक्षेप में किया जा सकता है।"
+
+msgid "Expand every collapsed Project."
+msgstr "विस्तारित करें हर बंद परियोजना।"
+
+msgid "Limited to"
+msgstr "Terbatas pada"
+
+msgid "Nothing here would change."
+msgstr "कुछ भी यहाँ नहीं बदलेगा।"
+
+msgid "Nothing is ticked."
+msgstr "कुछ भी टिक नहीं किया गया।"
+
+msgid "Nothing was changed."
+msgstr "कुछ भी नहीं बदली।"
+
+msgid "Press Preview first."
+msgstr "सबसे पहले प्रेस पूर्वावलोकन करें।"
+
+msgid "Rename this variable"
+msgstr "नाम बदलें इस चर"
+
+msgid "Replace"
+msgstr "बदलाव"
+
+msgid "Replace preview could not be saved."
+msgstr "\"संभावित दृश्य को सहेज नहीं किया जा सका।\""
+
+msgid "Replace preview saved as"
+msgstr "जहाँ पहले देखे गए चित्र को बदलें"
+
+msgid "Replace this action"
+msgstr "बदलाव"
+
+msgid "Save Preview"
+msgstr "सहेजें पूर्वावलोकन"
+
+msgid "Task action"
+msgstr "कार्य क्रिया"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "आरेख क्लिक करने योग्य है:\n\nएक प्रोजेक्ट, प्रोफाइल, कार्य या दृश्य नाम पर क्लिक करके, आप इसे मानचित्र में खोल सकते हैं।\n\nकार्य पर शिफ्ट-क्लिक करके, आप पूरे कॉल श्रृंखला को उजागर कर सकते हैं जिसमें वह भाग लेता है – वह जिन लोगों को कॉल करता है, और जिन लोगों को वह कॉल करता है, साथ ही उनके बीच के तीर।\n\nशेष नामों पर राइट-क्लिक करें: अपनी परियोजना को संक्षेप करें, केवल उस परियोजना को दिखाएं, और उस श्रृंखला का पालन करें।\n\nएक परियोजना के बगल में ▾ पर क्लिक करके, आप इसे संक्षेप कर सकते हैं, और ▸ पर क्लिक करके इसे वापस ला सकते हैं।\n\nCtrl (या ⌘) और स्क्रॉल व्हील ज़ूम करता है। Esc एक श्रृंखला को साफ़ करता है।"
+
+msgid "Undo is available."
+msgstr "कार्य क्रिया को पूर्ववत करना संभव है।"
+
+msgid "Variable name"
+msgstr "चर का नाम"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "ज़ूम इन। Ctrl/⌘ और स्क्रॉल व्हील एक ही काम करते हैं।"
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "ज़ूम आउट करें। Ctrl/⌘ और स्क्रॉल व्हील उसी कार्य को करते हैं।"
+
+msgid "changed"
+msgstr "बदला"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "साधारण रूप से एक आइटम का चयन करके पूरे कॉन्फ़िगरेशन तक पहुंचें"
+
+msgid "more"
+msgstr "अधिक"

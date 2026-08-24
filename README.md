@@ -156,9 +156,9 @@ This is the output from the Variable Xref (cross reference) run.
 
   Backups files from 'Export' or 'Save to Android', in which the file already existed and an overwrite would occur.
 
-  - MapTasker_Find_date_time.txt
+  - MapTasker_Find_date_time.txt and MapTasker_Replace_date_time.txt
 
-  The saved results of the structured search, from the Map and Diagram views, via the 'Find' command.
+  The saved results of the structured search, from the Map and Diagram views, via the 'Find' command, or of the Replace preview results.
 
 - hidden files: system settings, run counter, last 'version checked' date, and API keys.
 
@@ -309,6 +309,8 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 - [x] Structure Search
 
 - [x] Interactive Diagram view
+
+- [x] Find and Replace function
 
 - [ ] Capture Android Device Apps and Icons
 

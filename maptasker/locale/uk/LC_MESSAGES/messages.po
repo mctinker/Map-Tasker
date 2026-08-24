@@ -2302,3 +2302,93 @@ msgstr "У жодному проекті"
 
 msgid "Text (name, label or argument)"
 msgstr "Текст (назва, мітка або аргумент)"
+
+msgid "...to this name"
+msgstr "...під цю назву"
+
+msgid "...with this one"
+msgstr "...з цього"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Повернутися до повної діаграми: без збільшення, без складок, без фільтрів."
+
+msgid "Cannot be changed"
+msgstr "Не може бути змінено"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Змінюйте одну річ скрізь, де вона з’являється. Нічого не буде змінено, доки ви не натиснете «Попередній перегляд», а потім «Замінити», і після цього кожна зміна буде відмінена."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Виберіть змінну, і введіть нову назву."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Виберіть дію, яку потрібно замінити, та дію, якою її замінити."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Натисніть на ім'я, щоб отримати доступ до відповідної запису на карті · натисніть клавішею Shift на завдання, щоб переглянути його послідовність викликів"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Скоротіть кожен проєкт до його заголовної панелі.\n\nОдин проєкт може бути скорочений, натиснувши на верхній край його рамки."
+
+msgid "Expand every collapsed Project."
+msgstr "Розгорніть кожен проєкт, який знаходиться у стані \"сховано\"."
+
+msgid "Limited to"
+msgstr "Обмежено"
+
+msgid "Nothing here would change."
+msgstr "Жодна з цих речей не зміниться."
+
+msgid "Nothing is ticked."
+msgstr "Жодна опція не вибрана."
+
+msgid "Nothing was changed."
+msgstr "Нічого не змінилося."
+
+msgid "Press Preview first."
+msgstr "Спочатку – прес-презентація."
+
+msgid "Rename this variable"
+msgstr "Перейменуйте цю змінну"
+
+msgid "Replace"
+msgstr "Замінити"
+
+msgid "Replace preview could not be saved."
+msgstr "Не вдалося зберегти попередній перегляд."
+
+msgid "Replace preview saved as"
+msgstr "Замінити попередній перегляд, збережений як"
+
+msgid "Replace this action"
+msgstr "Замініть цю дію"
+
+msgid "Save Preview"
+msgstr "Зберегти попередній перегляд"
+
+msgid "Task action"
+msgstr "Дія, пов'язана з завданням"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Диаграма є інтерактивною:\n\nНатисніть на назву Проекту, Профілю, Завдання або Сцени, щоб перейти до неї на карті.\n\nНатисніть Ctrl+клавішу на Завданні, щоб відобразити всю ланцюг викликів, в якому воно бере участь – все, до чого воно звертається, і все, що звертається до нього, а також стрілки між ними.\n\nКлацніть правою кнопкою миші на будь-якій назві, щоб зробити інші дії: розгорнути Проект, показати лише цей Проект, слідувати за його ланцюгом.\n\nНатисніть ▾ поруч з Проектом, щоб розгорнути його, і ▸ – щоб повернути його.\n\nCtrl (або ⌘) та коліщатко збільшують масштаб. Натисніть Esc, щоб очистити ланцюг."
+
+msgid "Undo is available."
+msgstr "Функція \"Скасувати\" доступна."
+
+msgid "Variable name"
+msgstr "Назва змінної"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Увеличте масштаб. Клавіші Ctrl/⌘ та колесо прокрутки виконують ту саму функцію."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Видалити зум. Для цього використовуйте клавіші Ctrl/⌘ та колесо прокрутки – вони виконують ту саму функцію."
+
+msgid "changed"
+msgstr "змінено"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "виберіть один елемент, щоб перейти до повного налаштування"
+
+msgid "more"
+msgstr "більше"

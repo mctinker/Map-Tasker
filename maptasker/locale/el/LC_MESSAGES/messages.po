@@ -2302,3 +2302,93 @@ msgstr "Το MapTasker εμφανίζει τη διαμόρφωση Android Task
 
 msgid "Help"
 msgstr "Βοήθεια"
+
+msgid "...to this name"
+msgstr "...σε αυτό το όνομα"
+
+msgid "...with this one"
+msgstr "...με αυτό"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Επιστρέφοντας στο ολόκληρο διάγραμμα: χωρίς ζουμ, χωρίς καμία μορφή που έχει συμπιεστεί ή φιλτραριστεί."
+
+msgid "Cannot be changed"
+msgstr "Δεν μπορεί να τροποποιηθεί"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Αλλάξτε ένα πράγμα όπου και αν εμφανίζεται. Κανένα στοιχείο δεν τροποποιείται μέχρι να πατήσετε το \"Προεπισκόπηση\" και στη συνέχεια το \"Αντικατάσταση\", και κάθε αλλαγή μπορεί να ακυρωθεί εύκολα μετά."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Επιλέξτε μια μεταβλητή και εισάγετε το νέο όνομά της."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Επιλέξτε μια ενέργεια που θέλετε να αντικαταστήσετε, και μια άλλη για να την αντικαταστήσετε."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Κάντε κλικ σε ένα όνομα για να ανοίξετε την αντίστοιχη εγγραφή στο χάρτη · χρησιμοποιήστε το συνδυασμό πληκτρολογίων (Shift + κλικ) σε μια εργασία για να δείτε την αλυσίδα κλήσεων."
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Συρρίχστε κάθε έργο στην γραμμή τίτλου του.\n\nΈνα έργο μπορεί να συρρικνωθεί αυτόματα, απλώς κάνοντας κλικ στην πάνω άκρη του κουτιού του."
+
+msgid "Expand every collapsed Project."
+msgstr "Ανοίξτε κάθε αναπτυγμένο έργο."
+
+msgid "Limited to"
+msgstr "Περιορισμένο σε"
+
+msgid "Nothing here would change."
+msgstr "Τίποτα εδώ δεν θα άλλαζε."
+
+msgid "Nothing is ticked."
+msgstr "Δεν υπάρχει κάποιο κουτάκι επιλεγμένο."
+
+msgid "Nothing was changed."
+msgstr "Δεν υπήρξαν αλλαγές."
+
+msgid "Press Preview first."
+msgstr "Πρώτα, κάντε μια προεπισκόπηση των ειδήσεων."
+
+msgid "Rename this variable"
+msgstr "Αλλάξτε το όνομα αυτής της μεταβλητής"
+
+msgid "Replace"
+msgstr "Αντικατάσταση"
+
+msgid "Replace preview could not be saved."
+msgstr "Η αποθήκευση της προεπισκόπησης δεν ήταν δυνατή."
+
+msgid "Replace preview saved as"
+msgstr "Αντικαταστήστε την προεπισκόπηση που έχει αποθηκευτεί ως"
+
+msgid "Replace this action"
+msgstr "Αντικαταστήστε αυτή την ενέργεια"
+
+msgid "Save Preview"
+msgstr "Αποθήκευση Προεπισκόπησης"
+
+msgid "Task action"
+msgstr "Ενέργεια εργασίας"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Ο διάγραμμα είναι διαδραστικό:\n\nΚάντε κλικ σε ένα όνομα Έργου, Προφίλ, Εργασίας ή Σκηνής για να μεταβείτε απευθείας σε αυτό στο χάρτη.\n\nΜε το Shift, κάντε κλικ σε μια Εργασία για να εμφανίσετε ολόκληρη τη σειρά των κλήσεων στις οποίες συμμετέχει – κάθε κλήση που κάνει, κάθε κλήση που λαμβάνει, καθώς και τις βέλη μεταξύ τους.\n\nΚάντε δεξί κλικ σε οποιοδήποτε όνομα για να κάνετε τα εξής: κλείστε το Έργο, εμφανίστε μόνο αυτό το Έργο, ακολουθήστε τη σειρά των κλήσεων.\n\nΚάντε κλικ στο ▾ δίπλα σε ένα Έργο για να το κλείσετε, και στο ▸ για να το ανοίξετε ξανά.\n\nΧρησιμοποιήστε τα Ctrl (ή ⌘) και το ρότορα του ποντικιού για μεγέθυνση. Το Esc διαγράφει μια σειρά κλήσεων."
+
+msgid "Undo is available."
+msgstr "Η αναίρεση είναι διαθέσιμη."
+
+msgid "Variable name"
+msgstr "Όνομα μεταβλητής"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Μεγέθυνση. Το πλήκτρο Ctrl/⌘ μαζί με το ρότορα του ποντικιού κάνουν την ίδια λειτουργία."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Μετακινήστε την κάμερα προς τα πίσω. Ο συνδυασμός πλήκτρων Ctrl/⌘ και του τροχού κύλισης έχει την ίδια λειτουργία."
+
+msgid "changed"
+msgstr "αλλάχτηκε"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "απαλλαγείτε από την επιλογή ενός μόνο στοιχείου για να μπορέσετε να επιλέξετε ολόκληρη τη διαμόρφωση."
+
+msgid "more"
+msgstr "περισσότερο"

@@ -37,6 +37,7 @@ HEALTHCHECK_FILE = "MapTasker_HealthCheck.txt"
 COMPARE_FILE = "MapTasker_Compare.txt"
 VARXREF_FILE = "MapTasker_VarXref.txt"
 FIND_FILE = "MapTasker_Find.txt"
+SWAP_FILE = "MapTasker_Replace.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
 SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
 

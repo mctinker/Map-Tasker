@@ -2300,3 +2300,93 @@ msgstr "ไม่มีสิ่งใดในการกำหนดค่า
 
 msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
 msgstr "นำการเปลี่ยนแปลงล่าสุดที่ทำกับ XML ที่โหลดกลับมา เช่น การแก้ไข เพิ่ม ลบ หรือเปลี่ยนชื่อ ในแผงแก้ไขใดๆ\n\nสิ่งนี้จะเปลี่ยนสิ่งที่โหลด ไม่ใช่ไฟล์ใด ๆ: ไม่มีการสัมผัสสิ่งใดบนดิสก์หรือบนอุปกรณ์ Android"
+
+msgid "...to this name"
+msgstr "...ไปยังชื่อนี้"
+
+msgid "...with this one"
+msgstr "...และสิ่งนี้"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "กลับไปดูภาพรวมทั้งหมด: ไม่มีการซูม ไม่มีการพับ ไม่มีการกรอง"
+
+msgid "Cannot be changed"
+msgstr "ไม่สามารถเปลี่ยนแปลงได้"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "เปลี่ยนแปลงสิ่งใดสิ่งหนึ่งในทุกที่ที่ปรากฏ การเปลี่ยนแปลงใดๆ จะเกิดขึ้นเมื่อคุณกดปุ่ม \"ดูตัวอย่าง\" แล้วจึงกด \"แทนที่\" และการเปลี่ยนแปลงทุกครั้งสามารถยกเลิกได้ด้วยปุ่ม \"ยกเลิก\""
+
+msgid "Choose a variable, and type the new name."
+msgstr "เลือกตัวแปร แล้วพิมพ์ชื่อใหม่"
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "เลือกการกระทำที่จะถูกแทนที่ และเลือกการกระทำที่จะใช้แทน"
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "คลิกที่ชื่อเพื่อไปยังรายการแผนที่ · คลิกสองครั้งที่งานเพื่อดูรายการการเรียก"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "ลดขนาดทุกโครงการให้เหลือเฉพาะแถบชื่อโครงการ\n\nการลดขนาดโครงการเดียวให้เหลือเฉพาะ สามารถทำได้โดยคลิกที่ขอบบนของกล่องโครงการนั้น"
+
+msgid "Expand every collapsed Project."
+msgstr "ขยายโครงการที่ยังไม่ได้เปิดใช้งานทั้งหมด"
+
+msgid "Limited to"
+msgstr "จำกัดเฉพาะ"
+
+msgid "Nothing here would change."
+msgstr "สิ่งใดๆ ที่อยู่ตรงนี้ก็คงไม่เปลี่ยนแปลง"
+
+msgid "Nothing is ticked."
+msgstr "ไม่มีรายการใดถูกทำเครื่องหมาย"
+
+msgid "Nothing was changed."
+msgstr "ไม่มีอะไรเปลี่ยนแปลง"
+
+msgid "Press Preview first."
+msgstr "เริ่มด้วยการสัมภาษณ์สื่อก่อน"
+
+msgid "Rename this variable"
+msgstr "เปลี่ยนชื่อตัวแปรนี้"
+
+msgid "Replace"
+msgstr "แทนที่"
+
+msgid "Replace preview could not be saved."
+msgstr "ไม่สามารถบันทึกภาพตัวอย่าง"
+
+msgid "Replace preview saved as"
+msgstr "แทนที่ภาพตัวอย่างที่บันทึกไว้"
+
+msgid "Replace this action"
+msgstr "แทนที่การกระทำนี้"
+
+msgid "Save Preview"
+msgstr "บันทึกตัวอย่าง"
+
+msgid "Task action"
+msgstr "การดำเนินการ"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "แผนภาพสามารถคลิกได้:\n\nคลิกที่ชื่อโครงการ, โปรไฟล์, งาน หรือฉาก เพื่อไปยังรายการนั้นในแผนที่\n\nคลิกที่ชื่องานหนึ่งครั้งเพื่อแสดงรายการการทำงานทั้งหมดที่เกี่ยวข้อง – ทั้งงานที่ส่งและรับ รวมถึงลูกศรที่เชื่อมต่อ\n\nคลิกขวาที่ชื่อใดๆ เพื่อ: พับโครงการ, แสดงเฉพาะโครงการนั้น, หรือติดตามรายการทั้งหมด\n\nคลิกที่สัญลักษณ์ ▾ ข้างชื่อโครงการเพื่อพับ และคลิกที่สัญลักษณ์ ▸ เพื่อแสดงรายการ\n\nใช้ปุ่ม Ctrl (หรือ ⌘) ร่วมกับลูกกลิ้งเพื่อซูมภาพ ข้อมูล Esc จะล้างรายการ"
+
+msgid "Undo is available."
+msgstr "ฟังก์ชัน \"ยกเลิก\" พร้อมใช้งาน"
+
+msgid "Variable name"
+msgstr "ชื่อตัวแปร"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "ซูมเข้า Zoom in. การกดปุ่ม Ctrl/⌘ พร้อมกับการหมุนลูกกลิ้ง จะทำหน้าที่เดียวกัน"
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "เลื่อนออก (Zoom out) โดยใช้ปุ่ม Ctrl/⌘ ร่วมกับปุ่มหมุน เพื่อทำหน้าที่เดียวกัน"
+
+msgid "changed"
+msgstr "เปลี่ยนแปลง"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "ทำเครื่องหมายที่ตัวเลือกรายการเดียว เพื่อให้เข้าถึงการตั้งค่าทั้งหมด"
+
+msgid "more"
+msgstr "มากขึ้น"

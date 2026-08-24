@@ -2300,3 +2300,93 @@ msgstr "löydetty"
 
 msgid "of"
 msgstr "/"
+
+msgid "...to this name"
+msgstr "...tälle nimelle"
+
+msgid "...with this one"
+msgstr "...tällä"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Takaisin kokonaiskuvaan: ei zoomausta, mitään ei ole taitettu, mitään ei ole suodatettu."
+
+msgid "Cannot be changed"
+msgstr "Ei voi muuttaa"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Muuta yhtä asiaa kaikkialla, missä se näkyy. Mitään ei muuteta, ennen kuin painat Esikatselu- ja sitten Korvaa-painiketta, ja jokainen muutos on yhden kumoamisen päässä."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Valitse muuttuja ja anna sille uusi nimi."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Valitse toiminto, jonka haluat korvata, ja toinen toiminto, jolla se korvataan."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Napsauta sen Karttamerkinnän nimeä · Vaihto-osoita tehtävää sen kutsuketjussa"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Kutista jokainen projekti otsikkopalkkiin asti.\n\nYksi projekti itsessään romahtaa napsauttamalla sen laatikon yläreunaa."
+
+msgid "Expand every collapsed Project."
+msgstr "Laajenna jokainen supistettu projekti."
+
+msgid "Limited to"
+msgstr "Rajoitettu"
+
+msgid "Nothing here would change."
+msgstr "Tässä ei olisi mitään muutosta."
+
+msgid "Nothing is ticked."
+msgstr "Mikään ei ole valittu."
+
+msgid "Nothing was changed."
+msgstr "Ei ollut mitään muutosta."
+
+msgid "Press Preview first."
+msgstr "Ennen lehdistötilaisuutta."
+
+msgid "Rename this variable"
+msgstr "Nimeä tämä muuttuja uudelleen"
+
+msgid "Replace"
+msgstr "Korvaa"
+
+msgid "Replace preview could not be saved."
+msgstr "Esitteen tallennus epäonnistui."
+
+msgid "Replace preview saved as"
+msgstr "Korvaa esikatselu, joka on tallennettu nimellä"
+
+msgid "Replace this action"
+msgstr "Korvaa tämä toiminto"
+
+msgid "Save Preview"
+msgstr "Tallenna esikatselu"
+
+msgid "Task action"
+msgstr "Tehtävän suoritus"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Kaavio on klikattavissa:\n\nKlikkaa Projektin, Profiilin, Tehtävän tai Kohtauksen nimeä, niin pääset siihen kartalla.\n\nPaina Shift-näppäintä, niin koko toimintaketju, johon tehtävä kuuluu, valotetaan – kaikki, joita tehtävä kutsuu, sekä kaikki, jotka sitä kutsuvat, ja niiden väliset nuolet.\n\nNapsauta minkä tahansa nimen oikealla hiirellä, jolloin voit: supistaa Projektin, näyttää vain kyseisen Projektin, seurata sen ketjua.\n\nNapsauta Projektin vieressä olevaa ▾-merkkiä, jolloin se supistuu, ja ▸-merkki, jolloin se palautuu.\n\nKäytä Ctrl (tai ⌘) -näppäintä ja rulla-pyörää zoomaamaan. Esc-näppäin poistaa ketjun."
+
+msgid "Undo is available."
+msgstr "Kumoaminen on käytettävissä."
+
+msgid "Variable name"
+msgstr "Muuttujan nimi"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Zooma. Ctrl/⌘ ja pyöritysliukusäädin tekevät saman."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Zooma ulos. Ctrl/⌘ ja rullakiekko tekevät saman."
+
+msgid "changed"
+msgstr "muuttunut"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "Poista yksittäisen kohteen valinta, jotta pääset kokonaiskokoonpanoon."
+
+msgid "more"
+msgstr "enemmän"

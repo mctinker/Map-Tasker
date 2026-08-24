@@ -2280,3 +2280,93 @@ msgstr "के लिए मिला"
 
 msgid "of"
 msgstr "का"
+
+msgid "...to this name"
+msgstr "...इस नाम"
+
+msgid "...with this one"
+msgstr "...और इस चीज़ के साथ"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "संपूर्ण आरेख पर वापस: कोई ज़ूम नहीं, कुछ भी नहीं मोड़ा, कुछ भी फ़िल्टर नहीं किया।"
+
+msgid "Cannot be changed"
+msgstr "इसे बदला नहीं जा सकता"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "जहां भी यह दिखाई देता है, उसे बदल दें। जब तक आप \"प्रीव्यू\" और फिर \"रिप्लेस\" पर क्लिक नहीं करते, तब तक कुछ भी नहीं बदलता, और हर बदलाव के बाद आप \"अनडू\" का उपयोग कर सकते हैं।"
+
+msgid "Choose a variable, and type the new name."
+msgstr "एक चर चुनें, और नए नाम को टाइप करें।"
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "एक क्रिया का चयन करें जिसे आप बदलना चाहते हैं, और एक ऐसी क्रिया का चयन करें जिससे आप उसे बदलें।"
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "किसी नाम पर क्लिक करके उसका मानचित्र देखें · किसी कार्य पर शिफ्ट-क्लिक करके उसके कॉल चेन को देखें"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "प्रत्येक परियोजना को उसके शीर्षक बार तक कम करें।\n\nएक परियोजना को अपने बॉक्स के ऊपरी किनारे पर क्लिक करके स्वचालित रूप से बंद किया जा सकता है।"
+
+msgid "Expand every collapsed Project."
+msgstr "हर बंद परियोजना को खोलें।"
+
+msgid "Limited to"
+msgstr "सीमित"
+
+msgid "Nothing here would change."
+msgstr "यहां कुछ भी नहीं बदलेगा."
+
+msgid "Nothing is ticked."
+msgstr "कुछ भी चिह्नित नहीं है।"
+
+msgid "Nothing was changed."
+msgstr "कुछ भी नहीं बदला।"
+
+msgid "Press Preview first."
+msgstr "सबसे पहले प्रेस का पूर्वावलोकन करें।"
+
+msgid "Rename this variable"
+msgstr "इस वेरिएबल का नाम बदलें।"
+
+msgid "Replace"
+msgstr "बदलें"
+
+msgid "Replace preview could not be saved."
+msgstr "\"पूर्वावलोकन को सहेज नहीं किया जा सका।\""
+
+msgid "Replace preview saved as"
+msgstr "\"पहले से सहे हुए पूर्वावलोकन को बदलें\""
+
+msgid "Replace this action"
+msgstr "इस कार्रवाई को बदलें"
+
+msgid "Save Preview"
+msgstr "पूर्वावलोकन सहेजें"
+
+msgid "Task action"
+msgstr "कार्य क्रिया"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "यह आरेख क्लिक करने योग्य है:\n\nमानचित्र में किसी प्रोजेक्ट, प्रोफाइल, कार्य या दृश्य के नाम पर क्लिक करने से, आप उस पर जा सकते हैं।\n\nकिसी कार्य पर Shift-क्लिक करने से, उस कार्य द्वारा किए गए सभी कार्यों और उन कार्यों द्वारा किए गए सभी कार्यों की श्रृंखला उजागर हो जाएगी, साथ ही उनके बीच के तीर भी दिखाई देंगे।\n\nअन्य नामों के लिए, दाईं ओर क्लिक करके: उसका प्रोजेक्ट बंद करें, केवल उस प्रोजेक्ट को दिखाएं, उसकी श्रृंखला का पालन करें।\n\nकिसी प्रोजेक्ट के बगल में दिए गए ▾ पर क्लिक करके, आप उसे बंद कर सकते हैं, और ▸ पर क्लिक करके उसे वापस ला सकते हैं।\n\nCtrl (या ⌘) और स्क्रॉल व्हील ज़ूम करते हैं। Esc एक श्रृंखला को साफ़ करता है।"
+
+msgid "Undo is available."
+msgstr "\"रद्द करने\" की सुविधा उपलब्ध है।"
+
+msgid "Variable name"
+msgstr "चर का नाम"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "ज़ूम इन करें। Ctrl/⌘ और स्क्रॉल व्हील भी यही करता है।"
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "ज़ूम आउट करें। Ctrl/⌘ और स्क्रॉल व्हील दोनों एक ही काम करते हैं।"
+
+msgid "changed"
+msgstr "परिवर्तित"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "एकल आइटम का चयन को साफ़ करके पूरे कॉन्फ़िगरेशन तक पहुंचें।"
+
+msgid "more"
+msgstr "अधिक"

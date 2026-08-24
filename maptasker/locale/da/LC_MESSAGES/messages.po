@@ -2282,3 +2282,93 @@ msgstr "Ingen ændringer at fortryde."
 
 msgid "Run a Find first."
 msgstr "Kør et Find først."
+
+msgid "...to this name"
+msgstr "...til dette navn"
+
+msgid "...with this one"
+msgstr "...med denne"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Tilbage til hele diagrammet: ingen forstørrelse, intet foldet, intet filtreret."
+
+msgid "Cannot be changed"
+msgstr "Kan ikke ændres"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Ændr én ting, hvor den end måtte dukke op. Intet ændres, før du trykker på \"Forhåndsvisning\" og derefter \"Udskift\", og hver ændring kan fortrydes efterfølgende."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Vælg en variabel, og skriv det nye navn."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Vælg en handling, der skal erstattes, og en til at erstatte den med."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Klik på et navn for dens kortindgang · Skift-klik på en opgave for dens opkaldskæde"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Fold alle projekter sammen til deres titelstreg.\n\nEt enkelt projekt kan foldes sammen ved at klikke på den øverste kant af dets boks."
+
+msgid "Expand every collapsed Project."
+msgstr "Udvid hvert projekt, der er blevet lukket."
+
+msgid "Limited to"
+msgstr "Begrænset til"
+
+msgid "Nothing here would change."
+msgstr "Intet her ville ændre sig."
+
+msgid "Nothing is ticked."
+msgstr "Intet er markeret."
+
+msgid "Nothing was changed."
+msgstr "Intet var blevet ændret."
+
+msgid "Press Preview first."
+msgstr "Først pressepræsentationen."
+
+msgid "Rename this variable"
+msgstr "Omdøb denne variabel"
+
+msgid "Replace"
+msgstr "Udskift"
+
+msgid "Replace preview could not be saved."
+msgstr "Muligheden for at gemme forhåndsvisningen blev ikke bevaret."
+
+msgid "Replace preview saved as"
+msgstr "Erstat forhåndsvisningen, der er gemt som"
+
+msgid "Replace this action"
+msgstr "Erstat denne handling"
+
+msgid "Save Preview"
+msgstr "Gem forhåndsvisning"
+
+msgid "Task action"
+msgstr "Opgavehandling"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Diagrammet er klikbart:\n\nKlik på et projekt-, profil-, opgave- eller scenenavn for at blive taget til det på kortet.\n\nSkift-klik på en opgave for at lyse op i hele kæden af ​​opkald, den deltager i - alt, hvad den kalder, alt, hvad der kalder den, og pilene mellem dem.\n\nHøjreklik på et hvilket som helst navn for resten: skjul dets projekt, vis kun det projekt, følg dets kæde.\n\nKlik på ▾ ved siden af ​​et projekt for at skjule det, og ▸ for at bringe det tilbage.\n\nCtrl (eller ⌘), og rullehjulet zoomer.  Esc rydder en kæde."
+
+msgid "Undo is available."
+msgstr "\"Tilbagetræk\" er tilgængeligt."
+
+msgid "Variable name"
+msgstr "Variabelnavn"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Zoom ind. Brug Ctrl/⌘ og panoreringhjulet for at opnå det samme."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Zoom ud.  Ctrl/⌘ og rullehjulet gør det samme."
+
+msgid "changed"
+msgstr "ændret"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "fjern den en-element-valg for at nå hele konfigurationen"
+
+msgid "more"
+msgstr "mere"

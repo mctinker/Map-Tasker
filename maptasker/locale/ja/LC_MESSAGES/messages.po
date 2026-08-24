@@ -2279,3 +2279,93 @@ msgstr "[OK]、[保存]、または [エクスポート] を押すまでは何�
 
 msgid "Run a Find first."
 msgstr "まず検索を実行します。"
+
+msgid "...to this name"
+msgstr "...この名前に"
+
+msgid "...with this one"
+msgstr "…これに関連して"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "元の図全体に戻る：ズーム機能は無効、折り畳みもフィルタリングも適用しない状態。"
+
+msgid "Cannot be changed"
+msgstr "変更できません"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "どこでも同じ箇所で変更を加え、すべてを修正するまでには、「プレビュー」と「置換」ボタンを押す必要があります。変更を加えるたびに「元に戻す」機能を使用できるため、安全に作業できます。"
+
+msgid "Choose a variable, and type the new name."
+msgstr "変数を選択し、新しい名前を入力してください。"
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "置き換えるためのアクションを選び、それをどのように置き換えるかを決定してください。"
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "名前をクリックすると、そのマップへのエントリが表示されます。タスクをShiftキーを押しながらクリックすると、その呼び出しチェーンが表示されます。"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "すべてのプロジェクトをタイトル バーまで折りたたみます。\n\nボックスの上端をクリックすると、1 つのプロジェクトが単独で折りたたまれます。"
+
+msgid "Expand every collapsed Project."
+msgstr "すべての折りたたまれたプロジェクトを展開する。"
+
+msgid "Limited to"
+msgstr "限定"
+
+msgid "Nothing here would change."
+msgstr "ここには何も変わらない。"
+
+msgid "Nothing is ticked."
+msgstr "何も選択されていません。"
+
+msgid "Nothing was changed."
+msgstr "何も変わっていません。"
+
+msgid "Press Preview first."
+msgstr "まず、プレス向けの事前発表を行います。"
+
+msgid "Rename this variable"
+msgstr "この変数の名前を変更してください"
+
+msgid "Replace"
+msgstr "置き換え"
+
+msgid "Replace preview could not be saved."
+msgstr "プレビューの保存はできませんでした。"
+
+msgid "Replace preview saved as"
+msgstr "「プレビューを保存したものを置き換える」"
+
+msgid "Replace this action"
+msgstr "この操作を置き換える"
+
+msgid "Save Preview"
+msgstr "プレビューを保存"
+
+msgid "Task action"
+msgstr "タスクの実行"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "この図はクリック可能です。\n\nマップ内のプロジェクト、プロフィール、タスク、またはシーンの名前をクリックすると、その項目に移動します。\n\nタスクをクリックすると、そのタスクが関わるすべての呼び出しチェーンが強調表示されます。つまり、そのタスクが呼び出すもの、そしてそれを呼び出すもの、およびそれらの間の矢印が表示されます。\n\nその他の名前を右クリックすると、プロジェクトを折りたたむ、またはそのプロジェクトのみを表示し、そのチェーンを追跡できます。\n\nプロジェクトの隣にある ▾ をクリックすると、折りたたむことができ、 ▸ をクリックすると元に戻ります。\n\nCtrl (または ⌘) とスクロールホイールを同時に操作するとズームします。 Esc キーを押すと、チェーンをクリアします。"
+
+msgid "Undo is available."
+msgstr "「取り消し」機能が利用可能です。"
+
+msgid "Variable name"
+msgstr "変数名"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "ズームイン。 Ctrl/⌘ キーとスクロールホイールを使用すると、同じ操作が可能です。"
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "ズームアウトします。 Ctrl/⌘ キーとスクロールホイールを使用すると、同じ操作が可能です。"
+
+msgid "changed"
+msgstr "変更"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "単一項目のみの選択を解除し、構成全体を表示する"
+
+msgid "more"
+msgstr "さらに"

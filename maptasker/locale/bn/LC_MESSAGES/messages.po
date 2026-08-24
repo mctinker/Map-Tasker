@@ -2300,3 +2300,93 @@ msgstr "পূর্বাবস্থায়"
 
 msgid "Help"
 msgstr "সাহায্য"
+
+msgid "...to this name"
+msgstr "...এই নামের অধীনে"
+
+msgid "...with this one"
+msgstr "...এইটির সাথে।"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "পুরো চিত্রটির দিকে ফিরে আসা: কোনো জুম করা নেই, কোনো কিছু ভাঁজ করা হয়নি, এবং কোনো ফিল্টার ব্যবহার করা হয়নি।"
+
+msgid "Cannot be changed"
+msgstr "পরিবর্তন করা যায় না"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "যেখানে দেখা যায় সেখানে একটি জিনিস পরিবর্তন করুন। আপনি প্রিভিউ এবং তারপর রিপ্লেস প্রেস না করা পর্যন্ত কিছুই পরিবর্তন করা হয় না এবং প্রতিটি পরিবর্তনের পরে একটি পূর্বাবস্থায় ফিরে আসে।"
+
+msgid "Choose a variable, and type the new name."
+msgstr "একটি ভেরিয়েবল নির্বাচন করুন, এবং নতুন নামটি লিখুন।"
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "এমন একটি কাজ নির্বাচন করুন, যা আপনি প্রতিস্থাপন করতে চান, এবং এমন একটি কাজ নির্বাচন করুন, যা দিয়ে আপনি সেটি প্রতিস্থাপন করতে চান।"
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "নামটিতে ক্লিক করে তার ম্যাপ এন্ট্রি দেখুন · একটি টাস্কের জন্য শিফট-ক্লিক করে তার কল চেইন দেখুন"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "প্রতিটি প্রজেক্টকে এর শিরোনাম দণ্ডে সঙ্কুচিত করুন।\n\nএকটি প্রকল্প তার নিজের বাক্সের উপরের প্রান্তে ক্লিক করে ভেঙে পড়ে।"
+
+msgid "Expand every collapsed Project."
+msgstr "যে সকল প্রকল্প বন্ধ হয়ে আছে, সেগুলোকে পুনরায় চালু করুন।"
+
+msgid "Limited to"
+msgstr "সীমিত"
+
+msgid "Nothing here would change."
+msgstr "এখানে কিছুই পরিবর্তিত হবে না।"
+
+msgid "Nothing is ticked."
+msgstr "কোনো কিছুই নির্বাচন করা হয়নি।"
+
+msgid "Nothing was changed."
+msgstr "কিছু পরিবর্তন হয়নি।"
+
+msgid "Press Preview first."
+msgstr "প্রথমে প্রেস প্রিভিউ দেখুন।"
+
+msgid "Rename this variable"
+msgstr "এই ভেরিয়েবলের নাম পরিবর্তন করুন।"
+
+msgid "Replace"
+msgstr "পরিবর্তন"
+
+msgid "Replace preview could not be saved."
+msgstr "\"পূর্বদর্শন সংরক্ষণে ব্যর্থ।\""
+
+msgid "Replace preview saved as"
+msgstr "\"পূর্ববর্তী সংস্করণটিকে প্রতিস্থাপন করুন\""
+
+msgid "Replace this action"
+msgstr "এই পদক্ষেপটিকে প্রতিস্থাপন করুন।"
+
+msgid "Save Preview"
+msgstr "পূর্বদর্শন সংরক্ষণ করুন"
+
+msgid "Task action"
+msgstr "কার্য সম্পাদনের পদক্ষেপ"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "এই ডায়াগ্রামটি ক্লিকযোগ্য:\n\nম্যাপে একটি প্রোজেক্ট, প্রোফাইল, টাস্ক বা সিন-এর নাম ক্লিক করলে, আপনি সেই নির্দিষ্ট স্থানে চলে যাবেন।\n\nএকটি টাস্কের উপর Shift-ক্লিক করলে, সেই টাস্কটি যে সমস্ত অন্যান্য টাস্কের সাথে যোগাযোগ করে, তার সম্পূর্ণ তালিকা প্রদর্শিত হবে—অর্থাৎ, এটি যে টাস্কের সাথে যোগাযোগ করে, এবং তাদের মধ্যেকার সম্পর্কগুলো তীরচিহ্নের মাধ্যমে দেখানো হবে।\n\nঅন্যান্য নামগুলোর জন্য ডান ক্লিক করুন: প্রোজেক্টটিকে সংকুচিত করুন, শুধুমাত্র সেই প্রোজেক্টটি দেখান, অথবা এটির মাধ্যমে যান।\n\nএকটি প্রোজেক্টের পাশে থাকা ▾ (নিম্নমুখী তীর) ক্লিক করে এটিকে সংকুচিত করুন, এবং ▸ (উর্ধ্বমুখী তীর) ক্লিক করে এটিকে আবার খুলুন।\n\nCtrl (অথবা ⌘) এবং স্ক্রোলিং হুইল ব্যবহার করে জুম ইন/আউট করা যায়। Esc চেপে একটি সংযোগ বাতিল করা যায়।"
+
+msgid "Undo is available."
+msgstr "\"আনডু\" অপশনটি উপলব্ধ।"
+
+msgid "Variable name"
+msgstr "ভেরিয়েবলের নাম"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "জুম ইন করুন। Ctrl/⌘ এবং স্ক্রোল হুইল একই কাজ করবে।"
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "জুম আউট করুন। Ctrl/⌘ এবং স্ক্রোল হুইল একই কাজ করবে।"
+
+msgid "changed"
+msgstr "পরিবর্তিত"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "একটি মাত্র আইটেম নির্বাচন করার মাধ্যমে সম্পূর্ণ কনফিগারেশনটি অ্যাক্সেস করুন।"
+
+msgid "more"
+msgstr "আরও"

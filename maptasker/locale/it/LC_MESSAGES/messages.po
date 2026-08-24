@@ -2283,3 +2283,93 @@ msgstr "MapTasker mostra la configurazione di Android Tasker in base al file XML
 
 msgid "Text (name, label or argument)"
 msgstr "Testo (nome, etichetta o argomento)"
+
+msgid "...to this name"
+msgstr "...a questo nome"
+
+msgid "...with this one"
+msgstr "...con questo"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Ritorna al diagramma completo: nessuna ingrandimento, niente piegato, niente filtrato."
+
+msgid "Cannot be changed"
+msgstr "Non può essere modificato."
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Modifica una singola cosa ogni volta che compare. Nessuna modifica viene applicata finché non premi \"Anteprima\" e poi \"Sostituisci\", e ogni modifica può essere annullata facilmente."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Scegli una variabile e digita il nuovo nome."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Scegli un'azione da sostituire e una per sostituirla."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Cliccare su un nome per visualizzare la sua voce nella mappa · fare clic con il tasto destro su un'attività per visualizzare la sua catena di chiamate"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Riduci ogni progetto alla sua barra del titolo.\n\nUn singolo progetto può essere ridotto alla sua dimensione facendo clic sul bordo superiore della sua finestra."
+
+msgid "Expand every collapsed Project."
+msgstr "Espandi ogni progetto non ancora visualizzato."
+
+msgid "Limited to"
+msgstr "Limitato a"
+
+msgid "Nothing here would change."
+msgstr "Niente qui cambierebbe."
+
+msgid "Nothing is ticked."
+msgstr "Nessun elemento è selezionato."
+
+msgid "Nothing was changed."
+msgstr "Niente è cambiato."
+
+msgid "Press Preview first."
+msgstr "Prima, fare una anteprima per la stampa."
+
+msgid "Rename this variable"
+msgstr "Rinominare questa variabile"
+
+msgid "Replace"
+msgstr "Sostituire"
+
+msgid "Replace preview could not be saved."
+msgstr "Impossibile salvare la versione di anteprima."
+
+msgid "Replace preview saved as"
+msgstr "Sostituisci la anteprima salvata come"
+
+msgid "Replace this action"
+msgstr "Sostituire questa azione"
+
+msgid "Save Preview"
+msgstr "Salva anteprima"
+
+msgid "Task action"
+msgstr "Azione da eseguire"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Il diagramma è interattivo:\n\nCliccare su un nome di Progetto, Profilo, Attività o Scena per essere portati direttamente a tale elemento nella mappa.\n\nCliccare con il tasto Shift su un'Attività per evidenziare l'intera catena di chiamate a cui partecipa: ogni chiamata che effettua, ogni chiamata che riceve, e le frecce che le collegano.\n\nCliccare con il tasto destro su qualsiasi nome per eseguire le seguenti azioni: espandere il Progetto, visualizzare solo quel Progetto, seguire la catena.\n\nCliccare sul triangolo ▾ accanto a un Progetto per espanderlo, e sul triangolo ▸ per ripristinarlo.\n\nPremere Ctrl (o ⌘) e la rotella del mouse per zoomare. Premere Esc per interrompere una catena."
+
+msgid "Undo is available."
+msgstr "È possibile annullare l'operazione."
+
+msgid "Variable name"
+msgstr "Nome della variabile"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Ingrandisci. Premendo Ctrl/⌘ e utilizzando lo scroll, si ottiene lo stesso risultato."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Riduci la visualizzazione. Premi Ctrl/⌘ e utilizza il rotellino per ottenere lo stesso effetto."
+
+msgid "changed"
+msgstr "modificato"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "elimina la selezione di un singolo elemento per accedere alla configurazione completa"
+
+msgid "more"
+msgstr "più"

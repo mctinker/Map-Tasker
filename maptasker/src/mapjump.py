@@ -35,7 +35,7 @@ from dataclasses import dataclass, field, replace
 from html import escape
 from urllib.parse import quote, unquote
 
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, get_single_item_requested
 from maptasker.src.sysconst import (
     DISPLAY_DETAIL_LEVEL_all_parameters,
     DISPLAY_DETAIL_LEVEL_everything,
@@ -309,6 +309,127 @@ def exists(target: Target) -> bool:
     }
     table = tables.get(target.kind)
     return True if table is None else target.key in PrimeItems.tasker_root_elements[table]
+
+
+# ##################################################################################
+# Scope: which objects a scan is allowed to look at.
+#
+# The app has a "display only this one" selector -- one Project, or Profile, or Task, or
+# Scene (primitem.SINGLE_ITEM_SELECTORS).  When it is set, the Map on screen is that one
+# object, and a Find that answered with hits from the other 82 Projects would be
+# answering a question about something the user cannot see.  A Replace doing the same
+# would be worse: it would change them.
+#
+# Lives here rather than in mapfind or varxref because both need it and neither may
+# import the other -- the same reason the location helpers moved here.  It is a question
+# about which objects contain which, which is a question about identity.
+# ##################################################################################
+@dataclass(frozen=True)
+class Scope:
+    """The objects a scan may look at, as the set of keys of each kind.
+
+    Keys, not Targets: a scan tests membership once per object as it walks the tables, and
+    the tables are keyed the way Target.key is -- Projects and Scenes by name, Profiles and
+    Tasks by id.
+
+    An empty Scope (label "") means everything, and `allows` short-circuits on it, so the
+    unscoped case costs one attribute read per object rather than four set lookups.
+    """
+
+    label: str = ""  # "Project" / "Profile" / "Task" / "Scene"; "" for the whole file
+    name: str = ""
+    projects: frozenset[str] = frozenset()
+    profiles: frozenset[str] = frozenset()
+    tasks: frozenset[str] = frozenset()
+    scenes: frozenset[str] = frozenset()
+
+    @property
+    def is_everything(self) -> bool:
+        """Whether this scope excludes nothing."""
+        return not self.label
+
+    @property
+    def phrase(self) -> str:
+        """'Task 'Wake Up'' -- how a report names what it was limited to."""
+        return f"{self.label} '{self.name}'" if self.label else ""
+
+    def allows(self, kind: str, key: str) -> bool:
+        """Whether an object of this kind and key is inside the scope."""
+        if self.is_everything:
+            return True
+        return key in {
+            PROJECT: self.projects,
+            PROFILE: self.profiles,
+            TASK: self.tasks,
+            SCENE: self.scenes,
+        }.get(kind, frozenset())
+
+
+def _members(project_element: object, tag: str) -> list[str]:
+    """A Project's comma-separated member list -- its Profile ids, Task ids or Scene names."""
+    child = project_element.find(tag)
+    raw = (child.text or "").strip() if child is not None else ""
+    return [piece.strip() for piece in raw.split(",") if piece.strip()]
+
+
+def current_scope() -> Scope:
+    """What the app is displaying, as a Scope -- everything, when nothing single is chosen.
+
+    What each kind pulls in is what the Map itself shows for that selection:
+
+      Project   the Project, and the Profiles, Tasks and Scenes it lists.
+      Profile   the Profile and the Tasks it runs.  Not its Project: the user asked for
+                one Profile, and a Project is not inside a Profile.
+      Task      that Task alone.
+      Scene     that Scene alone.  Its inline anonymous Tasks travel with it, since they
+                live inside the <Scene> and have no entry in all_tasks to be excluded by.
+
+    A selection naming something that is not in the loaded file gives an EMPTY scope
+    rather than a full one -- nothing matches, which is the honest answer, where falling
+    back to everything would quietly widen a Replace to the whole configuration.
+    """
+    label, name = get_single_item_requested()
+    if not label:
+        return Scope()
+
+    roots = PrimeItems.tasker_root_elements
+    if label == "Project":
+        project = (roots.get("all_projects") or {}).get(name)
+        if project is None:
+            return Scope(label, name)
+        element = project["xml"]
+        return Scope(
+            label,
+            name,
+            projects=frozenset({name}),
+            profiles=frozenset(_members(element, "pids")),
+            tasks=frozenset(_members(element, "tids")),
+            scenes=frozenset(_members(element, "scenes")),
+        )
+
+    if label == "Profile":
+        # Profiles are keyed by id in the tables and chosen by NAME in the pulldown.
+        for profile_id, profile in (roots.get("all_profiles") or {}).items():
+            if profile.get("name") == name:
+                # mid0/mid1 are the entry and exit Tasks.  Read from the element rather
+                # than from any cached list, so a Task attached since the Map was drawn
+                # is in scope as much as one that was there when it was.
+                task_ids = {
+                    (child.text or "").strip()
+                    for child in profile["xml"]
+                    if child.tag in ("mid0", "mid1") and (child.text or "").strip()
+                }
+                return Scope(label, name, profiles=frozenset({profile_id}), tasks=frozenset(task_ids))
+        return Scope(label, name)
+
+    if label == "Task":
+        ids = {task_id for task_id, task in (roots.get("all_tasks") or {}).items() if task.get("name") == name}
+        return Scope(label, name, tasks=frozenset(ids))
+
+    if label == "Scene":
+        return Scope(label, name, scenes=frozenset({name}))
+
+    return Scope()
 
 
 # ##################################################################################

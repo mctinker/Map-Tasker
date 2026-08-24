@@ -2278,3 +2278,93 @@ msgstr "يعرض MapTasker تكوين Android Tasker الخاص بك استنا�
 
 msgid "Help"
 msgstr "يساعد"
+
+msgid "...with this one"
+msgstr ".. مع هذا"
+
+msgid "...to this name"
+msgstr "...إلى هذا الاسم"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "العودة إلى الرسم البياني بأكمله: بدون تكبير، ولا أي تفاصيل مطبقة، ولا أي تصفية."
+
+msgid "Cannot be changed"
+msgstr "لا يمكن تغييره"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "غيّر شيئًا واحدًا في كل مكان يظهر فيه. لا يتم إجراء أي تغيير حتى تضغط على \"المعاينة\" ثم \"استبدال\"، وبعد ذلك يمكنك التراجع عن أي تغيير بسهولة."
+
+msgid "Choose a variable, and type the new name."
+msgstr "اختر متغيرًا، ثم أدخل الاسم الجديد."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "اختر الإجراء الذي تريد استبداله، بالإضافة إلى الإجراء الذي تريد استبداله به."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "انقر على اسم لعرض إدخاله في الخريطة · انقر بزر الفأرة الأيمن على مهمة لعرض سلسلة المكالمات المرتبطة بها"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "قلّم كل مشروع حتى شريط العنوان الخاص به.\n\nيمكن أن يتقلص مشروع واحد بمجرد النقر على حافة الجزء العلوي الخاص به."
+
+msgid "Expand every collapsed Project."
+msgstr "افتح كل مشروع غير مكتمل."
+
+msgid "Limited to"
+msgstr "محدود إلى"
+
+msgid "Nothing here would change."
+msgstr "لا شيء هنا سيختلف."
+
+msgid "Nothing is ticked."
+msgstr "لا يوجد أي مربع مُحدَّد."
+
+msgid "Nothing was changed."
+msgstr "لم يتم إجراء أي تغيير."
+
+msgid "Press Preview first."
+msgstr "ابدأ بمراجعة الأخبار أولاً."
+
+msgid "Rename this variable"
+msgstr "غيّر اسم هذه المتغير."
+
+msgid "Replace"
+msgstr "استبدال"
+
+msgid "Replace preview could not be saved."
+msgstr "فشلت عملية الحفظ للنسخة التجريبية."
+
+msgid "Replace preview saved as"
+msgstr "استبدل العرض التقديمي المحفوظ باسم"
+
+msgid "Replace this action"
+msgstr "استبدل هذا الإجراء."
+
+msgid "Save Preview"
+msgstr "حفظ معاينة"
+
+msgid "Task action"
+msgstr "إجراء مهمة"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "الرسم البياني قابل للنقر:\n\nانقر على اسم \"مشروع\" أو \"ملف تعريف\" أو \"مهمة\" أو \"مشهد\" للانتقال إليه في الخريطة.\n\nانقر بزر الماوس الأيمن على اسم \"مهمة\" لتظهر سلسلة المكالمات التي تشارك فيها – كل ما تتصل به، وكل ما تتصل به، والأسهم بينهما.\n\nانقر بزر الماوس الأيمن على أي اسم للقيام بما يلي: قم بإخفاء \"المشروع\" الخاص به، وعرض \"المشروع\" فقط، واتبع سلسلة المكالمات الخاصة به.\n\nانقر على السهم النازل بجانب \"المشروع\" لإخفائه، والسهم الصاعد لإعادته.\n\nاستخدم مفتاحي Ctrl (أو ⌘) وعجلة التمرير للتكبير/التصغير. اضغط على مفتاح Esc لتفريغ سلسلة المكالمات."
+
+msgid "Undo is available."
+msgstr "الخيار \"إلغاء\" متاح."
+
+msgid "Variable name"
+msgstr "اسم المتغير"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "قم بالتكبير. Ctrl/⌘ وعجلة التمرير تفعل الشيء نفسه."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "قم بالتكبير للخلف. استخدم مفتاحي Ctrl/⌘ وعجلة التمرير لتحقيق نفس النتيجة."
+
+msgid "changed"
+msgstr "تغير"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "لإلغاء اختيار عنصر واحد للوصول إلى الإعداد الكامل."
+
+msgid "more"
+msgstr "أكثر"

@@ -2302,3 +2302,93 @@ msgstr "साठी आढळले"
 
 msgid "of"
 msgstr "च्या"
+
+msgid "...to this name"
+msgstr "...या नावाला"
+
+msgid "...with this one"
+msgstr "...आणि याच्यासोबत"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "संपूर्ण आकृतीकडे परत: कोणताही झूम नाही, काहीही दुमडले नाही, कोणतीही गोष्ट फिल्टर केलेली नाही."
+
+msgid "Cannot be changed"
+msgstr "बदलता येत नाही"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "जेव्हाही हे वाक्य कुठेही दिसतं, तेव्हा ते बदलून टाका. कोणताही बदल करण्यापूर्वी 'प्रीव्ह्यू' (Preview) बटण दाबा आणि 'रिप्लेस' (Replace) वर क्लिक करा, त्यानंतर प्रत्येक बदल 'अ undo' बटणाने पूर्ववत करता येईल."
+
+msgid "Choose a variable, and type the new name."
+msgstr "एक व्हेरिएबल निवडा आणि नवीन नाव टाइप करा."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "असा कोणता कृती (action) बदलायचा आहे, आणि तो कशाने बदलायचा आहे, हे निवडा."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "एखाद्या नावावर क्लिक करून त्याचा नकाशातील नोंदी पहा · कार्यासाठी शिफ्ट-क्लिक करून त्याचा संपर्क मार्ग पहा"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "प्रत्येक प्रकल्प त्याच्या शीर्षक पट्टीवर खाली संकुचित करा.\n\nएक प्रकल्प त्याच्या बॉक्सच्या वरच्या काठावर क्लिक करून स्वतःच कोसळतो."
+
+msgid "Expand every collapsed Project."
+msgstr "प्रत्येक बंद असलेल्या प्रोजेक्टचा विस्तार करा."
+
+msgid "Limited to"
+msgstr "विशिष्ट मर्यादेत"
+
+msgid "Nothing here would change."
+msgstr "येथे काहीही बदलणार नाही."
+
+msgid "Nothing is ticked."
+msgstr "काहीही निवडलेले नाही."
+
+msgid "Nothing was changed."
+msgstr "काहीही बदल झाले नाही."
+
+msgid "Press Preview first."
+msgstr "प्रथम पूर्वावलोकन दाबा."
+
+msgid "Rename this variable"
+msgstr "या व्हेरिएबलचे नाव बदला."
+
+msgid "Replace"
+msgstr "टा Replace"
+
+msgid "Replace preview could not be saved."
+msgstr "'पूर्वदृश्य' जतन करण्यात अयशस्वी."
+
+msgid "Replace preview saved as"
+msgstr "'सेव्ह' केलेल्या पूर्वावलोकनाची जागा बदला."
+
+msgid "Replace this action"
+msgstr "या कृतीची जागा भरा."
+
+msgid "Save Preview"
+msgstr "पूर्वदृश्य जतन करा"
+
+msgid "Task action"
+msgstr "कार्य क्रिया"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "हा आकृती क्लिक करण्यायोग्य आहे:\n\n नकाशावर, 'प्रोजेक्ट', 'प्रोफाइल', 'टास्क' किंवा 'सीन' या नावावर क्लिक केल्यास, तुम्ही त्या विशिष्ट घटकावर जाऊ शकता.\n\nएखाद्या 'टास्क'वर Shift-क्लिक केल्यास, त्यामध्ये सामील असलेल्या संपूर्ण संवादांची मालिका स्पष्ट होईल - ते ज्यांची कॉल करतात, आणि ज्यांची त्यांच्याद्वारे कॉल केली जाते, तसेच त्यांच्यातील संबंध दर्शवणारे बाण.\n\nइतर नावांवर उजवे क्लिक करून: त्याचे 'प्रोजेक्ट' संक्षिप्त करा, फक्त तो 'प्रोजेक्ट' दर्शवा, त्याच्या संदर्भात माहिती मिळवा.\n\nएखाद्या 'प्रोजेक्ट'च्या बाजूला असलेल्या ▾ (खाली) बटणावर क्लिक करून, तुम्ही त्याचे 'प्रोजेक्ट' संक्षिप्त करू शकता आणि ▸ (वर) बटणावर क्लिक करून ते पुन्हा उघडू शकता.\n\nCtrl (किंवा ⌘) आणि स्क्रोल व्हील वापरून तुम्ही झूम करू शकता. Esc बटण दाबल्यास, एक विशिष्ट संवाद संकलन (chain) पूर्ववत होईल."
+
+msgid "Undo is available."
+msgstr "'उ undo' करण्याची सुविधा उपलब्ध आहे."
+
+msgid "Variable name"
+msgstr "व्हेरिएबलचे नाव"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "झूम करा. Ctrl/⌘ आणि स्क्रोल व्हील समान कार्य करतात."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "झूम आऊट करा. Ctrl/⌘ आणि स्क्रोल व्हील समान कार्य करेल."
+
+msgid "changed"
+msgstr "बदलला"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "एकाच घट्याचा पर्याय निवडून संपूर्ण कॉन्फिगरेशनमध्ये प्रवेश करा."
+
+msgid "more"
+msgstr "अधिक"

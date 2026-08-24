@@ -2302,3 +2302,93 @@ msgstr "از"
 
 msgid "Find..."
 msgstr "پیدا کن..."
+
+msgid "...to this name"
+msgstr "...به این نام"
+
+msgid "...with this one"
+msgstr "...و این"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "باز به نمودار اصلی: بدون بزرگنمایی، بدون تا کردن، بدون فیلتر کردن."
+
+msgid "Cannot be changed"
+msgstr "قابل تغییر نیست"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "هر جا این تغییر لازم است، آن را تغییر دهید. هیچ تغییری تا زمانی اعمال نمی‌شود که دکمه \"پیش‌نمایش\" را فشار دهید و سپس \"جایگزین\" را، و هر تغییر پس از آن قابل لغو کردن است."
+
+msgid "Choose a variable, and type the new name."
+msgstr "یک متغیر را انتخاب کنید و نام جدید را وارد کنید."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "یک عمل را برای جایگزینی انتخاب کنید، و یک عمل دیگر را برای جایگزینی آن انتخاب کنید."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "روی نامی برای ورودی نقشه آن کلیک کنید · روی یک Task برای زنجیره تماس آن کلیک کنید"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "هر پروژه را تا نوار عنوان آن جمع کنید.\n\nOne Project به تنهایی با کلیک کردن روی لبه بالای کادرش جمع می‌شود."
+
+msgid "Expand every collapsed Project."
+msgstr "تمام پروژه‌هایی که در حالت \"بسته‌شده\" قرار دارند را باز کنید."
+
+msgid "Limited to"
+msgstr "محدود به"
+
+msgid "Nothing here would change."
+msgstr "هیچ چیز در اینجا تغییری نخواهد کرد."
+
+msgid "Nothing is ticked."
+msgstr "هیچ گزینه ای انتخاب نشده است."
+
+msgid "Nothing was changed."
+msgstr "چیزی تغییر نکرد."
+
+msgid "Press Preview first."
+msgstr "ابتدا، پیش‌نمای خبری را بررسی کنید."
+
+msgid "Rename this variable"
+msgstr "نام این متغیر را تغییر دهید."
+
+msgid "Replace"
+msgstr "جایگزین کردن"
+
+msgid "Replace preview could not be saved."
+msgstr "ذخیره پیش‌نمایی امکان‌پذیر نبود."
+
+msgid "Replace preview saved as"
+msgstr "جایگزینی پیش‌نمای ذخیره شده"
+
+msgid "Replace this action"
+msgstr "این اقدام را جایگزین کنید."
+
+msgid "Save Preview"
+msgstr "ذخیره پیش‌نمایش"
+
+msgid "Task action"
+msgstr "اقدام مربوط به وظیفه"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "این نمودار قابل کلیک است:\n\nبا کلیک بر روی نام یک پروژه، پروفایل، وظیفه یا صحنه، به آن در نقشه منتقل می‌شوید.\n\nبا کلیک با دکمه Shift بر روی یک وظیفه، کل زنجیره تماس‌هایی که در آن شرکت دارد را روشن می‌کنید – همه چیزهایی که آن را فرا می‌خواند، همه چیزهایی که آن را فرا می‌خوانند، و فلش‌های بین آن‌ها.\n\nبا کلیک راست بر روی هر نام، موارد زیر را انجام دهید: پروژه را جمع کنید، فقط آن پروژه را نشان دهید، زنجیره‌اش را دنبال کنید.\n\nبا کلیک بر روی فلش ▾ در کنار یک پروژه، آن را جمع کنید و با کلیک بر روی فلش ▸، آن را باز کنید.\n\nبا استفاده از کلید Ctrl (یا ⌘) و چرخ اسکرول، بزرگنمایی انجام می‌شود. با فشردن Esc، یک زنجیره را پاک می‌کند."
+
+msgid "Undo is available."
+msgstr "واگرد در دسترس است."
+
+msgid "Variable name"
+msgstr "نام متغیر"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "به بزرگنمایی بروید. با استفاده از کلید Ctrl/⌘ و چرخ اسکرول، می‌توانید همین کار را انجام دهید."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "زاویه دید را تغییر دهید. با استفاده از کلید Ctrl/⌘ و چرخ اسکرول نیز می‌توانید این کار را انجام دهید."
+
+msgid "changed"
+msgstr "تغییر یافته، تغییر"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "انتخاب تک موردی را پاک کنید تا به کل پیکربندی برسید"
+
+msgid "more"
+msgstr "بیشتر"

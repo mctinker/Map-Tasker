@@ -2296,3 +2296,93 @@ msgstr "MapTasker zobrazuje vaši konfiguraci Android Tasker na základě vašeh
 
 msgid "Help"
 msgstr "Pomoc"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Změňte jednu věc všude, kde se objeví. Nic se nezmění, dokud nestisknete tlačítko Náhled a poté Nahradit, a poté je každá změna jednou Zrušit."
+
+msgid "...to this name"
+msgstr "...pod tento název"
+
+msgid "...with this one"
+msgstr "...s tímto"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Zpět ke kompletnímu schématu: bez zoomu, bez složených částí, bez filtrovaných údajů."
+
+msgid "Cannot be changed"
+msgstr "Nelze změnit"
+
+msgid "Choose a variable, and type the new name."
+msgstr "Vyberte proměnnou a zadejte nový název."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Vyberte akci, kterou chcete nahradit, a akci, kterou ji nahradíte."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Klikněte na název pro jeho záznam v mapě · pomocí kombinace kláves Shift klikněte na úlohu pro její řetězec volání"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Složte každý projekt do jeho nadpisu.\n\nJednotlivý projekt se může zmenšit kliknutím na horní okraj jeho rámu."
+
+msgid "Expand every collapsed Project."
+msgstr "Rozbalte každý zkomprimovaný projekt."
+
+msgid "Limited to"
+msgstr "Omezeno"
+
+msgid "Nothing here would change."
+msgstr "Žádná z těchto věcí by se nezměnila."
+
+msgid "Nothing is ticked."
+msgstr "Žádné položky nejsou zaškrtnuty."
+
+msgid "Nothing was changed."
+msgstr "Nic se nezměnilo."
+
+msgid "Press Preview first."
+msgstr "Nejprve stiskněte Náhled."
+
+msgid "Rename this variable"
+msgstr "Přejmenujte tuto proměnnou"
+
+msgid "Replace"
+msgstr "Nahradit"
+
+msgid "Replace preview could not be saved."
+msgstr "Nedaří se uložit náhled."
+
+msgid "Replace preview saved as"
+msgstr "Nahraďte náhled uložený jako"
+
+msgid "Replace this action"
+msgstr "Nahraďte tuto akci"
+
+msgid "Save Preview"
+msgstr "Uložit náhled"
+
+msgid "Task action"
+msgstr "Akce úkolu"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Diagram je interaktivní:\n\nKliknutím na název Projektu, Profilu, Úkolu nebo Scény se dostanete přímo do daného prvku na mapě.\n\nKliknutím na název Úkolu se zobrazí celá řada, do které patří – vše, co tento úkol spouští, a vše, co ho spouští. Stejně tak se zobrazí i šipky mezi nimi.\n\nKliknutím pravým tlačítkem na jakýkoli název můžete: zmenšit projekt, zobrazit pouze tento projekt, nebo sledovat jeho řadu.\n\nKliknutím na ▾ vedle Projektu jej můžete zmenšit, a ▸ jej zase zobrazit.\n\nPoužitím Ctrl (nebo ⌘) a kolečka myši se zvětší zoom. Stisknutím klávesy Esc se zruší řada."
+
+msgid "Undo is available."
+msgstr "Funkce \"Zrušit\" je k dispozici."
+
+msgid "Variable name"
+msgstr "Název proměnné"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Přibližte. Použijte klávesy Ctrl/⌘ a kolečko myši pro stejný efekt."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Posuňte pohled zpět. Použijte klávesy Ctrl/⌘ a kolečko myši pro stejný efekt."
+
+msgid "changed"
+msgstr "změněno"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "odeberte výběr pouze jednoho prvku, abyste dosáhli kompletní konfigurace"
+
+msgid "more"
+msgstr "více"

@@ -2302,3 +2302,93 @@ msgstr "செயல்தவிர்க்க மாற்றங்கள் �
 
 msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "'கண்டுபிடி...' திரையில் உரையைத் தேடுவதற்குப் பதிலாக, ஏற்றப்பட்ட உள்ளமைவைக் கேட்கும் ஒரு கேள்வி: கொடுக்கப்பட்ட செயலைச் செய்யும் ஒவ்வொரு பணியும், கொடுக்கப்பட்ட தூண்டுதலின் ஒவ்வொரு சுயவிவரமும், கொடுக்கப்பட்ட பயன்பாடு அல்லது காட்சிக்கு பெயரிடும் அனைத்தும்.\n\nபெட்டிகள் ஒன்றிணைகின்றன -- அந்த வழியில் தூண்டும் சுயவிவரங்களைக் கண்டறிய ஒரு தூண்டுதல் மற்றும் செயலைத் தேர்ந்தெடுத்து அதைச் செய்யும் பணியை இயக்கவும்.\n\nபொருள்களின் பட்டியலாக முடிவுகள் மீண்டும் வருகின்றன; அதை எடுத்துச் செல்ல ஒன்றைக் கிளிக் செய்யவும்.\n\n"
+
+msgid "...to this name"
+msgstr "...இந்த பெயரை"
+
+msgid "...with this one"
+msgstr "...இதற்கு"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "முழு आरेख पर वापस: कोई பெரிதாக்கல், कोई மடிப்பு, कोई வடிகட்டல் இல்லை."
+
+msgid "Cannot be changed"
+msgstr "மாற்ற முடியாது"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "हर जगह जहाँ यह दिखाई देता है, एक चीज बदलவும். \"முன்னேक्षण\" (Preview) பொத்தானை அழுத்தும் வரை, \"மாற்று\" (Replace) பொத்தானை அழுத்தும் வரை எந்த மாற்றமும் नहीं होता, और प्रत्येक மாற்றத்திற்குப் பிறகு \"ரद्द செய்\" (Undo) பொத்தானை एक बार அழுத்தினால் போதும்."
+
+msgid "Choose a variable, and type the new name."
+msgstr "ஒரு மாறியைத் தேர்ந்தெடுத்து, புதிய பெயரை உள்ளிடவும்."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "மாற்றுவதற்கான ஒரு செயலைத் தேர்ந்தெடுங்கள், மற்றும் அதை எதனால் மாற்ற வேண்டும் என்பதையும் தேர்ந்தெடுங்கள்."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "அதன் வரைபட உள்ளீட்டிற்கான பெயரைக் கிளிக் செய்யவும் · அதன் அழைப்புச் சங்கிலிக்கான ஒரு பணியை மாற்றவும்"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "ஒவ்வொரு திட்டத்தையும் அதன் शीर्षकப் பட்டிற்குள் சுருக்குங்கள்.\n\nஒவ்வொரு திட்டத்தையும், அதன் பெட்டியின் மேல் விளிம்பில் கிளிக் செய்வதன் மூலம் சுருக்கலாம்."
+
+msgid "Expand every collapsed Project."
+msgstr "प्रत्येकapsed परियोजनालाई विस्तृत रूपमा विस्तारित करें।"
+
+msgid "Limited to"
+msgstr "வரையறுக்கப்பட்டது"
+
+msgid "Nothing here would change."
+msgstr "இங்கு எதுவும் மாறாது."
+
+msgid "Nothing is ticked."
+msgstr "எதுவும் चिह्नित नहीं है।"
+
+msgid "Nothing was changed."
+msgstr "कुछ भी बदलவில்லை."
+
+msgid "Press Preview first."
+msgstr "முதலில், பத்திரிகையாளர் சந்திப்பைத் திட்டமிடுங்கள்."
+
+msgid "Rename this variable"
+msgstr "இந்த மாறியின் பெயரை மாற்றவும்"
+
+msgid "Replace"
+msgstr "மாற்ற"
+
+msgid "Replace preview could not be saved."
+msgstr "\"முன்னோட்டம் சேமிக்கப்படவில்லை\""
+
+msgid "Replace preview saved as"
+msgstr "\"पहले देखी गईதை சேமித்ததை மாற்று\""
+
+msgid "Replace this action"
+msgstr "இந்த செயலை மாற்றவும்"
+
+msgid "Save Preview"
+msgstr "காட்சிக்குச் சேமி"
+
+msgid "Task action"
+msgstr "कार्य क्रिया"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "आरेख क्लिक करने योग्य:\n\nनक्श में एक परियोजना, प्रोफाइल, कार्य या दृश्य नाम पर क्लिक करके, उस तक செல்லலாம்.\n\nकार्य पर शिफ्ट-क्लिक करके, वह भाग घेरेगा - वह जिस भी कार्य को कॉल செய்கிறது, அதுக்கு कॉल செய்யப்படும், மற்றும் அவற்றுக்கிடையேயான அம்புக்குறிகள்.\n\nமீதமுள்ளவற்றிற்கான எந்தப் பெயரிலும் வலது கிளிக் செய்யவும்: அதன் திட்டத்தை சுருக்கவும், அந்தத் திட்டத்தை மட்டும் காட்டவும், அதன் தொடர்பைப் பின்பற்றவும்.\n\nएक திட்டத்தின் அருகில் உள்ள ▾ ஐக் கிளிக் செய்வதன் மூலம், அதைச் சுருக்கவும்,  ▸ ஐக் கிளிக் செய்வதன் மூலம் அதை மீண்டும் காட்டவும்.\n\nCtrl (அல்லது ⌘) மற்றும் स्क्रॉल வீல் மூலம் பெரிதாக்கவும். Esc ஒரு தொடர்பை அழிக்கிறது."
+
+msgid "Undo is available."
+msgstr "रद्द करने की सुविधा उपलब्ध है."
+
+msgid "Variable name"
+msgstr "चर नाम"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "பெரிதாக்கு. Ctrl/⌘ और स्क्रॉल व्हील समान कार्य करते हैं।"
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "பெரிதாக்கு. Ctrl/⌘ और स्क्रॉल व्हील भी यही कार्य करता।"
+
+msgid "changed"
+msgstr "மாற்றிய"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "एकल आइटम चयन को हटाकर, संपूर्ण कॉन्फ़िगरेशन तक पहुँचना"
+
+msgid "more"
+msgstr "மேலும்"

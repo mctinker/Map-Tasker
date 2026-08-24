@@ -16,7 +16,19 @@ from typing import TYPE_CHECKING
 
 from nicegui import Event, app, context, ui
 
-from maptasker.src import diagintr, mapfind, mapjump, profedit, projedit, sceneedit, sceneview, sessundo, taskedit
+from maptasker.src import (
+    diagintr,
+    mapfind,
+    mapjump,
+    mapswap,
+    profedit,
+    projedit,
+    sceneedit,
+    sceneview,
+    sessundo,
+    taskedit,
+    varxref,
+)
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import EDIT_SCENE
 from maptasker.src.format import css_color
@@ -240,6 +252,18 @@ def editor_state(
     )
 
 
+# How much of a Replace preview's non-list matter is drawn before it is summarized.  A
+# rename of a variable a plugin produces can skip hundreds of places for the same reason,
+# and a list of hundreds of identical explanations pushes the changes off the screen --
+# which is the half the user has to read.
+_REPLACE_SKIP_LIMIT = 20
+
+# Errors from one apply are notifications, and a notification per failed site would bury
+# the screen.  The rest are in the log; this is the "something went wrong, and here is the
+# shape of it" cap.
+_REPLACE_ERROR_LIMIT = 5
+
+
 class PendingChangesBanner:
     """The "Changes Pending" line itself: built hidden, wherever the dialog wants it, then
     told what to watch once the dialog's body is finished -- see watch().
@@ -250,6 +274,7 @@ class PendingChangesBanner:
     """
 
     def __init__(self) -> None:
+        """Initialize pending changes banner, but do not start watching yet -- see watch()."""
         with ui.row().classes("w-full items-center gap-2 mt-2") as self.row:
             ui.icon("pending_actions").classes("text-orange-600")
             ui.label(translate_string("Changes Pending")).classes("text-sm font-bold text-orange-600")
@@ -806,7 +831,8 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                 ),
                             ).props("flat color=blue dense")
                             move_to_input = (
-                                ui.number(
+                                ui
+                                .number(
                                     translate_string("Move to #"),
                                     value=action.act_number,
                                     min=0,
@@ -1134,7 +1160,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         ).props("flat color=red dense")
                     else:
                         picker = (
-                            ui.select(task_names, label=translate_string("Choose a Task"), with_input=True)
+                            ui
+                            .select(task_names, label=translate_string("Choose a Task"), with_input=True)
                             .classes("flex-1")
                             .props("dense")
                         )
@@ -1281,7 +1308,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                 value=text_initial(rep_value_key, values["rep_value"]),
                             ).classes("w-24")
                             field_refs[rep_unit_key] = (
-                                ui.select(
+                                ui
+                                .select(
                                     ["Hours", "Minutes"],
                                     value=text_initial(rep_unit_key, values["rep_unit"]),
                                 )
@@ -1406,7 +1434,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
 
             with ui.row().classes("w-full items-center gap-2 mt-2"):
                 add_type_picker = (
-                    ui.select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
+                    ui
+                    .select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
                     .classes("w-48")
                     .props("dense")
                 )
@@ -1426,7 +1455,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in event_rows
                 }
                 event_type_picker = (
-                    ui.select(event_options, label=translate_string("Event Type"), with_input=True)
+                    ui
+                    .select(event_options, label=translate_string("Event Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -1442,7 +1472,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in state_rows
                 }
                 state_type_picker = (
-                    ui.select(state_options, label=translate_string("State Type"), with_input=True)
+                    ui
+                    .select(state_options, label=translate_string("State Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -1975,7 +2006,8 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
         # search box belongs above the chips it filters.  Its on_change closes over
         # search_changed, which is defined below -- resolved at call time, not at creation.
         search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2184,7 +2216,8 @@ def _build_add_legacy_element_dialog(
                 ui.tooltip("\n\n".join(lines)).style("white-space: pre-line").classes("max-w-sm")
 
         search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2279,7 +2312,7 @@ def _build_show_when_dialog(
         # one -- so this has to cope with both rather than assuming a wrapper to search
         # inside.  (Assuming the wrapper is exactly the bug this replaced: querySelector found
         # nothing, every read came back null, and every pick silently fell back to the end.)
-        _NATIVE_INPUT = (
+        _native_input = (
             f"const el = (() => {{ const r = getHtmlElement({field.id});"
             f" return r && r.matches('input, textarea') ? r : r && r.querySelector('input, textarea'); }})();"
         )
@@ -2295,7 +2328,7 @@ def _build_show_when_dialog(
             """
             with contextlib.suppress(Exception):
                 return await ui.run_javascript(
-                    f"(() => {{ {_NATIVE_INPUT} return el ? el.selectionStart : null; }})()",
+                    f"(() => {{ {_native_input} return el ? el.selectionStart : null; }})()",
                     timeout=3.0,
                 )
             return None
@@ -2311,7 +2344,7 @@ def _build_show_when_dialog(
             # next piece after this one rather than back at the same spot.
             with contextlib.suppress(Exception):
                 ui.run_javascript(
-                    f"(() => {{ {_NATIVE_INPUT} if (el) {{ el.setSelectionRange({caret}, {caret}); }} }})()",
+                    f"(() => {{ {_native_input} if (el) {{ el.setSelectionRange({caret}, {caret}); }} }})()",
                 )
             # Close on the pick.  A condition is built out of several of these, so staying
             # open to save a click is the obvious thing to do and the wrong one: the dialog
@@ -2328,7 +2361,8 @@ def _build_show_when_dialog(
         # box below the list it filters is a search box nobody finds.  Its on_change closes
         # over search_changed, defined below and resolved at call time.
         search_input = (
-            ui.input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2449,7 +2483,8 @@ def _build_colour_field(item: dict, prop: sceneedit.V2Prop) -> None:
     and silently dropping what they typed would be worse than showing it in red.
     """
     field = (
-        ui.color_input(
+        ui
+        .color_input(
             label=translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: colour_changed(d, k, str(e.value or "")),
@@ -2504,7 +2539,8 @@ def _build_icon_field(item: dict, prop: sceneedit.V2Prop) -> None:
     the component will show are the same answer.
     """
     field = (
-        ui.input(
+        ui
+        .input(
             translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: icon_changed(d, k, str(e.value or "")),
@@ -2554,7 +2590,8 @@ def _build_icon_dialog(field: ui.input) -> None:
             dialog.close()
 
         search_input = (
-            ui.input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2583,7 +2620,8 @@ def _build_icon_dialog(field: ui.input) -> None:
                         # the row that needs turning is the .q-btn__content inside it, so the
                         # tiles come out half stacked and half side by side.
                         tile = (
-                            ui.button(on_click=lambda _e=None, n=name: pick(n))
+                            ui
+                            .button(on_click=lambda _e=None, n=name: pick(n))
                             .props(
                                 "flat dense no-caps stack",
                             )
@@ -2682,7 +2720,8 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     state_select = (
-        ui.select(
+        ui
+        .select(
             list(field.states),
             value=state or None,
             label=translate_string(field.label),
@@ -2698,7 +2737,8 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     dynamic_input = (
-        ui.input(
+        ui
+        .input(
             translate_string("Dynamic value"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_DYNAMIC_STATE),
             on_change=lambda _e=None: write(),
@@ -2713,7 +2753,8 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
     )
 
     variable_input = (
-        ui.input(
+        ui
+        .input(
             translate_string("Variable"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_VARIABLE_STATE),
             on_change=lambda _e=None: write(),
@@ -2936,7 +2977,8 @@ def _build_v2_designer(
             # The indent is drawn rather than nested so every row stays one flat, clickable
             # strip -- nested containers would make the click target of a deep node a sliver.
             label = (
-                ui.label(f"{'  ' * row.depth}{row.label}")
+                ui
+                .label(f"{'  ' * row.depth}{row.label}")
                 .classes(classes)
                 .on("click", lambda _e=None, path=row.path: select(path))
             )
@@ -3014,7 +3056,8 @@ def _build_v2_designer(
             _build_icon_field(target, prop)
         else:
             text_input = (
-                ui.input(
+                ui
+                .input(
                     translate_string(prop.label),
                     value=str(value),
                     on_change=lambda e, k=prop.key, d=target: sceneedit.v2_set_prop(d, k, str(e.value or "")),
@@ -3266,7 +3309,8 @@ def _build_v2_designer(
             section.props(f'caption="{caption()}"')
 
         section = (
-            ui.expansion(
+            ui
+            .expansion(
                 translate_string(name),
                 icon=_V2_CATEGORY_ICONS.get(name, "tune"),
                 caption=caption(),
@@ -4292,7 +4336,8 @@ def _build_legacy_designer(
 
     header = ui.row().classes("w-full items-center gap-2 mt-2")
     canvas_pane = (
-        ui.element("div")
+        ui
+        .element("div")
         .classes(
             f"mt-scene-wrap {root_class} w-full border rounded overflow-hidden",
         )
@@ -5210,7 +5255,8 @@ def _build_item_layout_dialog(holder: object, on_closed: Callable[[], None]) -> 
         with ui.row().classes("w-full gap-2 mt-2"):
             for key, label in sceneedit.SCENE_DIMENSION_FIELDS[:2]:
                 field_refs[key] = (
-                    ui.input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
+                    ui
+                    .input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
                     .props("dense")
                     .classes("w-36")
                     .on(
@@ -5294,7 +5340,8 @@ def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event
             settling["busy"] = False
 
     field = (
-        ui.color_input(
+        ui
+        .color_input(
             label=translate_string(arg.arg_name),
             value=sceneedit.legacy_colour_to_css(arg.current_value),
             preview=True,
@@ -5499,7 +5546,8 @@ def _build_scene_editor_body(
     with ui.row().classes("w-full gap-2 mt-2"):
         for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
             field_refs[key] = (
-                ui.input(
+                ui
+                .input(
                     translate_string(label),
                     value=scene_element.findtext(key, sceneedit.UNSET_DIMENSION),
                 )
@@ -6694,20 +6742,22 @@ def _create_diagram_tools(view: NiceGuiTextView) -> None:
     ui.separator().props("vertical")
     with ui.row().classes("items-center gap-1"):
         zoom_out = ui.button(
-            icon="zoom_out", on_click=lambda: view._diagram_command("zoom", 1 / 1.15)
-        ).props(  # noqa: SLF001
+            icon="zoom_out",
+            on_click=lambda: view._diagram_command("zoom", 1 / 1.15),
+        ).props(
             "flat dense",
         )
         with zoom_out:
             ui.tooltip(translate_string("Zoom out.  Ctrl/⌘ and the scroll wheel does the same."))
         zoom_in = ui.button(icon="zoom_in", on_click=lambda: view._diagram_command("zoom", 1.15)).props(
-            "flat dense"
-        )  # noqa: SLF001
+            "flat dense",
+        )
         with zoom_in:
             ui.tooltip(translate_string("Zoom in.  Ctrl/⌘ and the scroll wheel does the same."))
         collapse = ui.button(
-            icon="unfold_less", on_click=lambda: view._diagram_command("collapse-all")
-        ).props(  # noqa: SLF001
+            icon="unfold_less",
+            on_click=lambda: view._diagram_command("collapse-all"),
+        ).props(
             "flat dense",
         )
         with collapse:
@@ -6718,13 +6768,13 @@ def _create_diagram_tools(view: NiceGuiTextView) -> None:
                 ),
             ).style("white-space: pre-line")
         expand = ui.button(icon="unfold_more", on_click=lambda: view._diagram_command("expand-all")).props(
-            "flat dense"
-        )  # noqa: SLF001
+            "flat dense",
+        )
         with expand:
             ui.tooltip(translate_string("Expand every collapsed Project."))
         reset = ui.button(icon="restart_alt", on_click=lambda: view._diagram_command("reset")).props(
-            "flat dense"
-        )  # noqa: SLF001
+            "flat dense",
+        )
         with reset:
             ui.tooltip(translate_string("Back to the whole diagram: no zoom, nothing folded, nothing filtered."))
         # The one place the gestures are written down.  Everything the diagram does on a
@@ -7275,7 +7325,8 @@ class NiceGuiTreeView:
                     # Render the native responsive Tree component
                     # Injected custom fonts to preserve monospace formatting matches
                     self.tree = (
-                        ui.tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
+                        ui
+                        .tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
                         .classes("w-full text-base")
                         .style(f"font-family: '{self.master_gui.font}', monospace;")
                     )
@@ -7312,7 +7363,8 @@ class NiceGuiTreeView:
                 # Extract the name and clean out the raw HTML markup fragments
                 raw_name = item.get("name", "Unnamed")
                 clean_name = (
-                    raw_name.replace("&nbsp;", " ")
+                    raw_name
+                    .replace("&nbsp;", " ")
                     .replace("&#9940;", "⛔")
                     .replace("&#11013;", "⬅️")
                     .replace("&#11157;", "➡️")
@@ -7477,7 +7529,8 @@ class NiceGuiSceneView:
                     # would reserve room for the canvas at full size however far it is
                     # scaled down.
                     self.canvas_wrap = (
-                        ui.element("div")
+                        ui
+                        .element("div")
                         .classes(f"mt-scene-wrap {CANVAS_PREVIEW_ROOT}")
                         .style(
                             "position: relative; width: 100%; overflow: hidden;",
@@ -7520,7 +7573,8 @@ class NiceGuiSceneView:
     def _build_density_control(self) -> None:
         """Legacy only: the sp-to-pixel number that is not in the backup file."""
         density_select = (
-            ui.select(
+            ui
+            .select(
                 list(sceneview.DENSITY_CHOICES),
                 value=str(sceneview.DEFAULT_DENSITY),
                 label=translate_string("Text density"),
@@ -7576,7 +7630,8 @@ class NiceGuiSceneView:
         device, which is why it is a control and not a number in the file.
         """
         screen_select = (
-            ui.select(
+            ui
+            .select(
                 [name for name, _width, _height in sceneview.V2_SCREENS],
                 value=self.screen,
                 label=translate_string("Screen"),
@@ -7961,6 +8016,12 @@ class NiceGuiTextView:
         # re-opening Find comes back to the query whose result row the user just followed,
         # rather than to an empty dialog they have to fill in again.
         self._find_query: mapfind.Query | None = None
+        # The last Replace the user set up on this view -- ("action", old key, new key,
+        # project) or ("variable", name, owner, new name).  The INPUTS, not the Plan: a
+        # Plan holds live elements, and holding those across a dialog that may have been
+        # reopened after another edit is the stale-handle bug apply()'s own attachment
+        # check exists to catch.  Reopening rebuilds the plan from these instead.
+        self._replace_inputs: tuple | None = None
         self.build_ui()
         register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
@@ -8098,7 +8159,8 @@ class NiceGuiTextView:
                     # settings drawer, and a reset that changed the value without moving the
                     # control would leave the two disagreeing on screen.
                     self.profiles_per_line_select = (
-                        ui.select(
+                        ui
+                        .select(
                             options=[str(n) for n in range(11)],
                             value=str(self.master_gui.profiles_per_line),
                             label=translate_string("Profiles Per Line"),
@@ -8145,14 +8207,16 @@ class NiceGuiTextView:
                     background_style = f" background-color: {background} !important;"
 
             self.scroll_area = (
-                ui.scroll_area()
+                ui
+                .scroll_area()
                 # min-w-0 keeps this a flex child that can't be stretched wider than its container by
                 # long unbreakable content; without it the default flex min-width:auto lets the box
                 # (and the whole page) grow past the viewport once the full content has streamed in.
                 .classes(
                     f"w-full max-w-full min-w-0 block {scroll_height_classes} "
                     f"border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
-                ).style(
+                )
+                .style(
                     # The font the output was generated with, which process_data() then
                     # reconciles against the file it actually reads. Deliberately not
                     # master_gui.font -- see the note there on why that can be stale.
@@ -8960,6 +9024,445 @@ class NiceGuiTextView:
 
         results_dialog.open()
 
+    def _build_replace_tab(
+        self,
+        dialog: ui.dialog,
+        index: mapfind.FindIndex,
+        jump_to: Callable,
+        replace_panel: ui.tab_panel,
+    ) -> bool:
+        """Build the Find dialog's Replace tab into `replace_panel`.
+
+        Takes the four things it shares with the Find half and nothing else: the dialog to
+        close on success, the mapfind index both pulldowns are built from, the jump handler
+        a preview row's link uses, and the panel to build into.
+
+        `self` is used only to remember the inputs on the view (see _replace_inputs), which
+        is what lets a preview survive a click on one of its own rows.
+
+        Returns whether it restored a previous Replace, so the caller can open the dialog
+        on this tab rather than on Find when it did.
+        """
+        # ##################################################################
+        # The Replace tab.
+        #
+        # Everything below is arranged around one rule: the Replace button is
+        # disabled until a preview exists for the values CURRENTLY in the fields,
+        # and touching any field clears the preview and disables it again.  There
+        # is then no path through these widgets that reaches mapswap.apply without
+        # the user having seen mapswap.report_rows first -- which is the whole
+        # design, made structural rather than left to the dialog to remember.
+        # ##################################################################
+        with replace_panel:
+            # Built when the Replace tab is first used, not when the dialog opens.
+            # It is a second full scan of the XML on top of the one mapfind just
+            # did, and most presses of Find never come here at all.
+            held: dict = {"variables": None, "plan": None, "inputs": None}
+
+            ui.label(
+                translate_string(
+                    "Change one thing everywhere it appears. Nothing is altered until you press "
+                    "Preview and then Replace, and every change is one Undo away afterwards.",
+                ),
+            ).classes("text-xs text-gray-500 italic mb-3")
+
+            mode = ui.toggle(
+                {
+                    "action": translate_string("Task action"),
+                    "variable": translate_string("Variable name"),
+                },
+                value="action",
+            ).props("dense")
+
+            # -- action mode --------------------------------------------------
+            with ui.row().classes("w-full items-center gap-2 mt-2") as action_row:
+                source_select = (
+                    ui
+                    .select({}, label=translate_string("Replace this action"), with_input=True)
+                    .classes("flex-1 min-w-[220px]")
+                    .props("dense")
+                )
+                target_select = (
+                    ui
+                    .select({}, label=translate_string("...with this one"), with_input=True)
+                    .classes("flex-1 min-w-[260px]")
+                    .props("dense")
+                )
+                swap_project = (
+                    ui
+                    .select(
+                        {"": translate_string("Every Project")} | {name: name for name in index.projects},
+                        value="",
+                        label=translate_string("Narrow to Project"),
+                        with_input=True,
+                    )
+                    .classes("w-56")
+                    .props("dense")
+                )
+
+            # -- variable mode ------------------------------------------------
+            with ui.row().classes("w-full items-center gap-2 mt-2") as variable_row:
+                variable_select = (
+                    ui
+                    .select({}, label=translate_string("Rename this variable"), with_input=True)
+                    .classes("flex-1 min-w-[320px]")
+                    .props("dense")
+                )
+                # A text box with suggestions, NOT a select.  Both jobs have to work here:
+                # renaming to a name nothing uses yet, and replacing every use with a
+                # variable that already exists ("everywhere this Task says %app_name, say
+                # %app_package").  A select with new_value_mode looks like it does both and
+                # does the first badly -- a typed name is only committed on Enter, and is
+                # thrown away on blur, so the ordinary act of typing a name and reaching for
+                # the button loses it.  An input always keeps what was typed, and
+                # autocomplete offers the existing variables without ever standing between
+                # the user and a name they are inventing.
+                new_name_input = (
+                    ui
+                    .input(label=translate_string("...to this name"))
+                    .classes("flex-1 min-w-[260px]")
+                    .props("dense clearable")
+                )
+            variable_row.set_visibility(False)
+
+            replace_summary = ui.label("").classes("text-sm font-bold mt-3")
+            replace_area = ui.scroll_area().classes(
+                "w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded",
+            )
+
+        def current_inputs() -> tuple:
+            """What the Replace fields say right now, in the form the plan is built from."""
+            if mode.value == "action":
+                return ("action", source_select.value or "", target_select.value or "", swap_project.value or "")
+            # Integer keys into a parallel list, because a select's option keys are
+            # serialized to the browser and a variable's identity is the PAIR (name,
+            # owner) -- there is no JSON key for a tuple, and flattening the two into
+            # one string would need an escape for a separator that a Task name may
+            # legitimately contain.
+            choices = held.get("variable_choices") or []
+            position = variable_select.value
+            if isinstance(position, int) and 0 <= position < len(choices):
+                name, owner = choices[position][0], choices[position][1]
+            else:
+                name, owner = "", ""
+            return ("variable", name, owner, (new_name_input.value or "").strip())
+
+        def variable_index() -> varxref.VariableIndex:
+            """The variable cross-reference, built once per dialog and then held."""
+            if held["variables"] is None:
+                # Scoped, unlike varxref's other callers: a rename WRITES, and what it may
+                # write to is what the app is displaying.  See build_index's own note on
+                # why whole-file is the default there and this is the exception.
+                held["variables"] = varxref.build_index(mapjump.current_scope())
+            return held["variables"]
+
+        def invalidate() -> None:
+            """A field changed, so whatever is on screen is no longer what would happen.
+
+            Clearing the plan rather than re-running it: re-planning on every keystroke
+            of a variable name would scan the file per character, and a preview that
+            refreshed itself under the user would make the Replace button's meaning
+            depend on when they looked at it.
+            """
+            if held["plan"] is not None:
+                held["plan"] = None
+                held["inputs"] = None
+                replace_area.clear()
+                replace_summary.set_text("")
+            # The ticks go with the preview.  They describe changes to a question that is
+            # no longer the one on screen, and carrying them into the next preview would
+            # tick rows the user never looked at.
+            self._replace_ticks = None
+            replace_button.disable()
+
+        def fill_targets() -> None:
+            """Re-stock the target pulldown for the chosen source action.
+
+            Every candidate is labelled with what choosing it would cost -- what
+            carries over and what does not -- so that nothing in this list is a
+            surprise, and the pairs that keep the most sit at the top.  Blocked
+            targets stay in the list with their reason as the label: a user who
+            cannot find an action learns nothing, one who reads why learns the
+            answer to the question they were about to ask.
+            """
+            source = source_select.value
+            if not source:
+                target_select.set_options({})
+                return
+            target_select.set_options(
+                {key: label for key, label, _fidelity in mapswap.fidelity_choices(source)},
+                value=None,
+            )
+
+        def switch_mode() -> None:
+            """Show one mode's fields, hide the other's, and drop any preview."""
+            action_row.set_visibility(mode.value == "action")
+            variable_row.set_visibility(mode.value == "variable")
+            if mode.value == "variable" and not held.get("variable_choices"):
+                choices = mapswap.variable_choices(variable_index())
+                held["variable_choices"] = choices
+                variable_select.set_options(
+                    {position: label for position, (_name, _owner, label) in enumerate(choices)},
+                )
+                # The same variables offered as completions on the target box: a rename
+                # target is only ever a name, so two locals sharing one in different Tasks
+                # are the same string to write.  Sorted rather than ranked by use like the
+                # source list -- this one is looked up, not browsed.
+                new_name_input.set_autocomplete(sorted({name for name, _owner, _label in choices}))
+            invalidate()
+
+        def ticker(plan: mapswap.Plan, position: int) -> Callable:
+            """One preview row's tick box: put this change in or out of what Replace applies.
+
+            A factory rather than a lambda built in the loop, for the usual reason: a
+            lambda would close over the loop variable and every box would end up
+            ticking the last row.
+            """
+
+            def ticked(event: object) -> None:
+                if getattr(event, "value", False):
+                    plan.selected.add(position)
+                else:
+                    plan.selected.discard(position)
+                # Recorded as it happens rather than on the way out: the way out is a click
+                # on one of these rows, which closes the dialog from inside that row's own
+                # handler, so there is no later moment reliably reached.
+                remember_ticks()
+
+            return ticked
+
+        def draw(plan: mapswap.Plan) -> None:
+            """Draw the plan: warnings, then what cannot be changed, then what can.
+
+            Skips before changes because they are the part the user must read and the
+            part they will not scroll back up for.  Every location is a link, because
+            the only way to judge "should this one change" is to go and look at it.
+            """
+            replace_area.clear()
+            replace_summary.set_text(f"{plan.what} -- {plan.tally()}")
+
+            with replace_area, ui.column().classes("w-full gap-1"):
+                for warning in plan.warnings:
+                    ui.label(warning).classes(
+                        "text-xs text-orange-600 dark:text-orange-400 border-l-4 border-orange-400 pl-2 py-1",
+                    )
+
+                if plan.skips:
+                    ui.label(
+                        f"{translate_string('Cannot be changed')} ({len(plan.skips)})",
+                    ).classes("text-xs font-bold text-red-500 mt-2")
+                    for skip in plan.skips[:_REPLACE_SKIP_LIMIT]:
+                        with ui.row().classes("w-full items-baseline gap-2 pl-2"):
+                            ui.link(skip.where.label, "#").on("click", jump_to(skip.where)).classes(
+                                "text-blue-600 dark:text-blue-400 font-mono text-xs shrink-0 "
+                                "decoration-dotted hover:underline",
+                            )
+                            ui.label(skip.explanation).classes("text-xs text-gray-500 truncate")
+                    if len(plan.skips) > _REPLACE_SKIP_LIMIT:
+                        ui.label(
+                            f"...{len(plan.skips) - _REPLACE_SKIP_LIMIT} {translate_string('more')}",
+                        ).classes("text-xs text-gray-500 italic pl-2")
+
+                if not plan.changes:
+                    ui.label(
+                        translate_string("Nothing here would change."),
+                    ).classes("text-sm text-gray-500 italic mt-2")
+                    return
+
+                project = None
+                for position, change in enumerate(plan.changes):
+                    if change.site.where.project != project:
+                        project = change.site.where.project
+                        ui.label(
+                            (
+                                f"{translate_string('Project')} '{project}'"
+                                if project
+                                else translate_string("In no Project")
+                            ),
+                        ).classes("text-xs font-bold text-orange-500 mt-2")
+                    with ui.row().classes(
+                        "w-full items-baseline py-1 border-b dark:border-gray-700 px-2 rounded",
+                    ):
+                        ui.checkbox(
+                            value=position in plan.selected,
+                            on_change=ticker(plan, position),
+                        ).props("dense")
+                        ui.link(change.site.where.label, "#").on("click", jump_to(change.site.where)).classes(
+                            "text-blue-600 dark:text-blue-400 font-mono text-sm shrink-0 "
+                            "decoration-dotted hover:underline",
+                        )
+                    with ui.row().classes("w-full items-baseline pl-10 pb-1"):
+                        ui.label(f"{change.before}  →  {change.after}").classes(
+                            "text-xs text-gray-600 dark:text-gray-300 font-mono truncate",
+                        )
+                        if change.note:
+                            ui.label(change.note).classes("text-xs text-orange-600 dark:text-orange-400 truncate")
+
+        def remember_ticks() -> None:
+            """Keep the current tick boxes on the view, ready for the next reopen."""
+            plan = held["plan"]
+            self._replace_ticks = plan.ticked_identities() if plan is not None else None
+
+        def build_preview(restore: collections.Counter | None = None) -> None:
+            """Build the plan for whatever the fields say, and show it.
+
+            `restore` re-applies the tick boxes from a previous preview of the same
+            question -- the way back from following one of its own rows.  Applied after the
+            plan is built and before it is drawn, so what appears on screen is what the
+            user left, defaults and all.
+            """
+            inputs = current_inputs()
+            kind, first, second, third = inputs
+
+            if kind == "action":
+                if not first or not second:
+                    ui.notify(
+                        translate_string("Choose an action to replace, and one to replace it with."), type="warning"
+                    )
+                    return
+                plan = mapswap.plan_action_swap(first, second, third)
+            else:
+                if not first or not third:
+                    ui.notify(translate_string("Choose a variable, and type the new name."), type="warning")
+                    return
+                plan = mapswap.plan_variable_rename(variable_index(), first, second, third)
+
+            if restore is not None:
+                plan.restore_ticks(restore)
+
+            held.update(plan=plan, inputs=inputs)
+            self._replace_inputs = inputs
+            draw(plan)
+            remember_ticks()
+            if plan.changes:
+                replace_button.enable()
+            else:
+                replace_button.disable()
+
+        def preview() -> None:
+            """The Preview button: a fresh look at the question, tick boxes at their defaults."""
+            build_preview()
+
+        def do_replace() -> None:
+            """The Replace button.  Only ever applies the plan on screen.
+
+            Re-checks that the plan matches the fields even though every field
+            invalidates it: the button is the last point at which this is cheap to
+            verify, and the cost of the check being wrong is a configuration changed
+            in a way nobody previewed.
+            """
+            plan = held["plan"]
+            if plan is None or held["inputs"] != current_inputs():
+                ui.notify(translate_string("Press Preview first."), type="warning")
+                invalidate()
+                return
+            if not plan.selected:
+                ui.notify(translate_string("Nothing is ticked."), type="warning")
+                return
+
+            changed, errors = mapswap.apply(plan)
+            for message in errors[:_REPLACE_ERROR_LIMIT]:
+                ui.notify(message, type="negative")
+            if changed:
+                ui.notify(
+                    f"{changed} {translate_string('changed')}. {translate_string('Undo is available.')}",
+                    type="positive",
+                )
+                # The variable index this dialog holds describes the file as it was,
+                # so it is dropped rather than refreshed -- rebuilding here would hand
+                # back a preview of a plan that has already been applied.
+                #
+                # Nothing else is refreshed, and that is the established behaviour for
+                # a content edit rather than an omission: no Project/Profile/Task/Scene
+                # was added or removed, so every pulldown in the app still resolves,
+                # and the rendered Map is re-run when the user asks for it.  Same tail
+                # as userintr.save_scene_event -- notify, and close.
+                held.update(variables=None, variable_choices=None, plan=None, inputs=None)
+                replace_button.disable()
+                dialog.close()
+            else:
+                ui.notify(translate_string("Nothing was changed."), type="warning")
+
+        def save_replace() -> None:
+            """Write the preview to a file, ticks and all.
+
+            Worth having for the plan the user did NOT apply as much as the one they
+            did: a hundred-row preview is a work list, and which rows they decided to
+            leave does not survive closing the dialog otherwise.
+            """
+            plan = held["plan"]
+            if plan is None:
+                ui.notify(translate_string("Press Preview first."), type="warning")
+                return
+            file_name = mapswap.write_swap_report(mapswap.report_rows(plan))
+            if file_name:
+                ui.notify(f"{translate_string('Replace preview saved as')} {file_name}", type="positive")
+            else:
+                ui.notify(translate_string("Replace preview could not be saved."), type="negative")
+
+        with replace_panel, ui.row().classes("w-full justify-end mt-4 gap-2"):
+            ui.button(translate_string("Preview"), on_click=preview).classes("bg-blue-600 text-white px-4")
+            replace_button = ui.button(translate_string("Replace"), on_click=do_replace).classes(
+                "bg-orange-600 text-white px-4"
+            )
+            replace_button.disable()
+            ui.button(translate_string("Save Preview"), on_click=save_replace).classes(
+                "bg-blue-600 text-white px-4",
+            )
+
+        source_select.set_options({key: label for key, label, _count in mapswap.source_choices(index)})
+        source_select.on_value_change(lambda: (fill_targets(), invalidate()))
+        for widget in (target_select, swap_project, variable_select, new_name_input):
+            widget.on_value_change(invalidate)
+        mode.on_value_change(switch_mode)
+
+        # Come back to the Replace that was last set up, rather than to empty fields.
+        #
+        # A preview row's click closes this dialog -- it has to, it is modal, and a jump
+        # behind it scrolls a view the user cannot see -- so without this, going to look at
+        # one of the places about to change throws away the list of them.
+        #
+        # The INPUTS were what was remembered, and the plan is rebuilt from them here.
+        # That is a second pass over the file, and it is worth paying every time: it makes
+        # "the Replace button is only ever enabled for a preview the user is looking at"
+        # true by construction rather than by this dialog remembering to enforce it.  A
+        # Plan could not be remembered in its place anyway -- its Sites hold live elements,
+        # and holding those across a reopen is the stale-handle case apply()'s own
+        # attachment check exists to catch.
+        previous = self._replace_inputs
+        if previous is None:
+            return False
+
+        # Taken BEFORE a single widget is touched.  Every set_value below fires
+        # on_value_change, which runs invalidate, which clears the remembered ticks --
+        # so reading them afterwards would always find nothing, and the restore would
+        # silently do half its job.
+        remembered = self._replace_ticks
+
+        kind, first, second, third = previous
+        mode.set_value(kind)
+        switch_mode()
+        if kind == "action":
+            source_select.set_value(first or None)
+            fill_targets()
+            target_select.set_value(second or None)
+            swap_project.set_value(third or "")
+        else:
+            choices = held.get("variable_choices") or []
+            position = next(
+                (at for at, (name, owner, _label) in enumerate(choices) if (name, owner) == (first, second)),
+                None,
+            )
+            variable_select.set_value(position)
+            new_name_input.set_value(third)
+
+        # Only when the fields came back intact.  Re-planning is also what notices that an
+        # object the old plan pointed at has been deleted since -- which is the case the
+        # remembered ticks are matched by identity rather than by position to survive.
+        if current_inputs() == previous:
+            build_preview(remembered)
+        return True
+
     def find_event(self) -> None:
         """Open this view's Find dialog: ask the configuration a question, not the page.
 
@@ -8987,168 +9490,217 @@ class NiceGuiTextView:
         # than from whatever view happens to be frontmost when a row is clicked.
         from_diagram = self.title.startswith("Diagram")
 
-        with ui.dialog() as dialog, ui.card().classes("w-[900px] max-w-full p-6"):
+        # `persistent`, by the rule in this file's DIALOGS & POPUPS note: a dialog that
+        # holds work in progress or asks for a decision leaves on a button and nothing
+        # else.  Find alone did not qualify -- a query is cheap to retype and a stray
+        # click cost nothing -- but the Replace tab put both on the same card.  A preview
+        # is work in progress (a hundred rows, each individually ticked or unticked, and
+        # the plan is discarded with the dialog rather than remembered), and Replace is a
+        # decision.  Without this, a click anywhere on the backdrop throws that away
+        # silently, and the pulldowns are the worst of it: choosing from one means
+        # clicking a popup that Quasar renders OUTSIDE the card, so the click that picks
+        # a variable can be the click that closes the dialog.
+        with ui.dialog().props("persistent") as dialog, ui.card().classes("w-[900px] max-w-full p-6"):
             ui.label(
                 f"{translate_string('Find in')} {self.title}",
             ).classes("text-lg font-bold text-blue-600")
-            ui.label(
-                translate_string(
-                    "Each box narrows the answer, and they combine: a trigger and an action together "
-                    "find the Profiles that trigger that way AND run a Task that does that. Every entry "
-                    "offered is one this configuration actually uses, and the number beside it is how "
-                    "many places carry it.",
-                ),
-            ).classes("text-xs text-gray-500 italic mb-3")
 
-            pickers = {}
-            with ui.row().classes("w-full items-center gap-2"):
-                for facet in mapfind.FACETS:
-                    choices = index.choices(facet)
-                    pickers[facet] = (
-                        ui.select(
-                            {choice.value: choice.label for choice in choices},
-                            label=translate_string(mapfind.FACET_LABELS[facet]),
-                            with_input=True,
-                            clearable=True,
+            # Both tabs read and write only what the app is displaying, so the dialog says
+            # which that is.  Stated up front rather than left to be inferred from a short
+            # answer: "no matches" and "no matches in this one Task" look identical, and
+            # the second is the one that sends somebody looking for a bug.
+            if not index.scope.is_everything:
+                ui.label(
+                    f"{translate_string('Limited to')} {index.scope.phrase} "
+                    f"-- {translate_string('clear the single-item selection to reach the whole configuration')}.",
+                ).classes(
+                    "text-xs text-orange-600 dark:text-orange-400 border-l-4 border-orange-400 pl-2 py-1 mb-1",
+                )
+            # Find and Replace share this dialog, and share the index behind it.  Two
+            # reasons beyond tidiness, both in find_event's own terms: the index is
+            # rebuilt per open rather than cached (see above) and a separate Replace
+            # dialog would pay that a second time, or worse, hold one from before an
+            # edit; and the natural move is to look for something, see the 37 places it
+            # is, and then decide to change them -- which is a tab switch rather than a
+            # second window and a re-entered query.
+            with ui.tabs().classes("w-full") as tabs:
+                find_tab = ui.tab(translate_string("Find"))
+                replace_tab = ui.tab(translate_string("Replace"))
+            with ui.tab_panels(tabs, value=find_tab).classes("w-full"):
+                find_panel = ui.tab_panel(find_tab)
+                replace_panel = ui.tab_panel(replace_tab)
+
+            with find_panel:
+                ui.label(
+                    translate_string(
+                        "Each box narrows the answer, and they combine: a trigger and an action together "
+                        "find the Profiles that trigger that way AND run a Task that does that. Every entry "
+                        "offered is one this configuration actually uses, and the number beside it is how "
+                        "many places carry it.",
+                    ),
+                ).classes("text-xs text-gray-500 italic mb-3")
+
+                pickers = {}
+                with ui.row().classes("w-full items-center gap-2"):
+                    for facet in mapfind.FACETS:
+                        choices = index.choices(facet)
+                        pickers[facet] = (
+                            ui
+                            .select(
+                                {choice.value: choice.label for choice in choices},
+                                label=translate_string(mapfind.FACET_LABELS[facet]),
+                                with_input=True,
+                                clearable=True,
+                            )
+                            .classes("flex-1 min-w-[180px]")
+                            .props("dense")
                         )
-                        .classes("flex-1 min-w-[180px]")
+
+                with ui.row().classes("w-full items-center gap-2 mt-2"):
+                    text_input = (
+                        ui
+                        .input(label=translate_string("Text (name, label or argument)"))
+                        .classes("flex-1")
+                        .props("dense clearable")
+                    )
+                    project_select = (
+                        ui
+                        .select(
+                            {"": translate_string("Every Project")} | {name: name for name in index.projects},
+                            value="",
+                            label=translate_string("Narrow to Project"),
+                            with_input=True,
+                        )
+                        .classes("w-64")
                         .props("dense")
                     )
 
-            with ui.row().classes("w-full items-center gap-2 mt-2"):
-                text_input = (
-                    ui.input(label=translate_string("Text (name, label or argument)"))
-                    .classes("flex-1")
-                    .props("dense clearable")
+                summary = ui.label("").classes("text-sm font-bold mt-3")
+                results_area = ui.scroll_area().classes(
+                    "w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded",
                 )
-                project_select = (
-                    ui.select(
-                        {"": translate_string("Every Project")} | {name: name for name in index.projects},
-                        value="",
-                        label=translate_string("Narrow to Project"),
-                        with_input=True,
-                    )
-                    .classes("w-64")
-                    .props("dense")
-                )
+                # What the last Find produced, so "Save Results" writes exactly the list on
+                # screen rather than re-running a query the user may have edited since.
+                produced: dict = {"query": None, "hits": [], "total": 0}
 
-            summary = ui.label("").classes("text-sm font-bold mt-3")
-            results_area = ui.scroll_area().classes(
-                "w-full h-[45vh] border p-2 bg-gray-50 dark:bg-gray-900 rounded",
-            )
-            # What the last Find produced, so "Save Results" writes exactly the list on
-            # screen rather than re-running a query the user may have edited since.
-            produced: dict = {"query": None, "hits": [], "total": 0}
+                def jump_to(target: mapjump.Target) -> Callable[[], Coroutine]:
+                    """One result row's click: close the list, then go to the object.
 
-            def jump_to(target: mapjump.Target) -> Callable[[], Coroutine]:
-                """One result row's click: close the list, then go to the object.
+                    Closed first because the dialog is modal -- a jump behind it scrolls a view
+                    the user cannot see.  The query is remembered on the view, so pressing Find
+                    again comes back to this same list rather than to an empty dialog.
 
-                Closed first because the dialog is modal -- a jump behind it scrolls a view
-                the user cannot see.  The query is remembered on the view, so pressing Find
-                again comes back to this same list rather than to an empty dialog.
+                    The jump then runs inside the VIEW's slot rather than the dialog's, which
+                    is not decoration: closing the dialog deletes it (see the "hide" handler
+                    below), and everything the jump does afterwards -- ui.notify above all --
+                    resolves its client through whatever slot is active.  Left in the dialog's,
+                    the first notification raised "The parent element this slot belongs to has
+                    been deleted" from inside NiceGUI and the jump died there, silently, having
+                    already closed the only thing on screen.  The same re-entry, for the same
+                    reason, as _enable_connector_highlighting's.
+                    """
 
-                The jump then runs inside the VIEW's slot rather than the dialog's, which
-                is not decoration: closing the dialog deletes it (see the "hide" handler
-                below), and everything the jump does afterwards -- ui.notify above all --
-                resolves its client through whatever slot is active.  Left in the dialog's,
-                the first notification raised "The parent element this slot belongs to has
-                been deleted" from inside NiceGUI and the jump died there, silently, having
-                already closed the only thing on screen.  The same re-entry, for the same
-                reason, as _enable_connector_highlighting's.
-                """
+                    async def go() -> None:
+                        dialog.close()
+                        with self.scroll_area:
+                            await go_to_target(self.master_gui, target, prefer_diagram=from_diagram)
 
-                async def go() -> None:
-                    dialog.close()
-                    with self.scroll_area:
-                        await go_to_target(self.master_gui, target, prefer_diagram=from_diagram)
+                    return go
 
-                return go
-
-            def show(query: mapfind.Query) -> None:
-                """Run the query and draw its answer."""
-                self._find_query = query
-                produced.update(query=query, hits=[], total=0)
-                results_area.clear()
-                if query.is_empty:
-                    summary.set_text("")
-                    ui.notify(
-                        translate_string("Choose an action, a trigger, an app, a Scene or some text."),
-                        type="warning",
-                    )
-                    return
-
-                hits, total = mapfind.run_query(index, query)
-                produced.update(hits=hits, total=total)
-                summary.set_text(
-                    (
-                        f"{len(hits)} {translate_string('of')} {total} {translate_string('found for')}: {query.phrase()}"
-                        if total > len(hits)
-                        else f"{total} {translate_string('found for')}: {query.phrase()}"
-                    ),
-                )
-
-                with results_area, ui.column().classes("w-full gap-1"):
-                    if not hits:
-                        ui.label(
-                            translate_string("Nothing in the loaded configuration answers this."),
-                        ).classes("text-sm text-gray-500 italic")
+                def show(query: mapfind.Query) -> None:
+                    """Run the query and draw its answer."""
+                    self._find_query = query
+                    produced.update(query=query, hits=[], total=0)
+                    results_area.clear()
+                    if query.is_empty:
+                        summary.set_text("")
+                        ui.notify(
+                            translate_string("Choose an action, a trigger, an app, a Scene or some text."),
+                            type="warning",
+                        )
                         return
-                    project = None
-                    for hit in hits:
-                        if hit.project != project:
-                            project = hit.project
+
+                    hits, total = mapfind.run_query(index, query)
+                    produced.update(hits=hits, total=total)
+                    summary.set_text(
+                        (
+                            f"{len(hits)} {translate_string('of')} {total} {translate_string('found for')}: {query.phrase()}"
+                            if total > len(hits)
+                            else f"{total} {translate_string('found for')}: {query.phrase()}"
+                        ),
+                    )
+
+                    with results_area, ui.column().classes("w-full gap-1"):
+                        if not hits:
                             ui.label(
-                                (
-                                    f"{translate_string('Project')} '{project}'"
-                                    if project
-                                    else translate_string("In no Project")
-                                ),
-                            ).classes("text-xs font-bold text-orange-500 mt-2")
-                        with ui.row().classes(
-                            "w-full items-baseline py-1 border-b dark:border-gray-700 hover:bg-blue-50 "
-                            "dark:hover:bg-blue-950 px-2 rounded transition-colors",
-                        ):
-                            ui.link(hit.where, "#").on("click", jump_to(hit.target)).classes(
-                                "text-blue-600 dark:text-blue-400 font-mono text-sm shrink-0 "
-                                "decoration-dotted hover:underline",
-                            )
-                            if hit.detail:
-                                ui.label(hit.detail).classes("text-xs text-gray-500 dark:text-gray-400 truncate")
+                                translate_string("Nothing in the loaded configuration answers this."),
+                            ).classes("text-sm text-gray-500 italic")
+                            return
+                        project = None
+                        for hit in hits:
+                            if hit.project != project:
+                                project = hit.project
+                                ui.label(
+                                    (
+                                        f"{translate_string('Project')} '{project}'"
+                                        if project
+                                        else translate_string("In no Project")
+                                    ),
+                                ).classes("text-xs font-bold text-orange-500 mt-2")
+                            with ui.row().classes(
+                                "w-full items-baseline py-1 border-b dark:border-gray-700 hover:bg-blue-50 "
+                                "dark:hover:bg-blue-950 px-2 rounded transition-colors",
+                            ):
+                                ui.link(hit.where, "#").on("click", jump_to(hit.target)).classes(
+                                    "text-blue-600 dark:text-blue-400 font-mono text-sm shrink-0 "
+                                    "decoration-dotted hover:underline",
+                                )
+                                if hit.detail:
+                                    ui.label(hit.detail).classes("text-xs text-gray-500 dark:text-gray-400 truncate")
 
-            def run() -> None:
-                """The Find button: build the query out of the widgets and answer it."""
-                show(
-                    mapfind.Query(
-                        action=pickers[mapfind.ACTION].value or "",
-                        trigger=pickers[mapfind.TRIGGER].value or "",
-                        app=pickers[mapfind.APP].value or "",
-                        scene=pickers[mapfind.SCENE_FACET].value or "",
-                        text=text_input.value or "",
-                        project=project_select.value or "",
-                    ),
-                )
+                def run() -> None:
+                    """The Find button: build the query out of the widgets and answer it."""
+                    show(
+                        mapfind.Query(
+                            action=pickers[mapfind.ACTION].value or "",
+                            trigger=pickers[mapfind.TRIGGER].value or "",
+                            app=pickers[mapfind.APP].value or "",
+                            scene=pickers[mapfind.SCENE_FACET].value or "",
+                            text=text_input.value or "",
+                            project=project_select.value or "",
+                        ),
+                    )
 
-            def save() -> None:
-                """Write the list on screen to a file, as the other reports do.
+                def save() -> None:
+                    """Write the list on screen to a file, as the other reports do.
 
-                The same Rows the results list is drawn from, so the file and the screen
-                cannot disagree -- and every location line in it stays clickable if the
-                saved report is ever opened in the Misc view.
-                """
-                query = produced["query"]
-                if query is None:
-                    ui.notify(translate_string("Run a Find first."), type="warning")
-                    return
-                rows = mapfind.report_rows(query, produced["hits"], produced["total"], index)
-                file_name = mapfind.write_find_report(rows)
-                if file_name:
-                    ui.notify(f"{translate_string('Find results saved as')} {file_name}", type="positive")
-                else:
-                    ui.notify(translate_string("Find results could not be saved."), type="negative")
+                    The same Rows the results list is drawn from, so the file and the screen
+                    cannot disagree -- and every location line in it stays clickable if the
+                    saved report is ever opened in the Misc view.
+                    """
+                    query = produced["query"]
+                    if query is None:
+                        ui.notify(translate_string("Run a Find first."), type="warning")
+                        return
+                    rows = mapfind.report_rows(query, produced["hits"], produced["total"], index)
+                    file_name = mapfind.write_find_report(rows)
+                    if file_name:
+                        ui.notify(f"{translate_string('Find results saved as')} {file_name}", type="positive")
+                    else:
+                        ui.notify(translate_string("Find results could not be saved."), type="negative")
+
+                with ui.row().classes("w-full justify-end mt-4 gap-2"):
+                    ui.button(translate_string("Find"), on_click=run).classes("bg-blue-600 text-white px-4")
+                    ui.button(translate_string("Save Results"), on_click=save).classes(
+                        "bg-blue-600 text-white px-4",
+                    )
+
+            # The Replace tab is built by its own method rather than inline.  It is the
+            # larger half of this dialog and shares only the index, the panel and the jump
+            # with the Find half -- which is exactly the seam, so that is where it is cut.
+            restored_replace = self._build_replace_tab(dialog, index, jump_to, replace_panel)
 
             with ui.row().classes("w-full justify-end mt-4 gap-2"):
-                ui.button(translate_string("Find"), on_click=run).classes("bg-blue-600 text-white px-4")
-                ui.button(translate_string("Save Results"), on_click=save).classes("bg-blue-600 text-white px-4")
                 ui.button(translate_string("Close"), on_click=dialog.close).classes("bg-red-500 text-white px-4")
 
             # A fresh dialog is built per press, so the one being replaced is disposed of
@@ -9160,6 +9712,10 @@ class NiceGuiTextView:
             # Come back to the question that was last asked, rather than to a blank dialog:
             # a result row's click closes this, and the next press of Find is nearly always
             # the same query with one more row to look at.
+            # Whichever half the user was last using is the one to open on.
+            if restored_replace:
+                tabs.set_value(replace_tab)
+
             previous = self._find_query
             if previous is not None:
                 pickers[mapfind.ACTION].set_value(previous.action or None)
@@ -10042,7 +10598,8 @@ def initialize_screen(self: MyGui) -> None:
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
     # =========================================================================
     with (
-        ui.left_drawer(value=True, fixed=True)
+        ui
+        .left_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
@@ -10056,7 +10613,8 @@ def initialize_screen(self: MyGui) -> None:
 
         # Detail level pulldown
         self.sidebar_detail_option = (
-            ui.select(
+            ui
+            .select(
                 options=["0", "1", "2", "3", "4", "5"],
                 value=str(self.display_detail_level),
                 label=translate_string("Detail Level"),
@@ -10115,7 +10673,8 @@ def initialize_screen(self: MyGui) -> None:
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
     with (
-        ui.right_drawer(value=True, fixed=True)
+        ui
+        .right_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
@@ -10149,7 +10708,8 @@ def initialize_screen(self: MyGui) -> None:
         )
 
         self.close_tabs_on_exit_checkbox = (
-            ui.checkbox(translate_string("Close Tabs On Exit"))
+            ui
+            .checkbox(translate_string("Close Tabs On Exit"))
             .bind_value(self, "close_tabs_on_exit")
             .props("dense")
             .classes("text-xs mt-0")
@@ -10164,7 +10724,8 @@ def initialize_screen(self: MyGui) -> None:
             ).style("white-space: pre-line")
 
         self.open_view_in_new_window_checkbox = (
-            ui.checkbox(translate_string("Open View In New Window"))
+            ui
+            .checkbox(translate_string("Open View In New Window"))
             .bind_value(self, "open_view_in_new_window")
             .props("dense")
             .classes("text-xs mt-0")
@@ -10205,7 +10766,8 @@ def initialize_screen(self: MyGui) -> None:
         # Exit buttons are.  Quasar puts its own bg-primary on every button, and that wins over
         # a Tailwind bg-* added here -- a bg-teal-600 class renders plain blue.
         self.health_check_button = (
-            ui.button(
+            ui
+            .button(
                 translate_string("Health Check"),
                 color="teal",
                 on_click=self.event_handlers.health_check_event,
@@ -10227,7 +10789,8 @@ def initialize_screen(self: MyGui) -> None:
         # button above is: the drawer is w-80 and this label is longer still, and Quasar's own
         # bg-primary beats a Tailwind bg-* class added here.
         self.compare_files_button = (
-            ui.button(
+            ui
+            .button(
                 translate_string("Compare Files"),
                 color="teal",
                 on_click=self.event_handlers.compare_files_event,
@@ -10252,7 +10815,8 @@ def initialize_screen(self: MyGui) -> None:
         # above are: the drawer is w-80 and this label will not fit beside another, and
         # Quasar's own bg-primary beats a Tailwind bg-* class added here.
         self.variable_xref_button = (
-            ui.button(
+            ui
+            .button(
                 translate_string("Variable Xref"),
                 color="teal",
                 on_click=self.event_handlers.variable_xref_event,
@@ -10330,7 +10894,8 @@ def initialize_screen(self: MyGui) -> None:
                 none_translatesd = translate_string("None")
                 with ui.row().classes("gap-2 w-full m-0 p-0 items-start"):
                     self.specific_project_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_project_name_event(e.value) if e.value else None
@@ -10343,7 +10908,8 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_profile_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_profile_name_event(e.value) if e.value else None
@@ -10356,7 +10922,8 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_task_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_task_name_event(e.value) if e.value else None
@@ -10369,7 +10936,8 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_scene_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_scene_name_event(e.value) if e.value else None
@@ -10412,7 +10980,8 @@ def initialize_screen(self: MyGui) -> None:
                     with ui.column().classes("flex-1 min-w-0 gap-0 m-0 p-0"):
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.project_buttons_row:
                             self.edit_project_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Edit Project"),
                                     on_click=self.event_handlers.open_edit_project_dialog_event,
                                 )
@@ -10420,7 +10989,8 @@ def initialize_screen(self: MyGui) -> None:
                                 .style("max-width:12rem")
                             )
                             self.add_project_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Add Project"),
                                     on_click=self.event_handlers.open_add_project_dialog_event,
                                 )
@@ -10429,7 +10999,8 @@ def initialize_screen(self: MyGui) -> None:
                             )
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.profile_buttons_row:
                             self.edit_profile_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Edit Profile"),
                                     on_click=self.event_handlers.open_edit_profile_dialog_event,
                                 )
@@ -10437,7 +11008,8 @@ def initialize_screen(self: MyGui) -> None:
                                 .style("max-width:12rem")
                             )
                             self.add_profile_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Add Profile"),
                                     on_click=self.event_handlers.open_add_profile_dialog_event,
                                 )
@@ -10446,7 +11018,8 @@ def initialize_screen(self: MyGui) -> None:
                             )
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.task_buttons_row:
                             self.edit_task_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Edit Task"),
                                     on_click=self.event_handlers.open_edit_task_dialog_event,
                                 )
@@ -10454,7 +11027,8 @@ def initialize_screen(self: MyGui) -> None:
                                 .style("max-width:12rem")
                             )
                             self.add_task_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Add Task"),
                                     on_click=self.event_handlers.open_add_task_dialog_event,
                                 )
@@ -10469,7 +11043,8 @@ def initialize_screen(self: MyGui) -> None:
                         if EDIT_SCENE:
                             with ui.row().classes("w-full gap-2 m-0 p-0") as self.scene_buttons_row:
                                 self.edit_scene_button = (
-                                    ui.button(
+                                    ui
+                                    .button(
                                         translate_string("Edit Scene"),
                                         on_click=self.event_handlers.open_edit_scene_dialog_event,
                                     )
@@ -10477,7 +11052,8 @@ def initialize_screen(self: MyGui) -> None:
                                     .style("max-width:12rem")
                                 )
                                 self.add_scene_button = (
-                                    ui.button(
+                                    ui
+                                    .button(
                                         translate_string("Add Scene"),
                                         on_click=self.event_handlers.open_add_scene_dialog_event,
                                     )
@@ -10521,7 +11097,8 @@ def initialize_screen(self: MyGui) -> None:
 
                 with ui.column().classes("gap-1 w-full mt-1"):
                     self.color_objects_options = (
-                        ui.select(
+                        ui
+                        .select(
                             options=[
                                 "Projects",
                                 "Profiles",
@@ -10549,7 +11126,8 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.color_picker_input = (
-                        ui.color_input(
+                        ui
+                        .color_input(
                             label=translate_string("Choose Hex Color"),
                             value="#3f99ff",
                             on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value),
@@ -10570,7 +11148,8 @@ def initialize_screen(self: MyGui) -> None:
                         ui.checkbox(translate_string("Debug Mode")).bind_value(self, "debug").classes("text-xs")
                     )
                     self.runtime_checkbox = (
-                        ui.checkbox(translate_string("Display Runtime Settings"))
+                        ui
+                        .checkbox(translate_string("Display Runtime Settings"))
                         .bind_value(self, "runtime")
                         .classes("text-xs")
                     )
@@ -10650,7 +11229,8 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
 
             # Extra model list checkbox with chained tooltip
             self.aimodel_extend_checkbox = (
-                ui.checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
+                ui
+                .checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
                 .tooltip(
                     translate_string(
                         "Display an extended list of ALL available models.\n\n"
@@ -10678,7 +11258,8 @@ def _create_name_display_options_section(self: MyGui) -> None:
 
     # 1. Create the Section Label with an inline native tooltip
     self.display_names_label = (
-        ui.label(translate_string("Project/Profile/Task/Scene Names:"))
+        ui
+        .label(translate_string("Project/Profile/Task/Scene Names:"))
         .classes("text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 leading-none")
         .tooltip(translate_string("Add highlighting to Project, Profile and Task names in the output."))
     )
@@ -10974,7 +11555,8 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
         # tears that panel down again.
         with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0") as self.android_button_row:
             self.get_backup_button = (
-                ui.button(
+                ui
+                .button(
                     translate_string("Get XML from Android Device"),
                     on_click=self.event_handlers.get_xml_from_android_event,
                 )

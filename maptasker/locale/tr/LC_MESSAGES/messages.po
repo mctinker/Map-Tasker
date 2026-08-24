@@ -2296,3 +2296,93 @@ msgstr "ile ilgili"
 
 msgid "In no Project"
 msgstr "Hiçbir Projede"
+
+msgid "...to this name"
+msgstr "...bu isim altında"
+
+msgid "...with this one"
+msgstr "...bu da dahil"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Orijinal diyagrama geri dönelim: Hiçbir yakınlaştırma, hiçbir şey katlanmamış veya filtrelenmemiş."
+
+msgid "Cannot be changed"
+msgstr "Değiştirilemez"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Her yerde aynı şeyi değiştirin. Değişiklikler, \"Önizleme\" ve ardından \"Değiştir\" düğmelerine basılana kadar yapılmaz. Ayrıca, her değişiklikten sonra \"İptal\" düğmesiyle geri alınabilir."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Bir değişken seçin ve yeni adı girin."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Hangi eylemi değiştireceğinizi ve bunun yerine hangi eylemi kullanacağınızı seçin."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Bir ismin üzerine tıklayarak ilgili harita kaydına erişin · bir görev üzerinde sağ tıklayarak ilgili çağrı zincirine bakın"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Her projenin başlık çubuğuna indirildiğinden emin olun.\n\nTek bir proje, kutusunun üst kenarına tıklanarak otomatik olarak kapanır."
+
+msgid "Expand every collapsed Project."
+msgstr "Her kapsanan Proje'yi açın."
+
+msgid "Limited to"
+msgstr "Sınırlı"
+
+msgid "Nothing here would change."
+msgstr "Burada hiçbir şey değişmeyecekti."
+
+msgid "Nothing is ticked."
+msgstr "Hiçbir şey işaretlenmemiş."
+
+msgid "Nothing was changed."
+msgstr "Hiçbir şey değişmedi."
+
+msgid "Press Preview first."
+msgstr "Öncelikle basın tanıtımını yapın."
+
+msgid "Rename this variable"
+msgstr "Bu değişkenin adını değiştirin"
+
+msgid "Replace"
+msgstr "Yerine koy"
+
+msgid "Replace preview could not be saved."
+msgstr "Ön izleme kaydetme işlemi başarısız oldu."
+
+msgid "Replace preview saved as"
+msgstr "\"Kaydedilen önizleme yerine...\""
+
+msgid "Replace this action"
+msgstr "Bu eylemi değiştirin"
+
+msgid "Save Preview"
+msgstr "Örnek Görüntüleme"
+
+msgid "Task action"
+msgstr "Görev eylemi"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Şema tıklanabilir:\n\nHarita üzerinde bir Proje, Profil, Görev veya Sahne adını tıklayarak ilgili yere geçebilirsiniz.\n\nBir Göreve Shift tuşuyla tıklayarak, o görevin dahil olduğu tüm çağrı zincirini vurgulayabilirsiniz – hem o görevi çağırıyor, hem de ona çağrı yapan tüm diğer görevleri ve aralarındaki okları gösterir.\n\nDiğerleri için herhangi bir adı sağ tıklayın: Projesini daraltın, sadece o projeyi gösterin, zincirini takip edin.\n\nBir Projenin yanındaki ▾ işaretine tıklayarak, projeyi daraltın ve ▸ işaretine tıklayarak tekrar açın.\n\nCtrl (veya ⌘) tuşlarını ve kaydırıcıyı kullanarak yakınlaşma/uzaklaşma yapabilirsiniz. Esc tuşu, bir zinciri sıfırlar."
+
+msgid "Undo is available."
+msgstr "İptal etme özelliği mevcuttur."
+
+msgid "Variable name"
+msgstr "Değişken adı"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Yakınlaştır. Ctrl/⌘ ve kaydırma çarkı aynı işlevi görür."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Geri çek. Ctrl/⌘ tuşlarını ve kaydırma çemberini kullanarak aynı işlemi yapabilirsiniz."
+
+msgid "changed"
+msgstr "değişti"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "konfigürasyonun tamamına ulaşmak için tek öğe seçimini temizleyin"
+
+msgid "more"
+msgstr "daha fazla"

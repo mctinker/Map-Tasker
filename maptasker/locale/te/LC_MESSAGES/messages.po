@@ -2302,3 +2302,93 @@ msgstr "కోసం కనుగొనబడింది"
 
 msgid "of"
 msgstr "యొక్క"
+
+msgid "...to this name"
+msgstr "...ఈ పేరుకు"
+
+msgid "...with this one"
+msgstr "...ఇది ద్వారా"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "మొత్తం రేఖాచిత్రానికి తిరిగి వస్తే: జూమ్ లేదు, ఏదీ కుదించలేదు, ఏదీ ఫిల్టర్ చేయలేదు."
+
+msgid "Cannot be changed"
+msgstr "మార్చలేము"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "ప్రతి చోటా ఒకదాన్ని మార్చండి. మీరు \"ముందుగా చూడండి\" (Preview) నొక్కే వరకు ఏదీ మార్చబడదు, ఆపై \"మార్చండి\" (Replace) నొక్కిన తర్వాత, ప్రతి మార్పును \"రద్దు చేయండి\" (Undo) ద్వారా సులభంగా మార్చవచ్చు."
+
+msgid "Choose a variable, and type the new name."
+msgstr "ఒక వేరియబుల్‌ను ఎంచుకోండి, మరియు కొత్త పేరును టైప్ చేయండి."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "ఏ చర్యను భర్తీ చేయాలో ఎంచుకోండి, మరియు దాన్ని దేనితో భర్తీ చేయాలో కూడా ఎంచుకోండి."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "ఒక పేరుపై క్లిక్ చేయడం ద్వారా దాని మ్యాప్ ఎంట్రీని చూడవచ్చు · ఒక టాస్క్‌పై షిఫ్ట్-క్లిక్ చేయడం ద్వారా దాని కాల్ చైన్‌ను చూడవచ్చు"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "ప్రతి ప్రాజెక్ట్‌ను దాని టైటిల్ బార్‌కు కుదించండి.\n\nఒక ప్రాజెక్ట్‌ను దాని బాక్స్ యొక్క పై అంచుపై క్లిక్ చేయడం ద్వారా స్వయంచాలకంగా కుదించవచ్చు."
+
+msgid "Expand every collapsed Project."
+msgstr "ప్రతి కుదించబడిన ప్రాజెక్ట్‌ను విస్తరించండి."
+
+msgid "Limited to"
+msgstr "పరిమితం"
+
+msgid "Nothing here would change."
+msgstr "ఇక్కడ ఏదీ మారదు."
+
+msgid "Nothing is ticked."
+msgstr "ఏదీ ఎంచుకోలేదు."
+
+msgid "Nothing was changed."
+msgstr "ఏమీ మారలేదు."
+
+msgid "Press Preview first."
+msgstr "ముందుగా ప్రెస్ ప్రివ్యూ చూడండి."
+
+msgid "Rename this variable"
+msgstr "ఈ వేరియబుల్‌కు పేరు మార్చండి"
+
+msgid "Replace"
+msgstr "మార్పు"
+
+msgid "Replace preview could not be saved."
+msgstr "\"ముందుగా చూసినదాన్ని సేవ్ చేయడం సాధ్యం కాలేదు.\""
+
+msgid "Replace preview saved as"
+msgstr "\"ముందుగా చూసినదాన్ని సేవ్ చేసిన ప్రదేశాన్ని మార్చండి\""
+
+msgid "Replace this action"
+msgstr "ఈ చర్యను భర్తీ చేయండి"
+
+msgid "Save Preview"
+msgstr "ముందుగా చూడడాన్ని సేవ్ చేయండి"
+
+msgid "Task action"
+msgstr "పని యొక్క చర్య"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "ఈ రేఖాచిత్రం క్లిక్ చేయదగినది:\n\nమ్యాప్‌లో ఒక ప్రాజెక్ట్, ప్రొఫైల్, టాస్క్ లేదా సీన్ పేరును క్లిక్ చేయడం ద్వారా, ఆ పేరుకు సంబంధించిన అంశానికి వెళ్లవచ్చు.\n\nఒక టాస్క్‌ను షిఫ్ట్-క్లిక్ చేయడం ద్వారా, అది పాల్గొనే మొత్తం సంభాషణల గొలుసును హైలైట్ చేయవచ్చు - అది చేసే ప్రతి సంభాషణ, దానితో సంభాషించే ప్రతిదీ మరియు వాటి మధ్య ఉండే బాణాలు.\n\nమిగిలిన వాటి కోసం ఏదైనా పేరుపై కుడి క్లిక్ చేయండి: దాని ప్రాజెక్ట్‌ను కుదించండి, ఆ ప్రాజెక్ట్‌ను మాత్రమే చూపించండి, దాని గొలుసును అనుసరించండి.\n\nఒక ప్రాజెక్ట్‌కు ఉన్న ▾ (దిగువకు) గుర్తును క్లిక్ చేయడం ద్వారా, దానిని కుదించవచ్చు మరియు ▸ (పైకి) గుర్తును క్లిక్ చేయడం ద్వారా తిరిగి తెరుచుకోవచ్చు.\n\nCtrl (లేదా ⌘) మరియు స్క్రోల్ వీల్‌ను ఉపయోగించి జూమ్ చేయవచ్చు. Esc నొక్కడం ద్వారా ఒక గొలుసును తొలగించవచ్చు."
+
+msgid "Undo is available."
+msgstr "\"రద్దు చేయడం సాధ్యం.\""
+
+msgid "Variable name"
+msgstr "వేరియబుల్ పేరు"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "జూమ్ చేయండి. Ctrl/⌘ మరియు స్క్రోల్ వీల్ కూడా అదే పని చేస్తాయి."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "దూరం చూడటానికి. Ctrl/⌘ మరియు స్క్రోల్ వీల్ కూడా అదే పని చేస్తాయి."
+
+msgid "changed"
+msgstr "మార్పు"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "ఒకే అంశాన్ని ఎంచుకోవడం ద్వారా మొత్తం కాన్ఫిగరేషన్‌కు చేరుకోవడానికి, దాన్ని తీసివేయండి."
+
+msgid "more"
+msgstr "మరింత"

@@ -74,8 +74,10 @@ from maptasker.src.mapjump import (
     SCENE,
     TASK,
     Row,
+    Scope,
     Target,
     actions_in_map_order,
+    current_scope,
     describe,
     text_report,
 )
@@ -226,6 +228,14 @@ class _Action:
     apps: list[str] = field(default_factory=list)
     scenes: list[str] = field(default_factory=list)
     text: str = ""  # label and argument text, lower cased, for the free-text facet
+    code: str = ""  # the raw <code>, for a caller that needs to match on it exactly
+    # The element this record was reduced from.  Nothing in this module reads it -- a
+    # query tests the reduced facts, which is the point of reducing them -- but mapswap
+    # rewrites the actions a query finds, and a second walk written to go and fetch the
+    # elements again would be a second definition of "the actions of a Task" to keep in
+    # step with this one.  Optional so that a hand-built _Action in a test need not
+    # supply it.
+    element: defusedxml.ElementTree.Element | None = None
 
 
 @dataclass
@@ -269,6 +279,9 @@ class FindIndex:
     # than let a zero read as "there are none".
     variable_apps: int = 0
     variable_scenes: int = 0
+    # What the index was limited to when it was built, so a report can say so rather than
+    # let an empty answer read as "there are none in this configuration".
+    scope: Scope = field(default_factory=Scope)
 
     def choices(self, facet: str) -> list[Choice]:
         """A facet's pulldown entries, commonest first and alphabetical within a count.
@@ -420,7 +433,7 @@ def _index_action(
 ) -> _Action:
     """Reduce one action to the facts the facets test, and count them into the catalogs."""
     code = _element_text(action_element, "code")
-    record = _Action(number=number, name=_action_name(code))
+    record = _Action(number=number, name=_action_name(code), code=code, element=action_element)
     index.catalog[ACTION][record.name] += 1
 
     arguments = _string_arguments(action_element)
@@ -450,10 +463,12 @@ def _index_action(
     return record
 
 
-def _index_tasks(index: FindIndex, project_of_task: dict[str, str]) -> None:
+def _index_tasks(index: FindIndex, project_of_task: dict[str, str], scope: Scope) -> None:
     """Walk every Task and every action in it."""
     scene_args = _scene_name_args()
     for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
+        if not scope.allows(TASK, task_id):
+            continue
         project = project_of_task.get(task_id, "")
         record = _Object(
             target=Target(kind=TASK, key=task_id, name=task["name"], project=project),
@@ -474,9 +489,11 @@ def _index_tasks(index: FindIndex, project_of_task: dict[str, str]) -> None:
         index.by_task_id[task_id] = record
 
 
-def _index_profiles(index: FindIndex, project_of_profile: dict[str, str]) -> None:
+def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope: Scope) -> None:
     """Walk every Profile: its contexts, the apps they name, and the Tasks it runs."""
     for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
+        if not scope.allows(PROFILE, profile_id):
+            continue
         project = project_of_profile.get(profile_id, "")
         record = _Object(
             target=Target(kind=PROFILE, key=profile_id, name=profile["name"], project=project),
@@ -516,7 +533,7 @@ def _index_profiles(index: FindIndex, project_of_profile: dict[str, str]) -> Non
         index.objects.append(record)
 
 
-def _index_scenes(index: FindIndex, project_of_scene: dict[str, str]) -> None:
+def _index_scenes(index: FindIndex, project_of_scene: dict[str, str], scope: Scope) -> None:
     """Walk every Scene.  A Scene answers the Scene facet by BEING the Scene asked for.
 
     Its elements are read for the free-text facet only -- every <Str> in the Scene, which
@@ -526,6 +543,8 @@ def _index_scenes(index: FindIndex, project_of_scene: dict[str, str]) -> None:
     repeats it, so a zero is never mistaken for "there are none".
     """
     for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
+        if not scope.allows(SCENE, scene_name):
+            continue
         project = project_of_scene.get(scene_name, "")
         record = _Object(
             target=Target(kind=SCENE, key=scene_name, name=scene["name"] or scene_name, project=project),
@@ -540,7 +559,7 @@ def _index_scenes(index: FindIndex, project_of_scene: dict[str, str]) -> None:
         index.objects.append(record)
 
 
-def _index_projects(index: FindIndex) -> None:
+def _index_projects(index: FindIndex, scope: Scope) -> None:
     """Walk every Project.  A Project answers for the Scenes it lists and for its own name.
 
     It is deliberately NOT made to answer for everything it contains: on a file with 200
@@ -549,6 +568,8 @@ def _index_projects(index: FindIndex) -> None:
     Tasks and Profiles themselves are in the results already.
     """
     for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+        if not scope.allows(PROJECT, project_name):
+            continue
         index.projects.append(project_name)
         scenes = _split_ids(project["xml"], "scenes")
         index.objects.append(
@@ -566,14 +587,22 @@ def _index_projects(index: FindIndex) -> None:
 def build_index() -> FindIndex:
     """Read the loaded configuration into everything a query needs, in one pass.
 
+    Limited to what the app is DISPLAYING (mapjump.current_scope): with a single Project,
+    Profile, Task or Scene selected, everything outside it is left out of the index
+    entirely, rather than filtered out when a query is answered.  That is the difference
+    between the pulldowns agreeing with the results and disagreeing with them -- the facet
+    catalogs are counted off these same records, so a scoped run offers "Flash  (11)" and
+    then finds eleven.
+
     Safe to call with nothing loaded: the tables are empty, the index is empty, and every
     query over it answers nothing -- but the GUI checks first so it can say why.
     """
-    index = FindIndex()
-    _index_projects(index)
-    _index_profiles(index, _project_membership("pids"))
-    _index_tasks(index, _project_membership("tids"))
-    _index_scenes(index, _project_membership("scenes"))
+    scope = current_scope()
+    index = FindIndex(scope=scope)
+    _index_projects(index, scope)
+    _index_profiles(index, _project_membership("pids"), scope)
+    _index_tasks(index, _project_membership("tids"), scope)
+    _index_scenes(index, _project_membership("scenes"), scope)
     index.projects.sort(key=str.lower)
     logger.debug(
         f"mapfind index: {len(index.objects)} objects, "
@@ -757,10 +786,19 @@ def _limitations(index: FindIndex) -> list[str]:
     notes = [
         "What this search does and does not reach:",
         "  Read from the loaded XML, not from the rendered Map or Diagram -- the answer does",
-        "  not change with the detail level, the Project selection or whether a Map has been run.",
+        "  not change with the detail level or with whether a Map has been run.",
         "  The anonymous Tasks that live inside a Scene are not scanned for actions; a Scene is",
         "  searched by name and by the text of its elements.",
     ]
+    # Said first among the qualifications, and said whether or not anything was found: an
+    # empty answer from a scoped search means "none in here", and read as "none in this
+    # configuration" it is the wrong answer to a question the user did not ask.
+    if not index.scope.is_everything:
+        notes.insert(
+            1,
+            f"  Limited to {index.scope.phrase}, which is what the app is displaying.  Nothing outside"
+            f" it was searched.",
+        )
     if index.variable_apps:
         notes.append(
             f"  {index.variable_apps} app reference(s) name the app through a %variable, so the app is",

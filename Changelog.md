@@ -6,13 +6,14 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: The Diagram view is now interactive:
+- Added: The Diagram view is now *interactive*:
   - Click any Project, Profile, Task or Scene name to be taken straight to it into the Map view.
   - Shift-click a Task to light up the whole chain of calls it takes part in: everything it calls, everything that calls it, and every arrow between them.  The rest of the diagram greys out so the chain stands on its own.  Esc puts it back.
   - Click the ▾ beside a Project to collapse it down to its box, and the ▸ to bring it back.  'Collapse All' and 'Expand All' are on the Diagram toolbar.
   - Right-click any name for the rest: collapse its Project, show only that Project, or follow its call chain.
   - Zoom with the toolbar buttons or with Ctrl (⌘) and the scroll wheel.
 - Added: A 'Find...' result or a report finding taken to the Diagram now lands on the object's own name rather than on as much of the line as happened to fit.
+- Added 'Find > **Replace**' function, to replace a Task action with another or a variable with another.
 
 ### Changed
 

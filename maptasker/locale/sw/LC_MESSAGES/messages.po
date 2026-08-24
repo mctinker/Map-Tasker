@@ -2294,3 +2294,93 @@ msgstr "Tafuta ndani"
 
 msgid "Find results could not be saved."
 msgstr "Matokeo hayakuweza kuhifadhiwa."
+
+msgid "...to this name"
+msgstr "...kwa jina hili"
+
+msgid "...with this one"
+msgstr "...na hii"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Kurudi kwenye mchoro mzima: hakuna upana, hakuna kitu kilichofungwa, hakuna kitu kilichofiltrwa."
+
+msgid "Cannot be changed"
+msgstr "Haiwezi kubadilika"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Badilisha kitu moja kila mahali ambapo inapatikana. Hakuna kitu kinacho badilika hadi utapiga kifungo \"Oko\" na kisha \"Badilisha\", na kila mbadiko unaweza kufuta."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Chagua variable, na ingiza jina mpya."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Chagua hatua ambayo utabadilisha, na hatua ambayo utaweka mahali pake."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Bofya jina ili kufungua maelezo yake · bonyeza mara tatu kwenye kazi ili kuona mawasiliano yake"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Punguza kila mradi hadi kwenye baro lake.\n\nMmoja wa miradi yanaweza kupungua kwa kubofya kwenye kando yake."
+
+msgid "Expand every collapsed Project."
+msgstr "Fungua kila mradi ambao umekuwa mdogo."
+
+msgid "Limited to"
+msgstr "Msaada"
+
+msgid "Nothing here would change."
+msgstr "Hakuna chochote hapa ambacho changani."
+
+msgid "Nothing is ticked."
+msgstr "Hakuna chochote kilichachaguliwa."
+
+msgid "Nothing was changed."
+msgstr "Hakuna chochote kilibadilishwa."
+
+msgid "Press Preview first."
+msgstr "Kwanza, tafadhali, tazama habari za awali."
+
+msgid "Rename this variable"
+msgstr "Badilisha jina la hii variable"
+
+msgid "Replace"
+msgstr "Badilisha"
+
+msgid "Replace preview could not be saved."
+msgstr "Hakuna uwezo wa kuhifadhi nakala iliyopatikana."
+
+msgid "Replace preview saved as"
+msgstr "Badilisha maelezo iliyohifadhiwa"
+
+msgid "Replace this action"
+msgstr "Badilisha hatua hii"
+
+msgid "Save Preview"
+msgstr "Hifadhi Taswiri"
+
+msgid "Task action"
+msgstr "Hatua"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "Mchoro unaweza kuklikwa:\n\nBaki kwenye Jina la Mradi, Profaili, Kazi au Mzazi ili kufikia kwenye Ramani.\n\nBaki kwenye Jina la Kazi ili kuonyesha mawimbi yote inayohusika – kila kitu kinachowawasiliana, na upande.\n\nBaki kwenye jina lolote ili kupunguza Mradi, kuonyesha tu Mradi, na kufuata mawimbi.\n\nBaki kwenye ▾ mjini Mradi ili kupunguza, na ▸ ili kurejesha.\n\nCtrl (au ⌘) na gurudumu la skrini huendesha. Esc huondoa mawimbi."
+
+msgid "Undo is available."
+msgstr "Inatoa fursa ya kufuta."
+
+msgid "Variable name"
+msgstr "Jina la variable"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Zooma. Ctrl/⌘ na gurudumu wa ndege hufanya hivyo pia."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Pindua. Ctrl/⌘ na gurudumu la skrini hufanya hivyo pia."
+
+msgid "changed"
+msgstr "ili kubadilisha"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "fanya ili upate uteuzi wa kitu moja pekee ili kufikia mipangilio yote"
+
+msgid "more"
+msgstr "za zaidi"

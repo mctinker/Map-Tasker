@@ -2192,3 +2192,93 @@ msgstr "找到了"
 
 msgid "of"
 msgstr "的"
+
+msgid "...to this name"
+msgstr "…使用這個名稱"
+
+msgid "...with this one"
+msgstr "...以及這個"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "回到整個圖表：不進行放大、不摺疊、不過濾。"
+
+msgid "Cannot be changed"
+msgstr "無法更改"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "無論在哪個地方，只要修改一次，就會全部生效。直到您按下「預覽」再按下「取代」時，才會真正變更，而且每次變更之後，都可以透過「撤銷」功能來恢復。"
+
+msgid "Choose a variable, and type the new name."
+msgstr "選擇一個變數，並輸入新的名稱。"
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "選擇一個要取代的動作，以及要用來取代它的動作。"
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "點擊名稱以檢視其地圖記錄 · 按住 Shift 鍵點擊任務以檢視其呼叫鏈"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "將每一個專案都縮小到標題欄。\n\n單獨一個專案，只需點擊其方框頂緣即可完成收合。"
+
+msgid "Expand every collapsed Project."
+msgstr "展開所有已摺疊的專案。"
+
+msgid "Limited to"
+msgstr "僅限於"
+
+msgid "Nothing here would change."
+msgstr "這裡的一切都將保持不變。"
+
+msgid "Nothing is ticked."
+msgstr "沒有任何項目被選中。"
+
+msgid "Nothing was changed."
+msgstr "一切都沒變。"
+
+msgid "Press Preview first."
+msgstr "先預覽新聞稿。"
+
+msgid "Rename this variable"
+msgstr "重新命名這個變數"
+
+msgid "Replace"
+msgstr "取代"
+
+msgid "Replace preview could not be saved."
+msgstr "無法儲存預覽。"
+
+msgid "Replace preview saved as"
+msgstr "將預覽儲存"
+
+msgid "Replace this action"
+msgstr "取代這個動作"
+
+msgid "Save Preview"
+msgstr "儲存預覽"
+
+msgid "Task action"
+msgstr "任務行動"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "該圖可點擊：\n\n按一下要在地圖中前往的項目、設定檔、任務或場景名稱。\n\n按住 Shift 鍵並點擊任務可點亮其參與的整個呼叫鏈 - 它所呼叫的所有內容、呼叫它的所有內容以及它們之間的箭頭。\n\n右鍵單擊其餘的任何名稱：折疊其項目，僅顯示該項目，跟隨其鏈。\n\n點擊項目旁邊的 ▾ 將其折疊，然後點擊 ▸ 將其恢復。\n\nCtrl（或 ⌘）和滾輪可縮放。  Esc 清除鏈條。"
+
+msgid "Undo is available."
+msgstr "功能已啟用。"
+
+msgid "Variable name"
+msgstr "變數名稱"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "放大。按下 Ctrl/⌘鍵，或使用滾動圈，效果相同。"
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "放大縮放。按下 Ctrl/⌘ 鍵，或使用滑鼠滾輪，效果相同。"
+
+msgid "changed"
+msgstr "變更"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "清除單一選項，以完成整個配置。"
+
+msgid "more"
+msgstr "更多"

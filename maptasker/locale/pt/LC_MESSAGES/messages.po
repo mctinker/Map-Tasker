@@ -2273,3 +2273,93 @@ msgstr "de"
 
 msgid "Undid"
 msgstr "Desfazer"
+
+msgid "...to this name"
+msgstr "...a este nome"
+
+msgid "...with this one"
+msgstr "...com este"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "Retornando ao diagrama completo: sem zoom, sem nada dobrado ou filtrado."
+
+msgid "Cannot be changed"
+msgstr "Não pode ser alterado."
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "Altere uma coisa em todos os lugares onde ela aparece. Nenhuma alteração é feita até que você pressione \"Visualizar\" e, em seguida, \"Substituir\", e cada alteração pode ser desfeita posteriormente."
+
+msgid "Choose a variable, and type the new name."
+msgstr "Escolha uma variável e digite o novo nome."
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "Escolha uma ação para substituir e outra para substituí-la."
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "Clique no nome para ver a entrada correspondente no mapa · clique com o botão direito em uma Tarefa para ver a cadeia de chamadas associada"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "Reduza cada projeto para a sua barra de título.\n\nUm projeto específico pode ser fechado clicando na borda superior da sua caixa."
+
+msgid "Expand every collapsed Project."
+msgstr "Expanda cada projeto que esteja em estado de \"colapsado\"."
+
+msgid "Limited to"
+msgstr "Restrito a"
+
+msgid "Nothing here would change."
+msgstr "Nada aqui mudaria."
+
+msgid "Nothing is ticked."
+msgstr "Nada está marcado."
+
+msgid "Nothing was changed."
+msgstr "Nada foi alterado."
+
+msgid "Press Preview first."
+msgstr "Primeiro, faça uma prévia para a imprensa."
+
+msgid "Rename this variable"
+msgstr "Renomeie esta variável"
+
+msgid "Replace"
+msgstr "Substituir"
+
+msgid "Replace preview could not be saved."
+msgstr "Não foi possível salvar a prévia."
+
+msgid "Replace preview saved as"
+msgstr "Substitua a visualização salva como"
+
+msgid "Replace this action"
+msgstr "Substitua esta ação"
+
+msgid "Save Preview"
+msgstr "Salvar Visualização"
+
+msgid "Task action"
+msgstr "Ação da tarefa"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "O diagrama é clicável:\n\nClique em um nome de Projeto, Perfil, Tarefa ou Cena para ser levado a ele no Mapa.\n\nClique com o Shift em uma Tarefa para destacar toda a sequência de chamadas em que ela participa – tudo o que ela chama, tudo o que a chama, e as setas entre elas.\n\nClique com o botão direito em qualquer nome para as demais opções: descompacte seu Projeto, mostre apenas esse Projeto, siga sua sequência.\n\nClique no ▾ ao lado de um Projeto para descompactá-lo, e no ▸ para restaurá-lo.\n\nUse Ctrl (ou ⌘) e a roda do mouse para ampliar. Pressione Esc para limpar uma sequência."
+
+msgid "Undo is available."
+msgstr "A função \"Desfazer\" está disponível."
+
+msgid "Variable name"
+msgstr "Nome da variável"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Amplie. Use as teclas Ctrl/⌘ e a roda do mouse para fazer a mesma função."
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "Amplie a visualização. Use as teclas Ctrl/⌘ e a roda do mouse para fazer a mesma função."
+
+msgid "changed"
+msgstr "alterado"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "limpe a seleção de um único item para acessar a configuração completa"
+
+msgid "more"
+msgstr "mais"

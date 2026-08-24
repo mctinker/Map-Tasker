@@ -2300,3 +2300,93 @@ msgstr "کے لئے پایا"
 
 msgid "of"
 msgstr "کی"
+
+msgid "...to this name"
+msgstr "...اس نام کے تحت"
+
+msgid "...with this one"
+msgstr "...اور اس کے ساتھ"
+
+msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
+msgstr "مجموعی شکل پر واپسی: بغیر کسی زوم، بغیر کسی حصے کو لمبا کیا، اور بغیر کسی چیز کو فیلٹ نہیں کیا."
+
+msgid "Cannot be changed"
+msgstr "یہ تبدیل نہیں کیا جا سکتا۔"
+
+msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
+msgstr "ہر جگہ ایک چیز کو تبدیل کریں۔ کچھ بھی تبدیل نہیں ہوتا جب تک کہ آپ Preview اور پھر Replace کو دبائیں، اور ہر تبدیلی کو ایک کے بعد Undo دور کر دیا جاتا ہے۔"
+
+msgid "Choose a variable, and type the new name."
+msgstr "ایک متغیر منتخب کریں، اور نئی نام درج کریں۔"
+
+msgid "Choose an action to replace, and one to replace it with."
+msgstr "ایک ایسا عمل منتخب کریں جسے تبدیل کرنا ہے، اور ایک ایسا عمل منتخب کریں جس سے اسے تبدیل کیا جائے۔"
+
+msgid "Click a name for its Map entry · shift-click a Task for its call chain"
+msgstr "ایک نام پر کلک کریں تاکہ اس کا نقشہ ظاہر ہو؛ کسی کام کے لیے شیفت کے ساتھ کلک کریں تاکہ اس کا رابطہ سلسلہ ظاہر ہو"
+
+msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
+msgstr "ہر проєکٹ کو اس کے ٹائٹل بار تک گھٹن۔\n\nایک проєکٹ کو اس کے بکس کے اوپر کے حصے پر کلک کر کے الگ کیا جا سکتا ہے۔"
+
+msgid "Expand every collapsed Project."
+msgstr "ہر بندھے ہوئے проєکٹ کو کھولیں۔"
+
+msgid "Limited to"
+msgstr "محدود"
+
+msgid "Nothing here would change."
+msgstr "یہ کوئی تبدیلی نہیں ला سکے گا۔"
+
+msgid "Nothing is ticked."
+msgstr "کوئی بھی چیز مختص نہیں کی گئی ہے۔"
+
+msgid "Nothing was changed."
+msgstr "کوئی تبدیلی نہیں ہوئی۔"
+
+msgid "Press Preview first."
+msgstr "سب سے پہلے، پرنٹ کے پیشکش کا جائزہ لیں."
+
+msgid "Rename this variable"
+msgstr "اس змін کا نام تبدیل کریں۔"
+
+msgid "Replace"
+msgstr "تبدیل"
+
+msgid "Replace preview could not be saved."
+msgstr "پیش نظار کو محفوظ نہیں کیا جا सका۔"
+
+msgid "Replace preview saved as"
+msgstr "بطور محفوظ شدہ پیش نظارہ تبدیل کریں۔"
+
+msgid "Replace this action"
+msgstr "اس اقدام کو بدل دیں۔"
+
+msgid "Save Preview"
+msgstr "پیش نظر کو محفوظ کریں"
+
+msgid "Task action"
+msgstr "کام کا عمل"
+
+msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
+msgstr "یہ ڈایاگرام کلیک کیبل ہے:\n\nایک проєکٹ، پروفائل، ٹاسک یا سنس کے نام پر کلک کریں تاکہ آپ اسے نقشہ میں منتقل ہوجائیں۔\n\nایک ٹاسک پر Shift کلک کرنے سے پورے کال کے سلسلے کو فعال کیا جائے گا - وہ تمام کال جو اس میں ہوتی ہے، اور وہ تمام کال جو اس پر ہوتی ہیں، اور ان کے درمیان کے نشانات۔\n\nباقی کے لیے کسی بھی نام پر راست کلک کریں: اس کا проєکٹ چھپائیں، صرف وہی проєکٹ دکھائیں، اور اس کے سلسلے کا تعقیب کریں۔\n\nایک проєکٹ کے کنار میں ▾ پر کلک کرنے سے اسے چھپایا جا سکے گا، اور ▸ پر کلک کرنے سے اسے واپس دکھایا جا سکے گا۔\n\nCtrl (یا ⌘) اور اسکرول ویل زوم کرتا ہے۔ Esc ایک سلسلے کو صاف کرتا ہے۔"
+
+msgid "Undo is available."
+msgstr "\"انتقالی عمل کو استعمال کیا جا سکتا ہے۔\""
+
+msgid "Variable name"
+msgstr "متغیر کا نام"
+
+msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "زوم کریں۔۔ Ctrl/⌘ اور اسکرول ویల్ بھی یہی عمل کرتے ہیں۔"
+
+msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
+msgstr "نظر کو دور کریں۔، Ctrl/⌘ اور اسکرول ویل بھی یہی عمل کرتے ہیں۔"
+
+msgid "changed"
+msgstr "تبدیل"
+
+msgid "clear the single-item selection to reach the whole configuration"
+msgstr "ایک سے آیت کا انتخاب ختم کرنے سے پورے کنفیگریشن تک پہنچیں"
+
+msgid "more"
+msgstr "مزید"
