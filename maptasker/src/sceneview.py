@@ -735,7 +735,7 @@ def _attach_tooltip(
         lines.append(f"{translate_string('Variables')}: {', '.join(variables)}")
     lines.extend(f"{label} → {task_name}" for label, task_name in element_tasks(element))
     with frame:
-        ui.tooltip("\n".join(lines)).style("white-space: pre-line")
+        ui.tooltip("\n".join(lines)).style("white-space: pre-wrap")
 
 
 # ------------------------------------------------------------------
@@ -2472,7 +2472,7 @@ def _v2_tooltip(container: ui.element, node: dict) -> None:
     lines.extend(_v2_binding_lines(node))
 
     with container:
-        ui.tooltip("\n".join(lines)).style("white-space: pre-line")
+        ui.tooltip("\n".join(lines)).style("white-space: pre-wrap")
 
 
 def _v2_text_style(node: dict, default_colour: str = "") -> str:

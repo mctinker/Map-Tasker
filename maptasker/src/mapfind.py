@@ -239,6 +239,26 @@ class _Action:
 
 
 @dataclass
+class _Condition:
+    """One Profile condition (Time/Day/State/Event/App/Loc), reduced the same way.
+
+    Kept beside the triggers rather than instead of them: a trigger is the facet VALUE a
+    query matches on and two of a Profile's contexts can share one, while this is the
+    context itself -- which one, where in the Profile, and the element it lives in.
+
+    Carries its element for the reason _Action does: mapswap replaces the conditions a
+    scan finds, and a second walk written to go and fetch them again would be a second
+    definition of "the conditions of a Profile" to keep in step with this one.
+    """
+
+    index: int  # position among the Profile's conditions -- the number in its sr="conN"
+    tag: str  # Time / Day / State / Event / App / Loc
+    key: str  # the action_codes key for a coded context ("1000e", "100s"); "" for the rest
+    name: str  # what the trigger facet calls it: "Event: Wifi Connected", "Time"
+    element: defusedxml.ElementTree.Element | None = None
+
+
+@dataclass
 class _Object:
     """One Project/Profile/Task/Scene, with everything the five facets need to test it.
 
@@ -258,6 +278,7 @@ class _Object:
     apps: list[str] = field(default_factory=list)  # named by the object itself
     scenes: list[str] = field(default_factory=list)  # named by the object itself
     task_ids: list[str] = field(default_factory=list)  # Profiles: the Tasks they run
+    conditions: list[_Condition] = field(default_factory=list)  # Profiles: their contexts
 
 
 @dataclass
@@ -502,9 +523,15 @@ def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope:
             project=project,
         )
         element = profile["xml"]
+        # `position` counts the CONTEXTS, not the children -- it is the N in the sr="conN"
+        # Tasker writes on each one, and the Profile's metadata sits among them.
+        position = 0
         for child in element:
+            key = ""
             if child.tag in _CODED_CONTEXTS:
-                value = _trigger_name(child.tag, _element_text(child, "code"))
+                code = _element_text(child, "code")
+                key = f"{code}{_CODED_CONTEXTS[child.tag]}"
+                value = _trigger_name(child.tag, code)
                 record.triggers.append((value, value))
                 index.catalog[TRIGGER][value] += 1
             elif child.tag in _TIME_CONTEXTS:
@@ -521,6 +548,12 @@ def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope:
                     index.catalog[APP][label] += 1
                     if "%" in label:
                         index.variable_apps += 1
+            else:
+                continue  # Metadata: <nme>, <mid0>, <flags> and the rest.
+            record.conditions.append(
+                _Condition(index=position, tag=child.tag, key=key, name=value, element=child),
+            )
+            position += 1
 
         # <mid0>/<mid1> are the entry and exit Tasks.  Numbered children rather than a
         # list, so they are read by prefix the same way the app labels above are.

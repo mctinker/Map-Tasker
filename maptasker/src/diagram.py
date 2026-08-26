@@ -20,6 +20,7 @@ import re
 from bisect import bisect_left
 from typing import TYPE_CHECKING
 
+from maptasker.src import diagintr
 from maptasker.src.diagcnst import (
     CONNECTOR_DIRECTIONS,
     angle,
@@ -38,7 +39,6 @@ from maptasker.src.diagcnst import (
     straight_line,
     task_delimeter,
 )
-from maptasker.src import diagintr
 from maptasker.src.diagutil import (
     add_output_line,
     build_box,
@@ -60,7 +60,7 @@ from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Target
 # the function, of which, is in guiutil2.
 # from maptasker.src.guiwins import configure_progress_bar
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.maputils import find_all_positions, live_translate_text
+from maptasker.src.maputils import find_all_positions
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
@@ -2157,7 +2157,7 @@ def network_map(network: dict) -> None:
     add_output_line(f"{MY_VERSION}{blank * 5}Configuration Map{blank * 5}{dt_string}")
     add_output_line(" ")
     add_output_line(
-        live_translate_text(
+        translate_string(
             "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment.",
         ),
     )

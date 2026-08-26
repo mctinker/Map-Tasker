@@ -756,6 +756,169 @@ def test_the_diagram_looks_for_the_name_the_map_window_is_opened_under() -> None
     assert not userintr.popout_window_name("/popout/diagram").startswith(reused)
 
 
+def test_the_raise_asks_the_window_the_click_happened_in() -> None:
+    """The order of the three requests IS the fix, and it looks like a preference.
+
+    Measured in Chrome, with a Map tab and a Diagram tab both opened by the main window:
+
+        other.focus()           does not raise it
+        opener.open("", name)   does not raise it -- but hands back a live window
+        window.open("", name)   raises it
+
+    A tab cannot be focused by whoever holds a handle to it, and user activation belongs to
+    the window the click happened in rather than travelling into another window's open().
+    Putting the opener first therefore looks like success and swallows the one call that
+    works, which is exactly the bug this order fixes.
+    """
+    script = mapjump.raise_map_window_js()
+
+    assert "for (const asker of [window, owner])" in script
+    # The empty URL is what raises the Map rather than reloading it, so the jump already on
+    # its way lands in the page that was scrolled.
+    assert 'asker.open("", name)' in script
+    # The name comes off the live handle -- never built here, where "Open View In New
+    # Window" makes it unpredictable and a wrong guess conjures a blank window.
+    assert "name = other.name" in script
+
+
+def test_every_click_a_map_can_answer_raises_it_the_same_way() -> None:
+    """Three places emit a jump the Map answers, and all three raise it from the click.
+
+    The Diagram's own object clicks were the first to do it; a report finding and a Find
+    result reached go_to_target the same way and were left silent, which reads as the click
+    having done nothing.  Asserted together because the shared snippet is easy to reuse in
+    a fourth caller and just as easy to forget.
+    """
+    raising = mapjump.raise_map_window_js().strip()
+
+    assert raising in diagintr.interaction_js("c1", "c2", {"nodes": [], "regions": [], "edges": []})
+    assert raising in mapjump.click_wiring_js("c1")
+    assert raising in mapjump.find_result_click_js()
+
+
+def test_a_report_row_raises_the_map_before_it_emits_the_jump() -> None:
+    """Raise first, emit second.  The other order spends the click's activation on the round
+    trip and leaves nothing to raise the window with."""
+    script = mapjump.click_wiring_js("c1")
+
+    assert script.index("MAP_WINDOW_PREFIX") < script.index("emitEvent('mt_jump'")
+
+
+def test_a_find_result_hands_the_click_on_to_python() -> None:
+    """The browser-side handler must end in emit(), or the row stops jumping at all.
+
+    NiceGUI runs a js_handler INSTEAD of emitting by default (see Element.on): a handler
+    that raises the Map and forgets to emit would raise a Map that never scrolls anywhere.
+    """
+    handler = mapjump.find_result_click_js()
+
+    assert handler.startswith("(...args) =>")
+    assert handler.rstrip().endswith("emit(...args); }")
+    assert handler.index("MAP_WINDOW_PREFIX") < handler.index("emit(...args)")
+
+
+def test_a_find_run_from_the_diagram_leaves_the_diagram_alone() -> None:
+    """A Find in the Diagram is answered by the Diagram where it can be (prefer_diagram), so
+    raising the Map for every row would switch the user away from the view that was about to
+    answer them.  The guard is the same question diagram_jump_js asks first: does this
+    Diagram draw the object at all?
+    """
+    guarded = mapjump.find_result_click_js("mt-task-18")
+
+    assert 'const anchor = "mt-task-18";' in guarded
+    assert "if (!document.querySelector('[data-anchor=\"' + CSS.escape(anchor) + '\"]'))" in guarded
+    # And the Map is still raised when the Diagram has no such object -- inside the guard.
+    assert guarded.index("CSS.escape(anchor)") < guarded.index("MAP_WINDOW_PREFIX")
+    # An object the Diagram cannot show at all (a variable has no anchor) is not guarded.
+    assert "CSS.escape" not in mapjump.find_result_click_js()
+
+
+def test_a_view_says_what_it_was_drawn_for() -> None:
+    """A Diagram is a snapshot: nothing redraws it when the user picks a different single
+    object, so it goes on drawing -- and hotlinking to -- the objects of the selection it was
+    built for.  The badge is the only thing on screen that says so.
+    """
+    drawn, changed = guiwins.scope_badge_text("Project 'Home'", "Project 'Home'")
+
+    assert drawn == "Drawn for Project 'Home'"
+    assert changed == ""  # in step: no warning, and no Rebuild button beside it
+
+
+def test_a_view_says_when_the_selection_has_moved_on() -> None:
+    """Both halves named, because "this is out of date" without saying out of date WITH WHAT
+    leaves the user to work out which of the two views to believe."""
+    _drawn, changed = guiwins.scope_badge_text("Project 'Home'", "Task 'Wake Up'")
+
+    assert "Project 'Home'" not in changed  # the first half already said that
+    assert "Task 'Wake Up'" in changed
+
+
+def test_the_whole_configuration_is_said_rather_than_left_blank() -> None:
+    """A badge reading "Drawn for" and then nothing looks like something failed to load."""
+    drawn, changed = guiwins.scope_badge_text("", "Project 'Home'")
+
+    assert drawn.endswith("the whole configuration")
+    assert "Project 'Home'" in changed
+    # And the other way round: a selection cleared since is a change like any other.
+    assert guiwins.scope_badge_text("Project 'Home'", "")[1].endswith("the whole configuration")
+
+
+def test_clear_closes_a_map_that_a_popout_opened_for_itself() -> None:
+    """The bug this sweep exists for.
+
+    _open_popout_window registers a new window on whichever client was active when it ran,
+    and that is not always the main window: a jump from the Diagram that has to BUILD a Map
+    runs inside the Diagram's slot, so the Map is registered on the Diagram's list.  Clear
+    swept only the main window's, so it closed the Diagram and left behind the very Map the
+    Diagram had opened -- and closing the Diagram threw away the last handle to it.
+
+    So every popout is asked for its own list before it is closed, while it is still there
+    to answer, and the recursion is the fix rather than a tidy-up.
+    """
+    script = mapjump.close_popouts_js()
+
+    assert "sweep(other);" in script  # whatever IT opened, first
+    assert "sweep(window);" in script
+    # And a cycle cannot spin it: closed once, then remembered.
+    assert "seen.has(other)" in script
+
+
+def test_both_ways_of_closing_the_views_use_the_one_sweep() -> None:
+    """Clear and Exit had drifted into two copies of the same loop, which is how one of
+    them came to be missing the nesting the other needed too."""
+    import inspect
+
+    from maptasker.src import guiwins as guiwins_module
+    from maptasker.src import userintr as userintr_module
+
+    assert "close_popouts_js()" in inspect.getsource(userintr_module.MapTaskerEventHandlers.clear_view_event)
+    assert "close_popouts_js(close_this_window=True)" in inspect.getsource(
+        guiwins_module.get_rid_of_windows_and_exit,
+    )
+
+
+def test_the_sweep_leaves_the_window_it_runs_in_alone() -> None:
+    """Clear closing the window the user pressed Clear in would be a surprising way to tidy
+    up.  Exit closes it too, deliberately, once everything else is gone."""
+    clearing = mapjump.close_popouts_js()
+    exiting = mapjump.close_popouts_js(close_this_window=True)
+
+    assert "other === window" in clearing  # never itself, whatever list names it
+    assert "window.close()" not in clearing
+    assert "window.close()" in exiting
+    # And only at the end: everything else is closed before the window running the sweep.
+    assert exiting.index("sweep(window);") < exiting.index("window.close()")
+
+
+def test_a_popout_is_remembered_by_the_main_window_as_well_as_its_opener() -> None:
+    """A handle kept only on the view that opened it is lost the moment that view is closed
+    -- which is exactly what a user does to a Diagram before pressing Clear."""
+    script = mapjump.open_popout_js("/popout/map?goto=x&scope=y", "maptasker_map")
+
+    assert "remember(window, popout);" in script
+    assert "remember(window.opener, popout);" in script
+
+
 def test_raising_a_window_never_conjures_one() -> None:
     """Opening a name nothing has claimed creates a blank window, which is worse than nothing.
 

@@ -1,16 +1,17 @@
-"""mapswap: bulk replace over the loaded configuration -- one action for another, one variable for another."""
+"""mapswap: bulk replace over the loaded configuration -- one action, argument, context or variable for another."""
 
 #! /usr/bin/env python3
 
 #                                                                                        #
 # mapswap: bulk replace over the loaded configuration, rather than over rendered text.   #
 #                                                                                        #
-# Two operations, one machinery.  Swap every Task action of one code for another; rename #
-# every use of a variable, or fold it into another variable.  They share the dialog, the #
-# preview, the report and the apply path, and nothing below that: an action swap is      #
-# STRUCTURAL (a different element, with a different set of arguments meaning different   #
-# things), a variable rename is TEXTUAL (one string rewritten in place, every field      #
-# keeping its meaning).                                                                  #
+# Four operations, one machinery.  Swap every Task action of one code for another; set  #
+# or edit one argument of every action of a code; swap every Profile context of one kind #
+# for another; rename every use of a variable, or fold it into another variable.  They   #
+# share the dialog, the preview, the report and the apply path, and nothing below that.  #
+# Three of them are STRUCTURAL (a different element, holding a different set of children #
+# that mean different things) and one -- the variable rename -- is TEXTUAL (one string   #
+# rewritten in place, every field keeping its meaning).                                  #
 #                                                                                        #
 # Same contract as healthck / varxref / mapfind -- reads PrimeItems.tasker_root_elements #
 # and nothing else, no GUI import, identity from mapjump.  What differs is that this one #
@@ -52,10 +53,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import mapfind, sessundo, taskedit, varxref
+from maptasker.src import mapfind, profedit, sessundo, taskedit, varxref
 from maptasker.src.actionc import ArgumentCode, action_codes
 from maptasker.src.globalvr import tasker_global_variables
-from maptasker.src.mapjump import TASK, VARIABLE, Row, Target, current_scope, text_report
+from maptasker.src.mapjump import PROFILE, TASK, VARIABLE, Row, Target, current_scope, text_report
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SWAP_FILE, logger
@@ -81,7 +82,11 @@ BUNDLE = "bundle"  # anything under a plugin's <Bundle>
 LEGACY_SCENE = "legacy"  # a Legacy Scene element's argument
 V2_SCENE = "v2"  # a property inside a Version 2 Scene's JSON layout
 DECLARATION = "declaration"  # a top-level <Variable>, i.e. Tasker's Variables tab
+IMPORT_VARIABLE = "import"  # <ProfileVariable><pvn>: a Project's or Profile's configure-on-import variable
+INT_VALUE = "IntVal"  # <Int sr="argN" val="7"/> -- the value is the attribute, not the text
+NEW_ARG = "new"  # an argument the action does not carry yet, to be written into it
 ACTION_ELEMENT = "action"  # the whole <Action>, for an action swap
+PROFILE_CONDITION = "profcond"  # the whole <Time>/<Day>/<State>/<Event>/<App>/<Loc> of a Profile
 
 
 @dataclass(frozen=True)
@@ -105,9 +110,10 @@ class Site:
     where: Target  # what the preview prints and what a click on it jumps to
     detail: str = ""  # "Flash, Text=" -- varxref._argument_label's wording, reused
     path: tuple = ()  # V2_SCENE only: the key path into the parsed layout
-    # ACTION_ELEMENT only: what this action is becoming.  Carried on the Site rather than
-    # read off the Plan at apply time so that _apply_one needs nothing but the Change --
-    # which is what lets apply() sort the list before running it.
+    # ACTION_ELEMENT and PROFILE_CONDITION only: what this action, or this Profile context,
+    # is becoming -- an actionc.py key for the one, a condition_key for the other.  Carried
+    # on the Site rather than read off the Plan at apply time so that _apply_one needs
+    # nothing but the Change -- which is what lets apply() sort the list before running it.
     new_key: str = ""
     carry: dict[str, str] = field(default_factory=dict)
     # Variable rename only: (pattern, new name).  On the Site for the same reason as
@@ -115,6 +121,15 @@ class Site:
     # and a V2 property whose value is a nested structure can be rewritten in place rather
     # than reconstructed from the flat string the preview shows.
     rename: tuple = ()
+    # Argument replace only: what this field is to hold, whole.  None means "not that kind
+    # of change", which is what distinguishes it from a deliberate empty value -- clearing
+    # an argument is a thing somebody may well want, and "" has to be able to mean it.
+    new_value: str | None = None
+    # NEW_ARG only: (action key, argument id) for the argument to be written into this
+    # action.  `element` is then the <Action> itself, since the argument's own element does
+    # not exist yet -- planning must not touch the tree, so it is built at apply time from
+    # these two facts.
+    create_arg: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -158,6 +173,7 @@ class Change:
 BLOCKED_UNADDABLE = "unaddable"  # taskedit cannot synthesize the target action
 BLOCKED_INDIRECT = "indirect"  # the name is computed at run time: '%(%which)'
 BLOCKED_DETACHED = "detached"  # element no longer in the tree (checked at apply time)
+BLOCKED_DUPLICATE = "duplicate"  # the Profile already holds a context of the target's kind
 
 
 @dataclass
@@ -637,11 +653,26 @@ def variable_choices(index: varxref.VariableIndex) -> list[tuple[str, str, str]]
     %counter have two variables, and a pulldown that showed one '%counter' would be
     offering to rename something that does not exist.
 
+    A name used by more than one instance ALSO gets an all-instances entry, carrying
+    EVERY_INSTANCE as its owner -- "rename the loop counter throughout" needs a way to be
+    said, and typing the name into a box would not distinguish it from picking one of the
+    59 Tasks that use %i.  It sits directly above that name's individual entries, sorted
+    with them, so the choice between "this one" and "all of them" is made in one place
+    rather than by finding a checkbox somewhere else.
+
     The ones plan_variable_rename would refuse outright are left out rather than offered
     and then rejected -- a built-in and a one-character name cannot become renameable by
     anything the user types in the other box.
     """
     choices = []
+    instances: Counter = Counter()
+    totals: Counter = Counter()
+    for (name, _owner), variable in index.variables.items():
+        if _rename_refusal(name, f"{name}_"):
+            continue
+        instances[name] += 1
+        totals[name] += len(variable.sets) + len(variable.reads)
+
     for (name, owner), variable in index.variables.items():
         if _rename_refusal(name, f"{name}_"):
             continue  # Refused whatever it would be renamed to.
@@ -660,7 +691,28 @@ def variable_choices(index: varxref.VariableIndex) -> list[tuple[str, str, str]]
         # SHOUTING global.
         pointless = variable.scope in (varxref.TASKER_SET, varxref.BUILTIN)
         choices.append((name, owner, label, uses, pointless))
-    choices.sort(key=lambda entry: (entry[4], -entry[3], entry[0]))
+
+    # Ranked by the NAME's total use, not the instance's, so every entry for one name
+    # stays together instead of the busiest Task's %i sorting hundreds of rows away from
+    # the next Task's.  The all-instances entry leads its group (the -1 ordinal), and
+    # within the individual ones the busiest comes first.
+    for name, count in instances.items():
+        if count < 2:
+            continue  # One instance: "all of them" and "this one" are the same entry.
+        variable = next(entry for (candidate, _o), entry in index.variables.items() if candidate == name)
+        pointless = variable.scope in (varxref.TASKER_SET, varxref.BUILTIN)
+        label = f"{name}  (ALL {count} instances: {totals[name]} uses in total)"
+        choices.append((name, EVERY_INSTANCE, label, totals[name], pointless))
+
+    choices.sort(
+        key=lambda entry: (
+            entry[4],  # the ones renaming cannot help, last
+            -totals[entry[0]],  # busiest NAME first, so a name's entries stay together
+            entry[0],
+            entry[1] is not EVERY_INSTANCE,  # "all of them" leads its own group
+            -entry[3],
+        ),
+    )
     return [(name, owner, label) for name, owner, label, _, _ in choices]
 
 
@@ -863,6 +915,32 @@ def _swap_note(
     return "Drops: " + ", ".join(dropped)
 
 
+def _order_children(action_element: defusedxml.ElementTree.Element) -> None:
+    """Put an action's children back in the order Tasker writes them: non-argument children
+    first in the order they already had, then the arguments sorted by their 'sr' as a
+    STRING -- which is why the sample data reads arg0, arg1, arg10, arg11 ... arg2, and not
+    in numeric order.
+
+    Nothing reads them this way.  Every reader in this codebase matches on the 'sr'
+    attribute rather than on child order, for the reason varxref._string_arguments gives:
+    Tasker does not guarantee it.  This is for the diff.  An action rebuilt in a different
+    order than Tasker would have written it is a hundred moved lines in xmldiff's output and
+    in any version control the user keeps their backups in, all of them noise, hiding the
+    one line that is the change they actually made.
+
+    Used by the swap, which rebuilds an action's whole argument set, and by an argument
+    replace that ADDS one -- a new <Str sr="arg3"> appended after <Str sr="arg8"> would be
+    that same noise, for one line of real change.
+    """
+    children = list(action_element)
+    for child in children:
+        action_element.remove(child)
+    plain = [child for child in children if not child.attrib.get("sr", "").startswith("arg")]
+    arguments = [child for child in children if child.attrib.get("sr", "").startswith("arg")]
+    arguments.sort(key=lambda child: child.attrib.get("sr", ""))
+    action_element.extend(plain + arguments)
+
+
 def _swap_one_action(
     action_element: defusedxml.ElementTree.Element,
     new_key: str,
@@ -951,24 +1029,970 @@ def _swap_one_action(
         if tag and f"arg{arg.arg_id}" not in present:
             action_element.append(element_cls(tag, {"sr": f"arg{arg.arg_id}"}))
 
-    # 7.  Put the arguments back in the order Tasker writes them: non-argument children
-    # first in the order they already had, then the arguments sorted by their 'sr' as a
-    # STRING -- which is why the sample data reads arg0, arg1, arg10, arg11 ... arg2, and
-    # not in numeric order.
-    #
-    # Nothing reads them this way.  Every reader in this codebase matches on the 'sr'
-    # attribute rather than on child order, for the reason varxref._string_arguments gives:
-    # Tasker does not guarantee it.  This is for the diff.  An action rebuilt in a
-    # different order than Tasker would have written it is a hundred moved lines in
-    # xmldiff's output and in any version control the user keeps their backups in, all of
-    # them noise, hiding the one line that is the change they actually made.
-    children = list(action_element)
+    # 7.  Back into the order Tasker writes them.  See _order_children.
+    _order_children(action_element)
+
+
+# ##################################################################################
+# Condition for condition.
+#
+# The fourth operation, and the only one that rewrites a PROFILE rather than a Task.  A
+# Profile's contexts are the WHEN of a configuration -- "at 8am", "while the screen is
+# off", "when this app opens" -- and this answers the question Tasker itself has no
+# answer for: "every Profile watching for the old thing should watch for the new one",
+# across a hundred Profiles at once.
+#
+# Structural, like the action swap and for the same reason: two kinds of context are two
+# different elements holding different children that mean different things.  Three things
+# make it its own operation rather than a case of that one.
+#
+#   HALF THE KINDS CARRY NO CODE.  A Time is a Time -- its shape is fh/fm/th/tm and there
+#   is nothing to look up.  An Event or a State is one of hundreds of codes reading its
+#   arguments out of actionc.py exactly as a Task action does, just under a different key
+#   suffix (condition.py's condition_event/condition_state).  So a pair of THOSE carries
+#   values across through carry_over_map, unchanged, and any pair involving a flat kind
+#   carries nothing -- by nature, not by accident.
+#
+#   A PROFILE HOLDS ONE OF MOST KINDS.  See _ONE_PER_PROFILE.  Giving a Profile a second
+#   Time writes a shape Tasker itself never writes, so it is refused with the reason.
+#
+#   AN EMPTY CONTEXT IS NOT AN EMPTY ARGUMENT.  An action stripped of its arguments still
+#   runs; a Profile whose only context is a Day with no days ticked does not trigger at
+#   all.  That is on the plan's warnings and on the row of every Profile it is true of.
+# ##################################################################################
+
+# The six tags a context is written as, split by whether the tag alone says what it IS.
+# mapfind draws the same line for the trigger facet (_TIME_CONTEXTS/_CODED_CONTEXTS) and
+# profedit draws it again for the Profile editor (CONDITION_TYPES_ADDABLE splits Event and
+# State out of the four it can add from a type name alone) -- three modules, one fact
+# about the XML, because each needs it in a different shape.
+_FLAT_CONDITIONS = ("Time", "Day", "App", "Loc")
+_CODED_CONDITIONS = {"Event": "e", "State": "s"}
+
+# The contexts a Profile carries at most ONE of.  Not a rule written down anywhere in this
+# codebase; it is what the sample XML says.  Across 3,475 Profiles: 2,207 Events, 427
+# Times, 110 Apps, 35 Days and 5 Locations, and not one Profile holding two of any of
+# them -- against 373 Profiles holding two or more States.  A replace that gave a Profile
+# a second Time would be writing a shape Tasker never writes, and the user could not see
+# it was wrong by looking at the Map, so it becomes a Skip with the reason on it.
+_ONE_PER_PROFILE = ("Time", "Day", "App", "Loc", "Event")
+
+# The contexts that can be inverted -- "while the screen is NOT off".  <pin>true</pin>,
+# and it appears on State (159 times in the sample XML) and on App (13), on nothing else.
+# So the flag is carried over to a State or an App target and dropped for the rest, which
+# is the difference between preserving the user's intent and inverting a condition they
+# never asked to invert.
+_INVERTIBLE_CONDITIONS = ("State", "App")
+
+
+def condition_key(tag: str, code_key: str = "") -> str:
+    """One string naming a kind of context, for the pulldowns to key their options by.
+
+    'Time', 'Day', 'App', 'Loc' for the flat kinds; 'Event:2078e', 'State:100s' for the
+    coded ones -- the tag is carried alongside the actionc.py key rather than derived from
+    its suffix, so that reading a key never depends on knowing that 'e' means Event.
+    """
+    return f"{tag}:{code_key}" if code_key else tag
+
+
+def _split_condition(key: str) -> tuple[str, str]:
+    """A condition key back into (tag, actionc.py key) -- the second is '' for a flat kind."""
+    tag, _, code_key = key.partition(":")
+    return tag, code_key
+
+
+def _condition_name(key: str) -> str:
+    """What this kind of context is called: 'Time', 'Application', 'Event: Wifi Connected'.
+
+    The flat names come from mapfind's own trigger labels rather than from the tag, so
+    that one context reads the same in the Find tab's pulldown, in the Replace tab's, and
+    in the report -- 'Location', never 'Loc'.
+    """
+    tag, code_key = _split_condition(key)
+    if not code_key:
+        return mapfind._PLAIN_TRIGGER_LABELS.get(tag, tag)  # noqa: SLF001
+    entry = action_codes.get(code_key)
+    return f"{tag}: {entry.name if entry else f'code {code_key[:-1]}'}"
+
+
+def condition_choices(index: mapfind.FindIndex) -> list[tuple[str, str, int]]:
+    """(condition key, label, count) for every context the CONFIGURATION uses, commonest first.
+
+    The same bargain source_choices strikes for actions: Tasker's whole table of Events and
+    States runs to hundreds of entries, nearly none of which are in the file in front of
+    the user, and the count beside each one is also the number of places a swap would touch
+    before any preview is run.
+    """
+    counts: Counter = Counter()
+    names: dict[str, str] = {}
+    for record in index.objects:
+        if record.kind != PROFILE:
+            continue
+        for condition in record.conditions:
+            if condition.element is None:
+                continue
+            key = condition_key(condition.tag, condition.key)
+            counts[key] += 1
+            names[key] = condition.name
+
+    choices = [(key, f"{names[key]}  ({count})", count) for key, count in counts.items()]
+    choices.sort(key=lambda entry: (-entry[2], entry[1]))
+    return choices
+
+
+def _condition_blocked(new_key: str) -> str:
+    """Why an empty context of this kind cannot be built at all, or "".
+
+    The same single reason a swap target is ever blocked: a plugin payload <Bundle> that
+    bundle.py has no recorded definition for.  An opaque payload has no empty form a
+    plugin will accept, and carrying one over from the source is not on the table either
+    -- a different code is a different plugin, and its payload would mean nothing here.
+    """
+    tag, code_key = _split_condition(new_key)
+    if not code_key:
+        return "" if tag in _FLAT_CONDITIONS else f"'{tag}' is not a Profile context this build knows about."
+    if code_key not in action_codes:
+        return f"'{new_key}' is not a Profile context this build knows about."
+    if taskedit.get_bundle_definition(code_key) is None:
+        for arg in _wanted_args(code_key):
+            if _category(arg) == "Bundle":
+                return (
+                    f"'{action_codes[code_key].name}' is a plugin {tag.lower()} and no definition of its "
+                    "configuration has been recorded, so an empty one cannot be built."
+                )
+    return ""
+
+
+def classify_condition_swap(old_key: str, new_key: str) -> tuple[str, dict[str, str], str]:
+    """(fidelity, carry-over map, reason) for one pair of context kinds.
+
+    EXACT/MAPPED/RESET mean exactly what they mean for an action swap, and are computed
+    the same way -- by carry_over_map, off actionc.py -- for the one pair that can carry
+    anything: a coded context for another coded context.  Every pair involving a flat kind
+    is RESET, and that is a statement about the XML rather than a limitation: there is no
+    correspondence between fh/fm/th/tm and a list of weekdays, and inventing one would put
+    an hour where a day number belongs.
+
+    Event and State are compared to each other as freely as two Events are.  Their
+    arguments live in the same actionc.py table under different key suffixes, so 'State:
+    Wifi Connected' -> 'Event: Wifi Connected' carries the SSID across by the same
+    name-and-type rule that carries a Flash's Text into a Notify.
+    """
+    reason = _condition_blocked(new_key)
+    if reason:
+        return BLOCKED, {}, reason
+
+    _, old_code = _split_condition(old_key)
+    _, new_code = _split_condition(new_key)
+    if not old_code or not new_code:
+        return RESET, {}, ""
+
+    carry = carry_over_map(old_code, new_code)
+    wanted = _wanted_args(new_code)
+    given = _wanted_args(old_code)
+    if len(carry) == len(wanted) == len(given):
+        return EXACT, carry, ""
+    return (MAPPED if carry else RESET), carry, ""
+
+
+def condition_targets(old_key: str) -> list[tuple[str, str, str]]:
+    """(condition key, label, fidelity) for every kind a context could become.
+
+    Everything Tasker can watch for: the four flat kinds and every Event and State code in
+    actionc.py.  Nothing is filtered out; every entry says what choosing it would cost,
+    the same way fidelity_choices does for actions:
+
+        State: Wifi Connected     -- keeps SSID, MAC  (2 of 3)
+        Event: Wifi Connected     -- keeps SSID  (1 of 4)
+        Day                       -- a fresh, empty Day
+        Custom Setting            -- cannot: plugin payload not recorded
+
+    'a fresh, empty X' rather than 'keeps nothing', which is what the action pulldown says
+    in the same place.  For an action, keeping nothing is a loss of arguments off something
+    that still runs; for a context it means the Profile is left with a trigger that has not
+    been set up yet, and the wording is the first place the user meets that.
+    """
+    rank = {EXACT: 0, MAPPED: 1, RESET: 2, BLOCKED: 3}
+    carried_count: dict[str, int] = {}
+    choices = []
+
+    candidates = [condition_key(tag) for tag in _FLAT_CONDITIONS]
+    candidates += [
+        condition_key(tag, key)
+        for tag, suffix in _CODED_CONDITIONS.items()
+        for key in action_codes
+        if key.endswith(suffix) and key[:-1].isdigit()
+    ]
+
+    for key in candidates:
+        if key == old_key:
+            continue  # Replacing a context with the same kind of context is not a question.
+        fidelity, carry, reason = classify_condition_swap(old_key, key)
+        name = _condition_name(key)
+        _, code_key = _split_condition(key)
+
+        if fidelity == BLOCKED:
+            label = f"{name}  -- cannot: {reason}"
+        elif not carry:
+            label = f"{name}  -- a fresh, empty {name.split(':')[0]}"
+        else:
+            kept = _carried_names(_split_condition(old_key)[1], carry)
+            label = f"{name}  -- keeps {', '.join(kept)}  ({len(carry)} of {len(_wanted_args(code_key))})"
+
+        carried_count[key] = len(carry)
+        choices.append((key, label, fidelity))
+
+    # Same ordering rule as fidelity_choices: the band that keeps the most first, then how
+    # much survives within the band, then the name.  The four flat kinds sit in the RESET
+    # band with everything else that carries nothing, rather than being pinned to the top
+    # -- a Day is not a better answer than an Event that keeps the SSID.
+    choices.sort(key=lambda entry: (rank[entry[2]], -carried_count[entry[0]], entry[1]))
+    return choices
+
+
+def _fresh_condition(element_cls: type, new_key: str) -> defusedxml.ElementTree.Element:
+    """An empty context of this kind, built exactly as adding one by hand would build it.
+
+    The flat kinds go through profedit.add_condition_to_profile -- the same call the
+    Profile editor's 'Add Condition' makes -- on a throwaway Profile, which is the
+    _creatable trick again: what a fresh Time looks like (fh/fm/th/tm at 0, sr, ve) is
+    profedit's fact, and a second statement of it here is the one that would be forgotten
+    when Tasker changes.
+
+    The coded kinds are built here rather than through profedit's own Event/State adders,
+    for the reason this module's classify_action_addability note gives at length: those
+    refuse a code carrying an App or Icon argument, because the Add dialog offers no picker
+    widget to fill one in -- while a swap can write the empty <App sr="argN"> Tasker itself
+    writes nearly a thousand times in the sample XML.  The three lines that differ from a
+    Task action are all there is to it: the tag, and the <pri>0</pri> that Event carries
+    and State does not (condition.py's condition_event reads one on every Event).
+
+    Raises ValueError if the kind cannot be built, which apply() turns into one reported
+    failure rather than a crashed batch.
+    """
+    tag, code_key = _split_condition(new_key)
+
+    if not code_key:
+        scratch = profedit.EditableProfile(profile_id="", profile_element=element_cls("Profile"))
+        built = profedit.add_condition_to_profile(scratch, tag)
+        if isinstance(built, list):
+            raise ValueError("; ".join(built))
+        return built.condition_element
+
+    fresh = element_cls(tag, {"sr": "con0", "ve": "2"})
+    code_element = element_cls("code")
+    code_element.text = code_key[:-1]
+    fresh.append(code_element)
+    if tag == "Event":
+        priority = element_cls("pri")
+        priority.text = "0"
+        fresh.append(priority)
+
+    # code_key is passed so that a plugin's opaque payload <Bundle> is rebuilt from
+    # bundle.py's recorded definition for this very code -- see build_synthesized_args.
+    taskedit.build_synthesized_args(element_cls, fresh, _effective_args(code_key), code_key)
+
+    # The picker arguments build_synthesized_args cannot write, as the empty element
+    # Tasker writes for an unset picker.  Step 6 of _swap_one_action, for the same reason.
+    present = {child.attrib.get("sr", "") for child in fresh}
+    for arg in _wanted_args(code_key):
+        picker_tag = _PICKER_TAGS.get(_category(arg))
+        if picker_tag and f"arg{arg.arg_id}" not in present:
+            fresh.append(element_cls(picker_tag, {"sr": f"arg{arg.arg_id}"}))
+    return fresh
+
+
+def _kept_condition_children(new_tag: str) -> tuple[str, ...]:
+    """The children that survive into a context of this kind, whatever kind it was before.
+
+    Decided by the TARGET, not by the pair: a child is kept when the new context can still
+    mean something by it, and dropped when it cannot.  <cname> is the user's own name for
+    the context and is kept always -- prose, like an action's label, and flagged rather
+    than rewritten.  <pin> is the inverted flag and only State and App carry one.
+    <ConditionList>/<Condition> are the if-clauses hung off a coded context, which only a
+    coded context can hold.  <abort> is Event's alone.
+    """
+    keep = ["cname"]
+    if new_tag in _INVERTIBLE_CONDITIONS:
+        keep.append("pin")
+    if new_tag in _CODED_CONDITIONS:
+        keep.extend(("ConditionList", "Condition"))
+    if new_tag == "Event":
+        keep.append("abort")
+    return tuple(keep)
+
+
+def _has_time_window(element: defusedxml.ElementTree.Element) -> bool:
+    """Whether a Time condition names a from/to time at all.
+
+    Tasker writes fh/fm/th/tm as -1 for a Time that only REPEATS -- "every 12 minutes",
+    with no window -- and 37 of the 293 Profiles in one real backup are that shape.
+    profedit's 12-hour formatter is written for the editor, where a negative hour is never
+    offered, and renders -1 as '11:-1 AM'; so the raw hour decides here, and the formatted
+    string is used only where there is something to format.
+    """
+    if (element.findtext("fromvar") or "").strip() or (element.findtext("tovar") or "").strip():
+        return True
+    hour = (element.findtext("fh") or "").strip()
+    return bool(hour) and not hour.startswith("-")
+
+
+def _condition_summary(element: defusedxml.ElementTree.Element, tag: str, code_key: str = "") -> str:
+    """One line describing a context as it stands -- "Time 08:00 AM to 09:30 AM".
+
+    Read through profedit's own field getters rather than off the XML, so the preview says
+    what the Profile editor would say about the same context, down to the 12-hour clock and
+    the weekday names.  condition.py's parse_profile_condition is the other candidate and
+    is the wrong one here: it renders HTML for the Map, follows the 'pretty' and 'debug'
+    program arguments, and builds missing action codes as a side effect -- none of which
+    belongs in a preview row.
+    """
+    label = _condition_name(condition_key(tag, code_key))
+    inverted = " [inverted]" if (element.findtext("pin") or "").strip() == "true" else ""
+
+    if code_key:
+        for arg in _wanted_args(code_key):
+            argument = _argument_element(element, arg.arg_id)
+            text = (argument.text or "").strip() if argument is not None else ""
+            if text:
+                return f"{label} '{text[:60]}'{inverted}"
+        return f"{label}{inverted}"
+
+    condition = profedit.EditableCondition(cond_index=0, cond_type=tag, condition_element=element)
+    if tag == "Time":
+        values = profedit.get_time_field_values(condition)
+        pieces = []
+        if _has_time_window(element):
+            pieces.append(f"{values['start_time']} to {values['end_time']}")
+        if values["rep_value"]:
+            pieces.append(f"every {values['rep_value']} {values['rep_unit'].lower()}")
+        detail = ", ".join(pieces)
+    elif tag == "Day":
+        weekdays = [profedit.WEEKDAY_NAMES[day] for day in profedit.get_day_selected_weekdays(condition) if day <= 7]
+        months = [profedit.MONTH_NAMES[month] for month in profedit.get_day_selected_months(condition) if month <= 11]
+        month_days = [str(day) for day in profedit.get_day_selected_month_days(condition)]
+        detail = ", ".join(piece for piece in (" ".join(weekdays), " ".join(months), " ".join(month_days)) if piece)
+    elif tag == "App":
+        detail = ", ".join(entry["label"] or entry["pkg"] for entry in profedit.get_app_entries(condition))
+    elif tag == "Loc":
+        values = profedit.get_loc_field_values(condition)
+        detail = f"{values['lat']},{values['long']} radius {values['rad']}" if values["lat"] else ""
+    else:
+        detail = ""
+
+    return f"{label} {detail}{inverted}".replace("  ", " ").strip()
+
+
+def _projected_condition_summary(
+    element: defusedxml.ElementTree.Element,
+    old_key: str,
+    new_key: str,
+    carry: dict[str, str],
+) -> str:
+    """The same line as it would read afterwards, projected rather than performed.
+
+    Same bargain _projected_summary strikes for an action, and the answer is shorter here:
+    nothing carries at all unless both kinds are coded, so most of these are the name of
+    the new context and nothing else -- which is the honest preview of a context that
+    arrives empty.
+    """
+    name = _condition_name(new_key)
+    _, old_code = _split_condition(old_key)
+    if not carry or not old_code:
+        return name
+    for arg in _wanted_args(old_code):
+        if arg.arg_id not in carry:
+            continue
+        argument = _argument_element(element, arg.arg_id)
+        text = (argument.text or "").strip() if argument is not None else ""
+        if text:
+            return f"{name} '{text[:60]}'"
+    return name
+
+
+def _condition_note(
+    record: object,
+    condition: object,
+    new_key: str,
+    carry: dict[str, str],
+    fidelity: str,
+) -> str:
+    """What this particular Profile loses, as opposed to what the pair loses in general.
+
+    Per Profile for the reason _swap_note is per action: a note naming something nobody
+    filled in is the kind of warning that teaches users to skim past warnings.  The last
+    clause is the one worth having -- a Profile with one context and nothing in it is a
+    Profile that has stopped working, and that is not visible in a before/after line
+    reading 'Time 08:00 AM to 09:30 AM  ->  Day'.
+    """
+    new_tag, new_code = _split_condition(new_key)
+    element = condition.element
+    pieces = []
+
+    if condition.key and new_code:
+        dropped = [
+            arg.arg_name or f"arg{arg.arg_id}"
+            for arg in _wanted_args(condition.key)
+            if arg.arg_id not in carry and _has_value(_argument_element(element, arg.arg_id))
+        ]
+        if dropped:
+            pieces.append(("Discards: " if fidelity == RESET else "Drops: ") + ", ".join(dropped))
+
+    kept = _kept_condition_children(new_tag)
+    if element.find("ConditionList") is not None and "ConditionList" not in kept:
+        pieces.append("drops the conditions attached to it")
+    if (element.findtext("pin") or "").strip() == "true" and "pin" not in kept:
+        pieces.append("drops its 'inverted' setting")
+    if not carry and len(record.conditions) == 1:
+        pieces.append("the Profile's only condition -- it will not trigger until the new one is set up")
+
+    return "; ".join(pieces)
+
+
+def _duplicate_context(record: object, condition: object, new_tag: str, already_planned: int) -> str:
+    """Why this Profile cannot take another context of the target kind, or "".
+
+    See _ONE_PER_PROFILE.  Two ways it happens, and the second one only exists because a
+    Profile may hold several States: replacing both of a Profile's States with the same
+    Event would hand it two Events one row at a time, and each row on its own looks fine.
+    """
+    if new_tag not in _ONE_PER_PROFILE:
+        return ""
+    name = _condition_name(condition_key(new_tag))
+    article = "an" if name[:1] in "AEIOU" else "a"
+    if any(other is not condition and other.tag == new_tag for other in record.conditions):
+        return (
+            f"this Profile already has {article} {name} condition, and Tasker writes only one of those "
+            f"per Profile."
+        )
+    if already_planned:
+        return (
+            f"the row above already gives this Profile its one {name} condition -- replace the rest with "
+            f"something else, or leave them."
+        )
+    return ""
+
+
+def plan_condition_replace(
+    old_key: str,
+    new_key: str,
+    project: str = "",
+) -> Plan:
+    """Every Profile context of one kind, and what replacing it with another would do.
+
+    `project` narrows exactly as the other three do.  Nothing is touched: each Change
+    carries the context element as its site and the old and new one-line renderings, so
+    the user reads 'Time 08:00 AM to 09:30 AM  ->  Day' per row rather than a tag name.
+
+    EVERY ROW ARRIVES TICKED, INCLUDING THE RESET ONES, which is where this parts company
+    with plan_action_swap -- deliberately, and for a reason that does not carry across:
+
+      For an action, RESET is the accident.  The user picked a target from a pulldown full
+      of pairs that DO carry the message text, and a row that quietly discards sixteen
+      arguments is a surprise they may not have read to the bottom of the list to find.
+
+      For a context, carrying nothing is what replacing one KIND with another means.  A
+      Time is not a Day; there is no correspondence to lose.  Every entry in the target
+      pulldown says 'a fresh, empty Day' before it is chosen, every row's before/after line
+      shows the settings going and the empty context arriving, and the plan says once,
+      loudly, that the new ones have to be filled in.  Unticking all of them by default
+      would leave the ordinary use of this feature -- 'these forty Profiles should trigger
+      on something else' -- to be re-ticked forty times.
+
+    What IS refused rather than ticked is a Profile that would end up with two Times, or
+    two Events, or two of any of _ONE_PER_PROFILE.  Those become Skips: the user cannot see
+    that shape is wrong by looking at the Map, so the tool must not write it.
+    """
+    old_name, new_name = _condition_name(old_key), _condition_name(new_key)
+    old_tag, _ = _split_condition(old_key)
+    new_tag, _ = _split_condition(new_key)
+
+    what = f"Replace Profile condition '{old_name}' with '{new_name}'"
+    if project:
+        what = f"{what} in Project '{project}'"
+    plan = Plan(what=what)
+
+    # The same scope note the other three carry, and for the same reason: `what` is the
+    # Undo label, so a plan that touched one Profile must not describe itself as touching
+    # the file.
+    scope = current_scope()
+    if not scope.is_everything:
+        plan.what = f"{what} in {scope.phrase}"
+        plan.warnings.append(
+            f"Limited to {scope.phrase}, which is what the app is displaying.  Clear the single-item "
+            f"selection to replace across the whole configuration.",
+        )
+
+    fidelity, carry, reason = classify_condition_swap(old_key, new_key)
+    if fidelity == BLOCKED:
+        plan.warnings.append(reason)
+        return plan
+
+    index = mapfind.build_index()
+    named = 0
+
+    for record in index.objects:
+        if record.kind != PROFILE:
+            continue
+        if project and record.project != project:
+            continue
+        planned = 0
+        for condition in record.conditions:
+            if condition.element is None or condition_key(condition.tag, condition.key) != old_key:
+                continue
+            # Numbered from 1 for the user, off the 0-based number Tasker writes in the
+            # condition's own sr="conN" -- the same offset the Map applies to action numbers.
+            where = record.target.with_text(f"condition {condition.index + 1}")
+            clash = _duplicate_context(record, condition, new_tag, planned)
+            if clash:
+                plan.skips.append(Skip(where=where, reason=BLOCKED_DUPLICATE, explanation=clash))
+                continue
+            planned += 1
+            named += condition.element.find("cname") is not None
+            plan.changes.append(
+                Change(
+                    site=Site(
+                        kind=PROFILE_CONDITION,
+                        element=condition.element,
+                        where=where,
+                        detail=old_name,
+                        new_key=new_key,
+                        carry=carry,
+                    ),
+                    before=_condition_summary(condition.element, condition.tag, condition.key),
+                    after=_projected_condition_summary(condition.element, old_key, new_key, carry),
+                    note=_condition_note(record, condition, new_key, carry, fidelity),
+                ),
+            )
+
+    plan.selected = set(range(len(plan.changes)))
+
+    if plan.changes and not carry:
+        plan.warnings.append(
+            f"Each of these arrives EMPTY -- a new {new_name} exactly as 'Add Condition' writes one, with "
+            f"nothing filled in.  Open each Profile afterwards and set it up, or the Profile will not "
+            f"trigger on anything.",
+        )
+    if fidelity == MAPPED:
+        plan.warnings.append(f"Carries over: {', '.join(_carried_names(_split_condition(old_key)[1], carry))}.")
+    if plan.changes and new_tag == "Event" and old_tag != "Event":
+        # An Event happens at a moment; everything else lasts.  Worth saying once, because
+        # it is invisible in a before/after line and it silently strands an Exit Task.
+        plan.warnings.append(
+            "An Event happens at an instant, where a Time, Day, Application, Location or State stays true "
+            "for a while.  A Profile left with only an Event has no end to run an Exit Task at -- check "
+            "the ones that have an Exit Task.",
+        )
+    if named:
+        plan.warnings.append(
+            f"{named} of these carry a name written for the old condition.  Names are kept as they are -- "
+            f"this tool does not rewrite prose -- so check the ones that describe what they watched for.",
+        )
+
+    return plan
+
+
+def _order_condition_children(condition_element: defusedxml.ElementTree.Element) -> None:
+    """Put a context's children in the order Tasker writes them: the non-argument ones in
+    alphabetical order, then the arguments by their 'sr' as a string.
+
+    _order_children's counterpart for a Profile context, and it differs in the first half
+    because the XML does.  An <Action> keeps its non-argument children in the order they
+    were already in; a context's are alphabetical, and the sample XML is unambiguous about
+    it -- Time reads fh, fm, rep, repval, th, tm; State reads cname, code, ConditionList;
+    App reads cls0, cls1, cls10, cls2 ... cname, flags, label0 ... pin, pkg0, which is a
+    plain case-insensitive string sort with the numbered families falling where they fall.
+    Event reads code, pri and then its arguments, which is the same rule again.
+
+    For the diff, exactly as _order_children is: a context rebuilt in an order Tasker would
+    not have written is a screenful of moved lines in xmldiff and in whatever the user keeps
+    their backups in, hiding the one line that is the change they made.
+    """
+    children = list(condition_element)
     for child in children:
-        action_element.remove(child)
+        condition_element.remove(child)
     plain = [child for child in children if not child.attrib.get("sr", "").startswith("arg")]
     arguments = [child for child in children if child.attrib.get("sr", "").startswith("arg")]
+    plain.sort(key=lambda child: child.tag.lower())
     arguments.sort(key=lambda child: child.attrib.get("sr", ""))
-    action_element.extend(plain + arguments)
+    condition_element.extend(plain + arguments)
+
+
+def _swap_one_condition(
+    condition_element: defusedxml.ElementTree.Element,
+    new_key: str,
+    carry: dict[str, str],
+) -> None:
+    """Rewrite one Profile context in place.  Called only from apply(), inside its undo block.
+
+    In place -- the element keeps its identity, its sr="conN" and its position among the
+    Profile's children -- for the reason _swap_one_action gives about an <Action>, and one
+    more that is specific to a context: sr="conN" is its POSITION among the contexts, so a
+    context added and removed rather than rewritten would need every one after it
+    renumbered (profedit._renumber_conditions), and a plan changing two contexts of one
+    Profile would be renumbering the tree under its own second site.
+
+    The tag itself changes, which is the one thing an action swap never does: a Time
+    becoming a Day is a <Time> element becoming a <Day> element.  So the whole element is
+    emptied -- children and attributes both -- and refilled from a freshly built one,
+    rather than having its <code> overwritten in place.
+    """
+    element_cls = type(condition_element)
+
+    # Built FIRST, before anything is torn down: if the target cannot be built this raises,
+    # and it must raise with the Profile's context still intact.
+    fresh = _fresh_condition(element_cls, new_key)
+    keep_tags = _kept_condition_children(fresh.tag)
+
+    # 1.  Lift what survives, deep, before the tear-down -- the arguments that carry over
+    # (only ever coded-to-coded) and the children that outlive the kind.
+    carried: dict[str, defusedxml.ElementTree.Element] = {}
+    for child in list(condition_element):
+        sr = child.attrib.get("sr", "")
+        if carry and sr.startswith("arg") and sr[3:] in carry:
+            lifted = copy.deepcopy(child)
+            lifted.attrib["sr"] = f"arg{carry[sr[3:]]}"
+            carried[carry[sr[3:]]] = lifted
+    kept = [copy.deepcopy(child) for child in condition_element if child.tag in keep_tags]
+
+    # 2.  Tear down, keeping only the position.  The attributes go with the children: 've'
+    # belongs to the kind, and only 'sr' -- which context this is -- belongs to the Profile.
+    position = condition_element.attrib.get("sr", "")
+    for child in list(condition_element):
+        condition_element.remove(child)
+    condition_element.tag = fresh.tag
+    condition_element.attrib.clear()
+    condition_element.attrib.update(fresh.attrib)
+    if position:
+        condition_element.set("sr", position)
+
+    # 3.  The new context, whole.
+    condition_element.extend(list(fresh))
+
+    # 4.  The carried values displace the defaults just built for them.
+    synthesized = {
+        child.attrib.get("sr", ""): child
+        for child in condition_element
+        if child.attrib.get("sr", "").startswith("arg")
+    }
+    for new_id, lifted in carried.items():
+        existing = synthesized.get(f"arg{new_id}")
+        if existing is not None:
+            condition_element.remove(existing)
+        condition_element.append(lifted)
+
+    # 5.  What outlived the kind, and then back into Tasker's own order.
+    condition_element.extend(kept)
+    _order_condition_children(condition_element)
+
+
+# ##################################################################################
+# An argument's value.
+#
+# The third operation, and the narrowest: one argument of one action code, across every
+# Task the scope allows.  "Every Flash that says 'Done' should say 'Finished'", "every
+# HTTP Request pointing at the old host should point at the new one" -- questions that are
+# a Find away from being answered and were, until now, a hundred hand edits away from
+# being acted on.
+#
+# Two things it deliberately does NOT do:
+#
+#   It does not create an argument.  Tasker leaves out an argument the user never set, and
+#   an action that does not carry the one being replaced is reported as a skip rather than
+#   grown a new element: "replace" is a promise about something that is there, and filling
+#   in an argument nobody has ever set is the Task editor's job, one action at a time,
+#   where the rest of the action is on screen to judge it by.
+#
+#   It does not touch a picker.  An App, an Icon or a Scene argument is a subtree Tasker
+#   builds from a chooser, not a value anybody types, so those arguments are offered in the
+#   pulldown with the reason they cannot be used rather than left out of it -- the same
+#   courtesy fidelity_choices pays a blocked swap target.
+# ##################################################################################
+
+# Argument categories this can write.  Anything else is a picker: a subtree with its own
+# shape, which a typed string cannot stand in for.
+#
+# Both spellings of the string category, because there are two: arg_specs.json says
+# "String" and proginit.build_action_codes_from_json rewrites the entry to "Str" as it
+# loads.  Matching only the one in the file left every Str argument in the file --
+# Flash's Text among them -- labelled "cannot be typed", which is every argument anybody
+# would want this for.
+_WRITABLE_CATEGORIES = ("Str", "String", "Int", "Boolean")
+
+
+def argument_choices(action_key: str) -> list[tuple[str, str, str]]:
+    """(arg id, label, refusal) for every argument of one action, in Tasker's own order.
+
+    The Replace tab's argument pulldown.  Named as Tasker's action editor names them,
+    because that is what the user is looking at in the Map -- "Text", "Title", "Timeout",
+    not "arg0".
+
+    An argument that cannot be written carries its reason as the third field and says so in
+    its label rather than being dropped: an argument missing from the list teaches nothing,
+    while "Icon -- cannot be typed" answers the question the user was about to ask.
+    """
+    choices = []
+    for argument in _effective_args(action_key):
+        if _is_hint_bundle(argument):
+            continue  # Not an argument at all -- the plugin's note about what it outputs.
+        category = _category(argument)
+        name = argument.arg_name or f"arg{argument.arg_id}"
+        writable = category in _WRITABLE_CATEGORIES
+        refusal = "" if writable else f"a {category or 'picker'} argument is chosen from a picker, not typed"
+        label = f"{name}  ({category})" if writable else f"{name}  ({category} -- cannot be typed)"
+        choices.append((argument.arg_id, label, refusal))
+    return choices
+
+
+def _argument_site(
+    action_element: defusedxml.ElementTree.Element,
+    arg_id: str,
+    where: Target,
+    detail: str,
+) -> tuple[Site | None, str]:
+    """The field one argument's value sits in, or (None, why not).
+
+    Three shapes, which is the whole reason this is a function: Tasker writes a string
+    argument as the text of <Str sr="argN">, a plain numeric as the val= attribute of
+    <Int sr="argN">, and a numeric bound to a variable as a <var> child of that <Int>.  The
+    same three taskedit.apply_arg_values writes when the Task editor saves one action; this
+    is that rule applied to a thousand of them at once.
+    """
+    element = _argument_element(action_element, arg_id)
+    if element is None:
+        return None, "this action does not carry that argument -- Tasker leaves out one that was never set."
+
+    if element.tag == "Str":
+        return Site(kind=STR_ARG, element=element, where=where, detail=detail), ""
+    if element.tag == "Int":
+        bound = element.find("var")
+        if bound is not None:
+            return Site(kind=INT_VAR, element=bound, where=where, detail=detail), ""
+        return Site(kind=INT_VALUE, element=element, where=where, detail=detail), ""
+    return None, f"this argument is a <{element.tag}>: a picker's choice rather than a typed value."
+
+
+def _numeric_refusal(numeric: bool, value: str) -> str:
+    """Why this value cannot go into a numeric field, or "".
+
+    Only the val= shape is fussy, and it has to be: Tasker reads that attribute as a
+    number, so writing "off" or "%level" into it produces an action that looks edited in
+    the Map and misbehaves on the device.  A <var>-bound numeric is left alone by this --
+    it already holds an expression rather than a number, which is what a binding is for.
+
+    Takes the fact rather than the Site, because an argument being ADDED has no element to
+    read the shape off: there, the shape comes from the argument's category instead.
+    """
+    if not numeric or value.lstrip("-").isdigit():
+        return ""
+    return (
+        f"'{value}' is not a number, and this argument is stored as one.  Bind it to a variable "
+        f"in the Task editor if that is what you meant."
+    )
+
+
+def _creatable(action_element: defusedxml.ElementTree.Element, arg_id: str) -> bool:
+    """Whether an argument this action does not carry could be written into it.
+
+    Asked of taskedit rather than answered here, and asked by BUILDING one on a throwaway
+    copy of the action: build_synthesized_args declines an argument it has no generic
+    default for, and the only way to know which those are without restating its rules is to
+    let it try.  The copy is the point -- planning must not touch the tree.
+    """
+    action_key = f"{(action_element.findtext('code') or '').strip()}t"
+    argument = next((entry for entry in _effective_args(action_key) if entry.arg_id == arg_id), None)
+    if argument is None:
+        return False
+    scratch = copy.deepcopy(action_element)
+    built = taskedit.build_synthesized_args(type(scratch), scratch, [argument])
+    return bool(built) and built[0].element is not None
+
+
+def plan_argument_replace(
+    action_key: str,
+    arg_id: str,
+    new_value: str,
+    match: str = "",
+    project: str = "",
+    substitute: bool = False,
+    add_missing: bool = False,
+) -> Plan:
+    """Every action of one code, and what putting `new_value` in one of its arguments would do.
+
+    `match` narrows by what the argument holds NOW: blank means every action of this code,
+    anything else means only those whose value contains it.  Case-insensitively, which is
+    how the Find tab already searches -- two halves of one dialog answering the same words
+    differently would be a trap.
+
+    `substitute` changes what `new_value` means:
+
+      off (the default)  the argument is SET to it -- "make every Flash say 'Done'".
+      on                 only the matched text inside the value is replaced -- "wherever a
+                         URL says http://old, say http://new" -- leaving the rest of each
+                         value alone.  Needs `match`: there is otherwise nothing to look
+                         for.
+
+    `add_missing` writes the argument into the actions that do not carry one.  Tasker
+    leaves out an argument nobody has ever set, so "give every Flash a two-second Timeout"
+    is mostly a question about actions that have no Timeout element at all -- and without
+    this it answered "12 of them cannot be changed".  Off by default, because adding an
+    argument to a hundred actions is a bigger thing than editing the ones that have it, and
+    those rows carry a note saying which they are.
+
+    It only applies to the plain case: a value filter cannot match a field that does not
+    exist, and there is nothing inside a missing value to substitute, so with either of
+    those set the switch says so rather than quietly doing nothing.
+
+    Nothing is done here.  Every action found becomes a Change carrying the field's value
+    before and after, ticked individually; every action that matched and cannot be changed
+    becomes a Skip carrying the reason.
+    """
+    action = action_codes.get(action_key)
+    action_name = action.name if action else action_key
+    argument = next((entry for entry in _effective_args(action_key) if entry.arg_id == arg_id), None)
+    arg_name = (argument.arg_name if argument else "") or f"arg{arg_id}"
+
+    what = (
+        f"Replace '{match}' with '{new_value}' in {action_name} {arg_name}"
+        if substitute
+        else f"Set {action_name} {arg_name} to '{new_value}'"
+    )
+    if match and not substitute:
+        what = f"{what}, where it contains '{match}'"
+    if project:
+        what = f"{what} in Project '{project}'"
+    plan = Plan(what=what)
+
+    # The same scope note the other two carry, and for the same reason: `what` is the Undo
+    # label, so a plan that touched one Task must not describe itself as touching the file.
+    scope = current_scope()
+    if not scope.is_everything:
+        plan.what = f"{what} in {scope.phrase}"
+        plan.warnings.append(
+            f"Limited to {scope.phrase}, which is what the app is displaying.  Clear the single-item "
+            f"selection to replace across the whole configuration.",
+        )
+
+    if argument is None:
+        plan.warnings.append(f"'{action_name}' has no argument {arg_id}.")
+        return plan
+    if _category(argument) not in _WRITABLE_CATEGORIES:
+        plan.warnings.append(
+            f"{arg_name} is {_category(argument)}: chosen from a picker rather than typed, so there is "
+            f"no value here to replace.",
+        )
+        return plan
+    if substitute and not match:
+        plan.warnings.append("Replacing text inside a value needs the text to look for.")
+        return plan
+
+    numeric = _category(argument) in ("Int", "Boolean")
+    refusal = _numeric_refusal(numeric, new_value)
+
+    adding = add_missing and not match and not substitute
+    if add_missing and not adding:
+        plan.warnings.append(
+            "An argument can only be ADDED where nothing is being matched: a value filter cannot match a "
+            "field that does not exist, and there is nothing inside a missing value to replace.",
+        )
+
+    pattern = re.compile(re.escape(match), re.IGNORECASE) if substitute else None
+    wanted = match.lower()
+    detail = f"{action_name}, {arg_name}="
+    index = mapfind.build_index()
+    code = action_key[:-1]
+    added = 0
+
+    for record in index.objects:
+        if record.kind != TASK:
+            continue
+        if project and record.project != project:
+            continue
+        for found in record.actions:
+            if found.code != code or found.element is None:
+                continue
+            where = record.target.at_action(found.number)
+            site, reason = _argument_site(found.element, arg_id, where, detail)
+            if site is None:
+                # An argument the action never set.  Written into it when the user asked
+                # for that, and otherwise reported: it is exactly the action they meant to
+                # change and did not, so it says so and says what to tick.
+                if not adding:
+                    # Reported only when nothing was filtering.  A value filter cannot rule
+                    # out a field there is nothing to read, so with one set these would be
+                    # noise; without one, they are the ones the user did not get.
+                    if not wanted:
+                        plan.skips.append(
+                            Skip(
+                                where=where,
+                                reason=BLOCKED_UNADDABLE,
+                                explanation=f"{reason}  Tick 'Add it where missing' to write one in.",
+                            ),
+                        )
+                    continue
+                if refusal:
+                    plan.skips.append(Skip(where=where, reason=BLOCKED_UNADDABLE, explanation=refusal))
+                    continue
+                if not _creatable(found.element, arg_id):
+                    plan.skips.append(
+                        Skip(
+                            where=where,
+                            reason=BLOCKED_UNADDABLE,
+                            explanation="this argument cannot be written from nothing -- it is not a plain value.",
+                        ),
+                    )
+                    continue
+                added += 1
+                plan.changes.append(
+                    Change(
+                        site=Site(
+                            kind=NEW_ARG,
+                            element=found.element,
+                            where=where,
+                            detail=detail,
+                            new_value=new_value,
+                            create_arg=(action_key, arg_id),
+                        ),
+                        before="",
+                        after=new_value,
+                        note=f"this action has no {arg_name} -- one is added",
+                    ),
+                )
+                continue
+
+            before = _current_value(site)
+            if wanted and wanted not in before.lower():
+                continue
+
+            if refusal and not substitute:
+                plan.skips.append(Skip(where=where, reason=BLOCKED_UNADDABLE, explanation=refusal))
+                continue
+
+            site = Site(
+                kind=site.kind,
+                element=site.element,
+                where=where,
+                detail=detail,
+                new_value=None if substitute else new_value,
+                rename=(pattern, new_value) if substitute else (),
+            )
+            after = _rewrite_site(site, pattern, new_value)[1]
+            if after == before:
+                continue  # Already holds it: a change that would change nothing.
+            plan.changes.append(Change(site=site, before=before, after=after))
+
+    plan.selected = set(range(len(plan.changes)))
+    if added:
+        plan.warnings.append(
+            f"{added} of these ADD a {arg_name} to an action that never had one, rather than changing "
+            f"one it has.  Each says so on its own row.",
+        )
+    if plan.changes and not wanted and not substitute:
+        plan.warnings.append(
+            f"Every {action_name} in scope gets the same {arg_name} -- {len(plan.changes)} of them.  "
+            f"Narrow it with the value filter if that is more than you meant.",
+        )
+    return plan
 
 
 # ##################################################################################
@@ -982,6 +2006,12 @@ def _swap_one_action(
 # 1. BOUNDARY.  '%Time' must not match inside '%TimeStamp', and str.replace does exactly
 #    that.  varxref.VARIABLE_PATTERN already knows what a name is; this anchors on the
 #    whole name and refuses a partial.  The trailing lookahead is the entire point.
+# Passed as `owner` to mean "every instance of this name", as against one particular
+# instance.  None rather than "" because "" is already a real owner -- varxref keys
+# everything that is not a Task's local under it -- so the two must not be the same value.
+EVERY_INSTANCE = None
+
+
 def _rename_pattern(old_name: str) -> re.Pattern:
     """A pattern matching this name and nothing that merely starts with it.
 
@@ -1021,14 +2051,20 @@ def _rename_pattern(old_name: str) -> re.Pattern:
 def plan_variable_rename(
     index: varxref.VariableIndex,
     old_name: str,
-    owner: str,
+    owner: str | None,
     new_name: str,
 ) -> Plan:
     """Every place this variable is set or read, and what renaming it would do.
 
     (old_name, owner) is varxref's own key: owner is the Task id for a local, "" for a
-    global.  Taking the key rather than just a name is what makes the local case correct
-    by construction -- there is no call shape here that means 'rename %i everywhere'.
+    global.  Naming the instance is what makes the local case safe by default -- %i is a
+    different variable in each of the 59 Tasks that use it, and a rename that took only a
+    name would rewrite all 59 the first time somebody meant one.
+
+    Pass EVERY_INSTANCE as the owner to mean exactly that, on purpose: every instance of
+    the name in scope, however many Tasks they belong to.  "Rename the loop counter
+    throughout" is a real thing to want and the only way to say it -- but it is spelled
+    differently from the safe case rather than reachable by leaving an argument out.
 
     Sites come from index.variables[(old_name, owner)].sets + .reads, which is one list
     of every place the cross-reference already knows about: Task arguments, plugin
@@ -1054,8 +2090,12 @@ def plan_variable_rename(
     old_name = f"%{old_name.lstrip('%')}"
     new_name = f"%{new_name.lstrip('%')}"
 
+    entries = _entries_to_rename(index, old_name, owner)
+
     scope_phrase = ""
-    if owner:
+    if owner is EVERY_INSTANCE and len(entries) > 1:
+        scope_phrase = f" ({len(entries)} instances)"
+    elif owner:
         location = index.scope_locations.get(owner)
         scope_phrase = f" in {location.label}" if location else f" in Task {owner}"
     plan = Plan(what=f"Rename {old_name} to {new_name}{scope_phrase}")
@@ -1078,15 +2118,14 @@ def plan_variable_rename(
         plan.warnings.append(refusal)
         return plan
 
-    entry = index.variables.get((old_name, owner))
-    if entry is None:
+    if not entries:
         # "in this configuration" would be a lie under a scope -- the variable may be used
         # in a hundred places the scan was told not to look at.
         where = displaying.phrase if not displaying.is_everything else "this configuration"
         plan.warnings.append(f"{old_name} is not used anywhere in {where}.")
         return plan
 
-    plan.warnings.extend(_rename_warnings(index, entry, old_name, new_name, owner))
+    plan.warnings.extend(_rename_warnings(index, entries, old_name, new_name, owner))
 
     pattern = _rename_pattern(old_name)
     seen: set[tuple[int, tuple]] = set()
@@ -1095,7 +2134,7 @@ def plan_variable_rename(
     # way the Map does.  Deduplicated on (element, path) because one field can be recorded
     # twice over: an in-place action records its target as a set AND a read, and a field
     # naming the variable more than once is one field to rewrite either way.
-    for reference in entry.sets + entry.reads:
+    for reference in [ref for entry in entries for ref in entry.sets + entry.reads]:
         if reference.element is None:
             plan.skips.append(
                 Skip(
@@ -1140,7 +2179,7 @@ def plan_variable_rename(
             continue  # The name is in this field's record but not in this particular value.
         plan.changes.append(Change(site=site, before=before, after=after))
 
-    declaration = _declaration_site(old_name, entry, (pattern, new_name))
+    declaration = _declaration_site(old_name, entries, (pattern, new_name))
     if declaration is not None:
         before, after = _rewrite_site(declaration, pattern, new_name)
         if before != after:
@@ -1155,6 +2194,22 @@ def plan_variable_rename(
 
     plan.selected = set(range(len(plan.changes)))
     return plan
+
+
+def _entries_to_rename(
+    index: varxref.VariableIndex,
+    old_name: str,
+    owner: str | None,
+) -> list[varxref.Variable]:
+    """The variable record(s) this rename covers -- one instance, or every one of the name.
+
+    Ordered as varxref found them, so a plan over several instances still reads down the
+    file the way the Map does rather than jumping between Tasks.
+    """
+    if owner is not EVERY_INSTANCE:
+        entry = index.variables.get((old_name, owner))
+        return [entry] if entry is not None else []
+    return [entry for (name, _owner), entry in index.variables.items() if name == old_name]
 
 
 def _rename_refusal(old_name: str, new_name: str) -> str:
@@ -1190,13 +2245,28 @@ def _rename_refusal(old_name: str, new_name: str) -> str:
 
 def _rename_warnings(
     index: varxref.VariableIndex,
-    entry: varxref.Variable,
+    entries: list[varxref.Variable],
     old_name: str,
     new_name: str,
-    owner: str,
+    owner: str | None,
 ) -> list[str]:
     """What the user should read before pressing Replace.  Each of these proceeds."""
     warnings = []
+
+    # Renaming every instance of a LOCAL is the case that needs saying out loud.  Each of
+    # those instances is a separate variable -- Tasker scopes a lower-case name to the
+    # running Task -- so this is not one rename but as many as there are Tasks, and the
+    # count is the only thing on screen that says how far it reaches.
+    locals_covered = [entry for entry in entries if entry.scope == varxref.LOCAL]
+    if owner is EVERY_INSTANCE and len(locals_covered) > 1:
+        where = ", ".join(
+            (index.scope_locations[entry.owner].label if entry.owner in index.scope_locations else entry.owner)
+            for entry in locals_covered[:3]
+        )
+        warnings.append(
+            f"{old_name} is a LOCAL, so these are {len(locals_covered)} separate variables, one per Task "
+            f"({where}{', ...' if len(locals_covered) > 3 else ''}).  Every one of them is renamed.",
+        )
 
     # A scope change.  Tasker scopes by SPELLING, so this is not cosmetic: '%counter' ->
     # '%Counter' promotes a variable that was private to each Task into one global that
@@ -1214,7 +2284,17 @@ def _rename_warnings(
     # %app_name, say %app_package" consolidates two variables into one, and the target
     # pulldown offers exactly these.  What the user still has to be told is the
     # consequence, because it is not what the word "rename" suggests.
-    existing = index.variables.get((new_name, owner if becomes == varxref.LOCAL else ""))
+    # Looked up per instance when every instance is in play: a local's target is keyed to
+    # the same Task, so "does %tally already exist" has a different answer in each of them
+    # and the first one that says yes is worth reporting.
+    if becomes == varxref.LOCAL:
+        owners = [entry.owner for entry in entries] if owner is EVERY_INSTANCE else [owner]
+        existing = next(
+            (found for key in owners if (found := index.variables.get((new_name, key))) is not None),
+            None,
+        )
+    else:
+        existing = index.variables.get((new_name, ""))
     if existing is not None:
         warnings.append(
             f"{new_name} already exists -- set in {len(existing.sets)} places and read in "
@@ -1223,7 +2303,7 @@ def _rename_warnings(
         )
 
     # Something produces it that this rename cannot reach.
-    producers = {reference.detail for reference in entry.sets if reference.element is None}
+    producers = {reference.detail for entry in entries for reference in entry.sets if reference.element is None}
     if producers:
         warnings.append(
             f"{old_name} is produced by an action that never names it ({', '.join(sorted(producers)[:3])}).  "
@@ -1235,8 +2315,9 @@ def _rename_warnings(
     # catches the ones varxref recognises by shape alone -- globalvr's list was transcribed
     # from a page that predates %HUMIDITY, %SDK and the %DEV*/%CAL* families -- where a
     # refusal would be wrong, since the same shape covers somebody's own SHOUTING global.
-    if entry.scope in (varxref.TASKER_SET, varxref.BUILTIN):
-        source = "Tasker itself as a Task runs" if entry.scope == varxref.TASKER_SET else "Tasker, by the look of it"
+    outside_scopes = {entry.scope for entry in entries} & {varxref.TASKER_SET, varxref.BUILTIN}
+    if outside_scopes:
+        source = "Tasker itself as a Task runs" if varxref.TASKER_SET in outside_scopes else "Tasker, by the look of it"
         warnings.append(
             f"{old_name} is set by {source}.  Renaming the places that read it does not change what sets it, "
             f"so {new_name} would never hold anything.  Ignore this if {old_name} is your own variable.",
@@ -1267,19 +2348,26 @@ def _site_kind(reference: varxref.Reference) -> str:
         return CONDITION
     if reference.element.tag == "var":
         return INT_VAR
+    # A Project's or Profile's own declaration of a variable to configure on import: the
+    # name in <pvn>, the value offered for it in <pvv>.  Named rather than left to fall
+    # through to BUNDLE below: the preview prints the kind, and "bundle" would tell the
+    # user this rename is touching a plugin's payload when it is touching the Project's
+    # properties.
+    if reference.element.tag in ("pvn", "pvv"):
+        return IMPORT_VARIABLE
     if reference.element.tag == "Str":
         return LEGACY_SCENE if "component" in reference.detail or "value" in reference.detail else STR_ARG
     return BUNDLE
 
 
-def _declaration_site(old_name: str, entry: varxref.Variable, rename: tuple) -> Site | None:
+def _declaration_site(old_name: str, entries: list[varxref.Variable], rename: tuple) -> Site | None:
     """The top-level <Variable> that declares this name, if the file carries one.
 
     Why a rename cannot be done by walking Tasks alone: Tasker's Variables tab holds the
     declaration and its value, and leaving it behind orphans the value under a name
     nothing uses any more.
     """
-    if not entry.declared or PrimeItems.xml_root is None:
+    if not any(entry.declared for entry in entries) or PrimeItems.xml_root is None:
         return None
 
     # Only when the whole configuration is in play.  A <Variable> is a file-level object,
@@ -1303,7 +2391,75 @@ def _declaration_site(old_name: str, entry: varxref.Variable, rename: tuple) -> 
     return None
 
 
-def _rewrite_site(site: Site, pattern: re.Pattern, new_name: str) -> tuple[str, str]:
+def _current_value(site: Site) -> str:
+    """What this field holds now, whichever shape it holds it in.
+
+    The odd one out is INT_VALUE: Tasker writes a plain numeric argument as an ATTRIBUTE
+    (<Int sr="arg1" val="7"/>) and everything else in this module as element text, so a
+    single .text read would report every numeric argument as empty and then replace an
+    empty string with the new value -- which would look right in the preview and write
+    nothing anybody could see.
+    """
+    if site.kind == NEW_ARG:
+        # Nothing holds it yet.  Read off site.element and this would be the <Action>'s own
+        # text -- the whitespace before its first child -- shown to the user as the value
+        # they are about to replace.
+        return ""
+    if site.kind == INT_VALUE:
+        return site.element.attrib.get("val", "")
+    return site.element.text or ""
+
+
+def _set_value(site: Site, value: str) -> None:
+    """Put a value into this field, in the shape the field keeps it in.  The write half of
+    _current_value, and the reason the two sit together."""
+    if site.kind == NEW_ARG:
+        _create_argument(site, value)
+        return
+    if site.kind == INT_VALUE:
+        site.element.set("val", value)
+        return
+    site.element.text = value
+
+
+def _create_argument(site: Site, value: str) -> None:
+    """Write an argument the action has never carried, and put the value in it.
+
+    Built through taskedit.build_synthesized_args -- the same function Add Action uses, and
+    the same one _swap_one_action synthesizes a whole argument set with -- so an argument
+    added here is indistinguishable from one Tasker itself wrote: <Str sr="argN" ve="3"> for
+    text, <Int sr="argN" val="0"/> for a number or a checkbox.  A second definition of "what
+    an empty argument looks like" is exactly the thing that goes stale.
+
+    No action key is passed, which is deliberate: given one, that function also writes the
+    plugin payload <Bundle> for the action, and this is adding one argument to an action
+    that already has whatever payload it came with.
+
+    Raises rather than returning quietly if nothing was built -- apply() catches it and
+    reports that one change, which is the right outcome for an argument that turns out not
+    to be synthesizable after the preview said it was.
+    """
+    action_key, arg_id = site.create_arg
+    argument = next((entry for entry in _effective_args(action_key) if entry.arg_id == arg_id), None)
+    if argument is None:
+        unbuildable = f"{action_key} has no argument {arg_id} to add"
+        raise ValueError(unbuildable)
+
+    built = taskedit.build_synthesized_args(type(site.element), site.element, [argument])
+    if not built or built[0].element is None:
+        unbuildable = f"an argument of this kind cannot be written from nothing ({site.detail})"
+        raise ValueError(unbuildable)
+
+    element = built[0].element
+    if element.tag == "Int":
+        element.set("val", value)
+    else:
+        element.text = value
+    # In the order Tasker writes them, rather than appended at the end.  See _order_children.
+    _order_children(site.element)
+
+
+def _rewrite_site(site: Site, pattern: re.Pattern | None = None, new_name: str = "") -> tuple[str, str]:
     """(before, after) for one site, without writing anything.  The read half of apply().
 
     Per-kind, because a value does not live in the same place twice:
@@ -1314,6 +2470,8 @@ def _rewrite_site(site: Site, pattern: re.Pattern, new_name: str) -> tuple[str, 
       LEGACY_SCENE   the <Str sr="argN"> named in site.detail
       V2_SCENE       site.path into the parsed JSON layout, re-serialized on write
       DECLARATION    the <Variable>'s name child
+      IMPORT_VARIABLE the <pvn> element's own text
+      INT_VALUE      the <Int>'s val= attribute
 
     A Version 2 Scene is the one that is not a string swap: the layout is gzipped JSON, so
     the value has to be decoded, changed at site.path and re-encoded.  Not batched per
@@ -1325,7 +2483,12 @@ def _rewrite_site(site: Site, pattern: re.Pattern, new_name: str) -> tuple[str, 
         value = _v2_value(site)
         return _flatten(value), _flatten(_substitute(value, pattern, new_name))
 
-    before = site.element.text or ""
+    before = _current_value(site)
+    # A whole value replaced, rather than something matched inside it.  Checked first
+    # because such a Site carries no pattern at all: what it is going to hold does not
+    # depend on what it holds now.
+    if site.new_value is not None:
+        return before, site.new_value
     return before, pattern.sub(new_name, before)
 
 
@@ -1531,6 +2694,9 @@ def _apply_one(change: Change) -> None:
     if change.site.kind == ACTION_ELEMENT:
         _swap_one_action(change.site.element, change.site.new_key, change.site.carry)
         return
+    if change.site.kind == PROFILE_CONDITION:
+        _swap_one_condition(change.site.element, change.site.new_key, change.site.carry)
+        return
     _write_site(change.site)
 
 
@@ -1542,6 +2708,10 @@ def _write_site(site: Site) -> None:
     plan was built.  That is what makes two renames touching one field compose, and what
     stops a stale preview value being written over a field somebody edited meanwhile.
     """
+    if site.new_value is not None:
+        _set_value(site, site.new_value)
+        return
+
     pattern, new_name = site.rename
 
     if site.kind == V2_SCENE:
@@ -1558,8 +2728,7 @@ def _write_site(site: Site) -> None:
         sceneedit.encode_v2_layout(site.element, layout)
         return
 
-    site.element.text = pattern.sub(new_name, site.element.text or "")
-
+    _set_value(site, pattern.sub(new_name, _current_value(site)))
 
 
 # ##################################################################################

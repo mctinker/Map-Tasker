@@ -41,6 +41,7 @@ from maptasker.src.bundle import bundles
 from maptasker.src.globalvr import tasker_global_variables
 from maptasker.src.mapjump import (
     PROFILE,
+    PROJECT,
     SCENE,
     TASK,
     VARIABLE,
@@ -362,6 +363,7 @@ class VariableIndex:
     tasks_scanned: int = 0
     actions_scanned: int = 0
     profiles_scanned: int = 0
+    projects_scanned: int = 0
     scenes_scanned: int = 0
     # Task id -> the place it is, so the locals section can be grouped by Task without
     # re-deriving the phrase per variable.  Targets rather than phrases since it is both:
@@ -609,6 +611,37 @@ def _record_reads(index: VariableIndex, text: str, reference: Reference) -> None
         index.entry(f"%{match.group(1)}", reference.scope_id).reads.append(reference)
 
 
+# How a Project's configure-on-import declaration names itself in a report.  One string,
+# because the name and the value are two lines about the same declaration and wording them
+# separately would read as two features.  The Profile's copy keeps the "Profile Variable"
+# it has always been called.
+_IMPORT_VARIABLE_DETAIL = "Project Variable (configure on import)"
+
+
+def _record_import_value(
+    index: VariableIndex,
+    declaration: defusedxml.ElementTree.Element,
+    where: str,
+    scope_id: str,
+    place: Target,
+    detail: str,
+) -> None:
+    """Record the variables named in a configure-on-import declaration's VALUE.
+
+    <ProfileVariable> holds the name in <pvn> and the value offered for it in <pvv>, and
+    the value is an ordinary field: "%base/photos" as a default names %base, and a rename
+    of %base that skipped it would leave the default pointing at a name that no longer
+    exists.  Reads, not sets -- this declaration sets its own name and nothing else.
+
+    The <pvv> element travels with each reference, so the rename rewrites the value in
+    place; one element can carry several names, which mapswap folds back into one rewrite.
+    """
+    value_element = declaration.find("pvv")
+    value = (value_element.text or "") if value_element is not None else ""
+    if value:
+        _record_reads(index, value, Reference(READ, where, f"{detail}, Value=", scope_id, place, value_element))
+
+
 def _scan_action(
     index: VariableIndex,
     action: defusedxml.ElementTree.Element,
@@ -737,10 +770,20 @@ def _scan_profiles(index: VariableIndex, owners: dict[str, str], scope: Scope) -
             if context.tag in _PROFILE_NON_CONTEXT_TAGS:
                 continue
             if context.tag == "ProfileVariable":
-                name = _element_text(context, "pvn")
+                # The <pvn> element travels with the reference, as every other site's
+                # does: it is what a rename rewrites.  Without it the reference reads as
+                # "something produces this variable without naming it anywhere", which is
+                # the opposite of the truth here -- the name is right there in the element.
+                name_element = context.find("pvn")
+                name = (name_element.text or "").strip() if name_element is not None else ""
                 if VARIABLE_PATTERN.fullmatch(name):
                     entry = index.entry(name, scope_id)
-                    entry.sets.append(Reference(SET, where, "Profile Variable", scope_id, place))
+                    entry.sets.append(
+                        Reference(SET, where, "Profile Variable", scope_id, place, name_element),
+                    )
+                # Whether or not the name itself was one this scan keeps, the value can
+                # still name variables of its own -- see _record_import_value.
+                _record_import_value(index, context, where, scope_id, place, "Profile Variable")
                 continue
 
             label = f"{context.tag} context"
@@ -753,6 +796,58 @@ def _scan_profiles(index: VariableIndex, owners: dict[str, str], scope: Scope) -
                         Reference(READ, where, label, scope_id, place, context_elements.get(arg_id)),
                     )
             _scan_conditions(index, context, where, scope_id, place)
+
+
+def _scan_projects(index: VariableIndex, scope: Scope) -> None:
+    """Record the variables a Project declares for import: <ProfileVariable><pvn>.
+
+    Tasker lets a Project carry variables to be configured when it is imported -- the
+    Project properties' "Variable ... Configure on Import" -- and stores each as the same
+    <ProfileVariable> element a Profile uses, inside the <Project>.  _scan_profiles has
+    always read the Profile's; nothing read the Project's, so a name declared there was
+    invisible: absent from the cross-reference, uncounted by a Replace, and left behind by
+    a rename that changed every other mention of it.  A Project still prompting on import
+    for a name nothing sets afterwards is exactly the half-renamed configuration this
+    module exists to prevent.
+
+    Recorded as a SET, as the Profile's is: the value the importer types is what the
+    variable holds.
+
+    The declared VALUE is read for names of its own, and they are recorded as reads --
+    <pvv> is an ordinary field that happens to sit in the Project's properties, and a
+    default of "%base/photos" names %base exactly as a Flash's text would.  Missing them
+    would leave a rename of %base rewriting the whole configuration except this one
+    default, which would then point somewhere that no longer exists.
+
+    Keyed to the Project ("project:<name>"), which is the same reasoning _scan_profiles
+    and _scan_scenes follow: an all-lower-case name is a local, no Task owns this one, and
+    two Projects each declaring %config are no more the same variable than two Tasks
+    using %i are.
+    """
+    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+        if not scope.allows(PROJECT, project_name):
+            continue
+        place = Target(PROJECT, project_name, project_name)
+        scope_id = f"project:{project_name}"
+        index.scope_locations[scope_id] = place
+        index.projects_scanned += 1
+
+        for declaration in project["xml"].findall("ProfileVariable"):
+            name_element = declaration.find("pvn")
+            name = (name_element.text or "").strip() if name_element is not None else ""
+            if not VARIABLE_PATTERN.fullmatch(name):
+                continue
+            index.entry(name, scope_id).sets.append(
+                Reference(
+                    SET,
+                    place.label,
+                    _IMPORT_VARIABLE_DETAIL,
+                    scope_id,
+                    place,
+                    name_element,
+                ),
+            )
+            _record_import_value(index, declaration, place.label, scope_id, place, _IMPORT_VARIABLE_DETAIL)
 
 
 def _scan_legacy_scene(
@@ -970,6 +1065,7 @@ def build_index(scope: Scope | None = None) -> VariableIndex:
                 implicit_writes,
             )
 
+    _scan_projects(index, scope)
     _scan_profiles(index, _project_of_profile(), scope)
     _scan_scenes(index, write_arguments, implicit_writes, scope)
 
@@ -1343,7 +1439,8 @@ def build_report(index: VariableIndex, when: datetime | None = None, include_ind
         "",
         (
             f"Scanned:     {index.tasks_scanned} Tasks, {index.actions_scanned} actions, "
-            f"{index.profiles_scanned} Profiles, {index.scenes_scanned} Scenes"
+            f"{index.profiles_scanned} Profiles, {index.scenes_scanned} Scenes, "
+            f"{index.projects_scanned} Projects"
         ),
         f"Variables:   {counts[GLOBAL]} global, {counts[BUILTIN]} built-in, {declared} declared in this file",
         # Counted per owner rather than per name, because that is the scope Tasker gives

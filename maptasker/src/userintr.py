@@ -97,6 +97,7 @@ from maptasker.src.guiwins import (
     initialize_gui,
     initialize_screen,
     live_views,
+    refresh_scope_badges,
     restore_appearance_mode,
     set_document_language_js,
     set_notification_timeout,
@@ -1410,14 +1411,8 @@ def _open_popout_window(path: str, new_window: bool = False) -> None:
     """
     # See popout_window_name for what the name is and why it is shaped that way.
     window_name = popout_window_name(path, new_window)
-    ui.run_javascript(
-        "window.mapTaskerPopouts = window.mapTaskerPopouts || []; "
-        f"const popout = window.open({json.dumps(path)}, {json.dumps(window_name)}); "
-        "if (popout) { "
-        "  if (!window.mapTaskerPopouts.includes(popout)) window.mapTaskerPopouts.push(popout); "
-        "  try { popout.focus(); } catch (e) {} "
-        "}",
-    )
+    # What it does, and why the handle is kept in two places, is in mapjump.open_popout_js.
+    ui.run_javascript(mapjump.open_popout_js(path, window_name))
 
 
 def _confirmed_single_project_name(gui: MyGui) -> str:
@@ -2288,7 +2283,17 @@ class MapTaskerEventHandlers:
                         return
 
                     # Display the diagram in its own browser window/tab rather than the main window.
-                    _open_popout_window("/popout/diagram", getattr(gui, "open_view_in_new_window", False))
+                    # What the app was showing when this Diagram was drawn, carried so the
+                    # view can say so on its own toolbar -- and say when the selection has
+                    # moved on since.  A Diagram is a snapshot: nothing rebuilds it when the
+                    # user picks a different single object, so its hotlinks go on pointing at
+                    # the objects of the selection it was built for, and there was no sign of
+                    # that anywhere on screen.
+                    built_for = urlencode({"built_for": mapjump.current_scope().phrase})
+                    _open_popout_window(
+                        f"/popout/diagram?{built_for}",
+                        getattr(gui, "open_view_in_new_window", False),
+                    )
 
                     # Cut short at the view limit?  Say so, as the "map" branch above does -- the
                     # diagram is still shown, up to the point the limit allowed.
@@ -2344,13 +2349,12 @@ class MapTaskerEventHandlers:
         # invalidates the views rendered into them too.
         forget_views(self.gui)
 
-        # Close every Map/Diagram popout window this window opened (tracked in
-        # window.mapTaskerPopouts, see _open_popout_window() above). Mirrors the cleanup done by
-        # get_rid_of_windows_and_exit() in guiwins.py, but without shutting the server down.
-        ui.run_javascript(
-            "(window.mapTaskerPopouts || []).forEach(w => { try { if (w && !w.closed) w.close(); } "
-            "catch (e) {} }); window.mapTaskerPopouts = [];",
-        )
+        # Close every Map/Diagram popout this session opened -- including the ones a popout
+        # opened for itself, which is why this is mapjump.close_popouts_js and not a loop
+        # over this window's own list: a Map built for a jump from the Diagram belongs to
+        # the DIAGRAM's list (see _open_popout_window), and Clear used to close the Diagram
+        # and leave that Map behind.  The same call Exit makes, minus shutting anything down.
+        ui.run_javascript(mapjump.close_popouts_js())
         ui.notify(translate_string("View cleared."), type="info", position="bottom")
 
     async def rebuild_map_for_jump(self: "MapTaskerEventHandlers", target: mapjump.Target) -> None:
@@ -2948,6 +2952,12 @@ class MapTaskerEventHandlers:
             # The 'Run Analysis' button goes green only once a single object is selected, so it
             # has to be recolored whenever that selection changes.
             update_analysis_button_color(the_view)
+
+            # And every view already on screen was drawn for the selection that just changed.
+            # A Diagram in particular is a snapshot whose hotlinks point at the objects of the
+            # selection it was built for, so it says on its own toolbar that the app has moved
+            # on -- see NiceGuiTextView._build_scope_badge.
+            refresh_scope_badges(the_view)
 
             the_view.is_updating = False
 
@@ -5890,6 +5900,10 @@ class MapTaskerEventHandlers:
             f"{translate_string(title)}",
             help_text,
             close_button=True,
+            # The help screens are the one place that may carry **bold** and __italic__.
+            # Only after the gettext lookups above: the markers are part of the msgid, so
+            # a catalog can move them to wherever the emphasis belongs in that language.
+            rich=True,
         )
 
     def notify_timeout_event(self: object, choice: object) -> None:

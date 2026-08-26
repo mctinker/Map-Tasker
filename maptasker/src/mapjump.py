@@ -39,6 +39,7 @@ from maptasker.src.primitem import PrimeItems, get_single_item_requested
 from maptasker.src.sysconst import (
     DISPLAY_DETAIL_LEVEL_all_parameters,
     DISPLAY_DETAIL_LEVEL_everything,
+    POPOUT_WINDOW_PREFIX,
 )
 
 # What kind of thing a Target names.  Deliberately not an Enum: these are written into
@@ -512,6 +513,12 @@ def click_wiring_js(container_id: str) -> str:
     of a large configuration runs to hundreds of findings, and this way the count does not
     matter.  The guard makes it safe to call again for the same container -- a second
     listener would emit every click twice, and the jump would run twice over.
+
+    The Map is raised here, before the jump is emitted, and unconditionally: a report row
+    is answered by a Map view and by nothing else (go_to_target is reached without
+    prefer_diagram), and inside the click is the only place the browser will allow the
+    raise at all -- see raise_map_window_js.  It is a no-op when no Map is open, which is
+    the case the rebuild that follows raises the window it opens.
     """
     return f"""
         const container = document.getElementById({json.dumps(container_id)});
@@ -522,6 +529,7 @@ def click_wiring_js(container_id: str) -> str:
             const row = event.target.closest('[data-mt-target]');
             if (!row) return;
             event.preventDefault();
+            {raise_map_window_js().strip()};
             emitEvent('mt_jump', {{ target: row.dataset.mtTarget }});
         }};
         container.addEventListener('click', jump);
@@ -610,6 +618,237 @@ REVEAL_ANCESTORS_JS = """
 """
 
 
+_RAISE_MAP_WINDOW_JS = """
+        (() => {
+            const MAP_WINDOW_PREFIX = MAP_PREFIX;
+
+            // The Map window, raised from inside the click that asked for it.
+            //
+            // Which request actually raises a background TAB was measured in Chrome rather
+            // than reasoned about, because the reasoning was wrong twice.  Of everything
+            // that looks like it should work, one thing does:
+            //
+            //   other.focus()          ignored.  A tab cannot be focused by whoever happens
+            //                          to hold a handle to it -- that is tab-jacking, and it
+            //                          is refused even for a window this one opened.  Asked
+            //                          anyway, and asked first, because a view opened as a
+            //                          real popup WINDOW rather than a tab is raised by it.
+            //   owner.open("", name)   ignored.  Asking the Map's own opener to raise it
+            //                          looks like the privileged request and is not one: the
+            //                          activation belongs to the window the click happened
+            //                          in and does not travel into another window's open().
+            //                          It still hands back a live window, so it reads as
+            //                          success and swallows anything tried after it.
+            //   window.open("", name)  RAISES IT.  The activation is here, the name is
+            //                          looked up across the whole family of windows this one
+            //                          belongs to, and the empty URL means the Map is brought
+            //                          forward without being reloaded -- so it keeps its
+            //                          scroll position, and the jump already on its way lands
+            //                          in a page that is still the one that was scrolled.
+            //
+            // So the one that works is asked from here first, and the opener is left as a
+            // last resort for a browser that refuses it (open() returns null when a popup is
+            // blocked).  None of the three is required to work: the jump itself has already
+            // been sent, and a browser that will not raise a window is not a failure to
+            // report.
+            function raiseWindow(owner, other) {
+                let name = "";
+                try {
+                    name = other.name || "";
+                } catch (error) {
+                    name = "";
+                }
+                try {
+                    other.focus();
+                } catch (error) {}
+                if (!name) return true;
+                for (const asker of [window, owner]) {
+                    try {
+                        if (!asker || asker.closed) continue;
+                        const raised = asker.open("", name);
+                        if (raised) {
+                            try {
+                                raised.focus();
+                            } catch (error) {}
+                            return true;
+                        }
+                    } catch (error) {}
+                }
+                return true;
+            }
+
+            // Only a window that already exists is raised, and it is found by HANDLE rather
+            // than by name: a name nothing has claimed would conjure a blank window, and with
+            // "Open View In New Window" on the Map's name carries a timestamp nothing here
+            // could predict anyway.  The name that raises it is then read back off the handle
+            // -- a name that is known to exist, because a live window has it.
+            //
+            // TWO lists, because which window holds the Map's handle depends on who asked for
+            // it.  _open_popout_window registers the new window on whichever client was
+            // active when it ran: the main window when the Map button was pressed there, but
+            // the view itself when a jump from that view had to build the Map -- go_to_target
+            // runs inside the clicked view's slot, so rebuild_map_for_jump's window.open() is
+            // that view's.  Own list first, and each list newest first, which is the Map
+            // jump_map_view tries first (see its note on several Maps being open at once).
+            //
+            // When there is no Map open anywhere this does nothing, and the rebuild that
+            // follows opens one and raises it on its own.
+            for (const source of [window, window.opener]) {
+                try {
+                    if (!source || source.closed) continue;
+                    const popouts = source.mapTaskerPopouts || [];
+                    for (let index = popouts.length - 1; index >= 0; index -= 1) {
+                        const other = popouts[index];
+                        if (other && !other.closed && other !== window
+                            && (other.name || "").startsWith(MAP_WINDOW_PREFIX)) {
+                            return raiseWindow(source, other);
+                        }
+                    }
+                } catch (error) {
+                    // A window that has gone away, or one the browser will not let us touch.
+                    // The jump itself is unaffected, so there is nothing to report.
+                }
+            }
+            return false;
+        })()
+"""
+
+
+def raise_map_window_js() -> str:
+    """JavaScript that brings an already-open Map view to the front.
+
+    Written to be run FROM INSIDE THE CLICK that asked for the Map, which is the whole
+    reason it exists as a browser-side snippet rather than as something the Python side
+    does when it answers.  A browser lets a page raise another window while it has user
+    activation -- during a click -- and refuses once that has lapsed.  Answering a click
+    means a round trip to Python and back, and the script that comes back has no activation
+    at all: the Map scrolls to the object and stays behind whatever the user was looking
+    at, so the click reads as having done nothing until they think to switch tabs.  That
+    was measured too -- the same call that raises the Map from within a click raises
+    nothing when it arrives from the server a moment later.
+
+    Everyone who emits a jump that a Map will answer runs this first: the Diagram's own
+    object clicks (diagintr), a report finding (click_wiring_js), and a Find result
+    (find_result_click_js).  Evaluates to true when a Map was found to raise.
+    """
+    return _RAISE_MAP_WINDOW_JS.replace("MAP_PREFIX", json.dumps(f"{POPOUT_WINDOW_PREFIX}map"))
+
+
+def find_result_click_js(guard_anchor: str = "") -> str:
+    """The browser side of one Find result row's click: raise the Map, then emit the jump.
+
+    NiceGUI runs this in the click itself and the Python handler afterwards (see its
+    Element.on), which is the only order that works -- the raise needs the activation the
+    click carries and the Python handler cannot have it.
+
+    `guard_anchor` is for a Find run from a Diagram view, and only for one.  Those jumps
+    are answered by the Diagram where it can show the object (go_to_target's prefer_diagram)
+    and by the Map otherwise, so raising the Map unconditionally would switch the user away
+    from the very view that was about to answer them.  The anchor is the id the object's
+    name carries in an interactive Diagram, and its presence on the page is the same
+    question diagram_jump_js asks first -- so the Map is raised only when this Diagram does
+    not draw the object at all.
+
+    Left empty everywhere else, where the Map is the only thing that can answer: a report
+    view, the main window, and the Map's own Find (which raises nothing anyway, since the
+    Map it would raise is the window the click happened in).
+    """
+    raising = raise_map_window_js().strip()
+    if not guard_anchor:
+        return f"(...args) => {{ {raising}; emit(...args); }}"
+    return (
+        "(...args) => { "
+        f"const anchor = {json.dumps(guard_anchor)}; "
+        "if (!document.querySelector('[data-anchor=\"' + CSS.escape(anchor) + '\"]')) { "
+        f"{raising}; "
+        "} "
+        "emit(...args); }"
+    )
+
+
+def open_popout_js(path: str, window_name: str) -> str:
+    """JavaScript that opens a Map/Diagram popout and remembers the handle.
+
+    Remembered on the window that opened it AND on that window's opener, which for a popout
+    is the main window.  Both, because "who opened this" is not always the main window: a
+    jump from the Diagram that has to build a Map runs inside the DIAGRAM's slot
+    (go_to_target -> rebuild_map_for_jump), so this runs there.  A handle kept only there is
+    one the main window cannot close (Clear) or raise, and it is lost outright the moment
+    the user closes the Diagram.
+
+    The handle is what makes closing possible at all: window.open()'s return value is
+    otherwise discarded, and a browser will not let a page close a window it cannot name.
+    """
+    return (
+        "const remember = (holder, popout) => { try { "
+        "  if (!holder || holder.closed) return; "
+        "  holder.mapTaskerPopouts = holder.mapTaskerPopouts || []; "
+        "  if (!holder.mapTaskerPopouts.includes(popout)) holder.mapTaskerPopouts.push(popout); "
+        "} catch (error) {} }; "
+        f"const popout = window.open({json.dumps(path)}, {json.dumps(window_name)}); "
+        "if (popout) { "
+        "  remember(window, popout); "
+        "  remember(window.opener, popout); "
+        "  try { popout.focus(); } catch (error) {} "
+        "}"
+    )
+
+
+def close_popouts_js(close_this_window: bool = False) -> str:
+    """JavaScript that closes every Map/Diagram popout this session opened.
+
+    One definition, because two places close them -- the Clear button (userintr's
+    clear_view_event) and Exit with "Close Tabs On Exit" set (guiwins'
+    get_rid_of_windows_and_exit) -- and they had drifted into two copies of the same loop.
+    `close_this_window` is the only difference between them: Exit shuts the window it runs
+    in as well, Clear stays.
+
+    NESTED, which is the whole point.  _open_popout_window registers a new window on
+    whichever client was active when it ran, and that is not always the main window: a jump
+    from the Diagram that has to build a Map runs inside the DIAGRAM's slot (go_to_target ->
+    rebuild_map_for_jump), so that Map is registered on the Diagram's list and on nothing
+    else.  A sweep of the main window's list alone left it open -- Clear closed the Diagram
+    and left behind the very Map the Diagram had opened.  So every popout is asked for its
+    own list before it is closed, while it is still there to answer.
+
+    Cycles cannot loop it: a window is closed once and then remembered, and `seen` is what a
+    list holding its own holder would otherwise spin on.
+
+    The window this runs in is never closed as part of the sweep, whatever list names it --
+    Clear closing the window the user pressed Clear in would be a surprising way to tidy up.
+    Exit closes it deliberately, at the end, once everything else is gone.
+    """
+    tail = "\n            try { window.close(); } catch (error) {}" if close_this_window else ""
+    return f"""
+        (() => {{
+            const seen = new Set();
+
+            const sweep = (holder) => {{
+                let popouts;
+                try {{
+                    if (!holder || holder.closed) return;
+                    popouts = holder.mapTaskerPopouts || [];
+                }} catch (error) {{
+                    return;  // A window gone, or one this page is not allowed to touch.
+                }}
+                for (const other of popouts) {{
+                    try {{
+                        if (!other || other === window || seen.has(other)) continue;
+                        seen.add(other);
+                        sweep(other);   // Whatever IT opened, while it is still open to ask.
+                        if (!other.closed) other.close();
+                    }} catch (error) {{}}
+                }}
+                try {{ holder.mapTaskerPopouts = []; }} catch (error) {{}}
+            }};
+
+            sweep(window);
+            try {{ sweep(window.opener); }} catch (error) {{}}{tail}
+            return true;
+        }})();
+    """
+
+
 def bring_to_front_js() -> str:
     """JavaScript that raises the window it runs in, for a jump that landed in another one.
 
@@ -621,16 +860,23 @@ def bring_to_front_js() -> str:
     the problem: no Map exists yet, so it goes the long way round through
     rebuild_map_for_jump, and window.open() raises the new window on the way past.
 
-    Three ways of asking, because raising a window is a thing browsers restrict rather than
-    a thing they simply do, and which one is allowed depends on who is asking.  Each is
-    tried and none is required to work:
+    What this can and cannot do was measured in Chrome, and the answer is worth stating
+    plainly: NONE of the three requests below raises a background TAB from here.  A browser
+    grants a raise only to a page holding user activation, and this arrives from the server
+    after the click that asked for it has lapsed -- which is why the raise that actually
+    works is raise_map_window_js, run inside the click, and why every click that can be
+    answered by a Map now runs it (the Diagram's objects, a report finding, a Find result).
 
-      window.focus()                        the direct request, granted least often.
-      window.opener.open('', window.name)   asking the window that OPENED this one to raise
-                                            it, which is the case browsers are most willing
-                                            to allow -- and the same call _open_popout_window
-                                            already relies on to re-navigate a named popout
-                                            from a server-pushed script.
+    This is kept for what it still does: raising a view opened as a real popup WINDOW
+    rather than a tab, and answering a jump that no click of any kind stands behind.  Each
+    is tried and none is required to work:
+
+      window.focus()                        the direct request.
+      window.opener.open('', window.name)   asking the window that OPENED this one, which
+                                            looks like the privileged request and measurably
+                                            is not -- the activation belongs to the window
+                                            the click happened in and does not travel into
+                                            another window's open().
       window.open('', window.name)          the same lookup, from here, for a window with no
                                             opener left to ask (one the user reloaded, or
                                             reached by its URL).

@@ -29,7 +29,7 @@ classifiers = [
 ]
 dependencies = [
     'darkdetect>=0.8.0',
-    'deep_translator>=1.11.4',
+    # 'deep_translator>=1.11.4',
     'defusedxml>=0.7.1',
     'nicegui>=3.16.0',
     'packaging>=26.3',

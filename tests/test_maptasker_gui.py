@@ -41,7 +41,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
 
 # ==========================================
-# FIXTURES & MOCKING SETUP
+# Fixtures & MOCKING SETUP
 # ==========================================
 
 

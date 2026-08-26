@@ -26,7 +26,6 @@ from zoneinfo import (
 
 import defusedxml.ElementTree as et  # noqa: N813
 import requests
-from deep_translator import GoogleTranslator
 from requests.exceptions import ConnectionError  # noqa: A004
 
 from maptasker.src.error import rutroh_error
@@ -738,22 +737,22 @@ def make_hex_color(color_string: str) -> str:
     return color_string.strip()
 
 
-def live_translate_text(text: str) -> str:
-    """
-    Translates text using live translation if enabled.
-    Args:
-        text: The text to be translated.
-    Returns:
-        translated text if live translation is enabled, otherwise the original text.
-    """
-    target = PrimeItems.program_arguments["language"]
-    if target == "English":
-        return text
-    if target == "Traditional Chinese":
-        target_lang = "chinese (traditional)"
-    elif target == "Simplified Chinese":
-        target_lang = "chinese (simplified)"
-    else:
-        target_lang = PrimeItems.languages[target]
+# def live_translate_text(text: str) -> str:
+#     """
+#     Translates text using live translation if enabled.
+#     Args:
+#         text: The text to be translated.
+#     Returns:
+#         translated text if live translation is enabled, otherwise the original text.
+#     """
+#     target = PrimeItems.program_arguments["language"]
+#     if target == "English":
+#         return text
+#     if target == "Traditional Chinese":
+#         target_lang = "chinese (traditional)"
+#     elif target == "Simplified Chinese":
+#         target_lang = "chinese (simplified)"
+#     else:
+#         target_lang = PrimeItems.languages[target]
 
-    return GoogleTranslator(source="auto", target=target_lang).translate(text)
+#     return GoogleTranslator(source="auto", target=target_lang).translate(text)

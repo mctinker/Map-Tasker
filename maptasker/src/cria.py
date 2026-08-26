@@ -7,7 +7,9 @@ if process_name.lower() in proc.name().lower() and proc.info["cmdline"] is not N
 import atexit
 import subprocess
 import time
+from collections.abc import Generator, Iterator
 from contextlib import ContextDecorator
+from typing import Any
 
 # import httpx
 # import ollama
@@ -35,7 +37,9 @@ OllamaClient = ollama_module.Client
 
 
 class Client(OllamaClient):
-    def chat_stream(self, messages, **kwargs):
+    """Handle the Ollama client with additional functionality for streaming and stopping streams."""
+
+    def chat_stream(self, messages: list[dict[str, Any]], **kwargs: Any) -> Generator[str, None, None]:
         model = self.model
         ai = ollama
 
@@ -64,7 +68,7 @@ class Client(OllamaClient):
 
     stop_stream = False
 
-    def stop(self):
+    def stop(self) -> None:
         if self.running:
             self.stop_stream = True
         else:
@@ -75,8 +79,8 @@ class Client(OllamaClient):
         prompt: str | None = None,
         messages: list | None = DEFAULT_MESSAGE_HISTORY,
         stream: bool | None = True,
-        **kwargs,
-    ) -> str:
+        **kwargs: Any,
+    ) -> str | Generator[str, None, None]:
         model = self.model
         ai = ollama
 
@@ -104,7 +108,7 @@ class Client(OllamaClient):
 
         return response
 
-    def generate_stream(self, prompt, **kwargs):
+    def generate_stream(self, prompt: str, **kwargs: Any) -> Generator[str, None, None]:
         model = self.model
 
         ai = ollama
@@ -122,7 +126,7 @@ class Client(OllamaClient):
 
         self.running = False
 
-    def generate(self, prompt: str, stream: bool | None = True, **kwargs) -> str:
+    def generate(self, prompt: str, stream: bool | None = True, **kwargs: Any) -> str | Generator[str, None, None]:
         model = self.model
         ai = ollama
 
@@ -134,11 +138,11 @@ class Client(OllamaClient):
 
         return response
 
-    def clear(self):
+    def clear(self) -> None:
         self.messages = [{"role": "system", "content": "You are a helpful AI assistant."}]
 
 
-def check_models(model, silence_output):
+def check_models(model: str, silence_output: bool) -> str | None:
     model_list = ollama.list().get("models", [])
     for m in model_list:
         m_name = m.get("name", "")
@@ -177,7 +181,7 @@ def check_models(model, silence_output):
         # raise ValueError("Invalid model passed. See the model library here: https://ollama.com/library")
 
 
-def find_process(command, process_name="ollama"):
+def find_process(command: list[str], process_name: str = "ollama") -> Any | None:
     process = None
     for proc in psutil.process_iter(attrs=["cmdline"]):
         try:
@@ -268,7 +272,7 @@ class Cria(Client):
 
     messages = DEFAULT_MESSAGE_HISTORY
 
-    def output(self):
+    def output(self) -> Iterator[bytes]:
         ollama_subprocess = self.ollama_subrprocess
         if not ollama_subprocess:
             raise ValueError(
@@ -279,7 +283,7 @@ class Cria(Client):
 
         return iter(c for c in iter(lambda: ollama_subprocess.stdout.read(1), b""))
 
-    def close(self):
+    def close(self) -> None:
         llm = self.llm
         llm.kill()
 
@@ -313,12 +317,15 @@ class Model(Cria, ContextDecorator):
             return
 
         if run_attached and run_subprocess:
-            raise ValueError("You cannot run attach to an LLM and run it as a subprocess at the same time.")
+            msg = "You cannot run attach to an LLM and run it as a subprocess at the same time."
+            raise ValueError(msg)
 
         if not run_attached:
             llm_stdout = subprocess.PIPE if capture_output else subprocess.DEVNULL
             llm_stderr = subprocess.PIPE if capture_output else subprocess.DEVNULL
-            self.llm = subprocess.Popen(["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr)
+            self.llm = subprocess.Popen(
+                ["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr
+            )  # noqa: S603, S607
         else:
             self.llm = find_process(["ollama", "run", self.model])
 
@@ -327,20 +334,23 @@ class Model(Cria, ContextDecorator):
 
             llm_stdout = subprocess.PIPE if capture_output else subprocess.DEVNULL
             llm_stderr = subprocess.PIPE if capture_output else subprocess.DEVNULL
-            self.llm = subprocess.Popen(["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr)
+            self.llm = subprocess.Popen(
+                ["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr
+            )  # noqa: S603, S607
 
         if close_on_exit:
             atexit.register(lambda: self.llm.kill())
 
-    def capture_output(self):
+    def capture_output(self) -> Iterator[str]:
         if not self.capture_output:
-            raise ValueError("You must pass in capture_ouput as True to capture output.")
+            msg = "You must pass in capture_ouput as True to capture output."
+            raise ValueError(msg)
 
         return iter(lambda: self.llm.stdout.read(1), "")
 
-    def __enter__(self):
+    def __enter__(self) -> "Model":  # noqa: PYI034
         return self
 
-    def __exit__(self, *exc):
+    def __exit__(self, *exc: object) -> None:
         llm = self.llm
         llm.kill()

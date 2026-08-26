@@ -2,39 +2,45 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.0.2] ??-Aug-2026  # FIX
+## [13.0.2] 26-Aug-2026
 
 ### Added
 
-- Added: The Diagram view is now *interactive*:
+* Added: The Diagram view is now __interactive__:
   - Click any Project, Profile, Task or Scene name to be taken straight to it into the Map view.
   - Shift-click a Task to light up the whole chain of calls it takes part in: everything it calls, everything that calls it, and every arrow between them.  The rest of the diagram greys out so the chain stands on its own.  Esc puts it back.
   - Click the ▾ beside a Project to collapse it down to its box, and the ▸ to bring it back.  'Collapse All' and 'Expand All' are on the Diagram toolbar.
   - Right-click any name for the rest: collapse its Project, show only that Project, or follow its call chain.
   - Zoom with the toolbar buttons or with Ctrl (⌘) and the scroll wheel.
-- Added: A 'Find...' result or a report finding taken to the Diagram now lands on the object's own name rather than on as much of the line as happened to fit.
-- Added 'Find > **Replace**' function, to replace a Task action with another or a variable with another.
+* Added: A 'Find...' result or a report finding taken to the Diagram now lands on the object's own name rather than on as much of the line as happened to fit.
+* Added 'Find > **Replace**' function, to replace a Task action/argument with another, a Profile condition with a different condition, or a variable with another.
+  - Replacing a Profile condition swaps the whole condition -- a Time for a Day, a State for an Event, one Event code for another -- everywhere it appears.  The preview says what each Profile watches for now and what it would watch for afterwards, and a Profile that already has a condition of the kind being put in is listed as one that cannot be changed rather than given a second one.
 
 ### Changed
 
-- Changed: Clicking a line number in the Search results now goes straight to the match rather than scrolling to it, which on a large Map meant a long animated slide before it landed.
-- Changed: Moved 'Buy Me A Coffee' to the main screen from the 'Debug' tab.
+* Changed: Clicking a line number in the Search results now goes straight to the match rather than scrolling to it, which on a large Map meant a long animated slide before it landed.
+* Changed: Moved 'Buy Me A Coffee' to the main screen from the 'Debug' tab.
+* Changed: Removed dependencies on deep-translator and beautifulsoup.
+* Changed: Cleaned up the changelog that displays.
 
 ### Fixed
 
-- Fixed: Shift-clicking a Task name in the Diagram no longer leaves part of the window highlighted in blue.
-- Fixed: A 'Find...' result now goes straight to the target rather than animating/scrolling it's way to it.
+* Fixed: Shift-clicking a Task name in the Diagram no longer leaves part of the window highlighted in blue.
+* Fixed: A 'Find...' result now goes straight to the target rather than animating/scrolling it's way to it.
+* Fixed: Clicking a hotlink in the Diagram is not changing focus to the Map if the Map is already present.
+* Fixed: The 'Clear' button does not clear Map views spawned by hotlinks in the Diagram view.
+* Fixed: The Diagram interactive hotlinks are not relevant if another single Tasker object is subsequently selected.  The Diagram hotlinks now pull up the relevant Map view.
 
-### Known Issue
+### Known Issues
 
-- It is unlikely but possible to have a previous MapTasker browser session preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
+* It is unlikely but possible to have a previous MapTasker browser session preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
 you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
       `lsof -i :8080`
 For each PID listed in the output from the above terminal command, issue the following:
       `kill -9 pid_number`
 ...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080' (e.g. kill -9 8547).
-- Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
-- Some strings defy translation.
+* Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
+* Some strings defy translation.
 
 
 ## Older History Logs

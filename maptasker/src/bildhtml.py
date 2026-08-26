@@ -20,7 +20,6 @@ from maptasker.src.maputils import (
     clear_tasker_data,
     display_task_warnings,
     exit_program,
-    live_translate_text,
     restart_program_subprocess,
 )
 from maptasker.src.primitem import (
@@ -348,7 +347,7 @@ def display_back_matter() -> None:
     if missing_label:
         if program_arguments["guiview"]:
             PrimeItems.error_code = 1
-            PrimeItems.error_msg = live_translate_text("Error: Single item specified but not found!  Try again.")
+            PrimeItems.error_msg = translate_string("Error: Single item specified but not found!  Try again.")
             return
         clean_up_and_exit(missing_label, missing_name)
 

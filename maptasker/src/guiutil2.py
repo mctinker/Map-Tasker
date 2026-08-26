@@ -17,6 +17,9 @@ from maptasker.src.mapfonts import get_font_choices as get_font_selections
 # Define label fonts for headings (Replaced hardcoded pixel sizes with Tailwind text classes)
 from maptasker.src.primitem import PrimeItems
 
+# Change-type prefixes recognized in the Changelog (see get_changelog_file)
+CHANGELOG_CHANGE_TYPES = ("Added", "Changed", "Fixed", "Removed")
+
 # Define the output file for the trace log
 TRACE_LOG_FILE = "trace_log.txt"
 # Function to clear the log file at the start (optional)
@@ -145,10 +148,20 @@ def get_changelog_file(url: str, delimiter: str, n: int) -> list:
     # Decode the content and split into lines
     text_content = response.text
     for line in text_content.splitlines():
+        # Look for the nth occurrence of the delimiter (##) at the start of the line
         if line.startswith(f"{delimiter} "):
             delimiter_count += 1
-        if delimiter_count == n:
-            break  # Stop when the nth occurrence is found
+            if delimiter_count == n:
+                break  # Stop when the nth occurrence is found
+        elif line.startswith(delimiter[0]):
+            line = line.replace(delimiter[0], ">")  # Ensure consistent formatting  # noqa: PLW2901
+        else:
+            for change_type in CHANGELOG_CHANGE_TYPES:
+                marker = f"- {change_type}:"
+                if line.startswith(marker):
+                    lines.append(" ")  # Blank line before each change type for better readability
+                    line = line.replace(marker, f"  >>>  {change_type}:")  # noqa: PLW2901
+                    break
         lines.append(line)
 
     return lines

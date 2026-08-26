@@ -34,9 +34,9 @@ from __future__ import annotations
 
 import json
 
+from maptasker.src import mapjump
 from maptasker.src.mapjump import PROJECT, TASK, Target
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import POPOUT_WINDOW_PREFIX
 
 # The class every clickable object name in the Diagram carries, and the ones the
 # interactions add to it.  Styled in guiwins.inject_shared_head_styles.
@@ -350,7 +350,6 @@ _INTERACTION_JS = """
         const model = MODEL;
         const cls = model.classes;
         const statusId = STATUS_ID;
-        const MAP_WINDOW_PREFIX = MAP_PREFIX;
 
         // Re-entered whenever the Diagram is re-streamed into the same view (the "Profiles
         // Per Line" pulldown does exactly that), so the old index and the old state have to
@@ -664,35 +663,12 @@ _INTERACTION_JS = """
             menu.style.top = Math.max(4, Math.min(y, window.innerHeight - box.height - 8)) + "px";
         }
 
-        // The Map window, raised from inside the click that asked for it.
-        //
-        // This is here rather than left to the Python side because of WHEN it runs, not
-        // what it does.  A browser lets a page raise another window while it has user
-        // activation -- during a click -- and refuses once that has lapsed.  Answering the
-        // click means a round trip to Python and back, and the script that comes back has
-        // no activation at all: the Map scrolls to the object and stays behind the Diagram,
-        // so the click reads as having done nothing until the user thinks to switch tabs.
-        //
-        // Only a window that already exists is raised.  The handles are the opener's --
-        // every popout is opened by the main window, which keeps them (see
-        // _open_popout_window) -- so this asks that list rather than opening anything by
-        // name, which for a name nothing has claimed would conjure a blank window.  When
-        // there is no Map open, nothing happens here and the rebuild that follows opens one
-        // and raises it on its own.
+        // The Map window, raised from inside the click that asked for it.  What it does,
+        // and why raising it cannot be left to the Python side that answers the click, is
+        // in mapjump.raise_map_window_js -- which a report finding's click and a Find
+        // result's click run too, so all three behave alike.
         function raiseMapWindow() {
-            try {
-                const opener = window.opener;
-                if (!opener || opener.closed) return;
-                for (const other of opener.mapTaskerPopouts || []) {
-                    if (other && !other.closed && (other.name || "").startsWith(MAP_WINDOW_PREFIX)) {
-                        other.focus();
-                        return;
-                    }
-                }
-            } catch (error) {
-                // A window that has gone away, or one the browser will not let us touch.
-                // The jump itself is unaffected, so there is nothing to report.
-            }
+            return RAISE_MAP_WINDOW;
         }
 
         function jump(node) {
@@ -841,7 +817,7 @@ def interaction_js(container_id: str, status_id: str, the_model: dict) -> str:
     return (
         _INTERACTION_JS.replace("CONTAINER_ID", json.dumps(container_id))
         .replace("STATUS_ID", json.dumps(status_id))
-        .replace("MAP_PREFIX", json.dumps(f"{POPOUT_WINDOW_PREFIX}map"))
+        .replace("RAISE_MAP_WINDOW", mapjump.raise_map_window_js().strip())
         .replace("MODEL", model_json(the_model))
     )
 

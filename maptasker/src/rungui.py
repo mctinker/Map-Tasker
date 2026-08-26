@@ -23,7 +23,7 @@ from nicegui import core, ui
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
-from maptasker.src.guiwins import NiceGuiTextView, inject_shared_head_styles
+from maptasker.src.guiwins import NiceGuiTextView, inject_shared_head_styles, register_finding_clicks
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
@@ -333,7 +333,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # main window's content. Reuses the single shared MyGui instance (PrimeItems.mygui) rather
     # than building a new one, since this is a single-user, single-server-process desktop app.
     @ui.page("/popout/{view_type}")
-    def popout_view(view_type: str, goto: str = "", scope: str = "") -> None:
+    def popout_view(view_type: str, goto: str = "", scope: str = "", built_for: str = "") -> None:
         """The Map/Diagram in its own window.
 
         'goto' is a mapjump token, put on the URL by a clicked report finding that needed a
@@ -346,6 +346,13 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         'scope' is the Project the Map in this window was built for ("" for all of them),
         recorded on the view so a later clicked finding can tell whether this window can
         show what it points at -- see guiwins.jump_map_view.
+
+        'built_for' is the whole of what the app was displaying when this view was drawn --
+        "Project 'Home'", "Task 'Wake Up'", "" for the whole configuration -- which is what
+        the view's own toolbar says, and what it compares against to tell the user the
+        selection has moved on since (see NiceGuiTextView._build_scope_badge).  Distinct
+        from 'scope' because that one is a Project NAME and is compared against a jump's
+        own; this one is a phrase, and is only ever read by a human.
         """
         gui = PrimeItems.mygui
         if gui is None or view_type not in ("map", "diagram"):
@@ -368,6 +375,16 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         # instead of being inset by it.
         ui.query(".nicegui-content").classes(replace="w-full h-screen p-0 m-0 gap-0")
 
+        # While this page is still being BUILT, exactly as initialize_screen does it for the
+        # main window, and for the reason register_finding_clicks gives: ui.on subscribes on
+        # client.layout, and adding a listener to an element the browser already holds makes
+        # NiceGUI throw that element away and let Vue rebuild it -- the whole page's element
+        # tree, and the "Event listeners changed after initial definition" warning in the log.
+        # The view rendered below registers it too, from its own background task; that call
+        # is a no-op once this one has run (see the guard on _FINDING_CLICK_CLIENTS), which
+        # is what makes doing it here a fix rather than a duplicate.
+        register_finding_clicks(gui)
+
         popout_container = ui.column().classes("w-full h-screen")
         gui.textview = NiceGuiTextView(
             gui,
@@ -376,6 +393,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
             container=popout_container,
             jump_to=goto,
             map_scope=scope,
+            built_for=built_for,
         )
 
     logger.info("Starting NiceGUI server mainloop")
