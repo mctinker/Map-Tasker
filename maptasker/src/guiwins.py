@@ -15,9 +15,10 @@ import weakref
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to serialize, never to parse
 from typing import TYPE_CHECKING
 
-from nicegui import Event, app, context, ui
+from nicegui import Event, app, context, run, ui
 
 from maptasker.src import (
+    deviceinv,
     diagintr,
     mapfind,
     mapjump,
@@ -558,6 +559,546 @@ def _render_task_name_field(
     ).classes("flex-1").props("dense")
 
 
+# How many rows either pick-from-the-inventory dialog draws at once.  A real backup
+# harvests ~50 Applications and ~140 icons (see deviceinv.py), but a large configuration
+# holds more, and the list is rebuilt on every keystroke of the search box -- the same
+# reasoning behind _ICON_PREVIEW_LIMIT, which the Scene designer's own picker uses.
+_PICKER_ROW_LIMIT = 200
+
+
+def _picker_search_input(on_change: Callable[[str], None], placeholder: str) -> ui.input:
+    """The search box both pickers below open with."""
+    search_input = (
+        ui.input(placeholder=translate_string(placeholder), on_change=lambda e: on_change(str(e.value or "")))
+        .props("outlined dense clearable autofocus")
+        .classes("w-full mt-2")
+    )
+    with search_input.add_slot("prepend"):
+        ui.icon("search")
+    return search_input
+
+
+async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None]) -> None:
+    """Ask an Android device for the full list of installed Applications.
+
+    Offered from inside the Application pickers rather than from the sidebar, because
+    inside them is where the gap is felt: the list holds what this configuration already
+    names, and the moment a user notices the app they want is missing is the moment they
+    are looking at it.
+
+    Prompts for the device the same way every other Save To Android does
+    (build_save_to_android_dialog), defaults from the same remembered address, and writes
+    the address back on success so the next one is pre-filled.
+
+    The fetch itself installs a helper Task on the device, runs it, and waits for the file
+    it writes -- seconds, not milliseconds -- so it goes through run.io_bound and the
+    button says what it is doing while it happens.  See deviceinv.fetch_apps_from_device.
+
+    Deliberately does NOT pre-flight with guiutils.ping_android_device, which every other
+    Android dialog here does.  That probe used to be disqualifying -- it was a GET on the
+    'maplist' route, served by the 'MapTasker List' TaskerNet profile rather than by the
+    HTTP Server Example project, so a user who had the server running but had never
+    imported that profile failed it despite needing nothing it tested.  The probe no longer
+    depends on that profile (nothing does), but skipping it is still the better answer
+    here: this fetch's own first step is a GET /api/auth against the very API it goes on to
+    use, which is both the right thing to test and the thing whose failure message is worth
+    showing.
+    """
+    default_ip = getattr(gui, "android_ipaddr", "") or "192.168.0.210"
+    default_port = getattr(gui, "android_port", "") or "1821"
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[460px] p-6"):
+        ui.label(translate_string("Fetch Applications From Android Device")).classes(
+            "text-lg font-bold text-blue-600",
+        )
+        # The Task's name comes from deviceinv rather than being spelled out here: it is
+        # versioned, and backing out deviceinv.PAIR_LABELS_ON_DEVICE changes which version
+        # gets installed.  A hardcoded name would go on naming the wrong one.
+        ui.label(
+            translate_string(
+                f"MapTasker will install a small Task named '{deviceinv.HELPER_TASK_NAME}' on the device, run "
+                "it to list every installed application, and read the answer back.  Tasker must be running, "
+                "with the 'HTTP Server Example' project active -- the same requirement 'Save to Android' has.",
+            ),
+        ).classes("text-sm text-gray-500 italic")
+        # The two things that make a working fetch look like a broken one.  Both are said
+        # here, before the button is pressed, and again on screen while it runs (see
+        # progress_label): a prompt nobody knows to expect is a prompt nobody answers, and a
+        # wait nobody was warned about is a wait people give up on.
+        ui.label(
+            translate_string(
+                "Watch your Android device: Tasker will ask you to authorize the connection, and the "
+                "fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer "
+                "on a device with several hundred applications, since each one's name is looked up "
+                "individually.",
+            ),
+        ).classes("text-sm text-amber-700 dark:text-amber-500 mt-2")
+
+        for device, when, count in deviceinv.fetched_devices():
+            ui.label(f"{device}: {count} {translate_string('applications, fetched')} {when}").classes(
+                "text-xs text-gray-500 mt-1",
+            )
+
+        ip_field = ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full")
+        port_field = ui.input(translate_string("Port"), value=default_port).classes("w-full")
+
+        # Hidden until the fetch starts.  The button going grey and saying 'Fetching...' is
+        # not enough on its own: what the user has to do next is happening on the phone, not
+        # here, and nothing on this screen would otherwise say to go and look at it.
+        progress_row = ui.row().classes("w-full items-center gap-2 mt-3")
+        progress_row.set_visibility(False)
+        with progress_row:
+            ui.spinner(size="sm")
+            ui.label(
+                translate_string(
+                    "Waiting on the Android device -- accept the authorization prompt there if one "
+                    "appears.  This can take 30 seconds or more.",
+                ),
+            ).classes("text-sm text-amber-700 dark:text-amber-500")
+
+        async def fetch() -> None:
+            ip_address = str(ip_field.value or "").strip()
+            ip_port = str(port_field.value or "").strip()
+
+            fetch_button.set_text(translate_string("Fetching..."))
+            fetch_button.set_enabled(False)
+            progress_row.set_visibility(True)
+            try:
+                return_code, message = await run.io_bound(deviceinv.fetch_apps_from_device, ip_address, ip_port)
+            finally:
+                fetch_button.set_text(translate_string("Fetch"))
+                fetch_button.set_enabled(True)
+                progress_row.set_visibility(False)
+
+            if return_code != 0:
+                ui.notify(message, type="negative", timeout=8000)
+                return
+
+            # Remembered for next time, same as the Get XML and Save To Android dialogs do.
+            gui.android_ipaddr = ip_address
+            gui.android_port = ip_port
+            ui.notify(message, type="positive", timeout=6000)
+            dialog.close()
+            on_fetched()
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+            fetch_button = ui.button(translate_string("Fetch"), on_click=fetch).classes("bg-blue-600")
+
+    dialog.open()
+
+
+def _render_variable_entry(on_variable: Callable[[str], None], button_text: str) -> None:
+    """A row for naming a Tasker variable instead of an installed application.
+
+    An <appPkg> is legitimately a variable -- this repo's own backup has eleven of them,
+    including '%app_package(%ld_selected_index)' -- and until now the only way to say so was
+    to close the picker and type into the field behind it.  The field is still there and
+    still works; this just means the picker no longer has to be got out of the way first.
+
+    Validation is deviceinv.is_variable_reference: a leading '%' and something after it, and
+    nothing more, since what follows the '%' can be an array index or a function call and is
+    Tasker's business rather than this tool's.
+    """
+    variable_input = (
+        ui.input(placeholder=translate_string("%variable_name"))
+        .props("outlined dense")
+        .classes("flex-1")
+    )
+
+    def use_variable() -> None:
+        text = str(variable_input.value or "").strip()
+        if not deviceinv.is_variable_reference(text):
+            ui.notify(
+                translate_string("A variable name has to start with '%' -- for example %app_package."),
+                type="warning",
+            )
+            return
+        on_variable(text)
+        variable_input.set_value("")
+
+    variable_input.on("keydown.enter", use_variable)
+    ui.button(translate_string(button_text), on_click=use_variable).props("flat dense color=primary")
+
+
+def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
+    """Pick Applications for a field holding package names.
+
+    Multi-select, rather than the replace-on-click of the Scene designer's icon picker
+    (_build_icon_dialog): an <App> argument really can name several apps at once --
+    backups in this repo carry <appPkg>com.whatsapp, com.whatsapp.w4b</appPkg> -- so
+    "and this one too" is an ordinary thing to want here in a way it is not for one
+    component's one icon.
+
+    Whatever is already in the field but not in the inventory -- a package typed by hand,
+    a %variable -- is kept, and put back at the front.  The picker is a convenience laid
+    over the field, never a replacement for it, so it must not be able to quietly delete a
+    value merely because it doesn't recognise it.
+    """
+    entries = deviceinv.apps()
+    known_packages = {entry.pkg for entry in entries}
+    current = [token.strip() for token in str(field.value or "").split(",") if token.strip()]
+    unknown = [token for token in current if token not in known_packages]
+    chosen = {token for token in current if token in known_packages}
+    search = {"text": ""}
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
+        ui.label(translate_string("Pick an Application")).classes("text-lg font-bold text-blue-600")
+        ui.label(
+            translate_string(
+                "The Applications named somewhere in the loaded configuration.  Tick every one this "
+                "argument should match.  Anything already in the field that isn't listed stays.",
+            ),
+        ).classes("text-sm text-gray-500 italic")
+
+        # What is in the field but not in the list -- a package typed by hand, or a variable.
+        # Shown because 'anything else stays' is a promise the user cannot otherwise check,
+        # and because it is the only feedback that adding a variable below took effect.
+        unlisted_label = ui.label("").classes("text-xs text-blue-600 mt-1")
+
+        def show_unlisted() -> None:
+            unlisted_label.set_text(
+                f"{translate_string('Also in this field')}: {', '.join(unknown)}" if unknown else "",
+            )
+
+        def toggle(package: str, ticked: bool) -> None:
+            if ticked:
+                chosen.add(package)
+            else:
+                chosen.discard(package)
+
+        def render() -> None:
+            results.clear()
+            text = search["text"].strip().lower()
+            visible = [
+                entry
+                for entry in entries
+                if not text or text in entry.pkg.lower() or text in entry.label.lower()
+            ]
+            with results:
+                if not visible:
+                    ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
+                    return
+                for entry in visible[:_PICKER_ROW_LIMIT]:
+                    ui.checkbox(
+                        entry.display,
+                        value=entry.pkg in chosen,
+                        on_change=lambda e, pkg=entry.pkg: toggle(pkg, bool(e.value)),
+                    ).props("dense")
+                if len(visible) > _PICKER_ROW_LIMIT:
+                    ui.label(
+                        f"{translate_string('More matches than can be shown -- narrow the search.')} "
+                        f"({len(visible)})",
+                    ).classes("text-xs italic text-gray-500 mt-1")
+
+        def search_changed(value: str) -> None:
+            search["text"] = value
+            render()
+
+        _picker_search_input(search_changed, "Search Applications")
+        results = ui.column().classes("w-full gap-0 mt-2 max-h-96 overflow-auto")
+        render()
+        show_unlisted()
+
+        def add_variable(name: str) -> None:
+            if name not in unknown:
+                unknown.append(name)
+            show_unlisted()
+
+        with ui.row().classes("w-full items-center gap-2 mt-2"):
+            ui.label(translate_string("Or a Tasker variable:")).classes("text-xs text-gray-500")
+            _render_variable_entry(add_variable, "Add")
+
+        def apply_selection() -> None:
+            # Inventory order for the picked ones, so the field reads the same way twice
+            # running; the unrecognised ones first, where they were.
+            field.set_value(", ".join(unknown + [entry.pkg for entry in entries if entry.pkg in chosen]))
+
+        def use_selected() -> None:
+            apply_selection()
+            dialog.close()
+
+        async def fetch_then_reopen() -> None:
+            # The ticks are written into the field before reopening, and the fresh dialog
+            # reads its ticks back out of the field -- so a fetch part-way through choosing
+            # apps does not throw away what has been chosen so far.
+            apply_selection()
+            dialog.close()
+            await _build_fetch_apps_dialog(gui, lambda: _build_app_picker_dialog(field, gui))
+
+        with ui.row().classes("w-full justify-between items-center gap-2 mt-3"):
+            _render_fetch_apps_button(fetch_then_reopen)
+            with ui.row().classes("gap-2"):
+                ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
+                ui.button(translate_string("Use Selected"), on_click=use_selected).props("color=primary")
+
+    dialog.open()
+
+
+def _render_fetch_apps_button(on_click: Callable[[], object]) -> None:
+    """The 'Not listed?' button both Application pickers carry, in the same place in each.
+
+    Worded as the question the user is actually asking at that moment.  A button labelled
+    'Fetch' would be answering a question they have not thought to ask yet -- the list in
+    front of them looks complete until the one app they want turns out not to be in it.
+    """
+    fetch_button = ui.button(
+        translate_string("App not listed?"),
+        icon="cloud_download",
+        on_click=on_click,
+    ).props("flat dense color=primary")
+    with fetch_button:
+        ui.tooltip(
+            translate_string(
+                "Fetch the full list of installed applications from your Android device.  "
+                "What is listed now is only what this configuration already names.",
+            ),
+        )
+
+
+def _build_app_entry_picker_dialog(on_pick: Callable[[deviceinv.AppEntry], None], gui: MyGui) -> None:
+    """Pick one Application, handing the whole triple to the caller.
+
+    The single-pick sibling of _build_app_picker_dialog, for the Profile App condition,
+    whose entries are three separate fields per app (profedit.get_app_entries) rather than
+    one comma-joined list -- so what it needs back is the package, the label *and* the
+    class, not just a package name to write into a field.  Filling all three is the point:
+    that condition's class field is the one nobody can be expected to know by heart.
+    """
+    entries = deviceinv.apps()
+    search = {"text": ""}
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
+        ui.label(translate_string("Pick an Application")).classes("text-lg font-bold text-blue-600")
+        ui.label(
+            translate_string(
+                "The Applications named somewhere in the loaded configuration -- or name a Tasker "
+                "variable, which fills the Package and Label fields with it and leaves the Class empty, "
+                "the way Tasker writes one.",
+            ),
+        ).classes("text-sm text-gray-500 italic")
+
+        def pick(entry: deviceinv.AppEntry) -> None:
+            on_pick(entry)
+            dialog.close()
+
+        def render() -> None:
+            results.clear()
+            text = search["text"].strip().lower()
+            visible = [
+                entry
+                for entry in entries
+                if not text or text in entry.pkg.lower() or text in entry.label.lower()
+            ]
+            with results:
+                if not visible:
+                    ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
+                    return
+                for entry in visible[:_PICKER_ROW_LIMIT]:
+                    ui.button(
+                        entry.display,
+                        on_click=lambda _e=None, chosen=entry: pick(chosen),
+                    ).props("flat dense no-caps align=left").classes("w-full")
+
+        def search_changed(value: str) -> None:
+            search["text"] = value
+            render()
+
+        _picker_search_input(search_changed, "Search Applications")
+        results = ui.column().classes("w-full gap-0 mt-2 max-h-96 overflow-auto")
+        render()
+
+        with ui.row().classes("w-full items-center gap-2 mt-2"):
+            ui.label(translate_string("Or a Tasker variable:")).classes("text-xs text-gray-500")
+            _render_variable_entry(lambda name: pick(deviceinv.variable_app_entry(name)), "Use")
+
+        async def fetch_then_reopen() -> None:
+            dialog.close()
+            await _build_fetch_apps_dialog(gui, lambda: _build_app_entry_picker_dialog(on_pick, gui))
+
+        with ui.row().classes("w-full justify-between items-center mt-3"):
+            _render_fetch_apps_button(fetch_then_reopen)
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
+
+    dialog.open()
+
+
+def _render_app_entry_pick_button(
+    gui: MyGui,
+    field_refs: dict,
+    pkg_key: str,
+    label_key: str,
+    cls_key: str,
+) -> None:
+    """The 'Pick' button beside one App condition entry's Package/Label/Class fields.
+
+    Writes into the three inputs rather than into the condition, exactly like every other
+    field in that dialog: Save reads field_refs, so a picked app is staged and cancellable
+    on the same terms as a typed one.  Absent entirely when there is nothing to pick from,
+    which leaves the three fields precisely as they were before this existed.
+    """
+    if not deviceinv.have_apps():
+        return
+
+    def fill_in(entry: deviceinv.AppEntry) -> None:
+        field_refs[pkg_key].value = entry.pkg
+        field_refs[label_key].value = entry.label
+        field_refs[cls_key].value = entry.cls
+
+    pick_button = ui.button(
+        translate_string("Pick"),
+        icon="apps",
+        on_click=lambda: _build_app_entry_picker_dialog(fill_in, gui),
+    ).props("flat dense size=sm")
+    with pick_button:
+        ui.tooltip(translate_string("Fill all three fields in from the loaded configuration."))
+
+
+def _build_tasker_icon_picker_dialog(field: ui.input) -> None:
+    """Pick one icon for a field holding an <Img> reference.
+
+    Replaces what the field holds rather than adding to it -- an action has one icon, so a
+    second pick is a correction.  'No icon' is offered explicitly: an empty <Img> is what
+    an action whose icon was never set has always carried, and it has to stay reachable
+    once a picker exists.
+    """
+    icons = deviceinv.icons()
+    search = {"text": ""}
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
+        ui.label(translate_string("Pick an icon")).classes("text-lg font-bold text-blue-600")
+        ui.label(
+            translate_string(
+                "The icons used somewhere in the loaded configuration.  What you pick replaces what "
+                "the field holds.  An icon from an icon pack that isn't listed has to be typed: its "
+                "names live inside the pack.",
+            ),
+        ).classes("text-sm text-gray-500 italic")
+
+        def pick(value: str) -> None:
+            field.set_value(value)
+            dialog.close()
+
+        def render() -> None:
+            results.clear()
+            text = search["text"].strip().lower()
+            visible = [
+                icon
+                for icon in icons
+                if not text or text in icon.display.lower() or text in deviceinv.format_icon_value(icon).lower()
+            ]
+            with results:
+                if not visible:
+                    ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
+                    return
+                for icon in visible[:_PICKER_ROW_LIMIT]:
+                    reference = deviceinv.format_icon_value(icon)
+                    with ui.row().classes("w-full items-center gap-2"):
+                        ui.button(
+                            icon.display,
+                            on_click=lambda _e=None, value=reference: pick(value),
+                        ).props("flat dense no-caps align=left").classes("flex-1")
+                        # pr-4 keeps the kind clear of the list's own scrollbar, which
+                        # otherwise sits on top of it and clips the word.
+                        ui.label(icon.kind).classes("text-xs text-gray-500 w-20 text-right pr-4")
+                if len(visible) > _PICKER_ROW_LIMIT:
+                    ui.label(
+                        f"{translate_string('More matches than can be shown -- narrow the search.')} "
+                        f"({len(visible)})",
+                    ).classes("text-xs italic text-gray-500 mt-1")
+
+        def search_changed(value: str) -> None:
+            search["text"] = value
+            render()
+
+        _picker_search_input(search_changed, "Search icons")
+        results = ui.column().classes("w-full gap-0 mt-2 max-h-96 overflow-auto")
+        render()
+
+        with ui.row().classes("w-full justify-end gap-2 mt-3"):
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
+            ui.button(translate_string("No Icon"), on_click=lambda: pick("")).props("flat color=negative")
+
+    dialog.open()
+
+
+def _render_addability_reason(gui: MyGui, reason: str, on_fetched: Callable[[], None]) -> None:
+    """Why an action can't be added -- and, for the one reason that has a way out, the way
+    out.
+
+    'No Applications were found in the loaded configuration to choose from' is the only
+    refusal a user can do something about without leaving this dialog, and until now it was
+    a dead end in the most literal way: with no Applications in the inventory, 'Launch App'
+    is not addable, so the Application picker never opens, so the picker's own
+    'App not listed?' button -- the thing that would fix it -- could not be reached.  Same
+    button, same fetch, offered at the point where the user actually hits the wall.
+
+    on_fetched re-runs whatever drew this row.  A fetch bumps deviceinv's generation, which
+    is what makes taskedit.list_addable_actions rebuild rather than answer from its memo,
+    so re-running the picker is all it takes for the greyed-out row to turn into a button.
+    """
+    ui.label(reason).classes("text-xs text-gray-500 italic")
+    if reason != taskedit.NO_APPS_REASON:
+        return
+
+    async def fetch() -> None:
+        await _build_fetch_apps_dialog(gui, on_fetched)
+
+    _render_fetch_apps_button(fetch)
+
+
+def _render_app_arg_field(
+    gui: MyGui,
+    arg: taskedit.EditableArg,
+    key: str,
+    field_refs: dict,
+    value: str | None = None,
+) -> None:
+    """An App argument: an ordinary text input holding the package names, and a button
+    that opens the picker beside it.
+
+    Typed into as well as picked from, for the same reason _build_icon_field is: an
+    <appPkg> is legitimately a %variable, and the inventory only knows the apps this
+    configuration already names.  What is typed is what is saved -- Save reads the text
+    input's own field_refs entry and nothing else, and the picker's only power is to write
+    into it (the same either/or as _render_task_name_field).
+    """
+    field_refs[key] = ui.input(
+        translate_string(arg.arg_name),
+        value=arg.current_value if value is None else value,
+    ).classes("flex-1")
+    pick_button = ui.button(
+        translate_string("Pick"),
+        icon="apps",
+        on_click=lambda _e=None, f=field_refs[key]: _build_app_picker_dialog(f, gui),
+    ).props("flat dense size=sm")
+    with pick_button:
+        ui.tooltip(translate_string("Choose from the Applications named in the loaded configuration."))
+
+
+def _render_icon_arg_field(
+    arg: taskedit.EditableArg,
+    key: str,
+    field_refs: dict,
+    value: str | None = None,
+) -> None:
+    """An Icon argument: the same two-widget arrangement as _render_app_arg_field, holding
+    one icon reference -- see deviceinv.format_icon_value for how each of the four kinds of
+    one is spelled into a single field.
+    """
+    field_refs[key] = ui.input(
+        translate_string(arg.arg_name),
+        value=arg.current_value if value is None else value,
+    ).classes("flex-1")
+    pick_button = ui.button(
+        translate_string("Pick"),
+        icon="image",
+        on_click=lambda _e=None, f=field_refs[key]: _build_tasker_icon_picker_dialog(f),
+    ).props("flat dense size=sm")
+    with pick_button:
+        ui.tooltip(translate_string("Choose from the icons used in the loaded configuration."))
+
+
 def build_action_condition_dialog(
     self: MyGui,
     edited_task: taskedit.EditableTask,
@@ -833,7 +1374,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                     else:
                         with ui.column().classes("w-full gap-0"):
                             ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
-                            ui.label(row["reason"]).classes("text-xs text-gray-500 italic")
+                            _render_addability_reason(self, row["reason"], refresh_picker)
 
         search_input.on_value_change(refresh_picker)
         category_select.on_value_change(refresh_picker)
@@ -946,6 +1487,10 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                     )
                                 elif taskedit.is_perform_task_name_arg(action.code, arg):
                                     _render_task_name_field(self, action, arg, key, field_refs)
+                                elif arg.widget_kind == "app_picker":
+                                    _render_app_arg_field(self, arg, key, field_refs)
+                                elif arg.widget_kind == "icon_picker":
+                                    _render_icon_arg_field(arg, key, field_refs)
                                 elif arg.widget_kind in ("text", "raw_fallback"):
                                     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
                                     if arg.readonly_note:
@@ -1307,6 +1852,16 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                         value=text_initial(key, current_label),
                                         label=arg.arg_name,
                                     ).classes("flex-1")
+                                elif arg.widget_kind == "app_picker":
+                                    _render_app_arg_field(
+                                        self,
+                                        arg,
+                                        key,
+                                        field_refs,
+                                        text_initial(key, arg.current_value),
+                                    )
+                                elif arg.widget_kind == "icon_picker":
+                                    _render_icon_arg_field(arg, key, field_refs, text_initial(key, arg.current_value))
                                 elif arg.widget_kind in ("text", "raw_fallback"):
                                     field_refs[key] = ui.input(
                                         arg.arg_name,
@@ -1455,6 +2010,7 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                     translate_string("Class (optional)"),
                                     value=text_initial(cls_key, entry["cls"]),
                                 ).classes("flex-1")
+                                _render_app_entry_pick_button(self, field_refs, pkg_key, label_key, cls_key)
                                 ui.button(
                                     translate_string("Remove"),
                                     on_click=lambda ci=condition.cond_index, ei=entry_index: (
@@ -6519,6 +7075,10 @@ def build_add_task_dialog(
                                     ).classes("flex-1")
                                 elif taskedit.is_perform_task_name_arg(action.code, arg):
                                     _render_task_name_field(self, action, arg, key, field_refs)
+                                elif arg.widget_kind == "app_picker":
+                                    _render_app_arg_field(self, arg, key, field_refs)
+                                elif arg.widget_kind == "icon_picker":
+                                    _render_icon_arg_field(arg, key, field_refs)
                                 elif arg.widget_kind == "readonly":
                                     # A newly-added plugin action's payload (see
                                     # taskedit._synthesize_bundle_arg): not editable here,
@@ -6583,7 +7143,7 @@ def build_add_task_dialog(
                     else:
                         with ui.column().classes("w-full gap-0"):
                             ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
-                            ui.label(row["reason"]).classes("text-xs text-gray-500 italic")
+                            _render_addability_reason(self, row["reason"], refresh_picker)
 
         search_input.on_value_change(refresh_picker)
         category_select.on_value_change(refresh_picker)
@@ -8083,6 +8643,12 @@ class NiceGuiTextView:
         # reopened after another edit is the stale-handle bug apply()'s own attachment
         # check exists to catch.  Reopening rebuilds the plan from these instead.
         self._replace_inputs: tuple | None = None
+        # The Find/Replace dialog this view currently has up, or None.  Held because that
+        # dialog no longer always takes itself down: following one of its own rows docks it
+        # to the right edge and leaves it there (see find_event's dock), so a second press
+        # of Find/Replace has to dispose of the one already on screen rather than build a
+        # second one over it.
+        self._find_dialog: ui.dialog | None = None
         self.build_ui()
         register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
@@ -9782,9 +10348,10 @@ class NiceGuiTextView:
 
         # Come back to the Replace that was last set up, rather than to empty fields.
         #
-        # A preview row's click closes this dialog -- it has to, it is modal, and a jump
-        # behind it scrolls a view the user cannot see -- so without this, going to look at
-        # one of the places about to change throws away the list of them.
+        # Following a preview row no longer costs the preview -- the dialog docks to the
+        # right edge and stays up (see find_event's dock) -- but everything else that takes
+        # this dialog down still ends the same way, and the Close button is pressed between
+        # a preview and the decision it leads to often enough to be worth coming back from.
         #
         # The INPUTS were what was remembered, and the plan is rebuilt from them here.
         # That is a second pass over the file, and it is worth paying every time: it makes
@@ -9849,6 +10416,22 @@ class NiceGuiTextView:
             build_preview(remembered)
         return True
 
+    def _dismiss_find_dialog(self) -> None:
+        """Take down the Find/Replace dialog this view has up, if it still has one.
+
+        Deleted rather than closed: a fresh dialog is built per press of Find/Replace, so
+        the one being replaced has nothing left to hold, and a closed-but-undeleted dialog
+        is exactly the page-growing stack the "hide" handler exists to prevent.
+
+        A dialog whose page has gone away raises rather than answering.  That is one more
+        dialog already gone, not an error to report.
+        """
+        dialog = self._find_dialog
+        self._find_dialog = None
+        if dialog is not None:
+            with contextlib.suppress(Exception):
+                dialog.delete()
+
     def find_event(self) -> None:
         """Open this view's Find dialog: ask the configuration a question, not the page.
 
@@ -9870,6 +10453,13 @@ class NiceGuiTextView:
             ui.notify(translate_string("No XML file has been loaded.  Get an XML file first."), type="warning")
             return
 
+        # Whatever this view still has up goes first.  Ordinarily nothing does -- the
+        # dialog opens modal, so the button that reaches here cannot be pressed while one
+        # is on screen -- but a dialog that has docked itself (see dock) is not modal, and
+        # building a second one over it would leave the first in the page, still holding
+        # its own results list.
+        self._dismiss_find_dialog()
+
         index = mapfind.build_index()
         # A Find run from the Diagram shows its answers in the Diagram where it can (see
         # go_to_target).  Decided here, from the view the button was pressed on, rather
@@ -9886,7 +10476,40 @@ class NiceGuiTextView:
         # silently, and the pulldowns are the worst of it: choosing from one means
         # clicking a popup that Quasar renders OUTSIDE the card, so the click that picks
         # a variable can be the click that closes the dialog.
-        with ui.dialog().props("persistent") as dialog, ui.card().classes("w-[900px] max-w-full p-6"):
+        with ui.dialog().props("persistent") as dialog, ui.card().classes("w-[900px] max-w-full p-6") as card:
+            # Whether this dialog has moved out of the middle of the screen and become a
+            # panel at the right edge.  Set by the first row that is followed and never
+            # unset -- once the user is going back and forth between the list and the view,
+            # that is what they are doing until they close it.
+            docked = {"yes": False}
+
+            def dock() -> None:
+                """Get this dialog out of the view's way instead of taking it down.
+
+                What following one of the rows does now.  It used to close the dialog, and
+                had to: a modal dialog sits in the middle of the screen with a backdrop over
+                the rest, so the jump behind it scrolled a view the user could not see.  The
+                cost was paid on the Replace tab above all -- going to look at one of forty
+                places about to change meant pressing Find/Replace again, for every one of
+                them, to get the preview back.
+
+                `seamless` is what makes closing unnecessary: it drops the backdrop and the
+                body-scroll lock, so the view behind is visible, scrollable and clickable
+                while this stays up.  `position=right` pins the dialog to the edge and out
+                of the column the Map is read down.  Both are Quasar props on the dialog as
+                it stands and both are reactive, so it moves without being rebuilt -- which
+                is the point: rebuilding it is what would throw away the preview, the tick
+                boxes and the query this exists to keep.
+                """
+                if docked["yes"]:
+                    return
+                docked["yes"] = True
+                dialog.props(add="seamless position=right")
+                # Narrower than the 900px it opens at, because it is now sharing the screen
+                # with the view it just sent the user to, and being able to read that view
+                # is the whole reason it moved.
+                card.classes(remove="w-[900px] p-6", add="w-[620px] p-4")
+
             ui.label(
                 f"{translate_string('Find in')} {self.title}",
             ).classes("text-lg font-bold text-blue-600")
@@ -9976,24 +10599,28 @@ class NiceGuiTextView:
                 produced: dict = {"query": None, "hits": [], "total": 0}
 
                 def jump_to(target: mapjump.Target) -> Callable[[], Coroutine]:
-                    """One result row's click: close the list, then go to the object.
+                    """One result row's click: dock the list to the right, then go to the object.
 
-                    Closed first because the dialog is modal -- a jump behind it scrolls a view
-                    the user cannot see.  The query is remembered on the view, so pressing Find
-                    again comes back to this same list rather than to an empty dialog.
+                    Docked rather than closed (see dock), so the list the row came from is
+                    still there when the user has finished looking -- which is what a Find
+                    and a Replace preview are both for: a list of places, walked one at a
+                    time.  Shared by both tabs, and the reason the Replace half is handed
+                    this rather than writing its own.
 
-                    The jump then runs inside the VIEW's slot rather than the dialog's, which
-                    is not decoration: closing the dialog deletes it (see the "hide" handler
-                    below), and everything the jump does afterwards -- ui.notify above all --
-                    resolves its client through whatever slot is active.  Left in the dialog's,
-                    the first notification raised "The parent element this slot belongs to has
-                    been deleted" from inside NiceGUI and the jump died there, silently, having
-                    already closed the only thing on screen.  The same re-entry, for the same
-                    reason, as _enable_connector_highlighting's.
+                    The jump runs inside the VIEW's slot rather than the dialog's, which is
+                    not decoration: everything it does afterwards -- ui.notify above all --
+                    resolves its client through whatever slot is active, and the dialog's
+                    goes away with the dialog.  Left in the dialog's, the first notification
+                    raised "The parent element this slot belongs to has been deleted" from
+                    inside NiceGUI and the jump died there, silently.  It survives a docked
+                    dialog, which is not deleted, but it did not survive the close this used
+                    to do and would not survive the Close button landing mid-jump either.
+                    The same re-entry, for the same reason, as
+                    _enable_connector_highlighting's.
                     """
 
                     async def go() -> None:
-                        dialog.close()
+                        dock()
                         with self.scroll_area:
                             await go_to_target(self.master_gui, target, prefer_diagram=from_diagram)
 
@@ -10112,11 +10739,23 @@ class NiceGuiTextView:
             # rather than left in the page: this is a control the user reaches for over and
             # over while narrowing a search, and a stack of dead dialogs (each holding a
             # results list of up to 500 rows) is a page that grows all afternoon.
-            dialog.on("hide", dialog.delete)
+            #
+            # The view is told as well, so that _dismiss_find_dialog does not later go
+            # looking for one that has already taken itself down.  A dialog that docks
+            # itself never gets here at all -- it is still open, and the view's handle on
+            # it is what the next press disposes of.
+            def dispose() -> None:
+                """Forget this dialog and take it out of the page."""
+                if self._find_dialog is dialog:
+                    self._find_dialog = None
+                dialog.delete()
 
-            # Come back to the question that was last asked, rather than to a blank dialog:
-            # a result row's click closes this, and the next press of Find is nearly always
-            # the same query with one more row to look at.
+            dialog.on("hide", dispose)
+
+            # Come back to the question that was last asked, rather than to a blank dialog.
+            # A result row's click no longer costs the list -- the dialog docks instead of
+            # closing (see dock) -- but the Close button does, and the next press of Find is
+            # nearly always the same query with one more row to look at.
             # Whichever half the user was last using is the one to open on.
             if restored_replace:
                 tabs.set_value(replace_tab)
@@ -10131,6 +10770,10 @@ class NiceGuiTextView:
                 project_select.set_value(previous.project)
                 show(previous)
 
+        # Held on the view for as long as it is on screen: this one may outlive the click
+        # that dismissed it in every previous version -- a docked dialog stays up until the
+        # user closes it -- and the next press of Find/Replace has to be able to find it.
+        self._find_dialog = dialog
         dialog.open()
 
     def extract_first_font_name(self: MyGui, text: str) -> str:

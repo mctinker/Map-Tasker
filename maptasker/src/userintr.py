@@ -61,6 +61,7 @@ from maptasker.src.guiutils import (
     selected_tab_name,
     set_ai_key,
     set_tasker_object_names,
+    single_item_export_selection,
     update_analysis_button_color,
     update_tasker_object_menus,
     valid_item,
@@ -2978,6 +2979,58 @@ class MapTaskerEventHandlers:
             name_selected = name_selected.replace(f"{event_type}: ", "")
         the_view.event_handlers.process_name_event(event_type, name_selected)
 
+    def select_single_item_export(self, file_path: str) -> None:
+        """Select the one object a single-object export holds, if that is what was loaded.
+
+        Args:
+            file_path: the file just loaded -- a local path (or the open file object
+                PrimeItems.file_to_get holds) for 'Get Local XML File', or the Android
+                path for a file fetched from the device.
+
+        Tasker writes an export of one Project/Profile/Task/Scene as
+        "<name>.prj|prf|tsk|scn.xml", and such a file has exactly one thing in it worth
+        looking at.  Selecting it here saves the user picking the only candidate out of
+        a 'Specific Name' pulldown by hand before anything can be mapped, diagrammed or
+        analyzed.  A full backup selects nothing and everything is displayed, as before.
+
+        Goes through process_single_name_event rather than setting single_<item>_name
+        directly, so an automatic selection lands everywhere a hand-made one does: the
+        view, PrimeItems.program_arguments, the pulldown widget, the "Display only ..."
+        caption, which Edit/Add buttons are on screen, and the 'Run Analysis' button's
+        color.
+
+        Call this only once the file has been loaded -- see
+        guiutils.single_item_export_selection, which resolves the name against the XML
+        rather than trusting the file's own name.
+        """
+        label, name = single_item_export_selection(file_path)
+        if not label:
+            return
+
+        self.process_single_name_event(label, name)
+
+        # ...and put the name in the pulldown itself, which process_name_event does not
+        # do for the item being selected: it resets every pulldown *except* that one
+        # (reset_single_item_pulldowns' except_for), on the reasonable assumption that
+        # the user just picked the value there themselves and the widget already holds
+        # it.  Nobody picked anything here, so without this the Project is selected
+        # everywhere -- the filter, the caption, the Edit/Add buttons -- while its
+        # pulldown carries on reading "None".
+        #
+        # select_pulldown_option because a Project's option is "Project: <name>" rather
+        # than the bare name, and under is_updating because assigning .value fires the
+        # widget's on_change (single_project_name_event and friends), which would
+        # otherwise re-enter process_name_event for the selection just made.
+        optionmenu = getattr(self.gui, f"specific_{label.lower()}_optionmenu", None)
+        if optionmenu is None:
+            return
+        try:
+            self.gui.is_updating = True
+            select_pulldown_option(optionmenu, name)
+            optionmenu.update()
+        finally:
+            self.gui.is_updating = False
+
     def single_project_name_event(self, name_selected: str) -> None:
         """Generates a single project name event."""
         if hasattr(self.gui, "is_updating") and self.gui.is_updating:
@@ -5146,6 +5199,12 @@ class MapTaskerEventHandlers:
             update_tasker_object_menus(gui, get_data=True, reset_single_names=True)
             gui.current_file_display_message = False
 
+            # If this was a single-object export, select the one object it holds.  Done
+            # last, after the pulldowns have been rebuilt for the new file and
+            # reset_single_names has cleared the previous file's selection, so this
+            # selection is the one left standing.
+            self.select_single_item_export(PrimeItems.file_to_get)
+
         else:
             # Handle the case where the user hit "Cancel" or closed the dialog
             ui.notify(translate_string("File selection canceled."), type="warning")
@@ -6590,6 +6649,13 @@ class MapTaskerEventHandlers:
         # Fully reload and populate the Projects/Profiles/Tasks selection dropdown lists
         update_tasker_object_menus(the_view, get_data=True, reset_single_names=True)
 
+        # A file fetched off the device is as likely to be a single-object export as one
+        # picked off the local drive, so it gets the same treatment 'Get Local XML File'
+        # gets: the export's own Project/Profile/Task/Scene selected outright.  The
+        # Android path names its file with the device's path, but only the file's own
+        # name is read, so the two arrive at the same place.
+        self.select_single_item_export(the_view.android_file)
+
     async def fetch_backup_event(self) -> None:
         """
         Fetches backup/XML details from NiceGUI user input fields and processes them.
@@ -6619,7 +6685,9 @@ class MapTaskerEventHandlers:
             return
 
         # Attempt to pull structural backup contents or directory arrays
-        return_code, android_ipaddr, android_port, android_file = validate_or_filelist_xml(
+        # Awaited: listing the device's files installs and runs a helper Task and waits
+        # for its answer, which validate_or_filelist_xml hands to run.io_bound.
+        return_code, android_ipaddr, android_port, android_file = await validate_or_filelist_xml(
             gui,
             android_ipaddr,
             android_port,
@@ -6644,13 +6712,21 @@ class MapTaskerEventHandlers:
             gui.android_file = android_file
 
         # A different backup is now the source, so the Project/Profile/Task/Scene picked
-        # from the previous one is no longer a meaningful filter.  file_selected_event
-        # gets this via update_tasker_object_menus(reset_single_names=True); this branch --
-        # the user typing the file location instead of picking it from 'List XML Files' --
-        # has no equivalent, and without it a Project selected before the fetch stayed
-        # selected, and stayed the filter, against the newly fetched file.
+        # from the previous one is no longer a meaningful filter, and the pulldowns are
+        # still offering the previous file's names.  This branch -- the user typing the
+        # file location instead of picking it from 'List XML Files' -- now ends the same
+        # way file_selected_event does, with the newly fetched file loaded and its own
+        # objects in the pulldowns: reset_single_names=True clears the previous
+        # selection on the way through (it is reset_single_item_selection that runs
+        # inside), and the fetch has already written the file to the local drive
+        # (validate_or_filelist_xml -> validate_xml -> write_out_backup_file), so
+        # loading it here reads that local copy rather than going back to the device.
         clear_tasker_data()
-        reset_single_item_selection(gui)
+        update_tasker_object_menus(gui, get_data=True, reset_single_names=True)
+
+        # And, as on every other path that loads a file, a single-object export selects
+        # the one object it holds.
+        self.select_single_item_export(android_file)
 
         # Trigger final visual confirmation UI updates
         if hasattr(self, "_display_backup_summary"):

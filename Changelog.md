@@ -2,34 +2,34 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.0.2] 26-Aug-2026
+## [13.0.3] ??-Aug-2026  # FIX
 
 ### Added
 
-* Added: The Diagram view is now __interactive__:
-  - Click any Project, Profile, Task or Scene name to be taken straight to it into the Map view.
-  - Shift-click a Task to light up the whole chain of calls it takes part in: everything it calls, everything that calls it, and every arrow between them.  The rest of the diagram greys out so the chain stands on its own.  Esc puts it back.
-  - Click the ▾ beside a Project to collapse it down to its box, and the ▸ to bring it back.  'Collapse All' and 'Expand All' are on the Diagram toolbar.
-  - Right-click any name for the rest: collapse its Project, show only that Project, or follow its call chain.
-  - Zoom with the toolbar buttons or with Ctrl (⌘) and the scroll wheel.
-* Added: A 'Find...' result or a report finding taken to the Diagram now lands on the object's own name rather than on as much of the line as happened to fit.
-* Added 'Find > **Replace**' function, to replace a Task action/argument with another, a Profile condition with a different condition, or a variable with another.
-  - Replacing a Profile condition swaps the whole condition -- a Time for a Day, a State for an Event, one Event code for another -- everywhere it appears.  The preview says what each Profile watches for now and what it would watch for afterwards, and a Profile that already has a condition of the kind being put in is listed as one that cannot be changed rather than given a second one.
+* Added: Task actions and Profile conditions that take an __Application__ or an __icon__ can now be added and edited.  These were previously refused outright because MapTasker had no list of either -- 17 Task actions and 5 Profile Events in all, among them 'Launch App', 'Kill App', 'Browse URL', 'Media Control', 'Notify' and 'Set Tasker Icon'.
+  - The list is built from the configuration you have loaded: every Application and icon named anywhere in it, with its package, label and activity class.  Nothing is fetched and nothing extra has to be installed.
+  - __'App not listed?'__ in either Application picker -- and beside the message 'No Applications were found in the loaded configuration to choose from' in the Add Action picker, where there is no picker to open yet -- fetches the full list of installed applications from your Android device.  MapTasker installs a small Task named 'MapTasker Get Apps v2' on the device, runs it, and reads the answer back; the result is remembered per device in 'MapTasker_Apps.json' so it is there next time.  Tasker asks you to authorize the connection on the device, and the fetch waits for you to accept; after that allow 30 seconds or more, longer on a device with several hundred applications, because each application's name is looked up individually -- which is what makes every name the right one.  The dialog says both, before you start it and again while it runs.  Requires Tasker 6.2 or higher with the 'HTTP Server Example' project running -- the same requirement 'Save to Android' has.  Where the two sources disagree about an application's name or activity, the one from your own configuration wins.
+  - Each such argument gets a 'Pick' button beside it.  An Application argument can name several apps at once, so its picker ticks as many as you like; an icon argument takes one.
+  - The Profile 'Application' condition's Package / Label / Class fields get the same button, and one pick fills all three.
+  - An Application can be a __Tasker variable__ rather than an installed app.  Both Application pickers have an 'Or a Tasker variable:' box for it -- anything starting with '%'.  In an action argument the variable joins whatever else is ticked; in the Profile 'Application' condition it fills the Package and Label fields and leaves the Class empty, which is what Tasker itself writes for one.
+  - The field itself is still typed into, and what you type is what is saved -- and an icon from an icon pack has to be named by hand, since those names live inside the pack.
 
 ### Changed
 
-* Changed: Clicking a line number in the Search results now goes straight to the match rather than scrolling to it, which on a large Map meant a long animated slide before it landed.
-* Changed: Moved 'Buy Me A Coffee' to the main screen from the 'Debug' tab.
-* Changed: Removed dependencies on deep-translator and beautifulsoup.
-* Changed: Cleaned up the changelog that displays.
+* Changed: 'List XML Files' no longer needs the 'MapTasker List' profile.  Listing the XML files on an Android device previously required finding that profile on TaskerNet, importing it by hand, and leaving it enabled -- and when it was missing, the attempt failed with a timeout that named no cause.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications, and leaves it there for next time.  Nothing has to be imported by hand.
+  - The 'HTTP Server Example' project running on the device is now the only setup step.  Tasker 6.2 or higher is required, and Tasker will ask you to authorize the connection the first time, exactly as 'Save to Android' does.
+  - The old profile hardcoded port 1821 in its trigger, so a device whose server ran on any other port could not use 'List XML Files' at all.  The helper Task has no such limitation.
+  - A file name containing a comma -- 'Bonza, Jigsaw.prj.xml' -- is now listed correctly.  The old route joined the paths it returned with commas, so such a file arrived split in two.
+  - The connection check sitting in front of every Android button was itself a request to that profile's route, so it failed for anyone who had the server running but had never imported the profile.  It now checks the server directly.
+  - If you still have the 'MapTasker List' profile in Tasker, nothing uses it any more and it can be deleted.
+
+* Changed: fetching a single-object export -- the '.prj'/'.prf'/'.tsk'/'.scn' files Tasker writes when you export one Project, Profile, Task or Scene -- now selects that object as the specific Project/Profile/Task/Scene automatically.
+
+* Changed: 'Find/Replace': clicking a result row, or a row in a Replace preview, no longer closes the dialog.  It moves to the right side of the screen and stays there while the Map (or Diagram) shows what the row points at, so a list of places can be walked one at a time without pressing 'Find/Replace' again for each one.
 
 ### Fixed
 
-* Fixed: Shift-clicking a Task name in the Diagram no longer leaves part of the window highlighted in blue.
-* Fixed: A 'Find...' result now goes straight to the target rather than animating/scrolling it's way to it.
-* Fixed: Clicking a hotlink in the Diagram is not changing focus to the Map if the Map is already present.
-* Fixed: The 'Clear' button does not clear Map views spawned by hotlinks in the Diagram view.
-* Fixed: The Diagram interactive hotlinks are not relevant if another single Tasker object is subsequently selected.  The Diagram hotlinks now pull up the relevant Map view.
+* Fixed:
 
 ### Known Issues
 
@@ -39,11 +39,34 @@ you have closed all pre-existing MapTasker browser tabs and you still get this e
 For each PID listed in the output from the above terminal command, issue the following:
       `kill -9 pid_number`
 ...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080' (e.g. kill -9 8547).
-* Not all Task actions and Profile states or events editing are supported, since some require information which is only available on an Android device and/or within Tasker, itself.
+* Not all Task actions and Profile states or events editing are supported.  What remains unsupported is third-party plugins: their settings are an opaque payload that only the plugin's own configurator understands, so those still have to be set up inside Tasker.
+* The icon list is built from the configuration you have loaded, so an icon used nowhere in it is not offered; type its name.  The Application list can be topped up from the device ('App not listed?'), but until it is, it likewise holds only what your configuration already names.
+* Applications fetched from the device come back without their activity class.  MapTasker asks Tasker for the activity of every installed app as a bulk list, and uses it only if it lines up one-for-one with the packages -- measured against a real device, it does not, so it is discarded rather than pairing every app with some other app's activity.  Names are not affected: those are looked up one app at a time, so they are always the right ones.  The activity is filled in from your own configuration for any app it already names, and an action that needs one for an app it does not (Launch App, say) has to have it typed in.
 * Some strings defy translation.
 
 
 ## Older History Logs
+
+## [13.0.2] 26-Aug-2026
+
+- Added: The Diagram view is now __interactive__:
+  - Click any Project, Profile, Task or Scene name to be taken straight to it into the Map view.
+  - Shift-click a Task to light up the whole chain of calls it takes part in: everything it calls, everything that calls it, and every arrow between them.  The rest of the diagram greys out so the chain stands on its own.  Esc puts it back.
+  - Click the ▾ beside a Project to collapse it down to its box, and the ▸ to bring it back.  'Collapse All' and 'Expand All' are on the Diagram toolbar.
+  - Right-click any name for the rest: collapse its Project, show only that Project, or follow its call chain.
+  - Zoom with the toolbar buttons or with Ctrl (⌘) and the scroll wheel.
+- Added: A 'Find...' result or a report finding taken to the Diagram now lands on the object's own name rather than on as much of the line as happened to fit.
+- Added 'Find > **Replace**' function, to replace a Task action/argument with another, a Profile condition with a different condition, or a variable with another.
+  - Replacing a Profile condition swaps the whole condition -- a Time for a Day, a State for an Event, one Event code for another -- everywhere it appears.  The preview says what each Profile watches for now and what it would watch for afterwards, and a Profile that already has a condition of the kind being put in is listed as one that cannot be changed rather than given a second one.
+- Changed: Clicking a line number in the Search results now goes straight to the match rather than scrolling to it, which on a large Map meant a long animated slide before it landed.
+- Changed: Moved 'Buy Me A Coffee' to the main screen from the 'Debug' tab.
+- Changed: Removed dependencies on deep-translator and beautifulsoup.
+- Changed: Cleaned up the changelog that displays.
+- Fixed: Shift-clicking a Task name in the Diagram no longer leaves part of the window highlighted in blue.
+- Fixed: A 'Find...' result now goes straight to the target rather than animating/scrolling it's way to it.
+- Fixed: Clicking a hotlink in the Diagram is not changing focus to the Map if the Map is already present.
+- Fixed: The 'Clear' button does not clear Map views spawned by hotlinks in the Diagram view.
+- Fixed: The Diagram interactive hotlinks are not relevant if another single Tasker object is subsequently selected.  The Diagram hotlinks now pull up the relevant Map view.
 
 ## [13.0.1] 23-Aug-2026
 

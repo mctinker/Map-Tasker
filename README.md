@@ -160,6 +160,10 @@ This is the output from the Variable Xref (cross reference) run.
 
   The saved results of the structured search, from the Map and Diagram views, via the 'Find' command, or of the Replace preview results.
 
+- MapTasker_Apps.json
+
+  This contains a list of all Android applications gleaned either the XML file or directly from the Android device.  The list is useed to populate the app list when editing a Task action such as 'Launch App'. 
+
 - hidden files: system settings, run counter, last 'version checked' date, and API keys.
 
 ## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)

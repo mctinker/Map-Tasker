@@ -190,7 +190,10 @@ def http_request(
         except ConnectionError:
             error_message = f"Request failed for url: {url} .  Connection error! Unable to get XML from Android device."
         except Timeout:
-            error_message = f"Request failed for url: {url} .  Timeout error.  Or perhaps the profile 'MapTasker List' has not been imported into Tasker on the Android device!"
+            error_message = (
+                f"Request failed for url: {url} .  Timeout error.  Check that the Tasker "
+                "'HTTP Server Example' project is installed and running on the Android device."
+            )
         except Exception as e:  # noqa: BLE001
             error_message = f"Request failed for url: {url}, error: {e} ."
 
@@ -371,6 +374,7 @@ def http_post_request(
     request_parm: str,
     file_content: bytes,
     auth_key: str = "",
+    content_type: str = "",
 ) -> tuple[int, object]:
     """
     Issue HTTP POST request to write a file (e.g. a standalone Task .tsk.xml) to the
@@ -383,13 +387,23 @@ def http_post_request(
         :param file_content: raw bytes of the file to post as the request body
         :param auth_key: API key from get_android_auth_key(), sent as the raw
         'Authorization' header value (no "Bearer " prefix)
+        :param content_type: value for the 'Content-Type' header, when the endpoint cares
+        what it is being sent.  api/import takes Task XML and has never needed one, but
+        api/tasks takes a JSON task object and is entitled to be told so -- see
+        deviceinv.run_task_on_android, the one caller that passes this.  Left empty, no
+        Content-Type header is sent at all, exactly as before.
         :return: return code, response: either a text string with an error message or
         the contents of the response
     """
     # Build the URL the same way http_request() does.
     http = "http://" if "http://" not in ip_address else ""
     url = f"{http}{ip_address}:{ip_port}/{request_name}{file_location}{request_parm}"
-    headers = {"Authorization": auth_key} if auth_key else None
+    headers = {}
+    if auth_key:
+        headers["Authorization"] = auth_key
+    if content_type:
+        headers["Content-Type"] = content_type
+    headers = headers or None
 
     # Make the request.
     error_message = ""
@@ -504,6 +518,65 @@ def http_upload_request(
         return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
 
     return 0, ""
+
+
+def http_delete_request(
+    ip_address: str,
+    ip_port: str,
+    file_location: str,
+    auth_key: str = "",
+) -> tuple[int, str]:
+    """DELETE a file from the Android device, via the Tasker HTTP API's
+    'DELETE /api/file/<path>' (Params/Body: None; Response: None).
+
+    Used to clear a stale result file out of the way *before* asking the device to write a
+    new one -- see deviceinv.fetch_apps_from_device.  Without it, a run that never happens
+    (Tasker not running, the helper Task missing) leaves the previous run's file sitting
+    there to be read back and believed, which is the one failure this whole exchange must
+    not have.
+
+    A 404 is success, not failure: the caller's goal is 'nothing at that path', and
+    nothing being there already satisfies it.
+        :param ip_address: IP address of the Android device
+        :param ip_port: port the Tasker HTTP API is listening on
+        :param file_location: path to delete on the device, with a leading slash
+        :param auth_key: API key from get_android_auth_key(), sent as the raw
+        'Authorization' header value (no "Bearer " prefix)
+        :return: return code (0 on success or 'already absent'), and "" or an error message
+    """
+    http = "http://" if "http://" not in ip_address else ""
+    url = f"{http}{ip_address}:{ip_port}/api/file{file_location}"
+    headers = {"Authorization": auth_key} if auth_key else None
+
+    error_message = ""
+    response = None
+
+    with suppress_stdout():  # Suppress any errors (system IMK)
+        try:
+            response = requests.delete(url, headers=headers, timeout=10)
+        except InvalidSchema:
+            error_message = f"Request failed for url: {url} .  Invalid url!"
+        except ConnectionError:
+            error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
+        except Timeout:
+            error_message = f"Request failed for url: {url} .  Timeout error."
+        except Exception as e:  # noqa: BLE001
+            error_message = f"Request failed for url: {url}, error: {e} ."
+
+    if error_message:
+        logger.debug(error_message)
+        return 8, error_message
+
+    # "response is not None", never "if response" -- see http_request's own note: a
+    # Response carrying any status >= 400 is falsy, which would send the 404 below (a
+    # success here) to the error return.
+    if response is None:
+        return 8, f"Request failed for url: {url} ...no response from the Android device."
+
+    if response.status_code in (200, 404):
+        return 0, ""
+
+    return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
 
 
 # Log the arguments

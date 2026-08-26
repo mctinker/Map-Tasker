@@ -40,6 +40,11 @@ FIND_FILE = "MapTasker_Find.txt"
 SWAP_FILE = "MapTasker_Replace.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
 SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
+# Where a fetched Application list is kept between runs, keyed by device -- see
+# deviceinv.py.  Alongside MapTasker_Settings.toml (both are written to the current
+# directory) because it is the same kind of thing: remembered, per-installation, and
+# no loss if it is deleted.
+APPS_CACHE_FILE = "MapTasker_Apps.json"
 
 # What every Map/Diagram popout window is named, plus the view it holds: "maptasker_map",
 # "maptasker_diagram", and with "Open View In New Window" on a unique suffix after that.

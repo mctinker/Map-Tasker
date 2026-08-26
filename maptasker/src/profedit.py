@@ -46,7 +46,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import sessundo, taskedit
+from maptasker.src import deviceinv, sessundo, taskedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
@@ -368,6 +368,7 @@ def add_condition_to_profile(edited_profile: EditableProfile, cond_type: str) ->
 
 
 _ADDABLE_CONDITION_CODES_CACHE: dict[str, list[dict]] = {}
+_ADDABLE_CONDITION_CODES_GENERATION = -1
 
 
 def _list_addable_condition_codes(suffix: str) -> list[dict]:
@@ -386,6 +387,17 @@ def _list_addable_condition_codes(suffix: str) -> list[dict]:
     <Bundle> is addable when bundle.py has that code's definition, since
     _add_code_condition_to_profile can then rebuild the payload from it.
     """
+    global _ADDABLE_CONDITION_CODES_GENERATION  # noqa: PLW0603
+
+    # Memoized per suffix, but only for as long as addability itself holds still: an App
+    # argument (five Events declare one) is addable only while deviceinv has an inventory
+    # to pick from, so the memo is thrown away when that generation moves -- the same
+    # reasoning, and the same counter, as taskedit.list_addable_actions.
+    inventory_generation = deviceinv.generation()
+    if inventory_generation != _ADDABLE_CONDITION_CODES_GENERATION:
+        _ADDABLE_CONDITION_CODES_CACHE.clear()
+        _ADDABLE_CONDITION_CODES_GENERATION = inventory_generation
+
     cached = _ADDABLE_CONDITION_CODES_CACHE.get(suffix)
     if cached is not None:
         return cached

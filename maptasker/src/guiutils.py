@@ -18,6 +18,7 @@ from maptasker.src.aiutils import (
     get_openai_models,
     is_valid_ai_config,
 )
+from maptasker.src import deviceinv
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
@@ -997,6 +998,72 @@ def reset_single_item_selection(self: object) -> None:
         self.is_updating = False
 
 
+# Tasker names a single-object export after the object inside it and tags the export's
+# type in the file name: "My Project.prj.xml", "My Profile.prf.xml", "My Task.tsk.xml",
+# "My Scene.scn.xml".  A full backup ("backup.xml") carries no such tag.  Each entry
+# maps a tag to the single item that export selects and to the tasker_root_elements
+# table holding that item's names -- all four of those tables are keyed by name (see
+# taskerd.build_tasker_tables).
+SINGLE_ITEM_EXPORT_TAGS = (
+    (".prj", "Project", "all_projects"),
+    (".prf", "Profile", "all_profiles_by_name"),
+    (".tsk", "Task", "all_tasks_by_name"),
+    (".scn", "Scene", "all_scenes"),
+)
+
+
+def single_item_export_selection(file_path: str) -> tuple[str, str]:
+    """Work out which single item, if any, a just-loaded XML file selects all by itself.
+
+    Args:
+        file_path: the file the user picked with 'Get Local XML File' -- either the
+            path itself or the open file object PrimeItems.file_to_get holds once the
+            load has been through it (getattr(..., "name") covers both, the same way
+            check_name and write_full_backup_to_current_file do).
+
+    Returns:
+        tuple: (label, name) -- ("Project", "Home") for "Home.prj.xml" -- or ("", "")
+        for a full backup, and for an export whose own object can't be pinned down in
+        what was loaded.
+
+    Call this only once the file has been loaded: the name is resolved against
+    PrimeItems.tasker_root_elements rather than taken from the file name, since the
+    name the pulldowns (and every filter downstream) go by is the one inside the XML,
+    and a file can always have been renamed since Tasker wrote it.
+    """
+    file_path = getattr(file_path, "name", file_path) if file_path else ""
+    basename = os.path.basename(file_path) if isinstance(file_path, str) else ""
+    lowered = basename.lower()
+
+    # The earliest tag wins, so a Project exported into a directory whose own name
+    # happens to carry one of the other tags still reads as the Project it is.
+    tagged = [
+        (position, label, table)
+        for tag, label, table in SINGLE_ITEM_EXPORT_TAGS
+        if (position := lowered.find(tag)) != -1
+    ]
+    if not tagged:
+        return "", ""
+    position, label, table = min(tagged)
+
+    names = list(PrimeItems.tasker_root_elements.get(table) or {})
+    if not names:
+        return "", ""
+
+    # Tasker exports "<object name>.<tag>.xml", so the part in front of the tag is
+    # normally the name outright.
+    candidate = basename[:position]
+    if candidate in names:
+        return label, candidate
+    if match := next((name for name in names if name.lower() == candidate.lower()), None):
+        return label, match
+
+    # The file has been renamed, or the object was renamed after it was exported.  An
+    # export of this kind holds exactly one object of its own type, so when the loaded
+    # XML has just one, that is the one -- whatever the file ended up being called.
+    return (label, names[0]) if len(names) == 1 else ("", "")
+
+
 def set_tasker_object_names(self: object) -> None:
     """Set names to display in pulldown menus based on current tasker object names."""
     # Translate the default values if possible
@@ -1447,17 +1514,20 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
     # This executes inside a worker thread pool, keeping NiceGUI's loop operational.
     def raw_tasker_probe() -> bool:
         try:
-            # We execute a minimal 'maplist' directory poll on the standard directory.
-            # If the Tasker server is running, this function will cleanly complete.
-            return_code, _ = http_request(
-                ipaddr,
-                port,
-                "/storage/emulated/0/Tasker",
-                "maplist",
-                "?xml",
-            )
-            # return_code == 0 means a flawless connection was made!
-            return return_code == 0  # noqa: TRY300
+            # A plain GET on the 'file' route, which the HTTP Server Example project serves
+            # itself and which needs no API key (so this cannot make the device prompt).
+            #
+            # It used to be a GET on 'maplist', a route that project does NOT serve: it
+            # came from the separate 'MapTasker List' Profile the user had to import from
+            # TaskerNet and keep enabled.  So this probe -- the gate in front of every
+            # Android feature -- failed for anyone who had the server running perfectly
+            # well but had never imported that Profile.  Nothing needs it any more (see
+            # deviceinv.fetch_file_list_from_device), and the probe should not either.
+            return_code, _ = http_request(ipaddr, port, "/Tasker", "file", "")
+            # 0 is a 200 and 6 is a 404 -- either way the server answered, which is the
+            # whole question here.  Anything else is a connection failure, a timeout or a
+            # server error, and none of those mean 'reachable'.
+            return return_code in (0, 6)  # noqa: TRY300
         except Exception:  # noqa: BLE001
             return False
 
@@ -1484,7 +1554,7 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
         return False
 
 
-def validate_or_filelist_xml(
+async def validate_or_filelist_xml(
     self: "MyGui",
     android_ipaddr: str,
     android_port: str,
@@ -1493,6 +1563,11 @@ def validate_or_filelist_xml(
     """
     Validates an XML file on an Android device or generates a NiceGUI dropdown
     selection list if no file or an explicit 'list files' action is requested.
+
+    Asynchronous because the file listing is no longer a single quick GET: it installs
+    (once) and runs a helper Task on the device and waits for the file that Task writes,
+    which takes seconds.  That part goes to run.io_bound so the GUI stays responsive
+    while it happens; everything else here builds widgets and must stay on this thread.
     """
     # 1. If a file is specified and we aren't explicitly listing files, validate it
     if len(android_file) != 0 and android_file != "" and not self.list_files:
@@ -1523,10 +1598,16 @@ def validate_or_filelist_xml(
     else:
         clear_android_buttons(self)
 
-        return_code, filelist = get_list_of_files(
+        ui.notify(
+            translate_string("Listing the XML files on the Android device..."),
+            type="info",
+            timeout=1500,
+        )
+        return_code, filelist = await run.io_bound(
+            get_list_of_files,
             android_ipaddr,
             android_port,
-            "/storage/emulated/0/Tasker",
+            deviceinv.FILE_LIST_DIRECTORY,
         )
         if return_code != 0:
             self.display_message_box(filelist, "Red")
@@ -1574,40 +1655,40 @@ def validate_or_filelist_xml(
 
 # List the XML files on the Android device
 def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tuple:
-    """Get list of files from given IP address.
-    Parameters:
-        - ip_address (str): IP address to connect to.
-        - ip_port (str): Port number to connect to.
-        - file_location (str): Location of the file to retrieve.
+    """Get the list of XML files on an Android device.
+
+    Args:
+        ip_address: the device's TCP/IP address.
+        ip_port: the port its Tasker HTTP server is listening on.
+        file_location: the directory to list.
+
     Returns:
-        - tuple: Return code and list of file locations.
-    Processing Logic:
-        - Retrieve file contents using http_request.
-        - If return code is 0, split the decoded string into a list and return.
-        - Otherwise, return error with empty string."""
+        tuple: (0, list of file paths) or (return_code, error message).
 
-    # Get the contents of the file.
-    return_code, file_contents = http_request(
-        ip_address,
-        ip_port,
-        file_location,
-        "maplist",
-        "?xml",
-    )
+    The listing is done by a helper Task MapTasker installs on the device itself -- see
+    deviceinv.fetch_file_list_from_device.  It used to be a GET on the 'maplist' route,
+    which is served by the separate 'MapTasker List' TaskerNet Profile that the user had
+    to import by hand and keep enabled; that Profile is no longer needed for anything.
 
-    # If good return code, get the list of XML file locations into a list and return.
-    if return_code == 0:
-        decoded_string = (file_contents.decode("utf-8")).split(",")
-        # Strip off the count field
-        for num, item in enumerate(decoded_string):
-            temp_item = item[:-3]  # Drop last 3 characters
-            decoded_string[num] = temp_item.replace("/storage/emulated/0", "")
-        # Remove items that are in the trash
-        final_list = [item for item in decoded_string if ".Trash" not in item]
-        return 0, final_list
+    The old route answered with each path glued to that path's file count and the whole
+    lot joined by commas, which is why this used to chop three characters off the end of
+    every entry and split on a character that can appear in a file name.  The helper Task
+    writes the paths and nothing else, so neither is necessary any more.
 
-    # Otherwise, return error
-    return return_code, file_contents
+    Blocking -- the helper Task takes a moment to run and this waits for its answer -- so
+    callers on the GUI thread must go through run.io_bound (validate_or_filelist_xml does).
+    """
+    return_code, result = deviceinv.fetch_file_list_from_device(ip_address, ip_port, file_location)
+    if return_code != 0:
+        return return_code, result
+
+    # Paths come back absolute, as Tasker reported them.  The 'file' route is rooted at the
+    # storage root, so that prefix has to come off before any of these can be fetched --
+    # and Tasker's own trash is full of XML nobody wants offered.
+    final_list = [path.replace("/storage/emulated/0", "") for path in result if ".Trash" not in path]
+    if not final_list:
+        return 8, f"Only trashed XML files were found on the Android device under {file_location}."
+    return 0, final_list
 
 
 # Read the change log file, add it to the messages to be displayed and then remove it.

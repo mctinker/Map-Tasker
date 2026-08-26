@@ -158,7 +158,7 @@ def original_of(file_path: str) -> str:
 
     "Save To Current File" never touches the original: it writes a timestamped copy
     alongside it -- backup.xml -> backup_20260721_143005.xml -- and switches the app over
-    to the copy (edit_caveats.txt item 6, maputil2.write_full_backup_to_current_file).
+    to the copy (caveats.md item 6, maputil2.write_full_backup_to_current_file).
     Both halves of that pair are therefore on disk, which makes "what did my own edit
     change?" answerable with no file picker at all.
 
@@ -240,7 +240,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
     does os.remove(file_to_parse) followed by os.rename -- it replaces the file on disk.
     A comparison that rewrote one of the two backups it was asked to compare would be
     destroying the very thing the user opened it to check, and "Save to Current File"
-    never touches the original (edit_caveats.txt item 6) precisely so that pair stays
+    never touches the original (caveats.md item 6) precisely so that pair stays
     comparable.  Parsing a copy makes that impossible by construction rather than by
     hoping the encoding is fine.
 

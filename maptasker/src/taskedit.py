@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import sessundo
+from maptasker.src import deviceinv, sessundo
 from maptasker.src.actionc import action_codes
 from maptasker.src.actiont import lookup_values
 from maptasker.src.bundle import bundles
@@ -68,8 +68,8 @@ class EditableArg:
 
     arg_id: str
     arg_name: str
-    widget_kind: str  # "checkbox" | "dropdown" | "text" | "raw_fallback" | "readonly"
-    backing_tag: str  # "Int" | "Str" | ""
+    widget_kind: str  # "checkbox" | "dropdown" | "text" | "raw_fallback" | "app_picker" | "icon_picker" | "readonly"
+    backing_tag: str  # "Int" | "Str" | "App" | "Img" | ""
     is_var: bool
     element: defusedxml.ElementTree.Element | None
     current_value: str
@@ -568,6 +568,10 @@ def build_editable_args(
             editable_args.append(_build_int_arg(action_element, the_arg, arg))
         elif category in ("String", "Str"):
             editable_args.append(_build_string_arg(action_element, the_arg, arg))
+        elif category == "App":
+            editable_args.append(_build_app_arg(action_element, the_arg, arg))
+        elif category in _ICON_CATEGORIES:
+            editable_args.append(_build_icon_arg(action_element, the_arg, arg))
         else:
             editable_args.append(
                 _readonly_arg(arg, f"'{category or arg.arg_type}' arguments are not editable in this version."),
@@ -793,6 +797,15 @@ def _classify_arg_widget(arg) -> tuple[str, str, list[str] | None]:
     if category in ("String", "Str"):
         widget_kind = "text" if isinstance(arg.arg_eval, str) else "raw_fallback"
         return widget_kind, "Str", None
+    # An Application or an icon is editable only while there is an inventory to offer:
+    # both fields are typed into as well as picked from (see guiwins._render_app_arg_field),
+    # but a picker with nothing in it is a field the user has no way to fill correctly, so
+    # with an empty inventory these stay exactly as read-only as they were before
+    # deviceinv.py existed.  See classify_action_addability, which gates on the same thing.
+    if category == "App" and deviceinv.have_apps():
+        return "app_picker", "App", None
+    if category in _ICON_CATEGORIES and deviceinv.have_icons():
+        return "icon_picker", "Img", None
     return "readonly", "", None
 
 
@@ -896,6 +909,58 @@ def _build_string_arg(action_element: defusedxml.ElementTree.Element, the_arg: s
         is_var=False,
         element=str_element,
         current_value=str_element.text or "",
+    )
+
+
+def _build_app_arg(action_element: defusedxml.ElementTree.Element, the_arg: str, arg) -> EditableArg:
+    """An <App sr="argN"> argument, as a field holding its package names.
+
+    Read-only in two cases, both of which are what this argument did before it was
+    editable at all: no inventory to pick from (see _classify_arg_widget), or no <App>
+    element in this action's XML to bind to.  The second is the same treatment
+    _build_string_arg gives a missing <Str>: this builds a model of what is there, and
+    synthesizing a missing element belongs to Add Task (build_synthesized_args).
+    """
+    widget_kind, backing_tag, _ = _classify_arg_widget(arg)
+    if widget_kind != "app_picker":
+        return _readonly_arg(arg, NO_APPS_REASON)
+
+    app_element = action_element.find(f"./App[@sr='{the_arg}']")
+    if app_element is None:
+        return _readonly_arg(arg, "Not present in this action's XML.")
+
+    return EditableArg(
+        arg_id=arg.arg_id,
+        arg_name=_display_arg_name(arg) or "App",
+        widget_kind=widget_kind,
+        backing_tag=backing_tag,
+        is_var=False,
+        element=app_element,
+        current_value=deviceinv.format_app_value(deviceinv.read_app_element(app_element)),
+    )
+
+
+def _build_icon_arg(action_element: defusedxml.ElementTree.Element, the_arg: str, arg) -> EditableArg:
+    """An <Img sr="argN"> argument, as a field holding one icon reference -- see
+    deviceinv.format_icon_value for how the four forms of one are spelled.  Falls back to
+    read-only on the same two conditions as _build_app_arg, for the same reasons.
+    """
+    widget_kind, backing_tag, _ = _classify_arg_widget(arg)
+    if widget_kind != "icon_picker":
+        return _readonly_arg(arg, NO_ICONS_REASON)
+
+    img_element = action_element.find(f"./Img[@sr='{the_arg}']")
+    if img_element is None:
+        return _readonly_arg(arg, "Not present in this action's XML.")
+
+    return EditableArg(
+        arg_id=arg.arg_id,
+        arg_name=_display_arg_name(arg) or "Icon",
+        widget_kind=widget_kind,
+        backing_tag=backing_tag,
+        is_var=False,
+        element=img_element,
+        current_value=deviceinv.format_icon_value(deviceinv.read_icon_element(img_element)),
     )
 
 
@@ -1155,6 +1220,15 @@ def build_synthesized_args(
 
         if editable_arg.backing_tag == "Int":
             element = element_cls("Int", {"sr": f"arg{arg.arg_id}", "val": editable_arg.current_value or "0"})
+        elif editable_arg.backing_tag in ("App", "Img"):
+            # An empty <App>/<Img>, exactly as Tasker writes one for an action whose app or
+            # icon has not been chosen yet.  've="2"' is what every <App sr="conN"> and
+            # <Img> in a real backup carries; the argument forms of <App> carry no ve at
+            # all, so only the <Img> gets one.  deviceinv fills in the children on save.
+            attributes = {"sr": f"arg{arg.arg_id}"}
+            if editable_arg.backing_tag == "Img":
+                attributes["ve"] = "2"
+            element = element_cls(editable_arg.backing_tag, attributes)
         else:  # "Str"
             element = element_cls("Str", {"sr": f"arg{arg.arg_id}", "ve": "3"})
             element.text = ""
@@ -1165,6 +1239,18 @@ def build_synthesized_args(
 
 
 _SAFE_CATEGORIES = ("Int", "Str", "String", "Boolean")
+# The two refusals that are not permanent.  Every other reason classify_action_addability
+# gives is a statement about the action ("this plugin's payload can't be generated"); these
+# two are statements about what is loaded right now, and the App one has a way out -- a
+# fetch from the device -- which the GUI offers wherever it shows this exact text (see
+# guiwins._render_addability_reason).  Named constants rather than literals so that
+# recognising it is an equality check against one definition, not a substring guess.
+NO_APPS_REASON = "No Applications were found in the loaded configuration to choose from."
+NO_ICONS_REASON = "No icons were found in the loaded configuration to choose from."
+# The arg_specs.json categories an <Img> backs.  'Icon' is the one Task actions and Profile
+# Events declare; 'Img' is proginit.py's own added spec, used by Scene elements.  Both are
+# the same element and the same picker, so both are named wherever one is.
+_ICON_CATEGORIES = ("Icon", "Img")
 
 
 def classify_action_addability(action_key: str) -> tuple[bool, str]:
@@ -1209,6 +1295,18 @@ def classify_action_addability(action_key: str) -> tuple[bool, str]:
         # A plugin payload we have a recorded definition for is generatable after all.
         if category == "Bundle" and get_bundle_definition(action_key) is not None:
             continue
+        # An Application or an icon is generatable while there is an inventory to pick one
+        # from -- see deviceinv.py, and _classify_arg_widget, which gates the field itself
+        # on the same answer.  This is what makes Launch App, Notify and the other 20
+        # entries listed in app_icon_fetch_design.md addable at all.
+        if category == "App" and deviceinv.have_apps():
+            continue
+        if category in _ICON_CATEGORIES and deviceinv.have_icons():
+            continue
+        if category == "App":
+            return False, NO_APPS_REASON
+        if category in _ICON_CATEGORIES:
+            return False, NO_ICONS_REASON
         reason = (
             f"Requires a '{category or arg.arg_type}' value for "
             f"'{arg.arg_name or 'plugin payload'}' that this tool can't generate yet."
@@ -1219,15 +1317,22 @@ def classify_action_addability(action_key: str) -> tuple[bool, str]:
 
 
 _ADDABLE_ACTIONS_CACHE: list[dict] | None = None
+_ADDABLE_ACTIONS_GENERATION = -1
 
 
 def list_addable_actions() -> list[dict]:
-    """All real numeric Task-action entries with their addability, memoized -- the
-    underlying data (actionc.py, arg_specs.json, category_descriptions.json) is
-    static for the process lifetime.
+    """All real numeric Task-action entries with their addability, memoized.
+
+    Most of the underlying data (actionc.py, arg_specs.json, category_descriptions.json)
+    is static for the process lifetime, but addability is not: an App or Icon argument is
+    generatable only while deviceinv has an inventory, and loading a configuration is what
+    produces one.  The memo therefore carries the inventory generation it was built under
+    and rebuilds when that moves -- without it, the Add Action picker would go on showing
+    'Launch App' greyed out, with a reason that stopped being true, until restart.
     """
-    global _ADDABLE_ACTIONS_CACHE  # noqa: PLW0603
-    if _ADDABLE_ACTIONS_CACHE is not None:
+    global _ADDABLE_ACTIONS_CACHE, _ADDABLE_ACTIONS_GENERATION  # noqa: PLW0603
+    inventory_generation = deviceinv.generation()
+    if _ADDABLE_ACTIONS_CACHE is not None and inventory_generation == _ADDABLE_ACTIONS_GENERATION:
         return _ADDABLE_ACTIONS_CACHE
 
     rows = []
@@ -1251,6 +1356,7 @@ def list_addable_actions() -> list[dict]:
         )
     rows.sort(key=lambda row: row["name"])
     _ADDABLE_ACTIONS_CACHE = rows
+    _ADDABLE_ACTIONS_GENERATION = inventory_generation
     return rows
 
 
@@ -1524,6 +1630,10 @@ def apply_arg_values(
         elif arg.widget_kind == "dropdown":
             index = arg.dropdown_options.index(value) if value in arg.dropdown_options else 0
             arg.element.set("val", str(index))
+        elif arg.backing_tag == "App":
+            deviceinv.write_app_element(arg.element, deviceinv.parse_app_value(value))
+        elif arg.backing_tag == "Img":
+            deviceinv.write_icon_element(arg.element, deviceinv.parse_icon_value(value))
         elif arg.backing_tag == "Int" and arg.is_var:
             var_element = arg.element.find("var")
             var_element.text = value
