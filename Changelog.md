@@ -6,26 +6,28 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-* Added: Task actions and Profile conditions that take an __Application__ or an __icon__ can now be added and edited.  These were previously refused outright because MapTasker had no list of either -- 17 Task actions and 5 Profile Events in all, among them 'Launch App', 'Kill App', 'Browse URL', 'Media Control', 'Notify' and 'Set Tasker Icon'.
+- Added: Task actions and Profile conditions that take an __Application__ or an __icon__ can now be added and edited.  
+
+      These were previously refused outright because MapTasker had no list of either -- 17 Task actions and 5 Profile Events in all, among them 'Launch App', 'Kill App', 'Browse URL', 'Media Control', 'Notify' and 'Set Tasker Icon'.
   - The list is built from the configuration you have loaded: every Application and icon named anywhere in it, with its package, label and activity class.  Nothing is fetched and nothing extra has to be installed.
   - __'App not listed?'__ in either Application picker -- and beside the message 'No Applications were found in the loaded configuration to choose from' in the Add Action picker, where there is no picker to open yet -- fetches the full list of installed applications from your Android device.  MapTasker installs a small Task named 'MapTasker Get Apps v2' on the device, runs it, and reads the answer back; the result is remembered per device in 'MapTasker_Apps.json' so it is there next time.  Tasker asks you to authorize the connection on the device, and the fetch waits for you to accept; after that allow 30 seconds or more, longer on a device with several hundred applications, because each application's name is looked up individually -- which is what makes every name the right one.  The dialog says both, before you start it and again while it runs.  Requires Tasker 6.2 or higher with the 'HTTP Server Example' project running -- the same requirement 'Save to Android' has.  Where the two sources disagree about an application's name or activity, the one from your own configuration wins.
   - Each such argument gets a 'Pick' button beside it.  An Application argument can name several apps at once, so its picker ticks as many as you like; an icon argument takes one.
   - The Profile 'Application' condition's Package / Label / Class fields get the same button, and one pick fills all three.
   - An Application can be a __Tasker variable__ rather than an installed app.  Both Application pickers have an 'Or a Tasker variable:' box for it -- anything starting with '%'.  In an action argument the variable joins whatever else is ticked; in the Profile 'Application' condition it fills the Package and Label fields and leaves the Class empty, which is what Tasker itself writes for one.
   - The field itself is still typed into, and what you type is what is saved -- and an icon from an icon pack has to be named by hand, since those names live inside the pack.
+  
+-Added: Import Projects/Profiles/Tasks/Scenes directly into Tasker via the 'Edit (object) > Save To Android > Import Into Tasker' buttons.
 
 ### Changed
 
-* Changed: 'List XML Files' no longer needs the 'MapTasker List' profile.  Listing the XML files on an Android device previously required finding that profile on TaskerNet, importing it by hand, and leaving it enabled -- and when it was missing, the attempt failed with a timeout that named no cause.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications, and leaves it there for next time.  Nothing has to be imported by hand.
+- Changed: 'List XML Files' no longer needs the 'MapTasker List' Tasker profile.  Listing the XML files on an Android device previously required finding that profile on TaskerNet, importing it by hand, and leaving it enabled -- and when it was missing, the attempt failed with a timeout that named no cause.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications, and leaves it there for next time.  Nothing has to be imported by hand.
   - The 'HTTP Server Example' project running on the device is now the only setup step.  Tasker 6.2 or higher is required, and Tasker will ask you to authorize the connection the first time, exactly as 'Save to Android' does.
   - The old profile hardcoded port 1821 in its trigger, so a device whose server ran on any other port could not use 'List XML Files' at all.  The helper Task has no such limitation.
   - A file name containing a comma -- 'Bonza, Jigsaw.prj.xml' -- is now listed correctly.  The old route joined the paths it returned with commas, so such a file arrived split in two.
   - The connection check sitting in front of every Android button was itself a request to that profile's route, so it failed for anyone who had the server running but had never imported the profile.  It now checks the server directly.
   - If you still have the 'MapTasker List' profile in Tasker, nothing uses it any more and it can be deleted.
-
-* Changed: fetching a single-object export -- the '.prj'/'.prf'/'.tsk'/'.scn' files Tasker writes when you export one Project, Profile, Task or Scene -- now selects that object as the specific Project/Profile/Task/Scene automatically.
-
-* Changed: 'Find/Replace': clicking a result row, or a row in a Replace preview, no longer closes the dialog.  It moves to the right side of the screen and stays there while the Map (or Diagram) shows what the row points at, so a list of places can be walked one at a time without pressing 'Find/Replace' again for each one.
+- Changed: fetching a single-object export -- the '.prj'/'.prf'/'.tsk'/'.scn' files Tasker writes when you export one Project, Profile, Task or Scene -- now selects that object as the specific Project/Profile/Task/Scene automatically.
+- Changed: 'Find/Replace': clicking a result row, or a row in a Replace preview, no longer closes the dialog.  It moves to the right side of the screen and stays there while the Map (or Diagram) shows what the row points at, so a list of places can be walked one at a time without pressing 'Find/Replace' again for each one.
 
 ### Fixed
 

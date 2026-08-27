@@ -15,7 +15,7 @@ from urllib.parse import urlencode
 
 from nicegui import Event, context, run, ui
 
-from maptasker.src import mapjump, presave, profedit, projedit, sceneedit, sessundo, taskedit
+from maptasker.src import deviceinv, mapjump, presave, profedit, projedit, sceneedit, sessundo, taskedit
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
@@ -4648,7 +4648,8 @@ class MapTaskerEventHandlers:
         parent_dialog: ui.dialog,
     ) -> None:
         """Validates and applies the parent dialog's field values (same as a local
-        Save), pings the Android device to confirm it's reachable, and then writes
+        Save -- see _apply_profile_for_android, shared with this dialog's other
+        button), pings the Android device to confirm it's reachable, and then writes
         the edited Profile onto the device's storage under /Tasker/profiles (see
         profedit.save_profile_to_android -- this is a file write, not a live import
         into Tasker, unlike save_task_to_android_event's api/import; /upload needs
@@ -4656,37 +4657,9 @@ class MapTaskerEventHandlers:
         A Profile also needs registering into the live tree (see the is_new_profile
         branch below) -- Tasks don't need the Project-attachment step a Profile does.
         """
-        _link_pending_task_pickers(edited_profile, field_refs)
-        condition_values = _profile_condition_values(field_refs)
-
-        errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
-        if errors:
-            for error in errors:
-                ui.notify(error, type="negative")
+        ok, is_new_profile, project_name = self._apply_profile_for_android(edited_profile, field_refs)
+        if not ok:
             return
-
-        # Add Profile's dialog (unlike Edit Profile's) has a "target_project_name"
-        # entry -- its presence is how this shared handler tells a brand-new,
-        # not-yet-registered Profile apart from one already in the backup, without
-        # threading an extra parameter through every caller.
-        is_new_profile = "target_project_name" in field_refs
-        project_name = field_refs.get("target_project_name", "") if is_new_profile else ""
-        if is_new_profile:
-            new_profile_errors = []
-            if profedit.profile_name_exists(field_refs["name"].value.strip()):
-                new_profile_errors.append(
-                    f"A Profile named '{field_refs['name'].value.strip()}' already exists in this backup. "
-                    "Choose a different name.",
-                )
-            if not project_name:
-                new_profile_errors.append(
-                    "Choose a Project first -- a Profile has to belong to one to show up anywhere in the app.",
-                )
-            new_profile_errors.extend(profedit.validate_new_profile_requirements(edited_profile))
-            if new_profile_errors:
-                for error in new_profile_errors:
-                    ui.notify(error, type="negative")
-                return
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
@@ -4717,17 +4690,7 @@ class MapTaskerEventHandlers:
             self.gui.android_ipaddr = ip_address
             self.gui.android_port = ip_port
 
-            # Grouped so registering the Profile and attaching it to its Project are one
-            # step to take back rather than two -- same reason _finish_new_profile does.
-            with sessundo.undoable(
-                f"Add Profile '{profile_name}'" if is_new_profile else f"Edit Profile '{profile_name}'"
-            ):
-                if is_new_profile:
-                    profedit.register_new_profile(edited_profile, profile_name)
-                    profedit.add_profile_to_project(edited_profile, project_name)
-                else:
-                    profedit.apply_edited_profile_to_live_tree(edited_profile)
-            refresh_tasker_object_pulldowns(self.gui)
+            self._keep_profile_in_loaded_config(edited_profile, profile_name, is_new_profile, project_name)
 
             # `copied and` matters: on a failure safety_copy holds the reason, not a path.
             saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
@@ -4746,6 +4709,326 @@ class MapTaskerEventHandlers:
             )
             return
         _upload()
+
+    def _apply_profile_for_android(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+    ) -> tuple[bool, bool, str]:
+        """Validate and apply the parent dialog's fields, the same way a local Save does.
+
+        Returns (ok, is_new_profile, project_name); ok is False once the errors have already
+        been shown, so the caller only has to return.
+
+        Shared by both of the Save Profile To Android dialog's buttons.  They do genuinely
+        different things to the device and nothing at all differently to the Profile, so
+        this had to be one implementation -- a second copy would drift, and the way it would
+        drift is one button validating something the other does not.
+        """
+        _link_pending_task_pickers(edited_profile, field_refs)
+        condition_values = _profile_condition_values(field_refs)
+
+        errors = profedit.apply_edits_to_profile(edited_profile, field_refs["name"].value, condition_values)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return False, False, ""
+
+        # Add Profile's dialog (unlike Edit Profile's) has a "target_project_name"
+        # entry -- its presence is how these shared handlers tell a brand-new,
+        # not-yet-registered Profile apart from one already in the backup, without
+        # threading an extra parameter through every caller.
+        is_new_profile = "target_project_name" in field_refs
+        project_name = field_refs.get("target_project_name", "") if is_new_profile else ""
+        if is_new_profile:
+            new_profile_errors = []
+            if profedit.profile_name_exists(field_refs["name"].value.strip()):
+                new_profile_errors.append(
+                    f"A Profile named '{field_refs['name'].value.strip()}' already exists in this backup. "
+                    "Choose a different name.",
+                )
+            if not project_name:
+                new_profile_errors.append(
+                    "Choose a Project first -- a Profile has to belong to one to show up anywhere in the app.",
+                )
+            new_profile_errors.extend(profedit.validate_new_profile_requirements(edited_profile))
+            if new_profile_errors:
+                for error in new_profile_errors:
+                    ui.notify(error, type="negative")
+                return False, False, ""
+
+        return True, is_new_profile, project_name
+
+    def _keep_profile_in_loaded_config(
+        self,
+        edited_profile: profedit.EditableProfile,
+        profile_name: str,
+        is_new_profile: bool,
+        project_name: str,
+    ) -> None:
+        """Put the edit into MapTasker's own loaded configuration, once the device has it.
+
+        Grouped into one undo step so registering a Profile and attaching it to its Project
+        are one thing to take back rather than two -- same reason _finish_new_profile does.
+        """
+        with sessundo.undoable(
+            f"Add Profile '{profile_name}'" if is_new_profile else f"Edit Profile '{profile_name}'",
+        ):
+            if is_new_profile:
+                profedit.register_new_profile(edited_profile, profile_name)
+                profedit.add_profile_to_project(edited_profile, project_name)
+            else:
+                profedit.apply_edited_profile_to_live_tree(edited_profile)
+        refresh_tasker_object_pulldowns(self.gui)
+
+    async def import_profile_into_tasker_event(
+        self,
+        edited_profile: profedit.EditableProfile,
+        field_refs: dict,
+        android_field_refs: dict,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Put the edited Profile in front of Tasker's own import screen on the device.
+
+        The other button in this dialog (save_profile_to_android_event) writes a file to
+        /Tasker/profiles that Tasker never reads.  This stages the same XML and has a helper
+        Task open it, which brings up Tasker's ordinary import screen -- see
+        deviceinv.open_profile_on_device, and OPEN_FILE_ROUTE for why that route rather than
+        the headless one.
+
+        TWO PHASES, BECAUSE THERE IS A PERSON IN THE MIDDLE
+
+        Opening the screen and importing are not the same event, and 'Open File' returns
+        without waiting for the decision.  So this reports the screen being up as soon as it
+        is up -- rather than leaving the user watching a spinner while their phone waits for
+        them -- and then waits separately for Tasker to actually report the Profile.
+
+        Both dialogs close as soon as the device answers -- once the import screen is up on
+        the phone there is nothing left here to do, and a panel that outlives the response
+        is a panel the user has to dismiss for no reason.  The confirmation runs on after
+        them and reports what the device did.
+
+        The edit is kept in the loaded configuration at that same moment, not held back
+        until the confirmation lands.  With the dialogs gone there is no retry surface left,
+        so discarding it on a poll that timed out -- and the poll times out for reasons that
+        say nothing about the edit, a phone still in a pocket above all -- would be silent
+        data loss rather than caution.
+
+        A PROFILE TASKER ALREADY HAS CANNOT BE CONFIRMED AT ALL
+
+        The confirmation is 'does Tasker report a Profile of this name', and for a Profile
+        that was already there that is true before the user touches anything -- so waiting
+        for it would report success the moment it was asked, Cancel included.  There is no
+        second signal to use: Tasker offers to REPLACE in that case (which is why nothing
+        refuses a duplicate any more), and a replacement leaves the name, the count and the
+        enabled state exactly as they were.
+
+        So that case is not waited on.  It is reported for what it is -- the screen is open,
+        Tasker will ask about replacing, MapTasker cannot see the answer -- and the edit is
+        kept in the loaded configuration, because the alternative is throwing away the
+        user's own edit over a device answer that is never coming.
+
+        No safety copy is taken here, unlike the file save.  What this overwrites on the
+        device is MapTasker's own staging file, rewritten on every import and read seconds
+        later -- there is nothing of the user's at that path to lose (see presave's module
+        comment on what is and is not actually at risk).
+        """
+        ok, is_new_profile, project_name = self._apply_profile_for_android(edited_profile, field_refs)
+        if not ok:
+            return
+
+        ip_address = android_field_refs["ip_address"].value.strip()
+        ip_port = android_field_refs["ip_port"].value.strip()
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+
+        profile_name = field_refs["name"].value.strip()
+        profile_xml = profedit.render_standalone_profile_xml(edited_profile).encode("utf-8")
+
+        await self._offer_into_tasker(
+            profile_xml,
+            profile_name,
+            # A Profile is confirmed by its own name -- the list of one the general case
+            # collapses to.  A Project's list is every Profile it owns; see
+            # deviceinv.offer_to_tasker.
+            [profile_name],
+            deviceinv.OPEN_FILE_ROUTE,
+            ip_address,
+            ip_port,
+            android_dialog,
+            parent_dialog,
+            lambda: self._keep_profile_in_loaded_config(edited_profile, profile_name, is_new_profile, project_name),
+        )
+
+    async def _offer_into_tasker(  # noqa: PLR0913
+        self,
+        xml_bytes: bytes,
+        object_name: str,
+        profile_names: list[str],
+        route: deviceinv.OfferRoute,
+        ip_address: str,
+        ip_port: str,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+        keep_edit: Callable[[], None],
+    ) -> None:
+        """Offer a Profile or a Project to Tasker's import screen, and report what happened.
+
+        Everything the two Import Into Tasker buttons do once their own validation is past,
+        in one place: they differ in what they render, what confirms it and what they have to
+        keep afterwards, and in nothing else.  keep_edit is that last part -- registering an
+        edited Profile into the loaded configuration, or nothing at all for a Project, which
+        is exported from the live tree by name and so has nothing to register.
+
+        TWO PHASES, BECAUSE THERE IS A PERSON IN THE MIDDLE
+
+        Opening the screen and importing are not the same event, and the helper Task returns
+        without waiting for the decision.  So this reports the screen being up as soon as it
+        is up -- rather than leaving the user watching a spinner while their phone waits for
+        them -- and then waits separately for Tasker to report what arrived.
+
+        Both dialogs close as soon as the device answers.  Once the import screen is up on
+        the phone there is nothing left here to do, and a panel that outlives the response is
+        a panel the user has to dismiss for no reason.
+
+        The edit is kept at that same moment, not held back until the confirmation lands:
+        with the dialogs gone there is no retry surface left, so discarding it on a poll that
+        timed out -- and the poll times out for reasons that say nothing about the edit, a
+        phone still in a pocket above all -- would be silent data loss rather than caution.
+
+        SOME IMPORTS CANNOT BE CONFIRMED AT ALL
+
+        The confirmation is 'does Tasker report these Profiles', and for ones it already has
+        that is true before the user touches anything: Tasker offers to REPLACE in that case,
+        and a replacement leaves the name, the count and the enabled state exactly as they
+        were.  A Project owning only unnamed Profiles has nothing askable at all (see
+        projedit.project_profile_names).  Those are reported for what they are rather than
+        waited on -- see deviceinv.import_is_confirmable.
+        """
+        # Asked before the offer, not after, because after the import the answer means
+        # nothing.  None ('could not ask') is treated the same as False: neither can be
+        # confirmed, and guessing the other way would turn an unconfirmable import into a
+        # reported success.
+        confirmable = await run.io_bound(deviceinv.import_is_confirmable, ip_address, ip_port, profile_names)
+
+        # Blocking -- it installs a Task, uploads, runs and polls -- so it goes to a worker
+        # thread, the way every other Android call from the GUI does.
+        return_code, message = await run.io_bound(
+            deviceinv.offer_to_tasker,
+            xml_bytes,
+            object_name,
+            profile_names,
+            ip_address,
+            ip_port,
+            wait_for_confirmation=False,
+            route=route,
+        )
+        if return_code != 0:
+            ui.notify(f"Could not import into Tasker: {message}", type="negative")
+            return
+
+        # Remember the connection details for next time, same as the Get XML dialog does.
+        self.gui.android_ipaddr = ip_address
+        self.gui.android_port = ip_port
+
+        # Closed before the edit is kept rather than after, so that a failure in keeping it
+        # cannot be what leaves the panel on screen.
+        android_dialog.close()
+        parent_dialog.close()
+        keep_edit()
+
+        subject = f"{route.label} '{object_name}'"
+        if confirmable is not True:
+            # No timeout on this one, and nothing to take it down: it is the last thing this
+            # will say, it asks the user to go and do something, and there is no outcome
+            # coming that could replace it.  Its close button is how it goes.
+            ui.notification(
+                f"Tasker's import screen is open on {ip_address}:{ip_port} for {subject}.  Tasker already "
+                "has what this would import and will offer to replace it -- confirm on the device.  "
+                "Whether that was confirmed cannot be seen from here.",
+                type="info",
+                timeout=None,
+                close_button=True,
+                multi_line=True,
+            )
+            return
+
+        # ui.notification rather than ui.notify, for the handle: this one has no timeout
+        # because there is no telling how long someone takes to reach their phone, and a
+        # message with no timeout and nothing to dismiss it is a box that sits on screen for
+        # the rest of the session.  It is a status line for a step in progress, so the
+        # outcome below takes it down and replaces it.
+        pending = ui.notification(
+            f"Tasker's import screen is open on {ip_address}:{ip_port} -- tap Import on the device to finish.",
+            type="info",
+            timeout=None,
+            close_button=True,
+        )
+
+        # Runs on with the dialogs gone; all it can do now is report.
+        return_code, message = await run.io_bound(
+            deviceinv.await_import,
+            ip_address,
+            ip_port,
+            profile_names,
+            subject,
+        )
+        pending.dismiss()
+        # Not an error in the usual sense: most likely nobody has got to the phone yet, or
+        # they declined.  Either way it is the DEVICE this reports on, not the edit here.
+        ui.notify(message, type="positive" if return_code == 0 else "warning")
+
+    async def import_project_into_tasker_event(
+        self,
+        edited_project: projedit.EditableProject,
+        field_refs: dict,
+        android_field_refs: dict,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Put the Project -- and every Profile and Task in it -- in front of Tasker's own
+        import screen on the device.  The Project counterpart of
+        import_profile_into_tasker_event; both hand off to _offer_into_tasker.
+
+        Same unapplied-edits guard as save_project_to_android_event, and for the same reason:
+        this exports the Project from the LIVE TREE by name, so a field added to the dialog
+        without its apply step would be dropped silently from what reaches the phone.  Run
+        before the device is contacted.
+
+        Nothing is registered afterwards.  A Project has no separate editable model -- the
+        export reads the live tree -- so unlike a Profile there is no edit to keep.
+
+        Confirmation goes through the Project's own Profiles, because Tasker's HTTP API has
+        no /api/projects to ask about the Project itself; see projedit.project_profile_names.
+        """
+        errors = _unapplied_project_edits(field_refs)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        ip_address = android_field_refs["ip_address"].value.strip()
+        ip_port = android_field_refs["ip_port"].value.strip()
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+
+        project_name = edited_project.project_name
+        project_xml = projedit.render_standalone_project_xml(project_name).encode("utf-8")
+
+        await self._offer_into_tasker(
+            project_xml,
+            project_name,
+            projedit.project_profile_names(project_name),
+            deviceinv.OPEN_PROJECT_ROUTE,
+            ip_address,
+            ip_port,
+            android_dialog,
+            parent_dialog,
+            lambda: None,
+        )
 
     def open_save_project_to_android_dialog_event(
         self,

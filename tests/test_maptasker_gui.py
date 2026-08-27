@@ -668,3 +668,387 @@ async def test_compare_still_displays_when_the_save_fails(event_handler, mock_gu
 
     assert "could not be saved" in mock_gui_instance.display_message_box.call_args[0][0]
     view.assert_called_once()
+
+
+# ==========================================
+# Importing a Profile into Tasker from the Edit Profile dialog
+#
+# The Save Profile To Android dialog now has two buttons that do genuinely different things.
+# 'Save As File' uploads a .prf.xml Tasker never reads; 'Import Into Tasker' puts the
+# Profile in front of Tasker's own import screen and waits for a person to tap Import.
+#
+# The person in the middle is what these are about.  Opening the screen and importing are
+# not the same event, so the handler runs in two phases -- and the failure that matters is
+# the one where it treats phase one as if it were phase two: MapTasker would show the edit
+# as landed while the phone still had the dialog up, or had been declined.
+# ==========================================
+
+
+class _FakeField:
+    """Stands in for a NiceGUI ui.input: .value is all the handler reads."""
+
+    def __init__(self, value: str) -> None:
+        self.value = value
+
+
+@pytest.fixture
+def profile_dialog_refs():
+    """The two field_refs dicts the handler is given, for an EXISTING Profile (no
+    'target_project_name' key -- that key's presence is what marks a brand-new one)."""
+    return (
+        {"name": _FakeField("Watched")},
+        {"ip_address": _FakeField("192.168.0.210"), "ip_port": _FakeField("1821")},
+    )
+
+
+def _patch_import_path(monkeypatch, results: list) -> dict:
+    """Point the handler's collaborators at fakes and record what it did.
+
+    `results` is what run.io_bound returns, in order: the pre-check (see
+    deviceinv.import_is_confirmable), the offer, then the confirmation if there is one.
+    """
+    from maptasker.src import userintr
+
+    calls: dict = {"io_bound": [], "kept": [], "notify": [], "pending": []}
+
+    async def fake_io_bound(func, *args, **kwargs):
+        calls["io_bound"].append((func, args, kwargs))
+        return results[len(calls["io_bound"]) - 1]
+
+    async def fake_ping(_self, _ip, _port) -> bool:
+        return True
+
+    monkeypatch.setattr(userintr.run, "io_bound", fake_io_bound)
+    monkeypatch.setattr(userintr, "ping_android_device", fake_ping)
+    monkeypatch.setattr(userintr.profedit, "render_standalone_profile_xml", lambda _p: "<TaskerData/>")
+    monkeypatch.setattr(userintr.projedit, "render_standalone_project_xml", lambda _n: "<TaskerData/>")
+    monkeypatch.setattr(userintr.projedit, "project_profile_names", lambda _n: ["Watched", "Also Watched"])
+    monkeypatch.setattr(userintr, "_unapplied_project_edits", lambda _refs: [])
+    monkeypatch.setattr(
+        userintr.MapTaskerEventHandlers,
+        "_apply_profile_for_android",
+        lambda _self, _profile, _refs: (True, False, ""),
+    )
+    monkeypatch.setattr(
+        userintr.MapTaskerEventHandlers,
+        "_keep_profile_in_loaded_config",
+        lambda _self, *args: calls["kept"].append(args),
+    )
+    monkeypatch.setattr(
+        userintr.ui,
+        "notify",
+        lambda message, **kwargs: calls["notify"].append((message, kwargs.get("type"))),
+    )
+
+    class _FakeNotification:
+        """A ui.notification with the one thing the handler uses it for: being taken down."""
+
+        def __init__(self, message, **kwargs) -> None:
+            calls["notify"].append((message, kwargs.get("type")))
+            calls["pending"].append(self)
+            self.dismissed = False
+
+        def dismiss(self) -> None:
+            self.dismissed = True
+
+    monkeypatch.setattr(userintr.ui, "notification", _FakeNotification)
+    return calls
+
+
+@pytest.mark.asyncio
+async def test_a_new_profile_is_waited_for_before_anything_is_claimed(monkeypatch, event_handler, profile_dialog_refs):
+    """Two phases, and the second one is the one that counts.
+
+    The offer only opens a screen on the phone -- deviceinv.offer_to_tasker is called
+    with wait_for_confirmation=False precisely so the user is told that much straight away --
+    and nothing goes into the loaded configuration until Tasker reports the Profile.
+    """
+    from maptasker.src import deviceinv
+
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Profile 'Watched' is now in Tasker")])
+    android_dialog, parent_dialog = MagicMock(), MagicMock()
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        android_dialog,
+        parent_dialog,
+    )
+
+    pre_check, offer, confirm = calls["io_bound"]
+    assert pre_check[0] is deviceinv.import_is_confirmable
+    assert offer[0] is deviceinv.offer_to_tasker
+    assert offer[2]["wait_for_confirmation"] is False
+    assert offer[2]["route"] is deviceinv.OPEN_FILE_ROUTE
+    assert confirm[0] is deviceinv.await_import
+
+    assert len(calls["kept"]) == 1  # the edit reached the loaded configuration
+    android_dialog.close.assert_called_once()
+    parent_dialog.close.assert_called_once()
+    assert calls["notify"][-1] == ("Profile 'Watched' is now in Tasker", "positive")
+
+
+@pytest.mark.asyncio
+async def test_the_panel_goes_as_soon_as_the_device_answers(monkeypatch, event_handler, profile_dialog_refs):
+    """Sending it is the dialog's whole job, and the device answering is the end of it.
+
+    It used to stay up through the confirmation wait -- up to two minutes of dead panel over
+    a phone nobody has picked up -- and stayed up for good when a successful import was not
+    seen by the poll.  So both dialogs close on the OFFER, before anything is waited on.
+    """
+    field_refs, android_refs = profile_dialog_refs
+    _patch_import_path(monkeypatch, [True, (0, "screen is open"), (8, "may have been declined")])
+    android_dialog, parent_dialog = MagicMock(), MagicMock()
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        android_dialog,
+        parent_dialog,
+    )
+
+    android_dialog.close.assert_called_once()
+    parent_dialog.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_a_confirmation_that_never_comes_does_not_discard_the_edit(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+):
+    """With the dialogs already closed there is no retry surface left, so throwing the edit
+    away because a poll timed out would be silent data loss -- and a poll times out for
+    reasons that say nothing about the edit, a phone still in a pocket most of all.  The
+    warning reports on the DEVICE; the edit stays."""
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (8, "may have been declined")])
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert len(calls["kept"]) == 1
+    assert ("may have been declined", "warning") in calls["notify"]
+
+
+@pytest.mark.asyncio
+async def test_an_unconfirmable_import_is_never_waited_on(monkeypatch, event_handler, profile_dialog_refs):
+    """Tasker offers to REPLACE one it already has, and a replacement leaves the name, the
+    count and the enabled state exactly as they were -- so 'does Tasker report this Profile'
+    answers yes before the user touches anything.  Waiting on it would confirm the import the
+    instant it was asked, Cancel included, so it must not be asked at all."""
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [False, (0, "screen is open")])
+    android_dialog, parent_dialog = MagicMock(), MagicMock()
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        android_dialog,
+        parent_dialog,
+    )
+
+    assert len(calls["io_bound"]) == 2  # pre-check and offer; no confirmation wait
+    # The user's own edit is not thrown away over an answer that is never coming.
+    assert len(calls["kept"]) == 1
+    message, kind = calls["notify"][-1]
+    assert kind == "info"
+    assert "will offer to replace" in message
+    android_dialog.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_an_unreachable_pre_check_is_not_read_as_absent(monkeypatch, event_handler, profile_dialog_refs):
+    """None means 'could not ask', and guessing 'absent' would send this down the path that
+    treats a name appearing afterwards as proof -- turning an unconfirmable import into a
+    reported success."""
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [None, (0, "screen is open")])
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert len(calls["io_bound"]) == 2  # no confirmation wait
+    assert not any(kind == "positive" for _message, kind in calls["notify"])
+
+
+@pytest.mark.asyncio
+async def test_a_failed_offer_never_reaches_the_confirmation(monkeypatch, event_handler, profile_dialog_refs):
+    """No screen was opened, so there is nothing to wait for.  Polling anyway would spend
+    two minutes to report a failure that was already known."""
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (8, "Tasker could not open the file")])
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert len(calls["io_bound"]) == 2
+    assert calls["kept"] == []
+    assert any(kind == "negative" for _message, kind in calls["notify"])
+
+
+@pytest.mark.asyncio
+async def test_the_waiting_message_is_taken_down_by_the_outcome(monkeypatch, event_handler, profile_dialog_refs):
+    """'Tap Import on the device' has no timeout, because there is no telling how long
+    someone takes to reach their phone.  A message with no timeout and nothing to dismiss it
+    is a box that sits on screen for the rest of the session -- so the outcome replaces it
+    rather than stacking on top of it."""
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Profile 'Watched' is now in Tasker")])
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert len(calls["pending"]) == 1
+    assert calls["pending"][0].dismissed is True
+    assert calls["notify"][-1] == ("Profile 'Watched' is now in Tasker", "positive")
+
+
+@pytest.mark.asyncio
+async def test_the_replace_message_stays_because_nothing_follows_it(monkeypatch, event_handler, profile_dialog_refs):
+    """The already-there case has no outcome coming that could replace it, and it asks the
+    user to go and do something.  So it stays, and its close button is how it goes."""
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [False, (0, "screen is open")])
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert len(calls["pending"]) == 1
+    assert calls["pending"][0].dismissed is False
+
+
+# ==========================================
+# The same, for a Project
+#
+# A Project goes down the identical path -- _offer_into_tasker is one implementation for
+# both buttons -- so what is worth asserting here is only where the two genuinely differ:
+# the route (which decides the staged file's extension, and so what Tasker thinks it is
+# looking at), what confirms it, and the fact that a Project has no edit to keep.
+# ==========================================
+
+
+@pytest.mark.asyncio
+async def test_a_project_is_offered_as_a_project(monkeypatch, event_handler, profile_dialog_refs):
+    """The route is the whole difference at the device end: it stages the XML as
+    '.prj.xml' rather than '.prf.xml', and the extension is what tells Tasker whether it is
+    importing a Project or a Profile."""
+    from maptasker.src import deviceinv
+
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Project 'Home' is now in Tasker")])
+    edited_project = MagicMock()
+    edited_project.project_name = "Home"
+
+    await event_handler.import_project_into_tasker_event(
+        edited_project,
+        {},
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    _pre_check, offer, _confirm = calls["io_bound"]
+    assert offer[2]["route"] is deviceinv.OPEN_PROJECT_ROUTE
+    assert offer[1][1] == "Home"
+
+
+@pytest.mark.asyncio
+async def test_a_project_is_confirmed_through_the_profiles_it_owns(monkeypatch, event_handler, profile_dialog_refs):
+    """There is no /api/projects to ask about the Project itself, so the names that go to
+    the device are the Profiles it brings with it -- see projedit.project_profile_names."""
+    from maptasker.src import deviceinv
+
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Project 'Home' is now in Tasker")])
+    edited_project = MagicMock()
+    edited_project.project_name = "Home"
+
+    await event_handler.import_project_into_tasker_event(
+        edited_project,
+        {},
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    pre_check, offer, confirm = calls["io_bound"]
+    assert pre_check[0] is deviceinv.import_is_confirmable
+    assert pre_check[1][2] == ["Watched", "Also Watched"]
+    assert offer[1][2] == ["Watched", "Also Watched"]
+    assert confirm[1][2] == ["Watched", "Also Watched"]
+
+
+@pytest.mark.asyncio
+async def test_a_project_has_no_edit_to_keep(monkeypatch, event_handler, profile_dialog_refs):
+    """Unlike a Profile, a Project is exported from the LIVE TREE by name -- there is no
+    separate edited model, so there is nothing to register into the loaded configuration
+    afterwards."""
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (0, "Project 'Home' is now in Tasker")])
+    edited_project = MagicMock()
+    edited_project.project_name = "Home"
+
+    await event_handler.import_project_into_tasker_event(
+        edited_project,
+        {},
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert calls["kept"] == []
+
+
+@pytest.mark.asyncio
+async def test_unapplied_project_edits_stop_it_before_the_device(monkeypatch, event_handler, profile_dialog_refs):
+    """Same guard save_project_to_android_event has, for the same reason: this exports the
+    Project from the live tree by name, so a dialog field that was never applied would be
+    dropped silently from what reaches the phone.  It has to fail before anything is sent."""
+    from maptasker.src import userintr
+
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")])
+    monkeypatch.setattr(userintr, "_unapplied_project_edits", lambda _refs: ["Colour was never applied."])
+    edited_project = MagicMock()
+    edited_project.project_name = "Home"
+
+    await event_handler.import_project_into_tasker_event(
+        edited_project,
+        {},
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert calls["io_bound"] == []
+    assert ("Colour was never applied.", "negative") in calls["notify"]

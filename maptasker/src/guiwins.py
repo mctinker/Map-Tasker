@@ -2239,7 +2239,7 @@ def build_save_profile_to_android_dialog(
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
-                translate_string("Save"),
+                translate_string("Save As File"),
                 on_click=lambda: self.event_handlers.save_profile_to_android_event(
                     edited_profile,
                     field_refs,
@@ -2247,7 +2247,7 @@ def build_save_profile_to_android_dialog(
                     android_dialog,
                     parent_dialog,
                 ),
-            ).classes("bg-blue-600")
+            ).props("outline")
             with save_to_android:
                 ui.tooltip(
                     translate_string(
@@ -2255,6 +2255,32 @@ def build_save_profile_to_android_dialog(
                         "under /Tasker/profiles.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                         "No authorization prompt is needed for this.",
+                    ),
+                ).style("white-space: pre-wrap")
+            # The other half of the same dialog, and a genuinely different outcome: 'Save'
+            # leaves a file the user can do something with, this one puts the Profile in
+            # front of Tasker to be imported.  Two buttons rather than a checkbox because
+            # what they produce, what they can fail at and what the user has to do next all
+            # differ -- a ticked box would hide all three.
+            import_into_tasker = ui.button(
+                translate_string("Import Into Tasker"),
+                on_click=lambda: self.event_handlers.import_profile_into_tasker_event(
+                    edited_profile,
+                    field_refs,
+                    android_field_refs,
+                    android_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-blue-600")
+            with import_into_tasker:
+                ui.tooltip(
+                    translate_string(
+                        "This puts the Profile in front of Tasker's own import screen on the Android "
+                        "device.  You then tap Import on the device to finish -- nothing is imported "
+                        "until you do.\n\n"
+                        "The 'Http Server Example' Tasker Project must be installed and running, and "
+                        "Tasker must be 6.2 or higher.\n\n"
+                        "The device will ask you to authorize MapTasker the first time.",
                     ),
                 ).style("white-space: pre-wrap")
 
@@ -2471,7 +2497,7 @@ def build_save_project_to_android_dialog(
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
-                translate_string("Save"),
+                translate_string("Save As File"),
                 on_click=lambda: self.event_handlers.save_project_to_android_event(
                     edited_project,
                     field_refs,
@@ -2479,7 +2505,7 @@ def build_save_project_to_android_dialog(
                     android_dialog,
                     parent_dialog,
                 ),
-            ).classes("bg-blue-600")
+            ).props("outline")
             with save_to_android:
                 ui.tooltip(
                     translate_string(
@@ -2487,6 +2513,30 @@ def build_save_project_to_android_dialog(
                         "Android device, under /Tasker/projects.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                         "No authorization prompt is needed for this.",
+                    ),
+                ).style("white-space: pre-wrap")
+            # The Profile dialog's pair, for a Project -- see
+            # build_save_profile_to_android_dialog for why these are two buttons and not one
+            # with a checkbox.
+            import_into_tasker = ui.button(
+                translate_string("Import Into Tasker"),
+                on_click=lambda: self.event_handlers.import_project_into_tasker_event(
+                    edited_project,
+                    field_refs,
+                    android_field_refs,
+                    android_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-blue-600")
+            with import_into_tasker:
+                ui.tooltip(
+                    translate_string(
+                        "This puts the Project -- and every Profile and Task in it -- in front of Tasker's "
+                        "own import screen on the Android device.  You then tap Import on the device to "
+                        "finish; nothing is imported until you do.\n\n"
+                        "The 'Http Server Example' Tasker Project must be installed and running, and "
+                        "Tasker must be 6.2 or higher.\n\n"
+                        "The device will ask you to authorize MapTasker the first time.",
                     ),
                 ).style("white-space: pre-wrap")
 

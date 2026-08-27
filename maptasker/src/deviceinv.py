@@ -1309,6 +1309,1067 @@ def fetch_file_list_from_device(
 
 
 # ==========================================
+# Importing a Profile into Tasker's live configuration
+# ==========================================
+#
+# PROTOTYPE.  The central question it exists to answer is not answered yet, and the wrong
+# answer destroys a configuration.  Read this before pointing it at a device you care about.
+#
+# Tasker's HTTP API cannot import a Profile.  POST /api/import takes a Task and nothing
+# else, POST /api/profiles only flips enabled/active on a Profile that already exists, and
+# /upload drops a .prf.xml on storage that Tasker never reads (see
+# profedit.save_profile_to_android, whose docstring is explicit about it).  That is where
+# 'Save Profile To Android' has stopped.
+#
+# But /api/import is not a Tasker feature.  It is a Task in the HTTP Server Example
+# project, and the step in it that does the importing is an ordinary action anyone can put
+# in a Task of their own.  Taken apart from this repo's own sample backup, the Profile
+# 'POST Import' (prof491) runs task473, whose act13 is:
+#
+#     code 153  'Import Data'   arg0 Type=0   arg1 Source=0   arg2 = %http_request_body
+#
+# Type is a dropdown, and its two options are ["Task", "Configuration"] --
+# actiont.lookup_values["153"].  api/import hardcodes 0.  So the endpoint is Task-only
+# because that Task was written that way, not because Tasker can only import Tasks.
+#
+# This does what api/import does with Type set to the other option: stage the .prf.xml on
+# the device, then run a helper Task that reads it back and hands it to 'Import Data'.
+#
+# WHAT IS NOT KNOWN, AND WHY THE CALLER HAS TO SAY SO OUT LOUD
+#
+# What 'Configuration' means to Tasker when it is handed a standalone .prf.xml.  A merge --
+# the Profile is added and everything else is left alone -- is what this is for.  A replace
+# -- the configuration becomes that one file's contents, and the user's other several
+# hundred Profiles stop existing -- is the other possibility, and nothing in Tasker's
+# documentation rules it out.  It cannot be settled from here, only by running it against a
+# device whose configuration is expendable.
+#
+# Hence acknowledged_risk.  There is no safe default for a question nobody has answered, so
+# the caller states that it accepts the answer it might get.  Until it IS answered, nothing
+# in the GUI should call this -- see import_profile_to_device's own note.
+#
+# Two smaller unknowns, both harmless beside that one:
+#
+#   * Source (arg1).  actiont.lookup_values["153a"] is a one-entry placeholder, ["Source"],
+#     so this codebase does not know what that dropdown's options are called.  0 is what the
+#     shipped api/import Task sends and is what this sends; _IMPORT_SOURCE_INDEX is there so
+#     another value can be tried without editing the builder (see build_import_profile_task
+#     on why that one argument does not go through apply_edits_to_task).
+#   * Duplicates.  api/import ADDS a Task whose name is already taken rather than replacing
+#     it -- see _install_task_on_android, which is built around that.  If Configuration
+#     behaves the same way, importing a Profile that is already on the device leaves two of
+#     them.  Refused up front unless allow_existing says otherwise.
+IMPORT_PROFILE_TASK_NAME = "MapTasker Import Profile v1"
+# Where the .prf.xml is staged for the helper to read, in the spellings each end wants: the
+# 'upload' route takes a folder and a filename, the 'file' route wants a path from the
+# storage root, and Tasker's own 'Read File' wants an absolute one.  Fixed rather than
+# per-Profile because POST /api/tasks carries a Task name and nothing else -- so the path
+# has to be baked into the Task at install time, exactly as FILE_LIST_DIRECTORY is.  Every
+# import overwrites this one file: it is a staging area, not a copy worth keeping (the copy
+# worth keeping is presave's, taken before the save that overwrites something).
+_IMPORT_STAGE_LOCATION = "Tasker"
+_IMPORT_STAGE_FILENAME = "maptasker_import.prf.xml"
+_IMPORT_STAGE_READ_PATH = f"/{_IMPORT_STAGE_LOCATION}/{_IMPORT_STAGE_FILENAME}"
+_IMPORT_STAGE_TASK_PATH = f"/storage/emulated/0/{_IMPORT_STAGE_LOCATION}/{_IMPORT_STAGE_FILENAME}"
+# Where the helper says it got to, read back the same way every other helper's answer is.
+_IMPORT_RESULT_WRITE_PATH = "Tasker/maptasker_import.txt"
+_IMPORT_RESULT_READ_PATH = "/Tasker/maptasker_import.txt"
+# Its own header, so reading one helper's answer as another's is an error rather than a
+# silent misparse -- the reason _FILE_PAYLOAD_HEADER has one too.  The terminator is shared,
+# because _poll_for_result's completeness check is shared.
+_IMPORT_PAYLOAD_HEADER = "MAPTASKER-IMPORT 1"
+_IMPORT_PAYLOAD_STAGED = "STAGED"
+
+_READ_FILE_ACTION = "417t"  # arg0 File, arg1 To Var, arg2 Structure Output
+_IMPORT_DATA_ACTION = "153t"  # arg0 Type (dropdown), arg1 Source (dropdown), arg2 Variable
+_IMPORT_DATA_TYPE_LOOKUP = "153"  # actiont.lookup_values key for that Type dropdown
+# The Type option this is all for, by the label apply_arg_values matches on (it stores the
+# option's index and finds it by label) -- the same contract _LIST_APPS_PACKAGE documents.
+IMPORT_TYPE_CONFIGURATION = "Configuration"  # index 1
+IMPORT_TYPE_TASK = "Task"  # index 0 -- what api/import itself sends; here to test against
+_IMPORT_SOURCE_INDEX = "0"
+# Where the .prf.xml lands on the device between being uploaded and being imported.  Named
+# for MapTasker so it cannot collide with a variable of the user's own, as the Applications
+# helper's are.
+_IMPORT_XML_VARIABLE = "%mtimport_xml"
+# One file read and one import: seconds, not the minutes an Applications fetch can take.
+_IMPORT_POLL_ATTEMPTS = 15
+
+
+def _import_task_name(import_type: str, source_index: str) -> str:
+    """The name this helper is installed under, for a given pair of settings.
+
+    It has to change whenever the Task's BODY changes, because _install_task_on_android
+    installs by name and skips a name that is already there -- the same contract
+    HELPER_TASK_NAME documents with its version suffix.  Both of this Task's settings are
+    baked into its actions at install time, so a run that changed one and kept the name
+    would quietly re-run the Task built with the other, and the prototype would be
+    measuring the previous experiment.
+
+    The default pair keeps the plain name; anything else is spelled out, so a device that
+    has been experimented on shows which Task is which in Tasker's own list.
+    """
+    if import_type == IMPORT_TYPE_CONFIGURATION and source_index == _IMPORT_SOURCE_INDEX:
+        return IMPORT_PROFILE_TASK_NAME
+    return f"{IMPORT_PROFILE_TASK_NAME} [{import_type}/{source_index}]"
+
+
+def build_import_profile_task(
+    task_name: str = IMPORT_PROFILE_TASK_NAME,
+    import_type: str = IMPORT_TYPE_CONFIGURATION,
+    source_index: str = _IMPORT_SOURCE_INDEX,
+):  # noqa: ANN201
+    """Build the Profile-importing helper Task.  Returns an EditableTask, or an error message.
+
+    Three kinds of action: 'Read File' to pull the staged .prf.xml into a variable, 'Import
+    Data' to hand that variable to Tasker, and 'Write File' to record that it got that far.
+    Synthesized out of taskedit's own Add-Task machinery for the reasons build_helper_task
+    gives -- all three are addable (every argument is an Int, a Str or a checkbox), so this
+    is the path an ordinary user's Add Task takes.
+
+    The Write Files are the entire verification story, and they work only because 'Import
+    Data' can fail (action_codes["153t"].canfail is True) and a failed action stops the
+    Task: nothing after it runs, the terminator never lands, and _poll_for_result reports a
+    timeout rather than a success that did not happen.  POST /api/tasks answering 200 says
+    only that the Task was started, which is why it is not evidence of anything on its own.
+    """
+    from maptasker.src import taskedit  # noqa: PLC0415
+    from maptasker.src.actiont import lookup_values  # noqa: PLC0415
+
+    # Checked rather than trusted because the failure would be silent and would be the
+    # wrong import: apply_arg_values resolves a dropdown by matching the label against its
+    # options and falls back to index 0 for anything it does not recognize -- and index 0
+    # of this particular dropdown is 'Task'.  A typo would quietly import the Profile XML
+    # as a Task instead of saying so.
+    type_options = lookup_values.get(_IMPORT_DATA_TYPE_LOOKUP, [])
+    if import_type not in type_options:
+        return f"'{import_type}' is not an 'Import Data' type.  Expected one of: {', '.join(type_options)}."
+
+    edited_task = taskedit.create_new_task(task_name, "100")
+    if isinstance(edited_task, str):
+        return edited_task
+
+    values: dict[str, str] = {}
+
+    def add(action_key: str, args: dict[str, str]):  # noqa: ANN202
+        """Append one action and stage its argument values.  Returns the action, or an
+        error message -- unlike build_helper_task's `add`, which only ever needs the error,
+        because one of the actions here has an argument that cannot be set through
+        apply_edits_to_task (see below).
+        """
+        action = taskedit.add_action_to_task(edited_task, action_key)
+        if isinstance(action, list):
+            return action[0] if action else f"'{action_key}' could not be added."
+        for arg_id, value in args.items():
+            values[taskedit.arg_key(action.act_number, arg_id)] = value
+        return action
+
+    # Structure Output off (arg2): the .prf.xml is wanted verbatim, as the bytes that were
+    # uploaded.  Letting Tasker parse it into %mtimport_xml.<something> would hand 'Import
+    # Data' a structure rather than the document.
+    read_action = add(_READ_FILE_ACTION, {"0": _IMPORT_STAGE_TASK_PATH, "1": _IMPORT_XML_VARIABLE, "2": "0"})
+    if isinstance(read_action, str):
+        return read_action
+
+    import_action = add(_IMPORT_DATA_ACTION, {"0": import_type, "2": _IMPORT_XML_VARIABLE})
+    if isinstance(import_action, str):
+        return import_action
+
+    # Only after the import, and only if it did not fail -- see this function's docstring.
+    payload_lines = (_IMPORT_PAYLOAD_HEADER, _IMPORT_PAYLOAD_STAGED, _IMPORT_STAGE_TASK_PATH, _PAYLOAD_TERMINATOR)
+    for index, text in enumerate(payload_lines):
+        written = add(
+            _WRITE_FILE_ACTION,
+            {"0": _IMPORT_RESULT_WRITE_PATH, "1": text, "2": "0" if index == 0 else "1", "3": "1"},
+        )
+        if isinstance(written, str):
+            return written
+
+    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values)
+    if errors:
+        return errors[0]
+
+    # Source (arg1) is set on the element directly, which no other argument in any helper
+    # Task does.  apply_arg_values resolves a dropdown by matching the label against its
+    # options, and lookup_values["153a"] is the one-entry placeholder ["Source"] -- so the
+    # only value reachable through that path is 0.  0 is the right default (it is what the
+    # shipped api/import Task sends), but a prototype whose whole job is to answer open
+    # questions should not be the one making one of them unaskable.  Written after
+    # apply_edits_to_task, not before, so it cannot be overwritten by it.
+    source_element = import_action.action_element.find("Int[@sr='arg1']")
+    if source_element is None:
+        return "'Import Data' has no Source argument -- actionc.py's definition of '153t' has changed."
+    source_element.set("val", source_index)
+
+    return edited_task
+
+
+def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, auth_key: str) -> bool:
+    """Whether Tasker reports a Profile of this name, via GET /api/profiles?name=<name>
+    (Response: profile objects -- a JSON array of {"name", "enabled", "active"}).
+
+    The Profile counterpart of taskedit.verify_task_on_android, and it earns its keep for
+    the same reason: the run request's own 200 is not evidence that anything was committed.
+    It is also the ONLY reading available here -- unlike a Task import, there is no second
+    endpoint to fall back on -- which is what makes it the pre-check for a duplicate as
+    well as the confirmation afterwards.
+
+    Returns True only on a successful GET that lists at least one Profile of that name; a
+    request that failed is False, i.e. 'not confirmed', never 'confirmed absent'.
+    """
+    from urllib.parse import quote  # noqa: PLC0415
+
+    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
+
+    return_code, response = http_request(
+        ip_address.strip(),
+        ip_port.strip(),
+        "",
+        "api/profiles",
+        f"?name={quote(profile_name)}",
+        auth_key,
+    )
+    if return_code != 0:
+        return False
+
+    try:
+        profiles = json.loads(response)
+    except (ValueError, TypeError):
+        return False
+
+    return any(isinstance(profile, dict) and profile.get("name") == profile_name for profile in profiles)
+
+
+# The return code both Profile routes use for "Tasker already has one of these".  Its own
+# code rather than the generic 8 because it is the one failure a caller can do something
+# about without the user retyping anything -- the GUI turns it into a confirm-and-retry (see
+# userintr.import_profile_into_tasker_event) -- and matching on the message text to find it
+# would break the first time the wording is improved.  6 and 9 are already spoken for
+# (maputil2's 'not there' and 'key rejected'); 7 was free.
+DUPLICATE_PROFILE_CODE = 7
+
+
+def _refuse_duplicate_profile(
+    ip_address: str,
+    ip_port: str,
+    profile_name: str,
+    auth_key: str,
+    allow_existing: bool,
+) -> str:
+    """The duplicate check the HEADLESS route makes before anything is uploaded or run.
+    Returns a refusal to hand the user, or "" to go ahead.
+
+    Not used by the routes that go through Tasker's import screen, and deliberately so:
+    measured on a real device, Tasker asks the user itself whether to replace a Profile it
+    already has.  Checking first there would be a second prompt in front of a better one --
+    and a wrong one, since it would warn about a duplicate Tasker is about to offer to
+    replace.
+
+    'Import Data' shows nothing and asks nothing.  Tasker's api/import ADDS a Task whose
+    name is taken rather than replacing it (see _install_task_on_android) and there is no
+    reason yet to think a headless Profile import differs -- so on that route a duplicate
+    would appear silently, and both copies would be live at once.  Hence this survives, for
+    the one route that has no screen to do the asking.
+    """
+    if allow_existing or not verify_profile_on_android(ip_address, ip_port, profile_name, auth_key):
+        return ""
+    return (
+        f"Tasker already has a Profile named '{profile_name}'.  Importing may add a second one rather "
+        "than replace it.  Rename this Profile, delete that one on the device, or pass allow_existing=True."
+    )
+
+
+def _stage_profile_xml(ip_address: str, ip_port: str, profile_xml: bytes) -> tuple[int, str]:
+    """Put the .prf.xml where a helper Task can reach it.  Returns (0, "") or (code, message).
+
+    Shared by both routes -- they differ only in what they do with the file once it is
+    there, so a change to where or how it is staged has one place to happen.
+
+    Read back and compared byte for byte, because /upload answers 200 whatever it wrote
+    (see maputil2.http_upload_request): it does not validate the location, it creates
+    missing folders silently, and it reports nothing at the HTTP layer.  A half-written
+    .prf.xml would not fail loudly here -- it would be handed to Tasker.
+    save_profile_to_android reads its own upload back for exactly this reason.
+    """
+    from maptasker.src.maputil2 import http_request, http_upload_request  # noqa: PLC0415
+
+    return_code, response = http_upload_request(
+        ip_address,
+        ip_port,
+        _IMPORT_STAGE_LOCATION,
+        _IMPORT_STAGE_FILENAME,
+        profile_xml,
+    )
+    if return_code != 0:
+        return return_code, str(response)
+
+    verify_code, verify_content = http_request(ip_address, ip_port, _IMPORT_STAGE_READ_PATH, "file", "")
+    if verify_code != 0 or verify_content != profile_xml:
+        return 8, f"Uploaded to {_IMPORT_STAGE_READ_PATH}, but could not confirm it landed correctly."
+    return 0, ""
+
+
+def _validate_import_request(
+    profile_xml: bytes,
+    profile_name: str,
+    ip_address: str,
+    ip_port: str,
+) -> str:
+    """What both routes need before they are worth starting.  Returns "" or a message."""
+    if not ip_address or not ip_port:
+        return "An Android IP address and port are needed.  Set them under 'Get XML from Android Device'."
+    if not profile_name:
+        return "A Profile name is needed."
+    if not profile_xml:
+        return "There is no Profile XML to import."
+    return ""
+
+
+def import_profile_to_device(  # noqa: PLR0911
+    profile_xml: bytes,
+    profile_name: str,
+    ip_address: str,
+    ip_port: str,
+    acknowledged_risk: bool = False,
+    allow_existing: bool = False,
+    import_type: str = IMPORT_TYPE_CONFIGURATION,
+    source_index: str = _IMPORT_SOURCE_INDEX,
+) -> tuple[int, str]:
+    """Put a Profile into Tasker's live configuration on the device.  PROTOTYPE -- read the
+    section comment above before calling this, and do not call it from the GUI until the
+    merge-or-replace question it describes has been answered against an expendable device.
+
+    Args:
+        profile_xml: the standalone .prf.xml, as bytes -- profedit.render_standalone_profile_xml
+            encoded UTF-8, i.e. exactly what save_profile_to_android uploads today.
+        acknowledged_risk: the caller stating it accepts an import whose effect on the rest
+            of the configuration is not established.  False refuses without touching the
+            device.
+        allow_existing: proceed even though Tasker already reports a Profile of this name.
+            False refuses, because a Configuration import may well add a second one rather
+            than replace the first.
+        import_type, source_index: the two open questions, as arguments.  Changing either
+            installs a differently-NAMED helper Task -- see _import_task_name -- so one
+            experiment cannot be run with the Task another one left behind.
+
+    The exchange, in order: get an API key, refuse if the Profile is already there, install
+    the helper Task if it isn't, clear the last answer, upload the .prf.xml and read it back
+    to confirm it landed whole, run the Task, wait for its answer, then ask Tasker whether
+    the Profile exists.  Returns (0, a sentence saying what happened) or (return_code, an
+    error message fit to show the user).
+
+    Requires the Tasker HTTP Server Example project running on the device and Tasker 6.2 or
+    higher -- 'Save to Android' already requires both.
+
+    Blocking, deliberately, exactly as fetch_apps_from_device is: it sleeps between polls.
+    A caller on the GUI thread must hand it to run.io_bound.
+    """
+    from maptasker.src.maputil2 import http_delete_request  # noqa: PLC0415
+
+    if not acknowledged_risk:
+        return 8, (
+            "Refusing to import: what Tasker does to the rest of the configuration when it is handed a "
+            "Profile as a 'Configuration' import has not been established.  Test it against a device whose "
+            "configuration is expendable, and pass acknowledged_risk=True once you know."
+        )
+
+    ip_address = ip_address.strip()
+    ip_port = ip_port.strip()
+    profile_name = profile_name.strip()
+    if refusal := _validate_import_request(profile_xml, profile_name, ip_address, ip_port):
+        return 8, refusal
+
+    key = _device_key(ip_address, ip_port)
+    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    if return_code != 0:
+        return return_code, auth_key
+
+    # Before anything is uploaded or run: a name Tasker already knows.  Checked here rather
+    # than left to the import because the import may not object -- see the duplicates note
+    # in the section comment above.
+    if refusal := _refuse_duplicate_profile(ip_address, ip_port, profile_name, auth_key, allow_existing):
+        return DUPLICATE_PROFILE_CODE, refusal
+
+    # Named for the settings it is built with, not just for the job it does -- see
+    # _import_task_name for why a shared name would make the prototype lie.
+    task_name = _import_task_name(import_type, source_index)
+    return_code, message = _install_task_on_android(
+        ip_address,
+        ip_port,
+        auth_key,
+        task_name,
+        lambda: build_import_profile_task(task_name, import_type, source_index),
+    )
+    if return_code != 0:
+        return return_code, message
+    auth_key = _auth_keys.get(key, auth_key)
+
+    # Clear the last answer first, for the reason fetch_apps_from_device gives: a stale one
+    # left in place would be read as this run's.  Its own failure is not fatal.
+    delete_code, delete_error = http_delete_request(ip_address, ip_port, _IMPORT_RESULT_READ_PATH, auth_key)
+    if delete_code != 0:
+        logger.info(f"Could not clear {_IMPORT_RESULT_READ_PATH} before importing: {delete_error}")
+
+    return_code, message = _stage_profile_xml(ip_address, ip_port, profile_xml)
+    if return_code != 0:
+        return return_code, message
+
+    return_code, message, auth_key = _run_task_refreshing_key(ip_address, ip_port, task_name, auth_key)
+    if return_code != 0:
+        return return_code, message
+
+    text, error = _poll_for_result(
+        ip_address,
+        ip_port,
+        _IMPORT_RESULT_READ_PATH,
+        _IMPORT_POLL_ATTEMPTS,
+        "import result",
+    )
+    if error:
+        # No answer means 'Import Data' failed and stopped the Task, or the Task never ran.
+        # Either way nothing was imported, which is the one thing worth saying plainly.
+        return 8, f"{error}  Tasker's 'Import Data' most likely refused the Profile XML."
+    if not text.splitlines() or text.splitlines()[0].strip() != _IMPORT_PAYLOAD_HEADER:
+        return 8, "The file the Android device wrote is not a MapTasker import result."
+
+    # The helper got past 'Import Data' without failing.  That is not the same as Tasker
+    # having committed a Profile, which is what this asks.
+    if not verify_profile_on_android(ip_address, ip_port, profile_name, auth_key):
+        return 8, (
+            f"'{profile_name}' was imported without error, but Tasker does not report a Profile of that name "
+            "afterwards.  Check Tasker on the device before importing it again."
+        )
+
+    return 0, f"'{profile_name}' was imported into Tasker on {key}."
+
+
+# ==========================================
+# Offering a Profile or a Project to Tasker's own import screen
+# ==========================================
+#
+# The Import Data route above hands the XML to Tasker headlessly, and is unproven.  This one
+# hands the staged file to Android, which gives it to whatever registered for Tasker's file
+# types -- Tasker's ordinary import screen, the one that comes up when a .prf.xml or a
+# .prj.xml is opened from a file manager.  The user taps Import.
+#
+# CONFIRMED ON A REAL DEVICE (2026-08-27) for a Profile: the screen came up, the Profile
+# imported, and Tasker offered to REPLACE a Profile it already had rather than adding a
+# second.  That last part is why nothing here refuses a duplicate -- Tasker asks better than
+# this could.
+#
+# WHY BOTH ROUTES EXIST
+#
+#   Import Data     headless -- but what 'Configuration' does to the REST of the
+#                   configuration is not established, and the bad answer is unrecoverable.
+#   Open File       one tap on the device -- but the semantics are Tasker's own documented
+#                   import.  Nothing else in the configuration is at stake, so there is no
+#                   acknowledged_risk gate on this one.
+#
+# So this is the one to reach for, and the one the GUI is built on -- see
+# userintr.import_profile_into_tasker_event and import_project_into_tasker_event.
+# SEND_INTENT_* stays as the fallback for a device where implicit resolution does not land
+# on Tasker, not as a second candidate still being chosen between.
+#
+# WHAT THE ANSWER FILE PROVES, WHICH IS LESS THAN THE OTHER ROUTE'S
+#
+# 'Open File' fires an intent and returns; it does not wait for the person to decide.  So
+# the Write Files after it run immediately, and the terminator means *the import screen was
+# asked for*, not that anything was imported.  That is why this is two phases: the run is
+# confirmed by the payload, and the import is confirmed separately by asking Tasker what it
+# now has (await_import), for as long as it takes someone to pick up the phone.
+#
+# CONFIRMING A PROJECT, WHICH THE HTTP API CANNOT DO DIRECTLY
+#
+# There is no /api/projects.  Tasker's HTTP API can report Profiles, Tasks, Scenes and
+# Globals by name, and that is the whole list -- so 'is this Project there now' is not a
+# question that can be asked.
+#
+# What can be asked is whether the Profiles the Project OWNS are there, and a Project import
+# brings its Profiles with it (projedit.render_standalone_project_xml bundles them).  So
+# both kinds confirm the same way, through one list of Profile names: one name for a Profile
+# import, its <pids> resolved to names for a Project import.  A Project with no Profiles at
+# all has nothing to ask about and is simply unconfirmable, which is reported rather than
+# guessed at.
+#
+# TaskerNet reaches the same screen via taskernet.com/shares/?user=...&id=Profile%3A<name>,
+# and is not used: that URL only exists for a share PUBLISHED to Google's TaskerNet, so
+# pushing a locally-edited Profile back to the user's own phone would mean publishing it to
+# a third party first.  The local file reaches the same screen with nothing leaving the
+# machine.  ('Browse URL' would also have been unbuildable here without an Applications
+# fetch first -- its Package/App Name argument is category 'App', so
+# classify_action_addability refuses it while the inventory is empty.  'Open File' takes a
+# path and a mime type and nothing else.)
+_OPEN_FILE_ACTION = "102t"  # arg0 File, arg1 Mime Type
+_SEND_INTENT_ACTION = "877t"  # arg0 Action, arg1 Cat, arg2 Mime Type, arg3 Data,
+#                               arg4-6 Extra, arg7 Package, arg8 Class, arg9 Target
+# Named explicitly rather than left blank: with no mime type Android has only the file
+# extension to go on, and neither '.prf.xml' nor '.prj.xml' is one it knows.
+_OPEN_FILE_MIME_TYPE = "text/xml"
+_OPEN_PAYLOAD_OFFERED = "OFFERED"
+# Firing an intent is immediate; this is a timeout on the device answering at all.
+_OPEN_POLL_ATTEMPTS = 15
+# How long to keep asking Tasker whether the import turned up -- times _RESULT_POLL_SECONDS,
+# so two minutes.  This one is waiting on a person, not on a device: they have to notice the
+# screen, read it and tap Import.  Long enough not to give up on someone who put the phone
+# down, short enough that a caller that never taps is not left hanging forever.
+_CONFIRM_POLL_ATTEMPTS = 60
+
+# --- 'Send Intent', for when implicit resolution does not find Tasker -------------------
+#
+# 'Open File' asks Android to find something that handles the file, and trusts it to land on
+# Tasker.  If it does not -- nothing registered for 'text/xml', or a chooser comes up and
+# Tasker is not in it -- this says where to send it instead: ACTION_VIEW at Tasker's own
+# package, explicitly.
+#
+# The shape is not invented.  Every ACTION_VIEW 'Send Intent' in this repo's real backups
+# uses Cat=None and Target=Activity, and the ones aimed at a particular app name it in
+# Package (arg7) -- e.g. 'google.navigation:q=%address' at com.google.android.apps.maps.
+#
+# THE ONE WAY THIS CAN FAIL THAT 'Open File' CANNOT: the Data field has to be a URI, and the
+# only URI available from here is 'file://'.  Since Android 7 an app that puts a file:// URI
+# into an outgoing intent gets a FileUriExposedException -- which is precisely what 'Open
+# File' exists to avoid, since it can hand out a content:// URI from Tasker's own
+# FileProvider and this cannot.  Whether Tasker's 'Send Intent' converts it or passes it
+# straight through is not established here.
+_VIEW_ACTION = "android.intent.action.VIEW"
+# Both dropdowns by the label apply_arg_values matches on -- see actiont.lookup_values
+# ["877"] and ["877a"], and the real backups above, which agree on both.
+_INTENT_CATEGORY_NONE = "None"
+_INTENT_TARGET_ACTIVITY = "Activity"
+_TASKER_PACKAGE = "net.dinglisch.android.taskerm"
+
+
+def _add_result_writes(
+    add: Callable[[str, dict[str, str]], str],
+    write_path: str,
+    header: str,
+    stage_path: str,
+) -> str:
+    """The four 'Write File' actions every offer Task ends with.  Returns "" or an error.
+
+    The first write truncates and the rest append, so a re-run replaces the previous answer
+    rather than growing it -- and the terminator lands last, which is what makes
+    _poll_for_result's completeness check mean anything.
+
+    Note what these are worth on this route, which is less than in build_import_profile_task:
+    the action before them does not block on the user's decision, so they run whether or not
+    anything is ever imported.  They confirm the Task ran and the intent went out.  Whether
+    an import arrived is await_import's question, not this file's.
+    """
+    for index, text in enumerate((header, _OPEN_PAYLOAD_OFFERED, stage_path, _PAYLOAD_TERMINATOR)):
+        error = add(
+            _WRITE_FILE_ACTION,
+            {"0": write_path, "1": text, "2": "0" if index == 0 else "1", "3": "1"},
+        )
+        if error:
+            return error
+    return ""
+
+
+def _new_offer_task(task_name: str):  # noqa: ANN202
+    """An empty Task plus the `add` helper both offer builders use.
+
+    Returns (edited_task, add, values) or an error message string.  Synthesized out of
+    taskedit's own Add-Task machinery for the reasons build_helper_task gives -- every
+    action involved is one taskedit already classifies as addable, so this is the path an
+    ordinary user's Add Task takes.
+    """
+    from maptasker.src import taskedit  # noqa: PLC0415
+
+    edited_task = taskedit.create_new_task(task_name, "100")
+    if isinstance(edited_task, str):
+        return edited_task
+
+    values: dict[str, str] = {}
+
+    def add(action_key: str, args: dict[str, str]) -> str:
+        action = taskedit.add_action_to_task(edited_task, action_key)
+        if isinstance(action, list):
+            return action[0] if action else f"'{action_key}' could not be added."
+        for arg_id, value in args.items():
+            values[taskedit.arg_key(action.act_number, arg_id)] = value
+        return ""
+
+    return edited_task, add, values
+
+
+def _finish_offer_task(edited_task, task_name: str, values: dict[str, str]):  # noqa: ANN001, ANN202
+    """Apply the staged argument values.  Returns the EditableTask or an error message."""
+    from maptasker.src import taskedit  # noqa: PLC0415
+
+    errors = taskedit.apply_edits_to_task(edited_task, task_name, "100", values)
+    return errors[0] if errors else edited_task
+
+
+def build_open_file_task(
+    task_name: str,
+    stage_path: str,
+    result_write_path: str,
+    header: str,
+    mime_type: str = _OPEN_FILE_MIME_TYPE,
+):  # noqa: ANN201
+    """Build the Task that offers the staged file to whatever Android hands it to.
+
+    'Open File' on the staged path, then the four writes that say it ran.  The staged path
+    is baked in rather than passed at run time because POST /api/tasks carries a Task name
+    and nothing else -- the same reason FILE_LIST_DIRECTORY is baked into its Task.
+    """
+    built = _new_offer_task(task_name)
+    if isinstance(built, str):
+        return built
+    edited_task, add, values = built
+
+    error = add(_OPEN_FILE_ACTION, {"0": stage_path, "1": mime_type}) or _add_result_writes(
+        add,
+        result_write_path,
+        header,
+        stage_path,
+    )
+    if error:
+        return error
+    return _finish_offer_task(edited_task, task_name, values)
+
+
+def build_send_intent_task(
+    task_name: str,
+    stage_path: str,
+    result_write_path: str,
+    header: str,
+    mime_type: str = _OPEN_FILE_MIME_TYPE,
+    package: str = _TASKER_PACKAGE,
+):  # noqa: ANN201
+    """Build the Task that sends Tasker an explicit ACTION_VIEW for the staged file.
+
+    The same job build_open_file_task does, addressed rather than broadcast -- see the
+    section comment above for when that matters and for the file:// caveat that comes with
+    it.  Its answer file means exactly what that one's does.
+    """
+    built = _new_offer_task(task_name)
+    if isinstance(built, str):
+        return built
+    edited_task, add, values = built
+
+    error = add(
+        _SEND_INTENT_ACTION,
+        {
+            "0": _VIEW_ACTION,
+            "1": _INTENT_CATEGORY_NONE,
+            "2": mime_type,
+            "3": f"file://{stage_path}",
+            "7": package,
+            "9": _INTENT_TARGET_ACTIVITY,
+        },
+    ) or _add_result_writes(add, result_write_path, header, stage_path)
+    if error:
+        return error
+    return _finish_offer_task(edited_task, task_name, values)
+
+
+@dataclass(frozen=True)
+class OfferRoute:
+    """One way of putting one kind of thing in front of Tasker's import screen.
+
+    Two dimensions, and they multiply: WHAT is being imported (a Profile, a Project) decides
+    the staged file's extension -- which is what tells Tasker what it is looking at -- and
+    HOW the screen is opened (Open File, Send Intent) decides the action in the helper Task.
+    Every combination is otherwise identical, so they are data handed to one orchestrator
+    rather than four copies of it.
+
+    Separate staged files, answer files and headers per combination are not incidental.  The
+    staged path is baked into each helper Task at install time (POST /api/tasks carries a
+    name and nothing else), so they cannot share one; and reading one route's payload as
+    another's has to be an error rather than a silent misparse, the same reason
+    _FILE_PAYLOAD_HEADER differs from _PAYLOAD_HEADER.
+    """
+
+    label: str  # "Profile" / "Project" -- how this reads in a message to the user
+    task_name: str
+    builder: Callable[[], object]
+    stage_location: str
+    stage_filename: str
+    stage_read_path: str
+    stage_task_path: str
+    read_path: str
+    header: str
+    failure_hint: str
+
+
+def _build_offer_routes(label: str, extension: str) -> tuple[OfferRoute, OfferRoute]:
+    """The Open File and Send Intent routes for one kind of thing, from its name and the
+    extension Tasker recognizes it by.
+
+    A factory rather than eight hand-written constants: every one of those fields is derived
+    from these two arguments, and the way a hand-written set goes wrong is one of them not
+    being -- a Project route left pointing at the Profile route's answer file would read a
+    stale Profile import as its own success.
+    """
+    key = label.lower()
+    stage_location = "Tasker"
+    stage_filename = f"maptasker_import.{extension}"
+    stage_read_path = f"/{stage_location}/{stage_filename}"
+    # Absolute, because that is what Tasker's own 'Open File' and 'Send Intent' want -- the
+    # same file the 'file' route reads at stage_read_path, spelled the way each end needs it
+    # (see _DEVICE_RESULT_WRITE_PATH).
+    stage_task_path = f"/storage/emulated/0/{stage_location}/{stage_filename}"
+
+    def route(verb: str, builder, hint: str) -> OfferRoute:  # noqa: ANN001
+        task_name = f"MapTasker {verb} {label} v1"
+        write_path = f"{stage_location}/maptasker_{verb.lower()}_{key}.txt"
+        header = f"MAPTASKER-{verb.upper()}-{label.upper()} 1"
+        return OfferRoute(
+            label=label,
+            task_name=task_name,
+            builder=lambda: builder(task_name, stage_task_path, write_path, header),
+            stage_location=stage_location,
+            stage_filename=stage_filename,
+            stage_read_path=stage_read_path,
+            stage_task_path=stage_task_path,
+            read_path=f"/{write_path}",
+            header=header,
+            failure_hint=hint,
+        )
+
+    return (
+        route("Open", build_open_file_task, f"Tasker could not open {stage_task_path} for import."),
+        route(
+            "Send",
+            build_send_intent_task,
+            f"Tasker refused an ACTION_VIEW for file://{stage_task_path}.  A file:// URI in an outgoing "
+            f"intent is rejected on Android 7 and later; try the Open File route instead.",
+        ),
+    )
+
+
+OPEN_FILE_ROUTE, SEND_INTENT_ROUTE = _build_offer_routes("Profile", "prf.xml")
+OPEN_PROJECT_ROUTE, SEND_INTENT_PROJECT_ROUTE = _build_offer_routes("Project", "prj.xml")
+
+
+def verify_profiles_on_android(
+    ip_address: str,
+    ip_port: str,
+    profile_names: list[str],
+    auth_key: str,
+) -> set[str] | None:
+    """Which of these Profile names Tasker reports, via GET /api/profiles?name=...&name=...
+    (Response: profile objects).  None if the device could not be asked.
+
+    The 'name' parameter is documented as repeatable, so this is one request however many
+    names it is given -- which matters for a Project, where the list is every Profile the
+    Project owns and the answer is wanted repeatedly while someone finds their phone.
+
+    None is not an empty set.  'Could not ask' and 'none of them are there' lead to opposite
+    conclusions everywhere this is used.
+    """
+    from urllib.parse import quote  # noqa: PLC0415
+
+    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
+
+    names = [name.strip() for name in profile_names if name and name.strip()]
+    if not names:
+        return set()
+
+    query = "?" + "&".join(f"name={quote(name)}" for name in names)
+    return_code, response = http_request(ip_address.strip(), ip_port.strip(), "", "api/profiles", query, auth_key)
+    if return_code != 0:
+        return None
+
+    try:
+        reported = json.loads(response)
+    except (ValueError, TypeError):
+        return None
+    if not isinstance(reported, list):
+        return None
+
+    found = {profile.get("name") for profile in reported if isinstance(profile, dict)}
+    return {name for name in names if name in found}
+
+
+def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, auth_key: str) -> bool:
+    """Whether Tasker reports a Profile of this name.
+
+    The single-name form of verify_profiles_on_android, and the Profile counterpart of
+    taskedit.verify_task_on_android.  It earns its keep for the same reason: a request's own
+    200 is not evidence that anything was committed.
+
+    Returns True only on a successful GET that lists the Profile; a request that failed is
+    False, i.e. 'not confirmed', never 'confirmed absent'.  Callers that need to tell those
+    two apart must use the plural form, which answers None for the second.
+    """
+    present = verify_profiles_on_android(ip_address, ip_port, [profile_name], auth_key)
+    return bool(present) and profile_name in present
+
+
+def import_is_confirmable(ip_address: str, ip_port: str, profile_names: list[str]) -> bool | None:
+    """Whether an import of these Profiles could be told apart from doing nothing.
+    True, False, or None if the device could not be asked.
+
+    This is not a gate.  An import is confirmed by asking Tasker what it now has, and that
+    question only means something when the answer was 'no' beforehand: a Profile that was
+    already there answers 'yes' whether the user tapped Import, tapped Replace, or walked
+    away -- Tasker replaces in that case, and a replacement leaves the name, the count and
+    the enabled state exactly as they were.  So a caller has to know which case it is in
+    before it offers, and report the two differently rather than claim a success it cannot
+    see (see userintr.import_profile_into_tasker_event).
+
+    An empty list is False, not True: a Project that owns no Profiles gives nothing to ask
+    about, and 'no questions asked' must not read as 'confirmed'.
+
+    None is kept apart from False for the same reason it is in verify_profiles_on_android --
+    though every caller so far treats them alike, since neither can be confirmed and
+    guessing the other way is what turns an unconfirmable import into a reported success.
+    """
+    names = [name.strip() for name in profile_names if name and name.strip()]
+    if not names:
+        return False
+
+    return_code, auth_key = _ensure_auth_key(ip_address.strip(), ip_port.strip())
+    if return_code != 0:
+        return None
+
+    present = verify_profiles_on_android(ip_address, ip_port, names, auth_key)
+    if present is None:
+        return None
+    return not present
+
+
+def await_import(
+    ip_address: str,
+    ip_port: str,
+    profile_names: list[str],
+    subject: str,
+    auth_key: str = "",
+    attempts: int = _CONFIRM_POLL_ATTEMPTS,
+) -> tuple[int, str]:
+    """Wait for every one of these Profiles to appear in Tasker, and say whether they did.
+
+    Phase two of the offer: the import screen is up on the device and this is waiting for
+    someone to tap Import.  Returns (0, a sentence) once Tasker reports them all, or (8, a
+    message) when the attempts run out.
+
+    ALL of them, not any: a Project import that brought in half its Profiles is not a
+    Project import that worked, and reporting the first arrival as success would race the
+    device's own writing.  For a Profile import the list is one name and the distinction
+    does not arise.
+
+    Running out is NOT an error in the usual sense -- the likeliest cause is that the user
+    declined the import, or has not got to their phone yet -- so the message says that
+    rather than blaming the device.
+
+    Blocking: it sleeps between polls, the same way _poll_for_result does, and a caller on
+    the GUI thread must hand it to run.io_bound.
+    """
+    ip_address = ip_address.strip()
+    ip_port = ip_port.strip()
+    wanted = {name.strip() for name in profile_names if name and name.strip()}
+
+    if not auth_key:
+        return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+        if return_code != 0:
+            return return_code, auth_key
+
+    for attempt in range(attempts):
+        present = verify_profiles_on_android(ip_address, ip_port, sorted(wanted), auth_key)
+        if present is not None and wanted <= present:
+            return 0, f"{subject} is now in Tasker on {_device_key(ip_address, ip_port)}."
+        if attempt < attempts - 1:
+            time.sleep(_RESULT_POLL_SECONDS)
+
+    return 8, (
+        f"Tasker has not reported {subject}.  The import screen was opened on the device -- it may still "
+        "be waiting to be confirmed, or the import may have been declined."
+    )
+
+
+def _stage_xml(ip_address: str, ip_port: str, xml_bytes: bytes, route: OfferRoute) -> tuple[int, str]:
+    """Put the rendered XML where this route's helper Task can reach it.  (0, "") or (code, message).
+
+    Read back and compared byte for byte, because /upload answers 200 whatever it wrote (see
+    maputil2.http_upload_request): it does not validate the location, it creates missing
+    folders silently, and it reports nothing at the HTTP layer.  A half-written file would
+    not fail loudly here -- it would be handed to Tasker.  save_profile_to_android reads its
+    own upload back for exactly this reason.
+    """
+    from maptasker.src.maputil2 import http_request, http_upload_request  # noqa: PLC0415
+
+    return_code, response = http_upload_request(
+        ip_address,
+        ip_port,
+        route.stage_location,
+        route.stage_filename,
+        xml_bytes,
+    )
+    if return_code != 0:
+        return return_code, str(response)
+
+    verify_code, verify_content = http_request(ip_address, ip_port, route.stage_read_path, "file", "")
+    if verify_code != 0 or verify_content != xml_bytes:
+        return 8, f"Uploaded to {route.stage_read_path}, but could not confirm it landed correctly."
+    return 0, ""
+
+
+def offer_to_tasker(  # noqa: PLR0911
+    xml_bytes: bytes,
+    object_name: str,
+    profile_names: list[str],
+    ip_address: str,
+    ip_port: str,
+    wait_for_confirmation: bool = True,
+    route: OfferRoute = OPEN_FILE_ROUTE,
+) -> tuple[int, str]:
+    """Offer a Profile or a Project to Tasker's own import screen on the device.
+
+    Args:
+        xml_bytes: the standalone XML -- profedit.render_standalone_profile_xml or
+            projedit.render_standalone_project_xml, encoded UTF-8, i.e. exactly what the
+            file-writing Save To Android uploads today.
+        object_name: what it is called, for the messages.
+        profile_names: the Profile names an import of this would put in Tasker -- one name
+            for a Profile, every Profile the Project owns for a Project.  This is the only
+            thing the HTTP API can be asked about afterwards; see the section comment.
+        wait_for_confirmation: keep asking Tasker whether they turned up, for about two
+            minutes (await_import).  False returns as soon as the screen has been asked for,
+            which is what a GUI wanting to poll on its own should pass -- the return message
+            then says the import is still pending, and must not be shown as a completed
+            save.  True skips the wait when it could not mean anything and says so instead:
+            see import_is_confirmable.
+        route: which kind, and how the screen is asked for.  OPEN_FILE_ROUTE and
+            OPEN_PROJECT_ROUTE let Android find the handler; the SEND_INTENT_* pair address
+            Tasker explicitly.  Prefer the first -- see the section comment for the file://
+            URI only the second can trip over.
+
+    Unlike import_profile_to_device this has no acknowledged_risk gate, and no duplicate
+    check either.  It puts nothing at stake but the one Profile or Project: Android is
+    handed a file, Tasker shows the user what it is about to import -- including, measured
+    on a real device, an offer to replace something it already has -- and the semantics from
+    there are Tasker's own documented ones.  Refusing a name Tasker already knows would only
+    put a worse prompt in front of a better one.
+
+    The exchange: get an API key, install the helper Task if it isn't there, clear the last
+    answer, stage the XML, run the Task, confirm it ran, and then -- if asked, and if the
+    answer would mean anything -- wait for the import to appear.  Returns (0, a sentence
+    saying what happened and what the user still has to do) or (return_code, an error
+    message).
+
+    Requires the Tasker HTTP Server Example project running on the device and Tasker 6.2 or
+    higher.  Blocking, deliberately; a caller on the GUI thread must use run.io_bound.
+    """
+    from maptasker.src.maputil2 import http_delete_request  # noqa: PLC0415
+
+    ip_address = ip_address.strip()
+    ip_port = ip_port.strip()
+    object_name = object_name.strip()
+    if not ip_address or not ip_port:
+        return 8, "An Android IP address and port are needed.  Set them under 'Get XML from Android Device'."
+    if not object_name:
+        return 8, f"A {route.label} name is needed."
+    if not xml_bytes:
+        return 8, f"There is no {route.label} XML to import."
+
+    subject = f"{route.label} '{object_name}'"
+    key = _device_key(ip_address, ip_port)
+    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    if return_code != 0:
+        return return_code, auth_key
+
+    # Asked BEFORE the import, because afterwards the answer is worthless -- see
+    # import_is_confirmable.  Nothing is gated on it; it only decides what can be said at
+    # the end.
+    wanted = [name.strip() for name in profile_names if name and name.strip()]
+    present_before = verify_profiles_on_android(ip_address, ip_port, wanted, auth_key)
+    confirmable = bool(wanted) and present_before == set()
+
+    return_code, message = _install_task_on_android(ip_address, ip_port, auth_key, route.task_name, route.builder)
+    if return_code != 0:
+        return return_code, message
+    auth_key = _auth_keys.get(key, auth_key)
+
+    delete_code, delete_error = http_delete_request(ip_address, ip_port, route.read_path, auth_key)
+    if delete_code != 0:
+        logger.info(f"Could not clear {route.read_path} before offering: {delete_error}")
+
+    return_code, message = _stage_xml(ip_address, ip_port, xml_bytes, route)
+    if return_code != 0:
+        return return_code, message
+
+    return_code, message, auth_key = _run_task_refreshing_key(ip_address, ip_port, route.task_name, auth_key)
+    if return_code != 0:
+        return return_code, message
+
+    text, error = _poll_for_result(ip_address, ip_port, route.read_path, _OPEN_POLL_ATTEMPTS, "import result")
+    if error:
+        return 8, f"{error}  {route.failure_hint}"
+    if not text.splitlines() or text.splitlines()[0].strip() != route.header:
+        return 8, "The file the Android device wrote is not a MapTasker import result."
+
+    if not wait_for_confirmation:
+        return 0, (
+            f"{subject} was sent to {key} and Tasker's import screen was opened.  "
+            "It is not imported until it is confirmed on the device."
+        )
+
+    # Waiting for something that is already there would 'confirm' the import the instant it
+    # was asked, whatever the user goes on to tap -- including Cancel.  So it is not asked.
+    if not confirmable:
+        return 0, (
+            f"{subject} was sent to {key} and Tasker's import screen was opened.  Tasker already has what "
+            "this would import and will offer to replace it; whether that was confirmed cannot be seen "
+            "from here."
+        )
+
+    return await_import(ip_address, ip_port, wanted, subject, auth_key)
+
+
+def open_profile_on_device(
+    profile_xml: bytes,
+    profile_name: str,
+    ip_address: str,
+    ip_port: str,
+    wait_for_confirmation: bool = True,
+    route: OfferRoute = OPEN_FILE_ROUTE,
+) -> tuple[int, str]:
+    """Offer one Profile to Tasker's import screen.  See offer_to_tasker, which does the work.
+
+    A Profile confirms by its own name -- the list of one that offer_to_tasker's general
+    case collapses to.
+    """
+    return offer_to_tasker(
+        profile_xml,
+        profile_name,
+        [profile_name.strip()],
+        ip_address,
+        ip_port,
+        wait_for_confirmation,
+        route,
+    )
+
+
+def open_project_on_device(
+    project_xml: bytes,
+    project_name: str,
+    profile_names: list[str],
+    ip_address: str,
+    ip_port: str,
+    wait_for_confirmation: bool = True,
+    route: OfferRoute = OPEN_PROJECT_ROUTE,
+) -> tuple[int, str]:
+    """Offer one Project -- and every Profile and Task it owns -- to Tasker's import screen.
+
+    profile_names is the Project's own Profiles, which the caller reads off the live tree
+    (projedit.project_profile_names).  They are what the import is confirmed by, because
+    there is no /api/projects to ask about the Project itself; see the section comment.
+    """
+    return offer_to_tasker(
+        project_xml,
+        project_name,
+        profile_names,
+        ip_address,
+        ip_port,
+        wait_for_confirmation,
+        route,
+    )
+
+
+# ==========================================
 # The cache
 # ==========================================
 

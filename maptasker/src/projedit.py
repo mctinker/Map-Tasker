@@ -51,22 +51,30 @@ if TYPE_CHECKING:
 from maptasker.src import sessundo
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import SCENE_TASK_TYPES
 
 BASE_PROJECT_NAME = "Base"
 # Destination folder on the Android device for Save To Android -- see android_project_path.
 ANDROID_PROJECT_LOCATION = "Tasker/projects"
-# Project children Tasker's own single-Project export leaves out, so
-# render_standalone_project_xml's output matches what Tasker itself produces.
-# Derived by diffing every Tasker-produced .prj.xml in this repo's sample data
-# against the same Project in a full backup: all four omit exactly these three,
-# consistently, and add nothing of their own.
+# A Project's identity children, which an export must carry.
 #
-# None of them is referenced from within an exported file, so dropping them costs
-# nothing: <pids>/<tids> point *outward* at Profile/Task ids and no element points
-# back at the Project, <clr> is the Project's UI tab colour, and <mdate> is a
-# last-modified stamp the importing device restamps anyway. <cdate> is deliberately
-# NOT here -- Tasker keeps it in exports.
-EXPORT_OMITTED_PROJECT_TAGS = ("clr", "id", "mdate")
+# These used to be STRIPPED, on the belief that Tasker's own single-Project export leaves
+# them out.  It does not, and the belief came from too small a sample: the derivation diffed
+# four Tasker-produced .prj.xml files that happened to have no <id>, but eight of the
+# eighteen in this repo's sample data do carry one (Ah Ah Ah, Custom Theme, EveryGesture,
+# Flashlight Slider, Scene v2 Dialog, Smart Reminders, Strip Metadata, TAGLY).  The ones
+# without are TaskerNet downloads, which strip identity on the way through the service --
+# not what a device writes.
+#
+# Measured on a real device: Tasker REFUSES to import a Project with no <id>.  Every Project
+# in a full backup has one (83 of 83), every Project this program creates has one
+# (create_new_project mints a UUID), so there is nothing to gain by removing it and an
+# import to lose.  <mdate> travels with it (83 of 83) and <clr>, the Project's UI tab
+# colour, is kept when the Project has one (77 of 83 do; the rest simply have no colour set,
+# which is not the same as needing one invented).
+#
+# Synthesized only when genuinely absent -- see _ensure_project_identity.
+_PROJECT_IDENTITY_TAGS = ("id", "mdate")
 # The child Tasker writes on a Project it has disabled, and the value that means it.
 # Deliberately NOT the <limit>true</limit> a Profile uses -- different tag, and the
 # opposite polarity (see is_project_enabled).
@@ -359,6 +367,45 @@ def _project_child_ids(project_element: defusedxml.ElementTree.Element, tag: str
     return child.text.split(",") if child is not None and child.text else []
 
 
+def project_profile_names(project_name: str) -> list[str]:
+    """The names of the Profiles this Project owns, read off its live <pids>.
+
+    For confirming a Project import.  Tasker's HTTP API has no /api/projects -- it can
+    report Profiles, Tasks, Scenes and Globals by name and nothing else -- so 'did the
+    Project arrive' cannot be asked directly.  What it brings with it can be: a Project
+    export bundles its Profiles (see render_standalone_project_xml), so those names are the
+    question that stands in for the one the API will not answer.  See
+    deviceinv.offer_to_tasker, which takes exactly this list.
+
+    Read off each Profile's own <nme>, NOT off the all_profiles table's "name" -- that one
+    holds a name MAPTASKER made up for an unnamed Profile, built from its conditions
+    ('*Display Off.25 Unnamed'; see taskerd.build_tasker_tables and
+    profiles.conditions_to_name).  39 of the 293 Profiles in this repo's own sample backup
+    have one.  Tasker will never report a Profile by a name it has never heard of, so
+    including them would make every Project that owns an unnamed Profile time out waiting
+    for something that cannot arrive.  An unnamed Profile is simply not confirmable, and
+    leaving it out is what lets the rest of the Project still be.
+
+    Ids with no Profile behind them are dropped for a related reason -- a dangling id in
+    <pids> means the Project references a Profile this backup does not have, so an import
+    would not bring it either.
+    """
+    live_element = resolve_project_by_name(project_name)
+    if live_element is None:
+        return []
+
+    all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
+    names = []
+    for profile_id in _project_child_ids(live_element, "pids"):
+        entry = all_profiles.get(profile_id.strip())
+        if not isinstance(entry, dict) or entry.get("xml") is None:
+            continue
+        name = (entry["xml"].findtext("nme") or "").strip()
+        if name:
+            names.append(name)
+    return names
+
+
 def count_project_contents(project_name: str) -> tuple[int, int]:
     """Returns (Profile count, Task count) currently owned by this Project --
     for the Delete confirmation dialog's "it owns N Profile(s) and M Task(s)"
@@ -408,16 +455,114 @@ def android_project_path(project_name: str) -> str:
     return f"/{ANDROID_PROJECT_LOCATION}/{sanitize_filename(project_name)}.prj.xml"
 
 
-def render_standalone_project_xml(project_name: str) -> str:
-    """Render a Project as a standalone TaskerData/Project[/Profile...][/Task...]
-    XML string -- the Project element followed by every Profile it owns and every
-    Task those Profiles use, matching the shape Tasker's own Project export
-    produces. Mirrors profedit.render_standalone_profile_xml's TaskerData-wrapping
-    approach, just scoped to a whole Project's contents instead of one Profile's
-    linked Entry/Exit Task(s).
+# The device screen size an export was written on, as "width,height" floats -- Tasker's own
+# top-level <dmetric>.  It is Scene metadata: Scene elements are laid out in device pixels,
+# so an importing device needs to know what screen those pixels were measured on.
+#
+# That is not a guess.  Across the eighteen sample .prj.xml files in this repo the
+# correlation is exact and has no exceptions: all eleven that contain <Scene> elements carry
+# a <dmetric>, and all seven that contain none carry none.  It shows up in .scn.xml exports
+# too (3 of 5) and in NO .prf.xml or .tsk.xml export at all -- which is why the Profile
+# import never needed one.
+#
+# Copied from the loaded backup rather than invented.  The right value is the screen the
+# Scenes were actually laid out on, which is the device the backup came from, and that is
+# exactly what its own <dmetric> holds.  A backup without one exports without one -- making
+# up a screen size would be worse than saying nothing, since Tasker would scale Scenes to a
+# device that never existed.
+#
+# Written only when the export actually carries Scenes, because that is what Tasker does.
+# The correlation is not confounded by anything else in the sample: <id> presence cuts
+# across it in both directions (EveryGesture and Strip Metadata have an <id> and no
+# <dmetric>; Chat_GPT, Scan and Pocc have a <dmetric> and no <id>), so this is a real rule
+# about Scenes rather than a side effect of which files came from a device and which from
+# TaskerNet.  A Project with no Scenes that still needs one would be new evidence.
+_DISPLAY_METRIC_TAG = "dmetric"
 
-    Deliberately does NOT recurse into Tasks a bundled Task calls via "Perform
-    Task" -- only Tasks the Project's own Profiles link to directly.
+
+def _project_scene_names(project_element: defusedxml.ElementTree.Element) -> list[str]:
+    """The Scenes this Project owns, by name, from its <scenes> child.
+
+    Scenes are referenced by NAME here, unlike Profiles and Tasks, which <pids>/<tids>
+    reference by id -- see all_scenes, which taskerd keys by name for the same reason.
+    """
+    child = project_element.find("scenes")
+    return [name.strip() for name in child.text.split(",")] if child is not None and child.text else []
+
+
+def _scene_task_ids(scene_element: defusedxml.ElementTree.Element) -> list[str]:
+    """The ids of the Tasks this Scene's elements fire, in document order.
+
+    A Scene element (RectElement, TextElement and the rest) hangs its handlers off children
+    named in sysconst.SCENE_TASK_TYPES -- <clickTask>, <longclickTask>, <strokeTask> and so
+    on -- each holding a Task id.  Same table sceneview.element_tasks reads to label them in
+    the Scene view, so the two cannot disagree about what counts as firing a Task.
+
+    Walked with iter() rather than over direct children, for two reasons: the handlers hang
+    off the ELEMENTS inside a Scene rather than off the Scene itself, and a Scene can
+    contain another Scene (eight of them do in this repo's own backup), whose elements fire
+    Tasks just the same.
+
+    Negative ids are dropped.  Those are Tasker's anonymous inline Tasks (scenes.process_tasks
+    calls them "fake"): there is no <Task> element anywhere in the backup with such an id --
+    measured, all 18 of them -- because the Task lives inside the Scene already and travels
+    with it.
+    """
+    found = []
+    for element in scene_element.iter():
+        if element.tag not in SCENE_TASK_TYPES:
+            continue
+        task_id = (element.text or "").strip()
+        if task_id and not task_id.startswith("-"):
+            found.append(task_id)
+    return found
+
+
+def _ensure_project_identity(project_copy: defusedxml.ElementTree.Element) -> None:
+    """Give the copy an <id> and an <mdate> if it has none, in place.
+
+    A safety net, not the normal path: every Project in a real backup has both, and
+    create_new_project mints both.  It exists because the failure it prevents is silent and
+    total -- Tasker refuses the whole import of a Project with no <id>, and the file looks
+    perfectly well-formed from this end.
+
+    Inserted in alphabetical position among the Project's simple metadata children (cdate,
+    clr, enbl, id, mdate, name, pc, pids, scenes, tids), which is the order real Tasker
+    Projects use and the order the pids-before-tids fix-up below already assumes.  Appending
+    instead would put them after <Share>/<Img>/<ProfileVariable>, which no Tasker-written
+    Project does.
+
+    The <id> is a UUID, matching create_new_project and every real Project -- see that
+    function for why a UUID rather than the small integer a Task or Profile uses.
+    """
+    for tag in _PROJECT_IDENTITY_TAGS:
+        if project_copy.find(tag) is not None:
+            continue
+        child = type(project_copy)(tag)
+        child.text = str(uuid.uuid4()) if tag == "id" else str(int(time.time() * 1000))
+        # The first simple child that sorts after this one is where it goes.  A child whose
+        # tag starts upper-case is a compound element (Share, Img, ProfileVariable, Kid) and
+        # is never a candidate -- landing before one of those is right, landing after them
+        # is what appending would do.  With no later simple child, it goes just past the
+        # last one, which still keeps it ahead of the compound elements.
+        simple = [index for index, existing in enumerate(project_copy) if existing.tag[:1].islower()]
+        later = [index for index in simple if project_copy[index].tag > tag]
+        project_copy.insert(later[0] if later else (simple[-1] + 1 if simple else 0), child)
+
+
+def render_standalone_project_xml(project_name: str) -> str:
+    """Render a Project as a standalone TaskerData XML string, in the order Tasker's own
+    single-Project export uses: <dmetric>, every Profile the Project owns, the Project
+    element itself, every Scene it owns, then every Task those Profiles use.  Mirrors
+    profedit.render_standalone_profile_xml's TaskerData-wrapping approach, just scoped to a
+    whole Project's contents instead of one Profile's linked Entry/Exit Task(s).
+
+    Tasks come from three places: the Project's own <tids>, its Profiles' Entry/Exit
+    <mid0>/<mid1>, and the handlers on its Scenes' elements (see _scene_task_ids) -- that
+    last one reachable from nothing else, so a Scene exported without it imports with dead
+    buttons.
+
+    Deliberately does NOT recurse into Tasks a bundled Task calls via "Perform Task".
 
     Raises ValueError if project_name isn't a currently-loaded Project.
     """
@@ -429,18 +574,11 @@ def render_standalone_project_xml(project_name: str) -> str:
     project_element = project_entry["xml"]
     tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
     project_copy = copy.deepcopy(project_element)
-    # Match Tasker's own single-Project export, which drops these three (see
-    # EXPORT_OMITTED_PROJECT_TAGS). Safe to mutate here because project_copy is a deep
-    # copy -- the live tree keeps all three, and the pids/tids reads below deliberately
-    # go through project_element (the live one), so they are unaffected regardless.
-    #
-    # Only the *Project's* children are stripped. The bundled Profiles and Tasks keep
-    # theirs: <pids>/<tids> and each Profile's <mid0>/<mid1> resolve by exactly those
-    # ids, so stripping those would break every link in the exported file.
-    for tag in EXPORT_OMITTED_PROJECT_TAGS:
-        child = project_copy.find(tag)
-        if child is not None:
-            project_copy.remove(child)
+    # <id>, <mdate> and <clr> come through untouched -- Tasker will not import a Project
+    # without an <id>, and this used to remove one.  See _PROJECT_IDENTITY_TAGS.  Safe to
+    # mutate project_copy below because it is a deep copy; the pids/tids reads go through
+    # project_element (the live one) regardless.
+    _ensure_project_identity(project_copy)
 
     # Renumber the Project to sr="proj0". The sr attribute is a per-document 0-based
     # serial index, not a stable identity: backup.xml's 78 Projects carry exactly
@@ -485,10 +623,27 @@ def render_standalone_project_xml(project_name: str) -> str:
     element_cls = type(project_copy)
     root = element_cls("TaskerData", {"sr": "", "dvi": "1", "tv": tv})
 
+    # The Scenes are gathered before anything is appended, because whether there are any
+    # decides whether <dmetric> is written -- and <dmetric> has to go first.
+    all_scenes = PrimeItems.tasker_root_elements.get("all_scenes", {})
+    scene_elements = [
+        copy.deepcopy(all_scenes[scene_name]["xml"])
+        for scene_name in _project_scene_names(project_element)
+        # Missing ones are skipped rather than faked, the same way a dangling <pids> id is.
+        if scene_name in all_scenes
+    ]
+
+    # <dmetric> first, exactly where Tasker puts it (Scan.prj.xml, Custom Theme.prj.xml and
+    # backup.xml all lead with it), and only alongside Scenes -- see _DISPLAY_METRIC_TAG for
+    # the measured correlation and for why the value is copied rather than invented.
+    source_metric = PrimeItems.xml_root.find(_DISPLAY_METRIC_TAG) if PrimeItems.xml_root is not None else None
+    if scene_elements and source_metric is not None:
+        root.append(copy.deepcopy(source_metric))
+
     # Element order matters here -- matched against this repo's own sample .prj.xml files
-    # (Tasker's actual single-Project export format): every Profile first, then the Project
-    # element itself, then every Task -- not Project-first, which is what you'd expect from
-    # <pids>/<tids> being *inside* <Project>.
+    # (Tasker's actual single-Project export format): <dmetric>, then every Profile, then
+    # the Project element itself, then every Scene, then every Task -- not Project-first,
+    # which is what you'd expect from <pids>/<tids> being *inside* <Project>.
     all_profiles = PrimeItems.tasker_root_elements.get("all_profiles", {})
     profile_ids = _project_child_ids(project_element, "pids")
     for profile_id in profile_ids:
@@ -497,6 +652,11 @@ def render_standalone_project_xml(project_name: str) -> str:
             root.append(copy.deepcopy(profile_entry["xml"]))
 
     root.append(project_copy)
+
+    # The Scenes the Project owns, gathered above.  Without these the exported <scenes>
+    # names Scenes that are not in the file -- 'Base' in this repo's own backup declares
+    # four of them and shipped none -- and an import has nothing to resolve them against.
+    root.extend(scene_elements)
 
     all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
     # A Project's own <tids> only lists Tasks created *directly* inside it (no attached
@@ -517,6 +677,17 @@ def render_standalone_project_xml(project_name: str) -> str:
             if "mid" in child.tag and child.text and child.text not in seen_task_ids:
                 seen_task_ids.add(child.text)
                 task_ids.append(child.text)
+
+    # And the Tasks the Project's Scenes fire.  A Scene button's Task is reached from
+    # neither <tids> nor a Profile's <mid0>/<mid1> -- nothing links to it but the Scene
+    # element itself -- so without this the Scene imports and its buttons do nothing.  Last,
+    # after the two id sources above, so a Task that is already coming keeps its place
+    # rather than being re-ordered by which Scene happens to mention it.
+    for scene_element in scene_elements:
+        for task_id in _scene_task_ids(scene_element):
+            if task_id not in seen_task_ids:
+                seen_task_ids.add(task_id)
+                task_ids.append(task_id)
 
     for task_id in task_ids:
         task_entry = all_tasks.get(task_id)
