@@ -1578,13 +1578,16 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             with task_to_android:
                 ui.tooltip(
                     translate_string(
-                        "This will save the Task directly into the active Tasker session on your Android device.\n\n"
-                        "Tasker version 6.2 or greater is required for this to work."
-                        "The Android device must be on the same network, and the IP Address and Port\n"
-                        "must match the Android device's Tasker server settings.\n\n"
-                        "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task "
-                        "will be loaded directly into the active Tasker session.\n\n"
-                        "You must exit and restart Tasker to see the new Task in the Tasker UI.",
+                        "This opens a choice of two: write the Task as a standalone file onto your Android "
+                        "device under /Tasker/tasks, or import it straight into Tasker's live "
+                        "configuration.\n\n"
+                        "The 'Http Server Example' Tasker Project must be installed and active on the Android "
+                        "device, with the server running (see the README's Direct XML Retrieval notes), and "
+                        "Tasker must be 6.2 or higher.\n\n"
+                        "The Android device must be on the same network, and the IP Address and Port must "
+                        "match its Tasker server settings.\n\n"
+                        "The file write needs no authorization prompt; the import asks for one, and you must "
+                        "exit and restart Tasker to see an imported Task in the Tasker UI.",
                     ),
                 ).style("white-space: pre-wrap")
             task_save = ui.button(
@@ -1606,11 +1609,17 @@ def build_save_to_android_dialog(
     parent_dialog: ui.dialog,
     on_created: Callable[[str], None] | None = None,
 ) -> None:
-    """Prompts for the Android device's IP address and port, then imports the
+    """Prompts for the Android device's IP address and port, then either writes the
     current Task (name/priority/args as they stand in the parent dialog's fields)
-    directly into Tasker on the device via its HTTP API's POST /api/import
-    endpoint -- see taskedit.save_task_to_android. On success both this prompt and
-    the parent (Edit/Add Task) dialog are closed.
+    onto the device's storage under /Tasker/tasks as a standalone .tsk.xml file --
+    see taskedit.save_task_to_android_file -- or imports it directly into Tasker via
+    the HTTP API's POST /api/import -- see taskedit.save_task_to_android.  The same
+    two-button shape build_save_profile_to_android_dialog has, for the same reason.
+    On success both this prompt and the parent (Edit/Add Task) dialog are closed.
+
+    The Task is the one kind where the import half needs no tap on the device:
+    api/import is documented Task-only and imports headlessly, where a Profile, a
+    Project and a Scene all have to go through Tasker's own import screen.
 
     on_created is threaded through from build_add_task_dialog's own
     on_task_created -- see that parameter's docstring.
@@ -1627,7 +1636,30 @@ def build_save_to_android_dialog(
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
-                translate_string("Save"),
+                translate_string("Save As File"),
+                on_click=lambda: self.event_handlers.save_task_to_android_file_event(
+                    edited_task,
+                    field_refs,
+                    android_field_refs,
+                    android_dialog,
+                    parent_dialog,
+                    on_created=on_created,
+                ),
+            ).props("outline")
+            with save_to_android:
+                ui.tooltip(
+                    translate_string(
+                        "This will write the Task as a standalone file onto the Android device, "
+                        "under /Tasker/tasks.\n\n"
+                        "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
+                        "No authorization prompt is needed for this.",
+                    ),
+                ).style("white-space: pre-wrap")
+            # The other half of the same dialog, and a genuinely different outcome -- see
+            # build_save_profile_to_android_dialog for why these are two buttons and not a
+            # checkbox.  A Task's import half is the one that needs no tap on the device.
+            import_into_tasker = ui.button(
+                translate_string("Import Into Tasker"),
                 on_click=lambda: self.event_handlers.save_task_to_android_event(
                     edited_task,
                     field_refs,
@@ -1637,13 +1669,18 @@ def build_save_to_android_dialog(
                     on_created=on_created,
                 ),
             ).classes("bg-blue-600")
-            with save_to_android:
+            with import_into_tasker:
                 ui.tooltip(
                     translate_string(
-                        "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\n"
-                        "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                        "You will be prompted twice for authorization to write to Tasker on the Android device, and the Task."
-                        "and its own actions will determine where it is saved on the device.",
+                        "This puts the Task straight into Tasker's live configuration on the Android "
+                        "device.  Unlike a Profile, a Project or a Scene, no import screen and no tap "
+                        "on the device are needed -- Tasker's api/import takes a Task directly.\n\n"
+                        "The Task is copied to /Tasker/tasks on the device first and imported from "
+                        "there, so the copy stays behind as a record of exactly what was imported.  "
+                        "You will be asked before it replaces a file already at that path.\n\n"
+                        "The 'Http Server Example' Tasker Project must be installed and running, and "
+                        "Tasker must be 6.2 or higher.\n\n"
+                        "The device will ask you to authorize MapTasker the first time.",
                     ),
                 ).style("white-space: pre-wrap")
 
@@ -6652,7 +6689,7 @@ def build_save_scene_to_android_dialog(
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
-                translate_string("Save"),
+                translate_string("Save As File"),
                 on_click=lambda: self.event_handlers.save_scene_to_android_event(
                     edited_scene,
                     field_refs,
@@ -6660,7 +6697,7 @@ def build_save_scene_to_android_dialog(
                     android_dialog,
                     parent_dialog,
                 ),
-            ).classes("bg-blue-600")
+            ).props("outline")
             with save_to_android:
                 ui.tooltip(
                     translate_string(
@@ -6668,6 +6705,32 @@ def build_save_scene_to_android_dialog(
                         "under /Tasker/scenes.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
                         "No authorization prompt is needed for this.",
+                    ),
+                ).style("white-space: pre-wrap")
+            # The Profile and Project dialogs' pair, for a Scene -- see
+            # build_save_profile_to_android_dialog for why these are two buttons.
+            import_into_tasker = ui.button(
+                translate_string("Import Into Tasker"),
+                on_click=lambda: self.event_handlers.import_scene_into_tasker_event(
+                    edited_scene,
+                    field_refs,
+                    android_field_refs,
+                    android_dialog,
+                    parent_dialog,
+                ),
+            ).classes("bg-blue-600")
+            with import_into_tasker:
+                ui.tooltip(
+                    translate_string(
+                        "This sends the Scene -- and every Task its elements fire -- to the Android "
+                        "device under its own name, into /Tasker/scenes, and opens Tasker.\n\n"
+                        "You finish it on the device with Tasker's 'Scenes > Import One Scene', and "
+                        "pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put "
+                        "in front of Tasker's import screen from here -- Tasker will not take one "
+                        "handed to it, though it imports the very same file when you pick it.\n\n"
+                        "The 'Http Server Example' Tasker Project must be installed and running, and "
+                        "Tasker must be 6.2 or higher.\n\n"
+                        "The device will ask you to authorize MapTasker the first time.",
                     ),
                 ).style("white-space: pre-wrap")
 
@@ -6691,7 +6754,7 @@ def build_overwrite_confirm_dialog(
     in progress is lost -- same convention as build_delete_project_dialog.
 
     unknown=True switches the wording for the case where existence could not be
-    determined at all (maputil2.file_exists_on_android returning None -- device
+    determined at all (maputil2.read_android_file returning None -- device
     unreachable mid-check). That is deliberately still a prompt rather than a
     silent write: the honest statement is "this might overwrite something", and
     the user is the one who knows whether that matters.

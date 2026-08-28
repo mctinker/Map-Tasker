@@ -2348,3 +2348,96 @@ msgstr "個人資料"
 
 msgid "Replace this Profile condition"
 msgstr "替換此設定檔條件"
+
+msgid "%variable_name"
+msgstr "%變數名"
+
+msgid "A variable name has to start with '%' -- for example %app_package."
+msgstr "變數名稱必須以“%”開頭——例如%app_package。"
+
+msgid "Also in this field"
+msgstr "也在這個領域"
+
+msgid "App not listed?"
+msgstr "應用程式未列出？"
+
+msgid "Choose from the Applications named in the loaded configuration."
+msgstr "從已載入的配置中指定的應用程式中進行選擇。"
+
+msgid "Choose from the icons used in the loaded configuration."
+msgstr "從已載入的配置中使用的圖示中進行選擇。"
+
+msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.\n\nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.\n\n"
+msgstr "單擊此按鈕將導致以下操作：\n\n- IP 位址將用於 ping Android 裝置。\n\n- IP 位址和連接埠號碼將用於查詢 Android 裝置並取得在 Tasker 資料夾中找到的可用 XML 檔案的清單。\n\n- 找到的 XML 檔案清單將顯示在下拉式選單中，您可以從中選擇要使用的檔案。\n\n- 一旦您選擇了 XML 文件，它將被獲取並驗證為有效的 XML，然後在您隨後單擊“運行”或“重新運行”按鈕時將其用作程式的輸入。\n\n該清單是由一個名為「MapTasker List Files v1」的小任務完成的，當您第一次使用此按鈕時，MapTasker 會將其安裝在您的 Android 裝置上，然後保留在那裡。  無需手動匯入任何內容。  它需要在裝置和 Tasker 6.2 或更高版本上執行「HTTP 伺服器範例」專案（與「儲存到 Android」的要求相同），Tasker 會要求您首次授權連線。\n\n等待幾秒鐘：安裝任務（一次）、運行它並讀回它的答案不是即時的。\n\n"
+
+msgid "Fetch"
+msgstr "拿來"
+
+msgid "Fetch Applications From Android Device"
+msgstr "從 Android 裝置取得應用程式"
+
+msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
+msgstr "從 Android 裝置取得已安裝應用程式的完整清單。  現在列出的只是該配置已經命名的內容。"
+
+msgid "Fetching..."
+msgstr "正在獲取..."
+
+msgid "Fill all three fields in from the loaded configuration."
+msgstr "填寫載入的配置中的所有三個欄位。"
+
+msgid "Import Into Tasker"
+msgstr "導入到 Tasker"
+
+msgid "Listing the XML files on the Android device..."
+msgstr "列出 Android 裝置上的 XML 檔案..."
+
+msgid "More matches than can be shown -- narrow the search."
+msgstr "匹配項超出可顯示的範圍 - 縮小搜尋範圍。"
+
+msgid "No Icon"
+msgstr "無圖示"
+
+msgid "Or a Tasker variable:"
+msgstr "或者，可以設定一個工作者變數："
+
+msgid "Pick"
+msgstr "挑選"
+
+msgid "Pick an Application"
+msgstr "選擇一個應用程式"
+
+msgid "Save As File"
+msgstr "儲存為..."
+
+msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
+msgstr "這些應用程式，可以在載入的設定中找到，或是指定一個 Tasker 變數，讓該變數填入「套件」和「標籤」欄位，並將「類別」欄位留空，就像 Tasker 預設的方式。"
+
+msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
+msgstr "這些應用程式會在載入的設定中被指定。 請確認所有選項都符合此條件。 任何在欄位中已經存在的，但未列出的內容，都會保留。"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "以下步驟，您需要從您的 Android 裝置直接取得 Tasker XML 檔案：\n\n1- 您的裝置和 Android 裝置必須連接到同一個名稱的網路。\n\n2- 您的 Android 裝置必須安裝並啟用「HTTP Server Example」專案或相同功能的專案（伺服器必須正在執行）：\n\n    https://tinyurl.com/4p5cz8sv\n\n這就是唯一的設定。 以前「List XML Files」選項需要導入來自 TaskerNet 的第二個、獨立的個人資料（「MapTasker List」），並必須保持啟用；現在已經不需要了。 現在「MapTasker」會在您的裝置上安裝一個名為「MapTasker List Files v1」的小專案，以進行檔案清單，就像「App not listed?」一樣，用來取得您的應用程式。\n\n您需要提供您的 Android 裝置的 IP 位址、連接埠號碼，以及 Android 裝置上的檔案位置。 預設值如下：\n\n*   「192.168.0.210」是預設 IP 位址。\n*   「1821」是「Tasker HTTP Server Example」在您的 Android 裝置上運行的預設連接埠號碼。\n*   「/Tasker/configs/user/backup.xml」是預設檔案位置。 如果您不知道檔案位置，並且已經輸入了您的 IP 位址和連接埠號碼，則可以點擊「List XML Files」按鈕，以取得您 Android 裝置上可用的 XML 檔案清單。\n\n使用說明：\n\n您可以使用從上述 URL 取得「HTTP Server Example」專案，在您的 Android 裝置上安裝，來取得 IP 位址和連接埠號碼。 然後執行名為「Update GD HTTP Info」的專案，以取得 Android 通知：\n\nHTTP Server Info\n伺服器資訊已更新 {\"裝置名稱\":\"http://192.168.0.49:1821\"}\n\n*   要取得 XML 檔案，請點擊「Get XML from Android Device」按鈕。\n*   然後修改以下按鈕下方輸入欄中的預設值，然後點擊「Enter and Click Here to Set XML Details」或「List XML Files」按鈕。\n*   點擊任何一個按鈕都會向您的 Android 裝置發送「ping」指令，以確認裝置是否可連線。 如果裝置無法連線，則「ping」指令會在 10 秒後逾時。 請確保 IP 位址正確。\n*   點擊「Cancel Entry」按鈕以結束此取得檔案的過程。\n\n"
+
+msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "這些圖示可能出現在載入的設定中。您選擇的圖示會取代該欄位所顯示的內容。如果從圖示套件中選擇的圖示沒有列出，則必須手動輸入其名稱，因為這些名稱存在於套件中。"
+
+msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "這會將「個人資料」頁面顯示在 Android 裝置上 Tasker 自身的匯入介面。 然後，您在裝置上點擊「匯入」按鈕以完成操作 – 除非您執行此操作，否則不會匯入任何資料。\n\n「HTTP 伺服器範例」的 Tasker 專案必須已安裝並運作，且 Tasker 必須為 6.2 或更高版本。\n\n裝置會詢問您是否允許 MapTasker 第一次使用。"
+
+msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "這會將專案（以及其中每個個人資料和任務）呈現給 Tasker 自己的匯入畫面，您接著在裝置上點擊「匯入」以完成操作，直到您執行匯入操作，才會有資料匯入。\n\n「Http Server 範例」的 Tasker 專案必須已安裝並執行，且 Tasker 必須為 6.2 或更高版本。\n\n裝置會詢問您是否授權 MapTasker 第一次使用。"
+
+msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "這會將「場景」及其所有任務元素發送到 Android 裝置，並在「/Tasker/scenes」目錄下執行，並開啟 Tasker。\n\n您可以在 Tasker 的「場景 > 匯入一個場景」中使用，並根據場景名稱進行選擇。與「個人資料」或「專案」不同，場景無法直接從這裡匯入到 Tasker 的匯入畫面中——即使您選擇它，Tasker 仍然不會匯入相同的檔案。\n\n「HTTP 伺服器範例」的 Tasker 專案必須已安裝並正在執行，且 Tasker 必須是 6.2 或更高版本。\n\n裝置會要求您第一次授權 MapTasker。"
+
+msgid "Use Selected"
+msgstr "使用選定的"
+
+msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
+msgstr "在 Android 裝置上等待 -- 如果出現提示，請在那裡接受授權。這可能需要 30 秒或更長時間。"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
+msgstr "觀看您的 Android 裝置：Tasker 會要求您授權連接，在您接受之前，提取無法繼續。  如果您有數百個應用程序，則需要等待 30 秒或更長時間，因為每個應用程式的名稱都是單獨查找的。"
+
+msgid "applications, fetched"
+msgstr "應用程式，取得"

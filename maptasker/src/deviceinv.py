@@ -901,12 +901,17 @@ def _install_task_on_android(
     if isinstance(built, str):
         return 8, built
 
+    # via_file=False: a helper Task is MapTasker's own plumbing, and an ordinary import
+    # leaves a .tsk.xml behind in /Tasker/tasks -- a folder the user browses for their own
+    # Tasks.  'MapTasker Send Profile v1.tsk.xml' sitting in it is litter they did not ask
+    # for and would have to recognize before deleting.
     return_code, result, used_key = taskedit.save_task_to_android(
         built,
         ip_address,
         ip_port,
         task_name,
         auth_key,
+        via_file=False,
     )
     if return_code != 0:
         return return_code, str(result)
@@ -1799,6 +1804,12 @@ def import_profile_to_device(  # noqa: PLR0911
 # fetch first -- its Package/App Name argument is category 'App', so
 # classify_action_addability refuses it while the inventory is empty.  'Open File' takes a
 # path and a mime type and nothing else.)
+# The two endpoints an import can be confirmed against.  Tasker's HTTP API reports Profiles,
+# Tasks, Scenes and Globals by name; a Project has no endpoint of its own, which is why a
+# Project import is confirmed through the Profiles it brings (see offer_to_tasker).
+PROFILES_ENDPOINT = "api/profiles"
+SCENES_ENDPOINT = "api/scenes"
+
 _OPEN_FILE_ACTION = "102t"  # arg0 File, arg1 Mime Type
 _SEND_INTENT_ACTION = "877t"  # arg0 Action, arg1 Cat, arg2 Mime Type, arg3 Data,
 #                               arg4-6 Extra, arg7 Package, arg8 Class, arg9 Target
@@ -1813,13 +1824,31 @@ _OPEN_POLL_ATTEMPTS = 15
 # screen, read it and tap Import.  Long enough not to give up on someone who put the phone
 # down, short enough that a caller that never taps is not left hanging forever.
 _CONFIRM_POLL_ATTEMPTS = 60
+# And five minutes for a Scene, which is not one tap.  Its user has to open the Scenes tab,
+# find 'Import One Scene' in a menu, work a file picker and pick the right file -- so the
+# two minutes that suit an import screen already in front of them would time out on someone
+# who is doing exactly what they were asked to do, and say the import had not happened.
+MANUAL_IMPORT_POLL_ATTEMPTS = 150
 
 # --- 'Send Intent', for when implicit resolution does not find Tasker -------------------
 #
 # 'Open File' asks Android to find something that handles the file, and trusts it to land on
 # Tasker.  If it does not -- nothing registered for 'text/xml', or a chooser comes up and
 # Tasker is not in it -- this says where to send it instead: ACTION_VIEW at Tasker's own
-# package, explicitly.
+# activity, explicitly.
+#
+# MEASURED, 2026-08-28, and the reason this route is no longer only a fallback: a '.scn.xml'
+# offered through 'Open File' brings up a chooser with no Tasker in it, while the identical
+# offer of a '.prf.xml' lands on Tasker's import screen.  Same mime type, same action, same
+# staged directory -- so what Tasker matches on is the EXTENSION in its manifest, and it
+# claims Profile, Project and Task files but not Scene files.  No mime type fixes that; a
+# Scene has to be addressed rather than advertised.
+#
+# NAMING THE PACKAGE IS NOT ENOUGH TO ADDRESS IT.  An intent with a package but no class is
+# still resolved against that package's intent-filters -- exactly the matching that just
+# failed -- so a Scene sent that way would fail the same way, silently.  Naming the class
+# (arg8) makes the intent EXPLICIT, and an explicit intent skips filter matching altogether
+# and is delivered to that activity whatever its manifest claims.
 #
 # The shape is not invented.  Every ACTION_VIEW 'Send Intent' in this repo's real backups
 # uses Cat=None and Target=Activity, and the ones aimed at a particular app name it in
@@ -1837,6 +1866,23 @@ _VIEW_ACTION = "android.intent.action.VIEW"
 _INTENT_CATEGORY_NONE = "None"
 _INTENT_TARGET_ACTIVITY = "Activity"
 _TASKER_PACKAGE = "net.dinglisch.android.taskerm"
+# Tasker's main activity, and the component an explicit ACTION_VIEW is delivered to.  Not
+# guessed: Tasker writes this class itself, in the two places a backup records a component
+# -- an <Img> naming Tasker's own launcher icon (<cls> beside <pkg>), and an Application
+# event's <appClass> beside its <appPkg>.  It is the launcher activity, so it is exported
+# and an outside intent can start it; it is also what an implicitly-resolved '.prf.xml'
+# reaches today, so a Scene sent here arrives where a working Profile import arrives.
+_TASKER_MAIN_ACTIVITY = "net.dinglisch.android.taskerm.Tasker"
+# Where the XML is staged for Tasker to be handed.  A Scene overrides it with Tasker's own
+# Scene folder -- sceneedit.ANDROID_SCENE_LOCATION, kept in step by a test rather than by an
+# import, since sceneedit reaches back into this module's callers.
+_DEFAULT_STAGE_LOCATION = "Tasker"
+# Where a Scene goes instead -- Tasker's own Scene folder, the one its 'Scenes > Import One
+# Scene' browses.  Not a staging location: sceneedit.save_scene_to_android does that write,
+# under the Scene's own name.  Kept here only so the launch Task's answer file records where
+# the file it is about went (sceneedit.ANDROID_SCENE_LOCATION is the same string, and a test
+# holds the two together).
+_SCENE_LOCATION = "Tasker/scenes"
 
 
 def _add_result_writes(
@@ -1937,12 +1983,18 @@ def build_send_intent_task(
     header: str,
     mime_type: str = _OPEN_FILE_MIME_TYPE,
     package: str = _TASKER_PACKAGE,
+    activity_class: str = _TASKER_MAIN_ACTIVITY,
 ):  # noqa: ANN201
     """Build the Task that sends Tasker an explicit ACTION_VIEW for the staged file.
 
     The same job build_open_file_task does, addressed rather than broadcast -- see the
     section comment above for when that matters and for the file:// caveat that comes with
     it.  Its answer file means exactly what that one's does.
+
+    Package AND class, not package alone: with only a package this is still matched against
+    Tasker's intent-filters, which is the matching that fails for a Scene.  Both together
+    make it an explicit component intent, which is delivered without matching anything --
+    the whole reason this route can reach Tasker where 'Open File' cannot.
     """
     built = _new_offer_task(task_name)
     if isinstance(built, str):
@@ -1957,6 +2009,7 @@ def build_send_intent_task(
             "2": mime_type,
             "3": f"file://{stage_path}",
             "7": package,
+            "8": activity_class,
             "9": _INTENT_TARGET_ACTIVITY,
         },
     ) or _add_result_writes(add, result_write_path, header, stage_path)
@@ -1982,7 +2035,8 @@ class OfferRoute:
     _FILE_PAYLOAD_HEADER differs from _PAYLOAD_HEADER.
     """
 
-    label: str  # "Profile" / "Project" -- how this reads in a message to the user
+    label: str  # "Profile" / "Project" / "Scene" -- how this reads in a message to the user
+    confirm_endpoint: str  # where an import of this kind can be asked about afterwards
     task_name: str
     builder: Callable[[], object]
     stage_location: str
@@ -1994,17 +2048,28 @@ class OfferRoute:
     failure_hint: str
 
 
-def _build_offer_routes(label: str, extension: str) -> tuple[OfferRoute, OfferRoute]:
+def _build_offer_routes(label: str, extension: str, confirm_endpoint: str) -> tuple[OfferRoute, OfferRoute]:
     """The Open File and Send Intent routes for one kind of thing, from its name and the
     extension Tasker recognizes it by.
 
     A factory rather than eight hand-written constants: every one of those fields is derived
-    from these two arguments, and the way a hand-written set goes wrong is one of them not
-    being -- a Project route left pointing at the Profile route's answer file would read a
-    stale Profile import as its own success.
+    from these arguments, and the way a hand-written set goes wrong is one of them not being
+    -- a Project route left pointing at the Profile route's answer file would read a stale
+    Profile import as its own success.
+
+    ONLY A PROFILE AND A PROJECT, which is not an oversight: a Scene cannot be handed to
+    Tasker by intent at all (measured four ways -- see the section comment above), so it
+    does not go through here.  userintr.import_scene_into_tasker_event uploads it under its
+    own name and opens Tasker instead.
+
+    THE STAGED FILE NAME IS FIXED because the path is baked into the helper Task at install
+    time -- POST /api/tasks carries a name and nothing else -- and Tasker's api/import does
+    not replace a Task of the same name, it adds a second one (see _install_task_on_android).
+    A path that varied per object would mean either a stale Task opening the wrong file or a
+    growing pile of near-identical Tasks in the user's configuration.
     """
     key = label.lower()
-    stage_location = "Tasker"
+    stage_location = _DEFAULT_STAGE_LOCATION
     stage_filename = f"maptasker_import.{extension}"
     stage_read_path = f"/{stage_location}/{stage_filename}"
     # Absolute, because that is what Tasker's own 'Open File' and 'Send Intent' want -- the
@@ -2014,10 +2079,11 @@ def _build_offer_routes(label: str, extension: str) -> tuple[OfferRoute, OfferRo
 
     def route(verb: str, builder, hint: str) -> OfferRoute:  # noqa: ANN001
         task_name = f"MapTasker {verb} {label} v1"
-        write_path = f"{stage_location}/maptasker_{verb.lower()}_{key}.txt"
+        write_path = f"{_DEFAULT_STAGE_LOCATION}/maptasker_{verb.lower()}_{key}.txt"
         header = f"MAPTASKER-{verb.upper()}-{label.upper()} 1"
         return OfferRoute(
             label=label,
+            confirm_endpoint=confirm_endpoint,
             task_name=task_name,
             builder=lambda: builder(task_name, stage_task_path, write_path, header),
             stage_location=stage_location,
@@ -2040,21 +2106,128 @@ def _build_offer_routes(label: str, extension: str) -> tuple[OfferRoute, OfferRo
     )
 
 
-OPEN_FILE_ROUTE, SEND_INTENT_ROUTE = _build_offer_routes("Profile", "prf.xml")
-OPEN_PROJECT_ROUTE, SEND_INTENT_PROJECT_ROUTE = _build_offer_routes("Project", "prj.xml")
+OPEN_FILE_ROUTE, SEND_INTENT_ROUTE = _build_offer_routes("Profile", "prf.xml", PROFILES_ENDPOINT)
+# A Project has no endpoint of its own, so it is confirmed through the Profiles it brings --
+# see open_project_on_device.
+OPEN_PROJECT_ROUTE, SEND_INTENT_PROJECT_ROUTE = _build_offer_routes("Project", "prj.xml", PROFILES_ENDPOINT)
+# A Scene is the one kind Android will not resolve to Tasker on its own, so its Send Intent
+# route is the working one rather than the fallback -- see the section comment above and
+# userintr.import_scene_into_tasker_event.  The Open File route is kept, unused by the GUI,
+# because it is what a Tasker version that does claim '.scn.xml' would need.
+# There is deliberately no Scene route.  Every way of handing Tasker a '.scn.xml' has been
+# tried and measured failing -- see the section comment above and open_tasker_on_device.
 
 
-def verify_profiles_on_android(
+# --- Bringing Tasker up for an import that has to be finished by hand -------------------
+#
+# MEASURED, 2026-08-28, and it ends the intent story for Scenes: with the file staged in
+# /Tasker/scenes and an explicit ACTION_VIEW at Tasker's own activity, Tasker comes up, makes
+# a visible attempt at an import, and imports nothing.  The same file, picked by hand through
+# Tasker's 'Scenes > Import One Scene', imports correctly -- so the XML is right and it is
+# the HANDOFF that Tasker will not complete.  Neither the mime type, nor the extension, nor
+# the folder, nor an explicit component changes that; all four have now been tried.
+#
+# So a Scene is uploaded under its OWN name (sceneedit.save_scene_to_android, the same write
+# 'Save As File' does) and Tasker is merely opened, with the last step left to the user, who
+# now sees 'Dialog' in Tasker's list rather than 'maptasker_import'.  Nothing is staged and
+# nothing is baked into a Task, so the per-Scene file name that a VIEW route could not have
+# is free here.
+#
+# ACTION_MAIN rather than ACTION_VIEW: there is no file to hand over any more, and a VIEW
+# with no data is not a launch.  MAIN at an explicit component is what launching an app IS.
+_MAIN_ACTION = "android.intent.action.MAIN"
+LAUNCH_TASKER_TASK_NAME = "MapTasker Open Tasker v1"
+_LAUNCH_WRITE_PATH = "Tasker/maptasker_launch_tasker.txt"
+_LAUNCH_READ_PATH = f"/{_LAUNCH_WRITE_PATH}"
+_LAUNCH_HEADER = "MAPTASKER-LAUNCH-TASKER 1"
+
+
+def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME):  # noqa: ANN201
+    """Build the Task that brings Tasker to the foreground.  Returns an EditableTask, or an
+    error message string, like every other builder here.
+
+    'Send Intent' again, so this needs no application inventory -- 'Launch App' takes an
+    App-category argument, and taskedit.classify_action_addability refuses those while the
+    inventory is empty, which it is on a machine that has never fetched one.
+    """
+    built = _new_offer_task(task_name)
+    if isinstance(built, str):
+        return built
+    edited_task, add, values = built
+
+    error = add(
+        _SEND_INTENT_ACTION,
+        {
+            "0": _MAIN_ACTION,
+            "1": _INTENT_CATEGORY_NONE,
+            "7": _TASKER_PACKAGE,
+            "8": _TASKER_MAIN_ACTIVITY,
+            "9": _INTENT_TARGET_ACTIVITY,
+        },
+    ) or _add_result_writes(add, _LAUNCH_WRITE_PATH, _LAUNCH_HEADER, f"/{_SCENE_LOCATION}")
+    if error:
+        return error
+    return _finish_offer_task(edited_task, task_name, values)
+
+
+def open_tasker_on_device(ip_address: str, ip_port: str) -> tuple[int, str]:
+    """Bring Tasker to the foreground on the device.  (0, "") or (return_code, message).
+
+    The same exchange every helper Task goes through -- key, install if absent, clear the
+    last answer, run, wait for the answer file -- with nothing handed over and nothing to
+    confirm afterwards.  Whether Tasker is in front of the user is not a thing the HTTP API
+    can be asked; the answer file says only that the Task ran and the intent went out.
+
+    Blocking, like everything else here: a caller on the GUI thread must use run.io_bound.
+    """
+    from maptasker.src.maputil2 import http_delete_request  # noqa: PLC0415
+
+    ip_address = ip_address.strip()
+    ip_port = ip_port.strip()
+    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    if return_code != 0:
+        return return_code, auth_key
+
+    return_code, message = _install_task_on_android(
+        ip_address,
+        ip_port,
+        auth_key,
+        LAUNCH_TASKER_TASK_NAME,
+        build_launch_tasker_task,
+    )
+    if return_code != 0:
+        return return_code, message
+    auth_key = _auth_keys.get(_device_key(ip_address, ip_port), auth_key)
+
+    delete_code, delete_error = http_delete_request(ip_address, ip_port, _LAUNCH_READ_PATH, auth_key)
+    if delete_code != 0:
+        logger.info(f"Could not clear {_LAUNCH_READ_PATH} before opening Tasker: {delete_error}")
+
+    return_code, message, auth_key = _run_task_refreshing_key(ip_address, ip_port, LAUNCH_TASKER_TASK_NAME, auth_key)
+    if return_code != 0:
+        return return_code, message
+
+    text, error = _poll_for_result(ip_address, ip_port, _LAUNCH_READ_PATH, _OPEN_POLL_ATTEMPTS, "launch result")
+    if error:
+        return 8, error
+    if not text.splitlines() or text.splitlines()[0].strip() != _LAUNCH_HEADER:
+        return 8, "The file the Android device wrote is not a MapTasker launch result."
+    return 0, ""
+
+
+def verify_names_on_android(
     ip_address: str,
     ip_port: str,
-    profile_names: list[str],
+    endpoint: str,
+    names: list[str],
     auth_key: str,
 ) -> set[str] | None:
-    """Which of these Profile names Tasker reports, via GET /api/profiles?name=...&name=...
-    (Response: profile objects).  None if the device could not be asked.
+    """Which of these names Tasker reports at this endpoint, via GET <endpoint>?name=...&name=...
+    None if the device could not be asked.
 
-    The 'name' parameter is documented as repeatable, so this is one request however many
-    names it is given -- which matters for a Project, where the list is every Profile the
+    Serves api/profiles and api/scenes alike: both answer a JSON array of objects with a
+    "name", and both document 'name' as repeatable -- so this is one request however many
+    names it is given, which matters for a Project, where the list is every Profile the
     Project owns and the answer is wanted repeatedly while someone finds their phone.
 
     None is not an empty set.  'Could not ask' and 'none of them are there' lead to opposite
@@ -2064,12 +2237,12 @@ def verify_profiles_on_android(
 
     from maptasker.src.maputil2 import http_request  # noqa: PLC0415
 
-    names = [name.strip() for name in profile_names if name and name.strip()]
+    names = [name.strip() for name in names if name and name.strip()]
     if not names:
         return set()
 
     query = "?" + "&".join(f"name={quote(name)}" for name in names)
-    return_code, response = http_request(ip_address.strip(), ip_port.strip(), "", "api/profiles", query, auth_key)
+    return_code, response = http_request(ip_address.strip(), ip_port.strip(), "", endpoint, query, auth_key)
     if return_code != 0:
         return None
 
@@ -2080,8 +2253,20 @@ def verify_profiles_on_android(
     if not isinstance(reported, list):
         return None
 
-    found = {profile.get("name") for profile in reported if isinstance(profile, dict)}
+    found = {entry.get("name") for entry in reported if isinstance(entry, dict)}
     return {name for name in names if name in found}
+
+
+def verify_profiles_on_android(
+    ip_address: str,
+    ip_port: str,
+    profile_names: list[str],
+    auth_key: str,
+) -> set[str] | None:
+    """Which of these Profile names Tasker reports.  The api/profiles form of
+    verify_names_on_android, kept because most callers only ever ask about Profiles.
+    """
+    return verify_names_on_android(ip_address, ip_port, PROFILES_ENDPOINT, profile_names, auth_key)
 
 
 def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, auth_key: str) -> bool:
@@ -2099,7 +2284,12 @@ def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, 
     return bool(present) and profile_name in present
 
 
-def import_is_confirmable(ip_address: str, ip_port: str, profile_names: list[str]) -> bool | None:
+def import_is_confirmable(
+    ip_address: str,
+    ip_port: str,
+    names: list[str],
+    endpoint: str = PROFILES_ENDPOINT,
+) -> bool | None:
     """Whether an import of these Profiles could be told apart from doing nothing.
     True, False, or None if the device could not be asked.
 
@@ -2118,7 +2308,7 @@ def import_is_confirmable(ip_address: str, ip_port: str, profile_names: list[str
     though every caller so far treats them alike, since neither can be confirmed and
     guessing the other way is what turns an unconfirmable import into a reported success.
     """
-    names = [name.strip() for name in profile_names if name and name.strip()]
+    names = [name.strip() for name in names if name and name.strip()]
     if not names:
         return False
 
@@ -2126,7 +2316,7 @@ def import_is_confirmable(ip_address: str, ip_port: str, profile_names: list[str
     if return_code != 0:
         return None
 
-    present = verify_profiles_on_android(ip_address, ip_port, names, auth_key)
+    present = verify_names_on_android(ip_address, ip_port, endpoint, names, auth_key)
     if present is None:
         return None
     return not present
@@ -2135,8 +2325,9 @@ def import_is_confirmable(ip_address: str, ip_port: str, profile_names: list[str
 def await_import(
     ip_address: str,
     ip_port: str,
-    profile_names: list[str],
+    names: list[str],
     subject: str,
+    endpoint: str = PROFILES_ENDPOINT,
     auth_key: str = "",
     attempts: int = _CONFIRM_POLL_ATTEMPTS,
 ) -> tuple[int, str]:
@@ -2160,7 +2351,7 @@ def await_import(
     """
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
-    wanted = {name.strip() for name in profile_names if name and name.strip()}
+    wanted = {name.strip() for name in names if name and name.strip()}
 
     if not auth_key:
         return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
@@ -2168,7 +2359,7 @@ def await_import(
             return return_code, auth_key
 
     for attempt in range(attempts):
-        present = verify_profiles_on_android(ip_address, ip_port, sorted(wanted), auth_key)
+        present = verify_names_on_android(ip_address, ip_port, endpoint, sorted(wanted), auth_key)
         if present is not None and wanted <= present:
             return 0, f"{subject} is now in Tasker on {_device_key(ip_address, ip_port)}."
         if attempt < attempts - 1:
@@ -2189,7 +2380,7 @@ def _stage_xml(ip_address: str, ip_port: str, xml_bytes: bytes, route: OfferRout
     not fail loudly here -- it would be handed to Tasker.  save_profile_to_android reads its
     own upload back for exactly this reason.
     """
-    from maptasker.src.maputil2 import http_request, http_upload_request  # noqa: PLC0415
+    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
 
     return_code, response = http_upload_request(
         ip_address,
@@ -2201,31 +2392,34 @@ def _stage_xml(ip_address: str, ip_port: str, xml_bytes: bytes, route: OfferRout
     if return_code != 0:
         return return_code, str(response)
 
-    verify_code, verify_content = http_request(ip_address, ip_port, route.stage_read_path, "file", "")
-    if verify_code != 0 or verify_content != xml_bytes:
-        return 8, f"Uploaded to {route.stage_read_path}, but could not confirm it landed correctly."
+    # Retried rather than trusted -- see maputil2.read_back_uploaded_file for the write that
+    # is still settling when this arrives.
+    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, route.stage_read_path, xml_bytes)
+    if verify_code != 0:
+        return 8, str(verify_content)
     return 0, ""
 
 
 def offer_to_tasker(  # noqa: PLR0911
     xml_bytes: bytes,
     object_name: str,
-    profile_names: list[str],
+    confirm_names: list[str],
     ip_address: str,
     ip_port: str,
     wait_for_confirmation: bool = True,
     route: OfferRoute = OPEN_FILE_ROUTE,
 ) -> tuple[int, str]:
-    """Offer a Profile or a Project to Tasker's own import screen on the device.
+    """Offer a Profile, a Project or a Scene to Tasker's own import screen on the device.
 
     Args:
         xml_bytes: the standalone XML -- profedit.render_standalone_profile_xml or
             projedit.render_standalone_project_xml, encoded UTF-8, i.e. exactly what the
             file-writing Save To Android uploads today.
         object_name: what it is called, for the messages.
-        profile_names: the Profile names an import of this would put in Tasker -- one name
-            for a Profile, every Profile the Project owns for a Project.  This is the only
-            thing the HTTP API can be asked about afterwards; see the section comment.
+        confirm_names: the names an import of this would put in Tasker, asked about at the
+            route's own confirm_endpoint -- its own name for a Profile or a Scene, and for a
+            Project every Profile it owns, since there is no /api/projects to ask about the
+            Project itself.  See the section comment.
         wait_for_confirmation: keep asking Tasker whether they turned up, for about two
             minutes (await_import).  False returns as soon as the screen has been asked for,
             which is what a GUI wanting to poll on its own should pass -- the return message
@@ -2274,8 +2468,8 @@ def offer_to_tasker(  # noqa: PLR0911
     # Asked BEFORE the import, because afterwards the answer is worthless -- see
     # import_is_confirmable.  Nothing is gated on it; it only decides what can be said at
     # the end.
-    wanted = [name.strip() for name in profile_names if name and name.strip()]
-    present_before = verify_profiles_on_android(ip_address, ip_port, wanted, auth_key)
+    wanted = [name.strip() for name in confirm_names if name and name.strip()]
+    present_before = verify_names_on_android(ip_address, ip_port, route.confirm_endpoint, wanted, auth_key)
     confirmable = bool(wanted) and present_before == set()
 
     return_code, message = _install_task_on_android(ip_address, ip_port, auth_key, route.task_name, route.builder)
@@ -2316,7 +2510,7 @@ def offer_to_tasker(  # noqa: PLR0911
             "from here."
         )
 
-    return await_import(ip_address, ip_port, wanted, subject, auth_key)
+    return await_import(ip_address, ip_port, wanted, subject, route.confirm_endpoint, auth_key)
 
 
 def open_profile_on_device(

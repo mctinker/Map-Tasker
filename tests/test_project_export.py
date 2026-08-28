@@ -310,7 +310,9 @@ def test_an_anonymous_inline_task_is_not_chased() -> None:
     one (all 18 in this repo's backup), because it lives inside the Scene already and
     travels with it.  Looking for it would find nothing; the danger is only that it not be
     mistaken for a missing Task."""
-    assert projedit._scene_task_ids(_document("Home").find("Scene")) == ["30", "31", "32"]  # noqa: SLF001
+    from maptasker.src.sceneedit import scene_task_ids  # noqa: PLC0415
+
+    assert scene_task_ids(_document("Home").find("Scene")) == ["30", "31", "32"]
 
 
 def test_a_task_already_coming_is_not_duplicated() -> None:

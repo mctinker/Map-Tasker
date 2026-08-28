@@ -107,10 +107,11 @@ from maptasker.src.guiwins import (
 )
 from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
+from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
 from maptasker.src.maputil2 import (
-    file_exists_on_android,
     log_startup_values,
+    read_android_file,
     translate_string,
     write_full_backup_to_current_file,
 )
@@ -664,7 +665,10 @@ class MyGui:
         if self.is_updating:
             return
         display_current_file(self, filename)
-        if self.current_file_display_message:
+        # Only when there is a file to name.  A settings restore hands this every value it
+        # has, including an empty one, and "Current file set to " followed by nothing is not
+        # worth a message -- the label above already says "No file loaded".
+        if self.current_file_display_message and filename:
             text = translate_string("Current file set to")
             self.display_message_box(f"{text} {filename}", "Green")
         self.file = filename  # Set this so it is saved in settings.
@@ -2879,10 +2883,49 @@ class MapTaskerEventHandlers:
             # --- CRITICAL FIX: Added 'await' here ---
             await the_view.event_handlers.fetch_backup_event()
 
-    def reset_settings_event(self: "MyGui") -> None:
-        """Reset everything back to defaults."""
-        self.set_defaults()
-        ui.notify(translate_string("Settings Reset!"), type="warning")
+    def reset_settings_event(self: "MapTaskerEventHandlers") -> None:
+        """Put every setting back to its default and rebuild the window to show it."""
+        the_view = self.gui
+        previous_language = the_view.language
+
+        # The loaded XML goes with the settings.  The settings being reset here are the ones
+        # that say which file to read and which single item to map, so data read under the
+        # old ones has no business outliving them -- and the button's tooltip promises as
+        # much.  Both the parsed data and the file it came from go.
+        clear_tasker_data()
+        PrimeItems.file_to_get = ""
+
+        # Back to the runtime arguments a fresh run starts with.  Not literally a fresh run,
+        # though: this one is still the GUI, and a good deal of the program asks
+        # program_arguments whether it is (error reporting, XML loading, the map build), so
+        # that one flag is put straight back.
+        PrimeItems.program_arguments = initialize_runtime_arguments()
+        PrimeItems.program_arguments["gui"] = True
+
+        # Reset the view's own settings, then the colors that follow from the appearance mode
+        # it just reset.
+        the_view.set_defaults()
+        PrimeItems.colors_to_use = set_color_mode(the_view.appearance_mode)
+
+        # set_defaults puts the language back to English but does not touch the catalog the
+        # rest of the program translates through, so the window would come back in the old
+        # language while every setting claimed English -- and 'Save Settings' would then save
+        # English for a window that is not in it.  Only when there is a switch to make: the
+        # handler announces the language it sets, which is not something to say to somebody
+        # who was in English all along and pressed a button marked "Reset Options".
+        if previous_language != "English":
+            self.language_set_event("English")
+
+        # Rebuild the whole layout rather than walk it putting each control back by hand.
+        # That is what this used to do -- a hand-written list of every option menu and every
+        # checkbox to reset -- and a control added anywhere else in the window was a control
+        # the reset quietly missed.  Rebuilding reads each one back from the settings that
+        # have just been defaulted, so there is nothing to keep in step.
+        ui.timer(
+            0.01,
+            lambda: self.rebuild_gui_layout(the_view, announce=translate_string("Settings Reset!")),
+            once=True,
+        )
 
     # Process single name selection/event
     def process_name_event(
@@ -3309,33 +3352,16 @@ class MapTaskerEventHandlers:
         user's connection details aren't lost; on success both it and the parent
         Edit/Add Task dialog are closed.
 
+        The IMPORT half of the Save Task To Android dialog; save_task_to_android_file_event
+        is the file half, and _apply_task_for_android is the validation both share.  A Task
+        is the only kind whose import needs no tap on the device -- api/import is documented
+        Task-only, and everything else has to go through Tasker's own import screen.
+
         on_created, if given, is called with the new Task's id once it's
         registered -- see build_add_task_dialog's on_task_created.
         """
-        # A brand-new Task (Add Task) was never registered onto the live tree in
-        # the first place -- computed before anything below can change task_id,
-        # so it stays accurate for the registration step at the end.
-        is_new_task = edited_task.task_id not in PrimeItems.tasker_root_elements.get("all_tasks", {})
-
-        arg_values = _task_arg_values(field_refs)
-
-        errors = taskedit.apply_edits_to_task(
-            edited_task,
-            field_refs["name"].value,
-            field_refs["priority"].value,
-            arg_values,
-        )
-        if errors:
-            for error in errors:
-                ui.notify(error, type="negative")
-            return
-
-        if is_new_task and taskedit.task_name_exists(field_refs["name"].value.strip()):
-            ui.notify(
-                f"A Task named '{field_refs['name'].value.strip()}' already exists in this backup. "
-                "Choose a different name.",
-                type="negative",
-            )
+        ok, is_new_task = self._apply_task_for_android(edited_task, field_refs)
+        if not ok:
             return
 
         ip_address = android_field_refs["ip_address"].value.strip()
@@ -3355,27 +3381,143 @@ class MapTaskerEventHandlers:
         )
 
         task_name = field_refs["name"].value.strip()
-        return_code, result, auth_key = taskedit.save_task_to_android(
-            edited_task,
-            ip_address,
-            ip_port,
-            task_name,
-            cached_key,
-        )
-        if return_code != 0:
-            ui.notify(f"Could not save to Android device: {result}", type="negative")
+
+        def _import() -> None:
+            # The import writes /Tasker/tasks/<name>.tsk.xml and imports THAT, so it
+            # clobbers whatever is at that path exactly as 'Save As File' does -- and gets
+            # the same safety copy of it, from the same single read of the path.  A copy that
+            # fails is reported and the import goes ahead; see presave's module comment for
+            # why it must never block one.
+            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
+            if not copied:
+                ui.notify(
+                    f"Could not copy the file already on the device first: {safety_copy}",
+                    type="warning",
+                )
+
+            return_code, result, auth_key = taskedit.save_task_to_android(
+                edited_task,
+                ip_address,
+                ip_port,
+                task_name,
+                cached_key,
+            )
+            if return_code != 0:
+                ui.notify(f"Could not save to Android device: {result}", type="negative")
+                return
+
+            # Cache the auth key (keyed to this ip/port) so the next save skips the
+            # device's connection-authorization prompt entirely.
+            self.gui.android_auth_key = auth_key
+            self.gui.android_auth_key_ipaddr = ip_address
+            self.gui.android_auth_key_port = ip_port
+
+            # Remember the connection details for next time, same as the Get XML dialog does.
+            self.gui.android_ipaddr = ip_address
+            self.gui.android_port = ip_port
+
+            self._keep_task_in_loaded_config(edited_task, task_name, is_new_task, on_created)
+
+            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
+            replaced = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
+            landed = f" A copy was left on the device at {device_path}.{replaced}"
+
+            # api/import's 200 response doesn't guarantee Tasker actually committed the
+            # Task, so confirm via GET /api/tasks before declaring success. If that
+            # check fails, retry the import once more from the file now sitting in
+            # /Tasker/tasks (see taskedit.save_task_to_android_directory's docstring for why
+            # a retry, not a different endpoint, is the only fallback that can help).
+            if taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key):
+                ui.notify(translate_string("Task Uploaded to Tasker") + landed, type="positive")
+            else:
+                fallback_code, fallback_result = taskedit.save_task_to_android_directory(
+                    edited_task,
+                    ip_address,
+                    ip_port,
+                    task_name,
+                    auth_key,
+                )
+                if fallback_code == 0:
+                    ui.notify(translate_string("Task Uploaded to Tasker.") + landed, type="positive")
+                else:
+                    ui.notify(
+                        f"Unable to upload Task to Tasker: {fallback_result}",
+                        type="negative",
+                    )
+
+            android_dialog.close()
+            parent_dialog.close()
+
+        # Asked here rather than inside taskedit, because it is the same question the file
+        # button asks and the user should be asked it once, in one wording, whichever button
+        # they pressed -- see save_task_to_android_file_event's identical check, including
+        # why the content comes back with the answer.
+        device_path = taskedit.android_task_path(task_name)
+        exists, already_there = read_android_file(ip_address, ip_port, device_path)
+        if exists is not False:
+            build_overwrite_confirm_dialog(
+                f"'{device_path}' on the Android device",
+                _import,
+                unknown=exists is None,
+            )
             return
+        _import()
 
-        # Cache the auth key (keyed to this ip/port) so the next save skips the
-        # device's connection-authorization prompt entirely.
-        self.gui.android_auth_key = auth_key
-        self.gui.android_auth_key_ipaddr = ip_address
-        self.gui.android_auth_key_port = ip_port
+    def _apply_task_for_android(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+    ) -> tuple[bool, bool]:
+        """Validate and apply the parent dialog's fields, the same way a local Save does.
 
-        # Remember the connection details for next time, same as the Get XML dialog does.
-        self.gui.android_ipaddr = ip_address
-        self.gui.android_port = ip_port
+        Returns (ok, is_new_task); ok is False once the errors have already been shown, so
+        the caller only has to return.
 
+        Shared by both of the Save Task To Android dialog's buttons, for the reason
+        _apply_profile_for_android is shared by the Profile dialog's: they do genuinely
+        different things to the device and nothing at all differently to the Task, and a
+        second copy would drift into one button validating what the other does not.
+        """
+        # A brand-new Task (Add Task) was never registered onto the live tree in the first
+        # place -- computed before anything below can change task_id, so it stays accurate
+        # for the registration step the callers end with.
+        is_new_task = edited_task.task_id not in PrimeItems.tasker_root_elements.get("all_tasks", {})
+
+        errors = taskedit.apply_edits_to_task(
+            edited_task,
+            field_refs["name"].value,
+            field_refs["priority"].value,
+            _task_arg_values(field_refs),
+        )
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return False, False
+
+        if is_new_task and taskedit.task_name_exists(field_refs["name"].value.strip()):
+            ui.notify(
+                f"A Task named '{field_refs['name'].value.strip()}' already exists in this backup. "
+                "Choose a different name.",
+                type="negative",
+            )
+            return False, False
+
+        return True, is_new_task
+
+    def _keep_task_in_loaded_config(
+        self,
+        edited_task: taskedit.EditableTask,
+        task_name: str,
+        is_new_task: bool,
+        on_created: Callable[[str], None] | None,
+    ) -> None:
+        """Put the saved Task into the loaded configuration: registered if it is new, written
+        back over its old copy if it is not, and the pulldowns refreshed either way.
+
+        Both of the dialog's buttons end here, and they have to: what the device was asked to
+        do differs, what the edit means to the loaded backup does not.  A Task registered by
+        one path and not the other would show up in the Edit Task picker only sometimes.
+        """
         if is_new_task:
             taskedit.register_new_task(edited_task, task_name)
             if on_created is not None:
@@ -3384,31 +3526,84 @@ class MapTaskerEventHandlers:
             taskedit.apply_edited_task_to_live_tree(edited_task)
         refresh_tasker_object_pulldowns(self.gui)
 
-        # api/import's 200 response doesn't guarantee Tasker actually committed the
-        # Task, so confirm via GET /api/tasks before declaring success. If that
-        # check fails, retry the same api/import once more (see
-        # taskedit.save_task_to_android_directory's docstring for why a retry,
-        # not a different endpoint, is the only fallback that can plausibly help).
-        if taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key):
-            ui.notify(translate_string("Task Uploaded to Tasker"), type="positive")
-        else:
-            fallback_code, fallback_result = taskedit.save_task_to_android_directory(
-                edited_task,
-                ip_address,
-                ip_port,
-                task_name,
-                auth_key,
-            )
-            if fallback_code == 0:
-                ui.notify(translate_string("Task Uploaded to Tasker."), type="positive")
-            else:
-                ui.notify(
-                    f"Unable to upload Task to Tasker: {fallback_result}",
-                    type="negative",
-                )
+    async def save_task_to_android_file_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        android_field_refs: dict,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+        on_created: Callable[[str], None] | None = None,
+    ) -> None:
+        """Write the edited Task onto the device's storage under /Tasker/tasks, as a
+        standalone .tsk.xml file.  The Task counterpart of save_profile_to_android_event, and
+        the same thing it does for a Profile: a FILE WRITE, not a live import -- unlike this
+        dialog's other button, which posts to api/import and puts the Task straight into
+        Tasker (see save_task_to_android_event).
 
-        android_dialog.close()
-        parent_dialog.close()
+        /upload carries no Authorization header, so there is no cached-key handling here the
+        way the import path has -- and no authorization prompt on the device either.
+
+        The android prompt dialog stays open on any error, so the user's connection details
+        are not lost; on success both it and the parent Edit/Add Task dialog close.
+        """
+        ok, is_new_task = self._apply_task_for_android(edited_task, field_refs)
+        if not ok:
+            return
+
+        ip_address = android_field_refs["ip_address"].value.strip()
+        ip_port = android_field_refs["ip_port"].value.strip()
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+
+        task_name = field_refs["name"].value.strip()
+
+        def _upload() -> None:
+            # Keep whatever is already at that path before /upload writes over it -- the
+            # device keeps no versions and has no undo, so this is the only copy of it there
+            # will ever be.  The bytes come from the existence check above rather than from a
+            # second GET: the Tasker HTTP Server Example flashes 'File doesn't exist' on the
+            # phone for every miss, so asking twice put two of them on screen for one save.
+            # A copy that fails is reported and the save goes ahead -- presave's module
+            # comment says why it must never block one.
+            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
+            if not copied:
+                ui.notify(
+                    f"Could not copy the file already on the device first: {safety_copy}",
+                    type="warning",
+                )
+            return_code, result = taskedit.save_task_to_android_file(edited_task, ip_address, ip_port, task_name)
+            if return_code != 0:
+                ui.notify(f"Could not save to Android device: {result}", type="negative")
+                return
+
+            # Remember the connection details for next time, same as the Get XML dialog does.
+            self.gui.android_ipaddr = ip_address
+            self.gui.android_port = ip_port
+
+            self._keep_task_in_loaded_config(edited_task, task_name, is_new_task, on_created)
+
+            # `copied and` matters: on a failure safety_copy holds the reason, not a path.
+            saved_note = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
+            ui.notify(f"Task saved to Android device at {result}.{saved_note}", type="positive")
+            android_dialog.close()
+            parent_dialog.close()
+
+        # ONE read of the path, answering both questions the write needs answered: whether
+        # anything is there to clobber, and what it holds so it can be kept.  See
+        # maputil2.read_android_file for why two reads was worse than one on the device as
+        # well as here.  /upload clobbers silently, which is why this is asked at all.
+        device_path = taskedit.android_task_path(task_name)
+        exists, already_there = read_android_file(ip_address, ip_port, device_path)
+        if exists is not False:
+            build_overwrite_confirm_dialog(
+                f"'{device_path}' on the Android device",
+                _upload,
+                unknown=exists is None,
+            )
+            return
+        _upload()
 
     def open_add_project_dialog_event(self) -> None:
         """Opens the Add Project dialog for a brand-new Project. Unlike Add
@@ -4112,12 +4307,16 @@ class MapTaskerEventHandlers:
             return
 
         def _upload() -> None:
-            # Copy whatever is already at that path on the device before /upload writes over
-            # it.  The device keeps no versions and has no undo, so this is the only copy of
-            # it there will ever be; it is pulled back here rather than left beside the
-            # original -- see presave.backup_android_file.  A copy that fails is reported and
-            # the save goes ahead: presave's module comment says why it must never block one.
-            copied, safety_copy = presave.backup_android_file(ip_address, ip_port, device_path)
+            # Keep whatever is already at that path before /upload writes over it.  The
+            # device keeps no versions and has no undo, so this is the only copy of it there
+            # will ever be; it is kept here rather than left beside the original -- see
+            # presave.save_android_safety_copy.  The bytes come from the existence check
+            # below rather than from a second GET, because the Tasker HTTP Server Example
+            # flashes 'File doesn't exist' on the phone for every miss (its /file handler
+            # runs Test File first -- see File_System_Host.prf.xml), so asking twice put two
+            # of them on screen for one save.  A copy that fails is reported and the save
+            # goes ahead: presave's module comment says why it must never block one.
+            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
             if not copied:
                 ui.notify(
                     f"Could not copy the file already on the device first: {safety_copy}",
@@ -4138,11 +4337,13 @@ class MapTaskerEventHandlers:
             android_dialog.close()
             parent_dialog.close()
 
-        # /upload overwrites silently and answers 200 either way, so the only way to
-        # know is to read the destination back first -- see maputil2.file_exists_on_android
-        # (None = couldn't tell, which still prompts rather than risking a silent clobber).
+        # /upload overwrites silently and answers 200 either way, so the only way to know is
+        # to read the destination back first -- one read, which answers both what is there
+        # and what it holds, so the safety copy above needs no second GET of its own (see
+        # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
+        # risking a silent clobber.
         device_path = sceneedit.android_scene_path(edited_scene.scene_name)
-        exists = file_exists_on_android(ip_address, ip_port, device_path)
+        exists, already_there = read_android_file(ip_address, ip_port, device_path)
         if exists is not False:
             build_overwrite_confirm_dialog(
                 f"'{device_path}' on the Android device",
@@ -4670,12 +4871,16 @@ class MapTaskerEventHandlers:
         profile_name = field_refs["name"].value.strip()
 
         def _upload() -> None:
-            # Copy whatever is already at that path on the device before /upload writes over
-            # it.  The device keeps no versions and has no undo, so this is the only copy of
-            # it there will ever be; it is pulled back here rather than left beside the
-            # original -- see presave.backup_android_file.  A copy that fails is reported and
-            # the save goes ahead: presave's module comment says why it must never block one.
-            copied, safety_copy = presave.backup_android_file(ip_address, ip_port, device_path)
+            # Keep whatever is already at that path before /upload writes over it.  The
+            # device keeps no versions and has no undo, so this is the only copy of it there
+            # will ever be; it is kept here rather than left beside the original -- see
+            # presave.save_android_safety_copy.  The bytes come from the existence check
+            # below rather than from a second GET, because the Tasker HTTP Server Example
+            # flashes 'File doesn't exist' on the phone for every miss (its /file handler
+            # runs Test File first -- see File_System_Host.prf.xml), so asking twice put two
+            # of them on screen for one save.  A copy that fails is reported and the save
+            # goes ahead: presave's module comment says why it must never block one.
+            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
             if not copied:
                 ui.notify(
                     f"Could not copy the file already on the device first: {safety_copy}",
@@ -4698,9 +4903,10 @@ class MapTaskerEventHandlers:
             android_dialog.close()
             parent_dialog.close()
 
-        # See save_project_to_android_event's identical check -- /upload clobbers silently.
+        # See save_project_to_android_event's identical check -- /upload clobbers silently,
+        # and one read answers both of the questions the write needs answered.
         device_path = profedit.android_profile_path(profile_name)
-        exists = file_exists_on_android(ip_address, ip_port, device_path)
+        exists, already_there = read_android_file(ip_address, ip_port, device_path)
         if exists is not False:
             build_overwrite_confirm_dialog(
                 f"'{device_path}' on the Android device",
@@ -4866,7 +5072,7 @@ class MapTaskerEventHandlers:
         self,
         xml_bytes: bytes,
         object_name: str,
-        profile_names: list[str],
+        confirm_names: list[str],
         route: deviceinv.OfferRoute,
         ip_address: str,
         ip_port: str,
@@ -4874,13 +5080,19 @@ class MapTaskerEventHandlers:
         parent_dialog: ui.dialog,
         keep_edit: Callable[[], None],
     ) -> None:
-        """Offer a Profile or a Project to Tasker's import screen, and report what happened.
+        """Offer a Profile, a Project or a Scene to Tasker's import screen, and report what
+        happened.
 
-        Everything the two Import Into Tasker buttons do once their own validation is past,
+        Everything the three Import Into Tasker buttons do once their own validation is past,
         in one place: they differ in what they render, what confirms it and what they have to
         keep afterwards, and in nothing else.  keep_edit is that last part -- registering an
-        edited Profile into the loaded configuration, or nothing at all for a Project, which
-        is exported from the live tree by name and so has nothing to register.
+        edited Profile into the loaded configuration, and nothing at all for a Project or a
+        Scene, both of which are exported from the live tree by name (a Scene's edits are
+        already in it by the time this runs) and so have nothing left to register.
+
+        confirm_names is asked about at the route's own endpoint: /api/scenes for a Scene,
+        /api/profiles for a Profile and -- since there is no /api/projects -- for the
+        Profiles a Project brings with it.
 
         TWO PHASES, BECAUSE THERE IS A PERSON IN THE MIDDLE
 
@@ -4911,7 +5123,13 @@ class MapTaskerEventHandlers:
         # nothing.  None ('could not ask') is treated the same as False: neither can be
         # confirmed, and guessing the other way would turn an unconfirmable import into a
         # reported success.
-        confirmable = await run.io_bound(deviceinv.import_is_confirmable, ip_address, ip_port, profile_names)
+        confirmable = await run.io_bound(
+            deviceinv.import_is_confirmable,
+            ip_address,
+            ip_port,
+            confirm_names,
+            route.confirm_endpoint,
+        )
 
         # Blocking -- it installs a Task, uploads, runs and polls -- so it goes to a worker
         # thread, the way every other Android call from the GUI does.
@@ -4919,7 +5137,7 @@ class MapTaskerEventHandlers:
             deviceinv.offer_to_tasker,
             xml_bytes,
             object_name,
-            profile_names,
+            confirm_names,
             ip_address,
             ip_port,
             wait_for_confirmation=False,
@@ -4972,13 +5190,147 @@ class MapTaskerEventHandlers:
             deviceinv.await_import,
             ip_address,
             ip_port,
-            profile_names,
+            confirm_names,
             subject,
+            route.confirm_endpoint,
         )
-        pending.dismiss()
+        # Guarded, because this notification is likely to be GONE by now and through no
+        # fault of anyone's: it carries a close button, it sits there for up to two minutes
+        # while someone walks to their phone, and a client that reloaded in the meantime
+        # takes its elements with it.  Dismissing a deleted element makes nicegui log a
+        # warning about a bug in the application code -- and the two-minute wait is exactly
+        # the window in which the user is most likely to have tidied it away themselves.
+        with contextlib.suppress(Exception):
+            pending.dismiss()
         # Not an error in the usual sense: most likely nobody has got to the phone yet, or
         # they declined.  Either way it is the DEVICE this reports on, not the edit here.
-        ui.notify(message, type="positive" if return_code == 0 else "warning")
+        with contextlib.suppress(Exception):
+            ui.notify(message, type="positive" if return_code == 0 else "warning")
+
+    async def import_scene_into_tasker_event(
+        self,
+        edited_scene: sceneedit.EditableScene,
+        field_refs: dict,
+        android_field_refs: dict,
+        android_dialog: ui.dialog,
+        parent_dialog: ui.dialog,
+    ) -> None:
+        """Put the Scene -- and every Task its elements fire -- on the device and bring
+        Tasker up, for the user to finish in Tasker's own 'Scenes > Import One Scene'.
+
+        THE ONE OF THE THREE THAT CANNOT BE HANDED OVER, and not for want of trying.  A
+        Profile and a Project reach Tasker's import screen through an intent; a Scene does
+        not, and all four things that could have made it are now measured and none of them
+        did:
+
+            mime type      identical to the Profile's ('text/xml'), from one shared builder
+            extension      '.scn.xml', which Android resolves to a chooser with no Tasker
+            explicit intent Tasker's own package AND class -- Tasker opens, imports nothing
+            folder         /Tasker/scenes, Tasker's own -- same result
+
+        The same file, picked by hand in Tasker, imports correctly.  So the XML is right and
+        it is the handoff Tasker will not complete, and the honest thing is to do everything
+        up to the handoff and say plainly what is left.
+
+        WHICH IS WHY THE FILE CARRIES THE SCENE'S OWN NAME here rather than the fixed
+        'maptasker_import.scn.xml' the intent routes stage: nothing is baked into a helper
+        Task any more (the launch Task takes no path), so the constraint that forced a fixed
+        name is gone -- and the name is what the user now has to pick out of a list on their
+        phone.  It is the same write 'Save As File' does, through the same function.
+
+        The apply is load-bearing exactly as it is there: the export renders the Scene from
+        the LIVE TREE by name, while the dialog edits a deep copy nothing writes back until
+        a save handler runs.  Without it, an element added a moment ago is simply absent
+        from the file that reaches the phone.  It also means a bad field stops this before
+        the device is contacted.
+        """
+        errors = _apply_scene_field_values(edited_scene, field_refs)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
+
+        ip_address = android_field_refs["ip_address"].value.strip()
+        ip_port = android_field_refs["ip_port"].value.strip()
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+
+        scene_name = edited_scene.scene_name
+
+        # Asked BEFORE the file goes over, for the reason import_is_confirmable gives: a
+        # Scene Tasker already has answers yes whatever the user goes on to do.
+        confirmable = await run.io_bound(
+            deviceinv.import_is_confirmable,
+            ip_address,
+            ip_port,
+            [scene_name],
+            deviceinv.SCENES_ENDPOINT,
+        )
+
+        # The upload reads itself back and compares bytes -- /upload answers 200 whatever it
+        # wrote.  A failure here is the one failure that stops everything: with no file on
+        # the device there is nothing for the user to import, and opening Tasker would be
+        # sending them to do it anyway.
+        return_code, result = await run.io_bound(sceneedit.save_scene_to_android, scene_name, ip_address, ip_port)
+        if return_code != 0:
+            ui.notify(f"Could not send the Scene to the device: {result}", type="negative")
+            return
+        device_path = result
+
+        # Tasker in front of the user is a convenience, not the delivery -- the file is
+        # already there and the instructions below stand on their own -- so a device that
+        # will not open it is reported and not treated as a failed send.
+        launch_code, launch_error = await run.io_bound(deviceinv.open_tasker_on_device, ip_address, ip_port)
+
+        self.gui.android_ipaddr = ip_address
+        self.gui.android_port = ip_port
+
+        android_dialog.close()
+        parent_dialog.close()
+
+        opening = (
+            "Tasker is open on the device"
+            if launch_code == 0
+            else f"Open Tasker on the device (it could not be opened from here: {launch_error})"
+        )
+        # No timeout and a close button: it asks the user to go and do something on their
+        # phone, and there is no telling how long that takes.  The file name is the whole
+        # point of the message -- 'import it from the Scenes tab' is useless without saying
+        # which of the files in there it is.
+        pending = ui.notification(
+            f"{opening}.  {device_path} is waiting on it -- import it with "
+            f"Tasker's 'Scenes > Import One Scene', and pick '{scene_name}'.",
+            type="info",
+            timeout=None,
+            close_button=True,
+            multi_line=True,
+        )
+
+        if confirmable is not True:
+            # Nothing to wait for: Tasker already reports a Scene of this name, so it would
+            # answer yes before the user touched anything.  The notification above stays as
+            # the last word, since there is no outcome coming that could replace it.
+            return
+
+        return_code, message = await run.io_bound(
+            deviceinv.await_import,
+            ip_address,
+            ip_port,
+            [scene_name],
+            f"Scene '{scene_name}'",
+            deviceinv.SCENES_ENDPOINT,
+            "",  # no key of its own; await_import gets one
+            deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS,
+        )
+        # Guarded for the reason _offer_into_tasker's are: this notification carries a close
+        # button and has been on screen for as long as it takes someone to reach their phone.
+        with contextlib.suppress(Exception):
+            pending.dismiss()
+        with contextlib.suppress(Exception):
+            ui.notify(message, type="positive" if return_code == 0 else "warning")
 
     async def import_project_into_tasker_event(
         self,
@@ -5075,12 +5427,16 @@ class MapTaskerEventHandlers:
             return
 
         def _upload() -> None:
-            # Copy whatever is already at that path on the device before /upload writes over
-            # it.  The device keeps no versions and has no undo, so this is the only copy of
-            # it there will ever be; it is pulled back here rather than left beside the
-            # original -- see presave.backup_android_file.  A copy that fails is reported and
-            # the save goes ahead: presave's module comment says why it must never block one.
-            copied, safety_copy = presave.backup_android_file(ip_address, ip_port, device_path)
+            # Keep whatever is already at that path before /upload writes over it.  The
+            # device keeps no versions and has no undo, so this is the only copy of it there
+            # will ever be; it is kept here rather than left beside the original -- see
+            # presave.save_android_safety_copy.  The bytes come from the existence check
+            # below rather than from a second GET, because the Tasker HTTP Server Example
+            # flashes 'File doesn't exist' on the phone for every miss (its /file handler
+            # runs Test File first -- see File_System_Host.prf.xml), so asking twice put two
+            # of them on screen for one save.  A copy that fails is reported and the save
+            # goes ahead: presave's module comment says why it must never block one.
+            copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
             if not copied:
                 ui.notify(
                     f"Could not copy the file already on the device first: {safety_copy}",
@@ -5101,11 +5457,13 @@ class MapTaskerEventHandlers:
             android_dialog.close()
             parent_dialog.close()
 
-        # /upload overwrites silently and answers 200 either way, so the only way to
-        # know is to read the destination back first -- see maputil2.file_exists_on_android
-        # (None = couldn't tell, which still prompts rather than risking a silent clobber).
+        # /upload overwrites silently and answers 200 either way, so the only way to know is
+        # to read the destination back first -- one read, which answers both what is there
+        # and what it holds, so the safety copy above needs no second GET of its own (see
+        # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
+        # risking a silent clobber.
         device_path = projedit.android_project_path(edited_project.project_name)
-        exists = file_exists_on_android(ip_address, ip_port, device_path)
+        exists, already_there = read_android_file(ip_address, ip_port, device_path)
         if exists is not False:
             build_overwrite_confirm_dialog(
                 f"'{device_path}' on the Android device",
@@ -5842,153 +6200,178 @@ class MapTaskerEventHandlers:
             finally:
                 the_view.is_updating = False  # Disengage the lock
 
-        # --- FIX: Defer layout reconstruction to break out of LeftDrawer context nesting ---
-        def rebuild_layout() -> None:
-            client = context.client
+        # Deferred so the teardown happens outside the LeftDrawer context this event
+        # fired from (see rebuild_gui_layout).
+        ui.timer(0.01, lambda: self.rebuild_gui_layout(the_view), once=True)
 
-            # Carry the tab the user is actually looking at across the rebuild.
-            #
-            # initialize_screen() re-selects self.tab_to_use, but nothing updates that when
-            # a tab is clicked -- it only ever holds what the settings file restored, or
-            # "Analyze" from the last analysis run (see analyze_event).  So a language
-            # switch used to land on whatever tab was saved rather than the one on screen.
-            # Read it off the live ui.tabs here, while the old layout is still standing.
-            selected_tab = selected_tab_name(the_view)
-            if selected_tab is not None:
-                the_view.tab_to_use = selected_tab
+    def rebuild_gui_layout(self: "MapTaskerEventHandlers", the_view: "MyGui", announce: str = "") -> None:
+        """Tear the whole layout down and build it again from the view's current settings.
 
-            # Remove previous top-level layout elements (header/drawer/footer). NiceGUI
-            # moves those to be direct children of the q-layout (siblings of the page
-            # container), so they must be torn down explicitly rather than via
-            # `client.layout.clear()`, which would also destroy the page container itself.
-            #
-            # Skip anything already deleted.  Dialogs are siblings of the page container
-            # too -- create_popup_window() and friends only close() them, so every dialog
-            # ever opened is still sitting in this list -- and NiceGUI plants a hidden
-            # "canary" element for each one in whatever slot was active when the dialog
-            # was built (see Dialog.__init__), with a weakref.finalize that deletes the
-            # dialog once that canary is collected.  MapTasker's dialogs are built from
-            # drawer/content callbacks, so deleting a drawer below drops the canary's last
-            # reference and CPython runs the finalizer right there, mid-loop, taking those
-            # dialogs out of the list this loop is walking a snapshot of.  Deleting one a
-            # second time is what raised "ValueError: list.remove(x): x not in list".
-            for child in list(client.layout.default_slot.children):
-                if child is not client.page_container and not child.is_deleted:
-                    child.delete()
+        Used by anything that changes settings wholesale rather than one control at a time:
+        a language switch (every label has to be restated) and 'Reset Options' (every control
+        has to go back to its default).  Both would otherwise have to walk the entire window
+        putting each widget back by hand, which is what 'Reset Options' used to do and what
+        left it a control behind every time a new one was added.
 
-            # Clear the actual page content (this is where the new elements get built).
-            client.content.clear()
+        Call it from a ui.timer rather than directly, so the rebuild happens outside the
+        event's own NiceGUI context -- deleting the drawer the event fired from while that
+        drawer is the active slot is what the callers' 10ms deferral avoids.
 
-            # Several widgets (e.g. ai_model_option, font_out_label) are only (re)created
-            # by helper functions that check "if the attribute is already set, reuse it"
-            # instead of always rebuilding. Now that their elements were torn down above,
-            # null out any such stale reference on the view so those helpers create fresh
-            # ones instead of touching an element NiceGUI considers deleted.
-            for attr_name, attr_value in list(vars(the_view).items()):
-                if getattr(attr_value, "is_deleted", False):
-                    setattr(the_view, attr_name, None)
+            :param the_view: the GUI whose window is to be rebuilt
+            :param announce: message to put on screen once the new layout is standing
+        """
+        client = context.client
 
-            # Rebuild inside the page content: NiceGUI requires top-level layout
-            # elements (header/drawer/footer) to be created while it is the active slot.
-            # Everything below also runs inside this block: the timer callback's own
-            # context is the *old* (now-deleted) slot it was created in, so anything
-            # relying on the active NiceGUI context (e.g. ui.notify()) would otherwise
-            # blow up with "The parent element this slot belongs to has been deleted."
-            # once this block exits and that stale context becomes active again.
-            with client.content:
-                initialize_screen(the_view)
+        # Carry the tab the user is actually looking at across the rebuild.
+        #
+        # initialize_screen() re-selects self.tab_to_use, but nothing updates that when
+        # a tab is clicked -- it only ever holds what the settings file restored, or
+        # "Analyze" from the last analysis run (see analyze_event).  So a language
+        # switch used to land on whatever tab was saved rather than the one on screen.
+        # Read it off the live ui.tabs here, while the old layout is still standing.
+        selected_tab = selected_tab_name(the_view)
+        if selected_tab is not None:
+            the_view.tab_to_use = selected_tab
 
-                # Redisplay current file onto the fresh layout
+        # Remove previous top-level layout elements (header/drawer/footer). NiceGUI
+        # moves those to be direct children of the q-layout (siblings of the page
+        # container), so they must be torn down explicitly rather than via
+        # `client.layout.clear()`, which would also destroy the page container itself.
+        #
+        # Skip anything already deleted.  Dialogs are siblings of the page container
+        # too -- create_popup_window() and friends only close() them, so every dialog
+        # ever opened is still sitting in this list -- and NiceGUI plants a hidden
+        # "canary" element for each one in whatever slot was active when the dialog
+        # was built (see Dialog.__init__), with a weakref.finalize that deletes the
+        # dialog once that canary is collected.  MapTasker's dialogs are built from
+        # drawer/content callbacks, so deleting a drawer below drops the canary's last
+        # reference and CPython runs the finalizer right there, mid-loop, taking those
+        # dialogs out of the list this loop is walking a snapshot of.  Deleting one a
+        # second time is what raised "ValueError: list.remove(x): x not in list".
+        for child in list(client.layout.default_slot.children):
+            if child is not client.page_container and not child.is_deleted:
+                child.delete()
+
+        # Clear the actual page content (this is where the new elements get built).
+        client.content.clear()
+
+        # Several widgets (e.g. ai_model_option, font_out_label) are only (re)created
+        # by helper functions that check "if the attribute is already set, reuse it"
+        # instead of always rebuilding. Now that their elements were torn down above,
+        # null out any such stale reference on the view so those helpers create fresh
+        # ones instead of touching an element NiceGUI considers deleted.
+        for attr_name, attr_value in list(vars(the_view).items()):
+            if getattr(attr_value, "is_deleted", False):
+                setattr(the_view, attr_name, None)
+
+        # Rebuild inside the page content: NiceGUI requires top-level layout
+        # elements (header/drawer/footer) to be created while it is the active slot.
+        # Everything below also runs inside this block: the timer callback's own
+        # context is the *old* (now-deleted) slot it was created in, so anything
+        # relying on the active NiceGUI context (e.g. ui.notify()) would otherwise
+        # blow up with "The parent element this slot belongs to has been deleted."
+        # once this block exits and that stale context becomes active again.
+        with client.content:
+            initialize_screen(the_view)
+
+            # Redisplay current file onto the fresh layout.  Only when there is one: with
+            # nothing loaded the label as just built reads "No file loaded", which is the
+            # right thing to say, and display_current_file would replace it with a bare
+            # "Current File: ".
+            if the_view.file:
                 display_current_file(the_view, the_view.file)
 
-                # Restore settings values so that they are correctly displayed in the new UI instance
-                temp_args = {arg: getattr(the_view, arg) for arg in ARGUMENT_NAMES if hasattr(the_view, arg)}
-                the_view.extract_settings(temp_args)
+            # Restore settings values so that they are correctly displayed in the new UI instance
+            temp_args = {arg: getattr(the_view, arg) for arg in ARGUMENT_NAMES if hasattr(the_view, arg)}
+            the_view.extract_settings(temp_args)
 
-                # Trigger task limit label updates
-                if hasattr(self, "tasklimit_event"):
-                    self.tasklimit_event(the_view.task_action_warning_limit)
+            # Trigger task limit label updates
+            if hasattr(self, "tasklimit_event"):
+                self.tasklimit_event(the_view.task_action_warning_limit)
 
-                # Reset the single item object tracking names. Guarded the same way as
-                # check_name's identical call: setting a pulldown's .value fires its
-                # on_change (single_project_name_event etc.), which re-enters check_name --
-                # harmless if that validates fine, but an infinite loop if it doesn't (e.g.
-                # a restored single_project_name pointing at a file that no longer exists).
-                try:
-                    the_view.is_updating = True
-                    set_tasker_object_names(the_view)
-                finally:
-                    the_view.is_updating = False
+            # Reset the single item object tracking names. Guarded the same way as
+            # check_name's identical call: setting a pulldown's .value fires its
+            # on_change (single_project_name_event etc.), which re-enters check_name --
+            # harmless if that validates fine, but an infinite loop if it doesn't (e.g.
+            # a restored single_project_name pointing at a file that no longer exists).
+            try:
+                the_view.is_updating = True
+                set_tasker_object_names(the_view)
+            finally:
+                the_view.is_updating = False
 
-                # Reset single item dropdown select lists
-                update_tasker_object_menus(
-                    the_view,
-                    get_data=False,
-                    reset_single_names=False,
-                )
+            # Reset single item dropdown select lists
+            update_tasker_object_menus(
+                the_view,
+                get_data=False,
+                reset_single_names=False,
+            )
 
-                # Handle upgrade buttons checks
-                check_new_version(the_view)
+            # Handle upgrade buttons checks
+            check_new_version(the_view)
 
-                # Update the pull-down menus option items lists.
-                #
-                # refresh_tasker_object_pulldowns, not list_tasker_objects: the latter
-                # gates on load_xml(), which with nothing loaded yet goes off and opens
-                # the file picker, and reports the user's not having picked one as a red
-                # "Cancel button pressed." toast -- on a language switch, where no file
-                # was ever asked for.  (It also re-fetches from the Android device
-                # whenever android_ipaddr is set, which is just as unwanted here.)  The
-                # pulldowns are all this needs, and refreshing them is exactly what the
-                # split-out tail does: it rebuilds the lists from whatever is already in
-                # PrimeItems.tasker_root_elements, filling in translated "No projects
-                # found" placeholders when that is empty -- which is the right answer for
-                # a relabel-everything pass anyway.
-                refresh_tasker_object_pulldowns(the_view)
+            # Update the pull-down menus option items lists.
+            #
+            # refresh_tasker_object_pulldowns, not list_tasker_objects: the latter
+            # gates on load_xml(), which with nothing loaded yet goes off and opens
+            # the file picker, and reports the user's not having picked one as a red
+            # "Cancel button pressed." toast -- on a language switch, where no file
+            # was ever asked for.  (It also re-fetches from the Android device
+            # whenever android_ipaddr is set, which is just as unwanted here.)  The
+            # pulldowns are all this needs, and refreshing them is exactly what the
+            # split-out tail does: it rebuilds the lists from whatever is already in
+            # PrimeItems.tasker_root_elements, filling in translated "No projects
+            # found" placeholders when that is empty -- which is the right answer for
+            # a relabel-everything pass anyway.
+            refresh_tasker_object_pulldowns(the_view)
 
-                # Map menu attributes to their target values for a clean batch update
-                menu_updates = []
+            # Map menu attributes to their target values for a clean batch update
+            menu_updates = []
 
-                for label in SINGLE_ITEM_LABELS:
-                    name = getattr(the_view, f"single_{label.lower()}_name", "")
-                    if name:
-                        menu_updates = [
-                            (f"specific_{label.lower()}_optionmenu", name),
-                            (f"ai_{label.lower()}_optionmenu", name),
-                        ]
-                        break
+            for label in SINGLE_ITEM_LABELS:
+                name = getattr(the_view, f"single_{label.lower()}_name", "")
+                if name:
+                    menu_updates = [
+                        (f"specific_{label.lower()}_optionmenu", name),
+                        (f"ai_{label.lower()}_optionmenu", name),
+                    ]
+                    break
 
-                # Batch update the dropdown values safely under the state lock.
-                # Via select_pulldown_option, since a Project's option is
-                # "Project: <name>" and a Profile's "Profile: <name>", not the
-                # bare name held in single_project_name/single_profile_name --
-                # assigning the bare name would leave the pulldown blank.
-                try:
-                    the_view.is_updating = True  # Engage the lock
-                    for attr_name, target_value in menu_updates:
-                        if hasattr(the_view, attr_name):
-                            menu_widget = getattr(the_view, attr_name)
-                            if menu_widget:
-                                select_pulldown_option(menu_widget, target_value)
-                finally:
-                    the_view.is_updating = False  # Always disengage the lock
+            # Batch update the dropdown values safely under the state lock.
+            # Via select_pulldown_option, since a Project's option is
+            # "Project: <name>" and a Profile's "Profile: <name>", not the
+            # bare name held in single_project_name/single_profile_name --
+            # assigning the bare name would leave the pulldown blank.
+            try:
+                the_view.is_updating = True  # Engage the lock
+                for attr_name, target_value in menu_updates:
+                    if hasattr(the_view, attr_name):
+                        menu_widget = getattr(the_view, attr_name)
+                        if menu_widget:
+                            select_pulldown_option(menu_widget, target_value)
+            finally:
+                the_view.is_updating = False  # Always disengage the lock
 
-                # Redo the contextual text labels values
-                display_selected_object_labels(the_view)
+            # Redo the contextual text labels values
+            display_selected_object_labels(the_view)
 
-                # No tab relabelling here: initialize_screen() above rebuilt the tabs from
-                # scratch, translating each label as it went, so there is nothing left to
-                # restate.  What used to stand here assigned translate_string(...) to each
-                # tab's ".text", which a ui.tab does not have (its caption is ".label", see
-                # NiceGUI's LabelElement) -- so it set a stray attribute on the element and
-                # relabelled nothing.  It only ever looked like it worked because the real
-                # translation had already happened a few lines earlier.
+            # No tab relabelling here: initialize_screen() above rebuilt the tabs from
+            # scratch, translating each label as it went, so there is nothing left to
+            # restate.  What used to stand here assigned translate_string(...) to each
+            # tab's ".text", which a ui.tab does not have (its caption is ".label", see
+            # NiceGUI's LabelElement) -- so it set a stray attribute on the element and
+            # relabelled nothing.  It only ever looked like it worked because the real
+            # translation had already happened a few lines earlier.
 
-                # Forces the tab panel component container to process text and redraw updates
-                ui.update()
+            # Whatever the caller wants said about the rebuild is said here, inside the new
+            # layout's context: by the time this returns, the active context is the deleted
+            # slot the timer was created in, where ui.notify() raises "The parent element
+            # this slot belongs to has been deleted."
+            if announce:
+                ui.notify(announce, type="warning")
 
-        # Safely trigger layout swap outside the active event scope in 10ms
-        ui.timer(0.01, rebuild_layout, once=True)
-        # --- END FIX ---
+            # Forces the tab panel component container to process text and redraw updates
+            ui.update()
 
     def language_set_event(self, language: str | Event) -> None:
         """

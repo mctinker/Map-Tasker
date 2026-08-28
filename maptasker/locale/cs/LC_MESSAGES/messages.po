@@ -2452,3 +2452,96 @@ msgstr "Stav profilu"
 
 msgid "Replace this Profile condition"
 msgstr "Nahraďte tuto podmínku profilu"
+
+msgid "%variable_name"
+msgstr "%variable_name"
+
+msgid "A variable name has to start with '%' -- for example %app_package."
+msgstr "Název proměnné musí začínat '%' - například %app_package."
+
+msgid "Also in this field"
+msgstr "I v tomto oboru"
+
+msgid "App not listed?"
+msgstr "Aplikace není uvedena?"
+
+msgid "Choose from the Applications named in the loaded configuration."
+msgstr "Vyberte si z aplikací pojmenovaných v načtené konfiguraci."
+
+msgid "Choose from the icons used in the loaded configuration."
+msgstr "Vyberte si z ikon použitých v načtené konfiguraci."
+
+msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.\n\nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.\n\n"
+msgstr "Kliknutí na toto tlačítko způsobí následující akce:\n\n- IP adresa bude použita pro ping zařízení Android.\n\n- IP adresa a číslo portu budou použity k dotazu na zařízení Android a získání seznamu dostupných souborů XML nalezených ve složce Tasker.\n\n- Seznam nalezených XML souborů se zobrazí v rozbalovací nabídce, ze které si můžete vybrat ten, který chcete použít.\n\n- Jakmile vyberete soubor XML, bude načten a ověřen jako platný XML, který se poté použije jako vstup do programu, jakmile následně kliknete na tlačítko 'Spustit' nebo 'Znovu spustit'.\n\nVýpis se provádí pomocí malého úkolu s názvem 'MapTasker List Files v1', který MapTasker nainstaluje do vašeho zařízení Android při prvním použití tohoto tlačítka a poté tam nechá.  Nic se nemusí dovážet ručně.  Vyžaduje to projekt „HTTP Server Example“ spuštěný na zařízení a Tasker 6.2 nebo vyšší – stejné požadavky má „Uložit do Androidu“ – a Tasker vás poprvé požádá o autorizaci připojení.\n\nPočkejte několik sekund: instalace úlohy (jednou), její spuštění a zpětné čtení její odpovědi není okamžité.\n\n"
+
+msgid "Fetch"
+msgstr "Vynést"
+
+msgid "Fetch Applications From Android Device"
+msgstr "Načítání aplikací ze zařízení Android"
+
+msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
+msgstr "Získejte úplný seznam nainstalovaných aplikací ze svého zařízení Android.  Nyní je uvedeno pouze to, co tato konfigurace již pojmenovává."
+
+msgid "Fetching..."
+msgstr "Načítání..."
+
+msgid "Fill all three fields in from the loaded configuration."
+msgstr "Vyplňte všechna tři pole z načtené konfigurace."
+
+msgid "Import Into Tasker"
+msgstr "Import do Taskeru"
+
+msgid "Listing the XML files on the Android device..."
+msgstr "Výpis souborů XML v zařízení Android..."
+
+msgid "More matches than can be shown -- narrow the search."
+msgstr "Více shod, než lze zobrazit – zúžit vyhledávání."
+
+msgid "No Icon"
+msgstr "Žádný ikona"
+
+msgid "Or a Tasker variable:"
+msgstr "Nebo proměnná v Tasker:"
+
+msgid "Pick"
+msgstr "Výběr"
+
+msgid "Pick an Application"
+msgstr "Vyberte aplikaci"
+
+msgid "Save As File"
+msgstr "Uložit jako soubor"
+
+msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
+msgstr "Aplikace, které jsou někde definovány ve načtené konfiguraci – nebo použijte proměnnou Tasker, která vyplní pole \"Balíček\" a \"Šablona\" a ponechá pole \"Třída\" prázdná, stejně jako to dělá Tasker."
+
+msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
+msgstr "Aplikace, které jsou někde uvedeny v načtené konfiguraci. Vyberte všechny, u kterých by měl tento argument odpovídat. Vše, co už je v poli, zůstane, pokud není uvedeno v seznamu."
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "Následující kroky jsou nutné k získání souboru Tasker XML přímo z vašeho zařízení Android.\n\n1. Jak vaše zařízení, tak zařízení Android musí být připojeny ke stejné síti se stejným názvem.\n\n2. Projekt 'HTTP Server Example' nebo ekvivalentní funkce musí být nainstalovány a aktivní na zařízení Android (server musí být spuštěn):\n\n    https://tinyurl.com/4p5cz8sv\n\nTo je jediná požadovaná konfigurace. Dříve byla funkce 'List XML Files' vyžadovala i další, samostatný profil ('MapTasker List'), který bylo nutné importovat z TaskerNet a ponechat aktivní; nyní to již není nutné. Nyní instaluje zařízení malý úkol s názvem 'MapTasker List Files v1', který provádí vyhledávání, stejně jako funkce 'App not listed?' instaluje, aby získala vaše aplikace.\n\nBudete požádáni o IP adresu, číslo portu pro vaše zařízení Android, stejně jako o umístění souboru na zařízení Android. Předdefinované hodnoty jsou poskytovány, kde...\n\n'192.168.0.210' je výchozí IP adresa,\n\n'1821' je výchozí číslo portu pro funkci 'HTTP Server Example' běžící na vašem zařízení Android\n\n'/Tasker/configs/user/backup.xml' je výchozí umístění souboru. Pokud neznáte umístění souboru a již jste zadali IP adresu a port, můžete kliknout na tlačítko 'List XML Files', abyste získali seznam dostupných souborů XML na vašem zařízení Android, které můžete vybrat.\n\nPoznámky k použití:\n\nIP adresu a port můžete získat instalací projektu 'HTTP Server Example' z výše uvedeného URL na vašem zařízení Android. Poté spusťte úkol s názvem 'Update GD HTTP Info', který zobrazí oznámení na zařízení Android:\n\nInformace o serveru\nInformace o serveru aktualizovány {\"název zařízení\":\"http://192.168.0.49:1821\"}\n\n- Pro získání souboru XML klikněte na tlačítko\n\n 'Get XML from Android Device'\n\nPoté upravte výchozí hodnoty uvedené v polích níže tohoto tlačítka a poté klikněte na tlačítko 'Enter and Click Here to Set XML Details' nebo 'List XML Files'.\n\n- Kliknutí na kterékoliv z těchto tlačítek odešle dotaz na zařízení Android, aby se zjistilo, zda je dostupné. Pokud zařízení není dosažitelné, dotaz se časem vyprší po 10 sekundách. Ujistěte se, že IP adresa je správná.\n\nKlikněte na tlačítko 'Cancel Entry', abyste ukončili tento proces získávání.\n\n"
+
+msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Ikony použité někde v načtené konfiguraci.  To, co si vyberete, nahradí to, co pole obsahuje.  Ikona ze sady ikon, která není uvedena, musí být napsána: její názvy jsou uvnitř sady."
+
+msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "Tím se profil umístí před vlastní importní obrazovku Taskeru na zařízení Android.  Poté klepněte na Importovat na zařízení pro dokončení – dokud to neuděláte, nic se neimportuje.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
+
+msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "Tím se projekt – a každý profil a úkol v něm – dostane před vlastní importní obrazovku Taskeru na zařízení Android.  Poté klepněte na Importovat na zařízení pro dokončení; nic se neimportuje, dokud to neuděláte.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
+
+msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "To odešle scénu – a všechny její úkoly – na zařízení Android pod jejím vlastním názvem, do složky /Tasker/scenes, a spustí aplikaci Tasker.\n\nDokončíte to na zařízení pomocí funkce „Scény > Importovat jednu scénu“ v Taskeru a vyberete scénu podle názvu. Na rozdíl od profilu nebo projektu, scénu nelze importovat přímo z tohoto místa – Tasker ji neimportuje, i když ji vyberete.\n\nProjekt „Http Server Example“ v Taskeru musí být nainstalován a spuštěn, a Tasker musí být verze 6.2 nebo vyšší.\n\nZařízení vás požádá, abyste autorizovali MapTasker při prvním použití."
+
+msgid "Use Selected"
+msgstr "Použít vybrané"
+
+msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
+msgstr "Čekání na zařízení Android – přijměte výzvu k autorizaci, pokud se objeví.  To může trvat 30 sekund nebo více."
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
+msgstr "Sledujte své zařízení Android: Tasker vás požádá o autorizaci připojení a načítání nemůže pokračovat, dokud nepřijmete.  Jakmile budete mít, počkejte 30 sekund nebo více – na zařízení s několika stovkami aplikací déle, protože název každé z nich se vyhledává samostatně."
+
+msgid "applications, fetched"
+msgstr "aplikace, staženy"

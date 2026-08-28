@@ -724,6 +724,9 @@ def _patch_import_path(monkeypatch, results: list) -> dict:
     monkeypatch.setattr(userintr.projedit, "render_standalone_project_xml", lambda _n: "<TaskerData/>")
     monkeypatch.setattr(userintr.projedit, "project_profile_names", lambda _n: ["Watched", "Also Watched"])
     monkeypatch.setattr(userintr, "_unapplied_project_edits", lambda _refs: [])
+    monkeypatch.setattr(userintr.sceneedit, "render_standalone_scene_xml", lambda _n: "<TaskerData/>")
+    monkeypatch.setattr(userintr.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s: None)
+    monkeypatch.setattr(userintr, "_apply_scene_field_values", lambda _s, _refs: [])
     monkeypatch.setattr(
         userintr.MapTaskerEventHandlers,
         "_apply_profile_for_android",
@@ -1052,3 +1055,643 @@ async def test_unapplied_project_edits_stop_it_before_the_device(monkeypatch, ev
 
     assert calls["io_bound"] == []
     assert ("Colour was never applied.", "negative") in calls["notify"]
+
+
+# ==========================================
+# ...and for a Scene, which is not offered at all
+#
+# A Profile and a Project are handed to Tasker's import screen.  A Scene cannot be: measured
+# on a real device, Tasker opens for it -- through a chooser-free explicit intent, with the
+# file in Tasker's own /Tasker/scenes folder -- makes a visible attempt, and imports nothing,
+# while the same file picked by hand in Tasker imports correctly.  So this flow does
+# everything up to the handoff (upload under the Scene's own name, open Tasker) and says
+# what is left to do, rather than reporting a handoff that does not happen.
+#
+# The four io_bound calls, in order: the confirmable pre-check, the upload, the launch, and
+# the confirmation wait.
+# ==========================================
+
+
+_SCENE_RESULTS = [
+    True,
+    (0, "/Tasker/scenes/Dialog.scn.xml"),
+    (0, ""),
+    (0, "Scene 'Dialog' is now in Tasker"),
+]
+
+
+async def _import_scene(event_handler, android_refs, scene_name: str = "Dialog") -> None:
+    edited_scene = MagicMock()
+    edited_scene.scene_name = scene_name
+    await event_handler.import_scene_into_tasker_event(
+        edited_scene,
+        {},
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+
+@pytest.mark.asyncio
+async def test_a_scene_is_sent_under_its_own_name(monkeypatch, event_handler, profile_dialog_refs):
+    """The name is not cosmetic here.  The user finishes this import by picking the file out
+    of a list on their phone, so it has to be called what they are looking for -- the fixed
+    'maptasker_import.scn.xml' the intent routes stage is what they saw before, and it named
+    nothing.  The upload is the same one 'Save As File' does, through the same function."""
+    from maptasker.src import sceneedit
+
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, _SCENE_RESULTS)
+
+    await _import_scene(event_handler, android_refs)
+
+    _pre_check, upload, _launch, _confirm = calls["io_bound"]
+    assert upload[0] is sceneedit.save_scene_to_android
+    assert upload[1][0] == "Dialog"
+
+
+@pytest.mark.asyncio
+async def test_a_scene_is_confirmed_at_the_scenes_endpoint(monkeypatch, event_handler, profile_dialog_refs):
+    """Unlike a Project, a Scene has an endpoint of its own -- Tasker's API reports Scenes by
+    name -- so once the user has done the import by hand, it can still be confirmed."""
+    from maptasker.src import deviceinv
+
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, _SCENE_RESULTS)
+
+    await _import_scene(event_handler, android_refs)
+
+    pre_check, _upload, launch, confirm = calls["io_bound"]
+    assert pre_check[0] is deviceinv.import_is_confirmable
+    assert pre_check[1][3] == deviceinv.SCENES_ENDPOINT
+    assert launch[0] is deviceinv.open_tasker_on_device
+    assert confirm[1][2] == ["Dialog"]
+    assert confirm[1][4] == deviceinv.SCENES_ENDPOINT
+    # Five minutes, not the two an import screen gets: this user is working a file picker,
+    # and a timeout would tell them an import they are in the middle of did not happen.
+    assert confirm[1][6] == deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS
+    assert deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS > 60
+
+
+@pytest.mark.asyncio
+async def test_the_scene_notification_names_the_file_and_the_menu(monkeypatch, event_handler, profile_dialog_refs):
+    """The whole delivery, for the user, is this message: the file is on their phone and the
+    last step is theirs.  A message that says 'import it' without saying which file, or
+    where from, leaves them exactly where they started."""
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, _SCENE_RESULTS)
+
+    await _import_scene(event_handler, android_refs)
+
+    pending = [message for message, _type in calls["notify"] if "Import One Scene" in message]
+    assert pending, calls["notify"]
+    assert "/Tasker/scenes/Dialog.scn.xml" in pending[0]
+    assert "'Dialog'" in pending[0]
+    assert "Tasker is open on the device" in pending[0]
+
+
+@pytest.mark.asyncio
+async def test_a_scene_that_could_not_be_sent_does_not_send_anyone_to_their_phone(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+):
+    """The upload verifies itself by reading the bytes back, and if that fails there is
+    nothing on the device to import.  Opening Tasker then would be sending the user to do
+    something impossible, and the message has to be the failure, not the instructions."""
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (8, "could not confirm it landed correctly")])
+
+    await _import_scene(event_handler, android_refs)
+
+    assert len(calls["io_bound"]) == 2  # the pre-check and the upload, and nothing after it
+    assert any("could not confirm it landed correctly" in message for message, _type in calls["notify"])
+    assert not any("Import One Scene" in message for message, _type in calls["notify"])
+
+
+@pytest.mark.asyncio
+async def test_a_scene_still_arrives_when_tasker_will_not_open(monkeypatch, event_handler, profile_dialog_refs):
+    """Opening Tasker is a convenience, not the delivery: the file is already on the device
+    and the instructions stand without it.  Treating it as a failure would throw away a
+    completed upload over a cosmetic step."""
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(
+        monkeypatch,
+        [True, (0, "/Tasker/scenes/Dialog.scn.xml"), (8, "Tasker did not report the Task"), (0, "now in Tasker")],
+    )
+
+    await _import_scene(event_handler, android_refs)
+
+    pending = [message for message, _type in calls["notify"] if "Import One Scene" in message]
+    assert pending, calls["notify"]
+    assert "Open Tasker on the device" in pending[0]
+    assert "Tasker did not report the Task" in pending[0]
+    assert "/Tasker/scenes/Dialog.scn.xml" in pending[0]
+
+
+@pytest.mark.asyncio
+async def test_the_scene_edits_are_applied_before_the_export(monkeypatch, event_handler, profile_dialog_refs):
+    """Load-bearing, and silent when missed: the export renders the Scene from the LIVE TREE
+    by name, while the dialog edits a deep copy whose V2 layout nothing writes back until a
+    save handler runs.  Without the apply, an element added a moment ago is simply absent
+    from the file that reaches the phone."""
+    from maptasker.src import userintr
+
+    applied = []
+    _field_refs, android_refs = profile_dialog_refs
+    _patch_import_path(monkeypatch, _SCENE_RESULTS)
+    monkeypatch.setattr(
+        userintr.sceneedit,
+        "apply_edited_scene_to_live_tree",
+        lambda name, _scene: applied.append(name),
+    )
+
+    await _import_scene(event_handler, android_refs)
+
+    assert applied == ["Dialog"]
+
+
+@pytest.mark.asyncio
+async def test_a_scene_that_fails_validation_never_reaches_the_device(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+):
+    """Applying first is also what makes a bad field stop this before anything is sent,
+    rather than after -- same order save_scene_to_android_event uses."""
+    from maptasker.src import userintr
+
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")])
+    monkeypatch.setattr(userintr, "_apply_scene_field_values", lambda _s, _refs: ["Width must be a number."])
+    edited_scene = MagicMock()
+    edited_scene.scene_name = "Dialog"
+
+    await event_handler.import_scene_into_tasker_event(
+        edited_scene,
+        {},
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert calls["io_bound"] == []
+    assert ("Width must be a number.", "negative") in calls["notify"]
+
+
+# ==========================================
+# Reporting the outcome cannot be what kills the session
+#
+# The confirmation wait is up to two minutes long, and the status notification it puts up
+# carries a close button.  So by the time there is something to report, that element may be
+# gone -- dismissed by the user, or taken with a client that reloaded -- and nicegui treats
+# being driven after deletion as a bug in the application code.  Observed on a real run: the
+# warning it logs was the first write to a stderr another thread had already closed (see
+# maputil2.suppress_stdout), and the whole application went down with it.
+# ==========================================
+
+
+@pytest.mark.asyncio
+async def test_a_notification_the_user_already_closed_does_not_take_the_app_down(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+):
+    """The import still gets reported, and nothing propagates out of the handler."""
+    from maptasker.src import userintr
+
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, _SCENE_RESULTS)
+
+    class _DeletedNotification:
+        """nicegui's behaviour for an element that no longer exists."""
+
+        def __init__(self, message, **kwargs) -> None:
+            calls["notify"].append((message, kwargs.get("type")))
+
+        def dismiss(self) -> None:
+            raise ValueError("I/O operation on closed file.")
+
+    monkeypatch.setattr(userintr.ui, "notification", _DeletedNotification)
+
+    await _import_scene(event_handler, android_refs)
+
+    # Got past the dismiss, and still said what happened.
+    assert ("Scene 'Dialog' is now in Tasker", "positive") in calls["notify"]
+
+
+@pytest.mark.asyncio
+async def test_a_profile_notification_carries_no_such_advice(monkeypatch, event_handler, profile_dialog_refs):
+    """A Profile reaches Tasker's import screen on its own, so there is nothing to finish by
+    hand and nothing to say about it -- the hint is the Scene's, not everyone's."""
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (1, "not seen")])
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    pending = [message for message, _type in calls["notify"] if "import screen is open" in message]
+    assert pending, calls["notify"]
+    assert "Scenes tab" not in pending[0]
+
+
+# ==========================================
+# 'Save As File' for a Task
+#
+# The Save Task To Android dialog used to have one button, and it imported.  It now has the
+# Profile dialog's pair, and the file half is what these cover: the same overwrite prompt,
+# the same safety copy, the same read-back-verified upload -- and the same registration into
+# the loaded configuration, which is the part that has nothing to do with the device and
+# must not differ between the two buttons.
+# ==========================================
+
+
+@pytest.fixture
+def task_dialog_refs():
+    """The two field_refs dicts the Task handlers are given."""
+    return (
+        {"name": _FakeField("Opener"), "priority": _FakeField("100")},
+        {"ip_address": _FakeField("192.168.0.210"), "ip_port": _FakeField("1821")},
+    )
+
+
+def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/Opener.tsk.xml")) -> dict:
+    """Point the file-write handler's collaborators at fakes and record what it did."""
+    from maptasker.src import userintr
+
+    calls: dict = {"notify": [], "uploaded": [], "overwrite": [], "backed_up": [], "kept": []}
+
+    async def fake_ping(_self, _ip, _port) -> bool:
+        return True
+
+    monkeypatch.setattr(userintr, "ping_android_device", fake_ping)
+    monkeypatch.setattr(userintr.taskedit, "apply_edits_to_task", lambda *_args: [])
+    monkeypatch.setattr(userintr.taskedit, "task_name_exists", lambda _name: False)
+    monkeypatch.setattr(userintr, "_task_arg_values", lambda _refs: {})
+    monkeypatch.setattr(userintr, "refresh_tasker_object_pulldowns", lambda _gui: None)
+    # Both halves of _keep_task_in_loaded_config: which one runs depends on whether the Task
+    # is already registered, and the handler must do exactly one of them.
+    monkeypatch.setattr(
+        userintr.taskedit,
+        "apply_edited_task_to_live_tree",
+        lambda _task: calls["kept"].append("existing"),
+    )
+    monkeypatch.setattr(
+        userintr.taskedit,
+        "register_new_task",
+        lambda _task, name: calls["kept"].append(f"new:{name}"),
+    )
+    # One read of the path now answers both questions -- see maputil2.read_android_file.
+    # The content it hands back is what becomes the safety copy, with no second GET.
+    monkeypatch.setattr(
+        userintr,
+        "read_android_file",
+        lambda _ip, _port, _path: (exists, b"<TaskerData>the old one</TaskerData>" if exists else b""),
+    )
+    monkeypatch.setattr(
+        userintr.presave,
+        "save_android_safety_copy",
+        lambda path, content: (calls["backed_up"].append((path, content)), (True, "/copies/Opener.tsk.xml"))[1],
+    )
+
+    def fake_upload(_task, _ip, _port, name):
+        calls["uploaded"].append(name)
+        return upload
+
+    monkeypatch.setattr(userintr.taskedit, "save_task_to_android_file", fake_upload)
+    monkeypatch.setattr(
+        userintr,
+        "build_overwrite_confirm_dialog",
+        lambda what, on_confirm, **kwargs: calls["overwrite"].append((what, on_confirm, kwargs)),
+    )
+    monkeypatch.setattr(
+        userintr.ui,
+        "notify",
+        lambda message, **kwargs: calls["notify"].append((message, kwargs.get("type"))),
+    )
+    return calls
+
+
+async def _save_task_file(event_handler, task_dialog_refs) -> tuple:
+    field_refs, android_refs = task_dialog_refs
+    android_dialog, parent_dialog = MagicMock(), MagicMock()
+    await event_handler.save_task_to_android_file_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        android_dialog,
+        parent_dialog,
+    )
+    return android_dialog, parent_dialog
+
+
+@pytest.mark.asyncio
+async def test_a_task_file_write_reports_where_it_landed(monkeypatch, event_handler, task_dialog_refs):
+    """The path is the whole point of the message: nothing about this reaches Tasker, so
+    what the user gets is a file, and they have to be told which one and where."""
+    calls = _patch_task_file_path(monkeypatch)
+
+    android_dialog, parent_dialog = await _save_task_file(event_handler, task_dialog_refs)
+
+    assert calls["uploaded"] == ["Opener"]
+    saved = [message for message, kind in calls["notify"] if kind == "positive"]
+    assert saved and "/Tasker/tasks/Opener.tsk.xml" in saved[0]
+    assert "/copies/Opener.tsk.xml" in saved[0]  # and what it replaced went somewhere
+    android_dialog.close.assert_called_once()
+    parent_dialog.close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_a_task_file_is_not_clobbered_without_asking(monkeypatch, event_handler, task_dialog_refs):
+    """/upload overwrites silently and answers 200 either way, so the check has to happen
+    here.  Nothing is uploaded until the prompt is answered -- the same guard the Profile and
+    Project writes have."""
+    calls = _patch_task_file_path(monkeypatch, exists=True)
+
+    await _save_task_file(event_handler, task_dialog_refs)
+
+    assert calls["uploaded"] == []
+    assert calls["overwrite"], "no overwrite prompt"
+    what, on_confirm, kwargs = calls["overwrite"][0]
+    assert "/Tasker/tasks/Opener.tsk.xml" in what
+    assert kwargs["unknown"] is False
+
+    on_confirm()  # the user chooses Overwrite
+
+    assert calls["uploaded"] == ["Opener"]
+    assert calls["backed_up"] == [("/Tasker/tasks/Opener.tsk.xml", b"<TaskerData>the old one</TaskerData>")]
+
+
+@pytest.mark.asyncio
+async def test_a_task_file_asks_even_when_the_device_cannot_be_read(monkeypatch, event_handler, task_dialog_refs):
+    """read_android_file's existence answer is tri-state, and None is 'could not tell'.  Treated as False
+    it would skip the prompt on exactly the flaky connection where a user most wants it."""
+    calls = _patch_task_file_path(monkeypatch, exists=None)
+
+    await _save_task_file(event_handler, task_dialog_refs)
+
+    assert calls["uploaded"] == []
+    assert calls["overwrite"][0][2]["unknown"] is True
+
+
+@pytest.mark.asyncio
+async def test_a_failed_task_file_write_keeps_the_dialog_open(monkeypatch, event_handler, task_dialog_refs):
+    """The connection details the user typed are in that dialog.  Closing it on a failure
+    makes them type the address again to retry -- and the retry is the likely next move."""
+    calls = _patch_task_file_path(monkeypatch, upload=(8, "could not confirm it landed correctly"))
+
+    android_dialog, parent_dialog = await _save_task_file(event_handler, task_dialog_refs)
+
+    assert any(kind == "negative" for _message, kind in calls["notify"])
+    android_dialog.close.assert_not_called()
+    parent_dialog.close.assert_not_called()
+    assert calls["kept"] == []  # and nothing was claimed for the loaded configuration
+
+
+@pytest.mark.asyncio
+async def test_a_saved_task_reaches_the_loaded_configuration(monkeypatch, event_handler, task_dialog_refs):
+    """The half that is not about the device at all.  Both buttons end here -- a Task
+    registered by one and not the other would show up in the Edit Task picker only
+    sometimes."""
+    calls = _patch_task_file_path(monkeypatch)
+
+    await _save_task_file(event_handler, task_dialog_refs)
+
+    # A MagicMock Task carries an id the live tree has never heard of, so this is the
+    # brand-new path -- registered under the name from the dialog, once.
+    assert calls["kept"] == ["new:Opener"]
+
+
+@pytest.mark.asyncio
+async def test_the_task_import_asks_before_replacing_the_file_it_writes(
+    monkeypatch,
+    event_handler,
+    task_dialog_refs,
+):
+    """The import writes /Tasker/tasks/<name>.tsk.xml and imports that, so it clobbers the
+    same path 'Save As File' does -- and has to ask the same question, in the same words,
+    whichever button the user pressed."""
+    from maptasker.src import userintr
+
+    calls = _patch_task_file_path(monkeypatch, exists=True)
+    imported = []
+    monkeypatch.setattr(
+        userintr.taskedit,
+        "save_task_to_android",
+        lambda *args, **_kwargs: (imported.append(args[3]), (0, args[3], "KEY"))[1],
+    )
+    monkeypatch.setattr(userintr.taskedit, "verify_task_on_android", lambda *_args: True)
+    field_refs, android_refs = task_dialog_refs
+
+    await event_handler.save_task_to_android_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert imported == []  # nothing imported while the prompt is up
+    what, on_confirm, kwargs = calls["overwrite"][0]
+    assert "/Tasker/tasks/Opener.tsk.xml" in what
+    assert kwargs["unknown"] is False
+
+    on_confirm()  # the user chooses Overwrite
+
+    assert imported == ["Opener"]
+    # and the old file was copied first, from the bytes the existence check already had
+    assert calls["backed_up"] == [("/Tasker/tasks/Opener.tsk.xml", b"<TaskerData>the old one</TaskerData>")]
+
+
+@pytest.mark.asyncio
+async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_handler, task_dialog_refs):
+    """The copy is the point of the change and the user has no other way to learn it is
+    there -- an import that silently leaves a file behind is a file nobody knows to look
+    for."""
+    from maptasker.src import userintr
+
+    calls = _patch_task_file_path(monkeypatch)
+    monkeypatch.setattr(userintr.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3], "KEY"))
+    monkeypatch.setattr(userintr.taskedit, "verify_task_on_android", lambda *_args: True)
+    field_refs, android_refs = task_dialog_refs
+
+    await event_handler.save_task_to_android_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    saved = [message for message, kind in calls["notify"] if kind == "positive"]
+    assert saved, calls["notify"]
+    assert "/Tasker/tasks/Opener.tsk.xml" in saved[0]
+    assert "/copies/Opener.tsk.xml" in saved[0]
+
+
+# ==========================================
+# ...and the same for a Profile, a Project and a Scene
+#
+# All four Save To Android file writes now read the destination ONCE: the answer says whether
+# anything is there to clobber, and the same response carries what to keep as the safety
+# copy.  Two reads meant two round trips, two chances to disagree about what was there, and
+# two 'File doesn't exist' flashes on the phone for a single first-time save -- the Tasker
+# HTTP Server Example's /file handler runs Test File and flashes on every miss.
+#
+# These three handlers had no coverage at all before, so what is pinned here is the whole
+# shape: probe once, prompt before clobbering, copy what was there, then write.
+# ==========================================
+
+
+def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/Tasker/x")) -> dict:
+    """Fakes for one of the three non-Task Save To Android handlers."""
+    from maptasker.src import userintr
+
+    calls: dict = {"notify": [], "uploaded": [], "overwrite": [], "backed_up": []}
+
+    async def fake_ping(_self, _ip, _port) -> bool:
+        return True
+
+    monkeypatch.setattr(userintr, "ping_android_device", fake_ping)
+    monkeypatch.setattr(
+        userintr,
+        "read_android_file",
+        lambda _ip, _port, _path: (exists, b"<TaskerData>the old one</TaskerData>" if exists else b""),
+    )
+    monkeypatch.setattr(
+        userintr.presave,
+        "save_android_safety_copy",
+        lambda path, content: (calls["backed_up"].append((path, content)), (True, "/copies/old"))[1],
+    )
+    monkeypatch.setattr(
+        userintr,
+        "build_overwrite_confirm_dialog",
+        lambda what, on_confirm, **kwargs: calls["overwrite"].append((what, on_confirm, kwargs)),
+    )
+    monkeypatch.setattr(
+        userintr.ui,
+        "notify",
+        lambda message, **kwargs: calls["notify"].append((message, kwargs.get("type"))),
+    )
+
+    def record(*args: object) -> tuple:
+        calls["uploaded"].append(args)
+        return upload
+
+    if kind == "profile":
+        monkeypatch.setattr(
+            userintr.MapTaskerEventHandlers,
+            "_apply_profile_for_android",
+            lambda _self, _profile, _refs: (True, False, ""),
+        )
+        # What the Profile does with the loaded configuration afterwards is its own business
+        # and its own tests -- this is about the one read of the device path.
+        monkeypatch.setattr(
+            userintr.MapTaskerEventHandlers,
+            "_keep_profile_in_loaded_config",
+            lambda _self, *_args: None,
+        )
+        monkeypatch.setattr(userintr.profedit, "android_profile_path", lambda name: f"/Tasker/profiles/{name}.prf.xml")
+        monkeypatch.setattr(userintr.profedit, "save_profile_to_android", record)
+    elif kind == "project":
+        monkeypatch.setattr(userintr, "_unapplied_project_edits", lambda _refs: [])
+        monkeypatch.setattr(userintr.projedit, "android_project_path", lambda name: f"/Tasker/projects/{name}.prj.xml")
+        monkeypatch.setattr(userintr.projedit, "save_project_to_android", record)
+    else:
+        monkeypatch.setattr(userintr, "_apply_scene_field_values", lambda _s, _refs: [])
+        monkeypatch.setattr(userintr.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s: None)
+        monkeypatch.setattr(userintr.sceneedit, "android_scene_path", lambda name: f"/Tasker/scenes/{name}.scn.xml")
+        monkeypatch.setattr(userintr.sceneedit, "save_scene_to_android", record)
+    return calls
+
+
+async def _save_object(event_handler, kind: str, android_refs) -> None:
+    edited = MagicMock()
+    edited.project_name = "Home"
+    edited.scene_name = "Dialog"
+    handler = {
+        "profile": event_handler.save_profile_to_android_event,
+        "project": event_handler.save_project_to_android_event,
+        "scene": event_handler.save_scene_to_android_event,
+    }[kind]
+    await handler(edited, {"name": _FakeField("Watched")}, android_refs, MagicMock(), MagicMock())
+
+
+@pytest.mark.parametrize(
+    ("kind", "device_path"),
+    [
+        ("profile", "/Tasker/profiles/Watched.prf.xml"),
+        ("project", "/Tasker/projects/Home.prj.xml"),
+        ("scene", "/Tasker/scenes/Dialog.scn.xml"),
+    ],
+)
+@pytest.mark.asyncio
+async def test_each_kind_reads_its_destination_once_and_keeps_what_was_there(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+    kind,
+    device_path,
+):
+    """The prompt and the safety copy come from the same single read: the copy is made of the
+    bytes that read returned, so nothing goes back to the device to ask again."""
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_object_save_path(monkeypatch, kind, exists=True, upload=(0, device_path))
+
+    await _save_object(event_handler, kind, android_refs)
+
+    assert calls["uploaded"] == []  # nothing written while the prompt is up
+    what, on_confirm, kwargs = calls["overwrite"][0]
+    assert device_path in what
+    assert kwargs["unknown"] is False
+
+    on_confirm()  # the user chooses Overwrite
+
+    assert calls["uploaded"], "the confirmed write never happened"
+    assert calls["backed_up"] == [(device_path, b"<TaskerData>the old one</TaskerData>")]
+
+
+@pytest.mark.parametrize("kind", ["profile", "project", "scene"])
+@pytest.mark.asyncio
+async def test_each_kind_writes_straight_through_when_nothing_is_there(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+    kind,
+):
+    """A first-time save asks nothing and copies nothing -- there is nothing to ask about and
+    nothing to keep.  The read that established that is the only one made."""
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_object_save_path(monkeypatch, kind, exists=False)
+
+    await _save_object(event_handler, kind, android_refs)
+
+    assert calls["overwrite"] == []
+    # The safety copy is handed nothing, and nothing is what it keeps (see
+    # presave.save_android_safety_copy, which returns (True, "") for empty content).
+    assert [content for _path, content in calls["backed_up"]] == [b""]
+    assert calls["uploaded"], "the write never happened"
+
+
+@pytest.mark.parametrize("kind", ["profile", "project", "scene"])
+@pytest.mark.asyncio
+async def test_each_kind_still_asks_when_the_device_cannot_be_read(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+    kind,
+):
+    """None is 'could not tell', and treating it as False would skip the prompt on exactly
+    the flaky connection where a user most wants it."""
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_object_save_path(monkeypatch, kind, exists=None)
+
+    await _save_object(event_handler, kind, android_refs)
+
+    assert calls["uploaded"] == []
+    assert calls["overwrite"][0][2]["unknown"] is True

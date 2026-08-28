@@ -3169,10 +3169,51 @@ def android_scene_path(scene_name: str) -> str:
     """The absolute path a Save To Android of this Scene would write to on the
     device.  Single source of truth for that path -- save_scene_to_android
     writes here and the GUI's overwrite check reads it back through
-    maputil2.file_exists_on_android, so the two must never drift apart.  See
+    maputil2.read_android_file, so the two must never drift apart.  See
     projedit.android_project_path for the sanitized-name collision this shares.
     """
     return f"/{ANDROID_SCENE_LOCATION}/{sanitize_filename(scene_name)}.scn.xml"
+
+
+# The device screen size an export was written on, as "width,height" floats -- Tasker's own
+# top-level <dmetric>.  Scene elements are laid out in device pixels, so an importing device
+# needs to know what screen those pixels were measured on; see projedit's copy of this note
+# for the measurement behind it.  All three genuine Tasker .scn.xml exports in this repo
+# carry one (tv=6.3.x); the two without are this program's own earlier output (tv=6.7.6-beta,
+# the loaded backup's own version), which is the bug rather than the counter-example.
+_DISPLAY_METRIC_TAG = "dmetric"
+
+
+def scene_task_ids(scene_element: defusedxml.ElementTree.Element) -> list[str]:
+    """The ids of the Tasks this Scene's elements fire, in document order.
+
+    A Scene element (RectElement, TextElement and the rest) hangs its handlers off children
+    named in sysconst.SCENE_TASK_TYPES -- <clickTask>, <longclickTask>, <strokeTask> and so
+    on -- each holding a Task id.  Same table sceneview.element_tasks reads to label them in
+    the Scene view, so the two cannot disagree about what counts as firing a Task.
+
+    Walked with iter() rather than over direct children, for two reasons: the handlers hang
+    off the ELEMENTS inside a Scene rather than off the Scene itself, and a Scene can
+    contain another Scene (eight of them do in this repo's own backup), whose elements fire
+    Tasks just the same.
+
+    Negative ids are dropped.  Those are Tasker's anonymous inline Tasks (scenes.process_tasks
+    calls them "fake"): there is no <Task> element anywhere in the backup with such an id --
+    measured, all 18 of them -- because the Task lives inside the Scene already and travels
+    with it.
+
+    Lives here rather than in projedit, which also needs it (a Project bundles its Scenes,
+    so it bundles their Tasks too), because it is a fact about Scenes.  projedit imports it;
+    nothing here imports projedit, so the direction is safe.
+    """
+    found = []
+    for element in scene_element.iter():
+        if element.tag not in SCENE_TASK_TYPES:
+            continue
+        task_id = (element.text or "").strip()
+        if task_id and not task_id.startswith("-"):
+            found.append(task_id)
+    return found
 
 
 def render_standalone_scene_xml(scene_name: str) -> str:
@@ -3181,16 +3222,19 @@ def render_standalone_scene_xml(scene_name: str) -> str:
     Electric_Blanket.scn.xml: a TaskerData root holding one <Scene>, which keeps
     its sr="scene<name>" and all of its UI elements).
 
-    Simpler than projedit.render_standalone_project_xml in the one way that
-    matters: there is nothing to bundle.  A Project export has to gather the
-    Profiles and Tasks its ids point at; a Scene's UI elements are children of
-    the Scene element itself, so a deep copy of that one element is the whole
-    export.  Nothing is stripped either -- a Scene has no <id>/<clr>/<mdate> to
-    omit, and its sr carries the name rather than a document position, so unlike
-    a Project's sr="proj0" there is nothing to renumber.
+    Emits <dmetric>, the Scene, then every Task the Scene's elements fire -- the shape
+    Set_Fake_Call_Time_Scene.scn.xml has exactly ('dmetric', 'Scene', 'Task', 'Task').  The
+    Tasks used to be left out on the reasoning that a Scene's UI elements are children of
+    the Scene element, so one deep copy was the whole export; that is true of the LAYOUT and
+    false of the behaviour.  A <clickTask> holds an id and nothing else, so a Scene exported
+    alone arrives on the device with its buttons wired to Tasks that are not there.
 
-    Task actions the Scene's elements fire (ClickTask and friends) are NOT
-    bundled -- the same deliberate non-recursion as the Project export.
+    Nothing is stripped -- a Scene has no <id>/<clr>/<mdate> to omit, and its sr carries the
+    name rather than a document position, so unlike a Project's sr="proj0" there is nothing
+    to renumber.
+
+    Still deliberately NOT recursive: a Task reached only through another Task's "Perform
+    Task" action is not chased, the same limit projedit.render_standalone_project_xml has.
 
     Raises ValueError if scene_name isn't a currently-loaded Scene.
     """
@@ -3205,7 +3249,27 @@ def render_standalone_scene_xml(scene_name: str) -> str:
     # Match the parsed tree's actual Element class (see projedit's identical note).
     element_cls = type(scene_copy)
     root = element_cls("TaskerData", {"sr": "", "dvi": "1", "tv": tv})
+
+    # <dmetric> first, where Tasker puts it.  Copied from the loaded backup rather than
+    # invented: the right value is the screen these elements were laid out on, which is the
+    # device the backup came from.  A backup without one exports without one -- inventing a
+    # screen size would have Tasker scale the Scene to a device that never existed.
+    source_metric = PrimeItems.xml_root.find(_DISPLAY_METRIC_TAG) if PrimeItems.xml_root is not None else None
+    if source_metric is not None:
+        root.append(copy.deepcopy(source_metric))
+
     root.append(scene_copy)
+
+    # Then the Tasks its elements fire.  Nothing but the Scene points at these, so without
+    # them the Scene imports and its buttons do nothing -- a failure that looks like a
+    # successful import.  Ids that resolve to no Task are skipped rather than faked.
+    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    seen: set[str] = set()
+    for task_id in scene_task_ids(scene_copy):
+        task_entry = all_tasks.get(task_id)
+        if task_entry is not None and task_id not in seen:
+            seen.add(task_id)
+            root.append(copy.deepcopy(task_entry["xml"]))
 
     ETW.indent(root, space="\t")
     # No <?xml ...?> declaration -- see profedit.render_standalone_profile_xml.
@@ -3238,7 +3302,7 @@ def save_scene_to_android(scene_name: str, ip_address: str, ip_port: str) -> tup
     Returns (0, device_file_path) on success, or (return_code, error_message).
     """
     # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_request, http_upload_request  # noqa: PLC0415
+    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
 
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
@@ -3257,9 +3321,13 @@ def save_scene_to_android(scene_name: str, ip_address: str, ip_port: str) -> tup
     if return_code != 0:
         return return_code, str(response)
 
-    verify_code, verify_content = http_request(ip_address, ip_port, device_path, "file", "")
-    if verify_code != 0 or verify_content != xml_bytes:
-        return 8, f"Uploaded to {device_path}, but could not confirm it landed correctly."
+    # Retried rather than trusted: /upload is a Tasker Task writing to storage and this read
+    # is a second request answered by a second Task, so a write still settling answers 404 to
+    # a read that arrives too soon -- and failing on the first miss aborts a save whose file
+    # is on the device a moment later.  See maputil2.read_back_uploaded_file.
+    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
+    if verify_code != 0:
+        return 8, str(verify_content)
 
     return 0, device_path
 

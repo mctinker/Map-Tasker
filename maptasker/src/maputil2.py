@@ -10,6 +10,7 @@ import copy
 import os
 import re
 import sys
+import threading
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from collections.abc import Generator
@@ -121,6 +122,11 @@ def is_html_colour(text: str) -> bool:
 # ==========================================
 
 
+# Held for as long as one thread has sys.stdout/sys.stderr pointed at its devnull -- see
+# suppress_stdout for what overlapping swaps did to the program.
+_SUPPRESS_LOCK = threading.Lock()
+
+
 @contextmanager
 def suppress_stdout() -> Generator:  # type: ignore  # noqa: PGH003
     """
@@ -134,17 +140,48 @@ def suppress_stdout() -> Generator:  # type: ignore  # noqa: PGH003
     The `yield` statement is used to enter the context manager's block.
     Once the block is executed, the `finally` block is executed to restore the standard output to its original value.
 
-    This context manager is useful when you want to suppress the standard output of a specific block of code."""
-    with open(os.devnull, "w") as devnull:
-        old_stdout = sys.stdout
-        sys.stdout = devnull
-        old_stderr = sys.stderr
-        sys.stderr = devnull
-        try:
-            yield
-        finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
+    This context manager is useful when you want to suppress the standard output of a specific block of code.
+
+    ONE THREAD AT A TIME, AND THE REST ARE NO-OPS.  sys.stdout and sys.stderr are process
+    wide, and every caller of this is an HTTP request the GUI runs in a worker thread
+    (run.io_bound) -- the import confirmation alone polls one every two seconds for two
+    minutes while the rest of the program logs.  Two threads overlapping here used to leave
+    the program with NO USABLE STDERR AT ALL, permanently, for the rest of the session:
+
+        A enters   -- saves the real stderr, points sys.stderr at its own devnull
+        B enters   -- saves A's devnull as 'the original', points sys.stderr at its devnull
+        A exits    -- restores the real stderr and CLOSES its devnull
+        B exits    -- restores what it saved: A's devnull, now closed
+
+    From there every write to stderr raises ValueError("I/O operation on closed file"),
+    including the one logging does to report that failure, and the one IT does to report
+    THAT.  The observed end of it is uvicorn dying with 'lost sys.stderr'.
+
+    So the streams are swapped by whichever thread gets the lock, and any thread arriving
+    while that one holds it simply runs its block unsuppressed.  The cost is some IMK noise
+    on the console when two requests overlap.  The alternative cost was the application.
+    """
+    if not _SUPPRESS_LOCK.acquire(blocking=False):
+        # Another thread already has the streams pointed at its own devnull.  Nesting a
+        # second swap inside that one is exactly what breaks stderr, and suppressing is not
+        # worth it: this block's output either lands in that thread's devnull anyway or
+        # shows up on the console.
+        yield
+        return
+
+    try:
+        with open(os.devnull, "w") as devnull:
+            old_stdout = sys.stdout
+            sys.stdout = devnull
+            old_stderr = sys.stderr
+            sys.stderr = devnull
+            try:
+                yield
+            finally:
+                sys.stdout = old_stdout
+                sys.stderr = old_stderr
+    finally:
+        _SUPPRESS_LOCK.release()
 
 
 # ==========================================
@@ -223,31 +260,83 @@ def http_request(
     )
 
 
-def file_exists_on_android(ip_address: str, ip_port: str, device_path: str) -> bool | None:
-    """Whether a file already sits at device_path on the Android device.
+# How long to keep asking for a file /upload has just written, before calling the write
+# unconfirmed -- times _UPLOAD_SETTLE_SECONDS, so about a second and a half.
+#
+# /upload is a Tasker Task writing to the device's own storage, and the read that follows is
+# a second HTTP request answered by a second Tasker Task.  Nothing in that pair is
+# transactional or ordered, so a write still settling when the read arrives answers 404 --
+# and a 404 here aborts a save whose file turns up on the device a moment later, which is
+# precisely the report this exists to answer.  Retried rather than trusted: the cost when the
+# write was instant is nothing at all, since the first read succeeds.
+_UPLOAD_SETTLE_ATTEMPTS = 4
+_UPLOAD_SETTLE_SECONDS = 0.4
 
-    Answers the question http_upload_request cannot: /upload silently overwrites
-    whatever is already at its destination and reports 200 either way (see its
-    docstring), so the only way to know a save would clobber something is to read
-    the path back first. Uses the same plain 'file' GET the post-upload verify
-    does, which needs no auth key.
 
-    Deliberately tri-state rather than a plain bool -- the three outcomes are
-    genuinely different and the caller must not conflate them:
-        True  -- 200, a file is there and would be overwritten
-        False -- 404, nothing there, safe to write
-        None  -- any other failure (device unreachable, timeout, server error);
-                 existence is *unknown*, so callers should not claim the path is
-                 free. Returning False here would silently skip the overwrite
-                 prompt on exactly the flaky-connection case where a user most
-                 wants it; the caller decides whether to proceed or warn.
+def read_android_file(ip_address: str, ip_port: str, device_path: str) -> tuple[bool | None, bytes]:
+    """Whether a file sits at device_path, AND what is in it, from one GET.
+
+    Answers the question http_upload_request cannot: /upload silently overwrites whatever is
+    already at its destination and reports 200 either way (see its docstring), so the only
+    way to know a save would clobber something is to read the path back first.  The plain
+    'file' GET, which needs no auth key.
+
+    Returns (exists, content).  exists is deliberately TRI-STATE rather than a plain bool --
+    the three outcomes are genuinely different and the caller must not conflate them:
+        True  -- 200, a file is there and would be overwritten; content holds it
+        False -- 404, nothing there, safe to write; content is b""
+        None  -- any other failure (device unreachable, timeout, server error); existence is
+                 *unknown*, so callers must not claim the path is free.  Returning False here
+                 would silently skip the overwrite prompt on exactly the flaky-connection
+                 case where a user most wants it; the caller decides whether to proceed or
+                 warn.  content is b"".
+
+    One request rather than two, and that is worth a function: the caller that asks whether a
+    path is occupied is the same caller that then wants a copy of what is in it, and asking
+    twice means two round trips, two chances to disagree about what was there, and -- on the
+    Tasker HTTP Server Example -- two 'File doesn't exist' flashes on the user's phone for a
+    single save.  That server's /file handler runs 'Test File' on the path and flashes on
+    every miss (see File_System_Host.prf.xml), so an ordinary first-time save of a new object
+    put two of them on screen before anything was written.
     """
-    return_code, _ = http_request(ip_address, ip_port, device_path, "file", "")
+    return_code, response = http_request(ip_address, ip_port, device_path, "file", "")
     if return_code == 0:
-        return True
+        return True, response if isinstance(response, bytes) else str(response).encode("utf-8")
     if return_code == 6:  # 404 -- not found
-        return False
-    return None
+        return False, b""
+    return None, b""
+
+
+def read_back_uploaded_file(
+    ip_address: str,
+    ip_port: str,
+    device_path: str,
+    expected: bytes,
+    attempts: int = _UPLOAD_SETTLE_ATTEMPTS,
+) -> tuple[int, object]:
+    """Confirm /upload actually wrote `expected` to device_path.  (0, bytes_on_device) or
+    (8, error_message).
+
+    The check every upload here needs, because /upload answers 200 whatever it did: it does
+    not validate the location, it creates missing folders silently, and it reports nothing at
+    the HTTP layer.  The only evidence is reading the file back.
+
+    A miss is retried rather than believed -- see _UPLOAD_SETTLE_ATTEMPTS.  A file whose
+    CONTENT differs is retried too: a device still holding the previous version of the same
+    path answers 200 with stale bytes, which is the same 'not written yet' in a different
+    disguise.  Content that never matches ends as a failure, which is the point: the caller
+    must not report a save it cannot show landed.
+    """
+    last = f"Uploaded to {device_path}, but could not confirm it landed correctly."
+    for attempt in range(attempts):
+        return_code, response = http_request(ip_address, ip_port, device_path, "file", "")
+        if return_code == 0 and response == expected:
+            return 0, response
+        if return_code not in (0, 6):  # not 'a hit' and not 'not there yet' -- a real error
+            last = str(response)
+        if attempt < attempts - 1:
+            time.sleep(_UPLOAD_SETTLE_SECONDS)
+    return 8, last
 
 
 # Tasker's /api/auth does not answer deterministically: on a device that is set up

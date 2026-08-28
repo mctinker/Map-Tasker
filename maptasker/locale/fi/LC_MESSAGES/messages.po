@@ -2456,3 +2456,96 @@ msgstr "Profiilin tila"
 
 msgid "Replace this Profile condition"
 msgstr "Korvaa tämä profiilin ehto"
+
+msgid "%variable_name"
+msgstr "%muuttujan_nimi"
+
+msgid "A variable name has to start with '%' -- for example %app_package."
+msgstr "Muuttujan nimen on alettava \"%\" - esimerkiksi %app_package."
+
+msgid "Also in this field"
+msgstr "Myös tällä alalla"
+
+msgid "App not listed?"
+msgstr "Sovellus ei ole luettelossa?"
+
+msgid "Choose from the Applications named in the loaded configuration."
+msgstr "Valitse ladatussa kokoonpanossa nimetyistä sovelluksista."
+
+msgid "Choose from the icons used in the loaded configuration."
+msgstr "Valitse ladatussa kokoonpanossa käytetyistä kuvakkeista."
+
+msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.\n\nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.\n\n"
+msgstr "Tämän painikkeen napsauttaminen johtaa seuraaviin toimiin:\n\n- IP-osoitetta käytetään Android-laitteen ping-kutsuun.\n\n- IP-osoitetta ja porttinumeroa käytetään Android-laitteen kyselyyn ja luettelon saamiseen Tasker-kansiossa olevista XML-tiedostoista.\n\n- Lista löydetyistä XML-tiedostoista tulee näkyviin alasvetovalikkoon, josta voit valita haluamasi.\n\n- Kun olet valinnut XML-tiedoston, se noudetaan ja vahvistetaan kelvolliseksi XML-tiedostoksi, jota käytetään sitten ohjelman syötteenä, kun napsautat Suorita- tai Suorita uudelleen -painiketta.\n\nListauksen tekee pieni tehtävä nimeltä \"MapTasker List Files v1\", jonka MapTasker asentaa Android-laitteellesi, kun käytät tätä painiketta ensimmäisen kerran, ja poistuu sitten sieltä.  Mitään ei tarvitse tuoda käsin.  Se vaatii 'HTTP Server Esimerkki' -projektin, joka on käynnissä laitteessa ja Tasker 6.2 tai uudempi - samat vaatimukset \"Tallenna Androidiin\" - ja Tasker pyytää sinua valtuuttamaan yhteyden ensimmäisen kerran.\n\nOdota muutama sekunti: Tehtävän asentaminen (kerran), sen suorittaminen ja sen vastauksen lukeminen ei ole välitöntä.\n\n"
+
+msgid "Fetch"
+msgstr "Hae"
+
+msgid "Fetch Applications From Android Device"
+msgstr "Hae sovelluksia Android-laitteesta"
+
+msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
+msgstr "Hae täydellinen luettelo asennetuista sovelluksista Android-laitteestasi.  Nyt luettelossa on vain se, mitä tämä kokoonpano jo nimeää."
+
+msgid "Fetching..."
+msgstr "Haetaan..."
+
+msgid "Fill all three fields in from the loaded configuration."
+msgstr "Täytä kaikki kolme ladatun kokoonpanon kenttää."
+
+msgid "Import Into Tasker"
+msgstr "Tuo Taskeriin"
+
+msgid "Listing the XML files on the Android device..."
+msgstr "Listataan Android-laitteen XML-tiedostoja..."
+
+msgid "More matches than can be shown -- narrow the search."
+msgstr "Enemmän osumia kuin voidaan näyttää - rajaa hakua."
+
+msgid "No Icon"
+msgstr "Ei kuvaketta"
+
+msgid "Or a Tasker variable:"
+msgstr "Tai Tasker-muuttuja:"
+
+msgid "Pick"
+msgstr "Valita"
+
+msgid "Pick an Application"
+msgstr "Valitse sovellus"
+
+msgid "Save As File"
+msgstr "Tallenna tiedostona"
+
+msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
+msgstr "Sovellukset on nimetty jossain ladatussa kokoonpanossa - tai nimeä Tasker-muuttuja, joka täyttää Paketti- ja Label-kentät sillä ja jättää luokan tyhjäksi, kuten Tasker kirjoittaa."
+
+msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
+msgstr "Sovellukset, jotka on nimetty jossain ladatussa kokoonpanossa.  Rastita jokainen, jonka tämän argumentin tulee vastata.  Kaikki kentässä jo oleva, jota ei ole luettelossa, pysyy."
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "Seuraavat vaiheet vaaditaan Tasker XML -tiedoston hakemiseksi suoraan Android-laitteeltasi.\n\n1- Sekä tämän laitteen että Android-laitteen on oltava samassa nimetyssä verkossa.\n\n2- Tasker Project 'HTTP Server Esimerkki' tai identtinen toiminto on asennettava ja aktiivinen Android-laitteeseen (palvelimen on oltava käynnissä):\n\n    https://tinyurl.com/4p5cz8sv\n\nSe on ainoa tarvittava asetus.  'Lista XML-tiedostot' -vaihtoehto tarvitsi toisen, erillisen profiilin ('MapTasker List'), joka tuotiin TaskerNetistä ja jätettiin käyttöön. se ei enää tee.  MapTasker asentaa nyt laitteelle pienen tehtävän nimeltä \"MapTasker List Files v1\" suorittaakseen luettelon, samalla tavalla kuin \"Eikö sovellusta listattu?\" asentaa sellaisen hakeakseen sovelluksesi.\n\nSinulta kysytään IP-osoitetta, Android-laitteesi porttinumeroa sekä tiedoston sijaintia Android-laitteella.  Toimitetaan oletusarvot, joissa...\n\n'192.168.0.210' on oletus-IP-osoite,\n\n\"1821\" on oletusporttinumero Tasker HTTP Server -esimerkille, joka on käynnissä Android-laitteellasi\n\n'/Tasker/configs/user/backup.xml' on tiedoston oletussijainti.  Jos et tiedä tiedoston sijaintia ja olet jo syöttänyt IP-osoitteesi ja porttisi, voit valita \"Lista XML-tiedostot\" -painikkeen saadaksesi luettelon Android-laitteessasi olevista XML-tiedostoista valittavaksi.\n\nKäyttöhuomautuksia:\n\nIP-osoite ja portti saadaan asentamalla \"HTTP Server Esimerkki\" -projekti yllä olevasta URL-osoitteesta Android-laitteellesi. Suorita sitten tehtävä nimeltä \"Update GD HTTP Info\" saadaksesi Android-ilmoituksen:\n\nHTTP-palvelimen tiedot\nPalvelintiedot päivitetty {\"laitteen nimi\":\"http://192.168.0.49:1821\"}\n\n- Hae XML-tiedosto napsauttamalla painiketta\n\n \"Hae XML Android-laitteesta\"\n\nMuokkaa sitten tämän painikkeen alla olevissa syöttökentissä esitettyjä oletusarvoja ja napsauta sitten painiketta \"Syötä ja aseta XML-tiedot napsauttamalla tätä\" tai \"Lista XML-tiedostot\".\n\n- Kun painat jompaakumpaa painiketta, Android-laite tarkistaa, onko se saatavilla.  Ping aikakatkaistaan ​​10 sekunnin kuluttua, jos laitteeseen ei saada yhteyttä.  Varmista, että IP-osoite on oikea.\n\nNapsauta \"Peruuta merkintä\" -painiketta peruuttaaksesi noutoprosessin.\n\n"
+
+msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Jossain ladatussa kokoonpanossa käytetyt kuvakkeet.  Valitsemasi korvaa sen, mitä kenttä sisältää.  Kuvakepaketin kuvake, jota ei ole luettelossa, on kirjoitettava: sen nimet ovat pakkauksen sisällä."
+
+msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "Tämä asettaa profiilin Taskerin oman tuontinäytön eteen Android-laitteella.  Lopuksi napautat Laitteessa Tuo - mitään ei tuoda ennen kuin teet sen.\n\n'Http Server Esimerkki' Tasker Projectin on oltava asennettuna ja käynnissä, ja Taskerin on oltava 6.2 tai uudempi.\n\nLaite pyytää sinua valtuuttamaan MapTaskerin ensimmäisen kerran."
+
+msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "Tämä asettaa projektin – ja kaikki siinä olevat profiilit ja tehtävät – Taskerin oman tuontinäytön eteen Android-laitteella.  Napauta sitten Tuo laitteessa lopettaaksesi; mitään ei tuoda ennen kuin teet.\n\n'Http Server Esimerkki' Tasker Projectin on oltava asennettuna ja käynnissä, ja Taskerin on oltava 6.2 tai uudempi.\n\nLaite pyytää sinua valtuuttamaan MapTaskerin ensimmäisen kerran."
+
+msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "Tämä lähettää kohtauksen - ja jokainen tehtävä sen elementit käynnistyvät - Android-laitteeseen omalla nimellä, kohtaan /Tasker/scenes ja avaa Taskerin.\n\nPäätät sen laitteessa Taskerin Scenes > Import One Scene -toiminnolla ja valitset kohtauksen nimen mukaan.  Toisin kuin profiili tai projekti, kohtausta ei voi laittaa Taskerin tuontinäytön eteen täältä – Tasker ei ota sitä yhdellä kädellä, vaikka se tuo saman tiedoston, kun valitset sen.\n\n'Http Server Esimerkki' Tasker Projectin on oltava asennettuna ja käynnissä, ja Taskerin on oltava 6.2 tai uudempi.\n\nLaite pyytää sinua valtuuttamaan MapTaskerin ensimmäisen kerran."
+
+msgid "Use Selected"
+msgstr "Käytä valittuja"
+
+msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
+msgstr "Odotetaan Android-laitetta – hyväksy valtuutuskehote, jos sellainen tulee näkyviin.  Tämä voi kestää 30 sekuntia tai enemmän."
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
+msgstr "Tarkkaile Android-laitettasi: Tasker pyytää sinua valtuuttamaan yhteyden, eikä haku voi jatkua, ennen kuin hyväksyt.  Odota 30 sekuntia tai pidempään, kun sinulla on - pidempään laitteessa, jossa on useita satoja sovelluksia, koska jokaisen nimeä etsitään erikseen."
+
+msgid "applications, fetched"
+msgstr "sovellukset, haettu"

@@ -614,6 +614,13 @@ def display_current_file(self: "MyGui", file_name: str) -> None:
     text = PrimeItems._(text) if hasattr(PrimeItems, "_") else text
     full_display_text = f"{text}: {clean_file_name}"
 
+    # Nothing loaded: say so, the way the label reads when it is first built (see
+    # initialize_screen), instead of a "Current File:" with nothing after it.  Reached
+    # whenever settings carrying no file are put into force -- a first run, or the rebuild
+    # that follows "Reset Options".
+    if not clean_file_name:
+        full_display_text = translate_string("No file loaded")
+
     # 3. NICEGUI TARGET FIX:
     # Check both potential property names to maintain alignment with initialize_screen
     label_widget = getattr(self, "current_file", None) or getattr(self, "current_file_label", None)

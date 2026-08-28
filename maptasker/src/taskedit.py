@@ -1775,6 +1775,12 @@ def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str)
     child.text = text
 
 
+# Destination folder on the Android device for Save To Android's file write -- the Task
+# sibling of profedit.ANDROID_PROFILE_LOCATION ("Tasker/profiles") and
+# sceneedit.ANDROID_SCENE_LOCATION ("Tasker/scenes"); see android_task_path.
+ANDROID_TASK_LOCATION = "Tasker/tasks"
+
+
 def sanitize_filename(name: str) -> str:
     """Strip characters illegal in filenames from a Task name (minimal, not a full slugify)."""
     return re.sub(r'[\\/:*?"<>|]', "_", name).strip() or "task"
@@ -1789,6 +1795,17 @@ def default_save_path(task_name: str) -> str:
     which isn't necessarily where a Task should land.
     """
     return os.path.join(os.getcwd(), f"{sanitize_filename(task_name)}.tsk.xml")
+
+
+def android_task_path(task_name: str) -> str:
+    """The absolute path a Save To Android of this Task writes to on the device.  Single
+    source of truth for that path -- save_task_to_android_file writes there and
+    userintr.save_task_to_android_file_event asks maputil2.read_android_file about the
+    same string, so the two must never drift apart.  Mirrors
+    profedit.android_profile_path, including the sanitized-name collision its overwrite
+    prompt exists to catch (two Tasks named 'Wake: Up' and 'Wake_ Up' land on one path).
+    """
+    return f"/{ANDROID_TASK_LOCATION}/{sanitize_filename(task_name)}.tsk.xml"
 
 
 def task_name_exists(name: str) -> bool:
@@ -1842,11 +1859,36 @@ def save_task_to_android(
     ip_port: str,
     task_name: str,
     auth_key: str = "",
+    via_file: bool = True,
 ) -> tuple[int, str, str]:
-    """Import the edited Task, rendered as standalone XML, onto the Android device
-    via the Tasker HTTP API's POST /api/import endpoint (Params/Body: Task XML;
-    Response: task object). Every request to this API must carry an
-    'Authorization: <key>' header.
+    """Import the edited Task into Tasker on the Android device, from a copy of it left in
+    /Tasker/tasks.
+
+    TWO STEPS, IN THIS ORDER, and the order is the point:
+
+        1. the Task is written to /Tasker/tasks/<name>.tsk.xml and read back
+           (_put_task_file_on_android -- the same write 'Save As File' does)
+        2. what came back off the device is POSTed to api/import
+
+    So the import sources from the file in that folder rather than from a render that only
+    ever existed in this process, and an import always leaves the .tsk.xml behind -- the
+    device keeps a copy of exactly what was imported, which is the artifact anyone would
+    reach for to repeat it, inspect it or hand it to Tasker again by hand.
+
+    It also means a write that cannot be confirmed stops the import: with no verified file
+    in the folder there is nothing to import FROM, and importing the in-memory render at
+    that point would be quietly importing something other than what this says it imports.
+
+    via_file=False skips step 1 and posts the render straight to api/import.  It exists for
+    ONE caller -- deviceinv._install_task_on_android, putting MapTasker's own helper Tasks on
+    the device.  Those are plumbing: the user did not ask for them, would not recognize them,
+    and /Tasker/tasks is a folder they browse.  Filling it with 'MapTasker Send Profile
+    v1.tsk.xml' would be leaving MapTasker's tools among the user's own work.
+
+    api/import is the only documented way into Tasker's live configuration over HTTP and it
+    is Task-only -- api/tasks runs a Task that already exists, and /api/file and /upload put
+    bytes on the storage without Tasker ever reading them.  Every request to it must carry
+    an 'Authorization: <key>' header; /upload, in step 1, needs none.
 
     Pass a previously-cached auth_key (see maputil2.get_android_auth_key) to skip
     that device's GET /api/auth confirmation prompt. If the device rejects a
@@ -1864,25 +1906,30 @@ def save_task_to_android(
     if not ip_address or not ip_port:
         return 8, "Android IP address and port are required.", ""
 
+    # Step 1, before the key: /upload needs no authorization, so a failed write costs the
+    # user nothing and -- more to the point -- does not put an authorization prompt on their
+    # phone for an import that was never going to happen.
+    if via_file:
+        return_code, result, xml_bytes = _put_task_file_on_android(edited_task, ip_address, ip_port, task_name)
+        if return_code != 0:
+            return return_code, result, ""
+    else:
+        xml_bytes = render_standalone_task_xml(edited_task).encode("utf-8")
+
     had_cached_key = bool(auth_key)
     if not auth_key:
         return_code, auth_key = get_android_auth_key(ip_address, ip_port)
         if return_code != 0:
             return return_code, auth_key, ""
 
-    xml_text = render_standalone_task_xml(edited_task)
-
-    # api/import imports directly into Tasker
-    # api/tasks runs an existing task by name, but doesn't import a new one
-    # /api/file reads/writes files on the device, but doesn't import into Tasker
-    # Try just a file write to /api/file and then a /api/import of that file, instead of sending the whole XML in the POST body.
+    # Step 2: the bytes that came off the device, not a fresh render of the same Task.
     return_code, response = http_post_request(
         ip_address,
         ip_port,
         "",
         "api/import",
         "",
-        xml_text.encode("utf-8"),
+        xml_bytes,
         auth_key,
     )
 
@@ -1897,7 +1944,7 @@ def save_task_to_android(
             "",
             "api/import",
             "",
-            xml_text.encode("utf-8"),
+            xml_bytes,
             auth_key,
         )
         if return_code != 0:
@@ -1906,6 +1953,76 @@ def save_task_to_android(
     if return_code != 0:
         return return_code, str(response), ""
     return 0, task_name, auth_key
+
+
+def _put_task_file_on_android(
+    edited_task: EditableTask,
+    ip_address: str,
+    ip_port: str,
+    task_name: str,
+) -> tuple[int, str, bytes]:
+    """Write the Task to /Tasker/tasks and hand back WHAT THE DEVICE NOW HOLDS.
+
+    Returns (0, device_file_path, bytes_read_back_from_the_device) or
+    (return_code, error_message, b"").
+
+    The third value is the point of this being one step rather than two.  Both callers want
+    it and they want it for different reasons: the file write compares it to what it sent
+    (the only way to know the write landed -- /upload answers 200 even for a bogus location,
+    creates missing folders silently and never reports failure at the HTTP layer), and the
+    import posts it, so what reaches Tasker is provably the file in the folder rather than a
+    second render of the same Task that nothing has checked.
+
+    One read serves both.  Reading it twice would leave the verified bytes and the imported
+    bytes as separate facts about the device, which is exactly the gap where they could
+    differ.
+    """
+    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
+    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
+
+    ip_address = ip_address.strip()
+    ip_port = ip_port.strip()
+    if not ip_address or not ip_port:
+        return 8, "Android IP address and port are required.", b""
+
+    xml_bytes = render_standalone_task_xml(edited_task).encode("utf-8")
+    device_path = android_task_path(task_name)
+    filename = device_path.rsplit("/", 1)[-1]
+
+    return_code, response = http_upload_request(ip_address, ip_port, ANDROID_TASK_LOCATION, filename, xml_bytes)
+    if return_code != 0:
+        return return_code, str(response), b""
+
+    # Retried rather than trusted -- the write and the read are two unrelated Tasker Tasks,
+    # and a write still settling answers 404 to a read that arrives too soon.  See
+    # maputil2.read_back_uploaded_file.
+    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
+    if verify_code != 0:
+        return 8, str(verify_content), b""
+
+    return 0, device_path, verify_content
+
+
+def save_task_to_android_file(
+    edited_task: EditableTask,
+    ip_address: str,
+    ip_port: str,
+    task_name: str,
+) -> tuple[int, str]:
+    """Writes the edited Task, rendered as standalone XML, onto the Android device's storage
+    under /Tasker/tasks, via the Tasker HTTP Server Example's POST /upload endpoint (see
+    maputil2.http_upload_request).  Mirrors profedit.save_profile_to_android exactly.
+
+    THIS IS NOT AN IMPORT: nothing reaches Tasker's live configuration, Tasker does not watch
+    this directory, and the file simply sits there for the user or their own device-side
+    automation to pick up.  It also needs no authorization -- /upload takes no Authorization
+    header, so unlike the api/import route there is no key to cache and no prompt on the
+    device.  save_task_to_android does this write too, and then imports what it wrote.
+
+    Returns (0, device_file_path) on success, or (return_code, error_message).
+    """
+    return_code, result, _bytes_on_device = _put_task_file_on_android(edited_task, ip_address, ip_port, task_name)
+    return return_code, result
 
 
 def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_key: str) -> bool:
@@ -1953,20 +2070,30 @@ def save_task_to_android_directory(
     auth_key: str = "",
 ) -> tuple[int, str]:
     """Fallback for save_task_to_android when verify_task_on_android can't confirm
-    the import landed in Tasker: retries the same POST /api/import once more,
-    rather than falling back to a different endpoint. api/import is the only
-    documented way to actually get a Task into Tasker over HTTP -- /api/file
-    only supports GET/DELETE (no way to write a file with it), and even if it
-    did, Tasker doesn't watch that directory for files to auto-import -- so a
-    second attempt at the real thing is the only fallback that can plausibly
-    help, e.g. if the first POST/GET-verify pair hit a transient network blip.
+    the import landed in Tasker: retries the POST /api/import once more, rather
+    than falling back to a different endpoint. api/import is the only documented
+    way to actually get a Task into Tasker over HTTP -- /api/file and /upload put
+    bytes on the storage that Tasker never reads -- so a second attempt at the
+    real thing is the only fallback that can plausibly help, e.g. if the first
+    POST/GET-verify pair hit a transient network blip.
 
-    Returns (0, task_name) on success, or (return_code, error_message) on failure.
+    The name is finally accurate: this re-reads /Tasker/tasks/<name>.tsk.xml, which
+    save_task_to_android has already written and verified by this point, and posts THAT.
+    Nothing is uploaded again -- the file is known good, and re-rendering the Task here
+    would make the retry a different request from the one being retried.
+
+    Returns (0, task_name) on success, or (return_code, error_message).
     """
     # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_post_request  # noqa: PLC0415
+    from maptasker.src.maputil2 import http_post_request, http_request  # noqa: PLC0415
 
-    xml_text = render_standalone_task_xml(edited_task)
+    ip_address = ip_address.strip()
+    ip_port = ip_port.strip()
+    device_path = android_task_path(task_name)
+
+    read_code, xml_bytes = http_request(ip_address, ip_port, device_path, "file", "")
+    if read_code != 0 or not isinstance(xml_bytes, bytes) or not xml_bytes:
+        return 8, f"Could not read {device_path} back from the device to retry the import."
 
     # file_location is "" so this reproduces save_task_to_android's request byte for byte
     # -- a retry that posted to a different URL would not be testing the same thing.
@@ -1975,12 +2102,12 @@ def save_task_to_android_directory(
     # the "retry" actually POSTed to /api/import/Tasker/tasks/<name>.tsk.xml, which Tasker
     # has no route for -- meaning this fallback could never have succeeded.
     return_code, response = http_post_request(
-        ip_address.strip(),
-        ip_port.strip(),
+        ip_address,
+        ip_port,
         "",
         "api/import",
         "",
-        xml_text.encode("utf-8"),
+        xml_bytes,
         auth_key,
     )
     if return_code != 0:

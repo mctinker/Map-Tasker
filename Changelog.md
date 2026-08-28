@@ -29,9 +29,12 @@ All notable changes to this project will be documented in this file!
 - Changed: fetching a single-object export -- the '.prj'/'.prf'/'.tsk'/'.scn' files Tasker writes when you export one Project, Profile, Task or Scene -- now selects that object as the specific Project/Profile/Task/Scene automatically.
 - Changed: 'Find/Replace': clicking a result row, or a row in a Replace preview, no longer closes the dialog.  It moves to the right side of the screen and stays there while the Map (or Diagram) shows what the row points at, so a list of places can be walked one at a time without pressing 'Find/Replace' again for each one.
 
+### Removed
+
+- Removed: 'List XML Files' no longer needs the 'MapTasker List' Tasker profile.
 ### Fixed
 
-* Fixed:
+* Fixed: 'Reset Settings' does nothing and causes a program error.
 
 ### Known Issues
 
@@ -175,7 +178,7 @@ For each PID listed in the output from the above terminal command, issue the fol
 - Fixed: Getting the error 'No Task found!!!' printed in the console when selecting an unnamed Task to display.
 - Fixed: The selected font is not used when rendering the Map and Diagram views.
 - Fixed: Port 8080 bind error with 'prot already in use' message.
-- FIxed: Multiple instances clobbers the saved settings file.
+- Fixed: Multiple instances clobbers the saved settings file.
 - Fixed: Map view heading incorrectly says 'AI Analysis Results'.
 
 ## [12.0.0] 28-Jul-2026  MAJOR UPDATE >>> EDIT FUNCTIONS

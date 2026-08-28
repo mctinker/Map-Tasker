@@ -23,6 +23,8 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import sys
+import time
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -1304,7 +1306,10 @@ class _FakeImportRequests:
                 if name in self.installed_profiles
             ]
             return _FakeResponse(200, json.dumps(listed).encode())
-        if url.endswith((".prf.xml", ".prj.xml")) or ".prf.xml?" in url or ".prj.xml?" in url:
+        # Every kind whose upload gets read back, '.scn.xml' included: a Scene is not staged
+        # for an intent any more, but sceneedit.save_scene_to_android verifies its own write
+        # the same way, and a double that 404s that read cannot tell a good write from a bad.
+        if any(url.endswith(kind) or f"{kind}?" in url for kind in (".prf.xml", ".prj.xml", ".scn.xml")):
             return _FakeResponse(200, self.uploaded) if self.uploaded else _FakeResponse(404)
         if self.result_filename in url:
             if self.payload is None or not self.task_ran:
@@ -1804,6 +1809,7 @@ def test_the_intent_is_the_shape_real_backups_use(intent_device: _FakeImportRequ
     assert intent.findtext("Str[@sr='arg2']") == "text/xml"
     assert intent.findtext("Str[@sr='arg3']") == "file:///storage/emulated/0/Tasker/maptasker_import.prf.xml"
     assert intent.findtext("Str[@sr='arg7']") == "net.dinglisch.android.taskerm"
+    assert intent.findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
     assert intent.find("Int[@sr='arg9']").get("val") == "1"  # Target: Activity
 
 
@@ -1870,3 +1876,482 @@ def test_both_routes_share_everything_around_the_task(intent_device: _FakeImport
     assert return_code == 0, message
     assert intent_device.uploaded == _STAGED_PROFILE_XML  # the shared staging upload
     assert "is now in Tasker" in message  # the shared confirmation wait
+
+
+# ##################################################################################
+# Confirming at the right endpoint
+#
+# The three kinds do not all confirm the same way.  A Profile and a Scene each have an
+# endpoint of their own; a Project has none -- Tasker's API reports Profiles, Tasks, Scenes
+# and Globals by name and that is the whole list -- so it is confirmed through the Profiles
+# it brings with it.  Asking at the wrong one answers about the wrong thing.
+# ##################################################################################
+
+
+def test_the_endpoint_reaches_the_request(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The endpoint has to travel all the way to the URL, not just sit in the route."""
+    from maptasker.src import maputil2
+
+    asked = []
+
+    class _Recorder(_FakeImportRequests):
+        def get(self, url: str, **kwargs: object) -> _FakeResponse:
+            if "/api/" in url:
+                asked.append(url.split("1821", 1)[1].split("?", 1)[0])
+            return super().get(url, **kwargs)
+
+    fake = _Recorder()
+    monkeypatch.setattr(maputil2, "requests", fake)
+    deviceinv._auth_keys.clear()  # noqa: SLF001
+    _load(_FIXTURE_XML)
+
+    deviceinv.import_is_confirmable("192.168.0.210", "1821", ["Dialog"], deviceinv.SCENES_ENDPOINT)
+
+    assert "/api/scenes" in asked
+    assert "/api/profiles" not in asked
+
+
+def _open_file_args(route: deviceinv.OfferRoute) -> tuple[str, str]:
+    """The staged path and mime type the route's helper Task hands to 'Open File'."""
+    built = route.builder()
+    assert not isinstance(built, str), built
+    task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
+    action = task_xml.find(".//Action[code='102']")
+    assert action is not None
+    return action.findtext("Str[@sr='arg0']"), action.findtext("Str[@sr='arg1']")
+
+
+def _send_intent_args(route: deviceinv.OfferRoute) -> tuple[str, str, str]:
+    """The mime type, data URI and package the route's helper Task sends ACTION_VIEW with."""
+    built = route.builder()
+    assert not isinstance(built, str), built
+    task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
+    action = task_xml.find(".//Action[code='877']")
+    assert action is not None
+    return (
+        action.findtext("Str[@sr='arg2']"),
+        action.findtext("Str[@sr='arg3']"),
+        action.findtext("Str[@sr='arg7']"),
+    )
+
+
+def test_the_intent_names_a_class_and_not_just_a_package(import_device: _FakeImportRequests) -> None:
+    """What makes an intent addressed rather than advertised, which is what this route is
+    for.  A package with no class is still matched against that package's intent-filters, so
+    package-only is not the fallback it claims to be -- it fails wherever implicit
+    resolution fails, and looks identical from here.  Package AND class is an explicit
+    component, delivered without matching anything."""
+    for route in (deviceinv.SEND_INTENT_ROUTE, deviceinv.SEND_INTENT_PROJECT_ROUTE):
+        _mime, _uri, package = _send_intent_args(route)
+        built = route.builder()
+        task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
+        intent = task_xml.find(".//Action[code='877']")
+        assert package == "net.dinglisch.android.taskerm"
+        assert intent.findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
+
+
+# ##################################################################################
+# Suppressing output must not cost the program its output
+#
+# Every HTTP call here runs inside maputil2.suppress_stdout, and every one of them runs in a
+# worker thread (run.io_bound) -- the import confirmation polls one every two seconds for
+# two minutes.  sys.stdout and sys.stderr are process wide, so two of those overlapping used
+# to leave the SECOND one restoring a devnull the first had already closed, and every write
+# to stderr from then on raised.  Observed end state: uvicorn down with 'lost sys.stderr'.
+# ##################################################################################
+
+
+def test_two_threads_suppressing_at_once_leave_the_streams_usable() -> None:
+    """The interleaving that did the damage, run directly: one thread enters, a second
+    enters while it is inside, the first exits and closes its devnull, the second exits and
+    restores what it saved.  Whatever it restores has to be a stream that still works."""
+    import threading
+
+    from maptasker.src.maputil2 import suppress_stdout
+
+    real_stdout, real_stderr = sys.stdout, sys.stderr
+    first_inside, first_done = threading.Event(), threading.Event()
+
+    def first() -> None:
+        with suppress_stdout():
+            first_inside.set()
+            first_done.wait(timeout=5)
+
+    def second() -> None:
+        first_inside.wait(timeout=5)
+        with suppress_stdout():
+            first_done.set()
+            time.sleep(0.05)  # still inside while the other one exits and closes its file
+
+    threads = [threading.Thread(target=first), threading.Thread(target=second)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=5)
+
+    left_behind_out, left_behind_err = sys.stdout, sys.stderr
+    sys.stdout, sys.stderr = real_stdout, real_stderr  # before asserting, or a failure cannot be reported
+
+    left_behind_err.write("")  # ValueError("I/O operation on closed file") before the lock
+    left_behind_out.write("")
+    assert left_behind_err is real_stderr
+    assert left_behind_out is real_stdout
+
+
+# ##################################################################################
+# Opening Tasker, for the import only a person can finish
+#
+# A Scene cannot be handed to Tasker by intent -- four ways tried, all measured failing (see
+# the section comment in deviceinv).  So the Scene goes over under its own name and Tasker is
+# merely brought to the front; the user finishes in 'Scenes > Import One Scene'.
+# ##################################################################################
+
+
+def test_opening_tasker_hands_over_nothing(import_device: _FakeImportRequests) -> None:
+    """ACTION_MAIN at an explicit component, and no data, no mime type: there is no file to
+    hand over any more, and a VIEW with no data is not a launch.  If this ever grows a data
+    argument again it has become the route that does not work."""
+    built = deviceinv.build_launch_tasker_task()
+    assert not isinstance(built, str), built
+
+    task_xml = ET.fromstring(ET.tostring(built.task_element, encoding="unicode"))  # noqa: S314
+    intent = task_xml.find(".//Action[code='877']")
+    assert intent.findtext("Str[@sr='arg0']") == "android.intent.action.MAIN"
+    assert intent.findtext("Str[@sr='arg2']") == ""  # no mime type
+    assert intent.findtext("Str[@sr='arg3']") == ""  # no data
+    assert intent.findtext("Str[@sr='arg7']") == "net.dinglisch.android.taskerm"
+    assert intent.findtext("Str[@sr='arg8']") == "net.dinglisch.android.taskerm.Tasker"
+    assert "102" not in _codes(ET.tostring(built.task_element, encoding="unicode"))  # no 'Open File'
+
+
+def test_opening_tasker_runs_its_own_task_and_reads_its_own_answer(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Its own Task name and its own answer file, for the reason every other route has them:
+    reading another route's leftover answer as this one's would report a launch that never
+    happened."""
+    from maptasker.src import maputil2
+
+    fake = _FakeImportRequests(payload="MAPTASKER-LAUNCH-TASKER 1\nOFFERED\n/Tasker/scenes\nMAPTASKER-END\n")
+    fake.result_filename = "maptasker_launch_tasker.txt"
+    monkeypatch.setattr(maputil2, "requests", fake)
+    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
+    deviceinv._auth_keys.clear()  # noqa: SLF001
+    _load(_FIXTURE_XML)
+
+    return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821")
+
+    assert return_code == 0, message
+    assert ET.fromstring(fake.imported_xml).findtext(".//Task/nme") == deviceinv.LAUNCH_TASKER_TASK_NAME  # noqa: S314
+    assert any("maptasker_launch_tasker.txt" in url for verb, url in fake.calls if verb == "GET")
+
+
+def test_another_routes_answer_is_not_read_as_a_launch(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The header is what catches it -- a device still holding an offer route's answer file
+    must not be read as Tasker having been opened."""
+    from maptasker.src import maputil2
+
+    fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)  # the wrong route's answer
+    fake.result_filename = "maptasker_launch_tasker.txt"
+    monkeypatch.setattr(maputil2, "requests", fake)
+    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
+    deviceinv._auth_keys.clear()  # noqa: SLF001
+    _load(_FIXTURE_XML)
+
+    return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821")
+
+    assert return_code != 0
+    assert "not a MapTasker launch result" in message
+
+
+def test_there_is_no_scene_route_left_to_pick_up_by_mistake() -> None:
+    """Every intent way of importing a Scene is measured not to work, so none is kept around
+    to be reached for again: Tasker opens for one and imports nothing, and a route that
+    reports 'the import screen is open' for that is worse than no route at all."""
+    assert not hasattr(deviceinv, "OPEN_SCENE_ROUTE")
+    assert not hasattr(deviceinv, "SEND_INTENT_SCENE_ROUTE")
+    assert not hasattr(deviceinv, "open_scene_on_device")
+    # What a Scene DOES still use of this module.
+    assert deviceinv.SCENES_ENDPOINT == "api/scenes"
+    assert callable(deviceinv.open_tasker_on_device)
+
+
+# ##################################################################################
+# A Task's 'Save As File', which is the Profile's with a different extension
+#
+# The Save To Android dialog offers two things for every kind now: a file written onto the
+# device's storage, and an import into Tasker.  For a Task the second one is the easy half
+# -- api/import is documented Task-only and needs no tap -- and the FILE half was the one
+# missing: 'Save' used to import and nothing wrote a .tsk.xml to the device at all.
+# ##################################################################################
+
+
+class _FakeUploadRequests:
+    """A device that accepts /upload and serves back whatever it was given.
+
+    served_back is what a read-back gets, so a test can hand it something OTHER than what
+    was uploaded -- which is the case that matters: /upload answers 200 whatever it wrote.
+    """
+
+    def __init__(self, served_back: bytes | None = None) -> None:
+        self.calls: list[tuple[str, str]] = []
+        self.uploaded: bytes = b""
+        self.location = ""
+        self.filename = ""
+        self.served_back = served_back
+
+    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+        self.calls.append(("POST", url))
+        files = kwargs.get("files", {})
+        self.filename = next(iter(files))
+        self.uploaded = next(iter(files.values()))[1]
+        self.location = kwargs.get("params", {}).get("location", "")
+        return _FakeResponse(200, b"OK")
+
+    def get(self, url: str, **_kwargs: object) -> _FakeResponse:
+        self.calls.append(("GET", url))
+        content = self.uploaded if self.served_back is None else self.served_back
+        return _FakeResponse(200, content)
+
+
+def _save_task_file(monkeypatch: pytest.MonkeyPatch, fake: _FakeUploadRequests) -> tuple[int, str]:
+    from maptasker.src import maputil2
+
+    monkeypatch.setattr(maputil2, "requests", fake)
+    monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)  # the read-back settle
+    _load(_FIXTURE_XML)
+    edited_task = taskedit.load_task_for_edit("Opener")  # by NAME -- see load_task_for_edit
+    assert edited_task is not None
+    return taskedit.save_task_to_android_file(edited_task, "192.168.0.210", "1821", "Opener")
+
+
+def test_a_task_file_goes_to_taskers_tasks_folder(monkeypatch: pytest.MonkeyPatch) -> None:
+    """/Tasker/tasks, beside /Tasker/profiles and /Tasker/scenes.  The path comes from
+    android_task_path, which is also what the overwrite check asks about -- the two reading
+    it from one place is what keeps a prompt about one file from guarding another."""
+    fake = _FakeUploadRequests()
+    return_code, result = _save_task_file(monkeypatch, fake)
+
+    assert return_code == 0, result
+    assert result == taskedit.android_task_path("Opener") == "/Tasker/tasks/Opener.tsk.xml"
+    assert fake.location == taskedit.ANDROID_TASK_LOCATION == "Tasker/tasks"
+    assert fake.filename == "Opener.tsk.xml"
+    assert fake.uploaded.startswith(b"<TaskerData")
+
+
+def test_a_task_file_that_did_not_land_is_not_called_a_save(monkeypatch: pytest.MonkeyPatch) -> None:
+    """/upload answers 200 for anything -- it does not validate the location and it creates
+    missing folders silently -- so the read-back is the only thing that can tell a written
+    file from a lost one.  Reported as a failure, the way profedit.save_profile_to_android
+    reports its own."""
+    fake = _FakeUploadRequests(served_back=b"<TaskerData>something else</TaskerData>")
+    return_code, result = _save_task_file(monkeypatch, fake)
+
+    assert return_code != 0
+    assert "could not confirm it landed correctly" in result
+
+
+def test_the_three_kinds_write_to_three_sibling_folders() -> None:
+    """One naming scheme, not three near-misses: a Task landing in /Tasker/profiles, or in a
+    folder of its own invention, is the kind of thing nothing fails on and nobody finds."""
+    from maptasker.src import profedit, sceneedit
+
+    assert taskedit.android_task_path("A") == "/Tasker/tasks/A.tsk.xml"
+    assert profedit.android_profile_path("A") == "/Tasker/profiles/A.prf.xml"
+    assert sceneedit.android_scene_path("A") == "/Tasker/scenes/A.scn.xml"
+
+
+def test_a_task_name_that_is_no_filename_still_writes_somewhere(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Tasker names are free text and slashes are legal in them.  sanitize_filename is what
+    keeps 'Wake: Up' from addressing a folder that does not exist -- and what makes two names
+    collide onto one path, which is why the caller prompts before overwriting."""
+    assert taskedit.android_task_path("Wake: Up") == "/Tasker/tasks/Wake_ Up.tsk.xml"
+    assert taskedit.android_task_path("a/b") == "/Tasker/tasks/a_b.tsk.xml"
+    assert taskedit.android_task_path("") == "/Tasker/tasks/task.tsk.xml"  # the fallback name
+
+
+# ##################################################################################
+# ...and the import that now goes through that same file
+#
+# 'Import Into Tasker' writes /Tasker/tasks/<name>.tsk.xml first and posts what the device
+# gives back, so the import sources from the folder and always leaves a copy behind.  The
+# thing that must not regress: the bytes posted are the device's, not a second render.
+# ##################################################################################
+
+
+class _FakeImportViaFileRequests(_FakeUploadRequests):
+    """The upload double, plus the two endpoints an import needs."""
+
+    def __init__(self, served_back: bytes | None = None) -> None:
+        super().__init__(served_back)
+        self.imported: list[bytes] = []
+
+    def get(self, url: str, **kwargs: object) -> _FakeResponse:
+        if "/api/auth" in url:
+            return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
+        return super().get(url, **kwargs)
+
+    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+        if "/api/import" in url:
+            self.calls.append(("POST", url))
+            self.imported.append(kwargs.get("data", b""))
+            return _FakeResponse(200, b"{}")
+        return super().post(url, **kwargs)
+
+
+def _import_task(monkeypatch: pytest.MonkeyPatch, fake: _FakeImportViaFileRequests, **kwargs: object):
+    from maptasker.src import maputil2
+
+    monkeypatch.setattr(maputil2, "requests", fake)
+    monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)  # the read-back settle
+    _load(_FIXTURE_XML)
+    edited_task = taskedit.load_task_for_edit("Opener")
+    assert edited_task is not None
+    return taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener", **kwargs)
+
+
+def test_an_import_leaves_the_task_in_the_tasks_folder(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The copy is not a side effect to be tidied away later -- it is where the import reads
+    from, and afterwards it is the record of exactly what was imported."""
+    fake = _FakeImportViaFileRequests()
+    return_code, result, _key = _import_task(monkeypatch, fake)
+
+    assert return_code == 0, result
+    assert fake.location == "Tasker/tasks"
+    assert fake.filename == "Opener.tsk.xml"
+    assert fake.imported, "nothing was imported"
+
+
+def test_the_import_posts_the_devices_bytes_and_not_a_second_render(monkeypatch: pytest.MonkeyPatch) -> None:
+    """'Import it from that directory' is only true if the bytes come FROM there.  The
+    device is made to serve back something distinguishable: if the import posts a fresh
+    render instead, this is where that shows up."""
+    from_device = b"<TaskerData>what the device actually holds</TaskerData>"
+    fake = _FakeImportViaFileRequests(served_back=from_device)
+
+    # The read-back doubles as the write's verify, so a device serving something else is a
+    # failed write -- which is the other half of the contract, tested just below.  Here the
+    # verify is neutralised so the import step itself can be observed.
+    monkeypatch.setattr(taskedit, "render_standalone_task_xml", lambda _task: from_device.decode())
+    return_code, result, _key = _import_task(monkeypatch, fake)
+
+    assert return_code == 0, result
+    assert fake.imported == [from_device]
+
+
+def test_a_file_that_did_not_land_is_never_imported(monkeypatch: pytest.MonkeyPatch) -> None:
+    """With no verified file in the folder there is nothing to import from, and importing
+    the in-memory render at that point would import something other than what the copy on
+    the device says was imported.  So the import does not happen at all."""
+    fake = _FakeImportViaFileRequests(served_back=b"<TaskerData>not what was sent</TaskerData>")
+    return_code, result, _key = _import_task(monkeypatch, fake)
+
+    assert return_code != 0
+    assert "could not confirm it landed correctly" in result
+    assert fake.imported == []
+    # And no authorization was asked for either -- the prompt lands on the user's phone.
+    assert not any("/api/auth" in url for _verb, url in fake.calls)
+
+
+def test_a_helper_task_does_not_leave_a_file_behind(monkeypatch: pytest.MonkeyPatch) -> None:
+    """via_file=False, for MapTasker's own plumbing.  /Tasker/tasks is a folder the user
+    browses for their own Tasks; 'MapTasker Send Profile v1.tsk.xml' in it is litter they
+    never asked for and would have to recognize before deleting."""
+    fake = _FakeImportViaFileRequests()
+    return_code, result, _key = _import_task(monkeypatch, fake, via_file=False)
+
+    assert return_code == 0, result
+    assert fake.imported, "nothing was imported"
+    assert not any("/upload" in url for _verb, url in fake.calls)
+
+
+def test_the_retry_reimports_the_file_rather_than_re_rendering(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The fallback when Tasker will not confirm the import.  It re-reads the file already
+    written and verified, so the retry is the same request being retried -- re-rendering
+    here would quietly make it a different one."""
+    from maptasker.src import maputil2
+
+    fake = _FakeImportViaFileRequests()
+    monkeypatch.setattr(maputil2, "requests", fake)
+    _load(_FIXTURE_XML)
+    edited_task = taskedit.load_task_for_edit("Opener")
+    fake.uploaded = b"<TaskerData>already on the device</TaskerData>"  # what the folder holds
+
+    return_code, result = taskedit.save_task_to_android_directory(
+        edited_task,
+        "192.168.0.210",
+        "1821",
+        "Opener",
+        "TESTKEY",
+    )
+
+    assert return_code == 0, result
+    assert fake.imported == [b"<TaskerData>already on the device</TaskerData>"]
+
+
+def test_a_write_still_settling_is_waited_for_rather_than_failed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """THE REPORT THIS EXISTS FOR: Tasker flashes 'File doesn\'t exist' and the save fails,
+    and the file is sitting there when the user goes to look.  /upload is one Tasker Task
+    writing to storage and the read-back is another answering a second request -- nothing
+    orders the two -- so a read that arrives too early gets a 404 for a file that is on its
+    way.  Failing on the first miss aborts a save that worked."""
+    from maptasker.src import maputil2
+
+    fake = _FakeImportViaFileRequests()
+    monkeypatch.setattr(maputil2, "requests", fake)
+    monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)
+    _load(_FIXTURE_XML)
+
+    # The device answers 404 twice -- the write has not landed yet -- and then serves it.
+    misses = [0]
+    real_get = fake.get
+
+    def slow_to_appear(url: str, **kwargs: object) -> _FakeResponse:
+        if "/file/" in url and misses[0] < 2:
+            misses[0] += 1
+            return _FakeResponse(404)
+        return real_get(url, **kwargs)
+
+    fake.get = slow_to_appear
+    edited_task = taskedit.load_task_for_edit("Opener")
+    return_code, result, _key = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener")
+
+    assert return_code == 0, result
+    assert misses[0] == 2  # it really did have to wait
+    assert fake.imported, "the import was abandoned over a file that was on its way"
+
+
+def test_a_write_that_never_appears_is_still_a_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Waiting is not believing.  A file that never turns up must not be reported as saved --
+    the retry exists to absorb a slow write, not to paper over a failed one."""
+    from maptasker.src import maputil2
+
+    fake = _FakeImportViaFileRequests()
+    monkeypatch.setattr(maputil2, "requests", fake)
+    monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)
+    _load(_FIXTURE_XML)
+    fake.get = lambda url, **_kwargs: (
+        _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}') if "/api/auth" in url else _FakeResponse(404)
+    )
+
+    edited_task = taskedit.load_task_for_edit("Opener")
+    return_code, result, _key = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener")
+
+    assert return_code != 0
+    assert "could not confirm it landed correctly" in result
+    assert fake.imported == []
+
+
+def test_one_read_answers_both_questions(monkeypatch: pytest.MonkeyPatch) -> None:
+    """'Is anything already there' and 'give me a copy of it' used to be two GETs of the same
+    path, and the server example flashes on every miss -- so a first-time save put two
+    'File doesn't exist' messages on the user's phone before writing anything.  One read
+    answers both."""
+    from maptasker.src import maputil2
+
+    fake = _FakeImportViaFileRequests(served_back=b"<TaskerData>already there</TaskerData>")
+    monkeypatch.setattr(maputil2, "requests", fake)
+
+    exists, content = maputil2.read_android_file("192.168.0.210", "1821", "/Tasker/tasks/Opener.tsk.xml")
+
+    assert exists is True
+    assert content == b"<TaskerData>already there</TaskerData>"
+    assert len([url for verb, url in fake.calls if verb == "GET"]) == 1

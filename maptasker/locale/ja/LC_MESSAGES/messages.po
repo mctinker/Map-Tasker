@@ -2435,3 +2435,96 @@ msgstr "プロファイルの状態"
 
 msgid "Replace this Profile condition"
 msgstr "このプロファイル条件を置き換える"
+
+msgid "%variable_name"
+msgstr "%変数名"
+
+msgid "A variable name has to start with '%' -- for example %app_package."
+msgstr "変数名は「%」で始まる必要があります (例: %app_package)。"
+
+msgid "Also in this field"
+msgstr "この分野でも"
+
+msgid "App not listed?"
+msgstr "アプリがリストに表示されない場合"
+
+msgid "Choose from the Applications named in the loaded configuration."
+msgstr "ロードされた構成で指定されたアプリケーションから選択します。"
+
+msgid "Choose from the icons used in the loaded configuration."
+msgstr "ロードされた設定で使用されているアイコンから選択してください。"
+
+msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.\n\nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.\n\n"
+msgstr "このボタンをクリックすると、以下の処理が行われます。\n\n- IPアドレスを使用して、Androidデバイスへのパingingを行います。\n- IPアドレスとポート番号を使用して、Androidデバイスに対してクエリを行い、Taskerフォルダ内の利用可能なXMLファイルのリストを取得します。\n- 取得したXMLファイルのリストを、ドロップダウンメニューから選択し、使用するものを選択できます。\n- XMLファイルを選択すると、そのファイルが取得され、有効なXMLとして検証されます。その後、「実行」または「再実行」ボタンをクリックすると、このファイルがプログラムへの入力として使用されます。\n\nこのリストは、「MapTasker List Files v1」という名前の小さなTaskによって行われ、このボタンを初めて使用したときに、MapTaskerがAndroidデバイスにインストールし、その後そこに残します。 手動でインポートする必要はありません。 以下の要件を満たしている必要があります。「HTTP Server Example」プロジェクトがデバイスで実行されていること、およびTasker 6.2またはそれ以降のバージョンを使用していること（「Save to Android」と同じ要件）。 Taskerは、初めて接続を許可するように求めます。\n\n数秒ほどお待ちください。Taskのインストール（一度だけ）、実行、およびその結果の読み込みには時間がかかります。\n\n"
+
+msgid "Fetch"
+msgstr "取得する"
+
+msgid "Fetch Applications From Android Device"
+msgstr "Android デバイスからアプリケーションを取得する"
+
+msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
+msgstr "Androidデバイスから、インストールされているアプリケーションの一覧を取得してください。 現在表示されているのは、この設定で既に指定されているものだけです。"
+
+msgid "Fetching..."
+msgstr "取得中..."
+
+msgid "Fill all three fields in from the loaded configuration."
+msgstr "ロードされた設定から、すべての3つのフィールドに情報を入力してください。"
+
+msgid "Import Into Tasker"
+msgstr "タスカーへのインポート"
+
+msgid "Listing the XML files on the Android device..."
+msgstr "Android デバイス上の XML ファイルを一覧表示しています..."
+
+msgid "More matches than can be shown -- narrow the search."
+msgstr "表示できる試合数を超える場合は、検索条件を絞り込んでください。"
+
+msgid "No Icon"
+msgstr "アイコンなし"
+
+msgid "Or a Tasker variable:"
+msgstr "または、Tasker 変数:"
+
+msgid "Pick"
+msgstr "選び"
+
+msgid "Pick an Application"
+msgstr "アプリケーションを選択してください"
+
+msgid "Save As File"
+msgstr "ファイルとして保存"
+
+msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
+msgstr "ロードされた構成内のどこかにアプリケーションの名前を付けます。または、Tasker 変数に名前を付けます。これは、Tasker が変数を作成する方法で、Package フィールドと Label フィールドにそれを入力し、クラスを空のままにします。"
+
+msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
+msgstr "ロードされた構成内のどこかに名前が付けられたアプリケーション。  この引数が一致する必要があるすべての項目にチェックを入れます。  リストされていないフィールドに既に存在するものはそのまま残ります。"
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "Android デバイスから直接 Tasker XML ファイルを取得するには、次の手順が必要です。\n\n1- このデバイスと Android デバイスの両方が同じ名前のネットワーク上に存在する必要があります。\n\n2- Tasker プロジェクト「HTTP サーバーの例」または同等の機能が Android デバイスにインストールされ、アクティブになっている必要があります (サーバーが実行されている必要があります)。\n\n    https://tinyurl.com/4p5cz8sv\n\n必要な設定はこれだけです。  「List XML Files」オプションには、TaskerNet からインポートして有効にしておく 2 番目の別個のプロファイル (「MapTasker List」) が必要でした。それはもうありません。  MapTasker は、「アプリがリストにありませんか?」と同じ方法で、リストを実行するために「MapTasker List Files v1」という名前の小さなタスクをデバイスにインストールするようになりました。アプリケーションを取得するためにインストールします。\n\nAndroid デバイスの IP アドレス、ポート番号、および Android デバイス上のファイルの場所を求められます。  デフォルト値が指定されています。ここで...\n\n「192.168.0.210」はデフォルトの IP アドレスです。\n\n「1821」は、Android デバイスで実行されている Tasker HTTP サーバー サンプルのデフォルトのポート番号です。\n\n「/Tasker/configs/user/backup.xml」はデフォルトのファイルの場所です。  ファイルの場所が分からず、IP アドレスとポートをすでに入力している場合は、[XML ファイルのリスト] ボタンを選択して、Android デバイス上で選択可能な XML ファイルのリストを取得できます。\n\n使用上の注意:\n\nIP アドレスとポートは、上記の URL から「HTTP Server Example」プロジェクトを Android デバイスにインストールすることで取得できます。次に、「Update GD HTTP Info」という名前のタスクを実行して、Android 通知を取得します。\n\nHTTPサーバー情報\nサーバー情報が更新されました {\"デバイス名\":\"http://192.168.0.49:1821\"}\n\n- XML ファイルを取得するには、 ボタンをクリックします。\n\n 「Android デバイスから XML を取得」\n\n次に、このボタンの下の入力フィールドに表示されるデフォルト値を変更し、「XML 詳細を設定するにはここをクリックして入力してください」または「XML ファイルの一覧表示」ボタンをクリックします。\n\n- いずれかのボタンを押すと、Android デバイスに ping が実行され、利用可能かどうかが確認されます。  デバイスに到達できない場合、ping は 10 秒後にタイムアウトします。  IP アドレスが正しいことを確認してください。\n\nこの取得プロセスを取り消すには、「エントリをキャンセル」ボタンをクリックしてください。\n\n"
+
+msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "ロードされた設定のどこかで使用されるアイコン。  選択した内容がフィールドに保持されている内容に置き換わります。  リストされていないアイコン パックのアイコンは入力する必要があります。その名前はパック内に存在します。"
+
+msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "これにより、Android デバイス上の Tasker 自体のインポート画面の前面にプロファイルが配置されます。  次に、デバイスで [インポート] をタップして完了します。これを行うまでは何もインポートされません。\n\n「Http Server Example」Tasker プロジェクトがインストールされて実行されている必要があり、Tasker は 6.2 以降である必要があります。\n\nデバイスは、初めて MapTasker を認証するように求めます。"
+
+msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "これにより、プロジェクトとその中のすべてのプロファイルとタスクが、Android デバイス上の Tasker 独自のインポート画面の前面に表示されます。  次に、デバイスで [インポート] をタップして完了します。そうするまでは何もインポートされません。\n\n「Http Server Example」Tasker プロジェクトがインストールされて実行されている必要があり、Tasker は 6.2 以降である必要があります。\n\nデバイスは、初めて MapTasker を認証するように求めます。"
+
+msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "これにより、シーンとその要素が起動されるすべてのタスクが Android デバイスの /Tasker/scenes に独自の名前で送信され、Tasker が開きます。\n\nTasker の [シーン] > [1 つのシーンをインポート] を使用してデバイス上でそれを完了し、名前でシーンを選択します。  プロファイルやプロジェクトとは異なり、ここからシーンを Tasker のインポート画面の前に置くことはできません。Tasker は片手で操作することはできませんが、選択するとまったく同じファイルがインポートされます。\n\n「Http Server Example」Tasker プロジェクトがインストールされて実行されている必要があり、Tasker は 6.2 以降である必要があります。\n\nデバイスは、初めて MapTasker を認証するように求めます。"
+
+msgid "Use Selected"
+msgstr "選択したものを使用"
+
+msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
+msgstr "Android デバイスで待機中 -- 認証プロンプトが表示された場合は、それを受け入れます。  これには 30 秒以上かかる場合があります。"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
+msgstr "Android デバイスに注意してください。Tasker は接続を承認するように求めます。承認するまでフェッチは続行できません。  完了したら 30 秒以上かかります。数百のアプリケーションがあるデバイスでは、それぞれの名前が個別に検索されるため、さらに長くなります。"
+
+msgid "applications, fetched"
+msgstr "アプリケーション、フェッチされました"

@@ -2456,3 +2456,96 @@ msgstr "Trạng thái hồ sơ"
 
 msgid "Replace this Profile condition"
 msgstr "Thay thế điều kiện Hồ sơ này"
+
+msgid "%variable_name"
+msgstr "%tên_biến"
+
+msgid "A variable name has to start with '%' -- for example %app_package."
+msgstr "Tên biến phải bắt đầu bằng dấu \"%\" – ví dụ: %app_package."
+
+msgid "Also in this field"
+msgstr "Ngoài ra, trong lĩnh vực này"
+
+msgid "App not listed?"
+msgstr "Ứng dụng không được liệt kê?"
+
+msgid "Choose from the Applications named in the loaded configuration."
+msgstr "Chọn từ danh sách các ứng dụng được liệt kê trong cấu hình đã tải."
+
+msgid "Choose from the icons used in the loaded configuration."
+msgstr "Chọn từ các biểu tượng được sử dụng trong cấu hình đã tải."
+
+msgid "Clicking this button will result in the following actions:\n\n- The IP Address will be used to ping the Android device.\n\n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.\n\n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.\n\n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.\n\nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.\n\nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.\n\n"
+msgstr "Việc nhấp vào nút này sẽ thực hiện các hành động sau:\n\n- Địa chỉ IP sẽ được sử dụng để kiểm tra kết nối với thiết bị Android.\n\n- Địa chỉ IP và số cổng sẽ được sử dụng để truy vấn thiết bị Android và lấy danh sách các tệp XML có sẵn trong thư mục Tasker.\n\n- Danh sách các tệp XML đã tìm thấy sẽ được hiển thị trong một menu thả xuống, từ đó bạn có thể chọn tệp bạn muốn sử dụng.\n\n- Sau khi bạn đã chọn tệp XML, nó sẽ được tải và xác minh là một tệp XML hợp lệ, sau đó được sử dụng làm đầu vào cho chương trình khi bạn sau đó nhấp vào nút \"Chạy\" hoặc \"Chạy lại\".\n\nViệc liệt kê được thực hiện bởi một tác vụ nhỏ có tên \"MapTasker List Files v1\", mà Tasker cài đặt trên thiết bị Android của bạn lần đầu tiên bạn sử dụng nút này và sau đó để lại ở đó. Không cần phải nhập thủ công. Nó yêu cầu dự án \"HTTP Server Example\" đang chạy trên thiết bị và Tasker 6.2 trở lên – cùng các yêu cầu như \"Save to Android\" – và Tasker sẽ yêu bạn cấp quyền kết nối lần đầu.\n\nVui lòng chờ vài giây: việc cài đặt tác vụ (chỉ một lần), chạy nó và đọc kết quả không phải là tức thời.\n\n"
+
+msgid "Fetch"
+msgstr "Tìm về"
+
+msgid "Fetch Applications From Android Device"
+msgstr "Tìm nạp ứng dụng từ thiết bị Android"
+
+msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
+msgstr "Lấy danh sách đầy đủ các ứng dụng đã cài đặt từ thiết bị Android của bạn.  Những gì được liệt kê bây giờ chỉ là những gì cấu hình này đã đặt tên."
+
+msgid "Fetching..."
+msgstr "Đang tải..."
+
+msgid "Fill all three fields in from the loaded configuration."
+msgstr "Điền vào tất cả ba trường thông tin từ cấu hình đã tải."
+
+msgid "Import Into Tasker"
+msgstr "Nhập vào tác vụ"
+
+msgid "Listing the XML files on the Android device..."
+msgstr "Liệt kê các tệp XML trên thiết bị Android..."
+
+msgid "More matches than can be shown -- narrow the search."
+msgstr "Có nhiều kết quả hơn so với có thể hiển thị – thu hẹp phạm vi tìm kiếm."
+
+msgid "No Icon"
+msgstr "Không có biểu tượng"
+
+msgid "Or a Tasker variable:"
+msgstr "Hoặc một biến trong Tasker:"
+
+msgid "Pick"
+msgstr "Chọn"
+
+msgid "Pick an Application"
+msgstr "Chọn một ứng dụng"
+
+msgid "Save As File"
+msgstr "Lưu dưới dạng tệp"
+
+msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
+msgstr "Các ứng dụng được đề cập ở đâu đó trong cấu hình đã tải – hoặc đặt tên cho một biến của Tasker, biến này sẽ điền vào các trường \"Package\" và \"Label\" và để trường \"Class\" trống, theo cách Tasker định nghĩa."
+
+msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
+msgstr "Ứng dụng được đặt tên ở đâu đó trong cấu hình đã tải.  Đánh dấu vào từng đối số mà đối số này phù hợp.  Bất cứ điều gì đã có trong trường mà không được liệt kê vẫn ở lại."
+
+msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.\n\n1- Both this device and the Android device must be on the same named network.\n\n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):\n\n    https://tinyurl.com/4p5cz8sv\n\nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.\n\nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...\n\n'192.168.0.210' is the default IP address,\n\n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device\n\n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.\n\nUsage Notes:\n\nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:\n\nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}\n\n- To fetch the XML file, click on the button\n\n 'Get XML from Android Device'\n\nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.\n\n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.\n\nClick on the 'Cancel Entry' button to back out of this fetch process.\n\n"
+msgstr "Cần thực hiện các bước sau để tìm nạp tệp XML tác vụ trực tiếp từ thiết bị Android của bạn.\n\n1- Cả thiết bị này và thiết bị Android phải nằm trên cùng một mạng được đặt tên.\n\n2- Dự án tác vụ 'Ví dụ về máy chủ HTTP' hoặc chức năng giống hệt phải được cài đặt và hoạt động trên thiết bị Android (máy chủ phải đang chạy):\n\n    https://tinyurl.com/4p5cz8sv\n\nĐó là thiết lập duy nhất cần thiết.  Tùy chọn 'Danh sách các tệp XML' được sử dụng để cần một cấu hình thứ hai, riêng biệt ('Danh sách MapTasker') được nhập từ TaskerNet và được bật ở bên trái; nó không còn nữa.  MapTasker hiện cài đặt một Tác vụ nhỏ có tên 'Tệp danh sách MapTasker v1' trên thiết bị để thực hiện danh sách, giống như cách 'Ứng dụng không được liệt kê?' cài đặt một cái để tìm nạp ứng dụng của bạn.\n\nBạn sẽ được hỏi địa chỉ IP, số cổng cho thiết bị Android của bạn cũng như vị trí tệp trên thiết bị Android.  Các giá trị mặc định được cung cấp, trong đó...\n\n'192.168.0.210' là địa chỉ IP mặc định,\n\n'1821' là số cổng mặc định cho Ví dụ về Máy chủ HTTP tác vụ đang chạy trên thiết bị Android của bạn\n\n'/Tasker/configs/user/backup.xml' là vị trí tệp mặc định.  Nếu bạn không biết vị trí tệp và đã nhập địa chỉ IP và cổng của mình thì bạn có thể chọn nút 'Liệt kê tệp XML' để nhận danh sách các tệp XML có sẵn trên thiết bị Android của mình để lựa chọn.\n\nGhi chú sử dụng:\n\nĐịa chỉ IP và cổng có thể được lấy bằng cách cài đặt dự án 'Ví dụ về máy chủ HTTP' từ URL trên trên thiết bị Android của bạn. Sau đó chạy tác vụ có tên 'Cập nhật thông tin HTTP GD' để nhận thông báo Android:\n\nThông tin máy chủ HTTP\nĐã cập nhật thông tin máy chủ {\"tên thiết bị:\"http://192.168.0.49:1821\"}\n\n- Để lấy file XML, nhấn vào nút\n\n 'Nhận XML từ thiết bị Android'\n\nSau đó sửa đổi các giá trị mặc định được trình bày trong các trường nhập bên dưới nút này, rồi nhấp vào nút 'Nhập và nhấp vào đây để đặt chi tiết XML' hoặc 'Liệt kê các tệp XML'.\n\n- Nhấn một trong hai nút sẽ ping thiết bị Android để xem nó có sẵn không.  Ping sẽ hết thời gian chờ sau 10 giây nếu không thể truy cập thiết bị.  Đảm bảo rằng địa chỉ IP là chính xác.\n\nNhấp vào nút 'Hủy mục nhập' để thoát khỏi quá trình tìm nạp này.\n\n"
+
+msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Các biểu tượng được sử dụng ở đâu đó trong cấu hình đã tải.  Những gì bạn chọn sẽ thay thế những gì trường chứa.  Phải nhập biểu tượng từ gói biểu tượng không được liệt kê: tên của nó nằm trong gói."
+
+msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "Thao tác này sẽ đặt Hồ sơ ở phía trước màn hình nhập của chính Tác vụ trên thiết bị Android.  Sau đó, bạn nhấn Nhập trên thiết bị để hoàn tất -- không có gì được nhập cho đến khi bạn thực hiện.\n\nDự án tác vụ 'Ví dụ về máy chủ http' phải được cài đặt và chạy và Trình tác vụ phải là 6.2 trở lên.\n\nThiết bị sẽ yêu cầu bạn cấp quyền cho MapTasker lần đầu tiên."
+
+msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "Thao tác này sẽ đặt Dự án -- và mọi Hồ sơ và Nhiệm vụ trong đó -- ở phía trước màn hình nhập của chính Tasker trên thiết bị Android.  Sau đó bạn chạm vào Nhập trên thiết bị để hoàn tất; không có gì được nhập cho đến khi bạn làm.\n\nDự án tác vụ 'Ví dụ về máy chủ http' phải được cài đặt và chạy và Trình tác vụ phải là 6.2 trở lên.\n\nThiết bị sẽ yêu cầu bạn cấp quyền cho MapTasker lần đầu tiên."
+
+msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
+msgstr "Thao tác này sẽ gửi Cảnh -- và mọi Tác vụ mà các phần tử của nó kích hoạt -- tới thiết bị Android dưới tên riêng của nó, vào /Tasker/scene và mở Tasker.\n\nBạn hoàn thành nó trên thiết bị với 'Cảnh > Nhập một cảnh' của Tasker và chọn Cảnh theo tên.  Không giống như Hồ sơ hoặc Dự án, Cảnh không thể được đặt trước màn hình nhập của Tác vụ từ đây -- Tác vụ sẽ không xử lý bằng một tay, mặc dù nó nhập cùng một tệp khi bạn chọn.\n\nDự án tác vụ 'Ví dụ về máy chủ http' phải được cài đặt và chạy và Trình tác vụ phải là 6.2 trở lên.\n\nThiết bị sẽ yêu cầu bạn cấp quyền cho MapTasker lần đầu tiên."
+
+msgid "Use Selected"
+msgstr "Sử dụng đã chọn"
+
+msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
+msgstr "Đang chờ trên thiết bị Android -- chấp nhận lời nhắc ủy quyền ở đó nếu lời nhắc xuất hiện.  Việc này có thể mất 30 giây hoặc hơn."
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
+msgstr "Xem thiết bị Android của bạn: Tasker sẽ yêu cầu bạn cho phép kết nối và quá trình tìm nạp không thể tiếp tục cho đến khi bạn chấp nhận.  Hãy chờ 30 giây hoặc hơn nếu bạn có -- lâu hơn trên thiết bị có hàng trăm ứng dụng, vì tên của mỗi ứng dụng được tra cứu riêng lẻ."
+
+msgid "applications, fetched"
+msgstr "ứng dụng đã được tìm nạp"

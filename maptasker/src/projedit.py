@@ -51,7 +51,6 @@ if TYPE_CHECKING:
 from maptasker.src import sessundo
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import SCENE_TASK_TYPES
 
 BASE_PROJECT_NAME = "Base"
 # Destination folder on the Android device for Save To Android -- see android_project_path.
@@ -443,7 +442,7 @@ def android_project_path(project_name: str) -> str:
     """The absolute path a Save To Android of this Project would write to on the
     device. Single source of truth for that path -- save_project_to_android
     writes here, and the GUI's overwrite check reads it back through
-    maputil2.file_exists_on_android, so the two must never drift apart.
+    maputil2.read_android_file, so the two must never drift apart.
 
     Note the path is derived from the *sanitized* name, so two differently-named
     Projects can map to the same file (e.g. "Home/Work" and "Home_Work" both
@@ -488,34 +487,6 @@ def _project_scene_names(project_element: defusedxml.ElementTree.Element) -> lis
     """
     child = project_element.find("scenes")
     return [name.strip() for name in child.text.split(",")] if child is not None and child.text else []
-
-
-def _scene_task_ids(scene_element: defusedxml.ElementTree.Element) -> list[str]:
-    """The ids of the Tasks this Scene's elements fire, in document order.
-
-    A Scene element (RectElement, TextElement and the rest) hangs its handlers off children
-    named in sysconst.SCENE_TASK_TYPES -- <clickTask>, <longclickTask>, <strokeTask> and so
-    on -- each holding a Task id.  Same table sceneview.element_tasks reads to label them in
-    the Scene view, so the two cannot disagree about what counts as firing a Task.
-
-    Walked with iter() rather than over direct children, for two reasons: the handlers hang
-    off the ELEMENTS inside a Scene rather than off the Scene itself, and a Scene can
-    contain another Scene (eight of them do in this repo's own backup), whose elements fire
-    Tasks just the same.
-
-    Negative ids are dropped.  Those are Tasker's anonymous inline Tasks (scenes.process_tasks
-    calls them "fake"): there is no <Task> element anywhere in the backup with such an id --
-    measured, all 18 of them -- because the Task lives inside the Scene already and travels
-    with it.
-    """
-    found = []
-    for element in scene_element.iter():
-        if element.tag not in SCENE_TASK_TYPES:
-            continue
-        task_id = (element.text or "").strip()
-        if task_id and not task_id.startswith("-"):
-            found.append(task_id)
-    return found
 
 
 def _ensure_project_identity(project_copy: defusedxml.ElementTree.Element) -> None:
@@ -680,11 +651,17 @@ def render_standalone_project_xml(project_name: str) -> str:
 
     # And the Tasks the Project's Scenes fire.  A Scene button's Task is reached from
     # neither <tids> nor a Profile's <mid0>/<mid1> -- nothing links to it but the Scene
-    # element itself -- so without this the Scene imports and its buttons do nothing.  Last,
+    # element itself -- so without this the Scene imports and its buttons do nothing.  The
+    # walk lives in sceneedit (sceneedit.scene_task_ids) because it is a fact about Scenes,
+    # and the standalone Scene export needs exactly the same thing.  Last,
     # after the two id sources above, so a Task that is already coming keeps its place
     # rather than being re-ordered by which Scene happens to mention it.
+    # Lazily imported: sceneedit imports touch_project_mdate from here, so the cycle is
+    # real -- same shape as taskedit reaching back into maputil2.
+    from maptasker.src.sceneedit import scene_task_ids  # noqa: PLC0415
+
     for scene_element in scene_elements:
-        for task_id in _scene_task_ids(scene_element):
+        for task_id in scene_task_ids(scene_element):
             if task_id not in seen_task_ids:
                 seen_task_ids.add(task_id)
                 task_ids.append(task_id)
@@ -729,7 +706,7 @@ def save_project_to_android(project_name: str, ip_address: str, ip_port: str) ->
     Returns (0, device_file_path) on success, or (return_code, error_message).
     """
     # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_request, http_upload_request  # noqa: PLC0415
+    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
 
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
@@ -748,9 +725,13 @@ def save_project_to_android(project_name: str, ip_address: str, ip_port: str) ->
     if return_code != 0:
         return return_code, str(response)
 
-    verify_code, verify_content = http_request(ip_address, ip_port, device_path, "file", "")
-    if verify_code != 0 or verify_content != xml_bytes:
-        return 8, f"Uploaded to {device_path}, but could not confirm it landed correctly."
+    # Retried rather than trusted: /upload is a Tasker Task writing to storage and this read
+    # is a second request answered by a second Task, so a write still settling answers 404 to
+    # a read that arrives too soon -- and failing on the first miss aborts a save whose file
+    # is on the device a moment later.  See maputil2.read_back_uploaded_file.
+    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
+    if verify_code != 0:
+        return 8, str(verify_content)
 
     return 0, device_path
 

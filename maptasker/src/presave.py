@@ -175,9 +175,9 @@ def backup_local_file(output_path: str) -> tuple[bool, str]:
     return True, str(destination)
 
 
-def backup_android_file(ip_address: str, ip_port: str, device_path: str) -> tuple[bool, str]:
-    """Pull down whatever is at `device_path` on the Android device, before a Save To
-    Android overwrites it, and keep it in MapTasker_Backups in the current directory.
+def save_android_safety_copy(device_path: str, content: bytes) -> tuple[bool, str]:
+    """Keep the bytes that were at `device_path` on the Android device, before a Save To
+    Android overwrites them, in MapTasker_Backups in the current directory.
 
     The copy is kept on this computer rather than beside the original on the device.  That
     is the whole point: the device has no versioning, no undo and no file manager the user
@@ -189,23 +189,18 @@ def backup_android_file(ip_address: str, ip_port: str, device_path: str) -> tupl
     -- because a device path cannot be a filename and "which device folder was this?" is
     otherwise unanswerable.
 
-    Returns the same three outcomes as backup_local_file, with (True, "") covering the
-    ordinary case of nothing being at that path yet.  A device that cannot be reached is
-    (False, ...): the caller is about to try to upload to it anyway and will report its own
-    failure, and claiming the path was free would be a guess.
+    TAKES THE BYTES RATHER THAN FETCHING THEM.  Every caller has just read that path to ask
+    whether anything is there to clobber (maputil2.read_android_file answers both questions
+    from one GET), and reading it a second time here would mean a second round trip, a second
+    chance for the two answers to disagree, and -- on the Tasker HTTP Server Example, whose
+    /file handler runs Test File and flashes 'File doesn't exist' on every miss -- a second
+    flash on the user's phone for a single save.
+
+    Returns the same three outcomes backup_local_file does, with (True, "") covering the
+    ordinary case of nothing having been at that path.
     """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
-
-    if not device_path:
+    if not device_path or not content:
         return True, ""
-
-    return_code, response = http_request(ip_address, ip_port, device_path, "file", "")
-    _http_not_found = 6
-    if return_code == _http_not_found:
-        return True, ""  # Nothing there yet -- the save is not overwriting anything.
-    if return_code != 0:
-        return False, str(response)
 
     folder = _backup_folder(Path.cwd())
     if folder is None:
@@ -215,7 +210,6 @@ def backup_android_file(ip_address: str, ip_port: str, device_path: str) -> tupl
     # copy says which folder on the device it was taken from.
     flattened = _ILLEGAL_IN_FILENAME.sub("_", device_path.strip("/"))
     destination = folder / _stamped_name(flattened)
-    content = response if isinstance(response, bytes) else str(response).encode("utf-8")
     try:
         destination.write_bytes(content)
     except OSError as error:

@@ -1125,7 +1125,7 @@ def save_profile_to_android(
     Returns (0, device_file_path) on success, or (return_code, error_message).
     """
     # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_request, http_upload_request  # noqa: PLC0415
+    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
 
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
@@ -1140,9 +1140,13 @@ def save_profile_to_android(
     if return_code != 0:
         return return_code, str(response)
 
-    verify_code, verify_content = http_request(ip_address, ip_port, device_path, "file", "")
-    if verify_code != 0 or verify_content != xml_bytes:
-        return 8, f"Uploaded to {device_path}, but could not confirm it landed correctly."
+    # Retried rather than trusted: /upload is a Tasker Task writing to storage and this read
+    # is a second request answered by a second Task, so a write still settling answers 404 to
+    # a read that arrives too soon -- and failing on the first miss aborts a save whose file
+    # is on the device a moment later.  See maputil2.read_back_uploaded_file.
+    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
+    if verify_code != 0:
+        return 8, str(verify_content)
 
     return 0, device_path
 

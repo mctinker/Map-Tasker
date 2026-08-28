@@ -162,7 +162,11 @@ This is the output from the Variable Xref (cross reference) run.
 
 - MapTasker_Apps.json
 
-  This contains a list of all Android applications gleaned either the XML file or directly from the Android device.  The list is useed to populate the app list when editing a Task action such as 'Launch App'. 
+  This contains a list of all Android applications gleaned either the XML file or directly from the Android device.  The list is useed to populate the app list when editing a Task action such as 'Launch App'.
+
+  - Android
+
+  Various 'maptasker.***' files are created, including Tasker files, to manage the to/from travel of XML.  Examples are: maptasker_import.xxx.xml, maptasker_apps.txt, maptasker_files.txt
 
 - hidden files: system settings, run counter, last 'version checked' date, and API keys.
 
@@ -220,8 +224,6 @@ A: Prerequisites:
 
 2- The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) installed and active on the Android device, server running.
 
-3- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) imported into Tasker for the 'List XML Files' button in the GUI.
-
 Further details are available in the "Notes" section of this README.
 
 **Q: Diagram connectors are misaligned for names in Chinese, Korean, or Japanese.**
@@ -249,7 +251,6 @@ To retrieve the Tasker XML file directly:
 
 - Ensure both desktop and Android devices are on the same local network and that Tasker is running.
 - The ['Http Server Example' Tasker Project](https://shorturl.at/bwCD4) must be installed and active on the Android device, with the server running. Remember to run the "Update GD HTTP Info" Task and (first time only) enter your Google Drive ID when prompted.
-- The [MapTasker List TaskerNet profile](https://shorturl.at/0MQrL) must be imported into Tasker for the 'List XML Files' button in the GUI. You can [preview this app on TaskerNet](https://taskernet.com/?public&tags=maptasker,Utility&time=AllTime).
 - Once retrieved, the XML is saved on your desktop and doesn't need constant re-fetching unless changed.
 
 ### 3
@@ -316,11 +317,11 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Find and Replace function
 
-- [ ] Capture Android Device Apps and Icons
+- [x] Capture Android Device Apps and Icons
 
 - [ ] Export Map to Portable Formats (Markdown / JSON / PDF)
 
-- [ ] Export Edits Directly Into Tasker
+- [x] Import Edits Directly Into Tasker
 
 - [ ] Roundtrip (Device-to/from Android) Data Validation
 
