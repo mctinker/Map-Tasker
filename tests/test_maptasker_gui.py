@@ -24,6 +24,7 @@ loaded, so the English literal is what these tests compare against. reset_transl
 keeps that true regardless of what an earlier test did.
 """
 
+import asyncio
 import contextlib
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import parse_qs, urlparse
@@ -701,15 +702,49 @@ def profile_dialog_refs():
     )
 
 
-def _patch_import_path(monkeypatch, results: list) -> dict:
+def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) -> dict:
     """Point the handler's collaborators at fakes and record what it did.
 
     `results` is what run.io_bound returns, in order: the pre-check (see
     deviceinv.import_is_confirmable), the offer, then the confirmation if there is one.
+
+    `exists` is what the device says about the path the import is going to write -- False
+    (nothing there) for the ordinary case, True or None to reach the overwrite prompt.  The
+    staged file is the object's own now, in Tasker's own folder, so an import can land on a
+    file the user saved by hand and is asked about first.
     """
     from maptasker.src import userintr
 
-    calls: dict = {"io_bound": [], "kept": [], "notify": [], "pending": []}
+    calls: dict = {
+        "io_bound": [],
+        "kept": [],
+        "notify": [],
+        "pending": [],
+        "overwrite": [],
+        "backed_up": [],
+        # Whether the client's slot was entered for each notification.  nicegui builds an
+        # element for every one of these and an element needs a slot, so a False in here is
+        # the 'slot stack for this task is empty' crash in a test rather than on a phone.
+        "in_slot": [],
+    }
+
+    class _FakeClient:
+        """nicegui's client, with the one thing that matters here: being enterable."""
+
+        depth = 0
+
+        def __enter__(self):
+            _FakeClient.depth += 1
+            return self
+
+        def __exit__(self, *_):
+            _FakeClient.depth -= 1
+
+    class _FakeContext:
+        client = _FakeClient()
+
+    _FakeClient.depth = 0
+    monkeypatch.setattr(userintr, "context", _FakeContext)
 
     async def fake_io_bound(func, *args, **kwargs):
         calls["io_bound"].append((func, args, kwargs))
@@ -720,6 +755,23 @@ def _patch_import_path(monkeypatch, results: list) -> dict:
 
     monkeypatch.setattr(userintr.run, "io_bound", fake_io_bound)
     monkeypatch.setattr(userintr, "ping_android_device", fake_ping)
+    # One read of the path answers both questions -- see maputil2.read_android_file.  The
+    # content it hands back is what becomes the safety copy, with no second GET.
+    monkeypatch.setattr(
+        userintr,
+        "read_android_file",
+        lambda _ip, _port, _path: (exists, b"<TaskerData>the old one</TaskerData>" if exists else b""),
+    )
+    monkeypatch.setattr(
+        userintr.presave,
+        "save_android_safety_copy",
+        lambda path, content: (calls["backed_up"].append((path, content)), (True, "/copies/old.prf.xml"))[1],
+    )
+    monkeypatch.setattr(
+        userintr,
+        "build_overwrite_confirm_dialog",
+        lambda what, on_confirm, **kwargs: calls["overwrite"].append((what, on_confirm, kwargs)),
+    )
     monkeypatch.setattr(userintr.profedit, "render_standalone_profile_xml", lambda _p: "<TaskerData/>")
     monkeypatch.setattr(userintr.projedit, "render_standalone_project_xml", lambda _n: "<TaskerData/>")
     monkeypatch.setattr(userintr.projedit, "project_profile_names", lambda _n: ["Watched", "Also Watched"])
@@ -737,17 +789,18 @@ def _patch_import_path(monkeypatch, results: list) -> dict:
         "_keep_profile_in_loaded_config",
         lambda _self, *args: calls["kept"].append(args),
     )
-    monkeypatch.setattr(
-        userintr.ui,
-        "notify",
-        lambda message, **kwargs: calls["notify"].append((message, kwargs.get("type"))),
-    )
+    def fake_notify(message, **kwargs) -> None:
+        calls["notify"].append((message, kwargs.get("type")))
+        calls["in_slot"].append(_FakeClient.depth > 0)
+
+    monkeypatch.setattr(userintr.ui, "notify", fake_notify)
 
     class _FakeNotification:
         """A ui.notification with the one thing the handler uses it for: being taken down."""
 
         def __init__(self, message, **kwargs) -> None:
             calls["notify"].append((message, kwargs.get("type")))
+            calls["in_slot"].append(_FakeClient.depth > 0)
             calls["pending"].append(self)
             self.dismissed = False
 
@@ -784,6 +837,9 @@ async def test_a_new_profile_is_waited_for_before_anything_is_claimed(monkeypatc
     assert pre_check[0] is deviceinv.import_is_confirmable
     assert offer[0] is deviceinv.offer_to_tasker
     assert offer[2]["wait_for_confirmation"] is False
+    # The "Open with..." route: Android's own chooser, which the user picks Tasker out of,
+    # rather than this program guessing what a '.prf.xml' resolves to (2026-08-28 it guessed
+    # wrong twice -- see import_profile_into_tasker_event).
     assert offer[2]["route"] is deviceinv.OPEN_FILE_ROUTE
     assert confirm[0] is deviceinv.await_import
 
@@ -791,6 +847,165 @@ async def test_a_new_profile_is_waited_for_before_anything_is_claimed(monkeypatc
     android_dialog.close.assert_called_once()
     parent_dialog.close.assert_called_once()
     assert calls["notify"][-1] == ("Profile 'Watched' is now in Tasker", "positive")
+
+
+@pytest.mark.asyncio
+async def test_a_file_already_on_the_device_is_asked_about_first(monkeypatch, event_handler, profile_dialog_refs):
+    """The import writes exactly where 'Save As File' writes now, so it can land on a
+    Watched.prf.xml the user saved by hand -- and they are asked before it does, in the same
+    words that button uses.
+
+    Nothing goes over the wire until they answer: the pre-check, the offer and the
+    confirmation all sit behind the prompt, so Cancel costs them nothing but the click.
+    """
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")], exists=True)
+    android_dialog, parent_dialog = MagicMock(), MagicMock()
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        android_dialog,
+        parent_dialog,
+    )
+
+    assert len(calls["overwrite"]) == 1
+    what, _on_confirm, kwargs = calls["overwrite"][0]
+    assert what == "'/Tasker/profiles/Watched.prf.xml' on the Android device"
+    assert kwargs == {"unknown": False}
+    # Cancelled, as far as this test is concerned -- nothing was sent and nothing was closed.
+    assert calls["io_bound"] == []
+    assert calls["backed_up"] == []
+    android_dialog.close.assert_not_called()
+    parent_dialog.close.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_a_destination_that_cannot_be_checked_still_asks(monkeypatch, event_handler, profile_dialog_refs):
+    """read_android_file's existence answer is tri-state and None is 'could not tell'.  The
+    honest thing is still a prompt -- 'this might overwrite something' -- rather than a
+    silent write on exactly the flaky-connection case a user most wants asking about."""
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")], exists=None)
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert len(calls["overwrite"]) == 1
+    assert calls["overwrite"][0][2] == {"unknown": True}
+
+
+@pytest.mark.asyncio
+async def test_confirming_the_overwrite_copies_the_file_it_replaces(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+):
+    """Overwrite goes ahead with the import AND keeps what it replaced.  The device has no
+    versions and no undo, so the copy this takes is the only one there will ever be -- and it
+    is made from the bytes the existence check already returned, not a second GET."""
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(
+        monkeypatch,
+        [True, (0, "screen is open"), (0, "Profile 'Watched' is now in Tasker")],
+        exists=True,
+    )
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+    _what, on_confirm, _kwargs = calls["overwrite"][0]
+    on_confirm()
+    await asyncio.sleep(0)  # the prompt's callback is sync; the offer it starts is not
+    await asyncio.sleep(0)
+
+    assert calls["backed_up"] == [("/Tasker/profiles/Watched.prf.xml", b"<TaskerData>the old one</TaskerData>")]
+    assert [call[0] for call in calls["io_bound"]][1].__name__ == "offer_to_tasker"
+
+
+@pytest.mark.asyncio
+async def test_an_offer_run_from_the_prompt_still_has_somewhere_to_draw(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+):
+    """The overwrite prompt's callback is synchronous and the offer is not, so the offer is
+    started with create_task -- and nicegui's slot stack is keyed by asyncio task, so that
+    new task starts with an empty one.  Every ui.notify and ui.notification in the offer
+    builds an element, an element needs a slot, and all of them raised
+    'the slot stack for this task is empty' the first time a user pressed Overwrite.
+
+    The client is captured in the handler's own task and re-entered inside the spawned one.
+    This asserts the consequence rather than the mechanism: every notification the offer
+    makes happens with somewhere to draw.
+    """
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(
+        monkeypatch,
+        [True, (0, "screen is open"), (0, "Profile 'Watched' is now in Tasker")],
+        exists=True,
+    )
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+    before = len(calls["in_slot"])
+    calls["overwrite"][0][1]()  # the user presses Overwrite
+    await asyncio.sleep(0)
+    await asyncio.sleep(0)
+
+    spawned = calls["in_slot"][before:]
+    assert spawned, calls["notify"]  # the offer did notify, so there is something to check
+    assert all(spawned), calls["notify"]
+
+
+@pytest.mark.asyncio
+async def test_the_user_is_told_which_file_is_waiting_on_the_device(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+):
+    """A handoff Tasker does not complete leaves the user to import the file themselves out
+    of Tasker's own browser -- which they can only do if they are told which file it is.
+
+    It could not be said at all while every import staged one 'maptasker_import.prf.xml': the
+    name said nothing about which Profile was in it.  Now it is the Profile's own name, so it
+    goes in the notification and into await_import's giving-up message.
+    """
+    from maptasker.src import deviceinv
+
+    field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, [True, (0, "screen is open"), (8, "Tasker has not reported it")])
+
+    await event_handler.import_profile_into_tasker_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    staged = "/storage/emulated/0/Tasker/profiles/Watched.prf.xml"
+    assert staged == deviceinv.SEND_INTENT_ROUTE.staged_file_paths("Watched")[2]
+    assert any(staged in message for message, _type in calls["notify"])
+
+    _pre_check, _offer, confirm = calls["io_bound"]
+    assert confirm[0] is deviceinv.await_import
+    assert confirm[2]["staged_at"] == staged
 
 
 @pytest.mark.asyncio
@@ -981,7 +1196,7 @@ async def test_a_project_is_offered_as_a_project(monkeypatch, event_handler, pro
     )
 
     _pre_check, offer, _confirm = calls["io_bound"]
-    assert offer[2]["route"] is deviceinv.OPEN_PROJECT_ROUTE
+    assert offer[2]["route"] is deviceinv.OPEN_PROJECT_ROUTE  # explicit -- see the Profile's note
     assert offer[1][1] == "Home"
 
 
@@ -1058,24 +1273,28 @@ async def test_unapplied_project_edits_stop_it_before_the_device(monkeypatch, ev
 
 
 # ==========================================
-# ...and for a Scene, which is not offered at all
+# ...and for a Scene, which is offered the same way now
 #
-# A Profile and a Project are handed to Tasker's import screen.  A Scene cannot be: measured
-# on a real device, Tasker opens for it -- through a chooser-free explicit intent, with the
-# file in Tasker's own /Tasker/scenes folder -- makes a visible attempt, and imports nothing,
-# while the same file picked by hand in Tasker imports correctly.  So this flow does
-# everything up to the handoff (upload under the Scene's own name, open Tasker) and says
-# what is left to do, rather than reporting a handoff that does not happen.
+# A Scene used not to be offered at all.  Both measured handoffs failed -- an implicit VIEW
+# for 'text/xml' put up a chooser with no Tasker in it, and an explicit intent made Tasker
+# open, attempt visibly, and import nothing -- so the flow uploaded the file, opened Tasker,
+# and left the whole import to the user.
 #
-# The four io_bound calls, in order: the confirmable pre-check, the upload, the launch, and
-# the confirmation wait.
+# The "Open with..." is a third attempt rather than a repeat of either: an implicit VIEW
+# carrying NO type, which is the only one of the three an extension filter can match (see
+# deviceinv._OPEN_WITH_MIME_TYPE).  So a Scene goes through _offer_into_tasker like the other
+# two, and everything that path already does -- the overwrite prompt, the safety copy,
+# staging under its own name -- it now gets for free.  The by-hand instruction stays in the
+# message, because that instruction is what this route used to be.
+#
+# The three io_bound calls, in order: the confirmable pre-check, the offer, and the
+# confirmation wait.
 # ==========================================
 
 
 _SCENE_RESULTS = [
     True,
-    (0, "/Tasker/scenes/Dialog.scn.xml"),
-    (0, ""),
+    (0, "screen is open"),
     (0, "Scene 'Dialog' is now in Tasker"),
 ]
 
@@ -1093,21 +1312,45 @@ async def _import_scene(event_handler, android_refs, scene_name: str = "Dialog")
 
 
 @pytest.mark.asyncio
+async def test_a_scene_already_on_the_device_is_asked_about_first(monkeypatch, event_handler, profile_dialog_refs):
+    """This route always wrote the Scene under its own name into Tasker's own folder, so it
+    always could land on a Dialog.scn.xml the user saved by hand -- it just never asked.  Now
+    it asks the same question 'Save As File' asks, and keeps a copy when they say yes."""
+    _field_refs, android_refs = profile_dialog_refs
+    calls = _patch_import_path(monkeypatch, _SCENE_RESULTS, exists=True)
+
+    await _import_scene(event_handler, android_refs)
+
+    assert len(calls["overwrite"]) == 1
+    what, on_confirm, kwargs = calls["overwrite"][0]
+    assert what == "'/Tasker/scenes/Dialog.scn.xml' on the Android device"
+    assert kwargs == {"unknown": False}
+    assert calls["io_bound"] == []  # nothing sent while the question is unanswered
+
+    on_confirm()
+    await asyncio.sleep(0)
+    await asyncio.sleep(0)
+    assert calls["backed_up"] == [("/Tasker/scenes/Dialog.scn.xml", b"<TaskerData>the old one</TaskerData>")]
+
+
+@pytest.mark.asyncio
 async def test_a_scene_is_sent_under_its_own_name(monkeypatch, event_handler, profile_dialog_refs):
-    """The name is not cosmetic here.  The user finishes this import by picking the file out
-    of a list on their phone, so it has to be called what they are looking for -- the fixed
-    'maptasker_import.scn.xml' the intent routes stage is what they saw before, and it named
-    nothing.  The upload is the same one 'Save As File' does, through the same function."""
-    from maptasker.src import sceneedit
+    """The name is not cosmetic here.  If Tasker is not in the chooser the user finishes this
+    by picking the file out of a list on their phone, so it has to be called what they are
+    looking for.  This route got there first; the Profile and Project routes have since
+    stopped staging one fixed 'maptasker_import' file too, and all three now stage through
+    the same offer to the same path 'Save As File' writes."""
+    from maptasker.src import deviceinv, sceneedit
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, _SCENE_RESULTS)
 
     await _import_scene(event_handler, android_refs)
 
-    _pre_check, upload, _launch, _confirm = calls["io_bound"]
-    assert upload[0] is sceneedit.save_scene_to_android
-    assert upload[1][0] == "Dialog"
+    _pre_check, offer, _confirm = calls["io_bound"]
+    assert offer[0] is deviceinv.offer_to_tasker
+    assert offer[1][1] == "Dialog"  # the object name the staged file is named after
+    assert deviceinv.OPEN_SCENE_ROUTE.staged_file_paths("Dialog")[1] == sceneedit.android_scene_path("Dialog")
 
 
 @pytest.mark.asyncio
@@ -1121,15 +1364,16 @@ async def test_a_scene_is_confirmed_at_the_scenes_endpoint(monkeypatch, event_ha
 
     await _import_scene(event_handler, android_refs)
 
-    pre_check, _upload, launch, confirm = calls["io_bound"]
+    pre_check, offer, confirm = calls["io_bound"]
     assert pre_check[0] is deviceinv.import_is_confirmable
     assert pre_check[1][3] == deviceinv.SCENES_ENDPOINT
-    assert launch[0] is deviceinv.open_tasker_on_device
+    assert offer[2]["route"] is deviceinv.OPEN_SCENE_ROUTE
     assert confirm[1][2] == ["Dialog"]
     assert confirm[1][4] == deviceinv.SCENES_ENDPOINT
-    # Five minutes, not the two an import screen gets: this user is working a file picker,
-    # and a timeout would tell them an import they are in the middle of did not happen.
-    assert confirm[1][6] == deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS
+    # Five minutes, not the two an import screen gets: this user may be working a file
+    # picker, and a timeout would tell them an import they are in the middle of did not
+    # happen.
+    assert confirm[2]["attempts"] == deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS
     assert deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS > 60
 
 
@@ -1145,9 +1389,9 @@ async def test_the_scene_notification_names_the_file_and_the_menu(monkeypatch, e
 
     pending = [message for message, _type in calls["notify"] if "Import One Scene" in message]
     assert pending, calls["notify"]
-    assert "/Tasker/scenes/Dialog.scn.xml" in pending[0]
+    assert "/storage/emulated/0/Tasker/scenes/Dialog.scn.xml" in pending[0]
     assert "'Dialog'" in pending[0]
-    assert "Tasker is open on the device" in pending[0]
+    assert "if Tasker is not in the chooser" in pending[0]
 
 
 @pytest.mark.asyncio
@@ -1157,36 +1401,42 @@ async def test_a_scene_that_could_not_be_sent_does_not_send_anyone_to_their_phon
     profile_dialog_refs,
 ):
     """The upload verifies itself by reading the bytes back, and if that fails there is
-    nothing on the device to import.  Opening Tasker then would be sending the user to do
-    something impossible, and the message has to be the failure, not the instructions."""
+    nothing on the device to import.  Sending the user to their phone then would be sending
+    them to do something impossible, and the message has to be the failure, not the
+    instructions."""
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (8, "could not confirm it landed correctly")])
 
     await _import_scene(event_handler, android_refs)
 
-    assert len(calls["io_bound"]) == 2  # the pre-check and the upload, and nothing after it
+    assert len(calls["io_bound"]) == 2  # the pre-check and the offer, and nothing after it
     assert any("could not confirm it landed correctly" in message for message, _type in calls["notify"])
     assert not any("Import One Scene" in message for message, _type in calls["notify"])
 
 
 @pytest.mark.asyncio
-async def test_a_scene_still_arrives_when_tasker_will_not_open(monkeypatch, event_handler, profile_dialog_refs):
-    """Opening Tasker is a convenience, not the delivery: the file is already on the device
-    and the instructions stand without it.  Treating it as a failure would throw away a
-    completed upload over a cosmetic step."""
+async def test_a_scene_the_chooser_could_not_place_still_says_what_to_do(
+    monkeypatch,
+    event_handler,
+    profile_dialog_refs,
+):
+    """The chooser may still not have Tasker in it -- that is measured for a '.scn.xml' with
+    a mime type, and only reasoned to be different without one.  So the delivery does not
+    depend on it: the file is on the device under its own name, and the message says which
+    file and which menu, exactly as it did when opening Tasker was all this route could do."""
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(
         monkeypatch,
-        [True, (0, "/Tasker/scenes/Dialog.scn.xml"), (8, "Tasker did not report the Task"), (0, "now in Tasker")],
+        [True, (0, "screen is open"), (8, "Tasker has not reported Scene 'Dialog'")],
     )
 
     await _import_scene(event_handler, android_refs)
 
     pending = [message for message, _type in calls["notify"] if "Import One Scene" in message]
     assert pending, calls["notify"]
-    assert "Open Tasker on the device" in pending[0]
-    assert "Tasker did not report the Task" in pending[0]
-    assert "/Tasker/scenes/Dialog.scn.xml" in pending[0]
+    assert "/storage/emulated/0/Tasker/scenes/Dialog.scn.xml" in pending[0]
+    # ...and the giving-up message is reported as a warning, not swallowed.
+    assert ("Tasker has not reported Scene 'Dialog'", "warning") in calls["notify"]
 
 
 @pytest.mark.asyncio
@@ -1509,6 +1759,52 @@ async def test_the_task_import_asks_before_replacing_the_file_it_writes(
 
 
 @pytest.mark.asyncio
+async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
+    monkeypatch,
+    event_handler,
+    task_dialog_refs,
+):
+    """api/import needs no tap and usually works, so it stays the route.  When it has been
+    tried twice and Tasker still does not report the Task, the .tsk.xml is in /Tasker/tasks
+    regardless -- written and read back before either attempt -- so the user gets the same
+    "Open with..." chooser the other three kinds get instead of only bad news."""
+    from maptasker.src import deviceinv, userintr
+
+    calls = _patch_task_file_path(monkeypatch)
+    monkeypatch.setattr(userintr.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3], "KEY"))
+    monkeypatch.setattr(userintr.taskedit, "verify_task_on_android", lambda *_args: False)
+    monkeypatch.setattr(
+        userintr.taskedit,
+        "save_task_to_android_directory",
+        lambda *_args, **_kwargs: (8, "Tasker did not report the Task"),
+    )
+    monkeypatch.setattr(userintr.taskedit, "render_standalone_task_xml", lambda _task: "<TaskerData/>")
+    offered: list = []
+    monkeypatch.setattr(
+        userintr.deviceinv,
+        "offer_to_tasker",
+        lambda *args, **kwargs: (offered.append((args, kwargs)), (0, "screen is open"))[1],
+    )
+    field_refs, android_refs = task_dialog_refs
+
+    await event_handler.save_task_to_android_event(
+        MagicMock(),
+        field_refs,
+        android_refs,
+        MagicMock(),
+        MagicMock(),
+    )
+
+    assert len(offered) == 1
+    args, kwargs = offered[0]
+    assert args[1] == "Opener"  # staged as Opener.tsk.xml, its own name
+    assert kwargs["route"] is deviceinv.OPEN_TASK_ROUTE
+    handed = [message for message, kind in calls["notify"] if kind == "warning"]
+    assert handed, calls["notify"]
+    assert "Open with" in handed[0]
+
+
+@pytest.mark.asyncio
 async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_handler, task_dialog_refs):
     """The copy is the point of the change and the user has no other way to learn it is
     there -- an import that silently leaves a file behind is a file nobody knows to look
@@ -1695,3 +1991,79 @@ async def test_each_kind_still_asks_when_the_device_cannot_be_read(
 
     assert calls["uploaded"] == []
     assert calls["overwrite"][0][2]["unknown"] is True
+
+
+# ==========================================
+# Listing the helper Tasks this program has left on the device
+#
+# A report, not a cleanup: Tasker's HTTP API has no route for deleting a Task, so the whole
+# feature is naming the dead ones accurately enough that the user can delete them by hand
+# without having to wonder which 'MapTasker ...' is still in use.
+# ==========================================
+
+
+def _patch_helper_task_listing(monkeypatch, result) -> dict:
+    """Point the handler at fakes and record the dialog it opens."""
+    from maptasker.src import userintr
+
+    calls: dict = {"io_bound": [], "notify": [], "dialog": []}
+
+    async def fake_io_bound(func, *args, **kwargs):
+        calls["io_bound"].append((func, args, kwargs))
+        return result
+
+    async def fake_ping(_self, _ip, _port) -> bool:
+        return True
+
+    monkeypatch.setattr(userintr.run, "io_bound", fake_io_bound)
+    monkeypatch.setattr(userintr, "ping_android_device", fake_ping)
+    monkeypatch.setattr(
+        userintr,
+        "build_helper_tasks_dialog",
+        lambda stale, current, device: calls["dialog"].append((stale, current, device)),
+    )
+    monkeypatch.setattr(
+        userintr.ui,
+        "notify",
+        lambda message, **kwargs: calls["notify"].append((message, kwargs.get("type"))),
+    )
+    return calls
+
+
+def _android_panel(event_handler, ip="192.168.0.210", port="1821") -> None:
+    """The Get XML panel's own fields, which are where this reads the device from."""
+    event_handler.gui.ip_entry = _FakeField(ip)
+    event_handler.gui.port_entry = _FakeField(port)
+
+
+@pytest.mark.asyncio
+async def test_the_helper_task_listing_reports_what_the_device_has(monkeypatch, event_handler):
+    """The two lists together are the whole answer: what to delete, and what to leave."""
+    from maptasker.src import deviceinv
+
+    calls = _patch_helper_task_listing(
+        monkeypatch,
+        (0, "", ["MapTasker Open Profile v1"], ["MapTasker Open Profile v4"]),
+    )
+    _android_panel(event_handler)
+
+    await event_handler.list_helper_tasks_event()
+
+    assert calls["io_bound"][0][0] is deviceinv.stale_helper_tasks_on_device
+    assert calls["io_bound"][0][1] == ("192.168.0.210", "1821")
+    assert calls["dialog"] == [(["MapTasker Open Profile v1"], ["MapTasker Open Profile v4"], "192.168.0.210:1821")]
+    # The connection is remembered, the way every other successful Android call remembers it.
+    assert event_handler.gui.android_ipaddr == "192.168.0.210"
+
+
+@pytest.mark.asyncio
+async def test_a_device_that_would_not_answer_opens_no_dialog(monkeypatch, event_handler):
+    """An empty dialog would read as 'nothing left over', which is the opposite of what a
+    device that never replied has told us."""
+    calls = _patch_helper_task_listing(monkeypatch, (8, "Connection error", [], []))
+    _android_panel(event_handler)
+
+    await event_handler.list_helper_tasks_event()
+
+    assert calls["dialog"] == []
+    assert any("Connection error" in message for message, kind in calls["notify"] if kind == "negative")

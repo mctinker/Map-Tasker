@@ -1,5 +1,6 @@
 """Code to manage the graphical user interface using NiceGUI."""
 
+import asyncio
 import contextlib
 import html
 import json
@@ -86,6 +87,7 @@ from maptasker.src.guiwins import (
     build_edit_project_dialog,
     build_edit_scene_dialog,
     build_edit_task_dialog,
+    build_helper_tasks_dialog,
     build_overwrite_confirm_dialog,
     build_rename_dialog,
     build_save_profile_to_android_dialog,
@@ -2835,6 +2837,31 @@ class MapTaskerEventHandlers:
                     .classes("w-10 min-w-[40px] text-xs")
                 )
 
+            # Housekeeping, and it lives here because this is where the device's address
+            # already is -- see list_helper_tasks_event for what accumulates and why nothing
+            # can delete it from this end.
+            with ui.row().classes("w-full items-center mt-1"):
+                gui.helper_tasks_button = (
+                    ui.button(
+                        translate_string("List Helper Tasks"),
+                        on_click=gui.event_handlers.list_helper_tasks_event,
+                    )
+                    .props("flat dense color=primary")
+                    .classes("flex-grow text-xs")
+                )
+                with gui.helper_tasks_button:
+                    ui.tooltip(
+                        translate_string(
+                            "Lists the 'MapTasker ...' Tasks this program has installed on the Android "
+                            "device, and says which are left over from an earlier version.\n\n"
+                            "Each one is installed under a versioned name and never replaced -- Tasker's "
+                            "import adds a second Task rather than replacing the first -- so old ones stay "
+                            "behind in your Task list.  They do no harm; they are clutter.\n\n"
+                            "Delete the ones it names from Tasker's own Tasks tab.  Nothing here can do it "
+                            "for you: Tasker's HTTP API has no way to delete a Task.",
+                        ),
+                    ).style("white-space: pre-wrap")
+
             # Inline Button Row 2 (.or. Separator and Cancel Action)
             with ui.row().classes("w-full items-center justify-center gap-2 mt-1"):
                 gui.label_or = ui.label(translate_string(".or.")).classes("text-xs text-gray-400 italic")
@@ -2882,6 +2909,48 @@ class MapTaskerEventHandlers:
         if hasattr(the_view.event_handlers, "fetch_backup_event"):
             # --- CRITICAL FIX: Added 'await' here ---
             await the_view.event_handlers.fetch_backup_event()
+
+    async def list_helper_tasks_event(self) -> None:
+        """Report which of this program's own helper Tasks on the device are dead.
+
+        Every helper is installed under a versioned name and never replaced -- Tasker's
+        api/import adds rather than replaces, so deviceinv._install_task_on_android installs
+        only what is not already there -- which means each release leaves the previous
+        generation behind in the user's own Task list.  Nothing breaks; it accumulates.
+
+        A REPORT AND NOT A CLEANUP, because a cleanup is not available: the Tasker HTTP
+        Server Example has no route for deleting a Task (GET to list, POST to run, and a
+        DELETE that only removes files from storage), and no Tasker action deletes a Tasker
+        object.  Naming them exactly is the whole of what can be done from here, and it is
+        most of the value -- the alternative is the user guessing which 'MapTasker ...' in a
+        list of several hundred Tasks is safe to remove.
+
+        Reads the connection details out of the Get XML panel's own fields, since that is
+        where they already are and this is a question about that same device.
+        """
+        ip_address = self.gui.ip_entry.value if hasattr(self.gui, "ip_entry") and self.gui.ip_entry else ""
+        ip_port = self.gui.port_entry.value if hasattr(self.gui, "port_entry") and self.gui.port_entry else ""
+        ip_address, ip_port = ip_address.strip(), ip_port.strip()
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+
+        # Blocking -- a key fetch and a GET -- so it goes to a worker thread like every other
+        # Android call from the GUI.
+        return_code, message, stale, current = await run.io_bound(
+            deviceinv.stale_helper_tasks_on_device,
+            ip_address,
+            ip_port,
+        )
+        if return_code != 0:
+            ui.notify(f"Could not read the device's Task list: {message}", type="negative")
+            return
+
+        # Remembered the same way every other successful Android call here remembers it.
+        self.gui.android_ipaddr = ip_address
+        self.gui.android_port = ip_port
+
+        build_helper_tasks_dialog(stale, current, f"{ip_address}:{ip_port}")
 
     def reset_settings_event(self: "MapTaskerEventHandlers") -> None:
         """Put every setting back to its default and rebuild the window to show it."""
@@ -3440,10 +3509,34 @@ class MapTaskerEventHandlers:
                 if fallback_code == 0:
                     ui.notify(translate_string("Task Uploaded to Tasker.") + landed, type="positive")
                 else:
-                    ui.notify(
-                        f"Unable to upload Task to Tasker: {fallback_result}",
-                        type="negative",
+                    # Both api/import attempts are spent, and the .tsk.xml is in /Tasker/tasks
+                    # either way -- written and read back before either of them ran.  So the
+                    # user gets the same "Open with..." chooser the other three kinds get,
+                    # rather than only being told it did not work: Tasker's own import screen
+                    # is one tap out of it, on a file that is already there.  This is the
+                    # LAST resort, not the route -- api/import needs no tap at all when it
+                    # works, which for a Task it usually does.
+                    offer_code, offer_result = deviceinv.offer_to_tasker(
+                        taskedit.render_standalone_task_xml(edited_task).encode("utf-8"),
+                        task_name,
+                        [task_name],
+                        ip_address,
+                        ip_port,
+                        wait_for_confirmation=False,
+                        route=deviceinv.OPEN_TASK_ROUTE,
                     )
+                    if offer_code == 0:
+                        ui.notify(
+                            f"Tasker did not report the Task ({fallback_result}), so it was handed to "
+                            f"Android's 'Open with' instead -- pick Tasker to import it.{landed}",
+                            type="warning",
+                            multi_line=True,
+                        )
+                    else:
+                        ui.notify(
+                            f"Unable to upload Task to Tasker: {fallback_result}",
+                            type="negative",
+                        )
 
             android_dialog.close()
             parent_dialog.close()
@@ -4999,9 +5092,33 @@ class MapTaskerEventHandlers:
 
         The other button in this dialog (save_profile_to_android_event) writes a file to
         /Tasker/profiles that Tasker never reads.  This stages the same XML and has a helper
-        Task open it, which brings up Tasker's ordinary import screen -- see
-        deviceinv.open_profile_on_device, and OPEN_FILE_ROUTE for why that route rather than
-        the headless one.
+        Task hand it to Tasker, which brings up Tasker's ordinary import screen -- see
+        deviceinv.open_profile_on_device.
+
+        "OPEN WITH...", WHICH IS THE POINT, and that changed back on 2026-08-30.
+
+        The history is worth keeping, because it is what makes the current answer the right
+        one rather than a third guess.  OPEN_FILE_ROUTE fires an implicit ACTION_VIEW and
+        lets Android find the handler; it was measured working on 2026-08-27 and FAILING the
+        next day on the same device -- a chooser of seven apps with Tasker not among them.
+        So it was swapped for SEND_INTENT_ROUTE, which names Tasker's package and class
+        outright and is delivered with no filter matching at all.  That reaches Tasker (it is
+        how a Scene got Tasker to open) but it has to carry a file:// URI, which Android 7
+        and later rejects in an outgoing intent -- so on this device neither route imported
+        anything, for two entirely different reasons.
+
+        What neither attempt tried is the thing a file manager actually does: an implicit
+        VIEW with NO MIME TYPE.  The failing chooser was a chooser of text/xml apps because
+        the intent asked for text/xml, and an app that claims '.prf.xml' declares a
+        pathPattern and no mimeType -- which Android matches only against intents carrying no
+        type.  See deviceinv._OPEN_WITH_MIME_TYPE, which sets out that reasoning and is
+        honest that it is reasoning and not a measurement.
+
+        So this is OPEN_FILE_ROUTE again, but not the same route: the user gets Android's
+        "Open with..." chooser and picks Tasker themselves, rather than this program
+        guessing what the file will resolve to and being wrong silently.  If Tasker is still
+        not in that chooser, the file is in /Tasker/profiles under the Profile's own name and
+        the message says so -- see the `waiting` line in _offer_into_tasker.
 
         TWO PHASES, BECAUSE THERE IS A PERSON IN THE MIDDLE
 
@@ -5035,10 +5152,16 @@ class MapTaskerEventHandlers:
         kept in the loaded configuration, because the alternative is throwing away the
         user's own edit over a device answer that is never coming.
 
-        No safety copy is taken here, unlike the file save.  What this overwrites on the
-        device is MapTasker's own staging file, rewritten on every import and read seconds
-        later -- there is nothing of the user's at that path to lose (see presave's module
-        comment on what is and is not actually at risk).
+        THE OVERWRITE IS ASKED ABOUT AND COPIED, and both changed on 2026-08-30.  Neither
+        used to be, because what an import overwrote was MapTasker's own
+        'maptasker_import.prf.xml' -- a scratch file with nothing of the user's in it and
+        nothing to ask about.  The staged file now carries the Profile's own name, which is
+        to say it is written to exactly the path 'Save As File' writes, so an import of
+        'Morning' lands on a Morning.prf.xml they may have saved by hand.  So it is now the
+        same question that button asks, asked in the same words, and answered before anything
+        is sent -- see _offer_into_tasker, which does the asking for this and for a Project.
+        (import_scene_into_tasker_event asks its own, having always written under the Scene's
+        own name and so always having had this exposure.)
         """
         ok, is_new_profile, project_name = self._apply_profile_for_android(edited_profile, field_refs)
         if not ok:
@@ -5079,9 +5202,21 @@ class MapTaskerEventHandlers:
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
         keep_edit: Callable[[], None],
+        by_hand: str = "",
+        attempts: int = 0,
     ) -> None:
-        """Offer a Profile, a Project or a Scene to Tasker's import screen, and report what
-        happened.
+        """Offer a Profile, a Project or a Scene to Android's "Open with..." chooser, and
+        report what happened.
+
+        by_hand is what the user does if Tasker is not in that chooser, in their own terms
+        ("import it with Tasker's 'Scenes > Import One Scene'").  Every kind has such a step
+        -- the file is in Tasker's own folder under its own name precisely so that it does --
+        but only a Scene has one worth spelling out, since its import is several menus deep.
+
+        attempts is how long to keep asking whether the import arrived; 0 leaves
+        deviceinv.await_import's own default, which suits an import screen already in front
+        of the user.  A Scene passes a longer one: its user has a file picker to work
+        through.
 
         Everything the three Import Into Tasker buttons do once their own validation is past,
         in one place: they differ in what they render, what confirms it and what they have to
@@ -5119,93 +5254,188 @@ class MapTaskerEventHandlers:
         projedit.project_profile_names).  Those are reported for what they are rather than
         waited on -- see deviceinv.import_is_confirmable.
         """
-        # Asked before the offer, not after, because after the import the answer means
-        # nothing.  None ('could not ask') is treated the same as False: neither can be
-        # confirmed, and guessing the other way would turn an unconfirmable import into a
-        # reported success.
-        confirmable = await run.io_bound(
-            deviceinv.import_is_confirmable,
-            ip_address,
-            ip_port,
-            confirm_names,
-            route.confirm_endpoint,
-        )
+        # ONE READ, TWO ANSWERS: whether anything is already at the path this is about to
+        # write, and a copy of it for the safety copy below.  Asking twice is worse than it
+        # sounds -- the Tasker HTTP Server Example's /file handler runs 'Test File' and
+        # flashes 'File doesn't exist' on the phone for every miss, so a second GET puts a
+        # second flash on screen for one import (see maputil2.read_android_file).
+        #
+        # Worth asking at all only because the staged file is the object's own now: it is
+        # written to exactly the path 'Save As File' writes to, so an import of 'Morning'
+        # lands on a Morning.prf.xml the user may have saved by hand.  It used to be
+        # MapTasker's own 'maptasker_import.prf.xml', a scratch file with nothing of theirs
+        # in it and nothing to ask about.  So this is now the same question the file button
+        # asks, and they are asked it in the same words whichever button they pressed -- see
+        # save_profile_to_android_event's identical check.
+        _filename, device_read_path, device_path = route.staged_file_paths(object_name)
+        exists, already_there = read_android_file(ip_address, ip_port, device_read_path)
 
-        # Blocking -- it installs a Task, uploads, runs and polls -- so it goes to a worker
-        # thread, the way every other Android call from the GUI does.
-        return_code, message = await run.io_bound(
-            deviceinv.offer_to_tasker,
-            xml_bytes,
-            object_name,
-            confirm_names,
-            ip_address,
-            ip_port,
-            wait_for_confirmation=False,
-            route=route,
-        )
-        if return_code != 0:
-            ui.notify(f"Could not import into Tasker: {message}", type="negative")
-            return
+        async def _offer() -> None:
+            """Everything the offer does once the overwrite question has been answered."""
+            # Keep whatever is already at that path before /upload writes over it.  The
+            # device keeps no versions and has no undo, so this is the only copy of it there
+            # will ever be, and it is kept on this computer rather than beside the original
+            # -- see presave.save_android_safety_copy.  The bytes come from the check above
+            # rather than from a second GET, for the reason given there.  A copy that fails
+            # is reported and the import goes ahead: presave's module comment says why it
+            # must never block one.
+            copied, safety_copy = presave.save_android_safety_copy(device_read_path, already_there)
+            if not copied:
+                ui.notify(
+                    f"Could not copy the file already on the device first: {safety_copy}",
+                    type="warning",
+                )
 
-        # Remember the connection details for next time, same as the Get XML dialog does.
-        self.gui.android_ipaddr = ip_address
-        self.gui.android_port = ip_port
+            # Asked before the offer, not after, because after the import the answer means
+            # nothing.  None ('could not ask') is treated the same as False: neither can be
+            # confirmed, and guessing the other way would turn an unconfirmable import into a
+            # reported success.
+            confirmable = await run.io_bound(
+                deviceinv.import_is_confirmable,
+                ip_address,
+                ip_port,
+                confirm_names,
+                route.confirm_endpoint,
+            )
 
-        # Closed before the edit is kept rather than after, so that a failure in keeping it
-        # cannot be what leaves the panel on screen.
-        android_dialog.close()
-        parent_dialog.close()
-        keep_edit()
+            # Blocking -- it installs a Task, uploads, runs and polls -- so it goes to a worker
+            # thread, the way every other Android call from the GUI does.
+            return_code, message = await run.io_bound(
+                deviceinv.offer_to_tasker,
+                xml_bytes,
+                object_name,
+                confirm_names,
+                ip_address,
+                ip_port,
+                wait_for_confirmation=False,
+                route=route,
+            )
+            if return_code != 0:
+                ui.notify(f"Could not import into Tasker: {message}", type="negative")
+                return
 
-        subject = f"{route.label} '{object_name}'"
-        if confirmable is not True:
-            # No timeout on this one, and nothing to take it down: it is the last thing this
-            # will say, it asks the user to go and do something, and there is no outcome
-            # coming that could replace it.  Its close button is how it goes.
-            ui.notification(
-                f"Tasker's import screen is open on {ip_address}:{ip_port} for {subject}.  Tasker already "
-                "has what this would import and will offer to replace it -- confirm on the device.  "
-                "Whether that was confirmed cannot be seen from here.",
+            # Remember the connection details for next time, same as the Get XML dialog does.
+            self.gui.android_ipaddr = ip_address
+            self.gui.android_port = ip_port
+
+            # Closed before the edit is kept rather than after, so that a failure in keeping it
+            # cannot be what leaves the panel on screen.
+            android_dialog.close()
+            parent_dialog.close()
+            keep_edit()
+
+            subject = f"{route.label} '{object_name}'"
+            # Where the file actually is, said in every message from here on.  The staged file
+            # carries the object's own name (deviceinv.staged_paths), and naming it is what makes
+            # a handoff Tasker does not complete recoverable: the user finishes the import out of
+            # Tasker's own browser, which they can only do if they know which file it is.  Same
+            # reason import_scene_into_tasker_event names its file -- that route is nothing but
+            # this case.
+            waiting = (
+                f"  {device_path} is on the device -- if Tasker is not in the chooser, {by_hand}."
+                if by_hand
+                else f"  {device_path} is on the device and can be imported by hand if it does not."
+            )
+
+            if confirmable is not True:
+                # No timeout on this one, and nothing to take it down: it is the last thing this
+                # will say, it asks the user to go and do something, and there is no outcome
+                # coming that could replace it.  Its close button is how it goes.
+                ui.notification(
+                    f"Tasker's import screen is open on {ip_address}:{ip_port} for {subject}.  Tasker already "
+                    "has what this would import and will offer to replace it -- confirm on the device.  "
+                    f"Whether that was confirmed cannot be seen from here.{waiting}",
+                    type="info",
+                    timeout=None,
+                    close_button=True,
+                    multi_line=True,
+                )
+                return
+
+            # ui.notification rather than ui.notify, for the handle: this one has no timeout
+            # because there is no telling how long someone takes to reach their phone, and a
+            # message with no timeout and nothing to dismiss it is a box that sits on screen for
+            # the rest of the session.  It is a status line for a step in progress, so the
+            # outcome below takes it down and replaces it.
+            pending = ui.notification(
+                f"Tasker's import screen is open on {ip_address}:{ip_port} -- tap Import on the device to finish."
+                f"{waiting}",
                 type="info",
                 timeout=None,
                 close_button=True,
                 multi_line=True,
             )
+
+            # Runs on with the dialogs gone; all it can do now is report.
+            return_code, message = await run.io_bound(
+                deviceinv.await_import,
+                ip_address,
+                ip_port,
+                confirm_names,
+                subject,
+                route.confirm_endpoint,
+                staged_at=device_path,
+                **({"attempts": attempts} if attempts else {}),
+            )
+            # Guarded, because this notification is likely to be GONE by now and through no
+            # fault of anyone's: it carries a close button, it sits there for up to two minutes
+            # while someone walks to their phone, and a client that reloaded in the meantime
+            # takes its elements with it.  Dismissing a deleted element makes nicegui log a
+            # warning about a bug in the application code -- and the two-minute wait is exactly
+            # the window in which the user is most likely to have tidied it away themselves.
+            with contextlib.suppress(Exception):
+                pending.dismiss()
+            # Not an error in the usual sense: most likely nobody has got to the phone yet, or
+            # they declined.  Either way it is the DEVICE this reports on, not the edit here.
+            with contextlib.suppress(Exception):
+                ui.notify(message, type="positive" if return_code == 0 else "warning")
+
+        async def _offer_from_the_prompt() -> None:
+            """_offer, run from the overwrite prompt's callback, with a slot to build into.
+
+            NOT A WRAPPER FOR THE SAKE OF IT.  nicegui's slot stack is per-asyncio-task
+            (nicegui.slot.Slot.get_stack is keyed by task id), so a coroutine started with
+            create_task begins with an empty one -- and ui.notify and ui.notification build
+            elements, which need a slot.  Every notification in _offer therefore raised
+            'the slot stack for this task is empty' the moment the offer ran from the prompt
+            rather than directly, which is exactly what nicegui's own message tells you to
+            fix by entering the target explicitly.
+
+            The client is captured out there, in the handler's own task, where there is one.
+            Entering it here pushes its slot onto THIS task's stack, and it stays pushed
+            across the awaits inside because the whole of _offer is awaited within the block.
+            """
+            with client:
+                await _offer()
+
+        if exists is not False:
+            # Cancel leaves both dialogs open with the edit intact, so nothing is lost by
+            # saying no -- the same contract every other overwrite prompt here has.
+            # create_task because the prompt's callback is synchronous and the offer is not;
+            # the coroutine has nothing left to report back to, having taken over the
+            # notifications itself.
+            client = context.client
+
+            def _start_offer() -> None:
+                """Spawn the offer, and do not lose what it raises.
+
+                A bare create_task drops the exception: asyncio prints "Task exception was
+                never retrieved" to the console and the user is left watching an import that
+                silently never happens.  Not hypothetical -- that is exactly how the missing
+                slot above went unnoticed until someone read their terminal.  The same
+                treatment guiwins._report_view_failure gives a view's rendering task.
+                """
+                asyncio.create_task(_offer_from_the_prompt()).add_done_callback(_report_offer_failure)  # noqa: RUF006
+
+            build_overwrite_confirm_dialog(
+                f"'{device_read_path}' on the Android device",
+                _start_offer,
+                unknown=exists is None,
+            )
             return
-
-        # ui.notification rather than ui.notify, for the handle: this one has no timeout
-        # because there is no telling how long someone takes to reach their phone, and a
-        # message with no timeout and nothing to dismiss it is a box that sits on screen for
-        # the rest of the session.  It is a status line for a step in progress, so the
-        # outcome below takes it down and replaces it.
-        pending = ui.notification(
-            f"Tasker's import screen is open on {ip_address}:{ip_port} -- tap Import on the device to finish.",
-            type="info",
-            timeout=None,
-            close_button=True,
-        )
-
-        # Runs on with the dialogs gone; all it can do now is report.
-        return_code, message = await run.io_bound(
-            deviceinv.await_import,
-            ip_address,
-            ip_port,
-            confirm_names,
-            subject,
-            route.confirm_endpoint,
-        )
-        # Guarded, because this notification is likely to be GONE by now and through no
-        # fault of anyone's: it carries a close button, it sits there for up to two minutes
-        # while someone walks to their phone, and a client that reloaded in the meantime
-        # takes its elements with it.  Dismissing a deleted element makes nicegui log a
-        # warning about a bug in the application code -- and the two-minute wait is exactly
-        # the window in which the user is most likely to have tidied it away themselves.
-        with contextlib.suppress(Exception):
-            pending.dismiss()
-        # Not an error in the usual sense: most likely nobody has got to the phone yet, or
-        # they declined.  Either way it is the DEVICE this reports on, not the edit here.
-        with contextlib.suppress(Exception):
-            ui.notify(message, type="positive" if return_code == 0 else "warning")
+        # Awaited in the handler's own task, which already has a slot -- see
+        # _offer_from_the_prompt for the case that does not.
+        await _offer()
 
     async def import_scene_into_tasker_event(
         self,
@@ -5215,28 +5445,37 @@ class MapTaskerEventHandlers:
         android_dialog: ui.dialog,
         parent_dialog: ui.dialog,
     ) -> None:
-        """Put the Scene -- and every Task its elements fire -- on the device and bring
-        Tasker up, for the user to finish in Tasker's own 'Scenes > Import One Scene'.
+        """Put the Scene -- and every Task its elements fire -- on the device and open
+        Android's "Open with..." chooser for it, with Tasker's own 'Scenes > Import One
+        Scene' as the fallback the message spells out.
 
-        THE ONE OF THE THREE THAT CANNOT BE HANDED OVER, and not for want of trying.  A
-        Profile and a Project reach Tasker's import screen through an intent; a Scene does
-        not, and all four things that could have made it are now measured and none of them
-        did:
+        THE HARDEST OF THE FOUR TO HAND OVER, and the reason the fallback is spelled out
+        rather than assumed.  Four things were tried and measured, and none of them imported
+        a Scene:
 
             mime type      identical to the Profile's ('text/xml'), from one shared builder
-            extension      '.scn.xml', which Android resolves to a chooser with no Tasker
+            extension      '.scn.xml', which Android resolved to a chooser with no Tasker
             explicit intent Tasker's own package AND class -- Tasker opens, imports nothing
             folder         /Tasker/scenes, Tasker's own -- same result
 
         The same file, picked by hand in Tasker, imports correctly.  So the XML is right and
-        it is the handoff Tasker will not complete, and the honest thing is to do everything
-        up to the handoff and say plainly what is left.
+        it is the handoff Tasker would not complete.  For a while that was read as settling
+        it, and this handler did everything up to the handoff and then merely opened Tasker.
 
-        WHICH IS WHY THE FILE CARRIES THE SCENE'S OWN NAME here rather than the fixed
-        'maptasker_import.scn.xml' the intent routes stage: nothing is baked into a helper
-        Task any more (the launch Task takes no path), so the constraint that forced a fixed
-        name is gone -- and the name is what the user now has to pick out of a list on their
-        phone.  It is the same write 'Save As File' does, through the same function.
+        WHAT THOSE FOUR HAVE IN COMMON is that every one of them carried a mime type or named
+        a component.  The fifth thing -- an implicit VIEW with NO type, which is what a file
+        manager's 'Open with' fires -- is the only one that lets an extension filter match at
+        all, and it had not been tried.  See deviceinv._OPEN_WITH_MIME_TYPE, which is honest
+        that this is reasoning and not a measurement.  So a Scene is offered like every other
+        kind now, and if the chooser comes up without Tasker in it the user is exactly where
+        they were before, with the file named and the menu named.
+
+        THE FILE CARRIES THE SCENE'S OWN NAME, because the name is what the user picks out of
+        a list on their phone.  This route got there first; the other three have since caught
+        up, told which file at run time through %par1 (see deviceinv.run_task_on_android).
+        It is the same path 'Save As File' writes, so it asks that button's overwrite question
+        and keeps its safety copy -- both of which _offer_into_tasker now does for all of
+        them.
 
         The apply is load-bearing exactly as it is there: the export renders the Scene from
         the LIVE TREE by name, while the dialog edits a deep copy nothing writes back until
@@ -5260,77 +5499,32 @@ class MapTaskerEventHandlers:
 
         scene_name = edited_scene.scene_name
 
-        # Asked BEFORE the file goes over, for the reason import_is_confirmable gives: a
-        # Scene Tasker already has answers yes whatever the user goes on to do.
-        confirmable = await run.io_bound(
-            deviceinv.import_is_confirmable,
+        # The same offer the other two kinds get, and a Scene did not have one until
+        # 2026-08-30: every measured way of handing Tasker a '.scn.xml' had failed, so this
+        # uploaded the file and merely opened Tasker, leaving the whole import to the user.
+        # The "Open with..." is a third thing rather than a repeat of either failure -- see
+        # deviceinv.OPEN_SCENE_ROUTE and _OPEN_WITH_MIME_TYPE -- and it costs nothing if it
+        # is wrong, because the by-hand instruction below is still there.
+        #
+        # Everything else _offer_into_tasker does a Scene wanted anyway: the overwrite
+        # prompt, the safety copy, staging under the Scene's own name, and the two-phase
+        # wait.  The bespoke copy of all that is gone.
+        await self._offer_into_tasker(
+            sceneedit.render_standalone_scene_xml(edited_scene.scene_name).encode("utf-8"),
+            edited_scene.scene_name,
+            [edited_scene.scene_name],
+            deviceinv.OPEN_SCENE_ROUTE,
             ip_address,
             ip_port,
-            [scene_name],
-            deviceinv.SCENES_ENDPOINT,
+            android_dialog,
+            parent_dialog,
+            lambda: None,  # the edits are already in the live tree -- see the apply above
+            by_hand=(
+                "import it with Tasker's 'Scenes > Import One Scene' and pick "
+                f"'{edited_scene.scene_name}'"
+            ),
+            attempts=deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS,
         )
-
-        # The upload reads itself back and compares bytes -- /upload answers 200 whatever it
-        # wrote.  A failure here is the one failure that stops everything: with no file on
-        # the device there is nothing for the user to import, and opening Tasker would be
-        # sending them to do it anyway.
-        return_code, result = await run.io_bound(sceneedit.save_scene_to_android, scene_name, ip_address, ip_port)
-        if return_code != 0:
-            ui.notify(f"Could not send the Scene to the device: {result}", type="negative")
-            return
-        device_path = result
-
-        # Tasker in front of the user is a convenience, not the delivery -- the file is
-        # already there and the instructions below stand on their own -- so a device that
-        # will not open it is reported and not treated as a failed send.
-        launch_code, launch_error = await run.io_bound(deviceinv.open_tasker_on_device, ip_address, ip_port)
-
-        self.gui.android_ipaddr = ip_address
-        self.gui.android_port = ip_port
-
-        android_dialog.close()
-        parent_dialog.close()
-
-        opening = (
-            "Tasker is open on the device"
-            if launch_code == 0
-            else f"Open Tasker on the device (it could not be opened from here: {launch_error})"
-        )
-        # No timeout and a close button: it asks the user to go and do something on their
-        # phone, and there is no telling how long that takes.  The file name is the whole
-        # point of the message -- 'import it from the Scenes tab' is useless without saying
-        # which of the files in there it is.
-        pending = ui.notification(
-            f"{opening}.  {device_path} is waiting on it -- import it with "
-            f"Tasker's 'Scenes > Import One Scene', and pick '{scene_name}'.",
-            type="info",
-            timeout=None,
-            close_button=True,
-            multi_line=True,
-        )
-
-        if confirmable is not True:
-            # Nothing to wait for: Tasker already reports a Scene of this name, so it would
-            # answer yes before the user touched anything.  The notification above stays as
-            # the last word, since there is no outcome coming that could replace it.
-            return
-
-        return_code, message = await run.io_bound(
-            deviceinv.await_import,
-            ip_address,
-            ip_port,
-            [scene_name],
-            f"Scene '{scene_name}'",
-            deviceinv.SCENES_ENDPOINT,
-            "",  # no key of its own; await_import gets one
-            deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS,
-        )
-        # Guarded for the reason _offer_into_tasker's are: this notification carries a close
-        # button and has been on screen for as long as it takes someone to reach their phone.
-        with contextlib.suppress(Exception):
-            pending.dismiss()
-        with contextlib.suppress(Exception):
-            ui.notify(message, type="positive" if return_code == 0 else "warning")
 
     async def import_project_into_tasker_event(
         self,
@@ -5374,6 +5568,10 @@ class MapTaskerEventHandlers:
             project_xml,
             project_name,
             projedit.project_profile_names(project_name),
+            # The "Open with..." route, for the reason import_profile_into_tasker_event gives
+            # at length: the user picks Tasker out of Android's own chooser rather than this
+            # program guessing what a '.prj.xml' resolves to.  A Project has exactly the same
+            # exposure to that guess as a Profile, so it makes the same choice.
             deviceinv.OPEN_PROJECT_ROUTE,
             ip_address,
             ip_port,
@@ -7485,6 +7683,21 @@ class MapTaskerEventHandlers:
 
     def ai_apikey_get_event(self, cancel: bool, clear: bool) -> None:  # noqa: D102
         self._handle_event("ai_apikey_process_event", "ai_apikey_window", cancel, clear)
+
+
+def _report_offer_failure(task: asyncio.Task) -> None:
+    """Log whatever the spawned import offer raised, instead of losing it.
+
+    Cancellation is ordinary -- a page that went away while the offer was in flight -- and
+    says nothing.  Mirrors guiwins._report_view_failure, which does this for a view's
+    rendering task; the two exist separately only because neither module imports the other's
+    private helpers.
+    """
+    if task.cancelled():
+        return
+    error = task.exception()
+    if error is not None:
+        logger.exception("Offering an import to Tasker failed", exc_info=error)
 
 
 # Define a state container to hold our saved file locationvariable

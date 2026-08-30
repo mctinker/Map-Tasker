@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING
 import defusedxml
 from nicegui import app, run, ui
 
+from maptasker.src import deviceinv
+
 # Keep your existing logic imports (e.g., from maptasker.src.aiutils import ...)
 from maptasker.src.aiutils import (
     get_anthropic_models,
@@ -18,7 +20,6 @@ from maptasker.src.aiutils import (
     get_openai_models,
     is_valid_ai_config,
 )
-from maptasker.src import deviceinv
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
@@ -161,12 +162,17 @@ def display_model_pulldown(gui_arg: any, *args: dict, **kwargs) -> None:  # noqa
         current_model = [PrimeItems.program_arguments.get("ai_model", "None")]
         if not current_model or current_model not in display_models:
             current_model = ["None"]
-        gui_instance.ai_model_option = ui.select(
-            options=display_models,
-            value=current_model,
-            label=translate_string("AI Model"),
-            on_change=gui_instance.event_handlers.ai_model_selected_event,
-        ).classes("w-64")
+        gui_instance.ai_model_option = (
+            ui
+            .select(
+                options=display_models,
+                value=current_model,
+                label=translate_string("AI Model"),
+                on_change=gui_instance.event_handlers.ai_model_selected_event,
+            )
+            .classes("w-64")
+            .tooltip(translate_string("Select the model belonging to the AI you wish to use."))
+        )
 
         # Updates NiceGUI visual rendering colors reactively
         update_analysis_button_color(gui_instance)
@@ -1632,8 +1638,17 @@ async def validate_or_filelist_xml(
         with self.android_container:
             ui.separator().classes("my-2")
 
-            self.filelist_label = ui.label(translate_string("Select XML From Android Device:")).classes(
-                "text-xs font-bold text-purple-600 mt-1 self-start",
+            self.filelist_label = (
+                ui
+                .label(translate_string("Select XML From Android Device:"))
+                .classes(
+                    "text-xs font-bold text-purple-600 mt-1 self-start",
+                )
+                .tooltip(
+                    translate_string(
+                        "This will reach out to your Android device to list the available XML files belonging to Tasker.",
+                    ),
+                )
             )
 
             # OptionMenu transforms to a reactive NiceGUI ui.select dropdown
@@ -1765,16 +1780,24 @@ def check_new_version(self: "MyGui") -> None:
 
             # 'Upgrade to Latest Version' Button
             self.upgrade_button = (
-                ui.button(translate_string("Upgrade to Latest Version"), on_click=self.event_handlers.upgrade_event)
+                ui
+                .button(translate_string("Upgrade to Latest Version"), on_click=self.event_handlers.upgrade_event)
                 .style("background-color: #79ff94; color: #6563ff;")
                 .classes("w-full font-bold text-xs py-2")
+                .tooltip(
+                    translate_string(
+                        "Clicking this will launch 'pip install --upgrade maptasker' in the background, and then relaunch MapTasker.",
+                    ),
+                )
             )
 
             # 'What's New' Button
             self.whats_new_button = (
-                ui.button(translate_string("What's New?"), on_click=self.event_handlers.whatsnew_event)
+                ui
+                .button(translate_string("What's New?"), on_click=self.event_handlers.whatsnew_event)
                 .style("background-color: #246FB6; border-color: #79ff94; border-width: 1px; color: white;")
                 .classes("w-full text-xs")
+                .tooltip(translate_string("Display the changes in the new version."))
             )
             ui.update()  # Force NiceGUI to update the UI immediately
 

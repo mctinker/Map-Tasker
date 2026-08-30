@@ -465,7 +465,7 @@ def get_app_details(code_child: defusedxml.ElementTree) -> tuple[str, str, str]:
         app = child.findtext("label", default="")
         # .replace(',\n', ';') is for handling multple names.
         app_class = replace_newline(app_class)
-        app_pkg = replace_newline(app_pkg)
-        app = replace_newline(app)
+        app_pkg = replace_newline(app_pkg).replace("Class:", "Package:")
+        app = replace_newline(app).replace("Class:", "App:")
 
     return app_class, app_pkg, app

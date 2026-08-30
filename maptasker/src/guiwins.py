@@ -198,7 +198,8 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
             # ui.label, which cannot render markup at all, so a message that happens to
             # contain "**" or "<" is still drawn exactly as it reads.
             if rich:
-                ui.html(rich_text_to_html(message)).classes(text_classes)
+                # ui.html(rich_text_to_html(message)).classes(text_classes)
+                ui.markdown(message).classes(text_classes)
             else:
                 ui.label(message).classes(text_classes)
         if close_button:
@@ -556,7 +557,7 @@ def _render_task_name_field(
         label=translate_string("Pick a Task"),
         with_input=True,
         on_change=fill_in_picked_task,
-    ).classes("flex-1").props("dense")
+    ).classes("flex-1").props("dense").tooltip(translate_string("Pick a Task which will be called by this action."))
 
 
 # How many rows either pick-from-the-inventory dialog draws at once.  A real backup
@@ -569,7 +570,8 @@ _PICKER_ROW_LIMIT = 200
 def _picker_search_input(on_change: Callable[[str], None], placeholder: str) -> ui.input:
     """The search box both pickers below open with."""
     search_input = (
-        ui.input(placeholder=translate_string(placeholder), on_change=lambda e: on_change(str(e.value or "")))
+        ui
+        .input(placeholder=translate_string(placeholder), on_change=lambda e: on_change(str(e.value or "")))
         .props("outlined dense clearable autofocus")
         .classes("w-full mt-2")
     )
@@ -684,6 +686,9 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None]) -
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             fetch_button = ui.button(translate_string("Fetch"), on_click=fetch).classes("bg-blue-600")
+            fetch_button.tooltip(
+                translate_string("Fetch the full list of installed Applications from the Android device."),
+            )
 
     dialog.open()
 
@@ -700,11 +705,7 @@ def _render_variable_entry(on_variable: Callable[[str], None], button_text: str)
     nothing more, since what follows the '%' can be an array index or a function call and is
     Tasker's business rather than this tool's.
     """
-    variable_input = (
-        ui.input(placeholder=translate_string("%variable_name"))
-        .props("outlined dense")
-        .classes("flex-1")
-    )
+    variable_input = ui.input(placeholder=translate_string("%variable_name")).props("outlined dense").classes("flex-1")
 
     def use_variable() -> None:
         text = str(variable_input.value or "").strip()
@@ -771,9 +772,7 @@ def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
             results.clear()
             text = search["text"].strip().lower()
             visible = [
-                entry
-                for entry in entries
-                if not text or text in entry.pkg.lower() or text in entry.label.lower()
+                entry for entry in entries if not text or text in entry.pkg.lower() or text in entry.label.lower()
             ]
             with results:
                 if not visible:
@@ -787,8 +786,7 @@ def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
                     ).props("dense")
                 if len(visible) > _PICKER_ROW_LIMIT:
                     ui.label(
-                        f"{translate_string('More matches than can be shown -- narrow the search.')} "
-                        f"({len(visible)})",
+                        f"{translate_string('More matches than can be shown -- narrow the search.')} ({len(visible)})",
                     ).classes("text-xs italic text-gray-500 mt-1")
 
         def search_changed(value: str) -> None:
@@ -886,9 +884,7 @@ def _build_app_entry_picker_dialog(on_pick: Callable[[deviceinv.AppEntry], None]
             results.clear()
             text = search["text"].strip().lower()
             visible = [
-                entry
-                for entry in entries
-                if not text or text in entry.pkg.lower() or text in entry.label.lower()
+                entry for entry in entries if not text or text in entry.pkg.lower() or text in entry.label.lower()
             ]
             with results:
                 if not visible:
@@ -1003,8 +999,7 @@ def _build_tasker_icon_picker_dialog(field: ui.input) -> None:
                         ui.label(icon.kind).classes("text-xs text-gray-500 w-20 text-right pr-4")
                 if len(visible) > _PICKER_ROW_LIMIT:
                     ui.label(
-                        f"{translate_string('More matches than can be shown -- narrow the search.')} "
-                        f"({len(visible)})",
+                        f"{translate_string('More matches than can be shown -- narrow the search.')} ({len(visible)})",
                     ).classes("text-xs italic text-gray-500 mt-1")
 
         def search_changed(value: str) -> None:
@@ -1017,7 +1012,8 @@ def _build_tasker_icon_picker_dialog(field: ui.input) -> None:
 
         with ui.row().classes("w-full justify-end gap-2 mt-3"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
-            ui.button(translate_string("No Icon"), on_click=lambda: pick("")).props("flat color=negative")
+            temp = ui.button(translate_string("No Icon"), on_click=lambda: pick("")).props("flat color=negative")
+            temp.tooltip(translate_string("Clear the field, leaving the action with no icon."))
 
     dialog.open()
 
@@ -1413,7 +1409,8 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                 ),
                             ).props("flat color=blue dense")
                             move_to_input = (
-                                ui.number(
+                                ui
+                                .number(
                                     translate_string("Move to #"),
                                     value=action.act_number,
                                     min=0,
@@ -1678,6 +1675,9 @@ def build_save_to_android_dialog(
                         "The Task is copied to /Tasker/tasks on the device first and imported from "
                         "there, so the copy stays behind as a record of exactly what was imported.  "
                         "You will be asked before it replaces a file already at that path.\n\n"
+                        "If Tasker does not report the Task after two attempts, that copy is handed to "
+                        "Android's 'Open with...' chooser instead, so you can import it by picking "
+                        "Tasker.\n\n"
                         "The 'Http Server Example' Tasker Project must be installed and running, and "
                         "Tasker must be 6.2 or higher.\n\n"
                         "The device will ask you to authorize MapTasker the first time.",
@@ -1782,7 +1782,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                         ).props("flat color=red dense")
                     else:
                         picker = (
-                            ui.select(task_names, label=translate_string("Choose a Task"), with_input=True)
+                            ui
+                            .select(task_names, label=translate_string("Choose a Task"), with_input=True)
                             .classes("flex-1")
                             .props("dense")
                         )
@@ -1939,7 +1940,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                 value=text_initial(rep_value_key, values["rep_value"]),
                             ).classes("w-24")
                             field_refs[rep_unit_key] = (
-                                ui.select(
+                                ui
+                                .select(
                                     ["Hours", "Minutes"],
                                     value=text_initial(rep_unit_key, values["rep_unit"]),
                                 )
@@ -2065,7 +2067,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
 
             with ui.row().classes("w-full items-center gap-2 mt-2"):
                 add_type_picker = (
-                    ui.select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
+                    ui
+                    .select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
                     .classes("w-48")
                     .props("dense")
                 )
@@ -2085,7 +2088,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in event_rows
                 }
                 event_type_picker = (
-                    ui.select(event_options, label=translate_string("Event Type"), with_input=True)
+                    ui
+                    .select(event_options, label=translate_string("Event Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -2101,7 +2105,8 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                     for row in state_rows
                 }
                 state_type_picker = (
-                    ui.select(state_options, label=translate_string("State Type"), with_input=True)
+                    ui
+                    .select(state_options, label=translate_string("State Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -2242,10 +2247,14 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
                         "match its Tasker server settings. No authorization prompt is needed for this.",
                     ),
                 ).style("white-space: pre-wrap")
-            ui.button(
+            export = ui.button(
                 translate_string("Export Profile"),
                 on_click=lambda: self.event_handlers.save_edited_profile_event(edited_profile, field_refs, dialog),
             ).classes("bg-blue-600")
+            with export:
+                ui.tooltip(
+                    translate_string("Saves this Profile as a standalone .prf.xml file on this computer."),
+                ).style("white-space: pre-wrap")
 
     dialog.open()
 
@@ -2312,9 +2321,13 @@ def build_save_profile_to_android_dialog(
             with import_into_tasker:
                 ui.tooltip(
                     translate_string(
-                        "This puts the Profile in front of Tasker's own import screen on the Android "
-                        "device.  You then tap Import on the device to finish -- nothing is imported "
-                        "until you do.\n\n"
+                        "This copies the Profile to the device and opens Android's 'Open with...' "
+                        "chooser for it.  Pick Tasker, and its own import screen comes up; you then tap "
+                        "Import to finish -- nothing is imported until you do.\n\n"
+                        "The Profile is copied to /Tasker/profiles under its own name first and offered "
+                        "from there, so it stays behind under a name you can find -- import it by hand "
+                        "from Tasker if the import screen does not come up.  You will be asked before it "
+                        "replaces a file already at that path.\n\n"
                         "The 'Http Server Example' Tasker Project must be installed and running, and "
                         "Tasker must be 6.2 or higher.\n\n"
                         "The device will ask you to authorize MapTasker the first time.",
@@ -2568,9 +2581,14 @@ def build_save_project_to_android_dialog(
             with import_into_tasker:
                 ui.tooltip(
                     translate_string(
-                        "This puts the Project -- and every Profile and Task in it -- in front of Tasker's "
-                        "own import screen on the Android device.  You then tap Import on the device to "
-                        "finish; nothing is imported until you do.\n\n"
+                        "This copies the Project -- and every Profile and Task in it -- to the device and "
+                        "opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import "
+                        "screen comes up; you then tap Import to finish, and nothing is imported until you "
+                        "do.\n\n"
+                        "The Project is copied to /Tasker/projects under its own name first and offered "
+                        "from there, so it stays behind under a name you can find -- import it by hand "
+                        "from Tasker if the import screen does not come up.  You will be asked before it "
+                        "replaces a file already at that path.\n\n"
                         "The 'Http Server Example' Tasker Project must be installed and running, and "
                         "Tasker must be 6.2 or higher.\n\n"
                         "The device will ask you to authorize MapTasker the first time.",
@@ -2684,7 +2702,8 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
         # search box belongs above the chips it filters.  Its on_change closes over
         # search_changed, which is defined below -- resolved at call time, not at creation.
         search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -2893,7 +2912,8 @@ def _build_add_legacy_element_dialog(
                 ui.tooltip("\n\n".join(lines)).style("white-space: pre-wrap").classes("max-w-sm")
 
         search_input = (
-            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -3037,7 +3057,8 @@ def _build_show_when_dialog(
         # box below the list it filters is a search box nobody finds.  Its on_change closes
         # over search_changed, defined below and resolved at call time.
         search_input = (
-            ui.input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -3158,7 +3179,8 @@ def _build_colour_field(item: dict, prop: sceneedit.V2Prop) -> None:
     and silently dropping what they typed would be worse than showing it in red.
     """
     field = (
-        ui.color_input(
+        ui
+        .color_input(
             label=translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: colour_changed(d, k, str(e.value or "")),
@@ -3213,7 +3235,8 @@ def _build_icon_field(item: dict, prop: sceneedit.V2Prop) -> None:
     the component will show are the same answer.
     """
     field = (
-        ui.input(
+        ui
+        .input(
             translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: icon_changed(d, k, str(e.value or "")),
@@ -3263,7 +3286,8 @@ def _build_icon_dialog(field: ui.input) -> None:
             dialog.close()
 
         search_input = (
-            ui.input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
+            ui
+            .input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -3292,7 +3316,8 @@ def _build_icon_dialog(field: ui.input) -> None:
                         # the row that needs turning is the .q-btn__content inside it, so the
                         # tiles come out half stacked and half side by side.
                         tile = (
-                            ui.button(on_click=lambda _e=None, n=name: pick(n))
+                            ui
+                            .button(on_click=lambda _e=None, n=name: pick(n))
                             .props(
                                 "flat dense no-caps stack",
                             )
@@ -3391,7 +3416,8 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     state_select = (
-        ui.select(
+        ui
+        .select(
             list(field.states),
             value=state or None,
             label=translate_string(field.label),
@@ -3407,7 +3433,8 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     dynamic_input = (
-        ui.input(
+        ui
+        .input(
             translate_string("Dynamic value"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_DYNAMIC_STATE),
             on_change=lambda _e=None: write(),
@@ -3422,7 +3449,8 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
     )
 
     variable_input = (
-        ui.input(
+        ui
+        .input(
             translate_string("Variable"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_VARIABLE_STATE),
             on_change=lambda _e=None: write(),
@@ -3645,7 +3673,8 @@ def _build_v2_designer(
             # The indent is drawn rather than nested so every row stays one flat, clickable
             # strip -- nested containers would make the click target of a deep node a sliver.
             label = (
-                ui.label(f"{'  ' * row.depth}{row.label}")
+                ui
+                .label(f"{'  ' * row.depth}{row.label}")
                 .classes(classes)
                 .on("click", lambda _e=None, path=row.path: select(path))
             )
@@ -3723,7 +3752,8 @@ def _build_v2_designer(
             _build_icon_field(target, prop)
         else:
             text_input = (
-                ui.input(
+                ui
+                .input(
                     translate_string(prop.label),
                     value=str(value),
                     on_change=lambda e, k=prop.key, d=target: sceneedit.v2_set_prop(d, k, str(e.value or "")),
@@ -3975,7 +4005,8 @@ def _build_v2_designer(
             section.props(f'caption="{caption()}"')
 
         section = (
-            ui.expansion(
+            ui
+            .expansion(
                 translate_string(name),
                 icon=_V2_CATEGORY_ICONS.get(name, "tune"),
                 caption=caption(),
@@ -5001,7 +5032,8 @@ def _build_legacy_designer(
 
     header = ui.row().classes("w-full items-center gap-2 mt-2")
     canvas_pane = (
-        ui.element("div")
+        ui
+        .element("div")
         .classes(
             f"mt-scene-wrap {root_class} w-full border rounded overflow-hidden",
         )
@@ -5919,7 +5951,8 @@ def _build_item_layout_dialog(holder: object, on_closed: Callable[[], None]) -> 
         with ui.row().classes("w-full gap-2 mt-2"):
             for key, label in sceneedit.SCENE_DIMENSION_FIELDS[:2]:
                 field_refs[key] = (
-                    ui.input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
+                    ui
+                    .input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
                     .props("dense")
                     .classes("w-36")
                     .on(
@@ -6003,7 +6036,8 @@ def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event
             settling["busy"] = False
 
     field = (
-        ui.color_input(
+        ui
+        .color_input(
             label=translate_string(arg.arg_name),
             value=sceneedit.legacy_colour_to_css(arg.current_value),
             preview=True,
@@ -6208,7 +6242,8 @@ def _build_scene_editor_body(
     with ui.row().classes("w-full gap-2 mt-2"):
         for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
             field_refs[key] = (
-                ui.input(
+                ui
+                .input(
                     translate_string(label),
                     value=scene_element.findtext(key, sceneedit.UNSET_DIMENSION),
                 )
@@ -6260,7 +6295,7 @@ def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> Non
                 "(Text, Button, Rect, Image, Web, ...).",
             ),
         ).classes("text-xs text-gray-500")
-        ui.button(
+        legacy = ui.button(
             translate_string("Legacy Scene"),
             on_click=lambda: self.event_handlers.add_scene_of_version_event(
                 sceneedit.SCENE_VERSION_LEGACY,
@@ -6269,6 +6304,13 @@ def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> Non
                 version_dialog,
             ),
         ).classes("bg-blue-600 mt-1")
+        with legacy:
+            ui.tooltip(
+                translate_string(
+                    "A Legacy Scene has a pixel canvas and a list of UI elements. It is the "
+                    "original Scene format, and is what Tasker itself produces.",
+                ),
+            )
 
         ui.label(translate_string("Version 2")).classes("text-sm font-semibold mt-4")
         ui.label(
@@ -6723,11 +6765,14 @@ def build_save_scene_to_android_dialog(
                 ui.tooltip(
                     translate_string(
                         "This sends the Scene -- and every Task its elements fire -- to the Android "
-                        "device under its own name, into /Tasker/scenes, and opens Tasker.\n\n"
-                        "You finish it on the device with Tasker's 'Scenes > Import One Scene', and "
-                        "pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put "
-                        "in front of Tasker's import screen from here -- Tasker will not take one "
-                        "handed to it, though it imports the very same file when you pick it.\n\n"
+                        "device under its own name, into /Tasker/scenes, and opens Android's "
+                        "'Open with...' chooser for it.\n\n"
+                        "If Tasker is in that chooser, pick it.  A Scene is the one kind Tasker has been "
+                        "seen to refuse when it is handed one, so if it is not there -- or nothing "
+                        "happens -- finish it with Tasker's 'Scenes > Import One Scene' and pick the "
+                        "Scene by name.  The file is on the device either way, and the message tells you "
+                        "its name.\n\n"
+                        "You will be asked before it replaces a file already at that path.\n\n"
                         "The 'Http Server Example' Tasker Project must be installed and running, and "
                         "Tasker must be 6.2 or higher.\n\n"
                         "The device will ask you to authorize MapTasker the first time.",
@@ -6735,6 +6780,60 @@ def build_save_scene_to_android_dialog(
                 ).style("white-space: pre-wrap")
 
     android_dialog.open()
+
+
+def build_helper_tasks_dialog(stale: list[str], current: list[str], device: str) -> None:
+    """Shows which of this program's own helper Tasks are dead on the Android device.
+
+    A LIST, NOT A BUTTON, and that is the whole design: nothing here can delete them.  The
+    Tasker HTTP Server Example has no route for deleting a Task -- its Task endpoints are GET
+    (list) and POST (run), and its only DELETE removes a file from storage, which a Task in
+    Tasker's configuration is not.  So this does the part that can be done: names them
+    exactly, so the user works down a list in Tasker instead of guessing which
+    'MapTasker Open Profile v2' is safe to remove.
+
+    Why there are any: a helper's name carries a version because its BODY changes between
+    releases and Tasker's api/import adds rather than replaces (see
+    deviceinv._install_task_on_android), so the previous one is left behind, running fine and
+    doing the wrong thing if it were ever used.  Nothing breaks while they sit there; they
+    are clutter in a list the user owns.
+
+    The current ones are shown too, and not as a footnote: this dialog is read next to
+    Tasker's own Task list, and 'delete everything starting with MapTasker' is exactly the
+    conclusion it must not invite.
+    """
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[420px] max-w-[680px] w-full p-6"):
+        ui.label(translate_string("MapTasker Helper Tasks")).classes("text-lg font-bold text-blue-600")
+        ui.label(f"{translate_string('On')} {device}").classes("text-xs text-gray-500")
+
+        if stale:
+            ui.label(
+                f"{len(stale)} {translate_string('left over from an earlier version -- safe to delete in Tasker:')}",
+            ).classes("mt-3 font-bold text-orange-600")
+            with ui.column().classes("gap-0 mt-1"):
+                for name in stale:
+                    ui.label(name).classes("font-mono text-sm break-all")
+            ui.label(
+                translate_string(
+                    "Delete them from Tasker's Tasks tab -- long-press one, then Delete.  Nothing here can "
+                    "do it: Tasker's HTTP API has no way to delete a Task.",
+                ),
+            ).classes("text-xs text-gray-500 italic mt-2")
+        else:
+            ui.label(translate_string("Nothing left over -- every MapTasker Task on the device is in use.")).classes(
+                "mt-3 text-green-600",
+            )
+
+        if current:
+            ui.label(translate_string("In use -- leave these alone:")).classes("mt-4 font-bold")
+            with ui.column().classes("gap-0 mt-1"):
+                for name in current:
+                    ui.label(name).classes("font-mono text-sm text-gray-500 break-all")
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Close"), on_click=dialog.close).props("outline")
+
+    dialog.open()
 
 
 def build_overwrite_confirm_dialog(
@@ -7043,10 +7142,17 @@ def build_add_profile_dialog(
                         "match its Tasker server settings. No authorization prompt is needed for this.",
                     ),
                 ).style("white-space: pre-wrap")
-            ui.button(
+            export_prof = ui.button(
                 translate_string("Export Profile"),
                 on_click=lambda: self.event_handlers.save_new_profile_event(edited_profile, field_refs, dialog),
             ).classes("bg-blue-600")
+            with export_prof:
+                ui.tooltip(
+                    translate_string(
+                        "Saves this Profile, with all of its conditions and linked Tasks, as one standalone .prf.xml file -- the same format Tasker's own Profile export produces.\n\n"
+                        "Tasks the Profile runs are not included; they belong to their own Project.",
+                    ),
+                ).style("white-space: pre-wrap")
 
     dialog.open()
 
@@ -7311,7 +7417,7 @@ def build_add_task_dialog(
                     on_created=on_task_created,
                 ),
             ).props("outline")
-            ui.button(
+            export_task = ui.button(
                 translate_string("Export Task"),
                 on_click=lambda: self.event_handlers.save_new_task_event(
                     edited_task,
@@ -7320,6 +7426,12 @@ def build_add_task_dialog(
                     on_created=on_task_created,
                 ),
             ).classes("bg-blue-600")
+            with export_task:
+                ui.tooltip(
+                    translate_string(
+                        "Exports the Task as XML to a file on your computer.",
+                    ),
+                ).style("white-space: pre-wrap")
 
     dialog.open()
 
@@ -8052,7 +8164,8 @@ class NiceGuiTreeView:
                     # Render the native responsive Tree component
                     # Injected custom fonts to preserve monospace formatting matches
                     self.tree = (
-                        ui.tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
+                        ui
+                        .tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
                         .classes("w-full text-base")
                         .style(f"font-family: '{self.master_gui.font}', monospace;")
                     )
@@ -8089,7 +8202,8 @@ class NiceGuiTreeView:
                 # Extract the name and clean out the raw HTML markup fragments
                 raw_name = item.get("name", "Unnamed")
                 clean_name = (
-                    raw_name.replace("&nbsp;", " ")
+                    raw_name
+                    .replace("&nbsp;", " ")
                     .replace("&#9940;", "⛔")
                     .replace("&#11013;", "⬅️")
                     .replace("&#11157;", "➡️")
@@ -8254,7 +8368,8 @@ class NiceGuiSceneView:
                     # would reserve room for the canvas at full size however far it is
                     # scaled down.
                     self.canvas_wrap = (
-                        ui.element("div")
+                        ui
+                        .element("div")
                         .classes(f"mt-scene-wrap {CANVAS_PREVIEW_ROOT}")
                         .style(
                             "position: relative; width: 100%; overflow: hidden;",
@@ -8297,7 +8412,8 @@ class NiceGuiSceneView:
     def _build_density_control(self) -> None:
         """Legacy only: the sp-to-pixel number that is not in the backup file."""
         density_select = (
-            ui.select(
+            ui
+            .select(
                 list(sceneview.DENSITY_CHOICES),
                 value=str(sceneview.DEFAULT_DENSITY),
                 label=translate_string("Text density"),
@@ -8353,7 +8469,8 @@ class NiceGuiSceneView:
         device, which is why it is a control and not a number in the file.
         """
         screen_select = (
-            ui.select(
+            ui
+            .select(
                 [name for name, _width, _height in sceneview.V2_SCREENS],
                 value=self.screen,
                 label=translate_string("Screen"),
@@ -8955,7 +9072,8 @@ class NiceGuiTextView:
                     # settings drawer, and a reset that changed the value without moving the
                     # control would leave the two disagreeing on screen.
                     self.profiles_per_line_select = (
-                        ui.select(
+                        ui
+                        .select(
                             options=[str(n) for n in range(11)],
                             value=str(self.master_gui.profiles_per_line),
                             label=translate_string("Profiles Per Line"),
@@ -9003,14 +9121,16 @@ class NiceGuiTextView:
                     background_style = f" background-color: {background} !important;"
 
             self.scroll_area = (
-                ui.scroll_area()
+                ui
+                .scroll_area()
                 # min-w-0 keeps this a flex child that can't be stretched wider than its container by
                 # long unbreakable content; without it the default flex min-width:auto lets the box
                 # (and the whole page) grow past the viewport once the full content has streamed in.
                 .classes(
                     f"w-full max-w-full min-w-0 block {scroll_height_classes} "
                     f"border-2 border-gray-600 p-4 text-sm {self.wrap_classes}",
-                ).style(
+                )
+                .style(
                     # The font the output was generated with, which process_data() then
                     # reconciles against the file it actually reads. Deliberately not
                     # master_gui.font -- see the note there on why that can be stale.
@@ -9873,18 +9993,21 @@ class NiceGuiTextView:
             # -- action mode --------------------------------------------------
             with ui.row().classes("w-full items-center gap-2 mt-2") as action_row:
                 source_select = (
-                    ui.select({}, label=translate_string("Replace this action"), with_input=True)
+                    ui
+                    .select({}, label=translate_string("Replace this action"), with_input=True)
                     .classes("flex-1 min-w-[220px]")
                     .props("dense")
                 )
                 target_select = (
-                    ui.select({}, label=translate_string("...with this one"), with_input=True)
+                    ui
+                    .select({}, label=translate_string("...with this one"), with_input=True)
                     .classes("flex-1 min-w-[260px]")
                     .props("dense")
                 )
                 # Hidden under a scope, for the reason the Find tab's own gives.
                 swap_project = (
-                    ui.select(
+                    ui
+                    .select(
                         {"": translate_string("Every Project")} | {name: name for name in index.projects},
                         value="",
                         label=translate_string("Narrow to Project"),
@@ -9903,17 +10026,20 @@ class NiceGuiTextView:
             with ui.column().classes("w-full gap-2 mt-2") as argument_row:
                 with ui.row().classes("w-full items-center gap-2"):
                     arg_action_select = (
-                        ui.select({}, label=translate_string("In this action"), with_input=True)
+                        ui
+                        .select({}, label=translate_string("In this action"), with_input=True)
                         .classes("flex-1 min-w-[220px]")
                         .props("dense")
                     )
                     arg_select = (
-                        ui.select({}, label=translate_string("...replace this argument"), with_input=True)
+                        ui
+                        .select({}, label=translate_string("...replace this argument"), with_input=True)
                         .classes("flex-1 min-w-[240px]")
                         .props("dense")
                     )
                     arg_project = (
-                        ui.select(
+                        ui
+                        .select(
                             {"": translate_string("Every Project")} | {name: name for name in index.projects},
                             value="",
                             label=translate_string("Narrow to Project"),
@@ -9925,12 +10051,14 @@ class NiceGuiTextView:
                     arg_project.set_visibility(index.scope.is_everything)
                 with ui.row().classes("w-full items-center gap-2"):
                     arg_match_input = (
-                        ui.input(label=translate_string("Only where the value contains (optional)"))
+                        ui
+                        .input(label=translate_string("Only where the value contains (optional)"))
                         .classes("flex-1 min-w-[240px]")
                         .props("dense clearable")
                     )
                     arg_value_input = (
-                        ui.input(label=translate_string("...and put this there"))
+                        ui
+                        .input(label=translate_string("...and put this there"))
                         .classes("flex-1 min-w-[240px]")
                         .props("dense clearable")
                     )
@@ -9956,17 +10084,20 @@ class NiceGuiTextView:
             # condition's settings are its own and do not survive becoming another kind.
             with ui.row().classes("w-full items-center gap-2 mt-2") as condition_row:
                 condition_select = (
-                    ui.select({}, label=translate_string("Replace this Profile condition"), with_input=True)
+                    ui
+                    .select({}, label=translate_string("Replace this Profile condition"), with_input=True)
                     .classes("flex-1 min-w-[240px]")
                     .props("dense")
                 )
                 condition_target_select = (
-                    ui.select({}, label=translate_string("...with this one"), with_input=True)
+                    ui
+                    .select({}, label=translate_string("...with this one"), with_input=True)
                     .classes("flex-1 min-w-[260px]")
                     .props("dense")
                 )
                 condition_project = (
-                    ui.select(
+                    ui
+                    .select(
                         {"": translate_string("Every Project")} | {name: name for name in index.projects},
                         value="",
                         label=translate_string("Narrow to Project"),
@@ -9981,7 +10112,8 @@ class NiceGuiTextView:
             # -- variable mode ------------------------------------------------
             with ui.row().classes("w-full items-center gap-2 mt-2") as variable_row:
                 variable_select = (
-                    ui.select({}, label=translate_string("Rename this variable"), with_input=True)
+                    ui
+                    .select({}, label=translate_string("Rename this variable"), with_input=True)
                     .classes("flex-1 min-w-[320px]")
                     .props("dense")
                 )
@@ -9995,7 +10127,8 @@ class NiceGuiTextView:
                 # autocomplete offers the existing variables without ever standing between
                 # the user and a name they are inventing.
                 new_name_input = (
-                    ui.input(label=translate_string("...to this name"))
+                    ui
+                    .input(label=translate_string("...to this name"))
                     .classes("flex-1 min-w-[260px]")
                     .props("dense clearable")
                 )
@@ -10270,7 +10403,8 @@ class NiceGuiTextView:
                 _, source, target, project = inputs
                 if not source or not target:
                     ui.notify(
-                        translate_string("Choose an action to replace, and one to replace it with."), type="warning"
+                        translate_string("Choose an action to replace, and one to replace it with."),
+                        type="warning",
                     )
                     return
                 plan = mapswap.plan_action_swap(source, target, project)
@@ -10431,7 +10565,7 @@ class NiceGuiTextView:
         with replace_panel, ui.row().classes("w-full justify-end mt-4 gap-2"):
             ui.button(translate_string("Preview"), on_click=preview).classes("bg-blue-600 text-white px-4")
             replace_button = ui.button(translate_string("Replace"), on_click=do_replace).classes(
-                "bg-orange-600 text-white px-4"
+                "bg-orange-600 text-white px-4",
             )
             replace_button.disable()
             ui.button(translate_string("Save Preview"), on_click=save_replace).classes(
@@ -10667,7 +10801,8 @@ class NiceGuiTextView:
                     for facet in mapfind.FACETS:
                         choices = index.choices(facet)
                         pickers[facet] = (
-                            ui.select(
+                            ui
+                            .select(
                                 {choice.value: choice.label for choice in choices},
                                 label=translate_string(mapfind.FACET_LABELS[facet]),
                                 with_input=True,
@@ -10679,7 +10814,8 @@ class NiceGuiTextView:
 
                 with ui.row().classes("w-full items-center gap-2 mt-2"):
                     text_input = (
-                        ui.input(label=translate_string("Text (name, label or argument)"))
+                        ui
+                        .input(label=translate_string("Text (name, label or argument)"))
                         .classes("flex-1")
                         .props("dense clearable")
                     )
@@ -10692,7 +10828,8 @@ class NiceGuiTextView:
                     # rather than removed, so the query still reads a value and no code below
                     # has to care whether the widget is on screen.
                     project_select = (
-                        ui.select(
+                        ui
+                        .select(
                             {"": translate_string("Every Project")} | {name: name for name in index.projects},
                             value="",
                             label=translate_string("Narrow to Project"),
@@ -11759,7 +11896,8 @@ def initialize_screen(self: MyGui) -> None:
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
     # =========================================================================
     with (
-        ui.left_drawer(value=True, fixed=True)
+        ui
+        .left_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
@@ -11773,7 +11911,8 @@ def initialize_screen(self: MyGui) -> None:
 
         # Detail level pulldown
         self.sidebar_detail_option = (
-            ui.select(
+            ui
+            .select(
                 options=["0", "1", "2", "3", "4", "5"],
                 value=str(self.display_detail_level),
                 label=translate_string("Detail Level"),
@@ -11788,37 +11927,49 @@ def initialize_screen(self: MyGui) -> None:
         self.everything_checkbox = ui.checkbox(
             translate_string("Just Display Everything!"),
             on_change=self.event_handlers.everything_event,
+        ).tooltip(
+            translate_string(
+                "Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, and Prettier Output.",
+            ),
         )
 
         self.conditions_checkbox = ui.checkbox(
             translate_string("Display Conditions"),
             on_change=self.event_handlers.condition_event,
+        ).tooltip(
+            translate_string(
+                "Enables the display of Profile Conditions (e.g. State, Event, etc.) details in the output.",
+            ),
         )
 
         self.taskernet_checkbox = ui.checkbox(
             translate_string("Display TaskerNet Info"),
             on_change=self.event_handlers.taskernet_event,
-        )
+        ).tooltip(translate_string("Enables the display of TaskerNet Descriptions in the output."))
 
         self.preferences_checkbox = ui.checkbox(
             translate_string("Display Tasker Preferences"),
             on_change=self.event_handlers.preferences_event,
-        )
+        ).tooltip(translate_string("Enables the display a breakdown of the Tasker system Preferences in the output."))
 
         self.twisty_checkbox = ui.checkbox(
             translate_string("Hide Task Details Under Twisty"),
             on_change=self.event_handlers.twisty_event,
+        ).tooltip(
+            translate_string(
+                "When enabled, Task details are hidden under a twisty (expand/collapse) control in the output.",
+            ),
         )
 
         self.directory_checkbox = ui.checkbox(
             translate_string("Display Directory"),
             on_change=self.event_handlers.directory_event,
-        )
+        ).tooltip(translate_string("Enables the display of the Project/Profile/Task/Scene Directory in the output."))
 
         self.pretty_checkbox = ui.checkbox(
             translate_string("Display Prettier Output"),
             on_change=self.event_handlers.pretty_event,
-        )
+        ).tooltip(translate_string("Enables the display of aligned text in the output."))
 
         _create_name_display_options_section(self)
         _create_task_action_limit_section(self)
@@ -11832,7 +11983,8 @@ def initialize_screen(self: MyGui) -> None:
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
     with (
-        ui.right_drawer(value=True, fixed=True)
+        ui
+        .right_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
@@ -11866,7 +12018,8 @@ def initialize_screen(self: MyGui) -> None:
         )
 
         self.close_tabs_on_exit_checkbox = (
-            ui.checkbox(translate_string("Close Tabs On Exit"))
+            ui
+            .checkbox(translate_string("Close Tabs On Exit"))
             .bind_value(self, "close_tabs_on_exit")
             .props("dense")
             .classes("text-xs mt-0")
@@ -11881,7 +12034,8 @@ def initialize_screen(self: MyGui) -> None:
             ).style("white-space: pre-wrap")
 
         self.open_view_in_new_window_checkbox = (
-            ui.checkbox(translate_string("Open View In New Window"))
+            ui
+            .checkbox(translate_string("Open View In New Window"))
             .bind_value(self, "open_view_in_new_window")
             .props("dense")
             .classes("text-xs mt-0")
@@ -11907,22 +12061,47 @@ def initialize_screen(self: MyGui) -> None:
             "text-xs font-bold uppercase text-gray-400 mt-3 self-center",
         )
         with ui.row().classes("w-full justify-center gap-2 gap-y-0 mt-0"):
-            ui.button(translate_string("Map"), on_click=lambda: self.event_handlers.view_event("map")).classes(
+            v_map = ui.button(translate_string("Map"), on_click=lambda: self.event_handlers.view_event("map")).classes(
                 "bg-blue-500",
             )
-            ui.button(translate_string("Diagram"), on_click=lambda: self.event_handlers.view_event("diagram")).classes(
+            with v_map:
+                ui.tooltip(
+                    translate_string(
+                        "Displays the Map view.\n\nUse this to display the Tasker configuration of your Projects, Profiles, Tasks, and Scenes.",
+                    ),
+                ).style("white-space: pre-wrap")
+            v_diagram = ui.button(
+                translate_string("Diagram"),
+                on_click=lambda: self.event_handlers.view_event("diagram"),
+            ).classes(
                 "bg-blue-500",
             )
-            ui.button(translate_string("Tree"), on_click=lambda: self.event_handlers.view_event("tree")).classes(
+            with v_diagram:
+                ui.tooltip(
+                    translate_string(
+                        "Displays the Diagram view.\n\nUse this to visualize the relationships between your Projects, Profiles, Tasks, and Scenes.",
+                    ),
+                ).style("white-space: pre-wrap")
+            v_tree = ui.button(
+                translate_string("Tree"),
+                on_click=lambda: self.event_handlers.view_event("tree"),
+            ).classes(
                 "bg-blue-500",
             )
+            with v_tree:
+                ui.tooltip(
+                    translate_string(
+                        "Displays the Tree view.\n\nUse this to navigate the hierarchical structure of your Projects, Profiles, Tasks, and Scenes.",
+                    ),
+                ).style("white-space: pre-wrap")
         # Full width rather than a fourth button in the row above: the drawer is w-80, and a
         # fourth button wraps.  The width also leaves room for the longer label this needs.
         # Coloured through the "color" prop rather than a bg-* class, the way the Get XML and
         # Exit buttons are.  Quasar puts its own bg-primary on every button, and that wins over
         # a Tailwind bg-* added here -- a bg-teal-600 class renders plain blue.
         self.health_check_button = (
-            ui.button(
+            ui
+            .button(
                 translate_string("Health Check"),
                 color="teal",
                 on_click=self.event_handlers.health_check_event,
@@ -11944,7 +12123,8 @@ def initialize_screen(self: MyGui) -> None:
         # button above is: the drawer is w-80 and this label is longer still, and Quasar's own
         # bg-primary beats a Tailwind bg-* class added here.
         self.compare_files_button = (
-            ui.button(
+            ui
+            .button(
                 translate_string("Compare Files"),
                 color="teal",
                 on_click=self.event_handlers.compare_files_event,
@@ -11969,7 +12149,8 @@ def initialize_screen(self: MyGui) -> None:
         # above are: the drawer is w-80 and this label will not fit beside another, and
         # Quasar's own bg-primary beats a Tailwind bg-* class added here.
         self.variable_xref_button = (
-            ui.button(
+            ui
+            .button(
                 translate_string("Variable Xref"),
                 color="teal",
                 on_click=self.event_handlers.variable_xref_event,
@@ -12047,7 +12228,8 @@ def initialize_screen(self: MyGui) -> None:
                 none_translatesd = translate_string("None")
                 with ui.row().classes("gap-2 w-full m-0 p-0 items-start"):
                     self.specific_project_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_project_name_event(e.value) if e.value else None
@@ -12057,10 +12239,12 @@ def initialize_screen(self: MyGui) -> None:
                         )
                         .classes("w-48 mb-0")
                         .props("dense")
+                        .tooltip(translate_string("Select a specific Project to target for display or editing."))
                     )
 
                     self.specific_profile_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_profile_name_event(e.value) if e.value else None
@@ -12070,10 +12254,12 @@ def initialize_screen(self: MyGui) -> None:
                         )
                         .classes("w-48 mb-0")
                         .props("dense")
+                        .tooltip(translate_string("Select a specific Profile to target for display or editing."))
                     )
 
                     self.specific_task_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_task_name_event(e.value) if e.value else None
@@ -12083,10 +12269,12 @@ def initialize_screen(self: MyGui) -> None:
                         )
                         .classes("w-48 mb-0")
                         .props("dense")
+                        .tooltip(translate_string("Select a specific Task to target for display or editing."))
                     )
 
                     self.specific_scene_optionmenu = (
-                        ui.select(
+                        ui
+                        .select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_scene_name_event(e.value) if e.value else None
@@ -12096,13 +12284,23 @@ def initialize_screen(self: MyGui) -> None:
                         )
                         .classes("w-48 mb-0")
                         .props("dense")
+                        .tooltip(translate_string("Select a specific Scene to target for display or editing."))
                     )
 
                 self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-1 text-left")
-                self.list_unnamed_items_checkbox = ui.checkbox(
-                    translate_string("List Unnamed Items"),
-                    on_change=self.event_handlers.list_unnamed_items_event,
-                ).classes("mt-1 text-xs")
+                self.list_unnamed_items_checkbox = (
+                    ui
+                    .checkbox(
+                        translate_string("List Unnamed Items"),
+                        on_change=self.event_handlers.list_unnamed_items_event,
+                    )
+                    .classes("mt-1 text-xs")
+                    .tooltip(
+                        translate_string(
+                            "Select this to include Profiles and Tasks that do not have a name in the list.",
+                        ),
+                    )
+                )
                 # The Edit/Add pairs on the left, the Editing (Undo/Redo/History) group
                 # pinned to the right: "justify-between" with nothing between them puts
                 # each against its own edge however wide the window is.  Editing sits here
@@ -12129,7 +12327,8 @@ def initialize_screen(self: MyGui) -> None:
                     with ui.column().classes("flex-1 min-w-0 gap-0 m-0 p-0"):
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.project_buttons_row:
                             self.edit_project_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Edit Project"),
                                     on_click=self.event_handlers.open_edit_project_dialog_event,
                                 )
@@ -12137,7 +12336,8 @@ def initialize_screen(self: MyGui) -> None:
                                 .style("max-width:12rem")
                             )
                             self.add_project_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Add Project"),
                                     on_click=self.event_handlers.open_add_project_dialog_event,
                                 )
@@ -12146,7 +12346,8 @@ def initialize_screen(self: MyGui) -> None:
                             )
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.profile_buttons_row:
                             self.edit_profile_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Edit Profile"),
                                     on_click=self.event_handlers.open_edit_profile_dialog_event,
                                 )
@@ -12154,7 +12355,8 @@ def initialize_screen(self: MyGui) -> None:
                                 .style("max-width:12rem")
                             )
                             self.add_profile_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Add Profile"),
                                     on_click=self.event_handlers.open_add_profile_dialog_event,
                                 )
@@ -12163,7 +12365,8 @@ def initialize_screen(self: MyGui) -> None:
                             )
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.task_buttons_row:
                             self.edit_task_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Edit Task"),
                                     on_click=self.event_handlers.open_edit_task_dialog_event,
                                 )
@@ -12171,7 +12374,8 @@ def initialize_screen(self: MyGui) -> None:
                                 .style("max-width:12rem")
                             )
                             self.add_task_button = (
-                                ui.button(
+                                ui
+                                .button(
                                     translate_string("Add Task"),
                                     on_click=self.event_handlers.open_add_task_dialog_event,
                                 )
@@ -12186,7 +12390,8 @@ def initialize_screen(self: MyGui) -> None:
                         if EDIT_SCENE:
                             with ui.row().classes("w-full gap-2 m-0 p-0") as self.scene_buttons_row:
                                 self.edit_scene_button = (
-                                    ui.button(
+                                    ui
+                                    .button(
                                         translate_string("Edit Scene"),
                                         on_click=self.event_handlers.open_edit_scene_dialog_event,
                                     )
@@ -12194,7 +12399,8 @@ def initialize_screen(self: MyGui) -> None:
                                     .style("max-width:12rem")
                                 )
                                 self.add_scene_button = (
-                                    ui.button(
+                                    ui
+                                    .button(
                                         translate_string("Add Scene"),
                                         on_click=self.event_handlers.open_add_scene_dialog_event,
                                     )
@@ -12238,7 +12444,8 @@ def initialize_screen(self: MyGui) -> None:
 
                 with ui.column().classes("gap-1 w-full mt-1"):
                     self.color_objects_options = (
-                        ui.select(
+                        ui
+                        .select(
                             options=[
                                 "Projects",
                                 "Profiles",
@@ -12266,7 +12473,8 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.color_picker_input = (
-                        ui.color_input(
+                        ui
+                        .color_input(
                             label=translate_string("Choose Hex Color"),
                             value="#3f99ff",
                             on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value),
@@ -12287,7 +12495,8 @@ def initialize_screen(self: MyGui) -> None:
                         ui.checkbox(translate_string("Debug Mode")).bind_value(self, "debug").classes("text-xs")
                     )
                     self.runtime_checkbox = (
-                        ui.checkbox(translate_string("Display Runtime Settings"))
+                        ui
+                        .checkbox(translate_string("Display Runtime Settings"))
                         .bind_value(self, "runtime")
                         .classes("text-xs")
                     )
@@ -12363,7 +12572,8 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
 
             # Extra model list checkbox with chained tooltip
             self.aimodel_extend_checkbox = (
-                ui.checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
+                ui
+                .checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
                 .tooltip(
                     translate_string(
                         "Display an extended list of ALL available models.\n\n"
@@ -12391,7 +12601,8 @@ def _create_name_display_options_section(self: MyGui) -> None:
 
     # 1. Create the Section Label with an inline native tooltip
     self.display_names_label = (
-        ui.label(translate_string("Project/Profile/Task/Scene Names:"))
+        ui
+        .label(translate_string("Project/Profile/Task/Scene Names:"))
         .classes("text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 leading-none")
         .tooltip(translate_string("Add highlighting to Project, Profile and Task names in the output."))
     )
@@ -12687,7 +12898,8 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
         # tears that panel down again.
         with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0") as self.android_button_row:
             self.get_backup_button = (
-                ui.button(
+                ui
+                .button(
                     translate_string("Get XML from Android Device"),
                     on_click=self.event_handlers.get_xml_from_android_event,
                 )

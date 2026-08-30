@@ -16,7 +16,10 @@ All notable changes to this project will be documented in this file!
   - An Application can be a __Tasker variable__ rather than an installed app.  Both Application pickers have an 'Or a Tasker variable:' box for it -- anything starting with '%'.  In an action argument the variable joins whatever else is ticked; in the Profile 'Application' condition it fills the Package and Label fields and leaves the Class empty, which is what Tasker itself writes for one.
   - The field itself is still typed into, and what you type is what is saved -- and an icon from an icon pack has to be named by hand, since those names live inside the pack.
   
--Added: Import Projects/Profiles/Tasks/Scenes directly into Tasker via the 'Edit (object) > Save To Android > Import Into Tasker' buttons.
+-Added: Import Projects/Profiles/Tasks/Scenes directly into Tasker via the 'Edit (object) > Save To Android > 'Import Into Tasker' buttons.  It uses Android's 'Open with...' feature, requiring a firsttime 'Tasker' app selection.
+- Added: All new command language translations have been added.
+- Added: A command reference has been added to the [wiki](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).
+- Added: Additional command tooltips have been added to the GUI.
 
 ### Changed
 
@@ -28,13 +31,16 @@ All notable changes to this project will be documented in this file!
   - If you still have the 'MapTasker List' profile in Tasker, nothing uses it any more and it can be deleted.
 - Changed: fetching a single-object export -- the '.prj'/'.prf'/'.tsk'/'.scn' files Tasker writes when you export one Project, Profile, Task or Scene -- now selects that object as the specific Project/Profile/Task/Scene automatically.
 - Changed: 'Find/Replace': clicking a result row, or a row in a Replace preview, no longer closes the dialog.  It moves to the right side of the screen and stays there while the Map (or Diagram) shows what the row points at, so a list of places can be walked one at a time without pressing 'Find/Replace' again for each one.
+- Changed: Help content that appears in a popup panel has been converted to markdown.
 
 ### Removed
 
-- Removed: 'List XML Files' no longer needs the 'MapTasker List' Tasker profile.
+- Removed: 'List XML Files' no longer needs the 'MapTasker List' Tasker profile to be installed for this to work.
+
 ### Fixed
 
-* Fixed: 'Reset Settings' does nothing and causes a program error.
+- Fixed: 'Reset Settings' does nothing and causes a program error.
+- Fixed: Application packages, such as 'com.samsung.browser.health', 'package' and 'app' name sare being incorrectly reported as 'Class:' in the Map view.
 
 ### Known Issues
 
