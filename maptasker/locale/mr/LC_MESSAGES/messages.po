@@ -2677,3 +2677,15 @@ msgstr "प्रदर्शन किंवा संपादनासाठ�
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "सूचीमध्ये नाव नसलेली प्रोफाइल आणि टास्क समाविष्ट करण्यासाठी हे निवडा."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "लोड केलेल्या कॉन्फिगरेशनमध्ये वापरलेल्या चिन्हांमधून आणि तुम्ही ते आणले असल्यास तुमच्या डिव्हाइसच्या अनुप्रयोगांमधून निवडा."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "चिन्ह त्याच ठिकाणाहून येतात ज्या अनुप्रयोग करतात: Tasker अनुप्रयोगाचे स्वतःचे चिन्ह त्याच्या पॅकेज आणि लाँचर क्रियाकलापांद्वारे ओळखतो, त्यामुळे डिव्हाइसवर आढळणारा प्रत्येक अनुप्रयोग आपण निवडू शकता असा एक चिन्ह बनतो.\n\nटास्करचे स्वतःचे अंगभूत आयकॉन आणले जाऊ शकत नाहीत -- ते टास्करमध्येच राहतात -- आणि आयकॉन पॅकमधील आयकॉन देखील मिळू शकत नाहीत, ज्यांना नावाने टाइप करावे लागेल."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "लोड केलेल्या कॉन्फिगरेशनमध्ये कुठेतरी वापरलेले चिन्ह, तसेच प्रत्येक ऍप्लिकेशनचे स्वतःचे चिन्ह तुम्ही तुमच्या डिव्हाइसवरून आणले असल्यास.  तुम्ही जे निवडता ते फील्डमध्ये काय आहे ते बदलते.  सूचीबद्ध नसलेल्या आयकॉन पॅकमधील चिन्ह टाइप करणे आवश्यक आहे: त्याची नावे पॅकमध्ये राहतात."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "अधिक माहितीसाठी MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) पहा.\n"

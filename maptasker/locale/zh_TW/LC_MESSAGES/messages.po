@@ -2567,3 +2567,15 @@ msgstr "選擇要顯示或編輯的特定任務。"
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "選擇此選項可包括清單中沒有名稱的設定檔和任務。"
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "從載入的設定中選擇您想要的圖示，或從您已下載的應用程式中選擇。"
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "這些圖示來自應用程式相同的來源：Tasker 能夠透過應用程式的套件和啟動器活動來辨識應用程式本身的圖示，因此裝置上找到的每一個應用程式都可以作為可選的圖示。\n\nTasker 本身內建的圖示無法取得，它們存在於 Tasker 程式本身，同樣地，圖示套組內的圖示也必須依名稱輸入。"
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "在載入的設定中使用的任何圖示，以及您從裝置上取得的應用程式本身的圖示。您選擇的圖示會取代該欄位所顯示的內容。如果圖示來自未列出的圖示集，則必須手動輸入：這些圖示名稱都存在於該圖示集中。"
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "有關更多信息，請參閱 MapTasker [命令參考](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)。\n"

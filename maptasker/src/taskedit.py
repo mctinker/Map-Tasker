@@ -544,6 +544,30 @@ def _action_number(action_element: defusedxml.ElementTree.Element) -> int:
     return int(match.group()) if match else 0
 
 
+def reclassify_action_args(action: EditableAction) -> None:
+    """Rebuild one action's argument models against the inventory as it stands now.
+
+    An argument's widget kind is decided when the model is built (see
+    _classify_arg_widget): an App or an Icon argument with nothing to pick from is
+    read-only, and carries NO_APPS_REASON/NO_ICONS_REASON to say why.  A fetch from the
+    device makes that answer wrong, and nothing re-asks it -- so the field would go on
+    being read-only, for a stated reason that had stopped being true, until the dialog was
+    closed and reopened.  This re-asks it, so redrawing the row is enough (see
+    guiwins._render_readonly_note).
+
+    Rebuilt from the same Action element, so nothing that has been edited in the XML is
+    lost; what is discarded is the classification, which is the point.
+    """
+    action_code = action_codes.get(f"{action.code}t")
+    if action_code is None:
+        return
+    if f"{action.code}t" == IF_ACTION_KEY:
+        action.args = _build_if_action_args(action.action_element)
+        return
+    effective_args = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
+    action.args = build_editable_args(action.action_element, effective_args)
+
+
 def build_editable_args(
     action_element: defusedxml.ElementTree.Element,
     effective_args: list,
@@ -1241,10 +1265,13 @@ def build_synthesized_args(
 _SAFE_CATEGORIES = ("Int", "Str", "String", "Boolean")
 # The two refusals that are not permanent.  Every other reason classify_action_addability
 # gives is a statement about the action ("this plugin's payload can't be generated"); these
-# two are statements about what is loaded right now, and the App one has a way out -- a
-# fetch from the device -- which the GUI offers wherever it shows this exact text (see
-# guiwins._render_addability_reason).  Named constants rather than literals so that
-# recognising it is an equality check against one definition, not a substring guess.
+# two are statements about what is loaded right now, and both have the same way out -- a
+# fetch from the device -- which the GUI offers wherever it shows either of these exact
+# texts (see guiwins._render_inventory_fetch).  The icon one has a way out because an app's
+# own icon is a package and a launcher activity, which is precisely what the Application
+# fetch brings back: see deviceinv._merged_with_device_icons, and the module docstring
+# there for the two icon kinds no fetch can reach.  Named constants rather than literals so
+# that recognising one is an equality check against a definition, not a substring guess.
 NO_APPS_REASON = "No Applications were found in the loaded configuration to choose from."
 NO_ICONS_REASON = "No icons were found in the loaded configuration to choose from."
 # The arg_specs.json categories an <Img> backs.  'Icon' is the one Task actions and Profile

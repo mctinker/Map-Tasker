@@ -157,10 +157,10 @@ from maptasker.src.userhelp import (
     AI_HELP_TEXT,
     APIKEY_HELP_TEXT,
     BACKUP_HELP_TEXT,
-    HELP,
     LISTFILES_HELP_TEXT,
     VIEW_HELP_TEXT,
     VIEWLIMIT_HELP_TEXT,
+    build_help,
 )
 from maptasker.src.varxref import build_report, run_variable_xref, suspects, write_variable_xref_report
 from maptasker.src.xmldiff import compare
@@ -6772,7 +6772,7 @@ class MapTaskerEventHandlers:
             "viewlimit": ("View Limit Help", VIEWLIMIT_HELP_TEXT),
             "view": ("Views Help", VIEW_HELP_TEXT),
             "ai": ("Ai Analyze Help", AI_HELP_TEXT),
-            "help": ("", HELP),
+            "help": ("", ""),  # assembled below, being the one screen with a version number in it
             "android": ("Get XML From Android Device Help", BACKUP_HELP_TEXT),
             "listfile": ("List Android Files Help", LISTFILES_HELP_TEXT),
             "apikey": ("API Key Help", APIKEY_HELP_TEXT),
@@ -6785,31 +6785,16 @@ class MapTaskerEventHandlers:
         # Add the changelog to the help text.
         if query_name == "help":
             changes = get_changelog_file(CHANGELOG_URL, "##", 11)
-            # HELP is "MapTasker <version> Help\n\n" glued onto userhelp.INFO_TEXT, and the
-            # heading has to be split back off before anything is looked up: the version
-            # number must not go through gettext, and it must not be part of the msgid
-            # either, or every release would invalidate the whole help translation.
+            # Assembled from its separately translated pieces rather than looked up whole --
+            # see userhelp.build_help, which owns that split.  Slicing the assembled screen
+            # apart here instead is what this used to do, and it broke the moment the help
+            # text was reworded: the heading it searched for ("Help\n\n") became "Help  \n",
+            # the search missed, and the whole screen went to gettext as one msgid no
+            # catalog has -- which is a miss, and a miss reads back as English.
             #
-            # The slice has to land PAST the marker rather than on it.  What the catalogs
-            # hold is INFO_TEXT alone -- that is what sync_missing_msgids.py collects (see
-            # its help_text_strings()) and what it writes -- so asking for "Help\n\n" plus
-            # INFO_TEXT asks for a msgid no catalog has, and gettext answers a miss by
-            # handing back what it was given.  That returned the English help screen in
-            # every one of the 33 languages, silently, because a miss looks exactly like a
-            # translation into English.
-            marker = "Help\n\n"
-            temp = help_text.find(marker)
-            if temp == -1:
-                # HELP always carries the marker, so this is unreachable today; it is here
-                # so that a reworded heading degrades to an untranslated screen rather than
-                # to a garbled one sliced at index -1.
-                help_text = translate_string(help_text)
-            else:
-                help_text = (
-                    f"{help_text[:temp]}{translate_string('Help')}\n\n"
-                    f"{translate_string(help_text[temp + len(marker) :])}"
-                )
-            help_text = help_text + "\n".join(changes)
+            # The changelog is fetched from GitHub in English and appended afterwards.  It
+            # is nobody's msgid and there is nothing to look it up in.
+            help_text = build_help(translate_string) + "\n".join(changes)
         else:
             # Every other screen is a whole userhelp constant and so is a msgid in its own
             # right.  Translated here rather than at the create_popup_window call below,

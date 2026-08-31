@@ -2657,3 +2657,15 @@ msgstr "Vælg en specifik opgave, der skal målrettes til visning eller redigeri
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Vælg dette for at inkludere profiler og opgaver, der ikke har et navn på listen."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Vælg fra de ikoner, der bruges i den indlæste konfiguration, og fra de applikationer, der er installeret på din enhed, hvis du har hentet dem."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Ikonerne kommer fra samme sted som applikationerne: Tasker identificerer en applikations eget ikon baseret på dets pakke og launcher-aktivitet, så enhver applikation, der findes på enheden, kan bruges som et ikon.\n\nTaskers egne indbyggede ikoner kan ikke hentes – de eksisterer inde i Tasker selv – og heller ikke ikonerne inde i et ikon-sæt, som skal angives manuelt."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Ikonerne, der bruges et sted i den indlæste konfiguration, samt alle applikationers egne ikoner, hvis du har hentet dem fra din enhed. Det ikon, du vælger, erstatter indholdet i feltet. Et ikon fra et ikon-sæt, der ikke er listet, skal indtastes: dets navn findes inde i sættet."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Se MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for mere information.\n"

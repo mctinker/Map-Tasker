@@ -580,7 +580,7 @@ def _picker_search_input(on_change: Callable[[str], None], placeholder: str) -> 
     return search_input
 
 
-async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None]) -> None:
+async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], for_icons: bool = False) -> None:
     """Ask an Android device for the full list of installed Applications.
 
     Offered from inside the Application pickers rather than from the sidebar, because
@@ -596,6 +596,14 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None]) -
     it writes -- seconds, not milliseconds -- so it goes through run.io_bound and the
     button says what it is doing while it happens.  See deviceinv.fetch_apps_from_device.
 
+    for_icons says the user came here wanting icons rather than Applications, which changes
+    what this says and nothing about what it does.  It is the same fetch either way: an
+    app's own icon is its package plus its launcher activity, so the Application list is an
+    icon list too (deviceinv._merged_with_device_icons).  Saying so is the point -- a dialog
+    headed "Fetch Applications" in answer to "there are no icons" looks like the wrong
+    button, and the two kinds of icon the fetch cannot bring back have to be said out loud
+    rather than left to be discovered in the picker afterwards.
+
     Deliberately does NOT pre-flight with guiutils.ping_android_device, which every other
     Android dialog here does.  That probe used to be disqualifying -- it was a GET on the
     'maplist' route, served by the 'MapTasker List' TaskerNet profile rather than by the
@@ -610,9 +618,18 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None]) -
     default_port = getattr(gui, "android_port", "") or "1821"
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[460px] p-6"):
-        ui.label(translate_string("Fetch Applications From Android Device")).classes(
-            "text-lg font-bold text-blue-600",
-        )
+        title = "Fetch Icons From Android Device" if for_icons else "Fetch Applications From Android Device"
+        ui.label(translate_string(title)).classes("text-lg font-bold text-blue-600")
+        if for_icons:
+            ui.label(
+                translate_string(
+                    "Icons come from the same place Applications do: Tasker identifies an application's "
+                    "own icon by its package and launcher activity, so every application found on the "
+                    "device becomes an icon you can pick.\n\n"
+                    "Tasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- "
+                    "and neither can the icons inside an icon pack, which have to be typed by name.",
+                ),
+            ).classes("text-sm text-gray-500 italic whitespace-pre-wrap")
         # The Task's name comes from deviceinv rather than being spelled out here: it is
         # versioned, and backing out deviceinv.PAIR_LABELS_ON_DEVICE changes which version
         # gets installed.  A hardcoded name would go on naming the wrong one.
@@ -833,25 +850,33 @@ def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
     dialog.open()
 
 
-def _render_fetch_apps_button(on_click: Callable[[], object]) -> None:
-    """The 'Not listed?' button both Application pickers carry, in the same place in each.
+def _render_fetch_apps_button(on_click: Callable[[], object], for_icons: bool = False) -> None:
+    """The 'Not listed?' button the Application and icon pickers carry, in the same place
+    in each.
 
     Worded as the question the user is actually asking at that moment.  A button labelled
     'Fetch' would be answering a question they have not thought to ask yet -- the list in
     front of them looks complete until the one app they want turns out not to be in it.
+
+    The icon wording asks the icon question, but the button does the same thing: see
+    _build_fetch_apps_dialog's for_icons.
     """
     fetch_button = ui.button(
-        translate_string("App not listed?"),
+        translate_string("Icon not listed?" if for_icons else "App not listed?"),
         icon="cloud_download",
         on_click=on_click,
     ).props("flat dense color=primary")
     with fetch_button:
         ui.tooltip(
             translate_string(
-                "Fetch the full list of installed applications from your Android device.  "
+                "Fetch every installed application's own icon from your Android device.  What is "
+                "listed now is only the icons this configuration already uses.  Tasker's built-in "
+                "icons and the contents of an icon pack cannot be fetched, and are typed by name."
+                if for_icons
+                else "Fetch the full list of installed applications from your Android device.  "
                 "What is listed now is only what this configuration already names.",
             ),
-        )
+        ).style("white-space: pre-wrap")
 
 
 def _build_app_entry_picker_dialog(on_pick: Callable[[deviceinv.AppEntry], None], gui: MyGui) -> None:
@@ -950,7 +975,7 @@ def _render_app_entry_pick_button(
         ui.tooltip(translate_string("Fill all three fields in from the loaded configuration."))
 
 
-def _build_tasker_icon_picker_dialog(field: ui.input) -> None:
+def _build_tasker_icon_picker_dialog(field: ui.input, gui: MyGui) -> None:
     """Pick one icon for a field holding an <Img> reference.
 
     Replaces what the field holds rather than adding to it -- an action has one icon, so a
@@ -965,8 +990,9 @@ def _build_tasker_icon_picker_dialog(field: ui.input) -> None:
         ui.label(translate_string("Pick an icon")).classes("text-lg font-bold text-blue-600")
         ui.label(
             translate_string(
-                "The icons used somewhere in the loaded configuration.  What you pick replaces what "
-                "the field holds.  An icon from an icon pack that isn't listed has to be typed: its "
+                "The icons used somewhere in the loaded configuration, plus every application's own "
+                "icon if you have fetched them from your device.  What you pick replaces what the "
+                "field holds.  An icon from an icon pack that isn't listed has to be typed: its "
                 "names live inside the pack.",
             ),
         ).classes("text-sm text-gray-500 italic")
@@ -1010,23 +1036,100 @@ def _build_tasker_icon_picker_dialog(field: ui.input) -> None:
         results = ui.column().classes("w-full gap-0 mt-2 max-h-96 overflow-auto")
         render()
 
-        with ui.row().classes("w-full justify-end gap-2 mt-3"):
-            ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
-            temp = ui.button(translate_string("No Icon"), on_click=lambda: pick("")).props("flat color=negative")
-            temp.tooltip(translate_string("Clear the field, leaving the action with no icon."))
+        async def fetch_then_reopen() -> None:
+            # Closed and reopened rather than re-rendered in place, exactly as the
+            # Application picker does it: the list is read once, at the top of this
+            # function, and a fetch is precisely the thing that makes that reading stale.
+            dialog.close()
+            await _build_fetch_apps_dialog(gui, lambda: _build_tasker_icon_picker_dialog(field, gui), for_icons=True)
+
+        with ui.row().classes("w-full justify-between items-center gap-2 mt-3"):
+            _render_fetch_apps_button(fetch_then_reopen, for_icons=True)
+            with ui.row().classes("gap-2"):
+                ui.button(translate_string("Cancel"), on_click=dialog.close).props("flat")
+                temp = ui.button(translate_string("No Icon"), on_click=lambda: pick("")).props("flat color=negative")
+                temp.tooltip(translate_string("Clear the field, leaving the action with no icon."))
 
     dialog.open()
+
+
+def _render_inventory_fetch(gui: MyGui, reason: str, on_fetched: Callable[[], None]) -> None:
+    """The fetch button, for the two refusals a fetch from the device can lift.
+
+    'No Applications were found...' and 'No icons were found...' are the only two things
+    the editor says no to that the user can do something about without leaving the dialog,
+    and one fetch answers both: the Application list the device sends back is also a list
+    of app icons (deviceinv._merged_with_device_icons).  Every other refusal is a statement
+    about the action itself and gets no button, which is why this is an equality test
+    against taskedit's two named constants rather than a guess at the wording.
+
+    on_fetched re-draws whatever showed the refusal.  A fetch bumps deviceinv's generation,
+    so a re-draw is enough for the caller that re-asks the question -- see
+    taskedit.list_addable_actions' memo, and reclassify_action_args for the callers whose
+    models were built before the fetch and have to be rebuilt rather than merely redrawn.
+    """
+    if reason not in (taskedit.NO_APPS_REASON, taskedit.NO_ICONS_REASON):
+        return
+    for_icons = reason == taskedit.NO_ICONS_REASON
+
+    async def fetch() -> None:
+        await _build_fetch_apps_dialog(gui, on_fetched, for_icons=for_icons)
+
+    _render_fetch_apps_button(fetch, for_icons=for_icons)
+
+
+def _after_inventory_fetch(redraw: Callable[[], None], action: taskedit.EditableAction) -> Callable[[], None]:
+    """What to do once a fetch has filled the inventory: re-ask this action's arguments
+    what kind of widget they are, and then draw them again.
+
+    Re-drawing alone would not do it.  A read-only App or Icon field is read-only because
+    _classify_arg_widget said so when the model was built, and that answer is kept in the
+    EditableArg -- so without the rebuild the field would come back grey, still carrying a
+    reason that had just stopped being true.
+    """
+
+    def refresh() -> None:
+        taskedit.reclassify_action_args(action)
+        redraw()
+
+    return refresh
+
+
+def _after_condition_fetch(
+    redraw: Callable[[], None],
+    condition: profedit.EditableCondition,
+) -> Callable[[], None]:
+    """_after_inventory_fetch's counterpart for a Profile State/Event condition's arguments."""
+
+    def refresh() -> None:
+        profedit.reclassify_condition_args(condition)
+        redraw()
+
+    return refresh
+
+
+def _render_readonly_note(gui: MyGui, note: str, on_fetched: Callable[[], None]) -> None:
+    """The italic note beside an argument that cannot be edited -- and, when the note is one
+    of the two a fetch can lift, the fetch beside it.
+
+    This is where 'No icons were found in the loaded configuration to choose from.' is most
+    often read: not in the Add Action picker, but on a greyed-out Icon field in an action
+    that is already there.  Until now it was a dead end wherever it appeared, and the way
+    out existed only inside a picker the empty inventory stopped from opening.
+    """
+    ui.label(note).classes("text-xs text-gray-500 italic")
+    _render_inventory_fetch(gui, note, on_fetched)
 
 
 def _render_addability_reason(gui: MyGui, reason: str, on_fetched: Callable[[], None]) -> None:
     """Why an action can't be added -- and, for the one reason that has a way out, the way
     out.
 
-    'No Applications were found in the loaded configuration to choose from' is the only
-    refusal a user can do something about without leaving this dialog, and until now it was
-    a dead end in the most literal way: with no Applications in the inventory, 'Launch App'
-    is not addable, so the Application picker never opens, so the picker's own
-    'App not listed?' button -- the thing that would fix it -- could not be reached.  Same
+    'No Applications were found in the loaded configuration to choose from' and its icon
+    counterpart are the refusals a user can do something about without leaving this dialog,
+    and until now each was a dead end in the most literal way: with nothing in the
+    inventory, 'Launch App' is not addable, so the picker never opens, so the picker's own
+    'not listed?' button -- the thing that would fix it -- could not be reached.  Same
     button, same fetch, offered at the point where the user actually hits the wall.
 
     on_fetched re-runs whatever drew this row.  A fetch bumps deviceinv's generation, which
@@ -1034,13 +1137,7 @@ def _render_addability_reason(gui: MyGui, reason: str, on_fetched: Callable[[], 
     so re-running the picker is all it takes for the greyed-out row to turn into a button.
     """
     ui.label(reason).classes("text-xs text-gray-500 italic")
-    if reason != taskedit.NO_APPS_REASON:
-        return
-
-    async def fetch() -> None:
-        await _build_fetch_apps_dialog(gui, on_fetched)
-
-    _render_fetch_apps_button(fetch)
+    _render_inventory_fetch(gui, reason, on_fetched)
 
 
 def _render_app_arg_field(
@@ -1073,6 +1170,7 @@ def _render_app_arg_field(
 
 
 def _render_icon_arg_field(
+    gui: MyGui,
     arg: taskedit.EditableArg,
     key: str,
     field_refs: dict,
@@ -1089,10 +1187,15 @@ def _render_icon_arg_field(
     pick_button = ui.button(
         translate_string("Pick"),
         icon="image",
-        on_click=lambda _e=None, f=field_refs[key]: _build_tasker_icon_picker_dialog(f),
+        on_click=lambda _e=None, f=field_refs[key]: _build_tasker_icon_picker_dialog(f, gui),
     ).props("flat dense size=sm")
     with pick_button:
-        ui.tooltip(translate_string("Choose from the icons used in the loaded configuration."))
+        ui.tooltip(
+            translate_string(
+                "Choose from the icons used in the loaded configuration, and from your device's "
+                "applications if you have fetched them.",
+            ),
+        )
 
 
 def build_action_condition_dialog(
@@ -1487,15 +1590,23 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                                 elif arg.widget_kind == "app_picker":
                                     _render_app_arg_field(self, arg, key, field_refs)
                                 elif arg.widget_kind == "icon_picker":
-                                    _render_icon_arg_field(arg, key, field_refs)
+                                    _render_icon_arg_field(self, arg, key, field_refs)
                                 elif arg.widget_kind in ("text", "raw_fallback"):
                                     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
                                     if arg.readonly_note:
-                                        ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+                                        _render_readonly_note(
+                                            self,
+                                            arg.readonly_note,
+                                            _after_inventory_fetch(render_actions, action),
+                                        )
                                 else:  # readonly
                                     ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
                                     if arg.readonly_note:
-                                        ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+                                        _render_readonly_note(
+                                            self,
+                                            arg.readonly_note,
+                                            _after_inventory_fetch(render_actions, action),
+                                        )
 
         refresh_picker()
         refresh_position_options()
@@ -1899,20 +2010,34 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
                                         text_initial(key, arg.current_value),
                                     )
                                 elif arg.widget_kind == "icon_picker":
-                                    _render_icon_arg_field(arg, key, field_refs, text_initial(key, arg.current_value))
+                                    _render_icon_arg_field(
+                                        self,
+                                        arg,
+                                        key,
+                                        field_refs,
+                                        text_initial(key, arg.current_value),
+                                    )
                                 elif arg.widget_kind in ("text", "raw_fallback"):
                                     field_refs[key] = ui.input(
                                         arg.arg_name,
                                         value=text_initial(key, arg.current_value),
                                     ).classes("flex-1")
                                     if arg.readonly_note:
-                                        ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+                                        _render_readonly_note(
+                                            self,
+                                            arg.readonly_note,
+                                            _after_condition_fetch(render_conditions, condition),
+                                        )
                                 else:  # readonly
                                     ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes(
                                         "flex-1",
                                     )
                                     if arg.readonly_note:
-                                        ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+                                        _render_readonly_note(
+                                            self,
+                                            arg.readonly_note,
+                                            _after_condition_fetch(render_conditions, condition),
+                                        )
 
                     elif condition.cond_type == "Time":
                         values = profedit.get_time_field_values(condition)
@@ -7297,7 +7422,7 @@ def build_add_task_dialog(
                                 elif arg.widget_kind == "app_picker":
                                     _render_app_arg_field(self, arg, key, field_refs)
                                 elif arg.widget_kind == "icon_picker":
-                                    _render_icon_arg_field(arg, key, field_refs)
+                                    _render_icon_arg_field(self, arg, key, field_refs)
                                 elif arg.widget_kind == "readonly":
                                     # A newly-added plugin action's payload (see
                                     # taskedit._synthesize_bundle_arg): not editable here,
@@ -7306,7 +7431,11 @@ def build_add_task_dialog(
                                         "flex-1",
                                     )
                                     if arg.readonly_note:
-                                        ui.label(arg.readonly_note).classes("text-xs text-gray-500 italic")
+                                        _render_readonly_note(
+                                            self,
+                                            arg.readonly_note,
+                                            _after_inventory_fetch(render_added_actions, action),
+                                        )
                                 else:  # "text" or "raw_fallback"
                                     field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
                         ui.button(

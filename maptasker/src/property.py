@@ -116,10 +116,13 @@ def parse_variable(
         "pvn": variable_header.find("pvn"),
         "exportval": variable_header.find("exportval"),
         "pvt": variable_header.find("pvt"),
+        "pvit": variable_header.find("pvt"),
     }
 
     # Mapping field values to output strings.  They are in the order as displayed in Tasker.
+    # Note: Task properties also show up in '<ProfileVariable' underneath the '<Task'.
     components = [
+        "Show in Notification, " if get_text(fields["pvit"]) == "t" else "",
         f"Variable:{get_display_text(fields['pvn'])}, " if get_text(fields["pvn"]) else "",
         "Configure on Import, " if get_text(fields["pvci"]) != "false" else "",
         "Structured Variable (JSON, etc.), " if get_text(fields["strout"]) != "false" else "",

@@ -2636,3 +2636,15 @@ msgstr "Wählen Sie eine bestimmte Aufgabe als Ziel für die Anzeige oder Bearbe
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Wählen Sie diese Option aus, um Profile und Aufgaben einzuschließen, die keinen Namen in der Liste haben."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Wählen Sie aus den in der geladenen Konfiguration verwendeten Symbolen und aus den Anwendungen Ihres Geräts, sofern Sie diese abgerufen haben."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Die Symbole stammen aus derselben Quelle wie die Anwendungen: Tasker erkennt das eigene Symbol einer Anwendung anhand ihres Paketinhalts und ihrer Launcher-Aktivität, sodass jede auf dem Gerät befindliche Anwendung als Symbol ausgewählt werden kann.\n\nDie eigenen, in Tasker integrierten Symbole können nicht abgerufen werden – sie befinden sich innerhalb von Tasker selbst – ebenso wenig wie die Symbole in einem Icon-Paket, die manuell über ihren Namen eingegeben werden müssen."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Die in der geladenen Konfiguration verwendeten Symbole sowie die Symbole jeder Anwendung, falls Sie diese von Ihrem Gerät abgerufen haben. Das von Ihnen gewählte Symbol ersetzt den Inhalt des Feldes. Wenn ein Symbol aus einem nicht aufgeführten Symbolpaket verwendet wird, muss der Name dieses Symbols eingegeben werden, da er sich innerhalb des Pakets befindet."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Weitere Informationen finden Sie in der MapTasker-[Befehlsreferenz](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).\n"

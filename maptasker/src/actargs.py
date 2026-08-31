@@ -6,7 +6,6 @@
 # actargs: process Task "Action" arguments                                             #
 #                                                                                      #
 
-import contextlib
 import html
 
 import defusedxml.ElementTree  # Need for type hints
@@ -202,6 +201,49 @@ def evaluate_argument(
 
 
 # Get image related details from action xml
+def format_image(child: defusedxml) -> str:
+    """
+    The icon an <Img> points at, spelled out for the map.
+
+    Tasker writes an icon in six shapes, and only two of them carry an <nme>:
+
+        <var>          a %variable, resolved on the phone.  It wins over anything else left
+                       in the element -- the same rule deviceinv.read_icon_element applies
+                       for the editor.
+        <nme>          alone: one of Tasker's own built-in icons.
+        <nme> + <pkg>  a named icon inside an installed icon pack.
+        <pkg>          alone, usually with the launcher <cls> beside it: an installed app's
+                       own icon.  This is the shape 'Set Tasker Icon' (138) writes, and
+                       carrying no <nme> is exactly why it used to map as nothing at all.
+        <fle>          an image file on the device, named by its path.
+        <sym>          a Material symbol name.
+
+    An <Img> holding none of those is an icon that was never set -- Tasker writes the empty
+    element anyway -- and maps as an empty string.
+
+    Args:
+        child: defusedxml - the <Img> element
+
+    Returns:
+        str - the icon it names, or "" if it names none
+    """
+    if variable := child.findtext("var", default="").strip():
+        return variable
+
+    name = child.findtext("nme", default="").strip()
+    package = child.findtext("pkg", default="").strip()
+    activity_class = child.findtext("cls", default="").strip()
+
+    if name:
+        # An icon pack's icon: the name only means anything alongside the pack holding it.
+        return f"{name}, Package:{package}" if package else name
+    if package:
+        # An app's own icon.  The class names the activity Tasker takes the icon from.
+        return f"Package:{package}, Class:{activity_class}" if activity_class else f"Package:{package}"
+
+    return child.findtext("fle", default="").strip() or child.findtext("sym", default="").strip()
+
+
 def extract_image(
     evaluated_results: dict,
     code_action: defusedxml,
@@ -209,7 +251,8 @@ def extract_image(
     arg: str,
 ) -> None:
     """
-    Extract image from evaluated results
+    Extract this argument's icon into the evaluated results.
+
     Args:
         evaluated_results: dict - The dictionary containing the evaluation results
         code_action: defusedxml - The parsed defusedxml object
@@ -218,28 +261,30 @@ def extract_image(
     Returns:
         None - No return value
     Processing Logic:
-        - Find the <Img> tag in the code_action
-        - Extract the image name and package if present
-        - Append the image details to the result_img list in evaluated_results dictionary
-        - Set returning_something to False if no image is found
+        - Find this argument's <Img> element
+        - Format whichever of Tasker's icon shapes it holds (see format_image)
+        - Store it against the argument, or a blank if the icon was never set
     """
-    image, package = "", ""
-    child = code_action.find("Img")
+    the_arg = f"arg{arg[0]}"
+    # Pair the element with the argument by its sr=, the way every other argument type here
+    # is read.  No action declares two Icon arguments today, so the first <Img> would do,
+    # but it costs nothing to be right if one ever does.  The fallback covers xml written
+    # without an sr= at all.
+    child = code_action.find(f"Img[@sr='{the_arg}']")
     if child is None:
-        evaluated_results[f"arg{arg[0]}"]["value"] = " "
-        return
-    # Image name
-    with contextlib.suppress(Exception):
-        image = child.find("nme").text
-    if child.find("pkg") is not None:
-        package = f'", Package:"{child.find("pkg").text}'
-    elif child.find("var") is not None:  # There is a variable name?
-        image = child.find("var").text
-    if image:
-        evaluated_results[f"arg{arg[0]}"]["value"] = f"{argeval}{image}{package}"
+        child = code_action.find("Img")
 
-    else:
-        evaluated_results[f"arg{arg[0]}"]["value"] = " "
+    image = format_image(child) if child is not None else ""
+    if not image:
+        evaluated_results[the_arg]["value"] = " "
+        return
+
+    # Separate the label from the value.  action_args hands over the argument's *name*
+    # ("Icon") whenever it has one, not its arg_eval ("Icon="), which is why this has to add
+    # the "=" the way extract_string and extract_integer do for Str and Int arguments --
+    # without it the icon runs straight into its label as "Iconmw_navigation_apps".
+    label = argeval if argeval.endswith("=") else f"{argeval}="
+    evaluated_results[the_arg]["value"] = f"{label}{html.escape(image)}"
 
 
 # Get condition releated details from action xml

@@ -2677,3 +2677,15 @@ msgstr "Виберіть конкретне завдання для відобр
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Виберіть це, щоб включити до списку профілі та завдання, які не мають назви."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Виберіть піктограми, які використовуються у завантаженій конфігурації, і програми вашого пристрою, якщо ви їх отримали."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Піктограми надходять з того ж місця, що й програми: Tasker визначає власну піктограму програми за її пакетом і активністю запуску, тому кожна програма, знайдена на пристрої, стає піктограмою, яку ви можете вибрати.\n\nВбудовані піктограми Tasker не можуть бути отримані — вони живуть у самому Tasker — так само як і піктограми в наборі значків, ім’я яких потрібно вводити."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Піктограми, які використовуються десь у завантаженій конфігурації, а також власна піктограма кожної програми, якщо ви отримали її зі свого пристрою.  Те, що ви обираєте, замінює те, що містить поле.  Піктограму з пакета значків, якого немає в списку, потрібно ввести: його назви знаходяться всередині пакета."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Зверніться до розділу «Довідка за командами» [MapTasker](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) для отримання додаткової інформації.\n"

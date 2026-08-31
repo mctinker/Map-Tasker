@@ -2671,3 +2671,15 @@ msgstr "Wybierz konkretne zadanie, którego chcesz wyświetlić lub edytować."
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Wybierz tę opcję, aby uwzględnić na liście profile i zadania, które nie mają nazwy."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Wybierz jedną z ikon używanych w załadowanej konfiguracji oraz z aplikacji na urządzeniu, jeśli je pobrałeś."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Ikony pochodzą z tego samego miejsca, co aplikacje: Tasker identyfikuje własną ikonę aplikacji na podstawie jej pakietu i aktywności w programie uruchamiającym, więc każda aplikacja znaleziona na urządzeniu staje się ikoną, którą możesz wybrać.\n\nNie można pobrać własnych ikon wbudowanych w Taskera – znajdują się one w samym Taskerze – podobnie jak ikony w pakiecie ikon, które należy wpisać według nazwy."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Ikony używane gdzieś w załadowanej konfiguracji oraz własna ikona każdej aplikacji, jeśli pobrałeś je ze swojego urządzenia.  To, co wybierzesz, zastępuje to, co zawiera pole.  Należy wpisać ikonę z pakietu ikon, którego nie ma na liście: jej nazwy znajdują się w pakiecie."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Aby uzyskać więcej informacji, zobacz MapTasker [Opis poleceń](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).\n"

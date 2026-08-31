@@ -2671,3 +2671,15 @@ msgstr "Belirli bir Görev'i görüntüleme veya düzenleme amacıyla seçin."
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Bu seçeneği kullanarak, adını olmayan Profil ve Görevleri de listede göstermeyi seçebilirsiniz."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Yüklenen konfigürasyonda kullanılan simgeler arasından ve bunları getirdiyseniz cihazınızın uygulamalarından seçim yapın."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Simgeler Uygulamalarla aynı yerden gelir: Tasker, bir uygulamanın kendi simgesini paketine ve başlatıcı etkinliğine göre tanımlar, böylece cihazda bulunan her uygulama seçebileceğiniz bir simge haline gelir.\n\nTasker'ın kendi yerleşik simgeleri getirilemez - bunlar Tasker'ın içinde yaşarlar - ve bir simge paketinin içindeki, isme göre yazılması gereken simgeler de getirilemez."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Yüklenen konfigürasyonda bir yerde kullanılan simgelere ek olarak, bunları cihazınızdan getirdiyseniz her uygulamanın kendi simgesi.  Seçtiğiniz şey, alanın sahip olduğu şeyin yerini alır.  Listelenmeyen bir simge paketindeki simgenin yazılması gerekir: adları paketin içinde bulunur."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Daha fazla bilgi için MapTasker [Komut Referansı](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) konusuna bakın.\n"

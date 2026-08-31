@@ -845,6 +845,117 @@ def test_an_app_argument_with_nothing_to_offer_says_why(no_apps_device: _FakeReq
     assert editable.readonly_note == taskedit.NO_APPS_REASON
 
 
+# ##################################################################################
+# The other dead end: no icons at all.
+# ##################################################################################
+# Same shape as the Applications one above, and the same way out.  An app's own icon is a
+# package plus a launcher activity, which is exactly what the Application fetch brings
+# back, so asking the device for applications is also asking it for icons -- and the GUI
+# offers that fetch wherever it shows NO_ICONS_REASON (guiwins._render_inventory_fetch).
+# The other two icon kinds are not reachable this way and are not pretended to be.
+def test_the_icon_refusal_is_a_named_one_too(no_apps_device: _FakeRequests) -> None:
+    """The fixture that harvests no Applications harvests no icons either, so Notify --
+    whose arg2 is an <Img> -- is refused for the icon reason, by equality.
+    """
+    assert deviceinv.icons() == []
+    addable, reason = taskedit.classify_action_addability(NOTIFY)
+    assert addable is False
+    assert reason == taskedit.NO_ICONS_REASON
+
+
+def test_a_fetch_opens_the_icon_dead_end(no_apps_device: _FakeRequests) -> None:
+    """The whole point of offering the fetch beside that refusal.
+
+    With no icons anywhere, Notify cannot be added, so its icon picker cannot be opened, so
+    the picker's own fetch button cannot be reached.  The fetch has to be enough on its own
+    to turn the row addable -- which it is, because every fetched application stands as an
+    icon and the fetch moves deviceinv's generation.
+    """
+    rows = {row["action_key"]: row for row in taskedit.list_addable_actions()}
+    assert rows[NOTIFY]["addable"] is False
+    assert rows[NOTIFY]["reason"] == taskedit.NO_ICONS_REASON
+
+    return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+    assert return_code == 0, message
+
+    rows = {row["action_key"]: row for row in taskedit.list_addable_actions()}
+    assert rows[NOTIFY]["addable"] is True
+
+
+def test_a_fetched_icon_is_the_app_icon_tasker_writes(no_apps_device: _FakeRequests) -> None:
+    """What a fetch actually adds: one 'app' icon per installed application, carrying the
+    package and the launcher activity, spelled the way a field holds one.
+    """
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+
+    icons = deviceinv.icons()
+    assert {icon.kind for icon in icons} == {"app"}
+    whatsapp = next(icon for icon in icons if icon.pkg == WHATSAPP)
+    assert whatsapp.cls == "com.whatsapp.Main"
+    assert deviceinv.format_icon_value(whatsapp) == f"app:{WHATSAPP}/com.whatsapp.Main"
+
+
+def test_a_fetch_adds_no_icon_kind_it_cannot_know(no_apps_device: _FakeRequests) -> None:
+    """The honest half of the offer.
+
+    Tasker's built-in icon names live inside its own APK and an icon pack's contents are
+    not enumerable remotely, so a fetch must not appear to supply either -- what it returns
+    is applications, and only their own icons come of it.
+    """
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+
+    kinds = {icon.kind for icon in deviceinv.icons()}
+    assert "builtin" not in kinds
+    assert "pack" not in kinds
+
+
+def test_the_harvest_wins_for_an_icon_both_sources_have(device: _FakeRequests) -> None:
+    """The same precedence the Applications merge keeps, for the same reason: a harvested
+    <Img> came out of a file Tasker itself wrote, so its <cls> is right, where a fetched
+    launcher activity is whatever 'List Apps' reported.  One entry per package either way.
+    """
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+
+    whatsapp = [icon for icon in deviceinv.icons() if icon.kind == "app" and icon.pkg == WHATSAPP]
+    assert len(whatsapp) == 1
+    assert whatsapp[0].cls == "com.whatsapp.Main"
+
+
+def test_fetched_icons_sort_after_the_ones_already_in_use(device: _FakeRequests) -> None:
+    """A fetch can add hundreds of app icons at once.  Built-ins and pack icons -- the ones
+    this configuration actually uses -- have to stay at the top of the picker rather than
+    being pushed under them.
+    """
+    deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
+
+    kinds = [icon.kind for icon in deviceinv.icons()]
+    assert kinds == sorted(kinds, key={"builtin": 0, "pack": 1, "app": 2, "var": 3}.get)
+
+
+def test_an_icon_argument_stops_being_read_only_once_the_icons_arrive(
+    no_apps_device: _FakeRequests,
+) -> None:
+    """What the GUI leans on to redraw a greyed-out field in place.
+
+    An argument's widget kind is decided when its model is built, so a field built before
+    the fetch goes on saying 'No icons were found...' however many times it is redrawn.
+    reclassify_action_args re-asks the question -- which is the whole reason the fetch can
+    be offered beside that message instead of only inside a picker it cannot open.
+    """
+    action_xml = '<Action sr="act0" ve="7"><code>523</code><Img sr="arg2" ve="2"/></Action>'
+    action = taskedit._build_editable_action(ET.fromstring(action_xml), 0)  # noqa: S314, SLF001
+    icon_arg = next(arg for arg in action.args if arg.arg_id == "2")
+    assert icon_arg.widget_kind == "readonly"
+    assert icon_arg.readonly_note == taskedit.NO_ICONS_REASON
+
+    assert deviceinv.fetch_apps_from_device("192.168.0.210", "1821")[0] == 0
+    taskedit.reclassify_action_args(action)
+
+    icon_arg = next(arg for arg in action.args if arg.arg_id == "2")
+    assert icon_arg.widget_kind == "icon_picker"
+    assert not icon_arg.readonly_note
+
+
 def test_a_paired_label_line_survives_its_trailing_joiner() -> None:
     """The append loop's signature, and the one thing about it that could shift every label.
 

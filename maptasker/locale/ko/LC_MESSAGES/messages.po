@@ -2652,3 +2652,15 @@ msgstr "표시 또는 편집 대상으로 지정할 특정 작업을 선택합�
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "목록에 이름이 없는 프로필 및 작업을 포함하려면 이를 선택합니다."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "로딩된 구성에서 사용되는 아이콘 중에서 선택하거나, 가져온 앱의 아이콘 중에서 선택하십시오."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "아이콘은 애플리케이션과 동일한 위치에서 가져옵니다. Tasker는 애플리케이션의 자체 아이콘을 패키지 및 런처 활동을 통해 식별하므로, 장치에 있는 모든 애플리케이션은 선택할 수 있는 아이콘으로 변환됩니다.\n\nTasker 자체에 내장된 아이콘은 가져올 수 없습니다. 이 아이콘들은 Tasker 자체 내부에 존재하며, 아이콘 팩에 있는 아이콘도 마찬가지로 이름으로 직접 입력해야 합니다."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "로딩된 구성에 사용된 아이콘, 그리고 장치에서 가져온 경우 해당 애플리케이션의 자체 아이콘 모두를 사용할 수 있습니다. 선택한 아이콘은 해당 필드의 값을 대체합니다. 목록에 없는 아이콘 팩에서 가져온 아이콘은 명시적으로 입력해야 합니다. 해당 아이콘의 이름은 해당 팩 내부에 저장됩니다."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "자세한 내용은 MapTasker [명령 참조](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)를 참조하세요.\n"

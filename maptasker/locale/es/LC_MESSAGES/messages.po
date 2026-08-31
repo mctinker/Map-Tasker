@@ -2656,3 +2656,15 @@ msgstr "Seleccione una tarea específica a la que apuntar para mostrarla o edita
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Seleccione esto para incluir perfiles y tareas que no tienen un nombre en la lista."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Seleccione los iconos utilizados en la configuración cargada, o las aplicaciones de su dispositivo si las ha descargado."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Los iconos provienen del mismo lugar que las aplicaciones: Tasker identifica el icono de una aplicación mediante su paquete y actividad del lanzador, por lo que cada aplicación que se encuentre en el dispositivo se convierte en un icono que puede seleccionar.\n\nLos iconos integrados en Tasker no se pueden obtener; están dentro de Tasker mismo, y tampoco se pueden obtener los iconos que forman parte de un paquete de iconos, que deben introducirse por nombre."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Los iconos que se utilicen en alguna parte de la configuración cargada, así como el icono de cada aplicación si los ha descargado de su dispositivo. El icono que elija reemplaza el valor que contiene el campo. Si el icono proviene de un paquete de iconos que no está listado, deberá introducir su nombre, ya que este se encuentra dentro del paquete."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Consulte MapTasker [Referencia de comandos](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) para obtener más información.\n"

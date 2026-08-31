@@ -6,6 +6,8 @@
 # userintr: provide GUI and process input for program arguments                        #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
+from collections.abc import Callable
+
 from maptasker.src.sysconst import VERSION
 
 # NOTE: The textbox is used for help information via new_message_box, normal one-liner messages via display_message_box
@@ -196,4 +198,36 @@ APIKEY_HELP_TEXT = (
     "Click on the 'Clear' button to clear a specific API key entry.  \n"
     "Select 'Ok' to save the changes or 'Cancel' to back out of the changes.  \n"
 )
-HELP = f"MapTasker {VERSION} Help  \n{INFO_TEXT}See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+# The main help screen's three pieces, held apart because the version number sits between
+# the first two.  A msgid carrying the release number would be invalidated by every
+# release, so there is deliberately no constant holding the assembled screen -- see
+# build_help.
+HELP_HEADING = "Help"
+COMMAND_REFERENCE_TEXT = (
+    "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)"
+    " for more information.  \n"
+)
+
+
+def build_help(translate: Callable[[str], str] | None = None) -> str:
+    """The 'Display Help' screen, in the language `translate` looks strings up in.
+
+    Each piece is looked up on its own, and the version number is dropped in between them
+    untranslated.  Handing gettext the whole screen instead is what used to happen, and it
+    could only ever miss: no catalog holds a msgid with a version number in it, and gettext
+    answers a miss by handing back what it was given -- which looks exactly like a
+    translation into English, silently, in all 33 languages.
+
+    The three pieces are msgids in their own right because sync_missing_msgids.py collects
+    every upper-case string constant in this module (see its help_text_strings), so a
+    catalog carries them without anything having to ask for them by name.
+
+    Args:
+        translate: the lookup each piece is put through -- maputil2.translate_string in the
+            GUI.  Omitted leaves the screen in English.
+
+    Returns:
+        str - the assembled help screen
+    """
+    lookup = translate or (lambda text: text)
+    return f"MapTasker {VERSION} {lookup(HELP_HEADING)}  \n{lookup(INFO_TEXT)}{lookup(COMMAND_REFERENCE_TEXT)}"

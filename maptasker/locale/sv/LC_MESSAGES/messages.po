@@ -2657,3 +2657,15 @@ msgstr "Välj en specifik uppgift för visning eller redigering."
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Välj detta för att inkludera profiler och uppgifter som inte har ett namn i listan."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Välj bland ikonerna som används i den laddade konfigurationen och från enhetens applikationer om du har hämtat dem."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Ikoner kommer från samma plats som applikationer gör: Tasker identifierar en applikations egen ikon genom dess paket- och startaktivitet, så varje applikation som hittas på enheten blir en ikon som du kan välja.\n\nTaskers egna inbyggda ikoner kan inte hämtas -- de bor i själva Tasker -- och inte heller ikonerna i ett ikonpaket, som måste skrivas med namn."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Ikonerna som används någonstans i den laddade konfigurationen, plus varje applikations egen ikon om du har hämtat dem från din enhet.  Det du väljer ersätter det som fältet innehåller.  En ikon från ett ikonpaket som inte är listat måste skrivas: dess namn finns i paketet."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Se MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) för mer information.\n"

@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.0.3] ??-Aug-2026  # FIX
+## [13.0.3] 31-Aug-2026
 
 ### Added
 
@@ -16,10 +16,11 @@ All notable changes to this project will be documented in this file!
   - An Application can be a __Tasker variable__ rather than an installed app.  Both Application pickers have an 'Or a Tasker variable:' box for it -- anything starting with '%'.  In an action argument the variable joins whatever else is ticked; in the Profile 'Application' condition it fills the Package and Label fields and leaves the Class empty, which is what Tasker itself writes for one.
   - The field itself is still typed into, and what you type is what is saved -- and an icon from an icon pack has to be named by hand, since those names live inside the pack.
   
--Added: Import Projects/Profiles/Tasks/Scenes directly into Tasker via the 'Edit (object) > Save To Android > 'Import Into Tasker' buttons.  It uses Android's 'Open with...' feature, requiring a firsttime 'Tasker' app selection.
+- Added: Import Projects/Profiles/Tasks/Scenes directly into Tasker via the 'Edit (object) > Save To Android > 'Import Into Tasker' buttons.  It uses Android's 'Open with...' feature, requiring a firsttime 'Tasker' app selection.
 - Added: All new command language translations have been added.
 - Added: A command reference has been added to the [wiki](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).
 - Added: Additional command tooltips have been added to the GUI.
+- Added: Prompt to optionally fetch the system icons from the Android device when editing Task actions involving an icon.
 
 ### Changed
 
@@ -41,6 +42,9 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: 'Reset Settings' does nothing and causes a program error.
 - Fixed: Application packages, such as 'com.samsung.browser.health', 'package' and 'app' name sare being incorrectly reported as 'Class:' in the Map view.
+- Fixed: An icon argument in a Task is not displaying properly in the Map view.
+- Fixed: The help text is not being translated to the selected language.
+- Fixed: 'Show in Notification' Task property is not appearing in the Map view.
 
 ### Known Issues
 

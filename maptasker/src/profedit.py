@@ -261,6 +261,19 @@ def _build_condition_args(
     return taskedit.build_editable_args(condition_element, effective_args)
 
 
+def reclassify_condition_args(condition: EditableCondition) -> None:
+    """Rebuild one condition's argument models against the inventory as it stands now --
+    the Profile side of taskedit.reclassify_action_args, for the same reason: an App or
+    Icon argument that was read-only for want of an inventory has to stop being read-only
+    once a fetch has supplied one, without the dialog having to be reopened.
+    """
+    condition.args = (
+        _build_condition_args(condition.condition_element, condition.cond_type)
+        if condition.cond_type in _CONDITION_CODE_SUFFIX
+        else []
+    )
+
+
 def get_condition_display_name(condition: EditableCondition) -> str:
     """A short human-readable label for a condition's expansion header in the
     GUI, e.g. "Event: HTTP Request Received" instead of just "Event". Falls back

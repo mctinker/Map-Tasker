@@ -2677,3 +2677,15 @@ msgstr "డిస్‌ప్లే లేదా ఎడిటింగ్ కో
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "జాబితాలో పేరు లేని ప్రొఫైల్‌లు మరియు టాస్క్‌లను చేర్చడానికి దీన్ని ఎంచుకోండి."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "లోడ్ చేయబడిన కాన్ఫిగరేషన్‌లో ఉపయోగించిన చిహ్నాల నుండి మరియు మీరు వాటిని పొందినట్లయితే మీ పరికరం యొక్క అప్లికేషన్‌ల నుండి ఎంచుకోండి."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "ఐకాన్‌లు అప్లికేషన్‌లు చేసే స్థలం నుండి వస్తాయి: టాస్కర్ దాని ప్యాకేజీ మరియు లాంచర్ యాక్టివిటీ ద్వారా అప్లికేషన్ యొక్క స్వంత చిహ్నాన్ని గుర్తిస్తుంది, కాబట్టి పరికరంలో కనిపించే ప్రతి అప్లికేషన్ మీరు ఎంచుకోగల చిహ్నంగా మారుతుంది.\n\nటాస్కర్ యొక్క స్వంత అంతర్నిర్మిత చిహ్నాలను పొందడం సాధ్యం కాదు -- అవి టాస్కర్‌లోనే నివసిస్తాయి -- అలాగే ఐకాన్ ప్యాక్‌లోని ఐకాన్‌లు కూడా పేరు ద్వారా టైప్ చేయబడవు."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "లోడ్ చేయబడిన కాన్ఫిగరేషన్‌లో ఎక్కడో ఉపయోగించిన చిహ్నాలు, అలాగే మీరు మీ పరికరం నుండి వాటిని పొందినట్లయితే ప్రతి అప్లికేషన్ యొక్క స్వంత చిహ్నం.  మీరు ఎంచుకున్నది ఫీల్డ్ కలిగి ఉన్న దాని స్థానంలో ఉంటుంది.  జాబితా చేయబడని ఐకాన్ ప్యాక్ నుండి ఒక చిహ్నాన్ని టైప్ చేయాలి: దాని పేర్లు ప్యాక్ లోపల ఉంటాయి."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "మరింత సమాచారం కోసం, MapTasker [కమాండ్ రిఫరెన్స్](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) చూడండి.\n"

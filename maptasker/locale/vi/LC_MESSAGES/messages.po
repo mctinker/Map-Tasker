@@ -2675,3 +2675,15 @@ msgstr "Chọn một Nhiệm vụ cụ thể để nhắm mục tiêu hiển th�
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Chọn tùy chọn này để bao gồm Hồ sơ và Nhiệm vụ không có tên trong danh sách."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Chọn từ các biểu tượng được sử dụng trong cấu hình đã tải và từ các ứng dụng trên thiết bị của bạn nếu bạn đã tải chúng."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Các biểu tượng đến từ cùng một nơi Các ứng dụng làm: Tasker xác định biểu tượng của chính ứng dụng theo hoạt động của gói và trình khởi chạy của ứng dụng đó, vì vậy mọi ứng dụng được tìm thấy trên thiết bị đều trở thành biểu tượng mà bạn có thể chọn.\n\nKhông thể tìm nạp các biểu tượng tích hợp của riêng Tasker -- chúng nằm bên trong chính Tasker -- và các biểu tượng bên trong gói biểu tượng cũng không thể được nhập theo tên."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Các biểu tượng được sử dụng ở đâu đó trong cấu hình đã tải, cộng với biểu tượng riêng của mỗi ứng dụng nếu bạn đã tải chúng từ thiết bị của mình.  Những gì bạn chọn sẽ thay thế những gì trường chứa.  Phải nhập biểu tượng từ gói biểu tượng không được liệt kê: tên của nó nằm trong gói."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Xem MapTasker [Tham khảo lệnh](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) để biết thêm thông tin.\n"

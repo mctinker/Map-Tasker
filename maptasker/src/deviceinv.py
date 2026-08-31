@@ -27,9 +27,14 @@ pickers built on this never *replace* typing a value, they only save you from ha
 (see guiwins.py's _render_app_arg_field, and _build_icon_field, which took the same stance
 for Scenes first).
 
-Only Applications are fetched.  Tasker's built-in icon names live inside its own APK and
-'List Apps' does not report them, so icons stay harvest-only -- see
-app_icon_fetch_design.md's "icon gap".
+A fetch asks the device for Applications, and that is an icon fetch as well: Tasker names
+an app's own icon by its package and its launcher activity, which is exactly what comes
+back, so every fetched Application also stands as an 'app' icon (see
+_merged_with_device_icons).  The other two icon kinds cannot be fetched at all -- Tasker's
+built-in names live inside its own APK and 'List Apps' does not report them, and an icon
+pack's contents are not enumerable remotely, the pack itself being detectable only as an
+installed app -- so those two stay harvested-or-typed.  See app_icon_fetch_design.md's
+"icon gap".
 
 Deliberately dependency-light: PrimeItems and the standard library, nothing else.  taskedit
 imports this; anything this imported from taskedit or profedit would be a cycle.
@@ -473,16 +478,19 @@ def _harvest(root: defusedxml.ElementTree.Element | None) -> tuple[list[AppEntry
         if icon is not None and icon.kind == "app":
             _merge_app(known_apps, AppEntry(pkg=icon.pkg, cls=icon.cls))
 
-    apps_sorted = _sorted_apps(known_apps.values())
-    # Built-ins first, then packs, then app icons, then variables: the order they are
-    # likely to be wanted in, and it keeps the ~250 built-in names of a real backup from
-    # being interleaved with a handful of app icons.
+    return _sorted_apps(known_apps.values()), _sorted_icons(known_icons.values())
+
+
+def _sorted_icons(icons: Iterable[IconRef]) -> list[IconRef]:
+    """Icons in the order a picker should open on.
+
+    Built-ins first, then packs, then app icons, then variables: the order they are likely
+    to be wanted in, and it keeps the ~250 built-in names of a real backup from being
+    interleaved with app icons -- which matters more since a fetch can add one per
+    installed application, hundreds of them, all of the one kind.
+    """
     kind_order = {"builtin": 0, "pack": 1, "app": 2, "var": 3}
-    icons_sorted = sorted(
-        known_icons.values(),
-        key=lambda icon: (kind_order.get(icon.kind, 9), icon.display.lower()),
-    )
-    return apps_sorted, icons_sorted
+    return sorted(icons, key=lambda icon: (kind_order.get(icon.kind, 9), icon.display.lower()))
 
 
 def _ensure_harvested() -> None:
@@ -495,6 +503,7 @@ def _ensure_harvested() -> None:
 
     _apps, _icons = _harvest(root)
     _apps = _merged_with_device_apps(_apps)
+    _icons = _merged_with_device_icons(_icons)
     _apps_by_package = {entry.pkg: entry for entry in _apps}
     _harvested_from = root
     _built_at_cache_stamp = _cache_stamp
@@ -519,6 +528,33 @@ def _merged_with_device_apps(harvested: list[AppEntry]) -> list[AppEntry]:
     for entry in list(harvested) + _device_apps:
         _merge_app(known, entry)
     return _sorted_apps(known.values())
+
+
+def _merged_with_device_icons(harvested: list[IconRef]) -> list[IconRef]:
+    """Fold the fetched Applications' own icons in with the harvested icons.
+
+    An 'app' icon is a package plus a launcher activity and nothing else, so the fetched
+    Application list is already a list of icons -- which is what makes 'get the icons from
+    the device' answerable at all, and it is the same fetch, the same helper Task and the
+    same cache as the Application list (see the module docstring's note on the icon gap for
+    the two kinds this cannot reach).
+
+    A package the harvest already has an 'app' icon for is left as the harvest had it: that
+    one came out of a file Tasker itself wrote, so its <cls> is right, where a fetched
+    launcher activity is whatever 'List Apps' reported.  Same precedence, same reason, as
+    _merged_with_device_apps.
+    """
+    if not _device_apps:
+        return harvested
+
+    known = {(icon.kind, icon.name, icon.pkg, icon.cls): icon for icon in harvested}
+    harvested_packages = {icon.pkg for icon in harvested if icon.kind == "app"}
+    for entry in _device_apps:
+        if not entry.pkg or entry.pkg in harvested_packages:
+            continue
+        icon = IconRef(kind="app", pkg=entry.pkg, cls=entry.cls)
+        known.setdefault((icon.kind, icon.name, icon.pkg, icon.cls), icon)
+    return _sorted_icons(known.values())
 
 
 # ==========================================

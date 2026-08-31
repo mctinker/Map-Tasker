@@ -2675,3 +2675,15 @@ msgstr "Valitse tietty tehtävä kohdistaa näyttöön tai muokkaukseen."
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Valitse tämä, jos haluat sisällyttää luetteloon profiileja ja tehtäviä, joilla ei ole nimeä."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Valitse ladatussa kokoonpanossa käytetyistä kuvakkeista ja laitteesi sovelluksista, jos olet hakenut niitä."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Kuvakkeet tulevat samasta paikasta Sovellukset: Tasker tunnistaa sovelluksen oman kuvakkeen sen paketin ja käynnistysohjelman perusteella, joten jokaisesta laitteelta löytyvästä sovelluksesta tulee kuvake, jonka voit valita.\n\nTaskerin omia sisäänrakennettuja kuvakkeita ei voi noutaa - ne sijaitsevat Taskerin sisällä - eivätkä myöskään kuvakepaketin sisällä olevat kuvakkeet, jotka on kirjoitettava nimellä."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Jossain ladatussa kokoonpanossa käytetyt kuvakkeet sekä jokaisen sovelluksen oma kuvake, jos olet hakenut ne laitteeltasi.  Valitsemasi korvaa sen, mitä kenttä sisältää.  Kuvakepaketin kuvake, jota ei ole luettelossa, on kirjoitettava: sen nimet ovat pakkauksen sisällä."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Katso lisätietoja MapTaskerin [komentoviittauksesta](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).\n"

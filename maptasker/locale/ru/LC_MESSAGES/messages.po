@@ -2654,3 +2654,15 @@ msgstr "Выберите конкретную задачу для отображ
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Выберите этот параметр, чтобы включить в список профили и задачи, у которых нет имени."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Выбирайте значки, используемые в загруженной конфигурации, а также в приложениях вашего устройства, если вы их загрузили."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Значки берутся из того же места, что и приложения: Tasker идентифицирует собственный значок приложения по его пакету и активности средства запуска, поэтому каждое приложение, найденное на устройстве, становится значком, который вы можете выбрать.\n\nСобственные встроенные значки Tasker не могут быть извлечены — они находятся внутри самого Tasker — как и значки внутри пакета значков, которые необходимо вводить по имени."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Значки, используемые где-то в загруженной конфигурации, а также собственные значки каждого приложения, если вы загрузили их со своего устройства.  То, что вы выбираете, заменяет то, что содержится в поле.  Необходимо ввести значок из пакета значков, которого нет в списке: его имена находятся внутри пакета."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Дополнительную информацию см. в MapTasker [Справочник по командам] (https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).\n"

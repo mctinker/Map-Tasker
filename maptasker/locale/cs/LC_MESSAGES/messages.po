@@ -2671,3 +2671,15 @@ msgstr "Vyberte konkrétní úkol, který chcete zobrazit nebo upravit."
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Vyberte tuto možnost, chcete-li zahrnout profily a úkoly, které nemají v seznamu název."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Vyberte si z ikon použitých v načtené konfiguraci a z aplikací vašeho zařízení, pokud jste je stáhli."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Ikony pocházejí ze stejného místa jako aplikace: Tasker identifikuje vlastní ikonu aplikace podle jejího balíčku a aktivity spouštěče, takže každá aplikace nalezená v zařízení se stane ikonou, kterou si můžete vybrat.\n\nVlastní vestavěné ikony Taskeru nelze načíst – jsou uloženy v samotném Taskeru – a ani ikony uvnitř sady ikon, které je třeba zadat podle názvu."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Ikony použité někde v načtené konfiguraci plus vlastní ikona každé aplikace, pokud jste je stáhli ze svého zařízení.  To, co si vyberete, nahradí to, co pole obsahuje.  Ikona ze sady ikon, která není uvedena, musí být napsána: její názvy jsou uvnitř sady."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Další informace najdete v MapTasker [příkazová příručka] (https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).\n"

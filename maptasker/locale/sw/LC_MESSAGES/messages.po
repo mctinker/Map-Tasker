@@ -2669,3 +2669,15 @@ msgstr "Chagua kazi maalum ambayo utaangalia au kuhariri."
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Chagua hii ili kujumuisha Majina na Majukumu ambazo hazina majina kwenye orodha."
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "Chagua kutoka kwa ikoni zinazotumiwa katika usanidi uliopakiwa, na kutoka kwa programu za kifaa chako ikiwa umezileta."
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "Aikoni hutoka mahali pale pale Programu zinapofanya: Tasker hutambua aikoni ya programu kwa kutumia kifurushi chake na shughuli ya kizindua, kwa hivyo kila programu inayopatikana kwenye kifaa inakuwa ikoni unayoweza kuchagua.\n\nAikoni zilizojengewa ndani za Tasker haziwezi kuletwa -- zinaishi ndani ya Tasker yenyewe -- na aikoni zilizo ndani ya pakiti ya ikoni, ambazo zinapaswa kuandikwa kwa jina."
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "Aikoni zinazotumika mahali fulani katika usanidi uliopakiwa, pamoja na aikoni ya kila programu ikiwa umezileta kutoka kwa kifaa chako.  Unachochagua huchukua nafasi ya kile shamba inachoshikilia.  Aikoni kutoka kwa pakiti ya aikoni ambayo haijaorodheshwa lazima ichapwe: majina yake yanapatikana ndani ya kifurushi."
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "Tazama MapTasker [Marejeleo ya Amri](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) kwa maelezo zaidi.\n"

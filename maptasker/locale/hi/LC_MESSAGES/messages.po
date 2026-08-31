@@ -2655,3 +2655,15 @@ msgstr "प्रदर्शन या संपादन को लक्ष�
 
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "उन प्रोफ़ाइलों और कार्यों को शामिल करने के लिए इसका चयन करें जिनका सूची में कोई नाम नहीं है।"
+
+msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
+msgstr "लोड किए गए कॉन्फ़िगरेशन में उपयोग किए गए आइकन में से चुनें, और यदि आपने उन्हें डाउनलोड किया है, तो अपने डिवाइस पर मौजूद ऐप्स से भी चुनें।"
+
+msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
+msgstr "आइकन उसी स्थान से आते हैं जहां से एप्लिकेशन आते हैं: टास्कर किसी एप्लिकेशन के अपने आइकन को उसके पैकेज और लॉन्चर गतिविधि द्वारा पहचानता है, इसलिए डिवाइस पर पाया जाने वाला प्रत्येक एप्लिकेशन एक आइकन बन जाता है जिसे आप चुन सकते हैं।\n\nटास्कर के स्वयं के अंतर्निर्मित आइकन नहीं लाए जा सकते - वे टास्कर के अंदर ही रहते हैं - और न ही आइकन पैक के अंदर के आइकन लाए जा सकते हैं, जिन्हें नाम से टाइप करना होता है।"
+
+msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
+msgstr "कॉन्फ़िगरेशन में कहीं उपयोग किए गए आइकन, साथ ही यदि आपने अपने डिवाइस से प्राप्त किए हैं, तो प्रत्येक एप्लिकेशन का अपना आइकन। आप जो चुनते हैं, वह उस फ़ील्ड में मौजूद चीज़ को बदल देता है। यदि आपने किसी ऐसे आइकन पैक से आइकन चुना है जो सूचीबद्ध नहीं है, तो आपको उसका नाम दर्ज करना होगा: उसका नाम उस पैक के अंदर मौजूद होता है।"
+
+msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
+msgstr "अधिक जानकारी के लिए मैपटास्कर [कमांड रेफरेंस](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) देखें।\n"
