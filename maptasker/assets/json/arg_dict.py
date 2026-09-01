@@ -7242,7 +7242,7 @@ from collections import namedtuple
             ArgumentCode(arg_id="0", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Property Type=", "l", "PropertyElement1"]),
             ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Orientation=", "l", "PropertyElement2"]),
             ArgumentCode(arg_id="2", arg_required=True, arg_name="", arg_type="1", arg_eval=", Background_Color="),
-            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Property Type=", "l", "PropertyElement3"]),
+            ArgumentCode(arg_id="3", arg_required=True, arg_name="", arg_type="0", arg_eval=[", Action Bar Style=", "l", "PropertyElement3"]),
             ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Title="),
             ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Subtitle="),
             ArgumentCode(arg_id="6", arg_required=True, arg_name="", arg_type="8", arg_eval=", Icon="),

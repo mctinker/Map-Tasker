@@ -2,9 +2,53 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.0.3] 31-Aug-2026
+## [13.0.3] ??-Aug-2026  # FIX
 
 ### Added
+
+- Added: "Add Properties"/"Edit Properties" in Add and Edit Project, Profile, Task and Legacy Scene.
+- Added: A Legacy Scene's Properties now follow Tasker's own "Scene Properties Edit" screen, tab for tab: UI, Actions, and Event with its Key, Home Tap and Tab Tap sub-tabs.
+- Added: Scene Properties "Actions" tab -- the items on an Activity's action bar, each with its icon, label and the action it runs, and the ability to add, reorder and delete them.
+- Added: Scene Properties "Event" tab -- the "Home Tap" and "Tab Tap" events are now editable alongside "Key", each showing when Tasker offers it and which local variables its Task can read.
+- Added: Scene Properties "Key" event now has the "Keys" filter and a "Stop Event" checkbox, and the actions of the Task an event fires can be added and edited right there, in the same editor the "Edit Task" dialog uses.
+- Added: An Event sub-tab with no Task bound now offers a new one: add actions to it in place, and "Create Task" adds it to the loaded configuration, points the event at it, and attaches it to the Project the Scene belongs to.
+
+### Changed
+
+- Changed: All 'Properties' for a Tasker object are now consolidated in the same line in the Map view rather than in multiple separate lines.
+- Changed: Scene Properties' "Pick a Task" is now the same search/filter picker as "Add Task" > "Add an Action": search by name, narrow to one Project, and click the Task. It replaces a single dropdown that held every Task in the configuration with no indication of which Project each belonged to.
+- Changed: A Legacy Scene's Geometry (its portrait/landscape size) is now shown in Scene Properties for every Property Type, not just for an Overlay.
+- Changed: The Map view labels a Scene's key filter "Keys=" rather than "URL Match=" -- it is Tasker's slash-separated key list, not a URL -- and reports the Scene's "Home Tap" Task.
+
+### Removed
+
+- Removed:
+
+### Fixed
+
+- Fixed: "What's New" text in popup window is not being formatted correctly.
+- Fixed: A Legacy Scene's Action Bar Style was labelled "Property Type" -- the same name as the field above it -- in the Scene properties form and in the Map's action text.
+- Fixed: The single profile name is not necessarily appearing in the GUI pulldown list at startup. 
+
+### Known Issues
+
+* It is unlikely but possible to have a previous MapTasker browser session preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
+you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
+
+      `lsof -i :8080`
+For each PID listed in the output from the above terminal command, issue the following:
+
+      `kill -9 pid_number`
+...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080' (e.g. kill -9 8547).
+* Not all Task actions and Profile states or events editing are supported.  What remains unsupported is third-party plugins: their settings are an opaque payload that only the plugin's own configurator understands, so those still have to be set up inside Tasker.
+* The icon list is built from the configuration you have loaded, so an icon used nowhere in it is not offered; type its name.  The Application list can be topped up from the device ('App not listed?'), but until it is, it likewise holds only what your configuration already names.
+* Applications fetched from the device come back without their activity class.  MapTasker asks Tasker for the activity of every installed app as a bulk list, and uses it only if it lines up one-for-one with the packages -- measured against a real device, it does not, so it is discarded rather than pairing every app with some other app's activity.  Names are not affected: those are looked up one app at a time, so they are always the right ones.  The activity is filled in from your own configuration for any app it already names, and an action that needs one for an app it does not (Launch App, say) has to have it typed in.
+* Some strings defy translation.
+
+
+## Older History Logs
+
+## [13.0.3] 31-Aug-2026
 
 - Added: Task actions and Profile conditions that take an __Application__ or an __icon__ can now be added and edited.  
 
@@ -21,9 +65,6 @@ All notable changes to this project will be documented in this file!
 - Added: A command reference has been added to the [wiki](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).
 - Added: Additional command tooltips have been added to the GUI.
 - Added: Prompt to optionally fetch the system icons from the Android device when editing Task actions involving an icon.
-
-### Changed
-
 - Changed: 'List XML Files' no longer needs the 'MapTasker List' Tasker profile.  Listing the XML files on an Android device previously required finding that profile on TaskerNet, importing it by hand, and leaving it enabled -- and when it was missing, the attempt failed with a timeout that named no cause.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications, and leaves it there for next time.  Nothing has to be imported by hand.
   - The 'HTTP Server Example' project running on the device is now the only setup step.  Tasker 6.2 or higher is required, and Tasker will ask you to authorize the connection the first time, exactly as 'Save to Android' does.
   - The old profile hardcoded port 1821 in its trigger, so a device whose server ran on any other port could not use 'List XML Files' at all.  The helper Task has no such limitation.
@@ -33,34 +74,12 @@ All notable changes to this project will be documented in this file!
 - Changed: fetching a single-object export -- the '.prj'/'.prf'/'.tsk'/'.scn' files Tasker writes when you export one Project, Profile, Task or Scene -- now selects that object as the specific Project/Profile/Task/Scene automatically.
 - Changed: 'Find/Replace': clicking a result row, or a row in a Replace preview, no longer closes the dialog.  It moves to the right side of the screen and stays there while the Map (or Diagram) shows what the row points at, so a list of places can be walked one at a time without pressing 'Find/Replace' again for each one.
 - Changed: Help content that appears in a popup panel has been converted to markdown.
-
-### Removed
-
 - Removed: 'List XML Files' no longer needs the 'MapTasker List' Tasker profile to be installed for this to work.
-
-### Fixed
-
 - Fixed: 'Reset Settings' does nothing and causes a program error.
 - Fixed: Application packages, such as 'com.samsung.browser.health', 'package' and 'app' name sare being incorrectly reported as 'Class:' in the Map view.
 - Fixed: An icon argument in a Task is not displaying properly in the Map view.
 - Fixed: The help text is not being translated to the selected language.
 - Fixed: 'Show in Notification' Task property is not appearing in the Map view.
-
-### Known Issues
-
-* It is unlikely but possible to have a previous MapTasker browser session preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If
-you have closed all pre-existing MapTasker browser tabs and you still get this error, then issue the following into the terminal/command:
-      `lsof -i :8080`
-For each PID listed in the output from the above terminal command, issue the following:
-      `kill -9 pid_number`
-...where 'pid_number' is the 'PID' number in the output list from 'lsof -i:8080' (e.g. kill -9 8547).
-* Not all Task actions and Profile states or events editing are supported.  What remains unsupported is third-party plugins: their settings are an opaque payload that only the plugin's own configurator understands, so those still have to be set up inside Tasker.
-* The icon list is built from the configuration you have loaded, so an icon used nowhere in it is not offered; type its name.  The Application list can be topped up from the device ('App not listed?'), but until it is, it likewise holds only what your configuration already names.
-* Applications fetched from the device come back without their activity class.  MapTasker asks Tasker for the activity of every installed app as a bulk list, and uses it only if it lines up one-for-one with the packages -- measured against a real device, it does not, so it is discarded rather than pairing every app with some other app's activity.  Names are not affected: those are looked up one app at a time, so they are always the right ones.  The activity is filled in from your own configuration for any app it already names, and an action that needs one for an app it does not (Launch App, say) has to have it typed in.
-* Some strings defy translation.
-
-
-## Older History Logs
 
 ## [13.0.2] 26-Aug-2026
 

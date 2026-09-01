@@ -10954,7 +10954,7 @@ action_codes = {
                 arg_required=True,
                 arg_name="",
                 arg_type="0",
-                arg_eval=[", Property Type=", "l", "PropertyElement3"],
+                arg_eval=[", Action Bar Style=", "l", "PropertyElement3"],
             ),
             ArgumentCode(arg_id="4", arg_required=True, arg_name="", arg_type="1", arg_eval=", Title="),
             ArgumentCode(arg_id="5", arg_required=True, arg_name="", arg_type="1", arg_eval=", Subtitle="),

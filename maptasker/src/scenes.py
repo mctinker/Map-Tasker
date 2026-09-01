@@ -265,7 +265,11 @@ def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> Non
         # If it is an xxxElement, then process it by recursing.
         if tag_in_type(subchild.tag, True):
             process_arguments(subchild, subchild.tag, indentation + 5)
-        # Handle Properties KEY Tab
+        # Handle the Key event's filter -- the Event/Key tab of Tasker's Scene Properties.
+        # <urlMatch> is the KEYS filter there, not a URL: its values are Tasker's
+        # slash-separated key list ("back", "back/home"), and the tag name is a leftover from
+        # the Web element the same <LinkClickFilter> serves.  See
+        # sceneedit.legacy_set_key_filter, which is the write side and carries the evidence.
         elif subchild.tag == "LinkClickFilter":
             line_out = ""
             stopbottom_event_element = subchild.find("stopEvent")
@@ -273,11 +277,11 @@ def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> Non
                 line_out = f"Stop Event={stopbottom_event_element.text},"
             url_match_element = subchild.find("urlMatch")
             if url_match_element is not None:
-                line_out = f"{line_out} URL Match={url_match_element.text}"
+                line_out = f"{line_out} Keys={url_match_element.text}"
             if line_out:
                 PrimeItems.output_lines.add_line_to_output(
                     2,
-                    f"<br>{blank * 12}KEY Tab {line_out}<br>",
+                    f"<br>{blank * 12}Key Event {line_out}<br>",
                     ["", "scene_color", FormatLine.add_end_span],
                 )
     return  # noqa: PLR1711

@@ -393,6 +393,14 @@ def display_object_pulldowns(
         self.specific_task_optionmenu.update()
         self.specific_scene_optionmenu.update()
 
+        # 4. Re-point each pulldown at the option for whatever is still selected.
+        # Replacing .options above doesn't touch .value, and NiceGUI renders only the
+        # plain label ("Profile", "Project", ...) when the held value isn't one of the
+        # widget's current options -- so a selection restored from saved settings before
+        # this rebuild (process_single_name_restore, which has to guess the option text
+        # while the lists are still empty) vanished from view here.
+        reapply_single_item_selections(self)
+
     return (
         self.specific_project_optionmenu,
         self.specific_profile_optionmenu,
@@ -978,6 +986,37 @@ def reset_single_item_pulldowns(self: object, except_for: str = "") -> None:
         if optionmenu is not None:
             optionmenu.value = "None"
             optionmenu.update()
+
+
+def reapply_single_item_selections(self: object) -> None:
+    """Re-point every 'Specific Name' pulldown at the option matching its current
+    single_xxx_name, for pulldowns whose option lists have just been rebuilt.
+
+    A NiceGUI select keeps its .value when .options is replaced, and shows nothing but
+    its own label if that value isn't in the new list -- so the selection has to be
+    resolved against the new options rather than left as it was.  select_pulldown_option
+    does the resolving, matching a bare name against both the prefixed entries
+    ("Profile: X", built when the XML has Projects to walk) and the bare ones
+    (get_tasker_objects' no-Projects branch, e.g. a single exported .prf.xml, which
+    lists Profile names raw).
+
+    Pulldowns with nothing selected are left alone -- that's reset_single_item_pulldowns'
+    job, and blanking them here would undo a selection mid-restore.
+
+    Runs under the is_updating lock: assigning a select's .value fires its on_change.
+    """
+    was_updating = getattr(self, "is_updating", False)
+    try:
+        self.is_updating = True
+        for label in SINGLE_ITEM_LABELS:
+            name = getattr(self, f"single_{label.lower()}_name", "")
+            optionmenu = getattr(self, f"specific_{label.lower()}_optionmenu", None)
+            if not name or is_no_selection(name) or optionmenu is None:
+                continue
+            select_pulldown_option(optionmenu, name)
+            optionmenu.update()
+    finally:
+        self.is_updating = was_updating
 
 
 def reset_single_item_selection(self: object) -> None:

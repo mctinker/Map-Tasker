@@ -48,7 +48,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import sessundo
+from maptasker.src import objprops, sessundo
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 
@@ -337,6 +337,40 @@ def set_project_enabled(edited_project: EditableProject, enabled: bool) -> None:
         else:
             _set_child_text_in_tag_order(element, PROJECT_ENABLED_TAG, DISABLED_PROJECT_VALUE)
         touch_project_mdate(element)
+
+
+def apply_properties_to_live_tree(edited_project: EditableProject) -> None:
+    """Carry the Properties dialog's edits from the Project copy through to the LIVE
+    Project element -- the Project counterpart of the write-through half of
+    set_project_enabled, and needed for the same reasons that one gives.
+
+    Call right after objprops.apply_properties has written onto
+    edited_project.project_element, and only for a Project that is already registered:
+    a brand-new one from Add Project has no live element yet, and register_new_project
+    carries the properties in with the copy (it stores that very object), so this is a
+    no-op there rather than something Add Project has to remember not to call.
+
+    WHY THE COPY IS NOT ENOUGH.  Both of Edit Project's saves render from the live tree
+    by name -- write_standalone_project_xml(project_name, ...) and
+    save_project_to_android(project_name, ...) -- and "Save To Current File" writes the
+    whole live backup, so properties left on the copy alone would be missing from all
+    three, with nothing to trace it by.
+
+    WHY THE LIVE ELEMENT IS NOT ENOUGH EITHER.  rename_project_in_live_tree registers
+    the COPY as the live element, so a property written only to the live one would be
+    dropped by the next Rename.  Both are written, and the two-elements-or-one check
+    below is the same idempotence set_project_enabled needs after a rename has already
+    made them the same object.
+
+    <mdate> is stamped because this is a modification, matching what set_project_enabled
+    does for the Enabled toggle.
+    """
+    live_element = resolve_project_by_name(edited_project.project_name)
+    with sessundo.undoable(f"Edit Project '{edited_project.project_name}' properties"):
+        if live_element is not None and live_element is not edited_project.project_element:
+            objprops.mirror_properties(objprops.KIND_PROJECT, edited_project.project_element, live_element)
+            touch_project_mdate(live_element)
+        touch_project_mdate(edited_project.project_element)
 
 
 def rename_project_in_live_tree(old_name: str, edited_project: EditableProject) -> None:

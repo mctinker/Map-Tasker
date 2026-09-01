@@ -23,6 +23,7 @@ from maptasker.src import (
     mapfind,
     mapjump,
     mapswap,
+    objprops,
     profedit,
     projedit,
     sceneedit,
@@ -1353,6 +1354,261 @@ def build_if_variant_dialog(on_choice: Callable[[str], None]) -> None:
     variant_dialog.open()
 
 
+def _build_task_action_editor(
+    self: MyGui,
+    edited_task: taskedit.EditableTask,
+    field_refs: dict,
+    *,
+    list_classes: str = "w-full h-96 border rounded p-2",
+) -> Callable[[], None]:
+    """The Task action editor: an "Add an action" search/filter picker that can insert the
+    new action before/after any existing one or at the end, per-action Copy/Move/Delete, an
+    Enabled switch, and the values of each action's existing arguments.
+
+    LIFTED OUT OF build_edit_task_dialog, which is still its main caller and whose layout
+    it reproduces exactly; the Scene Properties KEY tab renders the same editor over the
+    Task a Legacy Scene fires on an event (see _render_scene_event_task_actions), and a copy
+    of two hundred lines is not a thing to keep in step by hand.  Everything it builds goes
+    into the container that is open when it is called, so a caller places it by calling it
+    in the right place.
+
+    WHAT LANDS WHEN.  Adding, copying, moving, deleting, enabling and the If condition are
+    written straight onto edited_task -- the working copy -- as they are done.  Argument
+    values and labels are NOT: they sit in the widgets recorded in field_refs until
+    something reads them back (userintr._task_arg_values) and applies them.  That split is
+    the Edit Task dialog's, and every caller inherits it, so each needs its own Ok/Apply.
+
+    field_refs gains one entry per editable argument and label, keyed by taskedit.arg_key/
+    label_key, and its "act*" keys are cleared and rebuilt on every re-render -- Copy, Move
+    and Delete all renumber the actions, so a stale key would apply a value to the wrong one.
+
+    Returns render_actions, so a caller that changes the Task underneath the editor can
+    redraw the list.
+    """
+    # Last-known per-action If condition values, keyed by act_number -- lets an
+    # uncheck/re-check of the "If" checkbox edit instead of starting over.
+    condition_cache: dict[int, tuple[str, str, str]] = {}
+    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
+    # Maps each "Position" dropdown label to the act_number to insert at (None
+    # for "At the End") -- kept out-of-band rather than as the ui.select's own
+    # value/options dict, since "Before N" and "After N-1" resolve to the exact
+    # same act_number and a dict's keys (which NiceGUI's dict-options form uses
+    # as the value) must be unique, but the two need to stay distinct, readable
+    # menu entries.
+    position_labels: dict[str, int | None] = {}
+
+    ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
+    with ui.row().classes("w-full gap-4"):
+        search_input = ui.input(translate_string("Search actions")).classes("flex-1")
+        category_select = ui.select(["All", *category_names], value="All").classes("w-48")
+    position_select = (
+        ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
+    )
+
+    picker_container = ui.column().classes("w-full")
+    ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
+    actions_container = ui.column().classes("w-full")
+    # act_number of the action most recently added in this dialog session --
+    # render_actions highlights it so it's easy to spot in a long list.
+    last_added_act_number: int | None = None
+
+    def clear_last_added() -> None:
+        # Copy/Move/Delete all renumber the list, so a stale act_number here
+        # would risk highlighting the wrong action -- drop the highlight
+        # instead of letting it follow whatever action inherits the number.
+        nonlocal last_added_act_number
+        last_added_act_number = None
+
+    def refresh_position_options() -> None:
+        _refresh_position_options(edited_task, position_select, position_labels)
+
+    def add_picked_action(action_key: str) -> None:
+        nonlocal last_added_act_number
+        # "If" gets an extra prompt (just the If, or a whole If/Else/End If
+        # block?) before anything is inserted; every other action goes in
+        # directly. Position is resolved when the choice lands, not at
+        # picker-click time -- same value, and the variant dialog is modal.
+        if action_key == taskedit.IF_ACTION_KEY:
+
+            def _add_if_block(variant: str) -> None:
+                nonlocal last_added_act_number
+                act_number = self.event_handlers.add_if_block_to_edit_task_event(
+                    edited_task,
+                    variant,
+                    position_labels.get(position_select.value),
+                )
+                if act_number is not None:
+                    last_added_act_number = act_number
+                render_actions()
+                refresh_position_options()
+
+            build_if_variant_dialog(_add_if_block)
+            return
+        act_number = self.event_handlers.add_action_to_edit_task_event(
+            edited_task,
+            action_key,
+            position_labels.get(position_select.value),
+        )
+        if act_number is not None:
+            last_added_act_number = act_number
+        render_actions()
+        refresh_position_options()
+
+    def refresh_picker(_e: ui.event | None = None) -> None:
+        picker_container.clear()
+        rows = taskedit.search_addable_actions(search_input.value, category_select.value)
+        with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
+            for row in rows:
+                if row["addable"]:
+                    ui.button(
+                        f"{row['name']} ({row['category_name']})",
+                        on_click=lambda r=row: add_picked_action(r["action_key"]),
+                    ).props("flat align=left dense").classes("w-full justify-start")
+                else:
+                    with ui.column().classes("w-full gap-0"):
+                        ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
+                        _render_addability_reason(self, row["reason"], refresh_picker)
+
+    search_input.on_value_change(refresh_picker)
+    category_select.on_value_change(refresh_picker)
+
+    def render_actions() -> None:
+        # Rebuild from scratch -- Copy/Move/Delete all renumber every action, so
+        # stale act*_arg* keys must not survive into the next Save.
+        for key in [k for k in field_refs if k.startswith("act")]:
+            del field_refs[key]
+        actions_container.clear()
+        with actions_container, ui.scroll_area().classes(list_classes):
+            if not edited_task.actions:
+                ui.label(translate_string("No actions in this Task.")).classes("text-xs text-gray-500 italic")
+            last_position = len(edited_task.actions) - 1
+            indent_spaces = _action_indent_spaces(self)
+            display_levels = taskedit.action_display_levels(edited_task.actions)
+            for action, nest_level in zip(edited_task.actions, display_levels, strict=True):
+                # Indent with non-breaking spaces -- plain ones collapse in the rendered header.
+                indent_pad = "\u00a0" * (indent_spaces * nest_level)
+                is_last_added = action.act_number == last_added_act_number
+                header = f"{indent_pad}{action.act_number}: {action.action_name}"
+                if is_last_added:
+                    header += "  \u2190 just added"
+                action_expansion = ui.expansion(header, value=is_last_added).classes("w-full")
+                if is_last_added:
+                    action_expansion.classes("bg-amber-100 dark:bg-amber-900 border-2 border-amber-400 rounded")
+                with action_expansion:
+                    with ui.row().classes("w-full items-center gap-2 mb-2"):
+                        ui.button(
+                            translate_string("Copy"),
+                            on_click=lambda n=action.act_number: (
+                                clear_last_added(),
+                                self.event_handlers.copy_action_in_edit_task_event(edited_task, n),
+                                render_actions(),
+                                refresh_position_options(),
+                            ),
+                        ).props("flat color=blue dense")
+                        move_to_input = (
+                            ui
+                            .number(
+                                translate_string("Move to #"),
+                                value=action.act_number,
+                                min=0,
+                                max=last_position,
+                            )
+                            .classes("w-24")
+                            .props("dense")
+                        )
+                        ui.button(
+                            translate_string("Move"),
+                            on_click=lambda n=action.act_number, target=move_to_input: (
+                                clear_last_added(),
+                                self.event_handlers.move_action_in_edit_task_event(
+                                    edited_task,
+                                    n,
+                                    int(target.value) if target.value is not None else n,
+                                ),
+                                render_actions(),
+                                refresh_position_options(),
+                            ),
+                        ).props("flat color=orange dense")
+                        ui.button(
+                            translate_string("Delete"),
+                            on_click=lambda n=action.act_number: (
+                                clear_last_added(),
+                                self.event_handlers.delete_action_in_edit_task_event(edited_task, n),
+                                render_actions(),
+                                refresh_position_options(),
+                            ),
+                        ).props("flat color=red dense")
+
+                    action_enabled_switch = ui.switch(
+                        value=taskedit.is_action_enabled(action),
+                        on_change=lambda e, n=action.act_number: self.event_handlers.set_action_enabled_event(
+                            edited_task,
+                            n,
+                            e.value,
+                        ),
+                    ).classes("mb-2")
+                    action_enabled_switch.bind_text_from(
+                        action_enabled_switch,
+                        "value",
+                        backward=lambda v: "Enabled" if v else "Disabled",
+                    )
+
+                    field_refs[taskedit.label_key(action.act_number)] = ui.input(
+                        translate_string("Label"),
+                        value=taskedit.get_action_label(action),
+                    ).classes("w-full")
+
+                    if action.code != taskedit.IF_ACTION_CODE:
+                        _render_action_condition_checkbox(self, edited_task, action, condition_cache)
+                    _render_continue_after_error_checkbox(self, edited_task, action)
+                    _render_plugin_configuration_warning(action.action_element, action.action_name)
+
+                    if not action.args:
+                        ui.label(translate_string("No editable arguments.")).classes("text-xs text-gray-500 italic")
+                    for arg in action.args:
+                        key = taskedit.arg_key(action.act_number, arg.arg_id)
+                        with ui.row().classes("w-full items-center gap-2"):
+                            if arg.widget_kind == "checkbox":
+                                field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
+                            elif arg.widget_kind == "dropdown":
+                                options = arg.dropdown_options or []
+                                field_refs[key] = ui.select(
+                                    options,
+                                    value=_dropdown_current_label(arg),
+                                    label=arg.arg_name,
+                                ).classes(
+                                    "flex-1",
+                                )
+                            elif taskedit.is_perform_task_name_arg(action.code, arg):
+                                _render_task_name_field(self, action, arg, key, field_refs)
+                            elif arg.widget_kind == "app_picker":
+                                _render_app_arg_field(self, arg, key, field_refs)
+                            elif arg.widget_kind == "icon_picker":
+                                _render_icon_arg_field(self, arg, key, field_refs)
+                            elif arg.widget_kind in ("text", "raw_fallback"):
+                                field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
+                                if arg.readonly_note:
+                                    _render_readonly_note(
+                                        self,
+                                        arg.readonly_note,
+                                        _after_inventory_fetch(render_actions, action),
+                                    )
+                            else:  # readonly
+                                ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
+                                if arg.readonly_note:
+                                    _render_readonly_note(
+                                        self,
+                                        arg.readonly_note,
+                                        _after_inventory_fetch(render_actions, action),
+                                    )
+
+    refresh_picker()
+    refresh_position_options()
+    render_actions()
+
+    return render_actions
+
+
 def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> None:
     """Builds and opens the Edit Task dialog (Phase 1: name/priority; an "Add an
     action" search/filter picker -- the same one Add Task uses -- that can insert
@@ -1369,17 +1625,6 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
     """
     task_name = edited_task.task_element.findtext("nme", "")
     field_refs: dict = {}
-    # Last-known per-action If condition values, keyed by act_number -- lets an
-    # uncheck/re-check of the "If" checkbox edit instead of starting over.
-    condition_cache: dict[int, tuple[str, str, str]] = {}
-    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
-    # Maps each "Position" dropdown label to the act_number to insert at (None
-    # for "At the End") -- kept out-of-band rather than as the ui.select's own
-    # value/options dict, since "Before N" and "After N-1" resolve to the exact
-    # same act_number and a dict's keys (which NiceGUI's dict-options form uses
-    # as the value) must be unique, but the two need to stay distinct, readable
-    # menu entries.
-    position_labels: dict[str, int | None] = {}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[500px] max-w-[900px] w-full p-6"):
         # Kept as a local (not in field_refs -- _task_arg_values reads .value off
@@ -1402,215 +1647,17 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                 translate_string("Priority"),
                 value=edited_task.task_element.findtext("pri", ""),
             ).classes("w-32")
+            # The working copy, not the live element: every Task save path goes through
+            # it (apply_edited_task_to_live_tree swaps the whole element into all_tasks,
+            # render_standalone_task_xml deep-copies it), so a property written here
+            # reaches the live tree, the export and the upload alike -- and Cancel here
+            # still discards it.  See objprops.py's module docstring.
+            _build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
 
-        ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
-        with ui.row().classes("w-full gap-4"):
-            search_input = ui.input(translate_string("Search actions")).classes("flex-1")
-            category_select = ui.select(["All", *category_names], value="All").classes("w-48")
-        position_select = (
-            ui.select([], label=translate_string("Position"), with_input=True).classes("w-full").props("dense")
-        )
-
-        picker_container = ui.column().classes("w-full")
-        ui.label(translate_string("Actions in this Task")).classes("text-sm font-bold mt-2")
-        actions_container = ui.column().classes("w-full")
-        # act_number of the action most recently added in this dialog session --
-        # render_actions highlights it so it's easy to spot in a long list.
-        last_added_act_number: int | None = None
-
-        def clear_last_added() -> None:
-            # Copy/Move/Delete all renumber the list, so a stale act_number here
-            # would risk highlighting the wrong action -- drop the highlight
-            # instead of letting it follow whatever action inherits the number.
-            nonlocal last_added_act_number
-            last_added_act_number = None
-
-        def refresh_position_options() -> None:
-            _refresh_position_options(edited_task, position_select, position_labels)
-
-        def add_picked_action(action_key: str) -> None:
-            nonlocal last_added_act_number
-            # "If" gets an extra prompt (just the If, or a whole If/Else/End If
-            # block?) before anything is inserted; every other action goes in
-            # directly. Position is resolved when the choice lands, not at
-            # picker-click time -- same value, and the variant dialog is modal.
-            if action_key == taskedit.IF_ACTION_KEY:
-
-                def _add_if_block(variant: str) -> None:
-                    nonlocal last_added_act_number
-                    act_number = self.event_handlers.add_if_block_to_edit_task_event(
-                        edited_task,
-                        variant,
-                        position_labels.get(position_select.value),
-                    )
-                    if act_number is not None:
-                        last_added_act_number = act_number
-                    render_actions()
-                    refresh_position_options()
-
-                build_if_variant_dialog(_add_if_block)
-                return
-            act_number = self.event_handlers.add_action_to_edit_task_event(
-                edited_task,
-                action_key,
-                position_labels.get(position_select.value),
-            )
-            if act_number is not None:
-                last_added_act_number = act_number
-            render_actions()
-            refresh_position_options()
-
-        def refresh_picker(_e: ui.event | None = None) -> None:
-            picker_container.clear()
-            rows = taskedit.search_addable_actions(search_input.value, category_select.value)
-            with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
-                for row in rows:
-                    if row["addable"]:
-                        ui.button(
-                            f"{row['name']} ({row['category_name']})",
-                            on_click=lambda r=row: add_picked_action(r["action_key"]),
-                        ).props("flat align=left dense").classes("w-full justify-start")
-                    else:
-                        with ui.column().classes("w-full gap-0"):
-                            ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
-                            _render_addability_reason(self, row["reason"], refresh_picker)
-
-        search_input.on_value_change(refresh_picker)
-        category_select.on_value_change(refresh_picker)
-
-        def render_actions() -> None:
-            # Rebuild from scratch -- Copy/Move/Delete all renumber every action, so
-            # stale act*_arg* keys must not survive into the next Save.
-            for key in [k for k in field_refs if k.startswith("act")]:
-                del field_refs[key]
-            actions_container.clear()
-            with actions_container, ui.scroll_area().classes("w-full h-96 border rounded p-2"):
-                if not edited_task.actions:
-                    ui.label(translate_string("No actions in this Task.")).classes("text-xs text-gray-500 italic")
-                last_position = len(edited_task.actions) - 1
-                indent_spaces = _action_indent_spaces(self)
-                display_levels = taskedit.action_display_levels(edited_task.actions)
-                for action, nest_level in zip(edited_task.actions, display_levels, strict=True):
-                    # Indent with non-breaking spaces -- plain ones collapse in the rendered header.
-                    indent_pad = "\u00a0" * (indent_spaces * nest_level)
-                    is_last_added = action.act_number == last_added_act_number
-                    header = f"{indent_pad}{action.act_number}: {action.action_name}"
-                    if is_last_added:
-                        header += "  \u2190 just added"
-                    action_expansion = ui.expansion(header, value=is_last_added).classes("w-full")
-                    if is_last_added:
-                        action_expansion.classes("bg-amber-100 dark:bg-amber-900 border-2 border-amber-400 rounded")
-                    with action_expansion:
-                        with ui.row().classes("w-full items-center gap-2 mb-2"):
-                            ui.button(
-                                translate_string("Copy"),
-                                on_click=lambda n=action.act_number: (
-                                    clear_last_added(),
-                                    self.event_handlers.copy_action_in_edit_task_event(edited_task, n),
-                                    render_actions(),
-                                    refresh_position_options(),
-                                ),
-                            ).props("flat color=blue dense")
-                            move_to_input = (
-                                ui
-                                .number(
-                                    translate_string("Move to #"),
-                                    value=action.act_number,
-                                    min=0,
-                                    max=last_position,
-                                )
-                                .classes("w-24")
-                                .props("dense")
-                            )
-                            ui.button(
-                                translate_string("Move"),
-                                on_click=lambda n=action.act_number, target=move_to_input: (
-                                    clear_last_added(),
-                                    self.event_handlers.move_action_in_edit_task_event(
-                                        edited_task,
-                                        n,
-                                        int(target.value) if target.value is not None else n,
-                                    ),
-                                    render_actions(),
-                                    refresh_position_options(),
-                                ),
-                            ).props("flat color=orange dense")
-                            ui.button(
-                                translate_string("Delete"),
-                                on_click=lambda n=action.act_number: (
-                                    clear_last_added(),
-                                    self.event_handlers.delete_action_in_edit_task_event(edited_task, n),
-                                    render_actions(),
-                                    refresh_position_options(),
-                                ),
-                            ).props("flat color=red dense")
-
-                        action_enabled_switch = ui.switch(
-                            value=taskedit.is_action_enabled(action),
-                            on_change=lambda e, n=action.act_number: self.event_handlers.set_action_enabled_event(
-                                edited_task,
-                                n,
-                                e.value,
-                            ),
-                        ).classes("mb-2")
-                        action_enabled_switch.bind_text_from(
-                            action_enabled_switch,
-                            "value",
-                            backward=lambda v: "Enabled" if v else "Disabled",
-                        )
-
-                        field_refs[taskedit.label_key(action.act_number)] = ui.input(
-                            translate_string("Label"),
-                            value=taskedit.get_action_label(action),
-                        ).classes("w-full")
-
-                        if action.code != taskedit.IF_ACTION_CODE:
-                            _render_action_condition_checkbox(self, edited_task, action, condition_cache)
-                        _render_continue_after_error_checkbox(self, edited_task, action)
-                        _render_plugin_configuration_warning(action.action_element, action.action_name)
-
-                        if not action.args:
-                            ui.label(translate_string("No editable arguments.")).classes("text-xs text-gray-500 italic")
-                        for arg in action.args:
-                            key = taskedit.arg_key(action.act_number, arg.arg_id)
-                            with ui.row().classes("w-full items-center gap-2"):
-                                if arg.widget_kind == "checkbox":
-                                    field_refs[key] = ui.checkbox(arg.arg_name, value=arg.current_value == "1")
-                                elif arg.widget_kind == "dropdown":
-                                    options = arg.dropdown_options or []
-                                    field_refs[key] = ui.select(
-                                        options,
-                                        value=_dropdown_current_label(arg),
-                                        label=arg.arg_name,
-                                    ).classes(
-                                        "flex-1",
-                                    )
-                                elif taskedit.is_perform_task_name_arg(action.code, arg):
-                                    _render_task_name_field(self, action, arg, key, field_refs)
-                                elif arg.widget_kind == "app_picker":
-                                    _render_app_arg_field(self, arg, key, field_refs)
-                                elif arg.widget_kind == "icon_picker":
-                                    _render_icon_arg_field(self, arg, key, field_refs)
-                                elif arg.widget_kind in ("text", "raw_fallback"):
-                                    field_refs[key] = ui.input(arg.arg_name, value=arg.current_value).classes("flex-1")
-                                    if arg.readonly_note:
-                                        _render_readonly_note(
-                                            self,
-                                            arg.readonly_note,
-                                            _after_inventory_fetch(render_actions, action),
-                                        )
-                                else:  # readonly
-                                    ui.input(arg.arg_name, value=arg.current_value).props("readonly").classes("flex-1")
-                                    if arg.readonly_note:
-                                        _render_readonly_note(
-                                            self,
-                                            arg.readonly_note,
-                                            _after_inventory_fetch(render_actions, action),
-                                        )
-
-        refresh_picker()
-        refresh_position_options()
-        render_actions()
+        # The picker and the action list -- see _build_task_action_editor, which this
+        # dialog is where they came from.  Nothing here needs its render_actions back:
+        # the editor redraws itself on everything that changes the list.
+        _build_task_action_editor(self, edited_task, field_refs)
 
         field_refs["save_path"] = ui.input(
             translate_string("Save as"),
@@ -1840,7 +1887,12 @@ def _mark_unsupported_options(select_widget: ui.select, unsupported_values: set)
         select_widget.props('option-disable="disable"')
 
 
-def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditableProfile, field_refs: dict) -> None:
+def _build_profile_editor_body(
+    self: MyGui,
+    edited_profile: profedit.EditableProfile,
+    field_refs: dict,
+    parent_dialog: ui.dialog,
+) -> None:
     """Renders a Profile's Enabled/Disabled toggle, Entry/Exit Task Link/Unlink
     controls, and its conditions section (per-condition Add/Edit/Delete for the
     flat condition types -- Time, Day, App, Loc; Event/State's own code
@@ -1853,11 +1905,23 @@ def _build_profile_editor_body(self: MyGui, edited_profile: profedit.EditablePro
     differs between the two. Must be called inside the caller's own
     `with ui.dialog(), ui.card():` block, after field_refs["name"] is set.
     """
-    enabled_switch = ui.switch(
-        value=profedit.is_profile_enabled(edited_profile),
-        on_change=lambda e: self.event_handlers.set_profile_enabled_event(edited_profile, e.value),
-    )
-    enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
+    with ui.row().classes("w-full items-center gap-4"):
+        enabled_switch = ui.switch(
+            value=profedit.is_profile_enabled(edited_profile),
+            on_change=lambda e: self.event_handlers.set_profile_enabled_event(edited_profile, e.value),
+        )
+        enabled_switch.bind_text_from(enabled_switch, "value", backward=lambda v: "Enabled" if v else "Disabled")
+
+        # The working copy, and no on_applied: every Profile save path goes through it --
+        # apply_edited_profile_to_live_tree swaps the whole element into all_profiles,
+        # render_standalone_profile_xml takes the EditableProfile, and register_new_profile
+        # stores this same object for a brand-new one -- so this is the Task situation, not
+        # the Project one.  Being in the shared body, one call covers Add and Edit alike.
+        #
+        # parent_dialog is passed in rather than found: this body is built inside its
+        # caller's `with ui.dialog()` block, and the Properties editor needs to know which
+        # dialog it is opening over.  See build_edit_profile_dialog/build_add_profile_dialog.
+        _build_properties_button(self, objprops.KIND_PROFILE, edited_profile.profile_element, parent_dialog)
 
     tasks_container = ui.column().classes("w-full")
 
@@ -2288,7 +2352,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             ui.input(translate_string("Profile Name"), value=profile_name).props("readonly").classes("w-full")
         )
 
-        _build_profile_editor_body(self, edited_profile, field_refs)
+        _build_profile_editor_body(self, edited_profile, field_refs, dialog)
 
         field_refs["save_path"] = ui.input(
             translate_string("Save as"),
@@ -2478,6 +2542,12 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
 
         field_refs["name"] = ui.input(translate_string("Project Name"), value="").classes("w-full")
 
+        # No on_applied, unlike Edit Project: a Project that does not exist yet has no live
+        # element to mirror onto, and register_new_project stores THIS element object
+        # rather than a copy of it -- so properties set before the Project exists are
+        # already on it once it does.
+        _build_properties_button(self, objprops.KIND_PROJECT, edited_project.project_element, dialog)
+
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
             ui.button(
@@ -2553,6 +2623,19 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
                     "effect immediately rather than waiting for a save, and Cancel does not undo it.",
                 ),
             )
+
+        # Applied to the working copy AND mirrored onto the live element the moment Ok is
+        # pressed -- see projedit.apply_properties_to_live_tree for why both, and why this
+        # cannot wait for a save the way Task's and Profile's do.  That immediacy is what
+        # keeps it out of field_refs and therefore clear of _unapplied_project_edits: by
+        # the time either by-name save runs, there is nothing left unapplied.
+        _build_properties_button(
+            self,
+            objprops.KIND_PROJECT,
+            edited_project.project_element,
+            dialog,
+            on_applied=lambda: self.event_handlers.apply_project_properties_event(edited_project),
+        )
 
         field_refs["project_save_path"] = ui.input(
             translate_string("Save as"),
@@ -2721,6 +2804,326 @@ def build_save_project_to_android_dialog(
                 ).style("white-space: pre-wrap")
 
     android_dialog.open()
+
+
+# ==========================================
+# 2b-pre. OBJECT PROPERTIES
+#
+# The Properties editor a Project, Profile, Task and Scene all reach from their own
+# Add/Edit dialog, through the one button _build_properties_button makes.  What the
+# properties ARE lives in objprops.py; this is the form over it.
+#
+# One dialog rather than four because the three non-Scene kinds differ only in which
+# scalars they show, and objprops.OBJECT_PROPERTIES is that difference -- so adding a
+# field to a kind is a row in that table and nothing here changes.  A Scene's properties
+# are a <PropertiesElement> generated from arg_dict instead and keep their own panel in
+# the Scene designer (render_scene_properties); only the button is shared.
+#
+# WHICH ELEMENT THE CALLER HANDS OVER decides whether the edit survives its save, and it
+# is not the same for every kind -- the live element for a Project, the working copy for
+# the rest.  objprops.py's module docstring is the long version; do not wire a new caller
+# up without reading it.
+# ==========================================
+def _build_properties_button(
+    self: MyGui,
+    kind: str,
+    element: defusedxml.ElementTree.Element,
+    parent_dialog: ui.dialog,
+    on_applied: Callable[[], None] | None = None,
+    opener: Callable[[], None] | None = None,
+) -> ui.button:
+    """The one button an Add/Edit dialog grows.  Reads "Add Properties" for an object
+    that has none yet and "Edit Properties" for one that has.
+
+    `opener` replaces what the button opens.  Only a Scene passes one: its properties are
+    a <PropertiesElement>'s arguments rather than the scalars-and-variables the other
+    three share, so it has its own form (_build_scene_properties_dialog) and shares only
+    this button.  See that function for why the two could not be one.
+
+    Deliberately NOT registered in the caller's field_refs.  The Task dialog's
+    _task_arg_values reads .value off every entry there and a button has none; and for
+    the Project dialog an unrecognised field_refs entry is what
+    userintr._unapplied_project_edits fails the save on.  Nothing needs to be registered
+    anyway -- the properties dialog applies onto the element itself, which is what both
+    the save and editor_state() already read.
+
+    `on_applied` runs after a successful Ok, for a caller whose element is not the whole
+    story.  Edit Project is the only one: its saves render from the live tree by name, so
+    it passes projedit.apply_properties_to_live_tree to carry the edit across.  Everything
+    else leaves it None, because the element handed over IS what gets saved.
+    """
+    label = "Edit Properties" if objprops.has_properties(kind, element) else "Add Properties"
+    button = ui.button(
+        translate_string(label),
+        icon="tune",
+        on_click=opener
+        or (
+            lambda: self.event_handlers.open_object_properties_event(
+                kind,
+                element,
+                parent_dialog,
+                on_applied,
+            )
+        ),
+    ).props("outline")
+    with button:
+        # Edit Project's properties reach the loaded backup as soon as Ok is pressed,
+        # because that is the only way they can reach its by-name saves at all -- so it
+        # says so, in the words its Rename and Enabled controls already use.
+        applies_immediately = on_applied is not None
+        ui.tooltip(
+            translate_string(
+                f"The comments and variables Tasker keeps against this {kind}, and its own settings.\n"
+                + (
+                    "Changes here are applied to the loaded backup as soon as you press Ok in the "
+                    "Properties window -- like Rename and the Enabled switch, Cancel does not undo them."
+                    if applies_immediately
+                    else "Changes here are kept when you press Ok in this window, and are saved along "
+                    "with everything else when you save."
+                ),
+            ),
+        ).style("white-space: pre-wrap")
+    return button
+
+
+def _build_property_widget(spec: objprops.PropField, value: str) -> object:
+    """One scalar property's widget, per objprops.PropField.kind.
+
+    Every one of them carries Tasker's own wording as its tooltip -- these are settings
+    whose names give nothing away ("Collision Handling", "Cooldown Time"), and the
+    sentence explaining each is the same one Tasker shows.
+    """
+    if spec.kind == "checkbox":
+        widget = ui.checkbox(translate_string(spec.label), value=value == "true")
+    elif spec.kind == "choice":
+        widget = ui.select(
+            list(spec.choices),
+            value=value or spec.choices[0],
+            label=translate_string(spec.label),
+        ).classes("w-full")
+    elif spec.kind == "slider":
+        # Number rather than a bare slider: the value has to be readable and typeable,
+        # and a 0-50 slider alone gives no way to land on an exact one.
+        widget = ui.number(
+            translate_string(spec.label),
+            value=int(value) if value.isdigit() else None,
+            min=0,
+            max=spec.maximum,
+            format="%.0f",
+        ).classes("w-full")
+    elif spec.kind == "duration":
+        widget = ui.input(
+            f"{translate_string(spec.label)} ({objprops.COOLDOWN_FORMAT})",
+            value=objprops.format_cooldown(value),
+        ).classes("w-full")
+    else:
+        widget = ui.input(translate_string(spec.label), value=value).props("autogrow").classes("w-full")
+
+    if spec.tooltip:
+        with widget:
+            ui.tooltip(translate_string(spec.tooltip)).style("white-space: pre-wrap; max-width: 32rem")
+    return widget
+
+
+# The three checkboxes on a variable, with the explanations Tasker itself gives for them
+# -- transcribed from the Project Variables help screens (Properties1.png/Properties2.png).
+# Kept together because all three are the same shape and the wording is the point.
+_VARIABLE_CHECKBOXES: tuple[tuple[str, str, str], ...] = (
+    (
+        "pvci",
+        "Configure On Import",
+        "If you enable the option to configure on import you need to fill in a question that the "
+        "user will be asked when importing this into Tasker.  The value of this variable will "
+        "also be cleared when you export it so that private data is not mistakenly sent to other "
+        "users.",
+    ),
+    (
+        "strout",
+        "Structured Variables (JSON, etc)",
+        "Enable the 'Structured Variable' option if the variable is either JSON, HTML or XML so "
+        "that you can easily read its contents via the dot or square brackets notations.\n"
+        "For example if there's a %json variable and its contents are in the JSON format you "
+        "could use '%json.info' or '%json[info]' to get the value for the 'info' field.",
+    ),
+    (
+        "immutable",
+        "Immutable",
+        "If you enable the 'Immutable' option, the variable can be changed in Tasks, but will "
+        "reset to the value here when the Task ends.",
+    ),
+)
+
+
+def _build_variable_panel(
+    props: objprops.EditableProperties,
+    index: int,
+    variable: defusedxml.ElementTree.Element,
+    field_refs: dict,
+    rerender: Callable[[], None],
+) -> None:
+    """One <ProfileVariable>, as an expansion titled by its name.
+
+    Field order follows Tasker's own, which is the order property.py already prints them
+    in on the read side: Type, Name, the three checkboxes, then Value / Display Name /
+    Prompt, then Exported Value with "Same as Value" beside it.
+    """
+    values = objprops.variable_values(variable)
+    key = lambda field: f"var{index}_{field}"  # noqa: E731 -- must match objprops.apply_properties
+
+    title = objprops.variable_display_name(variable) or translate_string("(new variable)")
+    with ui.expansion(title, icon="data_object", value=not values["pvn"]).classes("w-full"):
+        # Codes are what the XML holds, labels are what a person can pick -- so a
+        # {code: label} select, sorted by label.  A code this build does not know about
+        # (a newer Tasker type) is added to the options as itself rather than dropped,
+        # so opening and closing this panel cannot silently retype the variable.
+        options = dict(sorted(objprops.VARIABLE_TYPES.items(), key=lambda pair: pair[1]))
+        if values["pvt"] and values["pvt"] not in options:
+            options[values["pvt"]] = values["pvt"]
+        field_refs[key("pvt")] = ui.select(
+            options,
+            value=values["pvt"] or objprops.DEFAULT_VARIABLE_TYPE,
+            label=translate_string("Type"),
+        ).classes("w-full")
+
+        field_refs[key("pvn")] = ui.input(translate_string("Name"), value=values["pvn"]).classes("w-full")
+
+        for tag, label, tooltip in _VARIABLE_CHECKBOXES:
+            field_refs[key(tag)] = ui.checkbox(translate_string(label), value=values[tag] == "true")
+            with field_refs[key(tag)]:
+                ui.tooltip(translate_string(tooltip)).style("white-space: pre-wrap; max-width: 32rem")
+
+        field_refs[key("pvv")] = ui.input(translate_string("Value"), value=values["pvv"]).classes("w-full")
+        field_refs[key("pvdn")] = ui.input(translate_string("Display Name"), value=values["pvdn"]).classes("w-full")
+        field_refs[key("pvd")] = ui.input(translate_string("Prompt"), value=values["pvd"]).classes("w-full")
+
+        with ui.row().classes("w-full items-center gap-2"):
+            exported = ui.input(translate_string("Exported Value"), value=values["exportval"]).classes("flex-1")
+            same_as_value = ui.checkbox(
+                translate_string("Same as Value"),
+                value=values["same_as_value"] == "true",
+            )
+            field_refs[key("exportval")] = exported
+            field_refs[key("same_as_value")] = same_as_value
+            with same_as_value:
+                ui.tooltip(
+                    translate_string(
+                        "Under 'Exported Value' if you disable the 'Same as Value' option, you can "
+                        "customize what value gets exported when you share the variable with other "
+                        "users.\n"
+                        "You can keep the 'Exported Value' field blank if you want the export to not "
+                        "have a value at all, or you can set the value you wish to always use for "
+                        "exports.\n"
+                        "If you enable the 'Same as Value' option, the current variable value will be "
+                        "used when exporting.",
+                    ),
+                ).style("white-space: pre-wrap; max-width: 32rem")
+
+            # "Same as Value" is derived rather than stored -- Tasker just writes
+            # <exportval> equal to <pvv> (see objprops.variable_values).  Mirroring here,
+            # and disabling the field while it is on, is what keeps the two from being
+            # made to disagree on screen and then disagreeing again in the XML.
+            def mirror() -> None:
+                exported.set_enabled(not same_as_value.value)
+                if same_as_value.value:
+                    exported.value = field_refs[key("pvv")].value
+
+            same_as_value.on_value_change(mirror)
+            field_refs[key("pvv")].on_value_change(mirror)
+            mirror()
+
+        ui.button(
+            translate_string("Remove Variable"),
+            icon="delete",
+            on_click=lambda: (objprops.remove_variable(props, index), rerender()),
+        ).props("flat dense color=negative")
+
+
+def build_object_properties_dialog(
+    self: MyGui,
+    kind: str,
+    element: defusedxml.ElementTree.Element,
+    parent_dialog: ui.dialog,
+    on_applied: Callable[[], None] | None = None,
+) -> None:
+    """The Properties editor, shared by every Add/Edit dialog -- see the section comment.
+
+    Opens OVER the parent, which stays open behind it: the parent still owns the save,
+    and closing it out from under the user would lose whatever else they had typed into
+    it.  Ok applies onto `element` and closes; Cancel closes, writes nothing, and drops
+    any variable that was added but never named (objprops.discard_unnamed_variables --
+    Add Variable puts a real element on straight away, the way every other structural
+    edit in this app does).
+    """
+    props = objprops.load_properties(kind, element)
+    field_refs: dict = {}
+    values = objprops.scalar_values(props)
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[860px] w-full p-6"):
+        ui.label(f"{translate_string(kind)} {translate_string('Properties')}").classes(
+            "text-xl font-bold text-blue-600",
+        )
+
+        for spec in objprops.OBJECT_PROPERTIES.get(kind, ()):
+            field_refs[spec.key] = _build_property_widget(spec, values[spec.key])
+
+        ui.label(translate_string(f"{kind} Variables")).classes("text-sm font-bold mt-4")
+        ui.label(
+            translate_string(
+                "The variables you add here will be available in all the profiles and tasks in this "
+                "project but will not be available in other projects."
+                if kind == objprops.KIND_PROJECT
+                else "If there are multiple project/profile/task variables with the same name available "
+                "in the same task, the inner-most variable will take precedence.  The order of "
+                "precedence is Task > Profile > Project.",
+            ),
+        ).classes("text-xs text-gray-500 italic")
+
+        variables_container = ui.column().classes("w-full")
+
+        def render_variables() -> None:
+            # Rebuilt from scratch after every Add/Remove, not appended to: removing a
+            # variable renumbers every one after it, so its field_refs keys (which embed
+            # the index) would otherwise go stale and a save would read the wrong panel's
+            # values into it.  Same reason build_edit_task_dialog rebuilds its actions.
+            variables_container.clear()
+            for stale in [name for name in field_refs if name.startswith("var")]:
+                del field_refs[stale]
+            with variables_container:
+                if not props.variables:
+                    ui.label(translate_string("No variables.")).classes("text-xs text-gray-500 italic")
+                for index, variable in enumerate(props.variables):
+                    _build_variable_panel(props, index, variable, field_refs, render_variables)
+
+        render_variables()
+
+        ui.button(
+            translate_string("Add Variable"),
+            icon="add",
+            on_click=lambda: (objprops.add_variable(props), render_variables()),
+        ).props("flat dense")
+
+        # Everything a change here can be in is either the element -- which Add/Remove
+        # Variable write to as they happen -- or a widget in field_refs, where the scalars
+        # and every variable field wait until Ok reads them.  See editor_state.
+        pending_changes = PendingChangesBanner()
+        pending_changes.watch(dialog, lambda: editor_state(props.element, field_refs))
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(
+                translate_string("Cancel"),
+                on_click=lambda: self.event_handlers.cancel_object_properties_event(props, dialog),
+            ).props("outline")
+            ui.button(
+                translate_string("Ok"),
+                on_click=lambda: self.event_handlers.keep_object_properties_event(
+                    props,
+                    field_refs,
+                    dialog,
+                    on_applied,
+                ),
+            ).classes("bg-blue-600")
+
+    dialog.open()
 
 
 # ==========================================
@@ -5078,6 +5481,7 @@ def _legacy_canvas_size(
 
 
 def _build_legacy_designer(
+    self: MyGui,
     edited_scene: sceneedit.EditableScene,
     field_refs: dict,
 ) -> None:
@@ -5627,7 +6031,7 @@ def _build_legacy_designer(
             ui.button(
                 translate_string("Edit item layout"),
                 icon="open_in_new",
-                on_click=lambda _e=None, holder=element: _build_item_layout_dialog(holder, render),
+                on_click=lambda _e=None, holder=element: _build_item_layout_dialog(self, holder, render),
             ).props("dense flat size=sm")
 
     def rename_selected() -> None:
@@ -5822,8 +6226,14 @@ def _build_legacy_designer(
     def render_scene_properties() -> None:
         """The Scene's own settings -- how it is put on screen, which way up, its background,
         its title.  They describe the Scene rather than any element, so they sit below the
-        panes rather than in the element inspector, and they were invisible in this dialog
-        until now.
+        panes rather than in the element inspector.
+
+        A SIGNPOST RATHER THAN THE FORM ITSELF.  The form moved into
+        _build_scene_properties_dialog when it grew Tasker's UI/KEY tabs and the
+        Property-Type gating that decides which fields even apply, and it is reached from the
+        "Edit Properties" button at the top of this dialog.  Rendering it here as well would
+        mean two forms over one <PropertiesElement>: edit either and the other is stale until
+        something rebuilds it, which is the sort of disagreement this panel exists to avoid.
         """
         properties = sceneedit.legacy_scene_properties(scene_element)
         with ui.expansion(
@@ -5839,20 +6249,19 @@ def _build_legacy_designer(
                         "seen have none either, so this is ordinary rather than damage.",
                     ),
                 ).classes("text-xs text-gray-500 italic")
-                ui.button(
-                    translate_string("Add scene properties"),
-                    icon="add",
-                    on_click=add_scene_properties,
-                ).props("dense flat")
-                return
-            for arg in sceneedit.legacy_element_args(properties):
-                _render_legacy_arg(arg, repaint, name_editable=True)
+            else:
+                ui.label(_scene_properties_summary(scene_element)).classes("text-xs text-gray-500 italic")
+            ui.button(
+                translate_string("Add scene properties" if properties is None else "Edit scene properties"),
+                icon="add" if properties is None else "tune",
+                on_click=open_scene_properties,
+            ).props("dense flat")
 
-    def add_scene_properties() -> None:
-        snapshot()
-        sceneedit.legacy_add_scene_properties(scene_element)
-        expanded["properties"] = True
-        render()
+    def open_scene_properties() -> None:
+        """Open the Properties form, and rebuild this panel when it closes so the summary
+        line agrees with what was just changed.
+        """
+        _build_scene_properties_dialog(self, edited_scene, field_refs, on_closed=render)
 
     def repaint() -> None:
         """Redraw the canvas, and leave every form on screen exactly as it is.
@@ -6030,7 +6439,7 @@ def _build_legacy_designer(
     render()
 
 
-def _build_item_layout_dialog(holder: object, on_closed: Callable[[], None]) -> None:
+def _build_item_layout_dialog(self: MyGui, holder: object, on_closed: Callable[[], None]) -> None:
     """Edit the Scene inside a List or a Spinner, in a designer of its own.
 
     The nested thing really is a Scene -- its own <nme>, its own widthPort/heightPort, its
@@ -6092,7 +6501,7 @@ def _build_item_layout_dialog(holder: object, on_closed: Callable[[], None]) -> 
             ),
         ).classes("text-xs text-gray-500 italic mt-1")
 
-        _build_legacy_designer(nested, field_refs)
+        _build_legacy_designer(self, nested, field_refs)
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(
@@ -6261,6 +6670,880 @@ def _render_legacy_arg(
             ).classes("flex-1")
 
 
+# Which <PropertiesElement> argument slots belong to which part of Tasker's own Scene
+# Properties screen.  Transcribed from arg_dict.py's "PropertiesElement" entry, whose eight
+# slots are present in all 538 sample Scenes that have one:
+#
+#   arg0 Property Type   arg1 Orientation   arg2 Background Colour   arg3 Action Bar Style
+#   arg4 Title           arg5 Subtitle      arg6 Icon                arg7 Tab Label
+#
+# arg3-arg7 describe an Activity's title bar and are shown only when arg0 says Activity,
+# which is what Tasker does: a Dialog or an Overlay has no action bar to style and no tab
+# to label, so offering the five would invite settings that do nothing.
+_SCENE_PROPERTY_TYPE_ARG = sceneedit.LEGACY_PROPERTY_TYPE_ARG
+_SCENE_ALWAYS_ARGS = ("1", "2")
+_SCENE_ACTIVITY_ARGS = ("3", "4", "5", "6", "7")
+# Indexes into actiont.lookup_values["PropertyElement1"] == ("Overlay", "Dialog", "Activity").
+_SCENE_TYPE_OVERLAY = sceneedit.LEGACY_SCENE_TYPE_OVERLAY
+_SCENE_TYPE_ACTIVITY = sceneedit.LEGACY_SCENE_TYPE_ACTIVITY
+
+# The three tabs of Tasker's Scene Properties screen, in its order.  Used as the tabs' NAMES
+# (their labels are these run through translate_string), so the selected-tab bookkeeping and
+# the tab_panels lookups stay in one language whatever the GUI is showing.
+_SCENE_TAB_UI = "UI"
+_SCENE_TAB_ACTIONS = "Actions"
+_SCENE_TAB_EVENT = "Event"
+_SCENE_TABS = (_SCENE_TAB_UI, _SCENE_TAB_ACTIONS, _SCENE_TAB_EVENT)
+
+# Shorter than the Edit Task dialog's own action list: an Event tab's is the bottom half of a
+# sub-tab, in a tab, in a dialog that is itself on top of the Scene editor, and a full-height
+# list would push the Close button off the screen.
+_SCENE_EVENT_ACTION_LIST_CLASSES = "w-full h-64 border rounded p-2"
+
+
+def _scene_properties_summary(scene_element: defusedxml.ElementTree.Element) -> str:
+    """A one-line "this is what is set" for the designer's Scene Properties panel, which is
+    a signpost to the form rather than the form (see render_scene_properties).
+
+    Reuses sceneview.scene_properties -- the same (label, value) rows the Preview captions
+    its picture with -- so the panel and the picture cannot describe the same Scene
+    differently.  What the Event and Actions tabs hold is added on the end -- which events
+    fire a Task, whether a key press is swallowed, and how many action bar items there are --
+    because none of it is something the Preview reports.
+    """
+    rows = [f"{translate_string(label)}: {value}" for label, value in sceneview.scene_properties(scene_element)]
+    properties = sceneedit.legacy_scene_properties(scene_element)
+    if properties is not None:
+        fired = [event.label for event in sceneedit.LEGACY_SCENE_EVENTS if properties.find(event.tag) is not None]
+        if fired:
+            rows.append(f"{translate_string('fires a Task on')} {', '.join(fired)}")
+        if sceneedit.legacy_stop_event(properties):
+            rows.append(translate_string("swallows the key press"))
+        if items := sceneedit.legacy_action_items(properties):
+            counted = "action bar item" if len(items) == 1 else "action bar items"
+            rows.append(f"{len(items)} {translate_string(counted)}")
+    return ", ".join(rows) if rows else translate_string("Nothing set.")
+
+
+def _build_scene_properties_dialog(
+    self: MyGui,
+    edited_scene: sceneedit.EditableScene,
+    field_refs: dict,
+    on_closed: Callable[[], None] | None = None,
+) -> None:
+    """The Scene's own Properties -- its <PropertiesElement> -- laid out the way Tasker's
+    own "Scene Properties Edit" screen is: UI, Actions and Event, with Event holding Key,
+    Home Tap and Tab Tap.
+
+    THE TABS ARE TASKER'S, NOT THE XML'S.  Nothing in the file is arranged this way -- the
+    UI tab is eight <Int/Str/Img sr="argN"> children, Actions is a run of
+    <ListElementItem>s, and the three Event tabs are three unrelated tags plus half of a
+    <LinkClickFilter>.  sceneedit's LEGACY_SCENE_EVENTS block is where that mapping is
+    written down and where the evidence for it sits; this file only draws it.
+
+    SEPARATE FROM build_object_properties_dialog, and not for want of trying to share it.
+    A Project/Profile/Task's properties are scalar children plus <ProfileVariable>s, which
+    is what objprops models; a Scene's are the eight arguments of a <PropertiesElement>,
+    generated from arg_dict.py the same way a Task action's arguments are.  The two have
+    no field in common -- no comments, no variables, no shared tag -- so the only honest
+    thing to share is the button that opens them (see _build_properties_button's `opener`).
+
+    Everything here writes through to the Scene copy as it is typed, which is what
+    _render_legacy_arg does everywhere else in the Legacy designer; there is no Ok/Cancel
+    pair because there is nothing held back to apply.  Cancel is still available where it
+    means something -- on the Scene dialog behind this one, which owns the copy and
+    discards the lot.  The one exception is an Event tab's Task actions, which are edits to
+    a Task rather than to the Scene and say so -- see _render_scene_event_task_actions.
+
+    Legacy only.  A Version 2 Scene has no <PropertiesElement> at all -- its equivalents
+    live in the declarative layout -- so the button that opens this is not built for one.
+    """
+    scene_element = edited_scene.scene_element
+    # Which tab is on screen, kept across the rebuilds render() does.  Without it, picking a
+    # Task or changing Property Type -- both of which rebuild the whole body -- would throw
+    # the user back to the UI tab from whichever one they were working in.
+    showing = {"tab": _SCENE_TAB_UI, "event": sceneedit.LEGACY_SCENE_EVENTS[0].label}
+    # A Task being composed under an Event tab but not created yet, keyed by event tag.  Held
+    # here, at the dialog, rather than built per render: the Event panel is rebuilt whenever a
+    # binding changes or the sub-tab moves, and a Task rebuilt with it would lose every action
+    # added to it so far.  An entry is dropped the moment its Task is created (see
+    # _render_scene_event_new_task).
+    pending_tasks: dict[str, taskedit.EditableTask] = {}
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[860px] w-full p-6"):
+        ui.label(f"{translate_string('Scene Properties')}: {edited_scene.scene_name}").classes(
+            "text-xl font-bold text-blue-600",
+        )
+        # Built and first filled inside the card, the way every other dialog in this file
+        # does it -- a container filled after the `with` block has closed is not attached to
+        # the dialog being opened.  It is emptied and refilled rather than rebuilt, because
+        # Property Type changes what is in it (see render).
+        dialog_body = ui.column().classes("w-full")
+
+        def render() -> None:
+            """Rebuilt in full whenever Property Type changes, because that is what decides
+            which fields exist at all.  Safe to do from a dropdown's own handler -- there is
+            no caret to lose, and the Legacy designer's Task-binding selects already rebuild
+            themselves the same way; a text field could not (see _render_legacy_arg).
+            """
+            dialog_body.clear()
+            with dialog_body:
+                properties = sceneedit.legacy_scene_properties(scene_element)
+                if properties is None:
+                    ui.label(
+                        translate_string(
+                            "This Scene has no properties element. 66 of the 366 Scenes MapTasker has "
+                            "seen have none either, so this is ordinary rather than damage.",
+                        ),
+                    ).classes("text-xs text-gray-500 italic")
+                    ui.button(
+                        translate_string("Add scene properties"),
+                        icon="add",
+                        on_click=add_properties,
+                    ).props("dense flat")
+                    return
+
+                args = {arg.arg_id: arg for arg in sceneedit.legacy_element_args(properties)}
+                property_type = args.get(_SCENE_PROPERTY_TYPE_ARG)
+
+                # Named tabs, not label-valued ones: ui.tab's value defaults to its label,
+                # and a translated label would make `showing` unreadable in every language
+                # but English and stop matching the moment the language changed.
+                with ui.tabs(
+                    value=showing["tab"],
+                    on_change=lambda event: showing.__setitem__("tab", str(event.value)),
+                ).classes("w-full") as tabs:
+                    for name in _SCENE_TABS:
+                        ui.tab(name, label=translate_string(name))
+                with ui.tab_panels(tabs, value=showing["tab"]).classes("w-full"):
+                    with ui.tab_panel(_SCENE_TAB_UI):
+                        _render_scene_ui_tab(args, property_type, scene_element, field_refs, render)
+                    with ui.tab_panel(_SCENE_TAB_ACTIONS):
+                        _render_scene_actions_tab(self, properties, render)
+                    with ui.tab_panel(_SCENE_TAB_EVENT):
+                        _render_scene_event_tab(
+                            self,
+                            properties,
+                            showing,
+                            render,
+                            pending_tasks,
+                            edited_scene.scene_name,
+                        )
+
+        def add_properties() -> None:
+            sceneedit.legacy_add_scene_properties(scene_element)
+            render()
+
+        render()
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(
+                translate_string("Close"),
+                on_click=lambda: (dialog.close(), on_closed() if on_closed else None),
+            ).classes("bg-blue-600")
+
+    dialog.open()
+
+
+def _render_scene_ui_tab(
+    args: dict,
+    property_type: taskedit.EditableArg | None,
+    scene_element: defusedxml.ElementTree.Element,
+    field_refs: dict,
+    rerender: Callable[[], None],
+) -> None:
+    """The UI tab: how the Scene is put on screen, which way up, and what it is dressed in.
+
+    Property Type comes first and re-renders the tab, because it decides which of the rest
+    are shown -- which is what the guide means by "the Property Type parameter in the UI tab
+    determines which properties are shown for configuration".
+
+    Geometry is shown for EVERY type.  The guide restricts exactly one group -- "the Action
+    Bar Style, Title, Subtitle, Icon and Tab Labels are only relevant to Activity scenes" --
+    and says nothing of the sort about Geometry, which used to be hidden for anything but an
+    Overlay here.  Hiding it left a Dialog's size editable only from the Scene dialog behind
+    this one, which is the same four numbers by another route.
+    """
+    if property_type is not None:
+        _render_legacy_arg(property_type, rerender, name_editable=True)
+
+    current_type = property_type.current_value if property_type is not None else ""
+
+    _render_scene_geometry(scene_element, field_refs)
+
+    for arg_id in _SCENE_ALWAYS_ARGS:
+        if arg_id in args:
+            _render_legacy_arg(args[arg_id], lambda: None, name_editable=True)
+
+    if current_type == _SCENE_TYPE_ACTIVITY:
+        ui.label(translate_string("Action bar")).classes("text-sm font-bold mt-3")
+        for arg_id in _SCENE_ACTIVITY_ARGS:
+            if arg_id in args:
+                _render_legacy_arg(args[arg_id], lambda: None, name_editable=True)
+                # The two that are not just decoration: each of them turns an Event tab on.
+                if arg_id == sceneedit.LEGACY_ICON_ARG:
+                    ui.label(
+                        translate_string(
+                            "The home icon at the top left of the action bar. Tapping it fires the "
+                            "Event tab's Home Tap Task.",
+                        ),
+                    ).classes("text-xs text-gray-500 italic")
+                elif arg_id == sceneedit.LEGACY_TAB_LABELS_ARG:
+                    ui.label(
+                        translate_string(
+                            "A comma-separated list of the tabs to show in the action bar. Selecting "
+                            "one fires the Event tab's Tab Tap Task.",
+                        ),
+                    ).classes("text-xs text-gray-500 italic")
+    elif any(arg_id in args for arg_id in _SCENE_ACTIVITY_ARGS):
+        ui.label(
+            translate_string(
+                "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. "
+                "They are still stored, and are shown if you switch Property Type to Activity.",
+            ),
+        ).classes("text-xs text-gray-500 italic mt-2")
+
+
+def _render_scene_geometry(
+    scene_element: defusedxml.ElementTree.Element,
+    field_refs: dict,
+) -> None:
+    """Geometry: the pixel size the Scene is laid out at, in the Portrait/Landscape pairs
+    Tasker asks for.
+
+    These are NOT properties of the <PropertiesElement> -- they are the Scene's own
+    <widthPort>/<heightPort>/<widthLand>/<heightLand> children, and the Scene dialog behind
+    this one already has an input for each.  So these DRIVE THOSE WIDGETS rather than
+    writing the XML: userintr._apply_scene_field_values reads exactly those four field_refs
+    entries at save time, so a value written straight to the element here would be
+    overwritten by whatever the dialog's own boxes still held.  One source of truth, and
+    the two stay level whichever is typed into.
+
+    Shown for every Property Type -- see _render_scene_ui_tab, which is where that decision
+    is argued.  Tasker itself hides this pair in Beginner Mode; MapTasker has no such mode,
+    and an editor that hid the numbers a Scene is actually laid out at would be hiding the
+    thing its canvas is drawn from.
+    """
+    ui.label(translate_string("Geometry")).classes("text-sm font-bold mt-3")
+    ui.label(translate_string("-1 means this orientation has no layout of its own.")).classes(
+        "text-xs text-gray-500 italic",
+    )
+
+    labels = dict(sceneedit.SCENE_DIMENSION_FIELDS)
+
+    def bind(key: str) -> None:
+        # field_refs always carries all four for a Legacy Scene -- _build_scene_editor_body
+        # builds them before the designer this dialog is reached from, and only that path
+        # opens it.  Falling back to the element's own text keeps the box showing the truth
+        # if that ever stops being so, rather than showing a blank.
+        source = field_refs.get(key)
+        value = str(source.value) if source is not None else scene_element.findtext(key, sceneedit.UNSET_DIMENSION)
+        box = ui.input(translate_string(labels[key]), value=value).classes("w-40").props("dense")
+        if source is not None:
+            box.on_value_change(lambda event, widget=source: setattr(widget, "value", str(event.value)))
+
+    for orientation, keys in (
+        ("Portrait", ("widthPort", "heightPort")),
+        ("Landscape", ("widthLand", "heightLand")),
+    ):
+        with ui.row().classes("w-full items-center gap-2"):
+            ui.label(translate_string(orientation)).classes("text-xs w-24 shrink-0")
+            for key in keys:
+                bind(key)
+
+
+def _render_scene_actions_tab(
+    self: MyGui,
+    properties: defusedxml.ElementTree.Element,
+    rerender: Callable[[], None],
+) -> None:
+    """The Actions tab: the items on an Activity's action bar.
+
+    Each row is one <ListElementItem> and carries the guide's three controls -- an icon, a
+    label, and the action to run when the item is tapped -- plus the reordering and deletion
+    Tasker does by dragging.  Buttons rather than a drag handle: the rest of this dialog is
+    a form, and a drag target inside a scrolled tab panel inside a dialog inside the Scene
+    editor is a lot of nesting for a list that is never more than a handful of rows.
+
+    ONLY RELEVANT FOR ACTIVITY SCENES, as the guide says -- but existing items are shown
+    whatever the Property Type is, with a note.  An Overlay that once was an Activity still
+    has its items in the file, and an editor that hid them would quietly drop them on the
+    next save.
+
+    Everything here writes through to the Scene copy as it is typed, like the UI tab.  The
+    item's action is edited through the same EditableArg model the element inspector uses
+    (sceneedit.legacy_action_item_args), so its fields behave as they do everywhere else.
+    """
+    items = sceneedit.legacy_action_items(properties)
+    is_activity = sceneedit.legacy_scene_type(properties) == _SCENE_TYPE_ACTIVITY
+
+    if not is_activity:
+        ui.label(
+            translate_string(
+                "Action bar items apply to an Activity only. They are still stored, and are shown "
+                "if you switch Property Type to Activity.",
+            ),
+        ).classes("text-xs text-gray-500 italic")
+
+    ui.label(
+        translate_string(
+            "Where an item ends up is decided by what you give it: an icon alone is always in the "
+            "main bar, an icon and a label are shown there if there is room, and a label alone is "
+            "always in the overflow menu (the 3 dots at the top right).",
+        ),
+    ).classes("text-xs text-gray-500 italic")
+
+    if not items:
+        ui.label(translate_string("No action bar items.")).classes("text-xs text-gray-500 italic mt-2")
+
+    last = len(items) - 1
+    for item in items:
+        header = f"{item.index}: {item.label or translate_string('(no label)')} -- {item.action_name}"
+        with ui.expansion(header).classes("w-full"):
+            with ui.row().classes("w-full items-center gap-2"):
+                ui.button(
+                    icon="arrow_upward",
+                    on_click=lambda _e=None, sr=item.sr: _move_scene_action_item(properties, sr, -1, rerender),
+                ).props("dense flat size=sm").set_enabled(item.index > 0)
+                ui.button(
+                    icon="arrow_downward",
+                    on_click=lambda _e=None, sr=item.sr: _move_scene_action_item(properties, sr, 1, rerender),
+                ).props("dense flat size=sm").set_enabled(item.index < last)
+                ui.button(
+                    translate_string("Delete"),
+                    icon="delete",
+                    on_click=lambda _e=None, sr=item.sr: _remove_scene_action_item(properties, sr, rerender),
+                ).props("dense flat size=sm color=negative")
+                ui.label(translate_string(item.placement)).classes("text-xs text-gray-500 italic")
+
+            with ui.row().classes("w-full items-center gap-2"):
+                icon_field = ui.input(
+                    translate_string("Icon"),
+                    value=sceneedit.legacy_action_item_icon(item),
+                ).props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}").classes("flex-1")
+                icon_field.on_value_change(
+                    lambda event, it=item: sceneedit.legacy_set_action_item_icon(it, str(event.value or "")),
+                )
+                ui.button(
+                    translate_string("Pick"),
+                    icon="image",
+                    on_click=lambda _e=None, field=icon_field: _build_tasker_icon_picker_dialog(field, self),
+                ).props("flat dense size=sm")
+
+            ui.input(
+                translate_string("Label"),
+                value=item.label,
+                on_change=lambda event, it=item: sceneedit.legacy_set_action_item_label(it, str(event.value or "")),
+            ).props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}").classes("w-full")
+
+            item_args = sceneedit.legacy_action_item_args(item)
+            if item.action_element is None:
+                ui.label(translate_string("This item has no action.")).classes("text-xs text-gray-500 italic")
+            elif not item_args:
+                ui.label(
+                    f"{item.action_name}: {translate_string('no editable arguments.')}",
+                ).classes("text-xs text-gray-500 italic")
+            else:
+                ui.label(f"{translate_string('Action')}: {item.action_name}").classes("text-sm font-bold mt-2")
+                for arg in item_args:
+                    _render_legacy_arg(arg, lambda: None, name_editable=True)
+
+    _render_scene_action_item_picker(self, properties, rerender)
+
+
+def _move_scene_action_item(
+    properties: defusedxml.ElementTree.Element,
+    sr: str,
+    offset: int,
+    rerender: Callable[[], None],
+) -> None:
+    sceneedit.legacy_move_action_item(properties, sr, offset)
+    rerender()
+
+
+def _remove_scene_action_item(
+    properties: defusedxml.ElementTree.Element,
+    sr: str,
+    rerender: Callable[[], None],
+) -> None:
+    sceneedit.legacy_remove_action_item(properties, sr)
+    rerender()
+
+
+def _render_scene_action_item_picker(
+    self: MyGui,
+    properties: defusedxml.ElementTree.Element,
+    rerender: Callable[[], None],
+) -> None:
+    """Tasker's plus button at the bottom of the Actions tab: pick the action the new item
+    runs, and the item is built around it.
+
+    The same search/filter picker the Task editors use, over the same list -- what can go on
+    an action bar is what can be added to a Task, because it is synthesized by the same code
+    (sceneedit.legacy_add_action_item -> taskedit.build_synthesized_args).  An action that
+    cannot be synthesized is greyed out with its reason, exactly as it is there.
+    """
+    category_names = sorted({row["category_name"] for row in taskedit.list_addable_actions()})
+
+    ui.label(translate_string("Add an action bar item")).classes("text-sm font-bold mt-3")
+    with ui.row().classes("w-full gap-4"):
+        search_input = ui.input(translate_string("Search actions")).classes("flex-1")
+        category_select = ui.select(["All", *category_names], value="All").classes("w-48")
+    picker_container = ui.column().classes("w-full")
+
+    def add_item(action_key: str) -> None:
+        added = sceneedit.legacy_add_action_item(properties, action_key)
+        if isinstance(added, list):
+            for error in added:
+                ui.notify(error, type="negative")
+            return
+        rerender()
+
+    def refresh_picker(_event: ui.event | None = None) -> None:
+        picker_container.clear()
+        rows = taskedit.search_addable_actions(search_input.value, category_select.value)
+        with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
+            for row in rows:
+                if row["addable"]:
+                    ui.button(
+                        f"{row['name']} ({row['category_name']})",
+                        on_click=lambda r=row: add_item(r["action_key"]),
+                    ).props("flat align=left dense").classes("w-full justify-start")
+                else:
+                    with ui.column().classes("w-full gap-0"):
+                        ui.label(f"{row['name']} ({row['category_name']})").classes("text-gray-400")
+                        _render_addability_reason(self, row["reason"], refresh_picker)
+
+    search_input.on_value_change(refresh_picker)
+    category_select.on_value_change(refresh_picker)
+    refresh_picker()
+
+
+def _render_scene_event_tab(
+    self: MyGui,
+    properties: defusedxml.ElementTree.Element,
+    showing: dict,
+    rerender: Callable[[], None],
+    pending_tasks: dict,
+    scene_name: str,
+) -> None:
+    """The Event tab: Key, Home Tap and Tab Tap, as Tasker's own sub-tabs.
+
+    ONE SUB-TAB IS BUILT AT A TIME, into a container this refills, rather than three
+    ui.tab_panels.  Each one carries the bound Task's whole action editor
+    (_build_task_action_editor -- a picker over every addable action plus a row per
+    argument), and building three of those to show one of them would cost three times the
+    widgets and put three "Add an action" pickers on the page at once.
+
+    `showing` carries the selected sub-tab out to the caller so it survives the full-body
+    rebuild that binding a Task triggers -- see _build_scene_properties_dialog.
+    """
+    for name, meaning in sceneedit.LEGACY_SCENE_EVENT_COMMON_VARIABLES:
+        ui.label(f"{name} -- {translate_string(meaning)}").classes("text-xs text-gray-500 italic")
+
+    events = {event.label: event for event in sceneedit.LEGACY_SCENE_EVENTS}
+    if showing["event"] not in events:
+        showing["event"] = sceneedit.LEGACY_SCENE_EVENTS[0].label
+
+    with ui.tabs(value=showing["event"]).classes("w-full mt-2") as event_tabs:
+        for event in sceneedit.LEGACY_SCENE_EVENTS:
+            ui.tab(event.label, label=translate_string(event.label))
+    event_body = ui.column().classes("w-full")
+
+    def render_event() -> None:
+        event_body.clear()
+        with event_body:
+            _render_scene_event(
+                self,
+                properties,
+                events[showing["event"]],
+                rerender,
+                pending_tasks,
+                scene_name,
+            )
+
+    event_tabs.on_value_change(
+        lambda event: (showing.__setitem__("event", str(event.value)), render_event()),
+    )
+    render_event()
+
+
+def _render_scene_event(
+    self: MyGui,
+    properties: defusedxml.ElementTree.Element,
+    event: sceneedit.LegacySceneEvent,
+    rerender: Callable[[], None],
+    pending_tasks: dict | None = None,
+    scene_name: str = "",
+) -> None:
+    """One Event sub-tab: when it fires, the Task it fires, and what that Task can read.
+
+    The Task binding is the same model the element inspector's Tasks section uses
+    (sceneedit.legacy_set_task_binding / legacy_clear_task_binding) rather than a second way
+    of pointing at a Task -- these three tags are ordinary Scene Task bindings that happen to
+    hang off the Scene's properties instead of one of its elements.
+
+    WHICH TASK IS BOUND, and picking a different one, are two rows rather than one control:
+    a read-only field naming what fires now, and _render_task_picker below it.  See that
+    function for why a dropdown was the wrong shape for a list this size.
+
+    A binding is shown and editable even when Tasker would not offer this event for this
+    Scene (an <iconclickTask> on something that is no longer an Activity, say); the reason
+    is printed above it instead.  Hiding what the file holds is how an editor comes to
+    disagree with the file -- see sceneedit.legacy_scene_event_availability.
+    """
+    if unavailable := sceneedit.legacy_scene_event_availability(properties, event):
+        ui.label(translate_string(unavailable)).classes("text-xs text-amber-600 italic")
+    ui.label(translate_string(event.description)).classes("text-xs text-gray-500 italic")
+
+    bound = properties.find(event.tag)
+    task_id = (bound.text or "").strip() if bound is not None else ""
+    anonymous = task_id.startswith(sceneedit.LEGACY_ANONYMOUS_TASK_PREFIX)
+    # Named off the id rather than off the tables' name, so a Task whose entry carries a
+    # blank name still reads as bound.  taskerd normally fills a made-up display name in for
+    # an unnamed Task, but a caller that built the tables without that pass would otherwise
+    # make a real binding read as "Nothing".
+    all_tasks = PrimeItems.tasker_root_elements.get("all_tasks", {})
+    entry = all_tasks.get(task_id)
+    task_name = ((entry or {}).get("name") or f"Task {task_id}") if task_id else ""
+
+    def set_binding(picked: str) -> None:
+        if not picked:
+            return
+        picked_id = sceneedit.legacy_task_id_for_name(picked)
+        if not picked_id:
+            ui.notify(f"No Task named '{picked}' in this backup.", type="negative")
+            return
+        sceneedit.legacy_set_task_binding(properties, event.tag, picked_id)
+        rerender()
+
+    with ui.row().classes("w-full items-center gap-2 mt-2"):
+        ui.label(translate_string("Task")).classes("text-xs w-28 shrink-0")
+        if anonymous:
+            showing = translate_string("(anonymous Task, stored in the Scene)")
+        elif task_id:
+            showing = task_name
+        else:
+            showing = translate_string("Nothing -- this event fires no Task.")
+        current = ui.input(value=showing).props("readonly dense").classes("flex-1")
+        if anonymous:
+            with current:
+                ui.tooltip(
+                    translate_string(
+                        "Tasker keeps this Task inside the Scene and nowhere else, so it has no name "
+                        "and cannot be pointed somewhere else without losing it. It is carried "
+                        "through untouched.",
+                    ),
+                ).style("white-space: pre-wrap")
+        elif task_id:
+            ui.button(
+                icon="close",
+                on_click=lambda _e=None: (
+                    sceneedit.legacy_clear_task_binding(properties, event.tag),
+                    rerender(),
+                ),
+            ).props("dense flat size=sm color=negative").tooltip(
+                translate_string("Stop firing anything on this event."),
+            )
+
+    if not anonymous:
+        _render_task_picker(set_binding)
+
+    if event.tag == sceneedit.LEGACY_KEY_TASK_TAG:
+        _render_scene_key_filter(properties)
+
+    for name, meaning in event.variables:
+        ui.label(f"{name} -- {translate_string(meaning)}").classes("text-xs text-gray-500 italic")
+
+    _render_scene_event_task_actions(
+        self,
+        properties,
+        event,
+        {} if pending_tasks is None else pending_tasks,
+        scene_name,
+        rerender,
+    )
+
+
+def _render_task_picker(on_pick: Callable[[str], None]) -> None:
+    """"Pick a Task", built the way "Add an action" is: a search box, a filter, and a
+    scrolling list of one clickable row per match.
+
+    IT REPLACED A DROPDOWN, and the list is why.  A `ui.select` of every Task in the backup
+    is one control holding several hundred entries -- 352 in this repo's own backup_full.xml
+    -- with the owning Project nowhere in sight, so two Tasks called "Setup" in different
+    Projects are indistinguishable and the only way through is to already know the name.  The
+    action picker solved the same problem for the ~500 action types, and this is that
+    solution applied to the other long list: type part of a name, or narrow to one Project,
+    and click the row.
+
+    The Project filter is the Task-side counterpart of the action picker's Category filter
+    -- taskedit.search_pickable_tasks does the matching, on the same terms.  A Task no
+    Project owns is listed and filterable under "No Project", the same words
+    tasks.get_project_for_solo_task uses.
+
+    `on_pick` is handed the chosen Task's NAME, not its id: that is what
+    sceneedit.legacy_task_id_for_name and every other Task-by-name path in this app take, and
+    resolving it at the callback keeps this function ignorant of what the caller does with it.
+    """
+    rows = taskedit.list_pickable_tasks()
+    projects = sorted({row["project_name"] for row in rows})
+
+    ui.label(translate_string("Pick a Task")).classes("text-sm font-bold mt-2")
+    if not rows:
+        ui.label(translate_string("There are no Tasks in this configuration.")).classes(
+            "text-xs text-gray-500 italic",
+        )
+        return
+
+    with ui.row().classes("w-full gap-4"):
+        search_input = ui.input(translate_string("Search Tasks")).classes("flex-1")
+        project_select = ui.select(["All", *projects], value="All").classes("w-48")
+    picker_container = ui.column().classes("w-full")
+
+    def refresh_picker(_event: ui.event | None = None) -> None:
+        picker_container.clear()
+        matches = taskedit.search_pickable_tasks(search_input.value, project_select.value)
+        with picker_container, ui.scroll_area().classes("w-full h-40 border rounded p-2"):
+            if not matches:
+                ui.label(translate_string("No Task matches.")).classes("text-xs text-gray-500 italic")
+            for row in matches:
+                ui.button(
+                    f"{row['name']} ({row['project_name']})",
+                    on_click=lambda r=row: on_pick(r["name"]),
+                ).props("flat align=left dense").classes("w-full justify-start")
+
+    search_input.on_value_change(refresh_picker)
+    project_select.on_value_change(refresh_picker)
+    refresh_picker()
+
+
+def _render_scene_key_filter(properties: defusedxml.ElementTree.Element) -> None:
+    """The Key event's own filter: which keys the Scene handles, and whether it swallows them.
+
+    Both live in the Scene's <LinkClickFilter> -- see sceneedit.legacy_set_key_filter, which
+    also explains why a tag named urlMatch is holding a list of key names.
+    """
+    keys = ui.input(
+        translate_string("Keys"),
+        value=sceneedit.legacy_key_filter(properties),
+    ).props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}").classes("w-full mt-2")
+    keys.on_value_change(lambda event: sceneedit.legacy_set_key_filter(properties, str(event.value or "")))
+    with keys:
+        ui.tooltip(
+            translate_string(
+                "A slash-separated list of the keys to handle -- by name or by code, e.g. "
+                "back/78/a. Any other key is passed on to the system.\n"
+                "Leave it empty to handle every key.",
+            ),
+        ).style("white-space: pre-wrap")
+
+    stop_event = ui.checkbox(
+        translate_string("Stop Event"),
+        value=sceneedit.legacy_stop_event(properties),
+        on_change=lambda event: sceneedit.legacy_set_stop_event(properties, enabled=bool(event.value)),
+    )
+    with stop_event:
+        ui.tooltip(
+            translate_string(
+                "Any key handled by the scene is not passed on to the system -- how a Scene keeps "
+                "the back key from closing it.\n"
+                "Written the way Tasker writes it: a <stopEvent> inside the Scene's "
+                "<LinkClickFilter>, created when this is ticked and taken away again when it is "
+                "unticked and nothing else is left in it.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
+def _render_scene_event_task_actions(
+    self: MyGui,
+    properties: defusedxml.ElementTree.Element,
+    event: sceneedit.LegacySceneEvent,
+    pending_tasks: dict,
+    scene_name: str,
+    rerender: Callable[[], None],
+) -> None:
+    """The actions this event runs, edited here rather than in a dialog of its own -- the
+    same editor the Edit Task dialog is made of.
+
+    THERE IS ALWAYS AN EDITOR, whether or not a Task is bound yet.  An event with nothing
+    bound used to say "Pick a Task above" and stop, which made adding actions to a Scene's
+    Key/Home Tap/Tab Tap a two-step errand through the Add Task dialog and back.  Now a Task
+    with no binding gets a brand-new one, composed in place and created by the button at the
+    bottom -- see _render_scene_event_new_task.
+
+    WHICH TASK, when one is bound.  Whatever the event's tag points at, resolved BY ID
+    (taskedit.load_task_for_edit_by_id): the binding stores an id, and an unnamed Task's
+    displayed name is one taskerd invented from its first action, which is not a name to look
+    a Task up by.
+
+    An ANONYMOUS Task (a negative id, kept inside the Scene and nowhere else) gets neither.
+    It is not in the Task tables, so there is nothing to load, nothing for an Apply to write
+    back into, and replacing it would destroy the only copy.
+
+    WHERE AN APPLY LANDS.  Everything else in this dialog writes through to the Scene copy as
+    it is typed, and is kept or discarded by the Scene dialog's own Ok/Cancel.  These edits
+    are not on the Scene -- they are on a Task with its own place in the loaded configuration
+    -- so they follow the Edit Task dialog's rules instead: adding, copying, moving and
+    deleting an action land on a working copy as they are done, argument values sit in their
+    widgets, and the button at the bottom is what puts the lot into the loaded configuration.
+    Cancel on the Scene dialog does NOT take an applied Task edit back with it, which is why
+    the tooltips say so.
+
+    Repointing the binding rebuilds this whole panel, so an editor over a bound Task is
+    rebuilt over the newly bound one and anything not yet applied to the old one goes with it
+    -- the same as closing the Edit Task dialog without Ok.  A Task still being composed does
+    NOT go: it is held by the dialog (see pending_tasks) precisely so that switching sub-tabs
+    or picking a Task by mistake does not throw away the actions added to it.
+    """
+    bound = properties.find(event.tag)
+    task_id = (bound.text or "").strip() if bound is not None else ""
+
+    ui.separator().classes("mt-3")
+    ui.label(
+        f"{translate_string('Actions of the')} {translate_string(event.label)} {translate_string('Task')}",
+    ).classes("text-sm font-bold mt-2")
+
+    if task_id.startswith(sceneedit.LEGACY_ANONYMOUS_TASK_PREFIX):
+        ui.label(
+            translate_string(
+                "This Task is stored inside the Scene and is not in the Task list, so its actions "
+                "cannot be edited here. It is carried through untouched.",
+            ),
+        ).classes("text-xs text-gray-500 italic")
+        return
+
+    if not task_id:
+        _render_scene_event_new_task(self, properties, event, pending_tasks, scene_name, rerender)
+        return
+
+    edited_task = taskedit.load_task_for_edit_by_id(task_id)
+    if edited_task is None:
+        ui.label(
+            f"{translate_string('Task')} {task_id} "
+            f"{translate_string('is not in this backup, so there are no actions to show.')}",
+        ).classes("text-xs text-gray-500 italic")
+        return
+
+    field_refs: dict = {}
+    _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
+
+    apply_button = ui.button(
+        translate_string("Apply to Task"),
+        icon="task_alt",
+        on_click=lambda: self.event_handlers.apply_scene_key_task_event(edited_task, field_refs),
+    ).props("dense").classes("mt-2 bg-blue-600")
+    with apply_button:
+        ui.tooltip(
+            translate_string(
+                "Keeps these action edits in the loaded configuration, the same as 'Ok' in the Edit "
+                "Task dialog -- nothing is written to a file and nothing is sent to Android.\n"
+                "This Task is not part of the Scene, so the Scene dialog's own Cancel does not take "
+                "these edits back. Undo does.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
+def _render_scene_event_new_task(
+    self: MyGui,
+    properties: defusedxml.ElementTree.Element,
+    event: sceneedit.LegacySceneEvent,
+    pending_tasks: dict,
+    scene_name: str,
+    rerender: Callable[[], None],
+) -> None:
+    """Compose a brand-new Task for an event that has none, and create it in place.
+
+    Add Task's own two halves without Add Task's dialog: a Name and the action editor over an
+    UNREGISTERED EditableTask, then a button that registers it and points the event at it in
+    one undo step (userintr.create_scene_event_task_event).  Until that button is pressed the
+    Task exists nowhere but this panel -- nothing is in the Task tables, nothing is bound, and
+    closing the Scene dialog discards it, which is exactly what Cancel on Add Task does.
+
+    THE TASK IS HELD BY THE DIALOG, not built here, so the actions added to it survive this
+    panel being rebuilt -- and it is rebuilt often: every sub-tab switch and every binding
+    change goes through render().  Keyed by event tag, so composing a Key Task and a Tab Tap
+    Task at the same time keeps them apart.
+
+    A DEFAULT NAME rather than a blank one, because a name is required and "Reminder Key" is
+    what this Task is.  It is a plain field: a Scene called the same as an existing Task's
+    prefix would collide, and create_scene_event_task_event says so rather than guessing a
+    suffix.
+    """
+    if PrimeItems.xml_root is None:
+        ui.label(
+            translate_string("Load a Tasker configuration first -- a new Task needs one to get an id."),
+        ).classes("text-xs text-gray-500 italic")
+        return
+
+    edited_task = pending_tasks.get(event.tag)
+    if edited_task is None:
+        default_name = f"{scene_name} {event.label}".strip() or event.label
+        # The ids of the other sub-tabs' Tasks-in-progress are spoken for even though nothing
+        # has registered them: without this all three would be handed the same id, and
+        # creating the second would overwrite the first in the Task tables.
+        created = taskedit.create_new_task(
+            default_name,
+            "100",
+            reserved_ids={task.task_id for task in pending_tasks.values()},
+        )
+        if isinstance(created, str):  # No backup loaded -- create_new_task's own message.
+            ui.label(translate_string(created)).classes("text-xs text-gray-500 italic")
+            return
+        pending_tasks[event.tag] = edited_task = created
+
+    ui.label(
+        translate_string(
+            "Nothing is bound yet, so these actions go into a new Task. It is created, and this "
+            "event pointed at it, when you press the button below.",
+        ),
+    ).classes("text-xs text-gray-500 italic")
+
+    field_refs: dict = {
+        "name": ui.input(
+            translate_string("New Task Name"),
+            value=edited_task.task_element.findtext("nme", ""),
+        ).classes("w-full"),
+        "priority": ui.input(
+            translate_string("Priority"),
+            value=edited_task.task_element.findtext("pri", "100"),
+        ).classes("w-32"),
+        # Attach it to the Project the Scene itself belongs to, the way the top-level Add Task
+        # attaches to the Project that was selected before it opened.  A Task in no Project's
+        # <tids> runs but appears in no generated view of any Project.  "" when the Scene
+        # belongs to none, which _finish_new_task reads as "nothing to attach to".
+        "target_project_name": sceneedit.project_owning_scene(scene_name),
+    }
+
+    _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
+
+    def create_task() -> None:
+        def bind(new_task_id: str) -> None:
+            sceneedit.legacy_set_task_binding(properties, event.tag, new_task_id)
+
+        if self.event_handlers.create_scene_event_task_event(edited_task, field_refs, bind):
+            # It is a real Task now and the event points at it, so the next render loads it
+            # from the tables like any other binding.
+            pending_tasks.pop(event.tag, None)
+            rerender()
+
+    create_button = ui.button(
+        translate_string("Create Task"),
+        icon="add_task",
+        on_click=create_task,
+    ).props("dense").classes("mt-2 bg-blue-600")
+    with create_button:
+        ui.tooltip(
+            translate_string(
+                "Adds this Task to the loaded configuration and points this event at it, the same "
+                "as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent "
+                "to Android.\n"
+                "Until then the Task exists only in this panel, and the Scene dialog's Cancel "
+                "discards it. Afterwards it is a Task like any other, and Undo takes it back.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
 def _build_scene_editor_body(
     _self: MyGui,
     edited_scene: sceneedit.EditableScene,
@@ -6379,7 +7662,24 @@ def _build_scene_editor_body(
         "text-xs text-gray-500 italic",
     )
 
-    _build_legacy_designer(edited_scene, field_refs)
+    # The same button Project/Profile/Task grow, opening the Scene's own form -- see
+    # _build_scene_properties_dialog for why the form could not be shared even though the
+    # button is.  Legacy only: a V2 Scene has no <PropertiesElement>, and the V2 branch
+    # above has already returned by here.
+    #
+    # No on_applied: every Scene save path calls sceneedit.apply_edited_scene_to_live_tree
+    # BEFORE rendering by name, so the working copy this writes to is what gets saved.  That
+    # is the difference from Edit Project, whose by-name saves do not apply first and so
+    # need the live-tree mirror.
+    _build_properties_button(
+        _self,
+        objprops.KIND_SCENE,
+        scene_element,
+        dialog,
+        opener=lambda: _build_scene_properties_dialog(_self, edited_scene, field_refs),
+    )
+
+    _build_legacy_designer(_self, edited_scene, field_refs)
 
 
 def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> None:
@@ -7214,7 +8514,7 @@ def build_add_profile_dialog(
             "w-full",
         )
 
-        _build_profile_editor_body(self, edited_profile, field_refs)
+        _build_profile_editor_body(self, edited_profile, field_refs, dialog)
 
         field_refs["save_path"] = ui.input(
             translate_string("Save as"),
@@ -7349,6 +8649,11 @@ def build_add_task_dialog(
                 "flex-1",
             )
             field_refs["priority"] = ui.input(translate_string("Priority"), value="100").classes("w-32")
+            # Safe on a not-yet-registered Task, unlike Add Project's equivalent:
+            # register_new_task stores THIS element object in all_tasks rather than a
+            # copy of it, and every save path deep-copies it at write time, so properties
+            # set before the Task exists are still on it once it does.
+            _build_properties_button(self, objprops.KIND_TASK, edited_task.task_element, dialog)
 
         ui.label(translate_string("Add an action")).classes("text-sm font-bold mt-2")
         with ui.row().classes("w-full gap-4"):

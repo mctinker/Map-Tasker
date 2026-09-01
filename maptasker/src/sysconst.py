@@ -377,6 +377,14 @@ SCENE_TASK_TYPES = {
     "checkchangeTask": "Check Change",
     "clickTask": "TAP",
     "focuschangeTask": "Focus Change",
+    # A Scene's own <PropertiesElement> only -- all 7 in the sample data are on one, and no
+    # element type has ever been seen with it.  Tasker's Scene Properties screen calls it the
+    # Home Tap event: the home icon at the top left of an Activity's action bar.
+    "iconclickTask": "Home Tap",
+    # DUAL-PURPOSE, unlike the one above.  On a SpinnerElement (16 samples) this is the
+    # "Item Selected" it is named for; on a <PropertiesElement> (15 samples) it is Tasker's
+    # Tab Tap event.  This table cannot say both, so the Scene Properties dialog labels it
+    # from sceneedit.LEGACY_SCENE_EVENTS instead and the Spinner's meaning is kept here.
     "itemselectedTask": "Item Selected",
     "keyTask": "Key",
     "linkclickTask": "Link",

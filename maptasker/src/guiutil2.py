@@ -153,15 +153,7 @@ def get_changelog_file(url: str, delimiter: str, n: int) -> list:
             delimiter_count += 1
             if delimiter_count == n:
                 break  # Stop when the nth occurrence is found
-        # elif line.startswith(delimiter[0]):
-        #     line = line.replace(delimiter[0], ">")  # Ensure consistent formatting
-        # else:
-        #     for change_type in CHANGELOG_CHANGE_TYPES:
-        #         marker = f"- {change_type}:"
-        #         if line.startswith(marker):
-        #             lines.append(" ")  # Blank line before each change type for better readability
-        #             line = line.replace(marker, f"  >>>  {change_type}:")
-        #             break
+
         if line:
             lines.append(line)
 

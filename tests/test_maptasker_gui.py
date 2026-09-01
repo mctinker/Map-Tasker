@@ -2067,3 +2067,86 @@ async def test_a_device_that_would_not_answer_opens_no_dialog(monkeypatch, event
 
     assert calls["dialog"] == []
     assert any("Connection error" in message for message, kind in calls["notify"] if kind == "negative")
+
+
+# ==========================================
+# 9. A RESTORED SINGLE NAME SURVIVING THE PULLDOWN REBUILD
+# ==========================================
+def _gui_with_pulldowns(options_per_label: dict) -> MagicMock:
+    """A view whose four 'Specific Name' pulldowns hold the given option lists."""
+    gui = MagicMock(spec=MyGui)
+    gui.is_updating = False
+    for label in SINGLE_ITEM_LABELS:
+        setattr(gui, f"single_{label.lower()}_name", "")
+        setattr(
+            gui,
+            f"specific_{label.lower()}_optionmenu",
+            FakeSelect("None", list(options_per_label.get(label, ["None"]))),
+        )
+    return gui
+
+
+def test_a_restored_profile_shows_in_a_pulldown_that_lists_names_bare():
+    """An exported single-Profile XML has no Project, so get_tasker_objects lists the
+    Profile names bare -- the restore path's guessed "Profile: <name>" matches nothing
+    there and used to leave the pulldown showing only its "Profile" label."""
+    from maptasker.src.guiutils import display_object_pulldowns  # noqa: PLC0415
+
+    gui = _gui_with_pulldowns({})
+    gui.single_profile_name = "$NewProfile"
+    gui.specific_profile_optionmenu.value = "Profile: $NewProfile"
+
+    display_object_pulldowns(gui, ["None"], ["None", "$NewProfile"], ["None"], ["None"])
+
+    assert gui.specific_profile_optionmenu.value == "$NewProfile"
+    assert gui.specific_profile_optionmenu.value in gui.specific_profile_optionmenu.options
+
+
+def test_a_restored_profile_shows_in_a_pulldown_that_lists_names_prefixed():
+    """The same selection against a full backup, where the Profile options do carry the
+    "Profile: " head."""
+    from maptasker.src.guiutils import display_object_pulldowns  # noqa: PLC0415
+
+    gui = _gui_with_pulldowns({})
+    gui.single_profile_name = "$NewProfile"
+    gui.specific_profile_optionmenu.value = "None"
+
+    display_object_pulldowns(gui, ["None"], ["None", "Profile: $NewProfile"], ["None"], ["None"])
+
+    assert gui.specific_profile_optionmenu.value == "Profile: $NewProfile"
+
+
+def test_rebuilding_the_lists_leaves_an_unselected_pulldown_alone():
+    """Nothing selected stays nothing selected -- the re-point must not invent one."""
+    from maptasker.src.guiutils import display_object_pulldowns  # noqa: PLC0415
+
+    gui = _gui_with_pulldowns({})
+
+    display_object_pulldowns(gui, ["None", "Project: Base"], ["None", "Profile: X"], ["None"], ["None"])
+
+    for label in SINGLE_ITEM_LABELS:
+        assert getattr(gui, f"specific_{label.lower()}_optionmenu").value == "None"
+
+
+def test_the_selection_is_repointed_without_firing_the_change_handlers():
+    """Assigning a select's .value fires its on_change, which would re-enter the
+    single_xxx_name_event handlers -- so the re-point runs under the is_updating lock
+    and hands it back as it found it."""
+    from maptasker.src.guiutils import reapply_single_item_selections  # noqa: PLC0415
+
+    gui = _gui_with_pulldowns({"Profile": ["None", "$NewProfile"]})
+    gui.single_profile_name = "$NewProfile"
+    seen = []
+
+    class WatchedSelect(FakeSelect):
+        def __setattr__(self, name, value):
+            if name == "value":
+                seen.append(gui.is_updating)
+            object.__setattr__(self, name, value)
+
+    gui.specific_profile_optionmenu = WatchedSelect("Profile: $NewProfile", ["None", "$NewProfile"])
+
+    reapply_single_item_selections(gui)
+
+    assert seen[-1] is True
+    assert gui.is_updating is False

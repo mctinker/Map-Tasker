@@ -181,8 +181,38 @@ def load_task_for_edit(task_name: str) -> EditableTask | None:
     )
 
 
-def next_unique_task_or_profile_id() -> int:
+def load_task_for_edit_by_id(task_id: str) -> EditableTask | None:
+    """load_task_for_edit, but from the id the XML actually stores.
+
+    A Scene's Task bindings (<keyTask>, <clickTask>, ...) hold an id, not a name, and the
+    name in the tables is not always the Task's own: taskerd gives an unnamed Task a
+    made-up display name built from its first action, which is not something to look a
+    Task up by and definitely not something to write back into its <nme>.  Going through
+    the id skips both problems.
+
+    Same contract as load_task_for_edit otherwise -- a deep copy, so nothing downstream
+    touches the live tree until apply_edited_task_to_live_tree.
+    """
+    entry = PrimeItems.tasker_root_elements.get("all_tasks", {}).get(str(task_id))
+    if entry is None:
+        return None
+    task_copy = copy.deepcopy(entry["xml"])
+    return EditableTask(
+        task_id=str(task_id),
+        task_element=task_copy,
+        actions=_build_editable_actions(task_copy),
+    )
+
+
+def next_unique_task_or_profile_id(reserved: set[str] | None = None) -> int:
     """Computes the next id safe to assign to a brand-new Task or Profile.
+
+    `reserved` is ids that are spoken for but not in the tables yet -- Tasks composed but
+    not created.  The Scene Properties Event tabs can have one in progress under each of
+    their three sub-tabs at once (see guiwins._render_scene_event_new_task), and without
+    this they would all be handed the same id: registering the second would then overwrite
+    the first in all_tasks, leaving the first event's binding silently pointing at the other
+    Task's actions.
 
     Real Tasker backups keep Task and Profile ids collision-free with each other
     -- confirmed empirically against this repo's own sample backup (zero overlap
@@ -203,19 +233,24 @@ def next_unique_task_or_profile_id() -> int:
         for k in PrimeItems.tasker_root_elements.get(table_name, {})
         if k.isdigit()
     ]
+    existing_ids.extend(int(k) for k in (reserved or ()) if str(k).isdigit())
     return max(existing_ids, default=0) + 1
 
 
-def create_new_task(name: str, priority: str) -> EditableTask | str:
+def create_new_task(name: str, priority: str, reserved_ids: set[str] | None = None) -> EditableTask | str:
     """Build a brand-new Task element, not tied to any existing one, ready for
     actions to be added to it. Returns an error message string if no backup is
     loaded -- needed both to generate a collision-free id and to source the correct
     Element class (see write_standalone_task_xml's note on class mismatches).
+
+    `reserved_ids` is passed straight to next_unique_task_or_profile_id -- the ids of any
+    other Task built by this same call site and not registered yet; see there for what goes
+    wrong without it.
     """
     if PrimeItems.xml_root is None:
         return "Load a Tasker backup file first (Add Task needs it to generate a unique Task ID)."
 
-    new_id = next_unique_task_or_profile_id()
+    new_id = next_unique_task_or_profile_id(reserved_ids)
 
     element_cls = type(PrimeItems.xml_root)
     task_element = element_cls("Task", {"sr": f"task{new_id}"})
@@ -1398,6 +1433,63 @@ def search_addable_actions(query: str = "", category_name: str = "All") -> list[
     return rows
 
 
+# What a Task with no Project shows as in the picker's Project column and filter.  Same
+# words tasks.get_project_for_solo_task uses for the same state, so the two agree.
+NO_PROJECT_NAME = "No Project"
+
+
+def list_pickable_tasks() -> list[dict]:
+    """Every Task that can be pointed at, with the Project that owns it.
+
+    The Task-side counterpart of list_addable_actions, and shaped like it so one picker can
+    render either: {"name", "project_name", "task_id"}, sorted by name.
+
+    NOT MEMOIZED, unlike the action list.  That one caches because deciding whether an
+    action is addable is expensive; this is two dict walks, and it has to be live -- a Task
+    added through the Add Task dialog has to appear in the picker the moment it exists.
+
+    A Task in more than one Project is listed once, under the first that claims it, which is
+    what get_project_for_solo_task does too.  An unnamed Task is offered under the display
+    name taskerd gave it ("Flash hello.269 (Unnamed)"), because that is the name every other
+    Task pulldown in this app offers and the one legacy_task_id_for_name resolves.
+
+    A BLANK name is skipped.  It should not occur -- taskerd invents that display name for
+    exactly this reason -- but every caller of this list picks a Task BY NAME, so a row with
+    no name is a row that does nothing when it is clicked.  Leaving it out is better than
+    offering it and silently ignoring the click.
+    """
+    root = PrimeItems.tasker_root_elements
+    project_of: dict[str, str] = {}
+    for project in root.get("all_projects", {}).values():
+        for task_id in _project_task_ids(project["xml"]):
+            project_of.setdefault(task_id.strip(), project["name"])
+
+    rows = [
+        {
+            "name": name,
+            "task_id": str(entry["id"]),
+            "project_name": project_of.get(str(entry["id"]), NO_PROJECT_NAME),
+        }
+        for name, entry in root.get("all_tasks_by_name", {}).items()
+        if name
+    ]
+    rows.sort(key=lambda row: row["name"].lower())
+    return rows
+
+
+def search_pickable_tasks(query: str = "", project_name: str = "All") -> list[dict]:
+    """Filter the Task list by name substring and/or exact Project name -- the Task-side
+    search_addable_actions, matching on the same terms so both pickers behave alike.
+    """
+    query = query.strip().lower()
+    rows = list_pickable_tasks()
+    if query:
+        rows = [row for row in rows if query in row["name"].lower()]
+    if project_name and project_name != "All":
+        rows = [row for row in rows if row["project_name"] == project_name]
+    return rows
+
+
 def arg_key(act_number: int, arg_id: str) -> str:
     """Key format shared with the dialog builder for arg_values dict lookups."""
     return f"act{act_number}_arg{arg_id}"
@@ -1691,12 +1783,7 @@ def apply_edits_to_task(
     if priority_value and not priority_value.isdigit():
         errors.append("Priority must be a non-negative whole number.")
 
-    for action in edited_task.actions:
-        key_for_arg = lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id)
-        action_errors = validate_arg_values(action.args, key_for_arg, arg_values)
-        if action.code == IF_ACTION_CODE:
-            action_errors.extend(validate_if_condition_values(action, key_for_arg, arg_values))
-        errors.extend(f"{error} (Action {action.act_number})" for error in action_errors)
+    errors.extend(validate_action_edits(edited_task, arg_values))
 
     if errors:
         return errors
@@ -1705,6 +1792,27 @@ def apply_edits_to_task(
     if priority_value:
         _set_child_text(edited_task.task_element, "pri", priority_value)
 
+    _apply_action_edits(edited_task, arg_values)
+
+    return []
+
+
+def validate_action_edits(edited_task: EditableTask, arg_values: dict[str, str]) -> list[str]:
+    """Every complaint the action half of a Task edit has -- argument values, and an If's
+    own condition -- each tagged with the action it came from.  Mutates nothing.
+    """
+    errors = []
+    for action in edited_task.actions:
+        key_for_arg = lambda arg, act_number=action.act_number: arg_key(act_number, arg.arg_id)
+        action_errors = validate_arg_values(action.args, key_for_arg, arg_values)
+        if action.code == IF_ACTION_CODE:
+            action_errors.extend(validate_if_condition_values(action, key_for_arg, arg_values))
+        errors.extend(f"{error} (Action {action.act_number})" for error in action_errors)
+    return errors
+
+
+def _apply_action_edits(edited_task: EditableTask, arg_values: dict[str, str]) -> None:
+    """Write the validated action argument values and labels onto the Task copy."""
     for action in edited_task.actions:
         apply_arg_values(
             action.args,
@@ -1714,6 +1822,21 @@ def apply_edits_to_task(
         if (pending_label := arg_values.get(label_key(action.act_number))) is not None:
             _apply_action_label(action, pending_label)
 
+
+def apply_action_edits_to_task(edited_task: EditableTask, arg_values: dict[str, str]) -> list[str]:
+    """apply_edits_to_task without the Name/Priority half, for an editor that shows neither.
+
+    The Scene Properties KEY tab edits the actions of the Task the Scene fires on a key
+    press, and never its name -- which it must not touch: a Task bound by id can be an
+    unnamed one, whose displayed name is invented by taskerd from its first action and
+    would become a real <nme> the moment apply_edits_to_task validated it.
+
+    All-or-nothing like apply_edits_to_task: on any error nothing is mutated.
+    """
+    errors = validate_action_edits(edited_task, arg_values)
+    if errors:
+        return errors
+    _apply_action_edits(edited_task, arg_values)
     return []
 
 

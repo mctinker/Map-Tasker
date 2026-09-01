@@ -1,6 +1,6 @@
 [project]
 name = "maptasker"
-version = "13.0.3"
+version = "13.1.0"
 description = "Utility to display/edit/analyze your entire Android 'Tasker' configuration in your browser."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },

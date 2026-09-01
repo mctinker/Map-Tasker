@@ -3,7 +3,6 @@
 import asyncio
 import contextlib
 import html
-import json
 import os
 import pickle
 import sys
@@ -16,7 +15,17 @@ from urllib.parse import urlencode
 
 from nicegui import Event, context, run, ui
 
-from maptasker.src import deviceinv, mapjump, presave, profedit, projedit, sceneedit, sessundo, taskedit
+from maptasker.src import (
+    deviceinv,
+    mapjump,
+    objprops,
+    presave,
+    profedit,
+    projedit,
+    sceneedit,
+    sessundo,
+    taskedit,
+)
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
@@ -88,6 +97,7 @@ from maptasker.src.guiwins import (
     build_edit_scene_dialog,
     build_edit_task_dialog,
     build_helper_tasks_dialog,
+    build_object_properties_dialog,
     build_overwrite_confirm_dialog,
     build_rename_dialog,
     build_save_profile_to_android_dialog,
@@ -237,13 +247,13 @@ async def _choose_comparison_file(gui: "MyGui") -> str:
                     translate_string("Choose another file..."),
                     on_click=lambda: dialog.submit("pick"),
                 ).props(
-                    "outline"
+                    "outline",
                 ).classes("w-full")
                 ui.button(
                     translate_string("Cancel"),
                     on_click=lambda: dialog.submit(""),
                 ).props(
-                    "outline"
+                    "outline",
                 ).classes("w-full")
 
         choice = await dialog
@@ -1233,13 +1243,23 @@ class MyGui:
                 if my_name in SINGLE_ITEM_LABELS:
                     setattr(self, f"single_{my_name.lower()}_name", name_entered)
 
-                    # Select it in its own pulldown, adding the option if the live tree
-                    # has it but the pulldown list hasn't been rebuilt yet.
-                    display_value = f"{option_heads.get(my_name, '')}{name_entered}"
+                    # Select it in its own pulldown.  Prefer whatever option the list
+                    # already holds for this name: the "<type>: " head above is only
+                    # right when the XML has Projects to walk -- an exported single
+                    # Profile/Task file has no Project, so get_tasker_objects' no-tree
+                    # branch lists Profile names bare, and a fabricated "Profile: X"
+                    # would match no option and leave the pulldown showing just its
+                    # "Profile" label.  Fall back to the prefixed name only when the
+                    # live tree has the item but the pulldown list hasn't been rebuilt
+                    # for it yet; display_object_pulldowns re-resolves the selection
+                    # (reapply_single_item_selections) once it has.
                     optionmenu = getattr(self, f"specific_{my_name.lower()}_optionmenu")
-                    if display_value not in optionmenu.options:
-                        optionmenu.options.append(display_value)
-                    optionmenu.value = display_value
+                    select_pulldown_option(optionmenu, name_entered)
+                    if is_no_selection(optionmenu.value) or optionmenu.value not in (optionmenu.options or []):
+                        display_value = f"{option_heads.get(my_name, '')}{name_entered}"
+                        if display_value not in optionmenu.options:
+                            optionmenu.options.append(display_value)
+                        optionmenu.value = display_value
                     reset_single_item_pulldowns(self, except_for=my_name)
 
                     # Update the Analyze tab's labels: the restored item shows its name,
@@ -1673,6 +1693,34 @@ def _task_arg_values(field_refs: dict) -> dict[str, str]:
         value = widget.value
         arg_values[key] = "1" if value is True else "0" if value is False else str(value)
     return arg_values
+
+
+def _object_property_values(field_refs: dict) -> dict[str, str]:
+    """Snapshots the Properties dialog's widgets into the string-keyed dict
+    objprops.apply_properties expects.
+
+    Booleans become "true"/"false" rather than _task_arg_values' "1"/"0": these go
+    straight into tags Tasker writes as the words (<immutable>false</immutable>,
+    <stayawake>true</stayawake>), and objprops compares them against PropField.default,
+    which is in the same spelling.
+
+    A ui.number left empty has value None, which has to read back as "" (no priority
+    set) rather than the string "None".
+    """
+    values = {}
+    for key, widget in field_refs.items():
+        value = widget.value
+        if value is True or value is False:
+            values[key] = "true" if value else "false"
+        elif value is None:
+            values[key] = ""
+        elif isinstance(value, float) and value.is_integer():
+            # ui.number hands back a float even with format="%.0f" -- 50.0 must not
+            # become "50.0" in <pri>.
+            values[key] = str(int(value))
+        else:
+            values[key] = str(value)
+    return values
 
 
 def _notify_if_plugin_needs_configuration(element: object, name: str) -> None:
@@ -2826,13 +2874,15 @@ class MapTaskerEventHandlers:
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
                 gui.list_files_button = (
-                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
+                    ui
+                    .button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
                     .style("background-color: #D62CFF; color: white;")
                     .classes("flex-grow text-xs")
                 )
 
                 gui.list_files_query_button = (
-                    ui.button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                    ui
+                    .button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
                     .style("background-color: #246FB6; color: #ffd941;")
                     .classes("w-10 min-w-[40px] text-xs")
                 )
@@ -2842,7 +2892,8 @@ class MapTaskerEventHandlers:
             # can delete it from this end.
             with ui.row().classes("w-full items-center mt-1"):
                 gui.helper_tasks_button = (
-                    ui.button(
+                    ui
+                    .button(
                         translate_string("List Helper Tasks"),
                         on_click=gui.event_handlers.list_helper_tasks_event,
                     )
@@ -2884,7 +2935,8 @@ class MapTaskerEventHandlers:
             # so clear_android_buttons() then deleted this button while believing it had deleted
             # that one -- leaving the original in place and adding a second one every time.
             gui.set_xml_details_button = (
-                ui.button(
+                ui
+                .button(
                     translate_string("Click Here to Set XML Details"),
                     on_click=gui.event_handlers.fetch_backup_event,
                 )
@@ -3338,6 +3390,56 @@ class MapTaskerEventHandlers:
             build_overwrite_confirm_dialog(f"'{save_path}'", _write)
             return
         _write()
+
+    def create_scene_event_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+        on_created: Callable[[str], None],
+    ) -> bool:
+        """Registers the Task being composed under a Scene Properties Event tab and hands
+        its id to `on_created`, which is what binds it to the event -- what "Create Task"
+        does (see guiwins._render_scene_event_task_actions).
+
+        Add Task's Ok (keep_new_task_event) for a Task that has no dialog of its own: same
+        validation, same registration, same pulldown refresh, and the binding takes the
+        place of Add Task's Project attachment inside the one undo step, so creating the
+        Task and pointing the event at it are a single thing to take back.
+
+        Returns True if the Task now exists; False leaves the panel alone with the errors
+        already notified, so nothing typed is lost.
+        """
+        applied, name_value = _validate_and_apply_new_task(edited_task, field_refs)
+        if not applied:
+            return False
+        _finish_new_task(self.gui, edited_task, name_value, on_created, field_refs)
+        ui.notify(f"{translate_string('Created Task')} '{name_value}'.", type="positive")
+        return True
+
+    def apply_scene_key_task_event(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+    ) -> None:
+        """Applies the Scene Properties KEY tab's Task action edits into the live
+        in-memory backup -- what "Apply to Task" does (see
+        guiwins._render_scene_key_task_actions).
+
+        Ok's job (keep_edited_task_event) minus the two things that tab has no
+        business doing: it never touches the Task's Name or Priority -- it shows
+        neither, and a Task bound by id can be an unnamed one whose displayed name
+        was invented by taskerd -- and it closes no dialog, since the Scene
+        Properties dialog is still being used and the Scene's own edits are still
+        pending in it.
+        """
+        errors = taskedit.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs))
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+        taskedit.apply_edited_task_to_live_tree(edited_task)
+        task_name = edited_task.task_element.findtext("nme", "") or edited_task.task_id
+        ui.notify(f"{translate_string('Changes kept for Task')} '{task_name}'.", type="positive")
 
     def keep_edited_task_event(
         self,
@@ -3836,6 +3938,82 @@ class MapTaskerEventHandlers:
         why the Edit Project dialog has to work that way.
         """
         projedit.set_project_enabled(edited_project, enabled)
+
+    # ----------------------------------------------------------------------------------
+    # Object Properties -- the panel Project/Profile/Task/Scene share.  What it edits is
+    # in objprops.py and the form is guiwins.build_object_properties_dialog; these three
+    # are the whole of the wiring.
+    # ----------------------------------------------------------------------------------
+    def open_object_properties_event(
+        self,
+        kind: str,
+        element: object,
+        parent_dialog: ui.dialog,
+        on_applied: Callable[[], None] | None = None,
+    ) -> None:
+        """Open the Properties editor over whichever Add/Edit dialog asked for it."""
+        build_object_properties_dialog(self.gui, kind, element, parent_dialog, on_applied)
+
+    def keep_object_properties_event(
+        self,
+        props: objprops.EditableProperties,
+        field_refs: dict,
+        dialog: ui.dialog,
+        on_applied: Callable[[], None] | None = None,
+    ) -> None:
+        """Ok: validate, apply onto the element, run the caller's follow-up, close.
+
+        Nothing is written when validation fails and the dialog stays open with the
+        messages on it, so a mistyped variable name is corrected rather than retyped from
+        scratch -- same contract as keep_edited_task_event.
+
+        No undo checkpoint is taken here.  For a Task or a Profile the edit lands on the
+        working copy, where the live configuration has not changed yet and the parent's
+        own save is already wrapped.  `on_applied` is where a caller whose element is not
+        the whole story puts the rest -- only Edit Project has one, and the checkpoint for
+        that path is taken inside it (projedit.apply_properties_to_live_tree).
+        """
+        values = _object_property_values(field_refs)
+        errors = objprops.apply_properties(props, values)
+        if errors:
+            for error in errors:
+                ui.notify(error, type="negative")
+            return
+
+        for warning in objprops.warnings(props, values):
+            ui.notify(warning, type="warning")
+
+        if on_applied is not None:
+            on_applied()
+
+        ui.notify(translate_string("Properties kept."), type="positive")
+        dialog.close()
+
+    def apply_project_properties_event(self, edited_project: projedit.EditableProject) -> None:
+        """Edit Project's on_applied: carry the properties just written onto the Project
+        copy through to the live element, so its two by-name saves and "Save To Current
+        File" all see them.  See projedit.apply_properties_to_live_tree, which is where
+        the undo checkpoint for this path is taken.
+
+        The Project counterpart of set_project_enabled_event, and immediate for the same
+        reason: there is no later moment at which a by-name save could pick this up.
+        """
+        projedit.apply_properties_to_live_tree(edited_project)
+
+    def cancel_object_properties_event(
+        self,
+        props: objprops.EditableProperties,
+        dialog: ui.dialog,
+    ) -> None:
+        """Cancel: close without applying, and drop any variable that was added but never
+        named -- see objprops.discard_unnamed_variables for why one can be left behind.
+        """
+        if discarded := objprops.discard_unnamed_variables(props):
+            ui.notify(
+                translate_string(f"Discarded {discarded} unnamed variable(s)."),
+                type="info",
+            )
+        dialog.close()
 
     def save_project_to_current_file_event(
         self,
@@ -5191,7 +5369,7 @@ class MapTaskerEventHandlers:
             lambda: self._keep_profile_in_loaded_config(edited_profile, profile_name, is_new_profile, project_name),
         )
 
-    async def _offer_into_tasker(  # noqa: PLR0913
+    async def _offer_into_tasker(
         self,
         xml_bytes: bytes,
         object_name: str,
@@ -5425,7 +5603,7 @@ class MapTaskerEventHandlers:
                 slot above went unnoticed until someone read their terminal.  The same
                 treatment guiwins._report_view_failure gives a view's rendering task.
                 """
-                asyncio.create_task(_offer_from_the_prompt()).add_done_callback(_report_offer_failure)  # noqa: RUF006
+                asyncio.create_task(_offer_from_the_prompt()).add_done_callback(_report_offer_failure)
 
             build_overwrite_confirm_dialog(
                 f"'{device_read_path}' on the Android device",
@@ -5519,10 +5697,7 @@ class MapTaskerEventHandlers:
             android_dialog,
             parent_dialog,
             lambda: None,  # the edits are already in the live tree -- see the apply above
-            by_hand=(
-                "import it with Tasker's 'Scenes > Import One Scene' and pick "
-                f"'{edited_scene.scene_name}'"
-            ),
+            by_hand=(f"import it with Tasker's 'Scenes > Import One Scene' and pick '{edited_scene.scene_name}'"),
             attempts=deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS,
         )
 
@@ -7438,7 +7613,8 @@ class MapTaskerEventHandlers:
             if toolbar:
                 with toolbar:
                     gui.font_out_label = (
-                        ui.label(label_text)
+                        ui
+                        .label(label_text)
                         .style(f"font-family: {font_name}; font-size: 14px;")
                         .classes("text-gray-500 italic ml-4")
                     )
@@ -7633,7 +7809,7 @@ class MapTaskerEventHandlers:
         else:
             message = translate_string("An error occurred reading the changelog file.")
 
-        create_popup_window(translate_string("What's New?"), message, close_button=True)
+        create_popup_window(translate_string("What's New?"), message, close_button=True, rich=True)
 
     # Front-end event handlers
     def _handle_event(self, event_method: str, view_name: str, *args: str) -> None:

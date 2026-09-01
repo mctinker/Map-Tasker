@@ -3002,6 +3002,25 @@ def _project_scene_names(project_element: defusedxml.ElementTree.Element) -> lis
     return [name for name in child.text.split(",") if name]
 
 
+def project_owning_scene(scene_name: str) -> str:
+    """The name of the Project whose <scenes> lists this Scene, or "".
+
+    Used when a Task is created from inside a Scene -- the Scene Properties Event tabs -- so
+    the new Task can be attached to the same Project the Scene belongs to.  A Task in no
+    Project's <tids> is an orphan: it runs, but it appears in no generated view of any
+    Project, which is the Task analogue of what add_scene_to_project's docstring describes.
+
+    The first Project that claims it wins.  A Scene listed by two Projects is not something
+    Tasker writes, and picking the first is what every other by-name lookup here does.
+    """
+    if not scene_name:
+        return ""
+    for name, entry in PrimeItems.tasker_root_elements.get("all_projects", {}).items():
+        if scene_name in _project_scene_names(entry["xml"]):
+            return name
+    return ""
+
+
 def _set_project_scene_names(
     project_element: defusedxml.ElementTree.Element,
     scene_names: list[str],
@@ -4174,6 +4193,19 @@ def legacy_restack(scene_element: defusedxml.ElementTree.Element, sr: str, posit
 # listed here (see legacy_task_tags_for), so a Scene from a newer Tasker keeps whatever it
 # came with.
 LEGACY_TASK_TAGS_BY_TYPE: dict[str, tuple[str, ...]] = {
+    # The Scene's own properties, not one of its elements.  Tasker's Scene Properties screen
+    # calls these its Event tabs, and there are exactly three of them -- Key, Home Tap and
+    # Tab Tap (see LEGACY_SCENE_EVENTS below, which is the table with the labels and the
+    # rules on it).  All three are listed so the Scene Properties dialog can OFFER one to a
+    # Scene that has none: without an entry here legacy_task_tags_for returns only what is
+    # already present, which would make the tab read-only in exactly the case someone wants
+    # it.
+    #
+    # <itemselectedTask> means something ELSE on a SpinnerElement below -- "Item Selected",
+    # which is what sysconst.SCENE_TASK_TYPES calls it.  The tag is the same; what fires it
+    # is not, which is why the Scene Properties dialog labels these from
+    # LEGACY_SCENE_EVENTS rather than from that shared table.
+    "PropertiesElement": ("keyTask", "iconclickTask", "itemselectedTask"),  # LEGACY_SCENE_EVENTS
     "ButtonElement": ("clickTask", "longclickTask"),
     "CheckBoxElement": ("checkchangeTask",),
     "EditTextElement": ("valueselectedTask",),
@@ -4210,6 +4242,13 @@ LEGACY_BACKGROUND_TYPES = frozenset(
 # An anonymous inline Task -- Tasker writes these with a negative id and stores them nowhere
 # else.  scenes.process_tasks calls them "fake" and skips them for the same reason.
 LEGACY_ANONYMOUS_TASK_PREFIX = "-"
+
+# The three bindings a Scene's own <PropertiesElement> carries -- Tasker's Event tabs.
+# Named here rather than spelled out at each use so the Scene Properties dialog,
+# LEGACY_SCENE_EVENTS and LEGACY_TASK_TAGS_BY_TYPE above cannot drift apart over a string.
+LEGACY_KEY_TASK_TAG = "keyTask"
+LEGACY_HOME_TAP_TASK_TAG = "iconclickTask"
+LEGACY_TAB_TAP_TASK_TAG = "itemselectedTask"
 
 
 @dataclass(frozen=True)
@@ -4398,6 +4437,542 @@ def legacy_add_scene_properties(
     _legacy_order_arg_children(properties)
     scene_element.append(properties)
     return properties
+
+
+# The KEY tab's other half, beside <keyTask>: Tasker keeps "swallow the key press" in a
+# <LinkClickFilter sr="filter0"> child of the <PropertiesElement>, as a <stopEvent> beside
+# the <urlMatch> naming which keys are being filtered ("back", "back/home").
+#
+# Transcribed from the sample data -- 87 LinkClickFilters, 84 of them on a
+# PropertiesElement and 3 on a WebElement, every one of them sr="filter0".  <stopEvent> is
+# written as the word "true" in all 75 that have one and is simply ABSENT in the other 12,
+# so absent is how false is stored and how it is written back here; there is no
+# <stopEvent>false</stopEvent> anywhere in the sample data.
+#
+# The filter is created on demand and removed again when nothing is left in it, so a Scene
+# that never had one does not gain an empty element from a checkbox being ticked and
+# unticked.  An empty <LinkClickFilter> is not invalid -- 6 samples have one -- it just is
+# not something this editor should author.
+LEGACY_LINK_CLICK_FILTER_TAG = "LinkClickFilter"
+LEGACY_LINK_CLICK_FILTER_SR = "filter0"
+LEGACY_STOP_EVENT_TAG = "stopEvent"
+LEGACY_STOP_EVENT_TRUE = "true"
+
+
+def legacy_link_click_filter(
+    element: defusedxml.ElementTree.Element,
+) -> defusedxml.ElementTree.Element | None:
+    """The element's <LinkClickFilter>, or None.
+
+    Matched by tag rather than by sr="filter0" so a file that numbers it differently is
+    still read rather than silently treated as having no filter; the one this module
+    CREATES is always filter0, which is what every sample carries.
+    """
+    return element.find(LEGACY_LINK_CLICK_FILTER_TAG)
+
+
+def legacy_stop_event(element: defusedxml.ElementTree.Element) -> bool:
+    """Whether this element swallows the key press instead of passing it on.
+
+    Anything other than the word "true" reads as off, which covers both the absent
+    <stopEvent> (how Tasker stores false) and a hand-edited "false".
+    """
+    link_filter = legacy_link_click_filter(element)
+    if link_filter is None:
+        return False
+    return (link_filter.findtext(LEGACY_STOP_EVENT_TAG) or "").strip().lower() == LEGACY_STOP_EVENT_TRUE
+
+
+def legacy_set_stop_event(element: defusedxml.ElementTree.Element, *, enabled: bool) -> None:
+    """Turn Stop Event on or off, creating and disposing of the <LinkClickFilter> around it.
+
+    Off removes the <stopEvent> child rather than writing "false", because that is the only
+    way the sample data spells it -- and then removes the filter itself if THAT REMOVAL is
+    what left it empty, so ticking and unticking the box gets back to the XML that was there
+    before.  A filter still holding a <urlMatch> is kept: which keys are filtered is a
+    separate setting this box does not own.
+
+    A filter that was ALREADY EMPTY is left exactly where it is.  Tasker writes those -- 6
+    of the 87 in the sample data, and $Simon.xml has one on a Scene whose Stop Event is off
+    -- so turning off something already off would otherwise delete an element the user never
+    touched, which is the one thing a no-op must not do.
+    """
+    link_filter = legacy_link_click_filter(element)
+
+    if not enabled:
+        if link_filter is None:
+            return
+        stop_event = link_filter.find(LEGACY_STOP_EVENT_TAG)
+        if stop_event is None:
+            return
+        link_filter.remove(stop_event)
+        if len(link_filter) == 0:
+            element.remove(link_filter)
+        return
+
+    element_cls = type(element)
+    if link_filter is None:
+        link_filter = element_cls(
+            LEGACY_LINK_CLICK_FILTER_TAG,
+            {"sr": LEGACY_LINK_CLICK_FILTER_SR},
+        )
+        # Appended, not run through _legacy_insert_ordered_child: that one places the
+        # lowercase Task-binding children ahead of the capitalised argument children, and
+        # a LinkClickFilter goes after all of them -- last child, in all 87 samples.
+        element.append(link_filter)
+    stop_event = link_filter.find(LEGACY_STOP_EVENT_TAG)
+    if stop_event is None:
+        stop_event = element_cls(LEGACY_STOP_EVENT_TAG)
+        link_filter.insert(0, stop_event)
+    stop_event.text = LEGACY_STOP_EVENT_TRUE
+
+
+# --------------------------------------------------------------------------------------
+# TASKER'S SCENE PROPERTIES SCREEN, tab for tab.
+#
+# Its own user guide ("Scene Properties Edit") divides the screen into UI, Actions and
+# Event, and Event into Key, Home Tap and Tab Tap.  Everything below is the XML each of
+# those is stored as, worked out by lining the guide up against the 538 <PropertiesElement>s
+# in XML/ -- Tasker's file format names none of it the way its screen does:
+#
+#   UI        <Int/Str/Img sr="arg0..arg7">  (arg_dict.py's "PropertiesElement" entry)
+#   Actions   <ListElementItem sr="itemN">   one action-bar item each: icon, label, action
+#   Key       <keyTask> + <LinkClickFilter>'s <urlMatch> (the Keys filter) and <stopEvent>
+#   Home Tap  <iconclickTask>
+#   Tab Tap   <itemselectedTask>
+#
+# The two surprises, both confirmed against the data rather than guessed:
+#
+#   * <urlMatch> is the KEYS FILTER, not a URL.  Its values across the samples are "back"
+#     (64), "back/home" (12), "Back;Home" and "Back" -- Tasker's slash-separated key list,
+#     exactly as the guide describes it ("back/78/a").  The tag name is a leftover from the
+#     Web element the same <LinkClickFilter> serves on 3 other samples.
+#
+#   * <itemselectedTask> is TAB TAP here.  All 15 that sit on a PropertiesElement are on an
+#     Activity (arg0 == 2), and every sample whose Tab Labels are set has one.  The same tag
+#     on a SpinnerElement is the unrelated "Item Selected"; see LEGACY_TASK_TAGS_BY_TYPE.
+#
+#   * <iconclickTask> is HOME TAP.  6 of its 7 samples are on an Activity, which is what the
+#     guide says it is for ("the home icon in the top left of the action bar").
+# --------------------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class LegacySceneEvent:
+    """One of the three Event tabs: what it is called, what it is stored as, when Tasker
+    offers it at all, and which local variables its Task can read.
+
+    `requires` is the Property Types the event exists for, as the arg0 index strings
+    LEGACY_SCENE_TYPES uses.  `needs_arg` is the further UI-tab argument that has to be
+    filled in first -- the guide gates Home Tap on an Icon and Tab Tap on Tab Labels -- or
+    "" for an event that needs nothing beyond the right Property Type.
+    """
+
+    tag: str
+    label: str
+    requires: tuple[str, ...]
+    needs_arg: str
+    needs_arg_label: str
+    description: str
+    variables: tuple[tuple[str, str], ...]
+
+
+# Indexes into actiont.lookup_values["PropertyElement1"] == ("Overlay", "Dialog", "Activity").
+LEGACY_SCENE_TYPE_OVERLAY = "0"
+LEGACY_SCENE_TYPE_DIALOG = "1"
+LEGACY_SCENE_TYPE_ACTIVITY = "2"
+LEGACY_SCENE_TYPES = (LEGACY_SCENE_TYPE_OVERLAY, LEGACY_SCENE_TYPE_DIALOG, LEGACY_SCENE_TYPE_ACTIVITY)
+
+LEGACY_SCENE_TYPE_NAMES = {
+    LEGACY_SCENE_TYPE_OVERLAY: "Overlay",
+    LEGACY_SCENE_TYPE_DIALOG: "Dialog",
+    LEGACY_SCENE_TYPE_ACTIVITY: "Activity",
+}
+
+# The UI-tab argument slots the Event tabs depend on (arg_dict.py's "PropertiesElement").
+LEGACY_PROPERTY_TYPE_ARG = "0"
+LEGACY_ICON_ARG = "6"
+LEGACY_TAB_LABELS_ARG = "7"
+
+# Set on the Task of EVERY Scene event, per the guide.
+LEGACY_SCENE_EVENT_COMMON_VARIABLES = (
+    ("%scene_name", "the name of the scene containing the element"),
+    ("%event_type", "the name of the event (e.g. Tab Tap)"),
+)
+
+LEGACY_SCENE_EVENTS: tuple[LegacySceneEvent, ...] = (
+    LegacySceneEvent(
+        tag=LEGACY_KEY_TASK_TAG,
+        label="Key",
+        requires=(LEGACY_SCENE_TYPE_DIALOG, LEGACY_SCENE_TYPE_ACTIVITY),
+        needs_arg="",
+        needs_arg_label="",
+        description=(
+            "Occurs when a key has been pressed which has not been dealt with elsewhere. "
+            "EditText elements with focus absorb key presses and generate no Key event."
+        ),
+        variables=(
+            ("%key_code", "the unique numeric identifier"),
+            ("%key_name", "the human name of the key"),
+        ),
+    ),
+    LegacySceneEvent(
+        tag=LEGACY_HOME_TAP_TASK_TAG,
+        label="Home Tap",
+        requires=(LEGACY_SCENE_TYPE_ACTIVITY,),
+        needs_arg=LEGACY_ICON_ARG,
+        needs_arg_label="Icon",
+        description="Triggered when the user taps the home icon in the top left of the action bar.",
+        variables=(),
+    ),
+    LegacySceneEvent(
+        tag=LEGACY_TAB_TAP_TASK_TAG,
+        label="Tab Tap",
+        requires=(LEGACY_SCENE_TYPE_ACTIVITY,),
+        needs_arg=LEGACY_TAB_LABELS_ARG,
+        needs_arg_label="Tab Labels",
+        description="Triggered when the user taps a tab in the action bar.",
+        variables=(
+            ("%tap_index", "the tab number, starting at 1"),
+            ("%tap_label", "the tab label, as specified in the Tab Labels parameter of the UI tab"),
+        ),
+    ),
+)
+
+
+def legacy_scene_type(properties: defusedxml.ElementTree.Element) -> str:
+    """The Scene's Property Type as its arg0 index -- "0" Overlay, "1" Dialog, "2" Activity.
+
+    Defaults to Overlay, which is what arg0 holds when Tasker writes a Scene that has never
+    been given a type, and is the most restrictive of the three to assume.
+    """
+    element = properties.find(f"Int[@sr='arg{LEGACY_PROPERTY_TYPE_ARG}']")
+    if element is None:
+        return LEGACY_SCENE_TYPE_OVERLAY
+    value = (element.attrib.get("val") or "").strip()
+    return value if value in LEGACY_SCENE_TYPES else LEGACY_SCENE_TYPE_OVERLAY
+
+
+def _legacy_arg_is_set(properties: defusedxml.ElementTree.Element, arg_id: str) -> bool:
+    """Whether a UI-tab argument slot has anything in it.
+
+    Tasker writes every one of the eight slots whether or not it is used, so presence proves
+    nothing -- an empty <Str sr="arg7" ve="3" /> is what "no Tab Labels" looks like.  An
+    <Img> is judged by its <nme> for the same reason.
+    """
+    image = properties.find(f"Img[@sr='arg{arg_id}']")
+    if image is not None:
+        return bool((image.findtext("nme") or "").strip())
+    element = properties.find(f"Str[@sr='arg{arg_id}']")
+    if element is not None:
+        return bool((element.text or "").strip())
+    element = properties.find(f"Int[@sr='arg{arg_id}']")
+    return element is not None and bool((element.attrib.get("val") or "").strip())
+
+
+def legacy_scene_event_availability(
+    properties: defusedxml.ElementTree.Element,
+    event: LegacySceneEvent,
+) -> str:
+    """"" if Tasker offers this event for this Scene, otherwise why it does not.
+
+    NOT A GATE ON READING IT.  An event whose conditions no longer hold can still be bound
+    -- a Scene switched from Activity to Dialog keeps its <iconclickTask> -- and the editor
+    shows what is there either way, with this sentence beside it.  Hiding a binding the file
+    holds is how an editor comes to disagree with the file.
+    """
+    scene_type = legacy_scene_type(properties)
+    if scene_type not in event.requires:
+        wanted = " and ".join(LEGACY_SCENE_TYPE_NAMES[kind] for kind in event.requires)
+        return f"Available only for {wanted} scenes."
+    if event.needs_arg and not _legacy_arg_is_set(properties, event.needs_arg):
+        return f"Available only when {event.needs_arg_label} has been set in the UI tab."
+    return ""
+
+
+# ---- The Key event's Keys filter -----------------------------------------------------
+LEGACY_KEY_FILTER_TAG = "urlMatch"
+
+
+def legacy_key_filter(properties: defusedxml.ElementTree.Element) -> str:
+    """The Keys filter -- the slash-separated list of keys the Scene handles, "" for all.
+
+    Stored in the same <LinkClickFilter> Stop Event lives in; see legacy_set_stop_event.
+    """
+    link_filter = legacy_link_click_filter(properties)
+    if link_filter is None:
+        return ""
+    return (link_filter.findtext(LEGACY_KEY_FILTER_TAG) or "").strip()
+
+
+def legacy_set_key_filter(properties: defusedxml.ElementTree.Element, keys: str) -> None:
+    """Set which keys the Scene handles; "" (or blank) means all of them.
+
+    Disposes of an emptied <LinkClickFilter> on the same terms legacy_set_stop_event does,
+    and for the same reason -- with the same refusal to touch one that was already empty.
+    """
+    keys = keys.strip()
+    link_filter = legacy_link_click_filter(properties)
+
+    if not keys:
+        if link_filter is None:
+            return
+        existing = link_filter.find(LEGACY_KEY_FILTER_TAG)
+        if existing is None:
+            return
+        link_filter.remove(existing)
+        if len(link_filter) == 0:
+            properties.remove(link_filter)
+        return
+
+    element_cls = type(properties)
+    if link_filter is None:
+        link_filter = element_cls(LEGACY_LINK_CLICK_FILTER_TAG, {"sr": LEGACY_LINK_CLICK_FILTER_SR})
+        properties.append(link_filter)
+    existing = link_filter.find(LEGACY_KEY_FILTER_TAG)
+    if existing is None:
+        # After <stopEvent>, which is the order all 72 samples carrying both are in.
+        existing = element_cls(LEGACY_KEY_FILTER_TAG)
+        link_filter.append(existing)
+    existing.text = keys
+
+
+# ---- The Actions tab: an Activity's action-bar items ----------------------------------
+# One <ListElementItem sr="itemN"> per row of Tasker's Actions tab.  42 in the sample data,
+# on 16 <PropertiesElement>s, every one of them on an Activity.  Children, in the order
+# Tasker writes them: <label>, <Action sr="action">, and an optional <Img sr="icon"> -- the
+# guide's "label text", "action button" and "icon button".  5 of the 42 carry the icon.
+LEGACY_ACTION_ITEM_TAG = "ListElementItem"
+LEGACY_ACTION_ITEM_SR_PREFIX = "item"
+LEGACY_ACTION_ITEM_LABEL_TAG = "label"
+LEGACY_ACTION_ITEM_ACTION_SR = "action"
+LEGACY_ACTION_ITEM_ICON_SR = "icon"
+
+# Where the guide says an item ends up, from what it has been given.  Tasker decides this at
+# display time and stores nothing about it, so this is the editor telling the user what will
+# happen rather than a setting anyone can change.
+LEGACY_ACTION_ITEM_PLACEMENTS = {
+    (True, False): "always in the main bar",
+    (True, True): "in the main bar if there is room",
+    (False, True): "always in the overflow menu",
+    (False, False): "nowhere -- give it an icon or a label",
+}
+
+
+@dataclass(frozen=True)
+class LegacyActionItem:
+    """One action-bar item: its element, and the three things the guide says it is made of."""
+
+    element: object
+    sr: str
+    index: int
+    label: str
+    icon: str
+    action_element: object
+    action_name: str
+
+    @property
+    def placement(self) -> str:
+        """Which of Tasker's three overflow rules this item falls under."""
+        return LEGACY_ACTION_ITEM_PLACEMENTS[(bool(self.icon), bool(self.label))]
+
+
+def legacy_action_items(properties: defusedxml.ElementTree.Element) -> list[LegacyActionItem]:
+    """The Scene's action-bar items, in the order Tasker shows them.
+
+    Document order, not sr order: Tasker writes item0..itemN in order and renumbers them on
+    every reorder (which is what legacy_move_action_item does here), so document order is
+    the display order and the sr is only an identity to hold a selection by.
+    """
+    from maptasker.src.actionc import action_codes  # noqa: PLC0415  (kept off the import path)
+
+    items = []
+    for index, element in enumerate(properties.findall(LEGACY_ACTION_ITEM_TAG)):
+        action_element = element.find(f"Action[@sr='{LEGACY_ACTION_ITEM_ACTION_SR}']")
+        if action_element is None:
+            action_element = element.find("Action")
+        code = (action_element.findtext("code") or "").strip() if action_element is not None else ""
+        action_code = action_codes.get(f"{code}t")
+        icon_element = element.find(f"Img[@sr='{LEGACY_ACTION_ITEM_ICON_SR}']")
+        items.append(
+            LegacyActionItem(
+                element=element,
+                sr=element.get("sr", f"{LEGACY_ACTION_ITEM_SR_PREFIX}{index}"),
+                index=index,
+                label=(element.findtext(LEGACY_ACTION_ITEM_LABEL_TAG) or "").strip(),
+                icon=(icon_element.findtext("nme") or "").strip() if icon_element is not None else "",
+                action_element=action_element,
+                action_name=action_code.name if action_code is not None else (f"Code {code}" if code else ""),
+            ),
+        )
+    return items
+
+
+def legacy_action_item_args(item: LegacyActionItem) -> list:
+    """The item's action's editable arguments, as taskedit.EditableArg records.
+
+    Its <Action> is an ordinary Task action -- same <code> and <Int/Str sr="argN"> shape --
+    so it goes through the same model the Task editor and the element inspector use, and an
+    argument added to actionc.py shows up here without anything changing.
+    """
+    from maptasker.src.actionc import action_codes  # noqa: PLC0415
+    from maptasker.src.taskedit import build_editable_args  # noqa: PLC0415
+
+    if item.action_element is None:
+        return []
+    code = (item.action_element.findtext("code") or "").strip()
+    action_code = action_codes.get(f"{code}t")
+    if action_code is None:
+        return []
+    effective = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
+    return build_editable_args(item.action_element, effective)
+
+
+def legacy_set_action_item_label(item: LegacyActionItem, text: str) -> None:
+    """Set the item's label, adding the <label> child if it has none.
+
+    The <label> is kept even when blank: every one of the 42 samples has one, and an item
+    with an icon and no label is a real configuration (the guide's "always shown in the main
+    bar" case) rather than an item with nothing in it.
+    """
+    element = item.element
+    label = element.find(LEGACY_ACTION_ITEM_LABEL_TAG)
+    if label is None:
+        label = type(element)(LEGACY_ACTION_ITEM_LABEL_TAG)
+        element.insert(0, label)
+    label.text = text
+
+
+def legacy_action_item_icon(item: LegacyActionItem) -> str:
+    """The item's icon as one field's worth of text -- deviceinv's spelling, the same one
+    every Icon argument in this app is typed into.
+    """
+    from maptasker.src import deviceinv  # noqa: PLC0415
+
+    image = item.element.find(f"Img[@sr='{LEGACY_ACTION_ITEM_ICON_SR}']")
+    if image is None:
+        return ""
+    return deviceinv.format_icon_value(deviceinv.read_icon_element(image))
+
+
+def legacy_set_action_item_icon(item: LegacyActionItem, value: str) -> None:
+    """Point the item at an icon, creating its <Img sr="icon"> or taking it away again.
+
+    Blank removes the <Img> outright rather than leaving an empty one: an item with no icon
+    is one of the guide's three placements ("just a label" -> always in the overflow menu),
+    and 37 of the 42 sample items have no <Img> at all, so absence is how Tasker stores it.
+
+    The value goes through deviceinv, so a built-in name, an icon pack's "name:package", an
+    app's "app:package/class" and a %variable are all understood -- the same four forms the
+    Task editor's Icon fields accept.
+    """
+    from maptasker.src import deviceinv  # noqa: PLC0415
+
+    element = item.element
+    image = element.find(f"Img[@sr='{LEGACY_ACTION_ITEM_ICON_SR}']")
+    icon = deviceinv.parse_icon_value(value)
+
+    if icon is None:
+        if image is not None:
+            element.remove(image)
+        return
+
+    if image is None:
+        # Last child, which is where all 5 samples that have one keep it -- after <Action>.
+        image = type(element)("Img", {"sr": LEGACY_ACTION_ITEM_ICON_SR, "ve": "2"})
+        element.append(image)
+    deviceinv.write_icon_element(image, icon)
+
+
+def legacy_renumber_action_items(properties: defusedxml.ElementTree.Element) -> None:
+    """Put the items' sr back in document order -- item0, item1, ... -- after one has been
+    added, removed or moved.  Tasker's own files are always numbered that way.
+    """
+    for index, element in enumerate(properties.findall(LEGACY_ACTION_ITEM_TAG)):
+        element.set("sr", f"{LEGACY_ACTION_ITEM_SR_PREFIX}{index}")
+
+
+def legacy_add_action_item(
+    properties: defusedxml.ElementTree.Element,
+    action_key: str,
+) -> LegacyActionItem | list[str]:
+    """Add an action-bar item running a brand-new action of this type, or return why not.
+
+    The action is synthesized exactly as Add Task synthesizes one (taskedit's
+    classify_action_addability then build_synthesized_args), so what can be put on an action
+    bar is precisely what can be added to a Task -- one rule, one reason shown when it
+    cannot, and no second opinion about what a default argument should be.
+
+    No icon: the guide has the icon as a separate control on the row, and an item with a
+    label alone is valid (it lands in the overflow menu).  Appended after any existing item,
+    which is where Tasker adds one -- its plus button is at the bottom of the list.
+    """
+    from maptasker.src.taskedit import build_synthesized_args, classify_action_addability  # noqa: PLC0415
+    from maptasker.src.actionc import action_codes  # noqa: PLC0415
+
+    addable, reason = classify_action_addability(action_key)
+    if not addable:
+        return [reason or f"'{action_key}' cannot be added."]
+
+    element_cls = type(properties)
+    action_code = action_codes[action_key]
+    effective = action_codes[action_code.redirect].args if action_code.redirect else action_code.args
+
+    item = element_cls(LEGACY_ACTION_ITEM_TAG, {"sr": LEGACY_ACTION_ITEM_SR_PREFIX})
+    label = element_cls(LEGACY_ACTION_ITEM_LABEL_TAG)
+    label.text = action_code.name
+    item.append(label)
+
+    action = element_cls("Action", {"sr": LEGACY_ACTION_ITEM_ACTION_SR, "ve": "7"})
+    code = element_cls("code")
+    code.text = action_key[:-1]
+    action.append(code)
+    build_synthesized_args(element_cls, action, effective, action_key)
+    _legacy_order_arg_children(action)
+    item.append(action)
+
+    # After the last existing item, or -- for the first one -- at the end, where every
+    # sample keeps its items: after the arguments and after the <LinkClickFilter>.
+    existing = properties.findall(LEGACY_ACTION_ITEM_TAG)
+    if existing:
+        properties.insert(list(properties).index(existing[-1]) + 1, item)
+    else:
+        properties.append(item)
+    legacy_renumber_action_items(properties)
+    return legacy_action_items(properties)[-1]
+
+
+def legacy_remove_action_item(properties: defusedxml.ElementTree.Element, sr: str) -> None:
+    """Take one action-bar item away, and renumber what is left."""
+    element = next(
+        (child for child in properties.findall(LEGACY_ACTION_ITEM_TAG) if child.get("sr") == sr),
+        None,
+    )
+    if element is None:
+        return
+    properties.remove(element)
+    legacy_renumber_action_items(properties)
+
+
+def legacy_move_action_item(properties: defusedxml.ElementTree.Element, sr: str, offset: int) -> None:
+    """Move an item up (-1) or down (+1) the action bar, and renumber.
+
+    A no-op at either end rather than an error: the buttons that drive it are disabled
+    there, and a silent clamp is the right answer for the keyboard path that is not.
+    """
+    items = properties.findall(LEGACY_ACTION_ITEM_TAG)
+    positions = {element.get("sr"): index for index, element in enumerate(items)}
+    if sr not in positions:
+        return
+    target = positions[sr] + offset
+    if not 0 <= target < len(items):
+        return
+
+    element = items[positions[sr]]
+    anchor = list(properties).index(items[0])
+    properties.remove(element)
+    properties.insert(anchor + target, element)
+    legacy_renumber_action_items(properties)
 
 
 def find_element_name_actions(scene_name: str, element_name: str) -> list[tuple[str, object]]:
