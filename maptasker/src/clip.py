@@ -343,7 +343,7 @@ class Clip:
         self.play_clip()
         self.loop_clip()
         sys.stdout.write(CURSOR_ON)
-        sys.stdout.write(f'{COLORS["F_WHT"]}{COLORS["B_BLK"]}')
+        sys.stdout.write(f"{COLORS['F_WHT']}{COLORS['B_BLK']}")
 
 
 def clippy(path, speed, cycles, color):

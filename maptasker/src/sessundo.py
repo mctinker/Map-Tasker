@@ -314,9 +314,7 @@ def undo() -> tuple[bool, str]:
         return False, "That undo step could not be restored -- nothing was changed."
 
     if current is not None:
-        _redo.append(
-            Checkpoint(label=checkpoint.label, when=datetime.now(), payload=_compress(current))
-        )  # noqa: DTZ005
+        _redo.append(Checkpoint(label=checkpoint.label, when=datetime.now(), payload=_compress(current)))  # noqa: DTZ005
     return True, checkpoint.label
 
 
@@ -332,9 +330,7 @@ def redo() -> tuple[bool, str]:
         return False, "That redo step could not be restored -- nothing was changed."
 
     if current is not None:
-        _undo.append(
-            Checkpoint(label=checkpoint.label, when=datetime.now(), payload=_compress(current))
-        )  # noqa: DTZ005
+        _undo.append(Checkpoint(label=checkpoint.label, when=datetime.now(), payload=_compress(current)))  # noqa: DTZ005
         _trim()
     return True, checkpoint.label
 

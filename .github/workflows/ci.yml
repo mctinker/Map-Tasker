@@ -88,16 +88,12 @@ jobs:
       - name: ruff check
         run: uv run --no-sync ruff check --output-format=github
 
-      # NOT YET ENFORCED. `ruff format --check` currently reports 15 files that
-      # would be reformatted. A format sweep is a large, purely-mechanical diff, so
-      # it belongs in its own commit made against a clean working tree -- several of
-      # those files have in-progress edits today. Once that sweep has landed, delete
-      # this comment and uncomment the step below to lock formatting in.
-      #
-      # - name: ruff format --check
-      #   run: uv run --no-sync ruff format --check
-      - name: ruff format (report only)
-        run: uv run --no-sync ruff format --check || true
+      # Enforced as of the format sweep. Note that [tool.ruff.format] sets
+      # preview = true, so the canonical formatting here is ruff's *unstable*
+      # style; the ruff dependency is pinned to the 0.16 line in pyproject.toml to
+      # keep this gate reproducible.
+      - name: ruff format --check
+        run: uv run --no-sync ruff format --check
 
   build:
     name: build distribution

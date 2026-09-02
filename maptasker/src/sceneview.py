@@ -493,7 +493,8 @@ def draw_scene(
     """
     background = _canvas_background(scene_element)
     canvas = (
-        ui.element("div")
+        ui
+        .element("div")
         .classes("mt-scene-canvas")
         .style(
             f"position: relative; width: {width}px; height: {height}px; overflow: hidden;"
@@ -568,7 +569,8 @@ def _draw_selection(sr: str, box: tuple[int, int, int, int], *, handles: bool = 
     """
     x, y, width, height = box
     with (
-        ui.element("div")
+        ui
+        .element("div")
         .classes("mt-selection")
         .props(f'data-sr="{sr}"')
         .style(
@@ -1072,8 +1074,7 @@ def _draw_edit_text(
     if not background:
         background = "border-bottom: 2px solid rgba(100,116,139,0.75);"
     with ui.element("div").style(
-        f"position: absolute; inset: 0; box-sizing: border-box; overflow: hidden;"
-        f"{background}{_position_style(args)}",
+        f"position: absolute; inset: 0; box-sizing: border-box; overflow: hidden;{background}{_position_style(args)}",
     ):
         _text_content(args, 1, options, height)
     input_type = _enum(lookup_values["EditTextElement"], args.number(7))
@@ -1209,7 +1210,7 @@ def _draw_slider(
             along = f"calc({round(fraction * 100, 1)}% - 7px)"
             thumb = f"bottom: {along}; left: -4px;" if vertical else f"left: {along}; top: -4px;"
             ui.element("div").style(
-                f"position: absolute; {thumb} width: 14px; height: 14px;" "border-radius: 50%; background: #2563eb;",
+                f"position: absolute; {thumb} width: 14px; height: 14px;border-radius: 50%; background: #2563eb;",
             )
     if height >= 26:
         ui.label(f"{minimum} – {maximum}  ({args.raw_number(4) or default})").style(
@@ -1836,7 +1837,8 @@ def draw_v2_layout(
         _v2_index_paths(root)
 
     frame = (
-        ui.element("div")
+        ui
+        .element("div")
         .classes("mt-scene-canvas")
         .style(
             f"position: relative; width: {width}px; height: {height}px; overflow: hidden;"

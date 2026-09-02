@@ -4736,7 +4736,7 @@ def legacy_scene_event_availability(
     properties: defusedxml.ElementTree.Element,
     event: LegacySceneEvent,
 ) -> str:
-    """"" if Tasker offers this event for this Scene, otherwise why it does not.
+    """ "" if Tasker offers this event for this Scene, otherwise why it does not.
 
     NOT A GATE ON READING IT.  An event whose conditions no longer hold can still be bound
     -- a Scene switched from Activity to Dialog keeps its <iconclickTask> -- and the editor

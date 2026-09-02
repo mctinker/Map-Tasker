@@ -773,8 +773,7 @@ def _check_hygiene(index: _Index) -> None:
                     INFO,
                     "LARGE-TASK",
                     Target(TASK, task_id, task["name"], index.project_of_task.get(task_id, "")),
-                    f"{count} actions, above your warning limit of {limit}. "
-                    "Consider splitting it into several Tasks.",
+                    f"{count} actions, above your warning limit of {limit}. Consider splitting it into several Tasks.",
                 )
 
     _check_duplicate_names(index)

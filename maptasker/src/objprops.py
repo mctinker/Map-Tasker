@@ -670,11 +670,7 @@ def set_child_text_in_tag_order(
         # that parent.append() rejects.  Same note as projedit._set_child_text.
         child = type(parent)(tag)
         position = next(
-            (
-                index
-                for index, sibling in enumerate(parent)
-                if (sibling.tag[:1].isupper() or sibling.tag > tag)
-            ),
+            (index for index, sibling in enumerate(parent) if (sibling.tag[:1].isupper() or sibling.tag > tag)),
             len(parent),
         )
         parent.insert(position, child)
@@ -724,9 +720,7 @@ def apply_properties(props: EditableProperties, values: dict[str, str]) -> list[
 
     for index, variable in enumerate(props.variables):
         supplied = {
-            tag: values[key]
-            for tag in (*_VARIABLE_CHILDREN, "same_as_value")
-            if (key := f"var{index}_{tag}") in values
+            tag: values[key] for tag in (*_VARIABLE_CHILDREN, "same_as_value") if (key := f"var{index}_{tag}") in values
         }
         _write_variable(props.kind, variable, supplied)
 

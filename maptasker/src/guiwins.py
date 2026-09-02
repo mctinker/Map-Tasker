@@ -7215,10 +7215,15 @@ def _render_scene_actions_tab(
                 ui.label(translate_string(item.placement)).classes("text-xs text-gray-500 italic")
 
             with ui.row().classes("w-full items-center gap-2"):
-                icon_field = ui.input(
-                    translate_string("Icon"),
-                    value=sceneedit.legacy_action_item_icon(item),
-                ).props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}").classes("flex-1")
+                icon_field = (
+                    ui
+                    .input(
+                        translate_string("Icon"),
+                        value=sceneedit.legacy_action_item_icon(item),
+                    )
+                    .props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}")
+                    .classes("flex-1")
+                )
                 icon_field.on_value_change(
                     lambda event, it=item: sceneedit.legacy_set_action_item_icon(it, str(event.value or "")),
                 )
@@ -7471,7 +7476,7 @@ def _render_scene_event(
 
 
 def _render_task_picker(on_pick: Callable[[str], None]) -> None:
-    """"Pick a Task", built the way "Add an action" is: a search box, a filter, and a
+    """ "Pick a Task", built the way "Add an action" is: a search box, a filter, and a
     scrolling list of one clickable row per match.
 
     IT REPLACED A DROPDOWN, and the list is why.  A `ui.select` of every Task in the backup
@@ -7529,10 +7534,15 @@ def _render_scene_key_filter(properties: defusedxml.ElementTree.Element) -> None
     Both live in the Scene's <LinkClickFilter> -- see sceneedit.legacy_set_key_filter, which
     also explains why a tag named urlMatch is holding a list of key names.
     """
-    keys = ui.input(
-        translate_string("Keys"),
-        value=sceneedit.legacy_key_filter(properties),
-    ).props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}").classes("w-full mt-2")
+    keys = (
+        ui
+        .input(
+            translate_string("Keys"),
+            value=sceneedit.legacy_key_filter(properties),
+        )
+        .props(f"dense debounce={FIELD_COMMIT_DEBOUNCE_MS}")
+        .classes("w-full mt-2")
+    )
     keys.on_value_change(lambda event: sceneedit.legacy_set_key_filter(properties, str(event.value or "")))
     with keys:
         ui.tooltip(
@@ -7638,11 +7648,16 @@ def _render_scene_event_task_actions(
 
     _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
 
-    apply_button = ui.button(
-        translate_string("Apply to Task"),
-        icon="task_alt",
-        on_click=lambda: self.event_handlers.apply_scene_key_task_event(edited_task, field_refs),
-    ).props("dense").classes("mt-2 bg-blue-600")
+    apply_button = (
+        ui
+        .button(
+            translate_string("Apply to Task"),
+            icon="task_alt",
+            on_click=lambda: self.event_handlers.apply_scene_key_task_event(edited_task, field_refs),
+        )
+        .props("dense")
+        .classes("mt-2 bg-blue-600")
+    )
     with apply_button:
         ui.tooltip(
             translate_string(
@@ -7748,11 +7763,16 @@ def _render_scene_event_new_task(
             pending.pop(event.tag, None)
             rerender()
 
-    create_button = ui.button(
-        translate_string("Create Task"),
-        icon="add_task",
-        on_click=create_task,
-    ).props("dense").classes("mt-2 bg-blue-600")
+    create_button = (
+        ui
+        .button(
+            translate_string("Create Task"),
+            icon="add_task",
+            on_click=create_task,
+        )
+        .props("dense")
+        .classes("mt-2 bg-blue-600")
+    )
     with create_button:
         ui.tooltip(
             translate_string(

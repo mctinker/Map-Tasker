@@ -320,8 +320,10 @@ def format_icon_value(icon: IconRef | None) -> str:
     if icon.kind == "pack":
         return f"{icon.name}{_ICON_PACK_SEPARATOR}{icon.pkg}"
     if icon.kind == "app":
-        return f"{_ICON_APP_PREFIX}{icon.pkg}{_ICON_APP_SEPARATOR}{icon.cls}" if icon.cls else (
-            f"{_ICON_APP_PREFIX}{icon.pkg}"
+        return (
+            f"{_ICON_APP_PREFIX}{icon.pkg}{_ICON_APP_SEPARATOR}{icon.cls}"
+            if icon.cls
+            else (f"{_ICON_APP_PREFIX}{icon.pkg}")
         )
     return icon.name
 

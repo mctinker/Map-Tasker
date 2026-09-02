@@ -168,7 +168,8 @@ def add_arg_names() -> None:
     {refactored_content.replace("'", '"').replace(f"){NEWLINE}", f"),{NEWLINE}").replace('Don"t', "Don't")}
     """
     file_content = (
-        file_content.replace('"Open With"', "'Open With'")
+        file_content
+        .replace('"Open With"', "'Open With'")
         .replace(
             '"Disable Always On Display" On',
             "'Disable Always On Display' On",
@@ -252,7 +253,8 @@ def format_python_dict_file(
         formatted_lines.append("}")
         for num, line in enumerate(formatted_lines):
             formatted_lines[num] = (
-                line.replace("'", '"')
+                line
+                .replace("'", '"')
                 .replace('"Open With"', "'Open With'")
                 .replace(
                     '"Disable Always On Display" On',

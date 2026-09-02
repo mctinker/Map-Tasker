@@ -36,7 +36,8 @@ class Local_File_Picker(ui.dialog):
         with self, ui.card():
             self.add_drives_toggle()
             self.grid = (
-                ui.aggrid(
+                ui
+                .aggrid(
                     {
                         "columnDefs": [{"field": "name", "headerName": "File"}],
                         "rowSelection": {"mode": "multiRow" if multiple else "singleRow"},

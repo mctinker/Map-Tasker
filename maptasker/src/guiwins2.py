@@ -72,7 +72,8 @@ class APIKeyDialog:
             # Input field tied directly to dynamic object variable names
             # Using password mode keeps keys masked out securely on screen
             input_widget = (
-                ui.input(
+                ui
+                .input(
                     value=PrimeItems.ai.get(placeholder_key, ""),
                     placeholder=translate_string("Not configured..."),
                 )

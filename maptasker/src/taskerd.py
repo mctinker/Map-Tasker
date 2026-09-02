@@ -271,7 +271,8 @@ def get_first_action(task: ET) -> str:
         the_result = get_action_code(child, action, True, "t")
         clean_text = strip_html_tags(the_result)
         clean_text = (
-            clean_text.replace("&nbsp;&nbsp;", "&nbsp;")
+            clean_text
+            .replace("&nbsp;&nbsp;", "&nbsp;")
             .replace("( ", "(")
             .replace("(", "")
             .replace(")", "")

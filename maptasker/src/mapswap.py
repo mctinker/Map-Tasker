@@ -1461,10 +1461,7 @@ def _duplicate_context(record: object, condition: object, new_tag: str, already_
     name = _condition_name(condition_key(new_tag))
     article = "an" if name[:1] in "AEIOU" else "a"
     if any(other is not condition and other.tag == new_tag for other in record.conditions):
-        return (
-            f"this Profile already has {article} {name} condition, and Tasker writes only one of those "
-            f"per Profile."
-        )
+        return f"this Profile already has {article} {name} condition, and Tasker writes only one of those per Profile."
     if already_planned:
         return (
             f"the row above already gives this Profile its one {name} condition -- replace the rest with "
@@ -1671,9 +1668,7 @@ def _swap_one_condition(
 
     # 4.  The carried values displace the defaults just built for them.
     synthesized = {
-        child.attrib.get("sr", ""): child
-        for child in condition_element
-        if child.attrib.get("sr", "").startswith("arg")
+        child.attrib.get("sr", ""): child for child in condition_element if child.attrib.get("sr", "").startswith("arg")
     }
     for new_id, lifted in carried.items():
         existing = synthesized.get(f"arg{new_id}")

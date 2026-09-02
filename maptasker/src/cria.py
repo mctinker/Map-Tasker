@@ -323,9 +323,7 @@ class Model(Cria, ContextDecorator):
         if not run_attached:
             llm_stdout = subprocess.PIPE if capture_output else subprocess.DEVNULL
             llm_stderr = subprocess.PIPE if capture_output else subprocess.DEVNULL
-            self.llm = subprocess.Popen(
-                ["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr
-            )  # noqa: S603, S607
+            self.llm = subprocess.Popen(["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr)  # noqa: S603, S607
         else:
             self.llm = find_process(["ollama", "run", self.model])
 
@@ -334,9 +332,7 @@ class Model(Cria, ContextDecorator):
 
             llm_stdout = subprocess.PIPE if capture_output else subprocess.DEVNULL
             llm_stderr = subprocess.PIPE if capture_output else subprocess.DEVNULL
-            self.llm = subprocess.Popen(
-                ["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr
-            )  # noqa: S603, S607
+            self.llm = subprocess.Popen(["ollama", "run", self.model], stdout=llm_stdout, stderr=llm_stderr)  # noqa: S603, S607
 
         if close_on_exit:
             atexit.register(lambda: self.llm.kill())

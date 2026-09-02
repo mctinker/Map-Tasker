@@ -210,7 +210,7 @@ def _identify(element: defusedxml.ElementTree.Element) -> tuple[str, str] | None
 
 
 def _describe(identity: tuple[str, str]) -> str:
-    """"Task '134'" -- what a report calls an object."""
+    """ "Task '134'" -- what a report calls an object."""
     tag, key = identity
     return f"{tag} '{key}'" if key else tag
 
