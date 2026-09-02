@@ -4439,6 +4439,68 @@ def legacy_add_scene_properties(
     return properties
 
 
+def legacy_properties_snapshot(
+    scene_element: defusedxml.ElementTree.Element,
+) -> defusedxml.ElementTree.Element | None:
+    """The Scene's <PropertiesElement> as the Properties dialog found it, kept so that
+    dialog's Cancel has something to put back.  None when the Scene has none -- which is a
+    state to restore like any other (see legacy_properties_restore), not a failure.
+
+    THE PROPERTIES ALONE, not the whole Scene the way legacy_snapshot takes it, because that
+    is all the Properties dialog writes to: its geometry boxes drive the Scene dialog's own
+    inputs rather than the element (see guiwins._render_scene_geometry), and everything else
+    it touches -- the eight arguments, the action bar items, the key filter, the three event
+    bindings -- is inside this one child.  Snapshotting the whole Scene would make its Cancel
+    throw away whatever the designer behind it had done before it was opened, which is the
+    Scene dialog's own Cancel's business and not this one's.
+    """
+    properties = legacy_scene_properties(scene_element)
+    return copy.deepcopy(properties) if properties is not None else None
+
+
+def legacy_properties_restore(
+    scene_element: defusedxml.ElementTree.Element,
+    snapshot: defusedxml.ElementTree.Element | None,
+) -> bool:
+    """Put a legacy_properties_snapshot back, and say whether there was anything to put back.
+
+    In place -- children, attributes and text replaced rather than the element rebound -- for
+    the reason legacy_restore gives: the Scene copy holds this element object and so does
+    anything rendered from it.
+
+    Either end of the pair may be absent, and both are ordinary.  A snapshot of None means
+    the Scene had no properties when the dialog opened, so "Add scene properties" is what
+    made these and Cancel takes them away again; a current element of None cannot happen
+    today (nothing in the dialog removes one) but is restored rather than ignored, because
+    the alternative is a Cancel that silently keeps a deletion.
+
+    The return value is what tells a caller whether to say anything: comparing the two is
+    the only way to know, since every field here writes through as it is typed and none of
+    them reports having done so.
+    """
+    current = legacy_scene_properties(scene_element)
+
+    if snapshot is None:
+        if current is None:
+            return False
+        scene_element.remove(current)
+        return True
+
+    if current is None:
+        scene_element.append(copy.deepcopy(snapshot))
+        return True
+
+    if ETW.tostring(current) == ETW.tostring(snapshot):
+        return False
+
+    original = copy.deepcopy(snapshot)
+    current[:] = list(original)
+    current.attrib.clear()
+    current.attrib.update(original.attrib)
+    current.text = original.text
+    return True
+
+
 # The KEY tab's other half, beside <keyTask>: Tasker keeps "swallow the key press" in a
 # <LinkClickFilter sr="filter0"> child of the <PropertiesElement>, as a <stopEvent> beside
 # the <urlMatch> naming which keys are being filtered ("back", "back/home").

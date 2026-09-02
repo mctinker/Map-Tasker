@@ -2667,3 +2667,198 @@ msgstr "कॉन्फ़िगरेशन में कहीं उपयो
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "अधिक जानकारी के लिए मैपटास्कर [कमांड रेफरेंस](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) देखें।\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(अनाम कार्य, दृश्य में संग्रहीत)"
+
+msgid "(new variable)"
+msgstr "(नया चर)"
+
+msgid "(no label)"
+msgstr "(लेबल नहीं)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "एक्शन बार में दिखाने के लिए टैब की अल्पविराम से अलग की गई सूची। किसी एक का चयन करने से इवेंट टैब का टैब टैप कार्य सक्रिय हो जाता है।"
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "संभाली जाने वाली कुंजियों की एक स्लैश-पृथक सूची - नाम या कोड द्वारा, उदाहरण के लिए। वापस/78/ए. कोई अन्य कुंजी सिस्टम को भेज दी जाती है.\nप्रत्येक कुंजी को संभालने के लिए इसे खाली छोड़ दें।"
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "एक्शन बार शैली, शीर्षक, उपशीर्षक, चिह्न और टैब लेबल केवल गतिविधि पर लागू होते हैं। वे अभी भी संग्रहीत हैं, और यदि आप संपत्ति प्रकार को गतिविधि में बदलते हैं तो दिखाए जाते हैं।"
+
+msgid "Action bar"
+msgstr "कार्रवाई बार"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "एक्शन बार आइटम केवल एक गतिविधि पर लागू होते हैं। वे अभी भी संग्रहीत हैं, और यदि आप संपत्ति प्रकार को गतिविधि में बदलते हैं तो दिखाए जाते हैं।"
+
+msgid "Actions of the"
+msgstr "की कार्रवाई"
+
+msgid "Add Variable"
+msgstr "वेरिएबल जोड़ें"
+
+msgid "Add an action bar item"
+msgstr "एक एक्शन बार आइटम जोड़ें"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "इस कार्य को लोड किए गए कॉन्फ़िगरेशन में जोड़ता है और इस ईवेंट को उस पर इंगित करता है, कार्य जोड़ें संवाद में 'ओके' के समान - फ़ाइल में कुछ भी नहीं लिखा जाता है और एंड्रॉइड पर कुछ भी नहीं भेजा जाता है।  ठीक है यह आपके लिए भी करता है, इसलिए यह केवल इसे बंद किए बिना बनाने के लिए है।\nतब तक कार्य केवल इस विंडो में मौजूद है और रद्द इसे खारिज कर देता है। बाद में यह किसी भी अन्य कार्य की तरह एक कार्य है - रद्द करना बाइंडिंग को वापस ले जाता है लेकिन कार्य को नहीं, और पूर्ववत करने पर दोनों को वापस ले लिया जाता है।"
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "दृश्य द्वारा संभाली गई कोई भी कुंजी सिस्टम को नहीं दी जाती है - कैसे एक दृश्य पिछली कुंजी को इसे बंद करने से रोकता है।\nजिस तरह से टास्कर इसे लिखता है, उसी तरह लिखा गया है: दृश्य के <LinkClickFilter> के अंदर एक <stopEvent>, जब इसे टिक किया जाता है तो बनाया जाता है और जब इसे अनचेक किया जाता है तो इसे फिर से हटा दिया जाता है और इसमें कुछ भी नहीं बचा होता है।"
+
+msgid "Apply to Task"
+msgstr "कार्य के लिए आवेदन करें"
+
+msgid "Changes kept for Task"
+msgstr "कार्य के लिए किए गए बदलाव"
+
+msgid "Create Task"
+msgstr "कार्य बनाएँ"
+
+msgid "Created Task"
+msgstr "कार्य बनाया गया"
+
+msgid "Display Name"
+msgstr "प्रदर्शित होने वाला नाम"
+
+msgid "Exported Value"
+msgstr "निर्यातित मूल्य"
+
+msgid "Icon"
+msgstr "आइकन"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "इवेंट टैब के अंतर्गत संपादित किसी भी कार्य की गतिविधियों सहित सब कुछ रखता है।\nकिसी ईवेंट के तहत बनाया गया एक कार्य जिसमें कोई भी नहीं था, यदि आप उसमें कोई क्रिया डालते हैं तो वह बन जाता है और बाध्य हो जाता है। पूर्ववत करने से कार्य संपादन वापस आ जाता है।"
+
+msgid "Keys"
+msgstr "कुंजियाँ"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "पहले एक टास्कर कॉन्फ़िगरेशन लोड करें - एक नए कार्य के लिए एक आईडी प्राप्त करने की आवश्यकता होती है।"
+
+msgid "Name"
+msgstr "नाम"
+
+msgid "New Task Name"
+msgstr "नये कार्य का नाम"
+
+msgid "No Task matches."
+msgstr "कोई कार्य मेल नहीं खाता."
+
+msgid "No action bar items."
+msgstr "कोई एक्शन बार आइटम नहीं."
+
+msgid "No variables."
+msgstr "कोई चर नहीं."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "कुछ भी नहीं - यह ईवेंट कोई कार्य प्रारंभ नहीं करता है।"
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "अभी तक कुछ भी बाध्य नहीं है, इसलिए ये क्रियाएं एक नए कार्य में चली जाती हैं। यह बनाया जाता है, और यह घटना इस पर इंगित करती है, जब आप नीचे या ठीक बटन दबाते हैं। रद्द करें इसे खारिज कर देता है।"
+
+msgid "Nothing set."
+msgstr "कुछ भी सेट नहीं है."
+
+msgid "Prompt"
+msgstr "तत्पर"
+
+msgid "Properties kept."
+msgstr "संपत्तियां रखीं."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "इन क्रिया संपादनों को अब लोड किए गए कॉन्फ़िगरेशन में डालता है, बिना बंद किए - संपादन कार्य संवाद में 'ओके' के समान।  ठीक है, यह आपके लिए यहां भी है, इसलिए यह केवल उन्हें मध्य-संपादन में रखने के लिए है।\nकिसी फ़ाइल में कुछ भी नहीं लिखा जाता है और Android पर कुछ भी नहीं भेजा जाता है। यह कार्य दृश्य का हिस्सा नहीं है, इसलिए न तो इस विंडो का कैंसिल और न ही दृश्य संवाद इन संपादनों को एक बार लैंड करने के बाद वापस लेता है। पूर्ववत करता है."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "इन गुणों को उसी तरह वापस रख देता है जैसे वे इस विंडो के खुलने पर थे, और ईवेंट टैब के अंतर्गत संपादित किसी भी कार्य की गतिविधियों को छोड़ देता है।\nएक कार्य पहले से ही अपने बटन द्वारा कॉन्फ़िगरेशन में डाल दिया गया है - 'कार्य पर लागू करें', या 'कार्य बनाएं' - वहीं रहता है। पूर्ववत उन्हें वापस ले लेता है।"
+
+msgid "Remove Variable"
+msgstr "वेरिएबल हटाएँ"
+
+msgid "Same as Value"
+msgstr "मान के समान"
+
+msgid "Scene properties changes discarded."
+msgstr "दृश्य गुण परिवर्तन खारिज कर दिए गए।"
+
+msgid "Search Tasks"
+msgstr "कार्य खोजें"
+
+msgid "Stop Event"
+msgstr "इवेंट रोकें"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "एक्शन बार के ऊपर बाईं ओर होम आइकन। इसे टैप करने से इवेंट टैब का होम टैप टास्क सक्रिय हो जाता है।"
+
+msgid "There are no Tasks in this configuration."
+msgstr "इस कॉन्फ़िगरेशन में कोई कार्य नहीं हैं."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "यह कार्य दृश्य के भीतर संग्रहीत है और यह कार्य सूची में मौजूद नहीं है, इसलिए इसे यहां संपादित नहीं किया जा सकता। यह बिना किसी बदलाव के ही आगे बढ़ जाता है।"
+
+msgid "This item has no action."
+msgstr "इस आइटम पर कोई कार्रवाई नहीं है."
+
+msgid "Type"
+msgstr "प्रकार"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "'निर्यातित मूल्य' के अंतर्गत, यदि आप 'मूल के समान' विकल्प को अक्षम करते हैं, तो आप यह अनुकूलित कर सकते हैं कि जब आप अन्य उपयोगकर्ताओं के साथ चर साझा करते हैं, तो किस मूल्य का निर्यात किया जाए।\nयदि आप निर्यात में कोई मूल्य नहीं रखना चाहते हैं, तो आप 'निर्यातित मूल्य' फ़ील्ड को खाली छोड़ सकते हैं, या आप उस मूल्य को निर्धारित कर सकते हैं जिसका आप हमेशा निर्यात के लिए उपयोग करना चाहते हैं।\nयदि आप 'मूल के समान' विकल्प को सक्षम करते हैं, तो वर्तमान चर का मूल्य निर्यात के लिए उपयोग किया जाएगा।"
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "कोई आइटम कहां समाप्त होगा यह इस बात से तय होता है कि आप उसे क्या देते हैं: एक आइकन हमेशा मुख्य बार में होता है, अगर जगह होती है तो एक आइकन और एक लेबल वहां दिखाया जाता है, और एक लेबल हमेशा ओवरफ्लो मेनू में होता है (टास्कर में शीर्ष दाईं ओर 3 बिंदु)।"
+
+msgid "fires a Task on"
+msgstr "एक कार्य चालू करता है"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "इस बैकअप में नहीं है, इसलिए दिखाने के लिए कोई कार्रवाई नहीं है।"
+
+msgid "no editable arguments."
+msgstr "कोई संपादन योग्य तर्क नहीं."
+
+msgid "swallows the key press"
+msgstr "कुंजी दबाने को निगल जाता है"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "भेजने से पहले XML को पढ़ता है, और रास्ते में कुछ भी बदलने पर सेव करने से इंकार कर देता है।\n\nयह जो पकड़ता है वह विफलता का वर्ग है जिसे सेव पथ में और कुछ नहीं कर सकता है: एक मूल्य जिसके बारे में इस प्रोग्राम के लेखक और पाठक असहमत हैं - एक नाम के अंदर एक कैरिज रिटर्न, मान लीजिए, जिसे टाइप किया गया है और एक नई लाइन के रूप में वापस पढ़ा जाता है।  अपलोड का उत्तर 200 है और डिवाइस पर फ़ाइल भेजी गई फ़ाइल से मेल खाती है, क्योंकि दोनों पहले से ही गलत हैं।\n\nऊपर जाने वाली प्रत्येक वस्तु की तुलना लोड किए गए कॉन्फ़िगरेशन में से एक से की जाती है, जिसमें बंडल किए गए प्रोफ़ाइल, दृश्य और कार्य शामिल हैं जिन्हें आपने संपादित नहीं किया है।  यदि उनमें से कोई भी भिन्न है तो कुछ भी नहीं भेजा जाता है; आपको एक रिपोर्ट मिलती है जिसमें कहा गया है कि कौन सी और कहां।\n\nइसमें एक सेकंड का एक अंश खर्च होता है और कुछ भी संपर्क नहीं होता है - डिवाइस को छूने से पहले, पूरा चेक यहां चलता है।"
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "यह दो में से एक विकल्प खोलता है: टास्क को अपने एंड्रॉइड डिवाइस पर /टास्कर/टास्क के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखें, या इसे सीधे टास्कर के लाइव कॉन्फ़िगरेशन में आयात करें।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को एंड्रॉइड डिवाइस पर स्थापित और सक्रिय होना चाहिए, सर्वर चालू होने के साथ (रीडमी के डायरेक्ट एक्सएमएल रिट्रीवल नोट्स देखें), और टास्कर 6.2 या उच्चतर होना चाहिए।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nएंड्रॉइड डिवाइस को चलाते समय देखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।\n\nटास्कर यूआई में आयातित कार्य को देखने के लिए आपको टास्कर से बाहर निकलना होगा और पुनः आरंभ करना होगा।"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "यह प्रोफ़ाइल को एंड्रॉइड डिवाइस पर /टास्कर/प्रोफाइल के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "यह प्रोफ़ाइल को आपके एंड्रॉइड डिवाइस पर /टास्कर/प्रोफाइल के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट (http://spoo.me/http_svr_example) को सर्वर चालू होने के साथ एंड्रॉइड डिवाइस पर स्थापित और सक्रिय होना चाहिए (README के ​​डायरेक्ट XML पुनर्प्राप्ति नोट्स देखें)।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "यह प्रोफ़ाइल को आपके एंड्रॉइड डिवाइस पर /टास्कर/प्रोफाइल के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को सर्वर चालू होने के साथ एंड्रॉइड डिवाइस पर स्थापित और सक्रिय होना चाहिए (README के ​​डायरेक्ट XML पुनर्प्राप्ति नोट्स देखें)।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "यह प्रोजेक्ट और उसमें मौजूद हर चीज़ - प्रत्येक प्रोफ़ाइल और कार्य - को आपके एंड्रॉइड डिवाइस पर /टास्कर/प्रोजेक्ट्स के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को एंड्रॉइड डिवाइस पर सर्वर चालू होने के साथ इंस्टॉल और सक्रिय होना चाहिए।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "यह प्रोजेक्ट और उसमें मौजूद सभी चीज़ों को एंड्रॉइड डिवाइस पर /टास्कर/प्रोजेक्ट्स के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "यह Android डिवाइस पर `/Tasker/scenes` के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में दृश्य को लिख देगा।\n\nआईपी ​​एड्रेस और पोर्ट को Android डिवाइस के Tasker सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nजब यह चल रहा हो, तो Android डिवाइस पर ध्यान दें: Tasker को एक बार सहेजने के लिए आपको कनेक्शन को कई बार अधिकृत करने के लिए कहा जाएगा, और यदि कोई संकेत अधूरा छोड़ दिया जाता है, तो यह विफल हो जाएगा।"
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "यह दृश्य को आपके एंड्रॉइड डिवाइस पर /टास्कर/सीन के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को एंड्रॉइड डिवाइस पर सर्वर चालू होने के साथ इंस्टॉल और सक्रिय होना चाहिए।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "यह कार्य को एंड्रॉइड डिवाइस पर /Tasker/tasks के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
+
+msgid "Verify"
+msgstr "सत्यापित करें"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "सत्यापन विफल - कुछ भी नहीं भेजा गया"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "अपने एंड्रॉइड डिवाइस को देखें: टास्कर आपसे कई बार कनेक्शन को अधिकृत करने के लिए कहेगा।"
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "आपके एंड्रॉइड डिवाइस से संपर्क नहीं किया गया था और उस पर कुछ भी नहीं बदला गया था।  लोड किया गया कॉन्फ़िगरेशन भी अछूता है - यह इस बात की जांच है कि क्या लिखा जाने वाला था, न कि डिवाइस पर क्या है।"

@@ -319,11 +319,13 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Capture Android Device Apps and Icons
 
+- [x] Add and Edit Properties
+
 - [ ] Export Map to Portable Formats (Markdown / JSON / PDF)
 
 - [x] Import Edits Directly Into Tasker
 
-- [ ] Roundtrip (Device-to/from Android) Data Validation
+- [x] Roundtrip (Device-to/from Android) Data Validation
 
 - [ ] Support additional plugins
 

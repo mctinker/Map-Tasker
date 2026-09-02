@@ -2578,3 +2578,198 @@ msgstr "加载的配置中某处使用的图标，以及每个应用程序自己
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "有关更多信息，请参阅 MapTasker [命令参考](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)。\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "（匿名任务，存储在场景中）"
+
+msgid "(new variable)"
+msgstr "（新变量）"
+
+msgid "(no label)"
+msgstr "（无标签）"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "要在操作栏中显示的以逗号分隔的选项卡列表。选择其中一个会触发“事件”选项卡的“选项卡点击任务”。"
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "要处理的键的斜杠分隔列表 - 按名称或代码，例如返回/78/a。任何其他密钥都会传递到系统。\n将其留空以处理每个键。"
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "“操作栏”样式、标题、副标题、图标和标签仅适用于单个活动。 这些信息仍然被保存，并且在您将“属性类型”更改为“活动”时，它们也会显示。"
+
+msgid "Action bar"
+msgstr "操作栏"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "操作栏项目仅适用于活动。它们仍然会被存储，并且如果您将“属性类型”切换为“活动”，则会显示它们。"
+
+msgid "Actions of the"
+msgstr "的行动"
+
+msgid "Add Variable"
+msgstr "添加变量"
+
+msgid "Add an action bar item"
+msgstr "添加一个操作栏项目"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "将此任务添加到加载的配置中，并将此事件指向它，与“添加任务”对话框中的“确定”相同 - 不会将任何内容写入文件，也不会将任何内容发送到 Android。  好的，也为你做，所以这只是为了创建它而不关闭。\n在此之前，任务仅存在于该窗口中，并且“取消”会丢弃它。之后，它就像任何其他任务一样 - 取消会收回绑定，但不会收回任务，而撤消则收回两者。"
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "任何在场景中处理的按键都不会传递给系统——场景如何防止回退键关闭它。\n按照 Tasker 的写法：在场景的 `<LinkClickFilter>` 内部创建一个 `<stopEvent>`，当该选项被选中时创建，再次取消选中时删除，并且该 `<stopEvent>` 中没有任何其他内容。"
+
+msgid "Apply to Task"
+msgstr "申请任务"
+
+msgid "Changes kept for Task"
+msgstr "为任务保留的更改"
+
+msgid "Create Task"
+msgstr "创建任务"
+
+msgid "Created Task"
+msgstr "已创建任务"
+
+msgid "Display Name"
+msgstr "显示名称"
+
+msgid "Exported Value"
+msgstr "出口额"
+
+msgid "Icon"
+msgstr "图标"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "保留所有内容，包括在“事件”选项卡下编辑的任何任务的操作。\n如果您在其中放置任何操作，则会创建并绑定在没有任何事件的事件下组成的任务。撤消可恢复任务编辑。"
+
+msgid "Keys"
+msgstr "按键"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "首先加载 Tasker 配置——新任务需要一个来获取 id。"
+
+msgid "Name"
+msgstr "姓名"
+
+msgid "New Task Name"
+msgstr "新任务名称"
+
+msgid "No Task matches."
+msgstr "没有任务匹配。"
+
+msgid "No action bar items."
+msgstr "没有操作栏项目。"
+
+msgid "No variables."
+msgstr "没有变量。"
+
+msgid "Nothing -- this event fires no Task."
+msgstr "什么都没有——该事件不会触发任何任务。"
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "尚未绑定任何内容，因此这些操作将进入一个新任务。当您按下下面的按钮或“确定”时，它就会创建，并且该事件指向它。取消会丢弃它。"
+
+msgid "Nothing set."
+msgstr "什么都没有设定。"
+
+msgid "Prompt"
+msgstr "迅速的"
+
+msgid "Properties kept."
+msgstr "保留财产。"
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "现在将这些操作编辑放入加载的配置中，无需关闭 - 与“编辑任务”对话框中的“确定”相同。  好的，这里也为您做这件事，所以这只是为了让他们保持编辑状态。\n没有任何内容写入文件，也没有发送任何内容到 Android。此任务不是场景的一部分，因此此窗口的“取消”和“场景”对话框的“取消”和“场景”对话框在这些编辑完成后都不会取回这些编辑。撤消即可。"
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "将这些属性恢复到此窗口打开时的状态，并删除在“事件”选项卡下编辑的任何任务的操作。\n已通过其自己的按钮（“应用到任务”或“创建任务”）放入配置中的任务将保留在那里。撤消会将这些恢复。"
+
+msgid "Remove Variable"
+msgstr "删除变量"
+
+msgid "Same as Value"
+msgstr "与值相同"
+
+msgid "Scene properties changes discarded."
+msgstr "场景属性更改被丢弃。"
+
+msgid "Search Tasks"
+msgstr "搜索任务"
+
+msgid "Stop Event"
+msgstr "停止事件"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "操作栏左上角的主页图标。点击它会触发“事件”选项卡的“主页点击任务”。"
+
+msgid "There are no Tasks in this configuration."
+msgstr "此配置中没有任务。"
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "该任务存储在场景内，不在任务列表中，因此无法在此处编辑其操作。它原封不动地进行着。"
+
+msgid "This item has no action."
+msgstr "此项功能没有效果。"
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\n如果启用“与值相同”选项，导出时将使用当前变量值。"
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "项目的最终位置取决于您给它的内容：单独的图标始终位于主栏中，如果有空间，则在那里显示图标和标签，并且单独的标签始终位于溢出菜单中（Tasker 中右上角的 3 个点）。"
+
+msgid "fires a Task on"
+msgstr "触发任务"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "不在此备份中，因此没有可显示的操作。"
+
+msgid "no editable arguments."
+msgstr "没有可编辑的参数。"
+
+msgid "swallows the key press"
+msgstr "吞下按键"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "在发送之前读回 XML，如果传输过程中发生任何更改，则拒绝保存。\n\n它捕获的是保存路径中其他任何东西都无法捕获的失败类别：该程序自己的编写者和读者不同意的值 - 名称内的回车符，例如，以键入的形式写出并以换行符的形式读回。  上传回答 200 并且设备上的文件与发送的文件匹配，因为两者都已经错误。\n\n每个上升的对象都会与加载的配置中的对象进行比较，包括您未编辑的捆绑的配置文件、场景和任务。  如果其中任何一个不同，则不会发送任何内容；您会收到一份报告，说明具体内容和地点。\n\n它只需要几分之一秒的时间，并且不接触任何东西——整个检查在设备被接触之前就在这里运行。"
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "这将打开两个选择：将任务作为独立文件写入 Android 设备上的 /Tasker/tasks 下，或者将其直接导入到 Tasker 的实时配置中。\n\n“Http 服务器示例”Tasker 项目必须在 Android 设备上安装并处于活动状态，并且服务器正在运行（请参阅自述文件的直接 XML 检索说明），并且 Tasker 必须为 6.2 或更高版本。\n\nAndroid 设备必须位于同一网络，并且 IP 地址和端口必须与其 Tasker 服务器设置匹配。\n\n在任一设备运行时观察 Android 设备：Tasker 会要求您多次授权连接才能保存，而未点击的提示会导致失败。\n\n您必须退出并重新启动 Tasker 才能在 Tasker UI 中看到导入的任务。"
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "这会将配置文件作为独立文件写入 Android 设备的 /Tasker/profiles 下。\n\nIP 地址和端口必须与 Android 设备的 Tasker 服务器设置匹配。\n\n运行时观察 Android 设备：Tasker 要求您多次授权连接才能保存一次，而未点击的提示会导致失败。"
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "这会将配置文件作为独立文件写入您的 Android 设备上的 /Tasker/profiles 下——它不会将其导入到 Tasker 的实时配置中。\n\n“Http 服务器示例”Tasker 项目 (http://spoo.me/http_svr_example) 必须在 Android 设备上安装并激活，并且服务器正在运行（请参阅自述文件的直接 XML 检索说明）。\n\nAndroid 设备必须位于同一网络，并且 IP 地址和端口必须与其 Tasker 服务器设置匹配。\n\n运行时观察 Android 设备：Tasker 要求您多次授权连接才能保存一次，而未点击的提示会导致失败。"
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "这会将配置文件作为独立文件写入您的 Android 设备上的 /Tasker/profiles 下——它不会将其导入到 Tasker 的实时配置中。\n\n“Http 服务器示例”Tasker 项目必须在 Android 设备上安装并处于活动状态，并且服务器正在运行（请参阅自述文件的直接 XML 检索说明）。\n\nAndroid 设备必须位于同一网络，并且 IP 地址和端口必须与其 Tasker 服务器设置匹配。\n\n运行时观察 Android 设备：Tasker 要求您多次授权连接才能保存一次，而未点击的提示会导致失败。"
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "这会将项目及其中的所有内容（每个配置文件和任务）作为独立文件写入 Android 设备上的 /Tasker/projects 下，但不会将其导入到 Tasker 的实时配置中。\n\n必须在 Android 设备上安装并激活“Http 服务器示例”Tasker 项目，并且服务器正在运行。\n\nAndroid 设备必须位于同一网络，并且 IP 地址和端口必须与其 Tasker 服务器设置匹配。\n\n运行时观察 Android 设备：Tasker 要求您多次授权连接才能保存一次，而未点击的提示会导致失败。"
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "这会将项目及其中的所有内容作为独立文件写入 Android 设备的 /Tasker/projects 下。\n\nIP 地址和端口必须与 Android 设备的 Tasker 服务器设置匹配。\n\n运行时观察 Android 设备：Tasker 要求您多次授权连接才能保存一次，而未点击的提示会导致失败。"
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "这会将场景作为独立文件写入 Android 设备的 /Tasker/scenes 下。\n\nIP 地址和端口必须与 Android 设备的 Tasker 服务器设置匹配。\n\n运行时观察 Android 设备：Tasker 要求您多次授权连接才能保存一次，而未点击的提示会导致失败。"
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "这会将场景作为独立文件写入 Android 设备上的 /Tasker/scenes 下 - 它不会将其导入到 Tasker 的实时配置中。\n\n必须在 Android 设备上安装并激活“Http 服务器示例”Tasker 项目，并且服务器正在运行。\n\nAndroid 设备必须位于同一网络，并且 IP 地址和端口必须与其 Tasker 服务器设置匹配。\n\n运行时观察 Android 设备：Tasker 要求您多次授权连接才能保存一次，而未点击的提示会导致失败。"
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "这会将任务作为独立文件写入 Android 设备上的 /Tasker/tasks 下。\n\nIP 地址和端口必须与 Android 设备的 Tasker 服务器设置匹配。\n\n运行时观察 Android 设备：Tasker 要求您多次授权连接才能保存一次，而未点击的提示会导致失败。"
+
+msgid "Verify"
+msgstr "核实"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "验证失败——没有发送任何内容"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "观看您的 Android 设备：Tasker 会多次要求您授权连接。"
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "系统未联系您的 Android 设备，设备上的任何内容均未更改。  加载的配置也保持不变——这是对即将写入的内容的检查，而不是对设备上的内容的检查。"

@@ -153,6 +153,14 @@ _VARIABLE_NAME_PATTERN = re.compile(r"%[A-Za-z0-9_]+")
 # same list the same way on the read side.
 COLLISION_CHOICES: tuple[str, ...] = ("Abort New Task", "Abort Existing Task", "Run Both Together")
 
+# The Profile bitfield, and which bit each of the three settings that live in it occupies
+# -- see the evidence block above OBJECT_PROPERTIES.  Named constants rather than literals
+# because profedit.create_new_profile reasons about the same tag's other bits.
+PROFILE_FLAGS_TAG = "flags"
+PROFILE_ENFORCE_TASK_ORDER_BIT = 0
+PROFILE_LIMIT_REPEATS_BIT = 2
+PROFILE_SHOW_IN_NOTIFICATION_BIT = 4
+
 SECONDS_PER_MINUTE = 60
 SECONDS_PER_HOUR = 3600
 SECONDS_PER_DAY = 86400
@@ -187,16 +195,25 @@ class PropField:
     off, so it is written only when switched on; <showinnot> defaults ON, so it is
     written only when switched OFF.  Getting that pair backwards would stamp
     <showinnot>false</showinnot> onto the 9,187 Tasks that have never had one.
+
+    `bit` is for the properties Tasker keeps in a BITFIELD instead of in a tag of their
+    own -- a Profile's Limit Repeats, Enforce Task Order and Show In Notification, all three
+    inside <flags>.  The same `default` rule carries over unchanged: the bit is SET when the
+    value differs from the default and CLEAR when it equals it, so an inverted one (a bit
+    that records the OFF state, the shape a Task's <showinnot> has) would need nothing here
+    but a default of "true".  Every other bit of the tag is left exactly as it was -- see
+    _apply_flag_bits.
     """
 
     key: str  # field_refs key, unique within the dialog
     tag: str  # child tag of the object element
     label: str
-    kind: str  # "text" | "checkbox" | "choice" | "slider" | "duration"
+    kind: str  # "text" | "checkbox" | "choice" | "slider" | "number" | "duration"
     default: str  # the value at which the tag is removed rather than written
     choices: tuple[str, ...] = ()
     tooltip: str = ""
     maximum: int = 0  # slider only
+    bit: int | None = None  # bitfield properties only: which bit of `tag` holds this one
 
 
 _COMMENTS = PropField("pc", "pc", "Comments", "text", "")
@@ -265,24 +282,113 @@ _COOLDOWN = PropField(
     ),
 )
 
+# THE FIVE PROFILE SETTINGS TASKER'S OWN PROPERTIES SCREEN HAS AND THE SAMPLE DATA DOES NOT.
+# None of them appears in any of the 3,526 Profiles in XML/, so where each lives was settled
+# by measurement: five exports of one Profile made with Tasker 6.7.6, one setting at a time.
+#
+#   export     what was ticked                        <flags>  bits  other children
+#   Atest1     Limit Repeats                              8    3     <limit>
+#   Atest1-1   Enforce Task Order                         9    0,3   --
+#   Atest1-2   Show In Notification                      24    3,4   --
+#   Atest2     Limit Repeats, Remaining 5, Delete On 0    12    2,3   <repeats> <dod> <limit>
+#   Atest2(2)  the same, plus Enforce Task Order          13    0,2,3 <repeats> <dod> <limit>
+#
+# Bit 3 is in all five and is not one of these: it is the standalone-export baseline, on
+# 3,051 of the 3,485 sample Profiles that have a <flags> (bit 1, which marks a Profile as
+# part of the live configuration, is what the export clears -- profedit.create_new_profile).
+# Subtract it and each export names exactly one bit:
+#
+#   bit 0 (1)   Enforce Task Order      the only bit Atest1-1 adds, and the only one added
+#                                       between the two Atest2 exports
+#   bit 2 (4)   Limit Repeats           the only bit Atest2 adds -- the export where the
+#                                       setting has a live repeat count behind it
+#   bit 4 (16)  Show In Notification    the only bit Atest1-2 adds.  NOT inverted, unlike a
+#                                       Task's <showinnot>: a Profile with the bit clear is
+#                                       one with the box UNTICKED, so off is the default
+#   <repeats>   Remaining Repeats       a tag no sample Profile carries
+#   <dod>       Delete On Zero Repeats  likewise
+#
+# THE ONE EXPORT THAT DOES NOT FIT is Atest1: Limit Repeats ticked, bit 2 clear, and a
+# <limit>true</limit> that was not there before.  Read as Tasker's own behaviour rather than
+# as a second encoding -- ticking Limit Repeats with no repeats remaining leaves the Profile
+# with nothing left to run, and <limit> is how a disabled Profile is marked.  Atest2 is the
+# same setting with a count of 5 behind it, and there the bit is where the other four
+# exports put it.
+#
+# <limit> IS NOT ONE OF THESE FIELDS AND MUST NOT BECOME ONE.  It identifies a disabled
+# Tasker object and nothing else -- profiles.py greys the Profile out in the Map, healthck.py
+# reports DISABLED-PROFILE, and profedit.set_profile_enabled writes and removes it for the
+# Edit Profile dialog's Enabled switch, which is the one control that owns it.
+_LIMIT_REPEATS = PropField(
+    "limit_repeats",
+    PROFILE_FLAGS_TAG,
+    "Limit Repeats",
+    "checkbox",
+    "false",
+    bit=PROFILE_LIMIT_REPEATS_BIT,
+    tooltip=(
+        "Whether to limit the number of times the profile can become active e.g If its enter "
+        "task should only be run once."
+    ),
+)
+
+_REMAINING_REPEATS = PropField(
+    "repeats",
+    "repeats",
+    "Remaining Repeats",
+    "number",
+    "",
+    tooltip="The number of times remaining before the profile becomes disabled.",
+)
+
+_DELETE_ON_ZERO_REPEATS = PropField(
+    "dod",
+    "dod",
+    "Delete On Zero Repeats",
+    "checkbox",
+    "false",
+    tooltip="Whether this profile should be deleted when the repeat count gets to 0.",
+)
+
+_ENFORCE_TASK_ORDER = PropField(
+    "enforce_task_order",
+    PROFILE_FLAGS_TAG,
+    "Enforce Task Order",
+    "checkbox",
+    "false",
+    bit=PROFILE_ENFORCE_TASK_ORDER_BIT,
+    tooltip=(
+        "Ensure that tasks resulting from the profile activation or deactivation remain "
+        "queued until previous tasks from this profile are complete."
+    ),
+)
+
+_PROFILE_SHOW_IN_NOTIFICATION = PropField(
+    "profile_showinnot",
+    PROFILE_FLAGS_TAG,
+    "Show In Notification",
+    "checkbox",
+    "false",
+    bit=PROFILE_SHOW_IN_NOTIFICATION_BIT,
+    tooltip=(
+        "Whether to include this profile in the Running Profiles notification that updates "
+        "every time a profile is started or stopped."
+    ),
+)
+
 # Which scalars each kind shows, in the order Tasker shows them.
-#
-# THE PROFILE ROW IS INCOMPLETE ON PURPOSE.  Limit Repeats, Remaining Repeats, Delete On
-# Zero Repeats, Enforce Task Order and Show In Notification have no tag in ANY of the
-# 3,526 Profiles across the sample backups, so there is nothing to transcribe.  The two
-# candidates are <clp> (462 Profiles, always the literal 'true', read by nothing in
-# MapTasker) and bits of <flags> -- profedit.create_new_profile's docstring already
-# establishes that bits 0/3/4/5 are "stable per-Profile settings with no other XML
-# representation", which is this exact group.  But Remaining Repeats is a NUMBER and a
-# bitfield cannot hold it, so at least one more tag exists that no sample carries.
-#
-# They are left out rather than guessed: a wrong <flags> bit changes some other
-# behaviour on a real device.  To settle it, export one Profile, toggle one setting at a
-# time in Tasker, re-export, and diff the pairs with xmldiff.py -- six exports covers all
-# five.  Each then becomes one more row here and nothing else changes.
 OBJECT_PROPERTIES: dict[str, tuple[PropField, ...]] = {
     KIND_PROJECT: (_COMMENTS,),
-    KIND_PROFILE: (_LAUNCH_PRIORITY, _COOLDOWN, _COMMENTS),
+    KIND_PROFILE: (
+        _LAUNCH_PRIORITY,
+        _COOLDOWN,
+        _LIMIT_REPEATS,
+        _REMAINING_REPEATS,
+        _DELETE_ON_ZERO_REPEATS,
+        _ENFORCE_TASK_ORDER,
+        _PROFILE_SHOW_IN_NOTIFICATION,
+        _COMMENTS,
+    ),
     KIND_TASK: (_COLLISION, _KEEP_AWAKE, _TASK_SHOW_IN_NOTIFICATION, _COMMENTS),
 }
 
@@ -314,6 +420,33 @@ def load_properties(kind: str, element: defusedxml.ElementTree.Element) -> Edita
     return EditableProperties(kind=kind, element=element, variables=list(element.findall("ProfileVariable")))
 
 
+# The two values a checkbox property can hold, each other's opposite.  A bit-backed
+# property is always a checkbox -- a bit cannot hold anything else -- so a lookup is all
+# the "the other one" this needs.
+_NEGATED = {"true": "false", "false": "true"}
+
+
+def flag_bits(element: defusedxml.ElementTree.Element, tag: str = PROFILE_FLAGS_TAG) -> int:
+    """The integer a bitfield tag holds, and 0 for one that is absent or unreadable.
+
+    0 for unreadable rather than an error because <flags> is Tasker's, not ours: a value
+    this build cannot parse is data to leave alone, and _apply_flag_bits leaves exactly
+    that case untouched rather than replacing it with a number of its own.
+    """
+    text = (element.findtext(tag) or "").strip()
+    return int(text) if text.isdigit() else 0
+
+
+def _bit_value(spec: PropField, element: defusedxml.ElementTree.Element) -> str:
+    """A bit-backed property as the "true"/"false" the dialog deals in.
+
+    The bit being SET means "not the default", which is the one rule that makes Enforce
+    Task Order (default off) and Show In Notification (default on) the same code -- see
+    PropField.
+    """
+    return _NEGATED[spec.default] if flag_bits(element, spec.tag) & (1 << spec.bit) else spec.default
+
+
 def has_properties(kind: str, element: defusedxml.ElementTree.Element) -> bool:
     """Does this object have any properties set?  Decides whether the button in the
     Add/Edit dialog reads "Add Properties" or "Edit Properties".
@@ -334,7 +467,12 @@ def has_properties(kind: str, element: defusedxml.ElementTree.Element) -> bool:
     if element.find("ProfileVariable") is not None:
         return True
     return any(
-        (element.findtext(spec.tag) or "") not in ("", spec.default) for spec in OBJECT_PROPERTIES.get(kind, ())
+        _bit_value(spec, element) != spec.default
+        if spec.bit is not None
+        # A bitfield tag holds several properties at once, so its mere presence says
+        # nothing -- only the one bit does.  Every other tag is its own answer.
+        else (element.findtext(spec.tag) or "") not in ("", spec.default)
+        for spec in OBJECT_PROPERTIES.get(kind, ())
     )
 
 
@@ -363,6 +501,9 @@ def scalar_values(props: EditableProperties) -> dict[str, str]:
     """
     values = {}
     for spec in OBJECT_PROPERTIES.get(props.kind, ()):
+        if spec.bit is not None:
+            values[spec.key] = _bit_value(spec, props.element)
+            continue
         stored = props.element.findtext(spec.tag) or spec.default
         values[spec.key] = _choice_label(spec, stored) if spec.kind == "choice" else stored
     return values
@@ -452,7 +593,7 @@ def validate(props: EditableProperties, values: dict[str, str]) -> list[str]:
                 f"{spec.label} must be a {COOLDOWN_FORMAT} time, for example "
                 f"{format_cooldown(str(SECONDS_PER_DAY + 6 * SECONDS_PER_HOUR + 30 * SECONDS_PER_MINUTE))}.",
             )
-        elif spec.kind == "slider" and raw and not raw.isdigit():
+        elif spec.kind in ("slider", "number") and raw and not raw.isdigit():
             errors.append(f"{spec.label} must be a whole number.")
         elif spec.kind == "slider" and raw.isdigit() and int(raw) > spec.maximum:
             errors.append(f"{spec.label} must be between 0 and {spec.maximum}.")
@@ -560,6 +701,8 @@ def apply_properties(props: EditableProperties, values: dict[str, str]) -> list[
         return errors
 
     for spec in OBJECT_PROPERTIES.get(props.kind, ()):
+        if spec.bit is not None:
+            continue  # shares its tag with the other bits -- written together, below
         raw = values.get(spec.key) or ""
         if spec.kind == "duration":
             text = parse_cooldown(raw) or ""
@@ -577,6 +720,8 @@ def apply_properties(props: EditableProperties, values: dict[str, str]) -> list[
         else:
             set_child_text_in_tag_order(props.element, spec.tag, text)
 
+    _apply_flag_bits(props, values)
+
     for index, variable in enumerate(props.variables):
         supplied = {
             tag: values[key]
@@ -586,6 +731,52 @@ def apply_properties(props: EditableProperties, values: dict[str, str]) -> list[
         _write_variable(props.kind, variable, supplied)
 
     return []
+
+
+def _apply_flag_bits(props: EditableProperties, values: dict[str, str]) -> None:
+    """Write every bit-backed property of this kind into its bitfield tag, in one pass.
+
+    ONE PASS BECAUSE THEY SHARE A TAG.  Enforce Task Order and Show In Notification are both
+    <flags>, so writing them the way a scalar is written -- tag by tag, each rewriting the
+    whole text -- would have the second overwrite the first.
+
+    BITS THIS BUILD KNOWS NOTHING ABOUT ARE CARRIED THROUGH.  Bit 1 marks a Profile as part
+    of the live configuration and bits 3/4/5 are further per-Profile settings with no other
+    XML representation (profedit.create_new_profile has the evidence), so a rewrite that
+    dropped them would change behaviour on a real device.  Hence read-modify-write of the
+    value that is there, never a value built from the two fields alone.
+
+    The tag is REMOVED when every bit ends up clear, which is what Tasker does -- it omits
+    <flags> entirely rather than writing a 0 -- and an unchanged value is left exactly as it
+    was found, so a no-op edit cannot rewrite '10' as '10' and disturb a byte of the file.
+    An unreadable value is left alone for the same reason (see flag_bits).
+    """
+    specs = [spec for spec in OBJECT_PROPERTIES.get(props.kind, ()) if spec.bit is not None]
+    if not specs:
+        return
+
+    tag = specs[0].tag
+    current = flag_bits(props.element, tag)
+    updated = current
+    for spec in specs:
+        raw = (values.get(spec.key) or "").strip()
+        if not raw:
+            # Not on screen, so not the user's to change -- the same rule _write_variable
+            # follows for a variable field the form has no widget for.  A checkbox always
+            # hands back 'true' or 'false', so this is only reachable from a caller that
+            # supplies a subset.
+            continue
+        if raw == spec.default:
+            updated &= ~(1 << spec.bit)
+        else:
+            updated |= 1 << spec.bit
+
+    if updated == current and props.element.find(tag) is not None:
+        return
+    if updated:
+        set_child_text_in_tag_order(props.element, tag, str(updated))
+    else:
+        _remove_child(props.element, tag)
 
 
 def _write_variable(

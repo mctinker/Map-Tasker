@@ -2683,3 +2683,198 @@ msgstr "Yüklenen konfigürasyonda bir yerde kullanılan simgelere ek olarak, bu
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "Daha fazla bilgi için MapTasker [Komut Referansı](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) konusuna bakın.\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(anonim Görev, Sahnede saklanır)"
+
+msgid "(new variable)"
+msgstr "(yeni değişken)"
+
+msgid "(no label)"
+msgstr "(etiket yok)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "Eylem çubuğunda gösterilecek sekmelerin virgülle ayrılmış listesi. Birinin seçilmesi Etkinlik sekmesinin Sekme Dokunma Görevini başlatır."
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "İşlenecek tuşların eğik çizgiyle ayrılmış listesi - ada veya koda göre, ör. geri/78/a. Başka herhangi bir anahtar sisteme aktarılır.\nHer anahtarı işlemek için boş bırakın."
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Eylem Çubuğu Stili, Başlık, Alt Başlık, Simge ve Sekme Etiketleri yalnızca bir Etkinlik için geçerlidir. Bunlar hâlâ depolanır ve Özellik Türünü Etkinlik olarak değiştirirseniz gösterilir."
+
+msgid "Action bar"
+msgstr "Eylem çubuğu"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Eylem çubuğu öğeleri yalnızca bir Etkinlik için geçerlidir. Bunlar hâlâ depolanır ve Özellik Türünü Etkinlik olarak değiştirirseniz gösterilir."
+
+msgid "Actions of the"
+msgstr "Eylemler"
+
+msgid "Add Variable"
+msgstr "Değişken Ekle"
+
+msgid "Add an action bar item"
+msgstr "Eylem çubuğu öğesi ekleme"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "Bu Görevi yüklenen konfigürasyona ekler ve Görev Ekle iletişim kutusundaki 'Tamam' ile aynı şekilde bu olayı ona yönlendirir; bir dosyaya hiçbir şey yazılmaz ve Android'e hiçbir şey gönderilmez.  Tamam bunu sizin için de yapıyor, yani bu yalnızca onu kapatmadan oluşturmak içindir.\nO zamana kadar Görev yalnızca bu pencerede bulunur ve İptal onu atar. Daha sonra bu, diğerleri gibi bir Görevdir - İptal, bağlamayı geri alır ancak Görevi geri almaz ve Geri Al, her ikisini de alır."
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "Sahne tarafından kullanılan herhangi bir anahtar sisteme aktarılmaz; Sahne geri tuşunun onu kapatmasını nasıl engeller.\nTasker'ın yazdığı şekilde yazılmıştır: Sahnenin <LinkClickFilter> içinde bir <stopEvent>, bu işaretlendiğinde oluşturulur ve işareti kaldırıldığında ve içinde başka hiçbir şey kalmadığında tekrar alınır."
+
+msgid "Apply to Task"
+msgstr "Göreve Uygula"
+
+msgid "Changes kept for Task"
+msgstr "Görev için yapılan değişiklikler korunmuştur."
+
+msgid "Create Task"
+msgstr "Görev Oluştur"
+
+msgid "Created Task"
+msgstr "Görev Oluşturuldu"
+
+msgid "Display Name"
+msgstr "Gösterilen Ad"
+
+msgid "Exported Value"
+msgstr "Çıkarılan Değer"
+
+msgid "Icon"
+msgstr "Sembol"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "Olay sekmesinde düzenlenmiş her görev ve bu görevlerin eylemlerini de içerir. Eğer bir olay altında oluşturulmuş ve bu olayda herhangi bir eylem bulunmayan bir görev oluşturursanız, bu görev otomatik olarak oluşturulur ve diğer görevlerle ilişkilendirilir. \"İptal et\" özelliği, bir görevdeki düzenlemeleri geri alır."
+
+msgid "Keys"
+msgstr "Anahtarlar"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "Öncelikle bir Tasker yapılandırmasını yükleyin – yeni bir görev için, bir kimlik oluşturmak için bir yapılandırmaya ihtiyacınız olacaktır."
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "New Task Name"
+msgstr "Yeni Görev Adı"
+
+msgid "No Task matches."
+msgstr "Hiçbir görev eşleşmedi."
+
+msgid "No action bar items."
+msgstr "Hiçbir eylem çubuğu öğesi yok."
+
+msgid "No variables."
+msgstr "Değişken yok."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "Hiçbir şey -- bu olay hiçbir Görevi tetiklemez."
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "Henüz hiçbir şey bağlanmadığından bu eylemler yeni bir Göreve gider. Aşağıdaki düğmeye veya Tamam'a bastığınızda oluşturulur ve bu olay ona işaret eder. İptal onu atar."
+
+msgid "Nothing set."
+msgstr "Hiçbir şey ayarlanmadı."
+
+msgid "Prompt"
+msgstr "Çabuk"
+
+msgid "Properties kept."
+msgstr "Özellikler tutuldu."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "Bu değişiklikleri yüklenen yapılandırmaya doğrudan ekler, pencereyi kapatmadan – \"Tamam\" düğmesine tıklamaktaki işlevle aynı şekilde. \"Tamam\" düğmesi burada da aynı işi yapar, bu nedenle bu yalnızca değişiklikleri düzenleme sırasında saklamak içindir.\n\nHiçbir şey dosya yazılmaz ve hiçbir şey Android'e gönderilmez. Bu görev, sahne ile ilgili olmadığından, bu penceredeki \"İptal\" düğmesi veya sahne penceresindeki düğmeler, bu değişiklikleri uyguladıktan sonra geri almaz. \"İptal\" düğmesi bunu yapar."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "Bu özellikleri, pencere açıldığında olduğu gibi geri yükler ve \"Olay\" sekmesinde düzenlenmiş herhangi bir Görev'in etkilerini ortadan kaldırır.\n\"Göreve Uygula\" veya \"Yeni Görev Oluştur\" gibi kendi düğmesiyle yapılandırılmış bir Görev, otomatik olarak kalır. \"İptal Et\" işlevi, bu değişiklikleri geri alır."
+
+msgid "Remove Variable"
+msgstr "Değişkeni Kaldır"
+
+msgid "Same as Value"
+msgstr "Değer ile aynı"
+
+msgid "Scene properties changes discarded."
+msgstr "Sahne özellikleri değişiklikleri atıldı."
+
+msgid "Search Tasks"
+msgstr "Görevleri Ara"
+
+msgid "Stop Event"
+msgstr "Etkinliği Durdur"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "Eylem çubuğunun sol üst köşesindeki ev simgesi. Buna dokunulduğunda Etkinlik sekmesinin Ana Sayfaya Dokunma Görevi başlatılır."
+
+msgid "There are no Tasks in this configuration."
+msgstr "Bu yapılandırmada Görev yok."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "Bu Görev Sahnenin içinde saklanır ve Görev listesinde yer almaz, dolayısıyla eylemleri burada düzenlenemez. El değmeden taşınır."
+
+msgid "This item has no action."
+msgstr "Bu öğenin herhangi bir eylemi yok."
+
+msgid "Type"
+msgstr "Tip"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "'Değerle Aynı' seçeneğini devre dışı bırakırsanız, 'Dışa Aktarılan Değer' altında, değişkeni diğer kullanıcılarla paylaştığınızda hangi değerin dışa aktarılacağını özelleştirebilirsiniz.\nDışa aktarmanın hiçbir değere sahip olmamasını istiyorsanız 'Dışa Aktarılan Değer' alanını boş bırakabilir veya dışa aktarmalar için her zaman kullanmak istediğiniz değeri ayarlayabilirsiniz.\n'Değerle Aynı' seçeneğini etkinleştirirseniz, dışa aktarma sırasında geçerli değişken değeri kullanılacaktır."
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "Bir öğenin nerede biteceğine, ona ne verdiğinize göre karar verilir: Ana çubukta her zaman tek başına bir simge bulunur, yer varsa orada bir simge ve bir etiket gösterilir ve taşma menüsünde her zaman tek başına bir etiket bulunur (Tasker'da sağ üstteki 3 nokta)."
+
+msgid "fires a Task on"
+msgstr "üzerinde bir Görev başlatır"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "bu yedeklemede bulunmadığından gösterilecek eylem yok."
+
+msgid "no editable arguments."
+msgstr "düzenlenebilir argüman yok."
+
+msgid "swallows the key press"
+msgstr "tuşa basmayı yutar"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "XML'i gönderilmeden önce okur ve yolda herhangi bir değişiklik olması durumunda kaydetmeyi reddeder.\n\nBunun yakaladığı şey, kaydetme yolundaki başka hiçbir şeyin yapamayacağı başarısızlık sınıfıdır: bu programın kendi yazarının ve okuyucusunun aynı fikirde olmadığı bir değer - örneğin, yazıldığı gibi yazılan ve yeni satır olarak okunan bir adın içindeki satırbaşı.  Yüklemenin yanıtı 200'dür ve cihazdaki dosya gönderilen dosyayla eşleşir çünkü her ikisi de zaten yanlıştır.\n\nYukarı çıkan her nesne, düzenlemediğiniz Profiller, Sahneler ve Görevler de dahil olmak üzere, yüklenen konfigürasyondakiyle karşılaştırılır.  Bunlardan herhangi biri farklılık gösterirse hiçbir şey gönderilmez; hangisi ve nerede diye bir rapor alıyorsunuz.\n\nBir saniyenin çok küçük bir maliyeti var ve hiçbir şeyle temas etmiyor; tüm kontrol, cihaza dokunulmadan önce burada yapılıyor."
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "Bu, iki seçeneğin açılmasını sağlar: Görevi bağımsız bir dosya olarak Android cihazınıza /Tasker/tasks altına yazın veya doğrudan Tasker'ın canlı yapılandırmasına aktarın.\n\n'Http Sunucu Örneği' Tasker Projesi, Android cihazında kurulu ve aktif olmalı, sunucu çalışıyor olmalıdır ( README'nin Doğrudan XML Alma notlarına bakın) ve Tasker 6.2 veya daha yüksek olmalıdır.\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nHer iki cihaz da çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur.\n\nİçe aktarılan bir Görevi Tasker kullanıcı arayüzünde görmek için Tasker'dan çıkıp yeniden başlatmanız gerekir."
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Bu, Profili Android cihazında /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Bu, Profili Android cihazınıza /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi (http://spoo.me/http_svr_example), sunucu çalışıyorken Android cihazında kurulu ve aktif olmalıdır ( README'nin Doğrudan XML Alma notlarına bakın).\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Bu, Profili Android cihazınıza /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışıyorken Android cihazında kurulu ve aktif olmalıdır ( README'nin Doğrudan XML Alma notlarına bakın).\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Bu, Projeyi ve içindeki her şeyi (her Profil ve Görevi) bağımsız bir dosya olarak Android cihazınıza /Tasker/projects altına yazacaktır; bunu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışırken Android cihazda kurulu ve aktif olmalıdır.\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Bu, Projeyi ve içindeki her şeyi bağımsız bir dosya olarak Android cihazına /Tasker/projects altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Bu, Sahneyi bağımsız bir dosya olarak Android cihazına /Tasker/scenes altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Bu, Scene'i Android cihazınıza /Tasker/scenes altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışırken Android cihazda kurulu ve aktif olmalıdır.\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Bu, Görevi bağımsız bir dosya olarak Android cihazına /Tasker/tasks altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
+
+msgid "Verify"
+msgstr "Doğrulamak"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "Doğrulama Başarısız Oldu -- Hiçbir Şey Gönderilmedi"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "Android cihazınızı izleyin: Tasker sizden bağlantıyı birkaç kez yetkilendirmenizi isteyecektir."
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "Android cihazınızla iletişime geçilmedi ve cihazınızda hiçbir şey değiştirilmedi.  Yüklenen konfigürasyona da dokunulmaz; bu, cihazda ne olduğuna değil, ne yazılacağına ilişkin bir kontroldür."

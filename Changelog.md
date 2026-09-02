@@ -6,17 +6,17 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: "Add Properties"/"Edit Properties" in Add and Edit Project, Profile, Task and Legacy Scene.
-- Added: A Legacy Scene's Properties now follow Tasker's own "Scene Properties Edit" screen, tab for tab: UI, Actions, and Event with its Key, Home Tap and Tab Tap sub-tabs.
-- Added: Scene Properties "Actions" tab -- the items on an Activity's action bar, each with its icon, label and the action it runs, and the ability to add, reorder and delete them.
-- Added: Scene Properties "Event" tab -- the "Home Tap" and "Tab Tap" events are now editable alongside "Key", each showing when Tasker offers it and which local variables its Task can read.
-- Added: Scene Properties "Key" event now has the "Keys" filter and a "Stop Event" checkbox, and the actions of the Task an event fires can be added and edited right there, in the same editor the "Edit Task" dialog uses.
-- Added: An Event sub-tab with no Task bound now offers a new one: add actions to it in place, and "Create Task" adds it to the loaded configuration, points the event at it, and attaches it to the Project the Scene belongs to.
+- Added: 'Add/Edit Properties' in Add and Edit Project, Profile, Task and Legacy Scene.
+- Added: A 'Verify' checkbox on all four 'Save To Android' panels (Task, Profile, Project and Scene), beneath the IP Address and Port. When ticked, the XML about to be sent is read back and compared before the device is contacted at all, and nothing is sent if anything changed on the way through -- you get a report naming the object and the value instead. 
+
+      - Every object in the export is checked, including the Profiles, Scenes and Tasks bundled in that you never edited. It catches what the existing checks cannot: a value this program's own writer and reader disagree about, such as a carriage return inside a name, which is written as typed and read back as a newline.
+      
+      - The upload's 200 and its byte-for-byte readback both pass on that, because both compare the already-wrong bytes against themselves. Off by default; the setting is remembered for the rest of the session.
 
 ### Changed
 
 - Changed: All 'Properties' for a Tasker object are now consolidated in the same line in the Map view rather than in multiple separate lines.
-- Changed: Scene Properties' "Pick a Task" is now the same search/filter picker as "Add Task" > "Add an Action": search by name, narrow to one Project, and click the Task. It replaces a single dropdown that held every Task in the configuration with no indication of which Project each belonged to.
+- Changed: The Map view reports five more Profile properties -- Limit Repeats, Remaining Repeats, Delete On Zero Repeats, Enforce Task Order and Show In Notification -- each one only when it is set to something other than its default. They read through objprops, so the Map and the Properties editor cannot disagree about a label or about which <flags> bit holds what.
 - Changed: A Legacy Scene's Geometry (its portrait/landscape size) is now shown in Scene Properties for every Property Type, not just for an Overlay.
 - Changed: The Map view labels a Scene's key filter "Keys=" rather than "URL Match=" -- it is Tasker's slash-separated key list, not a URL -- and reports the Scene's "Home Tap" Task.
 
@@ -27,7 +27,6 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: "What's New" text in popup window is not being formatted correctly.
-- Fixed: A Legacy Scene's Action Bar Style was labelled "Property Type" -- the same name as the field above it -- in the Scene properties form and in the Map's action text.
 - Fixed: The single profile name is not necessarily appearing in the GUI pulldown list at startup. 
 
 ### Known Issues

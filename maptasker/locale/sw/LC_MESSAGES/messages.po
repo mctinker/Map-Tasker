@@ -2681,3 +2681,198 @@ msgstr "Aikoni zinazotumika mahali fulani katika usanidi uliopakiwa, pamoja na a
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "Tazama MapTasker [Marejeleo ya Amri](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) kwa maelezo zaidi.\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(Kazi isiyojulikana, iliyohifadhiwa kwenye Onyesho)"
+
+msgid "(new variable)"
+msgstr "(kigezo kipya)"
+
+msgid "(no label)"
+msgstr "(hakuna lebo)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "Orodha iliyotenganishwa kwa koma ya vichupo vya kuonyesha kwenye upau wa kitendo. Kuchagua moja huchoma Tab Tap Task ya kichupo cha Tukio."
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "Orodha iliyotenganishwa kwa kufyeka ya vitufe vya kushughulikia -- kwa jina au kwa msimbo, k.m. nyuma/78/a. Kitufe kingine chochote hupitishwa kwenye mfumo.\nIache tupu ili kushughulikia kila funguo."
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Mtindo wa Upau wa Kitendo, Kichwa, Kichwa kidogo, Aikoni na Lebo za Kichupo hutumika kwa Shughuli pekee. Bado zimehifadhiwa, na huonyeshwa ukibadilisha Aina ya Sifa hadi Shughuli."
+
+msgid "Action bar"
+msgstr "Kitufe"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Vipengee vya upau wa vitendo vinatumika kwa Shughuli pekee. Bado zimehifadhiwa, na huonyeshwa ukibadilisha Aina ya Sifa hadi Shughuli."
+
+msgid "Actions of the"
+msgstr "Matendo ya"
+
+msgid "Add Variable"
+msgstr "Ongeza Mbadala"
+
+msgid "Add an action bar item"
+msgstr "Ongeza kipengee cha upau wa kitendo"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "Huongeza Jukumu hili kwenye usanidi uliopakiwa na kuelekeza tukio hili kwake, sawa na 'Sawa' kwenye kidirisha cha Ongeza Task -- hakuna kinachoandikwa kwa faili na hakuna kinachotumwa kwa Android.  Sawa inakufanyia pia, kwa hivyo hii ni kwa kuiunda tu bila kuifunga.\nHadi wakati huo Jukumu lipo kwenye dirisha hili pekee na Ghairi kulitupa. Baadaye ni Jukumu kama lingine lolote -- Ghairi hurejesha kufunga lakini si Jukumu, na Tendua huchukua zote mbili."
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "Mfumo haitumii madhibiti yoyote ambayo inaweza kutumika kwenye eneo hilo – jinsi eneo hilo linaendelea kuzuia hatua ya kufunga.\n\nImeandikwa kwa mtindo ambao Tasker hutumia: <stopEvent> ndani ya <LinkClickFilter> ya eneo hilo, ambayo hutengenezwa wakati hii inaweka, na kisha huondoa wakati hii haiguli, na hakuna kitu kingine kinachobaki ndani."
+
+msgid "Apply to Task"
+msgstr "Tuma maombi"
+
+msgid "Changes kept for Task"
+msgstr "Mabadiliko yaliyowekwa kwa Task"
+
+msgid "Create Task"
+msgstr "Unda Kazi"
+
+msgid "Created Task"
+msgstr "Kazi Iliyoundwa"
+
+msgid "Display Name"
+msgstr "Jina la Kuonyesha"
+
+msgid "Exported Value"
+msgstr "Thamani iliyouzwa nje"
+
+msgid "Icon"
+msgstr "Maarufu"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "Huruhui kila kitu, pamoja na matendo yoyote ya Kazi iliyoundwa chini ya tab \"Tokea\".\nKazi inayoundwa chini ya tukio ambalo halina, hutengenezwa na kuunganishwa ikiwa utaweka matendo yoyote ndani yake. \"Futa\" hufungua tena toleo la Kazi."
+
+msgid "Keys"
+msgstr "Vidole"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "Kwanza, weka faili ya usanidi ya Tasker – programu mpya inahitaji id."
+
+msgid "Name"
+msgstr "Jina"
+
+msgid "New Task Name"
+msgstr "Jina Jipya la Kazi"
+
+msgid "No Task matches."
+msgstr "Hakuna kazi iliyolingana."
+
+msgid "No action bar items."
+msgstr "Hakuna vitu za kwenye menyu."
+
+msgid "No variables."
+msgstr "Hakuna vigezo."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "Hakuna kitu -- tukio hili halifanyi kazi yoyote."
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "Bado hakuna kitu kimefungwa, kwa hivyo vitendo hivi vinaingia kwenye Task mpya. Imeundwa, na tukio hili lilielekezea, unapobonyeza kitufe kilicho hapa chini au Sawa. Ghairi huitupa."
+
+msgid "Nothing set."
+msgstr "Hakuna kilichowekwa."
+
+msgid "Prompt"
+msgstr "Haraka"
+
+msgid "Properties kept."
+msgstr "Mali zilizohifadhiwa."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "Huweka mabadiliko haya ya vitendo kwenye usanidi uliopakiwa sasa, bila kufunga -- sawa na 'Sawa' kwenye kidirisha cha Kuhariri Task.  Sawa inakufanyia hapa pia, kwa hivyo hii ni kwa ajili ya kuwaweka katikati ya kuhariri.\nHakuna kilichoandikwa kwa faili na hakuna kinachotumwa kwa Android. Jukumu hili si sehemu ya Onyesho, kwa hivyo si mazungumzo ya Ghairi ya dirisha hili wala ya Onyesho yanayorudisha mabadiliko haya mara yanapotua. Tendua hufanya."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "Hurudisha sifa hizi jinsi zilivyokuwa wakati dirisha hili lilipofunguliwa, na hudondosha vitendo vya Jukumu lolote lililohaririwa chini ya kichupo cha Tukio.\nJukumu ambalo tayari limewekwa kwenye usanidi kwa kitufe chake -- 'Tuma Task', au 'Unda Task' -- hukaa hapo. Tendua hurudisha hizo nyuma."
+
+msgid "Remove Variable"
+msgstr "Ondoa Kigezo"
+
+msgid "Same as Value"
+msgstr "Sawa na Thamani"
+
+msgid "Scene properties changes discarded."
+msgstr "Mabadiliko ya mandhari ya eneo yametupwa."
+
+msgid "Search Tasks"
+msgstr "Tafuta Kazi"
+
+msgid "Stop Event"
+msgstr "Acha Tukio"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "Aikoni ya nyumbani iliyo juu kushoto mwa upau wa kitendo. Kuigonga huwasha Task ya Kugusa Nyumbani ya kichupo cha Tukio."
+
+msgid "There are no Tasks in this configuration."
+msgstr "Hakuna Majukumu katika usanidi huu."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "Jukumu hili limehifadhiwa ndani ya Onyesho na haliko katika orodha ya Kazi, kwa hivyo vitendo vyake haviwezi kuhaririwa hapa. Inapitishwa bila kuguswa."
+
+msgid "This item has no action."
+msgstr "Kipengee hiki hakina kitendo."
+
+msgid "Type"
+msgstr "Aina"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "Chini ya 'Thamani Iliyohamishwa' ikiwa utazima chaguo la 'Sawa na Thamani', unaweza kubinafsisha ni thamani gani inayosafirishwa unaposhiriki kigezo na watumiaji wengine.\nUnaweza kuweka sehemu ya 'Thamani Iliyouzwa' ikiwa wazi ikiwa unataka uhamishaji usiwe na thamani kabisa, au unaweza kuweka thamani unayotaka kutumia kila wakati kwa usafirishaji.\nUkiwezesha chaguo la 'Sawa na Thamani', thamani ya sasa ya kutofautisha itatumika wakati wa kuhamisha."
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "Mahali ambapo kipengee kinaishia huamuliwa na kile unachokipa: ikoni pekee huwa kwenye upau mkuu kila wakati, ikoni na lebo huonyeshwa pale ikiwa kuna nafasi, na lebo pekee huwa kwenye menyu ya vipengee vya ziada (vidoti 3 kwenye sehemu ya juu kulia kwenye Tasker)."
+
+msgid "fires a Task on"
+msgstr "inawasha Task on"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "haipo kwenye chelezo hii, kwa hivyo hakuna vitendo vya kuonyesha."
+
+msgid "no editable arguments."
+msgstr "hakuna hoja zinazoweza kuhaririwa."
+
+msgid "swallows the key press"
+msgstr "humeza ubonyezo wa ufunguo"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "Husoma XML nyuma kabla ya kutumwa, na inakataa kuhifadhi ikiwa chochote kitabadilika wakati wa kupitia.\n\nKinachozingatiwa na hii ni aina ya kutofaulu hakuna kitu kingine katika njia ya kuhifadhi kinachoweza: thamani ambayo mwandishi na msomaji wa programu hii wenyewe hawakubaliani kuhusu -- kurudi kwa gari ndani ya jina, tuseme, ambayo imeandikwa kama ilivyoandikwa na kusomwa nyuma kama mstari mpya.  Upakiaji hujibu 200 na faili iliyo kwenye kifaa inalingana na faili iliyotumwa, kwa sababu zote mbili tayari zina makosa.\n\nKila kitu kinachopanda juu kinalinganishwa dhidi ya kile kilicho kwenye usanidi uliopakiwa, ikijumuisha Wasifu, Maonyesho na Majukumu yaliyounganishwa kwa kuwa hukuhariri.  Hakuna kinachotumwa ikiwa mmoja wao atakhitalifiana; unapata ripoti inayosema wapi na wapi.\n\nInagharimu sehemu ya sekunde moja na haiwasiliani na chochote -- hundi nzima itafanyika hapa, kabla ya kifaa kuguswa."
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "Hii itafungua chaguo kati ya mbili: andika Task kama faili inayojitegemea kwenye kifaa chako cha Android chini ya /Tasker/tasks, au iingize moja kwa moja kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, seva inayoendesha (angalia madokezo ya README ya Direct XML Retrieval), na Tasker lazima iwe 6.2 au zaidi.\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker.\n\nTazama kifaa cha Android wakati mojawapo inaendeshwa: Tasker inakuomba uidhinishe muunganisho mara kadhaa kwa hifadhi moja, na kidokezo kilichoachwa bila kutumiwa kitashindwa.\n\nLazima uondoke na uanze upya Tasker ili kuona Jukumu lililoletwa katika Kiolesura cha Tasklor."
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Hii itaandika Wasifu kama faili inayojitegemea kwenye kifaa cha Android, chini ya /Tasker/profiles.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nTazama kifaa cha Android wakati hii inafanya kazi: Tasker inakuomba uidhinishe muunganisho mara kadhaa kwa hifadhi moja, na kidokezo kilichoachwa bila kutumiwa kitashindwa."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Hii itaandika Wasifu kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/profiles -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' (http://spoo.me/http_svr_example) lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, seva inayoendesha (angalia madokezo ya README ya Direct XML ya Urejeshaji).\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker.\n\nTazama kifaa cha Android wakati hii inafanya kazi: Tasker inakuomba uidhinishe muunganisho mara kadhaa kwa hifadhi moja, na kidokezo kilichoachwa bila kutumiwa kitashindwa."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Hii itaandika Wasifu kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/profiles -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, seva inayoendesha (angalia madokezo ya README ya Direct XML Retrieval).\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker.\n\nTazama kifaa cha Android wakati hii inafanya kazi: Tasker inakuomba uidhinishe muunganisho mara kadhaa kwa hifadhi moja, na kidokezo kilichoachwa bila kutumiwa kitashindwa."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Hii itaandika Mradi, na kila kitu ndani yake -- kila Wasifu na Kazi -- kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/projects -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, huku seva ikiendesha.\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker.\n\nTazama kifaa cha Android wakati hii inafanya kazi: Tasker inakuomba uidhinishe muunganisho mara kadhaa kwa hifadhi moja, na kidokezo kilichoachwa bila kutumiwa kitashindwa."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Hii itaandika Mradi, na kila kitu ndani yake, kama faili ya pekee kwenye kifaa cha Android, chini ya /Tasker/projects.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nTazama kifaa cha Android wakati hii inafanya kazi: Tasker inakuomba uidhinishe muunganisho mara kadhaa kwa hifadhi moja, na kidokezo kilichoachwa bila kutumiwa kitashindwa."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Hii itaandika Onyesho kama faili inayojitegemea kwenye kifaa cha Android, chini ya /Tasker/scenes.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nTazama kifaa cha Android wakati hii inafanya kazi: Tasker inakuomba uidhinishe muunganisho mara kadhaa kwa hifadhi moja, na kidokezo kilichoachwa bila kutumiwa kitashindwa."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Hii itaandika Onyesho kama faili inayojitegemea kwenye kifaa chako cha Android, chini ya /Tasker/scenes -- haiingizii kwenye usanidi wa moja kwa moja wa Tasker.\n\nMradi wa Tasker wa 'Http Server Example' lazima usakinishwe na kufanya kazi kwenye kifaa cha Android, huku seva ikiendesha.\n\nKifaa cha Android lazima kiwe kwenye mtandao sawa, na Anwani ya IP na Lango lazima zilingane na mipangilio yake ya seva ya Tasker.\n\nTazama kifaa cha Android wakati hii inafanya kazi: Tasker inakuomba uidhinishe muunganisho mara kadhaa kwa hifadhi moja, na kidokezo kilichoachwa bila kutumiwa kitashindwa."
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Hii itaandika Jukumu kama faili inayojitegemea kwenye kifaa cha Android, chini ya /Tasker/tasks.\n\nAnwani ya IP na Lango lazima zilingane na mipangilio ya seva ya Tasker ya kifaa cha Android.\n\nTazama kifaa cha Android wakati hii inafanya kazi: Tasker inakuomba uidhinishe muunganisho mara kadhaa kwa hifadhi moja, na kidokezo kilichoachwa bila kutumiwa kitashindwa."
+
+msgid "Verify"
+msgstr "Thibitisha"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "Thibitisha Imeshindwa -- Hakuna Kilichotumwa"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "Tazama kifaa chako cha Android: Tasker itakuomba uidhinishe muunganisho mara kadhaa."
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "Kifaa chako cha Android hakikutumiwa na hakuna kilichobadilishwa.  Usanidi uliopakiwa haujaguswa pia -- hii ni ukaguzi wa kile ambacho kilikuwa karibu kuandikwa, sio kwenye kile kilicho kwenye kifaa."

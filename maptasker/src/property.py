@@ -9,9 +9,26 @@ import html
 
 import defusedxml.ElementTree  # Need for type hints
 
+from maptasker.src import objprops
 from maptasker.src.error import rutroh_error
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
+
+# The Profile-only settings this module reports beyond <cldm>, named by their
+# objprops.PropField key rather than by their tag.
+#
+# BY KEY BECAUSE OBJPROPS IS WHERE THEY WERE MEASURED.  Three of the five are not tags at all
+# but bits of <flags>, and a second copy of that bit layout here is a second place to get it
+# wrong.  Taking the label from the same table also stops the Map and the Properties editor
+# drifting into calling one setting two things -- which is exactly what happened to <limit>
+# (see get_properties).
+_PROFILE_PROPERTY_KEYS = (
+    "limit_repeats",
+    "repeats",
+    "dod",
+    "enforce_task_order",
+    "profile_showinnot",
+)
 
 
 # Helper function to get text safely
@@ -164,6 +181,37 @@ def get_css_attributes(property_tag: str) -> str:
     return css_attribute
 
 
+def profile_properties(header: defusedxml.ElementTree) -> list:
+    """A Profile's Limit Repeats, Remaining Repeats, Delete On Zero Repeats, Enforce Task
+    Order and Show In Notification, as "Label:value" items, and only the ones that are set to
+    something other than their default.
+
+    NOT GATED BEHIND HAVING VARIABLES, which is how Cooldown Time and the disabled state are
+    reported (see get_properties).  That gate is there because those two are on a great many
+    Profiles -- <limit> alone is on 2,378 of the 3,526 in the sample backups -- so reporting
+    them for their own sake would put a Properties line on two Profiles in every three.  None
+    of these five is on ANY of those 3,526; they were measured from five Tasker 6.7.6 exports
+    instead, so each one costs a line only on a Profile that has actually had it set.
+
+    Read through objprops, which is the module that knows where each of the five lives and
+    what its default is; the same read the Properties editor's own form is filled from, so
+    the Map cannot report one thing and the editor show another.
+
+    Args:
+        header (defusedxml.ElementTree): the <Profile> element
+
+    Returns:
+        list: zero to five "Label:value" items, in the order the Properties editor shows them
+    """
+    values = objprops.scalar_values(objprops.load_properties(objprops.KIND_PROFILE, header))
+    specs = {spec.key: spec for spec in objprops.OBJECT_PROPERTIES[objprops.KIND_PROFILE]}
+    return [
+        f"{specs[key].label}:{values[key]}"
+        for key in _PROFILE_PROPERTY_KEYS
+        if values[key] and values[key] != specs[key].default
+    ]
+
+
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out.
 def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
@@ -219,10 +267,23 @@ def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
     # <limit>true</limit> is on most Profiles (228 of them in the sample backup), so listing it
     # for its own sake would put a Properties line on nearly every Profile in the map.
     if have_variable:
+        # <limit> IS THE DISABLED MARKER, NOT "Limit Repeats", which this line used to call
+        # it.  Measured against Tasker 6.7.6: a Profile with Limit Repeats ticked carries
+        # <flags> bit 2 (objprops), while <limit>true</limit> is what profiles.py greys out
+        # in this same Map, healthck.py reports as DISABLED-PROFILE and the Edit Profile
+        # dialog's Enabled switch writes.  Reporting it under the other setting's name made
+        # two thirds of the Profiles in a backup look as though they limited their repeats.
         if limit:
-            properties.append(f"Limit Repeats:{limit}")
+            properties.append(f"Disabled:{limit}")
         if cooldown:
             properties.append(f"Cooldown Time (seconds):{cooldown}")
+
+    # The rest of Tasker's own Profile Properties screen -- the repeat count, what happens
+    # when it runs out, and the two settings kept in <flags>.  A Profile only; <flags> is on
+    # no Project and no Task in the sample data, and its bits mean what they mean because
+    # they were measured on a Profile.
+    if property_tag == "Profile:":
+        properties.extend(profile_properties(header))
 
     if not properties:
         return

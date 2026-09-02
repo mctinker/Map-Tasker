@@ -26,6 +26,7 @@ from maptasker.src import (
     objprops,
     profedit,
     projedit,
+    roundtrip,
     sceneedit,
     sceneview,
     sessundo,
@@ -1741,8 +1742,9 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                         "Tasker must be 6.2 or higher.\n\n"
                         "The Android device must be on the same network, and the IP Address and Port must "
                         "match its Tasker server settings.\n\n"
-                        "The file write needs no authorization prompt; the import asks for one, and you must "
-                        "exit and restart Tasker to see an imported Task in the Tasker UI.",
+                        "Watch the Android device while either one runs: Tasker asks you to authorize "
+                        "the connection several times for one save, and a prompt left untapped fails it.\n\n"
+                        "You must exit and restart Tasker to see an imported Task in the Tasker UI.",
                     ),
                 ).style("white-space: pre-wrap")
             task_save = ui.button(
@@ -1753,6 +1755,100 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                 ui.tooltip(
                     translate_string("This will save the Task directly to your current drive.\n\n"),
                 ).style("white-space: pre-wrap")
+
+    dialog.open()
+
+
+# ==========================================
+# 2b-pre. THE SAVE TO ANDROID PANEL'S OWN FIELDS
+#
+# All four Save To Android panels -- Task, Profile, Project, Scene -- open with the same
+# three controls, and they are built here rather than four times over so that they cannot
+# drift apart.  They were already identical; "Verify" is the first thing added to them
+# since, and adding it in one place is the whole reason this exists.
+# ==========================================
+def _android_device_fields(gui: MyGui) -> dict:
+    """Where the device is, and whether to check the XML before sending it there.
+
+    The address and port default to the last ones that worked, the same way the Get XML and
+    Fetch Applications dialogs default -- and are written back by the save handlers, not
+    here, because a device that was never reached is not one to remember.
+
+    "Verify" is remembered differently: on the checkbox itself, as it is ticked.  It is a
+    preference about how this program behaves rather than a fact about a device, so a user
+    who wants every save checked should not have to re-tick it on the next panel -- and
+    unlike the address, there is no failure that should make it stick less.
+
+    It defaults OFF.  What it does is described in its own tooltip, and what it costs is a
+    save it can refuse: a check that could block a save without having been asked for is not
+    one to turn on behind the user's back.  See roundtrip.py's header.
+    """
+    default_ip = getattr(gui, "android_ipaddr", "") or "192.168.0.210"
+    default_port = getattr(gui, "android_port", "") or "1821"
+
+    fields = {
+        "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
+        "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
+    }
+    verify = (
+        ui
+        .checkbox(
+            translate_string("Verify"),
+            value=bool(getattr(gui, "android_verify", False)),
+            on_change=lambda event: setattr(gui, "android_verify", bool(event.value)),
+        )
+        .props("dense")
+        .classes("mt-2")
+    )
+    with verify:
+        ui.tooltip(
+            translate_string(
+                "Reads the XML back before it is sent, and refuses the save if anything changed on "
+                "the way through.\n\n"
+                "What this catches is the class of failure nothing else in the save path can: a value "
+                "that this program's own writer and reader disagree about -- a carriage return inside "
+                "a name, say, which is written out as typed and read back as a newline.  The upload "
+                "answers 200 and the file on the device matches the file that was sent, because both "
+                "are already wrong.\n\n"
+                "Every object going up is compared against the one in the loaded configuration, "
+                "including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing "
+                "is sent if any of them differs; you get a report saying which and where.\n\n"
+                "It costs a fraction of a second and contacts nothing -- the whole check runs here, "
+                "before the device is touched.",
+            ),
+        ).style("white-space: pre-wrap")
+    fields["verify"] = verify
+    return fields
+
+
+def build_round_trip_report_dialog(report: roundtrip.RoundTripReport) -> None:
+    """What "Verify" found, when what it found stopped a save.
+
+    A dialog rather than a notification because the useful part is a list -- which object,
+    where inside it, and the two values -- and because this is a save that did NOT happen,
+    which is not something to say in a message that fades.  Shaped like
+    build_helper_tasks_dialog, and for the same reason: a list the user reads next to
+    something else, with no button on it that does anything but close.
+
+    Deliberately offers no "send it anyway".  The whole claim of the checkbox is that
+    nothing goes to the device when the check fails; a button undoing that would make it a
+    warning, which the user could already have had by leaving the box unticked.
+    """
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[480px] max-w-[760px] w-full p-6"):
+        ui.label(translate_string("Verify Failed -- Nothing Was Sent")).classes("text-lg font-bold text-red-600")
+        ui.label(report.summary()).classes("mt-1 text-sm")
+        with ui.column().classes("gap-0 mt-3"):
+            for line in report.detail():
+                ui.label(line).classes("font-mono text-xs break-all whitespace-pre-wrap")
+        ui.label(
+            translate_string(
+                "Your Android device was not contacted and nothing on it was changed.  The loaded "
+                "configuration is untouched as well -- this is a check on what was about to be "
+                "written, not on what is on the device.",
+            ),
+        ).classes("text-xs text-gray-500 italic mt-3")
+        with ui.row().classes("w-full justify-end mt-4"):
+            ui.button(translate_string("Close"), on_click=dialog.close).classes("bg-blue-600")
 
     dialog.open()
 
@@ -1779,15 +1875,9 @@ def build_save_to_android_dialog(
     on_created is threaded through from build_add_task_dialog's own
     on_task_created -- see that parameter's docstring.
     """
-    default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
-    default_port = getattr(self, "android_port", "") or "1821"
-
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Task To Android Device")).classes("text-lg font-bold text-blue-600")
-        android_field_refs = {
-            "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
-            "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
-        }
+        android_field_refs = _android_device_fields(self)
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
@@ -1807,7 +1897,8 @@ def build_save_to_android_dialog(
                         "This will write the Task as a standalone file onto the Android device, "
                         "under /Tasker/tasks.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                        "No authorization prompt is needed for this.",
+                        "Watch the Android device while this runs: Tasker asks you to authorize the "
+                        "connection several times for one save, and a prompt left untapped fails it.",
                     ),
                 ).style("white-space: pre-wrap")
             # The other half of the same dialog, and a genuinely different outcome -- see
@@ -2433,7 +2524,9 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
                         "The 'Http Server Example' Tasker Project must be installed and active on the Android "
                         "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
                         "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings. No authorization prompt is needed for this.",
+                        "match its Tasker server settings.\n\n"
+                        "Watch the Android device while this runs: Tasker asks you to authorize the "
+                        "connection several times for one save, and a prompt left untapped fails it.",
                     ),
                 ).style("white-space: pre-wrap")
             export = ui.button(
@@ -2462,15 +2555,9 @@ def build_save_profile_to_android_dialog(
     live configuration. On success both this prompt and the parent (Edit/Add
     Profile) dialog are closed.
     """
-    default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
-    default_port = getattr(self, "android_port", "") or "1821"
-
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Profile To Android Device")).classes("text-lg font-bold text-blue-600")
-        android_field_refs = {
-            "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
-            "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
-        }
+        android_field_refs = _android_device_fields(self)
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
@@ -2489,7 +2576,8 @@ def build_save_profile_to_android_dialog(
                         "This will write the Profile as a standalone file onto the Android device, "
                         "under /Tasker/profiles.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                        "No authorization prompt is needed for this.",
+                        "Watch the Android device while this runs: Tasker asks you to authorize the "
+                        "connection several times for one save, and a prompt left untapped fails it.",
                     ),
                 ).style("white-space: pre-wrap")
             # The other half of the same dialog, and a genuinely different outcome: 'Save'
@@ -2707,7 +2795,9 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
                         "The 'Http Server Example' Tasker Project must be installed and active on the Android "
                         "device, with the server running.\n\n"
                         "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings. No authorization prompt is needed for this.",
+                        "match its Tasker server settings.\n\n"
+                        "Watch the Android device while this runs: Tasker asks you to authorize the "
+                        "connection several times for one save, and a prompt left untapped fails it.",
                     ),
                 ).style("white-space: pre-wrap")
             save_single_project = ui.button(
@@ -2743,15 +2833,9 @@ def build_save_project_to_android_dialog(
     check it for editable fields this by-name upload would drop -- see
     EDIT_PROJECT_INERT_FIELDS. Nothing here reads it.
     """
-    default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
-    default_port = getattr(self, "android_port", "") or "1821"
-
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Project To Android Device")).classes("text-lg font-bold text-blue-600")
-        android_field_refs = {
-            "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
-            "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
-        }
+        android_field_refs = _android_device_fields(self)
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
@@ -2770,7 +2854,8 @@ def build_save_project_to_android_dialog(
                         "This will write the Project, and everything in it, as a standalone file onto the "
                         "Android device, under /Tasker/projects.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                        "No authorization prompt is needed for this.",
+                        "Watch the Android device while this runs: Tasker asks you to authorize the "
+                        "connection several times for one save, and a prompt left untapped fails it.",
                     ),
                 ).style("white-space: pre-wrap")
             # The Profile dialog's pair, for a Project -- see
@@ -2911,6 +2996,16 @@ def _build_property_widget(spec: objprops.PropField, value: str) -> object:
             max=spec.maximum,
             format="%.0f",
         ).classes("w-full")
+    elif spec.kind == "number":
+        # The slider's widget without the ceiling: a repeat count has no maximum Tasker
+        # documents, and 0-50 is Launch Task Priority's range rather than a shared one.
+        # Empty means "no value", which is what removes the tag -- see PropField.default.
+        widget = ui.number(
+            translate_string(spec.label),
+            value=int(value) if value.isdigit() else None,
+            min=0,
+            format="%.0f",
+        ).classes("w-full")
     elif spec.kind == "duration":
         widget = ui.input(
             f"{translate_string(spec.label)} ({objprops.COOLDOWN_FORMAT})",
@@ -2968,7 +3063,7 @@ def _build_variable_panel(
     Prompt, then Exported Value with "Same as Value" beside it.
     """
     values = objprops.variable_values(variable)
-    key = lambda field: f"var{index}_{field}"  # noqa: E731 -- must match objprops.apply_properties
+    key = lambda field: f"var{index}_{field}"
 
     title = objprops.variable_display_name(variable) or translate_string("(new variable)")
     with ui.expansion(title, icon="data_object", value=not values["pvn"]).classes("w-full"):
@@ -6697,7 +6792,7 @@ _SCENE_TABS = (_SCENE_TAB_UI, _SCENE_TAB_ACTIONS, _SCENE_TAB_EVENT)
 
 # Shorter than the Edit Task dialog's own action list: an Event tab's is the bottom half of a
 # sub-tab, in a tab, in a dialog that is itself on top of the Scene editor, and a full-height
-# list would push the Close button off the screen.
+# list would push the Ok and Cancel buttons off the screen.
 _SCENE_EVENT_ACTION_LIST_CLASSES = "w-full h-64 border rounded p-2"
 
 
@@ -6749,26 +6844,69 @@ def _build_scene_properties_dialog(
     thing to share is the button that opens them (see _build_properties_button's `opener`).
 
     Everything here writes through to the Scene copy as it is typed, which is what
-    _render_legacy_arg does everywhere else in the Legacy designer; there is no Ok/Cancel
-    pair because there is nothing held back to apply.  Cancel is still available where it
-    means something -- on the Scene dialog behind this one, which owns the copy and
-    discards the lot.  The one exception is an Event tab's Task actions, which are edits to
-    a Task rather than to the Scene and say so -- see _render_scene_event_task_actions.
+    _render_legacy_arg does everywhere else in the Legacy designer -- so OK IS NOT WHAT
+    MAKES THESE EDITS AND CANCEL CANNOT SIMPLY WALK AWAY FROM THEM.  Ok keeps what is
+    already written and applies the one part that is held back: the Event tabs' Task copies
+    (see _render_scene_event_task_actions).  Cancel puts the whole <PropertiesElement> back
+    the way this dialog found it -- from the snapshot taken below -- and drops those copies
+    unapplied.  The four geometry boxes are reverted beside it because they are not in that
+    element at all: they drive the Scene dialog's own inputs (see _render_scene_geometry).
+
+    WHAT CANCEL CANNOT TAKE BACK is whatever has already reached the loaded configuration
+    under its own button.  "Apply to Task" and "Create Task" both write there when pressed,
+    and both say so; Undo is what takes those back.  The Scene dialog behind this one still
+    owns the copy either way, so its Cancel discards everything kept here.
 
     Legacy only.  A Version 2 Scene has no <PropertiesElement> at all -- its equivalents
     live in the declarative layout -- so the button that opens this is not built for one.
     """
     scene_element = edited_scene.scene_element
+    # WHAT CANCEL PUTS BACK, taken once, before anything can have been typed.  The
+    # properties element carries every field in this dialog except the geometry, and the
+    # geometry is not in the element at all -- those boxes write into the Scene dialog's own
+    # four inputs -- so it takes a value snapshot of its own.
+    properties_snapshot = sceneedit.legacy_properties_snapshot(scene_element)
+    geometry_snapshot = {
+        key: str(field_refs[key].value) for key, _label in sceneedit.SCENE_DIMENSION_FIELDS if key in field_refs
+    }
     # Which tab is on screen, kept across the rebuilds render() does.  Without it, picking a
     # Task or changing Property Type -- both of which rebuild the whole body -- would throw
     # the user back to the UI tab from whichever one they were working in.
     showing = {"tab": _SCENE_TAB_UI, "event": sceneedit.LEGACY_SCENE_EVENTS[0].label}
-    # A Task being composed under an Event tab but not created yet, keyed by event tag.  Held
-    # here, at the dialog, rather than built per render: the Event panel is rebuilt whenever a
-    # binding changes or the sub-tab moves, and a Task rebuilt with it would lose every action
-    # added to it so far.  An entry is dropped the moment its Task is created (see
-    # _render_scene_event_new_task).
-    pending_tasks: dict[str, taskedit.EditableTask] = {}
+    # THE TASK EDITS THIS DIALOG IS HOLDING, and why it holds them rather than the panels.
+    #
+    # The Event panel is rebuilt constantly -- every sub-tab switch, every binding change,
+    # every Property Type change goes through render() -- and each rebuild destroys the
+    # editor's widgets and, before this, the Task copy behind them.  So an action added under
+    # Key and then a click on Tab Tap was an action thrown away, and the only exit this
+    # dialog then had threw away whatever was still on screen.  That was the whole of the
+    # "actions do not stick" bug.  Ok is that exit now, and it keeps the lot; Cancel is the
+    # other one, and dropping these copies is the whole of what it does to them.
+    #
+    # Both dicts are keyed so that the right copy is found again on the next render, and both
+    # hold (EditableTask, field_refs): the copy carries the actions, the widgets carry the
+    # argument values until flush_event_task_edits snapshots them onto it.
+    pending_tasks: dict[str, tuple] = {}  # events with nothing bound: Tasks not created yet
+    bound_tasks: dict[str, tuple] = {}  # events with a Task bound: working copies of it
+    # Snapshot callables for the editors CURRENTLY on screen, refilled by every render.
+    flushers: list[Callable[[], None]] = []
+
+    def flush_event_task_edits() -> None:
+        """Move what is in the Event tab's widgets onto the Task copies behind them.
+
+        Called before anything that destroys those widgets, and before Ok reads the copies.
+        The copies outlive the widgets; the widgets do not survive a rebuild.  Not called by
+        Cancel: the copies it would write onto are the ones being dropped.
+        """
+        for flush in flushers:
+            flush()
+        flushers.clear()
+
+    def scene_task_state() -> dict:
+        """What the Event panels are handed so they can find their held copies and register
+        their own flusher -- one bundle rather than four parameters threaded three deep.
+        """
+        return {"pending": pending_tasks, "bound": bound_tasks, "flushers": flushers}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[860px] w-full p-6"):
         ui.label(f"{translate_string('Scene Properties')}: {edited_scene.scene_name}").classes(
@@ -6786,6 +6924,7 @@ def _build_scene_properties_dialog(
             no caret to lose, and the Legacy designer's Task-binding selects already rebuild
             themselves the same way; a text field could not (see _render_legacy_arg).
             """
+            flush_event_task_edits()
             dialog_body.clear()
             with dialog_body:
                 properties = sceneedit.legacy_scene_properties(scene_element)
@@ -6826,7 +6965,7 @@ def _build_scene_properties_dialog(
                             properties,
                             showing,
                             render,
-                            pending_tasks,
+                            scene_task_state(),
                             edited_scene.scene_name,
                         )
 
@@ -6836,11 +6975,70 @@ def _build_scene_properties_dialog(
 
         render()
 
+        def keep_and_close() -> None:
+            """Ok keeps everything: the Scene's own fields are already written through, and the
+            Task edits -- the one part that could not be, since a Task is not the Scene and the
+            action editor collects its argument values in widgets -- are applied here.
+
+            Stays open if anything is rejected, with the errors notified and the edits still on
+            screen to fix.  Closing on a rejection would be the same bug in a new place.
+            """
+            flush_event_task_edits()
+            properties = sceneedit.legacy_scene_properties(scene_element)
+
+            def bind(event_tag: str, new_task_id: str) -> None:
+                if properties is not None:
+                    sceneedit.legacy_set_task_binding(properties, event_tag, new_task_id)
+
+            if not self.event_handlers.keep_scene_event_task_edits(bound_tasks, pending_tasks, bind):
+                render()
+                return
+            dialog.close()
+            if on_closed:
+                on_closed()
+
+        def discard_and_close() -> None:
+            """Cancel puts the properties back as they were and closes, applying nothing.
+
+            The Task copies are dropped simply by never being applied -- they are held here and
+            nowhere else, so letting them go is the whole of it.  Their flushers go with them:
+            each one writes widget values onto a copy that is about to be thrown away, and
+            running them first would only make the discarding slower.
+            """
+            flushers.clear()
+            bound_tasks.clear()
+            pending_tasks.clear()
+            self.event_handlers.discard_scene_properties_event(
+                scene_element,
+                properties_snapshot,
+                geometry_snapshot,
+                field_refs,
+            )
+            dialog.close()
+            if on_closed:
+                on_closed()
+
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
-            ui.button(
-                translate_string("Close"),
-                on_click=lambda: (dialog.close(), on_closed() if on_closed else None),
-            ).classes("bg-blue-600")
+            cancel_button = ui.button(translate_string("Cancel"), on_click=discard_and_close).props("outline")
+            with cancel_button:
+                ui.tooltip(
+                    translate_string(
+                        "Puts these properties back the way they were when this window opened, and "
+                        "drops the actions of any Task edited under the Event tab.\n"
+                        "A Task already put into the configuration by its own button -- 'Apply to "
+                        "Task', or 'Create Task' -- stays there. Undo takes those back.",
+                    ),
+                ).style("white-space: pre-wrap")
+            ok_button = ui.button(translate_string("Ok"), on_click=keep_and_close).classes("bg-blue-600")
+            with ok_button:
+                ui.tooltip(
+                    translate_string(
+                        "Keeps everything, including the actions of any Task edited under the Event "
+                        "tab.\n"
+                        "A Task composed under an event that had none is created and bound if you put "
+                        "any actions in it. Undo takes a Task edit back.",
+                    ),
+                ).style("white-space: pre-wrap")
 
     dialog.open()
 
@@ -6989,7 +7187,7 @@ def _render_scene_actions_tab(
         translate_string(
             "Where an item ends up is decided by what you give it: an icon alone is always in the "
             "main bar, an icon and a label are shown there if there is room, and a label alone is "
-            "always in the overflow menu (the 3 dots at the top right).",
+            "always in the overflow menu (the 3 dots at the top right in Tasker).",
         ),
     ).classes("text-xs text-gray-500 italic")
 
@@ -7124,7 +7322,7 @@ def _render_scene_event_tab(
     properties: defusedxml.ElementTree.Element,
     showing: dict,
     rerender: Callable[[], None],
-    pending_tasks: dict,
+    task_state: dict,
     scene_name: str,
 ) -> None:
     """The Event tab: Key, Home Tap and Tab Tap, as Tasker's own sub-tabs.
@@ -7136,7 +7334,9 @@ def _render_scene_event_tab(
     widgets and put three "Add an action" pickers on the page at once.
 
     `showing` carries the selected sub-tab out to the caller so it survives the full-body
-    rebuild that binding a Task triggers -- see _build_scene_properties_dialog.
+    rebuild that binding a Task triggers, and `task_state` carries the Task copies for the
+    same reason: switching sub-tab destroys this panel, and everything edited in it would go
+    too.  See _build_scene_properties_dialog, which owns both.
     """
     for name, meaning in sceneedit.LEGACY_SCENE_EVENT_COMMON_VARIABLES:
         ui.label(f"{name} -- {translate_string(meaning)}").classes("text-xs text-gray-500 italic")
@@ -7151,6 +7351,11 @@ def _render_scene_event_tab(
     event_body = ui.column().classes("w-full")
 
     def render_event() -> None:
+        # The widgets about to be destroyed are the only place this sub-tab's argument edits
+        # live; the Task copy behind them survives, so move them onto it first.
+        for flush in task_state["flushers"]:
+            flush()
+        task_state["flushers"].clear()
         event_body.clear()
         with event_body:
             _render_scene_event(
@@ -7158,7 +7363,7 @@ def _render_scene_event_tab(
                 properties,
                 events[showing["event"]],
                 rerender,
-                pending_tasks,
+                task_state,
                 scene_name,
             )
 
@@ -7173,7 +7378,7 @@ def _render_scene_event(
     properties: defusedxml.ElementTree.Element,
     event: sceneedit.LegacySceneEvent,
     rerender: Callable[[], None],
-    pending_tasks: dict | None = None,
+    task_state: dict | None = None,
     scene_name: str = "",
 ) -> None:
     """One Event sub-tab: when it fires, the Task it fires, and what that Task can read.
@@ -7259,7 +7464,7 @@ def _render_scene_event(
         self,
         properties,
         event,
-        {} if pending_tasks is None else pending_tasks,
+        {"pending": {}, "bound": {}, "flushers": []} if task_state is None else task_state,
         scene_name,
         rerender,
     )
@@ -7359,7 +7564,7 @@ def _render_scene_event_task_actions(
     self: MyGui,
     properties: defusedxml.ElementTree.Element,
     event: sceneedit.LegacySceneEvent,
-    pending_tasks: dict,
+    task_state: dict,
     scene_name: str,
     rerender: Callable[[], None],
 ) -> None:
@@ -7367,34 +7572,29 @@ def _render_scene_event_task_actions(
     same editor the Edit Task dialog is made of.
 
     THERE IS ALWAYS AN EDITOR, whether or not a Task is bound yet.  An event with nothing
-    bound used to say "Pick a Task above" and stop, which made adding actions to a Scene's
-    Key/Home Tap/Tab Tap a two-step errand through the Add Task dialog and back.  Now a Task
-    with no binding gets a brand-new one, composed in place and created by the button at the
-    bottom -- see _render_scene_event_new_task.
+    bound gets a brand-new Task, composed in place -- see _render_scene_event_new_task.
+
+    NOTHING TYPED IN HERE IS THROWN AWAY BY NAVIGATION.  The Task copy is held by the dialog
+    (task_state), not by this panel, so it survives the rebuild that every sub-tab switch,
+    binding change and Property Type change causes -- and the widgets' own values are moved
+    onto it by the flusher registered below, just before they are destroyed.  Both halves are
+    needed: the copy carries the actions, the widgets carry the argument values.
 
     WHICH TASK, when one is bound.  Whatever the event's tag points at, resolved BY ID
     (taskedit.load_task_for_edit_by_id): the binding stores an id, and an unnamed Task's
     displayed name is one taskerd invented from its first action, which is not a name to look
-    a Task up by.
+    a Task up by.  The copy is keyed by tag AND id, so repointing the event at a different
+    Task starts a fresh copy instead of showing the old Task's actions under the new name.
 
-    An ANONYMOUS Task (a negative id, kept inside the Scene and nowhere else) gets neither.
-    It is not in the Task tables, so there is nothing to load, nothing for an Apply to write
-    back into, and replacing it would destroy the only copy.
+    An ANONYMOUS Task (a negative id, kept inside the Scene and nowhere else) gets no editor.
+    It is not in the Task tables, so there is nothing to load, nothing to write back into, and
+    replacing it would destroy the only copy.
 
-    WHERE AN APPLY LANDS.  Everything else in this dialog writes through to the Scene copy as
-    it is typed, and is kept or discarded by the Scene dialog's own Ok/Cancel.  These edits
-    are not on the Scene -- they are on a Task with its own place in the loaded configuration
-    -- so they follow the Edit Task dialog's rules instead: adding, copying, moving and
-    deleting an action land on a working copy as they are done, argument values sit in their
-    widgets, and the button at the bottom is what puts the lot into the loaded configuration.
-    Cancel on the Scene dialog does NOT take an applied Task edit back with it, which is why
-    the tooltips say so.
-
-    Repointing the binding rebuilds this whole panel, so an editor over a bound Task is
-    rebuilt over the newly bound one and anything not yet applied to the old one goes with it
-    -- the same as closing the Edit Task dialog without Ok.  A Task still being composed does
-    NOT go: it is held by the dialog (see pending_tasks) precisely so that switching sub-tabs
-    or picking a Task by mistake does not throw away the actions added to it.
+    WHERE IT LANDS.  Ok applies every held copy over the live Task
+    (userintr.keep_scene_event_task_edits), and "Apply to Task" does the same for this one
+    without closing; Cancel drops the copies unapplied.  Either way it is the loaded
+    configuration that changes, not the Scene: neither this dialog's Cancel nor the Scene
+    dialog's takes back an edit that has already landed there, and Undo does.
     """
     bound = properties.find(event.tag)
     task_id = (bound.text or "").strip() if bound is not None else ""
@@ -7414,18 +7614,28 @@ def _render_scene_event_task_actions(
         return
 
     if not task_id:
-        _render_scene_event_new_task(self, properties, event, pending_tasks, scene_name, rerender)
+        _render_scene_event_new_task(self, properties, event, task_state, scene_name, rerender)
         return
 
-    edited_task = taskedit.load_task_for_edit_by_id(task_id)
-    if edited_task is None:
-        ui.label(
-            f"{translate_string('Task')} {task_id} "
-            f"{translate_string('is not in this backup, so there are no actions to show.')}",
-        ).classes("text-xs text-gray-500 italic")
-        return
+    held_key = f"{event.tag}:{task_id}"
+    held = task_state["bound"].get(held_key)
+    if held is None:
+        edited_task = taskedit.load_task_for_edit_by_id(task_id)
+        if edited_task is None:
+            ui.label(
+                f"{translate_string('Task')} {task_id} "
+                f"{translate_string('is not in this backup, so there are no actions to show.')}",
+            ).classes("text-xs text-gray-500 italic")
+            return
+    else:
+        edited_task = held[0]
 
     field_refs: dict = {}
+    task_state["bound"][held_key] = (edited_task, field_refs)
+    task_state["flushers"].append(
+        lambda: self.event_handlers.stash_scene_event_task_edits(edited_task, field_refs),
+    )
+
     _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
 
     apply_button = ui.button(
@@ -7436,10 +7646,12 @@ def _render_scene_event_task_actions(
     with apply_button:
         ui.tooltip(
             translate_string(
-                "Keeps these action edits in the loaded configuration, the same as 'Ok' in the Edit "
-                "Task dialog -- nothing is written to a file and nothing is sent to Android.\n"
-                "This Task is not part of the Scene, so the Scene dialog's own Cancel does not take "
-                "these edits back. Undo does.",
+                "Puts these action edits into the loaded configuration now, without closing -- the "
+                "same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is "
+                "only for keeping them mid-edit.\n"
+                "Nothing is written to a file and nothing is sent to Android. This Task is not part "
+                "of the Scene, so neither this window's Cancel nor the Scene dialog's takes these "
+                "edits back once they have landed. Undo does.",
             ),
         ).style("white-space: pre-wrap")
 
@@ -7448,7 +7660,7 @@ def _render_scene_event_new_task(
     self: MyGui,
     properties: defusedxml.ElementTree.Element,
     event: sceneedit.LegacySceneEvent,
-    pending_tasks: dict,
+    task_state: dict,
     scene_name: str,
     rerender: Callable[[], None],
 ) -> None:
@@ -7456,19 +7668,21 @@ def _render_scene_event_new_task(
 
     Add Task's own two halves without Add Task's dialog: a Name and the action editor over an
     UNREGISTERED EditableTask, then a button that registers it and points the event at it in
-    one undo step (userintr.create_scene_event_task_event).  Until that button is pressed the
-    Task exists nowhere but this panel -- nothing is in the Task tables, nothing is bound, and
-    closing the Scene dialog discards it, which is exactly what Cancel on Add Task does.
+    one undo step (userintr.create_scene_event_task_event).  Ok does the same for any such
+    Task that has actions in it, so the button is for creating one without closing -- and
+    Cancel does not, so an unpressed button is a Task that never existed.
+
+    Until it is created the Task exists nowhere but this dialog -- nothing is in the Task
+    tables and nothing is bound -- and an empty one is never created, since that is what an
+    untouched sub-tab leaves behind.
 
     THE TASK IS HELD BY THE DIALOG, not built here, so the actions added to it survive this
-    panel being rebuilt -- and it is rebuilt often: every sub-tab switch and every binding
-    change goes through render().  Keyed by event tag, so composing a Key Task and a Tab Tap
-    Task at the same time keeps them apart.
+    panel being rebuilt -- and it is rebuilt often.  Keyed by event tag, so composing a Key
+    Task and a Tab Tap Task at the same time keeps them apart.
 
     A DEFAULT NAME rather than a blank one, because a name is required and "Reminder Key" is
-    what this Task is.  It is a plain field: a Scene called the same as an existing Task's
-    prefix would collide, and create_scene_event_task_event says so rather than guessing a
-    suffix.
+    what this Task is.  It is a plain field: a name another Task already has is refused by
+    create_scene_event_task_event rather than quietly given a suffix.
     """
     if PrimeItems.xml_root is None:
         ui.label(
@@ -7476,8 +7690,9 @@ def _render_scene_event_new_task(
         ).classes("text-xs text-gray-500 italic")
         return
 
-    edited_task = pending_tasks.get(event.tag)
-    if edited_task is None:
+    pending = task_state["pending"]
+    held = pending.get(event.tag)
+    if held is None:
         default_name = f"{scene_name} {event.label}".strip() or event.label
         # The ids of the other sub-tabs' Tasks-in-progress are spoken for even though nothing
         # has registered them: without this all three would be handed the same id, and
@@ -7485,28 +7700,30 @@ def _render_scene_event_new_task(
         created = taskedit.create_new_task(
             default_name,
             "100",
-            reserved_ids={task.task_id for task in pending_tasks.values()},
+            reserved_ids={task.task_id for task, _refs in pending.values()},
         )
         if isinstance(created, str):  # No backup loaded -- create_new_task's own message.
             ui.label(translate_string(created)).classes("text-xs text-gray-500 italic")
             return
-        pending_tasks[event.tag] = edited_task = created
+        edited_task = created
+    else:
+        edited_task = held[0]
 
     ui.label(
         translate_string(
             "Nothing is bound yet, so these actions go into a new Task. It is created, and this "
-            "event pointed at it, when you press the button below.",
+            "event pointed at it, when you press the button below or Ok. Cancel discards it.",
         ),
     ).classes("text-xs text-gray-500 italic")
 
     field_refs: dict = {
         "name": ui.input(
             translate_string("New Task Name"),
-            value=edited_task.task_element.findtext("nme", ""),
+            value=(held[1]["name"].value if held else edited_task.task_element.findtext("nme", "")),
         ).classes("w-full"),
         "priority": ui.input(
             translate_string("Priority"),
-            value=edited_task.task_element.findtext("pri", "100"),
+            value=(held[1]["priority"].value if held else edited_task.task_element.findtext("pri", "100")),
         ).classes("w-32"),
         # Attach it to the Project the Scene itself belongs to, the way the top-level Add Task
         # attaches to the Project that was selected before it opened.  A Task in no Project's
@@ -7514,6 +7731,10 @@ def _render_scene_event_new_task(
         # belongs to none, which _finish_new_task reads as "nothing to attach to".
         "target_project_name": sceneedit.project_owning_scene(scene_name),
     }
+    pending[event.tag] = (edited_task, field_refs)
+    task_state["flushers"].append(
+        lambda: self.event_handlers.stash_scene_event_task_edits(edited_task, field_refs),
+    )
 
     _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
 
@@ -7524,7 +7745,7 @@ def _render_scene_event_new_task(
         if self.event_handlers.create_scene_event_task_event(edited_task, field_refs, bind):
             # It is a real Task now and the event points at it, so the next render loads it
             # from the tables like any other binding.
-            pending_tasks.pop(event.tag, None)
+            pending.pop(event.tag, None)
             rerender()
 
     create_button = ui.button(
@@ -7537,9 +7758,11 @@ def _render_scene_event_new_task(
             translate_string(
                 "Adds this Task to the loaded configuration and points this event at it, the same "
                 "as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent "
-                "to Android.\n"
-                "Until then the Task exists only in this panel, and the Scene dialog's Cancel "
-                "discards it. Afterwards it is a Task like any other, and Undo takes it back.",
+                "to Android.  Ok does it for you too, so this is only for creating it without "
+                "closing.\n"
+                "Until then the Task exists only in this window and Cancel discards it. Afterwards "
+                "it is a Task like any other -- Cancel takes the binding back but not the Task, and "
+                "Undo takes both.",
             ),
         ).style("white-space: pre-wrap")
 
@@ -8058,7 +8281,9 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
                         "The 'Http Server Example' Tasker Project must be installed and active on the Android "
                         "device, with the server running.\n\n"
                         "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings. No authorization prompt is needed for this.",
+                        "match its Tasker server settings.\n\n"
+                        "Watch the Android device while this runs: Tasker asks you to authorize the "
+                        "connection several times for one save, and a prompt left untapped fails it.",
                     ),
                 ).style("white-space: pre-wrap")
             export_scene = ui.button(
@@ -8144,15 +8369,9 @@ def build_save_scene_to_android_dialog(
     up under its current name: a not-yet-applied Rename does not carry through,
     since Rename is its own operation rather than a field on the dialog.
     """
-    default_ip = getattr(self, "android_ipaddr", "") or "192.168.0.210"
-    default_port = getattr(self, "android_port", "") or "1821"
-
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Scene To Android Device")).classes("text-lg font-bold text-blue-600")
-        android_field_refs = {
-            "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
-            "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
-        }
+        android_field_refs = _android_device_fields(self)
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=android_dialog.close).props("outline")
             save_to_android = ui.button(
@@ -8171,7 +8390,8 @@ def build_save_scene_to_android_dialog(
                         "This will write the Scene as a standalone file onto the Android device, "
                         "under /Tasker/scenes.\n\n"
                         "The IP Address and Port must match the Android device's Tasker server settings.\n\n"
-                        "No authorization prompt is needed for this.",
+                        "Watch the Android device while this runs: Tasker asks you to authorize the "
+                        "connection several times for one save, and a prompt left untapped fails it.",
                     ),
                 ).style("white-space: pre-wrap")
             # The Profile and Project dialogs' pair, for a Scene -- see
@@ -8564,7 +8784,9 @@ def build_add_profile_dialog(
                         "The 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android "
                         "device, with the server running (see the README's Direct XML Retrieval notes).\n\n"
                         "The Android device must be on the same network, and the IP Address and Port must "
-                        "match its Tasker server settings. No authorization prompt is needed for this.",
+                        "match its Tasker server settings.\n\n"
+                        "Watch the Android device while this runs: Tasker asks you to authorize the "
+                        "connection several times for one save, and a prompt left untapped fails it.",
                     ),
                 ).style("white-space: pre-wrap")
             export_prof = ui.button(

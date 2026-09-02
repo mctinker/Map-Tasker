@@ -2664,3 +2664,198 @@ msgstr "로딩된 구성에 사용된 아이콘, 그리고 장치에서 가져�
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "자세한 내용은 MapTasker [명령 참조](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)를 참조하세요.\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(익명 작업, 장면에 저장됨)"
+
+msgid "(new variable)"
+msgstr "(새 변수)"
+
+msgid "(no label)"
+msgstr "(라벨 없음)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "작업 표시줄에 표시할 탭의 쉼표로 구분된 목록입니다. 하나를 선택하면 이벤트 탭의 탭 탭 작업이 실행됩니다."
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "이름이나 코드별로 처리할 키의 슬래시로 구분된 목록입니다. 뒤로/78/a. 다른 키는 시스템에 전달됩니다.\n모든 키를 처리하려면 비워 두세요."
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "작업 표시줄 스타일, 제목, 부제, 아이콘 및 탭 레이블은 활동에만 적용됩니다. 해당 항목은 계속 저장되며 속성 유형을 활동으로 전환하면 표시됩니다."
+
+msgid "Action bar"
+msgstr "액션바"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "작업 표시줄 항목은 활동에만 적용됩니다. 해당 항목은 계속 저장되며 속성 유형을 활동으로 전환하면 표시됩니다."
+
+msgid "Actions of the"
+msgstr "의 조치"
+
+msgid "Add Variable"
+msgstr "변수 추가"
+
+msgid "Add an action bar item"
+msgstr "작업 표시줄 항목 추가"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "이 작업을 로드된 구성에 추가하고 이 이벤트를 지정합니다. 작업 추가 대화 상자의 '확인'과 동일합니다. 파일에 아무것도 기록되지 않으며 Android로 전송되는 것도 없습니다.  좋습니다. 여러분을 위한 작업이기도 합니다. 따라서 닫지 않고 생성하는 용도로만 사용됩니다.\n그때까지 작업은 이 창에만 존재하며 취소를 선택하면 해당 작업이 삭제됩니다. 이후에는 다른 작업과 마찬가지로 작업입니다. 취소는 바인딩을 다시 가져오지만 작업은 가져오지 않으며 실행 취소는 둘 다 가져옵니다."
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "Scene에서 처리하는 키는 시스템에 전달되지 않습니다. 즉, Scene이 뒤로 키로 닫히는 것을 방지하는 방법입니다.\nTasker가 작성하는 방식으로 작성되었습니다. 장면의 <LinkClickFilter> 내부에 있는 <stopEvent>는 선택 시 생성되고 선택 해제되면 다시 제거되며 그 안에 아무것도 남지 않습니다."
+
+msgid "Apply to Task"
+msgstr "작업에 적용"
+
+msgid "Changes kept for Task"
+msgstr "작업에 대한 변경 사항이 유지됨"
+
+msgid "Create Task"
+msgstr "작업 생성"
+
+msgid "Created Task"
+msgstr "생성된 작업"
+
+msgid "Display Name"
+msgstr "표시 이름"
+
+msgid "Exported Value"
+msgstr "수출된 가치"
+
+msgid "Icon"
+msgstr "상"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "이벤트 탭에서 편집된 작업의 작업을 포함하여 모든 것을 유지합니다.\n아무것도 없는 이벤트 아래에 구성된 Task는 작업을 넣으면 생성되고 바인딩됩니다. 실행 취소는 작업 편집을 다시 가져옵니다."
+
+msgid "Keys"
+msgstr "열쇠"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "먼저 Tasker 구성을 로드합니다. 새 작업에는 ID를 얻으려면 구성이 필요합니다."
+
+msgid "Name"
+msgstr "이름"
+
+msgid "New Task Name"
+msgstr "새 작업 이름"
+
+msgid "No Task matches."
+msgstr "일치하는 작업이 없습니다."
+
+msgid "No action bar items."
+msgstr "작업 표시줄 항목이 없습니다."
+
+msgid "No variables."
+msgstr "변수가 없습니다."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "없음 - 이 이벤트는 작업을 시작하지 않습니다."
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "아직 바인드된 것이 없으므로 이러한 작업은 새 작업으로 이동됩니다. 아래 버튼이나 확인을 누르면 생성되고 이를 가리키는 이벤트가 발생합니다. 취소하면 삭제됩니다."
+
+msgid "Nothing set."
+msgstr "설정된 것이 없습니다."
+
+msgid "Prompt"
+msgstr "즉각적인"
+
+msgid "Properties kept."
+msgstr "속성이 유지됩니다."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "이제 닫지 않고 이러한 작업 편집 내용을 로드된 구성에 넣습니다. 작업 편집 대화 상자의 '확인'과 동일합니다.  좋습니다. 여기서도 그렇게 하므로 이는 편집 중에만 유지하기 위한 것입니다.\n파일에 아무 것도 기록되지 않으며 Android로 아무 것도 전송되지 않습니다. 이 작업은 장면의 일부가 아니므로 이 창의 취소나 장면 대화상자는 이러한 편집 내용이 일단 실행되면 다시 가져오지 않습니다. 실행 취소는 수행됩니다."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "이러한 속성을 이 창이 열렸을 때의 상태로 되돌리고 이벤트 탭에서 편집된 작업의 작업을 삭제합니다.\n자체 버튼('작업에 적용' 또는 '작업 만들기')을 통해 이미 구성에 추가된 작업은 그대로 유지됩니다. 실행 취소는 해당 항목을 다시 가져옵니다."
+
+msgid "Remove Variable"
+msgstr "변수 제거"
+
+msgid "Same as Value"
+msgstr "값과 동일"
+
+msgid "Scene properties changes discarded."
+msgstr "장면 속성 변경 사항이 삭제되었습니다."
+
+msgid "Search Tasks"
+msgstr "작업 검색"
+
+msgid "Stop Event"
+msgstr "이벤트 중지"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "작업 표시줄 왼쪽 상단에 있는 홈 아이콘입니다. 탭하면 이벤트 탭의 홈 탭 작업이 실행됩니다."
+
+msgid "There are no Tasks in this configuration."
+msgstr "이 구성에는 작업이 없습니다."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "이 작업은 장면 내에 저장되어 있으며 작업 목록에는 나타나지 않으므로, 여기서 수정할 수 없습니다. 그대로 유지됩니다."
+
+msgid "This item has no action."
+msgstr "이 항목에는 기능이 없습니다."
+
+msgid "Type"
+msgstr "종류"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "'수출 값' 항목에서 '값과 동일' 옵션을 비활성화하면, 변수를 다른 사용자에게 공유할 때 어떤 값을 수출할지 사용자 정의할 수 있습니다.\n전혀 값이 수출되지 않도록 '수출 값' 필드를 비워둘 수도 있고, 항상 사용할 값을 설정하여 수출할 수도 있습니다.\n'값과 동일' 옵션을 활성화하면 현재 변수의 값이 수출됩니다."
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "어떤 아이템이 최종적으로 어디에 표시될지는 사용자가 설정한 값에 따라 결정됩니다. 단일 아이콘은 항상 메인 바에 표시되며, 아이콘과 레이블이 함께 표시될 수 있는 공간이 있다면 해당 위치에 표시됩니다. 반면, 레이블만 있는 아이콘은 항상 오버플로우 메뉴 (Tasker의 상단 우측에 있는 3개의 점)에 표시됩니다."
+
+msgid "fires a Task on"
+msgstr "작업을 실행"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "이 백업에는 포함되어 있지 않으므로, 어떤 작업도 표시되지 않습니다."
+
+msgid "no editable arguments."
+msgstr "수정 가능한 인수가 없습니다."
+
+msgid "swallows the key press"
+msgstr "키 누르기를 삼킨다"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "XML을 전송하기 전에 다시 읽고 도중에 변경된 사항이 있으면 저장을 거부합니다.\n\n이것이 잡는 것은 저장 경로의 다른 어떤 것도 할 수 없는 실패 클래스입니다. 이 프로그램의 작성자와 독자가 동의하지 않는 값, 예를 들어 이름 내부의 캐리지 리턴은 입력된 대로 기록되고 개행 문자로 다시 읽혀집니다.  업로드 응답은 200이고 장치의 파일은 전송된 파일과 일치합니다. 둘 다 이미 잘못되었기 때문입니다.\n\n편집하지 않은 프로필, 장면 및 번들로 제공되는 작업을 포함하여 올라가는 모든 개체는 로드된 구성의 개체와 비교됩니다.  둘 중 하나라도 다를 경우 아무 것도 전송되지 않습니다. 어느 것이 어디에 있는지 알려주는 보고서를 받게 됩니다.\n\n1초도 안 되는 시간이 소요되고 아무 것도 접촉하지 않습니다. 장치를 터치하기 전에 여기에서 전체 검사가 실행됩니다."
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "이렇게 하면 작업을 /Tasker/tasks 아래의 Android 기기에 독립형 파일로 작성하거나 Tasker의 라이브 구성으로 바로 가져오는 두 가지 선택이 열립니다.\n\n'Http 서버 예제' Tasker 프로젝트는 서버가 실행 중인 Android 장치에 설치되고 활성화되어야 하며(README의 Direct XML Retrieval 참고 사항 참조) Tasker는 6.2 이상이어야 합니다.\n\nAndroid 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트는 Tasker 서버 설정과 일치해야 합니다.\n\n둘 중 하나가 실행되는 동안 Android 장치를 지켜보십시오. Tasker는 한 번의 저장을 위해 연결을 승인하라는 메시지를 여러 번 요청하고 탭하지 않은 채로 남겨진 메시지는 실패합니다.\n\nTasker UI에서 가져온 작업을 보려면 Tasker를 종료하고 다시 시작해야 합니다."
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "그러면 프로필이 Android 기기의 /Tasker/profiles 아래에 독립 실행형 파일로 기록됩니다.\n\nIP 주소와 포트는 Android 장치의 Tasker 서버 설정과 일치해야 합니다.\n\n이 작업이 실행되는 동안 Android 장치를 지켜보십시오. Tasker는 한 번의 저장을 위해 연결을 여러 번 승인하라는 메시지를 표시하고 탭하지 않은 채로 남겨진 메시지는 실패합니다."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "이렇게 하면 프로필이 Android 기기의 /Tasker/profiles 아래에 독립 실행형 파일로 기록됩니다. 이를 Tasker의 라이브 구성으로 가져오지는 않습니다.\n\n'Http Server 예제' Tasker 프로젝트(http://spoo.me/http_svr_example)는 서버가 실행 중인 Android 장치에 설치되고 활성화되어야 합니다(README의 Direct XML Retrieval 참고 사항 참조).\n\nAndroid 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트는 Tasker 서버 설정과 일치해야 합니다.\n\n이 작업이 실행되는 동안 Android 장치를 지켜보십시오. Tasker는 한 번의 저장을 위해 연결을 여러 번 승인하라는 메시지를 표시하고 탭하지 않은 채로 남겨진 메시지는 실패합니다."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "이렇게 하면 프로필이 Android 기기의 /Tasker/profiles 아래에 독립 실행형 파일로 기록됩니다. 이를 Tasker의 라이브 구성으로 가져오지는 않습니다.\n\n'Http Server 예제' Tasker 프로젝트는 서버가 실행 중인 Android 장치에 설치되고 활성화되어야 합니다(README의 Direct XML Retrieval 참고 사항 참조).\n\nAndroid 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트는 Tasker 서버 설정과 일치해야 합니다.\n\n이 작업이 실행되는 동안 Android 장치를 지켜보십시오. Tasker는 한 번의 저장을 위해 연결을 여러 번 승인하라는 메시지를 표시하고 탭하지 않은 채로 남겨진 메시지는 실패합니다."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "이렇게 하면 프로젝트와 그 안의 모든 것(모든 프로필 및 작업)이 Android 장치의 /Tasker/projects 아래에 독립 실행형 파일로 기록됩니다. Tasker의 라이브 구성으로 가져오지는 않습니다.\n\n'Http Server 예제' Tasker 프로젝트는 서버가 실행 중인 Android 장치에 설치되고 활성화되어야 합니다.\n\nAndroid 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트는 Tasker 서버 설정과 일치해야 합니다.\n\n이 작업이 실행되는 동안 Android 장치를 지켜보십시오. Tasker는 한 번의 저장을 위해 연결을 여러 번 승인하라는 메시지를 표시하고 탭하지 않은 채로 남겨진 메시지는 실패합니다."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "그러면 프로젝트와 그 안의 모든 항목이 Android 기기의 /Tasker/projects 아래에 독립 실행형 파일로 작성됩니다.\n\nIP 주소와 포트는 Android 장치의 Tasker 서버 설정과 일치해야 합니다.\n\n이 작업이 실행되는 동안 Android 장치를 지켜보십시오. Tasker는 한 번의 저장을 위해 연결을 여러 번 승인하라는 메시지를 표시하고 탭하지 않은 채로 남겨진 메시지는 실패합니다."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "그러면 Android 기기의 /Tasker/scenes 아래에 Scene이 독립 실행형 파일로 기록됩니다.\n\nIP 주소와 포트는 Android 장치의 Tasker 서버 설정과 일치해야 합니다.\n\n이 작업이 실행되는 동안 Android 장치를 지켜보십시오. Tasker는 한 번의 저장을 위해 연결을 여러 번 승인하라는 메시지를 표시하고 탭하지 않은 채로 남겨진 메시지는 실패합니다."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "이렇게 하면 Scene이 Android 기기의 /Tasker/scenes 아래에 독립 실행형 파일로 기록됩니다. Tasker의 라이브 구성으로 가져오지는 않습니다.\n\n'Http Server 예제' Tasker 프로젝트는 서버가 실행 중인 Android 장치에 설치되고 활성화되어야 합니다.\n\nAndroid 장치는 동일한 네트워크에 있어야 하며 IP 주소 및 포트는 Tasker 서버 설정과 일치해야 합니다.\n\n이 작업이 실행되는 동안 Android 장치를 지켜보십시오. Tasker는 한 번의 저장을 위해 연결을 여러 번 승인하라는 메시지를 표시하고 탭하지 않은 채로 남겨진 메시지는 실패합니다."
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "그러면 Android 기기의 /Tasker/tasks 아래에 작업이 독립 실행형 파일로 기록됩니다.\n\nIP 주소와 포트는 Android 장치의 Tasker 서버 설정과 일치해야 합니다.\n\n이 작업이 실행되는 동안 Android 장치를 지켜보십시오. Tasker는 한 번의 저장을 위해 연결을 여러 번 승인하라는 메시지를 표시하고 탭하지 않은 채로 남겨진 메시지는 실패합니다."
+
+msgid "Verify"
+msgstr "확인하다"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "확인 실패 - 아무것도 전송되지 않았습니다."
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "Android 기기를 살펴보세요. Tasker는 연결 승인을 여러 번 요청합니다."
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "Android 기기에 연결되지 않았으며 기기의 아무 것도 변경되지 않았습니다.  로드된 구성도 그대로 유지됩니다. 이는 장치에 있는 내용이 아닌 무엇을 쓰려고 했는지 확인하는 것입니다."

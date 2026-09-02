@@ -2683,3 +2683,198 @@ msgstr "Ikony použité někde v načtené konfiguraci plus vlastní ikona každ
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "Další informace najdete v MapTasker [příkazová příručka] (https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(anonymní úkol, uložený ve scéně)"
+
+msgid "(new variable)"
+msgstr "(nová proměnná)"
+
+msgid "(no label)"
+msgstr "(bez označení)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "Seznam tabů, které se mají zobrazit v panelu akcí, oddělený čárkami. Výběrem jedné z tabů se spustí úkol „Tab Tap Task“ pro danou tab."
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "Seznam klíčů oddělených čárkou, které mají být zpracovány – buď podle názvu, nebo podle kódu, např. back/78/a. Všechny ostatní klíče jsou předány systému.\nNechte jej prázdný, pokud chcete zpracovat všechny klíče."
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Styl panelu akcí, název, titulek, ikona a štítky karet se vztahují pouze na aktivitu. Jsou stále uloženy a zobrazí se, pokud přepnete Typ vlastnosti na Aktivitu."
+
+msgid "Action bar"
+msgstr "Panel akcí"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Položky panelu akcí se vztahují pouze na aktivitu. Jsou stále uloženy a zobrazí se, pokud přepnete Typ vlastnosti na Aktivitu."
+
+msgid "Actions of the"
+msgstr "Akce"
+
+msgid "Add Variable"
+msgstr "Přidat proměnnou"
+
+msgid "Add an action bar item"
+msgstr "Přidejte položku panelu akcí"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "Přidá tuto úlohu do načtené konfigurace a nasměruje na ni tuto událost, stejně jako „Ok“ v dialogovém okně Přidat úlohu – nic se nezapisuje do souboru a nic se neodesílá do systému Android.  Ok to dělá i pro vás, takže toto je pouze pro vytvoření bez zavření.\nDo té doby Úloha existuje pouze v tomto okně a Storno ji zahodí. Poté je to Úkol jako každý jiný -- Zrušit vezme zpět vazbu, ale ne Úkol, a Zpět vezme obojí."
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "Žádný klíč obsluhovaný scénou není předán do systému – jak scéna brání klávese back, aby ji zavřela.\nNapsáno tak, jak to píše Tasker: <stopEvent> uvnitř <LinkClickFilter> scény, vytvořená, když je zaškrtnuta, a znovu odebrána, když je odškrtnutá a nic jiného v ní nezůstane."
+
+msgid "Apply to Task"
+msgstr "Použít na úkol"
+
+msgid "Changes kept for Task"
+msgstr "Změny zachovány pro Úkol"
+
+msgid "Create Task"
+msgstr "Vytvořit úkol"
+
+msgid "Created Task"
+msgstr "Vytvořený úkol"
+
+msgid "Display Name"
+msgstr "Zobrazovaný název"
+
+msgid "Exported Value"
+msgstr "Exportovaná hodnota"
+
+msgid "Icon"
+msgstr "Ikona"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "Uchová vše, včetně akcí libovolného úkolu upraveného na kartě Událost.\nÚloha složená pod událostí, která žádnou neměla, je vytvořena a svázána, pokud do ní vložíte nějaké akce. Zpět vezme úpravu úkolu zpět."
+
+msgid "Keys"
+msgstr "Klíče"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "Nejprve načtěte konfiguraci Taskeru – nová úloha ji potřebuje, aby získala ID."
+
+msgid "Name"
+msgstr "Jméno"
+
+msgid "New Task Name"
+msgstr "Název nového úkolu"
+
+msgid "No Task matches."
+msgstr "Žádné shody úkolů."
+
+msgid "No action bar items."
+msgstr "Žádné položky na panelu akcí."
+
+msgid "No variables."
+msgstr "Žádné proměnné."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "Nic -- tato událost nespustí žádnou úlohu."
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "Zatím není nic svázáno, takže tyto akce jdou do nového Úkolu. Vytvoří se a tato událost na něj ukáže, když stisknete tlačítko níže nebo Ok. Zrušit ji zahodí."
+
+msgid "Nothing set."
+msgstr "Nic nastaveno."
+
+msgid "Prompt"
+msgstr "Výzva"
+
+msgid "Properties kept."
+msgstr "Vlastnosti zachovány."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "Vloží tyto úpravy akcí do načtené konfigurace nyní, bez zavření – stejně jako 'Ok' v dialogu Upravit úlohu.  Dobře, dělá to za vás i tady, takže to je pouze pro jejich ponechání uprostřed úprav.\nNic se nezapisuje do souboru a nic se neodesílá do Androidu. Tato úloha není součástí scény, takže ani dialogové okno Zrušit v tomto okně ani dialog scény tyto úpravy po jejich zobrazení nevezme zpět. Zpět dělá."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "Vrátí tyto vlastnosti zpět do stavu, v jakém byly, když se toto okno otevřelo, a zruší akce jakékoli úlohy upravené na kartě Událost.\nÚkol, který již byl vložen do konfigurace pomocí vlastního tlačítka -- 'Použít na úkol' nebo 'Vytvořit úkol' – tam zůstane. Undo je vezme zpět."
+
+msgid "Remove Variable"
+msgstr "Odebrat proměnnou"
+
+msgid "Same as Value"
+msgstr "Stejné jako Hodnota"
+
+msgid "Scene properties changes discarded."
+msgstr "Změny vlastností scény byly vyřazeny."
+
+msgid "Search Tasks"
+msgstr "Hledat úkoly"
+
+msgid "Stop Event"
+msgstr "Zastavit událost"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "Ikona domů v levé horní části panelu akcí. Klepnutím na něj spustíte na kartě Události Home Tap Task."
+
+msgid "There are no Tasks in this configuration."
+msgstr "V této konfiguraci nejsou žádné úkoly."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "Tento úkol je uložen uvnitř scény a není v seznamu úkolů, takže jeho akce zde nelze upravovat. Je přenášena nedotčená."
+
+msgid "This item has no action."
+msgstr "Tato položka nemá žádnou akci."
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "Pokud v části „Exportovaná hodnota“ zakážete možnost „Stejná jako hodnota“, můžete upravit, jaká hodnota se exportuje, když proměnnou sdílíte s ostatními uživateli.\nPole 'Exportovaná hodnota' můžete ponechat prázdné, pokud chcete, aby export neměl žádnou hodnotu, nebo můžete nastavit hodnotu, kterou chcete pro exporty vždy používat.\nPokud povolíte možnost 'Stejná jako hodnota', bude při exportu použita aktuální hodnota proměnné."
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "O tom, kde položka skončí, rozhoduje to, co jí dáte: samotná ikona je vždy na hlavní liště, ikona a štítek se tam zobrazují, pokud je místo, a samotný štítek je vždy v rozbalovací nabídce (3 tečky vpravo nahoře v Taskeru)."
+
+msgid "fires a Task on"
+msgstr "spustí úkol"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "není v této záloze, takže zde nejsou žádné akce k zobrazení."
+
+msgid "no editable arguments."
+msgstr "žádné upravitelné argumenty."
+
+msgid "swallows the key press"
+msgstr "spolkne stisk klávesy"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "Přečte XML zpět před jeho odesláním a odmítne uložení, pokud se na cestě něco změnilo.\n\nCo to zachycuje, je třída selhání, kterou nic jiného v cestě ukládání nemůže: hodnota, se kterou se autor a čtenář tohoto programu neshodnou – řekněme návrat vozíku uvnitř názvu, který je zapsán jako napsaný a čten zpět jako nový řádek.  Nahrání odpoví 200 a soubor v zařízení odpovídá souboru, který byl odeslán, protože oba jsou již špatně.\n\nKaždý objekt, který jde nahoru, je porovnán s objektem v načtené konfiguraci, včetně sdružených profilů, scén a úloh, které jste neupravovali.  Nic se neodesílá, pokud se některý z nich liší; dostanete hlášení, které a kde.\n\nStojí to zlomek sekundy a nic nekontaktuje -- celá kontrola probíhá zde, než se zařízení dotknete."
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "Otevře se vám výběr ze dvou možností: zapsat úkol jako samostatný soubor do zařízení Android pod /Tasker/tasks nebo jej importovat přímo do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem (viz poznámky k přímému získávání XML v souboru README) a ​​Tasker musí být 6.2 nebo vyšší.\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, když je spuštěno jedno z nich: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže.\n\nChcete-li zobrazit importovanou úlohu v uživatelském rozhraní Tasker, musíte Tasker ukončit a restartovat."
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Tím se profil zapíše jako samostatný soubor do zařízení Android pod /Tasker/profiles.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Tím se profil zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/profiles – neimportuje se do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ (http://spoo.me/http_svr_example) musí být nainstalován a aktivní na zařízení Android se spuštěným serverem (viz poznámky k přímému získávání XML v souboru README).\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Tím se profil zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/profiles – neimportuje se do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem (viz poznámky k přímému získávání XML v souboru README).\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Tím se projekt a vše v něm – každý profil a úloha – zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/projects – neimportuje se do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem.\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Tím se projekt a vše v něm zapíše jako samostatný soubor do zařízení Android pod /Tasker/projects.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Tím se scéna zapíše jako samostatný soubor do zařízení Android pod /Tasker/scenes.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Tím se scéna zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/scenes – neimportuje se do živé konfigurace Taskeru.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem.\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Tím se úloha zapíše jako samostatný soubor do zařízení Android pod /Tasker/tasks.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
+
+msgid "Verify"
+msgstr "Ověřte"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "Ověření se nezdařilo – nic nebylo odesláno"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "Sledujte své zařízení Android: Tasker vás několikrát požádá o autorizaci připojení."
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "Vaše zařízení Android nebylo kontaktováno a nic se na něm nezměnilo.  Načtená konfigurace je také nedotčena -- jedná se o kontrolu toho, co se mělo zapsat, nikoli toho, co je na zařízení."

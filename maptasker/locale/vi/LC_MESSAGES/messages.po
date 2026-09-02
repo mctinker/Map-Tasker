@@ -2687,3 +2687,198 @@ msgstr "Các biểu tượng được sử dụng ở đâu đó trong cấu hì
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "Xem MapTasker [Tham khảo lệnh](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) để biết thêm thông tin.\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(nhiệm vụ ẩn danh, được lưu trong Cảnh)"
+
+msgid "(new variable)"
+msgstr "(biến mới)"
+
+msgid "(no label)"
+msgstr "(không có nhãn)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "Danh sách các tab được phân tách bằng dấu phẩy để hiển thị trên thanh hành động. Việc chọn một sẽ kích hoạt Tác vụ nhấn Tab của tab Sự kiện."
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "Danh sách các phím được phân tách bằng dấu gạch chéo -- theo tên hoặc theo mã, ví dụ: trở lại/78/a. Bất kỳ khóa nào khác được chuyển vào hệ thống.\nĐể trống để xử lý mọi phím."
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Nhãn Thanh tác vụ, Tiêu đề, Phụ đề, Biểu tượng và Nhãn tab chỉ áp dụng cho một Hoạt động. Chúng vẫn được lưu trữ và hiển thị nếu bạn chuyển Loại thuộc tính thành Hoạt động."
+
+msgid "Action bar"
+msgstr "Thanh hành động"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Các mục trên thanh hành động chỉ áp dụng cho một Hoạt động. Chúng vẫn được lưu trữ và hiển thị nếu bạn chuyển Loại thuộc tính thành Hoạt động."
+
+msgid "Actions of the"
+msgstr "Hành động của"
+
+msgid "Add Variable"
+msgstr "Thêm biến"
+
+msgid "Add an action bar item"
+msgstr "Thêm một mục thanh hành động"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "Thêm Tác vụ này vào cấu hình đã tải và trỏ sự kiện này vào cấu hình đó, giống như 'Ok' trong hộp thoại Thêm tác vụ -- không có gì được ghi vào tệp và không có gì được gửi tới Android.  Ok, nó cũng giúp ích cho bạn nên việc này chỉ dành cho việc tạo nó mà không cần đóng.\nCho đến lúc đó Tác vụ chỉ tồn tại trong cửa sổ này và Hủy sẽ loại bỏ nó. Sau đó, nó là một Nhiệm vụ giống như bất kỳ nhiệm vụ nào khác -- Hủy lấy lại ràng buộc nhưng không lấy lại Nhiệm vụ và Hoàn tác lấy cả hai."
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "Bất kỳ khóa nào do cảnh xử lý đều không được chuyển đến hệ thống -- cách Cảnh giữ cho phím quay lại không đóng nó.\nĐược viết theo cách Tasker viết: một <stopEvent> bên trong <LinkClickFilter> của Cảnh, được tạo khi phần này được đánh dấu và bị lấy đi lần nữa khi nó không được đánh dấu và không còn gì khác trong đó."
+
+msgid "Apply to Task"
+msgstr "Áp dụng cho nhiệm vụ"
+
+msgid "Changes kept for Task"
+msgstr "Những thay đổi được giữ lại cho Nhiệm vụ"
+
+msgid "Create Task"
+msgstr "Tạo nhiệm vụ"
+
+msgid "Created Task"
+msgstr "Tác vụ đã tạo"
+
+msgid "Display Name"
+msgstr "Tên hiển thị"
+
+msgid "Exported Value"
+msgstr "Giá trị xuất khẩu"
+
+msgid "Icon"
+msgstr "Biểu tượng"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "Giữ lại mọi thứ, bao gồm cả hành động của bất kỳ Nhiệm vụ nào được chỉnh sửa trong tab Sự kiện.\nMột Nhiệm vụ được soạn thảo trong một sự kiện không có sự kiện nào sẽ được tạo và ràng buộc nếu bạn thực hiện bất kỳ hành động nào trong đó. Hoàn tác sẽ quay lại chỉnh sửa Tác vụ."
+
+msgid "Keys"
+msgstr "Phím"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "Trước tiên hãy tải cấu hình Tác vụ - Tác vụ mới cần một cấu hình để nhận id."
+
+msgid "Name"
+msgstr "Tên"
+
+msgid "New Task Name"
+msgstr "Tên nhiệm vụ mới"
+
+msgid "No Task matches."
+msgstr "Không có nhiệm vụ nào phù hợp."
+
+msgid "No action bar items."
+msgstr "Không có mục thanh hành động."
+
+msgid "No variables."
+msgstr "Không có biến."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "Không có gì - sự kiện này không kích hoạt Nhiệm vụ."
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "Chưa có gì bị ràng buộc nên những hành động này sẽ được đưa vào Nhiệm vụ mới. Nó được tạo và sự kiện này trỏ vào nó khi bạn nhấn nút bên dưới hoặc Ok. Hủy bỏ nó."
+
+msgid "Nothing set."
+msgstr "Không có gì được thiết lập."
+
+msgid "Prompt"
+msgstr "Lời nhắc"
+
+msgid "Properties kept."
+msgstr "Tài sản được giữ lại."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "Đưa các chỉnh sửa hành động này vào cấu hình đã tải ngay bây giờ mà không cần đóng -- giống như 'Ok' trong hộp thoại Chỉnh sửa tác vụ.  Ok, điều đó cũng phù hợp với bạn ở đây, vì vậy việc này chỉ để giữ chúng ở giai đoạn chỉnh sửa giữa chừng.\nKhông có gì được ghi vào một tập tin và không có gì được gửi tới Android. Tác vụ này không phải là một phần của Cảnh nên cả hộp thoại Hủy của cửa sổ này lẫn hộp thoại Cảnh đều không lấy lại các chỉnh sửa này sau khi chúng được thực hiện. Hoàn tác nào."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "Đặt các thuộc tính này trở lại như cũ khi cửa sổ này mở và loại bỏ các hành động của bất kỳ Tác vụ nào đã chỉnh sửa trong tab Sự kiện.\nTác vụ đã được đưa vào cấu hình bằng nút riêng của nó -- 'Áp dụng cho tác vụ' hoặc 'Tạo tác vụ' -- vẫn ở đó. Hoàn tác sẽ lấy lại những thứ đó."
+
+msgid "Remove Variable"
+msgstr "Xóa biến"
+
+msgid "Same as Value"
+msgstr "Tương tự như Giá trị"
+
+msgid "Scene properties changes discarded."
+msgstr "Những thay đổi thuộc tính của cảnh bị loại bỏ."
+
+msgid "Search Tasks"
+msgstr "Nhiệm vụ tìm kiếm"
+
+msgid "Stop Event"
+msgstr "Dừng sự kiện"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "Biểu tượng trang chủ ở trên cùng bên trái của thanh hành động. Nhấn vào nó sẽ kích hoạt Tác vụ nhấn vào trang chủ của tab Sự kiện."
+
+msgid "There are no Tasks in this configuration."
+msgstr "Không có nhiệm vụ nào trong cấu hình này."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "Tác vụ này được lưu trữ bên trong Cảnh và không có trong danh sách Tác vụ nên không thể chỉnh sửa các hành động của nó tại đây. Nó được mang đi xuyên suốt mà không bị ảnh hưởng."
+
+msgid "This item has no action."
+msgstr "Mục này không có hành động."
+
+msgid "Type"
+msgstr "Kiểu"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "Trong 'Giá trị đã xuất' nếu bạn tắt tùy chọn 'Giống như giá trị', bạn có thể tùy chỉnh giá trị nào sẽ được xuất khi bạn chia sẻ biến với những người dùng khác.\nBạn có thể giữ trống trường 'Giá trị đã Xuất' nếu bạn muốn bản xuất không có giá trị nào cả hoặc bạn có thể đặt giá trị mà bạn muốn luôn sử dụng để xuất.\nNếu bạn bật tùy chọn 'Giống như Giá trị', giá trị biến hiện tại sẽ được sử dụng khi xuất."
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "Vị trí của một mục được quyết định bởi những gì bạn cung cấp cho nó: chỉ một biểu tượng luôn nằm trong thanh chính, một biểu tượng và nhãn sẽ hiển thị ở đó nếu còn chỗ và chỉ một nhãn luôn nằm trong menu mục bổ sung (3 dấu chấm ở trên cùng bên phải trong Tasker)."
+
+msgid "fires a Task on"
+msgstr "kích hoạt một Nhiệm vụ trên"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "không có trong bản sao lưu này nên không có hành động nào để hiển thị."
+
+msgid "no editable arguments."
+msgstr "không có đối số có thể chỉnh sửa."
+
+msgid "swallows the key press"
+msgstr "nuốt phím bấm"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "Đọc lại XML trước khi nó được gửi và từ chối lưu nếu có bất kỳ thay đổi nào trong quá trình thực hiện.\n\nĐiều mà điều này nhận ra là loại lỗi mà không điều gì khác trong đường dẫn lưu có thể làm được: một giá trị mà chính người viết và người đọc của chương trình này không đồng ý -- chẳng hạn như một dấu xuống dòng bên trong một tên, được viết ra khi gõ và đọc lại dưới dạng dòng mới.  Câu trả lời tải lên là 200 và tệp trên thiết bị khớp với tệp được gửi, vì cả hai đều sai.\n\nMọi đối tượng đi lên đều được so sánh với đối tượng trong cấu hình đã tải, bao gồm Cấu hình, Cảnh và Nhiệm vụ được gói trong đó mà bạn không chỉnh sửa.  Không có gì được gửi nếu bất kỳ trong số chúng khác nhau; bạn nhận được một báo cáo cho biết cái nào và ở đâu.\n\nNó chỉ tốn một phần giây và không liên lạc gì -- toàn bộ quá trình kiểm tra sẽ chạy ở đây, trước khi chạm vào thiết bị."
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "Thao tác này mở ra một trong hai lựa chọn: ghi Tác vụ dưới dạng tệp độc lập vào thiết bị Android của bạn trong /Tasker/tasks hoặc nhập thẳng vào cấu hình trực tiếp của Tasker.\n\nDự án tác vụ 'Ví dụ về máy chủ http' phải được cài đặt và hoạt động trên thiết bị Android, với máy chủ đang chạy (xem ghi chú Truy xuất XML trực tiếp của README) và Tác vụ phải là 6.2 trở lên.\n\nThiết bị Android phải nằm trên cùng một mạng, đồng thời Địa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị đó.\n\nXem thiết bị Android trong khi một trong hai thiết bị đang chạy: Tasker yêu cầu bạn cấp phép kết nối nhiều lần cho một lần lưu và lời nhắc chưa được khai thác sẽ không thực hiện được.\n\nBạn phải thoát và khởi động lại Tác vụ để xem Tác vụ đã nhập trong Giao diện người dùng của Tác vụ."
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Điều này sẽ tạo một tệp Profile riêng biệt trên thiết bị Android, nằm trong thư mục /Tasker/profiles.\n\nĐịa chỉ IP và cổng phải khớp với cài đặt máy chủ Tasker trên thiết bị Android.\n\nTheo dõi thiết bị Android trong khi quá trình này đang chạy: Tasker sẽ yêu cầu bạn xác nhận kết nối nhiều lần để lưu, và việc bỏ qua thông báo sẽ khiến quá trình thất bại."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Thao tác này sẽ ghi Hồ sơ dưới dạng một tệp độc lập vào thiết bị Android của bạn, trong /Tasker/profiles -- nó không nhập hồ sơ đó vào cấu hình trực tiếp của Tasker.\n\nDự án tác vụ 'Ví dụ máy chủ http' (http://spoo.me/http_svr_example) phải được cài đặt và hoạt động trên thiết bị Android với máy chủ đang chạy (xem ghi chú Truy xuất XML trực tiếp của README).\n\nThiết bị Android phải nằm trên cùng một mạng, đồng thời Địa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị đó.\n\nTheo dõi thiết bị Android trong khi thiết bị này chạy: Tasker yêu cầu bạn cấp phép kết nối nhiều lần cho một lần lưu và lời nhắc chưa được khai thác sẽ không thực hiện được."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Thao tác này sẽ ghi Hồ sơ dưới dạng một tệp độc lập vào thiết bị Android của bạn, trong /Tasker/profiles -- nó không nhập hồ sơ đó vào cấu hình trực tiếp của Tasker.\n\nDự án tác vụ 'Ví dụ về máy chủ http' phải được cài đặt và hoạt động trên thiết bị Android, với máy chủ đang chạy (xem ghi chú Truy xuất XML trực tiếp của README).\n\nThiết bị Android phải nằm trên cùng một mạng, đồng thời Địa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị đó.\n\nTheo dõi thiết bị Android trong khi thiết bị này chạy: Tasker yêu cầu bạn cấp phép kết nối nhiều lần cho một lần lưu và lời nhắc chưa được khai thác sẽ không thực hiện được."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Điều này sẽ tạo ra Dự án và tất cả các nội dung trong đó – bao gồm cả Hồ sơ và Nhiệm vụ – dưới dạng các tệp riêng biệt trên thiết bị Android của bạn, trong thư mục /Tasker/projects – nó không nhập chúng vào cấu hình trực tiếp của Tasker.\n\nDự án \"Ví dụ Máy chủ HTTP\" của Tasker phải được cài đặt và kích hoạt trên thiết bị Android, với máy chủ đang chạy.\n\nThiết bị Android phải kết nối cùng một mạng, và địa chỉ IP và cổng phải khớp với cài đặt máy chủ Tasker.\n\nTheo dõi thiết bị Android trong khi quá trình này đang chạy: Tasker sẽ yêu cầu bạn xác nhận kết nối nhiều lần để lưu, và việc bỏ qua lời nhắc sẽ gây ra lỗi."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Thao tác này sẽ ghi Dự án và mọi thứ trong đó dưới dạng một tệp độc lập trên thiết bị Android, trong /Tasker/projects.\n\nĐịa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị Android.\n\nTheo dõi thiết bị Android trong khi thiết bị này chạy: Tasker yêu cầu bạn cấp phép kết nối nhiều lần cho một lần lưu và lời nhắc chưa được khai thác sẽ không thực hiện được."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Thao tác này sẽ ghi Cảnh dưới dạng một tệp độc lập vào thiết bị Android, trong /Tasker/scenes.\n\nĐịa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị Android.\n\nTheo dõi thiết bị Android trong khi thiết bị này chạy: Tasker yêu cầu bạn cấp phép kết nối nhiều lần cho một lần lưu và lời nhắc chưa được khai thác sẽ không thực hiện được."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Thao tác này sẽ ghi Cảnh dưới dạng tệp độc lập vào thiết bị Android của bạn, trong /Tasker/scenes -- nó không nhập cảnh vào cấu hình trực tiếp của Tác vụ.\n\nDự án tác vụ 'Ví dụ về máy chủ http' phải được cài đặt và hoạt động trên thiết bị Android với máy chủ đang chạy.\n\nThiết bị Android phải nằm trên cùng một mạng, đồng thời Địa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị đó.\n\nTheo dõi thiết bị Android trong khi thiết bị này chạy: Tasker yêu cầu bạn cấp phép kết nối nhiều lần cho một lần lưu và lời nhắc chưa được khai thác sẽ không thực hiện được."
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Thao tác này sẽ ghi Tác vụ dưới dạng tệp độc lập vào thiết bị Android, trong /Tasker/tasks.\n\nĐịa chỉ IP và Cổng phải khớp với cài đặt máy chủ Tác vụ của thiết bị Android.\n\nTheo dõi thiết bị Android trong khi thiết bị này chạy: Tasker yêu cầu bạn cấp phép kết nối nhiều lần cho một lần lưu và lời nhắc chưa được khai thác sẽ không thực hiện được."
+
+msgid "Verify"
+msgstr "Xác minh"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "Xác minh thất bại -- Không có gì được gửi"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "Xem thiết bị Android của bạn: Tasker sẽ yêu cầu bạn cấp phép kết nối nhiều lần."
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "Thiết bị Android của bạn không được liên lạc và không có gì thay đổi trên đó.  Cấu hình đã tải cũng không bị ảnh hưởng -- đây là kiểm tra xem nội dung sắp được viết chứ không phải nội dung trên thiết bị."

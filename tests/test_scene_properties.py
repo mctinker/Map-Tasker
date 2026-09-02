@@ -1396,21 +1396,28 @@ def unbound_event(sample_backup, stub_gui, monkeypatch):
     monkeypatch.setattr(guiwins.ui, "notify", lambda m, **k: notified.append((m, k.get("type"))))
     stub_gui.event_handlers = userintr.MapTaskerEventHandlers(stub_gui)
 
-    pending: dict = {}
+    # The bundle _build_scene_properties_dialog owns: the Task copies that outlive the panel,
+    # and the snapshot callables for whichever panel is currently on screen.
+    task_state: dict = {"pending": {}, "bound": {}, "flushers": []}
     rerenders: list = []
 
     def render_event(event):
+        # What the dialog does before it destroys the panel's widgets -- see
+        # _build_scene_properties_dialog.flush_event_task_edits.
+        for flush in task_state["flushers"]:
+            flush()
+        task_state["flushers"].clear()
         return _render(
             stub_gui,
             properties,
             guiwins._render_scene_event,
             event,
             lambda: rerenders.append(1),
-            pending,
+            task_state,
             scene_name,
         )
 
-    return render_event, properties, scene_name, pending, notified, rerenders
+    return render_event, properties, scene_name, task_state, notified, rerenders
 
 
 def _picker_button(container, ui, prefix: str):
@@ -1428,7 +1435,7 @@ def test_every_event_sub_tab_offers_an_action_editor_with_nothing_bound(unbound_
     there, so there was no way to add actions without going out to the Add Task dialog.
     """
     ui = pytest.importorskip("nicegui").ui
-    render_event, _properties, scene_name, _pending, _notified, _rerenders = unbound_event
+    render_event, _properties, scene_name, _task_state, _notified, _rerenders = unbound_event
 
     container = render_event(event)
 
@@ -1444,13 +1451,13 @@ def test_nothing_is_created_until_the_button_is_pressed(unbound_event):
     points at it, so the Scene dialog's Cancel discards it the way Add Task's does.
     """
     ui = pytest.importorskip("nicegui").ui
-    render_event, properties, _scene_name, pending, _notified, _rerenders = unbound_event
+    render_event, properties, _scene_name, task_state, _notified, _rerenders = unbound_event
     before = dict(PrimeItems.tasker_root_elements["all_tasks_by_name"])
 
     container = render_event(sceneedit.LEGACY_SCENE_EVENTS[0])
     _click(_picker_button(container, ui, "Flash ("))
 
-    assert pending[sceneedit.LEGACY_KEY_TASK_TAG].actions
+    assert task_state["pending"][sceneedit.LEGACY_KEY_TASK_TAG][0].actions
     assert properties.find(sceneedit.LEGACY_KEY_TASK_TAG) is None
     assert PrimeItems.tasker_root_elements["all_tasks_by_name"] == before
 
@@ -1460,7 +1467,7 @@ def test_actions_added_survive_the_panel_being_rebuilt(unbound_event):
     rebuilt with it would lose every action added so far, which is why the dialog holds it.
     """
     ui = pytest.importorskip("nicegui").ui
-    render_event, _properties, _scene_name, pending, _notified, _rerenders = unbound_event
+    render_event, _properties, _scene_name, task_state, _notified, _rerenders = unbound_event
     key = sceneedit.LEGACY_SCENE_EVENTS[0]
 
     container = render_event(key)
@@ -1469,7 +1476,7 @@ def test_actions_added_survive_the_panel_being_rebuilt(unbound_event):
     render_event(sceneedit.LEGACY_SCENE_EVENTS[1])
     again = render_event(key)
 
-    assert [action.action_name for action in pending[key.tag].actions] == ["Flash"]
+    assert [action.action_name for action in task_state["pending"][key.tag][0].actions] == ["Flash"]
     headers = [e._props.get("label", "") for e in _descendants(again) if isinstance(e, ui.expansion)]
     assert any(header.strip().startswith("0: Flash") for header in headers)
 
@@ -1477,21 +1484,21 @@ def test_actions_added_survive_the_panel_being_rebuilt(unbound_event):
 def test_each_sub_tab_composes_its_own_task(unbound_event):
     """Keyed by event tag, so a Key Task and a Tab Tap Task in progress stay apart."""
     ui = pytest.importorskip("nicegui").ui
-    render_event, _properties, _scene_name, pending, _notified, _rerenders = unbound_event
+    render_event, _properties, _scene_name, task_state, _notified, _rerenders = unbound_event
     key, _home, tab_tap = sceneedit.LEGACY_SCENE_EVENTS
 
     _click(_picker_button(render_event(key), ui, "Flash ("))
     _click(_picker_button(render_event(tab_tap), ui, "Variable Set ("))
 
-    assert [action.action_name for action in pending[key.tag].actions] == ["Flash"]
-    assert [action.action_name for action in pending[tab_tap.tag].actions] == ["Variable Set"]
-    assert pending[key.tag].task_id != pending[tab_tap.tag].task_id
+    assert [action.action_name for action in task_state["pending"][key.tag][0].actions] == ["Flash"]
+    assert [action.action_name for action in task_state["pending"][tab_tap.tag][0].actions] == ["Variable Set"]
+    assert task_state["pending"][key.tag][0].task_id != task_state["pending"][tab_tap.tag][0].task_id
 
 
 @pytest.mark.parametrize("event", sceneedit.LEGACY_SCENE_EVENTS, ids=lambda e: e.label)
 def test_creating_registers_the_task_and_points_the_event_at_it(unbound_event, event):
     ui = pytest.importorskip("nicegui").ui
-    render_event, properties, scene_name, pending, notified, rerenders = unbound_event
+    render_event, properties, scene_name, task_state, notified, rerenders = unbound_event
 
     container = render_event(event)
     _click(_picker_button(container, ui, "Flash ("))
@@ -1504,14 +1511,14 @@ def test_creating_registers_the_task_and_points_the_event_at_it(unbound_event, e
     assert [action.findtext("code") for action in entry["xml"].findall("Action")] == ["548"]
     assert notified[-1][1] == "positive"
     # Composed and done with: the next render loads it from the tables like any other binding.
-    assert event.tag not in pending
+    assert event.tag not in task_state["pending"]
     assert rerenders == [1]
 
 
 def test_the_new_task_joins_the_project_the_scene_belongs_to(unbound_event):
     """A Task in no Project's <tids> runs but appears in no generated view of any Project."""
     ui = pytest.importorskip("nicegui").ui
-    render_event, properties, scene_name, _pending, _notified, _rerenders = unbound_event
+    render_event, properties, scene_name, _task_state, _notified, _rerenders = unbound_event
 
     container = render_event(sceneedit.LEGACY_SCENE_EVENTS[0])
     _click(_picker_button(container, ui, "Flash ("))
@@ -1528,7 +1535,7 @@ def test_a_name_another_task_already_has_is_refused_and_nothing_is_lost(unbound_
     left standing with the composed actions still in it.
     """
     ui = pytest.importorskip("nicegui").ui
-    render_event, properties, _scene_name, pending, notified, _rerenders = unbound_event
+    render_event, properties, _scene_name, task_state, notified, _rerenders = unbound_event
     key = sceneedit.LEGACY_SCENE_EVENTS[0]
 
     container = render_event(key)
@@ -1543,7 +1550,7 @@ def test_a_name_another_task_already_has_is_refused_and_nothing_is_lost(unbound_
 
     assert properties.find(key.tag) is None
     assert any("already exists" in message for message, _kind in notified)
-    assert [action.action_name for action in pending[key.tag].actions] == ["Flash"]
+    assert [action.action_name for action in task_state["pending"][key.tag][0].actions] == ["Flash"]
 
 
 def test_an_anonymous_binding_gets_no_editor_of_either_kind(sample_backup, stub_gui):
@@ -1578,7 +1585,7 @@ def test_creating_two_tasks_from_two_sub_tabs_keeps_them_apart(unbound_event):
     overwrites the first -- leaving the first event pointing at the other one's actions.
     """
     ui = pytest.importorskip("nicegui").ui
-    render_event, properties, _scene_name, _pending, _notified, _rerenders = unbound_event
+    render_event, properties, _scene_name, _task_state, _notified, _rerenders = unbound_event
     key, _home, tab_tap = sceneedit.LEGACY_SCENE_EVENTS
 
     for event, action in ((key, "Flash ("), (tab_tap, "Variable Set (")):
@@ -1615,3 +1622,420 @@ def test_a_reserved_id_is_never_handed_out_again():
     finally:
         PrimeItems.tasker_root_elements.clear()
         PrimeItems.tasker_root_elements.update(saved)
+
+
+# ==========================================
+# 13. NOTHING DONE IN THE EVENT TAB IS SILENTLY DROPPED
+# ==========================================
+# The reported bug: add an action under Key/Home Tap/Tab Tap, press the dialog's only exit,
+# reopen -- and the action was gone.  Two things threw it away: the Task copy was rebuilt with
+# the panel on every sub-tab switch, and that exit discarded whatever was left.  It is Ok now,
+# and Cancel is the other one -- so the same drive-the-whole-dialog tests answer a second
+# question beside "is it kept": is it *dropped* when it is meant to be.
+#
+# These drive the WHOLE DIALOG rather than one panel, because that is where both losses
+# happened.  Note the exact-label helper: matching a label as a prefix finds the action
+# picker's own rows -- "Close System Dialogs (Uncategorized)" is the one that fooled the first
+# attempt at reproducing this -- rather than the button.
+@pytest.fixture
+def scene_properties_dialog(sample_backup, stub_gui, monkeypatch):
+    """The real Scene Properties dialog over a sample Scene, opened as often as wanted.
+
+    Returns (open_dialog, scene, notified); open_dialog() builds a fresh one over the same
+    Scene, which is what reopening it through "Edit Properties" amounts to.  Its optional
+    argument is the Scene dialog's own field_refs -- what the geometry boxes write into, and
+    therefore what Cancel has to put back (see _render_scene_geometry).
+    """
+    ui = pytest.importorskip("nicegui").ui
+    from unittest.mock import MagicMock  # noqa: PLC0415
+
+    from nicegui.client import Client  # noqa: PLC0415
+    from nicegui.page import page  # noqa: PLC0415
+
+    from maptasker.src import guiwins, userintr  # noqa: PLC0415
+
+    root = sample_backup("XML/Smart Reminders.prj.xml")
+    PrimeItems.xml_root = root
+    # One that already fires a key Task, so the bound-Task half is exercised for real; the
+    # tests about composing a new one strip the bindings off it themselves.
+    scene = next(
+        (s for s in root.iter("Scene") if s.find(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}") is not None),
+        None,
+    )
+    if scene is None:
+        pytest.skip("no sample Scene fires a key Task")
+
+    notified = []
+    monkeypatch.setattr(userintr.ui, "notify", lambda m, **k: notified.append((m, k.get("type"))))
+    monkeypatch.setattr(guiwins.ui, "notify", lambda m, **k: notified.append((m, k.get("type"))))
+    stub_gui.event_handlers = userintr.MapTaskerEventHandlers(stub_gui)
+
+    opened = []
+    monkeypatch.setattr(ui.dialog, "open", lambda self: opened.append(self))
+
+    def open_dialog(field_refs=None):
+        edited = MagicMock()
+        edited.scene_element = scene
+        edited.scene_name = scene.findtext("nme", "")
+        with Client(page("/")):
+            container = ui.column()
+            with container:
+                guiwins._build_scene_properties_dialog(stub_gui, edited, {} if field_refs is None else field_refs)
+        return opened[-1]
+
+    return open_dialog, scene, notified
+
+
+def _exact_button(container, label):
+    """A button by its exact label.
+
+    Not a prefix match: the action picker lists ~500 rows and any of them can start with a
+    button's label -- "Close System Dialogs (Uncategorized)" is what a prefix match for the
+    dialog's old "Close" found, which is a way to conclude a bug is still there when it is not.
+    """
+    ui = pytest.importorskip("nicegui").ui
+    return next(
+        e for e in _descendants(container) if isinstance(e, ui.button) and e._props.get("label") == label
+    )
+
+
+def _event_panel(dialog):
+    """The Event tab's panel.  Scoped, because the Actions tab holds an action picker too and
+    an unscoped search finds that one first."""
+    ui = pytest.importorskip("nicegui").ui
+    return next(
+        e
+        for e in _descendants(dialog)
+        if isinstance(e, ui.tab_panel) and e._props.get("name") == "Event"
+    )
+
+
+def _add_action(container, prefix="Flash ("):
+    """Click the action picker's row for this action, the way the user does."""
+    ui = pytest.importorskip("nicegui").ui
+    _click(
+        next(
+            e
+            for e in _descendants(container)
+            if isinstance(e, ui.button) and (e._props.get("label") or "").startswith(prefix)
+        ),
+    )
+
+
+def _live_action_count(task_id) -> int:
+    return len(PrimeItems.tasker_root_elements["all_tasks"][task_id]["xml"].findall("Action"))
+
+
+def test_an_action_added_under_an_event_survives_ok(scene_properties_dialog):
+    """The reported bug, exactly: add an action, press Ok, reopen -- it has to be there."""
+    open_dialog, scene, _notified = scene_properties_dialog
+    task_id = scene.findtext(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}")
+    assert task_id
+    before = _live_action_count(task_id)
+
+    dialog = open_dialog()
+    _add_action(_event_panel(dialog))
+    _click(_exact_button(dialog, "Ok"))
+
+    assert _live_action_count(task_id) == before + 1
+    # And it is there when the dialog is opened again, which is how it was noticed.
+    reopened = open_dialog()
+    headers = [
+        e._props.get("label", "")
+        for e in _descendants(_event_panel(reopened))
+        if isinstance(e, pytest.importorskip("nicegui").ui.expansion)
+    ]
+    assert any("Flash" in header for header in headers)
+
+
+def test_an_action_survives_walking_to_another_sub_tab_and_back(scene_properties_dialog):
+    """The other half of the loss: the Event panel is rebuilt on every sub-tab switch, and the
+    Task copy used to be rebuilt with it.
+    """
+    ui = pytest.importorskip("nicegui").ui
+    open_dialog, scene, _notified = scene_properties_dialog
+    task_id = scene.findtext(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}")
+    assert task_id
+    before = _live_action_count(task_id)
+
+    dialog = open_dialog()
+    _add_action(_event_panel(dialog))
+    event_tabs = next(e for e in _descendants(_event_panel(dialog)) if isinstance(e, ui.tabs))
+    event_tabs.value = "Tab Tap"
+    event_tabs.value = "Key"
+    _click(_exact_button(dialog, "Ok"))
+
+    assert _live_action_count(task_id) == before + 1
+
+
+def test_an_argument_typed_under_an_event_survives_ok(scene_properties_dialog):
+    """The same trap one level down: the action editor keeps argument values in its widgets
+    until something reads them back, and the widgets die with the panel.
+    """
+    ui = pytest.importorskip("nicegui").ui
+    open_dialog, scene, _notified = scene_properties_dialog
+    task_id = scene.findtext(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}")
+    assert task_id
+
+    dialog = open_dialog()
+    panel = _event_panel(dialog)
+    _add_action(panel)
+    # The new Flash action's Text argument.
+    text_field = next(
+        e for e in _descendants(panel) if isinstance(e, ui.input) and e._props.get("label") == "Text"
+    )
+    text_field.value = "hello from the Key event"
+    _click(_exact_button(dialog, "Ok"))
+
+    live = PrimeItems.tasker_root_elements["all_tasks"][task_id]["xml"]
+    assert any(
+        (element.text or "") == "hello from the Key event"
+        for action in live.findall("Action")
+        for element in action.findall("Str")
+    )
+
+
+def test_a_task_composed_under_an_event_is_created_by_ok(scene_properties_dialog):
+    """Ok keeps the new-Task half too -- pressing "Create Task" is a convenience, not the only
+    way to avoid losing the work.
+    """
+    open_dialog, scene, _notified = scene_properties_dialog
+    properties = scene.find("PropertiesElement")
+    for event in sceneedit.LEGACY_SCENE_EVENTS:
+        bound = properties.find(event.tag)
+        if bound is not None:
+            properties.remove(bound)
+    home_tap = sceneedit.LEGACY_SCENE_EVENTS[1]
+    before = len(PrimeItems.tasker_root_elements["all_tasks_by_name"])
+
+    ui = pytest.importorskip("nicegui").ui
+    dialog = open_dialog()
+    event_tabs = next(e for e in _descendants(_event_panel(dialog)) if isinstance(e, ui.tabs))
+    event_tabs.value = home_tap.label
+    _add_action(_event_panel(dialog))
+    _click(_exact_button(dialog, "Ok"))
+
+    new_id = properties.findtext(home_tap.tag)
+    assert new_id
+    assert len(PrimeItems.tasker_root_elements["all_tasks_by_name"]) == before + 1
+    assert _live_action_count(new_id) == 1
+
+
+def test_opening_and_closing_without_touching_anything_creates_nothing(scene_properties_dialog):
+    """An untouched sub-tab leaves an empty composed Task behind, and Ok must not turn that
+    into a real one -- otherwise looking at a Scene's properties would litter the
+    configuration with empty Tasks.
+    """
+    open_dialog, scene, _notified = scene_properties_dialog
+    properties = scene.find("PropertiesElement")
+    for event in sceneedit.LEGACY_SCENE_EVENTS:
+        bound = properties.find(event.tag)
+        if bound is not None:
+            properties.remove(bound)
+    before = dict(PrimeItems.tasker_root_elements["all_tasks_by_name"])
+
+    dialog = open_dialog()
+    _click(_exact_button(dialog, "Ok"))
+
+    assert PrimeItems.tasker_root_elements["all_tasks_by_name"] == before
+    assert [properties.find(event.tag) for event in sceneedit.LEGACY_SCENE_EVENTS] == [None, None, None]
+
+
+def test_ok_keeps_the_dialog_open_when_something_is_rejected(scene_properties_dialog):
+    """Closing on a rejection would be the reported bug in a new place: the edits would go and
+    the user would be told why, too late to do anything about it.
+    """
+    open_dialog, scene, notified = scene_properties_dialog
+    properties = scene.find("PropertiesElement")
+    for event in sceneedit.LEGACY_SCENE_EVENTS:
+        bound = properties.find(event.tag)
+        if bound is not None:
+            properties.remove(bound)
+
+    ui = pytest.importorskip("nicegui").ui
+    dialog = open_dialog()
+    _add_action(_event_panel(dialog))
+    taken = next(iter(PrimeItems.tasker_root_elements["all_tasks_by_name"]))
+    name_field = next(
+        e
+        for e in _descendants(_event_panel(dialog))
+        if isinstance(e, ui.input) and e._props.get("label") == "New Task Name"
+    )
+    name_field.value = taken
+
+    closed = []
+    dialog.close = lambda: closed.append(1)
+    _click(_exact_button(dialog, "Ok"))
+
+    assert not closed
+    assert any("already exists" in message for message, _kind in notified)
+    assert properties.find(sceneedit.LEGACY_SCENE_EVENTS[0].tag) is None
+
+
+# --------------------------------------------------------------------------------------
+# Cancel.
+#
+# The half Ok's tests cannot cover, and the harder half.  Nothing in this dialog is *held*
+# until Ok -- every field writes through to the Scene copy as it is typed, which is what the
+# Legacy designer does everywhere -- so Cancel cannot work by declining to apply something.
+# It works by putting the <PropertiesElement> back from a snapshot taken when the dialog
+# opened (sceneedit.legacy_properties_restore), and the geometry boxes back from a snapshot
+# of their own, since those four are not in that element at all.
+#
+# What Cancel is NOT allowed to take back is anything already put into the loaded
+# configuration by its own button -- "Apply to Task" and "Create Task" both say so, and Undo
+# is what takes those back.
+# --------------------------------------------------------------------------------------
+def _keys_field(dialog):
+    """The Key event's "Keys" filter box -- a field that writes straight through to the
+    <PropertiesElement>, so it is the cheapest way to make a real property change.
+    """
+    ui = pytest.importorskip("nicegui").ui
+    return next(
+        e for e in _descendants(_event_panel(dialog)) if isinstance(e, ui.input) and e._props.get("label") == "Keys"
+    )
+
+
+def test_cancel_puts_a_changed_property_back(scene_properties_dialog):
+    """Typing into a field writes through immediately, so Cancel has to undo the XML rather
+    than decline to write it.
+    """
+    open_dialog, scene, _notified = scene_properties_dialog
+    properties = scene.find("PropertiesElement")
+    before = sceneedit.legacy_key_filter(properties)
+
+    dialog = open_dialog()
+    _keys_field(dialog).value = "back/home/volume_up"
+    assert sceneedit.legacy_key_filter(properties) == "back/home/volume_up"
+    _click(_exact_button(dialog, "Cancel"))
+
+    assert sceneedit.legacy_key_filter(properties) == before
+
+
+def test_ok_keeps_a_changed_property(scene_properties_dialog):
+    """The other side of the same field, so that the test above is proving Cancel and not
+    just proving that nothing was written.
+    """
+    open_dialog, scene, _notified = scene_properties_dialog
+    properties = scene.find("PropertiesElement")
+
+    dialog = open_dialog()
+    _keys_field(dialog).value = "back/home/volume_up"
+    _click(_exact_button(dialog, "Ok"))
+
+    assert sceneedit.legacy_key_filter(properties) == "back/home/volume_up"
+
+
+def test_cancel_drops_an_action_added_under_an_event(scene_properties_dialog):
+    """The Task half: the copies are held by the dialog, so Cancel drops them by letting go
+    and the live Task is left where it was.
+    """
+    open_dialog, scene, _notified = scene_properties_dialog
+    task_id = scene.findtext(f"PropertiesElement/{sceneedit.LEGACY_KEY_TASK_TAG}")
+    assert task_id
+    before = _live_action_count(task_id)
+
+    dialog = open_dialog()
+    _add_action(_event_panel(dialog))
+    _click(_exact_button(dialog, "Cancel"))
+
+    assert _live_action_count(task_id) == before
+
+
+def test_cancel_takes_away_a_task_binding_made_in_the_dialog(scene_properties_dialog):
+    """Binding a Task to an event is a write to the Scene, so it goes back with everything
+    else -- unlike the Task's own actions, which are not the Scene's to keep or drop.
+    """
+    open_dialog, scene, _notified = scene_properties_dialog
+    properties = scene.find("PropertiesElement")
+    home_tap = sceneedit.LEGACY_SCENE_EVENTS[1]
+    for event in sceneedit.LEGACY_SCENE_EVENTS:
+        bound = properties.find(event.tag)
+        if bound is not None and event is home_tap:
+            properties.remove(bound)
+
+    ui = pytest.importorskip("nicegui").ui
+    dialog = open_dialog()
+    event_tabs = next(e for e in _descendants(_event_panel(dialog)) if isinstance(e, ui.tabs))
+    event_tabs.value = home_tap.label
+    wanted = taskedit.list_pickable_tasks()[0]
+    _click(
+        next(
+            e
+            for e in _descendants(_event_panel(dialog))
+            if isinstance(e, ui.button) and e._props.get("label") == f"{wanted['name']} ({wanted['project_name']})"
+        ),
+    )
+    assert properties.findtext(home_tap.tag) == wanted["task_id"]
+
+    _click(_exact_button(dialog, "Cancel"))
+    assert properties.find(home_tap.tag) is None
+
+
+def test_cancel_takes_away_properties_that_were_added_in_the_dialog(scene_properties_dialog):
+    """"Add scene properties" on a Scene that had none is as much a change as any other, and
+    a Scene that started without a <PropertiesElement> has to end without one.
+    """
+    open_dialog, scene, _notified = scene_properties_dialog
+    properties = scene.find("PropertiesElement")
+    scene.remove(properties)
+
+    dialog = open_dialog()
+    _click(_exact_button(dialog, "Add scene properties"))
+    assert scene.find("PropertiesElement") is not None
+
+    _click(_exact_button(dialog, "Cancel"))
+    assert scene.find("PropertiesElement") is None
+
+
+def test_cancel_puts_the_geometry_boxes_back(scene_properties_dialog):
+    """Geometry is the one thing in here that is not in the properties element: those boxes
+    drive the Scene dialog's own inputs, which is what a save reads.  Reverting the element
+    alone would leave a cancelled size change still in force.
+    """
+    ui = pytest.importorskip("nicegui").ui
+    open_dialog, _scene, _notified = scene_properties_dialog
+
+    from nicegui.client import Client  # noqa: PLC0415
+    from nicegui.page import page  # noqa: PLC0415
+
+    with Client(page("/")):
+        with ui.column():
+            field_refs = {key: ui.input(label, value="-1") for key, label in sceneedit.SCENE_DIMENSION_FIELDS}
+
+    dialog = open_dialog(field_refs)
+    width = next(
+        e
+        for e in _descendants(dialog)
+        if isinstance(e, ui.input) and e._props.get("label") == "Width (portrait)" and e not in field_refs.values()
+    )
+    width.value = "480"
+    assert field_refs["widthPort"].value == "480"
+
+    _click(_exact_button(dialog, "Cancel"))
+    assert field_refs["widthPort"].value == "-1"
+
+
+def test_cancel_on_an_untouched_dialog_says_nothing(scene_properties_dialog):
+    """Opening the properties to look at them and closing again is not a discarded change,
+    and a notification saying it was would be noise.
+    """
+    open_dialog, _scene, notified = scene_properties_dialog
+
+    dialog = open_dialog()
+    _click(_exact_button(dialog, "Cancel"))
+
+    assert notified == []
+
+
+def test_cancel_reports_what_it_took_back(scene_properties_dialog):
+    """And a change that WAS taken back is said out loud -- nothing else on screen would show
+    it, since the form the values came from is gone by then.
+    """
+    open_dialog, _scene, notified = scene_properties_dialog
+
+    dialog = open_dialog()
+    _keys_field(dialog).value = "back/home/volume_up"
+    _click(_exact_button(dialog, "Cancel"))
+
+    assert any("discarded" in message.lower() for message, _kind in notified)

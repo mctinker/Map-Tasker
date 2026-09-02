@@ -1553,6 +1553,39 @@ def reload_gui(self: object) -> None:
     restart_program_subprocess()
 
 
+# The heads-up every 'Save To Android' write and 'Import Into Tasker' import puts on
+# screen before it starts talking to the device.
+def notify_watch_android_device() -> None:
+    """Warns the user to look at their Android device before a Save To Android /
+    Import Into Tasker transfer begins.
+
+    Tasker's HTTP Server Example does not authorize a client once and remember it:
+    the connection prompt comes up on the phone per request, so a single save --
+    which reads the target path, may write a safety copy, then uploads or imports --
+    puts several of them up in a row.  Nothing on this end can suppress them, and a
+    prompt left untapped simply times out and fails the save with a connection
+    error that looks like the device is unreachable.  So the one useful thing to do
+    is say plainly, up front, that the device needs watching.
+
+    No timeout of its own: how long it stays up is the user's 'Notification Duration'
+    setting, which guiwins.install_notification_timeout applies to every ui.notify that
+    does not name one (and which adds a close button on 'Until dismissed').  This is
+    exactly the message someone would set a long duration for, so it must not be one of
+    the calls that overrides them.
+
+    Raised only by the eight Save To Android / Import Into Tasker handlers, the writes
+    where a missed prompt loses work.  The read-only Android paths (Get XML, the
+    helper-Task listing) do not raise it.
+    """
+    ui.notify(
+        translate_string(
+            "Watch your Android device: Tasker will ask you to authorize the connection several times.",
+        ),
+        type="warning",
+        multi_line=True,
+    )
+
+
 # Ping the Android evice to make sure it is reachable.
 async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
     """

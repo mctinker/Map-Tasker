@@ -2677,3 +2677,198 @@ msgstr "Ikon yang digunakan di suatu tempat dalam konfigurasi yang dimuat, ditam
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "Lihat MapTasker [Referensi Perintah](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) untuk informasi lebih lanjut.\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(Tugas anonim, disimpan di Scene)"
+
+msgid "(new variable)"
+msgstr "(variabel baru)"
+
+msgid "(no label)"
+msgstr "(tanpa label)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "Daftar tab yang dipisahkan koma untuk ditampilkan di bilah tindakan. Memilih salah satu akan mengaktifkan Tugas Ketuk Tab pada tab Acara."
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "Daftar kunci yang dipisahkan garis miring untuk ditangani -- berdasarkan nama atau kode, mis. kembali/78/a. Kunci lainnya diteruskan ke sistem.\nBiarkan kosong untuk menangani setiap kunci."
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Gaya Bilah Tindakan, Judul, Subjudul, Ikon, dan Label Tab hanya berlaku untuk Aktivitas saja. Properti tersebut masih disimpan, dan ditampilkan jika Anda mengganti Tipe Properti ke Aktivitas."
+
+msgid "Action bar"
+msgstr "Bilah tindakan"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Item bilah tindakan hanya berlaku untuk Aktivitas. Properti tersebut masih disimpan, dan ditampilkan jika Anda mengganti Tipe Properti ke Aktivitas."
+
+msgid "Actions of the"
+msgstr "Tindakan dari"
+
+msgid "Add Variable"
+msgstr "Tambahkan Variabel"
+
+msgid "Add an action bar item"
+msgstr "Tambahkan item bilah tindakan"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "Menambahkan Tugas ini ke konfigurasi yang dimuat dan mengarahkan peristiwa ini ke sana, sama seperti 'Oke' dalam dialog Tambahkan Tugas -- tidak ada yang ditulis ke file dan tidak ada yang dikirim ke Android.  Oke, lakukan juga untuk Anda, jadi ini hanya untuk membuatnya tanpa menutup.\nSampai saat itu, Tugas hanya ada di jendela ini dan Batal akan membuangnya. Setelah itu menjadi Tugas seperti yang lainnya -- Batal mengambil kembali pengikatannya tetapi bukan Tugasnya, dan Undo mengambil keduanya."
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "Kunci apa pun yang ditangani oleh scene tidak diteruskan ke sistem -- bagaimana Scene mencegah kunci kembali menutupnya.\nDitulis sesuai cara Tasker menulisnya: sebuah <stopEvent> di dalam <LinkClickFilter> Adegan, dibuat ketika ini dicentang dan diambil lagi ketika tidak dicentang dan tidak ada lagi yang tersisa di dalamnya."
+
+msgid "Apply to Task"
+msgstr "Terapkan ke Tugas"
+
+msgid "Changes kept for Task"
+msgstr "Perubahan disimpan untuk Tugas"
+
+msgid "Create Task"
+msgstr "Buat Tugas"
+
+msgid "Created Task"
+msgstr "Tugas yang Dibuat"
+
+msgid "Display Name"
+msgstr "Nama Tampilan"
+
+msgid "Exported Value"
+msgstr "Nilai yang Diekspor"
+
+msgid "Icon"
+msgstr "Ikon"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "Menyimpan semuanya, termasuk tindakan Tugas apa pun yang diedit di bawah tab Acara.\nTugas yang disusun berdasarkan peristiwa yang tidak ada akan dibuat dan diikat jika Anda melakukan tindakan apa pun di dalamnya. Undo mengambil kembali pengeditan Tugas."
+
+msgid "Keys"
+msgstr "Kunci"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "Muat konfigurasi Tasker terlebih dahulu -- Tugas baru memerlukan konfigurasi untuk mendapatkan id."
+
+msgid "Name"
+msgstr "Nama"
+
+msgid "New Task Name"
+msgstr "Nama Tugas Baru"
+
+msgid "No Task matches."
+msgstr "Tidak ada Tugas yang cocok."
+
+msgid "No action bar items."
+msgstr "Tidak ada item bilah tindakan."
+
+msgid "No variables."
+msgstr "Tidak ada variabel."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "Tidak ada -- acara ini tidak memunculkan Tugas."
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "Belum ada yang terikat, jadi tindakan ini masuk ke Tugas baru. Itu dibuat, dan acara ini menunjuk ke sana, ketika Anda menekan tombol di bawah atau Oke. Batal membuangnya."
+
+msgid "Nothing set."
+msgstr "Tidak ada yang diatur."
+
+msgid "Prompt"
+msgstr "Mengingatkan"
+
+msgid "Properties kept."
+msgstr "Properti disimpan."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "Masukkan tindakan edit ini ke dalam konfigurasi yang dimuat sekarang, tanpa menutup -- sama seperti 'Oke' dalam dialog Edit Tugas.  Oke, lakukan juga untuk Anda di sini, jadi ini hanya untuk menjaganya tetap di tengah-tengah pengeditan.\nTidak ada yang ditulis ke file dan tidak ada yang dikirim ke Android. Tugas ini bukan bagian dari Adegan, jadi baik dialog Batal maupun Adegan di jendela ini tidak akan mengembalikan pengeditan ini setelah dilakukan. Urungkan ya."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "Mengembalikan properti ini seperti semula ketika jendela ini dibuka, dan menghapus tindakan Tugas apa pun yang diedit di bawah tab Acara.\nTugas yang sudah dimasukkan ke dalam konfigurasi dengan tombolnya sendiri -- 'Terapkan ke Tugas', atau 'Buat Tugas' -- tetap berada di sana. Undo mengambilnya kembali."
+
+msgid "Remove Variable"
+msgstr "Hapus Variabel"
+
+msgid "Same as Value"
+msgstr "Sama dengan Nilai"
+
+msgid "Scene properties changes discarded."
+msgstr "Perubahan properti pemandangan dibuang."
+
+msgid "Search Tasks"
+msgstr "Tugas Pencarian"
+
+msgid "Stop Event"
+msgstr "Hentikan Acara"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "Ikon beranda di kiri atas bilah tindakan. Mengetuknya akan mengaktifkan Tugas Ketuk Beranda di tab Acara."
+
+msgid "There are no Tasks in this configuration."
+msgstr "Tidak ada Tugas dalam konfigurasi ini."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "Tugas ini disimpan di dalam Adegan dan tidak ada dalam daftar Tugas, sehingga tindakannya tidak dapat diedit di sini. Itu dilakukan tanpa disentuh."
+
+msgid "This item has no action."
+msgstr "Item ini tidak memiliki tindakan."
+
+msgid "Type"
+msgstr "Jenis"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "Di bawah 'Nilai yang Diekspor' jika Anda menonaktifkan opsi 'Sama dengan Nilai', Anda dapat menyesuaikan nilai apa yang diekspor saat Anda berbagi variabel dengan pengguna lain.\nAnda dapat mengosongkan kolom 'Nilai yang Diekspor' jika Anda ingin ekspor tidak memiliki nilai sama sekali, atau Anda dapat menetapkan nilai yang ingin selalu Anda gunakan untuk ekspor.\nJika Anda mengaktifkan opsi 'Sama dengan Nilai', nilai variabel saat ini akan digunakan saat mengekspor."
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "Di mana suatu item berakhir ditentukan oleh apa yang Anda berikan: ikon saja selalu ada di bilah utama, ikon dan label ditampilkan di sana jika ada ruang, dan label saja selalu ada di menu tambahan (3 titik di kanan atas di Tasker)."
+
+msgid "fires a Task on"
+msgstr "mengaktifkan Tugas"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "tidak ada dalam cadangan ini, jadi tidak ada tindakan untuk ditampilkan."
+
+msgid "no editable arguments."
+msgstr "कोई भी तर्क जिन्हें संपादित किया जा सकता है।"
+
+msgid "swallows the key press"
+msgstr "पकड़ लेता है की प्रेस"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "Membaca kembali XML sebelum dikirim, dan menolak penyimpanan jika ada perubahan selama proses pengiriman.\n\nApa yang ditangkap adalah kelas kegagalan yang tidak bisa dilakukan oleh apa pun di jalur penyimpanan: nilai yang tidak disetujui oleh penulis dan pembaca program ini -- sebuah kereta kembali di dalam nama, misalnya, yang ditulis saat diketik dan dibaca kembali sebagai baris baru.  Uploadnya menjawab 200 dan file yang ada di perangkat sesuai dengan file yang dikirimkan, karena keduanya sudah salah.\n\nSetiap objek yang naik dibandingkan dengan objek dalam konfigurasi yang dimuat, termasuk Profil, Adegan, dan Tugas yang disertakan di dalamnya yang tidak Anda edit.  Tidak ada yang dikirim jika ada yang berbeda; Anda mendapatkan laporan yang mengatakan yang mana dan di mana.\n\nBiayanya sepersekian detik dan tidak ada kontak apa pun -- seluruh pemeriksaan dilakukan di sini, sebelum perangkat disentuh."
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "Ini membuka dua pilihan: tulis Tugas sebagai file mandiri ke perangkat Android Anda di bawah /Tasker/tasks, atau impor langsung ke konfigurasi langsung Tasker.\n\nProyek Tasker 'Contoh Server Http' harus diinstal dan aktif pada perangkat Android, dengan server berjalan (lihat catatan Pengambilan XML Langsung README), dan Tasker harus versi 6.2 atau lebih tinggi.\n\nPerangkat Android harus berada di jaringan yang sama, dan Alamat IP serta Port harus sesuai dengan pengaturan server Taskernya.\n\nPerhatikan perangkat Android saat salah satunya berjalan: Tasker meminta Anda untuk mengotorisasi koneksi beberapa kali untuk satu penyimpanan, dan perintah yang belum dimanfaatkan akan menggagalkannya.\n\nAnda harus keluar dan memulai ulang Tasker untuk melihat Tugas yang diimpor di UI Tasker."
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Ini akan menulis Profil sebagai file mandiri ke perangkat Android, di bawah /Tasker/profiles.\n\nAlamat IP dan Port harus sesuai dengan pengaturan server Tasker perangkat Android.\n\nPerhatikan perangkat Android saat ini berjalan: Tasker meminta Anda untuk mengotorisasi koneksi beberapa kali untuk satu penyimpanan, dan perintah yang belum dimanfaatkan akan menggagalkannya."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Ini akan menulis Profil sebagai file mandiri ke perangkat Android Anda, di bawah /Tasker/profiles -- ini tidak mengimpornya ke konfigurasi langsung Tasker.\n\nProyek Tasker 'Contoh Server Http' (http://spoo.me/http_svr_example) harus diinstal dan aktif pada perangkat Android, dengan server berjalan (lihat catatan Pengambilan XML Langsung README).\n\nPerangkat Android harus berada di jaringan yang sama, dan Alamat IP serta Port harus sesuai dengan pengaturan server Taskernya.\n\nPerhatikan perangkat Android saat ini berjalan: Tasker meminta Anda untuk mengotorisasi koneksi beberapa kali untuk satu penyimpanan, dan perintah yang belum dimanfaatkan akan menggagalkannya."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Ini akan menulis Profil sebagai file mandiri ke perangkat Android Anda, di bawah /Tasker/profiles -- ini tidak mengimpornya ke konfigurasi langsung Tasker.\n\nProyek Tasker 'Contoh Server Http' harus diinstal dan aktif pada perangkat Android, dengan server berjalan (lihat catatan Pengambilan XML Langsung README).\n\nPerangkat Android harus berada di jaringan yang sama, dan Alamat IP serta Port harus sesuai dengan pengaturan server Taskernya.\n\nPerhatikan perangkat Android saat ini berjalan: Tasker meminta Anda untuk mengotorisasi koneksi beberapa kali untuk satu penyimpanan, dan perintah yang belum dimanfaatkan akan menggagalkannya."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Ini akan menulis proyek, dan segala sesuatu di dalamnya — setiap प्रोफ़ाइल और कार्य — sebagai एक अलग फ़ाइल पर आपके Android डिवाइस पर, के तहत /Tasker/projects — यह इसे Tasker के लाइव कॉन्फ़िगरेशन में आयात नहीं करता।\n\n'Http Server Example' Tasker प्रोजेक्ट को Android डिवाइस पर स्थापित और सक्रिय किया जाना चाहिए, जिसमें सर्वर चल रहा हो।\n\nAndroid डिवाइस को उसी नेटवर्क पर होना चाहिए, और IP पता और पोर्ट को Tasker सर्वर सेटिंग से मेल खाना चाहिए।\n\nजब यह चल रहा हो तो Android डिवाइस पर ध्यान दें: Tasker आपको एक बार सहेजने के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक प्रॉम्प्ट जिसे अनदेखा किया जाता है, इसे विफल कर देता है।"
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Ini akan menulis Proyek, dan semua isinya, sebagai file mandiri ke perangkat Android, di bawah /Tasker/projects.\n\nAlamat IP dan Port harus sesuai dengan pengaturan server Tasker perangkat Android.\n\nPerhatikan perangkat Android saat ini berjalan: Tasker meminta Anda untuk mengotorisasi koneksi beberapa kali untuk satu penyimpanan, dan perintah yang belum dimanfaatkan akan menggagalkannya."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Ini akan menulis Scene sebagai file mandiri ke perangkat Android, di bawah /Tasker/scenes.\n\nAlamat IP dan Port harus sesuai dengan pengaturan server Tasker perangkat Android.\n\nPerhatikan perangkat Android saat ini berjalan: Tasker meminta Anda untuk mengotorisasi koneksi beberapa kali untuk satu penyimpanan, dan perintah yang belum dimanfaatkan akan menggagalkannya."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Ini akan menulis Scene sebagai file mandiri ke perangkat Android Anda, di bawah /Tasker/scenes -- ini tidak mengimpornya ke konfigurasi langsung Tasker.\n\nProyek Tasker 'Contoh Server Http' harus diinstal dan aktif pada perangkat Android, dengan server berjalan.\n\nPerangkat Android harus berada di jaringan yang sama, dan Alamat IP serta Port harus sesuai dengan pengaturan server Taskernya.\n\nPerhatikan perangkat Android saat ini berjalan: Tasker meminta Anda untuk mengotorisasi koneksi beberapa kali untuk satu penyimpanan, dan perintah yang belum dimanfaatkan akan menggagalkannya."
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Ini akan menulis Tugas sebagai file mandiri ke perangkat Android, di bawah /Tasker/tasks.\n\nAlamat IP dan Port harus sesuai dengan pengaturan server Tasker perangkat Android.\n\nPerhatikan perangkat Android saat ini berjalan: Tasker meminta Anda untuk mengotorisasi koneksi beberapa kali untuk satu penyimpanan, dan perintah yang belum dimanfaatkan akan menggagalkannya."
+
+msgid "Verify"
+msgstr "Memeriksa"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "पुष्टिकरण विफल – कुछ भी नहीं भेजा गया"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "Awasi perangkat Android Anda: Tasker akan meminta Anda untuk mengotorisasi koneksi beberapa kali."
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "Perangkat Android Anda tidak dihubungi dan tidak ada perubahan apa pun di dalamnya.  Konfigurasi yang dimuat juga tidak tersentuh -- ini adalah pemeriksaan terhadap apa yang akan ditulis, bukan pada apa yang ada di perangkat."

@@ -2689,3 +2689,198 @@ msgstr "Τα εικονίδια που χρησιμοποιούνται κάπο
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "Δείτε το MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) για περισσότερες πληροφορίες.\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(ανώνυμη εργασία, αποθηκευμένη στη σκηνή)"
+
+msgid "(new variable)"
+msgstr "(νέα μεταβλητή)"
+
+msgid "(no label)"
+msgstr "(χωρίς ετικέτα)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "Μια λίστα διαχωρισμένων με κόμματα των καρτελών που θα εμφανίζονται στη γραμμή ενεργειών. Επιλέγοντας ένα ενεργοποιεί την Εργασία Tap Tab της καρτέλας Συμβάν."
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "Μια λίστα διαχωρισμένη με κάθετο των κλειδιών προς χειρισμό -- με όνομα ή κωδικό, π.χ. πίσω/78/α. Οποιοδήποτε άλλο κλειδί μεταβιβάζεται στο σύστημα.\nΑφήστε το κενό για να χειριστείτε κάθε κλειδί."
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Οι ετικέτες στυλ γραμμής δράσης, τίτλος, υπότιτλος, εικονίδιο και καρτέλα ισχύουν μόνο για μια δραστηριότητα. Εξακολουθούν να είναι αποθηκευμένα και εμφανίζονται εάν αλλάξετε τον Τύπο ιδιότητας σε Δραστηριότητα."
+
+msgid "Action bar"
+msgstr "Μπάρα δράσης"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Τα στοιχεία της γραμμής ενεργειών ισχύουν μόνο για μια Δραστηριότητα. Εξακολουθούν να είναι αποθηκευμένα και εμφανίζονται εάν αλλάξετε τον Τύπο ιδιότητας σε Δραστηριότητα."
+
+msgid "Actions of the"
+msgstr "Δράσεις των"
+
+msgid "Add Variable"
+msgstr "Προσθήκη μεταβλητής"
+
+msgid "Add an action bar item"
+msgstr "Προσθέστε ένα στοιχείο γραμμής ενεργειών"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "Προσθέτει αυτήν την Εργασία στη διαμόρφωση που έχει φορτωθεί και επισημαίνει αυτό το συμβάν σε αυτό, όπως το \"Ok\" στο παράθυρο διαλόγου Προσθήκη εργασίας -- τίποτα δεν γράφεται σε ένα αρχείο και τίποτα δεν αποστέλλεται στο Android.  Το Ok το κάνει και για εσάς, οπότε αυτό είναι μόνο για τη δημιουργία του χωρίς κλείσιμο.\nΜέχρι τότε το Task υπάρχει μόνο σε αυτό το παράθυρο και το Cancel το απορρίπτει. Στη συνέχεια είναι μια Εργασία όπως κάθε άλλη -- Το Cancel παίρνει το δέσιμο πίσω αλλά όχι το Task και το Undo παίρνει και τα δύο."
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "Οποιοδήποτε κλειδί χειρίζεται η σκηνή δεν μεταβιβάζεται στο σύστημα -- πώς μια Σκηνή εμποδίζει το κλειδί πίσω να το κλείσει.\nΓράφτηκε με τον τρόπο που το γράφει ο Tasker: ένα <stopEvent> μέσα στο <LinkClickFilter> της Σκηνής, που δημιουργείται όταν επισημανθεί και αφαιρείται ξανά όταν δεν είναι επιλεγμένο και δεν έχει μείνει τίποτα άλλο σε αυτό."
+
+msgid "Apply to Task"
+msgstr "Εφαρμογή στο Task"
+
+msgid "Changes kept for Task"
+msgstr "Διατηρούνται αλλαγές για το Task"
+
+msgid "Create Task"
+msgstr "Δημιουργία Εργασίας"
+
+msgid "Created Task"
+msgstr "Δημιουργήθηκε Εργασία"
+
+msgid "Display Name"
+msgstr "Εμφανιζόμενο όνομα"
+
+msgid "Exported Value"
+msgstr "Εξαγόμενη Αξία"
+
+msgid "Icon"
+msgstr "Εικόνισμα"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "Διατηρεί τα πάντα, συμπεριλαμβανομένων των ενεργειών οποιασδήποτε εργασίας που επεξεργάζεται στην καρτέλα Συμβάν.\nΜια Εργασία που συντάχθηκε κάτω από ένα συμβάν που δεν είχε κανένα δημιουργείται και δεσμεύεται εάν τοποθετήσετε ενέργειες σε αυτήν. Η αναίρεση επιστρέφει μια επεξεργασία Εργασίας."
+
+msgid "Keys"
+msgstr "Κλειδιά"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "Φορτώστε πρώτα μια διαμόρφωση Tasker -- μια νέα Εργασία χρειάζεται μια για να αποκτήσει ένα αναγνωριστικό."
+
+msgid "Name"
+msgstr "Ονομα"
+
+msgid "New Task Name"
+msgstr "Νέο όνομα εργασίας"
+
+msgid "No Task matches."
+msgstr "Δεν υπάρχουν αντιστοιχίες εργασιών."
+
+msgid "No action bar items."
+msgstr "Δεν υπάρχουν στοιχεία γραμμής ενεργειών."
+
+msgid "No variables."
+msgstr "Χωρίς μεταβλητές."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "Τίποτα -- αυτό το συμβάν δεν ενεργοποιεί καμία εργασία."
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "Δεν έχει δεσμευτεί τίποτα ακόμα, επομένως αυτές οι ενέργειες μεταβαίνουν σε μια νέα Εργασία. Δημιουργείται, και αυτό το συμβάν δείχνει προς το μέρος του, όταν πατάτε το κουμπί παρακάτω ή ΟΚ. Ακύρωση το απορρίπτει."
+
+msgid "Nothing set."
+msgstr "Τίποτα δεν έχει οριστεί."
+
+msgid "Prompt"
+msgstr "Ταχύς"
+
+msgid "Properties kept."
+msgstr "Διατηρούνται ακίνητα."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "Τοποθετεί αυτές τις επεξεργασίες ενεργειών στη φορτωμένη διαμόρφωση τώρα, χωρίς να κλείνει -- το ίδιο με το \"Ok\" στο παράθυρο διαλόγου Επεξεργασία εργασίας.  Εντάξει το κάνει και για εσάς εδώ, οπότε αυτό είναι μόνο για να τους κρατήσετε στη μέση της επεξεργασίας.\nΤίποτα δεν γράφεται σε ένα αρχείο και τίποτα δεν αποστέλλεται στο Android. Αυτή η Εργασία δεν είναι μέρος της σκηνής, επομένως ούτε η Ακύρωση αυτού του παραθύρου ούτε ο διάλογος Σκηνής επιστρέφουν αυτές τις αλλαγές μόλις προσγειωθούν. Αναίρεση κάνει."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "Επαναφέρει αυτές τις ιδιότητες όπως ήταν όταν άνοιξε αυτό το παράθυρο και απορρίπτει τις ενέργειες οποιασδήποτε Εργασίας που επεξεργάστηκε στην καρτέλα Συμβάν.\nΜια Εργασία που έχει ήδη τεθεί στη διαμόρφωση με το δικό της κουμπί -- 'Εφαρμογή στην Εργασία' ή 'Δημιουργία Εργασίας' -- παραμένει εκεί. Η αναίρεση τα παίρνει πίσω."
+
+msgid "Remove Variable"
+msgstr "Αφαίρεση μεταβλητής"
+
+msgid "Same as Value"
+msgstr "Το ίδιο με την αξία"
+
+msgid "Scene properties changes discarded."
+msgstr "Οι αλλαγές ιδιοτήτων σκηνής απορρίφθηκαν."
+
+msgid "Search Tasks"
+msgstr "Εργασίες αναζήτησης"
+
+msgid "Stop Event"
+msgstr "Διακοπή εκδήλωσης"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "Το εικονίδιο αρχικής οθόνης στο επάνω αριστερό μέρος της γραμμής ενεργειών. Με το πάτημά του ενεργοποιείται η Εργασία με το Home Tap της καρτέλας Συμβάν."
+
+msgid "There are no Tasks in this configuration."
+msgstr "Δεν υπάρχουν εργασίες σε αυτήν τη διαμόρφωση."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "Αυτή η εργασία είναι αποθηκευμένη στη σκηνή και δεν βρίσκεται στη λίστα εργασιών, επομένως οι ενέργειές της δεν μπορούν να επεξεργαστούν εδώ. Μεταφέρεται μέσα από ανέγγιχτο."
+
+msgid "This item has no action."
+msgstr "Αυτό το στοιχείο δεν έχει καμία ενέργεια."
+
+msgid "Type"
+msgstr "Τύπος"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "Στην ενότητα \"Εξαγόμενη τιμή\" εάν απενεργοποιήσετε την επιλογή \"Ίδια με την τιμή\", μπορείτε να προσαρμόσετε την τιμή που θα εξάγεται όταν μοιράζεστε τη μεταβλητή με άλλους χρήστες.\nΜπορείτε να διατηρήσετε το πεδίο \"Εξαγόμενη τιμή\" κενό εάν θέλετε η εξαγωγή να μην έχει καθόλου τιμή ή μπορείτε να ορίσετε την τιμή που θέλετε να χρησιμοποιείτε πάντα για εξαγωγές.\nΕάν ενεργοποιήσετε την επιλογή \"Ίδιο με την τιμή\", η τρέχουσα τιμή μεταβλητής θα χρησιμοποιηθεί κατά την εξαγωγή."
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "Το πού θα εμφανιστεί ένα στοιχείο καθορίζεται από το τι του δίνετε: ένα μόνο εικονίδιο εμφανίζεται πάντα στη κύρια μπάρα, ένα εικονίδιο και μια ετικέτα εμφανίζονται εκεί αν υπάρχει χώρος, ενώ μια μόνο ετικέτα εμφανίζεται πάντα στο μενού υπερφόρτωσης (τα τρία σημεία στην επάνω δεξιά γωνία στο Tasker)."
+
+msgid "fires a Task on"
+msgstr "ενεργοποιεί μια Εργασία"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "δεν περιλαμβάνεται σε αυτό το αντίγραφο, επομένως δεν υπάρχουν ενέργειες προς εμφάνιση."
+
+msgid "no editable arguments."
+msgstr "δεν υπάρχουν επεξεργάσιμα επιχειρήματα."
+
+msgid "swallows the key press"
+msgstr "απορροφά το πάτημα του πλήκτρου"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "Διαβάζει ξανά το XML πριν αποσταλεί και αρνείται την αποθήκευση εάν αλλάξει κάτι στην πορεία.\n\nΑυτό που πιάνει αυτό είναι η κατηγορία αποτυχίας που τίποτα άλλο στη διαδρομή αποθήκευσης δεν μπορεί: μια τιμή για την οποία διαφωνούν ο συγγραφέας και ο αναγνώστης αυτού του προγράμματος -- μια επιστροφή μέσα σε ένα όνομα, ας πούμε, το οποίο γράφεται ως πληκτρολογημένο και διαβάζεται ξανά ως νέα γραμμή.  Η μεταφόρτωση απαντά 200 και το αρχείο στη συσκευή ταιριάζει με το αρχείο που στάλθηκε, γιατί και τα δύο είναι ήδη λάθος.\n\nΚάθε αντικείμενο που ανεβαίνει συγκρίνεται με αυτό στη διαμόρφωση που έχει φορτωθεί, συμπεριλαμβανομένων των Προφίλ, των σκηνών και των εργασιών που ομαδοποιούνται στα οποία δεν έχετε επεξεργαστεί.  Δεν αποστέλλεται τίποτα εάν κάποιο από αυτά διαφέρει. λαμβάνετε μια αναφορά που λέει ποιο και πού.\n\nΚοστίζει ένα κλάσμα του δευτερολέπτου και δεν έρχεται σε επαφή -- ολόκληρος ο έλεγχος εκτελείται εδώ, πριν αγγίξετε τη συσκευή."
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "Αυτό ανοίγει μια επιλογή από δύο: γράψτε το Task ως αυτόνομο αρχείο στη συσκευή σας Android στο /Tasker/tasks ή εισαγάγετέ το απευθείας στη ζωντανή διαμόρφωση του Tasker.\n\nΤο έργο Tasker «Παράδειγμα διακομιστή Http» πρέπει να είναι εγκατεστημένο και ενεργό στη συσκευή Android, με τον διακομιστή να εκτελείται (δείτε τις σημειώσεις άμεσης ανάκτησης XML του README) και το Tasker πρέπει να είναι 6.2 ή υψηλότερο.\n\nΗ συσκευή Android πρέπει να βρίσκεται στο ίδιο δίκτυο και η διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker.\n\nΠαρακολουθήστε τη συσκευή Android ενώ εκτελείται μία από τις δύο: Το Tasker σάς ζητά να εξουσιοδοτήσετε τη σύνδεση πολλές φορές για μία αποθήκευση και ένα μήνυμα που μένει ανεκμετάλλευτο αποτυγχάνει.\n\nΠρέπει να πραγματοποιήσετε έξοδο και να επανεκκινήσετε το Tasker για να δείτε μια εισαγόμενη Εργασία στο Tasker UI."
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Αυτό θα γράψει το Προφίλ ως αυτόνομο αρχείο στη συσκευή Android, στην περιοχή /Tasker/profiles.\n\nΗ διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker της συσκευής Android.\n\nΠαρακολουθήστε τη συσκευή Android ενώ εκτελείται: Το Tasker σάς ζητά να εξουσιοδοτήσετε τη σύνδεση πολλές φορές για μία αποθήκευση και ένα μήνυμα που μένει ανεκμετάλλευτο αποτυγχάνει."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Αυτό θα γράψει το Προφίλ ως αυτόνομο αρχείο στη συσκευή σας Android, στην περιοχή /Tasker/profiles -- δεν το εισάγει στη ζωντανή διαμόρφωση του Tasker.\n\nΤο «Παράδειγμα διακομιστή Http» Tasker Project (http://spoo.me/http_svr_example) πρέπει να είναι εγκατεστημένο και ενεργό στη συσκευή Android, με τον διακομιστή να λειτουργεί (δείτε τις σημειώσεις άμεσης ανάκτησης XML του README).\n\nΗ συσκευή Android πρέπει να βρίσκεται στο ίδιο δίκτυο και η διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker.\n\nΠαρακολουθήστε τη συσκευή Android ενώ εκτελείται: Το Tasker σάς ζητά να εξουσιοδοτήσετε τη σύνδεση πολλές φορές για μία αποθήκευση και ένα μήνυμα που μένει ανεκμετάλλευτο αποτυγχάνει."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Αυτό θα γράψει το Προφίλ ως αυτόνομο αρχείο στη συσκευή σας Android, στην περιοχή /Tasker/profiles -- δεν το εισάγει στη ζωντανή διαμόρφωση του Tasker.\n\nΤο έργο Tasker «Παράδειγμα διακομιστή Http» πρέπει να είναι εγκατεστημένο και ενεργό στη συσκευή Android, με τον διακομιστή να λειτουργεί (δείτε τις σημειώσεις για την άμεση ανάκτηση XML της README).\n\nΗ συσκευή Android πρέπει να βρίσκεται στο ίδιο δίκτυο και η διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker.\n\nΠαρακολουθήστε τη συσκευή Android ενώ εκτελείται: Το Tasker σάς ζητά να εξουσιοδοτήσετε τη σύνδεση πολλές φορές για μία αποθήκευση και ένα μήνυμα που μένει ανεκμετάλλευτο αποτυγχάνει."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Αυτό θα γράψει το Έργο και όλα όσα περιέχει -- κάθε Προφίλ και Εργασία -- ως αυτόνομο αρχείο στη συσκευή σας Android, κάτω από το /Tasker/projects -- δεν το εισάγει στη ζωντανή διαμόρφωση του Tasker.\n\nΤο «Παράδειγμα διακομιστή Http» Tasker Project πρέπει να είναι εγκατεστημένο και ενεργό στη συσκευή Android, με τον διακομιστή να λειτουργεί.\n\nΗ συσκευή Android πρέπει να βρίσκεται στο ίδιο δίκτυο και η διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker.\n\nΠαρακολουθήστε τη συσκευή Android ενώ εκτελείται: Το Tasker σάς ζητά να εξουσιοδοτήσετε τη σύνδεση πολλές φορές για μία αποθήκευση και ένα μήνυμα που μένει ανεκμετάλλευτο αποτυγχάνει."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Αυτό θα γράψει το Έργο, και όλα όσα περιέχει, ως αυτόνομο αρχείο στη συσκευή Android, κάτω από το /Tasker/projects.\n\nΗ διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker της συσκευής Android.\n\nΠαρακολουθήστε τη συσκευή Android ενώ εκτελείται: Το Tasker σάς ζητά να εξουσιοδοτήσετε τη σύνδεση πολλές φορές για μία αποθήκευση και ένα μήνυμα που μένει ανεκμετάλλευτο αποτυγχάνει."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Αυτό θα γράψει το Scene ως αυτόνομο αρχείο στη συσκευή Android, στην περιοχή /Tasker/scenes.\n\nΗ διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker της συσκευής Android.\n\nΠαρακολουθήστε τη συσκευή Android ενώ εκτελείται: Το Tasker σάς ζητά να εξουσιοδοτήσετε τη σύνδεση πολλές φορές για μία αποθήκευση και ένα μήνυμα που μένει ανεκμετάλλευτο αποτυγχάνει."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Αυτό θα γράψει το Scene ως αυτόνομο αρχείο στη συσκευή σας Android, στο /Tasker/scenes -- δεν το εισάγει στη ζωντανή διαμόρφωση του Tasker.\n\nΤο «Παράδειγμα διακομιστή Http» Tasker Project πρέπει να είναι εγκατεστημένο και ενεργό στη συσκευή Android, με τον διακομιστή να λειτουργεί.\n\nΗ συσκευή Android πρέπει να βρίσκεται στο ίδιο δίκτυο και η διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker.\n\nΠαρακολουθήστε τη συσκευή Android ενώ εκτελείται: Το Tasker σάς ζητά να εξουσιοδοτήσετε τη σύνδεση πολλές φορές για μία αποθήκευση και ένα μήνυμα που μένει ανεκμετάλλευτο αποτυγχάνει."
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Αυτό θα γράψει το Task ως αυτόνομο αρχείο στη συσκευή Android, στην περιοχή /Tasker/tasks.\n\nΗ διεύθυνση IP και η θύρα πρέπει να ταιριάζουν με τις ρυθμίσεις διακομιστή Tasker της συσκευής Android.\n\nΠαρακολουθήστε τη συσκευή Android ενώ εκτελείται: Το Tasker σάς ζητά να εξουσιοδοτήσετε τη σύνδεση πολλές φορές για μία αποθήκευση και ένα μήνυμα που μένει ανεκμετάλλευτο αποτυγχάνει."
+
+msgid "Verify"
+msgstr "Επαληθεύω"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "Η επαλήθευση απέτυχε -- Δεν εστάλη τίποτα"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "Παρακολουθήστε τη συσκευή σας Android: Το Tasker θα σας ζητήσει να εξουσιοδοτήσετε τη σύνδεση αρκετές φορές."
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "Δεν έγινε επικοινωνία με τη συσκευή σας Android και δεν άλλαξε τίποτα σε αυτήν.  Η φορτωμένη διαμόρφωση είναι επίσης ανέγγιχτη -- αυτός είναι ένας έλεγχος για το τι επρόκειτο να γραφτεί, όχι για το τι υπάρχει στη συσκευή."

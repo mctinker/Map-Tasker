@@ -2669,3 +2669,198 @@ msgstr "Ikonerne, der bruges et sted i den indlæste konfiguration, samt alle ap
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "Se MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for mere information.\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(anonym opgave, gemt i scenen)"
+
+msgid "(new variable)"
+msgstr "(ny variabel)"
+
+msgid "(no label)"
+msgstr "(ingen etiket)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "En kommasepareret liste over de faner, der skal vises i handlingslinjen. Hvis du vælger en, udløses fanen Begivenhed-fanens Tab Tap Task."
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "En skråstreg-separeret liste over de nøgler, der skal håndteres -- efter navn eller kode, f.eks. tilbage/78/a. Enhver anden nøgle videregives til systemet.\nLad den stå tom for at håndtere hver nøgle."
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Etiketter til handlingslinjestil, titel, undertekst, ikon og faneblade gælder kun for en aktivitet. De er stadig gemt og vises, hvis du skifter Ejendomstype til Aktivitet."
+
+msgid "Action bar"
+msgstr "Handlingslinje"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Handlingslinjeelementer gælder kun for en aktivitet. De er stadig gemt og vises, hvis du skifter Ejendomstype til Aktivitet."
+
+msgid "Actions of the"
+msgstr "Handlinger af"
+
+msgid "Add Variable"
+msgstr "Tilføj variabel"
+
+msgid "Add an action bar item"
+msgstr "Tilføj et handlingslinjeelement"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "Tilføjer denne opgave til den indlæste konfiguration og peger denne begivenhed på den, det samme som 'Ok' i dialogboksen Tilføj opgave -- intet skrives til en fil, og intet sendes til Android.  Ok gør det også for dig, så dette er kun til at oprette det uden at lukke.\nIndtil da eksisterer opgaven kun i dette vindue, og Annuller kasserer den. Bagefter er det en opgave som enhver anden -- Annuller tager bindingen tilbage, men ikke opgaven, og Fortryd tager begge dele."
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "Enhver nøgle, der håndteres af scenen, sendes ikke videre til systemet - hvordan en scene forhindrer tilbagetasten i at lukke den.\nSkrevet som Tasker skriver det: en <stopEvent> inde i Scenens <LinkClickFilter>, oprettet når dette er afkrydset og taget væk igen når det er afkrydset og intet andet er tilbage i det."
+
+msgid "Apply to Task"
+msgstr "Ansøg på Opgave"
+
+msgid "Changes kept for Task"
+msgstr "Ændringer gemt til opgave"
+
+msgid "Create Task"
+msgstr "Opret opgave"
+
+msgid "Created Task"
+msgstr "Oprettet opgave"
+
+msgid "Display Name"
+msgstr "Vist navn"
+
+msgid "Exported Value"
+msgstr "Eksporteret værdi"
+
+msgid "Icon"
+msgstr "Ikon"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "Bevarer alt, inklusive handlingerne for enhver opgave, der er redigeret under fanen Begivenhed.\nEn opgave sammensat under en begivenhed, der ikke havde nogen, oprettes og bindes, hvis du lægger nogen handlinger i den. Fortryd tager en opgaveredigering tilbage."
+
+msgid "Keys"
+msgstr "Nøgler"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "Indlæs først en Tasker-konfiguration -- en ny opgave skal have en for at få et id."
+
+msgid "Name"
+msgstr "Navn"
+
+msgid "New Task Name"
+msgstr "Nyt opgavenavn"
+
+msgid "No Task matches."
+msgstr "Ingen opgave matcher."
+
+msgid "No action bar items."
+msgstr "Ingen handlingslinjeelementer."
+
+msgid "No variables."
+msgstr "Ingen variabler."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "Intet -- denne begivenhed udløser ingen opgave."
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "Intet er bundet endnu, så disse handlinger går ind i en ny opgave. Det er oprettet, og denne begivenhed pegede på det, når du trykker på knappen nedenfor eller Ok. Annuller kasserer den."
+
+msgid "Nothing set."
+msgstr "Intet sat."
+
+msgid "Prompt"
+msgstr "Hurtig"
+
+msgid "Properties kept."
+msgstr "Ejendomme bevaret."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "Sætter disse handlingsredigeringer i den indlæste konfiguration nu uden at lukke -- det samme som 'Ok' i dialogboksen Rediger opgave.  Ok gør det også for dig her, så dette er kun for at holde dem midt i redigeringen.\nIntet skrives til en fil, og intet sendes til Android. Denne opgave er ikke en del af scenen, så hverken dette vindues Annuller eller scenedialogen tager disse redigeringer tilbage, når de er landet. Fortryd gør."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "Sætter disse egenskaber tilbage, som de var, da dette vindue åbnede, og sletter handlingerne for enhver opgave, der er redigeret, under fanen Begivenhed.\nEn opgave, der allerede er sat ind i konfigurationen med sin egen knap -- 'Anvend på opgave' eller 'Opret opgave' -- bliver der. Fortryd tager dem tilbage."
+
+msgid "Remove Variable"
+msgstr "Fjern variabel"
+
+msgid "Same as Value"
+msgstr "Samme som værdi"
+
+msgid "Scene properties changes discarded."
+msgstr "Ændringer af sceneegenskaber kasseret."
+
+msgid "Search Tasks"
+msgstr "Søgeopgaver"
+
+msgid "Stop Event"
+msgstr "Stop begivenhed"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "Hjem-ikonet øverst til venstre på handlingslinjen. Hvis du trykker på den, udløses fanen Begivenhed, tryk på Hjemmeopgave."
+
+msgid "There are no Tasks in this configuration."
+msgstr "Der er ingen opgaver i denne konfiguration."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "Denne opgave er gemt inde i scenen og er ikke på opgavelisten, så dens handlinger kan ikke redigeres her. Den gennemføres uændret."
+
+msgid "This item has no action."
+msgstr "Dette element har ingen handling."
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "Under 'Eksportværdi' kan du deaktivere indstillingen 'Samme værdi', så du kan tilpasse, hvilken værdi der eksporteres, når du deler variablen med andre brugere.\nDu kan lade feltet 'Eksportværdi' stå tomt, hvis du ønsker, at eksporten ikke skal have nogen værdi, eller du kan angive den værdi, du altid ønsker at bruge ved eksport.\nHvis du aktiverer indstillingen 'Samme værdi', vil den aktuelle variabelværdi blive brugt ved eksport."
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "Hvor et emne ender, bestemmes af, hvad du giver det: et ikon alene er altid i hovedlinjen, et ikon og en etiket vises der, hvis der er plads, og en etiket alene er altid i overløbsmenuen (de 3 prikker øverst til højre i Tasker)."
+
+msgid "fires a Task on"
+msgstr "affyrer en Opgave på"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "er ikke inkluderet i denne backup, så der er ingen handlinger at vise."
+
+msgid "no editable arguments."
+msgstr "ingen redigerbare argumenter."
+
+msgid "swallows the key press"
+msgstr "optager tastetryk"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "Læser XML'en tilbage, inden den sendes, og nægter at gemme, hvis noget ændrede sig undervejs.\n\nDet, dette fanger, er klassen af ​​fiasko, som intet andet i lagringsstien kan: en værdi, som dette programs egen forfatter og læser er uenige om - en vognretur inde i et navn, f.eks., der er skrevet ud som skrevet og læst tilbage som en ny linje.  Uploaden svarer 200, og filen på enheden matcher den fil, der blev sendt, fordi begge er allerede forkerte.\n\nHvert objekt, der går op, sammenlignes med det i den indlæste konfiguration, inklusive de profiler, scener og opgaver, som du ikke har redigeret.  Der sendes intet, hvis nogen af ​​dem adskiller sig; du får en rapport, der siger hvilken og hvor.\n\nDet koster en brøkdel af et sekund og kontakter ingenting -- hele kontrollen kører her, før enheden røres."
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "Dette åbner et valg mellem to: skriv opgaven som en selvstændig fil på din Android-enhed under /Tasker/opgaver, eller importer den direkte til Taskers live-konfiguration.\n\nTasker-projektet 'Http Server Eksempel' skal være installeret og aktivt på Android-enheden, med serveren kørende (se README's bemærkninger om direkte XML-hentning), og Tasker skal være 6.2 eller højere.\n\nAndroid-enheden skal være på det samme netværk, og IP-adressen og porten skal matche dens Tasker-serverindstillinger.\n\nSe Android-enheden, mens en af ​​dem kører: Tasker beder dig om at godkende forbindelsen flere gange for én lagring, og en prompt, der ikke bliver udnyttet, mislykkes.\n\nDu skal afslutte og genstarte Tasker for at se en importeret opgave i Tasker-brugergrænsefladen."
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Dette vil skrive profilen som en selvstændig fil på Android-enheden under /Tasker/profiler.\n\nIP-adressen og porten skal matche Android-enhedens Tasker-serverindstillinger.\n\nSe Android-enheden, mens dette kører: Tasker beder dig om at godkende forbindelsen flere gange for én lagring, og en prompt, der ikke bliver udnyttet, mislykkes."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Dette vil skrive profilen som en selvstændig fil på din Android-enhed under /Tasker/profiler -- den importerer den ikke til Taskers live-konfiguration.\n\n'Http Server Eksempel' Tasker-projektet (http://spoo.me/http_svr_example) skal være installeret og aktivt på Android-enheden, mens serveren kører (se README's bemærkninger til direkte XML-hentning).\n\nAndroid-enheden skal være på det samme netværk, og IP-adressen og porten skal matche dens Tasker-serverindstillinger.\n\nSe Android-enheden, mens dette kører: Tasker beder dig om at godkende forbindelsen flere gange for én lagring, og en prompt, der ikke bliver udnyttet, mislykkes."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Dette vil skrive profilen som en selvstændig fil på din Android-enhed under /Tasker/profiler -- den importerer den ikke til Taskers live-konfiguration.\n\nTasker-projektet 'Http-servereksempel' skal være installeret og aktivt på Android-enheden, mens serveren kører (se README's bemærkninger om direkte XML-hentning).\n\nAndroid-enheden skal være på det samme netværk, og IP-adressen og porten skal matche dens Tasker-serverindstillinger.\n\nSe Android-enheden, mens dette kører: Tasker beder dig om at godkende forbindelsen flere gange for én lagring, og en prompt, der ikke bliver udnyttet, mislykkes."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Dette vil skrive projektet og alt i det -- hver profil og opgave -- som en selvstændig fil på din Android-enhed under /Tasker/projekter -- det importerer det ikke til Taskers live-konfiguration.\n\nTasker-projektet 'Http Server Eksempel' skal være installeret og aktivt på Android-enheden, mens serveren kører.\n\nAndroid-enheden skal være på det samme netværk, og IP-adressen og porten skal matche dens Tasker-serverindstillinger.\n\nSe Android-enheden, mens dette kører: Tasker beder dig om at godkende forbindelsen flere gange for én lagring, og en prompt, der ikke bliver udnyttet, mislykkes."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Dette vil skrive projektet og alt i det som en selvstændig fil på Android-enheden under /Tasker/projects.\n\nIP-adressen og porten skal matche Android-enhedens Tasker-serverindstillinger.\n\nSe Android-enheden, mens dette kører: Tasker beder dig om at godkende forbindelsen flere gange for én lagring, og en prompt, der ikke bliver udnyttet, mislykkes."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Dette vil skrive scenen som en selvstændig fil på Android-enheden under /Tasker/scener.\n\nIP-adressen og porten skal matche Android-enhedens Tasker-serverindstillinger.\n\nSe Android-enheden, mens dette kører: Tasker beder dig om at godkende forbindelsen flere gange for én lagring, og en prompt, der ikke bliver udnyttet, mislykkes."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Dette vil skrive scenen som en selvstændig fil på din Android-enhed under /Tasker/scener -- den importerer den ikke til Taskers live-konfiguration.\n\nTasker-projektet 'Http Server Eksempel' skal være installeret og aktivt på Android-enheden, mens serveren kører.\n\nAndroid-enheden skal være på det samme netværk, og IP-adressen og porten skal matche dens Tasker-serverindstillinger.\n\nSe Android-enheden, mens dette kører: Tasker beder dig om at godkende forbindelsen flere gange for én lagring, og en prompt, der ikke bliver udnyttet, mislykkes."
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Dette vil skrive opgaven som en selvstændig fil på Android-enheden under /Tasker/opgaver.\n\nIP-adressen og porten skal matche Android-enhedens Tasker-serverindstillinger.\n\nSe Android-enheden, mens dette kører: Tasker beder dig om at godkende forbindelsen flere gange for én lagring, og en prompt, der ikke bliver udnyttet, mislykkes."
+
+msgid "Verify"
+msgstr "Verificere"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "Bekræftelse mislykkedes – intet blev sendt"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "Se din Android-enhed: Tasker vil bede dig om at godkende forbindelsen flere gange."
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "Din Android-enhed blev ikke kontaktet, og intet på den blev ændret.  Den indlæste konfiguration er også uberørt -- dette er en kontrol af, hvad der var ved at blive skrevet, ikke på hvad der er på enheden."

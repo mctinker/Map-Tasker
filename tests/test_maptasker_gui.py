@@ -1657,6 +1657,62 @@ async def test_a_task_file_write_reports_where_it_landed(monkeypatch, event_hand
 
 
 @pytest.mark.asyncio
+async def test_a_save_to_android_tells_the_user_to_watch_the_device(monkeypatch, event_handler, task_dialog_refs):
+    """Tasker's HTTP server prompts on the phone per request rather than once per client,
+    so one save puts several authorization prompts up -- and an unanswered one times out
+    into a failure that reads like an unreachable device.  The warning has to come out
+    before the requests do, not with the result, or the user reads it after the prompts
+    have already gone."""
+    calls = _patch_task_file_path(monkeypatch)
+
+    await _save_task_file(event_handler, task_dialog_refs)
+
+    warned = [
+        index
+        for index, (message, kind) in enumerate(calls["notify"])
+        if kind == "warning" and "Watch your Android device" in message
+    ]
+    assert warned, calls["notify"]
+    done = [index for index, (_message, kind) in enumerate(calls["notify"]) if kind == "positive"]
+    assert warned[0] < done[0]
+
+
+def test_every_save_to_android_path_warns_about_the_device_prompts() -> None:
+    """The warning belongs to all eight buttons, not the one above -- and the way it stops
+    being on all eight is a ninth handler written by copying one of them.  Reading the
+    handlers themselves is what catches that; a behavioural test per handler would need
+    each one's whole fixture and would still only cover the eight that exist today."""
+    import ast
+    import inspect
+
+    from maptasker.src import userintr
+
+    handlers = {
+        "save_task_to_android_event",
+        "save_task_to_android_file_event",
+        "save_profile_to_android_event",
+        "import_profile_into_tasker_event",
+        "save_project_to_android_event",
+        "import_project_into_tasker_event",
+        "save_scene_to_android_event",
+        "import_scene_into_tasker_event",
+    }
+    tree = ast.parse(inspect.getsource(userintr))
+    warns = {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.AsyncFunctionDef)
+        and node.name in handlers
+        and any(
+            isinstance(call.func, ast.Name) and call.func.id == "notify_watch_android_device"
+            for call in ast.walk(node)
+            if isinstance(call, ast.Call)
+        )
+    }
+    assert warns == handlers, f"no device warning in: {sorted(handlers - warns)}"
+
+
+@pytest.mark.asyncio
 async def test_a_task_file_is_not_clobbered_without_asking(monkeypatch, event_handler, task_dialog_refs):
     """/upload overwrites silently and answers 200 either way, so the check has to happen
     here.  Nothing is uploaded until the prompt is answered -- the same guard the Profile and
@@ -1799,9 +1855,11 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
     args, kwargs = offered[0]
     assert args[1] == "Opener"  # staged as Opener.tsk.xml, its own name
     assert kwargs["route"] is deviceinv.OPEN_TASK_ROUTE
+    # Any warning, not the first: every Save To Android / Import Into Tasker path now
+    # opens with the "watch your device" heads-up (guiutils.notify_watch_android_device).
     handed = [message for message, kind in calls["notify"] if kind == "warning"]
     assert handed, calls["notify"]
-    assert "Open with" in handed[0]
+    assert any("Open with" in message for message in handed), handed
 
 
 @pytest.mark.asyncio

@@ -22,6 +22,7 @@ from maptasker.src import (
     presave,
     profedit,
     projedit,
+    roundtrip,
     sceneedit,
     sessundo,
     taskedit,
@@ -61,6 +62,7 @@ from maptasker.src.guiutils import (
     get_xml,
     is_no_selection,
     list_tasker_objects,
+    notify_watch_android_device,
     ping_android_device,
     refresh_object_action_buttons,
     refresh_tasker_object_pulldowns,
@@ -100,6 +102,7 @@ from maptasker.src.guiwins import (
     build_object_properties_dialog,
     build_overwrite_confirm_dialog,
     build_rename_dialog,
+    build_round_trip_report_dialog,
     build_save_profile_to_android_dialog,
     build_save_project_to_android_dialog,
     build_save_scene_to_android_dialog,
@@ -1735,6 +1738,41 @@ def _notify_if_plugin_needs_configuration(element: object, name: str) -> None:
     warning = taskedit.tasker_configuration_warning(element, name)
     if warning:
         ui.notify(warning, type="warning", multi_line=True, timeout=8000)
+
+
+def _round_trip_verified(
+    android_field_refs: dict,
+    verifier: Callable[[], roundtrip.RoundTripReport],
+) -> bool:
+    """The Save To Android panel's "Verify" checkbox, answered.  False stops the save.
+
+    Called by all eight Save To Android / Import Into Tasker handlers, at the same point in
+    each: after the dialog's edits have been applied (there is nothing meaningful to render
+    before that) and BEFORE ping_android_device, so a document that fails never reaches the
+    device at all -- not even the reachability probe.  What it checks and why is
+    roundtrip.py's header.
+
+    Unticked is the old behaviour exactly: no render, no parse, no message.  `verifier` is a
+    callable rather than a report so that stays true -- the check costs nothing when it is
+    not wanted, including the second render it would otherwise do to produce one.
+
+    A pass is worth saying out loud.  A user who ticked this did so because they wanted to
+    be told, and "Verified: 5 objects came back identical" ahead of the save's own success
+    message is the difference between a check that ran and a checkbox that did nothing.
+    """
+    checkbox = android_field_refs.get("verify")
+    if checkbox is None or not checkbox.value:
+        return True
+
+    report = verifier()
+    if report.ok:
+        ui.notify(report.summary(), type="positive")
+        return True
+
+    logger.error(f"Save To Android refused by Verify: {report.summary()}")
+    ui.notify(report.summary(), type="negative")
+    build_round_trip_report_dialog(report)
+    return False
 
 
 def _reload_saved_copy_and_refresh(gui: MyGui, new_file_path: str) -> tuple[bool, str]:
@@ -3391,6 +3429,120 @@ class MapTaskerEventHandlers:
             return
         _write()
 
+    def stash_scene_event_task_edits(
+        self,
+        edited_task: taskedit.EditableTask,
+        field_refs: dict,
+    ) -> None:
+        """Snapshot an Event tab's argument and label widgets into the Task copy they belong
+        to, WITHOUT touching the loaded configuration.
+
+        Called whenever the panel holding those widgets is about to be torn down -- a sub-tab
+        switch, a Property Type change, or Ok (see guiwins._build_scene_properties_dialog's
+        flush_event_task_edits).  The copy outlives the widgets; the widgets do not survive
+        the rebuild, so anything typed and not snapshotted here is gone.  Cancel does not run
+        it: the copies it would write onto are the ones being thrown away.
+
+        Errors are swallowed rather than notified.  This runs on navigation, not on a save:
+        complaining about a half-typed number because the user clicked another sub-tab would
+        be noise, and the same validation runs again -- and does report -- when the edits are
+        actually applied.
+        """
+        taskedit.apply_action_edits_to_task(edited_task, _task_arg_values(field_refs))
+
+    def keep_scene_event_task_edits(
+        self,
+        bound_tasks: dict,
+        pending_tasks: dict,
+        bind: Callable[[str, str], None],
+    ) -> bool:
+        """Put every Task edited under a Scene Properties Event tab into the loaded
+        configuration -- what Ok does, so that nothing done in there is silently dropped.
+
+        THIS IS THE HALF OF THAT DIALOG THAT DOES NOT WRITE THROUGH.  Everything else in it
+        reaches the Scene copy as it is typed, so an exit that discarded the Task half was a
+        trap: add an action, press the only button there was, and the action was gone.  Ok now
+        keeps the lot, and Cancel drops it deliberately rather than by omission (see
+        discard_scene_properties_event).
+
+        Two kinds are kept, and each already has a path of its own:
+
+          * a copy of a Task that was already bound -- applied over the live one
+            (apply_scene_key_task_event's half), and
+          * a Task composed under an event that had none -- registered and bound
+            (create_scene_event_task_event's half), but only if it has actions in it.  An
+            empty one is what an untouched sub-tab leaves behind, and creating a Task nobody
+            put anything in would be an odd thing for a Close to do.
+
+        `bind` is handed (event tag, new Task id) for each Task created, so this stays out of
+        the business of what a Scene event binding looks like.
+
+        Returns False if anything was rejected -- the caller keeps the dialog open, since the
+        errors are already notified and the edits are still there to fix.
+        """
+        kept = True
+        for edited_task, field_refs in bound_tasks.values():
+            arg_values = _task_arg_values(field_refs)
+            errors = taskedit.apply_action_edits_to_task(edited_task, arg_values)
+            if errors:
+                for error in errors:
+                    ui.notify(error, type="negative")
+                kept = False
+                continue
+            taskedit.apply_edited_task_to_live_tree(edited_task)
+
+        for tag, (edited_task, field_refs) in list(pending_tasks.items()):
+            if not edited_task.actions:
+                continue
+            if self.create_scene_event_task_event(
+                edited_task,
+                field_refs,
+                lambda new_id, event_tag=tag: bind(event_tag, new_id),
+            ):
+                pending_tasks.pop(tag, None)
+            else:
+                kept = False
+
+        return kept
+
+    def discard_scene_properties_event(
+        self,
+        scene_element: object,
+        properties_snapshot: object,
+        geometry_snapshot: dict,
+        field_refs: dict,
+    ) -> None:
+        """Cancel in the Scene Properties dialog: put the Scene's <PropertiesElement> back the
+        way that dialog found it, and its geometry boxes with it.
+
+        A REVERT RATHER THAN A "DON'T APPLY", because there is nothing waiting to be applied.
+        Every field in there writes through to the Scene copy as it is typed -- which is what
+        the Legacy designer does everywhere -- so the only way for Cancel to mean anything is
+        to put the snapshot taken when the dialog opened back over the top.  See
+        sceneedit.legacy_properties_restore, which also explains why the snapshot is of the
+        properties alone and not of the whole Scene.
+
+        The geometry is separate because it is not in that element: those four boxes drive the
+        Scene dialog's own inputs (guiwins._render_scene_geometry), and a value written into
+        one of those is what the save would read, so reverting the element alone would leave a
+        cancelled size change still in force.
+
+        The Task edits the dialog was holding are dropped by its own Cancel, which lets go of
+        the copies; nothing here can reach them.  Whatever has already been put into the loaded
+        configuration by "Apply to Task" or "Create Task" stays there -- Undo takes those back.
+        """
+        reverted = sceneedit.legacy_properties_restore(scene_element, properties_snapshot)
+        for key, value in geometry_snapshot.items():
+            widget = field_refs.get(key)
+            if widget is not None and str(widget.value) != value:
+                widget.value = value
+                reverted = True
+
+        # Silent when there was nothing to take back, the same as every other Cancel in this
+        # app: a notification for closing a window that was only looked at is noise.
+        if reverted:
+            ui.notify(translate_string("Scene properties changes discarded."), type="info")
+
     def create_scene_event_task_event(
         self,
         edited_task: taskedit.EditableTask,
@@ -3538,8 +3690,18 @@ class MapTaskerEventHandlers:
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
+        # The panel's "Verify" checkbox, answered before the device is touched at all:
+        # a document that cannot be read back unchanged is refused here rather than
+        # written half-way there.  Costs nothing when the box is unticked.
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_task(edited_task)):
+            return
+
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
+
+        # Everything from here on is a request the device answers with an authorization
+        # prompt of its own -- see guiutils.notify_watch_android_device.
+        notify_watch_android_device()
 
         # Reuse a cached API key for this same device -- skips its GET /api/auth
         # confirmation prompt. taskedit.save_task_to_android falls back to fetching
@@ -3737,7 +3899,9 @@ class MapTaskerEventHandlers:
         Tasker (see save_task_to_android_event).
 
         /upload carries no Authorization header, so there is no cached-key handling here the
-        way the import path has -- and no authorization prompt on the device either.
+        way the import path has.  That is the API key only: Tasker still puts its own
+        connection-authorization prompt on the device, several times over one save, which is
+        what notify_watch_android_device warns about.
 
         The android prompt dialog stays open on any error, so the user's connection details
         are not lost; on success both it and the parent Edit/Add Task dialog close.
@@ -3749,8 +3913,18 @@ class MapTaskerEventHandlers:
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
+        # The panel's "Verify" checkbox, answered before the device is touched at all:
+        # a document that cannot be read back unchanged is refused here rather than
+        # written half-way there.  Costs nothing when the box is unticked.
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_task(edited_task)):
+            return
+
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
+
+        # Everything from here on is a request the device answers with an authorization
+        # prompt of its own -- see guiutils.notify_watch_android_device.
+        notify_watch_android_device()
 
         task_name = field_refs["name"].value.strip()
 
@@ -4574,8 +4748,18 @@ class MapTaskerEventHandlers:
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
+        # The panel's "Verify" checkbox, answered before the device is touched at all:
+        # a document that cannot be read back unchanged is refused here rather than
+        # written half-way there.  Costs nothing when the box is unticked.
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_scene(edited_scene.scene_name)):
+            return
+
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
+
+        # Everything from here on is a request the device answers with an authorization
+        # prompt of its own -- see guiutils.notify_watch_android_device.
+        notify_watch_android_device()
 
         def _upload() -> None:
             # Keep whatever is already at that path before /upload writes over it.  The
@@ -5136,8 +5320,18 @@ class MapTaskerEventHandlers:
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
+        # The panel's "Verify" checkbox, answered before the device is touched at all:
+        # a document that cannot be read back unchanged is refused here rather than
+        # written half-way there.  Costs nothing when the box is unticked.
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_profile(edited_profile)):
+            return
+
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
+
+        # Everything from here on is a request the device answers with an authorization
+        # prompt of its own -- see guiutils.notify_watch_android_device.
+        notify_watch_android_device()
 
         profile_name = field_refs["name"].value.strip()
 
@@ -5348,8 +5542,18 @@ class MapTaskerEventHandlers:
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
+        # The panel's "Verify" checkbox, answered before the device is touched at all:
+        # a document that cannot be read back unchanged is refused here rather than
+        # written half-way there.  Costs nothing when the box is unticked.
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_profile(edited_profile)):
+            return
+
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
+
+        # Everything from here on is a request the device answers with an authorization
+        # prompt of its own -- see guiutils.notify_watch_android_device.
+        notify_watch_android_device()
 
         profile_name = field_refs["name"].value.strip()
         profile_xml = profedit.render_standalone_profile_xml(edited_profile).encode("utf-8")
@@ -5672,8 +5876,18 @@ class MapTaskerEventHandlers:
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
+        # The panel's "Verify" checkbox, answered before the device is touched at all:
+        # a document that cannot be read back unchanged is refused here rather than
+        # written half-way there.  Costs nothing when the box is unticked.
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_scene(edited_scene.scene_name)):
+            return
+
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
+
+        # Everything from here on is a request the device answers with an authorization
+        # prompt of its own -- see guiutils.notify_watch_android_device.
+        notify_watch_android_device()
 
         scene_name = edited_scene.scene_name
 
@@ -5733,8 +5947,18 @@ class MapTaskerEventHandlers:
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
+        # The panel's "Verify" checkbox, answered before the device is touched at all:
+        # a document that cannot be read back unchanged is refused here rather than
+        # written half-way there.  Costs nothing when the box is unticked.
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_project(edited_project.project_name)):
+            return
+
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
+
+        # Everything from here on is a request the device answers with an authorization
+        # prompt of its own -- see guiutils.notify_watch_android_device.
+        notify_watch_android_device()
 
         project_name = edited_project.project_name
         project_xml = projedit.render_standalone_project_xml(project_name).encode("utf-8")
@@ -5796,8 +6020,18 @@ class MapTaskerEventHandlers:
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
 
+        # The panel's "Verify" checkbox, answered before the device is touched at all:
+        # a document that cannot be read back unchanged is refused here rather than
+        # written half-way there.  Costs nothing when the box is unticked.
+        if not _round_trip_verified(android_field_refs, lambda: roundtrip.verify_project(edited_project.project_name)):
+            return
+
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
+
+        # Everything from here on is a request the device answers with an authorization
+        # prompt of its own -- see guiutils.notify_watch_android_device.
+        notify_watch_android_device()
 
         def _upload() -> None:
             # Keep whatever is already at that path before /upload writes over it.  The

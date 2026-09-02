@@ -2670,3 +2670,198 @@ msgstr "Gli icone utilizzate da qualche parte nella configurazione caricata, ins
 
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "Per ulteriori informazioni, vedere MapTasker [riferimento comandi](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).\n"
+
+msgid "(anonymous Task, stored in the Scene)"
+msgstr "(attività anonima, memorizzata nella scena)"
+
+msgid "(new variable)"
+msgstr "(nuova variabile)"
+
+msgid "(no label)"
+msgstr "(nessuna etichetta)"
+
+msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
+msgstr "Un elenco separato da virgole delle schede da visualizzare nella barra delle azioni. Selezionandone uno si attiva l'attività Tab Tap della scheda Evento."
+
+msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
+msgstr "Un elenco separato da barre delle chiavi da gestire, per nome o per codice, ad es. indietro/78/a. Qualsiasi altra chiave viene trasmessa al sistema.\nLascialo vuoto per gestire ogni chiave."
+
+msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Lo stile della barra delle azioni, il titolo, il sottotitolo, l'icona e le etichette delle schede si applicano solo a un'attività. Sono ancora archiviati e vengono visualizzati se si passa da Tipo di proprietà ad Attività."
+
+msgid "Action bar"
+msgstr "Barra delle azioni"
+
+msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
+msgstr "Gli elementi della barra delle azioni si applicano solo a un'attività. Sono ancora archiviati e vengono visualizzati se si passa da Tipo di proprietà ad Attività."
+
+msgid "Actions of the"
+msgstr "Azioni del"
+
+msgid "Add Variable"
+msgstr "Aggiungi variabile"
+
+msgid "Add an action bar item"
+msgstr "Aggiungi un elemento della barra delle azioni"
+
+msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
+msgstr "Aggiunge questa attività alla configurazione caricata e punta questo evento su di essa, come \"Ok\" nella finestra di dialogo Aggiungi attività: nulla viene scritto su un file e nulla viene inviato ad Android.  Ok, lo fa anche per te, quindi serve solo per crearlo senza chiuderlo.\nFino ad allora l'attività esiste solo in questa finestra e Annulla la scarta. Successivamente è un'attività come le altre: Annulla ripristina l'associazione ma non l'attività, mentre Annulla riprende entrambe."
+
+msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
+msgstr "Qualsiasi tasto gestito dalla scena non viene trasmesso al sistema: come una scena impedisce al tasto Indietro di chiuderla.\nScritto nel modo in cui lo scrive Tasker: un <stopEvent> all'interno del <LinkClickFilter> della scena, creato quando questo è selezionato e portato via di nuovo quando è deselezionato e non rimane nient'altro al suo interno."
+
+msgid "Apply to Task"
+msgstr "Applica all'attività"
+
+msgid "Changes kept for Task"
+msgstr "Modifiche mantenute per l'attività"
+
+msgid "Create Task"
+msgstr "Crea attività"
+
+msgid "Created Task"
+msgstr "Attività creata"
+
+msgid "Display Name"
+msgstr "Nome da visualizzare"
+
+msgid "Exported Value"
+msgstr "Valore esportato"
+
+msgid "Icon"
+msgstr "Icona"
+
+msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
+msgstr "Mantiene tutto, comprese le azioni di qualsiasi attività modificata nella scheda Evento.\nUn'attività composta in un evento che non ne aveva nessuno viene creata e associata se si inseriscono delle azioni al suo interno. Annulla ripristina la modifica di un'attività."
+
+msgid "Keys"
+msgstr "Chiavi"
+
+msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
+msgstr "Carica prima una configurazione di Tasker: una nuova attività ne ha bisogno per ottenere un ID."
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "New Task Name"
+msgstr "Nuovo nome attività"
+
+msgid "No Task matches."
+msgstr "Nessuna attività corrisponde."
+
+msgid "No action bar items."
+msgstr "Nessun elemento della barra delle azioni."
+
+msgid "No variables."
+msgstr "Nessuna variabile."
+
+msgid "Nothing -- this event fires no Task."
+msgstr "Niente: questo evento non attiva alcuna attività."
+
+msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
+msgstr "Non è ancora stato vincolato nulla, quindi queste azioni vengono inserite in una nuova attività. Viene creato, e questo evento lo indica, quando si preme il pulsante in basso o Ok. Annulla lo scarta."
+
+msgid "Nothing set."
+msgstr "Niente di impostato."
+
+msgid "Prompt"
+msgstr "Richiesta"
+
+msgid "Properties kept."
+msgstr "Proprietà mantenute."
+
+msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
+msgstr "Inserisce subito queste modifiche all'azione nella configurazione caricata, senza chiudere, come con \"Ok\" nella finestra di dialogo Modifica attività.  Ok, lo fa anche per te qui, quindi è solo per mantenerli a metà modifica.\nNulla viene scritto su un file e nulla viene inviato ad Android. Questa attività non fa parte della scena, quindi né l'annullamento di questa finestra né la finestra di dialogo della scena ripristinano queste modifiche una volta apportate. Annulla lo fa."
+
+msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
+msgstr "Riporta queste proprietà allo stato in cui si trovavano all'apertura della finestra ed elimina le azioni di qualsiasi attività modificata nella scheda Evento.\nUn'attività già inserita nella configurazione tramite il proprio pulsante - \"Applica all'attività\" o \"Crea attività\" - rimane lì. Annulla li riprende."
+
+msgid "Remove Variable"
+msgstr "Rimuovi variabile"
+
+msgid "Same as Value"
+msgstr "Uguale a Valore"
+
+msgid "Scene properties changes discarded."
+msgstr "Le modifiche alle proprietà della scena vengono eliminate."
+
+msgid "Search Tasks"
+msgstr "Compiti di ricerca"
+
+msgid "Stop Event"
+msgstr "Evento interrotto"
+
+msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
+msgstr "L'icona a forma di casa nella parte superiore a sinistra della barra delle azioni. Toccandola, si avvia il compito \"Home Tap\" nella scheda \"Eventi\"."
+
+msgid "There are no Tasks in this configuration."
+msgstr "Non ci sono attività definite in questa configurazione."
+
+msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
+msgstr "Questa attività è memorizzata all'interno della scena e non è presente nella lista delle attività, pertanto non è possibile modificarla qui. Rimane intatta."
+
+msgid "This item has no action."
+msgstr "Questo elemento non ha alcuna funzione o azione."
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
+msgstr "Nella sezione \"Valore esportato\", se disabiliti l'opzione \"Uguale al valore\", potrai personalizzare quale valore verrà esportato quando condividi la variabile con altri utenti.\nPuoi lasciare vuoto il campo \"Valore esportato\" se desideri che l'esportazione non contenga alcun valore, oppure puoi impostare il valore che desideri utilizzare sempre per le esportazioni.\nSe abiliti l'opzione \"Uguale al valore\", verrà utilizzato il valore corrente della variabile durante l'esportazione."
+
+msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
+msgstr "La posizione in cui un elemento viene visualizzato dipende da ciò che gli viene assegnato: un'icona da sola è sempre nella barra principale, un'icona e un'etichetta vengono visualizzate se c'è spazio, e un'etichetta da sola è sempre nel menu di overflow (i tre punti in alto a destra in Tasker)."
+
+msgid "fires a Task on"
+msgstr "avvia un'attività"
+
+msgid "is not in this backup, so there are no actions to show."
+msgstr "non è presente in questa copia di backup, quindi non ci sono azioni da visualizzare."
+
+msgid "no editable arguments."
+msgstr "nessun argomento modificabile."
+
+msgid "swallows the key press"
+msgstr "inghiotte la pressione del tasto"
+
+msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
+msgstr "Rilegge l'XML prima che venga inviato e rifiuta il salvataggio se qualcosa è cambiato durante il processo.\n\nCiò che questo rileva è la classe di fallimento che nient'altro nel percorso di salvataggio può fare: un valore su cui lo scrittore e il lettore di questo programma non sono d'accordo - un ritorno a capo all'interno di un nome, diciamo, che viene scritto come digitato e riletto come una nuova riga.  Il caricamento risponde 200 e il file sul dispositivo corrisponde al file inviato, perché entrambi sono già sbagliati.\n\nOgni oggetto visualizzato viene confrontato con quello nella configurazione caricata, inclusi i profili, le scene e le attività raggruppati che non hai modificato.  Non viene inviato nulla se qualcuno di essi differisce; ricevi un rapporto che dice quale e dove.\n\nCosta una frazione di secondo e non contatta nulla: l'intero controllo viene eseguito qui, prima che il dispositivo venga toccato."
+
+msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
+msgstr "Questo apre una scelta tra due: scrivere l'attività come file autonomo sul tuo dispositivo Android in /Tasker/tasks o importarla direttamente nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione (vedere le note sul recupero XML diretto del README) e Tasker deve essere 6.2 o versione successiva.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre uno dei due è in esecuzione: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce.\n\nÈ necessario uscire e riavviare Tasker per visualizzare un'attività importata nell'interfaccia utente di Tasker."
+
+msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Questo scriverà il profilo come file autonomo sul dispositivo Android, in /Tasker/profiles.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Questo scriverà il profilo come file autonomo sul tuo dispositivo Android, in /Tasker/profiles - non lo importerà nella configurazione live di Tasker.\n\nIl progetto Tasker 'Http Server Esempio' (http://spoo.me/http_svr_example) deve essere installato e attivo sul dispositivo Android, con il server in esecuzione (vedere le note sul recupero XML diretto del README).\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
+
+msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Questo scriverà il profilo come file autonomo sul tuo dispositivo Android, in /Tasker/profiles - non lo importerà nella configurazione live di Tasker.\n\nIl progetto Tasker 'Http Server Esempio' deve essere installato e attivo sul dispositivo Android, con il server in esecuzione (vedere le note sul recupero XML diretto del README).\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
+
+msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Questo scriverà il progetto e tutto ciò che contiene - ogni profilo e attività - come file autonomo sul tuo dispositivo Android, in /Tasker/projects - non lo importerà nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
+
+msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Questo scriverà il progetto, e tutto ciò che contiene, come file autonomo sul dispositivo Android, in /Tasker/projects.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
+
+msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Questo scriverà la scena come file autonomo sul dispositivo Android, in /Tasker/scene.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
+
+msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Questo scriverà la scena come file autonomo sul tuo dispositivo Android, in /Tasker/scene - non la importerà nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
+
+msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
+msgstr "Questo scriverà l'attività come file autonomo sul dispositivo Android, in /Tasker/tasks.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
+
+msgid "Verify"
+msgstr "Verificare"
+
+msgid "Verify Failed -- Nothing Was Sent"
+msgstr "Verifica non riuscita: non è stato inviato nulla"
+
+msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
+msgstr "Guarda il tuo dispositivo Android: Tasker ti chiederà più volte di autorizzare la connessione."
+
+msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
+msgstr "Il tuo dispositivo Android non è stato contattato e non è stato modificato nulla su di esso.  Anche la configurazione caricata non è stata modificata: si tratta di un controllo su ciò che stava per essere scritto, non su ciò che è presente sul dispositivo."
