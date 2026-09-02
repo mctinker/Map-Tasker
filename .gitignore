@@ -5,6 +5,7 @@
 !**/src/*.py
 !**/tests/*.py
 !docs/
+!.github/
 
 # unignore files: files and folders to not ignore
 !.gitignore
@@ -13,6 +14,8 @@
 !README.md
 !README_PyPl.md
 !pyproject.toml
+# Tracked so CI can `uv sync --locked` and get byte-identical dependencies.
+!uv.lock
 !maptasker
 !tests
 dmg_builder
@@ -22,3 +25,11 @@ dmg_builder
 # recursively re-ignore
 __pycache__
 .claude
+
+# test / lint tooling artifacts
+.pytest_cache
+.ruff_cache
+.coverage
+.coverage.*
+coverage.xml
+htmlcov

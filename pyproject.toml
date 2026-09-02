@@ -80,16 +80,24 @@ explicit = true
 packages = ["maptasker"]
 
 [dependency-groups]
-test = ["pytest>=7.3.2", "pytest-mock"]
+test = [
+    "pytest>=7.3.2",
+    "pytest-mock",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.0.0",
+]
+# 'black' was removed: [tool.ruff.format] is the formatter for this project, and
+# running both against the same files makes them fight over the same lines.
 dev = [
     "ai-translator>=0.1.0",
-    "black>=26.5.1",
     "deep-translator>=1.11.4",
     "ollama>=0.6.2",
     "pip-autoremove>=0.10.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.0.0",
     "pytest-mock>=3.15.1",
+    "ruff>=0.16.5",
     "vulture>=2.16",
 ]
 
@@ -159,10 +167,22 @@ select = [
 
 ignore = [
     "PLR2004",  # Constant value comparison
-    "SIM115",   # Missing "with" on oepn file
+    "SIM115",   # Missing "with" on open file
     "S606",     # No shell
     "B009",     # Do not perform function calls in argument defaults
     "T201",     # Print found
+    # -- House style, not debt -------------------------------------------------
+    # This project imports ElementTree as 'ET' (and as 'ETW' where a writer-side
+    # alias is wanted). Ruff wants one specific alias and objects to the casing of
+    # both. 16 occurrences, all deliberate.
+    "ICN001",   # unconventional-import-alias
+    "N814",     # camelcase-imported-as-constant
+    "N817",     # camelcase-imported-as-acronym
+    # -- Formatter conflict ----------------------------------------------------
+    # Ruff emits a startup warning when COM812 is selected alongside its formatter,
+    # because the two disagree about trailing commas. The formatter already adds
+    # them, so the lint rule is redundant as well as conflicting.
+    "COM812",   # missing-trailing-comma
     ]
 
 [tool.ruff.lint.pycodestyle]
@@ -177,9 +197,68 @@ multiline-quotes = 'double'
 max-complexity = 20
 
 [tool.ruff.lint.per-file-ignores]
-# https://beta.ruff.rs/docs/rules/
+# https://docs.astral.sh/ruff/rules/
 '__init__.py' = ['F401','F403','F405',]
 'tests/*' = ['ANN', 'ARG', 'INP001', 'S101',]
+
+# ---------------------------------------------------------------------------
+# Deliberate, not debt. These stay.
+# ---------------------------------------------------------------------------
+# bundle.py embeds EN DASH (U+2013) in user-facing description text. That is
+# correct typography, not a typo for a hyphen. 68 occurrences.
+'maptasker/src/bundle.py' = ['RUF001']
+# format.py parses CSS selectors; a local named 'token' holding ">" trips the
+# hardcoded-password heuristic. False positive.
+# (S105 is listed in the backlog block below alongside that file's real items.)
+
+# ---------------------------------------------------------------------------
+# LINT BACKLOG -- 195 pre-existing violations across 36 files.
+#
+# Ruff was configured in this project but never installed, so none of it had
+# ever run. Rather than ignore the rules globally -- which would let new code
+# introduce the same problems anywhere -- each rule is switched off only for the
+# specific file that already violates it. Every other file, and every new file,
+# is fully linted, so CI fails on any NEW violation.
+#
+# This list is a ratchet: fix a file, delete its line. Do not add to it.
+# Regenerate/verify with:  ruff check --statistics
+# ---------------------------------------------------------------------------
+'maptasker/src/aiutils.py' = ['ISC004']
+'maptasker/src/bldargs.py' = ['PERF401']
+'maptasker/src/clip.py' = ['PGH004']
+'maptasker/src/colors.py' = ['D100', 'PLR1722']
+'maptasker/src/condition.py' = ['RET504']
+'maptasker/src/cria.py' = ['ANN401', 'B904', 'BLE001', 'D101', 'D102', 'D103', 'D105', 'D107', 'EM101', 'PLW0108', 'RET504', 'RUF100', 'S603', 'S607', 'SIM210', 'TRY003', 'TRY300']
+'maptasker/src/deprecate.py' = ['D100']
+'maptasker/src/deviceinv.py' = ['ANN201', 'F811', 'RUF100']
+'maptasker/src/diagintr.py' = ['PLW2901']
+'maptasker/src/diagram.py' = ['PLW2901', 'RUF100']
+'maptasker/src/diffload.py' = ['RUF100']
+'maptasker/src/format.py' = ['ARG002', 'C901', 'PLR0912', 'S105']
+'maptasker/src/getfile.py' = ['ANN201', 'ANN202', 'D101', 'D102', 'N801', 'PLC0415']
+'maptasker/src/getputer.py' = ['PERF403']
+'maptasker/src/guiwins.py' = ['ARG001', 'C901', 'ISC004', 'PLR0912', 'PLR0915', 'RUF100', 'SIM117', 'SLF001']
+'maptasker/src/kidapp.py' = ['D100']
+'maptasker/src/mapai.py' = ['F811']
+'maptasker/src/mapit.py' = ['ANN001', 'ARG001']
+'maptasker/src/mapjump.py' = ['I001']
+'maptasker/src/mapswap.py' = ['C901', 'PLR0912']
+'maptasker/src/maputil2.py' = ['A004']
+'maptasker/src/outline.py' = ['PLW2901', 'RUF100', 'SIM102']
+'maptasker/src/prefers.py' = ['ISC001']
+'maptasker/src/profiles.py' = ['ARG001', 'PLC0415']
+'maptasker/src/projects.py' = ['ISC004']
+'maptasker/src/projedit.py' = ['ISC004']
+'maptasker/src/roundtrip.py' = ['D105', 'RUF100']
+'maptasker/src/sceneedit.py' = ['ARG001', 'D102', 'D105', 'D107', 'I001']
+'maptasker/src/sceneview.py' = ['D102', 'D107', 'F541', 'ISC001', 'RUF001', 'RUF100', 'SIM117']
+'maptasker/src/servicec.py' = ['D100']
+'maptasker/src/sessundo.py' = ['DTZ005', 'RUF100']
+'maptasker/src/shelsort.py' = ['D100']
+'maptasker/src/taskedit.py' = ['ANN001', 'ARG001', 'SIM108', 'TC003']
+'maptasker/src/taskerd.py' = ['PLC0415', 'RUF100']
+'maptasker/src/taskflag.py' = ['D100']
+'maptasker/src/userintr.py' = ['F841', 'RUF059']
 
 [tool.ruff.lint.pylint]
 max-args = 15
@@ -200,11 +279,38 @@ docstring-code-format = true
 line-ending = "auto"
 preview = true
 
-[tool.black]
---line-length = 120
-line-length = 120
-
+# NOTE: a local, git-ignored pytest.ini used to shadow this block entirely --
+# pytest.ini outranks pyproject.toml, so these settings never took effect on a
+# developer machine and CI (which has no pytest.ini, it is not in the repo) would
+# have run under different settings. This block is now the single source of truth;
+# delete any leftover local pytest.ini so both run the same way.
 [tool.pytest.ini_options]
-pythonpath = [
-    "."
+pythonpath = ["."]
+testpaths = ["tests"]
+# 52 tests are async and rely on the @pytest.mark.asyncio marker.
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["maptasker"]
+branch = true
+omit = [
+    # Generated/vendored lookup tables, not logic worth covering.
+    "maptasker/assets/json/arg_dict.py",
+    "maptasker/src/actionc.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+# Measured baseline on 754 tests is 37.58% (branch coverage on, omissions below
+# applied). The floor is set a little under that so a per-Python-version
+# difference cannot fail the build, while a real regression does. Raise this as
+# coverage improves -- it is meant to ratchet upward, never down.
+fail_under = 36
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "@(abc\\.)?abstractmethod",
 ]

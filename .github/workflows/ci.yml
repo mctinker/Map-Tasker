@@ -1,0 +1,124 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+# Cancel an in-flight run when the same branch is pushed again.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  test:
+    name: test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # pyproject requires-python = ">=3.11, <4.0"
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install project and test dependencies
+        run: uv sync --locked --group test
+
+      - name: Run tests with coverage
+        run: >
+          uv run --no-sync pytest
+          --cov=maptasker
+          --cov-report=term-missing:skip-covered
+          --cov-report=xml
+          --junitxml=junit-${{ matrix.python-version }}.xml
+
+      - name: Summarise coverage
+        if: always()
+        run: |
+          {
+            echo "### Coverage (Python ${{ matrix.python-version }})"
+            echo
+            # '|| true' because coverage exits 2 when below fail_under; the test
+            # step above is the gate, this step only renders the report.
+            uv run --no-sync coverage report --format=markdown || true
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage and test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports-py${{ matrix.python-version }}
+          path: |
+            coverage.xml
+            junit-${{ matrix.python-version }}.xml
+          if-no-files-found: warn
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Install dev dependencies
+        run: uv sync --locked --group dev
+
+      # Enforcement is scoped by [tool.ruff.lint.per-file-ignores] in pyproject.toml:
+      # the 39 files carrying pre-existing violations are exempted rule-by-rule, so
+      # this gate fails on any NEW violation and on any regression in a clean file.
+      - name: ruff check
+        run: uv run --no-sync ruff check --output-format=github
+
+      # NOT YET ENFORCED. `ruff format --check` currently reports 15 files that
+      # would be reformatted. A format sweep is a large, purely-mechanical diff, so
+      # it belongs in its own commit made against a clean working tree -- several of
+      # those files have in-progress edits today. Once that sweep has landed, delete
+      # this comment and uncomment the step below to lock formatting in.
+      #
+      # - name: ruff format --check
+      #   run: uv run --no-sync ruff format --check
+      - name: ruff format (report only)
+        run: uv run --no-sync ruff format --check || true
+
+  build:
+    name: build distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Build sdist and wheel
+        run: uv build
+
+      - name: Check package metadata
+        run: uvx twine check dist/*
+
+      - name: Upload distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
