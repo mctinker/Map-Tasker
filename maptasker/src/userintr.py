@@ -2912,15 +2912,13 @@ class MapTaskerEventHandlers:
             # Inline Button Row 1 (List XML & Query Help Button)
             with ui.row().classes("w-full items-center justify-between gap-1 mt-2"):
                 gui.list_files_button = (
-                    ui
-                    .button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
+                    ui.button(translate_string("List XML Files"), on_click=gui.event_handlers.list_files_event)
                     .style("background-color: #D62CFF; color: white;")
                     .classes("flex-grow text-xs")
                 )
 
                 gui.list_files_query_button = (
-                    ui
-                    .button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
+                    ui.button("?", on_click=lambda: gui.event_handlers.query_event("listfile"))
                     .style("background-color: #246FB6; color: #ffd941;")
                     .classes("w-10 min-w-[40px] text-xs")
                 )
@@ -2930,8 +2928,7 @@ class MapTaskerEventHandlers:
             # can delete it from this end.
             with ui.row().classes("w-full items-center mt-1"):
                 gui.helper_tasks_button = (
-                    ui
-                    .button(
+                    ui.button(
                         translate_string("List Helper Tasks"),
                         on_click=gui.event_handlers.list_helper_tasks_event,
                     )
@@ -2973,8 +2970,7 @@ class MapTaskerEventHandlers:
             # so clear_android_buttons() then deleted this button while believing it had deleted
             # that one -- leaving the original in place and adding a second one every time.
             gui.set_xml_details_button = (
-                ui
-                .button(
+                ui.button(
                     translate_string("Click Here to Set XML Details"),
                     on_click=gui.event_handlers.fetch_backup_event,
                 )
@@ -7847,8 +7843,7 @@ class MapTaskerEventHandlers:
             if toolbar:
                 with toolbar:
                     gui.font_out_label = (
-                        ui
-                        .label(label_text)
+                        ui.label(label_text)
                         .style(f"font-family: {font_name}; font-size: 14px;")
                         .classes("text-gray-500 italic ml-4")
                     )

@@ -243,8 +243,7 @@ def set_name_to_condition(
         profile_conditions = profile_conditions.replace("&nbsp;&nbsp;", " ", 1)
     # Break out the conditions.
     conditions = (
-        profile_conditions
-        .replace("&nbsp;&nbsp;Configuration Parameter(s):<br>", " ")
+        profile_conditions.replace("&nbsp;&nbsp;Configuration Parameter(s):<br>", " ")
         .replace("&nbsp;", "")
         .split(
             ":",

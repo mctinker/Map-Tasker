@@ -493,8 +493,7 @@ def draw_scene(
     """
     background = _canvas_background(scene_element)
     canvas = (
-        ui
-        .element("div")
+        ui.element("div")
         .classes("mt-scene-canvas")
         .style(
             f"position: relative; width: {width}px; height: {height}px; overflow: hidden;"
@@ -569,8 +568,7 @@ def _draw_selection(sr: str, box: tuple[int, int, int, int], *, handles: bool = 
     """
     x, y, width, height = box
     with (
-        ui
-        .element("div")
+        ui.element("div")
         .classes("mt-selection")
         .props(f'data-sr="{sr}"')
         .style(
@@ -1837,8 +1835,7 @@ def draw_v2_layout(
         _v2_index_paths(root)
 
     frame = (
-        ui
-        .element("div")
+        ui.element("div")
         .classes("mt-scene-canvas")
         .style(
             f"position: relative; width: {width}px; height: {height}px; overflow: hidden;"

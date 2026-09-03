@@ -88,10 +88,9 @@ jobs:
       - name: ruff check
         run: uv run --no-sync ruff check --output-format=github
 
-      # Enforced as of the format sweep. Note that [tool.ruff.format] sets
-      # preview = true, so the canonical formatting here is ruff's *unstable*
-      # style; the ruff dependency is pinned to the 0.16 line in pyproject.toml to
-      # keep this gate reproducible.
+      # Enforced as of the format sweep. [tool.ruff.format] uses ruff's stable
+      # style (preview = false), which only changes on a major release, so this
+      # gate stays reproducible without pinning the ruff version.
       - name: ruff format --check
         run: uv run --no-sync ruff format --check
 

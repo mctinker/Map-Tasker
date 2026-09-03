@@ -186,8 +186,7 @@ def make_action_pretty(task_code_line: str, indent_amt: int) -> str:
     else:
         # Variable Set:  Just split at the ', To=', ", Max Rounding Digits", and ", Structure Output"
         task_code_line = (
-            task_code_line
-            .replace(", To=", f", <br>{indent_amt}{blank * extra_blanks}To=")
+            task_code_line.replace(", To=", f", <br>{indent_amt}{blank * extra_blanks}To=")
             .replace(
                 ", Max Rounding Digits",
                 f", <br>{indent_amt}{blank * extra_blanks}Max Rounding Digits",

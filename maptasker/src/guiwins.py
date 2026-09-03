@@ -572,8 +572,7 @@ _PICKER_ROW_LIMIT = 200
 def _picker_search_input(on_change: Callable[[str], None], placeholder: str) -> ui.input:
     """The search box both pickers below open with."""
     search_input = (
-        ui
-        .input(placeholder=translate_string(placeholder), on_change=lambda e: on_change(str(e.value or "")))
+        ui.input(placeholder=translate_string(placeholder), on_change=lambda e: on_change(str(e.value or "")))
         .props("outlined dense clearable autofocus")
         .classes("w-full mt-2")
     )
@@ -1507,8 +1506,7 @@ def _build_task_action_editor(
                             ),
                         ).props("flat color=blue dense")
                         move_to_input = (
-                            ui
-                            .number(
+                            ui.number(
                                 translate_string("Move to #"),
                                 value=action.act_number,
                                 min=0,
@@ -1791,8 +1789,7 @@ def _android_device_fields(gui: MyGui) -> dict:
         "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
     }
     verify = (
-        ui
-        .checkbox(
+        ui.checkbox(
             translate_string("Verify"),
             value=bool(getattr(gui, "android_verify", False)),
             on_change=lambda event: setattr(gui, "android_verify", bool(event.value)),
@@ -2048,8 +2045,7 @@ def _build_profile_editor_body(
                         ).props("flat color=red dense")
                     else:
                         picker = (
-                            ui
-                            .select(task_names, label=translate_string("Choose a Task"), with_input=True)
+                            ui.select(task_names, label=translate_string("Choose a Task"), with_input=True)
                             .classes("flex-1")
                             .props("dense")
                         )
@@ -2220,8 +2216,7 @@ def _build_profile_editor_body(
                                 value=text_initial(rep_value_key, values["rep_value"]),
                             ).classes("w-24")
                             field_refs[rep_unit_key] = (
-                                ui
-                                .select(
+                                ui.select(
                                     ["Hours", "Minutes"],
                                     value=text_initial(rep_unit_key, values["rep_unit"]),
                                 )
@@ -2347,8 +2342,7 @@ def _build_profile_editor_body(
 
             with ui.row().classes("w-full items-center gap-2 mt-2"):
                 add_type_picker = (
-                    ui
-                    .select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
+                    ui.select(list(profedit.CONDITION_TYPES_ADDABLE), label=translate_string("Condition Type"))
                     .classes("w-48")
                     .props("dense")
                 )
@@ -2368,8 +2362,7 @@ def _build_profile_editor_body(
                     for row in event_rows
                 }
                 event_type_picker = (
-                    ui
-                    .select(event_options, label=translate_string("Event Type"), with_input=True)
+                    ui.select(event_options, label=translate_string("Event Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -2385,8 +2378,7 @@ def _build_profile_editor_body(
                     for row in state_rows
                 }
                 state_type_picker = (
-                    ui
-                    .select(state_options, label=translate_string("State Type"), with_input=True)
+                    ui.select(state_options, label=translate_string("State Type"), with_input=True)
                     .classes("flex-1")
                     .props("dense")
                 )
@@ -3325,8 +3317,7 @@ def _build_add_element_dialog(layout: dict, path: tuple, on_pick: Callable[[str]
         # search box belongs above the chips it filters.  Its on_change closes over
         # search_changed, which is defined below -- resolved at call time, not at creation.
         search_input = (
-            ui
-            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -3535,8 +3526,7 @@ def _build_add_legacy_element_dialog(
                 ui.tooltip("\n\n".join(lines)).style("white-space: pre-wrap").classes("max-w-sm")
 
         search_input = (
-            ui
-            .input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
+            ui.input(placeholder=translate_string("Search elements"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -3680,8 +3670,7 @@ def _build_show_when_dialog(
         # box below the list it filters is a search box nobody finds.  Its on_change closes
         # over search_changed, defined below and resolved at call time.
         search_input = (
-            ui
-            .input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
+            ui.input(placeholder=translate_string("Search variables"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -3802,8 +3791,7 @@ def _build_colour_field(item: dict, prop: sceneedit.V2Prop) -> None:
     and silently dropping what they typed would be worse than showing it in red.
     """
     field = (
-        ui
-        .color_input(
+        ui.color_input(
             label=translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: colour_changed(d, k, str(e.value or "")),
@@ -3858,8 +3846,7 @@ def _build_icon_field(item: dict, prop: sceneedit.V2Prop) -> None:
     the component will show are the same answer.
     """
     field = (
-        ui
-        .input(
+        ui.input(
             translate_string(prop.label),
             value=str(item.get(prop.key, "")),
             on_change=lambda e, k=prop.key, d=item: icon_changed(d, k, str(e.value or "")),
@@ -3909,8 +3896,7 @@ def _build_icon_dialog(field: ui.input) -> None:
             dialog.close()
 
         search_input = (
-            ui
-            .input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
+            ui.input(placeholder=translate_string("Search icons"), on_change=lambda e: search_changed(e.value))
             .props("outlined dense clearable autofocus")
             .classes("w-full mt-2")
         )
@@ -3939,8 +3925,7 @@ def _build_icon_dialog(field: ui.input) -> None:
                         # the row that needs turning is the .q-btn__content inside it, so the
                         # tiles come out half stacked and half side by side.
                         tile = (
-                            ui
-                            .button(on_click=lambda _e=None, n=name: pick(n))
+                            ui.button(on_click=lambda _e=None, n=name: pick(n))
                             .props(
                                 "flat dense no-caps stack",
                             )
@@ -4039,8 +4024,7 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     state_select = (
-        ui
-        .select(
+        ui.select(
             list(field.states),
             value=state or None,
             label=translate_string(field.label),
@@ -4056,8 +4040,7 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
         )
 
     dynamic_input = (
-        ui
-        .input(
+        ui.input(
             translate_string("Dynamic value"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_DYNAMIC_STATE),
             on_change=lambda _e=None: write(),
@@ -4072,8 +4055,7 @@ def _build_state_field(item: dict, field: sceneedit.V2StateField) -> None:
     )
 
     variable_input = (
-        ui
-        .input(
+        ui.input(
             translate_string("Variable"),
             value=sceneedit.v2_state_value(field, stored, sceneedit.V2_VARIABLE_STATE),
             on_change=lambda _e=None: write(),
@@ -4296,8 +4278,7 @@ def _build_v2_designer(
             # The indent is drawn rather than nested so every row stays one flat, clickable
             # strip -- nested containers would make the click target of a deep node a sliver.
             label = (
-                ui
-                .label(f"{'  ' * row.depth}{row.label}")
+                ui.label(f"{'  ' * row.depth}{row.label}")
                 .classes(classes)
                 .on("click", lambda _e=None, path=row.path: select(path))
             )
@@ -4375,8 +4356,7 @@ def _build_v2_designer(
             _build_icon_field(target, prop)
         else:
             text_input = (
-                ui
-                .input(
+                ui.input(
                     translate_string(prop.label),
                     value=str(value),
                     on_change=lambda e, k=prop.key, d=target: sceneedit.v2_set_prop(d, k, str(e.value or "")),
@@ -4628,8 +4608,7 @@ def _build_v2_designer(
             section.props(f'caption="{caption()}"')
 
         section = (
-            ui
-            .expansion(
+            ui.expansion(
                 translate_string(name),
                 icon=_V2_CATEGORY_ICONS.get(name, "tune"),
                 caption=caption(),
@@ -5656,8 +5635,7 @@ def _build_legacy_designer(
 
     header = ui.row().classes("w-full items-center gap-2 mt-2")
     canvas_pane = (
-        ui
-        .element("div")
+        ui.element("div")
         .classes(
             f"mt-scene-wrap {root_class} w-full border rounded overflow-hidden",
         )
@@ -6580,8 +6558,7 @@ def _build_item_layout_dialog(self: MyGui, holder: object, on_closed: Callable[[
         with ui.row().classes("w-full gap-2 mt-2"):
             for key, label in sceneedit.SCENE_DIMENSION_FIELDS[:2]:
                 field_refs[key] = (
-                    ui
-                    .input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
+                    ui.input(translate_string(label), value=layout.findtext(key, sceneedit.UNSET_DIMENSION))
                     .props("dense")
                     .classes("w-36")
                     .on(
@@ -6665,8 +6642,7 @@ def _render_legacy_colour_arg(arg: taskedit.EditableArg, commit: Callable[[Event
             settling["busy"] = False
 
     field = (
-        ui
-        .color_input(
+        ui.color_input(
             label=translate_string(arg.arg_name),
             value=sceneedit.legacy_colour_to_css(arg.current_value),
             preview=True,
@@ -7216,8 +7192,7 @@ def _render_scene_actions_tab(
 
             with ui.row().classes("w-full items-center gap-2"):
                 icon_field = (
-                    ui
-                    .input(
+                    ui.input(
                         translate_string("Icon"),
                         value=sceneedit.legacy_action_item_icon(item),
                     )
@@ -7535,8 +7510,7 @@ def _render_scene_key_filter(properties: defusedxml.ElementTree.Element) -> None
     also explains why a tag named urlMatch is holding a list of key names.
     """
     keys = (
-        ui
-        .input(
+        ui.input(
             translate_string("Keys"),
             value=sceneedit.legacy_key_filter(properties),
         )
@@ -7649,8 +7623,7 @@ def _render_scene_event_task_actions(
     _build_task_action_editor(self, edited_task, field_refs, list_classes=_SCENE_EVENT_ACTION_LIST_CLASSES)
 
     apply_button = (
-        ui
-        .button(
+        ui.button(
             translate_string("Apply to Task"),
             icon="task_alt",
             on_click=lambda: self.event_handlers.apply_scene_key_task_event(edited_task, field_refs),
@@ -7764,8 +7737,7 @@ def _render_scene_event_new_task(
             rerender()
 
     create_button = (
-        ui
-        .button(
+        ui.button(
             translate_string("Create Task"),
             icon="add_task",
             on_click=create_task,
@@ -7893,8 +7865,7 @@ def _build_scene_editor_body(
     with ui.row().classes("w-full gap-2 mt-2"):
         for key, label in sceneedit.SCENE_DIMENSION_FIELDS:
             field_refs[key] = (
-                ui
-                .input(
+                ui.input(
                     translate_string(label),
                     value=scene_element.findtext(key, sceneedit.UNSET_DIMENSION),
                 )
@@ -9840,8 +9811,7 @@ class NiceGuiTreeView:
                     # Render the native responsive Tree component
                     # Injected custom fonts to preserve monospace formatting matches
                     self.tree = (
-                        ui
-                        .tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
+                        ui.tree(tree_data, label_key="label", children_key="children", tick_strategy="none")
                         .classes("w-full text-base")
                         .style(f"font-family: '{self.master_gui.font}', monospace;")
                     )
@@ -9878,8 +9848,7 @@ class NiceGuiTreeView:
                 # Extract the name and clean out the raw HTML markup fragments
                 raw_name = item.get("name", "Unnamed")
                 clean_name = (
-                    raw_name
-                    .replace("&nbsp;", " ")
+                    raw_name.replace("&nbsp;", " ")
                     .replace("&#9940;", "⛔")
                     .replace("&#11013;", "⬅️")
                     .replace("&#11157;", "➡️")
@@ -10044,8 +10013,7 @@ class NiceGuiSceneView:
                     # would reserve room for the canvas at full size however far it is
                     # scaled down.
                     self.canvas_wrap = (
-                        ui
-                        .element("div")
+                        ui.element("div")
                         .classes(f"mt-scene-wrap {CANVAS_PREVIEW_ROOT}")
                         .style(
                             "position: relative; width: 100%; overflow: hidden;",
@@ -10088,8 +10056,7 @@ class NiceGuiSceneView:
     def _build_density_control(self) -> None:
         """Legacy only: the sp-to-pixel number that is not in the backup file."""
         density_select = (
-            ui
-            .select(
+            ui.select(
                 list(sceneview.DENSITY_CHOICES),
                 value=str(sceneview.DEFAULT_DENSITY),
                 label=translate_string("Text density"),
@@ -10145,8 +10112,7 @@ class NiceGuiSceneView:
         device, which is why it is a control and not a number in the file.
         """
         screen_select = (
-            ui
-            .select(
+            ui.select(
                 [name for name, _width, _height in sceneview.V2_SCREENS],
                 value=self.screen,
                 label=translate_string("Screen"),
@@ -10748,8 +10714,7 @@ class NiceGuiTextView:
                     # settings drawer, and a reset that changed the value without moving the
                     # control would leave the two disagreeing on screen.
                     self.profiles_per_line_select = (
-                        ui
-                        .select(
+                        ui.select(
                             options=[str(n) for n in range(11)],
                             value=str(self.master_gui.profiles_per_line),
                             label=translate_string("Profiles Per Line"),
@@ -10797,8 +10762,7 @@ class NiceGuiTextView:
                     background_style = f" background-color: {background} !important;"
 
             self.scroll_area = (
-                ui
-                .scroll_area()
+                ui.scroll_area()
                 # min-w-0 keeps this a flex child that can't be stretched wider than its container by
                 # long unbreakable content; without it the default flex min-width:auto lets the box
                 # (and the whole page) grow past the viewport once the full content has streamed in.
@@ -11669,21 +11633,18 @@ class NiceGuiTextView:
             # -- action mode --------------------------------------------------
             with ui.row().classes("w-full items-center gap-2 mt-2") as action_row:
                 source_select = (
-                    ui
-                    .select({}, label=translate_string("Replace this action"), with_input=True)
+                    ui.select({}, label=translate_string("Replace this action"), with_input=True)
                     .classes("flex-1 min-w-[220px]")
                     .props("dense")
                 )
                 target_select = (
-                    ui
-                    .select({}, label=translate_string("...with this one"), with_input=True)
+                    ui.select({}, label=translate_string("...with this one"), with_input=True)
                     .classes("flex-1 min-w-[260px]")
                     .props("dense")
                 )
                 # Hidden under a scope, for the reason the Find tab's own gives.
                 swap_project = (
-                    ui
-                    .select(
+                    ui.select(
                         {"": translate_string("Every Project")} | {name: name for name in index.projects},
                         value="",
                         label=translate_string("Narrow to Project"),
@@ -11702,20 +11663,17 @@ class NiceGuiTextView:
             with ui.column().classes("w-full gap-2 mt-2") as argument_row:
                 with ui.row().classes("w-full items-center gap-2"):
                     arg_action_select = (
-                        ui
-                        .select({}, label=translate_string("In this action"), with_input=True)
+                        ui.select({}, label=translate_string("In this action"), with_input=True)
                         .classes("flex-1 min-w-[220px]")
                         .props("dense")
                     )
                     arg_select = (
-                        ui
-                        .select({}, label=translate_string("...replace this argument"), with_input=True)
+                        ui.select({}, label=translate_string("...replace this argument"), with_input=True)
                         .classes("flex-1 min-w-[240px]")
                         .props("dense")
                     )
                     arg_project = (
-                        ui
-                        .select(
+                        ui.select(
                             {"": translate_string("Every Project")} | {name: name for name in index.projects},
                             value="",
                             label=translate_string("Narrow to Project"),
@@ -11727,14 +11685,12 @@ class NiceGuiTextView:
                     arg_project.set_visibility(index.scope.is_everything)
                 with ui.row().classes("w-full items-center gap-2"):
                     arg_match_input = (
-                        ui
-                        .input(label=translate_string("Only where the value contains (optional)"))
+                        ui.input(label=translate_string("Only where the value contains (optional)"))
                         .classes("flex-1 min-w-[240px]")
                         .props("dense clearable")
                     )
                     arg_value_input = (
-                        ui
-                        .input(label=translate_string("...and put this there"))
+                        ui.input(label=translate_string("...and put this there"))
                         .classes("flex-1 min-w-[240px]")
                         .props("dense clearable")
                     )
@@ -11760,20 +11716,17 @@ class NiceGuiTextView:
             # condition's settings are its own and do not survive becoming another kind.
             with ui.row().classes("w-full items-center gap-2 mt-2") as condition_row:
                 condition_select = (
-                    ui
-                    .select({}, label=translate_string("Replace this Profile condition"), with_input=True)
+                    ui.select({}, label=translate_string("Replace this Profile condition"), with_input=True)
                     .classes("flex-1 min-w-[240px]")
                     .props("dense")
                 )
                 condition_target_select = (
-                    ui
-                    .select({}, label=translate_string("...with this one"), with_input=True)
+                    ui.select({}, label=translate_string("...with this one"), with_input=True)
                     .classes("flex-1 min-w-[260px]")
                     .props("dense")
                 )
                 condition_project = (
-                    ui
-                    .select(
+                    ui.select(
                         {"": translate_string("Every Project")} | {name: name for name in index.projects},
                         value="",
                         label=translate_string("Narrow to Project"),
@@ -11788,8 +11741,7 @@ class NiceGuiTextView:
             # -- variable mode ------------------------------------------------
             with ui.row().classes("w-full items-center gap-2 mt-2") as variable_row:
                 variable_select = (
-                    ui
-                    .select({}, label=translate_string("Rename this variable"), with_input=True)
+                    ui.select({}, label=translate_string("Rename this variable"), with_input=True)
                     .classes("flex-1 min-w-[320px]")
                     .props("dense")
                 )
@@ -11803,8 +11755,7 @@ class NiceGuiTextView:
                 # autocomplete offers the existing variables without ever standing between
                 # the user and a name they are inventing.
                 new_name_input = (
-                    ui
-                    .input(label=translate_string("...to this name"))
+                    ui.input(label=translate_string("...to this name"))
                     .classes("flex-1 min-w-[260px]")
                     .props("dense clearable")
                 )
@@ -12477,8 +12428,7 @@ class NiceGuiTextView:
                     for facet in mapfind.FACETS:
                         choices = index.choices(facet)
                         pickers[facet] = (
-                            ui
-                            .select(
+                            ui.select(
                                 {choice.value: choice.label for choice in choices},
                                 label=translate_string(mapfind.FACET_LABELS[facet]),
                                 with_input=True,
@@ -12490,8 +12440,7 @@ class NiceGuiTextView:
 
                 with ui.row().classes("w-full items-center gap-2 mt-2"):
                     text_input = (
-                        ui
-                        .input(label=translate_string("Text (name, label or argument)"))
+                        ui.input(label=translate_string("Text (name, label or argument)"))
                         .classes("flex-1")
                         .props("dense clearable")
                     )
@@ -12504,8 +12453,7 @@ class NiceGuiTextView:
                     # rather than removed, so the query still reads a value and no code below
                     # has to care whether the widget is on screen.
                     project_select = (
-                        ui
-                        .select(
+                        ui.select(
                             {"": translate_string("Every Project")} | {name: name for name in index.projects},
                             value="",
                             label=translate_string("Narrow to Project"),
@@ -13572,8 +13520,7 @@ def initialize_screen(self: MyGui) -> None:
     # 2. LEFT SIDEBAR: CONFIGURATIONS, DROPDOWNS & CHECKBOXES
     # =========================================================================
     with (
-        ui
-        .left_drawer(value=True, fixed=True)
+        ui.left_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
@@ -13587,8 +13534,7 @@ def initialize_screen(self: MyGui) -> None:
 
         # Detail level pulldown
         self.sidebar_detail_option = (
-            ui
-            .select(
+            ui.select(
                 options=["0", "1", "2", "3", "4", "5"],
                 value=str(self.display_detail_level),
                 label=translate_string("Detail Level"),
@@ -13659,8 +13605,7 @@ def initialize_screen(self: MyGui) -> None:
     # 3. RIGHT SIDEBAR: ALL ACTION, HELP & SETTINGS BUTTONS
     # =========================================================================
     with (
-        ui
-        .right_drawer(value=True, fixed=True)
+        ui.right_drawer(value=True, fixed=True)
         .props("breakpoint=0")
         .classes(
             "bg-gray-100 dark:bg-gray-800 p-4 w-80 force-scrollbar flex flex-col items-center text-center",
@@ -13694,8 +13639,7 @@ def initialize_screen(self: MyGui) -> None:
         )
 
         self.close_tabs_on_exit_checkbox = (
-            ui
-            .checkbox(translate_string("Close Tabs On Exit"))
+            ui.checkbox(translate_string("Close Tabs On Exit"))
             .bind_value(self, "close_tabs_on_exit")
             .props("dense")
             .classes("text-xs mt-0")
@@ -13710,8 +13654,7 @@ def initialize_screen(self: MyGui) -> None:
             ).style("white-space: pre-wrap")
 
         self.open_view_in_new_window_checkbox = (
-            ui
-            .checkbox(translate_string("Open View In New Window"))
+            ui.checkbox(translate_string("Open View In New Window"))
             .bind_value(self, "open_view_in_new_window")
             .props("dense")
             .classes("text-xs mt-0")
@@ -13776,8 +13719,7 @@ def initialize_screen(self: MyGui) -> None:
         # Exit buttons are.  Quasar puts its own bg-primary on every button, and that wins over
         # a Tailwind bg-* added here -- a bg-teal-600 class renders plain blue.
         self.health_check_button = (
-            ui
-            .button(
+            ui.button(
                 translate_string("Health Check"),
                 color="teal",
                 on_click=self.event_handlers.health_check_event,
@@ -13799,8 +13741,7 @@ def initialize_screen(self: MyGui) -> None:
         # button above is: the drawer is w-80 and this label is longer still, and Quasar's own
         # bg-primary beats a Tailwind bg-* class added here.
         self.compare_files_button = (
-            ui
-            .button(
+            ui.button(
                 translate_string("Compare Files"),
                 color="teal",
                 on_click=self.event_handlers.compare_files_event,
@@ -13825,8 +13766,7 @@ def initialize_screen(self: MyGui) -> None:
         # above are: the drawer is w-80 and this label will not fit beside another, and
         # Quasar's own bg-primary beats a Tailwind bg-* class added here.
         self.variable_xref_button = (
-            ui
-            .button(
+            ui.button(
                 translate_string("Variable Xref"),
                 color="teal",
                 on_click=self.event_handlers.variable_xref_event,
@@ -13904,8 +13844,7 @@ def initialize_screen(self: MyGui) -> None:
                 none_translatesd = translate_string("None")
                 with ui.row().classes("gap-2 w-full m-0 p-0 items-start"):
                     self.specific_project_optionmenu = (
-                        ui
-                        .select(
+                        ui.select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_project_name_event(e.value) if e.value else None
@@ -13919,8 +13858,7 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_profile_optionmenu = (
-                        ui
-                        .select(
+                        ui.select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_profile_name_event(e.value) if e.value else None
@@ -13934,8 +13872,7 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_task_optionmenu = (
-                        ui
-                        .select(
+                        ui.select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_task_name_event(e.value) if e.value else None
@@ -13949,8 +13886,7 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.specific_scene_optionmenu = (
-                        ui
-                        .select(
+                        ui.select(
                             [none_translatesd],
                             on_change=lambda e: (
                                 self.event_handlers.single_scene_name_event(e.value) if e.value else None
@@ -13965,8 +13901,7 @@ def initialize_screen(self: MyGui) -> None:
 
                 self.specific_name_msg_label = ui.label("").classes("text-xs ml-2 mt-1 text-left")
                 self.list_unnamed_items_checkbox = (
-                    ui
-                    .checkbox(
+                    ui.checkbox(
                         translate_string("List Unnamed Items"),
                         on_change=self.event_handlers.list_unnamed_items_event,
                     )
@@ -14003,8 +13938,7 @@ def initialize_screen(self: MyGui) -> None:
                     with ui.column().classes("flex-1 min-w-0 gap-0 m-0 p-0"):
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.project_buttons_row:
                             self.edit_project_button = (
-                                ui
-                                .button(
+                                ui.button(
                                     translate_string("Edit Project"),
                                     on_click=self.event_handlers.open_edit_project_dialog_event,
                                 )
@@ -14012,8 +13946,7 @@ def initialize_screen(self: MyGui) -> None:
                                 .style("max-width:12rem")
                             )
                             self.add_project_button = (
-                                ui
-                                .button(
+                                ui.button(
                                     translate_string("Add Project"),
                                     on_click=self.event_handlers.open_add_project_dialog_event,
                                 )
@@ -14022,8 +13955,7 @@ def initialize_screen(self: MyGui) -> None:
                             )
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.profile_buttons_row:
                             self.edit_profile_button = (
-                                ui
-                                .button(
+                                ui.button(
                                     translate_string("Edit Profile"),
                                     on_click=self.event_handlers.open_edit_profile_dialog_event,
                                 )
@@ -14031,8 +13963,7 @@ def initialize_screen(self: MyGui) -> None:
                                 .style("max-width:12rem")
                             )
                             self.add_profile_button = (
-                                ui
-                                .button(
+                                ui.button(
                                     translate_string("Add Profile"),
                                     on_click=self.event_handlers.open_add_profile_dialog_event,
                                 )
@@ -14041,8 +13972,7 @@ def initialize_screen(self: MyGui) -> None:
                             )
                         with ui.row().classes("w-full gap-2 m-0 p-0") as self.task_buttons_row:
                             self.edit_task_button = (
-                                ui
-                                .button(
+                                ui.button(
                                     translate_string("Edit Task"),
                                     on_click=self.event_handlers.open_edit_task_dialog_event,
                                 )
@@ -14050,8 +13980,7 @@ def initialize_screen(self: MyGui) -> None:
                                 .style("max-width:12rem")
                             )
                             self.add_task_button = (
-                                ui
-                                .button(
+                                ui.button(
                                     translate_string("Add Task"),
                                     on_click=self.event_handlers.open_add_task_dialog_event,
                                 )
@@ -14066,8 +13995,7 @@ def initialize_screen(self: MyGui) -> None:
                         if EDIT_SCENE:
                             with ui.row().classes("w-full gap-2 m-0 p-0") as self.scene_buttons_row:
                                 self.edit_scene_button = (
-                                    ui
-                                    .button(
+                                    ui.button(
                                         translate_string("Edit Scene"),
                                         on_click=self.event_handlers.open_edit_scene_dialog_event,
                                     )
@@ -14075,8 +14003,7 @@ def initialize_screen(self: MyGui) -> None:
                                     .style("max-width:12rem")
                                 )
                                 self.add_scene_button = (
-                                    ui
-                                    .button(
+                                    ui.button(
                                         translate_string("Add Scene"),
                                         on_click=self.event_handlers.open_add_scene_dialog_event,
                                     )
@@ -14120,8 +14047,7 @@ def initialize_screen(self: MyGui) -> None:
 
                 with ui.column().classes("gap-1 w-full mt-1"):
                     self.color_objects_options = (
-                        ui
-                        .select(
+                        ui.select(
                             options=[
                                 "Projects",
                                 "Profiles",
@@ -14149,8 +14075,7 @@ def initialize_screen(self: MyGui) -> None:
                     )
 
                     self.color_picker_input = (
-                        ui
-                        .color_input(
+                        ui.color_input(
                             label=translate_string("Choose Hex Color"),
                             value="#3f99ff",
                             on_change=lambda e: self.event_handlers.handle_color_pick_event(e.value),
@@ -14171,8 +14096,7 @@ def initialize_screen(self: MyGui) -> None:
                         ui.checkbox(translate_string("Debug Mode")).bind_value(self, "debug").classes("text-xs")
                     )
                     self.runtime_checkbox = (
-                        ui
-                        .checkbox(translate_string("Display Runtime Settings"))
+                        ui.checkbox(translate_string("Display Runtime Settings"))
                         .bind_value(self, "runtime")
                         .classes("text-xs")
                     )
@@ -14248,8 +14172,7 @@ def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
 
             # Extra model list checkbox with chained tooltip
             self.aimodel_extend_checkbox = (
-                ui
-                .checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
+                ui.checkbox(translate_string("Extended"), on_change=self.event_handlers.extended_models_event)
                 .tooltip(
                     translate_string(
                         "Display an extended list of ALL available models.\n\n"
@@ -14277,8 +14200,7 @@ def _create_name_display_options_section(self: MyGui) -> None:
 
     # 1. Create the Section Label with an inline native tooltip
     self.display_names_label = (
-        ui
-        .label(translate_string("Project/Profile/Task/Scene Names:"))
+        ui.label(translate_string("Project/Profile/Task/Scene Names:"))
         .classes("text-sm font-semibold mt-4 mb-1 py-0 my-0 gap-y-0 leading-none")
         .tooltip(translate_string("Add highlighting to Project, Profile and Task names in the output."))
     )
@@ -14574,8 +14496,7 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
         # tears that panel down again.
         with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0") as self.android_button_row:
             self.get_backup_button = (
-                ui
-                .button(
+                ui.button(
                     translate_string("Get XML from Android Device"),
                     on_click=self.event_handlers.get_xml_from_android_event,
                 )

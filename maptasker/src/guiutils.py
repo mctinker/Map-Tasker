@@ -163,8 +163,7 @@ def display_model_pulldown(gui_arg: any, *args: dict, **kwargs) -> None:  # noqa
         if not current_model or current_model not in display_models:
             current_model = ["None"]
         gui_instance.ai_model_option = (
-            ui
-            .select(
+            ui.select(
                 options=display_models,
                 value=current_model,
                 label=translate_string("AI Model"),
@@ -1711,8 +1710,7 @@ async def validate_or_filelist_xml(
             ui.separator().classes("my-2")
 
             self.filelist_label = (
-                ui
-                .label(translate_string("Select XML From Android Device:"))
+                ui.label(translate_string("Select XML From Android Device:"))
                 .classes(
                     "text-xs font-bold text-purple-600 mt-1 self-start",
                 )
@@ -1852,8 +1850,7 @@ def check_new_version(self: "MyGui") -> None:
 
             # 'Upgrade to Latest Version' Button
             self.upgrade_button = (
-                ui
-                .button(translate_string("Upgrade to Latest Version"), on_click=self.event_handlers.upgrade_event)
+                ui.button(translate_string("Upgrade to Latest Version"), on_click=self.event_handlers.upgrade_event)
                 .style("background-color: #79ff94; color: #6563ff;")
                 .classes("w-full font-bold text-xs py-2")
                 .tooltip(
@@ -1865,8 +1862,7 @@ def check_new_version(self: "MyGui") -> None:
 
             # 'What's New' Button
             self.whats_new_button = (
-                ui
-                .button(translate_string("What's New?"), on_click=self.event_handlers.whatsnew_event)
+                ui.button(translate_string("What's New?"), on_click=self.event_handlers.whatsnew_event)
                 .style("background-color: #246FB6; border-color: #79ff94; border-width: 1px; color: white;")
                 .classes("w-full text-xs")
                 .tooltip(translate_string("Display the changes in the new version."))

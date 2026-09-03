@@ -815,8 +815,7 @@ _INTERACTION_JS = """
 def interaction_js(container_id: str, status_id: str, the_model: dict) -> str:
     """The script that makes one rendered Diagram interactive."""
     return (
-        _INTERACTION_JS
-        .replace("CONTAINER_ID", json.dumps(container_id))
+        _INTERACTION_JS.replace("CONTAINER_ID", json.dumps(container_id))
         .replace("STATUS_ID", json.dumps(status_id))
         .replace("RAISE_MAP_WINDOW", mapjump.raise_map_window_js().strip())
         .replace("MODEL", model_json(the_model))

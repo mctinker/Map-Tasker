@@ -97,13 +97,7 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "pytest-cov>=7.0.0",
     "pytest-mock>=3.15.1",
-    # Pinned to the 0.16 line on purpose. [tool.ruff.format] sets preview = true,
-    # and ruff's preview style is explicitly unstable between minor releases -- it
-    # currently formats 11 files differently from the stable style. Now that CI
-    # enforces `ruff format --check`, an unpinned upgrade would fail the build with
-    # no code change. Widen this deliberately, re-running `ruff format`, not by
-    # accident.
-    "ruff>=0.16.5,<0.17",
+    "ruff>=0.16.5",
     "vulture>=2.16",
 ]
 
@@ -283,7 +277,12 @@ quote-style = "double"
 docstring-code-format = true
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
-preview = true
+# Stable formatter style. Ruff's preview style is unstable by design -- it can
+# change in any minor release -- which is a poor fit for the enforced
+# `ruff format --check` gate in CI. Its only visible effect on this project was
+# to break the first call of a method chain onto its own line, leaving a bare
+# receiver ('ui', 'clean_text') stranded above it.
+preview = false
 
 # NOTE: a local, git-ignored pytest.ini used to shadow this block entirely --
 # pytest.ini outranks pyproject.toml, so these settings never took effect on a
