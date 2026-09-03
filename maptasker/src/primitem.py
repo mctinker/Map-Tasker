@@ -218,6 +218,13 @@ class PrimeItems:
     # regions and call edges, all in the rendered file's coordinates.  Assembled by
     # diagintr.build_model once the diagram is written; read by the view when it renders.
     diagram_model: ClassVar[dict] = {}
+    # The flowchart of the one Task the user last asked for, as mapjump Rows -- see
+    # taskflow.flowchart.  Held here rather than handed to the view because the Task Flow
+    # view opens in its own browser window, and a popped-out page is built from a URL and
+    # is passed nothing (see rungui.popout_view, which reaches the Diagram's file the same
+    # way).  Emptied wherever the Diagram's own records are, and for the same reason: it
+    # describes a configuration that is about to be replaced.
+    taskflow_rows: ClassVar[list] = []
     tasker_root_elements: ClassVar[dict] = initial_tasker_root_elements()
     directories: ClassVar[list] = []
     variables: ClassVar[dict] = {}
@@ -305,6 +312,7 @@ class PrimeItemsReset:
         PrimeItems.diagram_call_edges = {}
         PrimeItems.diagram_connector_calls = {}
         PrimeItems.diagram_model = {}
+        PrimeItems.taskflow_rows = []
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
         PrimeItems.directories = []
         PrimeItems.xml_tree = None

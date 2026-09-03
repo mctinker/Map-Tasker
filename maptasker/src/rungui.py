@@ -261,6 +261,12 @@ def capture_gui_state(user_input: MyGui, data: dict) -> None:
 
 
 # Get the program arguments from GUI
+# What each popped-out view is called, and the whole list of view types the "/popout/..."
+# route will answer for.  The title is no longer derived from the path: "Task Flow" is two
+# words, and NiceGuiTextView decides how to render a view by what its title starts with.
+POPOUT_TITLES = {"map": "Map View", "diagram": "Diagram View", "flow": "Task Flow View"}
+
+
 def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # global MyGui
     """Parameters:
@@ -328,13 +334,13 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
                 message += f" Still showing {carried_type}: {carried_name}."
             ui.notify(message, color="orange", position="bottom")
 
-    # 2b. Pop-out page for the Map and Diagram views, opened in their own browser window/tab
-    # (see MapTaskerEventHandlers.view_event in userintr.py) so they no longer replace the
+    # 2b. Pop-out page for the Map, Diagram and Task Flow views, opened in their own browser
+    # window/tab (see MapTaskerEventHandlers.view_event in userintr.py) so they no longer replace the
     # main window's content. Reuses the single shared MyGui instance (PrimeItems.mygui) rather
     # than building a new one, since this is a single-user, single-server-process desktop app.
     @ui.page("/popout/{view_type}")
     def popout_view(view_type: str, goto: str = "", scope: str = "", built_for: str = "") -> None:
-        """The Map/Diagram in its own window.
+        """The Map, the Diagram or a Task's flowchart in its own window.
 
         'goto' is a mapjump token, put on the URL by a clicked report finding that needed a
         Map built for it (see MapTaskerEventHandlers.rebuild_map_for_jump).  It travels on
@@ -355,13 +361,19 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         own; this one is a phrase, and is only ever read by a human.
         """
         gui = PrimeItems.mygui
-        if gui is None or view_type not in ("map", "diagram"):
+        # The Task Flow view has nothing on disk to fall back on: its chart lives on
+        # PrimeItems and dies with the process.  Reopening this URL in a new session (a
+        # restored browser tab, a bookmark) therefore has to say so rather than render an
+        # empty page -- which is the same thing this route already says when there is no
+        # GUI to reach at all.
+        stale = view_type == "flow" and not PrimeItems.taskflow_rows
+        if gui is None or stale or view_type not in POPOUT_TITLES:
             ui.label(
                 "No data available. Please generate this view from the main MapTasker window first.",
             ).classes("text-red-500 text-lg m-8")
             return
 
-        window_title = f"{view_type.capitalize()} View"
+        window_title = POPOUT_TITLES[view_type]
         ui.page_title(f"MapTasker - {window_title}")
 
         # Each @ui.page is its own independent document, so the main window's CSS (injected
@@ -389,6 +401,10 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         gui.textview = NiceGuiTextView(
             gui,
             title=window_title,
+            # A dict means "this is the Map" to NiceGuiTextView (see its is_map).  Every
+            # other popped-out view is handed nothing and finds its own content: the
+            # Diagram re-reads its generated file, the Task Flow view reads the rows
+            # taskflow left on PrimeItems.
             the_data={} if view_type == "map" else [],
             container=popout_container,
             jump_to=goto,

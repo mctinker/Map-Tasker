@@ -39,6 +39,12 @@ VARXREF_FILE = "MapTasker_VarXref.txt"
 FIND_FILE = "MapTasker_Find.txt"
 SWAP_FILE = "MapTasker_Replace.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
+# The control-flow report (every Task's If/Else/For/Goto structure, linted) and the
+# flowchart drawn for one Task -- see taskflow.py.  Two files rather than one because
+# they are two different things: the report is prose about the whole configuration, the
+# flowchart is a picture of a single Task, and each is written whenever it is built.
+TASKFLOW_FILE = "MapTasker_TaskFlow.txt"
+FLOWCHART_FILE = "MapTasker_Flowchart.txt"
 SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
 # Where a fetched Application list is kept between runs, keyed by device -- see
 # deviceinv.py.  Alongside MapTasker_Settings.toml (both are written to the current

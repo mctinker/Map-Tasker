@@ -150,20 +150,16 @@ def evaluate_argument(
             }
 
         case "Str":
-            if argeval == "Label":
-                # 1. Use findtext() instead of a generator expression for a massive speedup
-                evaluated_results[the_arg] = {
-                    "value": code_action.findtext("label", default=""),
-                }
-            else:
-                # 2. Extract and escape the string directly
-                evaluated_string = extract_string(code_action, the_arg, argeval)
-
-                # 3. Micro-optimization: standard library html.escape is fast,
-                # but avoid re-allocating dicts or running extra lookups where possible.
-                evaluated_results[the_arg] = {
-                    "value": html.escape(evaluated_string),
-                }
+            # Every Str argument lives in its own <Str sr="argn">, including the ones Tasker
+            # happens to name "Label" -- Goto's label, Set Widget Label's label, and so on.
+            # The action's *own* <label> element is a different thing entirely and is already
+            # displayed alongside the action by action.py, so nothing here reads it: doing so
+            # used to swallow those arguments whole and show the action's label (usually
+            # nothing at all) in their place.
+            evaluated_string = extract_string(code_action, the_arg, argeval)
+            evaluated_results[the_arg] = {
+                "value": html.escape(evaluated_string),
+            }
 
         case "Boolean":
             argeval = arg[4]  # Reform the eval: name, 'e', ''

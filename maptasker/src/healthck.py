@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import varxref
+from maptasker.src import taskflow, varxref
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import (
     PROFILE,
@@ -746,6 +746,28 @@ def _check_variables(index: _Index) -> None:
         )
 
 
+def _check_control_flow(index: _Index) -> None:
+    """Fold the control-flow analysis's problems into this report.
+
+    Folded in for the reason _check_variables above is folded in: a user who never presses
+    "Task Flow" should still be told that a Task holds an 'If' that is never closed, or a
+    'Goto' aimed at a label nothing carries.  Those are broken references every bit as much
+    as a Perform Task naming a Task that is not in the file -- they are simply broken
+    references INSIDE a Task, which is the one place this report never used to look.
+
+    A second walk over the Tasks rather than a filter over _Index, again for
+    _check_variables' reason: that module builds a control-flow graph per Task, which is
+    not something any pass here collects.
+
+    The severity and the tag both come from taskflow unchanged.  Its tags already begin
+    FLOW- so they sort and grep together, the way the VAR- ones do, and its two severity
+    words are this module's own -- see the note at the top of taskflow.py on why they are
+    spelled out there rather than imported from here.
+    """
+    for problem in taskflow.control_flow_problems():
+        index.add(problem.severity, problem.tag, problem.where, problem.detail)
+
+
 def _check_hygiene(index: _Index) -> None:
     """Report the things that are legal, and working, but worth knowing about."""
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
@@ -927,6 +949,7 @@ def run_health_check() -> tuple[list[Row], dict]:
 
     _check_reachability(index)
     _check_hygiene(index)
+    _check_control_flow(index)
     _check_variables(index)
 
     return _build_report(index, datetime.now()), _counts(index.findings)  # noqa: DTZ005

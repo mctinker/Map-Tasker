@@ -2,16 +2,25 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.1.0] 03-Sep-2026
+## [13.1.1] ??-Sep-2026  # FIX
 
 ### Added
 
-- Added:
+- Added: 'Task Flow' -- control-flow analysis of a Task, as a report and as a flowchart.
+
+      - Analyze Task's If/Else/End If, For/End For, Goto and Stop as a structure and reports what does not hold together -- a block that is never closed, an 'Else' or an 'End If' with no 'If' above it, an 'End For' closing an 'If', a Goto aimed at a label no action carries or an action number the Task does not have, a Goto to a label two actions share, and actions nothing can ever reach.  Pure XML, like the Health Check: it runs the moment a file is loaded, with no Map run needed.
+      
+      - With a single Task chosen in 'Specific Name', that Task is also drawn as a flowchart in its own window.  Nesting is indentation, so what sits inside an If or a For can be seen at a glance, and every Goto is drawn as an arrow in a gutter to the right of the text, joining it to the action it lands on.  Actions nothing can reach are marked as such on their own line.  Clicking any line takes you to that action in the Map.
+      
+      - The findings are folded into the Health Check as well, under FLOW- tags, so they are reported to somebody who never presses the new button.  They are broken references every bit as much as a Perform Task naming a Task that is not in the file -- they are simply broken references inside a Task, which is the one place the Health Check never used to look.
+      
+      - What it will not do is guess.  A Goto whose label or action number is built from a variable is decided on the device, so it is left alone rather than reported -- and a Task holding one is not checked for stranded actions at all, since an unknown jump could land on any of them.  A Stop that carries a condition, sits inside an If, or has been disabled strands nothing.  Measured against the backups to hand, that leaves roughly a dozen findings in an 846-Task configuration, every one of them real.
 
 ### Changed
 
-- Changed: Split guiwins.py by dialog family. At 14,540 lines it held the Task editor, the Profile editor, both Scene designers and the shared canvas alongside the views and the screen layout. Each family is now its own module -- guiwins_taskedit.py, guiwins_profedit.py, guiwins_designer_legacy.py, guiwins_designer_v2.py and guiwins_canvas.py under them -- leaving 8,633 lines in guiwins.py. No behaviour changed: every function and class moved verbatim.
-- Changed:
+- Changed: Code enhancements
+      
+      - Split guiwins.py by dialog family. At 14,540 lines it held the Task editor, the Profile editor, both Scene designers and the shared canvas alongside the views and the screen layout. Each family is now its own module -- guiwins_taskedit.py, guiwins_profedit.py, guiwins_designer_legacy.py, guiwins_designer_v2.py and guiwins_canvas.py under them -- leaving 8,633 lines in guiwins.py. No behaviour changed: every function and class moved verbatim.
 
 ### Removed
 
@@ -19,7 +28,7 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed:
+- Fixed: Actions with an argument named 'Label' now display it. The 'Goto' action showed only its Type and Number, and 'Set Widget Label' showed only its Name, because the argument was mistaken for the action's own label note.
 
 ### Known Issues
 

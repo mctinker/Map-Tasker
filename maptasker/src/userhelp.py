@@ -51,6 +51,7 @@ INFO_TEXT = (
     "* Health Check: Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.  Click a finding to be taken to it in the Map.  \n"
     "* Compare Files: Compare another XML file against the loaded one to see what was added, removed, renamed and changed.  \n"
     "* Variable Xref: Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names are likely typos.  \n"
+    "* Task Flow: Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.  With a single Task chosen in 'Specific Name', that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.  Click any line of it to be taken to that action in the Map.  \n"
     "* Open View In New Window: Open each Map/Diagram request in its own new window/tab rather than reusing that view's existing one.  \n"
     "* Close Tabs On Exit: Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tabs it opened.  \n"
     "* Get XML from Android Device: fetch the backup/exported "

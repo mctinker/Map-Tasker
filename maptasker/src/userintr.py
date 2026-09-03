@@ -169,6 +169,13 @@ from maptasker.src.sysconst import (
     logger,
 )
 from maptasker.src.taskerd import get_the_xml_data
+from maptasker.src.taskflow import (
+    analyze_task_flow,
+    flowchart,
+    run_task_flow_check,
+    write_flowchart,
+    write_task_flow_report,
+)
 from maptasker.src.translator import T
 from maptasker.src.userhelp import (
     AI_HELP_TEXT,
@@ -2650,6 +2657,99 @@ class MapTaskerEventHandlers:
                 type="info",
                 position="bottom",
             )
+
+    def task_flow_event(self: "MapTaskerEventHandlers") -> None:
+        """Read every Task's control flow, display the report, and draw the chosen Task.
+
+        Two things from one button, because they are two halves of one question.  The
+        report answers "is anything wrong with how my Tasks branch and jump" across the
+        whole configuration; the flowchart answers "what does THIS Task actually do", and
+        is only meaningful once the user has said which Task they mean.  The report is
+        therefore unconditional and the chart rides along with the single-Task selection
+        the Map and Diagram views already honour.
+        """
+        gui = self.gui
+        if not PrimeItems.tasker_root_elements["all_tasks"]:
+            gui.display_message_box(
+                translate_string("No XML file has been loaded.  Get an XML file first."),
+                "Red",
+            )
+            return
+
+        rows, counts = run_task_flow_check()
+        file_name = write_task_flow_report(rows)
+
+        if file_name:
+            gui.display_message_box(f"{translate_string('Task Flow report saved as')} {file_name}", "Green")
+        else:
+            gui.display_message_box(translate_string("Task Flow report could not be saved."), "Red")
+
+        # The same report written a second way -- the file above holds the plain text, this
+        # the HTML -- both from the one list of rows, so the two cannot disagree.  The
+        # escaping and the clickable location lines are html_report's; the reasoning is
+        # spelled out in health_check_event above.
+        self.gui.textview = NiceGuiTextView(
+            gui,
+            title="Misc View",
+            the_data=mapjump.html_report(rows),
+        )
+
+        self._draw_task_flowchart(gui)
+
+        if not counts[ERROR] and not counts[WARNING]:
+            ui.notify(translate_string("Task Flow found no control-flow problems."), type="positive")
+        elif any(row.target for row in rows):
+            ui.notify(
+                translate_string("Click a finding to see it in the Map view."),
+                type="info",
+                position="bottom",
+            )
+
+    def _draw_task_flowchart(self: "MapTaskerEventHandlers", gui: "MyGui") -> None:
+        """Draw the single selected Task as a flowchart in its own window, if one is chosen.
+
+        Silent about there being no chart when no single Task is selected -- said as a hint
+        rather than as a failure, since the report the user just asked for did run.
+
+        The chart is left on PrimeItems for the popped-out page to pick up: that page is
+        built from a URL and is handed nothing, which is the same reason the Diagram popout
+        re-reads its own generated file (see rungui.popout_view).
+        """
+        scope = mapjump.current_scope()
+        if scope.label != "Task":
+            ui.notify(
+                translate_string("Choose a single Task in 'Specific Name' to also see it drawn as a flowchart."),
+                type="info",
+                position="bottom",
+            )
+            return
+
+        # A Scope holds every Task id of that name, because a backup may legally hold two
+        # Tasks called the same thing (healthck reports that as DUPLICATE-NAME).  Charting
+        # them all in one window would read as one enormous Task, so the first is drawn and
+        # the user is told the choice was made.
+        task_ids = sorted(scope.tasks)
+        flow = analyze_task_flow(task_ids[0]) if task_ids else None
+        if flow is None:
+            gui.display_message_box(
+                f"{translate_string('Could not find Task')} '{scope.name}'.",
+                "Orange",
+            )
+            return
+        if len(task_ids) > 1:
+            ui.notify(
+                f"{translate_string('More than one Task is named')} '{scope.name}'. "
+                f"{translate_string('Drawing the first.')}",
+                type="warning",
+            )
+
+        PrimeItems.taskflow_rows = flowchart(flow)
+        chart_file = write_flowchart(PrimeItems.taskflow_rows)
+        if chart_file:
+            gui.display_message_box(f"{translate_string('Flowchart saved as')} {chart_file}", "Green")
+
+        _open_popout_window("/popout/flow", getattr(gui, "open_view_in_new_window", False))
+        gui.display_message_box(translate_string("Task Flow View opened in a new browser window."), "Green")
 
     async def compare_files_event(self: "MapTaskerEventHandlers") -> None:
         """Compare another XML file against the loaded one, display the report and save it."""

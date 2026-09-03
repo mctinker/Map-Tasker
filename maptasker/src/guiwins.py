@@ -4754,6 +4754,11 @@ class NiceGuiTextView:
 
         # "Diagram" view intentionally starts unwrapped so ASCII-art connectors stay aligned.
         is_diagram = self.title.startswith("Diagram")
+        # The Task Flow view is a drawing too -- one Task's control flow, box-drawn by
+        # taskflow.py -- so it inherits the Diagram's unwrapped, tightly-led layout without
+        # inheriting the Diagram's toolbar, none of which (Profiles Per Line, folding, the
+        # call chain) means anything for a single Task.
+        is_flow = self.title.startswith("Task Flow")
 
         # Set the main container to a vertical layout with full width and height
         with container_context:
@@ -4820,7 +4825,7 @@ class NiceGuiTextView:
                     self.diagram_message_label = ui.label("").classes("text-orange-400 italic ml-4")
                     self._build_scope_badge()
 
-            self.wrap_enabled = "Diagram" not in self.title
+            self.wrap_enabled = not (is_diagram or is_flow)
             self.wrap_classes = "whitespace-pre-wrap break-words" if self.wrap_enabled else "whitespace-pre"
 
             # min-h-0 lets this flex item shrink below its content's intrinsic size -- without it
@@ -4832,7 +4837,7 @@ class NiceGuiTextView:
             # comfortable for prose, but visibly loose for a dense box-drawn diagram. Tighten it
             # for the Diagram view only; keep process_data()'s approx_px_per_line chunk-height
             # estimate in sync with this so scrolling doesn't jump around as chunks pop in.
-            line_height_style = " line-height: 1.2;" if is_diagram else ""
+            line_height_style = " line-height: 1.2;" if is_diagram or is_flow else ""
 
             # The Map view renders MapTasker.html, every color in which was picked against the
             # configured output background -- the same one frontmtr writes onto that file's
@@ -4885,19 +4890,30 @@ class NiceGuiTextView:
         data-connector-id spans they depend on do not.
         """
         is_diagram = self.title.startswith("Diagram")
-        # Starting point, used as-is by the Misc view (which has no generated file behind it).
-        # The file-backed views replace this below with the font their file actually carries.
+        is_flow = self.title.startswith("Task Flow")
+        # Starting point, used as-is by the Misc and Task Flow views (neither of which has a
+        # generated file behind it).  The file-backed views replace this below with the font
+        # their file actually carries.
         html_style = f"width: 100%; max-width: 100%; font-family: '{PrimeItems.program_arguments['font']}', monospace;"
-        if not is_diagram:
+        if not (is_diagram or is_flow):
             html_style += " word-break: break-word;"
 
         if self.title.startswith("Map"):
             file_to_read = os.path.join(os.getcwd(), "MapTasker.html")
         elif is_diagram:
             file_to_read = os.path.join(os.getcwd(), DIAGRAM_FILE)
-        elif self.title.startswith("Misc"):
+        elif self.title.startswith("Misc") or is_flow:
+            # The Task Flow view is this renderer with the Diagram's habits: rows mapjump has
+            # already made clickable, but a drawing rather than prose, so nothing may wrap
+            # (see build_ui).  Its content comes off PrimeItems rather than through the_data
+            # because a popped-out window builds itself from a URL and is handed nothing --
+            # the same reason the Diagram popout re-reads its own file (rungui.popout_view).
             with self.scroll_area:
-                content_str = "\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data)
+                content_str = (
+                    mapjump.html_report(PrimeItems.taskflow_rows)
+                    if is_flow
+                    else ("\n".join(str(line) for line in the_data) if isinstance(the_data, list) else str(the_data))
+                )
                 ui.html(f"<pre style='{html_style}'>{content_str}</pre>", sanitize=False)
             # A report rendered by mapjump.html_report marks the rows that point at
             # something in the Map (see its FINDING_CLASS).  Tested for rather than assumed,
@@ -7877,6 +7893,32 @@ def initialize_screen(self: MyGui) -> None:
                     "Task actions and their conditions, plugin configuration, Profile contexts and "
                     "Scenes.\n\nResults are displayed here and saved to a text file in the current "
                     "directory.",
+                ),
+            ).style("white-space: pre-wrap")
+
+        # Full width and coloured through "color" for the same two reasons the three buttons
+        # above are: the drawer is w-80, this label will not fit beside another, and Quasar's
+        # own bg-primary beats a Tailwind bg-* class added here.
+        self.task_flow_button = (
+            ui.button(
+                translate_string("Task Flow"),
+                color="teal",
+                on_click=self.event_handlers.task_flow_event,
+                icon="account_tree",
+            )
+            .classes("w-full justify-center")
+            .style("margin-top:-6px")
+        )
+        with self.task_flow_button:
+            ui.tooltip(
+                translate_string(
+                    "Read every Task's control flow -- its If/Else/End If, For/End For, Goto and "
+                    "Stop -- and report what does not hold together: a block that is never closed, "
+                    "a Goto aimed at a label no action carries, and actions nothing can ever "
+                    "reach.\n\nWith a single Task chosen in the 'Specific Name' tab, that Task is "
+                    "also drawn as a flowchart in its own window, with an arrow from every Goto to "
+                    "the action it lands on.\n\nResults are displayed here and saved to a text file "
+                    "in the current directory.",
                 ),
             ).style("white-space: pre-wrap")
 

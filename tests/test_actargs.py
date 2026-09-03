@@ -122,3 +122,48 @@ def test_icon_is_paired_with_its_own_argument() -> None:
     )
     result = get_action_results(NOTIFY, actionc.action_codes, action, False)
     assert "Text=Text here, Icon=mw_navigation_apps, Priority=5" in result
+
+
+# An argument Tasker happens to name "Label" is an ordinary <Str sr="argn">, and has nothing
+# to do with the action's own <label> element -- the free-text note the user types on any
+# action, which the map already prints beside it.  Reading the element in the argument's
+# place silently swallowed the argument: 'Goto' showed its Type and Number but no label at
+# all, and it does that for every action naming an argument this way, not just Goto.
+GOTO = "135t"  # Type=arg0, Number=arg1, Label=arg2
+SET_WIDGET_LABEL = "155t"  # Name=arg0, Label=arg1
+
+
+def test_goto_label_argument_maps() -> None:
+    """Goto's label is arg2, and is displayed alongside its Type and Number."""
+    action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+        '<Action sr="act12" ve="7"><code>135</code>'
+        '<Int sr="arg0" val="1"/><Int sr="arg1" val="1"/>'
+        '<Str sr="arg2" ve="3">Log Profile Names</Str></Action>',
+    )
+    result = get_action_results(GOTO, actionc.action_codes, action, False)
+    assert "Label=Log Profile Names" in result
+
+
+def test_label_argument_is_not_the_actions_own_label() -> None:
+    """The action's <label> is its own note and never stands in for the argument."""
+    action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+        '<Action sr="act12" ve="7"><code>135</code>'
+        "<label>Jump back to the top</label>"
+        '<Int sr="arg0" val="1"/><Int sr="arg1" val="1"/>'
+        '<Str sr="arg2" ve="3">Log Profile Names</Str></Action>',
+    )
+    result = get_action_results(GOTO, actionc.action_codes, action, False)
+    assert "Label=Log Profile Names" in result
+    assert "Label=Jump back to the top" not in result
+
+
+def test_set_widget_label_maps_its_label() -> None:
+    """Goto is not alone: every action naming an argument "Label" lost it the same way."""
+    action = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+        '<Action sr="act2" ve="7"><code>155</code>'
+        '<Str sr="arg0" ve="3">Allow Macro Toggle</Str>'
+        '<Str sr="arg1" ve="3">Macros Off</Str></Action>',
+    )
+    result = get_action_results(SET_WIDGET_LABEL, actionc.action_codes, action, False)
+    assert "Name=Allow Macro Toggle" in result
+    assert "Label=Macros Off" in result
