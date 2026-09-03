@@ -236,6 +236,25 @@ def _set_child_text_in_tag_order(parent: defusedxml.ElementTree.Element, tag: st
     child.text = text
 
 
+def set_project_members(
+    project_element: defusedxml.ElementTree.Element,
+    tag: str,
+    member_ids: list[str],
+) -> None:
+    """Rewrite a Project's <pids>/<tids>/<scenes> membership list, and stamp its <mdate>.
+
+    The write half of every "which Project owns this" change, public because maprefac's
+    Move and Duplicate need it and there is exactly one right way to do it. Two things a
+    hand-rolled write gets wrong, both of them silently: a list created for the first time
+    has to land in Tasker's own child order (see _set_child_text_in_tag_order), and a
+    Project whose membership changed has been modified and must say so (see
+    touch_project_mdate -- profedit.add_profile_to_project/add_task_to_project, the two
+    existing callers that do this by hand, each stamp it for the same reason).
+    """
+    _set_child_text_in_tag_order(project_element, tag, ",".join(member_ids))
+    touch_project_mdate(project_element)
+
+
 def touch_project_mdate(project_element: defusedxml.ElementTree.Element) -> None:
     """Stamps a Project's <mdate> with the current time -- real Tasker Projects
     use <mdate> for "last modified", not <edate> the way Task/Profile do (see

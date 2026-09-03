@@ -38,6 +38,8 @@ COMPARE_FILE = "MapTasker_Compare.txt"
 VARXREF_FILE = "MapTasker_VarXref.txt"
 FIND_FILE = "MapTasker_Find.txt"
 SWAP_FILE = "MapTasker_Replace.txt"
+# The preview a refactoring operation was applied from, or declined -- see maprefac.py.
+REFACTOR_FILE = "MapTasker_Refactor.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
 # The control-flow report (every Task's If/Else/For/Goto structure, linted) and the
 # flowchart drawn for one Task -- see taskflow.py.  Two files rather than one because

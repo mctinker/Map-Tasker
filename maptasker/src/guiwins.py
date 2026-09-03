@@ -74,6 +74,7 @@ from maptasker.src.guiwins_designer_legacy import (
     _render_legacy_arg,
 )
 from maptasker.src.guiwins_designer_v2 import _build_v2_designer
+from maptasker.src.guiwins_refactor import build_refactor_dialog
 from maptasker.src.guiwins_taskedit import (
     _build_task_action_editor,
     _build_tasker_icon_picker_dialog,
@@ -4614,6 +4615,8 @@ class NiceGuiTextView:
         # of Find/Replace has to dispose of the one already on screen rather than build a
         # second one over it.
         self._find_dialog: ui.dialog | None = None
+        # The Refactor dialog, kept for the same reason and dismissed the same way.
+        self._refactor_dialog: ui.dialog | None = None
         self.build_ui()
         register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
@@ -4797,6 +4800,28 @@ class NiceGuiTextView:
                                 "The boxes combine -- pick a trigger and an action to find the Profiles that "
                                 "trigger that way and run a Task that does that.\n\n"
                                 "Results come back as a list of objects; click one to be taken to it.\n\n",
+                            ),
+                        ).style("white-space: pre-wrap")
+                    # Refactor sits beside Find/Replace and is offered on the same two
+                    # views, for the same reason: it answers with objects in the loaded
+                    # configuration, which is what the Map and the Diagram draw.  A
+                    # separate dialog rather than a third tab of that one -- see
+                    # guiwins_refactor's own note on why sharing mapfind's index would be
+                    # paying 60ms a press to use none of it.
+                    refactor_button = ui.button(
+                        translate_string("Refactor"),
+                        on_click=self.refactor_event,
+                    ).classes("bg-blue-600")
+                    with refactor_button:
+                        ui.tooltip(
+                            translate_string(
+                                "'Refactor' makes the structural changes that Add, Edit and Delete cannot: "
+                                "pull a run of a Task's actions out into a Task of their own, fold a Perform "
+                                "Task back into its caller, move a Task or Profile to another Project, or "
+                                "duplicate any object.\n\n"
+                                "Nothing is changed until you press Preview and then Apply, and the preview "
+                                "says what will happen step by step -- or why it will not.\n\n"
+                                "The whole of a refactor is one press of Undo afterwards.\n\n",
                             ),
                         ).style("white-space: pre-wrap")
                 ui.separator().props("vertical")
@@ -6414,6 +6439,106 @@ class NiceGuiTextView:
         if dialog is not None:
             with contextlib.suppress(Exception):
                 dialog.delete()
+
+    def _dismiss_refactor_dialog(self) -> None:
+        """Take down the Refactor dialog this view has up, if it still has one.
+
+        Deleted rather than closed, for the reason _dismiss_find_dialog gives: a fresh
+        dialog is built per press, so the one being replaced has nothing left to hold, and
+        a closed-but-undeleted dialog is the page-growing stack that exists to prevent.
+        """
+        dialog = self._refactor_dialog
+        self._refactor_dialog = None
+        if dialog is not None:
+            with contextlib.suppress(Exception):
+                dialog.delete()
+
+    def refactor_event(self) -> None:
+        """Open this view's Refactor dialog: the structural moves, with a preview.
+
+        Rebuilt on every press rather than kept on the view, for the reason find_event
+        gives about its index and maprefac gives about its Plan: the configuration
+        underneath can have been edited since the last one, and a dialog holding pulldowns
+        built before an edit keeps offering a Task that has been deleted.  A Plan is worse
+        again -- it holds live elements, and holding one across a reopen is precisely the
+        stale-handle case maprefac.apply's attachment check exists to catch.
+
+        The dialog is handed the three things it needs from this view and imports none of
+        them: what the view is called, how to follow a preview row, and how to redraw.
+        """
+        self._dismiss_refactor_dialog()
+
+        # A Refactor started from the Diagram shows its answers in the Diagram where it can
+        # -- decided here, from the view the button was pressed on, the same way find_event
+        # decides it rather than reading whatever view happens to be frontmost on a click.
+        from_diagram = self.title.startswith("Diagram")
+        # Filled in below, once the dialog exists.  The jump handler is built before it and
+        # needs it, so the two are tied together through this rather than by building the
+        # dialog twice.
+        held: dict = {"dialog": None, "docked": False}
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
+            """One preview row's click: get the dialog out of the way, then go to the object.
+
+            Docked rather than closed, exactly as the Find dialog's rows are (see its dock):
+            a preview is a list of places to look at one at a time, and closing the dialog
+            to look at the first would throw the preview away -- which for a refactor means
+            re-entering every field, since a Plan cannot be remembered across a reopen.
+
+            The jump runs inside the VIEW's slot rather than the dialog's.  Everything it
+            does afterwards resolves its client through whatever slot is active, and the
+            dialog's goes away with the dialog -- the same re-entry, for the same reason, as
+            find_event's jump_to.
+            """
+
+            async def go() -> None:
+                dialog = held["dialog"]
+                if dialog is not None and not held["docked"]:
+                    held["docked"] = True
+                    # seamless drops the backdrop and the body-scroll lock, so the view
+                    # behind is visible and scrollable while this stays up; position=right
+                    # pins it out of the column the Map is read down.
+                    dialog.props(add="seamless position=right")
+                with self.scroll_area:
+                    await go_to_target(self.master_gui, target, prefer_diagram=from_diagram)
+
+            return go
+
+        async def rebuild_view() -> None:
+            """Redraw the view the Refactor was launched from, so it shows what just changed.
+
+            Not optional here, and less optional than it is for a Replace.  A Replace edits
+            content in place; a refactor adds and removes whole objects -- so the view on
+            screen the moment the dialog closes is missing a Task that now exists, or still
+            showing six actions that have moved somewhere else.
+
+            Whichever view asked, not always the Map: rebuilding a Map over a Diagram would
+            answer a question about one view by switching the user to another.  Run through
+            view_event -- the same call the Map/Diagram/Tree buttons make -- so the rebuild
+            honours whatever the user currently has selected.
+            """
+            handlers = getattr(self.master_gui, "event_handlers", None)
+            if handlers is None:
+                ui.notify(
+                    translate_string("The change is applied.  Press Map View to see it."),
+                    type="info",
+                    position="top",
+                )
+                return
+
+            view_type = (self.title.split() or ["Map"])[0].lower()
+            if view_type not in ("map", "diagram", "tree"):
+                view_type = "map"
+            await handlers.view_event(view_type)
+
+        dialog = build_refactor_dialog(self.title, make_jump, rebuild_view)
+        if dialog is None:
+            return
+        held["dialog"] = dialog
+        # Held on the view for as long as it is on screen: a docked dialog outlives the
+        # click that would previously have dismissed it, and the next press has to find it.
+        self._refactor_dialog = dialog
+        dialog.open()
 
     def find_event(self) -> None:
         """Open this view's Find dialog: ask the configuration a question, not the page.

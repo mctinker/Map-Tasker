@@ -131,18 +131,6 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 - "MapTasker_Settings.toml"
 
      This file contains your saved program settings.  You can modify this file but care should be taken not to change the field formats (e.g. _do not_ change an integer to a text string).  Incorrect values will be ignored.
-
-- "MapTasker_Analysis_date_time.txt"
-
-     This file will be created if you run the Ai analysis from the GUI, which holds the response from the analysis.  It will be displayed in a separate window along with the GUI.
-
-- MapTasker_HealthCheck_date_time.txt
-
-	This is the output from the Health Check run.
-	
-- MapTasker_Compare_date_time.txt
-
-	This is the output from the XML File Compare run.
 	
 - MapTasker_VarXref_date_time.txt
 
@@ -154,11 +142,23 @@ This is the output from the Variable Xref (cross reference) run.
 
 - MapTasker_Backups_date_time directory
 
-  Backups files from 'Export' or 'Save to Android', in which the file already existed and an overwrite would occur.
+  Backup files from 'Export' or 'Save to Android', in which the file already existed and an overwrite would occur.
 
-  - MapTasker_Find_date_time.txt and MapTasker_Replace_date_time.txt
+- 'MapTasker_xxx_date_time.txt' files
+  
+    MapTasker_Find_date_time.txt - Saved results from the 'Find > Save Results' command
+    
+    MapTasker_Flowchart_date_time.txt - Saved results from the 'Task Flow' command
 
-  The saved results of the structured search, from the Map and Diagram views, via the 'Find' command, or of the Replace preview results.
+    MapTasker_HealthCheck_date_time.txt - Saved results from the 'Health Check' command
+
+    MapTasker_Analysis_date_time.txt - Saved results from the 'Run (AI) Analysis' command
+
+    MapTasker_Compare_date_time.txt - Saved results from the 'Compare Files' command
+
+    MapTasker_VarXref_date_time.txt - Saved results from the 'Variables Xref' command
+
+    MapTasker_Replace_date_time.txt - Saved results from the 'Find > Replace' preview results
 
 - MapTasker_Apps.json
 
@@ -326,6 +326,24 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 - [x] Import Edits Directly Into Tasker
 
 - [x] Roundtrip (Device-to/from Android) Data Validation
+
+- [x] Task Flow Checker
+
+- [x] Refactor Task
+
+- [ ] Impact Analysis Before Destructive Edit
+
+- [ ] Test-run Task on Android
+
+- [ ] Live Variable Inspector
+
+- [ ] Profile Conflict and Performance Lint
+
+- [ ] Secrets Security Scan
+
+- [ ] Natural Language 'Find'
+
+- [ ] Configuration Timeline
 
 - [ ] Support additional plugins
 

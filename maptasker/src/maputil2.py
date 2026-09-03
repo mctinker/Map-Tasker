@@ -748,6 +748,72 @@ _XML_DECLARATION = '<?xml version = "1.0" encoding = "UTF-8" standalone = "no" ?
 TIMESTAMP_SUFFIX_RE = re.compile(r"_\d{8}_\d{6}$")
 
 
+# Which table governs each kind of top-level element.  The four kinds this program tracks
+# in a table of its own; everything else the file holds -- <Settings>, a top-level
+# <Variable>, anything a future Tasker adds -- belongs to the tree alone.
+_TABLE_OF_TAG = {
+    "Project": "all_projects",
+    "Profile": "all_profiles",
+    "Task": "all_tasks",
+    "Scene": "all_scenes",
+}
+
+
+def attached_elements() -> set[int]:
+    """The id() of every element a save would currently write.
+
+    What "still there" means for a preview built a moment ago and about to be applied --
+    mapswap's Sites and maprefac's Plans both hold live elements across a dialog the user
+    can leave open while they edit something else.
+
+    By identity rather than by re-finding each one: the question is whether THAT element is
+    still in the configuration, which no search by name or number can answer -- a Task
+    deleted and another added in its place matches by every describable property and is a
+    different object.
+
+    THE SAME THREE CASES render_full_backup_xml RECONCILES, and it has to be all three or
+    it gives a wrong answer in one direction or the other.  Both wrong answers are silent:
+
+      A brand-new object is IN THE TABLES AND NOT IN THE TREE.  An Add Task builds a
+      standalone element that only register_new_task tells the tables about, and it is
+      never appended to PrimeItems.xml_root -- so walking the tree alone calls every Task
+      added this session detached, and a replace or a refactor touching one refuses to run
+      on a Task that is plainly there.
+
+      A deleted object is IN THE TREE AND NOT IN THE TABLES.  taskedit.delete_task drops
+      it from the tables and leaves the tree's own child alone, because a save is what
+      reaches the file and a save is driven by the tables -- so walking the tree alone (or
+      the two together) calls a deleted Task attached, and a preview built before the
+      delete would happily rewrite an element nothing is going to write out.
+
+      Everything else -- <Settings>, and the top-level <Variable> elements that are
+      Tasker's Variables tab and the declaration a variable rename has to move -- is in the
+      tree and in no table at all.  Walking the tables alone loses those, and the rename
+      silently loses its declaration.
+
+    So: the tables, plus the tree minus the four kinds the tables govern.  Walked once per
+    apply() rather than per element, since it covers the whole tree.
+    """
+    reachable: set[int] = set()
+
+    root = PrimeItems.xml_root
+    if root is not None:
+        reachable.add(id(root))
+        for child in root:
+            if child.tag in _TABLE_OF_TAG:
+                continue  # Whether this one still counts is the tables' answer, below.
+            reachable.update(id(element) for element in child.iter())
+
+    for table in _TABLE_OF_TAG.values():
+        for item in (PrimeItems.tasker_root_elements.get(table) or {}).values():
+            element = item.get("xml") if isinstance(item, dict) else item
+            if element is None:
+                continue
+            reachable.update(id(descendant) for descendant in element.iter())
+
+    return reachable
+
+
 def render_full_backup_xml(*, indent: bool = True) -> str:
     """Render the entire in-memory Tasker backup -- every Project, Profile, Task,
     Scene and everything else the loaded file holds -- as one XML string, with every

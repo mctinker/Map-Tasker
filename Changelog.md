@@ -16,6 +16,14 @@ All notable changes to this project will be documented in this file!
       
       - What it will not do is guess.  A Goto whose label or action number is built from a variable is decided on the device, so it is left alone rather than reported -- and a Task holding one is not checked for stranded actions at all, since an unknown jump could land on any of them.  A Stop that carries a condition, sits inside an If, or has been disabled strands nothing.  Measured against the backups to hand, that leaves roughly a dozen findings in an 846-Task configuration, every one of them real.
 
+- Added: 'Refactor' -- the structural moves that Add, Edit and Delete cannot make.  Extract a run of a Task's actions into a Task of their own and leave a 'Perform Task' in their place, inline a 'Perform Task' back into its caller, move a Task or Profile to another Project, or duplicate a Project, Profile, Task or Scene.
+
+      - Nothing is changed until you press Preview and then Apply.  The preview says what will happen step by step, every place it names is a click away in the Map, and the whole refactor is one press of Undo afterwards.
+      
+      - It refuses the moves that would quietly break something, and says which and why: actions that would leave half an 'If' block behind, a Task holding a 'Goto' whose target number the move would shift, or a call whose condition cannot be carried onto a block.  It also warns where a move is legal but changes meaning -- above all where local variables are shared across a split, since Tasker scopes those to the running Task and a 'Perform Task' starts a new one.
+      
+      - Duplicating a Profile copies the Tasks it runs, and duplicating a Project copies its whole contents, with the copies' 'Perform Task' and Show/Hide Scene actions pointed at the copies rather than the originals.  Global variables are shared rather than copied, which the preview says up front.
+
 ### Changed
 
 - Changed: Code enhancements
@@ -27,6 +35,8 @@ All notable changes to this project will be documented in this file!
 - Removed: No removals
 
 ### Fixed
+
+- Fixed: A bulk Replace no longer refuses to change a Project, Profile, Task or Scene that was added earlier in the same session, reporting it as no longer in the configuration.  A deleted object is now correctly refused instead.
 
 - Fixed: Actions with an argument named 'Label' now display it. The 'Goto' action showed only its Type and Number, and 'Set Widget Label' showed only its Name, because the argument was mistaken for the action's own label note.
 

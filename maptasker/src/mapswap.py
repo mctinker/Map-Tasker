@@ -53,7 +53,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import mapfind, profedit, sessundo, taskedit, varxref
+from maptasker.src import mapfind, maputil2, profedit, sessundo, taskedit, varxref
 from maptasker.src.actionc import ArgumentCode, action_codes
 from maptasker.src.globalvr import tasker_global_variables
 from maptasker.src.mapjump import PROFILE, TASK, VARIABLE, Row, Target, current_scope, text_report
@@ -2631,7 +2631,7 @@ def apply(plan: Plan) -> tuple[int, list[str]]:
     # order the list, so that a plan assembled in any order still applies in a safe one.
     changes.sort(key=lambda change: change.site.kind == DECLARATION)
 
-    attached = _attached_elements()
+    attached = maputil2.attached_elements()
 
     with sessundo.undoable(plan.what):
         for change in changes:
@@ -2649,39 +2649,6 @@ def apply(plan: Plan) -> tuple[int, list[str]]:
             changed += 1
 
     return changed, errors
-
-
-def _attached_elements() -> set[int]:
-    """The id() of every element currently reachable from the loaded configuration.
-
-    By identity rather than by re-finding each site: a Site holds the element itself, and
-    the question being asked is whether THAT element is still in the tree, which no search
-    by name or number can answer -- a Task deleted and another added in its place would
-    match by every describable property and be a different object.
-
-    Rebuilt once per apply() rather than per site, since it walks the whole tree.
-
-    Walked from the ROOT, not from the Project/Profile/Task/Scene tables.  The tables were
-    the obvious place to start and are the wrong one: a top-level <Variable> -- Tasker's
-    Variables tab, and the declaration every rename has to move -- sits beside those
-    objects rather than inside any of them, so a walk of the tables alone declares it
-    detached and every rename silently loses its declaration.  The root is what "still in
-    the configuration" actually means.
-    """
-    root = PrimeItems.xml_root
-    if root is not None:
-        return {id(element) for element in root.iter()}
-
-    # No root parsed: fall back to the tables, so a caller holding only those is still
-    # checked rather than waved through.
-    reachable: set[int] = set()
-    for tag in ("all_projects", "all_profiles", "all_tasks", "all_scenes"):
-        for item in (PrimeItems.tasker_root_elements.get(tag) or {}).values():
-            element = item.get("xml") if isinstance(item, dict) else item
-            if element is None:
-                continue
-            reachable.update(id(descendant) for descendant in element.iter())
-    return reachable
 
 
 def _apply_one(change: Change) -> None:
