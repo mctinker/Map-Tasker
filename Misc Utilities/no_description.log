@@ -1,0 +1,104 @@
+MapTasker 13.1.0 -- commands with no description, 2026-09-03
+Written by build_command_wiki.py.  Regenerated in full on every run.
+
+These 94 are left out of the command reference entirely.  Each has no
+tooltip, no line in userhelp.py's help text, and no comment above it in the source,
+so there is nothing to say about it on the page.  Adding a ui.tooltip() to any of
+them -- or a comment above it -- puts it on the page the next time this is run.
+
+WHERE                                       COMMAND                           KIND       SOURCE
+--------------------------------------------------------------------------------------------------------------
+Local File Picker                           Drives                            Option     getfile.py:60
+Main Window                                 Buy Me A Coffee                   Command    guiutils.py:1384
+Android XML File List                       Available Android Backups         Pulldown   guiutils.py:1725
+Fetch Applications From Android Device      Fetch                             Command    guiwins.py:706
+App Entry Picker and App Picker             Add                               Command    guiwins.py:740
+Tasker Icon Picker                          No Icon                           Command    guiwins.py:1051
+Action Condition                            Operator                          Pulldown   guiwins.py:1226
+Add Task and Edit Task and Render Scene     Continue Task After Error         Option     guiwins.py:1306
+Edit Task and Render Scene                  Category                          Pulldown   guiwins.py:1403
+Edit Task and Render Scene                  Position                          Pulldown   guiwins.py:1405
+Edit Task and Render Scene                  Copy                              Command    guiwins.py:1499
+Edit Task and Render Scene                  Move                              Command    guiwins.py:1518
+Edit Task and Render Scene                  Action Enabled                    Option     guiwins.py:1541
+Add Profile and Edit Profile                Enabled                           Option     guiwins.py:1997
+Add Profile and Edit Profile                Unlink                            Command    guiwins.py:2039
+Add Profile and Edit Profile                Choose a Task                     Pulldown   guiwins.py:2048
+Add Profile and Edit Profile                Link                              Command    guiwins.py:2057
+Add Profile and Edit Profile                Delete Condition                  Command    guiwins.py:2117
+Add Profile and Edit Profile                All                               Command    guiwins.py:2256
+Add Profile and Edit Profile                None                              Command    guiwins.py:2263
+Add Profile and Edit Profile                Odd                               Command    guiwins.py:2267
+Add Profile and Edit Profile                Last Day Of Month                 Option     guiwins.py:2298
+Add Profile and Edit Profile                Remove                            Command    guiwins.py:2328
+Add Profile and Edit Profile                Add App Entry                     Command    guiwins.py:2335
+Add Profile and Edit Profile                Condition Type                    Pulldown   guiwins.py:2345
+Add Profile and Edit Profile                Event Type                        Pulldown   guiwins.py:2365
+Add Profile and Edit Profile                State Type                        Pulldown   guiwins.py:2381
+Add Profile and Edit Profile                Add Condition                     Command    guiwins.py:2404
+Edit Project                                Delete Project                    Command    guiwins.py:2737
+Object Properties                           Type                              Pulldown   guiwins.py:3069
+Object Properties                           Remove Variable                   Command    guiwins.py:3121
+Object Properties                           Add Variable                      Command    guiwins.py:3186
+Icon                                        Tile                              Command    guiwins.py:3928
+Add Scene and Edit Scene                    Arrow Upward                      Command    guiwins.py:4441
+Add Scene and Edit Scene                    Arrow Downward                    Command    guiwins.py:4447
+Add Scene and Edit Scene                    Add modifier                      Command    guiwins.py:4465
+Add Scene and Edit Scene                    Arrow Upward                      Command    guiwins.py:4516
+Add Scene and Edit Scene                    Arrow Downward                    Command    guiwins.py:4522
+Add Scene and Edit Scene                    Add action                        Command    guiwins.py:4537
+Add Scene and Edit Scene                    Add handler                       Command    guiwins.py:4547
+Add Scene and Edit Scene                    click                             Menu item  guiwins.py:4550
+Add Scene and Edit Scene                    hold                              Menu item  guiwins.py:4550
+Add Scene and Edit Scene                    screen_variable_changed           Menu item  guiwins.py:4550
+Add Scene and Edit Scene                    text_changed                      Menu item  guiwins.py:4550
+Add Scene and Edit Scene and Item Layout D  Edit item layout                  Command    guiwins.py:6104
+Add Scene and Edit Scene and Item Layout D  Pick a Task                       Pulldown   guiwins.py:6193
+Add Scene and Edit Scene and Item Layout D  Add event                         Command    guiwins.py:6205
+Add Scene and Edit Scene and Item Layout D  Add a background                  Command    guiwins.py:6267
+Add Scene and Edit Scene and Item Layout D  Remove background                 Command    guiwins.py:6277
+Add Scene and Edit Scene and Item Layout D  Add scene properties              Command    guiwins.py:6327
+Scene Properties                            Add scene properties              Command    guiwins.py:6914
+Scene Properties                            Arrow Upward                      Command    guiwins.py:7178
+Scene Properties                            Arrow Downward                    Command    guiwins.py:7182
+Scene Properties                            Pick                              Command    guiwins.py:7205
+Scene Properties                            Category                          Pulldown   guiwins.py:7269
+Render Scene                                Project                           Pulldown   guiwins.py:7486
+Edit Scene                                  Delete Scene                      Command    guiwins.py:8215
+Delete Scene                                Delete Scene                      Command    guiwins.py:8332
+Overwrite Confirmation                      Overwrite                         Command    guiwins.py:8516
+Delete Profile                              Delete Profile                    Command    guiwins.py:8588
+Delete Task                                 Delete Task                       Command    guiwins.py:8625
+Delete Project                              Keep Contents                     Command    guiwins.py:8658
+Delete Project                              Delete Contents                   Command    guiwins.py:8666
+Add Task                                    Category                          Pulldown   guiwins.py:8874
+Add Task                                    Position                          Pulldown   guiwins.py:8876
+Add Task                                    Remove                            Command    guiwins.py:8959
+Scene Preview Window                        Back to Editor                    Command    guiwins.py:9959
+Scene Preview Window                        Refresh                           Command    guiwins.py:9964
+Scene Preview Window                        Zoom                              Pulldown   guiwins.py:9969
+Map / Diagram / Tree View Toolbar           Rebuild                           Command    guiwins.py:10625
+Map / Diagram / Tree View Toolbar           Top                               Command    guiwins.py:10705
+Map / Diagram / Tree View Toolbar           Bottom                            Command    guiwins.py:10706
+Search Results                              Close Results Window              Command    guiwins.py:11575
+Find / Replace                              Mode                              Option     guiwins.py:11623
+Find / Replace                              Replace this action               Pulldown   guiwins.py:11636
+Find / Replace                              ...with this one                  Pulldown   guiwins.py:11641
+Find / Replace                              In this action                    Pulldown   guiwins.py:11666
+Find / Replace                              ...replace this argument          Pulldown   guiwins.py:11671
+Find / Replace                              Narrow to Project                 Pulldown   guiwins.py:11676
+Find / Replace                              Replace this Profile condition    Pulldown   guiwins.py:11719
+Find / Replace                              ...with this one                  Pulldown   guiwins.py:11724
+Find / Replace                              Narrow to Project                 Pulldown   guiwins.py:11729
+Find / Replace                              Rename this variable              Pulldown   guiwins.py:11744
+Find / Replace                              Save Preview                      Command    guiwins.py:12198
+Main Window                                 Select Category to Colorize       Pulldown   guiwins.py:14050
+Main Window                                 Debug Mode                        Option     guiwins.py:14096
+Main Window                                 Display Runtime Settings          Option     guiwins.py:14099
+Main Window                                 Show/Edit API Key(s)              Command    guiwins.py:14147
+Main Window                                 Language Optionmenu               Pulldown   guiwins.py:14315
+Main Window                                 Save Settings                     Command    guiwins.py:14416
+Main Window                                 Restore Settings                  Command    guiwins.py:14423
+Compare Files                               Choose another file...            Command    userintr.py:249
+Get XML From Android Device                 Click Here to Set XML Details     Command    userintr.py:2973
+Change Prompt                               Submit                            Command    userintr.py:6569

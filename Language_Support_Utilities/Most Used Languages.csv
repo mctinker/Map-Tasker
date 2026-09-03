@@ -1,0 +1,53 @@
+ank,language,language_code,notes
+1,English,en,Global tech and documentation standard
+2,Mandarin Chinese,zh,Variants include zh-CN and zh-TW
+3,Hindi,hi,Major Indian tech workforce language
+4,Spanish,es,Americas and Europe
+5,Standard Arabic,ar,Regional variants like ar-SA and ar-EG
+6,French,fr,Europe Africa and Canada
+7,Bangla,bn,Bangladesh and India
+8,Portuguese,pt,Variants pt-BR and pt-PT
+9,Russian,ru,Eastern Europe and CIS
+10,Urdu,ur,Pakistan and India
+11,Indonesian,id,Distinct from Malay
+12,German,de,EU enterprise tech
+13,Japanese,ja,Japan tech sector
+14,Swahili,sw,East Africa
+15,Marathi,mr,India
+16,Telugu,te,Major IT workforce language in India
+17,Turkish,tr,Turkey and Europe
+18,Tamil,ta,India and Sri Lanka
+19,Vietnamese,vi,Southeast Asia tech growth
+20,Korean,ko,South Korea
+21,Italian,it,Europe
+22,Thai,th,Southeast Asia
+23,Gujarati,gu,India
+24,Persian (Farsi),fa,Iran and Central Asia
+25,Polish,pl,Central Europe
+26,Ukrainian,uk,Eastern Europe
+27,Malay,ms,Malaysia and Brunei
+28,Kannada,kn,India
+29,Hausa,ha,West Africa
+30,Amharic,am,Ethiopia
+,,,
+Rank,Language Name,ISO 639-1 Code,Primary Markets / Regions
+6,Portuguese,pt,"Brazil (Crucial market), Portugal"
+7,Japanese,ja,"Japan (High-value, high-GDPI market)"
+8,Russian,ru,"Russia, Eastern Europe, Central Asia"
+9,Korean,ko,South Korea (High-value market)
+10,Italian,it,Italy
+11,Arabic,ar,Middle East and North Africa (MENA)
+12,Turkish,tr,Turkey
+13,Polish,pl,Poland (Major Central European market)
+14,Dutch,nl,"Netherlands, Belgium (Flanders)"
+15,Vietnamese,vi,Vietnam (Fast-growing mobile market)
+16,Thai,th,Thailand
+17,Indonesian,id,"Indonesia (Huge, mobile-first market)"
+18,Swedish,sv,Sweden
+19,Hindi,hi,"India (Crucial, though English is also widely used)"
+20,Hebrew,he,"Israel (High-GDPI, distinct script)"
+21,Danish,da,Denmark
+22,Finnish,fi,Finland
+23,Norwegian,no,Norway
+24,Greek,el,Greece
+25,Czech,cs,Czech Republic
