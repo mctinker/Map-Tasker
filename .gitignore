@@ -16,6 +16,8 @@
 !pyproject.toml
 # Tracked so CI can `uv sync --locked` and get byte-identical dependencies.
 !uv.lock
+# Runs the CI gates locally; kept beside the workflow it mirrors.
+!run-ci.sh
 !maptasker
 !tests
 dmg_builder
