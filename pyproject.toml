@@ -63,6 +63,7 @@ exclude = [
   "/.vscode",
   "/.github",
   "/tests",
+  "/XML",
   "/*.lock",
   "/.gitignore",
   "/docs",
