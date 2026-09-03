@@ -85,25 +85,18 @@ from maptasker.src.guiwins import (
     NiceGuiSceneView,
     NiceGuiTextView,
     NiceGuiTreeView,
-    build_add_profile_dialog,
     build_add_project_dialog,
     build_add_scene_dialog,
     build_add_scene_version_dialog,
-    build_add_task_dialog,
-    build_delete_profile_dialog,
     build_delete_project_dialog,
     build_delete_scene_dialog,
-    build_delete_task_dialog,
-    build_edit_profile_dialog,
     build_edit_project_dialog,
     build_edit_scene_dialog,
-    build_edit_task_dialog,
     build_helper_tasks_dialog,
     build_object_properties_dialog,
     build_overwrite_confirm_dialog,
     build_rename_dialog,
     build_round_trip_report_dialog,
-    build_save_profile_to_android_dialog,
     build_save_project_to_android_dialog,
     build_save_scene_to_android_dialog,
     build_save_to_android_dialog,
@@ -121,6 +114,17 @@ from maptasker.src.guiwins import (
     suspended_scene_editor,
 )
 from maptasker.src.guiwins2 import APIKeyDialog
+from maptasker.src.guiwins_profedit import (
+    build_add_profile_dialog,
+    build_delete_profile_dialog,
+    build_edit_profile_dialog,
+    build_save_profile_to_android_dialog,
+)
+from maptasker.src.guiwins_taskedit import (
+    build_add_task_dialog,
+    build_delete_task_dialog,
+    build_edit_task_dialog,
+)
 from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
@@ -1640,7 +1644,7 @@ def _apply_scene_field_values(edited_scene: sceneedit.EditableScene, field_refs:
 def _encode_v2_layout_if_edited(edited_scene: sceneedit.EditableScene, field_refs: dict) -> None:
     """Writes the Version 2 designer's live layout dict back into the Scene's <lj>.
 
-    The designer edits that dict in place as the user types (guiwins._build_v2_designer),
+    The designer edits that dict in place as the user types (guiwins_designer_v2._build_v2_designer),
     so by the time a save button runs, every property change is already in it and this is
     the single step that makes them real.  A Legacy Scene has no "v2_layout" in field_refs
     and this does nothing.
@@ -1958,7 +1962,7 @@ def _link_pending_task_pickers(edited_profile: profedit.EditableProfile, field_r
     Entry/Exit Task is missing (see profedit.validate_new_profile_requirements)
     just because the extra confirmation click didn't happen. field_refs only
     has "{entry,exit}_task_picker" while that Task is still unlinked (see
-    guiwins._build_profile_editor_body) -- already-linked ones have nothing to do here.
+    guiwins_profedit._build_profile_editor_body) -- already-linked ones have nothing to do here.
     """
     for link_type in ("Entry", "Exit"):
         picker = field_refs.get(f"{link_type.lower()}_task_picker")
@@ -6141,7 +6145,7 @@ class MapTaskerEventHandlers:
         position: int | None = None,
     ) -> int | None:
         """Inserts an "If" action -- plus the "Else"/"End If" companions the
-        chosen variant calls for (see guiwins.build_if_variant_dialog) -- as
+        chosen variant calls for (see guiwins_taskedit.build_if_variant_dialog) -- as
         consecutive actions into the in-progress new Task, at `position` or at
         the end if None.
 
@@ -6192,7 +6196,7 @@ class MapTaskerEventHandlers:
         position: int | None,
     ) -> int | None:
         """Inserts an "If" action -- plus the "Else"/"End If" companions the
-        chosen variant calls for (see guiwins.build_if_variant_dialog) -- as
+        chosen variant calls for (see guiwins_taskedit.build_if_variant_dialog) -- as
         consecutive actions into a Task being edited, at `position` or at the
         end if None (same semantics as add_action_to_edit_task_event's).
 
@@ -6236,7 +6240,7 @@ class MapTaskerEventHandlers:
     ) -> None:
         """Sets or clears an action's <se>false</se> ('Continue Task After
         Error') -- backs the checkbox of the same name (see
-        guiwins._render_continue_after_error_checkbox).
+        guiwins_taskedit._render_continue_after_error_checkbox).
         """
         taskedit.set_action_continue_after_error(edited_task, act_number, continue_after_error)
 
@@ -6251,7 +6255,7 @@ class MapTaskerEventHandlers:
         checkbox: ui.checkbox,
     ) -> None:
         """Validates and writes a per-action If condition from the prompt's
-        field values (see guiwins.build_action_condition_dialog), updates the
+        field values (see guiwins_taskedit.build_action_condition_dialog), updates the
         "If" checkbox's text to show it, then closes the prompt. The prompt
         stays open on any validation error so the user can correct the fields.
         """

@@ -588,7 +588,7 @@ def reclassify_action_args(action: EditableAction) -> None:
     device makes that answer wrong, and nothing re-asks it -- so the field would go on
     being read-only, for a stated reason that had stopped being true, until the dialog was
     closed and reopened.  This re-asks it, so redrawing the row is enough (see
-    guiwins._render_readonly_note).
+    guiwins_taskedit._render_readonly_note).
 
     Rebuilt from the same Action element, so nothing that has been edited in the XML is
     lost; what is discarded is the classification, which is the point.
@@ -857,7 +857,7 @@ def _classify_arg_widget(arg) -> tuple[str, str, list[str] | None]:
         widget_kind = "text" if isinstance(arg.arg_eval, str) else "raw_fallback"
         return widget_kind, "Str", None
     # An Application or an icon is editable only while there is an inventory to offer:
-    # both fields are typed into as well as picked from (see guiwins._render_app_arg_field),
+    # both fields are typed into as well as picked from (see guiwins_taskedit._render_app_arg_field),
     # but a picker with nothing in it is a field the user has no way to fill correctly, so
     # with an empty inventory these stay exactly as read-only as they were before
     # deviceinv.py existed.  See classify_action_addability, which gates on the same thing.
@@ -1302,7 +1302,7 @@ _SAFE_CATEGORIES = ("Int", "Str", "String", "Boolean")
 # gives is a statement about the action ("this plugin's payload can't be generated"); these
 # two are statements about what is loaded right now, and both have the same way out -- a
 # fetch from the device -- which the GUI offers wherever it shows either of these exact
-# texts (see guiwins._render_inventory_fetch).  The icon one has a way out because an app's
+# texts (see guiwins_taskedit._render_inventory_fetch).  The icon one has a way out because an app's
 # own icon is a package and a launcher activity, which is precisely what the Application
 # fetch brings back: see deviceinv._merged_with_device_icons, and the module docstring
 # there for the two icon kinds no fetch can reach.  Named constants rather than literals so

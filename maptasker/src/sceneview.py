@@ -1732,7 +1732,7 @@ _V2_PATHS: dict[int, tuple[tuple, int]] = {}
 # The two classes the hull is measured with: every component drawn carries the first, and the
 # box drawn behind them carries the second.  Stated here rather than in guiwins because this
 # is the module that puts them in the DOM; the script that reads them is
-# guiwins._emit_v2_hull, and the two change together.
+# guiwins_canvas._emit_v2_hull, and the two change together.
 V2_COMPONENT_CLASS = "mt-v2-comp"
 V2_HULL_CLASS = "mt-v2-hull"
 
@@ -1847,7 +1847,7 @@ def draw_v2_layout(
     if editing is not None:
         # The selected run, for the drag handlers to read off the canvas: where it starts and
         # how long it is.  The same two attributes the designer's tree pane carries, and put
-        # here for the same reason -- see guiwins._v2_selection_props.
+        # here for the same reason -- see guiwins_canvas._v2_selection_props.
         frame.props(
             f'data-mt-v2-sel="{v2_encode_path(editing.selected[0] if editing.selected else ())}" '
             f'data-mt-v2-count="{max(1, len(editing.selected))}"',
@@ -1885,7 +1885,7 @@ def _v2_hull() -> None:
     A V2 layout has no coordinates of its own -- it is flexbox, and where a component lands
     is decided by the browser laying its siblings out -- so unlike the Legacy canvas, where
     every element's box is in the XML, there is no extent to compute here.  This element is
-    therefore drawn empty and positioned by guiwins._emit_v2_hull once the layout has been
+    therefore drawn empty and positioned by guiwins_canvas._emit_v2_hull once the layout has been
     laid out, which is the only place the numbers exist.
 
     Hidden until it has been measured, so a render whose script has not run yet shows no box

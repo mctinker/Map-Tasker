@@ -1,6 +1,6 @@
 [project]
 name = "maptasker"
-version = "13.1.0"
+version = "13.1.1"
 description = "Utility to display/edit/analyze your entire Android 'Tasker' configuration in your browser."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
@@ -238,7 +238,15 @@ max-complexity = 20
 'maptasker/src/format.py' = ['ARG002', 'C901', 'PLR0912', 'S105']
 'maptasker/src/getfile.py' = ['ANN201', 'ANN202', 'D101', 'D102', 'N801', 'PLC0415']
 'maptasker/src/getputer.py' = ['PERF403']
-'maptasker/src/guiwins.py' = ['ARG001', 'C901', 'ISC004', 'PLR0912', 'PLR0915', 'RUF100', 'SIM117', 'SLF001']
+'maptasker/src/guiwins.py' = ['ARG001', 'C901', 'ISC004', 'PLR0915', 'SLF001']
+# guiwins.py was split by dialog family into the guiwins_* modules below. These are its
+# own backlog entries following the code out of it, not new debt -- the same oversized
+# dialog builders, now in the file they belong to. guiwins.py's own line shrank by three
+# rules in the move (PLR0912, RUF100, SIM117), and guiwins_canvas.py needs no line at all.
+'maptasker/src/guiwins_designer_legacy.py' = ['C901', 'PLR0915']
+'maptasker/src/guiwins_designer_v2.py' = ['C901', 'PLR0915', 'SIM117']
+'maptasker/src/guiwins_profedit.py' = ['C901', 'PLR0912', 'PLR0915']
+'maptasker/src/guiwins_taskedit.py' = ['C901']
 'maptasker/src/kidapp.py' = ['D100']
 'maptasker/src/mapai.py' = ['F811']
 'maptasker/src/mapit.py' = ['ANN001', 'ARG001']

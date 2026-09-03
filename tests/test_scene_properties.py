@@ -764,7 +764,7 @@ def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it
     from nicegui.client import Client  # noqa: PLC0415
     from nicegui.page import page  # noqa: PLC0415
 
-    from maptasker.src import guiwins  # noqa: PLC0415
+    from maptasker.src import guiwins_taskedit  # noqa: PLC0415
 
     saved = dict(PrimeItems.tasker_root_elements)
     saved_specs = dict(PrimeItems.tasker_arg_specs)
@@ -788,7 +788,7 @@ def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it
         for task_name in named[:5]:
             edited = taskedit.load_task_for_edit(task_name)
             with Client(page("/")):
-                guiwins.build_edit_task_dialog(gui, edited)
+                guiwins_taskedit.build_edit_task_dialog(gui, edited)
             headers = [e._props.get("label", "") for e in _descendants(opened[-1]) if isinstance(e, ui.expansion)]
             assert len(headers) == len(edited.actions), task_name
     finally:

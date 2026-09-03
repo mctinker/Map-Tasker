@@ -6,24 +6,12 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: 'Add/Edit Properties' in Add and Edit Project, Profile, Task and Legacy Scene.
-- Added: A 'Verify' checkbox on all four 'Save To Android' panels (Task, Profile, Project and Scene), beneath the IP Address and Port. When ticked, the XML about to be sent is read back and compared before the device is contacted at all, and nothing is sent if anything changed on the way through -- you get a report naming the object and the value instead. 
-
-      - Every object in the export is checked, including the Profiles, Scenes and Tasks bundled in that you never edited. It catches what the existing checks cannot: a value this program's own writer and reader disagree about, such as a carriage return inside a name, which is written as typed and read back as a newline.
-      
-      - The upload's 200 and its byte-for-byte readback both pass on that, because both compare the already-wrong bytes against themselves. Off by default; the setting is remembered for the rest of the session.
+- Added:
 
 ### Changed
 
-- Changed: All 'Properties' for a Tasker object are now consolidated in the same line in the Map view rather than in multiple separate lines.
-- Changed: The Map view reports five more Profile properties -- Limit Repeats, Remaining Repeats, Delete On Zero Repeats, Enforce Task Order and Show In Notification -- each one only when it is set to something other than its default. They read through objprops, so the Map and the Properties editor cannot disagree about a label or about which <flags> bit holds what.
-- Changed: A Legacy Scene's Geometry (its portrait/landscape size) is now shown in Scene Properties for every Property Type, not just for an Overlay.
-- Changed: The Map view labels a Scene's key filter "Keys=" rather than "URL Match=" -- it is Tasker's slash-separated key list, not a URL -- and reports the Scene's "Home Tap" Task.
-- Changed: Coding changes...
-
-      - Removed the dependency on black. Code formatting is now done by ruff, which this project already configured for linting -- running both over the same files had them disagreeing about the same lines. Added ruff and pytest-cov as development dependencies; ruff was configured but had never actually been installed, so none of its checks had ever run.
-      - ''uv.lock' is now tracked in the repository, so a checkout resolves exactly the same dependency versions everywhere rather than whatever is current at install time.
-      - Added a continuous integration workflow. Every push and pull request now runs the test suite against Python 3.11, 3.12 and 3.13 with coverage reporting, lints and format-checks the code with ruff, and builds the source distribution and wheel. None of this was running automatically before.
+- Changed: Split guiwins.py by dialog family. At 14,540 lines it held the Task editor, the Profile editor, both Scene designers and the shared canvas alongside the views and the screen layout. Each family is now its own module -- guiwins_taskedit.py, guiwins_profedit.py, guiwins_designer_legacy.py, guiwins_designer_v2.py and guiwins_canvas.py under them -- leaving 8,633 lines in guiwins.py. No behaviour changed: every function and class moved verbatim.
+- Changed:
 
 ### Removed
 
@@ -31,8 +19,7 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
-- Fixed: "What's New" text in popup window is not being formatted correctly.
-- Fixed: The single profile name is not necessarily appearing in the GUI pulldown list at startup. 
+- Fixed:
 
 ### Known Issues
 
@@ -51,6 +38,26 @@ For each PID listed in the output from the above terminal command, issue the fol
 
 
 ## Older History Logs
+
+## [13.1.0] 03-Sep-2026
+
+- Added: 'Add/Edit Properties' in Add and Edit Project, Profile, Task and Legacy Scene.
+- Added: A 'Verify' checkbox on all four 'Save To Android' panels (Task, Profile, Project and Scene), beneath the IP Address and Port. When ticked, the XML about to be sent is read back and compared before the device is contacted at all, and nothing is sent if anything changed on the way through -- you get a report naming the object and the value instead. 
+
+      - Every object in the export is checked, including the Profiles, Scenes and Tasks bundled in that you never edited. It catches what the existing checks cannot: a value this program's own writer and reader disagree about, such as a carriage return inside a name, which is written as typed and read back as a newline.
+      
+      - The upload's 200 and its byte-for-byte readback both pass on that, because both compare the already-wrong bytes against themselves. Off by default; the setting is remembered for the rest of the session.
+- Changed: All 'Properties' for a Tasker object are now consolidated in the same line in the Map view rather than in multiple separate lines.
+- Changed: The Map view reports five more Profile properties -- Limit Repeats, Remaining Repeats, Delete On Zero Repeats, Enforce Task Order and Show In Notification -- each one only when it is set to something other than its default. They read through objprops, so the Map and the Properties editor cannot disagree about a label or about which <flags> bit holds what.
+- Changed: A Legacy Scene's Geometry (its portrait/landscape size) is now shown in Scene Properties for every Property Type, not just for an Overlay.
+- Changed: The Map view labels a Scene's key filter "Keys=" rather than "URL Match=" -- it is Tasker's slash-separated key list, not a URL -- and reports the Scene's "Home Tap" Task.
+- Changed: Coding changes...
+
+      - Removed the dependency on black. Code formatting is now done by ruff, which this project already configured for linting -- running both over the same files had them disagreeing about the same lines. Added ruff and pytest-cov as development dependencies; ruff was configured but had never actually been installed, so none of its checks had ever run.
+      - ''uv.lock' is now tracked in the repository, so a checkout resolves exactly the same dependency versions everywhere rather than whatever is current at install time.
+      - Added a continuous integration workflow. Every push and pull request now runs the test suite against Python 3.11, 3.12 and 3.13 with coverage reporting, lints and format-checks the code with ruff, and builds the source distribution and wheel. None of this was running automatically before.
+- Fixed: "What's New" text in popup window is not being formatted correctly.
+- Fixed: The single profile name is not necessarily appearing in the GUI pulldown list at startup. 
 
 ## [13.0.3] 31-Aug-2026
 

@@ -851,7 +851,7 @@ def test_an_app_argument_with_nothing_to_offer_says_why(no_apps_device: _FakeReq
 # Same shape as the Applications one above, and the same way out.  An app's own icon is a
 # package plus a launcher activity, which is exactly what the Application fetch brings
 # back, so asking the device for applications is also asking it for icons -- and the GUI
-# offers that fetch wherever it shows NO_ICONS_REASON (guiwins._render_inventory_fetch).
+# offers that fetch wherever it shows NO_ICONS_REASON (guiwins_taskedit._render_inventory_fetch).
 # The other two icon kinds are not reachable this way and are not pretended to be.
 def test_the_icon_refusal_is_a_named_one_too(no_apps_device: _FakeRequests) -> None:
     """The fixture that harvests no Applications harvests no icons either, so Notify --
