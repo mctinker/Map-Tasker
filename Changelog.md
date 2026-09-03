@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.1.0] ??-Aug-2026  # FIX
+## [13.1.0] 03-Sep-2026
 
 ### Added
 
@@ -19,13 +19,15 @@ All notable changes to this project will be documented in this file!
 - Changed: The Map view reports five more Profile properties -- Limit Repeats, Remaining Repeats, Delete On Zero Repeats, Enforce Task Order and Show In Notification -- each one only when it is set to something other than its default. They read through objprops, so the Map and the Properties editor cannot disagree about a label or about which <flags> bit holds what.
 - Changed: A Legacy Scene's Geometry (its portrait/landscape size) is now shown in Scene Properties for every Property Type, not just for an Overlay.
 - Changed: The Map view labels a Scene's key filter "Keys=" rather than "URL Match=" -- it is Tasker's slash-separated key list, not a URL -- and reports the Scene's "Home Tap" Task.
-- Changed: Added a continuous integration workflow. Every push and pull request now runs the test suite against Python 3.11, 3.12 and 3.13 with coverage reporting, lints and format-checks the code with ruff, and builds the source distribution and wheel. None of this was running automatically before.
-- Changed: Removed the dependency on black. Formatting is now done by ruff, which this project already configured for linting -- running both over the same files had them disagreeing about the same lines. Added ruff and pytest-cov as development dependencies; ruff was configured but had never actually been installed, so none of its checks had ever run.
-- Changed: uv.lock is now tracked in the repository, so a checkout resolves exactly the same dependency versions everywhere rather than whatever is current at install time.
+- Changed: Coding changes...
+
+      - Removed the dependency on black. Code formatting is now done by ruff, which this project already configured for linting -- running both over the same files had them disagreeing about the same lines. Added ruff and pytest-cov as development dependencies; ruff was configured but had never actually been installed, so none of its checks had ever run.
+      - ''uv.lock' is now tracked in the repository, so a checkout resolves exactly the same dependency versions everywhere rather than whatever is current at install time.
+      - Added a continuous integration workflow. Every push and pull request now runs the test suite against Python 3.11, 3.12 and 3.13 with coverage reporting, lints and format-checks the code with ruff, and builds the source distribution and wheel. None of this was running automatically before.
 
 ### Removed
 
-- Removed:
+- Removed: No removals
 
 ### Fixed
 

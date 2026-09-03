@@ -21,7 +21,8 @@
 !maptasker
 !tests
 dmg_builder
-#!*.html
+!Misc Utilities
+!Language_Support_Utilities
 
 
 # recursively re-ignore
