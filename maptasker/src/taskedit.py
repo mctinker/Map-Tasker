@@ -1567,9 +1567,9 @@ def validate_if_condition_values(
 
     1. Target must be set: plain alphanumeric text, or a %variable.
     2. Unless the Operator is 'Is Set'/'Not Set' (which test existence alone),
-       Value must be set to alphanumeric text.
-    3. A %variable Target must name a valid Tasker variable: 3 or more
-       letters/digits/underscores after the '%', not starting or ending
+       Value must be set, to either of those same two forms.
+    3. A %variable Target or Value must name a valid Tasker variable: 3 or
+       more letters/digits/underscores after the '%', not starting or ending
        with '_'.
 
     No-op for an If whose condition isn't editable (no/multiple Conditions --
@@ -1597,6 +1597,25 @@ def validate_if_condition_values(
     return validate_condition_fields(target, operator_label, value)
 
 
+def _validate_condition_field(field_name: str, field_value: str) -> list[str]:
+    """The rule both an If condition's Target and its Value obey: plain
+    alphanumeric text, or a %variable naming a valid Tasker variable (3+
+    letters/digits/underscores after the '%', not starting or ending with
+    '_'). field_name ('Target'/'Value') names the offending field in the
+    message. Assumes an already-stripped, non-empty field_value.
+    """
+    if field_value.startswith("%"):
+        if not _IF_VARIABLE_NAME_RE.match(field_value[1:]):
+            message = (
+                f"The If condition's {field_name} '{field_value}' is not a valid variable: the name after '%' "
+                "must be 3 or more letters, digits, or underscores, and cannot start or end with '_'."
+            )
+            return [message]
+    elif not field_value.isalnum():
+        return [f"The If condition's {field_name} '{field_value}' must be alphanumeric, or a %variable."]
+    return []
+
+
 def validate_condition_fields(target: str, operator_label: str, value: str) -> list[str]:
     """The If-condition field rules, shared by the 'If' action's own condition
     (validate_if_condition_values) and a per-action If condition
@@ -1606,7 +1625,8 @@ def validate_condition_fields(target: str, operator_label: str, value: str) -> l
        valid Tasker variable (3+ letters/digits/underscores after the '%',
        not starting or ending with '_').
     2. Unless the Operator tests existence alone ('Is Set'/'Not Set'), Value
-       must be set to alphanumeric text.
+       must be set, to either of those same two forms -- comparing a variable
+       against another variable (e.g. %DATE) is legitimate in Tasker.
     """
     target = target.strip()
     value = value.strip()
@@ -1614,20 +1634,14 @@ def validate_condition_fields(target: str, operator_label: str, value: str) -> l
     errors = []
     if not target:
         errors.append("The If condition's Target must be set.")
-    elif target.startswith("%"):
-        if not _IF_VARIABLE_NAME_RE.match(target[1:]):
-            errors.append(
-                f"The If condition's Target '{target}' is not a valid variable: the name after '%' "
-                "must be 3 or more letters, digits, or underscores, and cannot start or end with '_'.",
-            )
-    elif not target.isalnum():
-        errors.append(f"The If condition's Target '{target}' must be alphanumeric, or a %variable.")
+    else:
+        errors.extend(_validate_condition_field("Target", target))
 
     if operator_label not in _IF_NO_VALUE_OPERATORS:
         if not value:
             errors.append(f"The If condition's Value must be set when the Operator is '{operator_label}'.")
-        elif not value.isalnum():
-            errors.append(f"The If condition's Value '{value}' must be alphanumeric.")
+        else:
+            errors.extend(_validate_condition_field("Value", value))
 
     return errors
 

@@ -8,7 +8,7 @@ import pickle
 import sys
 import time
 import webbrowser
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import urlencode
@@ -103,9 +103,11 @@ from maptasker.src.guiwins import (
     create_popup_window,
     element_is_live,
     forget_views,
+    go_to_target,
     initialize_gui,
     initialize_screen,
     live_views,
+    opening_view_in_a_new_window,
     refresh_scope_badges,
     restore_appearance_mode,
     set_document_language_js,
@@ -120,6 +122,7 @@ from maptasker.src.guiwins_profedit import (
     build_edit_profile_dialog,
     build_save_profile_to_android_dialog,
 )
+from maptasker.src.guiwins_refactor import build_refactor_dialog
 from maptasker.src.guiwins_taskedit import (
     build_add_task_dialog,
     build_delete_task_dialog,
@@ -2528,6 +2531,67 @@ class MapTaskerEventHandlers:
             PrimeItems.program_arguments.update(saved)
             for key in absent:
                 PrimeItems.program_arguments.pop(key, None)
+
+    def refactor_event(self: "MapTaskerEventHandlers") -> None:
+        """Open the Refactor dialog: the structural moves, with a preview.
+
+        Lives on the main window beside Edit/Add and the Undo group rather than on the Map
+        toolbar, because a refactor is an EDIT.  Three of its four operations -- inline,
+        move, duplicate -- name an object and act on it whole, and nothing about them
+        depends on what is currently drawn; hanging them off a view meant a Map had to be
+        built before any of them could be reached at all.
+
+        Rebuilt on every press rather than kept, for the reason maprefac gives about its
+        Plan: it closes over live elements, and holding one across a reopen is precisely the
+        stale-handle case maprefac.apply's attachment check exists to catch.
+        """
+        self._dismiss_refactor_dialog()
+
+        def make_jump(target: mapjump.Target) -> Callable[[], Coroutine]:
+            """One preview row's click: open what it names in a window of its own.
+
+            The new window is what keeps the dialog: from here the jump has no Map to
+            scroll, so go_to_target falls through to building one, and a build that reused
+            the tab would take this window -- and the preview in it -- with it.  See
+            guiwins.opening_view_in_a_new_window for the whole of why.
+            """
+
+            async def go() -> None:
+                with opening_view_in_a_new_window(self.gui):
+                    await go_to_target(self.gui, target)
+
+            return go
+
+        async def refresh_after_apply() -> None:
+            """What to bring up to date once a refactor has been applied.
+
+            The pulldowns, and only the pulldowns.  A refactor adds and removes whole
+            objects, so an option list built before one offers names that no longer resolve
+            -- the same reason Undo and Redo refresh them (see _step_edit_history).  No view
+            is rebuilt: there may not be one, and if there is it is a separate window that
+            the user can refresh when they want to look at it.
+            """
+            refresh_tasker_object_pulldowns(self.gui)
+
+        dialog = build_refactor_dialog("", make_jump, refresh_after_apply)
+        if dialog is None:
+            return
+        self.gui.refactor_dialog = dialog
+        dialog.open()
+
+    def _dismiss_refactor_dialog(self: "MapTaskerEventHandlers") -> None:
+        """Take down the Refactor dialog if one is still up.
+
+        Deleted rather than closed: a fresh dialog is built per press, so the one being
+        replaced has nothing left to hold, and a closed-but-undeleted dialog is a stack that
+        grows with the page.  A dialog whose page has gone away raises rather than
+        answering; that is one more dialog already gone, not an error to report.
+        """
+        dialog = getattr(self.gui, "refactor_dialog", None)
+        self.gui.refactor_dialog = None
+        if dialog is not None:
+            with contextlib.suppress(Exception):
+                dialog.delete()
 
     def _step_edit_history(self: "MapTaskerEventHandlers", *, forwards: bool) -> None:
         """Shared body of the Undo and Redo buttons -- the two differ only in which way

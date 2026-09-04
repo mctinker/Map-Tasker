@@ -300,6 +300,24 @@ def check_scene(item: str) -> bool:
     return True
 
 
+# Get the Task IDs that a Profile directly references: its Entry/Exit Tasks.
+def get_profile_task_ids(profile_name: str) -> set:
+    """
+    Get the IDs of the Tasks a Profile directly references (its Entry and Exit Tasks)
+        Args:
+            profile_name (str): name of the Profile whose Task IDs we want
+
+        Returns:
+            set: the Profile's Task IDs, empty if the Profile is unknown.
+    """
+    profile = PrimeItems.tasker_root_elements.get("all_profiles_by_name", {}).get(profile_name, {}).get("xml")
+    if profile is None:
+        return set()
+    # A Profile's Entry Task is <mid0> and its Exit Task is <mid1> (see
+    # profiles.get_profile_tasks, which walks the same children).
+    return {child.text for child in profile if "mid" in child.tag and child.text}
+
+
 # Doing Task hyperlink.  Make sure it is okay to do this Task hyperlink.
 def check_task(item: str) -> bool:
     """
@@ -317,27 +335,32 @@ def check_task(item: str) -> bool:
     ):
         return False
     # Doing a single Profile?
-    if PrimeItems.program_arguments["single_profile_name"]:
+    if single_profile_name := PrimeItems.program_arguments["single_profile_name"]:
         # Get this Task's ID.
         name_to_find = item[1].replace(" (Scene)", "")
-        if this_task_id := PrimeItems.tasker_root_elements["all_tasks_by_name"][name_to_find]["id"]:
-            # Find the Project that belongs to the Profile we are looking for.
-            for project_item in PrimeItems.tasker_root_elements["all_projects"]:
-                project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
-                pids = project.find("pids")
-                # See if the Profile we are looking for is in this Project
-                if pids is not None:
-                    for profile_id in pids.text.split(","):
-                        if (
-                            PrimeItems.program_arguments["single_profile_name"]
-                            == PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"]
-                        ):
-                            # Get the Project's Task IDs
-                            tids = project.find("tids")
-                            if tids is not None and this_task_id in tids.text.split(
-                                ",",
-                            ):
-                                return True
+        this_task_id = PrimeItems.tasker_root_elements["all_tasks_by_name"].get(name_to_find, {}).get("id", "")
+        if not this_task_id:
+            return False
+        # The Profile's own Entry/Exit Tasks always belong to it.  Check these first:
+        # Tasker doesn't always list such a Task in the owning Project's <tids>, and
+        # the Task would otherwise be dropped from the directory even though it is
+        # displayed in the output.
+        if this_task_id in get_profile_task_ids(single_profile_name):
+            return True
+        # Otherwise the Task has to belong to the Project that owns this Profile
+        # (e.g. a Task attached to one of that Project's Scenes).
+        for project_item in PrimeItems.tasker_root_elements["all_projects"]:
+            project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
+            pids = project.find("pids")
+            # See if the Profile we are looking for is in this Project
+            if pids is not None and pids.text:
+                for profile_id in pids.text.split(","):
+                    profile = PrimeItems.tasker_root_elements["all_profiles"].get(profile_id, {})
+                    if single_profile_name == profile.get("name"):
+                        # Get the Project's Task IDs
+                        tids = project.find("tids")
+                        if tids is not None and tids.text and this_task_id in tids.text.split(","):
+                            return True
         return False
     return True
 

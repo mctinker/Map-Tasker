@@ -273,6 +273,12 @@ def _actions(task_element: defusedxml.ElementTree.Element) -> list:
 def _renumber(actions: list) -> None:
     """Stamp sr="actN" over a list of action elements in the order they are to run.
 
+    THE ONE PLACE IN THIS MODULE THAT COUNTS FROM ZERO, and it has to: sr="act0" is the
+    first action in Tasker's own format.  Every number this module SHOWS counts from one,
+    because that is what the Map prints and what healthck, varxref and taskflow all report
+    (each of them enumerates actions_in_map_order with start=1).  Displayed number minus one
+    is the index into the list; do not let the two meet anywhere but here.
+
     The whole of what a reorder costs: Tasker reads the order off this attribute and
     ignores document order entirely (see taskedit._renumber_actions, which says the same of
     the editor's own copy of a Task).  So an extract does not have to move XML children
@@ -473,8 +479,8 @@ def _imbalance(numbered: list[tuple[int, object]]) -> str:
 
 
 def _goto_numbers(actions: list) -> list[int]:
-    """The run-order positions of every Goto among these actions."""
-    return [number for number, action in enumerate(actions) if _code(action) == _GOTO]
+    """The positions of every Goto among these actions, counted from 1 as the Map prints them."""
+    return [number for number, action in enumerate(actions, start=1) if _code(action) == _GOTO]
 
 
 def _control_flow_codes(actions: list) -> set[str]:
@@ -556,8 +562,10 @@ def _new_perform_task(element_cls: type, task_name: str) -> defusedxml.ElementTr
 def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) -> Plan:
     """Move a run of a Task's actions into a new Task, leaving a Perform Task behind.
 
-    `action_numbers` are RUN-ORDER numbers -- the numbers the Map, the Task editor and every
-    report in this program show -- not indices into findall("Action").  See _actions.
+    `action_numbers` are the numbers the MAP PRINTS -- counting from 1, in run order, which
+    is what every report in this program reports and what the pulldowns offer.  They are
+    neither indices into findall("Action") (see _actions) nor sr="actN" suffixes (see
+    _renumber, which is the only thing here that counts from zero).
 
     The run has to be CONTIGUOUS, and that is not a simplification to be lifted later.
     Extract actions 2 and 5 and there is one Perform Task to put back but two holes to put
@@ -579,14 +587,32 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) ->
 
     wanted = sorted({int(number) for number in action_numbers})
     new_name = (new_task_name or "").strip()
-    what = f"Extract {_describe_actions(wanted) if wanted else 'actions'} of Task '{task_name}' into a new Task '{new_name}'"
+    which = _describe_actions(wanted) if wanted else "actions"
+    what = f"Extract {which} of Task '{task_name}' into a new Task '{new_name}'"
+
+    scope = extract_scope()
+    if not scope.allows(TASK, task_id):
+        # Belt to the filtered pulldown's braces.  The picker does not offer an
+        # out-of-scope Task, but a dialog can sit open while the user changes what the Map
+        # is showing, and a plan built before that must not be applied after it.
+        return _blocked(
+            EXTRACT,
+            what,
+            Block(
+                "OUT-OF-SCOPE",
+                f"Task '{task_name}' is not among the Tasks {scope.phrase} covers.  Extract works on "
+                f"the Task selected in the pulldowns, the same way the Edit buttons beside it do.  "
+                f"Change or clear that selection to reach other Tasks.",
+                where,
+            ),
+        )
 
     block = _extract_block(all_actions, wanted, new_name, where)
     if block is not None:
         return _blocked(EXTRACT, what, block)
 
-    moving = [all_actions[number] for number in wanted]
-    kept = [action for number, action in enumerate(all_actions) if number not in set(wanted)]
+    moving = [all_actions[number - 1] for number in wanted]
+    kept = [action for number, action in enumerate(all_actions, start=1) if number not in set(wanted)]
     owners = _projects_listing("tids", task_id)
 
     plan = Plan(kind=EXTRACT, what=what, elements=(task_element, *all_actions))
@@ -611,7 +637,9 @@ def plan_extract(task_id: str, action_numbers: list[int], new_task_name: str) ->
 
         call = _new_perform_task(type(task_element), new_name)
         task_element.append(call)
-        _renumber([*kept[: wanted[0]], call, *kept[wanted[0] :]])
+        # wanted[0] is a displayed number; the split in `kept` is an index.
+        before = wanted[0] - 1
+        _renumber([*kept[:before], call, *kept[before:]])
 
         taskedit.register_new_task(new_task, new_name)
         for project_name in owners:
@@ -630,10 +658,10 @@ def _extract_block(all_actions: list, wanted: list[int], new_name: str, where: T
     """
     if not wanted:
         return Block("NO-ACTIONS", "No actions were selected to extract.", where)
-    if wanted[0] < 0 or wanted[-1] >= len(all_actions):
+    if wanted[0] < 1 or wanted[-1] > len(all_actions):
         return Block(
             "OUT-OF-RANGE",
-            f"This Task has {len(all_actions)} actions, numbered 0 to {len(all_actions) - 1}, and the "
+            f"This Task has {len(all_actions)} actions, numbered 1 to {len(all_actions)}, and the "
             f"selection reaches outside that.  It may have been edited since this preview was built.",
             where,
         )
@@ -657,7 +685,7 @@ def _extract_block(all_actions: list, wanted: list[int], new_name: str, where: T
             where,
         )
 
-    imbalance = _imbalance([(number, all_actions[number]) for number in wanted])
+    imbalance = _imbalance([(number, all_actions[number - 1]) for number in wanted])
     if imbalance:
         return Block(
             "UNBALANCED-BLOCK",
@@ -738,8 +766,9 @@ def _extract_warnings(moving: list, kept: list, task_name: str, owners: list[str
     labelled = [action for action in moving if action.find("label") is not None]
     if labelled:
         warnings.append(
-            f"{len(labelled)} of the actions being moved carry a label.  Labels travel with their action and "
-            f"are not rewritten, so any that describe this Task by name will now say so from inside another.",
+            f"{len(labelled)} of the actions being moved {'carries' if len(labelled) == 1 else 'carry'} a "
+            f"label.  Labels travel with their action and are not rewritten, so any that describe this Task "
+            f"by name will now say so from inside another.",
         )
 
     if len(owners) > 1:
@@ -778,7 +807,7 @@ def _perform_task_callers(task_name: str) -> list[Target]:
     """
     callers: list[Target] = []
     for caller_id, entry in _table("all_tasks").items():
-        for number, action in enumerate(_actions(entry["xml"])):
+        for number, action in enumerate(_actions(entry["xml"]), start=1):
             if _code(action) != taskedit.PERFORM_TASK_ACTION_CODE:
                 continue
             if _string_argument(action, taskedit.PERFORM_TASK_NAME_ARG_ID) == task_name:
@@ -804,7 +833,7 @@ def plan_inline(task_id: str, action_number: int) -> Plan:
     where = _task_target(task_id)
     all_actions = _actions(task_element)
 
-    if not 0 <= action_number < len(all_actions):
+    if not 1 <= action_number <= len(all_actions):
         return _blocked(
             INLINE,
             f"Inline action {action_number} of Task '{task_name}'",
@@ -816,7 +845,7 @@ def plan_inline(task_id: str, action_number: int) -> Plan:
             ),
         )
 
-    call = all_actions[action_number]
+    call = all_actions[action_number - 1]
     called_name = _string_argument(call, taskedit.PERFORM_TASK_NAME_ARG_ID)
     what = f"Inline Perform Task '{called_name}' at action {action_number} of Task '{task_name}'"
 
@@ -830,7 +859,7 @@ def plan_inline(task_id: str, action_number: int) -> Plan:
     condition = call.find(_CONDITION_LIST)
     label = call.find("label")
     disabled = (call.findtext("on") or "") == "false"
-    kept = [action for number, action in enumerate(all_actions) if number != action_number]
+    kept = [action for number, action in enumerate(all_actions, start=1) if number != action_number]
 
     plan = Plan(
         kind=INLINE,
@@ -863,7 +892,9 @@ def plan_inline(task_id: str, action_number: int) -> Plan:
         task_element.remove(call)
         for action in copies:
             task_element.append(action)
-        _renumber([*kept[:action_number], *copies, *kept[action_number:]])
+        # action_number is a displayed number; the split in `kept` is an index.
+        before = action_number - 1
+        _renumber([*kept[:before], *copies, *kept[before:]])
         return []
 
     plan.run = run
@@ -932,7 +963,9 @@ def _inline_block(
                 where,
             )
         conditioned = [
-            number for number, action in enumerate(called_actions) if action.find(_CONDITION_LIST) is not None
+            number
+            for number, action in enumerate(called_actions, start=1)
+            if action.find(_CONDITION_LIST) is not None
         ]
         if conditioned:
             listed = ", ".join(str(number) for number in conditioned[:6])
@@ -960,10 +993,15 @@ def _inline_steps(
     called_entry = _table("all_tasks_by_name").get(called_name)
     called_where = _task_target(called_entry["id"]) if called_entry else None
     steps = [
-        Step(f"Remove the Perform Task at action {action_number} of Task '{task_name}'", where.at_action(action_number)),
+        Step(
+            f"Remove the Perform Task at action {action_number} of Task '{task_name}'",
+            where.at_action(action_number),
+        ),
         Step(
             f"Put {count} {'action' if count == 1 else 'actions'} copied from Task '{called_name}' in its "
-            f"place: " + ", ".join(_action_name(action) for action in called_actions[:4]) + (", ..." if count > 4 else ""),
+            "place: "
+            + ", ".join(_action_name(action) for action in called_actions[:4])
+            + (", ..." if count > 4 else ""),
             called_where,
         ),
     ]
@@ -1025,8 +1063,9 @@ def _inline_warnings(
     remaining = len(_perform_task_callers(called_name)) - 1
     if remaining > 0:
         warnings.append(
-            f"{remaining} other {'call' if remaining == 1 else 'calls'} to '{called_name}' remain elsewhere "
-            f"in this file, so the Task is still needed and is left in place.",
+            f"{remaining} other {'call' if remaining == 1 else 'calls'} to '{called_name}' "
+            f"{'remains' if remaining == 1 else 'remain'} elsewhere in this file, so the Task is still "
+            f"needed and is left in place.",
         )
     elif remaining == 0:
         warnings.append(
@@ -1103,13 +1142,21 @@ def plan_move(kind: str, key: str, to_project: str) -> Plan:
     Tasks that do not travel are named in a warning rather than passed over in silence.
     """
     if to_project not in _table("all_projects"):
-        return _blocked(MOVE, "Move to another Project", Block("NO-PROJECT", f"'{to_project}' is not a Project in this file."))
+        return _blocked(
+            MOVE,
+            "Move to another Project",
+            Block("NO-PROJECT", f"'{to_project}' is not a Project in this file."),
+        )
 
     if kind == TASK:
         return _plan_move_task(key, to_project)
     if kind == PROFILE:
         return _plan_move_profile(key, to_project)
-    return _blocked(MOVE, "Move to another Project", Block("NOT-MOVABLE", f"A {kind} cannot be moved between Projects."))
+    return _blocked(
+        MOVE,
+        "Move to another Project",
+        Block("NOT-MOVABLE", f"A {kind} cannot be moved between Projects."),
+    )
 
 
 def _plan_move_task(task_id: str, to_project: str) -> Plan:
@@ -1127,7 +1174,12 @@ def _plan_move_task(task_id: str, to_project: str) -> Plan:
         return _blocked(
             MOVE,
             what,
-            Block("ALREADY-THERE", f"Task '{task_name}' is already the only Project '{to_project}'s.", where),
+            Block(
+            "ALREADY-THERE",
+            f"Task '{task_name}' already belongs to Project '{to_project}' and to no other, so there "
+            f"is nothing to move.",
+            where,
+        ),
         )
 
     plan = Plan(kind=MOVE, what=what, elements=(entry["xml"],))
@@ -1188,7 +1240,11 @@ def _plan_move_profile(profile_id: str, to_project: str) -> Plan:
     """Move one Profile's Project membership, and its Tasks' with it where that is safe."""
     entry = _table("all_profiles").get(profile_id)
     if entry is None:
-        return _blocked(MOVE, "Move a Profile to another Project", Block("NO-PROFILE", "That Profile is not in this file."))
+        return _blocked(
+            MOVE,
+            "Move a Profile to another Project",
+            Block("NO-PROFILE", "That Profile is not in this file."),
+        )
 
     profile_element = entry["xml"]
     profile_name = entry.get("name", "") or profile_id
@@ -1200,7 +1256,12 @@ def _plan_move_profile(profile_id: str, to_project: str) -> Plan:
         return _blocked(
             MOVE,
             what,
-            Block("ALREADY-THERE", f"Profile '{profile_name}' is already the only Project '{to_project}'s.", where),
+            Block(
+            "ALREADY-THERE",
+            f"Profile '{profile_name}' already belongs to Project '{to_project}' and to no other, so there "
+            f"is nothing to move.",
+            where,
+        ),
         )
 
     # A Task travels with its Profile unless a Profile that is staying behind also runs it.
@@ -1900,19 +1961,55 @@ def _duplicate_project_warnings(project_name: str, chosen: _ProjectCopy, task_id
 # ##################################################################################
 
 
-def task_choices() -> list[tuple[str, str]]:
+def task_choices(scope: mapjump.Scope | None = None) -> list[tuple[str, str]]:
     """Every Task as (id, label), Project named, sorted the way a user looks for one.
 
     The Project is in the label because Task names are not unique across a configuration
     and routinely repeat -- 'Setup' in four Projects is ordinary -- so an id-keyed pulldown
     showing bare names would offer four identical entries.
+
+    `scope` narrows the list to what the app is currently displaying -- see extract_scope,
+    which is the only caller that passes one and explains why.  None, or an empty Scope,
+    offers every Task in the file.
     """
     entries = [
         (task_id, entry.get("name", "") or f"Task {task_id}", _display_project("tids", task_id))
         for task_id, entry in _table("all_tasks").items()
+        if scope is None or scope.allows(TASK, task_id)
     ]
     entries.sort(key=lambda item: (item[2].lower(), item[1].lower()))
-    return [(task_id, f"{name}  ({project})" if project else f"{name}  (no Project)") for task_id, name, project in entries]
+    return [
+        (task_id, f"{name}  ({project})" if project else f"{name}  (no Project)")
+        for task_id, name, project in entries
+    ]
+
+
+def extract_scope() -> mapjump.Scope:
+    """The Tasks an Extract may be asked about: the ones the single-item pulldowns select.
+
+    WHY THIS ONE OPERATION IS SCOPED AND THE OTHER THREE ARE NOT.
+
+    Extract is the only one that reaches INSIDE a Task, and the only one whose second and
+    third questions -- which actions, from where to where -- are about a Task's contents
+    rather than about the Task as a whole.  Narrowing it to the selected Task is the same
+    contract every Edit button in that panel already keeps ("Select a single Task first
+    (Task pulldown above)"), so Extract behaves like the buttons beside it rather than
+    being the one that ignores the selection.
+
+    The other three name an object and do something to it as a whole.  Nothing about
+    duplicating a Project or moving a Profile depends on what is selected for display, and
+    narrowing those would force somebody to change what they are displaying in order to
+    tidy up something else -- coupling two things that have no business being coupled.
+
+    mapjump.current_scope is the whole of the rule: a single Task selected puts that Task
+    in scope and nothing else, a single Profile puts the Tasks it runs in scope, and a
+    Project puts the Tasks it lists in scope.  A Scene has no Tasks of its own, so it
+    scopes to none -- the dialog says so rather than showing an empty pulldown with no
+    reason for being empty.  Nothing selected is not a scope at all, and every Task is
+    offered; Extract has its own Task picker, so unlike Edit Task it has no reason to
+    refuse outright.
+    """
+    return mapjump.current_scope()
 
 
 def profile_choices() -> list[tuple[str, str]]:
@@ -1939,10 +2036,14 @@ def scene_choices() -> list[str]:
 
 
 def action_choices(task_id: str) -> list[tuple[int, str]]:
-    """A Task's actions as (run-order number, label).
+    """A Task's actions as (number, label), counted from 1.
 
-    Numbered as the Map and the Task editor number them, because that is the number the
-    user is looking at when they decide which actions to extract.  A label the user gave an
+    Numbered as the Map prints them -- 1, 2, 3 -- because that is the number the user is
+    looking at when they decide which actions to extract, and because every other report in
+    this program counts them that way (healthck, varxref and taskflow each enumerate
+    actions_in_map_order with start=1).  Counting from 0 here made every jump land one
+    action early, and made action 0 lose its anchor outright: Target.anchor appends the
+    action only `if self.action`, and 0 is falsy.  A label the user gave an
     action is shown alongside its name: on a Task of forty Flashes it is the only thing
     telling one from another.
     """
@@ -1950,7 +2051,7 @@ def action_choices(task_id: str) -> list[tuple[int, str]]:
     if entry is None:
         return []
     choices = []
-    for number, action in enumerate(_actions(entry["xml"])):
+    for number, action in enumerate(_actions(entry["xml"]), start=1):
         label = (action.findtext("label") or "").strip().splitlines()
         suffix = f"  -- {label[0][:40]}" if label and label[0] else ""
         choices.append((number, f"{number}: {_action_name(action)}{suffix}"))
@@ -1969,7 +2070,7 @@ def call_choices(task_id: str) -> list[tuple[int, str]]:
     if entry is None:
         return []
     choices = []
-    for number, action in enumerate(_actions(entry["xml"])):
+    for number, action in enumerate(_actions(entry["xml"]), start=1):
         if _code(action) != taskedit.PERFORM_TASK_ACTION_CODE:
             continue
         called = _string_argument(action, taskedit.PERFORM_TASK_NAME_ARG_ID) or "(no Task named)"

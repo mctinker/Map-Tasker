@@ -329,7 +329,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Task Flow Checker
 
-- [x] Refactor Task
+- [x] Refactor Task or Profile
 
 - [ ] Impact Analysis Before Destructive Edit
 

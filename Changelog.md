@@ -16,9 +16,20 @@ All notable changes to this project will be documented in this file!
       
       - What it will not do is guess.  A Goto whose label or action number is built from a variable is decided on the device, so it is left alone rather than reported -- and a Task holding one is not checked for stranded actions at all, since an unknown jump could land on any of them.  A Stop that carries a condition, sits inside an If, or has been disabled strands nothing.  Measured against the backups to hand, that leaves roughly a dozen findings in an 846-Task configuration, every one of them real.
 
-- Added: 'Refactor' -- the structural moves that Add, Edit and Delete cannot make.  Extract a run of a Task's actions into a Task of their own and leave a 'Perform Task' in their place, inline a 'Perform Task' back into its caller, move a Task or Profile to another Project, or duplicate a Project, Profile, Task or Scene.
+- Added: 'Refactor' -- the structural moves that an 'Add', 'Edit' and 'Delete' cannot make.  
+
+      > 'Extract Actions': Extract a series of a Task's actions into a Task of their own and leave a 'Perform Task' in their place;
+      > 'Inline' a Task called via 'Perform Task' back into its caller; 
+      > 'Move To A Project': Move a Task or Profile to another Project;
+      > 'Duplicate' a Project, Profile, Task or Scene.
 
       - Nothing is changed until you press Preview and then Apply.  The preview says what will happen step by step, every place it names is a click away in the Map, and the whole refactor is one press of Undo afterwards.
+      
+      - Clicking a place named (hotlink) in the preview will open the site in the Map view.
+      
+      - 'Extract' fills its 'From Task' in for you when the selection leaves only one Task to choose -- and with it, the action pulldowns -- so the window opens ready to be asked which actions to move.
+
+      - 'Extract' offers only the Tasks the single-item pulldowns select -- the same contract the 'Edit' buttons beside it keep -- and says so.  Its actions are numbered from 1, exactly as the Map numbers them.  The other three reach the whole configuration, since nothing about duplicating a Project or moving a Profile depends on what you have selected for display.
       
       - It refuses the moves that would quietly break something, and says which and why: actions that would leave half an 'If' block behind, a Task holding a 'Goto' whose target number the move would shift, or a call whose condition cannot be carried onto a block.  It also warns where a move is legal but changes meaning -- above all where local variables are shared across a split, since Tasker scopes those to the running Task and a 'Perform Task' starts a new one.
       
@@ -37,8 +48,9 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: A bulk Replace no longer refuses to change a Project, Profile, Task or Scene that was added earlier in the same session, reporting it as no longer in the configuration.  A deleted object is now correctly refused instead.
-
 - Fixed: Actions with an argument named 'Label' now display it. The 'Goto' action showed only its Type and Number, and 'Set Widget Label' showed only its Name, because the argument was mistaken for the action's own label note.
+- Fixed: Editing a Task 'If' action 'value' (incorrectly) does not allow a variable name.
+- Fixed: When a single Profile is selected, the Map view's Directory now lists that Profile's Tasks.  A Task was left out whenever Tasker's own Project Task list did not mention it, even though the Task was displayed in the Map above.
 
 ### Known Issues
 
