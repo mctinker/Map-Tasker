@@ -12,7 +12,10 @@ This module contains functions to create and manage the directory output queue.
 #         and then print it while processing/writing to file the output queue.         #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
+from __future__ import annotations
+
 import math
+from typing import TYPE_CHECKING
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -23,6 +26,9 @@ from maptasker.src.sysconst import (
     UNNAMED_ITEM,
     FormatLine,
 )
+
+if TYPE_CHECKING:
+    from maptasker.src.runcfg import RunConfig
 
 period = "."
 
@@ -189,12 +195,12 @@ def generate_html_table(data: list, rows: int, columns: int) -> str:
 #######################################################################################
 # Output directory for information at the bottom of the output
 #######################################################################################
-def do_trailing_matters() -> None:
+def do_trailing_matters(config: RunConfig) -> None:
     """
     Create a hyperlinks for key items that are at the bottom of the output
 
     Args:
-        None
+        config (RunConfig): the run's settings, for the detail level.
 
     Returns:
         None
@@ -207,7 +213,7 @@ def do_trailing_matters() -> None:
     )
 
     # Do the Configuration Variables
-    if PrimeItems.program_arguments["display_detail_level"] == 4:
+    if config.display_detail_level == 4:
         trailing_matter.append(
             f'<a href=#unreferenced_variables style="{HOTLINK_STYLE}">Unreferenced Global Variables</a>',
         )
@@ -249,27 +255,28 @@ def find_task_in_project(
 
 
 # Doing Scene hyperlink.  Make sure it is okay to do this Scene hyperlink.
-def check_scene(item: str) -> bool:
+def check_scene(item: str, config: RunConfig) -> bool:
     """
     Check to make sure this Scene should be included in the output
         Args:
             item (str): directory hyperlink item we are processing
+            config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:20.
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
     # Single Scene?  Only that one Scene gets a hyperlink.
-    if single_scene_name := PrimeItems.program_arguments["single_scene_name"]:
+    if single_scene_name := config.single_scene_name:
         return item[1] == single_scene_name
 
     # Single Project?
     _find_task_in_project = find_task_in_project
-    if PrimeItems.program_arguments["single_project_name"]:
+    if config.single_project_name:
         found, project = _find_task_in_project("", item[1], "scenes")
         return found
 
     # Single Profile?
-    if profile_name := PrimeItems.program_arguments["single_profile_name"]:
+    if profile_name := config.single_profile_name:
         # Find out if this Scene is in the single Project's Profile' we are looking for.
         # Get the Profile ID for the single Profile we are looking for
         for profile_id in PrimeItems.tasker_root_elements["all_profiles"]:
@@ -282,10 +289,8 @@ def check_scene(item: str) -> bool:
 
         return False
     # Single Task?
-    if (profile_name := PrimeItems.program_arguments["single_task_name"]) and (
-        this_task_id := PrimeItems.tasker_root_elements["all_tasks_by_name"][
-            PrimeItems.program_arguments["single_task_name"]
-        ]["id"]
+    if (profile_name := config.single_task_name) and (
+        this_task_id := PrimeItems.tasker_root_elements["all_tasks_by_name"][config.single_task_name]["id"]
     ):
         # Find the Project this single Task belongs to.
         found, project = _find_task_in_project("", this_task_id, "tids")
@@ -319,23 +324,20 @@ def get_profile_task_ids(profile_name: str) -> set:
 
 
 # Doing Task hyperlink.  Make sure it is okay to do this Task hyperlink.
-def check_task(item: str) -> bool:
+def check_task(item: str, config: RunConfig) -> bool:
     """
     Check to make sure this Task should be included in the output
         Args:
             item (str): directory hyperlink item we are processing
+            config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:
             bool: True if we should output this hyperlink, False if it is to be ingored.
     """
-    if (
-        PrimeItems.program_arguments["single_task_name"]
-        and item[1] != PrimeItems.program_arguments["single_task_name"]
-        and UNNAMED_ITEM not in item[1]
-    ):
+    if config.single_task_name and item[1] != config.single_task_name and UNNAMED_ITEM not in item[1]:
         return False
     # Doing a single Profile?
-    if single_profile_name := PrimeItems.program_arguments["single_profile_name"]:
+    if single_profile_name := config.single_profile_name:
         # Get this Task's ID.
         name_to_find = item[1].replace(" (Scene)", "")
         this_task_id = PrimeItems.tasker_root_elements["all_tasks_by_name"].get(name_to_find, {}).get("id", "")
@@ -366,30 +368,29 @@ def check_task(item: str) -> bool:
 
 
 # Doing Profile hyperlink.  Make sure it is okay to do this Profile hyperlink.
-def check_profile(item: str) -> bool:
+def check_profile(item: str, config: RunConfig) -> bool:
     """
     Check to make sure this Profile should be included in the output
         Args:
             item (str): directory hyperlink item we are processing
+            config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
-    if (
-        PrimeItems.program_arguments["single_profile_name"]
-        and item[1] != PrimeItems.program_arguments["single_profile_name"]
-    ):
+    if config.single_profile_name and item[1] != config.single_profile_name:
         return False
     # No Profiles are displayed for a single Task or a single Scene, so don't link any.
-    return not (PrimeItems.program_arguments["single_task_name"] or PrimeItems.program_arguments["single_scene_name"])
+    return not (config.single_task_name or config.single_scene_name)
 
 
 # Doing Project hyperlinks.  Make sure it is okay to do this Project hyperlink.
-def check_project(item: str) -> bool:
+def check_project(item: str, config: RunConfig) -> bool:
     """
     Check to make sure this Project should be included in the output
         Args:
             item (str): directory hyperlink item we are processing
+            config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:
             bool: True if we should output this hperlink, False if it is to be ingored.
@@ -398,35 +399,36 @@ def check_project(item: str) -> bool:
     project_id = project.attrib.get("sr")
     project_id = project_id[4:]
     # Are we looking for specific Preoject and this is it?
-    if PrimeItems.program_arguments["single_project_name"]:
-        if item[1] != PrimeItems.program_arguments["single_project_name"]:
+    if config.single_project_name:
+        if item[1] != config.single_project_name:
             return False
     # Single Profile?
-    elif PrimeItems.program_arguments["single_profile_name"]:
+    elif config.single_profile_name:
         pids = project.find("pids")
         if pids is None or project_id not in pids.text.split(","):
             return False
     # Single Task?
-    elif PrimeItems.program_arguments["single_task_name"]:
+    elif config.single_task_name:
         return False
     # Single Scene?  Only the Project that owns it is displayed, so only it gets a link.
     # Checked against this Project's own <scenes> list rather than through
     # maputils.find_owning_project_for_scene: dirout sits below maputils in the import
     # graph (maputils -> taskerd -> profiles -> dirout), and we already have the XML.
-    elif single_scene_name := PrimeItems.program_arguments["single_scene_name"]:
+    elif single_scene_name := config.single_scene_name:
         scenes = project.find("scenes")
         return scenes is not None and scenes.text is not None and single_scene_name in scenes.text.split(",")
     return True
 
 
 # Check to make sure this directory item should be included in the output.
-def check_item(name: str, item: str) -> bool:
+def check_item(name: str, item: str, config: RunConfig) -> bool:
     """
     Check to make sure this item should be included in the output
         Args:
             name: element name: directory we are doing:
                     "projects", "profiles", "tasks", "scenes"
             item (str): directory hyperlink item we are processing
+            config (RunConfig): the run's settings, for the single-item selection.
 
         Returns:
             bool: True if we should output this hyperlink, False if it is to be ingored.
@@ -438,13 +440,13 @@ def check_item(name: str, item: str) -> bool:
         "scenes": check_scene,
     }
     # Check if doing a single item...only build directory for that item.
-    return function_mappings[name](item)
+    return function_mappings[name](item, config)
 
 
 #######################################################################################
 # Output table for specific Tasker element: Projects, Profiles, Tasks, Scenes
 #######################################################################################
-def do_tasker_element(name: str) -> None:
+def do_tasker_element(name: str, config: RunConfig) -> None:
     """
     Build an html table and output it for the given Tasker element: Project, Profile,
         Scene or Task.  DO this by traversing the entire xml trees.
@@ -455,6 +457,7 @@ def do_tasker_element(name: str) -> None:
     Args:
         name: element name: directory we are doing:
                 "projects", "profiles", "tasks", "scenes"
+        config (RunConfig): the run's settings, for the single-item selection.
 
     Returns:
         None
@@ -467,7 +470,7 @@ def do_tasker_element(name: str) -> None:
 
         _check_item = check_item
         for item in PrimeItems.directory_items[name]:
-            if _check_item(name, item):
+            if _check_item(name, item, config):
                 # Directory item is valid for this name.
                 # Get the name and display name for this item
                 hyperlink_name = item[0].replace(">", "&gt;").replace("<", "&lt;").replace("_(Scene)", "")
@@ -492,12 +495,12 @@ def do_tasker_element(name: str) -> None:
 #######################################################################################
 # Output directory by appending it to our output queue
 #######################################################################################
-def output_directory() -> None:
+def output_directory(config: RunConfig) -> None:
     """
     Writes the directory to the output queue.
 
     Args:
-        None
+        config (RunConfig): the run's settings, threaded down to the per-item filters.
 
     Returns:
         None
@@ -511,14 +514,14 @@ def output_directory() -> None:
     )
     # Ok, run through the Tasker key elements and output the directory for each
     # Only do Projects and Profiles if not looking for a single Project or Profile
-    if not (PrimeItems.program_arguments["single_profile_name"] or PrimeItems.program_arguments["single_task_name"]):
-        do_tasker_element("projects")
-    do_tasker_element("profiles")
-    if PrimeItems.program_arguments["display_detail_level"] != 0:
-        do_tasker_element("tasks")
-    do_tasker_element("scenes")
+    if not (config.single_profile_name or config.single_task_name):
+        do_tasker_element("projects", config)
+    do_tasker_element("profiles", config)
+    if config.display_detail_level != 0:
+        do_tasker_element("tasks", config)
+    do_tasker_element("scenes", config)
 
-    do_trailing_matters()
+    do_trailing_matters(config)
 
     # Add final rule and break
     PrimeItems.output_lines.add_line_to_output(

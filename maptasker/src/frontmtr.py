@@ -5,7 +5,10 @@
 # frontmtr - Output the front matter: heading, runtime settings, directory, prefs      #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
+from __future__ import annotations
+
 import datetime
+from typing import TYPE_CHECKING
 
 from maptasker.src.addcss import add_css
 from maptasker.src.debug import display_debug_info
@@ -14,11 +17,18 @@ from maptasker.src.prefers import get_preferences
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, NORMAL_TAB, FormatLine
 
+if TYPE_CHECKING:
+    from maptasker.src.runcfg import RunConfig
+
 
 # Add the heading matter to the output: heading, source, screen size, etc.
-def output_the_heading() -> None:
+def output_the_heading(config: RunConfig) -> None:
     """
     Display the heading and source file details
+
+        Args:
+            config (RunConfig): the run's settings -- colors, highlighting, and where the
+                XML was read from.
     """
     #    window_dimensions = """
     # <p id="mywin"></p>
@@ -30,7 +40,7 @@ def output_the_heading() -> None:
     # </script>"""
 
     # Check if Ai analysis running.
-    ai_message = " Ai Analysis Run" if PrimeItems.program_arguments["ai_analyze"] else ""
+    ai_message = " Ai Analysis Run" if config.ai_analyze else ""
 
     tasker_mapping = f"Tasker Mapping{ai_message}................ Tasker XML version:"
 
@@ -45,11 +55,9 @@ def output_the_heading() -> None:
     # Set up highlight background color if needed.  Run the color through css_color: a color
     # setting can be bare hex ("222623"), which a browser throws out along with the whole
     # declaration -- see the note on the body's background color below.
-    if PrimeItems.program_arguments["highlight"]:
+    if config.highlight:
         background_color_html = (
-            "<style>\nmark { \nbackground-color: "
-            + css_color(PrimeItems.colors_to_use["highlight_color"])
-            + ";\n}\n</style>\n"
+            "<style>\nmark { \nbackground-color: " + css_color(config.color("highlight_color")) + ";\n}\n</style>\n"
         )
     else:
         background_color_html = ""
@@ -67,7 +75,7 @@ def output_the_heading() -> None:
         # is not a color as far as CSS is concerned -- the browser discards the declaration
         # and the file opens on white instead of the dark background it was colored for.
         f'<!doctype html>\n<html lang=”en”>\n<head>\n<meta charset="UTF-8">{background_color_html}<title>MapTasker</title>\n<body'
-        f' style="background-color:{css_color(PrimeItems.colors_to_use["background_color"])}">\n'
+        f' style="background-color:{css_color(config.color("background_color"))}">\n'
         + format_html(
             heading_color,
             "",
@@ -95,23 +103,23 @@ def output_the_heading() -> None:
     )
 
     # Add css
-    add_css()
+    add_css(config)
 
     # Display where the source file came from
     # Did we restore the backup from Android?
-    if PrimeItems.program_arguments["fetched_backup_from_android"]:
+    if config.fetched_backup_from_android:
         source_file = (
             "From Android device"
-            f" TCP IP address:{PrimeItems.program_arguments['android_ipaddr']}"
-            f" on port:{PrimeItems.program_arguments['android_port']}"
-            f" with file location: {PrimeItems.program_arguments['android_file']}"
+            f" TCP IP address:{config.android_ipaddr}"
+            f" on port:{config.android_port}"
+            f" with file location: {config.android_file}"
         )
-    elif PrimeItems.program_arguments["debug"] or not PrimeItems.program_arguments["file"]:
+    elif config.debug or not config.file:
         filename = isinstance(PrimeItems.file_to_get, str)
         filename = PrimeItems.file_to_get.name if not filename else PrimeItems.file_to_get
         source_file = filename
     else:
-        source_file = PrimeItems.program_arguments["file"]
+        source_file = config.file
     # Add source to output
     PrimeItems.output_lines.add_line_to_output(
         0,
@@ -121,22 +129,26 @@ def output_the_heading() -> None:
 
 
 # Output the heading etc. as the front matter.
-def output_the_front_matter() -> None:
+def output_the_front_matter(config: RunConfig) -> None:
     """
     Generates the front matter for the output file: heading, runtime settings,
     directory, Tasker preferences.
+
+        Args:
+            config (RunConfig): the run's settings, threaded on down to the heading, the
+                CSS and the debug listing.
     """
 
     # Heading information
-    output_the_heading()
+    output_the_heading(config)
 
     # If we are debugging, output the runtime arguments and colors
-    if PrimeItems.program_arguments["debug"] or PrimeItems.program_arguments["runtime"]:
-        display_debug_info()
+    if config.debug or config.runtime:
+        display_debug_info(config)
 
     # Output a flag to indicate this is where the directory goes
     PrimeItems.output_lines.add_line_to_output(5, "maptasker_directory", FormatLine.dont_format_line)
 
     # If doing Tasker preferences, get them
-    if PrimeItems.program_arguments["preferences"]:
+    if config.preferences:
         get_preferences()

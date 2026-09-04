@@ -31,6 +31,7 @@ from maptasker.src.dirout import add_directory_item
 from maptasker.src.format import format_html
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.primitem import PrimeItems, initial_directory_items, initial_grand_totals
+from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine, debug_out, logger
 from maptasker.src.xmldata import remove_html_tags
 
@@ -104,7 +105,7 @@ class LineOut:
         PrimeItems.task_action_warnings = {}
 
         # Display th starting information in beginning of output
-        output_the_front_matter()
+        output_the_front_matter(current_config())
 
         # Re-add the directory item
         if PrimeItems.program_arguments["directory"]:

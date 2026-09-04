@@ -5,18 +5,24 @@
 #                                                                                      #
 # addcss: Add formatting CSS to output HTML for the colors and font to use             #
 #                                                                                      #
+from __future__ import annotations
+
 import contextlib
+from typing import TYPE_CHECKING
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FONT_FAMILY, SPACE_COUNT1, SPACE_COUNT2, SPACE_COUNT3, FormatLine
 
+if TYPE_CHECKING:
+    from maptasker.src.runcfg import RunConfig
 
-def add_css() -> None:
+
+def add_css(config: RunConfig) -> None:
     """
     Add formatting CSS to output HTML for the colors and font to use.
     We must re-add the font each time in case a Tasker element overrides the font.
         Args:
-            None
+            config (RunConfig): the run's settings, for the colors and the output font.
     """
 
     # Start the style css for the tabs
@@ -29,11 +35,11 @@ def add_css() -> None:
     # Go through all colors
 
     # First, get the liost of colors and reverse the dictionary
-    if PrimeItems.colors_to_use:
-        for color_argument_name in PrimeItems.colors_to_use:
+    if config.colors:
+        for color_argument_name in config.colors:
             with contextlib.suppress(KeyError):
-                if PrimeItems.colors_to_use[color_argument_name]:
-                    our_html = f"color: {PrimeItems.colors_to_use[color_argument_name]}{FONT_FAMILY}{PrimeItems.program_arguments['font']}"
+                if config.colors[color_argument_name]:
+                    our_html = f"color: {config.colors[color_argument_name]}{FONT_FAMILY}{config.font}"
                     PrimeItems.output_lines.add_line_to_output(
                         5,
                         f".{color_argument_name} {{{our_html}}}",
@@ -147,5 +153,5 @@ def add_css() -> None:
     PrimeItems.output_lines.add_line_to_output(5, resize_image, FormatLine.dont_format_line)
 
     # Add the fast-appearing hover tooltip, rendered in the font the user selected.
-    tooltip = tooltip.replace("fff", PrimeItems.program_arguments["font"])
+    tooltip = tooltip.replace("fff", config.font)
     PrimeItems.output_lines.add_line_to_output(5, tooltip, FormatLine.dont_format_line)

@@ -156,6 +156,7 @@ from maptasker.src.primitem import (
     initial_found_named_items,
     initial_grand_totals,
 )
+from maptasker.src.runcfg import current_config
 from maptasker.src.rungui import SELECTION_KEYS, capture_gui_state, held_overrides
 from maptasker.src.sysconst import (
     ALL_OBJECTS_MESSAGE,
@@ -2309,7 +2310,7 @@ class MapTaskerEventHandlers:
 
             # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
             PrimeItems.output_lines.output_lines.clear()
-            output_the_front_matter()
+            output_the_front_matter(current_config())
             PrimeItems.task_action_warnings = {}
 
             try:

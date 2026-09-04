@@ -7,6 +7,7 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.runcfg import current_config, overridden_config
 from maptasker.src.sysconst import NO_PROJECT, NORMAL_TAB, FormatLine
 from maptasker.src.tasks import (
     get_project_for_solo_task,
@@ -182,41 +183,41 @@ def process_tasks_not_called_by_profile(
     task_count = 0
     task_name = ""
     have_heading = False
-    # We only need twisty for top level, starting with the heading
-    save_twisty = PrimeItems.program_arguments["twisty"]
-    PrimeItems.program_arguments["twisty"] = False
+    # We only need twisty for top level, starting with the heading, so it is off for the
+    # duration of this walk and back to whatever it was on the way out.
+    save_twisty = current_config().twisty
 
-    # Go through all Tasks, one at a time, and see if this one is not in it (not found)
-    _process_solo_task_with_no_profile = process_solo_task_with_no_profile
-    for task_id in PrimeItems.tasker_root_elements["all_tasks"]:
-        # If we just processed a single task only, then bail out.
-        if PrimeItems.found_named_items["single_task_found"]:
-            break
-
-        # We have a solo Task not associated to any Profile
-        if task_id not in found_tasks_list:
-            # Theoretcally, we should never get here.
-            have_heading, specific_task, task_count = _process_solo_task_with_no_profile(
-                task_id,
-                found_tasks_list,
-                task_count,
-                have_heading,
-                projects_with_no_tasks,
-                save_twisty,
-            )
-
-            if (
-                specific_task
-                or PrimeItems.program_arguments["single_task_name"]
-                == PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
-            ):
-                PrimeItems.found_named_items["single_task_found"] = True
+    with overridden_config(twisty=False):
+        # Go through all Tasks, one at a time, and see if this one is not in it (not found)
+        _process_solo_task_with_no_profile = process_solo_task_with_no_profile
+        for task_id in PrimeItems.tasker_root_elements["all_tasks"]:
+            # If we just processed a single task only, then bail out.
+            if PrimeItems.found_named_items["single_task_found"]:
                 break
 
-    # End the twisty hidden Task list.  Remove it and restore the setting.
-    if save_twisty:
-        remove_twisty()
-        PrimeItems.program_arguments["twisty"] = save_twisty
+            # We have a solo Task not associated to any Profile
+            if task_id not in found_tasks_list:
+                # Theoretcally, we should never get here.
+                have_heading, specific_task, task_count = _process_solo_task_with_no_profile(
+                    task_id,
+                    found_tasks_list,
+                    task_count,
+                    have_heading,
+                    projects_with_no_tasks,
+                    save_twisty,
+                )
+
+                if (
+                    specific_task
+                    or PrimeItems.program_arguments["single_task_name"]
+                    == PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"]
+                ):
+                    PrimeItems.found_named_items["single_task_found"] = True
+                    break
+
+        # End the twisty hidden Task list.
+        if save_twisty:
+            remove_twisty()
 
     # Provide spacing and end list if we have Tasks
     if task_count > 0:

@@ -24,6 +24,7 @@ from maptasker.src.getbakup import get_backup_file
 from maptasker.src.maputil2 import log_startup_values, translate_string
 from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import (
     COUNTER_FILE,
     TYPES_OF_COLOR_NAMES,
@@ -243,7 +244,7 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
 
     # Output the inital info: head, source, etc. ...if it hasn't already been output.
     if return_code == 0 and do_front_matter and not PrimeItems.output_lines.output_lines:
-        output_the_front_matter()
+        output_the_front_matter(current_config())
         return 0
 
     return return_code

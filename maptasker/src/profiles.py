@@ -17,6 +17,7 @@ from maptasker.src.mapjump import PROFILE, Target, anchor_html
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
+from maptasker.src.runcfg import current_config
 from maptasker.src.share import share
 from maptasker.src.sysconst import (
     DISABLED,
@@ -103,7 +104,7 @@ def get_profile_name(
         the_profile_name = UNNAMED_ITEM
 
     # Make the Project name bold, italicize, underline and/or highlighted if requested
-    altered_profile_name = add_name_attribute(the_profile_name)
+    altered_profile_name = add_name_attribute(the_profile_name, current_config())
 
     # If this is an unnamed Profile, then italicize it if not already italicised.
     if UNNAMED_ITEM in altered_profile_name and "<em>" not in altered_profile_name:

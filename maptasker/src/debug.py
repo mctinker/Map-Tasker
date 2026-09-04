@@ -8,8 +8,11 @@ Returns:
 #                                                                                      #
 # debug: special debug code for MapTasker                                              #
 #                                                                                      #
+from __future__ import annotations
+
 import os
 import sys
+from typing import TYPE_CHECKING
 
 from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
@@ -19,6 +22,9 @@ from maptasker.src.sysconst import (
     FormatLine,
     logger,
 )
+
+if TYPE_CHECKING:
+    from maptasker.src.runcfg import RunConfig
 
 
 def output_debug_line(begin_or_end: str) -> None:
@@ -50,9 +56,12 @@ def format_line_debug(text: str, width: int) -> str:
 # ################################################################################
 # Display the program arguments and colors to use in output for debug purposes
 # ################################################################################
-def display_debug_info() -> None:
+def display_debug_info(config: RunConfig) -> None:
     """
     Output our runtime arguments
+
+        Args:
+            config (RunConfig): the run's settings -- these are what get listed.
     """
 
     # Add blank line
@@ -60,7 +69,7 @@ def display_debug_info() -> None:
 
     # Identify the output as debug stuff
     output_debug_line("Start")
-    if PrimeItems.program_arguments["debug"]:
+    if config.debug:
         PrimeItems.output_lines.add_line_to_output(
             0,
             f"sys.argv (runtime arguments):{sys.argv!s}",
@@ -82,6 +91,7 @@ def display_debug_info() -> None:
     # print("Python version ", sys.version)
 
     # Copy our dictionary of runtime arguments and sort it alphabetically
+    arguments = config.as_arguments()
     mydict = ARGUMENT_NAMES.copy()
     mykeys = sorted(mydict.keys())
     mydict = {i: mydict[i] for i in mykeys}
@@ -90,7 +100,7 @@ def display_debug_info() -> None:
     for key, value in mydict.items():
         try:
             line_formatted_to_length = format_line_debug(ARGUMENT_NAMES[key], 40)
-            value = PrimeItems.program_arguments[key]  # noqa: PLW2901
+            value = arguments[key]  # noqa: PLW2901
             if value is None or value == "":
                 value = "None"  # noqa: PLW2901
             # Set color for value
@@ -115,7 +125,7 @@ def display_debug_info() -> None:
     # Get our color names by reversing the lookup dictionary
     color_names = {v: k for k, v in TYPES_OF_COLOR_NAMES.items()}
     # Go through each color
-    for key, value in PrimeItems.colors_to_use.items():
+    for key, value in config.colors.items():
         if key not in TYPES_OF_COLOR_NAMES:
             logger.debug(
                 f"MapTasker Error ... Color {key} not found in TYPES_OF_COLOR_NAMES!  Probably a settings error.  Skipping this color.",

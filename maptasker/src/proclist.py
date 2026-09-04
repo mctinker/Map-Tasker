@@ -18,6 +18,7 @@ from maptasker.src.maputils import find_owning_project_for_scene
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
+from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import FormatLine, logger
 from maptasker.src.taskactn import get_task_actions_and_output
 from maptasker.src.twisty import add_twisty, remove_twisty
@@ -47,7 +48,7 @@ def adjust_name(list_type: str, the_item: str) -> str:
     else:
         the_name = the_item
         the_rest = ""
-    altered_name = add_name_attribute(the_name)
+    altered_name = add_name_attribute(the_name, current_config())
 
     return f"{altered_name}{the_rest}"
 

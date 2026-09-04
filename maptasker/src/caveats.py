@@ -7,17 +7,25 @@
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from maptasker.src.format import format_html
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
+if TYPE_CHECKING:
+    from maptasker.src.runcfg import RunConfig
 
-def display_caveats() -> None:
+
+def display_caveats(config: RunConfig) -> None:
     """
     Output the program caveats at the very end
     Inputs:
-    - None
+    - config (RunConfig): the run's settings.  Which caveats apply depends on the
+      detail level and on whether Tasker preferences are being displayed.
     Outputs:
     - None
     """
@@ -56,20 +64,16 @@ def display_caveats() -> None:
     # Conditional caveats start here...
 
     # Let 'em know about Google API key
-    if PrimeItems.program_arguments["preferences"]:
+    if config.preferences:
         caveats.append(translate_string(cav7))
 
-    if PrimeItems.program_arguments["display_detail_level"] > 0:  # Caveat about Actions
+    if config.display_detail_level > 0:  # Caveat about Actions
         caveats.append(translate_string(cav8))
 
-    if (
-        PrimeItems.program_arguments["display_detail_level"] == 0
-    ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
+    if config.display_detail_level == 0:  # Caveat about -d0 option and 1st Action for unnamed Tasks
         caveats.append(translate_string(cav9))
 
-    if (
-        PrimeItems.program_arguments["display_detail_level"] >= 4
-    ):  # Caveat about -d0 option and 1st Action for unnamed Tasks
+    if config.display_detail_level >= 4:  # Caveat about inactive/unreferenced variables
         caveats.append(translate_string(cav10))
     # if PrimeItems.program_arguments["taskernet"]:
     # caveats.append(f"{cav11} https://www.ffmpeg.org/download.html\n")

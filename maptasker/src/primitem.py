@@ -43,7 +43,7 @@
 #   return
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 from maptasker.src.sysconst import (
     ANTHROPIC_MODELS,
@@ -53,6 +53,9 @@ from maptasker.src.sysconst import (
     NOW_TIME,
     OPENAI_MODELS,
 )
+
+if TYPE_CHECKING:
+    from maptasker.src.runcfg import RunConfig
 
 # The single-named-item selectors: display only this one Project, or Profile, or Task,
 # or Scene.  Each entry maps the program_arguments key holding the requested name to its
@@ -350,48 +353,78 @@ class PrimeItemsReset:
         PrimeItems.task_action_warnings = {}
 
 
+# All three helpers below take the settings to read as an optional argument: pass a
+# RunConfig (runcfg.py) and the answer depends only on it, which is what lets a caller
+# ask "what would this run show?" without the global being set up first.  Left out, they
+# read the settings currently on PrimeItems, as they always have.  Both a RunConfig and
+# a plain program_arguments dictionary answer .get(), which is all this needs.
+def _settings(config: RunConfig | None) -> object:
+    """
+    Return the settings to read: the given config, or the ones on PrimeItems.
+
+    Args:
+        config (RunConfig | None): the settings to use, or None for the current ones.
+
+    Returns:
+        object: something answering .get(name) -- a RunConfig or the arguments dict.
+    """
+    return PrimeItems.program_arguments if config is None else config
+
+
 # Return the single named item being asked for, if any.
-def get_single_item_requested() -> tuple[str, str]:
+def get_single_item_requested(config: RunConfig | None = None) -> tuple[str, str]:
     """
     Return the single named item the user asked to display, if any.
+
+    Args:
+        config (RunConfig | None): the settings to read, or None for the current ones.
 
     Returns:
         tuple[str, str]: (label, name) -- e.g. ("Task", "My Task") -- for whichever
             single_xxx_name is set, or ("", "") if we are displaying everything.
     """
+    settings = _settings(config)
     for name_key, _, label in SINGLE_ITEM_SELECTORS:
-        if PrimeItems.program_arguments.get(name_key):
-            return label, PrimeItems.program_arguments[name_key]
+        if name := settings.get(name_key):
+            return label, name
     return "", ""
 
 
 # Return the single named item that was asked for but never found, if any.
-def get_single_item_not_found() -> tuple[str, str]:
+def get_single_item_not_found(config: RunConfig | None = None) -> tuple[str, str]:
     """
     Return the single named item that was requested but never found while building the
     output.
+
+    Args:
+        config (RunConfig | None): the settings to read, or None for the current ones.
 
     Returns:
         tuple[str, str]: (label, name) of the missing item, or ("", "") if nothing is
             missing -- either because no single item was requested, or because the one
             that was requested turned up.
     """
+    settings = _settings(config)
     for name_key, found_key, label in SINGLE_ITEM_SELECTORS:
-        name = PrimeItems.program_arguments.get(name_key)
+        name = settings.get(name_key)
         if name and not PrimeItems.found_named_items.get(found_key):
             return label, name
     return "", ""
 
 
 # Return True if a single named item was asked for and it was found.
-def is_single_item_found() -> bool:
+def is_single_item_found(config: RunConfig | None = None) -> bool:
     """
     Return True if a single named item was requested and has been found.
+
+    Args:
+        config (RunConfig | None): the settings to read, or None for the current ones.
 
     Returns:
         bool: True if any requested single item's found-flag is set.
     """
+    settings = _settings(config)
     return any(
-        PrimeItems.program_arguments.get(name_key) and PrimeItems.found_named_items.get(found_key)
+        settings.get(name_key) and PrimeItems.found_named_items.get(found_key)
         for name_key, found_key, _ in SINGLE_ITEM_SELECTORS
     )

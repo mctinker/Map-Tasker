@@ -28,6 +28,7 @@ from maptasker.src.primitem import (
     get_single_item_not_found,
     is_single_item_found,
 )
+from maptasker.src.runcfg import current_config, overridden_config
 from maptasker.src.sysconst import (
     NORMAL_TAB,
     Colors,
@@ -98,14 +99,16 @@ def build_html(file_to_get: str) -> int:
     final_processing(found_tasks, projects_without_profiles, projects_with_no_tasks)
 
     # Save our runtime settings for next time.  Make sure we don't save the rerun state as True
-    save_rerun_state = PrimeItems.program_arguments["rerun"]
-    PrimeItems.program_arguments["rerun"] = False
-    _, _ = save_restore_args(
-        PrimeItems.program_arguments,
-        PrimeItems.colors_to_use,
-        to_save=True,
-    )
-    PrimeItems.program_arguments["rerun"] = save_rerun_state
+    # The live dictionaries, not a RunConfig snapshot: save_arguments edits what it is
+    # given (hiding the API key, resetting the transient arguments, clearing a single
+    # Project name that was only set because a single Task was asked for) and the rest of
+    # the run expects to see those edits.
+    with overridden_config(rerun=False):
+        _, _ = save_restore_args(
+            PrimeItems.program_arguments,
+            PrimeItems.colors_to_use,
+            to_save=True,
+        )
 
     # Rerun this program if "Rerun" was selected from GUI
     # First get the filename as a string.
@@ -167,6 +170,7 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
         # Output the rest that is in our output queue
         _output_directory = output_directory  # Localize for speed
         _format_line = format_line  # Localize for speed
+        config = current_config()  # Settings for this write -- read once, outside the loop
         for num, item in enumerate(PrimeItems.output_lines.output_lines):
             # This is a temporary workaround to the GUI terminating prematurely due to output size.
             if num > PrimeItems.view_limit:
@@ -203,8 +207,8 @@ def write_out_the_file(my_output_dir: str, my_file_name: str) -> None:
                 PrimeItems.output_lines.output_lines = []  # Create a new output queue
 
                 # Do the directory output
-                if PrimeItems.program_arguments["directory"]:
-                    _output_directory()
+                if config.directory:
+                    _output_directory(config)
                 # Output the directory line
                 for output_line in PrimeItems.output_lines.output_lines:
                     out_file.write(output_line)
@@ -359,7 +363,7 @@ def display_back_matter() -> None:
         display_task_warnings()
 
     # Display the program caveats
-    display_caveats()
+    display_caveats(current_config())
 
     # Finalize the HTML
     final_msg = "\n</body>\n</html>"
@@ -531,25 +535,19 @@ def final_processing(
         - Restore original directory setting
         - Display back matter after processing projects, profiles, tasks, scenes
     """
-    program_arguments = PrimeItems.program_arguments
-
     # See if we are only looking for a single Project/Profile and it wasn't found
     check_single_item()
 
-    # Turn off the directory temporarily so we don't get duplicates
-    temp_dir = program_arguments["directory"]
-    program_arguments["directory"] = False
-
-    # Get the list of Tasks not called by a Profile,
-    # and a list of Projects without Profiles/Tasks
-    process_unique_situations(
-        projects_with_no_tasks,
-        projects_without_profiles,
-        found_tasks,
-    )
-
-    # Restore the directory setting for the final directory of Totals
-    program_arguments["directory"] = temp_dir
+    # Turn off the directory temporarily so we don't get duplicates, and put the setting
+    # back afterwards for the final directory of Totals.
+    with overridden_config(directory=False):
+        # Get the list of Tasks not called by a Profile,
+        # and a list of Projects without Profiles/Tasks
+        process_unique_situations(
+            projects_with_no_tasks,
+            projects_without_profiles,
+            found_tasks,
+        )
 
     # Display the trailer stuff, after Projects/Profiles/Tasks/Scenes and print the output.
     display_back_matter()

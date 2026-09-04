@@ -25,6 +25,7 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import process_list
 from maptasker.src.profiles import process_profiles
 from maptasker.src.property import get_properties
+from maptasker.src.runcfg import current_config
 from maptasker.src.scenes import process_project_scenes
 from maptasker.src.share import share
 from maptasker.src.sysconst import DISABLED, NORMAL_TAB, UNNAMED_ITEM, FormatLine
@@ -422,7 +423,7 @@ def get_extra_and_output_project(
     )
 
     # Make the Project name bold, italcize and/or highlighted if requested
-    project_name_altered = add_name_attribute(project_name)
+    project_name_altered = add_name_attribute(project_name, current_config())
 
     # Add a 2-up tooltip to the "Project:" label: Profiles in this Project on the left,
     # all of this Project's Tasks (sorted) on the right, one item per line in each column.
