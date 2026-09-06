@@ -7,10 +7,10 @@ JSON supplies 418 Task codes; the overlay has to supply the 325 entries Tasker d
 publish (113 Event, 61 State, 132 unpublished/plugin Task, 19 Scene element) together
 with the two fields the JSON has no equivalent for at all -- arg_eval and redirect.
 
-These tests compare the live table against tests/data/action_codes_snapshot.json, taken
-from the literal table before the migration.  Passing means no consumer of action_codes
-can behave differently, so the migration needs no output diffing of its own; the tests
-are equally a drift guard on the literal table until the loader lands.
+These tests compare the live table against tests/data/action_codes_snapshot.json.  The
+snapshot was first taken from the literal table, which is how the loader was proved to
+reproduce it exactly; it was regenerated once since, for the Phase B deletion below, and
+otherwise a difference means something drifted.
 
 The last test is a different kind of check.  Rather than comparing the table to itself,
 it verifies the claim the migration rests on: that task_all_actions.json really does
@@ -133,15 +133,13 @@ def test_snapshot_is_whole(snapshot: list) -> None:
 
 
 def test_arg_eval_is_carried_for_every_argument(snapshot: list, current: list) -> None:
-    """arg_eval survives on all 1704 arguments, including the 419 list-form lookups.
+    """arg_eval matches the snapshot on every argument, list-form values included.
 
-    task_all_actions.json has no arg_eval equivalent, so every one of these has to come
-    from the overlay.  Its punctuation is not derivable from the JSON's argument name
-    either -- the leading ', ' and trailing '=' vary independently of both argument
-    index and argument type -- so a loader that reconstructs the string instead of
-    storing it changes hundreds of output lines.  The 419 list-form values are worse
-    than cosmetic: they are lookups into actiont.lookup_values, and losing one turns a
-    named setting back into a bare integer.
+    task_all_actions.json has no arg_eval equivalent, so every surviving value comes
+    from the overlay.  The 419 list-form ones are the load-bearing kind: they are
+    lookups into actiont.lookup_values, and losing one turns a named setting back into
+    a bare integer.  Of the string ones, only two kinds are read at all -- see
+    test_no_unread_arg_eval_values, which is what keeps the rest from creeping back.
     """
     expected = {(key, arg[0]): arg[4] for key, entry in snapshot for arg in entry["args"]}
     actual = {(key, arg[0]): arg[4] for key, entry in current for arg in entry["args"]}
@@ -223,4 +221,34 @@ def test_task_all_actions_json_still_matches_the_table(snapshot: list) -> None:
     assert not report, (
         f"task_all_actions.json no longer matches the table for {len(report)} field(s) "
         "-- the overlay needs an entry for these:\n" + "\n".join(report[:25])
+    )
+
+
+def test_no_unread_arg_eval_values() -> None:
+    """No argument stores a string arg_eval that its arg_name shadows.
+
+    actargs.action_args picks arg_name over a string arg_eval whenever arg_name is set,
+    and taskedit._display_arg_name does the same, so such a string cannot reach any
+    output -- it is data nothing can read.  Phase B deleted 957 of them, which changed
+    not one line across the 380,954 rendered from the backups in XML/.
+
+    Two kinds are genuinely read and must stay:
+
+      - a Boolean argument (arg_type "3"), because actargs' Boolean case re-reads the
+        raw arg[4] and so overrides the arg_name preference for exactly these;
+      - an argument with no arg_name at all, where arg_eval carries the label itself.
+
+    A failure here means unread values have come back.  They cost nothing at runtime but
+    are actively misleading to read: 77 of the deleted ones disagreed with the argument's
+    real name, which made them look like display bugs that could never actually fire.
+    """
+    unread = [
+        f"{key} arg {arg.arg_id} ({arg.arg_name!r} shadows {arg.arg_eval!r})"
+        for key, entry in action_codes.items()
+        for arg in entry.args
+        if isinstance(arg.arg_eval, str) and arg.arg_eval and arg.arg_name and arg.arg_type != "3"
+    ]
+    assert not unread, (
+        f"{len(unread)} argument(s) carry a string arg_eval that arg_name shadows, so nothing "
+        "reads them:\n" + "\n".join(unread[:25])
     )
