@@ -386,6 +386,15 @@ def _load_sample_backup(path: str) -> ET.Element:
     """
     from maptasker.src import taskerd  # noqa: PLC0415
 
+    # XML/ holds real Tasker backups and is deliberately not in the repository, so on a
+    # fresh clone -- and on CI -- these files are simply not there.  Skipped rather than
+    # failed, which is what _sample_properties_elements above already does for the same
+    # reason; without this the thirteen tests that load a sample backup came out as
+    # FileNotFoundError instead, and a CI run that has never had the data reported it as
+    # fifty broken tests.
+    if not os.path.exists(path):
+        pytest.skip(f"no sample XML at {path} -- XML/ is not part of the repository")
+
     root = ET.parse(path).getroot()  # noqa: S314  (this repo's own sample data)
     PrimeItems.xml_root = root
     PrimeItems.program_arguments = {"task_action_warning_limit": 100, "language": "English"}
