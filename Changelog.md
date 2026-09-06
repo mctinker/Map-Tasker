@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.1.1] 07-Sep-2026
+## [13.1.1] 06-Sep-2026
 
 ### Added
 
