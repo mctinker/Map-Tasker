@@ -67,6 +67,8 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: Installing MapTasker no longer changes how Python finds packages for everything else running in the same environment.  Starting it used to put two directories at the front of the import path for the whole interpreter, where they could quietly shadow another program's libraries.
 
+- Fixed: MapTasker starts again on Python 3.11, the oldest version it supports.  Storing the run's settings and colors in a frozen record made it fail to load there with 'mutable default <class 'mappingproxy'> for field colors is not allowed', before any of the program ran.
+
 ### Known Issues
 
 * It is unlikely but possible to have a previous MapTasker browser session preventing the startup of MapTasker.  You will get the error: 'ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8080): address already in use'. If

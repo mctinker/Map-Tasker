@@ -317,15 +317,22 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-# Measured baseline on 1045 tests is 45.41% (branch coverage on, omissions below
-# applied). The floor is set a little under that so a per-Python-version
-# difference cannot fail the build, while a real regression does. Raise this as
-# coverage improves -- it is meant to ratchet upward, never down.
+# Set from what CI measures, which is NOT what a developer machine measures. 66 tests
+# load a real backup out of XML/, and XML/ holds personal Tasker data and is not in the
+# repository -- so they skip on a fresh clone and on CI, and take about 2.4 points of
+# coverage with them. Measured: 45.8% here with XML/ present, 43.0% on CI without it.
+# The floor is a little under the CI figure, so a per-Python-version difference cannot
+# fail the build while a real regression does.
+#
+# Raise this as coverage improves -- it is meant to ratchet upward, never down. The 44
+# it was lowered from was measured with XML/ present, which made it unreachable on the
+# only machine that enforces it; recovering those points means giving those tests a
+# fixture they can carry, not putting the backups in the repository.
 #
 # History: 36 at 37.58% (754 tests) -> 44 at 45.41%, when the XML-parsing core
 # (taskerd/tasks/profiles/projects/scenes/action/actargs) gained direct tests and
-# went from 43% to 75% between them.
-fail_under = 44
+# went from 43% to 75% between them -> 42, recalibrated to CI's environment.
+fail_under = 42
 exclude_also = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",
