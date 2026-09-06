@@ -48,7 +48,7 @@
 from __future__ import annotations
 
 import contextlib
-from dataclasses import dataclass, fields, replace
+from dataclasses import dataclass, field, fields, replace
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -140,7 +140,13 @@ class RunConfig:
     # on, as built by colrmode.set_color_mode.  Kept as a mapping rather than a field per
     # color because the user can add color arguments of their own from the command line.
     # (A mapping is not hashable, so neither is a RunConfig; compare them with == .)
-    colors: Mapping[str, str] = NO_COLORS
+    #
+    # default_factory rather than `= NO_COLORS`, and NOT a tidy-up to undo: on Python 3.11
+    # dataclasses rejects any default whose type is unhashable, and MappingProxyType only
+    # became hashable in 3.12.  Written the obvious way, this line raises ValueError while
+    # the class is being built -- so `import maptasker` fails outright on the oldest Python
+    # the project supports (pyproject: requires-python = ">=3.11"), before anything runs.
+    colors: Mapping[str, str] = field(default_factory=lambda: NO_COLORS)
 
     # The argument field names, in declaration order, with "colors" left out: everything
     # here corresponds one-for-one to a program_arguments key.  Filled in just below the
