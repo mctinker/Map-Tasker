@@ -458,17 +458,6 @@ def project_profile_names(project_name: str) -> list[str]:
     return names
 
 
-def count_project_contents(project_name: str) -> tuple[int, int]:
-    """Returns (Profile count, Task count) currently owned by this Project --
-    for the Delete confirmation dialog's "it owns N Profile(s) and M Task(s)"
-    message, read straight off the live <pids>/<tids> before anything is mutated.
-    """
-    live_element = resolve_project_by_name(project_name)
-    if live_element is None:
-        return 0, 0
-    return len(_project_child_ids(live_element, "pids")), len(_project_child_ids(live_element, "tids"))
-
-
 def sanitize_filename(name: str) -> str:
     """Strip characters illegal in filenames from a Project name (minimal, not a full slugify).
 

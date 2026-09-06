@@ -2995,3 +2995,12 @@ msgstr "वर निवडले आहे आणि त्यातून क�
 
 msgid "selected in the pulldowns above"
 msgstr "वरील पुलडाउनमध्ये निवडले"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "वरच्या कोणत्याही ओळीवर क्लिक करून नकाशा दृश्यमध्ये ते ठिकाण पहा."
+
+msgid "If you delete them too"
+msgstr "जर तुम्ही ते देखील हटवले तर"
+
+msgid "If you keep the contents"
+msgstr "जर तुम्ही सामग्री जतन ठेवली तर"

@@ -2972,3 +2972,12 @@ msgstr "выбран выше и не имеет задач для извлеч�
 
 msgid "selected in the pulldowns above"
 msgstr "выбрано в раскрывающихся списках выше"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Щелкните любую строку выше, чтобы увидеть это место на карте."
+
+msgid "If you delete them too"
+msgstr "Если вы удалите их тоже"
+
+msgid "If you keep the contents"
+msgstr "Если вы сохраните содержимое"

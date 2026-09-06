@@ -2987,3 +2987,12 @@ msgstr "imechaguliwa na haina majukumu yoyote za kukusanya"
 
 msgid "selected in the pulldowns above"
 msgstr "imechaguliwa kwenye chaguzi za chini"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Bofya mstari wowote hapo juu ili kuona mahali hapo kwenye mwonekano wa Ramani."
+
+msgid "If you delete them too"
+msgstr "Ukizifuta pia"
+
+msgid "If you keep the contents"
+msgstr "Ukiweka yaliyomo"

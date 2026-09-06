@@ -2975,3 +2975,12 @@ msgstr "är valt ovan och har inga uppgifter att extrahera från"
 
 msgid "selected in the pulldowns above"
 msgstr "väljs i rullgardinsmenyn ovan"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Klicka på valfri rad ovan för att se den platsen i kartvyn."
+
+msgid "If you delete them too"
+msgstr "Om du tar bort dem också"
+
+msgid "If you keep the contents"
+msgstr "Om du behåller innehållet"

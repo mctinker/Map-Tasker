@@ -2885,3 +2885,12 @@ msgstr "已選取，且沒有需要提取的任務。"
 
 msgid "selected in the pulldowns above"
 msgstr "在上面的下拉式選單中選擇"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "點擊上面的任何行即可在地圖視圖中查看該地點。"
+
+msgid "If you delete them too"
+msgstr "如果你也刪除它們"
+
+msgid "If you keep the contents"
+msgstr "如果您保留內容"

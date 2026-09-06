@@ -84,6 +84,41 @@ _SCENE_LIFECYCLE_CODES = {"46": "0", "47": "0", "48": "0", "49": "0"}
 # much worse answer than staying quiet about one.
 _WIDGET_NAME_CODES = {"152": "0", "155": "0"}
 
+# How one place points at a Task or a Scene.  The index below records which sort each
+# reference is, because that is what decides whether a delete has to rewrite it: an id in
+# a Profile's <mid0> is unlinked by taskedit.delete_task, while a Perform Task naming the
+# same Task by hand is left exactly where it is.  See impact.py, which turns that
+# distinction into "what breaks if I delete this".
+BY_PROFILE_LINK = "PROFILE-LINK"  # a Profile's <mid0>/<mid1> -- an id
+BY_PERFORM_TASK = "PERFORM-TASK"  # a Perform Task action -- a name
+BY_SCENE_ELEMENT = "SCENE-ELEMENT"  # a Legacy Scene element's <clickTask> and friends -- an id
+BY_SCENE_COMPONENT = "SCENE-COMPONENT"  # a Version 2 Scene handler's RunTask -- a name
+BY_SCENE_ACTION = "SCENE-ACTION"  # Show/Hide/Destroy Scene, or an Element action -- a name
+BY_WIDGET = "WIDGET"  # Set Widget Icon/Label, i.e. a home screen widget -- a name
+
+
+@dataclass(frozen=True)
+class Referrer:
+    """One place that points at a Task or a Scene.
+
+    Frozen for Target's reason: a referrer is a fact about the file, recorded once and
+    read by whoever asks.
+
+    'where' is the place the reference is made FROM, already refined to the action or the
+    Scene element that makes it, so .label reads as the location of a finding about it.
+    'note' is the handful of extra words a couple of referrers need after that -- kept
+    apart from the Target so the label and the jump cannot come to disagree.
+    """
+
+    kind: str
+    where: Target
+    note: str = ""
+
+    @property
+    def label(self) -> str:
+        """This place as a report prints it."""
+        return f"{self.where.label} {self.note}" if self.note else self.where.label
+
 
 @dataclass
 class Finding:
@@ -115,8 +150,12 @@ class Finding:
 
 
 @dataclass
-class _Index:
-    """Everything the checks need, gathered in one pass over the XML.
+class ReferenceIndex:
+    """Everything in the file that points at something else, gathered in one pass over the XML.
+
+    Public because impact.py reads one: what points at a Task is the same question whether
+    it is asked to report a reference that is already broken or one a delete is about to
+    break (see build_reference_index).
 
     Built once rather than answered per-finding: maputils' find_owning_project and
     friends each walk every Project, so calling them from inside a loop over Tasks would
@@ -129,11 +168,12 @@ class _Index:
     project_of_profile: dict[str, str] = field(default_factory=dict)
     project_of_task: dict[str, str] = field(default_factory=dict)
     project_of_scene: dict[str, str] = field(default_factory=dict)
-    # Who refers to each Task/Scene, as human-readable phrases ("Profile 'Wake' entry
-    # Task").  A Task with no entry here is unreferenced; the phrases are what make an
-    # unreferenced-Task report explain itself rather than just assert.
-    task_referrers: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
-    scene_referrers: dict[str, list[str]] = field(default_factory=lambda: defaultdict(list))
+    # Who refers to each Task/Scene.  A Task with no entry here is unreferenced; each
+    # Referrer says where the reference is made from and what sort it is, which is what
+    # lets impact.py answer a delete with the list of places that will dangle rather than
+    # with a count.
+    task_referrers: dict[str, list[Referrer]] = field(default_factory=lambda: defaultdict(list))
+    scene_referrers: dict[str, list[Referrer]] = field(default_factory=lambda: defaultdict(list))
     # Task ids sharing a name, and the same for Profiles and Scenes.  Built from
     # all_tasks rather than all_tasks_by_name: the by-name table silently overwrites a
     # collision (taskerd.py), so it can never show the duplicate that caused it.
@@ -239,7 +279,7 @@ def _split_ids(element: defusedxml.ElementTree.Element, tag: str) -> list[str]:
 # ##################################################################################
 # Reference gathering -- one pass each over Projects, Profiles, Scenes and Tasks.
 # ##################################################################################
-def _index_projects(index: _Index) -> None:
+def _index_projects(index: ReferenceIndex) -> None:
     """Walk every Project: record what it owns, and report what it names but does not have."""
     all_projects = PrimeItems.tasker_root_elements["all_projects"]
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
@@ -291,7 +331,7 @@ def _index_projects(index: _Index) -> None:
                 )
 
 
-def _index_profiles(index: _Index) -> None:
+def _index_profiles(index: ReferenceIndex) -> None:
     """Walk every Profile: record the Tasks it runs, and report the ones that are missing."""
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
@@ -305,7 +345,9 @@ def _index_profiles(index: _Index) -> None:
             if not task_id:
                 continue
             if task_id in all_tasks:
-                index.task_referrers[task_id].append(where.with_text(f"{task_type} Task").label)
+                index.task_referrers[task_id].append(
+                    Referrer(BY_PROFILE_LINK, where.with_text(f"{task_type} Task")),
+                )
             else:
                 index.add(
                     ERROR,
@@ -315,7 +357,7 @@ def _index_profiles(index: _Index) -> None:
                 )
 
 
-def _index_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit: object) -> None:
+def _index_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, sceneedit: object) -> None:
     """Record the Tasks a Legacy Scene's elements fire, reporting any that are missing."""
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
     # project_of_scene is filled by _index_projects, which run_health_check calls first.
@@ -341,7 +383,9 @@ def _index_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit: o
                 continue
             event = SCENE_TASK_TYPES[binding.tag]
             if task_id in all_tasks:
-                index.task_referrers[task_id].append(where.with_text(f"{label} {event}").label)
+                index.task_referrers[task_id].append(
+                    Referrer(BY_SCENE_ELEMENT, where.with_text(f"{label} {event}")),
+                )
             else:
                 index.add(
                     ERROR,
@@ -351,7 +395,7 @@ def _index_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit: o
                 )
 
 
-def _index_v2_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit: object) -> None:
+def _index_v2_scene_tasks(index: ReferenceIndex, scene_name: str, scene: dict, sceneedit: object) -> None:
     """Record the Tasks a Version 2 Scene's event handlers run.
 
     A V2 Scene keeps its components in a gzipped JSON blob rather than in child elements,
@@ -377,7 +421,9 @@ def _index_v2_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit
                     continue
                 entry = all_tasks_by_name.get(task_name)
                 if entry:
-                    index.task_referrers[entry["id"]].append(where.with_text(f"component '{row.label}'").label)
+                    index.task_referrers[entry["id"]].append(
+                        Referrer(BY_SCENE_COMPONENT, where.with_text(f"component '{row.label}'")),
+                    )
                 else:
                     index.add(
                         ERROR,
@@ -387,7 +433,7 @@ def _index_v2_scene_tasks(index: _Index, scene_name: str, scene: dict, sceneedit
                     )
 
 
-def _index_scenes(index: _Index) -> None:
+def _index_scenes(index: ReferenceIndex) -> None:
     """Walk every Scene, Legacy or Version 2, for the Tasks it fires.
 
     sceneedit is imported here rather than at module scope, and passed down rather than
@@ -407,7 +453,7 @@ def _index_scenes(index: _Index) -> None:
 
 
 def _index_one_action(
-    index: _Index,
+    index: ReferenceIndex,
     action: defusedxml.ElementTree.Element,
     number: int,
     where: Target,
@@ -433,7 +479,7 @@ def _index_one_action(
         if _is_resolvable(called):
             entry = all_tasks_by_name.get(called)
             if entry:
-                index.task_referrers[entry["id"]].append(where.at_action(number).label)
+                index.task_referrers[entry["id"]].append(Referrer(BY_PERFORM_TASK, where.at_action(number)))
             else:
                 # Printed as the calling Task, jumped to as the action inside it: the
                 # location is what the reader needs to recognise, the action is where the
@@ -452,7 +498,7 @@ def _index_one_action(
             entry = all_tasks_by_name.get(widget_name)
             if entry:
                 index.task_referrers[entry["id"]].append(
-                    f"{where.at_action(number).label} (home screen widget)",
+                    Referrer(BY_WIDGET, where.at_action(number), "(home screen widget)"),
                 )
 
     elif code in scene_args:
@@ -468,7 +514,7 @@ def _index_one_action(
             index.variable_scene_references += 1
             return
         if scene_name in all_scenes:
-            index.scene_referrers[scene_name].append(where.at_action(number).label)
+            index.scene_referrers[scene_name].append(Referrer(BY_SCENE_ACTION, where.at_action(number)))
         else:
             index.add(
                 ERROR,
@@ -479,7 +525,7 @@ def _index_one_action(
             )
 
 
-def _index_actions(index: _Index) -> None:
+def _index_actions(index: ReferenceIndex) -> None:
     """Walk every action of every Task for Task and Scene references.
 
     The only pass here that is O(actions) rather than O(objects), and the reason the
@@ -501,7 +547,7 @@ def _index_actions(index: _Index) -> None:
             _index_one_action(index, action, number, where, scene_args)
 
 
-def _index_scene_inline_actions(index: _Index) -> None:
+def _index_scene_inline_actions(index: ReferenceIndex) -> None:
     """Walk the actions of anonymous tasks that live inside a Scene.
 
     Tasker keeps a truly anonymous task -- one created inline on a Scene element and named
@@ -526,7 +572,7 @@ def _index_scene_inline_actions(index: _Index) -> None:
 # ##################################################################################
 # Checks that read the finished index.
 # ##################################################################################
-def _check_reachability(index: _Index) -> None:
+def _check_reachability(index: ReferenceIndex) -> None:
     """Report objects nothing can reach: dead Tasks, unowned Profiles and Scenes, empty Projects."""
     all_projects = PrimeItems.tasker_root_elements["all_projects"]
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
@@ -595,7 +641,7 @@ def _check_reachability(index: _Index) -> None:
             )
 
 
-def _check_duplicate_names(index: _Index) -> None:
+def _check_duplicate_names(index: ReferenceIndex) -> None:
     """Report two objects of the same kind sharing a name.
 
     Tasker allows it, but every reference by name -- Perform Task, a V2 Scene's RunTask,
@@ -711,12 +757,12 @@ _VARIABLE_SEVERITY = {
 }
 
 
-def _check_variables(index: _Index) -> None:
+def _check_variables(index: ReferenceIndex) -> None:
     """Fold the variable cross-reference's problems into this report.
 
     The cross-reference builds its own index -- it reads arguments, conditions, plugin
     bundles and Scene layouts, none of which this module's passes collect -- so this is a
-    second walk over the file rather than a filter over _Index.  Worth the second walk:
+    second walk over the file rather than a filter over ReferenceIndex.  Worth the second walk:
     the alternative is that a user who never presses Variable Xref never learns that a
     Task reads %SheetId while an action sets %SheetID.
 
@@ -746,7 +792,7 @@ def _check_variables(index: _Index) -> None:
         )
 
 
-def _check_control_flow(index: _Index) -> None:
+def _check_control_flow(index: ReferenceIndex) -> None:
     """Fold the control-flow analysis's problems into this report.
 
     Folded in for the reason _check_variables above is folded in: a user who never presses
@@ -755,7 +801,7 @@ def _check_control_flow(index: _Index) -> None:
     as a Perform Task naming a Task that is not in the file -- they are simply broken
     references INSIDE a Task, which is the one place this report never used to look.
 
-    A second walk over the Tasks rather than a filter over _Index, again for
+    A second walk over the Tasks rather than a filter over ReferenceIndex, again for
     _check_variables' reason: that module builds a control-flow graph per Task, which is
     not something any pass here collects.
 
@@ -768,7 +814,7 @@ def _check_control_flow(index: _Index) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
-def _check_hygiene(index: _Index) -> None:
+def _check_hygiene(index: ReferenceIndex) -> None:
     """Report the things that are legal, and working, but worth knowing about."""
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
     all_tasks = PrimeItems.tasker_root_elements["all_tasks"]
@@ -821,7 +867,7 @@ def _counts(findings: list[Finding]) -> dict:
     return {severity: sum(1 for item in findings if item.severity == severity) for severity in _SEVERITY_ORDER}
 
 
-def _build_report(index: _Index, when: datetime) -> list[Row]:
+def _build_report(index: ReferenceIndex, when: datetime) -> list[Row]:
     """Render the findings, one Row per line of the report.
 
     Rows rather than strings so the report can be written twice from one source: as the
@@ -880,7 +926,7 @@ def _build_report(index: _Index, when: datetime) -> list[Row]:
     return rows + [Row(line) for line in _limitations(index)]
 
 
-def _limitations(index: _Index) -> list[str]:
+def _limitations(index: ReferenceIndex) -> list[str]:
     """The closing note on what this check cannot see.
 
     Printed rather than left implied because the one finding most worth acting on --
@@ -924,6 +970,37 @@ def _limitations(index: _Index) -> list[str]:
     return notes
 
 
+def build_reference_index() -> ReferenceIndex:
+    """Everything in the file that points at something else, gathered but not yet judged.
+
+    Split out of run_health_check so that a second question can be asked of the same scan:
+    the health check asks what is already broken, and impact.py asks what a delete is about
+    to break.  Both need the whole file walked, in this order and once -- and answering the
+    second with a scan of its own is how the two would come to disagree about what counts
+    as a reference.
+
+    Order matters: _index_projects fills in the project_of_* maps that the passes after it
+    use to say which Project an object is in.
+
+    The findings the passes raise as they go -- a <tids> naming a Task that is not in the
+    file -- are left on the index.  run_health_check reports them; a caller that only wants
+    to know who points at what can ignore them.
+    """
+    index = ReferenceIndex()
+
+    for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
+        if task["name"]:
+            index.task_ids_by_name[task["name"]].append(task_id)
+
+    _index_projects(index)
+    _index_profiles(index)
+    _index_scenes(index)
+    _index_actions(index)
+    _index_scene_inline_actions(index)
+
+    return index
+
+
 def run_health_check() -> tuple[list[Row], dict]:
     """Scan the loaded configuration and return (report rows, counts by severity).
 
@@ -933,19 +1010,7 @@ def run_health_check() -> tuple[list[Row], dict]:
     Safe to call with nothing loaded -- the tables are empty and the report says so --
     but the GUI checks first so it can say something more useful than "0 Projects".
     """
-    index = _Index()
-
-    for task_id, task in PrimeItems.tasker_root_elements["all_tasks"].items():
-        if task["name"]:
-            index.task_ids_by_name[task["name"]].append(task_id)
-
-    # Order matters: _index_projects fills in the project_of_* maps that the passes after
-    # it use to say which Project a finding is in.
-    _index_projects(index)
-    _index_profiles(index)
-    _index_scenes(index)
-    _index_actions(index)
-    _index_scene_inline_actions(index)
+    index = build_reference_index()
 
     _check_reachability(index)
     _check_hygiene(index)

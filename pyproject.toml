@@ -103,7 +103,7 @@ dev = [
 ]
 
 [tool.ruff]
-include = ["pyproject.toml", "maptasker/custom_overrides/**/*.py", "maptasker/src/**/*.py", "scripts/**/*.py"]
+include = ["pyproject.toml", "maptasker/main.py", "maptasker/src/**/*.py", "scripts/**/*.py"]
 respect-gitignore = true
 line-length = 120
 show-fixes = true
@@ -317,11 +317,15 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
-# Measured baseline on 754 tests is 37.58% (branch coverage on, omissions below
+# Measured baseline on 1045 tests is 45.41% (branch coverage on, omissions below
 # applied). The floor is set a little under that so a per-Python-version
 # difference cannot fail the build, while a real regression does. Raise this as
 # coverage improves -- it is meant to ratchet upward, never down.
-fail_under = 36
+#
+# History: 36 at 37.58% (754 tests) -> 44 at 45.41%, when the XML-parsing core
+# (taskerd/tasks/profiles/projects/scenes/action/actargs) gained direct tests and
+# went from 43% to 75% between them.
+fail_under = 44
 exclude_also = [
     "if TYPE_CHECKING:",
     "raise NotImplementedError",

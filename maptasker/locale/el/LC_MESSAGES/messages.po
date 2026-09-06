@@ -2995,3 +2995,12 @@ msgstr "επιλέχθηκε παραπάνω και δεν έχει εργασ�
 
 msgid "selected in the pulldowns above"
 msgstr "επιλεγμένες από τις παραπάνω λίστες αναδημιουργίας"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Κάντε κλικ σε οποιαδήποτε από τις παραπάνω γραμμές για να δείτε αυτή την τοποθεσία στην προβολή χάρτη."
+
+msgid "If you delete them too"
+msgstr "Αν τα διαγράψετε επίσης"
+
+msgid "If you keep the contents"
+msgstr "Αν επιλέξετε να διατηρήσετε το περιεχόμενο"

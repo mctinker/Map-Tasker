@@ -2993,3 +2993,12 @@ msgstr "được chọn ở trên và không có Nhiệm vụ nào để trích 
 
 msgid "selected in the pulldowns above"
 msgstr "được chọn trong danh sách kéo xuống ở trên"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Nhấp vào bất kỳ dòng nào ở trên để xem địa điểm đó trong chế độ xem Bản đồ."
+
+msgid "If you delete them too"
+msgstr "Nếu bạn cũng xóa chúng"
+
+msgid "If you keep the contents"
+msgstr "Nếu bạn giữ nội dung"

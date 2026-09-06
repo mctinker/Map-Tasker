@@ -10,6 +10,7 @@ from __future__ import annotations
 import contextlib
 from typing import TYPE_CHECKING
 
+from maptasker.src.format import is_dark_color
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FONT_FAMILY, SPACE_COUNT1, SPACE_COUNT2, SPACE_COUNT3, FormatLine
 
@@ -61,18 +62,28 @@ def add_css(config: RunConfig) -> None:
 .blanktab3 {display: inline-block; margin-right: zzz;}
     """
 
-    box = """
+    # The box drawn around a TaskerNet description or a Task label has to sit on the output's
+    # own background rather than on a fixed one: a light box lands as a slab of white in the
+    # middle of the dark mode's near-black page, and every color inside it -- all of which
+    # were chosen against the page background, not against the box -- is then the wrong way
+    # round.  Follow the background instead, so the box is a shade lighter than a dark page
+    # and a shade darker than a light one, with a border that shows up on either.
+    if is_dark_color(config.color("background_color", "")):
+        box_background, box_border = "#2c3138", "#8a8f98"
+    else:
+        box_background, box_border = "#f9f9f9", "#333"
+    box = f"""
 <style>
-.text-box {
-    border: 2px solid #333;
+.text-box {{
+    border: 2px solid {box_border};
     padding-left: 10px;    /* Keeps the existing left padding */
     padding-right: 10px;   /* Keeps the existing right padding */
     padding-top: 0px;     /* Increases the space at the top */
     padding-bottom: 10px;  /* Increases the space at the bottom */
     margin: 10px;
     width: 100%;
-    background-color: #f9f9f9;
-}
+    background-color: {box_background};
+}}
 </style>
     """
 

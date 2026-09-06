@@ -2977,3 +2977,12 @@ msgstr "er valgt ovenfor og har ingen oppgaver å trekke ut fra"
 
 msgid "selected in the pulldowns above"
 msgstr "valgt i rullegardinmenyene ovenfor"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Klikk på en linje ovenfor for å se det stedet i kartvisningen."
+
+msgid "If you delete them too"
+msgstr "Hvis du sletter dem også"
+
+msgid "If you keep the contents"
+msgstr "Hvis du beholder innholdet"

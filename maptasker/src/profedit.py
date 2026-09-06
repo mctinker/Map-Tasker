@@ -1275,22 +1275,6 @@ def add_task_to_project(task_id: str, project_name: str) -> None:
         touch_project_mdate(project_element)
 
 
-def count_profile_tasks(profile_name: str) -> int:
-    """How many distinct Tasks this Profile links as its Entry/Exit Task -- for
-    the delete confirmation's "these will be kept" line, so the user can see
-    exactly what is *not* being deleted. Read live at prompt time so it can't go
-    stale between opening Edit Profile and clicking Delete (same reasoning as
-    projedit.count_project_contents).
-    """
-    resolved = resolve_profile_by_name(profile_name)
-    if resolved is None:
-        return 0
-    _, live_element = resolved
-    # dict.fromkeys dedupes while preserving order -- a Profile may legitimately
-    # use the same Task for both Entry and Exit (see render_standalone_profile_xml).
-    return len(dict.fromkeys(child.text for child in live_element if "mid" in child.tag and child.text))
-
-
 def delete_profile(profile_name: str) -> list[str]:
     """Deletes a Profile and nothing else -- its Entry/Exit Tasks are deliberately
     left alone. Returns [] on success, else a list of error strings (mirrors

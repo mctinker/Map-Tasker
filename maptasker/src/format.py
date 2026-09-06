@@ -280,6 +280,26 @@ def _relative_luminance(rgb: tuple[int, int, int]) -> float:
     return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
 
 
+# Whether a color is a dark one, i.e. whether what sits on it has to be light to be seen.
+def is_dark_color(color: str) -> bool:
+    """
+    True if the color is dark enough that light text belongs on it.
+
+    Used wherever something has to be picked to suit the background rather than stated
+    outright: the text color for a passed-through document that named a background but no
+    color, and the description box's own background in the generated HTML (see addcss).
+
+        :param color: a color as configured, e.g. "Lavender", "222623", "#0096ff"
+        :return: True if the color is dark, False if it is light or can't be resolved
+    """
+    try:
+        return _relative_luminance(_color_to_rgb(color)) < 0.5
+    except (ValueError, AttributeError, TypeError):
+        # An unknown color name, a gradient, a variable reference: nothing to reason about,
+        # so treat it as light -- the same assumption every browser default makes.
+        return False
+
+
 # How far apart two colors are, as the WCAG contrast ratio.
 def contrast_ratio(color: str, background: str) -> float | None:
     """
@@ -573,8 +593,7 @@ def embed_html_document(document: str) -> str:
     if "color" not in declarations:
         background = _background_from_style(container_style)
         if background:
-            is_dark = _relative_luminance(_color_to_rgb(background)) < 0.5
-            container_style += f"; color: {LIGHT_TEXT if is_dark else DARK_TEXT}"
+            container_style += f"; color: {LIGHT_TEXT if is_dark_color(background) else DARK_TEXT}"
 
     # The document lays out its own width; the container just has to leave room for it and
     # keep anything too wide (a long <pre> line) from stretching the page around it.

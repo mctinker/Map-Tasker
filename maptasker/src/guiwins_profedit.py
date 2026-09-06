@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 from nicegui import ui
 
 from maptasker.src import objprops, profedit
+from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.guiwins_taskedit import (
     _after_condition_fetch,
     _render_app_arg_field,
@@ -26,6 +27,7 @@ from maptasker.src.guiwins_taskedit import (
     _render_plugin_configuration_warning,
     _render_readonly_note,
 )
+from maptasker.src.mapjump import PROFILE
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 
@@ -730,20 +732,17 @@ def build_delete_profile_dialog(
     (see profedit.delete_profile), so they are always kept, and the dialog says so
     explicitly rather than leaving the user to guess what "delete" reaches.
 
-    The linked-Task count is read live so it can't go stale between opening Edit
-    Profile and clicking Delete, same as build_delete_project_dialog's counts.
+    Saying it is guiwins_impact.build_impact_panel's job, here as in the other three
+    Delete dialogs, and it says more than the linked-Task count it replaces: a Task
+    this Profile is the only thing that runs is about to be left with nothing running
+    it, which is the consequence of deleting a Profile worth knowing before the fact.
+    Read live, as that count was, so it cannot go stale while the editor sits open.
     """
     profile_name = edited_profile.profile_element.findtext("nme", "")
-    task_count = profedit.count_profile_tasks(profile_name)
 
     with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"{translate_string('Delete Profile')} '{profile_name}'").classes("text-lg font-bold text-red-600")
-        if task_count:
-            ui.label(
-                f"{translate_string('Its')} {task_count} {translate_string('linked Task(s) will be kept -- they belong to the Project, not to this Profile.')}",
-            ).classes("mt-1")
-        else:
-            ui.label(translate_string("It has no linked Tasks.")).classes("mt-1")
+        build_impact_panel(self, PROFILE, profile_name)
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(

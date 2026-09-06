@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [13.1.1] ??-Sep-2026  # FIX
+## [13.1.1] 07-Sep-2026
 
 ### Added
 
@@ -35,11 +35,19 @@ All notable changes to this project will be documented in this file!
       
       - Duplicating a Profile copies the Tasks it runs, and duplicating a Project copies its whole contents, with the copies' 'Perform Task' and Show/Hide Scene actions pointed at the copies rather than the originals.  Global variables are shared rather than copied, which the preview says up front.
 
+- Added: Every 'Delete' now says what will break before you press it, instead of only counting what is being removed.  The confirmation names the 'Perform Task' calls, Scene element Tasks, Profile links and variable reads that will be left pointing at nothing, along with the Tasks and Scenes that will be left stranded, and every line is a click away in the Map view.
+
 ### Changed
 
 - Changed: Code enhancements
       
       - Split guiwins.py by dialog family. At 14,540 lines it held the Task editor, the Profile editor, both Scene designers and the shared canvas alongside the views and the screen layout. Each family is now its own module -- guiwins_taskedit.py, guiwins_profedit.py, guiwins_designer_legacy.py, guiwins_designer_v2.py and guiwins_canvas.py under them -- leaving 8,633 lines in guiwins.py. No behaviour changed: every function and class moved verbatim.
+
+      - Restructured PrimItems such that program arguments and colors are now defined in a frozen dataclass.
+
+- Changed: The 'Buy Me A Coffee' logo now sits next to its button rather than above it, so the two read as a single item at the bottom of the settings panel.
+
+- Changed: 'Search actions' in the Task editor now lists the actions whose name matches what you typed as a whole word at the top, rather than putting everything in alphabetical order.  Typing 'if' now offers 'If' and 'End If' first instead of burying them under 'ADB Wifi' and a dozen 'AutoNotification' entries.
 
 ### Removed
 
@@ -47,10 +55,17 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: The box drawn around a TaskerNet description or a Task label in the output HTML file now follows the color mode instead of always being light: dark in dark mode, light in light mode.  It previously sat as a bright slab in the middle of a dark page, against which the text colors were chosen.
+
 - Fixed: A bulk Replace no longer refuses to change a Project, Profile, Task or Scene that was added earlier in the same session, reporting it as no longer in the configuration.  A deleted object is now correctly refused instead.
+
 - Fixed: Actions with an argument named 'Label' now display it. The 'Goto' action showed only its Type and Number, and 'Set Widget Label' showed only its Name, because the argument was mistaken for the action's own label note.
+
 - Fixed: Editing a Task 'If' action 'value' (incorrectly) does not allow a variable name.
+
 - Fixed: When a single Profile is selected, the Map view's Directory now lists that Profile's Tasks.  A Task was left out whenever Tasker's own Project Task list did not mention it, even though the Task was displayed in the Map above.
+
+- Fixed: Installing MapTasker no longer changes how Python finds packages for everything else running in the same environment.  Starting it used to put two directories at the front of the import path for the whole interpreter, where they could quietly shadow another program's libraries.
 
 ### Known Issues
 

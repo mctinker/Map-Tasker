@@ -2976,3 +2976,12 @@ msgstr "è selezionato sopra e non ha attività da cui estrarre"
 
 msgid "selected in the pulldowns above"
 msgstr "selezionati dai menu a tendina sopra"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Fare clic su una qualsiasi delle linee precedenti per visualizzare quel luogo nella vista della mappa."
+
+msgid "If you delete them too"
+msgstr "Se le elimini anche tu"
+
+msgid "If you keep the contents"
+msgstr "Se desiderate conservare i contenuti"

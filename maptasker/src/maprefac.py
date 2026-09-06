@@ -963,9 +963,7 @@ def _inline_block(
                 where,
             )
         conditioned = [
-            number
-            for number, action in enumerate(called_actions, start=1)
-            if action.find(_CONDITION_LIST) is not None
+            number for number, action in enumerate(called_actions, start=1) if action.find(_CONDITION_LIST) is not None
         ]
         if conditioned:
             listed = ", ".join(str(number) for number in conditioned[:6])
@@ -1024,8 +1022,7 @@ def _inline_warnings(
 
     if not called_actions:
         warnings.append(
-            f"Task '{called_name}' has no actions, so this inline removes the call and puts nothing in its "
-            f"place.",
+            f"Task '{called_name}' has no actions, so this inline removes the call and puts nothing in its place.",
         )
 
     collisions = sorted(_local_names(called_actions) & _local_names(kept))
@@ -1175,11 +1172,11 @@ def _plan_move_task(task_id: str, to_project: str) -> Plan:
             MOVE,
             what,
             Block(
-            "ALREADY-THERE",
-            f"Task '{task_name}' already belongs to Project '{to_project}' and to no other, so there "
-            f"is nothing to move.",
-            where,
-        ),
+                "ALREADY-THERE",
+                f"Task '{task_name}' already belongs to Project '{to_project}' and to no other, so there "
+                f"is nothing to move.",
+                where,
+            ),
         )
 
     plan = Plan(kind=MOVE, what=what, elements=(entry["xml"],))
@@ -1257,11 +1254,11 @@ def _plan_move_profile(profile_id: str, to_project: str) -> Plan:
             MOVE,
             what,
             Block(
-            "ALREADY-THERE",
-            f"Profile '{profile_name}' already belongs to Project '{to_project}' and to no other, so there "
-            f"is nothing to move.",
-            where,
-        ),
+                "ALREADY-THERE",
+                f"Profile '{profile_name}' already belongs to Project '{to_project}' and to no other, so there "
+                f"is nothing to move.",
+                where,
+            ),
         )
 
     # A Task travels with its Profile unless a Profile that is staying behind also runs it.
@@ -1487,10 +1484,7 @@ def _plan_duplicate_task(task_id: str, new_name: str) -> Plan:
             f"Create Task '{new_name}' with all {len(actions)} of Task '{task_name}'s actions",
             where,
         ),
-        *(
-            Step(f"Add Task '{new_name}' to Project '{owner}'", Target(kind=PROJECT, key=owner))
-            for owner in owners
-        ),
+        *(Step(f"Add Task '{new_name}' to Project '{owner}'", Target(kind=PROJECT, key=owner)) for owner in owners),
     ]
     plan.warnings = [
         (
@@ -1553,10 +1547,7 @@ def _plan_duplicate_profile(profile_id: str, new_name: str) -> Plan:
             )
             for task_id in task_ids
         ),
-        *(
-            Step(f"Add Profile '{new_name}' to Project '{owner}'", Target(kind=PROJECT, key=owner))
-            for owner in owners
-        ),
+        *(Step(f"Add Profile '{new_name}' to Project '{owner}'", Target(kind=PROJECT, key=owner)) for owner in owners),
     ]
     plan.warnings = _duplicate_profile_warnings(new_name, task_ids, owners)
 
@@ -1637,10 +1628,7 @@ def _plan_duplicate_scene(scene_name: str, new_name: str) -> Plan:
     plan = Plan(kind=DUPLICATE, what=what, elements=(entry["xml"],))
     plan.steps = [
         Step(f"Create Scene '{new_name}' with all of Scene '{scene_name}'s elements", where),
-        *(
-            Step(f"Add Scene '{new_name}' to Project '{owner}'", Target(kind=PROJECT, key=owner))
-            for owner in owners
-        ),
+        *(Step(f"Add Scene '{new_name}' to Project '{owner}'", Target(kind=PROJECT, key=owner)) for owner in owners),
     ]
     plan.warnings = [
         (
@@ -1845,8 +1833,7 @@ def _plan_duplicate_project(project_name: str, new_name: str) -> Plan:
         # Every by-name reference inside everything just copied, repointed at the copies --
         # after all of them exist, so a Task calling a Task copied later is still caught.
         name_map = {
-            _table("all_tasks").get(old, {}).get("name", "") or old: chosen.task_names[old]
-            for old in new_task_ids
+            _table("all_tasks").get(old, {}).get("name", "") or old: chosen.task_names[old] for old in new_task_ids
         }
         for new_id in new_task_ids.values():
             _repoint_names(_table("all_tasks")[new_id]["xml"], name_map, chosen.scene_names)
@@ -1979,8 +1966,7 @@ def task_choices(scope: mapjump.Scope | None = None) -> list[tuple[str, str]]:
     ]
     entries.sort(key=lambda item: (item[2].lower(), item[1].lower()))
     return [
-        (task_id, f"{name}  ({project})" if project else f"{name}  (no Project)")
-        for task_id, name, project in entries
+        (task_id, f"{name}  ({project})" if project else f"{name}  (no Project)") for task_id, name, project in entries
     ]
 
 

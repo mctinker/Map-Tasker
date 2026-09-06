@@ -1422,14 +1422,57 @@ def list_addable_actions() -> list[dict]:
     return rows
 
 
+# What counts as being run together with the text either side of a match.  Lookarounds
+# built from this rather than \b, so a query that begins or ends with punctuation still
+# works: \b before "(" asks for a word character in front of it, which "WiFi Tether
+# (Hotspot)" has not got, and a search for "(hotspot)" would then find nothing.
+_WORD_EDGE = "[0-9A-Za-z]"
+
+# The ranks _match_rank hands out, worst last.
+_WHOLE_NAME = 0
+_WHOLE_WORD = 1
+_ANYWHERE = 2
+
+
+def _match_rank(name: str, query: str) -> int:
+    """How directly a name answers a search: the whole name, a whole word in it, or neither.
+
+    Both arguments are already lower case.
+
+    Alphabetical is the right order for browsing and the wrong one for searching.  Typing
+    "if" matches forty-odd action names, and sorted by name it put 'ADB Wifi', 'Android
+    Notifier' and eleven 'AutoNotification ...' entries above 'If' and 'End If' -- so the
+    two things the search was almost certainly for sat below a screenful of things it was
+    not.  Ranking first and sorting within the rank leaves the alphabetical list intact
+    and lifts the obvious answers to where the eye lands.
+
+    A whole word rather than a prefix, deliberately: "if" is the start of 'Iframe' and
+    'If Then' alike, and a prefix rule would rank a name that merely BEGINS with the query
+    over 'End If', which is exactly the answer being looked for.
+    """
+    if name == query:
+        return _WHOLE_NAME
+    matched = re.search(f"(?<!{_WORD_EDGE}){re.escape(query)}(?!{_WORD_EDGE})", name)
+    return _WHOLE_WORD if matched else _ANYWHERE
+
+
 def search_addable_actions(query: str = "", category_name: str = "All") -> list[dict]:
-    """Filter the memoized action list by name substring and/or exact category name."""
+    """Filter the memoized action list by name substring and/or exact category name.
+
+    Ranked rather than alphabetical whenever there is something to rank against -- see
+    _match_rank.  With no query the list keeps the alphabetical order list_addable_actions
+    built it in, which is what browsing a category wants.
+    """
     query = query.strip().lower()
     rows = list_addable_actions()
     if query:
         rows = [r for r in rows if query in r["name"].lower()]
     if category_name and category_name != "All":
         rows = [r for r in rows if r["category_name"] == category_name]
+    if query:
+        # Stable, so the names inside one rank stay in the alphabetical order they arrived
+        # in rather than being reshuffled into whatever order the filter happened to build.
+        rows = sorted(rows, key=lambda row: _match_rank(row["name"].lower(), query))
     return rows
 
 
@@ -2339,39 +2382,10 @@ def apply_edited_task_to_live_tree(edited_task: EditableTask) -> None:
 
 def _project_task_ids(project_element: defusedxml.ElementTree.Element) -> list[str]:
     """A Project's <tids> as a list of Task ids ([] if it owns none) -- the read
-    half of profedit.add_task_to_project's append-dedup, shared by
-    count_task_references and delete_task.
+    half of profedit.add_task_to_project's append-dedup.
     """
     tids_element = project_element.find("tids")
     return tids_element.text.split(",") if tids_element is not None and tids_element.text else []
-
-
-def count_task_references(task_name: str) -> tuple[int, int]:
-    """How many Projects own this Task (list it in their <tids>) and how many
-    Profiles link it as their Entry/Exit Task (<mid0>/<mid1>) -- for the Delete
-    confirmation dialog, so the user can see what deleting it reaches before
-    anything is mutated.
-
-    Read live at prompt time so the counts can't go stale between opening Edit
-    Task and clicking Delete (same reasoning as profedit.count_profile_tasks
-    and projedit.count_project_contents).
-    """
-    resolved = resolve_task_by_name(task_name)
-    if resolved is None:
-        return 0, 0
-    task_id, _ = resolved
-
-    project_count = sum(
-        1
-        for entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values()
-        if task_id in _project_task_ids(entry["xml"])
-    )
-    profile_count = sum(
-        1
-        for entry in PrimeItems.tasker_root_elements.get("all_profiles", {}).values()
-        if any("mid" in child.tag and child.text == task_id for child in entry["xml"])
-    )
-    return project_count, profile_count
 
 
 def delete_task(task_name: str) -> list[str]:

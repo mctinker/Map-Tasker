@@ -2974,3 +2974,12 @@ msgstr "is geselecteerd en heeft geen taken om te extraheren"
 
 msgid "selected in the pulldowns above"
 msgstr "geselecteerd in de vervolgkeuzelijsten hierboven"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Klik op een van de bovenstaande regels om die locatie te zien in de kaartweergave."
+
+msgid "If you delete them too"
+msgstr "Als je ze ook verwijdert"
+
+msgid "If you keep the contents"
+msgstr "Als je de inhoud bewaart"

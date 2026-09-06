@@ -2973,3 +2973,12 @@ msgstr "ऊपर सूचीबद्ध किया गया है और 
 
 msgid "selected in the pulldowns above"
 msgstr "ऊपर दिए गए ड्रॉप-डाउन मेनू से चुना गया"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "मानचित्र दृश्य में उस स्थान को देखने के लिए ऊपर किसी भी पंक्ति पर क्लिक करें।"
+
+msgid "If you delete them too"
+msgstr "अगर आप उन्हें भी डिलीट कर देते हैं"
+
+msgid "If you keep the contents"
+msgstr "यदि आप सामग्री को सुरक्षित रखते हैं"

@@ -179,11 +179,10 @@ A brief overview of the main files and their purpose:
 - `maptasker/`: Contains the core application code.
   - `maptasker/src/`: The main Python source files for MapTasker's logic.
   - `maptasker/assets/`: Static assets like icons, images, and JSON data used by the application.
-  - `maptasker/custom_overrides/`: Contains custom modifications to third-party libraries.
   - `maptasker/locale`: language files for translations.
 - `documentation_images/`: Images used within this README and other documentation.
 - `tests/`: Contains test scripts and related files for ensuring code quality.
-- `main.py`: The main entry point script for running MapTasker from a cloned repository.
+- `maptasker/main.py`: The entry point behind the `maptasker` command.  From a cloned repository, run `python -m maptasker.main`.
 - `LICENSE`: The MIT License file for the project.
 - `README.md`: This file.
 - `Changelog.md`: A log of changes made in each version.

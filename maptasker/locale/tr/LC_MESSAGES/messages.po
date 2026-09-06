@@ -2989,3 +2989,12 @@ msgstr "Yukarıda belirtilen seçenek seçilmiştir ve çıkarılması gereken h
 
 msgid "selected in the pulldowns above"
 msgstr "Yukarıdaki açılır menülerden seçilenler"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Söz konusu yeri Harita görünümünde görmek için yukarıdaki herhangi bir satırı tıklayın."
+
+msgid "If you delete them too"
+msgstr "Onları da silerseniz"
+
+msgid "If you keep the contents"
+msgstr "İçeriği saklarsanız"

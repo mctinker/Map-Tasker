@@ -2993,3 +2993,12 @@ msgstr "on valittu yllä, eikä siinä ole tehtäviä, joista poimia"
 
 msgid "selected in the pulldowns above"
 msgstr "valittu yllä olevista alasvetovalikosta"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Napsauta mitä tahansa yllä olevaa riviä nähdäksesi kyseisen paikan kartanäkymässä."
+
+msgid "If you delete them too"
+msgstr "Jos poistat myös ne"
+
+msgid "If you keep the contents"
+msgstr "Jos säilytät sisältöä"

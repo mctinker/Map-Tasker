@@ -226,8 +226,7 @@ def build_refactor_dialog(
                         )
                     else:
                         ui.label(row.text).classes(
-                            "font-mono text-xs whitespace-pre "
-                            + _row_classes(row.text),
+                            "font-mono text-xs whitespace-pre " + _row_classes(row.text),
                         )
 
         def preview() -> None:

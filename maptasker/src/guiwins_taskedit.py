@@ -21,6 +21,8 @@ from typing import TYPE_CHECKING
 from nicegui import run, ui
 
 from maptasker.src import deviceinv, objprops, profedit, taskedit
+from maptasker.src.guiwins_impact import build_impact_panel
+from maptasker.src.mapjump import TASK
 from maptasker.src.maputil2 import translate_string
 
 if TYPE_CHECKING:
@@ -1328,18 +1330,18 @@ def build_delete_task_dialog(
     which references go away with it (see taskedit.delete_task): the owning
     Project(s)' Task list, and the Entry/Exit link of any Profile that runs it.
 
-    The reference counts are read live so they can't go stale between opening
-    Edit Task and clicking Delete, same as the Profile/Project dialogs' counts.
+    Which of those references the delete repairs and which it leaves dangling is
+    guiwins_impact.build_impact_panel's to say, and the four Delete dialogs all say
+    it the same way.  It replaces the two counts this dialog used to work out for
+    itself, and is read live for the same reason those were: the editor may have
+    been open a while, and an answer worked out when it opened would describe a
+    configuration that has since changed underneath it.
     """
     task_name = edited_task.task_element.findtext("nme", "")
-    project_count, profile_count = taskedit.count_task_references(task_name)
 
     with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"{translate_string('Delete Task')} '{task_name}'").classes("text-lg font-bold text-red-600")
-        ui.label(
-            f"{translate_string('It will be removed from')} {project_count} {translate_string('Project(s) and unlinked from')}"
-            f" {profile_count} {translate_string('Profile(s) that run it. Those Profiles themselves are kept.')}",
-        ).classes("mt-1")
+        build_impact_panel(self, TASK, task_name)
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(

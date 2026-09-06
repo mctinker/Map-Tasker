@@ -2995,3 +2995,12 @@ msgstr "вибрано вище, і не має жодних завдань дл
 
 msgid "selected in the pulldowns above"
 msgstr "вибрано з випадаючих списків вище"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Натисніть будь-який рядок вище, щоб побачити це місце на карті."
+
+msgid "If you delete them too"
+msgstr "Якщо ви їх також видалите"
+
+msgid "If you keep the contents"
+msgstr "Якщо ви збережете вміст"

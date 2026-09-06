@@ -2995,3 +2995,12 @@ msgstr "పైన ఎంపిక చేయబడింది మరియు �
 
 msgid "selected in the pulldowns above"
 msgstr "ఎగువ పుల్‌డౌన్‌లలో ఎంచుకోబడింది"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "మ్యాప్ వీక్షణలో ఆ స్థలాన్ని చూడటానికి ఎగువ ఉన్న ఏదైనా పంక్తిని క్లిక్ చేయండి."
+
+msgid "If you delete them too"
+msgstr "వాటిని కూడా తొలగిస్తే"
+
+msgid "If you keep the contents"
+msgstr "మీరు కంటెంట్లను ఉంచినట్లయితే"

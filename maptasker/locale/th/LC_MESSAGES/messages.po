@@ -2993,3 +2993,12 @@ msgstr "ถูกเลือกไว้ด้านบนและไม่ม
 
 msgid "selected in the pulldowns above"
 msgstr "ที่เลือกไว้ในเมนูแบบเลื่อนลงด้านบน"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "คลิกบรรทัดใดๆ ด้านบนเพื่อดูสถานที่นั้นในมุมมองแผนที่"
+
+msgid "If you delete them too"
+msgstr "ถ้าคุณลบมันออกไปด้วย"
+
+msgid "If you keep the contents"
+msgstr "หากคุณเก็บเนื้อหาไว้"

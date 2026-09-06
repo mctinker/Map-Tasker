@@ -2970,3 +2970,12 @@ msgstr "위에서 선택되었으며 추출할 태스크가 없습니다."
 
 msgid "selected in the pulldowns above"
 msgstr "위의 풀다운에서 선택됨"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "위의 각 항목을 클릭하면 지도 보기에서 해당 위치를 확인할 수 있습니다."
+
+msgid "If you delete them too"
+msgstr "만약 삭제하는 경우"
+
+msgid "If you keep the contents"
+msgstr "내용을 보관하는 경우"

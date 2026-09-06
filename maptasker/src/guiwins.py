@@ -74,11 +74,13 @@ from maptasker.src.guiwins_designer_legacy import (
     _render_legacy_arg,
 )
 from maptasker.src.guiwins_designer_v2 import _build_v2_designer
+from maptasker.src.guiwins_impact import build_impact_panel, wire_impact_clicks
 from maptasker.src.guiwins_taskedit import (
     _build_task_action_editor,
     _build_tasker_icon_picker_dialog,
     _render_addability_reason,
 )
+from maptasker.src.mapjump import PROJECT, SCENE
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -2915,26 +2917,20 @@ def build_delete_scene_dialog(
     """Confirms deletion of a Scene.  Like the Profile and Task dialogs there is
     no Keep/Delete Contents choice -- a Scene's UI elements are children of the
     Scene element itself and go with it -- but, like a Task, other things point
-    *at* a Scene, so the dialog says how many Projects lose it (see
-    sceneedit.delete_scene).
+    *at* a Scene, so the dialog says what loses it (see sceneedit.delete_scene).
 
-    The reference count is read live so it can't go stale between opening Edit
-    Scene and clicking Delete, same as the Project/Profile/Task dialogs' counts.
+    Says it through guiwins_impact.build_impact_panel, as the other three Delete
+    dialogs do.  This dialog used to note in passing that the Tasks which show or
+    hide the Scene by name are not changed; the panel names them, one clickable line
+    each, which is the difference between being told there may be a problem and
+    being handed the list of it.  Read live, so it cannot go stale while the editor
+    sits open.
     """
     scene_name = edited_scene.scene_name
-    project_count = sceneedit.count_scene_references(scene_name)
 
     with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(f"{translate_string('Delete Scene')} '{scene_name}'").classes("text-lg font-bold text-red-600")
-        ui.label(
-            f"{translate_string('It will be removed from')} {project_count} "
-            f"{translate_string('Project(s) that list it.')}",
-        ).classes("mt-1")
-        ui.label(
-            translate_string(
-                "Tasks that show or hide this Scene by name are not changed, and are left where they are.",
-            ),
-        ).classes("text-xs text-gray-500 italic mt-1")
+        build_impact_panel(self, SCENE, scene_name)
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(
@@ -3175,17 +3171,35 @@ def build_delete_project_dialog(
     """Confirms deletion of a Project, offering a choice for what happens to
     the Profiles/Tasks it owns: moved into "Base" (Keep Contents) or deleted
     along with it (Delete Contents) -- see projedit.delete_project. Shown
-    before anything is mutated; the Profile/Task counts are read live so they
-    can't go stale between opening Edit Project and clicking Delete.
+    before anything is mutated.
+
+    The only Delete dialog with two buttons, and so the only one that shows two
+    analyses: guiwins_impact.build_impact_panel is asked about each choice, because
+    the two have genuinely different consequences.  Keeping the contents breaks
+    nothing and quietly leaves the Project's Scenes in no Project at all; deleting
+    them leaves every Profile OUTSIDE this Project that runs one of its Tasks
+    pointing at a Task that is gone (projedit.delete_profiles_and_tasks_of_project
+    unlinks nothing).  Neither was said here before, and neither is guessable from
+    the button.  Both are read live, as the counts they replace were.
     """
     project_name = edited_project.project_name
-    profile_count, task_count = projedit.count_project_contents(project_name)
 
-    with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
+    with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[500px] max-w-[700px] w-full p-6"):
         ui.label(f"{translate_string('Delete Project')} '{project_name}'").classes("text-lg font-bold text-red-600")
-        ui.label(
-            f"{translate_string('It owns')} {profile_count} {translate_string('Profile(s) and')} {task_count} {translate_string('Task(s).')}",
-        ).classes("mt-1")
+        # One element around both panels, wired once: a tab's content is not in the DOM
+        # until that tab is first opened, so the clicks have to be delegated from an
+        # ancestor that is (see guiwins_impact.wire_impact_clicks).
+        impact_area = ui.element("div").classes("w-full")
+        with impact_area:
+            with ui.tabs().classes("w-full mt-2") as choice_tabs:
+                keep_tab = ui.tab(translate_string("If you keep the contents"))
+                delete_tab = ui.tab(translate_string("If you delete them too"))
+            with ui.tab_panels(choice_tabs, value=keep_tab).classes("w-full"):
+                with ui.tab_panel(keep_tab):
+                    build_impact_panel(self, PROJECT, project_name, keep_contents=True, wire=False)
+                with ui.tab_panel(delete_tab):
+                    build_impact_panel(self, PROJECT, project_name, keep_contents=False, wire=False)
+        wire_impact_clicks(self, impact_area)
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
             ui.button(

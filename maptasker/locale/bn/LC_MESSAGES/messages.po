@@ -2993,3 +2993,12 @@ msgstr "উপরে নির্বাচিত হয়েছে এবং �
 
 msgid "selected in the pulldowns above"
 msgstr "উপরের পুলডাউনগুলিতে নির্বাচিত"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "ম্যাপ ভিউতে সেই জায়গাটি দেখতে উপরের যেকোনো লাইনে ক্লিক করুন।"
+
+msgid "If you delete them too"
+msgstr "আপনি যদি তাদেরও মুছে দেন"
+
+msgid "If you keep the contents"
+msgstr "বিষয়বস্তু রাখলে"

@@ -2975,3 +2975,12 @@ msgstr "er valgt ovenfor og har ingen opgaver, der skal udtrækkes"
 
 msgid "selected in the pulldowns above"
 msgstr "valgt fra de nedrulbare muligheder ovenfor"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "Klik på en linje ovenfor for at se det pågældende sted i kortvisningen."
+
+msgid "If you delete them too"
+msgstr "Hvis du også sletter dem"
+
+msgid "If you keep the contents"
+msgstr "Hvis du beholder indholdet"

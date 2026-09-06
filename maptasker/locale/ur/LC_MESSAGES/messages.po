@@ -2993,3 +2993,12 @@ msgstr "اوپر منتخب کیا گیا ہے اور اس سے نکالنے ک�
 
 msgid "selected in the pulldowns above"
 msgstr "پైన دیے گئے ڈراپ-ڈاؤన్ میں سے منتخب"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "نقشہ کے منظر میں اس جگہ کو دیکھنے کے لیے اوپر کی کسی بھی لائن پر کلک کریں۔"
+
+msgid "If you delete them too"
+msgstr "اگر آپ انہیں بھی حذف کردیں"
+
+msgid "If you keep the contents"
+msgstr "اگر آپ مواد رکھتے ہیں۔"

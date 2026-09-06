@@ -2995,3 +2995,12 @@ msgstr "در بالا انتخاب شده است و هیچ وظیفه ای بر�
 
 msgid "selected in the pulldowns above"
 msgstr "در کشش های بالا انتخاب شده است"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "برای مشاهده آن مکان در نمای نقشه، روی هر یک از خطوط بالا کلیک کنید."
+
+msgid "If you delete them too"
+msgstr "اگر آنها را نیز حذف کنید"
+
+msgid "If you keep the contents"
+msgstr "اگر محتوای آن را حفظ کنید"

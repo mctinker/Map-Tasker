@@ -2995,3 +2995,12 @@ msgstr "மேலே தேர்ந்தெடுக்கப்பட்ட�
 
 msgid "selected in the pulldowns above"
 msgstr "மேலே உள்ள ड्रॉपडाउनमधून தேர்ந்தெடுக்கப்பட்டது"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "வரைபடக் காட்சியில் அந்த இடத்தைப் பார்க்க மேலே உள்ள எந்த வரியையும் கிளிக் செய்யவும்."
+
+msgid "If you delete them too"
+msgstr "அவற்றையும் நீக்கினால்"
+
+msgid "If you keep the contents"
+msgstr "நீங்கள் உள்ளடக்கங்களை வைத்திருந்தால்"

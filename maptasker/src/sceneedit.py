@@ -3118,23 +3118,6 @@ def apply_edited_scene_to_live_tree(old_name: str, edited_scene: EditableScene) 
         edited_scene.scene_name = new_name
 
 
-def count_scene_references(scene_name: str) -> int:
-    """How many Projects currently list this Scene in their <scenes> -- for the
-    Delete confirmation dialog's "it will be removed from N Project(s)" message,
-    read live off the Project table before anything is mutated.  Mirrors
-    projedit.count_project_contents/taskedit.count_task_references.
-
-    Counts Projects only.  Task actions that name the Scene (Show Scene, Hide
-    Scene, Destroy Scene) are NOT counted, because delete_scene does not touch
-    them -- see this module's docstring.
-    """
-    return sum(
-        1
-        for project_entry in PrimeItems.tasker_root_elements.get("all_projects", {}).values()
-        if scene_name in _project_scene_names(project_entry["xml"])
-    )
-
-
 def delete_scene(scene_name: str) -> list[str]:
     """Deletes a Scene from the in-memory backup and removes it from every
     Project's <scenes> list.  Returns [] on success, else a list of error

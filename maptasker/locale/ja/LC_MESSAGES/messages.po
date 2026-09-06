@@ -2972,3 +2972,12 @@ msgstr "上記のものが選択されており、抽出するタスクは存在
 
 msgid "selected in the pulldowns above"
 msgstr "上記のドロップダウンメニューから選択"
+
+msgid "Click any line above to see that place in the Map view."
+msgstr "上記のいずれかの行をクリックすると、地図の表示でその場所を確認できます。"
+
+msgid "If you delete them too"
+msgstr "もしそれらも削除してしまう場合"
+
+msgid "If you keep the contents"
+msgstr "もし、内容を保持する場合は"

@@ -1351,7 +1351,7 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
         parent = self.gui_left_drawer  # <--- FIX: Point to NiceGUI left drawer element
     elif logo_name == "coffee":
         img_src = f"{_LOGO_URL_PATH}/bmc-logo-no-background.png"
-        size_classes = "w-[36px] h-[54px]"
+        size_classes = "w-[30px] h-[48px]"
         parent = self.gui_right_drawer  # sits at the bottom of the right-hand action panel
     else:
         if "rutroh_error" in globals():
@@ -1367,24 +1367,23 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                 ui.image(light_src).classes(f"{size_classes} block dark:hidden object-contain")
                 # Render the dark version (hidden by default, shown when dark class is applied)
                 ui.image(dark_src).classes(f"{size_classes} hidden dark:block object-contain")
+            elif logo_name == "coffee":
+                # The coffee logo and its button belong side by side, so both live in the same
+                # row: logo first, button next to it, the pair centered at the bottom of the
+                # right drawer.  Coffee does not change based on dark mode status.
+                with ui.row().classes("w-full items-center justify-center gap-2 mt-0 mb-2 flex-nowrap"):
+                    ui.image(img_src).classes(f"{size_classes} object-contain shrink-0")
+                    self.coffee_button = ui.button(
+                        translate_string("Buy Me A Coffee"),
+                        on_click=self.event_handlers.coffee_event,
+                    ).classes("bg-blue-600 text-white font-bold")
             else:
-                # Flags and Coffee do not change based on dark mode status.  The coffee logo is
-                # the last thing in the right drawer's flex column, so mt-auto drops it to the
-                # bottom of the drawer whenever the buttons above leave room to spare.
-                extra_classes = " mt-auto" if logo_name == "coffee" else ""
-                ui.image(img_src).classes(f"{size_classes} object-contain{extra_classes}")
+                # Flags do not change based on dark mode status.
+                ui.image(img_src).classes(f"{size_classes} object-contain")
 
         except Exception as e:  # noqa: BLE001
             if "rutroh_error" in globals():
                 rutroh_error(f"Error displaying {logo_name} logo: {e}")
-
-        # 3. Handle the structural coffee button appending
-        if logo_name == "coffee":
-            with ui.row().classes("w-full items-center justify-center gap-2 mt-2 mb-2"):
-                self.coffee_button = ui.button(
-                    translate_string("Buy Me A Coffee"),
-                    on_click=self.event_handlers.coffee_event,
-                ).classes("bg-blue-600 text-white font-bold")
 
 
 def set_ai_key(self: object, model: str) -> None:
