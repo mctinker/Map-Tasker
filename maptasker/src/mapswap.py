@@ -1708,7 +1708,7 @@ def _swap_one_condition(
 # shape, which a typed string cannot stand in for.
 #
 # Both spellings of the string category, because there are two: arg_specs.json says
-# "String" and proginit.build_action_codes_from_json rewrites the entry to "Str" as it
+# "String" and proginit.load_arg_specs rewrites the entry to "Str" as it
 # loads.  Matching only the one in the file left every Str argument in the file --
 # Flash's Text among them -- labelled "cannot be typed", which is every argument anybody
 # would want this for.

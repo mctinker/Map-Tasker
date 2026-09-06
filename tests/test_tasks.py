@@ -16,17 +16,15 @@ file, not new breakage, and both are described at the test.
 
 from __future__ import annotations
 
-import os
 import xml.etree.ElementTree as ET
 
 import pytest
-
 from maptasker.src import taskerd, tasks
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.primitem import PrimeItems, initial_found_named_items
-from maptasker.src.proginit import build_action_codes_from_json
+from maptasker.src.proginit import load_arg_specs
 
 _IF = '<Action sr="act{n}"><code>37</code><ConditionList sr="if"><Condition sr="c0"><lhs>%a</lhs><op>0</op><rhs>1</rhs></Condition></ConditionList></Action>'
 _ELSE = '<Action sr="act{n}"><code>43</code></Action>'
@@ -53,10 +51,7 @@ INDENT = "&nbsp;" * 4  # one nesting level at the default indent of 4
 @pytest.fixture(autouse=True)
 def _loaded() -> None:
     """A loaded configuration, plus the argument-type tables an action is mapped through."""
-    # build_action_codes_from_json chdir's into the assets directory and does not come back.
-    cwd = os.getcwd()
-    build_action_codes_from_json(False)
-    os.chdir(cwd)
+    load_arg_specs()
 
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.colors_to_use = set_color_mode("dark")

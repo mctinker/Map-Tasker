@@ -274,27 +274,24 @@ def check_versions() -> None:
         exit(0)  # noqa: PLR1722
 
 
-def build_action_codes_from_json(build_it_all: bool = False) -> None:
+def load_arg_specs() -> None:
     """
-    Builds the action codes dictionary from the Tasker JSON files.
+    Load the argument-type and action-category tables an action is mapped through.
+
+    The action code table itself is no longer built here: actionc.py reads
+    task_all_actions.json directly at import.  What is still needed from the assets
+    directory are the two small lookups that table's numbers are resolved against.
+
     Args:
-        build_it_all(bool): True = build all action codes, False = build only new action spec codes
+        None
     Returns:
         None
     """
-    # Point to the JSON directory
-    current_dir = os.getcwd()
-    abspath = os.path.abspath(__file__)
-    json_dir = os.path.dirname(abspath).replace(
-        "src",
-        f"assets{PrimeItems.slash}json{PrimeItems.slash}",
-    )
-    # Switch to our temp directory (assets)
-    os.chdir(json_dir)
+    json_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "json")
 
-    # Get the map of all Tasker task action argument types
+    # Get the map of all Tasker task action argument types.
     try:
-        with open(f"{json_dir}arg_specs.json", encoding="utf-8") as file:
+        with open(os.path.join(json_dir, "arg_specs.json"), encoding="utf-8") as file:
             PrimeItems.tasker_arg_specs = json.load(file)
             spec_number = len(PrimeItems.tasker_arg_specs)
             # Add extras for new action specs
@@ -309,67 +306,11 @@ def build_action_codes_from_json(build_it_all: bool = False) -> None:
 
     # Get the map of Tasker action category codes to their display names (used by Add Task's picker).
     try:
-        with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
+        with open(os.path.join(json_dir, "category_descriptions.json"), encoding="utf-8") as file:
             for description in json.load(file):
                 PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
     except FileNotFoundError:
         logger.error("category_descriptions missing!")
-
-    # If building it all, then get the map of all Tasker task action codes and their arguments, states, and events.
-    if build_it_all:
-        # Only do these imports if building the entire dictionary from scratch.
-        from maptasker.src.acmerge import merge_action_codes, validate_states_and_events  # noqa: PLC0415
-
-        # Make sure we see the output
-        PrimeItems.program_arguments["debug"] = True
-
-        # Get the map of all Tasker task action codes and their arguments
-        with open(f"{json_dir}task_all_actions.json", encoding="utf-8") as file:
-            # NOTE: 'spec' defines the argument value:
-            # t:n:? = text where 'n' is number of input lines; ? means optional.
-            # n:nn = range of numbers; nn is the maximum number.
-            # h:m:s = time
-            # plus more...
-            tasker_codes = json.load(file)
-
-        # Go thru the list of dictionaries and build our own dictionary from task_all_actions.json contents.
-        for value in tasker_codes:
-            PrimeItems.tasker_action_codes[str(value["code"])] = {
-                "args": value["args"],
-                "canfail": value.get("canFail", False),
-                "category_code": value["categoryCode"],
-                "name": value["name"],
-            }
-        # Sort the dictionary
-        PrimeItems.tasker_action_codes = dict(
-            sorted(PrimeItems.tasker_action_codes.items()),
-        )
-
-        # Get the action category description
-        with open(f"{json_dir}category_descriptions.json", encoding="utf-8") as file:
-            category_descriptions = json.load(file)
-            for description in category_descriptions:
-                PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
-
-        # Merge actionc with this new data to create a new dictionary
-        merge_action_codes()
-
-        # Validate event codes
-        url = "https://tasker.joaoapps.com/code/EventCodes.java"
-        validate_states_and_events("e", url)
-
-        # Validate the state codes
-        url = "https://tasker.joaoapps.com/code/StateCodes.java"
-        validate_states_and_events("s", url)
-
-        print("")
-        print("proginit: Build Complete.  See '/maptasker/assets/json/arg_dict.py'.")
-        print("")
-
-        PrimeItems.tasker_action_codes.clear()
-
-    # Put the directory back to where it should be.
-    os.chdir(current_dir)
 
 
 # Perform maptasker program initialization functions
@@ -407,18 +348,27 @@ def start_up() -> dict:
     # Validate the runtime version of python
     check_versions()
 
-    # NOTE: FOR DEVELOPMENT ONLY!!! 'BUILD_ALL = TRUE' ONLY WITH NEW UPDATE OF TASKER!  See acmerge.py
-    # Build the action codes
+    load_arg_specs()
+
+    # NOTE: FOR DEVELOPMENT ONLY!!! 'build_all = True' ONLY WITH A NEW UPDATE OF TASKER!
+    # Dropping Tasker's new task_all_actions.json into assets/json IS the update now --
+    # actionc.py reads it directly.  What remains is the half Tasker does not publish
+    # there, which is what this block checks and rebuilds.  See acmerge.py.
     build_all = False
-    build_action_codes_from_json(build_it_all=build_all)
     if build_all:
-        # Only do these imports if building the entire dictionary from scratch.
+        # Only do these imports when rebuilding; they reach the network and the backup xml.
+        from maptasker.src.acmerge import validate_states_and_events  # noqa: PLC0415
         from maptasker.src.bldargs import build_arguments  # noqa: PLC0415
         from maptasker.src.bldbndle import build_bundles  # noqa: PLC0415
 
+        PrimeItems.program_arguments["debug"] = True  # Make sure we see the output.
+
+        # Check the Event and State codes in the overlay against Tasker's own source.
+        validate_states_and_events("e", "https://tasker.joaoapps.com/code/EventCodes.java")
+        validate_states_and_events("s", "https://tasker.joaoapps.com/code/StateCodes.java")
         # Build the <Bundle> dictionary ('bundle.py') from the backup xml.
         build_bundles()
-        # Add any arguments the backup xml uses that 'actionc.py' doesn't declare.
+        # Add any arguments the backup xml uses that neither action code table declares.
         build_arguments()
         exit_program(0)
     # END OF DEVELOPMENT CODE

@@ -16,11 +16,9 @@ anywhere to check them against.
 
 from __future__ import annotations
 
-import os
 import xml.etree.ElementTree as ET
 
 import pytest
-
 from maptasker.src import projects, taskerd
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -31,15 +29,13 @@ from maptasker.src.primitem import (
     initial_found_named_items,
     initial_grand_totals,
 )
-from maptasker.src.proginit import build_action_codes_from_json
+from maptasker.src.proginit import load_arg_specs
 
 
 @pytest.fixture(autouse=True)
 def _clean_globals() -> None:
     """A fresh set of the counters and tables a run accumulates into."""
-    cwd = os.getcwd()
-    build_action_codes_from_json(False)  # chdir's into assets and does not come back
-    os.chdir(cwd)
+    load_arg_specs()
 
     PrimeItems.program_arguments = initialize_runtime_arguments()
     PrimeItems.colors_to_use = set_color_mode("dark")

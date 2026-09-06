@@ -309,9 +309,10 @@ asyncio_default_fixture_loop_scope = "function"
 source = ["maptasker"]
 branch = true
 omit = [
-    # Generated/vendored lookup tables, not logic worth covering.
+    # Generated/vendored lookup table, not logic worth covering.  actionc.py used to be
+    # listed here too; it is now a loader over task_all_actions.json and action_overlay.json
+    # rather than a literal table, so it is real logic and is measured.
     "maptasker/assets/json/arg_dict.py",
-    "maptasker/src/actionc.py",
 ]
 
 [tool.coverage.report]

@@ -249,9 +249,9 @@ def get_first_action(task: ET) -> str:
     """
     # Build the Tasker argument codes dictionary if we don't yet have it.
     if not PrimeItems.tasker_arg_specs:
-        from maptasker.src.proginit import build_action_codes_from_json
+        from maptasker.src.proginit import load_arg_specs  # noqa: PLC0415
 
-        build_action_codes_from_json(False)
+        load_arg_specs()
 
     task_actions = task.findall("Action")
     if task_actions is not None:

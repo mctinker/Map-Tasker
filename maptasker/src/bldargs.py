@@ -1,16 +1,16 @@
 #! /usr/bin/env python3
-"""bldargs: harvest missing action/condition arguments from a backup into actionc.py"""
+"""bldargs: harvest missing action/condition arguments from a backup into the overlay"""
 
 #                                                                                      #
-# bldargs: find the <Str>/<Int> arguments a real Tasker backup carries that actionc.py #
-#          doesn't declare, and add them to its action_codes dictionary                #
+# bldargs: find the <Str>/<Int> arguments a real Tasker backup carries that the action #
+#          code tables don't declare, and add them to action_overlay.json              #
 #                                                                                      #
 # NOTE: FOR DEVELOPMENT ONLY!!!  Called by proginit.py when 'build_all' is True.        #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
+import json
 import os
-import re
 from collections import Counter, defaultdict
 
 import defusedxml.ElementTree as ET
@@ -21,7 +21,7 @@ from maptasker.src.sysconst import logger
 # Owning xml element tag > suffix of the action_codes key, same mapping bldbndle.py uses.
 OWNER_SUFFIX = {"Event": "e", "State": "s", "Action": "t"}
 
-# Element tags worth harvesting, mapped to their arg_type in actionc.py (the index into
+# Element tags worth harvesting, mapped to their arg_type (the index into
 # PrimeItems.tasker_arg_specs: "0"=Int, "1"=Str).
 #
 # <Bundle> is deliberately NOT harvested. A plugin payload is already supplied from
@@ -33,16 +33,12 @@ HARVEST_TAGS = {"Str": "1", "Int": "0"}
 
 # Default name of the Tasker backup xml to read and of the file to update.
 DEFAULT_XML_FILE = "backup.xml"
-ACTIONC_FILENAME = "actionc.py"
 
-# One entry of an ActionCode's args list, e.g.
-#     ArgumentCode(arg_id="1", arg_required=True, arg_name="", arg_type="5", arg_eval="Package="),
-_ARG_INDENT = " " * 12
-_ARG_ID_RE = re.compile(r'ArgumentCode\(arg_id="(\d+)"')
-_ACTION_CODE_RE = re.compile(r'^    "([^"]+)": ActionCode\($')
-_ARGS_OPEN = "        args=["
-_ARGS_EMPTY = "        args=[],"
-_ARGS_CLOSE = "        ],"
+# Where the harvested arguments go.  Tasker publishes its Task actions completely --
+# across 57 real backups not one missing argument landed on a published code -- so
+# everything harvested belongs to an "extra" entry: an Event, State, plugin or Scene
+# element that task_all_actions.json does not describe at all.
+OVERLAY_FILENAME = os.path.join("..", "assets", "json", "action_overlay.json")
 
 
 def get_backup_arguments(xml_file: str) -> dict:
@@ -80,7 +76,7 @@ def get_backup_arguments(xml_file: str) -> dict:
 
 def find_missing_arguments(harvested: dict) -> dict:
     """
-    Work out which harvested argument slots actionc.py doesn't declare.
+    Work out which harvested argument slots the action code tables don't declare.
     Args:
         harvested (dict): the slots found in the backup -- see get_backup_arguments
     Returns:
@@ -109,142 +105,98 @@ def find_missing_arguments(harvested: dict) -> dict:
     return {key: dict(sorted(slots.items(), key=lambda item: int(item[0]))) for key, slots in missing.items() if slots}
 
 
-def format_argument(arg_id: str, arg_type: str) -> str:
+def harvested_argument(arg_id: str, arg_type: str) -> list:
     """
-    Build the ArgumentCode source line for one harvested argument.
+    Build the overlay argument record for one harvested argument.
     Args:
         arg_id (str): the argument's number, as in its 'sr' ("arg1" -> "1")
-        arg_type (str): the actionc.py argument type -- see HARVEST_TAGS
+        arg_type (str): the argument type -- see HARVEST_TAGS
     Returns:
-        str: the line to insert into an ActionCode's args list
+        list: [arg_id, arg_required, arg_name, arg_type, arg_eval], the overlay's arg shape
     """
     # The backup says an argument is there and what shape it has, but not what Tasker
     # calls it, so it gets a generic label. arg_eval must not be blank: it is the
     # display prefix, and xmldata.extract_string indexes its last character.  Left as
     # the name too (arg_name=""), so taskedit._display_arg_name derives "Arg n" from it.
-    arg_eval = f", Arg {arg_id}="
+    return [arg_id, False, "", arg_type, f", Arg {arg_id}="]
+
+
+def format_overlay(overlay: dict) -> str:
+    """
+    Serialize action_overlay.json with one action code per line.
+    Args:
+        overlay (dict): the whole overlay, as loaded
+    Returns:
+        str: the file's contents
+
+    json.dump's own indentation would spread one action code over dozens of lines and
+    make the diff of a single added argument unreadable, so each code gets exactly one
+    line and the file stays reviewable.
+    """
+
+    def block(mapping: dict) -> str:
+        """One code per line, numeric codes in numeric order and named ones last."""
+        keys = sorted(mapping, key=lambda k: (k[:-1].zfill(12), k) if k[:-1].isdigit() else ("~" + k, k))
+        entries = ",\n".join(
+            f"    {json.dumps(key)}: {json.dumps(mapping[key], ensure_ascii=False, sort_keys=True)}" for key in keys
+        )
+        return "{\n" + entries + "\n  }"
+
+    comment = json.dumps(overlay["_comment"], indent=2).replace("\n", "\n  ")
     return (
-        f"{_ARG_INDENT}ArgumentCode("
-        f'arg_id="{arg_id}", arg_required=False, arg_name="", '
-        f'arg_type="{arg_type}", arg_eval="{arg_eval}"),  # harvested\n'
+        f'{{\n  "_comment": {comment},\n  "eval": {block(overlay["eval"])},\n  "extra": {block(overlay["extra"])}\n}}\n'
     )
 
 
-def _split_argument_chunks(existing: list[str]) -> list[list[str]]:
+def insert_arguments(overlay_file: str, missing: dict) -> int:
     """
-    Group an args list's source lines into one chunk per ArgumentCode.
-
-    An entry is one line when it fits, but a long one is wrapped over several (its
-    arg_id, arg_required, ... each on their own), so chunks are cut on parenthesis
-    depth rather than per line.
+    Add the harvested arguments to action_overlay.json's 'extra' entries.
     Args:
-        existing (list): the args list's current source lines
-    Returns:
-        list: a list of line-lists, one per ArgumentCode
-    """
-    chunks = []
-    chunk = []
-    depth = 0
-    for line in existing:
-        chunk.append(line)
-        depth += line.count("(") - line.count(")")
-        if depth <= 0:
-            chunks.append(chunk)
-            chunk = []
-            depth = 0
-    if chunk:
-        chunks.append(chunk)
-    return chunks
-
-
-def _merge_argument_lines(existing: list[str], new_arguments: dict) -> list[str]:
-    """
-    Merge harvested ArgumentCode lines into one args list, keeping it in arg id order.
-    Args:
-        existing (list): the args list's current source lines
-        new_arguments (dict): {arg id: arg_type} to add
-    Returns:
-        list: the merged source lines
-    """
-    merged = []
-    remaining = dict(new_arguments)
-    for chunk in _split_argument_chunks(existing):
-        match = _ARG_ID_RE.search("".join(line.strip() for line in chunk))
-        # Emit any harvested argument that sorts before this one.
-        if match:
-            for arg_id in [key for key in remaining if int(key) < int(match.group(1))]:
-                merged.append(format_argument(arg_id, remaining.pop(arg_id)))
-        merged.extend(chunk)
-
-    merged.extend(format_argument(arg_id, arg_type) for arg_id, arg_type in remaining.items())
-    return merged
-
-
-def insert_arguments(actionc_file: str, missing: dict) -> int:
-    """
-    Rewrite actionc.py with the harvested arguments added to their action_codes entries.
-
-    Edits the source lines in place rather than regenerating the dictionary, so every
-    entry it doesn't touch stays byte for byte as it was.
-    Args:
-        actionc_file (str): the actionc.py to update
-        missing (dict): {action_codes key: {arg id: arg_type}} -- see find_missing_arguments
+        overlay_file (str): the action_overlay.json to update
+        missing (dict): {code key: {arg id: arg_type}} -- see find_missing_arguments
     Returns:
         int: the number of arguments added
+
+    A code that is not in 'extra' is one task_all_actions.json publishes, and Tasker's
+    own table is authoritative for those.  Adding an argument would mean overriding that
+    entry outright and freezing it against the next Tasker release, so this reports the
+    code and leaves it alone rather than deciding on its own.
     """
-    with open(actionc_file, encoding="utf-8") as file:
-        lines = file.readlines()
+    with open(overlay_file, encoding="utf-8") as file:
+        overlay = json.load(file)
 
-    output = []
-    added = 0
-    index = 0
-    while index < len(lines):
-        line = lines[index]
-        output.append(line)
-        index += 1
-
-        match = _ACTION_CODE_RE.match(line.rstrip("\n"))
-        if match is None or match.group(1) not in missing:
+    added, published = 0, {}
+    for key, slots in missing.items():
+        entry = overlay["extra"].get(key)
+        if entry is None:
+            published[key] = slots
             continue
-        new_arguments = missing[match.group(1)]
+        entry["args"].extend(harvested_argument(arg_id, arg_type) for arg_id, arg_type in slots.items())
+        entry["args"].sort(key=lambda arg: int(arg[0]))
+        added += len(slots)
 
-        # The entry's own 'args=[...]' follows its 'redirect=...' line.
-        while index < len(lines) and not lines[index].startswith(_ARGS_OPEN):
-            output.append(lines[index])
-            index += 1
-        if index >= len(lines):
-            break
+    for key, slots in published.items():
+        print(
+            f"bldargs: {key} is published in task_all_actions.json and was NOT changed -- "
+            f"this backup uses argument(s) {', '.join(sorted(slots, key=int))} that Tasker "
+            f"does not declare.  Add an 'extra' entry by hand if that is really wanted.",
+        )
 
-        if lines[index].rstrip("\n") == _ARGS_EMPTY:
-            existing = []
-            index += 1
-        else:
-            index += 1  # Step past 'args=['.
-            existing = []
-            while index < len(lines) and lines[index].rstrip("\n") != _ARGS_CLOSE:
-                existing.append(lines[index])
-                index += 1
-            index += 1  # Step past the closing '],'.
-
-        output.append(f"{_ARGS_OPEN}\n")
-        output.extend(_merge_argument_lines(existing, new_arguments))
-        output.append(f"{_ARGS_CLOSE}\n")
-        added += len(new_arguments)
-
-    with open(actionc_file, "w", encoding="utf-8") as file:
-        file.writelines(output)
+    if added:
+        with open(overlay_file, "w", encoding="utf-8") as file:
+            file.write(format_overlay(overlay))
 
     return added
 
 
-def build_arguments(xml_file: str = "", actionc_file: str = "") -> int:
+def build_arguments(xml_file: str = "", overlay_file: str = "") -> int:
     """
-    Harvest the arguments a backup uses but actionc.py doesn't declare, and add them.
+    Harvest the arguments a backup uses but the action code tables don't declare.
     Args:
         xml_file (str): backup xml to read.  Defaults to 'backup.xml' in the project root.
-        actionc_file (str): the actionc.py to update.  Defaults to the one beside this file.
+        overlay_file (str): the action_overlay.json to update.  Defaults to the real one.
     Returns:
-        int: 0 if successful, non-zero if the xml or actionc.py could not be read
+        int: 0 if successful, non-zero if the xml or the overlay could not be read
     """
     src_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(src_dir))
@@ -253,10 +205,10 @@ def build_arguments(xml_file: str = "", actionc_file: str = "") -> int:
         xml_file = (
             DEFAULT_XML_FILE if os.path.isfile(DEFAULT_XML_FILE) else os.path.join(project_root, DEFAULT_XML_FILE)
         )
-    if not actionc_file:
-        actionc_file = os.path.join(src_dir, ACTIONC_FILENAME)
+    if not overlay_file:
+        overlay_file = os.path.join(src_dir, OVERLAY_FILENAME)
 
-    for needed in (xml_file, actionc_file):
+    for needed in (xml_file, overlay_file):
         if not os.path.isfile(needed):
             msg = f"bldargs: file not found: {needed}"
             logger.error(msg)
@@ -276,19 +228,19 @@ def build_arguments(xml_file: str = "", actionc_file: str = "") -> int:
 
     missing = find_missing_arguments(harvested)
     if not missing:
-        print("bldargs: No missing arguments -- actionc.py already declares everything this backup uses.")
+        print("bldargs: No missing arguments -- the action code tables already declare everything this backup uses.")
         print("")
         return 0
 
     try:
-        added = insert_arguments(actionc_file, missing)
+        added = insert_arguments(overlay_file, missing)
     except OSError as error:
-        msg = f"bldargs: error updating {actionc_file}: {error}"
+        msg = f"bldargs: error updating {overlay_file}: {error}"
         logger.error(msg)
         print(msg)
         return 3
 
-    print(f"bldargs: Build Complete.  Added {added} arguments to {len(missing)} codes in '/maptasker/src/actionc.py'.")
+    print(f"bldargs: Build Complete.  Added {added} argument(s) to '{overlay_file}'.")
     print("")
 
     return 0
