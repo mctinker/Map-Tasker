@@ -2,12 +2,13 @@
 """bldbndle: build the Tasker <Bundle> dictionary from a backup XML file"""
 
 #                                                                                      #
-# bldbndle: read a Tasker backup xml and save every <Bundle> as 'bundle.py'            #
+# bldbndle: read a Tasker backup xml and merge every <Bundle> into 'bundle.py'         #
 #                                                                                      #
 # NOTE: FOR DEVELOPMENT ONLY!!!  Called by proginit.py when 'build_all' is True.        #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
+import importlib.util
 import json
 import os
 from typing import Any
@@ -140,6 +141,64 @@ def add_trailing_commas(text: str) -> str:
     return "\n".join(lines)
 
 
+def load_existing_bundles(path: str) -> dict:
+    """
+    Read back the bundles a previously written bundle.py holds.
+    Args:
+        path (str): a bundle.py to read, which need not exist
+    Returns:
+        dict: the bundles it defines, or {} if there is no such file or it cannot be read
+    """
+    if not os.path.isfile(path):
+        return {}
+    try:
+        spec = importlib.util.spec_from_file_location("_bldbndle_existing", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return dict(module.bundles)
+    except (OSError, SyntaxError, ValueError, AttributeError) as error:
+        msg = f"bldbndle: could not read existing bundles from {path}: {error}"
+        logger.error(msg)
+        print(msg)
+        return {}
+
+
+def merge_bundles(existing: dict, harvested: dict) -> tuple[dict, list[str]]:
+    """
+    Combine the bundles already recorded with the ones just read out of a backup.
+
+    A rebuild used to replace bundle.py outright, which quietly threw away every
+    definition the new backup did not happen to contain -- and could also downgrade one
+    it did, because get_bundles keeps the FIRST <Bundle> it meets for a code and a code
+    can appear both fully configured and bare in the same file.  That is exactly what
+    happened to 2099e: a rebuild returned it without the RELEVANT_VARIABLES payload the
+    file already had.  So nothing is dropped here, and where both sides define a code
+    the fuller definition wins, on the grounds that the failure being guarded against is
+    truncation rather than change.  Every such decision is reported, because 'fuller' is
+    a heuristic and a genuine change of format in a new Tasker release would show up
+    here as a shrinking definition that should be taken rather than refused.
+
+    Args:
+        existing (dict): the bundles already recorded
+        harvested (dict): the bundles read out of this backup
+    Returns:
+        tuple[dict, list[str]]: the merged bundles, and one note per non-obvious decision
+    """
+    merged = dict(existing)
+    notes = []
+    for key, payload in harvested.items():
+        current = merged.get(key)
+        if current is None:
+            merged[key] = payload
+        elif current != payload:
+            if len(repr(payload)) > len(repr(current)):
+                merged[key] = payload
+                notes.append(f"{key}: took this backup's fuller definition")
+            else:
+                notes.append(f"{key}: kept the existing definition; this backup's holds less")
+    return merged, notes
+
+
 def save_bundles(bundles: dict, output_file: str, xml_file: str) -> None:
     """
     Write the bundle dictionary out as a python source file.
@@ -176,12 +235,16 @@ def save_bundles(bundles: dict, output_file: str, xml_file: str) -> None:
         out.write("\n")
 
 
-def build_bundles(xml_file: str = "", output_file: str = "") -> int:
+def build_bundles(xml_file: str = "", output_file: str = "", live_file: str = "") -> int:
     """
-    Build the <Bundle> dictionary from a Tasker backup xml and save it as 'bundle.py'.
+    Merge the <Bundle> definitions in a Tasker backup xml into 'bundle.py'.
     Args:
         xml_file (str): backup xml to read.  Defaults to 'backup.xml' in the project root.
-        output_file (str): python file to create.  Defaults to '/maptasker/assets/json/bundle.py'.
+        output_file (str): python file to write.  Defaults to '/maptasker/assets/json/bundle.py'.
+        live_file (str): the bundle.py the program imports, merged in so that a build
+            writing somewhere else still carries everything already recorded.  Defaults
+            to '/maptasker/src/bundle.py'; pass a path that does not exist to merge with
+            the output file alone.
     Returns:
         int: 0 if successful, non-zero if the xml file could not be read
     """
@@ -202,6 +265,8 @@ def build_bundles(xml_file: str = "", output_file: str = "") -> int:
             "json",
             OUTPUT_FILENAME,
         )
+    if not live_file:
+        live_file = os.path.join(src_dir, OUTPUT_FILENAME)
 
     if not os.path.isfile(xml_file):
         msg = f"bldbndle: backup xml file not found: {xml_file}"
@@ -213,12 +278,22 @@ def build_bundles(xml_file: str = "", output_file: str = "") -> int:
     print(f"bldbndle: Reading {xml_file} ...")
 
     try:
-        bundles = get_bundles(xml_file)
+        harvested = get_bundles(xml_file)
     except ET.ParseError as error:
         msg = f"bldbndle: error parsing {xml_file}: {error}"
         logger.error(msg)
         print(msg)
         return 2
+
+    # Merge into everything already recorded.  Both the file the program imports and the
+    # previous output are read: they are the same file when output_file is left at the
+    # default, and when it is not, an earlier build's definitions would otherwise be lost.
+    existing, _ = merge_bundles(
+        load_existing_bundles(live_file),
+        load_existing_bundles(output_file),
+    )
+    bundles, notes = merge_bundles(existing, harvested)
+    added = len(bundles) - len(existing)
 
     try:
         save_bundles(bundles, output_file, xml_file)
@@ -228,8 +303,11 @@ def build_bundles(xml_file: str = "", output_file: str = "") -> int:
         print(msg)
         return 3
 
+    for note in notes:
+        print(f"bldbndle: {note}")
     print(
-        f"bldbndle: Build Complete.  {len(bundles)} bundles written to '/maptasker/assets/json/{OUTPUT_FILENAME}'.",
+        f"bldbndle: Build Complete.  {len(bundles)} bundles written to '{output_file}' "
+        f"({added} new, {len(existing)} already recorded).",
     )
     print("")
 
