@@ -2,8 +2,8 @@
 """Validate the Event and State codes in the overlay against Tasker's own source"""
 
 #                                                                                      #
-# acmerge: check action_overlay.json's Event/State codes against Tasker's published     #
-#          Java constants                                                              #
+# valcodes: check action_overlay.json's Event/State codes against Tasker's published    #
+#           Java constants                                                             #
 #                                                                                      #
 # Updating MapTasker for a new Tasker release:                                          #
 #                                                                                      #
@@ -18,6 +18,10 @@
 # step 4 IS the update.  What still needs checking is the half Tasker does not publish  #
 # in that file, which is what this module does: Event and State codes come from the     #
 # Java constants on Tasker's site and are compared against action_overlay.json.         #
+#                                                                                      #
+# This was 'acmerge' when merging Tasker's table into actionc.py was most of what it    #
+# did.  That half is gone with the merge; what is left validates, so it is named for    #
+# that.                                                                                #
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
@@ -83,10 +87,10 @@ def debug_print(message: str) -> None:
                 file.write(message)
         except OSError as e:
             # 4. Handle potential I/O errors (e.g., permission issues, disk full)
-            print(f"acmerge:Error: Could not write to file '{filename}'. Reason: {e}")
+            print(f"valcodes:Error: Could not write to file '{filename}'. Reason: {e}")
         except Exception as e:  # noqa: BLE001
             # Catch any other unexpected errors
-            print(f"acmerge: An unexpected error occurred: {e}")
+            print(f"valcodes: An unexpected error occurred: {e}")
 
 
 def format_string(s: str) -> str:

@@ -353,13 +353,13 @@ def start_up() -> dict:
     # NOTE: FOR DEVELOPMENT ONLY!!! 'build_all = True' ONLY WITH A NEW UPDATE OF TASKER!
     # Dropping Tasker's new task_all_actions.json into assets/json IS the update now --
     # actionc.py reads it directly.  What remains is the half Tasker does not publish
-    # there, which is what this block checks and rebuilds.  See acmerge.py.
+    # there, which is what this block checks and rebuilds.  See valcodes.py.
     build_all = False
     if build_all:
         # Only do these imports when rebuilding; they reach the network and the backup xml.
-        from maptasker.src.acmerge import validate_states_and_events  # noqa: PLC0415
         from maptasker.src.bldargs import build_arguments  # noqa: PLC0415
         from maptasker.src.bldbndle import build_bundles  # noqa: PLC0415
+        from maptasker.src.valcodes import validate_states_and_events  # noqa: PLC0415
 
         PrimeItems.program_arguments["debug"] = True  # Make sure we see the output.
 
