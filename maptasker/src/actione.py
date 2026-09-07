@@ -33,17 +33,19 @@ blank = "&nbsp;"
 
 
 # See if this Task or Profile code is deprecated.
-def check_for_deprecation(the_action_code_plus: str) -> None:
+def check_for_deprecation(the_action_code_plus: str) -> str:
     """
-    See if this Task or Profile code isa deprecated
+    See if this Task or Profile code is deprecated
         :param the_action_code_plus: the action code plus the type of action
             (e.g. "861t", "t" = Task, "e" = Event, "s" = State)
-        :return: nothing
+        :return: the marker to append to the action name, or "" if not deprecated
     """
-
+    # This used to test PrimeItems.tasker_action_codes, which only the old build-from-
+    # scratch pipeline ever filled in and which is now gone -- so the test never passed
+    # and no action was ever marked.  action_codes is the table that actually holds the
+    # codes, and is keyed with the type suffix rather than by the bare digits.
     lookup = the_action_code_plus[:-1]  # Remove last character to get just the digits
-    # if lookup in depricated and the_action_code_plus in action_codes:
-    if lookup in depricated and lookup in PrimeItems.tasker_action_codes:
+    if lookup in depricated and the_action_code_plus in action_codes:
         return "<em> (Is Deprecated)</em> "
 
     return ""
@@ -81,27 +83,16 @@ def get_action_code(
         )
 
     else:
-        # Format the output with HTML if this is a Task
-        if action_type and len(just_the_code) <= 3:
-            # The code is in our dictionary.  Add the display name
-            the_result = format_html(
-                "action_name_color",
-                "",
-                f"{action_codes[the_action_code_plus].name}{depricated}",
-                True,
-            )
-            # numargs = len(PrimeItems.tasker_action_codes[just_the_code]["args"])
-
-        # Not a Task.  Must be a condition.
-        else:
-            the_result = f"{action_codes[the_action_code_plus].name}{depricated}"
-
-        # Get the actions results
+        # Get the actions results.  The deprecation marker goes with the name, which
+        # get_action_results is the one to format -- this used to build a name here and
+        # then throw it away on the very next line, which is the other reason no action
+        # was ever marked deprecated.
         the_result = action_results.get_action_results(
             the_action_code_plus,
             action_codes,
             code_action,
             action_type,
+            depricated,
         )
 
         # If this is a redirected lookup entry, create a temporary mirror
@@ -128,6 +119,7 @@ def get_action_code(
                     temp_lookup_codes,
                     code_action,
                     action_type,
+                    depricated,
                 )
 
     return the_result

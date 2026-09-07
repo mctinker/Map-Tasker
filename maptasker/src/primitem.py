@@ -239,7 +239,6 @@ class PrimeItems:
     task_count_unnamed = 0
     task_count_no_profile = 0
     named_task_count_total = 0
-    tasker_action_codes: ClassVar[dict] = {}
     tasker_arg_specs: ClassVar[dict] = {}
     tasker_category_descriptions: ClassVar[dict] = {}
     tasker_event_codes: ClassVar[dict] = {}

@@ -156,6 +156,7 @@ def get_action_results(
     action_codes: defusedxml.Element,
     code_action: defusedxml.Element,
     action_type: bool,
+    deprecated: str = "",
 ) -> str:
     """
     For the given code, save the display_name, required arg list and associated type
@@ -228,7 +229,7 @@ def get_action_results(
         return format_html(
             "action_name_color",
             "",
-            our_action_code.name,
+            f"{our_action_code.name}{deprecated}",
             True,
         ) + format_html(
             "action_color",
@@ -237,4 +238,4 @@ def get_action_results(
             False,
         )
 
-    return f"{our_action_code.name}{result}{get_action.get_extra_stuff(code_action, action_type)}"
+    return f"{our_action_code.name}{deprecated}{result}{get_action.get_extra_stuff(code_action, action_type)}"
