@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import textwrap
 
+from maptasker.src import bldbndle
 from maptasker.src.bldbndle import (
     build_bundles,
     get_bundles,
@@ -133,3 +134,27 @@ def test_2099e_regression(tmp_path: os.PathLike) -> None:
     assert rebuilt["2099e"] == FULL_2099, "the rich 2099e was overwritten by the bare one"
     assert "555t" in rebuilt, "a code absent from this backup was dropped"
     assert "888t" in rebuilt, "the backup's own new code was not added"
+
+
+def test_default_output_is_the_file_the_program_imports(tmp_path: os.PathLike, monkeypatch) -> None:
+    """A rebuild lands in maptasker/src/bundle.py, with no copy to make afterwards.
+
+    It used to be written to assets/json and moved across by hand, which is how a
+    rebuild that had quietly dropped most of the table could still get installed.
+    save_bundles is stubbed so that asserting this does not rewrite the real file.
+    """
+    xml_file = tmp_path / "backup.xml"
+    xml_file.write_text(_XML, encoding="utf-8")
+    written = {}
+
+    def _capture(bundles: dict, output_file: str, xml: str) -> None:
+        written["path"] = output_file
+        written["count"] = len(bundles)
+
+    monkeypatch.setattr(bldbndle, "save_bundles", _capture)
+    assert build_bundles(xml_file=str(xml_file)) == 0
+
+    assert written["path"] == os.path.join(os.path.dirname(bldbndle.__file__), "bundle.py")
+    assert written["path"].endswith(os.path.join("maptasker", "src", "bundle.py"))
+    # It merged with the real table rather than replacing it with this two-bundle xml.
+    assert written["count"] > 2

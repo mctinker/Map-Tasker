@@ -2,7 +2,7 @@
 """bldbndle: build the Tasker <Bundle> dictionary from a backup XML file"""
 
 #                                                                                      #
-# bldbndle: read a Tasker backup xml and merge every <Bundle> into 'bundle.py'         #
+# bldbndle: read a Tasker backup xml and merge every <Bundle> into src/bundle.py       #
 #                                                                                      #
 # NOTE: FOR DEVELOPMENT ONLY!!!  Called by proginit.py when 'build_all' is True.        #
 #                                                                                      #
@@ -240,11 +240,14 @@ def build_bundles(xml_file: str = "", output_file: str = "", live_file: str = ""
     Merge the <Bundle> definitions in a Tasker backup xml into 'bundle.py'.
     Args:
         xml_file (str): backup xml to read.  Defaults to 'backup.xml' in the project root.
-        output_file (str): python file to write.  Defaults to '/maptasker/assets/json/bundle.py'.
+        output_file (str): python file to write.  Defaults to '/maptasker/src/bundle.py',
+            which is the file the program imports -- a build lands where it is used, with
+            no copy to make afterwards.
         live_file (str): the bundle.py the program imports, merged in so that a build
             writing somewhere else still carries everything already recorded.  Defaults
-            to '/maptasker/src/bundle.py'; pass a path that does not exist to merge with
-            the output file alone.
+            to '/maptasker/src/bundle.py' as well, so it matters only when output_file is
+            pointed elsewhere; pass a path that does not exist to merge with the output
+            file alone.
     Returns:
         int: 0 if successful, non-zero if the xml file could not be read
     """
@@ -259,12 +262,10 @@ def build_bundles(xml_file: str = "", output_file: str = "", live_file: str = ""
             DEFAULT_XML_FILE if os.path.isfile(DEFAULT_XML_FILE) else os.path.join(project_root, DEFAULT_XML_FILE)
         )
     if not output_file:
-        output_file = os.path.join(
-            maptasker_dir,
-            "assets",
-            "json",
-            OUTPUT_FILENAME,
-        )
+        # Straight into the file taskedit and varxref import.  This used to be written to
+        # assets/json and copied across by hand, which is how a rebuild that had quietly
+        # dropped 218 definitions could get as far as being installed.
+        output_file = os.path.join(src_dir, OUTPUT_FILENAME)
     if not live_file:
         live_file = os.path.join(src_dir, OUTPUT_FILENAME)
 
