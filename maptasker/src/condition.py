@@ -6,7 +6,6 @@
 #                                                                                      #
 import defusedxml.ElementTree
 
-import maptasker.src.actiond as process_action_codes
 import maptasker.src.actione as action_evaluate
 from maptasker.src.actargs import extract_condition
 
@@ -146,7 +145,6 @@ def condition_state(
         :return: the formatted condition's output string
     """
     # Go through the XML for this 'State', looking for items of interest.
-    _build_action_codes = process_action_codes.build_action_codes
     _get_action_code = action_evaluate.get_action_code
     _reformat_html = reformat_html
     _extract_condition = extract_condition
@@ -168,7 +166,7 @@ def condition_state(
 
         state_code = child_text if "s" in child_text else f"{child_text}s"
         if state_code not in action_codes:
-            _build_action_codes(code_node, the_item)
+            logger.debug(f"code:{child_text} not found in action codes!")
 
         state = _get_action_code(code_node, the_item, False, "s")
 
@@ -216,12 +214,8 @@ def condition_event(
     # Determine what the Event code is and return the actual Event text
     event_code = f"{the_event_code.text}e" if "e" not in the_event_code.text else the_event_code.text
     if event_code not in action_codes:
+        # get_action_code reports it as 'not yet mapped' and displays what it can.
         logger.debug(f"code:{the_event_code.text} not found in action codes!")
-        # Build new (template_ action code if not in our dictionary of codes yet
-        process_action_codes.build_action_codes(
-            the_event_code,
-            the_item,
-        )  # Add it to our action dictionary
 
     # Get the event code and its arguments with spacing added for 'pretty' text
     # the_event_code.text = event_code
