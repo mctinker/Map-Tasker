@@ -383,6 +383,7 @@
     "2084e": {"args": [], "canfail": "", "category": "", "name": "Alarm Changed", "redirect": ""},
     "2085e": {"args": [["1", true, "", "1", "Component="], ["2", true, "", "1", ", Filter="], ["3", true, "", "0", ["", "e", ", Grep Filter"]]], "canfail": "", "category": "", "name": "Logcat Entry", "redirect": ""},
     "2086e": {"args": [], "canfail": "", "category": "", "name": "Pick Up Gesture", "redirect": ""},
+    "2087e": {"args": [], "canfail": "", "category": "", "name": "Fingerprint Gesture", "redirect": ""},
     "2088e": {"args": [["1", false, "", "1", ", Arg 1="], ["2", false, "", "0", ", Arg 2="], ["3", false, "", "0", ", Arg 3="], ["4", false, "", "0", ", Arg 4="]], "canfail": "", "category": "", "name": "Any Sensor", "redirect": ""},
     "2089e": {"args": [["1", true, "", "5", "Port="], ["2", true, "", "0", ", Method="], ["3", true, "", "1", ", Path="], ["4", true, "", "1", ", Quick Response"], ["5", true, "", "1", ", Timeout="], ["6", true, "", "0", ["", "e", ", Only On Wifi"]], ["7", true, "", "0", ", Network Name/MAC Address="]], "canfail": "", "category": "", "name": "HTTP Request", "redirect": ""},
     "2090e": {"args": [], "canfail": "", "category": "", "name": "Physical Activity", "redirect": ""},

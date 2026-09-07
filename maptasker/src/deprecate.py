@@ -22,4 +22,5 @@ depricated = {
     "696": "Deprecated",
     "777": "Deprecated",
     "876": "Deprecated",
+    "2087": "Deprecated",
 }

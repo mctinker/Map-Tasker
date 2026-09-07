@@ -40,11 +40,13 @@ from tests.action_codes_snapshot import (
 # Measured from the literal table.  Hard-coded rather than derived so that a snapshot
 # regenerated against a damaged table is caught here instead of silently becoming the
 # new baseline.
-EXPECTED_CODES = 743
+EXPECTED_CODES = 744
 EXPECTED_ARGS = 1704
 
-# The 325 entries that task_all_actions.json cannot supply, by kind.
-EXPECTED_OVERLAY = {"event": 113, "state": 61, "task": 132, "scene": 19}
+# The 326 entries that task_all_actions.json cannot supply, by kind.  2087e was added
+# by hand: Tasker publishes the Event code but nothing in XML/ or backup.xml uses it,
+# so it has no arguments recorded and is marked deprecated in deprecate.py.
+EXPECTED_OVERLAY = {"event": 114, "state": 61, "task": 132, "scene": 19}
 
 TASK_ACTIONS_JSON = os.path.join(
     os.path.dirname(__file__),
