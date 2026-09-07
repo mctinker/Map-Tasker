@@ -313,6 +313,43 @@ def load_arg_specs() -> None:
         logger.error("category_descriptions missing!")
 
 
+# Where Tasker publishes the Event and State code constants.
+EVENT_CODES_URL = "https://tasker.joaoapps.com/code/EventCodes.java"
+STATE_CODES_URL = "https://tasker.joaoapps.com/code/StateCodes.java"
+
+
+def rebuild_action_tables() -> None:
+    """
+    Refresh the half of the action code tables that Tasker does not publish as json.
+
+    FOR DEVELOPMENT ONLY -- reaches the network and rewrites files in the source tree.
+    Dropping Tasker's new task_all_actions.json into assets/json is the whole of the
+    other half: actionc.py reads that file directly.  What is left is what it does not
+    describe, which is what this checks and rebuilds.  See valcodes.py.
+
+    Args:
+        None
+    Returns:
+        None
+    """
+    # Only done here, because these reach the network and the backup xml.
+    from maptasker.src.bldargs import build_arguments  # noqa: PLC0415
+    from maptasker.src.bldbndle import build_bundles  # noqa: PLC0415
+    from maptasker.src.valcodes import validate_states_and_events  # noqa: PLC0415
+
+    # Every finding these report goes through valcodes.debug_print, which says nothing
+    # at all unless debug is on -- so without this the rebuild runs silently.
+    PrimeItems.program_arguments["debug"] = True
+
+    # Check the Event and State codes in the overlay against Tasker's own source.
+    validate_states_and_events("e", EVENT_CODES_URL)
+    validate_states_and_events("s", STATE_CODES_URL)
+    # Build the <Bundle> dictionary ('bundle.py') from the backup xml.
+    build_bundles()
+    # Add any arguments the backup xml uses that neither action code table declares.
+    build_arguments()
+
+
 # Perform maptasker program initialization functions
 def start_up() -> dict:
     # Get any arguments passed to program
@@ -351,25 +388,11 @@ def start_up() -> dict:
     load_arg_specs()
 
     # NOTE: FOR DEVELOPMENT ONLY!!! 'build_all = True' ONLY WITH A NEW UPDATE OF TASKER!
-    # Dropping Tasker's new task_all_actions.json into assets/json IS the update now --
-    # actionc.py reads it directly.  What remains is the half Tasker does not publish
-    # there, which is what this block checks and rebuilds.  See valcodes.py.
+    # It rebuilds tables from the network and a backup xml and then exits, so shipping it
+    # as True would end every user's startup.  tests/test_build_all.py asserts it is False.
     build_all = False
     if build_all:
-        # Only do these imports when rebuilding; they reach the network and the backup xml.
-        from maptasker.src.bldargs import build_arguments  # noqa: PLC0415
-        from maptasker.src.bldbndle import build_bundles  # noqa: PLC0415
-        from maptasker.src.valcodes import validate_states_and_events  # noqa: PLC0415
-
-        PrimeItems.program_arguments["debug"] = True  # Make sure we see the output.
-
-        # Check the Event and State codes in the overlay against Tasker's own source.
-        validate_states_and_events("e", "https://tasker.joaoapps.com/code/EventCodes.java")
-        validate_states_and_events("s", "https://tasker.joaoapps.com/code/StateCodes.java")
-        # Build the <Bundle> dictionary ('bundle.py') from the backup xml.
-        build_bundles()
-        # Add any arguments the backup xml uses that neither action code table declares.
-        build_arguments()
+        rebuild_action_tables()
         exit_program(0)
     # END OF DEVELOPMENT CODE
 
