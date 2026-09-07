@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import taskflow, varxref
+from maptasker.src import proflint, taskflow, varxref
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import (
     PROFILE,
@@ -814,6 +814,30 @@ def _check_control_flow(index: ReferenceIndex) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
+def _check_behaviour(index: ReferenceIndex) -> None:
+    """Fold the behavioural lint's problems into this report.
+
+    Folded in for the reason _check_control_flow and _check_variables are: every check
+    above this one answers a question about the FILE -- what points at nothing, what
+    nothing points at, what shares a name.  proflint answers questions about the DEVICE:
+    which two Profiles will fight over the same switch, which Profile can never become
+    active, which Task will hold the phone awake polling in a loop.  Those are what a
+    Tasker user goes to a forum to ask, and every one of them is answerable from the XML
+    without running anything -- so a report that already has the file open should answer
+    them rather than send the user to the forum.
+
+    A third walk over the configuration rather than a filter over ReferenceIndex, again for
+    _check_variables' reason: proflint groups Profiles by what they watch and reads each
+    Task for its loops and its waits, and no pass here collects either.
+
+    The severity and the tag both come from proflint unchanged, as taskflow's are -- see
+    the note at the top of proflint.py on why its three severity words are spelled out
+    there rather than imported from here.
+    """
+    for problem in proflint.lint_problems():
+        index.add(problem.severity, problem.tag, problem.where, problem.detail)
+
+
 def _check_hygiene(index: ReferenceIndex) -> None:
     """Report the things that are legal, and working, but worth knowing about."""
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
@@ -952,6 +976,23 @@ def _limitations(index: ReferenceIndex) -> list[str]:
             "",
         ]
 
+    if any(item.tag in proflint.TAGS for item in index.findings):
+        notes += [
+            "",
+            "NOTE ON BEHAVIOUR FINDINGS",
+            "-" * _REPORT_WIDTH,
+            "The findings above tagged PROFILE-CONFLICT, PROFILE-DUPLICATE-TRIGGER,",
+            "PROFILE-NEVER-FIRES, ALWAYS-ON-MONITOR, FREQUENT-TRIGGER, POLLING-LOOP,",
+            "MISSING-COLLISION and NO-TIMEOUT are about how this configuration will",
+            "BEHAVE, not about whether it is well formed.  Every one of them is read",
+            "from the file alone, so none of them knows what you meant: a loop that",
+            "polls, a Profile that fires on a timer and a Task with no timeout are all",
+            "sometimes exactly the right answer.  Read them as the questions a fellow",
+            "Tasker user would ask about your setup, and ignore the ones you have",
+            "already thought about.",
+            "",
+        ]
+
     # Only worth saying when both halves are true: there are Scenes on the list, and there
     # is something in the file that could account for them.
     if index.variable_scene_references and any(item.tag == "UNUSED-SCENE" for item in index.findings):
@@ -1016,6 +1057,7 @@ def run_health_check() -> tuple[list[Row], dict]:
     _check_hygiene(index)
     _check_control_flow(index)
     _check_variables(index)
+    _check_behaviour(index)
 
     return _build_report(index, datetime.now()), _counts(index.findings)  # noqa: DTZ005
 

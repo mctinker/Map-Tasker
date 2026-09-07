@@ -631,11 +631,19 @@ def test_report_carries_the_unreferenced_caveat(report: str) -> None:
 
 
 def test_clean_configuration_reports_nothing() -> None:
-    """A sound configuration produces a report that says so, and no findings."""
+    """A sound configuration produces a report that says so, and no findings.
+
+    The Profile carries a real condition rather than none at all.  A Profile with nothing
+    to become active on is proflint's PROFILE-NEVER-FIRES -- a fair finding, and one Tasker
+    itself would never write -- so a fixture standing for "nothing wrong here" has to give
+    it one.
+    """
     _load(
         """<TaskerData sr="" dvi="1" tv="6.3.13">
           <Project sr="proj0" ve="2"><name>Solid</name><pids>10</pids><tids>20</tids></Project>
-          <Profile sr="prof10" ve="2"><id>10</id><nme>Fine</nme><mid0>20</mid0></Profile>
+          <Profile sr="prof10" ve="2"><id>10</id><nme>Fine</nme><mid0>20</mid0>
+            <State sr="con0" ve="2"><code>123</code></State>
+          </Profile>
           <Task sr="task20"><id>20</id><nme>Works</nme></Task>
         </TaskerData>""",
     )

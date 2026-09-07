@@ -6,8 +6,9 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: Nine more Tasker plugin actions are recognised -- the AM series (Collect Pixel Colors, Create QR, Custom Keyboard Routine, Data Processor, Decoder QR, OpenVPN, Regex, Termux and UDP Client).  Each now shows its name and its configuration instead of an unmapped code number.
+- Added: Nine more Tasker plugin actions are recognised -- the AM series (Collect Pixel Colors, Create QR, Custom Keyboard Routine, Data Processor, Decoder QR, OpenVPN, Regex, Termux and UDP Client).
 - Added: Tasker's 'Fingerprint Gesture' event is now recognised, so a profile using it shows the event by name instead of an unmapped code number.  It is flagged as deprecated, since Tasker no longer supports it.
+- Added: 'Health Check' now also reports how your configuration will behave on the device, not just whether it holds together: two Profiles watching the same trigger whose Tasks set the same thing opposite ways, a Profile whose conditions can never all be true, Tasks that poll in a loop, Profiles that keep a radio or sensor scanning or fire on a short timer, long-running Tasks left on Tasker's default collision handling, and actions that can block for ever because no timeout was set.  Every one of these is read from the file alone, so the report closes with a note saying they are questions to consider rather than faults to fix.
 - Added:
 
 ### Changed
