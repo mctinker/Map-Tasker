@@ -2372,11 +2372,15 @@ class MapTaskerEventHandlers:
                     error_code_extracted = e.code if hasattr(e, "code") else 6
                     if error_code_extracted == 6:
                         gui.display_message_box(
-                            translate_string("Map view creation skipped: No valid XML source found or action canceled."),
+                            translate_string(
+                                "Map view creation skipped: No valid XML source found or action canceled."
+                            ),
                             "Orange",
                         )
                     else:
-                        gui.display_message_box(f"Map processing halted with system code: {error_code_extracted}", "Red")
+                        gui.display_message_box(
+                            f"Map processing halted with system code: {error_code_extracted}", "Red"
+                        )
                     return
 
                 # Check if an entry-point processing failure occurred during build_html
@@ -2403,7 +2407,9 @@ class MapTaskerEventHandlers:
                 # own.  Read here rather than remembered on PrimeItems because the popout is
                 # constructed after this call returns, by which time any overrides for this one
                 # build have been put back.
-                query = urlencode({"goto": goto, "scope": PrimeItems.program_arguments.get("single_project_name") or ""})
+                query = urlencode(
+                    {"goto": goto, "scope": PrimeItems.program_arguments.get("single_project_name") or ""}
+                )
                 _open_popout_window(f"/popout/map?{query}", getattr(gui, "open_view_in_new_window", False))
 
                 # Check for hard stop limit and notify user if output was truncated
