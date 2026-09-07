@@ -1011,7 +1011,7 @@ def build_save_project_to_android_dialog(
 # One dialog rather than four because the three non-Scene kinds differ only in which
 # scalars they show, and objprops.OBJECT_PROPERTIES is that difference -- so adding a
 # field to a kind is a row in that table and nothing here changes.  A Scene's properties
-# are a <PropertiesElement> generated from arg_dict instead and keep their own panel in
+# are a <PropertiesElement> generated from action_codes instead and keep their own panel in
 # the Scene designer (render_scene_properties); only the button is shared.
 #
 # WHICH ELEMENT THE CALLER HANDS OVER decides whether the edit survives its save, and it
@@ -1352,7 +1352,7 @@ def build_object_properties_dialog(
 # designer's own _render_legacy_arg.
 # ==========================================
 # Which <PropertiesElement> argument slots belong to which part of Tasker's own Scene
-# Properties screen.  Transcribed from arg_dict.py's "PropertiesElement" entry, whose eight
+# Properties screen.  Transcribed from action_overlay.json's "PropertiesElement", whose eight
 # slots are present in all 538 sample Scenes that have one:
 #
 #   arg0 Property Type   arg1 Orientation   arg2 Background Colour   arg3 Action Bar Style
@@ -1425,7 +1425,7 @@ def _build_scene_properties_dialog(
     SEPARATE FROM build_object_properties_dialog, and not for want of trying to share it.
     A Project/Profile/Task's properties are scalar children plus <ProfileVariable>s, which
     is what objprops models; a Scene's are the eight arguments of a <PropertiesElement>,
-    generated from arg_dict.py the same way a Task action's arguments are.  The two have
+    generated from action_codes the same way a Task action's arguments are.  The two have
     no field in common -- no comments, no variables, no shared tag -- so the only honest
     thing to share is the button that opens them (see _build_properties_button's `opener`).
 

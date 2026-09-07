@@ -4580,7 +4580,7 @@ def legacy_set_stop_event(element: defusedxml.ElementTree.Element, *, enabled: b
 # those is stored as, worked out by lining the guide up against the 538 <PropertiesElement>s
 # in XML/ -- Tasker's file format names none of it the way its screen does:
 #
-#   UI        <Int/Str/Img sr="arg0..arg7">  (arg_dict.py's "PropertiesElement" entry)
+#   UI        <Int/Str/Img sr="arg0..arg7">  (action_overlay.json's "PropertiesElement")
 #   Actions   <ListElementItem sr="itemN">   one action-bar item each: icon, label, action
 #   Key       <keyTask> + <LinkClickFilter>'s <urlMatch> (the Keys filter) and <stopEvent>
 #   Home Tap  <iconclickTask>
@@ -4634,7 +4634,7 @@ LEGACY_SCENE_TYPE_NAMES = {
     LEGACY_SCENE_TYPE_ACTIVITY: "Activity",
 }
 
-# The UI-tab argument slots the Event tabs depend on (arg_dict.py's "PropertiesElement").
+# The UI-tab argument slots the Event tabs depend on (action_overlay.json's "PropertiesElement").
 LEGACY_PROPERTY_TYPE_ARG = "0"
 LEGACY_ICON_ARG = "6"
 LEGACY_TAB_LABELS_ARG = "7"

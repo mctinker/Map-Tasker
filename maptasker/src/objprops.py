@@ -8,7 +8,7 @@ element name (a Task's variables are <ProfileVariable> too; only <pvit> says whi
 kind owns them).  So the scalars are a table (OBJECT_PROPERTIES) and everything else
 is one code path.
 
-A Scene's properties are a <PropertiesElement> instead, generated from arg_dict and
+A Scene's properties are a <PropertiesElement> instead, generated from action_codes and
 already rendered by guiwins.render_scene_properties; nothing here touches them.
 
 WHERE THE EDIT LANDS is the caller's decision and is NOT the same for every kind.
