@@ -6,13 +6,14 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: Nine more Tasker plugin actions are recognised -- the AM series (Collect Pixel Colors, Create QR, Custom Keyboard Routine, Data Processor, Decoder QR, OpenVPN, Regex, Termux and UDP Client).  Each now shows its name and its configuration instead of an unmapped code number.
 - Added: Tasker's 'Fingerprint Gesture' event is now recognised, so a profile using it shows the event by name instead of an unmapped code number.  It is flagged as deprecated, since Tasker no longer supports it.
 - Added:
 
 ### Changed
 
 - Changed: The Map view now says it is being built for as long as the build actually takes, instead of flashing a message that was gone a second later while the wait carried on.  The view's own window also opens with a progress line rather than sitting empty until the whole map has arrived.
-- Changed:
+- Changed: The build process used when there is a new version of Tasker has been drastically modified for efficiency and performance.
 
 ### Removed
 
