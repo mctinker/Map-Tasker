@@ -337,8 +337,16 @@ async def test_view_event_map_requires_loaded_xml(mock_io_bound, _mock_ui, event
 
 
 @pytest.mark.asyncio
-async def test_ai_analyze_event_missing_model_safeguard(event_handler, mock_gui_instance):
-    """Ensures analytical triggers abort dynamically with clean user feedback paths if no context is selected."""
+@patch("maptasker.src.userintr.ui")
+async def test_ai_analyze_event_missing_model_safeguard(_mock_ui, event_handler, mock_gui_instance):
+    """Ensures analytical triggers abort dynamically with clean user feedback paths if no context is selected.
+
+    'ui' is stood in for because the handler opens with a ui.notify(), which needs a live
+    browser client there is none of here.  This used to pass without it only by accident:
+    nicegui answers the very first request for a client outside a page with a throwaway one
+    of its own, and this happened to be the first such request in the whole run -- so any
+    other test that reached for a client first left this one with nothing.
+    """
     mock_gui_instance.ai_model = ""  # No LLM specified
 
     await event_handler.ai_analyze_event()

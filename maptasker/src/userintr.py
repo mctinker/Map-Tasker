@@ -1433,6 +1433,51 @@ def popout_window_name(path: str, new_window: bool = False) -> str:
     return f"{stable_name}_{time.time_ns()}" if new_window else stable_name
 
 
+# How the "still working" banner sits on the page: pinned to the top of the window,
+# centered, and above everything else, so it is in the same place whatever the user has
+# scrolled to and whichever tab of the settings they are on.
+BUSY_BANNER_STYLE = (
+    "position: fixed; top: 0.75rem; left: 50%; transform: translateX(-50%); z-index: 9999; "
+    "padding: 0.5rem 1rem; border-radius: 0.375rem; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4); "
+    "background-color: #1f2937; color: #fb923c;"
+)
+
+
+def _busy_banner(message: str) -> ui.element | None:
+    """A spinner and a message that stay on screen for the whole of a long build.
+
+    ui.notify() puts up a toast that takes itself down again after a few seconds, which is
+    the wrong shape for work that runs longer than that: the view was announced, the toast
+    expired, and the rest of the wait looked like the button had simply done nothing.
+
+    Deliberately an ordinary element rather than ui.notification: a notification is owned
+    by Quasar's Notify plugin and is taken down by asking that plugin to do it, which this
+    app has no reliable way to make happen.  An element of our own comes down when we
+    delete it.
+
+    Returns None when there is no browser window to draw it in (a build started from
+    somewhere other than a click in the GUI), which _clear_busy_banner accepts.
+    """
+    try:
+        layout = context.client.layout
+    except RuntimeError:
+        # No client context -- nobody to tell.  The build itself is unaffected.
+        return None
+    with layout:
+        banner = ui.element("div").classes("flex items-center gap-3").style(BUSY_BANNER_STYLE)
+        with banner:
+            ui.spinner(size="1.5em", color="orange")
+            ui.label(message).classes("italic")
+    return banner
+
+
+def _clear_busy_banner(banner: ui.element | None) -> None:
+    """Take down a _busy_banner, whether or not its window is still there."""
+    if banner is not None:
+        with contextlib.suppress(Exception):
+            banner.delete()
+
+
 def _open_popout_window(path: str, new_window: bool = False) -> None:
     """Opens a Map/Diagram popout window and remembers it in the browser so 'Close Tabs On Exit'
     (see get_rid_of_windows_and_exit in guiwins.py) can close it later -- window.open()'s return
@@ -2301,67 +2346,75 @@ class MapTaskerEventHandlers:
                 )
                 return
 
-            ui.notify(f"Loading {window_title}.  Please stand by ...", type="info", timeout=1000)
-            ui.update()  # Force immediate UI update to show notification
-
-            # 1. Clear out stale error codes before starting execution paths
-            PrimeItems.error_code = 0
-            PrimeItems.error_msg = ""
-
-            # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
-            PrimeItems.output_lines.output_lines.clear()
-            output_the_front_matter(current_config())
-            PrimeItems.task_action_warnings = {}
-
+            # Say so before the work starts, and keep saying it right through it.  A large
+            # configuration takes real time to build below, and the one-second toast that
+            # used to announce it was gone for almost all of that wait -- leaving a window
+            # that looked like the button had done nothing.  This one carries a spinner and
+            # no timeout, and comes down in the "finally" below whichever way this ends.
+            building = _busy_banner(
+                f"{translate_string('Building the')} {window_title}.  {translate_string('Please stand by ...')}",
+            )
             try:
-                # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
-                await run.io_bound(build_html, "")
-            except SystemExit as e:
-                # Intercept background termination codes gracefully
-                error_code_extracted = e.code if hasattr(e, "code") else 6
-                if error_code_extracted == 6:
-                    gui.display_message_box(
-                        translate_string("Map view creation skipped: No valid XML source found or action canceled."),
-                        "Orange",
-                    )
-                else:
-                    gui.display_message_box(f"Map processing halted with system code: {error_code_extracted}", "Red")
-                return
-
-            # Check if an entry-point processing failure occurred during build_html
-            if getattr(PrimeItems, "error_code", 0) > 0:
-                gui.display_message_box(f"Map processing error: {PrimeItems.error_msg}", "Orange")
+                # 1. Clear out stale error codes before starting execution paths
                 PrimeItems.error_code = 0
                 PrimeItems.error_msg = ""
-                return
 
-            # Now process the data for display in the gui
-            output_length = len(PrimeItems.output_lines.output_lines)
+                # Refresh our output_lines object to ensure we have a clean slate for the new map generation.
+                PrimeItems.output_lines.output_lines.clear()
+                output_the_front_matter(current_config())
+                PrimeItems.task_action_warnings = {}
 
-            # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
-            PrimeItems.output_lines.output_lines.clear()
+                try:
+                    # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
+                    await run.io_bound(build_html, "")
+                except SystemExit as e:
+                    # Intercept background termination codes gracefully
+                    error_code_extracted = e.code if hasattr(e, "code") else 6
+                    if error_code_extracted == 6:
+                        gui.display_message_box(
+                            translate_string("Map view creation skipped: No valid XML source found or action canceled."),
+                            "Orange",
+                        )
+                    else:
+                        gui.display_message_box(f"Map processing halted with system code: {error_code_extracted}", "Red")
+                    return
 
-            # Display the map in its own browser window/tab rather than the main window.
-            # A "goto" rides along on the URL rather than being pushed into the window
-            # afterwards: the popout is its own page with its own timing, and only it knows
-            # when the Map has finished streaming in and is therefore scrollable.
-            #
-            # "scope" says which Project this Map was built for -- always, not just for a
-            # jump -- so that a later clicked finding can tell whether the Map already on
-            # screen is one that can show what it points at, or whether it has to build its
-            # own.  Read here rather than remembered on PrimeItems because the popout is
-            # constructed after this call returns, by which time any overrides for this one
-            # build have been put back.
-            query = urlencode({"goto": goto, "scope": PrimeItems.program_arguments.get("single_project_name") or ""})
-            _open_popout_window(f"/popout/map?{query}", getattr(gui, "open_view_in_new_window", False))
+                # Check if an entry-point processing failure occurred during build_html
+                if getattr(PrimeItems, "error_code", 0) > 0:
+                    gui.display_message_box(f"Map processing error: {PrimeItems.error_msg}", "Orange")
+                    PrimeItems.error_code = 0
+                    PrimeItems.error_msg = ""
+                    return
 
-            # Check for hard stop limit and notify user if output was truncated
-            if output_length > gui.view_limit:
-                gui.display_message_box(
-                    f"Map view truncated {output_length} lines to {gui.view_limit} lines due to view limit.",
-                    "Orange",
-                )
-            gui.display_message_box(translate_string("Map View opened in a new browser window."), "Green")
+                # Now process the data for display in the gui
+                output_length = len(PrimeItems.output_lines.output_lines)
+
+                # Clear out our inline data to free up memory for the GUI display, since we no longer need it.
+                PrimeItems.output_lines.output_lines.clear()
+
+                # Display the map in its own browser window/tab rather than the main window.
+                # A "goto" rides along on the URL rather than being pushed into the window
+                # afterwards: the popout is its own page with its own timing, and only it knows
+                # when the Map has finished streaming in and is therefore scrollable.
+                #
+                # "scope" says which Project this Map was built for -- always, not just for a
+                # jump -- so that a later clicked finding can tell whether the Map already on
+                # screen is one that can show what it points at, or whether it has to build its
+                # own.  Read here rather than remembered on PrimeItems because the popout is
+                # constructed after this call returns, by which time any overrides for this one
+                # build have been put back.
+                query = urlencode({"goto": goto, "scope": PrimeItems.program_arguments.get("single_project_name") or ""})
+                _open_popout_window(f"/popout/map?{query}", getattr(gui, "open_view_in_new_window", False))
+
+                # Check for hard stop limit and notify user if output was truncated
+                if output_length > gui.view_limit:
+                    gui.display_message_box(
+                        f"Map view truncated {output_length} lines to {gui.view_limit} lines due to view limit.",
+                        "Orange",
+                    )
+                gui.display_message_box(translate_string("Map View opened in a new browser window."), "Green")
+            finally:
+                _clear_busy_banner(building)
 
         # Setup diagram view.
         elif view_type in ("diagram", "misc"):

@@ -4694,6 +4694,12 @@ class NiceGuiTextView:
         # of Find/Replace has to dispose of the one already on screen rather than build a
         # second one over it.
         self._find_dialog: ui.dialog | None = None
+        # The "still working on it" banner this view shows itself while its content is
+        # being read and streamed in (see _show_loading).  Created by build_ui below, so
+        # it is part of the very first paint of the window rather than something that has
+        # to arrive over the socket afterwards.
+        self._loading_row: ui.element | None = None
+        self._loading_label: ui.label | None = None
         self.build_ui()
         register_view(master_gui, self)
         # Schedule the coroutine into the active event loop safely
@@ -4703,6 +4709,41 @@ class NiceGuiTextView:
         # failure in here shows up as "the view did not finish", so it is worth a line in the
         # log saying which one it was.
         self._task.add_done_callback(_report_view_failure)
+
+    def _show_loading(self) -> None:
+        """Put a spinner and a progress line at the top of this view's scroll area.
+
+        A popped-out view opens as an empty window and stays that way for as long as it
+        takes process_data to read its generated file and stream the whole of it in --
+        seconds, on a large configuration, during which the window said nothing at all and
+        looked like it had simply come up blank.  This is what it says instead, and
+        _hide_loading takes it away the moment the content is all there.
+
+        Built here rather than pushed over the socket later so that it is part of the
+        window's first paint: it has to be on screen before the work that delays
+        everything else, not after it.
+        """
+        if self._loading_row is not None or not hasattr(self, "scroll_area"):
+            return
+        with self.scroll_area:
+            self._loading_row = ui.row().classes("w-full items-center gap-3 p-2")
+            with self._loading_row:
+                ui.spinner(size="1.5em", color="orange")
+                self._loading_label = ui.label(
+                    translate_string("Building the view.  Please stand by ..."),
+                ).classes("text-orange-500 italic")
+
+    def _set_loading_text(self, message: str) -> None:
+        """Say how far along the streaming is, if the banner is still up."""
+        if self._loading_label is not None:
+            self._loading_label.set_text(message)
+
+    def _hide_loading(self) -> None:
+        """Take the progress banner down.  Safe to call when there isn't one."""
+        row, self._loading_row, self._loading_label = self._loading_row, None, None
+        if row is not None:
+            with contextlib.suppress(Exception):
+                row.delete()
 
     def _mark_content_ready(self) -> None:
         """Marks this view's content as fully streamed in, under a fresh content token.
@@ -4714,6 +4755,9 @@ class NiceGuiTextView:
         self._content_generation += 1
         self._content_token = self._content_generation
         self._last_search = None
+        # Every path through process_data ends here, which makes this the one place the
+        # progress banner can be taken down without having to remember each of them.
+        self._hide_loading()
 
     async def _deliver_jump(self) -> None:
         """Take this freshly built Map to the object a clicked report finding asked for.
@@ -4958,6 +5002,10 @@ class NiceGuiTextView:
                 )
             )
 
+            # The window is about to be handed to the browser with nothing in it yet.  Say
+            # what it is waiting for, right here in the first paint -- see _show_loading.
+            self._show_loading()
+
     async def process_data(self, the_data: dict | list) -> None:
         """Converts data to HTML chunks, preventing single-packet WebSocket buffer overruns.
 
@@ -5106,6 +5154,14 @@ class NiceGuiTextView:
                     # the height above was worked out against the unzoomed line height.
                     if is_diagram:
                         chunk.props(f"data-lines={len(chunk_lines)}")
+                    # How far along, on the banner _show_loading put up.  Content arrives
+                    # top-down so there is something to look at almost at once, but on a
+                    # large configuration it goes on arriving for a while after that, and
+                    # a percentage is the difference between "still working" and "stuck".
+                    self._set_loading_text(
+                        f"{translate_string('Building the view')} ... "
+                        f"{min(100, round(100 * (i + len(chunk_lines)) / len(html_lines)))}%",
+                    )
                     await asyncio.sleep(0.01)  # Yields loop to keep WebSocket alive
 
             if connectors_by_line:
@@ -7086,6 +7142,10 @@ class NiceGuiTextView:
         self._content_token = 0
         self._last_search = None
         self.scroll_area.clear()
+        # clear() took the previous banner's element with it, so forget the handle before
+        # asking for a fresh one -- the re-stream is another wait, and says so too.
+        self._loading_row = self._loading_label = None
+        self._show_loading()
         self._task = asyncio.create_task(self.process_data([]))
 
 
