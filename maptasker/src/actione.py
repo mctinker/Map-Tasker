@@ -40,12 +40,10 @@ def check_for_deprecation(the_action_code_plus: str) -> str:
             (e.g. "861t", "t" = Task, "e" = Event, "s" = State)
         :return: the marker to append to the action name, or "" if not deprecated
     """
-    # This used to test PrimeItems.tasker_action_codes, which only the old build-from-
-    # scratch pipeline ever filled in and which is now gone -- so the test never passed
-    # and no action was ever marked.  action_codes is the table that actually holds the
-    # codes, and is keyed with the type suffix rather than by the bare digits.
-    lookup = the_action_code_plus[:-1]  # Remove last character to get just the digits
-    if lookup in depricated and the_action_code_plus in action_codes:
+    # Both tables are keyed the same way, by code plus type suffix.  Matching on the bare
+    # digits instead marked every type sharing a number, so the entry for Task action 10
+    # also marked State 10, 'Power', which is not deprecated at all.
+    if the_action_code_plus in depricated and the_action_code_plus in action_codes:
         return "<em> (Is Deprecated)</em> "
 
     return ""
