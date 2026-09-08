@@ -3016,3 +3016,9 @@ msgstr "మాప్ టాస్కర్ మీ అప్‌లోడ్ చ�
 
 msgid "Please stand by ..."
 msgstr "దయచేసి వేచి ఉండండి..."
+
+msgid "Redact secrets"
+msgstr "రహస్యాలను సవరించండి"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "ఎగుమతి చేసిన ఫైల్ వేరొకరికి వెళుతున్నప్పుడు -- ఫోరమ్‌లో పోస్ట్ చేయబడినప్పుడు లేదా మీకు సహాయం చేస్తున్న వారికి పంపినప్పుడు దీన్ని టిక్ చేయండి.\n\nదానిలోని API కీలు, టోకెన్‌లు, పాస్‌వర్డ్‌లు, ఫోన్ నంబర్‌లు, ఇమెయిల్ అడ్రస్‌లు మరియు లొకేషన్ కోఆర్డినేట్‌లు [REDACTED:...] మార్కర్‌లతో భర్తీ చేయబడతాయి మరియు ఫైల్ ఎగువన ఉన్న వ్యాఖ్య ఏమి తీయబడిందో తెలియజేస్తుంది.  జాబితాను చూడటానికి ముందుగా ఆరోగ్య తనిఖీని అమలు చేయండి.\n\nఇది మొదటి పాస్, హామీ కాదు: ఒక సాధారణ పదం వలె కనిపించే పాస్‌వర్డ్‌ని గుర్తించడానికి ఎటువంటి ఆకారం ఉండదు మరియు పేర్లు ఎప్పటికీ మార్చబడవు, ఎందుకంటే ఫైల్ వాటిని సూచించడానికి వాటిని ఉపయోగిస్తుంది.  మీరు పోస్ట్ చేసిన వాటిని చదవండి.\n\nబ్యాకప్ లేదా మరొక పరికరానికి తరలించడం కోసం దాన్ని టిక్ చేయకుండా వదిలేయండి -- కీలు తప్పిపోయిన రీడక్ట్ చేసిన ఫైల్ దిగుమతి అవుతుంది."

@@ -3016,3 +3016,9 @@ msgstr "மேப் டாஸ்கர் உங்கள் பதிவேற
 
 msgid "Please stand by ..."
 msgstr "कृपया प्रतीक्षा करें..."
+
+msgid "Redact secrets"
+msgstr "இரகசியங்களைத் திருத்தவும்"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "ஏற்றுமதி செய்யப்பட்ட கோப்பு வேறொருவருக்குச் செல்லும் போது -- மன்றத்தில் இடுகையிடப்படும்போது அல்லது உங்களுக்கு உதவுபவர்களுக்கு அனுப்பப்படும்போது இதைத் தேர்வு செய்யவும்.\n\nஅதில் உள்ள API விசைகள், டோக்கன்கள், கடவுச்சொற்கள், தொலைபேசி எண்கள், மின்னஞ்சல் முகவரிகள் மற்றும் இருப்பிட ஒருங்கிணைப்புகள் [REDACTED:...] குறிப்பான்களால் மாற்றப்படுகின்றன, மேலும் கோப்பின் மேலே உள்ள கருத்து என்ன எடுக்கப்பட்டது என்பதைக் கூறுகிறது.  பட்டியலைப் பார்க்க முதலில் ஹெல்த் செக்கை இயக்கவும்.\n\nஇது முதல் பாஸ், உத்தரவாதம் அல்ல: ஒரு சாதாரண வார்த்தை போல தோற்றமளிக்கும் கடவுச்சொல்லை அடையாளம் காண எந்த வடிவமும் இல்லை, மேலும் பெயர்கள் மாறாது, ஏனெனில் கோப்பு தன்னைக் குறிப்பிட அவற்றைப் பயன்படுத்துகிறது.  நீங்கள் இடுகையிடுவதைப் படியுங்கள்.\n\nகாப்புப்பிரதிக்காக அல்லது மற்றொரு சாதனத்திற்கு நகர்த்துவதற்காக அதைத் தேர்வுசெய்யாமல் விடவும் -- விசைகள் காணாமல் போன திருத்தப்பட்ட கோப்பு இறக்குமதியாகும்."

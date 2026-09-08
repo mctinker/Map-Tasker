@@ -299,11 +299,55 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
 # serialized -- not the backup, and not the Map.
 PENDING_CHANGES_POLL_SECONDS = 1.0
 
-# field_refs keys that say where a save GOES rather than what is being saved.  Typing a
-# different export path is not an edit to the item -- there would be nothing for Cancel to
-# discard -- so it must not raise the message.  Every other key in field_refs is content.
+# The field_refs key each dialog files its Redact tick-box under.  Three of them rather than
+# one because the Project and Scene dialogs already name their path field apart from the
+# other two, and a key shared between two dialogs open at once would be a key one of them
+# read the other's value from.
+REDACT_FIELD = "redact_secrets"
+PROJECT_REDACT_FIELD = "project_redact_secrets"
+SCENE_REDACT_FIELD = "scene_redact_secrets"
+
+
+def build_redact_checkbox(field_refs: dict, key: str = REDACT_FIELD) -> None:
+    """The "Redact secrets" tick-box that sits under an export's "Save as" path.
+
+    One function, called by all four Edit dialogs, so the four exports cannot come to
+    describe the same thing four slightly different ways -- and so a rule added to piiscan
+    is explained in one place rather than four.
+
+    Off by default, deliberately.  An export is normally a backup or a move between devices,
+    where the keys in the file are the keys it needs, and a redaction the user did not ask
+    for would be a file that imports and quietly fails.  Redacting is the exception -- the
+    export that leaves the user's hands -- so it is the one that has to be asked for.
+
+    Nothing here is remembered between exports for the same reason: "I am about to post this
+    on a forum" is true of one save, not of the setting from then on.
+    """
+    field_refs[key] = ui.checkbox(translate_string("Redact secrets"), value=False).classes("mt-1")
+    with field_refs[key]:
+        ui.tooltip(
+            translate_string(
+                "Tick this when the exported file is going to somebody else -- posted on a forum, "
+                "or sent to whoever is helping you.\n\n"
+                "The API keys, tokens, passwords, phone numbers, email addresses and location "
+                "coordinates in it are replaced with [REDACTED:...] markers, and a comment at the "
+                "top of the file says what was taken out.  Run Health Check first to see the list.\n\n"
+                "It is a first pass, not a guarantee: a password that looks like an ordinary word "
+                "has no shape to recognise, and names are never changed, because the file uses them "
+                "to refer to itself.  Read what you post.\n\n"
+                "Leave it unticked for a backup or a move to another device -- a redacted file "
+                "imports with the keys missing.",
+            ),
+        ).style("white-space: pre-wrap")
+
+
+# field_refs keys that say where a save GOES, or how, rather than what is being saved.
+# Typing a different export path is not an edit to the item -- there would be nothing for
+# Cancel to discard -- and neither is ticking Redact, which changes what one exported FILE
+# holds and nothing at all about the Task/Profile/Project in the loaded backup.  Every other
+# key in field_refs is content.
 PENDING_CHANGES_IGNORED_FIELDS: frozenset[str] = frozenset(
-    {"save_path", "project_save_path", "scene_save_path"},
+    {"save_path", "project_save_path", "scene_save_path", REDACT_FIELD, PROJECT_REDACT_FIELD, SCENE_REDACT_FIELD},
 )
 
 
@@ -770,7 +814,7 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
 #
 # Adding a real editable field means applying it before those two saves -- follow what the
 # Scene handlers do -- and only then listing its key here.
-EDIT_PROJECT_INERT_FIELDS: frozenset[str] = frozenset({"name", "project_save_path"})
+EDIT_PROJECT_INERT_FIELDS: frozenset[str] = frozenset({"name", "project_save_path", PROJECT_REDACT_FIELD})
 
 
 def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProject) -> None:
@@ -839,6 +883,7 @@ def build_edit_project_dialog(self: MyGui, edited_project: projedit.EditableProj
             translate_string("Save as"),
             value=projedit.default_project_save_path(project_name),
         ).classes("w-full mt-2")
+        build_redact_checkbox(field_refs, PROJECT_REDACT_FIELD)
 
         # This dialog has no field that waits for a save -- the Name is read-only and the
         # "Save as" path is not part of the Project (see PENDING_CHANGES_IGNORED_FIELDS) --
@@ -2791,6 +2836,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
             translate_string("Save as"),
             value=sceneedit.default_scene_save_path(scene_name),
         ).classes("w-full mt-2")
+        build_redact_checkbox(field_refs, SCENE_REDACT_FIELD)
 
         # The two Scene-only pieces of state, for the same reason revert_session has to take
         # them separately: a Version 2 session leaves the element alone from beginning to end

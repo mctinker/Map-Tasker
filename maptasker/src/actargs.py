@@ -60,6 +60,62 @@ def process_clean_string(
 
 # Usage within your original context:
 # process_clean_string(clean_string, code_action, arg, evaluated_results, blank)
+
+
+# The <Vals> entries that belong to Tasker and the plugin FRAMEWORK rather than to the
+# plugin's own configuration: the blurb, the list of fields Tasker may substitute a
+# variable into, the "subbundled" flag, and the rest of the locale-plugin plumbing.  Left
+# out because none of them is a setting the user made -- they are how the two programs talk
+# to each other -- and on this repo's reference backup they are two thirds of everything a
+# <Vals> holds.
+BUNDLE_HOUSEKEEPING = ("net.dinglisch.android.tasker.", "com.twofortyfouram.locale.")
+
+# Every value in a <Vals> is written twice: the value, and a "<name>-type" beside it saying
+# what Java class it is.  The class is the plugin's business, not the reader's.
+BUNDLE_TYPE_SUFFIX = "-type"
+
+# What Tasker writes for a plugin field the user never filled in.  Shown as nothing at all
+# rather than as the word, the same rule the icon arguments follow below.
+BUNDLE_UNSET = "<null>"
+
+
+def get_plugin_settings(vals: defusedxml.ElementTree, already_shown: str = "") -> str:
+    """A plugin action's own configuration, as "Name=value" lines.
+
+    The blurb a plugin writes is a sentence for a person to read ("Push a note titled
+    'Tect' with the message 'This'."), and it is all the Map used to show of a plugin
+    action.  What the blurb leaves out is not minor: the PushBullet action above is
+    configured with the Google account it pushes from, and that account -- an email address
+    -- appears nowhere in its blurb.  A health check that reports the email then points at
+    an action whose every displayed word is innocent, which reads as the check being wrong
+    rather than the Map being incomplete.
+
+    Named by the last dotted part of the tag, since a plugin prefixes every field with its
+    own package: "com.pushbullet.android.tasker.ACCOUNT_NAME" is ACCOUNT_NAME, and the
+    package is already on the line as the action's own Arg 1.
+
+    Joined with newlines because that is what a blurb uses, and what the two formatters
+    downstream expect: without "pretty" they become ", " (actionr.fix_config_parameters),
+    and with it, one setting per line.
+
+    already_shown is the tag the blurb itself came from, left out so it is not printed
+    twice.  It is a parameter rather than a constant because one of the two tags a blurb
+    can come from -- "Configcommand" -- is a field of the plugin's own like any other, and
+    only the caller knows whether this bundle's blurb was taken from it.
+    """
+    settings = []
+    for child in vals:
+        if child.tag == already_shown or child.tag.endswith(BUNDLE_TYPE_SUFFIX):
+            continue
+        if child.tag.startswith(BUNDLE_HOUSEKEEPING):
+            continue
+        value = (child.text or "").strip()
+        if not value or value == BUNDLE_UNSET:
+            continue
+        settings.append(f"{child.tag.rsplit('.', 1)[-1]}={value}")
+    return "\n".join(settings)
+
+
 ## We have a <bundle>.   Process it
 def get_bundle(
     code_action: defusedxml.ElementTree,
@@ -96,18 +152,23 @@ def get_bundle(
         evaluated_results["returning_something"] = False
         return evaluated_results
 
-    clean_string = next(
+    clean_string, blurb_tag = next(
         (
-            node.text
+            (node.text, tag)
             for tag in ["com.twofortyfouram.locale.intent.extra.BLURB", "Configcommand"]
             if (node := vals.find(tag)) is not None and node.text
         ),
-        "",
+        ("", ""),
     )
 
     # If we have a <pref> tag, add it to the clean_string
     if pref:
         clean_string = f"Output Variables={pref}{clean_string}"
+
+    # Then the plugin's own settings, which the blurb does not necessarily mention at all.
+    settings = get_plugin_settings(vals, blurb_tag)
+    if settings:
+        clean_string = f"{clean_string}\n{settings}" if clean_string else settings
 
     # Separate configuration parameter arguments by commas.
     save_returning = evaluated_results["returning_something"]

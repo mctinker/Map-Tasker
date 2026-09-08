@@ -530,7 +530,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
     """
     # Imported here rather than at the top of the file: guiwins imports this module, so a
     # module-level import would be a cycle.  See this module's docstring.
-    from maptasker.src.guiwins import PendingChangesBanner, editor_state  # noqa: PLC0415
+    from maptasker.src.guiwins import PendingChangesBanner, build_redact_checkbox, editor_state  # noqa: PLC0415
 
     profile_name = edited_profile.profile_element.findtext("nme", "")
     field_refs: dict = {}
@@ -553,6 +553,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
             translate_string("Save as"),
             value=profedit.default_save_path(profile_name),
         ).classes("w-full mt-2")
+        build_redact_checkbox(field_refs)
 
         # Add/Delete Condition, Link/Unlink Task, the Enabled toggle and a Rename all land on
         # the working copy's element as they happen; every condition's own fields wait in

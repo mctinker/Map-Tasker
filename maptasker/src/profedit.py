@@ -46,7 +46,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import deviceinv, sessundo, taskedit
+from maptasker.src import deviceinv, piiscan, sessundo, taskedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
@@ -1062,7 +1062,7 @@ def save_path_exists(output_path: str) -> bool:
     return bool(output_path) and os.path.exists(output_path)
 
 
-def render_standalone_profile_xml(edited_profile: EditableProfile) -> str:
+def render_standalone_profile_xml(edited_profile: EditableProfile, *, redact: bool = False) -> str:
     """Render the edited Profile as a standalone TaskerData/Profile[/Task...] XML
     string. Unlike a Task, a Profile's own XML only *references* its Entry/Exit
     Tasks by id (mid0/mid1) -- it isn't meaningful to Tasker on its own without
@@ -1070,6 +1070,11 @@ def render_standalone_profile_xml(edited_profile: EditableProfile) -> str:
     those Tasks are still linked, matching the shape Tasker's own single-Profile
     export produces: a Profile element followed by its Task element(s), as
     siblings under one TaskerData root.
+
+    `redact` runs the export through piiscan first, replacing the API keys, tokens,
+    passwords, phone numbers, email addresses and coordinates in it with markers and
+    writing a comment above the file saying what went -- what "Redact secrets" on the
+    export button does.  Off by default, so nothing that already calls this changes.
     """
     tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
     profile_copy = copy.deepcopy(edited_profile.profile_element)
@@ -1092,15 +1097,25 @@ def render_standalone_profile_xml(edited_profile: EditableProfile) -> str:
         if task_entry is not None:
             root.append(copy.deepcopy(task_entry["xml"]))
 
+    # Redacting happens HERE, on the tree that is about to be serialized, rather than at
+    # the button that asked for it: this is the one line every export of this kind passes
+    # through, so an export path added later cannot quietly skip it.  See piiscan.
+    notice = piiscan.redact_rendered(root) if redact else ""
+
     ETW.indent(root, space="\t")
     # No <?xml ...?> declaration -- the standalone exports and the Save To Android
     # upload deliberately start straight at <TaskerData>. (The full-backup write in
     # maputil2.write_full_backup_to_current_file still emits one; that produces a
     # whole backup file, not a standalone export.)
-    return ETW.tostring(root, encoding="unicode") + "\n"
+    return notice + ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_profile_xml(edited_profile: EditableProfile, output_path: str) -> str:
+def write_standalone_profile_xml(
+    edited_profile: EditableProfile,
+    output_path: str,
+    *,
+    redact: bool = False,
+) -> str:
     """Write the edited Profile (plus its linked Task(s)) as a standalone XML file.
     Raises OSError on failure.
 
@@ -1109,10 +1124,15 @@ def write_standalone_profile_xml(edited_profile: EditableProfile, output_path: s
     rather than at the buttons that call this, so no export path can be added later that
     quietly skips it.  Returns the copy's path, or "" if there was nothing to copy or the
     copy failed (which does not stop the write -- see presave's module comment).
+
+    `redact` is passed straight through to the render (see it for what goes).  Only the
+    local exports offer it: "Save To Android" puts the configuration back on the user's own
+    device, where the keys in it are the keys it needs to work, and a redacted upload would
+    be an import that silently stopped functioning.
     """
     _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
-        out_file.write(render_standalone_profile_xml(edited_profile))
+        out_file.write(render_standalone_profile_xml(edited_profile, redact=redact))
     return safety_copy
 
 

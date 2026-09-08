@@ -6,10 +6,18 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: Four Home Assistant plugin actions are recognised -- Call Service, Set WebSocket Connection, Test Connection and send message back.  Each now shows its name and configuration instead of an unmapped code number.
 - Added: Nine more Tasker plugin actions are recognised -- the AM series (Collect Pixel Colors, Create QR, Custom Keyboard Routine, Data Processor, Decoder QR, OpenVPN, Regex, Termux and UDP Client).
 - Added: Tasker's 'Fingerprint Gesture' event is now recognised, so a profile using it shows the event by name instead of an unmapped code number.  It is flagged as deprecated, since Tasker no longer supports it.
-- Added: 'Health Check' now also reports how your configuration will behave on the device, not just whether it holds together: two Profiles watching the same trigger whose Tasks set the same thing opposite ways, a Profile whose conditions can never all be true, Tasks that poll in a loop, Profiles that keep a radio or sensor scanning or fire on a short timer, long-running Tasks left on Tasker's default collision handling, and actions that can block for ever because no timeout was set.  Every one of these is read from the file alone, so the report closes with a note saying they are questions to consider rather than faults to fix.
-- Added:
+- Added: 'Health Check' now also reports how your configuration will behave on the device, not just whether it holds together:
+
+      - two Profiles watching the same trigger whose Tasks set the same thing opposite ways, 
+      - a Profile whose conditions can never all be true, 
+      - Tasks that poll in a loop, Profiles that keep a radio or sensor scanning or fire on a short timer, 
+      - long-running Tasks left on Tasker's default collision handling, and actions that can block for ever because no timeout was set.  
+      
+      Every one of these is read from the file alone, so the report closes with a note saying they are questions to consider rather than faults to fix.
+- Added: 'Health Check' now also lists what is in your configuration that is nobody else's business -- API keys, tokens, passwords, phone numbers, email addresses and the coordinates a location Profile watches -- wherever they sit, including a variable's stored value and Tasker's own preferences.  A new 'Redact secrets' tick-box on the Export button in Edit Project, Profile, Task and Scene then takes those same things out of the exported file and notes at the top of it what went, so a configuration can be posted on a forum or handed to somebody helping you.
 
 ### Changed
 
@@ -23,6 +31,10 @@ All notable changes to this project will be documented in this file!
 ### Fixed
 
 - Fixed: Actions and conditions that Tasker has deprecated are now marked as deprecated in the map.  The notice had been written but a pair of faults meant it could never actually appear.
+- Fixed: 'Health Check' no longer raises three false alarms about Task flow: a 'Goto top/end of loop' written outside any 'For', which Tasker allows; an 'End If' or 'End For' nothing can reach, which is punctuation rather than a stranded action; and a 'Stop' that names another Task, which shuts that Task down and then carries straight on.  A 'Stop' naming the Task it is written in is still reported as ending it.
+- Fixed: A plugin action now shows the settings it was configured with, not just the one-line summary the plugin writes of itself.  A PushBullet push, for instance, was shown without the account it sends from, so a 'Health Check' finding about that account pointed at an action with nothing visibly wrong.
+- Fixed: A 'Health Check' finding about something written in a TaskerNet description now says so and takes you to the description, rather than to the top of the Project, Profile or Task it belongs to.  The Map is built with TaskerNet information showing if it was switched off.
+- Fixed: A 'Health Check' or 'Variable Xref' finding about a variable used in a Scene now names the element that uses it, and clicking it takes you to that element's own line in the Map rather than to the top of the Scene.  This works for both kinds of Scene: a Legacy element lands on its properties line, and a Screen Builder (V2) component on the very property that holds the variable.
 - Fixed:
 
 ### Known Issues

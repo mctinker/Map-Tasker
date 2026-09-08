@@ -2991,3 +2991,9 @@ msgstr "MapTasker는 업로드한 Tasker XML 파일(예: 'backup.xml')을 기반
 
 msgid "Please stand by ..."
 msgstr "잠시만 기다려주세요..."
+
+msgid "Redact secrets"
+msgstr "비밀 정보 삭제"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "이 옵션을 선택하면, 파일이 다른 사람에게 전달될 경우에 사용합니다. (예: 포럼에 게시하거나, 도움을 주시는 분에게 보내는 경우)\n\n여기에는 API 키, 토큰, 비밀번호, 전화 번호, 이메일 주소 및 위치 좌표 등이 \"[마스킹됨:...]\" 표시로 대체되며, 파일 상단에 어떤 정보가 삭제되었는지 설명하는 주석이 있습니다. 먼저 \"건강 상태 확인\"을 실행하여 목록을 확인하십시오.\n\n이는 초기 검사일 뿐이며, 보장은 아닙니다. 평범한 단어처럼 보이는 비밀번호는 특정 형태가 없어 인식하기 어렵고, 이름은 변경되지 않습니다. 왜냐하면 파일 자체를 참조하기 때문입니다. 게시할 내용을 확인하십시오.\n\n백업하거나 다른 장치로 이동하는 경우, 이 옵션을 선택하지 마십시오. 마스킹된 파일은 키가 누락된 상태로 가져옵니다."

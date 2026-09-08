@@ -36,6 +36,10 @@ _FLASH = '<Action sr="act{n}"><code>548</code><Str sr="arg0">hi</Str></Action>'
 _STOP = '<Action sr="act{n}"><code>137</code><Int sr="arg0" val="0"/></Action>'
 _STOP_IF = '<Action sr="act{n}"><code>137</code><Int sr="arg0" val="0"/><ConditionList sr="if"><Condition sr="c0"><lhs>%b</lhs><op>0</op><rhs>2</rhs></Condition></ConditionList></Action>'
 _STOP_OFF = '<Action sr="act{n}"><code>137</code><on/><Int sr="arg0" val="0"/></Action>'
+# A Stop that names a Task stops THAT Task and carries on here; one naming the Task it is
+# written in is the ordinary Stop by another spelling.
+_STOP_OTHER = '<Action sr="act{n}"><code>137</code><Int sr="arg0" val="0"/><Str sr="arg1">Elsewhere</Str></Action>'
+_STOP_SELF = '<Action sr="act{n}"><code>137</code><Int sr="arg0" val="0"/><Str sr="arg1">Stop Myself</Str></Action>'
 _LABELLED = '<Action sr="act{n}"><code>548</code><label>{label}</label><Str sr="arg0">hi</Str></Action>'
 _GOTO_LABEL = '<Action sr="act{n}"><code>135</code><Int sr="arg0" val="1"/><Int sr="arg1" val="0"/><Str sr="arg2">{label}</Str></Action>'
 # The same jump, taken only sometimes.  An UNCONDITIONAL Goto strands whatever it jumps
@@ -69,6 +73,8 @@ _TASKS = "".join(
         _task("104", "Disabled Stop", _FLASH, _STOP_OFF, _FLASH),
         f'<Task sr="task105"><id>105</id><nme>Variable Goto</nme>{_numbered(_GOTO_LABEL.replace("{label}", "%Where"), _FLASH)}</Task>',
         f'<Task sr="task106"><id>106</id><nme>Jumped Over Stop</nme>{_numbered(_GOTO_LABEL_IF.replace("{label}", "landing"), _STOP, _LABELLED.replace("{label}", "landing"))}</Task>',
+        _task("107", "Stop Another Task", _FLASH, _STOP_OTHER, _FLASH),
+        f'<Task sr="task108"><id>108</id><nme>Closed Off</nme>{_numbered(_IF, _FLASH, _ELSE, _GOTO_LABEL.replace("{label}", "here"), _END_IF, _LABELLED.replace("{label}", "here"))}</Task>',
         # --- one defect each ------------------------------------------------------
         _task("200", "Open If", _FLASH, _IF, _FLASH),
         _task("201", "Open For", _FLASH, _FOR, _FLASH),
@@ -81,6 +87,7 @@ _TASKS = "".join(
         f'<Task sr="task208"><id>208</id><nme>Twin Labels</nme>{_numbered(_GOTO_LABEL.replace("{label}", "twin"), _LABELLED.replace("{label}", "twin"), _LABELLED.replace("{label}", "twin"))}</Task>',
         _task("209", "After Stop", _FLASH, _STOP, _FLASH, _FLASH),
         _task("210", "Loose Goto", _FLASH, _GOTO_TOP),
+        _task("211", "Stop Myself", _FLASH, _STOP_SELF, _FLASH),
     ],
 )
 
@@ -90,7 +97,7 @@ _TASKS = "".join(
 _FLOW_XML = f"""<TaskerData sr="" dvi="1" tv="6.3.13">
   <Project sr="proj0" ve="2">
     <name>Flow</name>
-    <tids>100,101,102,103,104,105,106</tids>
+    <tids>100,101,102,103,104,105,106,107,108</tids>
   </Project>
   {_TASKS}
 </TaskerData>"""
@@ -223,11 +230,14 @@ def test_goto_bad_number(report: str) -> None:
     assert "jumps to action 99, and this Task has 2" in report
 
 
-def test_goto_outside_its_block(report: str) -> None:
-    """A 'Goto top of loop' with no 'For' around it."""
-    assert _findings_for(report, "FLOW-GOTO-OUTSIDE-FOR") == [
-        "[FLOW-GOTO-OUTSIDE-FOR]  Task 'Loose Goto' (id 210) action 2",
-    ]
+def test_goto_outside_a_for_is_not_reported(report: str) -> None:
+    """A 'Goto top of loop' with no 'For' around it is allowed, so nothing is said about it.
+
+    Tasker is perfectly happy with one, and a Task full of them runs every day -- which is
+    why this used to be the report's loudest false alarm.
+    """
+    assert _findings_for(report, "FLOW-GOTO-OUTSIDE-FOR") == []
+    assert "Loose Goto" not in report
 
 
 def test_duplicate_label_is_reported_at_the_goto(report: str) -> None:
@@ -256,7 +266,10 @@ def test_goto_holding_a_variable_is_not_reported(report: str) -> None:
 def test_unreachable_after_stop(report: str) -> None:
     """Everything below an unconditional Stop, reported as one range rather than one each."""
     findings = _findings_for(report, "FLOW-UNREACHABLE")
-    assert findings == ["[FLOW-UNREACHABLE]  Task 'After Stop' (id 209) action 3"]
+    assert findings == [
+        "[FLOW-UNREACHABLE]  Task 'After Stop' (id 209) action 3",
+        "[FLOW-UNREACHABLE]  Task 'Stop Myself' (id 211) action 3",
+    ]
     assert "Nothing can reach actions 3-4" in report
     assert "action 2 ('Stop') ends the flow above it" in report
 
@@ -274,6 +287,47 @@ def test_stop_inside_an_if_does_not_strand_what_follows(report: str) -> None:
 def test_disabled_stop_does_not_strand_what_follows(report: str) -> None:
     """Tasker steps straight over a disabled action, so it cannot end anything."""
     assert "Disabled Stop" not in report
+
+
+def test_stop_naming_another_task_does_not_strand_what_follows(report: str) -> None:
+    """A Stop that names a Task stops that one, not this one, so the flow carries on.
+
+    Shutting down a companion Task and then getting on with the work is everyday Tasker,
+    and reading it as the end of this Task would strand the whole of the rest of it.
+    """
+    assert "Stop Another Task" not in report
+
+
+def test_stop_naming_this_very_task_still_strands_what_follows(report: str) -> None:
+    """The other half of it: a Stop naming the Task it is written in really does end it."""
+    assert "[FLOW-UNREACHABLE]  Task 'Stop Myself' (id 211) action 3" in report
+
+
+def test_unreachable_end_if_alone_is_not_reported(report: str) -> None:
+    """An End If nothing can reach is punctuation, not a stranded action.
+
+    The commonest shape in a real configuration -- an unconditional Goto as the last thing
+    in a branch, with the block's End If directly under it -- and the report used to flag
+    every one of them.
+    """
+    assert "Closed Off" not in report
+
+
+def test_an_end_if_does_not_hide_real_code_stranded_below_it() -> None:
+    """Trimming the closers off a run shortens the span; it never silences the finding.
+
+    The two halves of this pulling against each other: an End If nothing can reach is
+    passed over, but an ordinary action below that same End If is still somebody's dead
+    code and is still named.
+    """
+    flow = _load_one(
+        '<Task sr="task302"><id>302</id><nme>Closer In The Way</nme>'
+        + _numbered(_FLASH, _STOP, _END_IF, _FLASH)
+        + "</Task>",
+    )
+    stranded = [problem for problem in flow.problems if problem.tag == "FLOW-UNREACHABLE"]
+    assert [problem.where.action for problem in stranded] == [4]
+    assert "Nothing can reach action 4" in stranded[0].detail
 
 
 def test_a_label_jumped_to_is_reachable(report: str) -> None:

@@ -538,9 +538,11 @@ def do_profile(
     if PrimeItems.program_arguments["display_detail_level"] > 2:
         get_properties("Profile:", profile)
 
-    # Process any <Share> information from TaskerNet
+    # Process any <Share> information from TaskerNet.  The Profile's identity comes from
+    # its "sr" attribute the same way get_profile_name reads it -- see the anchor written
+    # alongside the Profile's own line above.
     if PrimeItems.program_arguments["taskernet"]:
-        share(profile, "proftab")
+        share(profile, "proftab", Target(PROFILE, profile.attrib.get("sr", "")[4:]))
         # Add a spacer if detail is 0
         if PrimeItems.program_arguments["display_detail_level"] == 0:
             PrimeItems.output_lines.add_line_to_output(

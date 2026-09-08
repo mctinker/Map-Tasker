@@ -3010,3 +3010,9 @@ msgstr "MapTasker zobrazuje vaši konfiguraci Tasker na základě nahráného so
 
 msgid "Please stand by ..."
 msgstr "Prosím, zůstaňte prosím na místě..."
+
+msgid "Redact secrets"
+msgstr "Upravte tajemství"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "Toto zaškrtněte, pokud bude exportovaný soubor odeslán někomu jinému – zveřejněn na fóru nebo zaslán tomu, kdo vám pomáhá.\n\nKlíče API, tokeny, hesla, telefonní čísla, e-mailové adresy a souřadnice umístění v něm jsou nahrazeny značkami [REDACTED:...] a komentář v horní části souboru říká, co bylo odstraněno.  Chcete-li zobrazit seznam, nejprve spusťte kontrolu stavu.\n\nJe to první průchod, nikoli záruka: heslo, které vypadá jako běžné slovo, nemá tvar, který by bylo možné rozpoznat, a jména se nikdy nemění, protože je soubor používá k odkazování na sebe.  Přečtěte si, co zveřejňujete.\n\nPonechejte nezaškrtnuté pro zálohování nebo přesun na jiné zařízení – importuje se redigovaný soubor s chybějícími klíči."

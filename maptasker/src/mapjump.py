@@ -78,17 +78,17 @@ HIGHLIGHT_CLASS = "mt-jump-target"
 
 # How many colon-separated fields Target.token writes.  Named so that adding one cannot be
 # done without the reader that counts them being updated in the same breath.
-_TOKEN_FIELDS = 5
+_TOKEN_FIELDS = 6
 
 
 @dataclass(frozen=True)
 class Target:
     """One object a report points at, in a form the Map view can find again.
 
-    Frozen because a Target is an identity, not a workspace: at_action() and with_text()
-    return new ones rather than mutating a shared record, which is what lets a Task's
-    Target be built once per Task and then have per-action Targets derived from it inside
-    the loop over its actions.
+    Frozen because a Target is an identity, not a workspace: at_action(), at_part() and
+    with_text() return new ones rather than mutating a shared record, which is what lets a
+    Task's Target be built once per Task and then have per-action Targets derived from it
+    inside the loop over its actions.
     """
 
     kind: str
@@ -98,6 +98,12 @@ class Target:
     project: str = ""  # owning Project's name; "" when no Project owns it
     action: int = 0  # 1-based action number, when the target is a position inside a Task
     within: str = ""  # a place with no anchor of its own: "entry Task", "component 'Send'"
+    # A place inside the object that DOES have an anchor of its own.  For a Scene, the
+    # element's internal name as scene_element_parts below spells it ("elements8",
+    # "elements8/background") or a Version 2 component's property (scene_component_part);
+    # for anything a TaskerNet description hangs off, TASKERNET_PART.  What `action` is to
+    # a Task, this is to everything else -- see anchor.
+    part: str = ""
     scope_id: str = ""  # varxref's scope: a Task id, "scene:<name>" or "profile:<id>"
 
     @property
@@ -113,9 +119,20 @@ class Target:
         of their own, so the Scene's own anchor is returned rather than one that is
         guaranteed to match nothing -- the same rule the reports follow when they decline
         to link to an object that is not in the file.
+
+        A part refines any of them, and for the same reason: the Map anchors each of a
+        Scene's elements (scenes.SceneAnchors) and each TaskerNet description
+        (share.description_element_output), and a finding about a variable a Scene reads,
+        or about an email in a description, is about that part rather than about the whole
+        object.  An empty part -- a place the Map does not anchor, or a report that named
+        the object itself -- falls back to the object's own anchor rather than to nothing.
         """
         base = f"mt-{self.kind}-{quote(self.key, safe='')}"
-        return f"{base}-a{self.action}" if self.action and self.kind == TASK else base
+        if self.action and self.kind == TASK:
+            return f"{base}-a{self.action}"
+        if self.part:
+            return f"{base}-e{quote(self.part, safe='')}"
+        return base
 
     @property
     def label(self) -> str:
@@ -140,13 +157,23 @@ class Target:
         """This object, at a place inside it that the Map gives no anchor of its own."""
         return replace(self, within=text)
 
+    def at_part(self, part: str, text: str = "") -> Target:
+        """This object, at a place inside it that the Map DOES anchor -- a Scene's element.
+
+        Takes the prose alongside the key because the two are written together every time:
+        a report that can say "Scene 'Launcher' element Text 'Notes'" is a report whose
+        click can land on that element, and a caller that set one and forgot the other
+        would leave the finding pointing somewhere its own words do not name.
+        """
+        return replace(self, part=part, within=text or self.within)
+
     def token(self) -> str:
         """This target as one string, for crossing into the browser and back.
 
         What a jump needs travels, and nothing else: the kind and key say what to look for,
-        the action number refines it, the name is what a search fallback would type into the
-        box, and the owning Project is which Map has to be built to contain any of it (see
-        scope_for).
+        the action number and the Scene part refine it, the name is what a search fallback
+        would type into the box, and the owning Project is which Map has to be built to
+        contain any of it (see scope_for).
 
         The Project is here because it is load-bearing, not prose.  It was left out at
         first, on the grounds that the report had already printed it -- and the jump then
@@ -161,6 +188,7 @@ class Target:
                 str(self.action),
                 quote(self.name, safe=""),
                 quote(self.project, safe=""),
+                quote(self.part, safe=""),
             ),
         )
 
@@ -173,16 +201,17 @@ class Target:
         None rather than an exception: the token arrives from the browser, and a report
         rendered by an older run of MapTasker is a stale click, not a program error.
         """
-        parts = token.split(":")
-        if len(parts) != _TOKEN_FIELDS or parts[0] not in _KIND_LABELS:
+        fields = token.split(":")
+        if len(fields) != _TOKEN_FIELDS or fields[0] not in _KIND_LABELS:
             return None
-        kind, key, action, name, project = parts
+        kind, key, action, name, project, part = fields
         return cls(
             kind=kind,
             key=unquote(key),
             name=unquote(name),
             project=unquote(project),
             action=int(action or 0),
+            part=unquote(part),
         )
 
 
@@ -274,6 +303,128 @@ def actions_in_map_order(task_element: object) -> list:
         return (0, int(suffix), index) if suffix.isdigit() else (1, 0, index)
 
     return [action for _, action in sorted(enumerate(task_element.findall("Action")), key=position)]
+
+
+def scene_element_parts(scene_element: object) -> dict[int, str]:
+    """{id(element): the key its anchor uses} for every element the Map anchors in one Scene.
+
+    Here for the reason actions_in_map_order is here: two sides have to agree about how the
+    inside of an object is numbered -- the Map, which writes the anchors (scenes.py), and
+    the scans that point at them (varxref) -- and a rule written twice is a rule that drifts.
+    A variable read by a Scene element used to be reported against the Scene, and clicking
+    it landed on "Scene: Launcher" with the element that reads the variable somewhere
+    below; this is what lets the click land on the element itself.
+
+    Keyed by id() rather than by anything in the XML because there is only one parsed tree
+    (PrimeItems.tasker_root_elements), so the renderer and the scanners hold the very same
+    element objects, and object identity is exact where a key built from the file's own
+    text is only nearly unique.  The VALUE is from the file: Tasker's internal name for the
+    element ("elements8"), which is already what the Map prints as "Internal Name=", with
+    the owning element's name in front of a nested one ("elements8/background") since
+    Tasker names every element's backing rectangle "background".  A repeat under one parent
+    is still numbered, so the key stays unique whatever a file turns out to hold.
+
+    Only elements nested directly inside other elements are walked.  An element belonging
+    to a sub-Scene (an element's "Layout") is left out deliberately: the Map renders that
+    through a second pass over the sub-Scene, where the same names would collide with the
+    outer Scene's, and leaving it out means a finding there points at the Scene as it
+    always did rather than at the wrong element.
+    """
+    parts: dict[int, str] = {}
+
+    def walk(parent: object, prefix: str) -> None:
+        used: dict[str, int] = {}
+        for child in parent:
+            if not child.tag.endswith("Element"):
+                continue
+            name = child.attrib.get("sr") or child.tag
+            used[name] = used.get(name, 0) + 1
+            if used[name] > 1:
+                name = f"{name}~{used[name]}"
+            part = f"{prefix}/{name}" if prefix else name
+            parts[id(child)] = part
+            walk(child, part)
+
+    walk(scene_element, "")
+    return parts
+
+
+# What a Version 2 Scene's ROOT component is called in an anchor.  Its own path is empty
+# (sceneedit.v2_flatten starts it at ()), and an empty part means "no part at all" -- which
+# would send every finding about the root component to the top of the Scene.  Not a slot
+# key a path can otherwise begin with: a path's first step names a slot INSIDE the root.
+_V2_ROOT_PART = "root"
+
+
+# The part naming an object's TaskerNet description -- the text whoever published it to
+# TaskerNet wrote about it, which Tasker keeps in <Share><d> and the Map shows only when
+# the "TaskerNet" option is on.  One spelling, shared by the side that writes the anchor
+# (share.py) and the side that points at it (piiscan), the same way the Scene parts are.
+TASKERNET_PART = "taskernet"
+
+
+def needs_taskernet(target: Target) -> bool:
+    """Whether the Map has to be asked for TaskerNet information before it holds this.
+
+    The companion to minimum_detail_level, and needed for the same reason: a jump that
+    rebuilds the Map has to build one the object is actually IN, and a TaskerNet
+    description is governed by its own option rather than by the detail level -- so
+    without this a finding about one lands on a Map that was built without it.
+    """
+    return target.part == TASKERNET_PART
+
+
+def scene_component_part(path: tuple, key: str = "") -> str:
+    """How one property of one Version 2 Scene component is spelled in an anchor.
+
+    The Version 2 counterpart of scene_element_parts, and here for the same reason: the
+    Map writes these ids (scenes.process_recursive_json) and varxref points at them, and
+    the two agreeing about the spelling is the whole of whether a click lands.
+
+    A V2 Scene keeps its components in a gzipped JSON blob rather than in child elements,
+    so there is no "sr" name to key them by -- what identifies a component is its position
+    in the component tree, which is exactly what sceneedit.v2_flatten hands out as a path
+    of alternating slot key and index.  ("children", 0, "children", 2) becomes
+    "children/0/children/2", and the property named on top of it: "...#text".
+
+    The property is part of the id, not merely of the prose, because a V2 component is
+    written out one property per line -- so "the line that reads %Notes" is a property, in
+    a way that a Legacy element's single run-on arguments line is not.
+    """
+    where = "/".join(str(step) for step in path) or _V2_ROOT_PART
+    return f"{where}#{key}" if key else where
+
+
+def v2_strings(value: object) -> list[str]:
+    """Every string inside one Version 2 property's value, however deeply it nests.
+
+    A property is not always a string: a component's eventHandlers is a whole tree of
+    dicts and lists, and the variable a finding is about can be anywhere down it.
+    """
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, dict):
+        return [text for item in value.values() for text in v2_strings(item)]
+    if isinstance(value, list):
+        return [text for item in value for text in v2_strings(item)]
+    return []
+
+
+def v2_property_holds_a_variable(value: object) -> bool:
+    """Whether a finding about a variable could ever name this Version 2 property.
+
+    This is the whole of what decides which lines the Map anchors (scenes.SceneAnchors)
+    and, guarding its scan, which lines varxref points at -- one question asked in one
+    place, because a Map that anchored a different set of lines from the set the reports
+    name would either write thousands of ids nothing uses or leave a finding with nowhere
+    to land.  The alternative, anchoring every property line of every component, came to
+    three thousand ids on one real backup for the four hundred that are pointed at.
+
+    Deliberately generous within that: "holds a %" is not "holds a variable Tasker would
+    resolve", and a property mentioning one in passing is anchored along with the rest.
+    An id nobody clicks costs a few bytes; a finding that cannot land costs the click.
+    """
+    return any("%" in text for text in v2_strings(value))
 
 
 def scope_for(target: Target) -> str:
@@ -1050,24 +1201,26 @@ def diagram_placement(target: Target) -> tuple[int, int, int] | None:
     view limit, one built before this version recorded anything, or no Diagram at all.  The
     caller falls back to matching the drawn text, which is what this replaced.
 
-    An action is answered by its Task's own line.  The Diagram draws no actions, so a Find
-    result pointing at "action 5 of Task 118" has nowhere finer to land than Task 118 --
-    and landing there is the right answer rather than a failure to be reported.
+    An action is answered by its Task's own line, and a Scene's element by the Scene's box.
+    The Diagram draws neither, so a Find result pointing at "action 5 of Task 118" has
+    nowhere finer to land than Task 118 -- and landing there is the right answer rather
+    than a failure to be reported.
     """
     anchors = getattr(PrimeItems, "diagram_anchors", None)
     if not anchors:
         return None
-    return anchors.get(replace(target, action=0).anchor)
+    return anchors.get(replace(target, action=0, part="").anchor)
 
 
 def diagram_anchor(target: Target) -> str:
     """The id this object's name carries in an interactive Diagram, or "".
 
-    The same normalisation diagram_placement makes: the Diagram draws no actions, so an
-    action's Target is answered by the Task that holds it.  Kept beside it so the element
-    looked up and the line fallen back to can never be two different objects.
+    The same normalisation diagram_placement makes: the Diagram draws no actions and no
+    Scene elements, so an action's Target is answered by the Task that holds it and an
+    element's by its Scene.  Kept beside it so the element looked up and the line fallen
+    back to can never be two different objects.
     """
-    return replace(target, action=0).anchor if target.kind != VARIABLE else ""
+    return replace(target, action=0, part="").anchor if target.kind != VARIABLE else ""
 
 
 def diagram_jump_js(

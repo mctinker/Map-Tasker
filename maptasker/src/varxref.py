@@ -50,7 +50,11 @@ from maptasker.src.mapjump import (
     Target,
     actions_in_map_order,
     describe,
+    scene_component_part,
+    scene_element_parts,
     text_report,
+    v2_property_holds_a_variable,
+    v2_strings,
 )
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.primitem import PrimeItems
@@ -867,12 +871,22 @@ def _scan_legacy_scene(
     .iter() rather than direct children, for the reason healthck gives: a Legacy element
     can hold another (every element here carries a RectElement background), and a binding
     on a nested one is every bit as real.
+
+    Every reference is recorded against the ELEMENT, not against the Scene.  A Scene is the
+    one object in a report whose findings are never about the object itself -- "%Notes is
+    read and nothing sets it, first at Scene 'Launcher'" is a fact about one element of a
+    Scene that may hold fifty of them -- so the location says which element, and a click on
+    it lands on that element's own line in the Map (mapjump.scene_element_parts).  Elements
+    the Map does not anchor keep the Scene's own anchor, which is where every one of these
+    used to land.
     """
-    where = place.label
+    parts = scene_element_parts(scene["xml"])
     for element in scene["xml"].iter():
         if not element.tag.endswith("Element"):
             continue
         label = sceneedit.legacy_element_label(element)
+        spot = place.at_part(parts.get(id(element), ""), f"element {label}")
+        where = spot.label
         value_arg = _LEGACY_VALUE_ARGS.get(element.tag)
         value_elements = _argument_elements(element)
         for arg_id, text in _string_arguments(element).items():
@@ -883,23 +897,12 @@ def _scan_legacy_scene(
                 _record_write(
                     index,
                     text,
-                    Reference(SET, where, detail, scope_id, place, value_elements.get(arg_id)),
+                    Reference(SET, where, detail, scope_id, spot, value_elements.get(arg_id)),
                     plural=False,
                     also_read=True,
                 )
             else:
-                _record_reads(index, text, Reference(READ, where, label, scope_id, place, value_elements.get(arg_id)))
-
-
-def _v2_strings(value: object) -> list[str]:
-    """Every string inside one V2 property's value, however deeply it nests."""
-    if isinstance(value, str):
-        return [value]
-    if isinstance(value, dict):
-        return [text for item in value.values() for text in _v2_strings(item)]
-    if isinstance(value, list):
-        return [text for item in value for text in _v2_strings(item)]
-    return []
+                _record_reads(index, text, Reference(READ, where, label, scope_id, spot, value_elements.get(arg_id)))
 
 
 def _scan_v2_scene(
@@ -916,6 +919,11 @@ def _scan_v2_scene(
     only -- child slots are skipped, because a node's dict contains its whole subtree and
     counting that would report every variable once per ancestor, which on a 53-component
     Scene means a variable read once looking read six times.
+
+    Every reference is recorded against the component's own PROPERTY, not against the
+    Scene, for the reason _scan_legacy_scene gives -- and one property rather than one
+    component, because the Map writes a V2 component out one property per line, so there
+    is an exact line for a finding to land on.
     """
     layout = sceneedit.decode_v2_layout(scene["xml"])
     # None means an <lj> that would not decode.  Guessing at a corrupt layout would
@@ -923,13 +931,17 @@ def _scan_v2_scene(
     if layout is None:
         return
 
-    where = place.label
     for row in sceneedit.v2_flatten(layout):
         child_slots = {slot for slot, _ in sceneedit.v2_child_slots(row.node)}
         for key, value in row.node.items():
             if key in child_slots:
                 continue
-            for text in _v2_strings(value):
+            # Asked before the strings are walked, rather than left to the test below, so
+            # that the properties this records are visibly the same set the Map anchors --
+            # see mapjump.v2_property_holds_a_variable, which is that one question.
+            if not v2_property_holds_a_variable(value):
+                continue
+            for text in v2_strings(value):
                 if "%" not in text:
                     continue
                 label = f"component '{row.label}' {key}"
@@ -938,13 +950,20 @@ def _scan_v2_scene(
                 # walking is a throwaway -- a reference into it would address nothing by
                 # the time anybody wanted to write to it.  The path survives a re-decode.
                 where_in_layout = (row.path, key)
+                # The same two things, as somewhere to go and look: the Map writes an
+                # anchor per property line of every component, and the path and the key
+                # together are what pick out the one this value is on.
+                spot = place.at_part(
+                    scene_component_part(row.path, key),
+                    f"component {row.label} {key}",
+                )
                 if key in _V2_VALUE_KEYS:
                     # Same two-way binding as a Legacy input element: a TextInput's value
                     # is both what it shows and where what the user types goes.
                     _record_write(
                         index,
                         text,
-                        Reference(SET, where, label, scope_id, place, scene["xml"], where_in_layout),
+                        Reference(SET, spot.label, label, scope_id, spot, scene["xml"], where_in_layout),
                         plural=False,
                         also_read=True,
                     )
@@ -952,7 +971,7 @@ def _scan_v2_scene(
                     _record_reads(
                         index,
                         text,
-                        Reference(READ, where, label, scope_id, place, scene["xml"], where_in_layout),
+                        Reference(READ, spot.label, label, scope_id, spot, scene["xml"], where_in_layout),
                     )
 
 

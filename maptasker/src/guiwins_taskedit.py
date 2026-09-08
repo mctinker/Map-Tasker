@@ -1182,7 +1182,12 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
     """
     # Imported here rather than at the top of the file: guiwins imports this module, so a
     # module-level import would be a cycle.  See this module's docstring.
-    from maptasker.src.guiwins import PendingChangesBanner, _build_properties_button, editor_state  # noqa: PLC0415
+    from maptasker.src.guiwins import (  # noqa: PLC0415
+        PendingChangesBanner,
+        _build_properties_button,
+        build_redact_checkbox,
+        editor_state,
+    )
 
     task_name = edited_task.task_element.findtext("nme", "")
     field_refs: dict = {}
@@ -1224,6 +1229,7 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
             translate_string("Save as"),
             value=taskedit.default_save_path(task_name),
         ).classes("w-full mt-2")
+        build_redact_checkbox(field_refs)
 
         # Everything a change to this Task can be in is either the working copy's element --
         # every Add/Copy/Move/Delete Action, an action's Enabled switch, its If condition,

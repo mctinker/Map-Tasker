@@ -3010,3 +3010,9 @@ msgstr "MapTasker, yüklediğiniz Tasker XML dosyanız (örneğin, 'backup.xml')
 
 msgid "Please stand by ..."
 msgstr "Lütfen bekleyin..."
+
+msgid "Redact secrets"
+msgstr "Gizli dizileri düzenleyin"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "Dışa aktarılan dosya başka birine (bir forumda yayınlanacak veya size yardımcı olan kişiye gönderilecek) gönderilecekse bunu işaretleyin.\n\nİçindeki API anahtarları, belirteçler, şifreler, telefon numaraları, e-posta adresleri ve konum koordinatları, [REDACTED:...] işaretçileriyle değiştirildi ve dosyanın üst kısmındaki bir yorumda neyin çıkarıldığı belirtiliyor.  Listeyi görmek için önce Sağlık Kontrolü'nü çalıştırın.\n\nBu bir ilk geçiştir, bir garanti değildir: Sıradan bir kelimeye benzeyen bir parolanın tanınacak bir şekli yoktur ve dosya bunları kendisine atıfta bulunmak için kullandığından adlar asla değişmez.  Ne yayınladığını oku.\n\nYedekleme veya başka bir cihaza taşıma için bu seçeneği işaretlemeden bırakın; düzenlenmiş bir dosya, anahtarları eksik olarak içe aktarılır."

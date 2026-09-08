@@ -18,6 +18,14 @@ from maptasker.src import tasks
 from maptasker.src.actionc import action_codes
 from maptasker.src.actione import action_results
 from maptasker.src.dirout import add_directory_item
+from maptasker.src.mapjump import (
+    SCENE,
+    Target,
+    anchor_html,
+    scene_component_part,
+    scene_element_parts,
+    v2_property_holds_a_variable,
+)
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.proclist import process_list
 from maptasker.src.sysconst import (
@@ -99,11 +107,28 @@ def decompress_gzip_json(b64_string: str) -> dict | str:
         return f"An error occurred: {e}"
 
 
-def process_recursive_json(data: str, indentation: str, current_depth: int = 0) -> None:
+def process_recursive_json(
+    data: str,
+    indentation: str,
+    current_depth: int = 0,
+    anchors: SceneAnchors | None = None,
+) -> None:
     """
     Recursively processes JSON data and adds it to PrimeItems output.
+
+    A line showing a property that holds a variable is preceded by that property's jump
+    anchor, so a report finding about it lands on the line that holds it -- see
+    SceneAnchors, which decides which those are.  A dict that is not a component of this
+    layout (the wrapper around the root, a property whose value is an object of its own) is
+    not in the index at all and gets no anchors, which leaves any finding about one
+    pointing at the Scene as before.
     """
     blank = " "  # Assuming blank is a space character
+
+    def mark(key: str) -> None:
+        """Anchor the line about to be written, when this dict is a component."""
+        if anchors is not None:
+            anchors.mark_property(data, key)
 
     if isinstance(data, dict):
         # A Scene V2 element is identified by its "type" key.  Output the type first and
@@ -112,6 +137,7 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
         items = list(data.items())
         type_value = data.get("type")
         if type_value is not None and not isinstance(type_value, (dict, list)):
+            mark("type")
             PrimeItems.output_lines.add_line_to_output(
                 0,
                 f"{blank * ((3 + indentation) + (current_depth * 3))}type: {type_value}",
@@ -123,6 +149,7 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
         for key, value in items:
             # Calculate dynamic indentation: base (3) + parent + (3 per depth level)
             current_indent = (3 + indentation) + (current_depth * 3)
+            mark(key)
 
             if isinstance(value, dict):
                 # Print the key and indicate it's a nested object
@@ -132,7 +159,7 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
                     ["", "scene_color", FormatLine.add_end_span],
                 )
                 # Recursive call: increment depth
-                process_recursive_json(value, indentation, current_depth + 1)
+                process_recursive_json(value, indentation, current_depth + 1, anchors)
             elif isinstance(value, list):
                 # Print the key and indicate it's a list
                 PrimeItems.output_lines.add_line_to_output(
@@ -142,7 +169,7 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
                 )
                 # Recursive call for each item in the list: increment depth
                 for item in value:
-                    process_recursive_json(item, indentation, current_depth + 1)
+                    process_recursive_json(item, indentation, current_depth + 1, anchors)
             else:
                 # Base case: standard key-value pair
                 PrimeItems.output_lines.add_line_to_output(
@@ -153,13 +180,111 @@ def process_recursive_json(data: str, indentation: str, current_depth: int = 0) 
     elif isinstance(data, list):
         # Optional: Handle lists if they appear in your Scene V2 JSON
         for i, item in enumerate(data):
-            process_recursive_json({f"[{i}]": item}, indentation, current_depth)
+            process_recursive_json({f"[{i}]": item}, indentation, current_depth, anchors)
+
+
+# Where each of one Scene's elements gets its anchor in the Map.
+#
+# A report finding about a variable is about the ELEMENT that reads it -- "Scene 'Launcher'
+# element Text 'Notes'" -- and used to be able to land no closer than the Scene's own line,
+# leaving the user to hunt down the element among the rest of a Scene's output.  varxref
+# names the element it found the variable in (see its scene walk); this is the other half,
+# which writes the id that name points at.
+#
+# Both kinds of Scene are covered, by the two keying rules mapjump holds: a Legacy Scene's
+# elements by Tasker's own internal name for them, and a Version 2 Scene's components by
+# their position in the component tree, down to the individual property -- a V2 component
+# is written out one property per line, so there is a line to land on rather than the one
+# run-on arguments line a Legacy element gets.
+#
+# Built once per Scene and carried down through the walk rather than recomputed per
+# element: the keys come from a walk of the whole Scene, which is the only way a nested
+# element can be told from the identically-named one under the next element along.
+class SceneAnchors:
+    """The anchor to write for each element of one Scene, or nothing for a Scene with none.
+
+    "Nothing" is the ordinary case for a sub-Scene (an element's "Layout"), whose elements
+    the Map renders through a second pass that has no keys of its own -- see
+    mapjump.scene_element_parts on why they are deliberately left unanchored.
+    """
+
+    def __init__(self, scene_name: str = "", scene_element: defusedxml.ElementTree | None = None) -> None:
+        """Take the Scene's name -- how Tasker keys it, and so how a Target names it -- and its element."""
+        self.scene_name = scene_name
+        self.parts = scene_element_parts(scene_element) if scene_name and scene_element is not None else {}
+        # {id(component): {property: its anchor key}} for a Version 2 layout, once one has
+        # been decoded.  Keyed by identity like self.parts, and legitimately so for the
+        # same reason: the nodes here are the ones the renderer is about to walk.  It is a
+        # DIFFERENT object from the one varxref decoded -- a V2 layout is decoded afresh
+        # every time, where the XML tree is parsed once -- which is why the two sides agree
+        # on the PATH rather than on the node (see mapjump.scene_component_part).
+        self.component_parts: dict[int, dict[str, str]] = {}
+
+    def note_v2_layout(self, layout: dict) -> None:
+        """Learn which lines of a decoded Version 2 layout are worth anchoring, and as what.
+
+        Only the properties that hold a variable, which is exactly the set varxref's scan
+        can point at -- both sides ask mapjump.v2_property_holds_a_variable, so neither can
+        anchor a line the other does not name.  A child slot is left out because varxref
+        skips one too: its value is the whole subtree below it, and anchoring that would
+        put an id on the "children:" line for every variable anywhere underneath.
+
+        sceneedit is imported here rather than at module scope for the reason varxref and
+        healthck give for theirs: it is the Scene editor, nothing else in the Map output
+        needs it, and it reaches back into this module for its decoder.
+        """
+        if not self.scene_name:
+            return
+        from maptasker.src.sceneedit import v2_child_slots, v2_flatten  # noqa: PLC0415
+
+        for row in v2_flatten(layout):
+            child_slots = {slot for slot, _ in v2_child_slots(row.node)}
+            wanted = {
+                key: scene_component_part(row.path, key)
+                for key, value in row.node.items()
+                if key not in child_slots and v2_property_holds_a_variable(value)
+            }
+            if wanted:
+                self.component_parts[id(row.node)] = wanted
+
+    def mark(self, element: defusedxml.ElementTree) -> None:
+        """Write a Legacy element's anchor into the output, ahead of the line it belongs to.
+
+        Called from both of the lines an element can get -- its "Element of type" heading
+        and its "UI for" arguments -- and anchor_html hands back "" for the second of them,
+        so an element only ever carries one.  Which of the two it lands on is get_details'
+        decision, and it is the arguments line wherever there is one: that is the line
+        holding "Text=%Notes", which is what a finding about a variable is about.
+        """
+        self._write(self.parts.get(id(element), ""))
+
+    def mark_property(self, node: dict, key: str) -> None:
+        """Write one Version 2 component property's anchor, ahead of the line that shows it.
+
+        Nothing at all for a property no finding can be about -- see note_v2_layout, which
+        settles which those are -- so an ordinary component contributes an id for the one
+        line that mentions a variable rather than one for every line it is written out on.
+        """
+        self._write(self.component_parts.get(id(node), {}).get(key, ""))
+
+    def _write(self, part: str) -> None:
+        """Put one anchor into the output, on a line of its own.
+
+        Its own output line rather than the front of the line it marks, for the reason
+        projects.py gives: that line is styled and indented from end to end, and an anchor
+        inside it would be styled and indented along with it.
+        """
+        if not part:
+            return
+        if anchor := anchor_html(Target(SCENE, self.scene_name, self.scene_name).at_part(part)):
+            PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
 
 # Get the Scene's elements
 def get_scene_elements(
     child: defusedxml.ElementTree,
     indentation: int,
+    anchors: SceneAnchors | None = None,
 ) -> None:
     """Get_scene_elements function processes an XML element and its sub-elements to retrieve their names, geometry, and layout information if applicable.
     Parameters:
@@ -186,8 +311,12 @@ def get_scene_elements(
                 ["", "scene_color", FormatLine.add_end_span],
             )
         else:
+            # Learn where each component sits before writing any of it out, so every line
+            # can carry the anchor a report finding about it points at (see SceneAnchors).
+            if anchors is not None:
+                anchors.note_v2_layout(json_data)
             # Start the recursive processing.  Scene V2 JSON is nested, so we need to recurse through it to get all the details.
-            process_recursive_json(json_data, indentation)
+            process_recursive_json(json_data, indentation, anchors=anchors)
         return
 
     # First string is the name of the element
@@ -203,6 +332,10 @@ def get_scene_elements(
 
     # Get the element name
     element_name = "" if element_type[0] == "Properties" else f"'{name_xml_element.text}' "
+
+    # Mark this element's place so a report finding about it can be clicked and land here.
+    if anchors is not None:
+        anchors.mark(child)
 
     PrimeItems.output_lines.add_line_to_output(
         0,
@@ -241,7 +374,11 @@ def get_scene_element_names(scene: defusedxml.ElementTree) -> list[str]:
 
 
 # Handle sub-lements of the element we are doing.
-def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> None:
+def process_sub_elements(
+    child: defusedxml.ElementTree,
+    indentation: int,
+    anchors: SceneAnchors | None = None,
+) -> None:
     """
     Process the sub-elements of the given child ElementTree.
 
@@ -264,7 +401,7 @@ def process_sub_elements(child: defusedxml.ElementTree, indentation: int) -> Non
         indentation = original_indentation
         # If it is an xxxElement, then process it by recursing.
         if tag_in_type(subchild.tag, True):
-            process_arguments(subchild, subchild.tag, indentation + 5)
+            process_arguments(subchild, subchild.tag, indentation + 5, anchors)
         # Handle the Key event's filter -- the Event/Key tab of Tasker's Scene Properties.
         # <urlMatch> is the KEYS filter there, not a URL: its values are Tasker's
         # slash-separated key list ("back", "back/home"), and the tag name is a leftover from
@@ -334,6 +471,7 @@ def format_and_output_arguments(
     child: defusedxml.ElementTree,
     element_type: str,
     indentation: int,
+    anchors: SceneAnchors | None = None,
 ) -> None:
     """
     Formats and outputs the arguments for the given child element, element type, and indentation level.
@@ -393,6 +531,37 @@ def format_and_output_arguments(
     if PrimeItems.program_arguments["pretty"]:
         line_out = line_out.replace(", ", f"<br>{line_indentation}")
 
+    # Close the colour span the arguments text opens and does not, so that this line is one
+    # element of its own -- and then open an identical one, so that the colour carries on
+    # exactly as it did.  Both halves are needed, and neither on its own would do:
+    #
+    #   get_action_results hands back a line that OPENS a colour span and leaves it open,
+    #   for whoever writes it out to close.  add_line_to_output adds one closing tag, which
+    #   closes THAT span and leaves the outer one this line is wrapped in open.  A browser
+    #   then reads every line the Map writes afterwards as sitting inside this element: on
+    #   one Project's Map it ran to 306 lines, out the end of the Scene and past the end of
+    #   the Project.  That is what a report finding lands on when it points here, and a jump
+    #   scrolls what it lands on to the middle of the window -- so a click asking for one
+    #   line arrived 150 lines below it, with an outline drawn round the lot.
+    #
+    #   The span cannot simply be closed and left closed, though.  What leaks out of it is
+    #   the Scene colour, and the lines that follow -- the names of the Tasks a Scene's
+    #   elements fire -- have been taking their colour from it rather than setting one of
+    #   their own.  Closing it turns those lines the default colour, which is a visible
+    #   change to the Map to fix something the reader cannot see.  Re-opening it leaves the
+    #   colour exactly where it was and gives the anchor a line-sized element to point at.
+    #
+    # Counted rather than assumed to be one, so an element type whose arguments do come back
+    # balanced is left as it is -- and gets no stray tag it never asked for.
+    unclosed = max(line_out.count("<span") - line_out.count("</span>"), 0)
+    line_out += "</span>" * unclosed
+
+    # Mark this element's place: this is the line holding the values a finding about a
+    # variable names.  A no-op for an element already anchored on its heading line, which
+    # is where one gets its anchor when no arguments follow -- see get_details.
+    if anchors is not None:
+        anchors.mark(child)
+
     # Output the element line details.
     PrimeItems.output_lines.add_line_to_output(
         2,
@@ -400,12 +569,20 @@ def format_and_output_arguments(
         ["", "scene_color", FormatLine.add_end_span],
     )
 
+    # Put the colour back for whatever the Map writes next -- see the note above.
+    if unclosed:
+        PrimeItems.output_lines.add_line_to_output(
+            5,
+            '<span class="scene_color">',
+            FormatLine.dont_format_line,
+        )
+
     # If the element is a ListElementItem, get it's Task Action (in Properties) and output it.
     if element_type == "ListElementItem":
         process_list_element(child, indentation, element_name)
 
     # Handle sub-elements
-    process_sub_elements(child, indentation)
+    process_sub_elements(child, indentation, anchors)
 
 
 # Break down the UI aspects and output them based on it's arguments.
@@ -413,6 +590,7 @@ def process_arguments(
     child: defusedxml.ElementTree,
     element_type: str,
     indentation: int,
+    anchors: SceneAnchors | None = None,
 ) -> None:
     """
     Process the arguments of a given child element in a scene.
@@ -442,7 +620,7 @@ def process_arguments(
         return
 
     # Format and output the xxxElement arguments
-    format_and_output_arguments(child, element_type, indentation)
+    format_and_output_arguments(child, element_type, indentation, anchors)
 
 
 # Go through Scene's XML looking for Tasks (e.g. ClickTask) and output if found
@@ -595,6 +773,7 @@ def get_details(
     scene: defusedxml.ElementTree,
     tasks_found: defusedxml.ElementTree,
     indentation: int = 0,
+    anchors: SceneAnchors | None = None,
 ) -> None:
     """
     Go through Scene to obtain it's height and width and output.
@@ -603,6 +782,8 @@ def get_details(
         scene (defusedxml.ElementTree): Scene xml element to trundle through.
         tasks_found (defusedxml.ElementTree): List of Tasks found so far.
         indentation (int): Indentation number of blanks to add to output lines.
+        anchors (SceneAnchors): where each element's jump anchor goes; None for a Scene
+            whose elements are not anchored (see SceneAnchors).
 
     Returns:
         Nothing
@@ -625,12 +806,25 @@ def get_details(
             element_type = child.tag
             # Display the Element details
             if PrimeItems.program_arguments["display_detail_level"] > 2:
-                _get_scene_elements(child, indentation)
+                # The jump anchor goes on the element's ARGUMENTS line wherever there is
+                # going to be one, because that is the line a finding about a variable is
+                # actually about -- "Text=%Notes" rather than "'Notes' Element of type
+                # Text".  The heading line takes it in the two cases where no arguments
+                # line follows: a lower detail level, and an element type actionc.py has
+                # no entry for, which _process_arguments declines to output at all.
+                #
+                # A Version 2 Scene's <lj> is one of those types, which is how its
+                # components' anchors reach _get_scene_elements -- it writes them itself,
+                # from the layout it decodes.
+                on_heading = (
+                    PrimeItems.program_arguments["display_detail_level"] != 5 or element_type not in action_codes
+                )
+                _get_scene_elements(child, indentation, anchors if on_heading else None)
 
             # Are we to display Scene element details?
             if PrimeItems.program_arguments["display_detail_level"] == 5:
                 # Get the element type's arguments and process them
-                _process_arguments(child, element_type, indentation)
+                _process_arguments(child, element_type, indentation, anchors)
 
             # Check to see if this Scene has a layout Scene, and deal with it if so.
             sub_scenes = child.find("Scene")
@@ -655,7 +849,11 @@ def get_details(
 
 
 # Process the Scene's Properties
-def process_properties(scene: defusedxml.ElementTree, indentation: int) -> None:
+def process_properties(
+    scene: defusedxml.ElementTree,
+    indentation: int,
+    anchors: SceneAnchors | None = None,
+) -> None:
     # Get the PropertiesElement
     """Returns:
         - None: No return value.
@@ -666,7 +864,7 @@ def process_properties(scene: defusedxml.ElementTree, indentation: int) -> None:
     properties = scene.find("PropertiesElement")
     if properties is not None:
         # Format and output the xxxElement arguments
-        format_and_output_arguments(properties, "PropertiesElement", indentation + 5)
+        format_and_output_arguments(properties, "PropertiesElement", indentation + 5, anchors)
 
         # Process any Tasks as part of this Scene Properties
         # process_tasks(properties, [])
@@ -693,6 +891,11 @@ def process_scene(
     # Get the Scene's XML pointer.  If scene_xml being passed in is None, then use the name passed in to get the XML.
     scene = PrimeItems.tasker_root_elements["all_scenes"][my_scene]["xml"] if scene_xml is None else scene_xml
 
+    # Where each element's jump anchor goes.  Only for a Scene reached by name: a sub-Scene
+    # arrives as an element of another Scene and shares that Scene's name, so keying its
+    # elements here would write ids that belong to the outer Scene's elements.
+    anchors = SceneAnchors(my_scene, scene) if scene_xml is None else SceneAnchors()
+
     # Get the Scene's geometry and display it
     height, width = get_geometry(scene)
     PrimeItems.output_lines.add_line_to_output(
@@ -706,11 +909,11 @@ def process_scene(
         add_directory_item("scenes", my_scene)
 
     # Go through all the children of the Scene looking for width/height, 'click' tasks and other details.
-    get_details(scene, tasks_found, indentation)
+    get_details(scene, tasks_found, indentation, anchors)
 
     # Process Properties if we are at the head Scene
     if indentation == 0:
-        process_properties(scene, indentation)
+        process_properties(scene, indentation, anchors)
 
     # If we are doing twisties, then we need to close the unordered list.
     if PrimeItems.program_arguments["twisty"]:

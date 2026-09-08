@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import proflint, taskflow, varxref
+from maptasker.src import piiscan, proflint, taskflow, varxref
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import (
     PROFILE,
@@ -838,6 +838,32 @@ def _check_behaviour(index: ReferenceIndex) -> None:
         index.add(problem.severity, problem.tag, problem.where, problem.detail)
 
 
+def _check_secrets(index: ReferenceIndex) -> None:
+    """Fold the secrets and personal-details scan into this report.
+
+    Folded in for the reason _check_behaviour is: every check above answers a question
+    about whether the configuration WORKS, and this one answers the only question that
+    matters before it is handed to somebody else -- what is in it that is nobody else's
+    business.  An API key sitting in a Variable Set breaks nothing at all, and is the single
+    most expensive thing in the file to post on a forum.
+
+    A fourth walk over the configuration rather than a filter over ReferenceIndex, again for
+    _check_variables' reason: piiscan reads the text of every argument, every Scene element,
+    every import-time variable and Tasker's own preferences, and no pass here collects any
+    of it.
+
+    The severity and the tag both come from piiscan unchanged, as proflint's and taskflow's
+    are -- see the note at the top of piiscan.py on why its two severity words are spelled
+    out there rather than imported from here.
+
+    The same scan drives the Redact option on the standalone exports, which is the point of
+    it: what is reported here is what disappears from a redacted file, so this report is how
+    a user decides whether one is worth making.
+    """
+    for problem in piiscan.lint_problems():
+        index.add(problem.severity, problem.tag, problem.where, problem.detail)
+
+
 def _check_hygiene(index: ReferenceIndex) -> None:
     """Report the things that are legal, and working, but worth knowing about."""
     all_profiles = PrimeItems.tasker_root_elements["all_profiles"]
@@ -993,6 +1019,29 @@ def _limitations(index: ReferenceIndex) -> list[str]:
             "",
         ]
 
+    if any(item.tag in piiscan.TAGS for item in index.findings):
+        notes += [
+            "",
+            "NOTE ON SECRETS AND PERSONAL DETAILS",
+            "-" * _REPORT_WIDTH,
+            "The findings above tagged SECRET- and PII- are not faults.  The",
+            "configuration runs perfectly with every one of them in it; they cost",
+            "something only when the file is handed to somebody else.  If that is what",
+            "you are about to do, tick 'Redact secrets' on the Export button in Edit",
+            "Project, Profile, Task or Scene: it takes the things listed above out of",
+            "the file it writes, and puts a comment at the top saying what went.",
+            "",
+            "What it cannot do, since a redacted file gets trusted.  A password or key",
+            "that looks like an ordinary word has no shape to recognise, so it is",
+            "neither reported nor removed.  Names are never touched, because the file",
+            "uses them to refer to itself -- rewriting a Scene's name would produce a",
+            "file that imports and then does nothing.  And an export holds one Project,",
+            "Profile, Task or Scene: findings above against a global variable or against",
+            "the Tasker preferences are not in it to be removed, because Tasker's own",
+            "single-object exports do not carry either.  Read what you post.",
+            "",
+        ]
+
     # Only worth saying when both halves are true: there are Scenes on the list, and there
     # is something in the file that could account for them.
     if index.variable_scene_references and any(item.tag == "UNUSED-SCENE" for item in index.findings):
@@ -1058,6 +1107,7 @@ def run_health_check() -> tuple[list[Row], dict]:
     _check_control_flow(index)
     _check_variables(index)
     _check_behaviour(index)
+    _check_secrets(index)
 
     return _build_report(index, datetime.now()), _counts(index.findings)  # noqa: DTZ005
 

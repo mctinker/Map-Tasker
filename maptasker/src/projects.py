@@ -747,7 +747,7 @@ def get_profile_details_and_output(
 
     # Process TaskerNet details if requested
     if PrimeItems.program_arguments["taskernet"]:
-        share(project, "projtab")
+        share(project, "projtab", Target(PROJECT, project_name, project_name))
 
     return False, profile_count, have_project_wanted
 

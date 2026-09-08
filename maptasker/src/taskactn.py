@@ -249,7 +249,7 @@ def get_task_actions_and_output(
 
                 # Process any <Share> information from TaskerNet
                 if PrimeItems.program_arguments["taskernet"]:
-                    share(the_task, "tasktab")
+                    share(the_task, "tasktab", Target(TASK, task_id))
                     # Add a spacer if detail is 0
                     if PrimeItems.program_arguments["display_detail_level"] == 0:
                         PrimeItems.output_lines.add_line_to_output(

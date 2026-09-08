@@ -29,7 +29,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import deviceinv, sessundo
+from maptasker.src import deviceinv, piiscan, sessundo
 from maptasker.src.actionc import action_codes
 from maptasker.src.actiont import lookup_values
 from maptasker.src.bundle import bundles
@@ -2025,10 +2025,15 @@ def save_path_exists(output_path: str) -> bool:
     return bool(output_path) and os.path.exists(output_path)
 
 
-def render_standalone_task_xml(edited_task: EditableTask) -> str:
+def render_standalone_task_xml(edited_task: EditableTask, *, redact: bool = False) -> str:
     """Render the edited Task as a standalone TaskerData/Task XML string, matching
     Tasker's own single-task export/import format. Shared by write_standalone_task_xml
     (local file) and save_task_to_android (posted to the Android device).
+
+    `redact` runs the export through piiscan first, replacing the API keys, tokens,
+    passwords, phone numbers, email addresses and coordinates in it with markers and
+    writing a comment above the file saying what went -- what "Redact secrets" on the
+    export button does.  Off by default, so nothing that already calls this changes.
     """
     tv = PrimeItems.xml_root.attrib.get("tv", "") if PrimeItems.xml_root is not None else ""
     task_copy = copy.deepcopy(edited_task.task_element)
@@ -2038,13 +2043,18 @@ def render_standalone_task_xml(edited_task: EditableTask) -> str:
     # the wrapper using the same class the parsed elements actually are.
     root = type(task_copy)("TaskerData", {"sr": "", "dvi": "1", "tv": tv})
     root.append(task_copy)
+    # Redacting happens HERE, on the tree that is about to be serialized, rather than at
+    # the button that asked for it: this is the one line every export of this kind passes
+    # through, so an export path added later cannot quietly skip it.  See piiscan.
+    notice = piiscan.redact_rendered(root) if redact else ""
+
     ETW.indent(root, space="\t")
 
     # No <?xml ...?> declaration -- see profedit.render_standalone_profile_xml.
-    return ETW.tostring(root, encoding="unicode") + "\n"
+    return notice + ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_task_xml(edited_task: EditableTask, output_path: str) -> str:
+def write_standalone_task_xml(edited_task: EditableTask, output_path: str, *, redact: bool = False) -> str:
     """Write the edited Task as a standalone TaskerData/Task XML file, matching
     Tasker's own single-task export/import format. Raises OSError on failure.
 
@@ -2053,10 +2063,15 @@ def write_standalone_task_xml(edited_task: EditableTask, output_path: str) -> st
     rather than at the buttons that call this, so no export path can be added later that
     quietly skips it.  Returns the copy's path, or "" if there was nothing to copy or the
     copy failed (which does not stop the write -- see presave's module comment).
+
+    `redact` is passed straight through to the render (see it for what goes).  Only the
+    local exports offer it: "Save To Android" puts the configuration back on the user's own
+    device, where the keys in it are the keys it needs to work, and a redacted upload would
+    be an import that silently stopped functioning.
     """
     _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
-        out_file.write(render_standalone_task_xml(edited_task))
+        out_file.write(render_standalone_task_xml(edited_task, redact=redact))
     return safety_copy
 
 

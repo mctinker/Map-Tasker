@@ -2989,3 +2989,9 @@ msgstr "MapTasker affiche votre configuration Android Tasker en fonction de votr
 
 msgid "Please stand by ..."
 msgstr "Veuillez patienter..."
+
+msgid "Redact secrets"
+msgstr "Rédiger des secrets"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "Cochez cette case lorsque le fichier exporté est destiné à quelqu'un d'autre -- publié sur un forum ou envoyé à quiconque vous aide.\n\nLes clés API, les jetons, les mots de passe, les numéros de téléphone, les adresses e-mail et les coordonnées de localisation sont remplacés par des marqueurs [SUPPRIMÉ :...], et un commentaire en haut du fichier indique ce qui a été supprimé.  Exécutez d’abord Health Check pour voir la liste.\n\nC'est un premier passage, pas une garantie : un mot de passe qui ressemble à un mot ordinaire n'a aucune forme à reconnaître, et les noms ne sont jamais modifiés, car le fichier les utilise pour se référer à lui-même.  Lisez ce que vous publiez.\n\nLaissez-la décochée pour une sauvegarde ou un déplacement vers un autre appareil : un fichier expurgé est importé avec les clés manquantes."

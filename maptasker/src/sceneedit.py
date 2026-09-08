@@ -81,7 +81,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import sessundo
+from maptasker.src import piiscan, sessundo
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
@@ -3218,7 +3218,7 @@ def scene_task_ids(scene_element: defusedxml.ElementTree.Element) -> list[str]:
     return found
 
 
-def render_standalone_scene_xml(scene_name: str) -> str:
+def render_standalone_scene_xml(scene_name: str, *, redact: bool = False) -> str:
     """Render a Scene as a standalone TaskerData/Scene XML string, matching the
     shape Tasker's own Scene export produces (verified against this repo's
     Electric_Blanket.scn.xml: a TaskerData root holding one <Scene>, which keeps
@@ -3239,6 +3239,11 @@ def render_standalone_scene_xml(scene_name: str) -> str:
     Task" action is not chased, the same limit projedit.render_standalone_project_xml has.
 
     Raises ValueError if scene_name isn't a currently-loaded Scene.
+
+    `redact` runs the export through piiscan first, replacing the API keys, tokens,
+    passwords, phone numbers, email addresses and coordinates in it with markers and
+    writing a comment above the file saying what went -- what "Redact secrets" on the
+    export button does.  Off by default, so nothing that already calls this changes.
     """
     scene_entry = PrimeItems.tasker_root_elements.get("all_scenes", {}).get(scene_name)
     if scene_entry is None:
@@ -3273,12 +3278,17 @@ def render_standalone_scene_xml(scene_name: str) -> str:
             seen.add(task_id)
             root.append(copy.deepcopy(task_entry["xml"]))
 
+    # Redacting happens HERE, on the tree that is about to be serialized, rather than at
+    # the button that asked for it: this is the one line every export of this kind passes
+    # through, so an export path added later cannot quietly skip it.  See piiscan.
+    notice = piiscan.redact_rendered(root) if redact else ""
+
     ETW.indent(root, space="\t")
     # No <?xml ...?> declaration -- see profedit.render_standalone_profile_xml.
-    return ETW.tostring(root, encoding="unicode") + "\n"
+    return notice + ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_scene_xml(scene_name: str, output_path: str) -> str:
+def write_standalone_scene_xml(scene_name: str, output_path: str, *, redact: bool = False) -> str:
     """Write a Scene as a standalone .scn.xml file.  Raises OSError on failure,
     ValueError if the Scene no longer exists.
 
@@ -3287,8 +3297,13 @@ def write_standalone_scene_xml(scene_name: str, output_path: str) -> str:
     rather than at the buttons that call this, so no export path can be added later that
     quietly skips it.  Returns the copy's path, or "" if there was nothing to copy or the
     copy failed (which does not stop the write -- see presave's module comment).
+
+    `redact` is passed straight through to the render (see it for what goes).  Only the
+    local exports offer it: "Save To Android" puts the configuration back on the user's own
+    device, where the keys in it are the keys it needs to work, and a redacted upload would
+    be an import that silently stopped functioning.
     """
-    rendered = render_standalone_scene_xml(scene_name)
+    rendered = render_standalone_scene_xml(scene_name, redact=redact)
     _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
         out_file.write(rendered)

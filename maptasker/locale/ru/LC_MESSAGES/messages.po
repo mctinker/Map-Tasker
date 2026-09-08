@@ -2993,3 +2993,9 @@ msgstr "MapTasker отображает вашу конфигурацию Tasker,
 
 msgid "Please stand by ..."
 msgstr "Пожалуйста, подождите ..."
+
+msgid "Redact secrets"
+msgstr "Редактировать секреты"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "Установите этот флажок, если экспортированный файл будет отправлен кому-то другому — опубликован на форуме или отправлен тому, кто вам помогает.\n\nAPI-ключи, токены, пароли, номера телефонов, адреса электронной почты и координаты местоположения в нем заменены маркерами [УДАЛЕНО:...], а в комментарии вверху файла указано, что было удалено.  Сначала запустите проверку работоспособности, чтобы просмотреть список.\n\nЭто первый проход, а не гарантия: пароль, который выглядит как обычное слово, не имеет распознаваемой формы, а имена никогда не изменяются, поскольку файл использует их для ссылки на себя.  Прочтите то, что вы публикуете.\n\nОставьте этот флажок снятым для резервного копирования или перемещения на другое устройство — отредактированный файл импортируется без ключей."

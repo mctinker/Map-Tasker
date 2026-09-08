@@ -2996,3 +2996,9 @@ msgstr "MapTasker viser din Android Tasker-konfiguration baseret på den XML-fil
 
 msgid "Please stand by ..."
 msgstr "Vær venligst klar til at reagere..."
+
+msgid "Redact secrets"
+msgstr "Rediger hemmeligheder"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "Sæt kryds her, når den eksporterede fil skal til en anden -- postet på et forum eller sendt til den, der hjælper dig.\n\nAPI-nøglerne, tokens, adgangskoder, telefonnumre, e-mailadresser og placeringskoordinater i den erstattes med [REDACTED:...] markører, og en kommentar øverst i filen siger, hvad der blev taget ud.  Kør Health Check først for at se listen.\n\nDet er en første omgang, ikke en garanti: en adgangskode, der ligner et almindeligt ord, har ingen form at genkende, og navne ændres aldrig, fordi filen bruger dem til at henvise til sig selv.  Læs hvad du poster.\n\nLad det være umarkeret for en sikkerhedskopi eller en flytning til en anden enhed - en redigeret fil importeres med nøglerne mangler."

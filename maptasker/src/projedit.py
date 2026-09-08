@@ -48,7 +48,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import objprops, sessundo
+from maptasker.src import objprops, piiscan, sessundo
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 
@@ -563,7 +563,7 @@ def _ensure_project_identity(project_copy: defusedxml.ElementTree.Element) -> No
         project_copy.insert(later[0] if later else (simple[-1] + 1 if simple else 0), child)
 
 
-def render_standalone_project_xml(project_name: str) -> str:
+def render_standalone_project_xml(project_name: str, *, redact: bool = False) -> str:
     """Render a Project as a standalone TaskerData XML string, in the order Tasker's own
     single-Project export uses: <dmetric>, every Profile the Project owns, the Project
     element itself, every Scene it owns, then every Task those Profiles use.  Mirrors
@@ -578,6 +578,11 @@ def render_standalone_project_xml(project_name: str) -> str:
     Deliberately does NOT recurse into Tasks a bundled Task calls via "Perform Task".
 
     Raises ValueError if project_name isn't a currently-loaded Project.
+
+    `redact` runs the export through piiscan first, replacing the API keys, tokens,
+    passwords, phone numbers, email addresses and coordinates in it with markers and
+    writing a comment above the file saying what went -- what "Redact secrets" on the
+    export button does.  Off by default, so nothing that already calls this changes.
     """
     project_entry = PrimeItems.tasker_root_elements.get("all_projects", {}).get(project_name)
     if project_entry is None:
@@ -713,12 +718,17 @@ def render_standalone_project_xml(project_name: str) -> str:
         if task_entry is not None:
             root.append(copy.deepcopy(task_entry["xml"]))
 
+    # Redacting happens HERE, on the tree that is about to be serialized, rather than at
+    # the button that asked for it: this is the one line every export of this kind passes
+    # through, so an export path added later cannot quietly skip it.  See piiscan.
+    notice = piiscan.redact_rendered(root) if redact else ""
+
     ETW.indent(root, space="\t")
     # No <?xml ...?> declaration -- see profedit.render_standalone_profile_xml.
-    return ETW.tostring(root, encoding="unicode") + "\n"
+    return notice + ETW.tostring(root, encoding="unicode") + "\n"
 
 
-def write_standalone_project_xml(project_name: str, output_path: str) -> str:
+def write_standalone_project_xml(project_name: str, output_path: str, *, redact: bool = False) -> str:
     """Write a Project (plus every Profile/Task it owns) as a standalone XML
     file. Raises OSError on failure, ValueError if the Project no longer exists.
 
@@ -727,8 +737,13 @@ def write_standalone_project_xml(project_name: str, output_path: str) -> str:
     rather than at the buttons that call this, so no export path can be added later that
     quietly skips it.  Returns the copy's path, or "" if there was nothing to copy or the
     copy failed (which does not stop the write -- see presave's module comment).
+
+    `redact` is passed straight through to the render (see it for what goes).  Only the
+    local exports offer it: "Save To Android" puts the configuration back on the user's own
+    device, where the keys in it are the keys it needs to work, and a redacted upload would
+    be an import that silently stopped functioning.
     """
-    rendered = render_standalone_project_xml(project_name)
+    rendered = render_standalone_project_xml(project_name, redact=redact)
     _, safety_copy = backup_local_file(output_path)
     with open(output_path, "w", encoding="utf-8") as out_file:
         out_file.write(rendered)

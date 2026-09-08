@@ -3016,3 +3016,9 @@ msgstr "MapTasker તમારી અપલોડ કરેલી Tasker XML ફ
 
 msgid "Please stand by ..."
 msgstr "કૃપા કરીને રાહ જુઓ..."
+
+msgid "Redact secrets"
+msgstr "રીડેક્ટ રહસ્યો"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "જ્યારે નિકાસ કરેલી ફાઈલ કોઈ બીજા પાસે જઈ રહી હોય -- ફોરમ પર પોસ્ટ કરવામાં આવી હોય, અથવા તમને મદદ કરી રહ્યાં હોય તેને મોકલવામાં આવે ત્યારે આને ટિક કરો.\n\nએપીઆઈ કી, ટોકન્સ, પાસવર્ડ્સ, ફોન નંબર્સ, ઈમેલ એડ્રેસ અને લોકેશન કોઓર્ડિનેટ્સ તેમાં [REDACTED:...] માર્કર્સ સાથે બદલવામાં આવે છે અને ફાઈલની ટોચ પર એક ટિપ્પણી જણાવે છે કે શું લેવામાં આવ્યું હતું.  યાદી જોવા માટે પહેલા હેલ્થ ચેક ચલાવો.\n\nતે પ્રથમ પાસ છે, ગેરંટી નથી: સામાન્ય શબ્દ જેવો દેખાતો પાસવર્ડ ઓળખવા માટે કોઈ આકાર ધરાવતો નથી, અને નામો ક્યારેય બદલાતા નથી, કારણ કે ફાઇલ તેનો ઉપયોગ પોતાનો સંદર્ભ આપવા માટે કરે છે.  તમે જે પોસ્ટ કરો છો તે વાંચો.\n\nબેકઅપ માટે અથવા અન્ય ઉપકરણ પર જવા માટે તેને અનટિક છોડો -- એક રીડેક્ટેડ ફાઇલ આયાત કરે છે જેમાં કીઓ ખૂટે છે."

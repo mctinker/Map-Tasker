@@ -3014,3 +3014,9 @@ msgstr "MapTasker hiển thị cấu hình Android Tasker của bạn dựa trê
 
 msgid "Please stand by ..."
 msgstr "Vui lòng chờ đợi..."
+
+msgid "Redact secrets"
+msgstr "Biên tập lại bí mật"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "Đánh dấu vào đây khi tệp đã xuất sẽ được chuyển cho người khác -- được đăng trên diễn đàn hoặc gửi cho bất kỳ ai đang trợ giúp bạn.\n\nCác khóa API, mã thông báo, mật khẩu, số điện thoại, địa chỉ email và tọa độ vị trí trong đó được thay thế bằng các điểm đánh dấu [REDACTED:...] và một nhận xét ở đầu tệp cho biết những gì đã bị xóa.  Chạy Health Check trước để xem danh sách.\n\nĐó là lần vượt qua đầu tiên, không phải là sự đảm bảo: mật khẩu trông giống như một từ thông thường không có hình dạng để nhận dạng và tên không bao giờ thay đổi vì tệp sử dụng chúng để tham chiếu đến chính nó.  Đọc những gì bạn đăng.\n\nBỏ chọn nó để sao lưu hoặc di chuyển sang thiết bị khác -- nhập tệp đã được xử lý lại nhưng thiếu khóa."

@@ -82,6 +82,9 @@ from maptasker.src.guiutils import (
 from maptasker.src.guiwins import (
     EDIT_PROJECT_INERT_FIELDS,
     NOTIFY_TIMEOUT_CHOICES,
+    PROJECT_REDACT_FIELD,
+    REDACT_FIELD,
+    SCENE_REDACT_FIELD,
     NiceGuiSceneView,
     NiceGuiTextView,
     NiceGuiTreeView,
@@ -1615,6 +1618,35 @@ def _project_for_new_object(gui: MyGui, item_label: str) -> tuple[str, str]:
     return "", select_a_project
 
 
+def _redact_requested(field_refs: dict, key: str = REDACT_FIELD) -> bool:
+    """Whether this export's "Redact secrets" box is ticked.
+
+    Read through a helper rather than off the widget, because the four Edit dialogs file
+    the box under three different keys (see guiwins.build_redact_checkbox) and because a
+    dialog that has not been given one at all -- Add Task and Add Profile, which export
+    something the user has only just typed in -- must read as "no" rather than raise.
+    """
+    checkbox = field_refs.get(key)
+    return bool(getattr(checkbox, "value", False))
+
+
+def _redacted_note(redact: bool) -> str:
+    """The sentence a save adds to its "saved" message when it redacted on the way out.
+
+    Worth saying every time.  A redacted file is one the user is about to hand to somebody
+    else, and the two things they need to know -- that it is not importable as-is, and that
+    the redaction is a first pass rather than a promise -- are exactly the things that are
+    invisible once the dialog has closed.
+    """
+    if not redact:
+        return ""
+    return (
+        " Secrets and personal details were redacted: the comment at the top of the file "
+        "lists what went. Read it before sharing -- a secret that looks like an ordinary "
+        "word cannot be recognized."
+    )
+
+
 def _unapplied_project_edits(field_refs: dict) -> list[str]:
     """Guards the Edit Project dialog's two by-name saves against a field being added to
     it without the apply step those saves would then need.  Returns error strings, empty
@@ -1751,7 +1783,12 @@ def _task_arg_values(field_refs: dict) -> dict[str, str]:
     """
     arg_values = {}
     for key, widget in field_refs.items():
-        if key in ("name", "priority", "save_path", "target_project_name"):
+        # Everything in field_refs that is NOT an action argument has to be named here --
+        # this sweeps the whole dict, so a widget added to the dialog and forgotten below
+        # is applied to the Task as an argument called whatever its key happens to be.
+        # REDACT_FIELD is one of those: it says how this export is written, not what the
+        # Task holds.
+        if key in ("name", "priority", "save_path", "target_project_name", REDACT_FIELD):
             continue
         value = widget.value
         arg_values[key] = "1" if value is True else "0" if value is False else str(value)
@@ -2556,6 +2593,11 @@ class MapTaskerEventHandlers:
         scope = mapjump.scope_for(target)
         if scope:
             overrides["single_project_name"] = scope
+        # A TaskerNet description is governed by its own option rather than by the detail
+        # level, so a finding about what somebody wrote in one needs that option on for the
+        # Map to hold the line at all -- the same argument as the detail level above.
+        if mapjump.needs_taskernet(target):
+            overrides["taskernet"] = True
 
         # Say which settings this went past, and only those: the point of saying anything is
         # that the Map on screen afterwards is not the one the user's own settings would have
@@ -2567,6 +2609,8 @@ class MapTaskerEventHandlers:
             reasons.append(f"{translate_string('Project')} '{scope}'" if scope else translate_string("whole file"))
         if "display_detail_level" in changed:
             reasons.append(f"{translate_string('detail level')} {level}")
+        if "taskernet" in changed:
+            reasons.append(translate_string("TaskerNet information"))
         ui.notify(
             f"{translate_string('Building the Map to show')} {target.label}"
             + (f" ({', '.join(reasons)})" if reasons else "")
@@ -3630,10 +3674,11 @@ class MapTaskerEventHandlers:
             return
 
         save_path = field_refs["save_path"].value
+        redact = _redact_requested(field_refs)
 
         def _write() -> None:
             try:
-                safety_copy = taskedit.write_standalone_task_xml(edited_task, save_path)
+                safety_copy = taskedit.write_standalone_task_xml(edited_task, save_path, redact=redact)
             except OSError as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
@@ -3643,7 +3688,7 @@ class MapTaskerEventHandlers:
             # The write took a copy of anything already at that path (see presave);
             # say so, so the user knows where it went.
             replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
-            ui.notify(f"Saved to {save_path}.{replaced_note}", type="positive")
+            ui.notify(f"Saved to {save_path}.{replaced_note}{_redacted_note(redact)}", type="positive")
             dialog.close()
 
         # Unlike Add Task's Save, this export had no up-front save_path_exists
@@ -4501,10 +4546,15 @@ class MapTaskerEventHandlers:
             return
 
         save_path = field_refs["project_save_path"].value.strip()
+        redact = _redact_requested(field_refs, PROJECT_REDACT_FIELD)
 
         def _write() -> None:
             try:
-                safety_copy = projedit.write_standalone_project_xml(edited_project.project_name, save_path)
+                safety_copy = projedit.write_standalone_project_xml(
+                    edited_project.project_name,
+                    save_path,
+                    redact=redact,
+                )
             except (OSError, ValueError) as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
@@ -4512,7 +4562,11 @@ class MapTaskerEventHandlers:
             # The write took a copy of anything already at that path (see presave);
             # say so, so the user knows where it went.
             replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
-            ui.notify(f"Saved Project '{edited_project.project_name}' to {save_path}.{replaced_note}", type="positive")
+            ui.notify(
+                f"Saved Project '{edited_project.project_name}' to {save_path}."
+                f"{replaced_note}{_redacted_note(redact)}",
+                type="positive",
+            )
             dialog.close()
 
         if projedit.save_path_exists(save_path):
@@ -4907,9 +4961,15 @@ class MapTaskerEventHandlers:
 
         sceneedit.apply_edited_scene_to_live_tree(edited_scene.scene_name, edited_scene)
 
+        redact = _redact_requested(field_refs, SCENE_REDACT_FIELD)
+
         def _write() -> None:
             try:
-                safety_copy = sceneedit.write_standalone_scene_xml(edited_scene.scene_name, save_path)
+                safety_copy = sceneedit.write_standalone_scene_xml(
+                    edited_scene.scene_name,
+                    save_path,
+                    redact=redact,
+                )
             except (OSError, ValueError) as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
@@ -4917,7 +4977,10 @@ class MapTaskerEventHandlers:
             # The write took a copy of anything already at that path (see presave);
             # say so, so the user knows where it went.
             replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
-            ui.notify(f"Saved Scene '{edited_scene.scene_name}' to {save_path}.{replaced_note}", type="positive")
+            ui.notify(
+                f"Saved Scene '{edited_scene.scene_name}' to {save_path}.{replaced_note}{_redacted_note(redact)}",
+                type="positive",
+            )
             dialog.close()
 
         if sceneedit.save_path_exists(save_path):
@@ -5340,10 +5403,11 @@ class MapTaskerEventHandlers:
             return
 
         save_path = field_refs["save_path"].value
+        redact = _redact_requested(field_refs)
 
         def _write() -> None:
             try:
-                safety_copy = profedit.write_standalone_profile_xml(edited_profile, save_path)
+                safety_copy = profedit.write_standalone_profile_xml(edited_profile, save_path, redact=redact)
             except OSError as e:
                 ui.notify(f"Could not save file: {e}", type="negative")
                 return
@@ -5353,7 +5417,7 @@ class MapTaskerEventHandlers:
             # The write took a copy of anything already at that path (see presave);
             # say so, so the user knows where it went.
             replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
-            ui.notify(f"Saved to {save_path}.{replaced_note}", type="positive")
+            ui.notify(f"Saved to {save_path}.{replaced_note}{_redacted_note(redact)}", type="positive")
             dialog.close()
 
         # Unlike Add Profile's Save, this export had no up-front save_path_exists

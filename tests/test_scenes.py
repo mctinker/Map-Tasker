@@ -20,11 +20,11 @@ import base64
 import gzip
 import io
 import json
+import re
 import xml.etree.ElementTree as ET
 
 import pytest
-
-from maptasker.src import scenes, taskerd
+from maptasker.src import proginit, scenes, taskerd, varxref
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
@@ -248,6 +248,12 @@ _BUTTON = (
     '<ButtonElement sr="but1"><clickTask>10</clickTask><Str>OK</Str><geom>0,0,100,50</geom></ButtonElement>'
 )
 _TEXT = '<TextElement sr="txt1"><Str>Label</Str><geom>0,60,100,20</geom></TextElement>'
+# The same element with the arguments Tasker really writes, so its output line is the full
+# one -- name, value and the rest -- rather than the stub a bare <Str> produces.
+_TEXT_WITH_VARIABLE = (
+    '<TextElement sr="txt1"><Str sr="arg0" ve="3">Notes</Str>'
+    '<Str sr="arg1" ve="3">%NotesNobodySets</Str></TextElement>'
+)
 
 
 def _scene_with(elements: str) -> ET.Element:
@@ -371,3 +377,207 @@ def test_asking_for_a_scene_this_project_does_not_have_finds_nothing() -> None:
         [],
     )
     assert PrimeItems.found_named_items["single_scene_found"] is False
+
+
+# ##################################################################################
+# Jump anchors for a Scene's elements
+#
+# A health check finding about a variable a Scene reads is a finding about ONE element of
+# that Scene -- "%Notes is read and nothing sets it" is about the Text element showing it,
+# not about a Scene that may hold fifty others.  Clicking it used to land on the Scene's
+# own line and leave the user to find the element among the rest of the Scene's output.
+#
+# Two halves have to agree for the click to land: varxref names the element it found the
+# variable in, and the Map writes the id that name points at.  The last test here is the
+# one that matters -- it holds the two halves against each other.
+# ##################################################################################
+def _anchors_written() -> list[str]:
+    """Every jump anchor id the Scene output written so far carries."""
+    return re.findall(r'<a id="([^"]+)" class="mt-anchor"', _output())
+
+
+def _v2_scene_with(layout: dict) -> None:
+    """The Panel Scene as a Version 2 one: its components in a gzipped <lj>, loaded."""
+    PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+        '<TaskerData sr="" dvi="1" tv="6.3.13">'
+        '<Project sr="proj0"><name>Home</name><scenes>Panel</scenes></Project>'
+        '<Scene sr="scene0"><nme>Panel</nme><heightPort>800</heightPort><widthPort>480</widthPort>'
+        f"<lj>{_gzipped_json(layout)}</lj></Scene>"
+        "</TaskerData>",
+    )
+    taskerd.build_tasker_tables()
+
+
+def _render_scene(elements: str) -> None:
+    """Output the Panel Scene the way a Map run does, with its elements shown in full.
+
+    The argument specs are loaded because a Scene's Properties are output whatever the
+    detail level, and rendering an element's arguments needs them (actargs).
+    """
+    _scene_with(elements)
+    proginit.load_arg_specs()
+    PrimeItems.program_arguments["display_detail_level"] = 5
+    scenes.process_scene("Panel", [], None, 0)
+
+
+def test_each_scene_element_carries_its_own_jump_anchor() -> None:
+    """Tasker's internal name for the element, which is already what the Map prints as
+    "Internal Name=" -- and what tells two Text elements of one Scene apart.
+    """
+    _render_scene(_BUTTON + _TEXT)
+
+    written = _anchors_written()
+    assert "mt-scene-Panel-ebut1" in written
+    assert "mt-scene-Panel-etxt1" in written
+
+
+def test_a_nested_element_is_anchored_under_the_one_that_holds_it() -> None:
+    """Tasker names every element's backing rectangle "background", so the name alone
+    cannot say which element's it is -- and a jump would land on the first of them.
+    """
+    holder = (
+        '<TextElement sr="txt1"><Str>Outer</Str>'
+        '<RectElement sr="background"><Str>Behind</Str></RectElement>'
+        "</TextElement>"
+        '<TextElement sr="txt2"><Str>Other</Str>'
+        '<RectElement sr="background"><Str>Behind</Str></RectElement>'
+        "</TextElement>"
+    )
+    _render_scene(holder)
+
+    written = _anchors_written()
+    assert "mt-scene-Panel-etxt1%2Fbackground" in written
+    assert "mt-scene-Panel-etxt2%2Fbackground" in written
+
+
+def test_a_scene_element_finding_lands_on_that_element() -> None:
+    """The whole point: the id varxref points a NEVER-SET finding at is an id the Map
+    actually wrote, and it is the element's own, not the Scene's.
+    """
+    _render_scene(_TEXT_WITH_VARIABLE)
+
+    finding = next(
+        suspect for suspect in varxref.suspects(varxref.build_index()) if suspect.subject == "%NotesNobodySets"
+    )
+    place = finding.places[0]
+    assert place.label.endswith("Scene 'Panel' element Text 'Notes'")
+    assert place.anchor == "mt-scene-Panel-etxt1"
+
+    # And it lands on the line that holds the variable, not merely somewhere in the Scene.
+    output = _output()
+    assert f'<a id="{place.anchor}" class="mt-anchor"' in output
+    landed_on = output[output.index(f'<a id="{place.anchor}"') :][:400]
+    assert "%NotesNobodySets" in landed_on
+
+
+def test_the_line_an_element_is_anchored_on_is_one_element_of_its_own() -> None:
+    """The half of the jump that lives in the HTML, and the one that went wrong first.
+
+    An arguments line opens two colour spans and used to close one, leaving the outer span
+    open for the rest of the file -- so the element a click landed on ran to 306 lines, and
+    the jump, which scrolls what it lands on to the middle of the window, arrived 150 lines
+    past the line the finding named.  Nothing about the anchor said so: it was on the right
+    line, pointing at an element that had swallowed everything after it.
+    """
+    _render_scene(_TEXT_WITH_VARIABLE)
+    lines = PrimeItems.output_lines.output_lines
+    position = next(index for index, line in enumerate(lines) if "UI for" in line)
+
+    assert lines[position].count("<span") == lines[position].count("</span>")
+    # And the colour it was leaking is put back, since the lines below it -- the names of
+    # the Tasks a Scene's elements fire -- have always taken their colour from it.
+    assert lines[position + 1].strip() == '<span class="scene_color">'
+
+
+def test_an_element_is_still_anchored_where_its_arguments_are_not_shown() -> None:
+    """Below the top detail level an element gets its heading line and nothing else, so
+    that is the line to land on -- an element with no anchor at all could not be reached.
+    """
+    _scene_with(_TEXT)
+    PrimeItems.program_arguments["display_detail_level"] = 3
+    scenes.process_scene("Panel", [], None, 0)
+
+    output = _output()
+    assert '<a id="mt-scene-Panel-etxt1" class="mt-anchor"' in output
+    assert "'Label' Element of type Text" in output[output.index("mt-scene-Panel-etxt1") :]
+
+
+# A Version 2 Scene keeps its components in the gzipped JSON of <lj> instead of in child
+# elements, and the Map writes each component out one property per line -- so unlike a
+# Legacy element, there is an exact line for a finding to land on.
+_V2_LAYOUT = {
+    "root": {
+        "type": "Column",
+        "id": "root_column",
+        "children": [
+            {"type": "Text", "id": "title_text", "text": "%V2NobodySets", "textSize": "22"},
+            {"type": "Text", "id": "other_text", "text": "%V2AlsoNobody"},
+        ],
+    },
+}
+
+
+def test_each_v2_component_property_holding_a_variable_carries_its_own_jump_anchor() -> None:
+    """A component is addressed by its position in the tree -- it has no "sr" name to be
+    keyed by -- and the property is part of that address, because the property is the line.
+    """
+    _v2_scene_with(_V2_LAYOUT)
+    scenes.process_scene("Panel", [], None, 0)
+
+    written = _anchors_written()
+    assert "mt-scene-Panel-echildren%2F0%23text" in written  # the first child's text
+    assert "mt-scene-Panel-echildren%2F1%23text" in written  # and the second's, told apart
+
+
+def test_a_v2_property_with_no_variable_in_it_is_not_anchored() -> None:
+    """Only a property a finding could name is worth an id.  A component is written out one
+    property per line, so anchoring all of them put thousands of ids in the Map for the few
+    hundred that are ever pointed at.
+
+    The child slot is held out for a second reason: its value is the whole subtree below
+    it, so a "%" anywhere in the Scene would otherwise anchor the "children:" line too.
+    """
+    _v2_scene_with(_V2_LAYOUT)
+    scenes.process_scene("Panel", [], None, 0)
+
+    written = _anchors_written()
+    assert "mt-scene-Panel-echildren%2F0%23textSize" not in written  # plain "22"
+    assert "mt-scene-Panel-eroot%23type" not in written  # plain "Column"
+    assert "mt-scene-Panel-eroot%23children" not in written  # the slot holding both Texts
+    assert len(written) == 2
+
+
+def test_a_v2_component_finding_lands_on_the_property_that_holds_the_variable() -> None:
+    """The Version 2 half of the contract: the id varxref points the finding at is an id
+    the Map wrote, on the line that shows the variable.
+    """
+    _v2_scene_with(_V2_LAYOUT)
+    scenes.process_scene("Panel", [], None, 0)
+
+    finding = next(
+        suspect for suspect in varxref.suspects(varxref.build_index()) if suspect.subject == "%V2NobodySets"
+    )
+    place = finding.places[0]
+    assert place.label.endswith("Scene 'Panel' component Text '%V2NobodySets' text")
+    assert place.anchor == "mt-scene-Panel-echildren%2F0%23text"
+
+    output = _output()
+    assert f'<a id="{place.anchor}" class="mt-anchor"' in output
+    landed_on = output[output.index(f'<a id="{place.anchor}"') :][:300]
+    assert "%V2NobodySets" in landed_on
+
+
+def test_a_v2_layout_that_will_not_decode_writes_no_anchors() -> None:
+    """A corrupt <lj> is reported and moved past.  Anchors for components nobody could
+    read would be ids pointing at lines that were never written.
+    """
+    PrimeItems.xml_root = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
+        '<TaskerData sr="" dvi="1" tv="6.3.13">'
+        '<Scene sr="scene0"><nme>Panel</nme><lj>not valid at all @@@</lj></Scene>'
+        "</TaskerData>",
+    )
+    taskerd.build_tasker_tables()
+    scenes.process_scene("Panel", [], None, 0)
+
+    assert "could not be processed" in _output()
+    assert not _anchors_written()

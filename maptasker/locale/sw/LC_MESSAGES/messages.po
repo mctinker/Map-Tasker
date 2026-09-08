@@ -3008,3 +3008,9 @@ msgstr "MapTasker inaonyesha utumiaji wako wa Tasker kulingana na faili ya XML y
 
 msgid "Please stand by ..."
 msgstr "Tafadhali subiri ..."
+
+msgid "Redact secrets"
+msgstr "Rekebisha siri"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "Weka alama kwenye faili hii wakati faili iliyohamishwa inaenda kwa mtu mwingine -- iliyochapishwa kwenye jukwaa, au kutumwa kwa yeyote anayekusaidia.\n\nVifunguo vya API, tokeni, nenosiri, nambari za simu, anwani za barua pepe na viwianishi vya eneo ndani yake vinabadilishwa na alama za [REDACTED:...], na maoni juu ya faili husema kilichotolewa.  Endesha Ukaguzi wa Afya kwanza ili kuona orodha.\n\nNi kibali cha kwanza, si hakikisho: nenosiri ambalo linaonekana kama neno la kawaida halina umbo la kutambua, na majina hayabadilishwi kamwe, kwa sababu faili inayatumia kujirejelea yenyewe.  Soma unachochapisha.\n\nIache ikiwa haijawekwa alama kwa ajili ya kuhifadhi nakala au kuhamishia kifaa kingine -- faili iliyorekebishwa kuletwa na vitufe vinakosekana."

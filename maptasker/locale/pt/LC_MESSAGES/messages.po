@@ -2987,3 +2987,9 @@ msgstr "O MapTasker exibe sua configuração do Tasker com base no arquivo XML d
 
 msgid "Please stand by ..."
 msgstr "Por favor, aguarde um momento..."
+
+msgid "Redact secrets"
+msgstr "Redigir segredos"
+
+msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
+msgstr "Marque esta opção quando o arquivo exportado for enviado para outra pessoa - postado em um fórum ou enviado para quem estiver ajudando você.\n\nAs chaves de API, tokens, senhas, números de telefone, endereços de e-mail e coordenadas de localização nele contidos são substituídos por marcadores [REDIGIDO:...], e um comentário no topo do arquivo indica o que foi retirado.  Execute o Health Check primeiro para ver a lista.\n\nÉ uma primeira passagem, não uma garantia: uma senha que se parece com uma palavra comum não tem forma para ser reconhecida e os nomes nunca são alterados, porque o arquivo os utiliza para se referir a si mesmo.  Leia o que você posta.\n\nDeixe-o desmarcado para fazer um backup ou mover para outro dispositivo - um arquivo editado é importado com as chaves faltando."

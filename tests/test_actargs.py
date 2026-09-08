@@ -218,6 +218,59 @@ def test_plugin_output_variables_are_named_alongside_the_configuration() -> None
     assert "Output Variables=%out" in result["arg0"]["value"]
 
 
+# The blurb is a sentence the plugin writes for a person to read, and it is not obliged to
+# mention everything the user configured.  PushBullet's says "Push a note titled 'Tect' with
+# the message 'This'." and never mentions the Google account it pushes from -- so the Map
+# used to show that action with no sign of the email address sitting in its bundle, and a
+# secrets-scan finding about that address pointed at an action whose every displayed word
+# was innocent.
+_PUSHBULLET = (
+    "<Bundle><Vals>"
+    "<com.pushbullet.android.tasker.ACCOUNT_NAME>someone@example.com</com.pushbullet.android.tasker.ACCOUNT_NAME>"
+    "<com.pushbullet.android.tasker.ACCOUNT_NAME-type>java.lang.String</com.pushbullet.android.tasker.ACCOUNT_NAME-type>"
+    "<com.pushbullet.android.tasker.TITLE>Tect</com.pushbullet.android.tasker.TITLE>"
+    "<com.pushbullet.android.tasker.TARGET_EMAIL>&lt;null&gt;</com.pushbullet.android.tasker.TARGET_EMAIL>"
+    "<com.twofortyfouram.locale.intent.extra.BLURB>Push a note titled \"Tect\"."
+    "</com.twofortyfouram.locale.intent.extra.BLURB>"
+    "<net.dinglisch.android.tasker.subbundled>true</net.dinglisch.android.tasker.subbundled>"
+    "</Vals></Bundle>"
+)
+
+
+def test_a_plugins_own_settings_are_shown_beside_its_blurb() -> None:
+    """What the plugin was actually configured with, which its blurb may not mention."""
+    value = _bundle_result(_PUSHBULLET)["arg0"]["value"]
+    assert 'Push a note titled "Tect".' in value  # the blurb still leads
+    assert "ACCOUNT_NAME=someone@example.com" in value
+    assert "TITLE=Tect" in value
+
+
+def test_a_plugin_setting_is_named_without_its_package() -> None:
+    """A plugin prefixes every field with its own package name, and that package is
+    already on the line as the action's Arg 1.
+    """
+    assert "com.pushbullet.android.tasker.TITLE=" not in _bundle_result(_PUSHBULLET)["arg0"]["value"]
+
+
+def test_the_plumbing_in_a_bundle_is_left_out() -> None:
+    """Three kinds of entry are not settings the user made: the "-type" twin written
+    beside every value, the locale/Tasker framework's own keys, and a field Tasker wrote
+    "<null>" into because it was never filled in.
+    """
+    value = _bundle_result(_PUSHBULLET)["arg0"]["value"]
+    assert "java.lang.String" not in value
+    assert "subbundled" not in value
+    assert "TARGET_EMAIL" not in value
+
+
+def test_a_blurb_is_not_repeated_as_a_setting() -> None:
+    """<Configcommand> is a field of the plugin's own as well as a source of the blurb,
+    so the one bundle that uses it would otherwise print it twice.
+    """
+    value = _bundle_result("<Bundle><Vals><Configcommand>do thing</Configcommand></Vals></Bundle>")["arg0"]["value"]
+    assert value.count("do thing") == 1
+
+
 def test_an_action_with_no_bundle_returns_nothing_to_show() -> None:
     """Not every action reaching here is a plugin.  "returning_something" False is what
     tells the caller to leave the argument off the line entirely rather than print an

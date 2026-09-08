@@ -2491,7 +2491,7 @@ def _substitute(value: object, pattern: re.Pattern, new_name: str) -> object:
     """The value with every whole-name match rewritten, at whatever depth it sits.
 
     Recursive because a V2 property is not always a string: a component's value can be a
-    dict or a list of them, which is why varxref._v2_strings has to recurse to FIND the
+    dict or a list of them, which is why mapjump.v2_strings has to recurse to FIND the
     names.  Anything that is not a string, dict or list is returned as it stands -- a
     number or a boolean cannot hold a variable name.
     """

@@ -99,6 +99,8 @@ _GOTO_END_OF_LOOP = "3"
 _GOTO_END_OF_IF = "4"
 # Which block kind each of the last three names, and how the phrase reads in a report.
 _GOTO_BLOCK_KINDS = {_GOTO_TOP_OF_LOOP: "For", _GOTO_END_OF_LOOP: "For", _GOTO_END_OF_IF: "If"}
+# Block kinds a Goto may name from outside without it being a defect -- see _goto_by_block.
+_GOTO_BLOCKS_ALLOWED_LOOSE = frozenset({"For"})
 _GOTO_PHRASES = {
     _GOTO_TOP_OF_LOOP: "top of loop",
     _GOTO_END_OF_LOOP: "end of loop",
@@ -158,6 +160,9 @@ class Step:
     condition: str  # "" when the action carries no <ConditionList sr="if">
     detail: str  # the arguments a flowchart needs: a Goto's target, a For's list
     disabled: bool
+    # Whether the action ends THIS Task where it stands.  Not the same question as "is it
+    # a Stop": a Stop naming another Task stops that one and carries straight on here.
+    terminates: bool = False
     # Goto's three arguments as Tasker wrote them: (type, action number, label).  None for
     # every other action.  Held raw rather than parsed back out of 'detail', which is
     # display text and free to be reworded.
@@ -350,7 +355,28 @@ def _detail(code: str, action: defusedxml.ElementTree.Element, goto: tuple[str, 
     return ""
 
 
-def _steps(task_element: defusedxml.ElementTree.Element) -> list[Step]:
+def _terminates(code: str, action: defusedxml.ElementTree.Element, task_name: str) -> bool:
+    """Whether this action ends THIS Task's flow where it stands.
+
+    A Stop with its Task argument left blank stops the Task it is written in, which is what
+    strands everything below it.  A Stop that NAMES a Task stops that other Task and then
+    carries on to the next action here -- an everyday way to shut down a companion Task --
+    so reading it as the end of this one would strand the whole of the rest of the Task and
+    invite somebody to delete actions that run every day.  A Stop naming this very Task is
+    the exception: that one really does end the flow.
+
+    A name built from a variable is decided on the device, so it is read as naming some
+    other Task -- the answer that reports nothing rather than the one that guesses.
+    """
+    if code not in _TERMINATORS:
+        return False
+    if code != _STOP:
+        return True
+    named = _argument(action, "1")
+    return not named or named == task_name
+
+
+def _steps(task_element: defusedxml.ElementTree.Element, task_name: str = "") -> list[Step]:
     """A Task's actions, in the order the Map numbers them, read for their control flow."""
     steps = []
     for number, action in enumerate(actions_in_map_order(task_element), start=1):
@@ -369,6 +395,7 @@ def _steps(task_element: defusedxml.ElementTree.Element) -> list[Step]:
                 # <on> present is how Tasker records a disabled action -- see
                 # action.get_label_disabled_condition, which reads the same element.
                 disabled=action.find("on") is not None,
+                terminates=_terminates(code, action, task_name),
                 goto=goto,
             ),
         )
@@ -564,19 +591,25 @@ def _goto_by_block(
     All three name a block the Goto is inside.  Outside one there is nothing to name and
     Tasker does nothing -- a Goto that quietly falls through to the next action rather than
     one that fails, and so the quieter of the two severities.
+
+    The loop pair are not reported.  Tasker is content to let a 'Goto top/end of loop' sit
+    outside any For -- it is allowed, not a mistake -- so saying so would be a false alarm
+    on a Task that works.  Where the destination still cannot be worked out, which is what
+    keeps the unreachable check from guessing about the Task.
     """
     goto_type = step.goto[0] if step.goto else ""
     kind = _GOTO_BLOCK_KINDS[goto_type]
     block = next((item for item in reversed(enclosing) if item.kind == kind), None)
     if block is None:
-        problems.append(
-            Problem(
-                WARNING,
-                f"FLOW-GOTO-OUTSIDE-{kind.upper()}",
-                where.at_action(step.number),
-                f"'Goto {step.detail}' is not inside a '{kind}', so there is nothing for it to jump to.",
-            ),
-        )
+        if kind not in _GOTO_BLOCKS_ALLOWED_LOOSE:
+            problems.append(
+                Problem(
+                    WARNING,
+                    f"FLOW-GOTO-OUTSIDE-{kind.upper()}",
+                    where.at_action(step.number),
+                    f"'Goto {step.detail}' is not inside a '{kind}', so there is nothing for it to jump to.",
+                ),
+            )
         return None
     return block.open if goto_type == _GOTO_TOP_OF_LOOP else block.end
 
@@ -668,7 +701,7 @@ def _successors(steps: list[Step], blocks: dict[int, Block], jumps: dict[int, Ju
             # The one edge that runs backwards on its own: End For returns to its For, which
             # is what re-tests the list.  An End For with no For falls through instead.
             graph[index] = {closers[index].open}
-        elif step.code in _TERMINATORS:
+        elif step.terminates:
             graph[index] = default if step.condition else set()
         elif index in jumps:
             graph[index] = _jump_successors(jumps[index], default)
@@ -704,12 +737,29 @@ def _reachable(graph: dict[int, set[int]], count: int) -> set[int]:
     return seen
 
 
+def _actionable_run(steps: list[Step], run: list[int]) -> list[int]:
+    """The part of an unreachable run there is anything to say about.
+
+    An End If or an End For is punctuation, not a step: it closes the block above it and
+    does nothing else.  Reaching one is beside the point, and a run of nothing but closers
+    -- the End If sitting directly under an unconditional Goto, the commonest shape there
+    is -- is not a defect at all.  Trimmed from both ends so that the span a finding names
+    begins and ends on an action the reader can actually do something about.
+    """
+    first, last = 0, len(run)
+    while first < last and steps[run[first]].code in _BLOCK_CLOSERS:
+        first += 1
+    while last > first and steps[run[last - 1]].code in _BLOCK_CLOSERS:
+        last -= 1
+    return run[first:last]
+
+
 def _unreachable_problem(steps: list[Step], run: list[int], where: Target) -> Problem:
     """One "nothing gets here" finding, naming the action that ended the flow above it."""
     first, last = steps[run[0]], steps[run[-1]]
     span = f"action {first.number}" if len(run) == 1 else f"actions {first.number}-{last.number}"
     culprit = next(
-        (steps[index] for index in reversed(range(run[0])) if steps[index].code in (*_TERMINATORS, _GOTO)),
+        (steps[index] for index in reversed(range(run[0])) if steps[index].terminates or steps[index].code == _GOTO),
         None,
     )
     because = (
@@ -744,7 +794,9 @@ def _unreachable(steps: list[Step], jumps: dict[int, Jump], reachable: set[int],
             run.append(index)
             continue
         if run:
-            problems.append(_unreachable_problem(steps, run, where))
+            actionable = _actionable_run(steps, run)
+            if actionable:
+                problems.append(_unreachable_problem(steps, actionable, where))
             run = []
     return problems
 
@@ -763,7 +815,7 @@ def analyze_task_flow(task_id: str, project_name: str = "") -> Flow | None:
         return None
 
     where = Target(TASK, task_id, task["name"], project_name or _project_of_task().get(task_id, ""))
-    steps = _steps(task["xml"])
+    steps = _steps(task["xml"], task["name"])
     structure = _match_blocks(steps, where)
     jumps, jump_problems = _resolve_gotos(steps, structure.enclosing, _labels(steps), where)
     reachable = _reachable(_successors(steps, structure.blocks, jumps), len(steps))
