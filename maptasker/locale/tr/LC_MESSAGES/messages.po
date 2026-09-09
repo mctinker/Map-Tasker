@@ -594,12 +594,10 @@ msgid "Analysis is running in the background.\n\nOnce complete, the program will
 msgstr "Analiz arka planda çalışıyor.\n\nTamamlandıktan sonra program yeniden başlatılacak ve sonuçlar yeni bir pencerede görünecektir.\n\nLütfen beklemede kalın..."
 msgid "Buy Me A Coffee"
 msgstr "Bana Bir Kahve Al"
-
 msgid "The 'Profiles Per Line' setting is used to control the number of Profiles to be displayed per line when diagramming the configuration.\n\nThe smaller the number, the narrower the diagram and vice versa.\n\nFewer Profiles per line may make it easier too view the diagram connectors that extend to the right, while at the same time the Diagram wil be longer.\n\nSelecting a number will automatically re-generate the diagram with the new setting.\n\nThis setting is only valid for the currrent Diagram view, and will be reset back to the default value when the Diagram view is closed.\n\n"
 msgstr "'Satır Başına Profiller' ayarı, konfigürasyon diyagramı oluşturulurken satır başına görüntülenecek Profil sayısını kontrol etmek için kullanılır.\n\nSayı ne kadar küçükse, diyagram o kadar dar olur ve bunun tersi de geçerlidir.\n\nSatır başına daha az Profil, sağa doğru uzanan diyagram bağlayıcılarının görüntülenmesini kolaylaştırabilir, aynı zamanda Diyagram daha uzun olur.\n\nBir sayı seçildiğinde diyagram yeni ayarla otomatik olarak yeniden oluşturulur.\n\nBu ayar yalnızca geçerli Diyagram görünümü için geçerlidir ve Diyagram görünümü kapatıldığında varsayılan değere sıfırlanacaktır.\n\n"
 msgid "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the data.\n\nThe 'Search Here' button will search for and highlight every instance of the string entered in the search box, starting at the current screen.\n\nHover over any of the highlighted matching strings to see all matches.\n\nThe 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\nThe accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\nWhen the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\nThe 'Clear' button will clear the search results.\n\nThe 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
 msgstr "'Ara' düğmesi, verilerin en üstünden başlayarak, arama kutusuna girilen dizenin her örneğini arayacak ve vurgulayacaktır.\n\n'Burada Ara' düğmesi, geçerli ekrandan başlayarak, arama kutusuna girilen dizenin her örneğini arayacak ve vurgulayacaktır.\n\nTüm eşleşmeleri görmek için vurgulanan eşleşen dizelerden herhangi birinin üzerine gelin.\n\n'Sonraki' ve 'Önceki' düğmeleri, arama dizesinin sonraki ve önceki oluşumunu metin görünümünde görünür hale getirmeye çalışacaktır. kutusunu işaretleyin ve bunları farklı bir renkle vurgulayın.\n\nArama dizesini görünür hale getirmenin doğruluğu her zaman mükemmel değildir ve bu programın kontrolü dışındadır.\n\nMetin görüntüleme kutusunun sonuna veya başına ulaşıldığında, arama duracak ve birkaç saniye boyunca bir mesaj görüntülenecektir.\n\n'Temizle' düğmesi, arama sonuçlarını temizleyecektir.\n\n'Yalnızca Görüntüle' düğmesi, çeşitli bir pencerede YALNIZCA arama sonuçlarındaki eşleşmeleri görüntüleyecektir.\n\n"
-
 msgid "API Key Help"
 msgstr "API Anahtarı Yardımı"
 msgid "Profiles Per Line Help"
@@ -941,2078 +939,1419 @@ msgid "Başlık"
 msgstr "Heading"
 msgid "color changed to"
 msgstr "renk olarak değiştirildi"
-  
-
 msgid "Karanlık"
 msgstr "Dark"
 msgid "Işık"
 msgstr "Light"
 msgid "Sistem"
 msgstr "System"
-
 msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
 msgstr "Belirli Projeleri, Profilleri, Görevleri veya Sahneleri hedefleyin. (Yalnızca birini seçin)"
-
 msgid "Rename"
 msgstr "Yeniden isimlendirmek"
-
 msgid "Export Project"
 msgstr "İhracat Projesi"
-
 msgid "Export Profile"
 msgstr "Profili Dışa Aktar"
-
 msgid "Export Task"
 msgstr "Dışa Aktarma Görevi"
-
 msgid "Save"
 msgstr "Kaydetmek"
-
 msgid "Overwrite"
 msgstr "Üzerine yaz"
-
 msgid "Delete Project"
 msgstr "Projeyi Sil"
-
 msgid "Delete Profile"
 msgstr "Profili Sil"
-
 msgid "Delete Task"
 msgstr "Görevi Sil"
-
 msgid "Its"
 msgstr "Onun"
-
 msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
 msgstr "bağlantılı Görev(ler) tutulacaktır - bunlar bu Profile değil, Projeye aittir."
-
 msgid "It has no linked Tasks."
 msgstr "Bağlantılı Görevleri yoktur."
-
 msgid "It will be removed from"
 msgstr "Buradan kaldırılacak"
-
 msgid "Project(s) and unlinked from"
 msgstr "Proje(ler) ve bağlantısı kaldırıldı"
-
 msgid "Profile(s) that run it. Those Profiles themselves are kept."
 msgstr "Onu çalıştıran profil(ler). Bu Profillerin kendileri tutulur."
-
 msgid "Keep Contents"
 msgstr "İçeriği Sakla"
-
 msgid "Delete Contents"
 msgstr "İçeriği Sil"
-
 msgid "Adding to Project:"
 msgstr "Projeye Ekleme:"
-
 msgid "Save To Current File"
 msgstr "Geçerli Dosyaya Kaydet"
-
 msgid "Add Project"
 msgstr "Proje Ekle"
-
 msgid "Add Profile"
 msgstr "Profil Ekle"
-
 msgid "Add Task"
 msgstr "Görev Ekle"
-
 msgid "Add an action"
 msgstr "Eylem ekle"
-
 msgid "Actions in this Task"
 msgstr "Bu Görevdeki Eylemler"
-
 msgid "No actions added yet."
 msgstr "Henüz herhangi bir işlem eklenmedi."
-
 msgid "Actions & Control"
 msgstr "Eylemler ve Kontrol"
-
 msgid "Display Conditions"
 msgstr "Görüntüleme Koşulları"
-
 msgid "Task Action Limit:"
 msgstr "Görev Eylem Sınırı:"
-
 msgid "Theme Configuration"
 msgstr "Tema Yapılandırması"
-
 msgid "Select a category to modify its color."
 msgstr "Rengini değiştirmek için bir kategori seçin."
-
 msgid "Select Category to Colorize"
 msgstr "Renklendirilecek Kategoriyi Seçin"
-
 msgid "Choose Hex Color"
 msgstr "Altıgen Rengi Seçin"
-
 msgid "Open View In New Window"
 msgstr "Görünümü Yeni Pencerede Aç"
-
 msgid "Close Tabs On Exit"
 msgstr "Çıkışta Sekmeleri Kapat"
-
 msgid "Edit Project"
 msgstr "Projeyi Düzenle"
-
 msgid "Edit Profile"
 msgstr "Profili Düzenle"
-
 msgid "Edit Task"
 msgstr "Görevi Düzenle"
-
 msgid "Scene"
 msgstr "Sahne"
-
 msgid "Execution"
 msgstr "Uygulamak"
-
 msgid "File Operations"
 msgstr "Dosya İşlemleri"
-
 msgid "Display Views"
 msgstr "Ekran Görünümleri"
-
 msgid "Application Settings"
 msgstr "Uygulama Ayarları"
-
 msgid "Help & Information"
 msgstr "Yardım ve Bilgi"
-
 msgid "0 = least detail, 5 = most detail."
 msgstr "0 = en az detay, 5 = en fazla detay."
-
 msgid "AI Analysis"
 msgstr "Yapay Zeka Analizi"
-
 msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
 msgstr "Analiz arka planda çalışıyor.\n\nTamamlandığında sonuçlar yeni bir pencerede görünecektir.\n\nLütfen beklemede kalın..."
-
 msgid "Android Get XML Port Number"
 msgstr "Android XML Bağlantı Noktası Numarasını Al"
-
 msgid "Android device at"
 msgstr "Android cihazı"
-
 msgid "Available Android Backups"
 msgstr "Mevcut Android Yedeklemeleri"
-
 msgid "CAVEATS"
 msgstr "UYARILAR"
-
 msgid "Cancel Entry"
 msgstr "Girişi İptal Et"
-
 msgid "Check your IP/Port and verify the Tasker HTTP server is running"
 msgstr "IP/Port'unuzu kontrol edin ve Tasker HTTP sunucusunun çalıştığını doğrulayın"
-
 msgid "Close"
 msgstr "Kapalı"
-
 msgid "Detail Level"
 msgstr "Ayrıntı Düzeyi"
-
 msgid "Error"
 msgstr "Hata"
-
 msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
 msgstr "Bir Android cihazdan XML alın.\n\nAndroid cihazla aynı ağda olmanız ve cihazın çalışıyor ve bağlı olması gerekir.\n\n"
-
 msgid "Get Local XML File"
 msgstr "Yerel XML Dosyasını Alın"
-
 msgid "It owns"
 msgstr "Sahip olduğu"
-
 msgid "No Profile Tasks Found"
 msgstr "Hiçbir Profil Görevi Bulunamadı"
-
 msgid "No Profiles Found"
 msgstr "Profil Bulunamadı"
-
 msgid "No file loaded"
 msgstr "Hiçbir dosya yüklenmedi"
-
 msgid "No scenes found"
 msgstr "Hiçbir sahne bulunamadı"
-
 msgid "No tasks found"
 msgstr "Hiçbir görev bulunamadı"
-
 msgid "None or unnamed!"
 msgstr "Yok veya isimsiz!"
-
 msgid "Profile(s) and"
 msgstr "Profil(ler) ve"
-
 msgid "Prompt:"
 msgstr "Çabuk:"
-
 msgid "Save To Android"
 msgstr "Android'e Kaydet"
-
 msgid "Scene to Analyze:"
 msgstr "Analiz Edilecek Sahne:"
-
 msgid "Scene:"
 msgstr "Sahne:"
-
 msgid "Select XML From Android Device:"
 msgstr "Android Cihazdan XML Seçin:"
-
 msgid "Task(s)."
 msgstr "Görev(ler)."
-
 msgid "Unnamed Task"
 msgstr "Adsız Görev"
-
 msgid "Update Available!"
 msgstr "Güncelleme Mevcut!"
-
 msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
 msgstr "YouTube doğrudan akışı, üçüncü taraf API belirteçlerini gerektirir. Görüntülemek için hedef parçayı yerel olarak indirin."
-
 msgid "is unreachable"
 msgstr "ulaşılamıyor"
-
 msgid "'Cancel' button selected. No change to the API keys!"
 msgstr "'İptal' düğmesi seçildi. API anahtarlarında değişiklik yok!"
-
 msgid ".or."
 msgstr ".veya."
-
 msgid "1-TCP/IP Address:"
 msgstr "1-TCP/IP Adresi:"
-
 msgid "2-Port Number:"
 msgstr "2-Port Numarası:"
-
 msgid "3-File Location:"
 msgstr "3-Dosya Konumu:"
-
 msgid "AI Model"
 msgstr "Yapay Zeka Modeli"
-
 msgid "Add 'If' Action"
 msgstr "'Eğer' Eylemini Ekle"
-
 msgid "Add App Entry"
 msgstr "Uygulama Girişi Ekle"
-
 msgid "Add Condition"
 msgstr "Koşul Ekle"
-
 msgid "All"
 msgstr "Tüm"
-
 msgid "Android IP Address"
 msgstr "Android IP Adresi"
-
 msgid "Android configuration details matched successfully!"
 msgstr "Android yapılandırma ayrıntıları başarıyla eşleşti!"
-
 msgid "Changes kept."
 msgstr "Değişiklikler tutuldu."
-
 msgid "Choose a State type first."
 msgstr "Önce bir Durum türü seçin."
-
 msgid "Choose a Task"
 msgstr "Bir Görev Seçin"
-
 msgid "Choose a Task first."
 msgstr "Önce bir Görev seçin."
-
 msgid "Choose a condition type first."
 msgstr "Önce bir koşul türü seçin."
-
 msgid "Choose an Event type first."
 msgstr "Önce bir Etkinlik türü seçin."
-
 msgid "Class (optional)"
 msgstr "Sınıf (isteğe bağlı)"
-
 msgid "Cleared the search highlights."
 msgstr "Arama vurguları temizlendi."
-
 msgid "Click Here to Set XML Details"
 msgstr "XML Detaylarını Ayarlamak İçin Buraya Tıklayın"
-
 msgid "Click arrows to expand/collapse details."
 msgstr "Ayrıntıları genişletmek/daraltmak için oklara tıklayın."
-
 msgid "Click on a row index line number to jump directly to that match block placement:"
 msgstr "Doğrudan o eşleşme bloğu yerleşimine atlamak için bir satır dizini satır numarasına tıklayın:"
-
 msgid "Click on connector to highlight"
 msgstr "Vurgulamak için bağlayıcıya tıklayın"
-
 msgid "Close Results Window"
 msgstr "Sonuçlar Penceresini Kapat"
-
 msgid "Condition Type"
 msgstr "Koşul Türü"
-
 msgid "Conditions"
 msgstr "Koşullar"
-
 msgid "Configure Android Connection:"
 msgstr "Android Bağlantısını Yapılandırın:"
-
 msgid "Continue Task After Error"
 msgstr "Hatadan Sonra Göreve Devam Et"
-
 msgid "Copy"
 msgstr "Kopyala"
-
 msgid "Dark Mode"
 msgstr "Karanlık Mod"
-
 msgid "Day of Month"
 msgstr "Ayın Günü"
-
 msgid "Delete"
 msgstr "Silmek"
-
 msgid "Delete Condition"
 msgstr "Koşulu Sil"
-
 msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
 msgstr "Yalnızca bu Profili siler. Giriş/Çıkış Görevleri tutulur; bir Görev Profilin değil Projenin mülkiyetindedir ve aynı Görev diğer Profiller tarafından kullanılabilir."
-
 msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
 msgstr "Bu Görevi ve ona yapılan tüm referansları siler: ona sahip olan her Projenin Görevlerinden ve onu Giriş/Çıkış Görevi olarak çalıştıran tüm Profillerden kaldırılır. Profillerin kendisi tutulur."
-
 msgid "Diagram View opened in a new browser window."
 msgstr "Diyagram Görünümü yeni bir tarayıcı penceresinde açıldı."
-
 msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
 msgstr "Mevcut TÜM modellerin genişletilmiş listesini görüntüleyin.\n\nNot: API anahtarı OpenAI veya Gemini için ayarlanmamışsa\n      daha sonra ilgili için varsayılan model listesi\n      AI sağlayıcısı görüntülenecektir.\n\nNot: Tüm modeller doğrulanmamıştır ve\n      bir veya daha fazlası analizde hata verebilir.\n\nNot: Bu seçeneğin ilk kez etkinleştirilmesi,\n      aşağıdaki modüllerin kurulumunu zorla\n      ve tüm bağımlılıkları:\n      google-genai, antropik, openai, ollama"
-
 msgid "End Time"
 msgstr "Bitiş Zamanı"
-
 msgid "Event Type"
 msgstr "Etkinlik Türü"
-
 msgid "Every"
 msgstr "Her"
-
 msgid "File path saved successfully!"
 msgstr "Dosya yolu başarıyla kaydedildi!"
-
 msgid "File selection canceled."
 msgstr "Dosya seçimi iptal edildi."
-
 msgid "If"
 msgstr "Eğer"
-
 msgid "If condition set."
 msgstr "Koşul ayarlanmışsa."
-
 msgid "Insert just the 'If', or a complete block?"
 msgstr "Yalnızca 'Eğer' ifadesini mi, yoksa tam bir bloğu mu ekleyeceksiniz?"
-
 msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
 msgstr "Geçersiz görünüm türü belirtildi. 'Harita', 'diyagram' veya 'ağaç' kullanın."
-
 msgid "Label"
 msgstr "Etiket"
-
 msgid "Last Day Of Month"
 msgstr "Ayın Son Günü"
-
 msgid "Link"
 msgstr "Bağlantı"
-
 msgid "List Files Selected"
 msgstr "Seçilen Dosyaları Listele"
-
 msgid "List XML Files"
 msgstr "XML Dosyalarını Listeleme"
-
 msgid "Map View opened in a new browser window."
 msgstr "Harita Görünümü yeni bir tarayıcı penceresinde açıldı."
-
 msgid "Map view creation skipped: No valid XML source found or action canceled."
 msgstr "Harita görünümü oluşturma atlandı: Geçerli bir XML kaynağı bulunamadı veya işlem iptal edildi."
-
 msgid "Month"
 msgstr "Ay"
-
 msgid "Move"
 msgstr "Taşınmak"
-
 msgid "Move to #"
 msgstr "#'e taşı"
-
 msgid "New name"
 msgstr "Yeni isim"
-
 msgid "No XML data loaded! Please Get XML from Android or Local drive first."
 msgstr "XML verisi yüklenmedi! Lütfen önce Android'den veya Yerel sürücüden XML alın."
-
 msgid "No XML data loaded! Please select a valid XML file first."
 msgstr "XML verisi yüklenmedi! Lütfen önce geçerli bir XML dosyası seçin."
-
 msgid "No actions in this Task."
 msgstr "Bu Görevde eylem yok."
-
 msgid "No backup file is currently loaded. Use 'Get Local XML' first."
 msgstr "Şu anda yüklü bir yedekleme dosyası yok. Önce 'Yerel XML Al'ı kullanın."
-
 msgid "No conditions on this Profile."
 msgstr "Bu Profilde koşul yok."
-
 msgid "No editable arguments (code not mapped, or this condition has none)."
 msgstr "Düzenlenebilir bağımsız değişken yok (kod eşlenmemiş veya bu koşulun hiçbiri yok)."
-
 msgid "No editable arguments."
 msgstr "Düzenlenebilir argüman yok."
-
 msgid "Not configured..."
 msgstr "Yapılandırılmadı..."
-
 msgid "Odd"
 msgstr "Garip"
-
 msgid "Ok"
 msgstr "Tamam"
-
 msgid "Operator"
 msgstr "Operatör"
-
 msgid "Package"
 msgstr "Paket"
-
 msgid "Pick a Task"
 msgstr "Bir Görev Seç"
-
 msgid "Please enter a search term."
 msgstr "Lütfen bir arama terimi girin."
-
 msgid "Port"
 msgstr "Liman"
-
 msgid "Position"
 msgstr "Konum"
-
 msgid "Priority"
 msgstr "Öncelik"
-
 msgid "Profile Name"
 msgstr "Profil Adı"
-
 msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "Profil yalnızca bu oturum için tutuldu; kalıcı olarak saklanması için 'Geçerli Dosyaya Kaydet' seçeneğini kullanın."
-
 msgid "Profiles Per Line"
 msgstr "Hat Başına Profiller"
-
 msgid "Project Name"
 msgstr "Proje Adı"
-
 msgid "Project added."
 msgstr "Proje eklendi."
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
 msgstr "Yeni bir ad ister ve bunu hemen yüklenen yedeğe uygular. Yukarıdaki Proje Adı alanı salt okunurdur; onu değiştirmenin tek yolu budur."
-
 msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
 msgstr "Yeni bir ad ister ve bunu hemen şimdi yüklenen yedeklemeye uygular. Bu iletişim kutusundaki diğer her şey Tamam/Kaydet'e kadar beklemede kalır ve düzenlemeye devam edebilmeniz için iletişim kutusu açık kalır."
-
 msgid "Remove"
 msgstr "Kaldırmak"
-
 msgid "Save Profile To Android Device"
 msgstr "Profili Android Cihaza Kaydet"
-
 msgid "Save Project To Android Device"
 msgstr "Projeyi Android Cihaza Kaydet"
-
 msgid "Save Task To Android Device"
 msgstr "Görevi Android Cihaza Kaydet"
-
 msgid "Save as"
 msgstr "Farklı kaydet"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Yedeklemenin tamamını kaydeder - yalnızca bu Profili değil, içindeki her Projeyi, Profili ve Görevi - bu iletişim kutusundaki düzenlemeler uygulandığında, 'Tamam'ın tutacağı düzenlemeler korunur.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Bu oturumun herhangi bir yerinde yapılan tüm düzenlemeler de dahil olmak üzere, yedeklemenin tamamını (yalnızca bu Projeyi değil, içindeki her Projeyi, Profili ve Görevi) kaydeder.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Yedeklemenin tamamını kaydeder - yalnızca bu Görevi değil, içindeki her Projeyi, Profili ve Görevi - bu iletişim kutusundaki düzenlemeler uygulandığında, 'Tamam'ın tutacağı düzenlemeler korunur.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Yedeklemenin tamamını (yalnızca bunu değil, içindeki her Projeyi, Profili ve Görevi) Projesine yeni Profil eklenerek, 'Tamam'ın eklediği şekilde kaydeder.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Yedeklemenin tamamını (yalnızca bunu değil, içindeki her Projeyi, Profili ve Görevi) yeni Görev eklenmiş olarak, 'Tamam'ın eklediği şekilde kaydeder.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
-
 msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
 msgstr "Bu Projeyi ve içindeki her şeyi (her Profili ve Görevi) tek başına bir dosya olarak kaydeder."
-
 msgid "Search actions"
 msgstr "Arama işlemleri"
-
 msgid "Search..."
 msgstr "Aramak..."
-
 msgid "Select a single Profile first (Profile pulldown above)."
 msgstr "Önce tek bir Profil seçin (yukarıdaki Profil açılır menüsü)."
-
 msgid "Select a single Project first (Project pulldown above)."
 msgstr "Önce tek bir Proje seçin (yukarıdaki Proje açılır menüsü)."
-
 msgid "Select a single Task first (Task pulldown above)."
 msgstr "Önce tek bir Görev seçin (yukarıdaki Görev açılır menüsü)."
-
 msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
 msgstr "Bir uyarı vermeden önce bir Görevde kaç eylem gerçekleştirileceğini seçin.\nUyarı, yapılandırma çıktısının alt kısmına yakın bir yerde görünür,\nve çok karmaşık Görevlerin belirlenmesine yardımcı olmayı amaçlamaktadır.\nve bunların potansiyel olarak birden fazla Göreve bölünmesi gerekir.\n'100' ayarı herhangi bir sınır olmadığı anlamına gelir."
-
 msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
 msgstr "If/Then/Else blokları için girinti miktarını ayarlayın.\n\nVarsayılan '4'tür.\n\nBu, çıktının Harita ve Diyagram görünümlerinde nasıl biçimlendirileceğini etkiler."
-
 msgid "Settings Reset!"
 msgstr "Ayarlar Sıfırla!"
-
 msgid "Shutting down MapTasker..."
 msgstr "MapTasker kapatılıyor..."
-
 msgid "Start Time"
 msgstr "Başlangıç ​​Zamanı"
-
 msgid "Starting AI Analysis..."
 msgstr "Yapay Zeka Analizi başlatılıyor..."
-
 msgid "State Type"
 msgstr "Durum Türü"
-
 msgid "Submit"
 msgstr "Göndermek"
-
 msgid "Target"
 msgstr "Hedef"
-
 msgid "Task Name"
 msgstr "Görev Adı"
-
 msgid "Task Uploaded to Tasker"
 msgstr "Görev Tasker'a Yüklendi"
-
 msgid "Task Uploaded to Tasker."
 msgstr "Görev Tasker'a Yüklendi."
-
 msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "Görev yalnızca bu oturum için saklandı; onu kalıcı olarak saklamak için 'Geçerli Dosyaya Kaydet' seçeneğini kullanın."
-
 msgid "The 'Misc' view is running in the background.  Please stand by..."
 msgstr "'Çeşitli' görünüm arka planda çalışıyor.  Lütfen beklemede kalın..."
-
 msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
 msgstr "'Ara' düğmesi, verilerin en üstünden başlayarak, arama kutusuna girilen büyük/küçük harfe duyarlı olmayan dizenin her örneğini arayacak ve vurgulayacaktır.\n\nArama dizesinin yalnızca ilk 200 örneğini gösterecektir.\n\nMetin görünümü kutusunda o satıra gitmek için satır numarasına tıklayın.\n\n'Temizle' düğmesi arama sonuçlarını temizleyecektir.\n\n"
-
 msgid "The change will take effect the next time you open the view."
 msgstr "Görünümü bir sonraki açışınızda değişiklik geçerli olacaktır."
-
 msgid "This Task has no actions yet."
 msgstr "Bu Görevin henüz bir eylemi yok."
-
 msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
 msgstr "Bu, sisteminizde bulunan tüm yazı tiplerinin bir listesidir; ilk önce tek aralıklı olanlar ve bu şekilde işaretlenmiş olanlar.\n\nSeçilen yazı tipi tüm çıktılarda kullanılacaktır.\n\nKonektörün doğru şekilde hizalanmasını sağlamak amacıyla Diyagramlar için 'Courier' veya 'Courier New' kullanılması önemle tavsiye edilir. Tek aralıklı olmayan bir yazı tipi, Diyagramın bağlayıcılarını veya çıktının girintisini aynı hizada tutmaz."
-
 msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
 msgstr "Bu, Görevi doğrudan Tasker sunucusunu çalıştıran Android cihazında çalışan Tasker'a kaydedecektir.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nAndroid cihazda Tasker'a yazmak için iki kez yetkilendirmeniz istenecek ve Görev, cihazda nereye kaydedileceğini kendi eylemleriyle belirleyecektir."
-
 msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
 msgstr "Bu, Görevi doğrudan Android cihazınızdaki etkin Tasker oturumuna kaydedecektir.\n\nBunun çalışması için Tasker sürüm 6.2 veya üzeri gereklidir. Android cihazının aynı ağda olması ve IP Adresi ile Bağlantı Noktasının aynı olması gerekir.\nAndroid cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nAndroid cihazda Tasker'a yazma izni vermeniz iki kez istenecek ve Görev doğrudan etkin Tasker oturumuna yüklenecektir.\n\nYeni Görevi Tasker kullanıcı arayüzünde görmek için Tasker'dan çıkıp yeniden başlatmanız gerekir."
-
 msgid "This will save the Task directly to your current drive.\n\n"
 msgstr "Bu, Görevi doğrudan mevcut sürücünüze kaydedecektir.\n\n"
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Bu, Profili Android cihazında /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBunun için herhangi bir yetkilendirme istemine gerek yoktur."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Bu, Profili Android cihazınıza /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi (http://spoo.me/http_svr_example) sunucu çalışıyorken Android cihazında kurulu ve aktif olmalıdır ( README'nin Doğrudan XML Alma notlarına bakın).\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir. Bunun için herhangi bir yetkilendirme istemine gerek yoktur."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Bu, Profili Android cihazınıza /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışıyorken Android cihazında kurulu ve aktif olmalıdır ( README'nin Doğrudan XML Alma notlarına bakın).\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir. Bunun için herhangi bir yetkilendirme istemine gerek yoktur."
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Bu, Projeyi ve içindeki her şeyi (her Profil ve Görevi) bağımsız bir dosya olarak Android cihazınıza /Tasker/projects altına yazacaktır; bunu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışır durumdayken Android cihazında kurulu ve aktif olmalıdır.\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir. Bunun için herhangi bir yetkilendirme istemine gerek yoktur."
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Bu, Projeyi ve içindeki her şeyi bağımsız bir dosya olarak Android cihazına /Tasker/projects altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBunun için herhangi bir yetkilendirme istemine gerek yoktur."
-
 msgid "Toggle Wrap"
 msgstr "Sarmayı Aç/Kapat"
-
 msgid "Unlink"
 msgstr "Bağlantıyı kaldır"
-
 msgid "Value"
 msgstr "Değer"
-
 msgid "View cleared."
 msgstr "Görünüm temizlendi."
-
 msgid "Week-Day"
 msgstr "Hafta-Gün"
-
 msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
 msgstr "Etkinleştirildiğinde, 'Çıkış'a tıklamak aynı zamanda ana MapTasker penceresini ve açtığı tüm Harita/Diyagram pencerelerini/sekmelerini de kapatır.\n\nDevre dışı bırakıldığında, 'Çıkış' MapTasker'ı kapatır ancak bu pencereleri/sekmeleri açık bırakır."
-
 msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
 msgstr "Etkinleştirildiğinde, her Harita/Diyagram isteği kendi yeni penceresinde/sekmesinde açılır, böylece daha öncekileri karşılaştırmak için yanında tutabilirsiniz.\n\nDevre dışı bırakıldığında, bir istek o görünümün mevcut penceresini/sekmesini yeniden kullanır ve içindekileri değiştirir.\n\nKarşılaştırmak istemediğiniz sürece kapalı bırakın: Yepyeni bir pencere/sekme, tarayıcınızın engelleyebileceği penceredir, çünkü siz tıkladığınız anda değil, görünüm oluşturulduktan sonra açılır."
-
 msgid "hh:mm AM/PM or %variable"
 msgstr "ss:dd AM/PM veya %değişken"
-
 msgid "MapTasker: view limit reached, stopping output to file:  output"
 msgstr "Error 500 (Server Error)!!1500.That’s an error.There was an error. Please try again later.That’s all we know."
-
 msgid "hardstop view limit"
 msgstr "sabit durak görüntüleme sınırı"
-
 msgid "(empty)"
 msgstr "(boş)"
-
 msgid "(no name)"
 msgstr "(isim yok)"
-
 msgid "(unnamed Task)"
 msgstr "(isimsiz Görev)"
-
 msgid "(unnamed)"
 msgstr "(isimsiz)"
-
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1, bu yönlendirmenin kendine ait bir düzeni olmadığı anlamına gelir."
-
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...ve {count} tane daha -- daraltmak için yukarıya yazın."
-
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "Bir Scene'in öğe konumları cihaz piksellerinde saklanır, ancak metin boyutları Android'in sp birimlerinde saklanır. İkisi arasında dönüşüm yapan numara, Sahnenin gösterildiği telefonun bir özelliğidir ve yedekleme dosyasında yer almaz.\n\nYani burada ayarlandı. Metin öğeleri için çok küçük görünüyorsa kaldırın, metin taşarsa indirin."
-
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "Versiyon 2 Sahnesi'nin kendine ait bir boyutu yoktur; hangi ekranda gösteriliyorsa orada yer alır, dolayısıyla yedekleme dosyasında onu çizecek hiçbir şey yoktur.\n\nDüzenin yeniden akışını görmek için bunu değiştirin. Bir Akış Satırı farklı şekilde sarılır ve %sv2_render_width'e karşı yazılan herhangi bir 'Ne zaman göster' ifadesi tam olarak bunu sorar."
-
 msgid "Actions"
 msgstr "Eylemler"
-
 msgid "Add"
 msgstr "Eklemek"
-
 msgid "Add Element"
 msgstr "Öğe Ekle"
-
 msgid "Add Scene"
 msgstr "Sahne Ekle"
-
 msgid "Add a background"
 msgstr "Arka plan ekle"
-
 msgid "Add action"
 msgstr "İşlem ekle"
-
 msgid "Add handler"
 msgstr "İşleyici ekle"
-
 msgid "Add modifier"
 msgstr "Değiştirici ekle"
-
 msgid "Add scene properties"
 msgstr "Sahne özellikleri ekleme"
-
 msgid "Addressed by id from"
 msgstr "Kimden gelen kimlikle adreslendi:"
-
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "Sahnenin ortasına, yığının üstüne bir öğe ekler."
-
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "Çocukları barındırabiliyorsa seçilen bileşenin içine, aksi takdirde doğrudan arkasına eklenir."
-
 msgid "Also selected:"
 msgstr "Ayrıca seçilenler:"
-
 msgid "Also update"
 msgstr "Ayrıca güncelle"
-
 msgid "Add event"
 msgstr "Add event"
-
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Amber: Tasker bunu listeliyor, ancak MapTasker'da onaylanmış bir örnek yok. Gri: Seçimin onu koyacağı yere gidemiyorum."
-
 msgid "App icon"
 msgstr "Uygulama simgesi"
-
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "Sahnenin ortasına, yığının üstüne ekler. İstediğiniz yere sürükleyin."
-
 msgid "Appearance Mode"
 msgstr "Görünüm Modu"
-
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "Sırayla uygulanır; alttaki üstte yer alır."
-
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "Bu Sahne kaydedildiğinde uygulanır, şimdi değil - Sahne iletişim kutusundaki İptal seçeneği hem öğeyi hem de Görevleri olduğu gibi bırakır."
-
 msgid "Back to Editor"
 msgstr "Editöre Geri Dön"
-
 msgid "Bounds"
 msgstr "Sınırlar"
-
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "İptal edildi. Bu Sahnede yapılan değişiklikler iptal edildi."
-
 msgid "Choose another file..."
 msgstr "Başka bir dosya seç..."
-
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "Bir bileşeni seçmek için tıklayın, birkaçını almak için aynı kapsayıcıdaki başka bir bileşeni Shift tuşuna basarak tıklayın ve bunları kendi kardeşleri arasında yeniden sıralamak için sürükleyin. Bir bileşeni bir kabın içine veya dışına taşımak, editörün Giriş ve Çıkış düğmeleridir; Geri alma seçeneği de orada."
-
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "Bir öğeyi seçmek için tıklayın, birkaçını almak için arka plandaki bir kutuyu Shift tuşunu basılı tutarak tıklayın veya sürükleyin ve hepsini taşımak için bunlardan herhangi birini sürükleyin - ok tuşları itme, 10 piksel için Shift. Tek bir öğeyi yeniden boyutlandırmak için bir tutamacı sürükleyin. Geri alma ve bir öğeyle ilgili diğer her şey düzenleyiciye geri döndü."
-
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "Bir öğeyi seçmek için tıklayın, taşımak için sürükleyin, yeniden boyutlandırmak için bir tutamacı sürükleyin, sürüklemek için ok tuşlarını kullanın (10 piksel için Shift). Aynı anda birden fazla fotoğraf çekmek için Shift tuşunu basılı tutarak tıklayın veya arka plandaki bir kutuyu sürükleyin."
-
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "Kaydetmeden kapanır ve Önizleme'de taşınan veya yeniden boyutlandırılan her şey dahil olmak üzere, bu Sahneyi tam olarak bu iletişim kutusu açıldığında olduğu gibi geri koyar.\n\nYeniden Adlandırma, bunun geri alamayacağı tek şeydir: onaylandığı anda yüklenen yedeğe uygulanır ve bu iletişim kutusunu onunla kapatır."
-
 msgid "Compare Files"
 msgstr "Dosyaları Karşılaştır"
-
 msgid "Compare With"
 msgstr "Şununla Karşılaştır:"
-
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Başka bir XML dosyasını yüklenen dosyayla karşılaştırın: eklenenler, kaldırılanlar, yeniden adlandırılanlar ve değiştirilenler.\n\nTaskerNet içe aktarımının neleri getirdiğini, bir düzenlemenin neleri değiştirdiğini veya iki yedekleme arasında nelerin farklı olduğunu görmek için bunu kullanın.\n\nYüklenen dosya 'Geçerli Dosyaya Kaydet' seçeneğinden geldiyse doğrudan kaydedildiği dosya sunulur.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
-
 msgid "Comparison cancelled."
 msgstr "Karşılaştırma iptal edildi."
-
 msgid "Comparison report could not be saved."
 msgstr "Karşılaştırma raporu kaydedilemedi."
-
 msgid "Comparison saved as"
 msgstr "Karşılaştırma şu şekilde kaydedildi:"
-
 msgid "Drawn in"
 msgstr "Çizilmiş"
-
 msgid "Delete Scene"
 msgstr "Sahneyi Sil"
-
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "Bu Sahneyi, buraya eklediğiniz veya değiştirdiğiniz ancak henüz kaydetmediğiniz bileşenler de dahil olmak üzere ana pencerede bir resim olarak çizer.\n\nSürüm 2 düzeninin kendine ait bir boyutu yoktur; bu nedenle önizleme, onu seçtiğiniz bir ekrana yerleştirir ve onu değiştirdiğinizde yeniden akıtır.\n\nBu iletişim kutusu, önizleme açıkken, içindeki her şey tutularak kapanır; önizlemenin 'Editöre Geri Dön' düğmesi onu geri getirir.\n\nBu, Tasker'in kendi oluşturucusu değil, bir temsilidir: %değişkenler çözümlenmek yerine adlandırılır, Malzeme renkleri cihazın teması yerine taban çizgisinden gelir ve resimler, video ve web içeriği yer tutucu olarak gösterilir."
-
 msgid "Done"
 msgstr "Tamamlamak"
-
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "Bu Sahneyi, henüz kaydedilmemiş değişiklikler de dahil olmak üzere, yukarıda yazılan boyutta ana pencerede bir resim olarak çizer.\n\nBu iletişim kutusu, önizleme açıkken, içindeki her şey tutularak kapanır; önizlemenin 'Editöre Geri Dön' düğmesi onu geri getirir.\n\nBu, Tasker'in kendi oluşturucusu değil, bir temsilidir: %değişkenler çözümlenmek yerine adlandırılır ve resimler, video ve web içeriği yer tutucu olarak gösterilir."
-
 msgid "Duplicate"
 msgstr "Kopyalamak"
-
 msgid "Dropdown menu — shown when opened"
 msgstr "Açılır menü — açıldığında gösterilir"
-
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Dinamik ve Değişken Seç, Sahne gösterildiğinde işlenir."
-
 msgid "Dynamic value"
 msgstr "Dinamik değer"
-
 msgid "Edit Scene"
 msgstr "Sahneyi Düzenle"
-
 msgid "Edit item layout"
 msgstr "Öğe düzenini düzenle"
-
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "Seçimi koruyarak bunun yerine bunun özelliklerini düzenleyin."
-
 msgid "Event handlers"
 msgstr "Olay işleyicileri"
-
 msgid "Export Scene"
 msgstr "Sahneyi Dışa Aktar"
-
 msgid "Geometry"
 msgstr "Geometri"
-
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "Gri: MapTasker'ın bunun için bir argüman tablosu yoktur, bu nedenle Tasker'ın içeride ne beklediğini tahmin etmeden oluşturulamaz. Başlıklar MapTasker'ın kendi gruplamasıdır."
-
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
-
 msgid "Health Check"
 msgstr "Sağlık Kontrolü"
-
 msgid "Health Check found no errors or warnings."
 msgstr "Durum Kontrolü herhangi bir hata veya uyarı bulamadı."
-
 msgid "Health Check report could not be saved."
 msgstr "Durum Denetimi raporu kaydedilemedi."
-
 msgid "Health Check saved as"
 msgstr "Health Check saved as"
-
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "Bir açılır mesajın kaybolmadan önce ekranda ne kadar süre kalacağı.\n\n'Kapatılana kadar' her mesajı siz kapatana kadar açık tutar; bu, bir mesajın siz okuyamadan geçip gitmesi durumunda kullanışlıdır.\n\nBirkaç mesaj, okumanız gereken şeyleri (örneğin, bir Sahne öğesinin silinmesinden veya yeniden adlandırılmasından etkilenen Görevler) listeledikleri için kendi daha uzun sürelerini belirler. Burada ne seçilirse seçilsin, kendi zamanlamalarını korurlar."
-
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "Listede: Bir aralık için Shift tuşunu basılı tutarak tıklayın, bir aralık eklemek veya kaldırmak için Ctrl veya Cmd tuşunu basılı tutarak tıklayın."
-
 msgid "Landscape"
 msgstr "Manzara"
-
 msgid "Item layout"
 msgstr "Öğe düzeni"
-
 msgid "Legacy"
 msgstr "Miras"
-
 msgid "Legacy Scene"
 msgstr "Eski Sahne"
-
 msgid "List"
 msgstr "Liste"
-
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: görüntüleme sınırına ulaşıldı, diyagram kesildi"
-
 msgid "Modifiers"
 msgstr "Değiştiriciler"
-
 msgid "Never updated"
 msgstr "Hiç güncellenmedi"
-
 msgid "No Task addresses this element by name."
 msgstr "Hiçbir Görev bu öğeyi adıyla ele almaz."
-
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "Hiçbir XML dosyası yüklenmedi.  Önce bir XML dosyası edinin."
-
 msgid "No element matches that."
 msgstr "Hiçbir öğe bununla eşleşmiyor."
-
 msgid "Not an HTML colour name or #hex value."
 msgstr "Bir HTML renk adı veya #hex değeri değil."
-
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "Güncellenmedi - bunlar hem bu Sahneyi hem de bu öğeyi adlandırır, ancak bir sahne olarak değil"
-
 msgid "Nothing here."
 msgstr "Burada hiçbir şey yok."
-
 msgid "Notification Duration"
 msgstr "Bildirim Süresi"
-
 msgid "On"
 msgstr "Açık"
-
 msgid "Only when"
 msgstr "Sadece ne zaman"
-
 msgid "Notification Duration:"
 msgstr "Bildirim Süresi:"
-
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "Her bileşenin ana hatlarını çizin ve tasarımcının ağacının adlandırdığı şekilde adlandırın."
-
 msgid "Outline every element and name it."
 msgstr "Her öğenin ana hatlarını çizin ve adlandırın."
-
 msgid "Pick an icon"
 msgstr "Bir simge seçin"
-
 msgid "Pick a Material icon."
 msgstr "Bir Malzeme simgesi seçin."
-
 msgid "Pick from the Scene's environment and global variables."
 msgstr "Sahne ortamından ve küresel değişkenlerden seçim yapın."
-
 msgid "Preview"
 msgstr "Önizleme"
-
 msgid "Project(s) that list it."
 msgstr "Listeleyen projeler."
-
 msgid "Pick one of Material's own colour roles."
 msgstr "Material'in kendi renk rollerinden birini seçin."
-
 msgid "Properties"
 msgstr "Özellikler"
-
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "Özellikler her seferinde bir öğe olarak düzenlenir. Sürükleme ve dürtme seçilen her şeyi taşır."
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "Yeni bir ad ister ve bunu hemen şimdi yüklenen yedeğe uygular; onu tutan her Projenin Sahne listesi de dahil olmak üzere her yerde Sahneyi yeniden adlandırır.\n\nBu Sahneyi ada göre gösteren veya gizleyen görevler güncellenmez; bunlar hala eski Sahneyi adlandırıyor.\n\nYukarıdaki Sahne Adı alanı salt okunurdur; onu değiştirmenin tek yolu budur."
-
 msgid "Refresh"
 msgstr "Yenile"
-
 msgid "Rename Element"
 msgstr "Öğeyi Yeniden Adlandır"
-
 msgid "Remove background"
 msgstr "Arka planı kaldır"
-
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "Burada bir öğeyi yeniden adlandırmak, yedeği süpürmez: bir öğe düzeninde, Görevin Öğesi eyleminin onu ele alacak Sahne adı yoktur, dolayısıyla yeniden yazılacak hiçbir şey yoktur."
-
 msgid "Repeats once per array entry"
 msgstr "Dizi girişi başına bir kez tekrarlanır"
-
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "Sürüklenen konumları ve boyutları bu kadar piksele yuvarlayın."
-
 msgid "Save Scene To Android Device"
 msgstr "Sahneyi Android Cihaza Kaydet"
-
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Bu oturumun herhangi bir yerinde yapılan tüm düzenlemeler de dahil olmak üzere, yedeklemenin tamamını (yalnızca bu Sahneyi değil, içindeki her Projeyi, Profili, Görevi ve Sahneyi) kaydeder.\nŞu anda yüklü olan dosyanın yeni, zaman damgalı bir kopyasına yazılır: backup.xml, backup_20260728_143005.xml olur.\nYüklediğiniz dosyaya hiçbir zaman yazılmaz, dolayısıyla olduğu gibi bırakılır.\nUygulama daha sonra yeni kopyaya geçer; bu kopya, daha fazla düzenleme ve kaydetme için geçerli dosya haline gelir; tekrar kaydetme, ikinci bir damga eklemek yerine zaman damgasının yerini alır.\nBu yalnızca bu bilgisayara yazılır; Android cihazınıza hiçbir şey gönderilmez."
-
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "Bu Sahneyi tüm öğeleriyle birlikte tek bir .scn.xml dosyası olarak kaydeder; Tasker'ın kendi Sahne dışa aktarımının ürettiği formatın aynısıdır.\n\nSahne öğelerinin çalıştırdığı görevler dahil değildir; kendi Projelerine aittirler."
-
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Yüklenen XML'i bozuk referanslar, referans gösterilmeyen Görevler, Profiller ve Sahneler ve adlandırma sorunları açısından tarayın.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
-
 msgid "Scene Components"
 msgstr "Sahne Bileşenleri"
-
 msgid "Scene Elements"
 msgstr "Sahne Öğeleri"
-
 msgid "Scene Name"
 msgstr "Sahne Adı"
-
 msgid "Scene Preview"
 msgstr "Sahne Önizlemesi"
-
 msgid "Scene Properties"
 msgstr "Sahne Özellikleri"
-
 msgid "Scene added."
 msgstr "Sahne eklendi."
-
 msgid "Scene type"
 msgstr "Sahne türü"
-
 msgid "Screen"
 msgstr "Ekran"
-
 msgid "Search elements"
 msgstr "Öğeleri ara"
-
 msgid "Search icons"
 msgstr "Arama simgeleri"
-
 msgid "Search variables"
 msgstr "Değişkenleri ara"
-
 msgid "Select a component on the left."
 msgstr "Soldan bir bileşen seçin."
-
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "Gerisini görmek için daha büyük bir Görüntüleme Sınırı veya tek bir Proje / Profil / Görev seçin."
-
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "Önce tek bir Sahne seçin (Yukarıdaki Sahne açılır menüsü)."
-
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "Çoğaltmak, silmek veya yeniden yığınlamak için tek bir öğeyi seçin."
-
 msgid "Select an element first."
 msgstr "Önce bir öğe seçin."
-
 msgid "Select an element on the canvas or in the list."
 msgstr "Tuvalde veya listede bir öğe seçin."
-
 msgid "Show the Task each element runs."
 msgstr "Her öğenin çalıştığı Görevi gösterin."
-
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "Her bileşenin dokunulduğunda ne yaptığını ve neye yazdığını gösterin."
-
 msgid "Show when"
 msgstr "Ne zaman göster"
-
 msgid "Size"
 msgstr "Boyut"
-
 msgid "Spinner"
 msgstr "Döndürücü"
-
 msgid "Stop firing anything on this event."
 msgstr "Bu olayla ilgili herhangi bir şeyi ateşlemeyi bırakın."
-
 msgid "Task action(s) in"
 msgstr "Görev eylem(ler)i"
-
 msgid "Task(s)"
 msgstr "Görev(ler)"
-
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "Görev(ler), bu Sahneyi bir eşleşme modeliyle (Öğe Görünürlüğü) ele alır. Onları kendiniz kontrol edin"
-
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker, bu Görevi Sahnenin içinde tutar ve başka hiçbir yerde tutmaz, bu nedenle adı yoktur ve kaybolmadan başka bir yere işaret edilemez. El değmeden taşınır."
-
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker bu öğeyi listeler, ancak MapTasker kayıtlı bir Sahnede hiç böyle bir öğe görmemiştir; bu nedenle türü ve kimliği dışında hiçbir şey taşımadan eklenmiştir ve hatta tür, yukarıdaki addan çıkarılmıştır (type: \"{node_type}\" olarak yazılmıştır). Tasker bunu tanımazsa Geri Al'a basın."
-
 msgid "Tasker variable(s)"
 msgstr "Görev değişkeni/değişkenleri"
-
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Tasker's Screen Builder: sabit bir tuval boyutu olmadan kendi kendine yayılan bildirimsel bir bileşen ağacı (Sütun, Satır, İskele, ...). Şuradan başlayın:"
-
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "Görevler bu öğeyi ada göre ele alır (Öğe Metni, Öğe Konumu, ... toplam 18 eylem kodu), dolayısıyla yeniden adlandırmak bir alan düzenlemesi değildir. Yeniden Adlandır iletişim kutusu, geçerli ada bağlı olanları listeler ve bu Görevleri yanınızda getirme tekliflerini sunar."
-
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "Bu Sahneyi ismine göre gösteren veya gizleyen görevler değiştirilmez ve oldukları yerde bırakılır."
-
 msgid "Text density"
 msgstr "Metin yoğunluğu"
-
 msgid "That component can't go there."
 msgstr "Bu bileşen oraya gidemez."
-
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "Size must be a whole number (-1 for no layout)."
-
 msgid "Snap"
 msgstr "Patlatmak"
-
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "Bu zaten yüklenmiş olan dosyadır.  Karşılaştırmak için farklı bir tane seçin."
-
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "Malzeme simgesi listesi okunamadığından onun yerine adı yazın."
-
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "Bu bileşenin değerini yazdığı Tasker değişkeni. Birkaçını virgülle ayırın. Bağlamayı ayarlamadan bildirmek için boş bırakın."
-
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "The Tasks that address it will be updated when this Scene is saved."
-
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "Bir satırın düzeni. Tasker, listeyi dolduran her giriş için onu bir kez çizer, dolayısıyla burada liste yerine tek bir satır görürsünüz."
-
 msgid "The loaded file was saved from"
 msgstr "Yüklenen dosya şuradan kaydedildi:"
-
 msgid "The original"
 msgstr "The original"
-
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "Orijinal Sahne: Boyutlandırılmış bir tuval üzerinde sabit konumlara yerleştirilen UI öğeleri (Metin, Düğme, Dikdörtgen, Resim, Web, ...)."
-
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "Ekran boyutu Sahne'nin değil, bu ön izlemenin boyutudur; Sürüm 2 düzeninin kendine ait bir boyutu yoktur, bu nedenle yeniden akışını görmek için 'Ekran'ı değiştirin. Malzeme rolüne göre adlandırılan renkler, Malzeme 3 temel paletinden alınmıştır; cihaz bunları kendi temasına göre çözer; bu Tema, Malzeme Siz'in altında duvar kağıdından gelir. Taralı dolgular ve italik altı çizili metinler %değişkenlerdir. Amber, işaret bileşenlerini 'Ne zaman göster' ile özetliyor. Değiştiricileri, değişkenleri ve eylemleri için herhangi bir bileşenin üzerine gelin."
-
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "Arama tamamlanmadı. Görünüm çok büyük olabilir veya tarayıcı meşgul olabilir."
-
 msgid "The two files hold the same configuration."
 msgstr "İki dosya aynı konfigürasyona sahiptir."
-
 msgid "This Scene has no UI elements."
 msgstr "Bu Sahnede hiçbir kullanıcı arayüzü öğesi yok."
-
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "Bu Sahnenin kendine ait bir manzara düzeni yoktur (boyutu -1'dir)."
-
 msgid "This Scene has no layout for this orientation."
 msgstr "Bu Sahnenin bu yönlendirme için düzeni yoktur."
-
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "Bu Sahnenin hiçbir özellik öğesi yoktur. MapTasker'ın gördüğü 366 Sahnenin 66'sında da hiç yok, yani bu hasardan ziyade sıradan bir durum."
-
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "Bu Sahnenin Sürüm 2 düzeninin kök bileşeni yoktur, dolayısıyla tasarlanacak hiçbir şey yoktur."
-
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "Bu uygulamanın bu eleman türü için özellik tablosu yoktur, dolayısıyla burada yalnızca geometrisi düzenlenebilir. Aksi takdirde el değmeden taşınır."
-
 msgid "This element has no layout for this orientation."
 msgstr "Bu öğenin bu yönlendirme için düzeni yoktur."
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Bu, Sahneyi bağımsız bir dosya olarak Android cihazına /Tasker/scenes altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBunun için herhangi bir yetkilendirme istemine gerek yoktur."
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Bu, Scene'i Android cihazınıza /Tasker/scenes altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışır durumdayken Android cihazında kurulu ve aktif olmalıdır.\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir. Bunun için herhangi bir yetkilendirme istemine gerek yoktur."
-
 msgid "Tree label"
 msgstr "Ağaç etiketi"
-
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "Ekranı yan çevirin ve düzenin yeniden akmasına izin verin."
-
 msgid "Undo"
 msgstr "Geri al"
-
 msgid "Using the saved size"
 msgstr "Kaydedilen boyutu kullanma"
-
 msgid "Variable"
 msgstr "Değişken"
-
 msgid "Variables"
 msgstr "Değişkenler"
-
 msgid "Version 2"
 msgstr "Sürüm 2"
-
 msgid "View Limit"
 msgstr "Sınırı Görüntüle"
-
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "Seçtiğiniz şey imlecin yanına girer. Bir sonraki parçayı eklemek için bunu tekrar açın."
-
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "Seçtiğiniz şey, alanın sahip olduğu şeyin yerini alır. Listeyi daraltmak için yazın."
-
 msgid "Which kind of Scene?"
 msgstr "Hangi Sahne?"
-
 msgid "Writes to variable"
 msgstr "Değişkene yazar"
-
 msgid "Zoom"
 msgstr "Yakınlaştır"
-
 msgid "component(s)"
 msgstr "bileşen(ler)"
-
 msgid "connectors"
 msgstr "konnektörler"
-
 msgid "drag or nudge any of them and they all move together."
 msgstr "herhangi birini sürükleyin veya itin; hepsi birlikte hareket eder."
-
 msgid "editing 1 of"
 msgstr "1 tanesini düzenliyor"
-
 msgid "element(s)"
 msgstr "eleman(lar)"
-
 msgid "is not a whole number"
 msgstr "bir tam sayı değil"
-
 msgid "lines dropped"
 msgstr "çizgiler düştü"
-
 msgid "none"
 msgstr "hiçbiri"
-
 msgid "not drawn"
 msgstr "çizilmemiş"
-
 msgid "pair"
 msgstr "çift"
-
 msgid "pixels"
 msgstr "piksel"
-
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "Bu Sahnenin Versiyon 2 düzeni okunamadı ve olduğu gibi bırakılacak."
-
 msgid "elements selected"
 msgstr "seçilen öğeler"
-
 msgid "Building the Map to show"
 msgstr "Gösterilecek Haritayı Oluşturma"
-
 msgid "Built the Map, but it has no line for"
 msgstr "Haritayı oluşturdum ancak bunun için bir çizgi yok"
-
 msgid "Click a finding to see it in the Map view."
 msgstr "Harita görünümünde görmek için bir bulguyu tıklayın."
-
 msgid "Click a variable or a place to see it in the Map view."
 msgstr "Harita görünümünde görmek için bir değişkeni veya yeri tıklayın."
-
 msgid "No Map view is open.  Run Map View, then click this again."
 msgstr "Hiçbir Harita görünümü açık değil.  Harita Görünümü'nü çalıştırın ve ardından buna tekrar tıklayın."
-
 msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Yüklenen XML'deki her %değişkenin izini sürün: her birinin nerede ayarlandığı, nerede okunduğu, hangilerinin okunduğu ancak hiçbir zaman ayarlanmadığı, hangilerinin ayarlandığı ancak hiçbir zaman okunmadığı ve hangi neredeyse aynı adların (%MyVar ve %Myvar) muhtemelen yazım hatası olduğu.\n\nAranan: Görev eylemleri ve koşulları, eklenti yapılandırması, Profil bağlamları ve Sahneler.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
-
 msgid "Variable Cross-Reference found no suspect variables."
 msgstr "Değişken Çapraz Referansı şüpheli değişken bulamadı."
-
 msgid "Variable Cross-Reference report could not be saved."
 msgstr "Değişken Çapraz Referans raporu kaydedilemedi."
-
 msgid "Variable Cross-Reference saved as"
 msgstr "Değişken Çapraz Referans olarak kaydedildi"
-
 msgid "Variable Xref"
 msgstr "Değişken Dış Referans"
-
 msgid "detail level"
 msgstr "ayrıntı düzeyi"
-
 msgid "is no longer in the loaded configuration."
 msgstr "artık yüklü konfigürasyonda değil."
-
 msgid "whole file"
 msgstr "tüm dosya"
-
 msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
 msgstr "Yüklenen yedeklemede Projeyi hemen devre dışı bırakır - Yeniden Adlandır gibi, bu, kaydetmeyi beklemek yerine hemen etkili olur ve İptal bunu geri almaz."
-
 msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "'Bul...', ekrandaki metni aramak yerine yüklü konfigürasyona bir soru sorar: belirli bir eylemi gerçekleştiren her Görev, belirli bir tetikleyicinin etkinleştirildiği her Profil, belirli bir uygulamayı veya Sahneyi adlandıran her şey.\n\nKutular birleşir; bu şekilde tetikleyen Profilleri bulmak için bir tetikleyici ve bir eylem seçin ve bunu yapan bir Görev çalıştırın.\n\nSonuçlar bir nesne listesi olarak geri gelir; ona götürülmek için birine tıklayın.\n\n"
-
 msgid "Changes Pending"
 msgstr "Değişiklikler Beklemede"
-
 msgid "Changes made to the loaded XML this session, newest first.  Undo steps back through them one at a time.  Nothing here has been written to a file."
 msgstr "Bu oturumda yüklenen XML'de yapılan değişiklikler, en yenisi önce gelecek şekilde.  Adımları teker teker geri alın.  Burada hiçbir şey bir dosyaya yazılmadı."
-
 msgid "Choose an action, a trigger, an app, a Scene or some text."
 msgstr "Bir eylem, tetikleyici, uygulama, Sahne veya bir metin seçin."
-
 msgid "Each box narrows the answer, and they combine: a trigger and an action together find the Profiles that trigger that way AND run a Task that does that. Every entry offered is one this configuration actually uses, and the number beside it is how many places carry it."
 msgstr "Her kutu cevabı daraltır ve birleşirler: Bir tetikleyici ve bir eylem birlikte, o şekilde tetikleyen Profilleri bulur VE bunu yapan bir Görevi çalıştırır. Sunulan her giriş, bu konfigürasyonun gerçekte kullandığı bir giriştir ve yanındaki sayı, onu kaç yerde taşıdığını gösterir."
-
 msgid "Edit History"
 msgstr "Geçmişi Düzenle"
-
 msgid "Editing"
 msgstr "Düzenleme"
-
 msgid "Every Project"
 msgstr "Her Proje"
-
 msgid "Find"
 msgstr "Bulmak"
-
 msgid "Find in"
 msgstr "Bulun"
-
 msgid "Find results could not be saved."
 msgstr "Bul sonuçları kaydedilemedi."
-
 msgid "Find results saved as"
 msgstr "Şu şekilde kaydedilen sonuçları bul:"
-
 msgid "Find..."
 msgstr "Bulmak..."
-
 msgid "Help"
 msgstr "Yardım"
-
 msgid "List every change made to the loaded XML this session, newest first."
 msgstr "Bu oturumda yüklenen XML'de yapılan tüm değişiklikleri, en yenisi önce gelecek şekilde listeleyin."
-
 msgid "Narrow to Project"
 msgstr "Projeye Daralt"
-
 msgid "No changes to undo."
 msgstr "Geri alınacak değişiklik yok."
-
 msgid "Nothing has been changed yet."
 msgstr "Henüz hiçbir şey değişmedi."
-
 msgid "Nothing in the loaded configuration answers this."
 msgstr "Yüklenen konfigürasyondaki hiçbir şey buna cevap vermiyor."
-
 msgid "Nothing is saved until you press Ok, Save or Export."
 msgstr "Siz Tamam, Kaydet veya Dışa Aktar'a basana kadar hiçbir şey kaydedilmez."
-
 msgid "Redid"
 msgstr "Yeniden düzenlendi"
-
 msgid "Redo"
 msgstr "Yinele"
-
 msgid "Run a Find first."
 msgstr "Önce bir Bul komutunu çalıştırın."
-
 msgid "Save Results"
 msgstr "Sonuçları Kaydet"
-
 msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
 msgstr "Yüklenen XML'de yapılan son değişikliği (düzenleme, ekleme, silme veya yeniden adlandırma) herhangi bir Düzenleme panelinde geri alın.\n\nBu, herhangi bir dosyayı değil, yüklenen şeyi değiştirir: diskte veya Android cihazında hiçbir şeye dokunulmaz."
-
 msgid "Text (name, label or argument)"
 msgstr "Metin (isim, etiket veya argüman)"
-
 msgid "Undid"
 msgstr "Geri alındı"
-
 msgid "Updating MapTasker in the background.  Please stand by..."
 msgstr "Arka planda MapTasker güncelleniyor.  Lütfen beklemede kalın..."
-
 msgid "does not belong to a Project, so there is nowhere to attach a new"
 msgstr "bir Projeye ait olmadığı için yeni bir proje eklenecek yer yok"
-
 msgid "found for"
 msgstr "için bulundu"
-
 msgid "of"
 msgstr "ile ilgili"
-
 msgid "In no Project"
 msgstr "Hiçbir Projede"
-
 msgid "...to this name"
 msgstr "...bu isim altında"
-
 msgid "...with this one"
 msgstr "...bu da dahil"
-
 msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
 msgstr "Orijinal diyagrama geri dönelim: Hiçbir yakınlaştırma, hiçbir şey katlanmamış veya filtrelenmemiş."
-
 msgid "Cannot be changed"
 msgstr "Değiştirilemez"
-
 msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
 msgstr "Her yerde aynı şeyi değiştirin. Değişiklikler, \"Önizleme\" ve ardından \"Değiştir\" düğmelerine basılana kadar yapılmaz. Ayrıca, her değişiklikten sonra \"İptal\" düğmesiyle geri alınabilir."
-
 msgid "Choose a variable, and type the new name."
 msgstr "Bir değişken seçin ve yeni adı girin."
-
 msgid "Choose an action to replace, and one to replace it with."
 msgstr "Hangi eylemi değiştireceğinizi ve bunun yerine hangi eylemi kullanacağınızı seçin."
-
 msgid "Click a name for its Map entry · shift-click a Task for its call chain"
 msgstr "Bir ismin üzerine tıklayarak ilgili harita kaydına erişin · bir görev üzerinde sağ tıklayarak ilgili çağrı zincirine bakın"
-
 msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
 msgstr "Her projenin başlık çubuğuna indirildiğinden emin olun.\n\nTek bir proje, kutusunun üst kenarına tıklanarak otomatik olarak kapanır."
-
 msgid "Expand every collapsed Project."
 msgstr "Her kapsanan Proje'yi açın."
-
 msgid "Limited to"
 msgstr "Sınırlı"
-
 msgid "Nothing here would change."
 msgstr "Burada hiçbir şey değişmeyecekti."
-
 msgid "Nothing is ticked."
 msgstr "Hiçbir şey işaretlenmemiş."
-
 msgid "Nothing was changed."
 msgstr "Hiçbir şey değişmedi."
-
 msgid "Press Preview first."
 msgstr "Öncelikle basın tanıtımını yapın."
-
 msgid "Rename this variable"
 msgstr "Bu değişkenin adını değiştirin"
-
 msgid "Replace"
 msgstr "Yerine koy"
-
 msgid "Replace preview could not be saved."
 msgstr "Ön izleme kaydetme işlemi başarısız oldu."
-
 msgid "Replace preview saved as"
 msgstr "\"Kaydedilen önizleme yerine...\""
-
 msgid "Replace this action"
 msgstr "Bu eylemi değiştirin"
-
 msgid "Save Preview"
 msgstr "Örnek Görüntüleme"
-
 msgid "Task action"
 msgstr "Görev eylemi"
-
 msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
 msgstr "Şema tıklanabilir:\n\nHarita üzerinde bir Proje, Profil, Görev veya Sahne adını tıklayarak ilgili yere geçebilirsiniz.\n\nBir Göreve Shift tuşuyla tıklayarak, o görevin dahil olduğu tüm çağrı zincirini vurgulayabilirsiniz – hem o görevi çağırıyor, hem de ona çağrı yapan tüm diğer görevleri ve aralarındaki okları gösterir.\n\nDiğerleri için herhangi bir adı sağ tıklayın: Projesini daraltın, sadece o projeyi gösterin, zincirini takip edin.\n\nBir Projenin yanındaki ▾ işaretine tıklayarak, projeyi daraltın ve ▸ işaretine tıklayarak tekrar açın.\n\nCtrl (veya ⌘) tuşlarını ve kaydırıcıyı kullanarak yakınlaşma/uzaklaşma yapabilirsiniz. Esc tuşu, bir zinciri sıfırlar."
-
 msgid "Undo is available."
 msgstr "İptal etme özelliği mevcuttur."
-
 msgid "Variable name"
 msgstr "Değişken adı"
-
 msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "Yakınlaştır. Ctrl/⌘ ve kaydırma çarkı aynı işlevi görür."
-
 msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "Geri çek. Ctrl/⌘ tuşlarını ve kaydırma çemberini kullanarak aynı işlemi yapabilirsiniz."
-
 msgid "changed"
 msgstr "değişti"
-
 msgid "clear the single-item selection to reach the whole configuration"
 msgstr "konfigürasyonun tamamına ulaşmak için tek öğe seçimini temizleyin"
-
 msgid "more"
 msgstr "daha fazla"
-
 msgid "...and put this there"
 msgstr "...ve bunu oraya koy"
-
 msgid "...replace this argument"
 msgstr "...bu argümanı değiştir"
-
 msgid "Action argument"
 msgstr "Eylem argümanı"
-
 msgid "Add it where missing"
 msgstr "Eksik yere ekleyin"
-
 msgid "Choose an action, and which of its arguments to replace."
 msgstr "Bir eylem seçin ve onun bağımsız değişkenlerinden hangisinin değiştirileceğini seçin."
-
 msgid "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment."
 msgstr "Doğru sütun hizalaması için tek aralıklı yazı tipiyle (örn. Courier New) görüntüleyin. Ve satır kaydırmayı kapatın.\nİsimlerdeki simgeler veya Çince/Korece/Japonca küçük hizalama bozukluklarına neden olabilir."
-
 msgid "Drawn for"
 msgstr "için çizilmiş"
-
 msgid "Error: Single item specified but not found!  Try again."
 msgstr "Hata: Tek öğe belirtildi ancak bulunamadı!  Tekrar deneyin."
-
 msgid "In this action"
 msgstr "Bu eylemde"
-
 msgid "Nothing in scope has that argument to change."
 msgstr "Kapsamdaki hiçbir şeyin değişmesi gereken bu argümanı yoktur."
-
 msgid "Only the matching text"
 msgstr "Yalnızca eşleşen metin"
-
 msgid "Only where the value contains (optional)"
 msgstr "Yalnızca değerin içerdiği yer (isteğe bağlı)"
-
 msgid "Press Diagram View to rebuild it."
 msgstr "Yeniden oluşturmak için Diyagram Görünümü'ne basın."
-
 msgid "Rebuild"
 msgstr "Yeniden inşa et"
-
 msgid "The change is applied.  Press Map View to see it."
 msgstr "Değişiklik uygulanır.  Görmek için Harita Görünümü'ne basın."
-
 msgid "now showing"
 msgstr "şimdi gösteriliyor"
-
 msgid "the whole configuration"
 msgstr "tüm konfigürasyon"
-
 msgid "'Find/Replace' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "'Bul/Değiştir', ekrandaki metni aramak yerine yüklü konfigürasyona bir soru sorar: belirli bir eylemi gerçekleştiren her Görev, belirli bir tetikleyicinin etkinleştirildiği her Profil, belirli bir uygulamayı veya Sahneyi adlandıran her şey.\n\nKutular birleşir; bu şekilde tetikleyen Profilleri bulmak için bir tetikleyici ve bir eylem seçin ve bunu yapan bir Görev çalıştırın.\n\nSonuçlar bir nesne listesi olarak geri gelir; ona götürülmek için birine tıklayın.\n\n"
-
 msgid "Choose a Profile condition to replace, and one to replace it with."
 msgstr "Değiştirmek istediğiniz bir profil seçin ve onun yerine kullanacağınız bir profil seçin."
-
 msgid "Find/Replace"
 msgstr "Bul/Değiştir"
-
 msgid "Profile condition"
 msgstr "Profil durumu"
-
 msgid "Replace this Profile condition"
 msgstr "Bu profil koşulunu değiştirin"
-
 msgid "%variable_name"
 msgstr "%değişken_adı"
-
 msgid "A variable name has to start with '%' -- for example %app_package."
 msgstr "Bir değişken adının '%' ile başlaması gerekir; örneğin %app_package."
-
 msgid "Also in this field"
 msgstr "Ayrıca bu alanda"
-
 msgid "App not listed?"
 msgstr "Uygulama listelenmiyor mu?"
-
 msgid "Choose from the Applications named in the loaded configuration."
 msgstr "Yüklenen konfigürasyonda adı geçen Uygulamalar arasından seçim yapın."
-
 msgid "Choose from the icons used in the loaded configuration."
 msgstr "Yüklenen konfigürasyonda kullanılan simgeler arasından seçim yapın."
-
 msgid "Fetch"
 msgstr "Gidip getirmek"
-
 msgid "Fetch Applications From Android Device"
 msgstr "Android Cihazdan Uygulamaları Getir"
-
 msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
 msgstr "Yüklü uygulamaların tam listesini Android cihazınızdan alın.  Şimdi listelenenler yalnızca bu yapılandırmanın zaten adlandırdığı adlardır."
-
 msgid "Fetching..."
 msgstr "Getiriliyor..."
-
 msgid "Fill all three fields in from the loaded configuration."
 msgstr "Yüklenen konfigürasyondaki üç alanı da doldurun."
-
 msgid "Import Into Tasker"
 msgstr "Tasker'a İçe Aktar"
-
 msgid "Listing the XML files on the Android device..."
 msgstr "XML dosyaları Android cihazda listeleniyor..."
-
 msgid "More matches than can be shown -- narrow the search."
 msgstr "Gösterilebilecekten daha fazla eşleşme; aramayı daraltın."
-
 msgid "No Icon"
 msgstr "Simge Yok"
-
 msgid "Or a Tasker variable:"
 msgstr "Veya bir Tasker değişkeni:"
-
 msgid "Pick"
 msgstr "Seçmek"
-
 msgid "Pick an Application"
 msgstr "Bir Uygulama Seçin"
-
 msgid "Save As File"
 msgstr "Dosya Olarak Kaydet"
-
 msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
 msgstr "Yüklenen konfigürasyonda bir yerde adlandırılan Uygulamalar - veya Paket ve Etiket alanlarını onunla dolduran ve Tasker'ın yazdığı gibi Sınıfı boş bırakan bir Tasker değişkenini adlandırın."
-
 msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
 msgstr "Yüklenen konfigürasyonda bir yerde adlandırılan Uygulamalar.  Bu argümanın eşleşmesi gereken her şeyi işaretleyin.  Alanda zaten listelenmeyen her şey kalır."
-
 msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "Yüklenen konfigürasyonda bir yerde kullanılan simgeler.  Seçtiğiniz şey, alanın sahip olduğu şeyin yerini alır.  Listelenmeyen bir simge paketindeki simgenin yazılması gerekir: adları paketin içinde bulunur."
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, Profili Android cihazında Tasker'ın kendi içe aktarma ekranının önüne koyar.  Daha sonra işlemi tamamlamak için cihazda İçe Aktar'a dokunursunuz; siz bunu yapana kadar hiçbir şey içe aktarılmaz.\n\n'Http Sunucu Örneği' Tasker Projesi kurulu ve çalışıyor olmalı ve Tasker 6.2 veya üzeri olmalıdır.\n\nCihaz ilk defa MapTasker'ı yetkilendirmenizi isteyecektir."
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, Projeyi ve içindeki her Profili ve Görevi Android cihazında Tasker'ın kendi içe aktarma ekranının önüne koyar.  Daha sonra bitirmek için cihazda İçe Aktar'a dokunun; siz bunu yapana kadar hiçbir şey içe aktarılmaz.\n\n'Http Sunucu Örneği' Tasker Projesi kurulu ve çalışıyor olmalı ve Tasker 6.2 veya üzeri olmalıdır.\n\nCihaz ilk defa MapTasker'ı yetkilendirmenizi isteyecektir."
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, sahneyi (ve onun içindeki tüm görevlerin öğelerini) kendi adıyla Android cihazına, `/Tasker/scenes` klasörüne aktarır ve Tasker uygulamasını açar.\n\nTasker uygulamasının \"Sahne > Bir Sahneyi İçe Aktar\" özelliği ile cihaz üzerinde işlemi tamamlayın ve sahneyi adıyla seçin. Bir profil veya proje gibi, bu sahne doğrudan Tasker'ın içe aktarma ekranına yerleştirilemez – Tasker, size aktardığınız aynı dosyayı bile alacaktır, ancak doğrudan aktarmayacaktır.\n\n\"Http Sunucu Örneği\" adlı Tasker projesi, önceden kurulmuş ve çalışır durumda olmalıdır ve Tasker uygulamasının sürümü 6.2 veya daha yüksek olmalıdır.\n\nCihaz, ilk kez MapTasker'ı yetkilendirmeyi isteyecektir."
-
 msgid "Use Selected"
 msgstr "Seçilenleri kullan"
-
 msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
 msgstr "Android cihazda bekleme -- eğer bir onay isteği görüyorsanız, cihazda yanıtlayın. Bu işlem 30 saniye veya daha uzun sürebilir."
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
 msgstr "Android cihazınızı izleyin: Tasker, bağlantıyı onaylamanızı isteyecek ve veri indirme işlemi, onayınızla başlayana kadar devam etmeyecektir. Özellikle yüzlerce uygulama yüklü bir cihazda, her birinin adının ayrı ayrı aranması nedeniyle, 30 saniye veya daha uzun bir süreye izin verin."
-
 msgid "applications, fetched"
 msgstr "getirilen uygulamalar"
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nThe file write needs no authorization prompt; the import asks for one, and you must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "Bu, iki seçeneği sunar: Görevi, /Tasker/tasks altında Android cihazınıza ayrı bir dosya olarak kaydetmek veya doğrudan Tasker'ın canlı yapılandırmasına aktarmak.\n\n'Http Server Örneği' adlı Tasker projesi, Android cihazda kurulmuş ve aktif olmalı, sunucu da çalışır durumda olmalı (README'deki Doğrudan XML Alma notlarına bakın) ve Tasker sürümü 6.2 veya daha yüksek olmalıdır.\n\nAndroid cihazın aynı ağda olması ve IP Adresi ve Port'un, Tasker sunucusunun ayarlarıyla eşleşmesi gerekmektedir.\n\nDosya oluşturma işlemi için kimlik doğrulama istemi gerekli değildir; aktarma işlemi için bir kimlik doğrulama istenecektir ve aktarılmış bir görevi Tasker kullanıcı arayüzünde görmek için Tasker'ı kapatıp yeniden başlatmanız gerekmektedir."
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, Profili Android cihazdaki Tasker'ın kendi içe aktarma ekranına getirir. Ardından, cihazda \"İçe Aktar\" seçeneğine tıklayarak işlemi tamamlayın – işlem, bunu yapana kadar gerçekleşmez.\n\nProfil, öncelikle kendi adıyla `/Tasker/profiles` klasörüne kopyalanır ve oradan kullanılabilir hale getirilir. Bu, sizin belirleyeceğiniz bir isim altında kalmasını sağlar – eğer içe aktarma ekranı görünmezse, Tasker üzerinden elle içe aktarma yapabilirsiniz. Dosyanın zaten o yoldaki olup olmadığını sormadan önce, bir dosyanın değiştirilmesine izin vermeniz istenecektir.\n\n'Http Server Örneği' Tasker projesi kurulmalı ve çalışır durumda olmalı, ayrıca Tasker sürümünün 6.2 veya daha yüksek olması gerekmektedir.\n\nCihaz, ilk kez MapTasker'ı kullanmanıza izin vermenizi isteyecektir."
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, Projeyi ve içindeki her Profili ve Görevi Android cihazında Tasker'ın kendi içe aktarma ekranının önüne koyar.  Daha sonra bitirmek için cihazda İçe Aktar'a dokunun; siz bunu yapana kadar hiçbir şey içe aktarılmaz.\n\nProje önce kendi adı altında /Tasker/projects'e kopyalanır ve oradan sunulur, böylece bulabileceğiniz bir adla geride kalır - içe aktarma ekranı gelmezse Tasker'dan elle içe aktarın.  Zaten bu yolda bulunan bir dosyayı değiştirmeden önce size sorulacaktır.\n\n'Http Sunucu Örneği' Tasker Projesi kurulu ve çalışıyor olmalı ve Tasker 6.2 veya üzeri olmalıdır.\n\nCihaz ilk defa MapTasker'ı yetkilendirmenizi isteyecektir."
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, görevi doğrudan Android cihazdaki Tasker'ın canlı yapılandırmasına aktarır. Bir Profil, Proje veya Sahne gibi farklı özelliklerden farklı olarak, herhangi bir içe aktarma ekranı veya cihaz üzerinde herhangi bir tıklama gerekmez; Tasker'ın API'si, görevi doğrudan alır.\n\nGörev, cihazda ilk olarak `/Tasker/tasks` klasörüne kopyalanır ve ardından oradan içe aktarılır, böylece kopyanın tam olarak neyin içe aktarıldığının bir kaydı olarak kalması sağlanır. Dosyanın zaten o yolda olduğunda değiştirilmeden önce size bir onay isteği gönderilir.\n\n'Http Server Örneği' Tasker Projesi, kurulmuş ve çalışır durumda olmalı ve Tasker'ın sürümü 6.2 veya daha yüksek olmalıdır.\n\nCihaz, ilk kez MapTasker'ı yetkilendirmeyi size soracaktır."
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, Sahneyi ve her Görevin öğelerinin ateşlenmesini kendi adı altında Android cihazına /Tasker/scenes içine gönderir ve Tasker'ı açar.\n\nBunu cihazda Tasker'ın 'Sahneler > Bir Sahneyi İçe Aktar' seçeneğiyle bitirin ve Sahneyi adına göre seçin.  Profil veya Projeden farklı olarak, buradan Tasker'in içe aktarma ekranının önüne bir Sahne yerleştirilemez - Tasker, onu seçtiğinizde aynı dosyayı içe aktarsa ​​da tek başına ele almaz.\n\nZaten bu yolda bulunan bir dosyayı değiştirmeden önce size sorulacaktır.\n\n'Http Sunucu Örneği' Tasker Projesi kurulu ve çalışıyor olmalı ve Tasker 6.2 veya üzeri olmalıdır.\n\nCihaz ilk defa MapTasker'ı yetkilendirmenizi isteyecektir."
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Bu, Görevi bağımsız bir dosya olarak Android cihazına /Tasker/tasks altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBunun için herhangi bir yetkilendirme istemine gerek yoktur."
-
 msgid "Delete them from Tasker's Tasks tab -- long-press one, then Delete.  Nothing here can do it: Tasker's HTTP API has no way to delete a Task."
 msgstr "Bunları Tasker'ın Görevler sekmesinden silin; birine uzun basın, ardından Sil.  Buradaki hiçbir şey bunu yapamaz: Tasker'ın HTTP API'sinin bir Görevi silme yolu yoktur."
-
 msgid "In use -- leave these alone:"
 msgstr "Kullanımda - bunları yalnız bırakın:"
-
 msgid "List Helper Tasks"
 msgstr "Yardımcı Görevleri Listeleme"
-
 msgid "Lists the 'MapTasker ...' Tasks this program has installed on the Android device, and says which are left over from an earlier version.\n\nEach one is installed under a versioned name and never replaced -- Tasker's import adds a second Task rather than replacing the first -- so old ones stay behind in your Task list.  They do no harm; they are clutter.\n\nDelete the ones it names from Tasker's own Tasks tab.  Nothing here can do it for you: Tasker's HTTP API has no way to delete a Task."
 msgstr "Bu programın Android cihazına yüklediği 'MapTasker ...' görevlerini listeler ve hangilerinin daha önceki bir sürümden kaldığını söyler.\n\nHer biri sürümlendirilmiş bir adla kurulur ve hiçbir zaman değiştirilmez - Tasker'ın içe aktarımı ilkinin yerini almak yerine ikinci bir Görev ekler - böylece eskileri Görev listenizde geride kalır.  Zarar vermezler; onlar dağınıklıktır.\n\nTasker'ın kendi Görevler sekmesinden adlandırdıklarını silin.  Buradaki hiçbir şey bunu sizin için yapamaz: Tasker'ın HTTP API'sinin bir Görevi silme yolu yoktur."
-
 msgid "MapTasker Helper Tasks"
 msgstr "MapTasker Yardımcı Görevleri"
-
 msgid "Nothing left over -- every MapTasker Task on the device is in use."
 msgstr "Geriye hiçbir şey kalmadı; cihazdaki tüm MapTasker Görevleri kullanımda."
-
 msgid "This copies the Profile to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, Profili cihaza kopyalar ve bunun için Android'in 'Birlikte aç...' seçicisini açar.  Tasker'ı seçtiğinizde kendi içe aktarma ekranı açılır; daha sonra bitirmek için İçe Aktar'a dokunursunuz; siz bunu yapana kadar hiçbir şey içe aktarılmaz.\n\nProfil önce kendi adı altında /Tasker/profiles'a kopyalanır ve oradan sunulur, böylece bulabileceğiniz bir adla geride kalır; içe aktarma ekranı gelmezse, Tasker'dan elle içe aktarın.  Zaten bu yolda bulunan bir dosyayı değiştirmeden önce size sorulacaktır.\n\n'Http Sunucu Örneği' Tasker Projesi kurulu ve çalışıyor olmalı ve Tasker 6.2 veya üzeri olmalıdır.\n\nCihaz ilk defa MapTasker'ı yetkilendirmenizi isteyecektir."
-
 msgid "This copies the Project -- and every Profile and Task in it -- to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish, and nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, Projeyi ve içindeki her Profili ve Görevi cihaza kopyalar ve bunun için Android'in 'Birlikte aç...' seçicisini açar.  Tasker'ı seçtiğinizde kendi içe aktarma ekranı açılır; daha sonra bitirmek için İçe Aktar'a dokunursunuz ve siz bunu yapana kadar hiçbir şey içe aktarılmaz.\n\nProje önce kendi adı altında /Tasker/projects'e kopyalanır ve oradan sunulur, böylece bulabileceğiniz bir adla geride kalır - içe aktarma ekranı gelmezse Tasker'dan elle içe aktarın.  Zaten bu yolda bulunan bir dosyayı değiştirmeden önce size sorulacaktır.\n\n'Http Sunucu Örneği' Tasker Projesi kurulu ve çalışıyor olmalı ve Tasker 6.2 veya üzeri olmalıdır.\n\nCihaz ilk defa MapTasker'ı yetkilendirmenizi isteyecektir."
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nIf Tasker does not report the Task after two attempts, that copy is handed to Android's 'Open with...' chooser instead, so you can import it by picking Tasker.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, Görevi doğrudan Android cihazındaki Tasker'ın canlı yapılandırmasına yerleştirir.  Profil, Proje veya Sahneden farklı olarak, içe aktarma ekranı veya cihaza dokunmaya gerek yoktur - Tasker'ın API'si/içe aktarması bir Görevi doğrudan alır.\n\nGörev ilk önce cihazdaki /Tasker/tasks klasörüne kopyalanır ve oradan içe aktarılır; böylece kopya, tam olarak içe aktarılan şeyin bir kaydı olarak geride kalır.  Zaten bu yolda bulunan bir dosyayı değiştirmeden önce size sorulacaktır.\n\nTasker iki denemeden sonra Görevi bildirmezse, bu kopya bunun yerine Android'in 'Birlikte aç...' seçicisine verilir, böylece Tasker'ı seçerek onu içe aktarabilirsiniz.\n\n'Http Sunucu Örneği' Tasker Projesi kurulu ve çalışıyor olmalı ve Tasker 6.2 veya üzeri olmalıdır.\n\nCihaz ilk defa MapTasker'ı yetkilendirmenizi isteyecektir."
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Android's 'Open with...' chooser for it.\n\nIf Tasker is in that chooser, pick it.  A Scene is the one kind Tasker has been seen to refuse when it is handed one, so if it is not there -- or nothing happens -- finish it with Tasker's 'Scenes > Import One Scene' and pick the Scene by name.  The file is on the device either way, and the message tells you its name.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Bu, Sahneyi ve içindeki her Görevin öğelerini kendi adı altında Android cihazına, /Tasker/scenes içine gönderir ve bunun için Android'in 'Birlikte aç...' seçicisini açar.\n\nTasker bu seçicideyse onu seçin.  Sahne, Tasker'ın kendisine teslim edildiğinde reddettiği türden bir sahnedir; bu nedenle orada değilse veya hiçbir şey olmazsa, onu Tasker'in 'Sahneler > Bir Sahneyi İçe Aktar' seçeneğiyle bitirin ve Sahneyi adına göre seçin.  Dosya her iki durumda da cihazdadır ve mesaj size dosyanın adını söyler.\n\nZaten bu yolda bulunan bir dosyayı değiştirmeden önce size sorulacaktır.\n\n'Http Sunucu Örneği' Tasker Projesi kurulu ve çalışıyor olmalı ve Tasker 6.2 veya üzeri olmalıdır.\n\nCihaz ilk defa MapTasker'ı yetkilendirmenizi isteyecektir."
-
 msgid "left over from an earlier version -- safe to delete in Tasker:"
 msgstr "Önceki bir sürümden kalanlar - Tasker'da silmek güvenlidir:"
-
 msgid "Clear the field, leaving the action with no icon."
 msgstr "Alan boşaltın, eylemi herhangi bir simge olmadan gösterin."
-
 msgid "Clicking this will launch 'pip install --upgrade maptasker' in the background, and then relaunch MapTasker."
 msgstr "Bu seçeneğe tıklamak, arka planda \"pip install --upgrade maptasker\" komutunu çalıştıracak ve ardından MapTasker'ı yeniden başlatacaktır."
-
 msgid "Display the changes in the new version."
 msgstr "Yeni sürümdeki değişiklikleri gösterin."
-
 msgid "Enables the display a breakdown of the Tasker system Preferences in the output."
 msgstr "Görev yöneticisinin (Tasker) ayarlarının ayrıntılı bir dökümünü çıktıya gösterme imkanı sağlar."
-
 msgid "Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, and Prettier Output."
 msgstr "Şartları, TaskerNet bilgilerini, tercihleri, dizin içeriğini ve Prettier çıktısını görüntüleme imkanı sağlar."
-
 msgid "Enables the display of Profile Conditions (e.g. State, Event, etc.) details in the output."
 msgstr "Profil Koşulları (örneğin, Durum, Olay vb.) detaylarının çıktı üzerinde görüntülenmesini sağlar."
-
 msgid "Enables the display of TaskerNet Descriptions in the output."
 msgstr "TaskerNet açıklamalarının çıktıda görüntülenmesini sağlar."
-
 msgid "Enables the display of aligned text in the output."
 msgstr "Çıktıda, metinlerin hizalanmasını sağlar."
-
 msgid "Enables the display of the Project/Profile/Task/Scene Directory in the output."
 msgstr "Proje/Profil/Görev/Sahne dizinlerinin çıktıdan görüntülenmesini sağlar."
-
 msgid "Fetch the full list of installed Applications from the Android device."
 msgstr "Android cihazınızdan yüklenmiş tüm uygulamaların tam listesini alın."
-
 msgid "Pick a Task which will be called by this action."
 msgstr "Bu eylemi tetikleyecek bir görev seçin."
-
 msgid "Saves this Profile as a standalone .prf.xml file on this computer."
 msgstr "Bu profili, bu bilgisayarda ayrı bir \".prf.xml\" dosyası olarak kaydet."
-
 msgid "Select the model belonging to the AI you wish to use."
 msgstr "Kullanmak istediğiniz yapay zeka modelini seçin."
-
 msgid "This will reach out to your Android device to list the available XML files belonging to Tasker."
 msgstr "Bu, Tasker'a ait mevcut XML dosyalarını Android cihazınıza listelemek için cihazınıza erişecektir."
-
 msgid "When enabled, Task details are hidden under a twisty (expand/collapse) control in the output."
 msgstr "Etkinleştirildiğinde, görev detayları, çıktıdaki karmaşık (aç/kapat) bir kontrol altında gizlenir."
-
 msgid "Clicking this button will result in the following actions:  \n- The IP Address will be used to ping the Android device.  \n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.  \n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.  \n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.  \nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.  \nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.  \n"
 msgstr "Bu düğmeye tıklamak aşağıdaki eylemlerle sonuçlanacaktır:  \n- IP Adresi Android cihazına ping atmak için kullanılacaktır.  \n- IP Adresi ve port numarası, Android cihazını sorgulamak ve Tasker klasöründe bulunan mevcut XML dosyalarının bir listesini almak için kullanılacaktır.  \n- Bulunan XML dosyalarının listesi, kullanmak istediğiniz dosyayı seçebileceğiniz bir açılır menüde sunulacaktır.  \n- XML ​​dosyasını seçtikten sonra, bu dosya getirilecek ve geçerli XML olarak doğrulanacaktır; bu daha sonra 'Çalıştır' veya 'Yeniden Çalıştır' düğmesine tıkladığınızda programa giriş olarak kullanılacaktır.  \nListeleme, bu düğmeyi ilk kullandığınızda MapTasker'ın Android cihazınıza yüklediği ve ardından oradan ayrıldığı 'MapTasker List Files v1' adlı küçük bir Görev tarafından yapılır.  Hiçbir şeyin elle ithal edilmesine gerek yoktur.  Cihazda çalışan 'HTTP Sunucu Örneği' projesinin ve Tasker 6.2 veya üst sürümünün ('Android'e Kaydet'in sahip olduğu gereksinimlerin aynısı) olmasını gerektirir ve Tasker sizden ilk kez bağlantıyı yetkilendirmenizi isteyecektir.  \nBirkaç saniye bekleyin: Görevi yüklemek (bir kez), çalıştırmak ve yanıtını okumak anında olmaz.\n"
-
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.  \nXML must first be obtained from the either local drive or Android device for the views to work.  \nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.  \nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.  \nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n\nThe Diagram View has the following behavior:  \n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.  \n - Click on a horizontal connector to highlight the entire connection in the diagram.  \n\nThe Tree View has the following behavior:  \n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.  \n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.  \n"
 msgstr "'Harita', 'Şema' veya 'Ağaç' görünümünü doğrudan GUI içinde görüntüleyin.\nGörünümlerin çalışması için, XML öncelikle yerel sürücüden veya Android cihazından elde edilmelidir.\nEğer XML zaten alınmışsa, bu veri görünüm için kullanılacaktır. 'Temizle' düğmesine tıklamak, görünüm verilerini temizleyecektir.\nÇok büyük yapılandırmalar, haritalar ve şemalar için daha uzun çalışma sürelerine neden olabilir. En iyi performansı elde etmek için, haritalamak istediğiniz tek bir Proje veya Profili seçin.\nİsteğe bağlı olarak, 'Görünüm Sınırı' ayarını kullanarak işlenecek veri miktarını sınırlayın. Sınır ne kadar yüksekse, haritalanabilecek veri miktarı da o kadar büyük olacaktır. Oluşturulan veri miktarı arttıkça, işlem süresi de artacaktır.\n\nŞema görünümünün aşağıdaki özellikleri vardır:\n- Sadece Projeler ve Profiller görüntülenebilir. Sadece tek bir Görev veya Sahne içeren bir XML görüntülenmeyecektir.\n- Bir yatay bağlantı noktasına tıklanarak, şemadaki tüm bağlantı vurgulanacaktır.\n\nAğaç görünümünün aşağıdaki özellikleri vardır:\n- Sadece Projeler görüntülenebilir. Sadece tek bir Profil, Görev veya Sahne içeren bir XML görüntülenmeyecektir.\n- Tüm Projeler, Profiller, Görevler ve Sahneler, tek bir ad ayarı olmasa bile görüntülenir.\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.  \n- The numbers represent the relative amount of output lines to be generated.  \n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.  \n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.  \n- If the limit is hit when calculating the map, the output will stop there.  \n- You can experiment with this setting to see which setting is best for your use case.  \n- Selecting a single Project, Profile or Task is another means to limit the processing time.  \n"
 msgstr "'Görüntüleme Sınırı', görünümü oluştururken kullanılan işlem süresini kontrol etmenin bir yoludur.  \n- Sayılar, üretilecek çıktı satırlarının göreceli miktarını temsil eder.  \n- Sınır ne kadar büyük olursa, eşlenmesine izin verilecek çıktı da o kadar büyük olur.  Ne kadar çok çıktı üretilirse işlem süresi de o kadar artar.  \n- Çok büyük konfigürasyonlar çok büyük çıktı haritaları üretecek ve daha fazla işlem süresine neden olacaktır.  Eski cihazlarda bu işlem 30 saniye veya daha uzun sürebilir.  \n- Bir limit belirleyerek, bir konfigürasyonu eşlerken daha uzun sürelere izin vermeyerek kullanılan işlem süresini kontrol edebilirsiniz.  \n- Harita hesaplanırken sınıra ulaşılırsa çıktı orada duracaktır.  \n- Kullanım durumunuz için hangi ayarın en iyi olduğunu görmek için bu ayarla denemeler yapabilirsiniz.  \n- Tek bir Proje, Profil veya Görev seçmek, işlem süresini sınırlamanın başka bir yoludur.\n"
-
 msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.  \nThe following steps are required in order to run AI against your Profile.  \n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).  \n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.  \n3- Select the model you want to use.  \n   o The model selected will determine with which AI the analysis is to be performed.  \n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.  \n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.  \n   o The process may take some time and runs in the background.  The results will appear in a separate window.  \n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.  \nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.  \nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.  \n"
 msgstr "Analiz sekmesi, yerel lama modelini veya sunucu tabanlı Open AI, Claude veya DeepSeek modellerini kullanarak Profilinizde Ai analizini çalıştırmak için kullanılır.  \nProfilinizde AI çalıştırmak için aşağıdaki adımlar gereklidir.  \n1- Sunucu tabanlı bir AI kullanıyorsanız, sağlayıcıdan geçerli bir API anahtarına sahip olmanız gerekir (ör. OpenAI).  Anahtarlarınızı girmek için 'API Anahtarlarını Göster/Düzenle' düğmesini kullanabilirsiniz.  \n2- Varsayılan bilgi istemi şu şekildedir: 'performans ve okunabilirlik konusunda iyileştirmeler önerin: (projeniz/profiliniz/göreviniz)' ve otomatik olarak önüne şu gelir: 'Tasker'da aşağıdaki (Proje/Profil/Görev) verildiğinde, '.  Bilgi istemini değiştirirseniz, yalnızca 'iyileştirmeler önerin...' bölümünü değiştirmiş olursunuz.  \n3- Kullanmak istediğiniz modeli seçin.  \n   o Seçilen model, analizin hangi yapay zeka ile gerçekleştirileceğini belirleyecektir.  \n4- 'Analizi Çalıştır' butonuna tıklayın.  Gerekli tüm veriler girildiğinde yeşile dönecektir.  \n   o Henüz bir model, bilgi istemi veya tek bir Proje, Profil veya Görev ya da geçerli bir API anahtarı seçmediyseniz, önce bunu yapmanız istenecektir.  \n   o İşlem biraz zaman alabilir ve arka planda çalışır.  Sonuçlar ayrı bir pencerede görünecektir.  \n   o Henüz bilgisayarınıza yüklenmemiş yerel modeller, analiz başladıktan sonra arka planda yüklenecektir.  \nBelirlediğiniz API anahtarlarınız (varsa), modeliniz, seçilen Proje, Profil veya Görev ve Yapay Zeka isteminin tümü oturumlar arasında kaydedilecektir.  \nAnaliz sonuçlarını yeni bir pencerede görüntülemek için 'Yeniden Çalıştır' özelliği gizli olarak kullanılacaktır.\n"
-
 msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.  \n1- Both this device and the Android device must be on the same named network.  \n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):  \n    https://tinyurl.com/4p5cz8sv  \nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.  \nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...  \n'192.168.0.210' is the default IP address,  \n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device  \n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.  \nUsage Notes:  \nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:  \nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}  \n- To fetch the XML file, click on the button  \n 'Get XML from Android Device'  \nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.  \n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.  \nClick on the 'Cancel Entry' button to back out of this fetch process.  \n"
 msgstr "Tasker XML dosyasını doğrudan Android cihazınızdan almak için aşağıdaki adımlar gereklidir.  \n1- Hem bu cihazın hem de Android cihazın aynı isimli ağ üzerinde olması gerekmektedir.  \n2- Android cihazda Tasker Projesi 'HTTP Sunucu Örneği' veya aynı işlevin kurulu ve aktif olması gerekir (sunucunun çalışıyor olması gerekir):  \n    https://tinyurl.com/4p5cz8sv  \nGereken tek kurulum budur.  'XML Dosyalarını Listele' seçeneği, TaskerNet'ten içe aktarılan ve etkin bırakılan ikinci, ayrı bir profile ('MapTasker Listesi') ihtiyaç duyuyordu; artık öyle değil.  MapTasker artık listelemeyi yapmak için cihaza 'MapTasker Liste Dosyaları v1' adlı küçük bir Görev yüklüyor; aynı şekilde 'Uygulama listelenmiyor mu?' uygulamalarınızı getirmek için bir tane yükler.  \nSizden Android cihazınızın IP adresi, port numarası ve Android cihazındaki dosya konumu istenecektir.  Varsayılan değerler sağlanır, burada...  \n'192.168.0.210' varsayılan IP adresidir,  \n'1821', Android cihazınızda çalışan Tasker HTTP Sunucusu Örneği için varsayılan bağlantı noktası numarasıdır  \n'/Tasker/configs/user/backup.xml' varsayılan dosya konumudur.  Dosya konumunu bilmiyorsanız ve IP adresinizi ve bağlantı noktanızı zaten girdiyseniz, Android cihazınızda seçim için kullanılabilir XML dosyalarının bir listesini almak için 'XML Dosyalarını Listele' düğmesini seçebilirsiniz.  \nKullanım Notları:  \nYukarıdaki URL'den 'HTTP Sunucu Örneği' projesini Android cihazınıza yükleyerek IP adresi ve portunu alabilirsiniz. Ardından Android bildirimini almak için 'GD HTTP Bilgilerini Güncelle' adlı görevi çalıştırın:  \nHTTP Sunucusu Bilgisi\nSunucu bilgileri güncellendi {\"cihaz adı\":\"http://192.168.0.49:1821\"}  \n- XML dosyasını getirmek için düğmeye tıklayın  \n 'Android Cihazdan XML Alın'  \nDaha sonra bu düğmenin altındaki giriş alanlarında sunulan varsayılan değerleri değiştirin ve ardından 'Girin ve XML Ayrıntılarını Ayarlamak için Buraya Tıklayın' veya 'XML Dosyalarını Listele' düğmesine tıklayın.  \n- Bu düğmelerden herhangi birine basıldığında Android cihazın kullanılabilir olup olmadığını görmek için ping atılacaktır.  Cihaza ulaşılamadığı takdirde ping 10 saniye sonra zaman aşımına uğrayacaktır.  IP adresinin doğru olduğundan emin olun.  \nBu getirme işleminden geri dönmek için 'Girişi İptal Et' düğmesine tıklayın.\n"
-
 msgid "This menu is where you define your AI API keys for use by the AI 'Analyze' button.  \nThe keys are saved across sessions.  \nThe keys are used to access the OpenAI, Claude AI, Gemini AI, and DeepSeek AI server-based models.  \nClick on the 'Clear' button to clear a specific API key entry.  \nSelect 'Ok' to save the changes or 'Cancel' to back out of the changes.  \n"
 msgstr "Bu menü, AI 'Analiz' düğmesinin kullanması için AI API anahtarlarınızı tanımladığınız yerdir.  \nAnahtarlar oturumlar arasında kaydedilir.  \nAnahtarlar OpenAI, Claude AI, Gemini AI ve DeepSeek AI sunucu tabanlı modellere erişmek için kullanılır.  \nBelirli bir API anahtarı girişini temizlemek için 'Temizle' düğmesine tıklayın.  \nDeğişiklikleri kaydetmek için 'Tamam'ı veya değişiklikleri geri almak için 'İptal'i seçin.\n"
-
 msgid "A Legacy Scene has a pixel canvas and a list of UI elements. It is the original Scene format, and is what Tasker itself produces."
 msgstr "Eski Sahnede bir piksel tuvali ve kullanıcı arayüzü öğelerinin bir listesi bulunur. Orijinal Sahne formatıdır ve Tasker'ın kendisinin ürettiği formattır."
-
 msgid "Displays the Diagram view.\n\nUse this to visualize the relationships between your Projects, Profiles, Tasks, and Scenes."
 msgstr "Diyagram görünümünü görüntüler.\n\nProjeleriniz, Profilleriniz, Görevleriniz ve Sahneleriniz arasındaki ilişkileri görselleştirmek için bunu kullanın."
-
 msgid "Displays the Map view.\n\nUse this to display the Tasker configuration of your Projects, Profiles, Tasks, and Scenes."
 msgstr "Harita görünümünü görüntüler.\n\nProjelerinizin, Profillerinizin, Görevlerinizin ve Sahnelerinizin Tasker yapılandırmasını görüntülemek için bunu kullanın."
-
 msgid "Displays the Tree view.\n\nUse this to navigate the hierarchical structure of your Projects, Profiles, Tasks, and Scenes."
 msgstr "Ağaç görünümünü görüntüler.\n\nProjelerinizin, Profillerinizin, Görevlerinizin ve Sahnelerinizin hiyerarşik yapısında gezinmek için bunu kullanın."
-
 msgid "Exports the Task as XML to a file on your computer."
 msgstr "Görevi XML olarak bilgisayarınızdaki bir dosyaya aktarır."
-
 msgid "Saves this Profile, with all of its conditions and linked Tasks, as one standalone .prf.xml file -- the same format Tasker's own Profile export produces.\n\nTasks the Profile runs are not included; they belong to their own Project."
 msgstr "Bu Profili, tüm koşulları ve bağlantılı Görevleriyle birlikte tek bir .prf.xml dosyası olarak kaydeder; Tasker'ın kendi Profil dışa aktarımının ürettiği formatın aynısıdır.\n\nProfilin çalıştırdığı görevler dahil değildir; kendi Projelerine aittirler."
-
 msgid "Select a specific Profile to target for display or editing."
 msgstr "Görüntülemek veya düzenlemek üzere hedeflenecek belirli bir Profil seçin."
-
 msgid "Select a specific Project to target for display or editing."
 msgstr "Belirli bir proje seçerek, görüntülenecek veya düzenlenecek projenizi belirleyin."
-
 msgid "Select a specific Scene to target for display or editing."
 msgstr "Ekran üzerinde gösterilecek veya düzenlenecek belirli bir sahne seçin."
-
 msgid "Select a specific Task to target for display or editing."
 msgstr "Belirli bir Görev'i görüntüleme veya düzenleme amacıyla seçin."
-
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Bu seçeneği kullanarak, adını olmayan Profil ve Görevleri de listede göstermeyi seçebilirsiniz."
-
 msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
 msgstr "Yüklenen konfigürasyonda kullanılan simgeler arasından ve bunları getirdiyseniz cihazınızın uygulamalarından seçim yapın."
-
 msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
 msgstr "Simgeler Uygulamalarla aynı yerden gelir: Tasker, bir uygulamanın kendi simgesini paketine ve başlatıcı etkinliğine göre tanımlar, böylece cihazda bulunan her uygulama seçebileceğiniz bir simge haline gelir.\n\nTasker'ın kendi yerleşik simgeleri getirilemez - bunlar Tasker'ın içinde yaşarlar - ve bir simge paketinin içindeki, isme göre yazılması gereken simgeler de getirilemez."
-
 msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "Yüklenen konfigürasyonda bir yerde kullanılan simgelere ek olarak, bunları cihazınızdan getirdiyseniz her uygulamanın kendi simgesi.  Seçtiğiniz şey, alanın sahip olduğu şeyin yerini alır.  Listelenmeyen bir simge paketindeki simgenin yazılması gerekir: adları paketin içinde bulunur."
-
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "Daha fazla bilgi için MapTasker [Komut Referansı](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) konusuna bakın.\n"
-
 msgid "(anonymous Task, stored in the Scene)"
 msgstr "(anonim Görev, Sahnede saklanır)"
-
 msgid "(new variable)"
 msgstr "(yeni değişken)"
-
 msgid "(no label)"
 msgstr "(etiket yok)"
-
 msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
 msgstr "Eylem çubuğunda gösterilecek sekmelerin virgülle ayrılmış listesi. Birinin seçilmesi Etkinlik sekmesinin Sekme Dokunma Görevini başlatır."
-
 msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
 msgstr "İşlenecek tuşların eğik çizgiyle ayrılmış listesi - ada veya koda göre, ör. geri/78/a. Başka herhangi bir anahtar sisteme aktarılır.\nHer anahtarı işlemek için boş bırakın."
-
 msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "Eylem Çubuğu Stili, Başlık, Alt Başlık, Simge ve Sekme Etiketleri yalnızca bir Etkinlik için geçerlidir. Bunlar hâlâ depolanır ve Özellik Türünü Etkinlik olarak değiştirirseniz gösterilir."
-
 msgid "Action bar"
 msgstr "Eylem çubuğu"
-
 msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "Eylem çubuğu öğeleri yalnızca bir Etkinlik için geçerlidir. Bunlar hâlâ depolanır ve Özellik Türünü Etkinlik olarak değiştirirseniz gösterilir."
-
 msgid "Actions of the"
 msgstr "Eylemler"
-
 msgid "Add Variable"
 msgstr "Değişken Ekle"
-
 msgid "Add an action bar item"
 msgstr "Eylem çubuğu öğesi ekleme"
-
 msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
 msgstr "Bu Görevi yüklenen konfigürasyona ekler ve Görev Ekle iletişim kutusundaki 'Tamam' ile aynı şekilde bu olayı ona yönlendirir; bir dosyaya hiçbir şey yazılmaz ve Android'e hiçbir şey gönderilmez.  Tamam bunu sizin için de yapıyor, yani bu yalnızca onu kapatmadan oluşturmak içindir.\nO zamana kadar Görev yalnızca bu pencerede bulunur ve İptal onu atar. Daha sonra bu, diğerleri gibi bir Görevdir - İptal, bağlamayı geri alır ancak Görevi geri almaz ve Geri Al, her ikisini de alır."
-
 msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
 msgstr "Sahne tarafından kullanılan herhangi bir anahtar sisteme aktarılmaz; Sahne geri tuşunun onu kapatmasını nasıl engeller.\nTasker'ın yazdığı şekilde yazılmıştır: Sahnenin <LinkClickFilter> içinde bir <stopEvent>, bu işaretlendiğinde oluşturulur ve işareti kaldırıldığında ve içinde başka hiçbir şey kalmadığında tekrar alınır."
-
 msgid "Apply to Task"
 msgstr "Göreve Uygula"
-
 msgid "Changes kept for Task"
 msgstr "Görev için yapılan değişiklikler korunmuştur."
-
 msgid "Create Task"
 msgstr "Görev Oluştur"
-
 msgid "Created Task"
 msgstr "Görev Oluşturuldu"
-
 msgid "Display Name"
 msgstr "Gösterilen Ad"
-
 msgid "Exported Value"
 msgstr "Çıkarılan Değer"
-
 msgid "Icon"
 msgstr "Sembol"
-
 msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
 msgstr "Olay sekmesinde düzenlenmiş her görev ve bu görevlerin eylemlerini de içerir. Eğer bir olay altında oluşturulmuş ve bu olayda herhangi bir eylem bulunmayan bir görev oluşturursanız, bu görev otomatik olarak oluşturulur ve diğer görevlerle ilişkilendirilir. \"İptal et\" özelliği, bir görevdeki düzenlemeleri geri alır."
-
 msgid "Keys"
 msgstr "Anahtarlar"
-
 msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
 msgstr "Öncelikle bir Tasker yapılandırmasını yükleyin – yeni bir görev için, bir kimlik oluşturmak için bir yapılandırmaya ihtiyacınız olacaktır."
-
 msgid "Name"
 msgstr "Ad"
-
 msgid "New Task Name"
 msgstr "Yeni Görev Adı"
-
 msgid "No Task matches."
 msgstr "Hiçbir görev eşleşmedi."
-
 msgid "No action bar items."
 msgstr "Hiçbir eylem çubuğu öğesi yok."
-
 msgid "No variables."
 msgstr "Değişken yok."
-
 msgid "Nothing -- this event fires no Task."
 msgstr "Hiçbir şey -- bu olay hiçbir Görevi tetiklemez."
-
 msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
 msgstr "Henüz hiçbir şey bağlanmadığından bu eylemler yeni bir Göreve gider. Aşağıdaki düğmeye veya Tamam'a bastığınızda oluşturulur ve bu olay ona işaret eder. İptal onu atar."
-
 msgid "Nothing set."
 msgstr "Hiçbir şey ayarlanmadı."
-
 msgid "Prompt"
 msgstr "Çabuk"
-
 msgid "Properties kept."
 msgstr "Özellikler tutuldu."
-
 msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
 msgstr "Bu değişiklikleri yüklenen yapılandırmaya doğrudan ekler, pencereyi kapatmadan – \"Tamam\" düğmesine tıklamaktaki işlevle aynı şekilde. \"Tamam\" düğmesi burada da aynı işi yapar, bu nedenle bu yalnızca değişiklikleri düzenleme sırasında saklamak içindir.\n\nHiçbir şey dosya yazılmaz ve hiçbir şey Android'e gönderilmez. Bu görev, sahne ile ilgili olmadığından, bu penceredeki \"İptal\" düğmesi veya sahne penceresindeki düğmeler, bu değişiklikleri uyguladıktan sonra geri almaz. \"İptal\" düğmesi bunu yapar."
-
 msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
 msgstr "Bu özellikleri, pencere açıldığında olduğu gibi geri yükler ve \"Olay\" sekmesinde düzenlenmiş herhangi bir Görev'in etkilerini ortadan kaldırır.\n\"Göreve Uygula\" veya \"Yeni Görev Oluştur\" gibi kendi düğmesiyle yapılandırılmış bir Görev, otomatik olarak kalır. \"İptal Et\" işlevi, bu değişiklikleri geri alır."
-
 msgid "Remove Variable"
 msgstr "Değişkeni Kaldır"
-
 msgid "Same as Value"
 msgstr "Değer ile aynı"
-
 msgid "Scene properties changes discarded."
 msgstr "Sahne özellikleri değişiklikleri atıldı."
-
 msgid "Search Tasks"
 msgstr "Görevleri Ara"
-
 msgid "Stop Event"
 msgstr "Etkinliği Durdur"
-
 msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
 msgstr "Eylem çubuğunun sol üst köşesindeki ev simgesi. Buna dokunulduğunda Etkinlik sekmesinin Ana Sayfaya Dokunma Görevi başlatılır."
-
 msgid "There are no Tasks in this configuration."
 msgstr "Bu yapılandırmada Görev yok."
-
 msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
 msgstr "Bu Görev Sahnenin içinde saklanır ve Görev listesinde yer almaz, dolayısıyla eylemleri burada düzenlenemez. El değmeden taşınır."
-
 msgid "This item has no action."
 msgstr "Bu öğenin herhangi bir eylemi yok."
-
 msgid "Type"
 msgstr "Tip"
-
 msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
 msgstr "'Değerle Aynı' seçeneğini devre dışı bırakırsanız, 'Dışa Aktarılan Değer' altında, değişkeni diğer kullanıcılarla paylaştığınızda hangi değerin dışa aktarılacağını özelleştirebilirsiniz.\nDışa aktarmanın hiçbir değere sahip olmamasını istiyorsanız 'Dışa Aktarılan Değer' alanını boş bırakabilir veya dışa aktarmalar için her zaman kullanmak istediğiniz değeri ayarlayabilirsiniz.\n'Değerle Aynı' seçeneğini etkinleştirirseniz, dışa aktarma sırasında geçerli değişken değeri kullanılacaktır."
-
 msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
 msgstr "Bir öğenin nerede biteceğine, ona ne verdiğinize göre karar verilir: Ana çubukta her zaman tek başına bir simge bulunur, yer varsa orada bir simge ve bir etiket gösterilir ve taşma menüsünde her zaman tek başına bir etiket bulunur (Tasker'da sağ üstteki 3 nokta)."
-
 msgid "fires a Task on"
 msgstr "üzerinde bir Görev başlatır"
-
 msgid "is not in this backup, so there are no actions to show."
 msgstr "bu yedeklemede bulunmadığından gösterilecek eylem yok."
-
 msgid "no editable arguments."
 msgstr "düzenlenebilir argüman yok."
-
 msgid "swallows the key press"
 msgstr "tuşa basmayı yutar"
-
 msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
 msgstr "XML'i gönderilmeden önce okur ve yolda herhangi bir değişiklik olması durumunda kaydetmeyi reddeder.\n\nBunun yakaladığı şey, kaydetme yolundaki başka hiçbir şeyin yapamayacağı başarısızlık sınıfıdır: bu programın kendi yazarının ve okuyucusunun aynı fikirde olmadığı bir değer - örneğin, yazıldığı gibi yazılan ve yeni satır olarak okunan bir adın içindeki satırbaşı.  Yüklemenin yanıtı 200'dür ve cihazdaki dosya gönderilen dosyayla eşleşir çünkü her ikisi de zaten yanlıştır.\n\nYukarı çıkan her nesne, düzenlemediğiniz Profiller, Sahneler ve Görevler de dahil olmak üzere, yüklenen konfigürasyondakiyle karşılaştırılır.  Bunlardan herhangi biri farklılık gösterirse hiçbir şey gönderilmez; hangisi ve nerede diye bir rapor alıyorsunuz.\n\nBir saniyenin çok küçük bir maliyeti var ve hiçbir şeyle temas etmiyor; tüm kontrol, cihaza dokunulmadan önce burada yapılıyor."
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "Bu, iki seçeneğin açılmasını sağlar: Görevi bağımsız bir dosya olarak Android cihazınıza /Tasker/tasks altına yazın veya doğrudan Tasker'ın canlı yapılandırmasına aktarın.\n\n'Http Sunucu Örneği' Tasker Projesi, Android cihazında kurulu ve aktif olmalı, sunucu çalışıyor olmalıdır ( README'nin Doğrudan XML Alma notlarına bakın) ve Tasker 6.2 veya daha yüksek olmalıdır.\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nHer iki cihaz da çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur.\n\nİçe aktarılan bir Görevi Tasker kullanıcı arayüzünde görmek için Tasker'dan çıkıp yeniden başlatmanız gerekir."
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Bu, Profili Android cihazında /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
-msgstr "Bu, Profili Android cihazınıza /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi (http://spoo.me/http_svr_example), sunucu çalışıyorken Android cihazında kurulu ve aktif olmalıdır ( README'nin Doğrudan XML Alma notlarına bakın).\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
-
+msgstr "Bu, Profili Android cihazınıza /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi (http://spoo.me/http_svr_example) sunucu çalışıyorken Android cihazında kurulu ve aktif olmalıdır ( README'nin Doğrudan XML Alma notlarına bakın).\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Bu, Profili Android cihazınıza /Tasker/profiles altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışıyorken Android cihazında kurulu ve aktif olmalıdır ( README'nin Doğrudan XML Alma notlarına bakın).\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Bu, Projeyi ve içindeki her şeyi (her Profil ve Görevi) bağımsız bir dosya olarak Android cihazınıza /Tasker/projects altına yazacaktır; bunu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışırken Android cihazda kurulu ve aktif olmalıdır.\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Bu, Projeyi ve içindeki her şeyi bağımsız bir dosya olarak Android cihazına /Tasker/projects altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Bu, Sahneyi bağımsız bir dosya olarak Android cihazına /Tasker/scenes altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Bu, Scene'i Android cihazınıza /Tasker/scenes altına bağımsız bir dosya olarak yazacaktır; onu Tasker'in canlı yapılandırmasına aktarmaz.\n\n'Http Sunucu Örneği' Tasker Projesi, sunucu çalışırken Android cihazda kurulu ve aktif olmalıdır.\n\nAndroid cihazı aynı ağda olmalı ve IP Adresi ile Bağlantı Noktası, Tasker sunucusu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Bu, Görevi bağımsız bir dosya olarak Android cihazına /Tasker/tasks altına yazacaktır.\n\nIP Adresi ve Bağlantı Noktası, Android cihazının Tasker sunucu ayarlarıyla eşleşmelidir.\n\nBu çalışırken Android cihazını izleyin: Tasker, bir kayıt için bağlantıyı birkaç kez yetkilendirmenizi ister ve dokunulmadan bırakılan bir istem başarısız olur."
-
 msgid "Verify"
 msgstr "Doğrulamak"
-
 msgid "Verify Failed -- Nothing Was Sent"
 msgstr "Doğrulama Başarısız Oldu -- Hiçbir Şey Gönderilmedi"
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
 msgstr "Android cihazınızı izleyin: Tasker sizden bağlantıyı birkaç kez yetkilendirmenizi isteyecektir."
-
 msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
 msgstr "Android cihazınızla iletişime geçilmedi ve cihazınızda hiçbir şey değiştirilmedi.  Yüklenen konfigürasyona da dokunulmaz; bu, cihazda ne olduğuna değil, ne yazılacağına ilişkin bir kontroldür."
-
 msgid "'Refactor' makes the structural changes that Add, Edit and Delete cannot: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "'Yeniden yapılandırma', Ekle, Düzenle ve Sil işlemlerinde yapılamayan değişiklikleri gerçekleştirir: Bir Görevin eylemlerini kendi Görevi haline getirir, Perform Görevi'ni orijinal çağrısına geri taşır, bir Görevi veya Profili başka bir Proje'ye taşır veya herhangi bir nesneyi çoğaltır.\n\nDeğişiklikler yalnızca \"Önizle\" ve ardından \"Uygula\" butonlarına tıkladığınızda yapılır ve önizleme, adım adım ne olacağını veya neden olmayacağını gösterir.\n\nYeniden yapılandırmanın tamamı, \"İptal\" butonuna bir kez tıklamayı içerir.\n\n"
-
 msgid "...to this Project"
 msgstr "...bu projeye"
-
 msgid "Apply"
 msgstr "Uygula"
-
 msgid "Choose a single Task in 'Specific Name' to also see it drawn as a flowchart."
 msgstr "'Belirli Ad' altında yer alan tek bir Görev'i seçerek, aynı zamanda bu görevi bir akış şeması olarak da görüntüleyebilirsiniz."
-
 msgid "Could not find Task"
 msgstr "Görev bulunamadı."
-
 msgid "Drawing the first."
 msgstr "İlk çizimi yapıyorum."
-
 msgid "Duplicate this"
 msgstr "Bu kaydı kopyala"
-
 msgid "Fill in every box first."
 msgstr "Lütfen her kutuyu önce doldurun."
-
 msgid "First action"
 msgstr "İlk adım"
-
 msgid "Flowchart saved as"
 msgstr "Akış şeması, aşağıdaki adrese kaydedildi:"
-
 msgid "From Task"
 msgstr "Görevden"
-
 msgid "In Task"
 msgstr "Görevde"
-
 msgid "Inline this call"
 msgstr "Bu çağrıyı yerinde gerçekleştirin."
-
 msgid "Last action"
 msgstr "Son eylem"
-
 msgid "More than one Task is named"
 msgstr "Birden fazla Görev adlandırıldı"
-
 msgid "Move this"
 msgstr "Bunu taşı"
-
 msgid "New Task name"
 msgstr "Yeni Görev adı"
-
 msgid "New name (optional)"
 msgstr "Yeni ad (isteğe bağlı)"
-
 msgid "Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.\n\nWith a single Task chosen in the 'Specific Name' tab, that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Her Görevin kontrol akışını okuyun - If/Else/End If, For/End For, Goto ve Stop - ve neyin bir arada tutulmadığını bildirin: hiçbir zaman kapanmayan bir blok, hiçbir eylemin taşımadığı bir etikete yönelik bir Goto ve hiçbir şeyin ulaşamayacağı eylemler.\n\n'Özel Ad' sekmesinde tek bir Görev seçildiğinde, bu Görev aynı zamanda her Goto'dan geldiği eyleme giden bir okla birlikte kendi penceresinde bir akış şeması olarak çizilir.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
-
 msgid "Refactor"
 msgstr "Yeniden düzenleme"
-
 msgid "Refactor preview could not be saved."
 msgstr "Yeniden düzenleme önizlemesi kaydedilemedi."
-
 msgid "Refactor preview saved as"
 msgstr "Yeniden düzenleme önizlemesi şu şekilde kaydedildi:"
-
 msgid "Task Flow"
 msgstr "Görev Akışı"
-
 msgid "Task Flow View opened in a new browser window."
 msgstr "Görev Akışı Görünümü yeni bir tarayıcı penceresinde açıldı."
-
 msgid "Task Flow found no control-flow problems."
 msgstr "Görev Akışı herhangi bir kontrol akışı sorunu bulamadı."
-
 msgid "Task Flow report could not be saved."
 msgstr "Görev Akışı raporu kaydedilemedi."
-
 msgid "Task Flow report saved as"
 msgstr "Görev Akışı raporu şu şekilde kaydedildi:"
-
 msgid "cannot be done"
 msgstr "yapılamaz"
-
 msgid "steps"
 msgstr "adımlar"
-
 msgid "has no Tasks to extract from"
 msgstr "Çekilecek herhangi bir görev bulunmamaktadır."
-
 msgid "Change or clear that selection to reach other Tasks"
 msgstr "Seçimi değiştirin veya temizleyin, böylece diğer görevlere ulaşabilirsiniz."
-
 msgid "Extract works on"
 msgstr "Çıkarım çalışmaları"
-
 msgid "The structural changes that Add, Edit and Delete cannot make: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "Ekle, Düzenle ve Sil işlemlerinin gerçekleştiremediği yapısal değişiklikler şunlardır: Bir görevin eylemlerini ayrı bir göreve dönüştürmek, bir görevi çağrıcı göreve geri almak, bir görevi veya profili başka bir projeye taşımak veya herhangi bir nesneyi kopyalamak.\n\nDeğişiklikler, \"Önizle\" ve ardından \"Uygula\" düğmelerine basılana kadar yapılmaz. \"Önizle\" özelliği, adım adım ne olacağını veya neden olmayacağını gösterir.\n\nBir yeniden düzenleme işlemi, \"İptal\" düğmesine basıldıktan sonra tek bir tıklamayla tamamlanır.\n\n"
-
 msgid "What to call the copy.  Left empty, a free name is chosen for you -- the original's with '(copy)' after it."
 msgstr "Bu kopyanın nasıl adlandırılacağını belirleyin. Boş bırakıldığında, sizin için otomatik olarak bir isim seçilir – orijinalin isminin ardından \"(kopyası)\" ifadesi eklenecektir."
-
 msgid "What to call the new Task.  The 'Perform Task' left behind calls it by this name, so it has to be a name no other Task already has."
 msgstr "Yeni Göreve ne ad verilir?  Geride kalan 'Görevi Gerçekleştir' onu bu adla çağırır, dolayısıyla başka hiçbir Görevin sahip olmadığı bir ad olmalıdır."
-
 msgid "is selected above and has no Tasks to extract from"
 msgstr "Yukarıda belirtilen seçenek seçilmiştir ve çıkarılması gereken herhangi bir görev bulunmamaktadır."
-
 msgid "selected in the pulldowns above"
 msgstr "Yukarıdaki açılır menülerden seçilenler"
-
 msgid "Click any line above to see that place in the Map view."
 msgstr "Söz konusu yeri Harita görünümünde görmek için yukarıdaki herhangi bir satırı tıklayın."
-
 msgid "If you delete them too"
 msgstr "Onları da silerseniz"
-
 msgid "If you keep the contents"
 msgstr "İçeriği saklarsanız"
-
 msgid "Building the"
 msgstr "İnşa etme"
-
 msgid "Building the view"
 msgstr "Görünümü oluşturmak"
-
 msgid "Building the view.  Please stand by ..."
 msgstr "Görünümü oluşturuluyor. Lütfen bekleyin..."
-
 msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.  \nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.  \n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n    Level 5 = display level of 4 plus Scene argument details.  \n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.  \n* Display Conditions: Turn on the display of Profile and Task conditions.  \n* Display TaskerNet Info - If available, display TaskerNet publishing information.  \n* Display Tasker Preferences - display Tasker's system Preferences.  \n* Hide Task Details under Twisty: hide Task information within ► and click to display.  \n* Display Directory of hyperlinks at beginning.  \n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.  \n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.  \n* Task Action Limit: display a warning if the Task has more than the specified number of actions.  \n* Indentation amount for If/Then/Else Task Actions.  \n* Language: Select the language to be used for the output.  The default is English.  \n* Font To Use: Change the monospace font used for the output.  \n* View Limit: Control the amount of processing time used when generating the view.  \n* Notification Duration: How long a pop-up message stays on screen before it disappears.  'Until dismissed' keeps every message up until you close it.  \n* Dark Mode: Switch the GUI between light and dark appearance.  \n* Reset Options: Clear everything and start anew.  \n* Get Local XML File: fetch the backup/exported XML file from your local drive.  \n* Save Settings - Save these settings for later use.  \n* Restore Settings - Restore the settings from a previously saved session.  \n* Report Issue: Open the GitHub Issues page in your browser to report a problem or suggestion to the developer.  \n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.  \n* Clear: Clear the Map/Diagram/Tree view data currently held and displayed.  \n* Health Check: Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.  It also reports how your configuration will behave on the device: two Profiles watching the same trigger whose Tasks set the same thing opposite ways, a Profile whose conditions can never all be true, Tasks that poll in a loop, Profiles that keep a radio or sensor scanning or fire on a short timer, long-running Tasks left on the default collision handling, and actions that can block for ever because no timeout was set.  Click a finding to be taken to it in the Map.  \n* Compare Files: Compare another XML file against the loaded one to see what was added, removed, renamed and changed.  \n* Variable Xref: Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names are likely typos.  \n* Task Flow: Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.  With a single Task chosen in 'Specific Name', that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.  Click any line of it to be taken to that action in the Map.  \n* Open View In New Window: Open each Map/Diagram request in its own new window/tab rather than reusing that view's existing one.  \n* Close Tabs On Exit: Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tabs it opened.  \n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.  \n   - List XML Files: List the XML files found on the Android device so you can select one rather than typing its location.\n   - Cancel Entry: Back out of the Android fetch process.  \n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n   - List Unnamed Items: Include unnamed Profiles and Tasks in the four pulldowns above.  \n   Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with various save options...\n   - Add Project/Profile/Task/Scene: Create a new object and add it to the loaded XML.\n   - Edit Project/Profile/Task/Scene: Modify the object currently selected in the pulldowns above.\n   - Rename: Give the object being edited a new name.\n   - Delete: Remove the object being edited from the loaded XML.\n   - Duplicate: Make a copy of the selected Scene element.\n   - Preview: Display the Scene being edited as it will appear.\n   - Save / Export: Write the object out to a standalone XML file of your choosing.\n   - Save To Current File: Write the entire configuration to a new, timestamped file beside the loaded one.\n   - Save To Android: Write the object back to your Android device.\n     (A safety copy of anything a save is about to overwrite is kept in the 'MapTasker_Backups' folder.)  \n   Editing commands...\n   - Undo: Back out the most recent Add/Edit/Delete/Rename change made to the loaded XML.  This changes what is loaded, not any file.\n   - Redo: Reapply the change most recently backed out by 'Undo'.\n   - Edit History: List every change made to the loaded XML this session, newest first.  \n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n   - Reset to Default Colors: Restore every color to its default value.  \n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n   - Show/Edit API Key(s): Enter or change the API keys used by the server-based AI models.\n   - Change Prompt: Modify the prompt sent to the AI model.\n   - Run Analysis: Submit the selected Project/Profile/Task and prompt to the selected model.\n   - Extended: List all available models rather than just the default set.  \n* Debug tab: Display Runtime Settings option and turn on Debug mode.  \n* Map/Diagram/Tree view toolbar commands are...\n   - Search: Highlight every instance of the case-insensitive text entered in the search box, up to the first 200.  Click a line number to go to that line.\n   - Find/Replace: (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene.  Click a result to be taken to it.\n   - Save Results: Save the 'Find/Replace' results to a text file.\n   - Top / Bottom: Jump to the beginning or the end of the displayed output.\n   - Toggle Wrap: Turn line wrapping on or off in the displayed output.\n   - Profiles Per Line: (Diagram only) The number of Profiles drawn side-by-side on a single line.  \n* Display Help: Display this help text.  \n* Get Android Help: Display the help for fetching the XML file from your Android device.  \n* '?' buttons: Display the help specific to the section in which the button appears.  \n* Exit: Exit the program (quit).  \nNotes:  \n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md  \n- Changing the appearance mode will change the colors used for the output to their default values.  \n"
 msgstr "MapTasker, yüklediğiniz Tasker XML dosyanız (örneğin, 'backup.xml') tabanlı Android Tasker yapılandırmanızı görüntüler. Görüntü, isteğe bağlı olarak tüm Projeleri, Profilleri, Görevleri ve bunların eylemlerini, Profil/Görev koşullarını ve diğer Profil/Görevle ilgili bilgileri içerebilir.\nXML dosyası yüklendikten sonra, Projelerinizi, Profillerinizi, Görevlerinizi ve Sahne'lerinizi isteğe bağlı olarak düzenleyebilirsiniz.\n* Görüntüleme seçenekleri şunlardır:\n    Seviye 0: Sadece adlandırılmamış Görevlerin ilk eylemini göster (sessiz).\n    Seviye 1 = Sadece bilinen olmayan Görevlerin tüm eylem ayrıntılarını göster (varsayılan).\n    Seviye 2 = Her Görev için tam Görev eylem adını göster.\n    Seviye 3 = Eylem ayrıntılarıyla birlikte her Görev için tam Görev eylem ayrıntılarını göster.\n    Seviye 4 = Seviye 3'ü ve Projenin küresel değişkenlerini göster.\n    Seviye 5 = Seviye 4'ü ve Sahne argüman ayrıntılarını göster.\n* Her Şeyi Göster: Koşulları, TaskerNet bilgilerini, tercihleri, okunabilir çıktı, dizin ve yapılandırma özetinin görüntülenmesini etkinleştirir.\n* Koşulları Göster: Profil ve Görev koşullarının görüntülenmesini etkinleştirir.\n* TaskerNet Bilgilerini Göster - Mevcutsa, TaskerNet yayın bilgilerini gösterir.\n* Tasker Tercihlerini Göster - Tasker'ın sistem tercihlerini gösterir.\n* Çevirimi \"Twisty\" ile Gizle: ► içinde Görev bilgilerini gizler ve görüntülemek için tıklayın.\n* Başlangıçta hiper bağlantıların dizinini göster.\n* Daha Okunabilir Çıktı: Tüm argümanlar için yeni satır ve boşluk ekleyerek çıktıyı daha okunabilir hale getirir.\n* Proje/Profil/Görev/Sahne İsimlerinin italik, kalın, alt çizgi ve/veya vurgulanması seçenekleri.\n* Görev Eylem Sınırı: Görevin belirtilen sayıda eyleme sahip olup olmadığını belirten bir uyarı görüntüler.\n* If/Then/Else Görev Eylemleri için boşluk miktarı.\n* Dil: Çıktı için kullanılacak dili seçin. Varsayılan dil İngilizce'dir.\n* Kullanılacak Yazı Tipi: Çıktı için kullanılacak yazı tipini değiştirin.\n* Sınırlama: Görsel oluşturma işlem süresini kontrol edin.\n* Bildirim Süresi: Bir pop-up mesajın kaybolmadan önce ekranda ne kadar süre kalacağını belirler. \"Kapatılana kadar\" her mesajı kapatana kadar gösterir.\n* Koyu Mod: Arayüzü açık ve koyu görünüm arasında değiştirin.\n* Sıfırla Seçenekleri: Her şeyi temizleyin ve yeniden başlayın.\n* Yerel XML Dosyasını Al: Yerel sürücünüzden yedeklenen/dışa aktarılan XML dosyasını alın.\n* Ayarları Kaydet - Daha sonra kullanmak üzere bu ayarları kaydedin.\n* Ayarları Yeniden Yükle - Önce kaydedilen bir oturumu geri yükleyin.\n* Sorunu Bildir: Bir sorunu veya öneriyi geliştiriciye bildirmek için web tarayıcınızda GitHub Sorunlar sayfasını açın.\n* Görünümleri Göster: Projelerinizi, Profillerinizi, Görevlerinizi ve Sahne'lerinizi doğrudan arayüzde Map, Diagram veya Ağaç görünümünde görüntüleyin.\n* Temizle: Mevcut ve görüntülenen Map/Diagram/Ağaç görünümü verilerini temizleyin.\n* Sağlık Kontrolü: Yüklenen XML'deki bozuk referansları, referanslanmamış Görevleri, Profilleri ve Sahne'leri ve adlandırma sorunlarını tarayın. Ayrıca, yapılandırmanızın cihazda nasıl davranacağını da bildirir: Aynı tetikleyiciyi izleyen iki Profil, tüm koşullarının her zaman doğru olamayacağı bir Profil, döngü içinde anket yapan Görevler, radyo veya sensörü sürekli tarayan veya kısa bir zamanlayıcıda ateşlenen Profiller, varsayılan çarpışma işlemine bırakılan uzun süreli Görevler ve hiçbir zaman sona ermeyen bloke edici eylemler. Bir bulguyu Map'te tıklayın.\n* Dosyaları Karşılaştır: Eklenen, kaldırılan, yeniden adlandırılan ve değiştirilen bilgileri görmek için yüklenen XML dosyasını, diğer bir XML dosyasıyla karşılaştırın.\n* Değişken Xref: Yüklenen XML'deki her %değişkeni izleyin: her biri nerede ayarlanıyor, nerede okunuyor, hangi değerler okunuyor ancak ayarlanmıyor, hangi değerler ayarlanıyor ancak okunmuyor ve hangi neredeyse aynı isimler yazım hatası olabileceğini belirtir.\n* Görev Akışı: Her bir görevin kontrol akışını (If/Else/End If, For/End For, Goto ve Stop) inceleyin ve aşağıdaki durumlardan herhangi birini tespit edin: Asla kapanmayan bir blok, bir eylemle sonuçsuz kalan bir Goto veya hiçbir eyleme ulaşamayan bir eylem. 'Belirli Ad' seçeneğiyle tek bir görev seçildiğinde, bu görev ayrıca kendi penceresinde bir akış şeması olarak çizilir ve her Goto, hedeflediği eyleme doğru bir ok ile gösterilir. Haritada, herhangi bir satıra tıklayarak o eyleme gidilebilir.\n* Yeni Pencerede Görünümü Aç: Mevcut bir görünümü yeniden kullanmak yerine, her harita/şema isteğini ayrı yeni bir pencerede/etikhette açın.\n* Çıkışta Etiketleri Kapat: 'Çıkış' düğmesi, açtığı ana MapTasker penceresini ve tüm harita/şema pencerelerini/etiketlerini de kapatmalıdır.\n* Android Cihazdan XML'i Al: Android cihazdan yedek/dışa aktarılmış XML dosyasını alın. Android cihazınızın IP adresi ve port numarası, ayrıca cihazdaki dosya konumunu da belirtmeniz istenecektir.\n   - XML Dosyalarını Listele: Android cihazında bulunan XML dosyalarını listeleyin, böylece konumunu yazmak yerine birini seçebilirsiniz.\n   - İşlemi İptal Et: Android cihazdan veri almayı sonlandırın.\n* Belirli Ad Etiketi: Gösterilecek tek ve belirli bir öğeyi girin...\n   - Proje Adı: Gösterilecek belirli bir projeyi girin.\n   - Profil Adı: Gösterilecek belirli bir profili girin.\n   - Görev Adı: Gösterilecek belirli bir görevi girin.\n   - Sahne Adı: Gösterilecek belirli bir sahneyi girin. Sahnenin ait olduğu projenin başlığı ve sahnedeki öğeler (ve bu öğeleri tetikleyen görevler) görüntülenir; projenin profilleri ve diğer sahneleri görüntülenmez.\n   (Bu dört seçenek de ayrıdır: sadece birini seçin)\n   - Adını Vermeyen Öğeleri Listele: Yukarıdaki dört açılır menüde adı olmayan profilleri ve görevleri ekleyin.\n   GUI aracılığıyla projeleri, profilleri, görevleri ve sahneleri doğrudan oluşturun ve kaydedin...\n   - Proje/Profil/Görev/Sahne Oluştur: Yeni bir nesne oluşturun ve yüklenen XML'e ekleyin.\n   - Proje/Profil/Görev/Sahne Düzenle: Yukarıdaki açılır menülerdeki mevcut nesneyi değiştirin.\n   - Yeniden Adlandır: Düzenlenecek nesneye yeni bir ad verin.\n   - Sil: Düzenlenecek nesneyi yüklenen XML'den silin.\n   - Kopyala: Seçilen sahne öğesini kopyalayın.\n   - Önizleme: Düzenlenecek sahnenin görünümünü gösterin.\n   - Kaydet / Dışa Aktar: Seçtiğiniz bir dosyaya nesneyi kaydedin.\n   - Mevcut Dosya'ya Kaydet: Tüm yapılandırmayı, yüklenen dosyaya ek bir timestamp ile yeni bir dosyaya kaydedin.\n   - Android'e Kaydet: Nesneyi Android cihazınıza geri kaydedin. (Kaydedilecek herhangi bir şeyin üzerine yazılmasını önlemek için, 'MapTasker_Backups' klasöründe bir güvenlik kopyası saklanır.)\n   Düzenleme komutları...\n   - İptal Et: Yüklenen XML'e eklenmiş, düzenlenmiş veya silinmiş/yeniden adlandırılmış değişiklikleri en son olanından başlayarak iptal edin. Bu, yüklenen içeriği değil, herhangi bir dosyayı değiştirir.\n   - Yeniden Uygula: 'İptal Et' komutuyla en son iptal edilen değişikliği yeniden uygulayın.\n   - Değişiklik Geçmişi: Yüklenen XML'e yapılan tüm değişiklikleri, en yeni olanından başlayarak listeleyin.\n* Renkler Etiketi: Gösterilecek çeşitli öğeler için renkleri seçin.\n    (Örneğin, projeler, profiller, görevler vb. için renkler)\n    - Varsayılan Renklere Sıfırla: Tüm renkleri varsayılan değerlerine geri yükleyin.\n* Analiz Etiketi: Bir proje, profil, görev veya sahneyi bir AI modeline karşı analiz edin.\n    - API Anahtarlarını/Anahtarlarını Göster/Düzenle: Sunucu tabanlı AI modeller tarafından kullanılan API anahtarlarını girin veya değiştirin.\n    - Komutu Değiştir: AI modeline gönderilecek komutu değiştirin.\n    - Analizi Çalıştır: Seçilen proje/profil/görevi ve komutu seçilen modele gönderin.\n    - Gelişmiş: Sadece varsayılan küme yerine tüm mevcut modelleri listeleyin.\n* Hata Ayıklama Etiketi: Runtime Ayarları seçeneğini etkinleştirin ve Hata Ayıklama modunu açın.\n* Map/Şema/Ağaç görünüm araç çubuğu komutları şunlardır:\n    - Arama: Arama kutusuna girilen ve büyük/küçük harf duyarlılığı olmayan metni, ilk 200 örneğe kadar vurgulayın. Bir satır numarasını tıklayarak o satıra gidin.\n- Bul/Değiştir: (Sadece harita ve şema) Ekran üzerindeki metni aramak yerine, yüklü yapılandırmaya bir soru sormak: Her görev, belirli bir işlemi gerçekleştirdiğinde, her profil, belirli bir tetikleyiciye yanıt verdiğinde, her şey belirli bir uygulama veya sahneye atıfta bulunduğunda. Sonuçlara tıklayarak ilgili sayfaya ulaşabilirsiniz.\n- Sonuçları Kaydet: \"Bul/Değiştir\" sonuçlarını bir metin dosyasına kaydedin.\n- Üst / Alt: Gösterilen çıktının başlangıcına veya sonuna atlayın.\n- Satırları Doldurmayı Aç/Kapat: Gösterilen çıktıda satırları otomatik olarak tamamlamayı açın veya kapatın.\n- Satır Başına Profil Sayısı: (Sadece şema) Tek bir satırda yan yana çizilen profil sayısı.\n\n* Yardım Göster: Bu yardım metnini görüntüleyin.\n* Android Yardım Al: Android cihazınızdan XML dosyasını almaya yönelik yardımı görüntüleyin.\n* \"?\" düğmeleri: Düğenin bulunduğu bölüme özgü yardımı görüntüleyin.\n* Çıkış: Programı kapatın.\n\nNotlar:\n- Tüm değişiklik geçmişini https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md adresinden görüntüleyebilirsiniz.\n- Görünüm modunu değiştirmek, çıktıyı kullandığı varsayılan renklerine çevirecektir.\n"
-
 msgid "Please stand by ..."
 msgstr "Lütfen bekleyin..."
-
 msgid "Redact secrets"
 msgstr "Gizli dizileri düzenleyin"
-
 msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
 msgstr "Dışa aktarılan dosya başka birine (bir forumda yayınlanacak veya size yardımcı olan kişiye gönderilecek) gönderilecekse bunu işaretleyin.\n\nİçindeki API anahtarları, belirteçler, şifreler, telefon numaraları, e-posta adresleri ve konum koordinatları, [REDACTED:...] işaretçileriyle değiştirildi ve dosyanın üst kısmındaki bir yorumda neyin çıkarıldığı belirtiliyor.  Listeyi görmek için önce Sağlık Kontrolü'nü çalıştırın.\n\nBu bir ilk geçiştir, bir garanti değildir: Sıradan bir kelimeye benzeyen bir parolanın tanınacak bir şekli yoktur ve dosya bunları kendisine atıfta bulunmak için kullandığından adlar asla değişmez.  Ne yayınladığını oku.\n\nYedekleme veya başka bir cihaza taşıma için bu seçeneği işaretlemeden bırakın; düzenlenmiş bir dosya, anahtarları eksik olarak içe aktarılır."
+msgid "Report these categories:"
+msgstr "Bu kategorileri bildirin:"
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, naming problems, Task flow, variables, behaviour on the device, and secrets.\n\nYou choose which of those to report before it runs, and that choice is remembered.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Yüklenen XML'i bozuk referanslar, referans verilmeyen Görevler, Profiller ve Sahneler, adlandırma sorunları, Görev akışı, değişkenler, cihazdaki davranış ve sırlar açısından tarayın.\n\nÇalıştırılmadan önce bunlardan hangisini rapor edeceğinizi seçersiniz ve bu seçim hatırlanır.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
+msgid "TaskerNet information"
+msgstr "TaskerNet bilgileri"
+msgid "Changes This Week"
+msgstr "Bu Hafta Değişiklikler"
+msgid "Nothing has changed in your configuration over that period."
+msgstr "Belirtilen süre içinde ayarlarınızda herhangi bir değişiklik yapılmamıştır."
+msgid "Timeline report could not be saved."
+msgstr "Zaman çizelgesi raporu kaydedilemedi."
+msgid "Timeline saved as"
+msgstr "Zaman çizelgesi şu şekilde kaydedildi:"
+msgid "What has changed in your configuration over the last seven days: what was added, removed, renamed and changed.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from a week ago is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Son yedi gün içinde yapılandırmanızda neler değişti: neler eklendi, kaldırıldı, yeniden adlandırıldı ve değiştirildi.\n\nSeçilecek dosya yok; yüklediğiniz her konfigürasyon geçerli dizindeki bir MapTasker_Timeline klasöründe tutulur, sıkıştırılır ve bir hafta önceki konfigürasyon şu anda açık olanla karşılaştırılır.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."
+msgid "Changes Since"
+msgstr "O günden bu yana yapılan değişiklikler"
+msgid "Changes Since..."
+msgstr "...Değişiklikler"
+msgid "Choose a date first."
+msgstr "Önce bir tarih seçin."
+msgid "Compare what you have open now against your configuration as it stood then."
+msgstr "Şu anda açık olanlarınızı, o zamanki konfigürasyonunuzla karşılaştırın."
+msgid "Period"
+msgstr "Dönem"
+msgid "Show Changes"
+msgstr "Değişiklikleri Göster"
+msgid "That date is in the future.  Choose a day that has happened."
+msgstr "Bu tarih gelecekte.  Gerçekleşen bir günü seçin."
+msgid "What has changed in your configuration since a moment you choose: today, this week, this month, everything kept, or a specific date.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from back then is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Seçtiğiniz bir andan bu yana yapılandırmanızda neler değişti: bugün, bu hafta, bu ay, saklanan her şey veya belirli bir tarih.\n\nSeçilecek dosya yok; yüklediğiniz her konfigürasyon geçerli dizindeki bir MapTasker_Timeline klasöründe tutulur, sıkıştırılır ve o zamanki konfigürasyon, şu anda açık olan konfigürasyonla karşılaştırılır.\n\nSonuçlar burada görüntülenir ve geçerli dizindeki bir metin dosyasına kaydedilir."

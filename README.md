@@ -336,9 +336,9 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [ ] Live Variable Inspector
 
-- [ ] Profile Conflict and Performance Lint
+- [x] Profile Conflict and Performance Lint
 
-- [ ] Secrets Security Scan
+- [x] Secrets Security Scan
 
 - [ ] Natural Language 'Find'
 

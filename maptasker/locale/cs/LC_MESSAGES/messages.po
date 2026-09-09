@@ -594,12 +594,10 @@ msgid "Analysis is running in the background.\n\nOnce complete, the program will
 msgstr "Analýza běží na pozadí.\n\nPo dokončení se program restartuje a výsledky se zobrazí v novém okně.\n\nPočkejte prosím..."
 msgid "Buy Me A Coffee"
 msgstr "Kup mi kávu"
-
 msgid "The 'Profiles Per Line' setting is used to control the number of Profiles to be displayed per line when diagramming the configuration.\n\nThe smaller the number, the narrower the diagram and vice versa.\n\nFewer Profiles per line may make it easier too view the diagram connectors that extend to the right, while at the same time the Diagram wil be longer.\n\nSelecting a number will automatically re-generate the diagram with the new setting.\n\nThis setting is only valid for the currrent Diagram view, and will be reset back to the default value when the Diagram view is closed.\n\n"
 msgstr "Nastavení 'Profiles Per Line' se používá k ovládání počtu profilů, které se mají zobrazit na řádku při vytváření diagramu konfigurace.\n\nČím menší číslo, tím užší je diagram a naopak.\n\nMéně profilů na řádek může usnadnit zobrazení konektorů diagramu, které se rozšiřují doprava, zatímco současně bude diagram delší.\n\nToto nastavení bude automaticky vygenerováno\n diagram. nastavení je platné pouze pro aktuální zobrazení diagramu a po zavření zobrazení diagramu bude obnoveno zpět na výchozí hodnotu.\n\n"
 msgid "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the data.\n\nThe 'Search Here' button will search for and highlight every instance of the string entered in the search box, starting at the current screen.\n\nHover over any of the highlighted matching strings to see all matches.\n\nThe 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\nThe accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\nWhen the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\nThe 'Clear' button will clear the search results.\n\nThe 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
 msgstr "Tlačítko 'Hledat' vyhledá a zvýrazní každý výskyt řetězce zadaného do vyhledávacího pole, počínaje horní částí dat.\n\nTlačítko 'Hledat zde' vyhledá a zvýrazní každý výskyt řetězce zadaného do vyhledávacího pole, počínaje aktuální obrazovkou.\n\nUmístěním kurzoru na kterýkoli ze zvýrazněných odpovídajících řetězců zobrazíte všechny shody.\n\nTlačítka 'Další' z předchozího vyhledávání se zobrazí a zviditelní se ' textové okno a zvýrazněte je jinou barvou.\n\nPřesnost zviditelnění hledaného řetězce není vždy dokonalá a tento program je mimo kontrolu.\n\nKdyž je dosaženo konce nebo začátku textového pole, vyhledávání se zastaví a na několik sekund se zobrazí zpráva.\n\nTlačítko 'Vymazat' vymaže výsledky hledání.\n\nTlačítko 'Nepřehraje se pouze v okně hledání ZAPNUTO' výsledky.\n\n"
-
 msgid "API Key Help"
 msgstr "Nápověda klíče API"
 msgid "Profiles Per Line Help"
@@ -941,2078 +939,1419 @@ msgid "Záhlaví"
 msgstr "Heading"
 msgid "color changed to"
 msgstr "barva změněna na"
-  
-
 msgid "Tmavý"
 msgstr "Dark"
 msgid "Světlo"
 msgstr "Light"
 msgid "Systém"
 msgstr "System"
-
 msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
 msgstr "Zaměřte se na konkrétní projekty, profily, úkoly nebo scény. (Vyberte pouze jednu)"
-
 msgid "Rename"
 msgstr "Přejmenovat"
-
 msgid "Export Project"
 msgstr "Export projektu"
-
 msgid "Export Profile"
 msgstr "Exportovat profil"
-
 msgid "Export Task"
 msgstr "Exportní úloha"
-
 msgid "Save"
 msgstr "Uložit"
-
 msgid "Overwrite"
 msgstr "Přepsat"
-
 msgid "Delete Project"
 msgstr "Smazat projekt"
-
 msgid "Delete Profile"
 msgstr "Smazat profil"
-
 msgid "Delete Task"
 msgstr "Smazat úkol"
-
 msgid "Its"
 msgstr "Jeho"
-
 msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
 msgstr "propojené úkoly budou zachovány -- patří k projektu, nikoli k tomuto profilu."
-
 msgid "It has no linked Tasks."
 msgstr "Nemá žádné propojené úkoly."
-
 msgid "It will be removed from"
 msgstr "Bude odstraněn z"
-
 msgid "Project(s) and unlinked from"
 msgstr "Projekt(y) a odpojeno od"
-
 msgid "Profile(s) that run it. Those Profiles themselves are kept."
 msgstr "Profil(y), které jej spouštějí. Tyto profily samotné jsou zachovány."
-
 msgid "Keep Contents"
 msgstr "Udržujte obsah"
-
 msgid "Delete Contents"
 msgstr "Smazat obsah"
-
 msgid "Adding to Project:"
 msgstr "Přidání do projektu:"
-
 msgid "Save To Current File"
 msgstr "Uložit do aktuálního souboru"
-
 msgid "Add Project"
 msgstr "Přidat projekt"
-
 msgid "Add Profile"
 msgstr "Přidat profil"
-
 msgid "Add Task"
 msgstr "Přidat úkol"
-
 msgid "Add an action"
 msgstr "Přidejte akci"
-
 msgid "Actions in this Task"
 msgstr "Akce v tomto úkolu"
-
 msgid "No actions added yet."
 msgstr "Zatím nebyly přidány žádné akce."
-
 msgid "Actions & Control"
 msgstr "Akce a ovládání"
-
 msgid "Display Conditions"
 msgstr "Podmínky zobrazení"
-
 msgid "Task Action Limit:"
 msgstr "Limit akcí úkolu:"
-
 msgid "Theme Configuration"
 msgstr "Konfigurace motivu"
-
 msgid "Select a category to modify its color."
 msgstr "Vyberte kategorii, chcete-li upravit její barvu."
-
 msgid "Select Category to Colorize"
 msgstr "Vyberte kategorii, kterou chcete vybarvit"
-
 msgid "Choose Hex Color"
 msgstr "Vyberte Hexadecimální barvu"
-
 msgid "Open View In New Window"
 msgstr "Otevřít pohled v novém okně"
-
 msgid "Close Tabs On Exit"
 msgstr "Zavřít karty při ukončení"
-
 msgid "Edit Project"
 msgstr "Upravit projekt"
-
 msgid "Edit Profile"
 msgstr "Upravit profil"
-
 msgid "Edit Task"
 msgstr "Upravit úkol"
-
 msgid "Scene"
 msgstr "Scéna"
-
 msgid "Execution"
 msgstr "Provedení"
-
 msgid "File Operations"
 msgstr "Operace se soubory"
-
 msgid "Display Views"
 msgstr "Zobrazení zobrazení"
-
 msgid "Application Settings"
 msgstr "Nastavení aplikace"
-
 msgid "Help & Information"
 msgstr "Nápověda a informace"
-
 msgid "0 = least detail, 5 = most detail."
 msgstr "0 = nejméně podrobností, 5 = nejvíce podrobností."
-
 msgid "AI Analysis"
 msgstr "Analýza AI"
-
 msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
 msgstr "Analýza běží na pozadí.\n\nPo dokončení se výsledky zobrazí v novém okně.\n\nProsím, držte se..."
-
 msgid "Android Get XML Port Number"
 msgstr "Android Získejte číslo portu XML"
-
 msgid "Android device at"
 msgstr "Zařízení Android na adrese"
-
 msgid "Available Android Backups"
 msgstr "Dostupné zálohy Android"
-
 msgid "CAVEATS"
 msgstr "VÝSTRAHY"
-
 msgid "Cancel Entry"
 msgstr "Zrušit vstup"
-
 msgid "Check your IP/Port and verify the Tasker HTTP server is running"
 msgstr "Zkontrolujte svou IP/port a ověřte, že server Tasker HTTP běží"
-
 msgid "Close"
 msgstr "Blízko"
-
 msgid "Detail Level"
 msgstr "Úroveň detailů"
-
 msgid "Error"
 msgstr "Chyba"
-
 msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
 msgstr "Načtení XML ze zařízení Android.\n\nMusíte být ve stejné síti jako zařízení Android a zařízení musí být spuštěné a připojené.\n\n"
-
 msgid "Get Local XML File"
 msgstr "Získejte místní soubor XML"
-
 msgid "It owns"
 msgstr "Vlastní"
-
 msgid "No Profile Tasks Found"
 msgstr "Nebyly nalezeny žádné úkoly profilu"
-
 msgid "No Profiles Found"
 msgstr "Nebyly nalezeny žádné profily"
-
 msgid "No file loaded"
 msgstr "Nebyl načten žádný soubor"
-
 msgid "No scenes found"
 msgstr "Nebyly nalezeny žádné scény"
-
 msgid "No tasks found"
 msgstr "Nebyly nalezeny žádné úkoly"
-
 msgid "None or unnamed!"
 msgstr "Žádné nebo nejmenované!"
-
 msgid "Profile(s) and"
 msgstr "Profil(y) a"
-
 msgid "Prompt:"
 msgstr "Výzva:"
-
 msgid "Save To Android"
 msgstr "Uložit na Android"
-
 msgid "Scene to Analyze:"
 msgstr "Scéna k analýze:"
-
 msgid "Scene:"
 msgstr "Scéna:"
-
 msgid "Select XML From Android Device:"
 msgstr "Vyberte XML ze zařízení Android:"
-
 msgid "Task(s)."
 msgstr "Úkol(y)."
-
 msgid "Unnamed Task"
 msgstr "Nejmenovaný úkol"
-
 msgid "Update Available!"
 msgstr "Aktualizace k dispozici!"
-
 msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
 msgstr "Přímé streamování YouTube vyžaduje tokeny API třetích stran. Pro zobrazení si stáhněte cílovou stopu lokálně."
-
 msgid "is unreachable"
 msgstr "je nedosažitelná"
-
 msgid "'Cancel' button selected. No change to the API keys!"
 msgstr "Bylo vybráno tlačítko 'Storno'. Žádná změna klíčů API!"
-
 msgid ".or."
 msgstr ".nebo."
-
 msgid "1-TCP/IP Address:"
 msgstr "1-TCP/IP adresa:"
-
 msgid "2-Port Number:"
 msgstr "Číslo se 2 porty:"
-
 msgid "3-File Location:"
 msgstr "Umístění 3 souborů:"
-
 msgid "AI Model"
 msgstr "Model AI"
-
 msgid "Add 'If' Action"
 msgstr "Přidejte akci „Pokud“."
-
 msgid "Add App Entry"
 msgstr "Přidat položku aplikace"
-
 msgid "Add Condition"
 msgstr "Přidat podmínku"
-
 msgid "All"
 msgstr "Vše"
-
 msgid "Android IP Address"
 msgstr "IP adresa Androidu"
-
 msgid "Android configuration details matched successfully!"
 msgstr "Podrobnosti konfigurace systému Android byly úspěšně spárovány!"
-
 msgid "Changes kept."
 msgstr "Změny zachovány."
-
 msgid "Choose a State type first."
 msgstr "Nejprve vyberte typ státu."
-
 msgid "Choose a Task"
 msgstr "Vyberte úkol"
-
 msgid "Choose a Task first."
 msgstr "Nejprve vyberte Úkol."
-
 msgid "Choose a condition type first."
 msgstr "Nejprve vyberte typ podmínky."
-
 msgid "Choose an Event type first."
 msgstr "Nejprve vyberte typ události."
-
 msgid "Class (optional)"
 msgstr "Třída (volitelné)"
-
 msgid "Cleared the search highlights."
 msgstr "Vymazání zvýraznění hledání."
-
 msgid "Click Here to Set XML Details"
 msgstr "Kliknutím sem nastavíte podrobnosti XML"
-
 msgid "Click arrows to expand/collapse details."
 msgstr "Kliknutím na šipky rozbalíte/sbalíte podrobnosti."
-
 msgid "Click on a row index line number to jump directly to that match block placement:"
 msgstr "Kliknutím na číslo řádku indexu řádku přejdete přímo na umístění odpovídající bloku:"
-
 msgid "Click on connector to highlight"
 msgstr "Kliknutím na konektor zvýrazněte"
-
 msgid "Close Results Window"
 msgstr "Zavřít okno s výsledky"
-
 msgid "Condition Type"
 msgstr "Typ podmínky"
-
 msgid "Conditions"
 msgstr "Podmínky"
-
 msgid "Configure Android Connection:"
 msgstr "Konfigurace připojení Android:"
-
 msgid "Continue Task After Error"
 msgstr "Pokračovat v úloze po chybě"
-
 msgid "Copy"
 msgstr "Kopie"
-
 msgid "Dark Mode"
 msgstr "Tmavý režim"
-
 msgid "Day of Month"
 msgstr "den v měsíci"
-
 msgid "Delete"
 msgstr "Vymazat"
-
 msgid "Delete Condition"
 msgstr "Smazat podmínku"
-
 msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
 msgstr "Smaže pouze tento profil. Jeho vstupní/výstupní úkoly jsou zachovány -- úkol je vlastněn Projektem, nikoli Profilem, a stejný Úkol může být použit jinými Profily."
-
 msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
 msgstr "Odstraní tuto úlohu a všechny odkazy na ni: odstraní se z Úkolů každého projektu, který ji vlastní, a z jakéhokoli profilu, který ji spouští jako svou vstupní/výstupní úlohu. Samotné profily jsou zachovány."
-
 msgid "Diagram View opened in a new browser window."
 msgstr "Zobrazení diagramu se otevře v novém okně prohlížeče."
-
 msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
 msgstr "Zobrazit rozšířený seznam VŠECH dostupných modelů.\n\nPoznámka: Pokud klíč API není nastaven pro OpenAI nebo Gemini,\n      pak výchozí seznam modelů pro příslušný\n      Zobrazí se poskytovatel AI.\n\nPoznámka: Ne všechny modely byly ověřeny a\n      jeden nebo více může vrátit chybu při analýze.\n\nPoznámka: První povolení této možnosti bude\n      vynutit instalaci následujících modulů\n      a všechny jejich závislosti:\n      google-genai, antropický, openai, ollama"
-
 msgid "End Time"
 msgstr "Čas ukončení"
-
 msgid "Event Type"
 msgstr "Typ události"
-
 msgid "Every"
 msgstr "Každý"
-
 msgid "File path saved successfully!"
 msgstr "Cesta k souboru byla úspěšně uložena!"
-
 msgid "File selection canceled."
 msgstr "Výběr souboru zrušen."
-
 msgid "If"
 msgstr "Li"
-
 msgid "If condition set."
 msgstr "Pokud je podmínka nastavena."
-
 msgid "Insert just the 'If', or a complete block?"
 msgstr "Vložit pouze 'Pokud', nebo celý blok?"
-
 msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
 msgstr "Byl zadán neplatný typ zobrazení. Použijte „mapa“, „diagram“ nebo „strom“."
-
 msgid "Label"
 msgstr "Označení"
-
 msgid "Last Day Of Month"
 msgstr "Poslední den v měsíci"
-
 msgid "Link"
 msgstr "Odkaz"
-
 msgid "List Files Selected"
 msgstr "Zobrazit seznam vybraných souborů"
-
 msgid "List XML Files"
 msgstr "Seznam souborů XML"
-
 msgid "Map View opened in a new browser window."
 msgstr "Zobrazení mapy se otevře v novém okně prohlížeče."
-
 msgid "Map view creation skipped: No valid XML source found or action canceled."
 msgstr "Vytvoření zobrazení mapy bylo přeskočeno: Nebyl nalezen žádný platný zdroj XML nebo byla akce zrušena."
-
 msgid "Month"
 msgstr "Měsíc"
-
 msgid "Move"
 msgstr "Pohyb"
-
 msgid "Move to #"
 msgstr "Přesunout do #"
-
 msgid "New name"
 msgstr "Nové jméno"
-
 msgid "No XML data loaded! Please Get XML from Android or Local drive first."
 msgstr "Nejsou načtena žádná data XML! Nejprve prosím získejte XML z Androidu nebo místního disku."
-
 msgid "No XML data loaded! Please select a valid XML file first."
 msgstr "Nejsou načtena žádná data XML! Nejprve prosím vyberte platný soubor XML."
-
 msgid "No actions in this Task."
 msgstr "V tomto úkolu nejsou žádné akce."
-
 msgid "No backup file is currently loaded. Use 'Get Local XML' first."
 msgstr "Momentálně není načten žádný záložní soubor. Nejprve použijte „Získat místní XML“."
-
 msgid "No conditions on this Profile."
 msgstr "Na tomto profilu nejsou žádné podmínky."
-
 msgid "No editable arguments (code not mapped, or this condition has none)."
 msgstr "Žádné upravitelné argumenty (kód není namapován nebo tato podmínka žádné nemá)."
-
 msgid "No editable arguments."
 msgstr "Žádné upravitelné argumenty."
-
 msgid "Not configured..."
 msgstr "Není nakonfigurováno..."
-
 msgid "Odd"
 msgstr "Zvláštní"
-
 msgid "Ok"
 msgstr "Dobře"
-
 msgid "Operator"
 msgstr "Operátor"
-
 msgid "Package"
 msgstr "Balík"
-
 msgid "Please enter a search term."
 msgstr "Zadejte hledaný výraz."
-
 msgid "Port"
 msgstr "Přístav"
-
 msgid "Position"
 msgstr "Pozice"
-
 msgid "Priority"
 msgstr "Přednost"
-
 msgid "Profile Name"
 msgstr "Název profilu"
-
 msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "Profil uchovaný pouze pro tuto relaci -- použijte 'Uložit do aktuálního souboru', chcete-li jej trvale zachovat."
-
 msgid "Profiles Per Line"
 msgstr "Profily na řádek"
-
 msgid "Project Name"
 msgstr "Název projektu"
-
 msgid "Project added."
 msgstr "Projekt přidán."
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
 msgstr "Vyzve k zadání nového názvu a použije jej na načtenou zálohu právě teď. Výše uvedené pole Název projektu je pouze pro čtení – toto je jediný způsob, jak jej změnit."
-
 msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
 msgstr "Vyzve k zadání nového názvu a použije jej právě na načtenou zálohu. Vše ostatní v tomto dialogu zůstane nevyřízené, dokud Ok/Uložit, a dialog zůstane otevřený, takže můžete pokračovat v úpravách."
-
 msgid "Remove"
 msgstr "Odstranit"
-
 msgid "Save Profile To Android Device"
 msgstr "Uložit profil do zařízení Android"
-
 msgid "Save Project To Android Device"
 msgstr "Uložit projekt do zařízení Android"
-
 msgid "Save Task To Android Device"
 msgstr "Uložit úkol do zařízení Android"
-
 msgid "Save as"
 msgstr "Uložit jako"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Uloží celou zálohu – každý projekt, profil a úkol v ní, nejen tento profil – s aplikovanými úpravami v tomto dialogovém okně zůstanou zachovány tytéž úpravy „Ok“.\nZapíše se do nové kopie aktuálně načteného souboru s časovým razítkem: backup.xml se změní na backup_20260728_143005.xml.\nSoubor, který jste načetli, není nikdy zapsán, takže je ponechán přesně tak, jak byl.\nAplikace se poté přepne na novou kopii, která se stane aktuálním souborem pro další úpravy a uložení; opětovné uložení nahradí časové razítko místo přidání druhého.\nToto zapisuje pouze do tohoto počítače – do vašeho zařízení Android se nic neodesílá."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Uloží celou zálohu – každý projekt, profil a úkol v ní, nejen tento projekt – včetně všech úprav provedených kdekoli v této relaci.\nZapíše se do nové kopie aktuálně načteného souboru s časovým razítkem: backup.xml se změní na backup_20260728_143005.xml.\nSoubor, který jste načetli, není nikdy zapsán, takže je ponechán přesně tak, jak byl.\nAplikace se poté přepne na novou kopii, která se stane aktuálním souborem pro další úpravy a uložení; opětovné uložení nahradí časové razítko místo přidání druhého.\nToto zapisuje pouze do tohoto počítače – do vašeho zařízení Android se nic neodesílá."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Uloží celou zálohu – každý projekt, profil a úlohu v ní, nejen tuto úlohu – s aplikovanými úpravami v tomto dialogovém okně zůstanou zachovány tytéž „OK“.\nZapíše se do nové kopie aktuálně načteného souboru s časovým razítkem: backup.xml se změní na backup_20260728_143005.xml.\nSoubor, který jste načetli, není nikdy zapsán, takže je ponechán přesně tak, jak byl.\nAplikace se poté přepne na novou kopii, která se stane aktuálním souborem pro další úpravy a uložení; opětovné uložení nahradí časové razítko místo přidání druhého.\nToto zapisuje pouze do tohoto počítače – do vašeho zařízení Android se nic neodesílá."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Uloží celou zálohu – každý projekt, profil a úkol v ní, nejen tento – s novým profilem přidaným do jeho projektu stejným způsobem, jakým jej přidá „OK“.\nZapíše se do nové kopie aktuálně načteného souboru s časovým razítkem: backup.xml se změní na backup_20260728_143005.xml.\nSoubor, který jste načetli, není nikdy zapsán, takže je ponechán přesně tak, jak byl.\nAplikace se poté přepne na novou kopii, která se stane aktuálním souborem pro další úpravy a uložení; opětovné uložení nahradí časové razítko místo přidání druhého.\nToto zapisuje pouze do tohoto počítače – do vašeho zařízení Android se nic neodesílá."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Uloží celou zálohu – každý projekt, profil a úlohu v ní, nejen tuto – s novou úlohou, která je k ní přidána, stejně jako to přidá „Ok“.\nZapíše se do nové kopie aktuálně načteného souboru s časovým razítkem: backup.xml se změní na backup_20260728_143005.xml.\nSoubor, který jste načetli, není nikdy zapsán, takže je ponechán přesně tak, jak byl.\nAplikace se poté přepne na novou kopii, která se stane aktuálním souborem pro další úpravy a uložení; opětovné uložení nahradí časové razítko místo přidání druhého.\nToto zapisuje pouze do tohoto počítače – do vašeho zařízení Android se nic neodesílá."
-
 msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
 msgstr "Uloží tento projekt a vše v něm – každý profil a úkol – jako jeden samostatný soubor."
-
 msgid "Search actions"
 msgstr "Vyhledávací akce"
-
 msgid "Search..."
 msgstr "Vyhledávání..."
-
 msgid "Select a single Profile first (Profile pulldown above)."
 msgstr "Nejprve vyberte jeden profil (rozbalovací nabídka Profil výše)."
-
 msgid "Select a single Project first (Project pulldown above)."
 msgstr "Nejprve vyberte jeden projekt (rozbalovací nabídka Projekt výše)."
-
 msgid "Select a single Task first (Task pulldown above)."
 msgstr "Nejprve vyberte jeden úkol (rozbalovací nabídka Úkol výše)."
-
 msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
 msgstr "Vyberte, kolik akcí v úloze před vydáním varování.\nVarování se objeví v dolní části konfiguračního výstupu,\na má pomoci identifikovat příliš složité úkoly\na který by měl být potenciálně rozdělen do více úkolů.\nNastavení „100“ znamená, že neexistuje žádný limit."
-
 msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
 msgstr "Nastavte velikost odsazení pro bloky If/Then/Else.\n\nVýchozí hodnota je '4'.\n\nTo ovlivňuje způsob formátování výstupu v zobrazeních mapy a diagramu."
-
 msgid "Settings Reset!"
 msgstr "Nastavení Resetovat!"
-
 msgid "Shutting down MapTasker..."
 msgstr "Vypínání MapTasker..."
-
 msgid "Start Time"
 msgstr "Čas zahájení"
-
 msgid "Starting AI Analysis..."
 msgstr "Spouštění analýzy umělé inteligence..."
-
 msgid "State Type"
 msgstr "Typ stavu"
-
 msgid "Submit"
 msgstr "Předložit"
-
 msgid "Target"
 msgstr "Cíl"
-
 msgid "Task Name"
 msgstr "Název úkolu"
-
 msgid "Task Uploaded to Tasker"
 msgstr "Úloha nahrána do Taskeru"
-
 msgid "Task Uploaded to Tasker."
 msgstr "Úloha nahrána do Taskeru."
-
 msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "Úkol zachován pouze pro tuto relaci -- použijte 'Uložit do aktuálního souboru' pro jeho trvalé uložení."
-
 msgid "The 'Misc' view is running in the background.  Please stand by..."
 msgstr "Na pozadí běží zobrazení 'Různé'.  Prosím, držte se..."
-
 msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
 msgstr "Tlačítko „Hledat“ vyhledá a zvýrazní každý výskyt řetězce, v němž se nerozlišují velká a malá písmena zadaného do vyhledávacího pole, počínaje horní částí dat.\n\nZobrazí pouze prvních 200 výskytů hledaného řetězce.\n\nKliknutím na číslo řádku přejdete na tento řádek v textovém okně.\n\nTlačítko 'Vymazat' vymaže výsledky vyhledávání.\n\n"
-
 msgid "The change will take effect the next time you open the view."
 msgstr "Změna se projeví při příštím otevření zobrazení."
-
 msgid "This Task has no actions yet."
 msgstr "Tento úkol zatím nemá žádné akce."
-
 msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
 msgstr "Toto je seznam všech písem dostupných ve vašem systému, nejprve bez mezer a jako taková označena.\n\nVybrané písmo bude použito ve všech výstupech.\n\nPro schémata se důrazně doporučuje „Courier“ nebo „Courier New“, aby bylo zajištěno správné vyrovnání konektorů. Písmo, které není proporcionální, neudrží konektory diagramu ani odsazení výstupu v řadě."
-
 msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
 msgstr "Tím se úkol uloží přímo do Taskeru spuštěného na zařízení Android se serverem Tasker.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nBudete dvakrát vyzváni k autorizaci k zápisu do Tasker na zařízení Android a Task.a jeho vlastní akce určí, kam se v zařízení uloží."
-
 msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
 msgstr "Tím se úkol uloží přímo do aktivní relace úkolu na vašem zařízení Android.\n\nAby to fungovalo, je vyžadován Tasker verze 6.2 nebo vyšší. Zařízení Android musí být ve stejné síti a IP adresa a port\nmusí odpovídat nastavení serveru Tasker zařízení Android.\n\nBudete dvakrát vyzváni k autorizaci zápisu do Taskeru na zařízení Android a úloha se načte přímo do aktivní relace Taskeru.\n\nAbyste viděli novou úlohu v uživatelském rozhraní Tasker, musíte Tasker ukončit a restartovat."
-
 msgid "This will save the Task directly to your current drive.\n\n"
 msgstr "Tím se úloha uloží přímo na aktuální disk.\n\n"
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Tím se profil zapíše jako samostatný soubor do zařízení Android pod /Tasker/profiles.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nK tomu není potřeba žádná výzva k autorizaci."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Tím se profil zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/profiles – neimportuje se do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ (http://spoo.me/http_svr_example) musí být nainstalován a aktivní na zařízení Android se spuštěným serverem (viz poznámky k přímému získávání XML v souboru README).\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker. K tomu není potřeba žádná výzva k autorizaci."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Tím se profil zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/profiles – neimportuje se do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem (viz poznámky k přímému získávání XML v souboru README).\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker. K tomu není potřeba žádná výzva k autorizaci."
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Tím se projekt a vše v něm – každý profil a úloha – zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/projects – neimportuje se do živé konfigurace aplikace Tasker.\n\nProjekt Tasker 'Http Server Example' musí být nainstalován a aktivní na zařízení Android se spuštěným serverem.\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker. K tomu není potřeba žádná výzva k autorizaci."
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Tím se projekt a vše v něm zapíše jako samostatný soubor do zařízení Android pod /Tasker/projects.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nK tomu není potřeba žádná výzva k autorizaci."
-
 msgid "Toggle Wrap"
 msgstr "Přepnout zabalení"
-
 msgid "Unlink"
 msgstr "Odpojit"
-
 msgid "Value"
 msgstr "Hodnota"
-
 msgid "View cleared."
 msgstr "Pohled vymazán."
-
 msgid "Week-Day"
 msgstr "Všední den"
-
 msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
 msgstr "Je-li povoleno, kliknutím na 'Exit' se také zavře hlavní okno MapTasker a všechna okna/karty s mapou/diagramem, které otevřel.\n\nKdyž je zakázáno, 'Exit' vypne MapTasker, ale ponechá tato okna/karty otevřené."
-
 msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
 msgstr "Když je tato možnost povolena, každý požadavek na mapu/diagram se otevře ve svém vlastním novém okně/záložce, takže můžete vedle něj ponechat ty dřívější a porovnat je.\n\nKdyž je zakázáno, požadavek znovu použije stávající okno/kartu daného pohledu a nahradí to, co je v něm.\n\nNechte jej vypnutý, pokud nechcete porovnávat: zcela nové okno/karta je to, které váš prohlížeč může zablokovat, protože se otevře, jakmile se zobrazení dokončí, a ne v okamžiku, kdy na ně kliknete."
-
 msgid "hh:mm AM/PM or %variable"
 msgstr "hh:mm AM/PM nebo %proměnná"
-
 msgid "Pick a Task"
 msgstr "Vyberte úkol"
-
 msgid "MapTasker: view limit reached, stopping output to file:  output"
 msgstr "MapTasker: dosažen limit zobrazení, zastavení výstupu do souboru: výstup"
-
 msgid "hardstop view limit"
 msgstr "pevný limit zobrazení"
-
 msgid "(empty)"
 msgstr "(prázdný)"
-
 msgid "(no name)"
 msgstr "(bez jména)"
-
 msgid "(unnamed Task)"
 msgstr "(nepojmenovaný úkol)"
-
 msgid "(unnamed)"
 msgstr "(nejmenovaný)"
-
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1 znamená, že tato orientace nemá žádné vlastní rozložení."
-
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...a ještě {count} – zadáním výše to zúžíte."
-
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "Pozice prvků scény jsou uloženy v pixelech zařízení, ale velikosti textu jsou uloženy v jednotkách sp systému Android. Číslo, které se mezi nimi převádí, je vlastností telefonu, na kterém je scéna zobrazena, a není v záložním souboru.\n\nTak je to zde nastaveno. Zvedněte ji, pokud text vypadá příliš malý pro jeho prvky, snižte jej, pokud je text přetéká."
-
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "Scéna verze 2 nemá žádnou vlastní velikost – rozkládá se na jakékoli obrazovce, na které je zobrazena, takže v záložním souboru není nic, na co by ji bylo možné nakreslit.\n\nZměňte toto, chcete-li vidět změnu rozvržení. Řádek toku se zalamuje jinak a jakékoli 'Zobrazit kdy' napsané proti %sv2_render_width se ptá přesně na toto."
-
 msgid "Actions"
 msgstr "Akce"
-
 msgid "Add"
 msgstr "Přidat"
-
 msgid "Add Element"
 msgstr "Přidat prvek"
-
 msgid "Add a background"
 msgstr "Přidejte pozadí"
-
 msgid "Add action"
 msgstr "Přidat akci"
-
 msgid "Add event"
 msgstr "Přidat událost"
-
 msgid "Add modifier"
 msgstr "Přidat modifikátor"
-
 msgid "Add scene properties"
 msgstr "Přidejte vlastnosti scény"
-
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "Přidá prvek na horní část zásobníku, doprostřed scény."
-
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "Přidá dovnitř vybrané komponenty, pokud může obsahovat děti, jinak přímo za ní."
-
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "Přidá ji na vrchol zásobníku, doprostřed scény. Přetáhněte jej, kam chcete."
-
 msgid "Also selected:"
 msgstr "Také vybráno:"
-
 msgid "Also update"
 msgstr "Také aktualizovat"
-
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Amber: Tasker to uvádí, ale MapTasker nemá žádný potvrzený vzorek. Šedá: nemůže jít tam, kam by to zařadil výběr."
-
 msgid "App icon"
 msgstr "Ikona aplikace"
-
 msgid "Appearance Mode"
 msgstr "Režim vzhledu"
-
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "Aplikuje se v pořadí — ten dole sedí nahoře."
-
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "Použije se, když je tato scéna uložena, nikoli nyní -- Zrušit v dialogovém okně Scéna ponechá prvek i úkoly přesně tak, jak byly."
-
 msgid "Back to Editor"
 msgstr "Zpět do Editoru"
-
 msgid "Bounds"
 msgstr "Meze"
-
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "Zrušeno. Změny této scény byly zahozeny."
-
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "Kliknutím na komponentu ji vyberete, se stisknutou klávesou Shift a kliknutím na další ve stejném kontejneru jich vezmete několik a tažením změníte jejich pořadí mezi jejich vlastními sourozenci. Přesouvání komponenty do nebo z kontejneru jsou tlačítka In a Out editoru; Je tam i Undo."
-
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "Kliknutím na prvek jej vyberete, se stisknutou klávesou Shift nebo přetažením rámečku na pozadí jich vezmete několik a přetažením kteréhokoli z nich přesunete všechny – posouvání kláves se šipkami, Shift o 10 pixelů. Přetažením úchytu změníte velikost jednoho prvku. Zpět a vše ostatní o prvku je zpět v editoru."
-
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "Kliknutím na prvek jej vyberete, tažením přesunete, přetažením úchytu změníte velikost, šipkami posouváte (Shift pro 10px). Klepněte se stisknutou klávesou Shift nebo přetáhněte rámeček na pozadí, abyste jich vzali několik najednou."
-
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "Zavře se bez uložení a vrátí tuto scénu přesně tak, jak byla, když se tento dialog otevřel – včetně všeho, co bylo v náhledu přesunuto nebo změněno.\n\nPřejmenování je jediná věc, kterou nelze vzít zpět: použije se na načtenou zálohu, jakmile je potvrzena, a zavře s ní tento dialog."
-
 msgid "Delete Scene"
 msgstr "Smazat scénu"
-
 msgid "Done"
 msgstr "Hotovo"
-
 msgid "Drawn in"
 msgstr "Vtaženo"
-
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "Nakreslí tuto scénu jako obrázek v hlavním okně – včetně komponent, které jste zde přidali nebo změnili, ale ještě neuložili.\n\nRozvržení verze 2 nemá žádnou vlastní velikost, takže náhled jej rozloží na obrazovku, kterou si vyberete, a znovu jej převede, když to změníte.\n\nTento dialog se zavře, když je náhled spuštěn, přičemž vše v něm zůstane zachováno; tlačítko 'Zpět do editoru' náhledu jej vrátí zpět.\n\nJedná se o reprezentaci, nikoli o vlastní renderer Taskeru: % proměnných jsou pojmenovány spíše než vyřešeny, barvy materiálu pocházejí ze základní palety spíše než z motivu zařízení a obrázky, video a webový obsah jsou zobrazeny jako zástupné symboly."
-
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "Nakreslí tuto scénu jako obrázek v hlavním okně ve velikosti zadané výše – včetně dosud neuložených změn.\n\nTento dialog se zavře, když je náhled spuštěn, přičemž vše v něm zůstane zachováno; tlačítko 'Zpět do editoru' náhledu jej vrátí zpět.\n\nJedná se o reprezentaci, nikoli o vlastní renderer Taskeru: % proměnných jsou pojmenovány spíše než vyřešeny a obrázky, video a webový obsah jsou zobrazeny jako zástupné symboly."
-
 msgid "Dropdown menu — shown when opened"
 msgstr "Rozbalovací nabídka – zobrazí se při otevření"
-
 msgid "Duplicate"
 msgstr "Duplikát"
-
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Dynamic a Select Variable jsou zpracovány při zobrazení scény."
-
 msgid "Dynamic value"
 msgstr "Dynamická hodnota"
-
 msgid "Edit Scene"
 msgstr "Upravit scénu"
-
 msgid "Edit item layout"
 msgstr "Upravit rozvržení položky"
-
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "Místo toho upravte vlastnosti tohoto a ponechte výběr."
-
 msgid "Event handlers"
 msgstr "Obslužné programy událostí"
-
 msgid "Export Scene"
 msgstr "Exportovat scénu"
-
 msgid "Geometry"
 msgstr "Geometrie"
-
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "Šedá: MapTasker pro to nemá žádnou tabulku argumentů, takže ji nelze vytvořit, aniž byste uhodli, co Tasker uvnitř očekává. Nadpisy jsou vlastní seskupení MapTaskeru."
-
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "Šrafované výplně a kurzívou podtržený text jsou %proměnné -- jejich hodnoty žijí v zařízení, nikoli v záloze, takže jsou spíše pojmenovány než uhodnuty. Obrázky, videa, mapy a webový obsah se zobrazují jako zástupné symboly. Umístěte kurzor na libovolný prvek pro jeho geometrii, jeho proměnné a úlohy, které spouští."
-
 msgid "Health Check"
 msgstr "Kontrola stavu"
-
 msgid "Health Check found no errors or warnings."
 msgstr "Kontrola stavu nenalezla žádné chyby ani varování."
-
 msgid "Health Check report could not be saved."
 msgstr "Zprávu o kontrole stavu se nepodařilo uložit."
-
 msgid "Health Check saved as"
 msgstr "Kontrola stavu uložena jako"
-
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "Jak dlouho vyskakovací zpráva zůstane na obrazovce, než zmizí.\n\n'Until dismissed' uchovává každou zprávu, dokud ji nezavřete, což je užitečné, když se zpráva posune kolem, než si ji můžete přečíst.\n\nNěkolik zpráv si nastaví vlastní delší trvání, protože obsahují seznam věcí, které si musíte přečíst – například Úkoly ovlivněné odstraněním nebo přejmenováním prvku Scene. Ti si ponechávají své vlastní načasování, ať už se zde zvolí."
-
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "V seznamu: Klepnutím se stisknutou klávesou Shift vyberte rozsah, kliknutím se stisknutou klávesou Ctrl nebo Cmd jej přidejte nebo odeberte."
-
 msgid "Item layout"
 msgstr "Rozložení položky"
-
 msgid "Landscape"
 msgstr "Krajina"
-
 msgid "Legacy Scene"
 msgstr "Starší scéna"
-
 msgid "List"
 msgstr "Seznam"
-
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: dosažen limit zobrazení, diagram zkrácen"
-
 msgid "Modifiers"
 msgstr "Modifikátory"
-
 msgid "Never updated"
 msgstr "Nikdy neaktualizováno"
-
 msgid "No Task addresses this element by name."
 msgstr "Žádná úloha neřeší tento prvek jménem."
-
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "Nebyl načten žádný soubor XML.  Nejprve získejte soubor XML."
-
 msgid "No element matches that."
 msgstr "Tomu neodpovídá žádný prvek."
-
 msgid "Not an HTML colour name or #hex value."
 msgstr "Není to název barvy HTML nebo hodnota #hex."
-
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "Neaktualizováno -- tyto názvy pojmenovávají tuto scénu i tento prvek, ale ne jako a"
-
 msgid "Nothing here."
 msgstr "Tady nic."
-
 msgid "Notification Duration"
 msgstr "Doba trvání oznámení"
-
 msgid "Notification Duration:"
 msgstr "Doba trvání oznámení:"
-
 msgid "On"
 msgstr "Na"
-
 msgid "Only when"
 msgstr "Jen když"
-
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "Načrtněte každou komponentu a pojmenujte ji tak, jak ji pojmenuje strom návrháře."
-
 msgid "Outline every element and name it."
 msgstr "Načrtněte každý prvek a pojmenujte jej."
-
 msgid "Pick a Material icon."
 msgstr "Vyberte ikonu Materiál."
-
 msgid "Pick an icon"
 msgstr "Vyberte ikonu"
-
 msgid "Pick from the Scene's environment and global variables."
 msgstr "Vyberte si z prostředí a globálních proměnných scény."
-
 msgid "Pick one of Material's own colour roles."
 msgstr "Vyberte si jednu z vlastních barevných rolí Material."
-
 msgid "Preview"
 msgstr "Náhled"
-
 msgid "Project(s) that list it."
 msgstr "Projekty, které jej obsahují."
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "Vyzve k zadání nového názvu a použije ho na načtenou zálohu, právě teď – přejmenování scény všude, včetně seznamu scén každého projektu, který ji obsahuje.\n\nÚkoly, které zobrazují nebo skrývají tuto scénu podle názvu, NEJSOU aktualizovány; stále jmenují starou scénu.\n\nPole Název scény výše je pouze pro čtení – je to jediný způsob, jak jej změnit."
-
 msgid "Properties"
 msgstr "Vlastnosti"
-
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "Vlastnosti se upravují po jednom prvku. Tažením a posouváním přesunete vše vybrané."
-
 msgid "Refresh"
 msgstr "Obnovit"
-
 msgid "Remove background"
 msgstr "Odstraňte pozadí"
-
 msgid "Rename Element"
 msgstr "Přejmenovat prvek"
-
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "Přejmenování prvku zde neprovede zálohu: rozvržení položky nemá název scény pro akci Prvek úkolu, podle kterého by jej bylo možné adresovat, takže není co přepisovat."
-
 msgid "Repeats once per array entry"
 msgstr "Opakuje se jednou pro každou položku pole"
-
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "Zaokrouhlí přetažené pozice a velikosti na tento počet pixelů."
-
 msgid "Save Scene To Android Device"
 msgstr "Uložit scénu do zařízení Android"
-
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Uloží celou zálohu – každý projekt, profil, úlohu a scénu v ní, nejen tuto scénu – včetně všech úprav provedených kdekoli v této relaci.\nZapíše se do nové kopie aktuálně načteného souboru s časovým razítkem: backup.xml se změní na backup_20260728_143005.xml.\nSoubor, který jste načetli, není nikdy zapsán, takže je ponechán přesně tak, jak byl.\nAplikace se poté přepne na novou kopii, která se stane aktuálním souborem pro další úpravy a uložení; opětovné uložení nahradí časové razítko místo přidání druhého.\nToto zapisuje pouze do tohoto počítače – do vašeho zařízení Android se nic neodesílá."
-
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "Uloží tuto scénu se všemi jejími prvky jako jeden samostatný soubor .scn.xml – ve stejném formátu, jaký vytváří export vlastní scény Tasker.\n\nÚkoly spuštěné prvky scény nejsou zahrnuty; patří do jejich vlastního projektu."
-
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Prohledejte načtený XML pro nefunkční odkazy, neodkazované úkoly, profily a scény a problémy s pojmenováním.\n\nZde se zobrazí výsledky a uloží se do textového souboru v aktuálním adresáři."
-
 msgid "Scene Components"
 msgstr "Komponenty scény"
-
 msgid "Scene Elements"
 msgstr "Prvky scény"
-
 msgid "Scene Name"
 msgstr "Název scény"
-
 msgid "Scene Preview"
 msgstr "Náhled scény"
-
 msgid "Scene Properties"
 msgstr "Vlastnosti scény"
-
 msgid "Scene added."
 msgstr "Scéna přidána."
-
 msgid "Scene type"
 msgstr "Typ scény"
-
 msgid "Screen"
 msgstr "Obrazovka"
-
 msgid "Search elements"
 msgstr "Vyhledávací prvky"
-
 msgid "Search icons"
 msgstr "Hledat ikony"
-
 msgid "Search variables"
 msgstr "Hledat proměnné"
-
 msgid "Select a component on the left."
 msgstr "Vyberte komponentu vlevo."
-
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "Vyberte větší limit zobrazení nebo jeden projekt / profil / úkol, abyste viděli zbytek."
-
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "Nejprve vyberte jednu scénu (rozbalovací nabídka Scéna nahoře)."
-
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "Vyberte jeden prvek, který chcete duplikovat, odstranit nebo znovu složit."
-
 msgid "Select an element first."
 msgstr "Nejprve vyberte prvek."
-
 msgid "Select an element on the canvas or in the list."
 msgstr "Vyberte prvek na plátně nebo v seznamu."
-
 msgid "Show the Task each element runs."
 msgstr "Zobrazit úlohu, kterou každý prvek spouští."
-
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "Ukažte, co každá komponenta dělá po klepnutí a do čeho se zapisuje."
-
 msgid "Show when"
 msgstr "Ukázat kdy"
-
 msgid "Size"
 msgstr "Velikost"
-
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "Velikost musí být celé číslo (-1 pro žádné rozvržení)."
-
 msgid "Snap"
 msgstr "Snap"
-
 msgid "Spinner"
 msgstr "Spinner"
-
 msgid "Stop firing anything on this event."
 msgstr "Přestaňte na této události cokoliv pálit."
-
 msgid "Task action(s) in"
 msgstr "Akce úkolu v"
-
 msgid "Task(s)"
 msgstr "úkol(y)"
-
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "Úkoly řeší tuto scénu pomocí vzoru shody (viditelnost prvku). Zkontrolujte je sami"
-
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker uchovává tento úkol uvnitř scény a nikde jinde, takže nemá žádné jméno a nemůže být nasměrován někam jinam, aniž byste jej ztratili. Je přenášena nedotčená."
-
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker uvádí tento prvek, ale MapTasker nikdy žádný neviděl v uložené scéně - takže není přidán nic jiného než jeho typ a id, a dokonce je typ odvozen z názvu výše (zapsaného jako typ: \"{node_type}\"). Pokud jej Tasker nerozpozná, stiskněte Zpět."
-
 msgid "Tasker variable(s)"
 msgstr "Proměnné Tasker"
-
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Tasker's Screen Builder: deklarativní strom komponent (Column, Row, Scaffold, ...), který se sám rozkládá bez pevné velikosti plátna. Začít od:"
-
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "Úkoly řeší tento prvek jménem (Text prvku, Pozice prvku, ... celkem 18 kódů akcí), takže přejmenování není úpravou pole. V dialogovém okně Přejmenovat je uveden seznam toho, co závisí na aktuálním názvu, a nabízí možnost přenést tyto úkoly s sebou."
-
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "Úkoly, které zobrazují nebo skrývají tuto scénu podle názvu, se nezmění a zůstanou tam, kde jsou."
-
 msgid "Text density"
 msgstr "Hustota textu"
-
 msgid "That component can't go there."
 msgstr "Ta součástka tam nemůže jít."
-
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "Seznam ikon materiálu nelze přečíst, zadejte místo toho název."
-
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "Proměnná Tasker, do které tato komponenta zapisuje svou hodnotu. Několik oddělte čárkami. Ponechte prázdné, chcete-li vazbu deklarovat bez jejího nastavení."
-
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "Úkoly, které ji řeší, budou aktualizovány při uložení této scény."
-
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "Rozložení jedné řady. Tasker jej nakreslí jednou za každou položku, která vyplňuje seznam, takže to, co zde vidíte, je spíše jeden řádek než seznam."
-
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "Původní prvky Scene: UI umístěné na pevných pozicích na plátně velikosti (Text, Button, Rect, Image, Web, ...)."
-
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "Velikost obrazovky odpovídá tomuto náhledu, nikoli scéně – rozvržení verze 2 nemá žádnou vlastní velikost, takže změňte 'Obrazovka', abyste viděli, že se znovu přelije. Barvy pojmenované podle role Material jsou nakresleny z palety základní linie Material 3; zařízení je řeší podle svého vlastního motivu, který v části Material You pochází z tapety. Šrafované výplně a kurzívou podtržený text jsou % proměnné. Žluté obrysy označují komponenty „Zobrazit, když“. Umístěním kurzoru na libovolnou komponentu zobrazíte její modifikátory, proměnné a akce."
-
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "Hledání neskončilo. Zobrazení může být příliš velké nebo je prohlížeč zaneprázdněn."
-
 msgid "This Scene has no UI elements."
 msgstr "Tato scéna nemá žádné prvky uživatelského rozhraní."
-
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "Tato scéna nemá vlastní rozvržení na šířku (její velikost je -1)."
-
 msgid "This Scene has no layout for this orientation."
 msgstr "Tato scéna nemá rozvržení pro tuto orientaci."
-
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "Tato scéna nemá žádný prvek vlastností. 66 z 366 scén, které MapTasker viděl, také žádné nemá, takže jde spíše o obyčejné než o poškození."
-
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "Rozvržení této scény verze 2 nelze přečíst a bude ponecháno přesně tak, jak je."
-
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "Rozvržení této scény verze 2 nemá žádnou kořenovou komponentu, takže není co navrhovat."
-
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "Tato aplikace nemá pro tento typ prvku žádnou tabulku vlastností, takže zde lze upravovat pouze jeho geometrii. Jinak se nese nedotčený."
-
 msgid "This element has no layout for this orientation."
 msgstr "Tento prvek nemá rozvržení pro tuto orientaci."
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Tím se scéna zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/scenes – neimportuje se do živé konfigurace Taskeru.\n\nProjekt Tasker 'Http Server Example' musí být nainstalován a aktivní na zařízení Android se spuštěným serverem.\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker. K tomu není potřeba žádná výzva k autorizaci."
-
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "Otočte obrazovku na bok a nechte do ní rozložení znovu proudit."
-
 msgid "Using the saved size"
 msgstr "Pomocí uložené velikosti"
-
 msgid "Variable"
 msgstr "Variabilní"
-
 msgid "Variables"
 msgstr "Proměnné"
-
 msgid "View Limit"
 msgstr "Limit zobrazení"
-
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "To, co vyberete, se zobrazí na kurzoru. Otevřete to znovu a přidejte další kus."
-
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "To, co si vyberete, nahradí to, co pole obsahuje. Zadejte pro zúžení seznamu."
-
 msgid "Which kind of Scene?"
 msgstr "Jaký druh scény?"
-
 msgid "Writes to variable"
 msgstr "Zapisuje do proměnné"
-
 msgid "Zoom"
 msgstr "Přiblížení"
-
 msgid "component(s)"
 msgstr "komponenty"
-
 msgid "connectors"
 msgstr "konektory"
-
 msgid "drag or nudge any of them and they all move together."
 msgstr "přetáhněte nebo šťouchněte kteroukoli z nich a všechny se pohybují společně."
-
 msgid "editing 1 of"
 msgstr "úprava 1 z"
-
 msgid "element(s)"
 msgstr "prvek(y)"
-
 msgid "elements selected"
 msgstr "vybrané prvky"
-
 msgid "is not a whole number"
 msgstr "není celé číslo"
-
 msgid "lines dropped"
 msgstr "linky klesly"
-
 msgid "none"
 msgstr "žádný"
-
 msgid "not drawn"
 msgstr "nekresleno"
-
 msgid "pair"
 msgstr "pár"
-
 msgid "pixels"
 msgstr "pixelů"
-
 msgid "Add Scene"
 msgstr "Přidat scénu"
-
 msgid "Add handler"
 msgstr "Přidat obslužný program"
-
 msgid "Addressed by id from"
 msgstr "Adresováno id od"
-
 msgid "Choose another file..."
 msgstr "Vyberte jiný soubor..."
-
 msgid "Compare Files"
 msgstr "Porovnat soubory"
-
 msgid "Compare With"
 msgstr "Porovnat s"
-
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Porovnejte jiný soubor XML s načteným: co bylo přidáno, odstraněno, přejmenováno a změněno.\n\nPoužijte jej, abyste viděli, co přinesl import z TaskerNet, co se změnila úprava nebo co se mezi dvěma zálohami liší.\n\nPokud načtený soubor přišel z 'Uložit do aktuálního souboru', je přímo nabídnut soubor, ze kterého byl uložen.\n\nZde se zobrazí výsledky a uloží se do textového souboru v aktuálním adresáři."
-
 msgid "Comparison cancelled."
 msgstr "Srovnání zrušeno."
-
 msgid "Comparison report could not be saved."
 msgstr "Srovnávací přehled se nepodařilo uložit."
-
 msgid "Comparison saved as"
 msgstr "Porovnání uloženo jako"
-
 msgid "Legacy"
 msgstr "Dědictví"
-
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "To je soubor již načtený.  Vyberte si jinou, se kterou chcete porovnat."
-
 msgid "The loaded file was saved from"
 msgstr "Načtený soubor byl uložen z"
-
 msgid "The original"
 msgstr "původní"
-
 msgid "The two files hold the same configuration."
 msgstr "Tyto dva soubory mají stejnou konfiguraci."
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Tím se scéna zapíše jako samostatný soubor do zařízení Android pod /Tasker/scenes.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nK tomu není potřeba žádná výzva k autorizaci."
-
 msgid "Tree label"
 msgstr "Štítek stromu"
-
 msgid "Undo"
 msgstr "Vrátit zpět"
-
 msgid "Version 2"
 msgstr "Verze 2"
-
 msgid "Building the Map to show"
 msgstr "Vytvoření mapy k zobrazení"
-
 msgid "Built the Map, but it has no line for"
 msgstr "Postavil mapu, ale nemá pro ni žádnou linku"
-
 msgid "Click a variable or a place to see it in the Map view."
 msgstr "Kliknutím na proměnnou nebo místo je zobrazíte v zobrazení mapy."
-
 msgid "No Map view is open.  Run Map View, then click this again."
 msgstr "Není otevřeno žádné zobrazení mapy.  Spusťte Map View a poté znovu klikněte na toto."
-
 msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Sledujte každou proměnnou % v načteném XML: kde je každá nastavena, kde se čte, které jsou čteny, ale nikdy nejsou nastaveny, které jsou nastaveny, ale nikdy nečteny, a které téměř identické názvy (%MyVar proti %Myvar) jsou pravděpodobně překlepy.\n\nHledané: Akce úkolů a jejich podmínky, konfigurace pluginu, kontexty profilu a scény.\n\nZde se zobrazí výsledky a uloží se do textového souboru v aktuálním adresáři."
-
 msgid "Variable Cross-Reference found no suspect variables."
 msgstr "Křížová reference proměnných nenalezla žádné podezřelé proměnné."
-
 msgid "Variable Cross-Reference report could not be saved."
 msgstr "Přehled křížových odkazů proměnných nelze uložit."
-
 msgid "Variable Cross-Reference saved as"
 msgstr "Křížový odkaz proměnných uložen jako"
-
 msgid "Variable Xref"
 msgstr "Proměnná Xref"
-
 msgid "is no longer in the loaded configuration."
 msgstr "již není v načtené konfiguraci."
-
 msgid "detail level"
 msgstr "úroveň detailů"
-
 msgid "whole file"
 msgstr "celý soubor"
-
 msgid "Click a finding to see it in the Map view."
 msgstr "Kliknutím na nález jej zobrazíte v zobrazení mapy."
-
 msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
 msgstr "Zakáže projekt v načtené záloze, právě teď – stejně jako Přejmenovat se to projeví okamžitě a nečeká na uložení a Storno to nezruší."
-
 msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "'Najít...' položí načtené konfiguraci otázku místo hledání textu na obrazovce: každá úloha provádějící danou akci, každý profil, který se spustí, vše, co pojmenuje danou aplikaci nebo scénu.\n\nPole se kombinují – vyberte spouštěč a akci, abyste našli profily, které se tímto způsobem spouštějí, a spusťte úlohu, která to udělá.\n\nVýsledky se vrátí jako seznam objektů; kliknutím na jeden přejdete na něj.\n\n"
-
 msgid "Changes Pending"
 msgstr "Změny čekající na vyřízení"
-
 msgid "Changes made to the loaded XML this session, newest first.  Undo steps back through them one at a time.  Nothing here has been written to a file."
 msgstr "Změny provedené v načteném XML během této relace, od nejnovějších.  Vracet kroky zpět přes ně jeden po druhém.  Nic zde nebylo zapsáno do souboru."
-
 msgid "Choose an action, a trigger, an app, a Scene or some text."
 msgstr "Vyberte akci, spoušť, aplikaci, scénu nebo nějaký text."
-
 msgid "Each box narrows the answer, and they combine: a trigger and an action together find the Profiles that trigger that way AND run a Task that does that. Every entry offered is one this configuration actually uses, and the number beside it is how many places carry it."
 msgstr "Každé pole zužuje odpověď a kombinuje: spouštěč a akce společně najdou profily, které tímto způsobem spouštějí, A spustí úlohu, která to udělá. Každý nabízený záznam je ten, který tato konfigurace skutečně používá, a číslo vedle něj udává, kolik míst jej nese."
-
 msgid "Edit History"
 msgstr "Upravit historii"
-
 msgid "Editing"
 msgstr "Editace"
-
 msgid "Every Project"
 msgstr "Každý projekt"
-
 msgid "Find"
 msgstr "Nalézt"
-
 msgid "Find in"
 msgstr "Najít v"
-
 msgid "Find results could not be saved."
 msgstr "Výsledky hledání se nepodařilo uložit."
-
 msgid "Find results saved as"
 msgstr "Najít výsledky uložené jako"
-
 msgid "In no Project"
 msgstr "V žádném projektu"
-
 msgid "List every change made to the loaded XML this session, newest first."
 msgstr "Uveďte všechny změny provedené v načteném XML během této relace, od nejnovějších jako první."
-
 msgid "Narrow to Project"
 msgstr "Zúžit na projekt"
-
 msgid "No changes to undo."
 msgstr "Žádné změny, které je třeba vrátit zpět."
-
 msgid "Nothing has been changed yet."
 msgstr "Zatím se nic nezměnilo."
-
 msgid "Nothing in the loaded configuration answers this."
 msgstr "Nic v načtené konfiguraci na to neodpovídá."
-
 msgid "Nothing is saved until you press Ok, Save or Export."
 msgstr "Dokud nestisknete OK, Uložit nebo Exportovat, nic se neuloží."
-
 msgid "Redid"
 msgstr "Redid"
-
 msgid "Redo"
 msgstr "Předělat"
-
 msgid "Run a Find first."
 msgstr "Nejprve spusťte Find."
-
 msgid "Save Results"
 msgstr "Uložit výsledky"
-
 msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
 msgstr "Vezměte zpět poslední změnu provedenou v načteném XML – úpravu, přidání, odstranění nebo přejmenování v kterémkoli z panelů úprav.\n\nTím se změní to, co se načte, ne žádný soubor: nic na disku ani v zařízení Android se nedotkne."
-
 msgid "Text (name, label or argument)"
 msgstr "Text (název, štítek nebo argument)"
-
 msgid "Undid"
 msgstr "Zrušeno"
-
 msgid "Updating MapTasker in the background.  Please stand by..."
 msgstr "Aktualizace MapTasker na pozadí.  Prosím, držte se..."
-
 msgid "does not belong to a Project, so there is nowhere to attach a new"
 msgstr "nepatří k projektu, takže není kam připojit nový"
-
 msgid "found for"
 msgstr "nalezeno pro"
-
 msgid "of"
 msgstr "z"
-
 msgid "Find..."
 msgstr "Nalézt..."
-
 msgid "Help"
 msgstr "Pomoc"
-
 msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
 msgstr "Změňte jednu věc všude, kde se objeví. Nic se nezmění, dokud nestisknete tlačítko Náhled a poté Nahradit, a poté je každá změna jednou Zrušit."
-
 msgid "...to this name"
 msgstr "...pod tento název"
-
 msgid "...with this one"
 msgstr "...s tímto"
-
 msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
 msgstr "Zpět ke kompletnímu schématu: bez zoomu, bez složených částí, bez filtrovaných údajů."
-
 msgid "Cannot be changed"
 msgstr "Nelze změnit"
-
 msgid "Choose a variable, and type the new name."
 msgstr "Vyberte proměnnou a zadejte nový název."
-
 msgid "Choose an action to replace, and one to replace it with."
 msgstr "Vyberte akci, kterou chcete nahradit, a akci, kterou ji nahradíte."
-
 msgid "Click a name for its Map entry · shift-click a Task for its call chain"
 msgstr "Klikněte na název pro jeho záznam v mapě · pomocí kombinace kláves Shift klikněte na úlohu pro její řetězec volání"
-
 msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
 msgstr "Složte každý projekt do jeho nadpisu.\n\nJednotlivý projekt se může zmenšit kliknutím na horní okraj jeho rámu."
-
 msgid "Expand every collapsed Project."
 msgstr "Rozbalte každý zkomprimovaný projekt."
-
 msgid "Limited to"
 msgstr "Omezeno"
-
 msgid "Nothing here would change."
 msgstr "Žádná z těchto věcí by se nezměnila."
-
 msgid "Nothing is ticked."
 msgstr "Žádné položky nejsou zaškrtnuty."
-
 msgid "Nothing was changed."
 msgstr "Nic se nezměnilo."
-
 msgid "Press Preview first."
 msgstr "Nejprve stiskněte Náhled."
-
 msgid "Rename this variable"
 msgstr "Přejmenujte tuto proměnnou"
-
 msgid "Replace"
 msgstr "Nahradit"
-
 msgid "Replace preview could not be saved."
 msgstr "Nedaří se uložit náhled."
-
 msgid "Replace preview saved as"
 msgstr "Nahraďte náhled uložený jako"
-
 msgid "Replace this action"
 msgstr "Nahraďte tuto akci"
-
 msgid "Save Preview"
 msgstr "Uložit náhled"
-
 msgid "Task action"
 msgstr "Akce úkolu"
-
 msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
 msgstr "Diagram je interaktivní:\n\nKliknutím na název Projektu, Profilu, Úkolu nebo Scény se dostanete přímo do daného prvku na mapě.\n\nKliknutím na název Úkolu se zobrazí celá řada, do které patří – vše, co tento úkol spouští, a vše, co ho spouští. Stejně tak se zobrazí i šipky mezi nimi.\n\nKliknutím pravým tlačítkem na jakýkoli název můžete: zmenšit projekt, zobrazit pouze tento projekt, nebo sledovat jeho řadu.\n\nKliknutím na ▾ vedle Projektu jej můžete zmenšit, a ▸ jej zase zobrazit.\n\nPoužitím Ctrl (nebo ⌘) a kolečka myši se zvětší zoom. Stisknutím klávesy Esc se zruší řada."
-
 msgid "Undo is available."
 msgstr "Funkce \"Zrušit\" je k dispozici."
-
 msgid "Variable name"
 msgstr "Název proměnné"
-
 msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "Přibližte. Použijte klávesy Ctrl/⌘ a kolečko myši pro stejný efekt."
-
 msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "Posuňte pohled zpět. Použijte klávesy Ctrl/⌘ a kolečko myši pro stejný efekt."
-
 msgid "changed"
 msgstr "změněno"
-
 msgid "clear the single-item selection to reach the whole configuration"
 msgstr "odeberte výběr pouze jednoho prvku, abyste dosáhli kompletní konfigurace"
-
 msgid "more"
 msgstr "více"
-
 msgid "...and put this there"
 msgstr "...a umístěte to tam"
-
 msgid "...replace this argument"
 msgstr "...nahradit tento argument"
-
 msgid "Action argument"
 msgstr "Argument založený na akci"
-
 msgid "Add it where missing"
 msgstr "Přidejte to tam, kde je to chybí."
-
 msgid "Choose an action, and which of its arguments to replace."
 msgstr "Vyberte akci a určete, jaký argument chcete změnit."
-
 msgid "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment."
 msgstr "Displej s písmem s jednotnou mezerou (např. Courier New) pro přesné zarovnání sloupců. A vypněte zalamování čar.\nIkony nebo čínské/korejské/japonské názvy mohou způsobit drobné nesrovnalosti."
-
 msgid "Drawn for"
 msgstr "Vytvořeno pro"
-
 msgid "Error: Single item specified but not found!  Try again."
 msgstr "Chyba: Byla zadána jedna položka, ale nebyla nalezena!  Zkuste to znovu."
-
 msgid "In this action"
 msgstr "V této akci"
-
 msgid "Nothing in scope has that argument to change."
 msgstr "Žádný z uvedených bodů nemá potenciál k změnám."
-
 msgid "Only the matching text"
 msgstr "Pouze odpovídající text"
-
 msgid "Only where the value contains (optional)"
 msgstr "Pouze tam, kde hodnota obsahuje (volitelné)"
-
 msgid "Press Diagram View to rebuild it."
 msgstr "Zobrazte schéma pro obnovení."
-
 msgid "Rebuild"
 msgstr "Znovu postavit"
-
 msgid "The change is applied.  Press Map View to see it."
 msgstr "Změna se použije.  Chcete-li to zobrazit, stiskněte tlačítko Zobrazení mapy."
-
 msgid "now showing"
 msgstr "aktuálně v kinosále"
-
 msgid "the whole configuration"
 msgstr "celá konfigurace"
-
 msgid "'Find/Replace' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "Funkce \"Najít/Nahradit\" klade načtené nastavení otázku, namísto prohledávání textu na obrazovce: každá úloha, která provádí danou akci, každý profil, který spouští daný signál, a vše, co se odkazuje na danou aplikaci nebo scénu.\n\nPole se kombinují – vyberte signál a akci, abyste našli profily, které tuto akci spouští, a spustili úlohu, která to provádí.\n\nVýsledky se zobrazí jako seznam objektů; kliknutím na jeden z nich se přejdete k němu.\n\n"
-
 msgid "Choose a Profile condition to replace, and one to replace it with."
 msgstr "Vyberte profil, který chcete nahradit, a profil, který jej nahradí."
-
 msgid "Find/Replace"
 msgstr "Najít/Nahradit"
-
 msgid "Profile condition"
 msgstr "Stav profilu"
-
 msgid "Replace this Profile condition"
 msgstr "Nahraďte tuto podmínku profilu"
-
 msgid "%variable_name"
 msgstr "%variable_name"
-
 msgid "A variable name has to start with '%' -- for example %app_package."
 msgstr "Název proměnné musí začínat '%' - například %app_package."
-
 msgid "Also in this field"
 msgstr "I v tomto oboru"
-
 msgid "App not listed?"
 msgstr "Aplikace není uvedena?"
-
 msgid "Choose from the Applications named in the loaded configuration."
 msgstr "Vyberte si z aplikací pojmenovaných v načtené konfiguraci."
-
 msgid "Choose from the icons used in the loaded configuration."
 msgstr "Vyberte si z ikon použitých v načtené konfiguraci."
-
 msgid "Fetch"
 msgstr "Vynést"
-
 msgid "Fetch Applications From Android Device"
 msgstr "Načítání aplikací ze zařízení Android"
-
 msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
 msgstr "Získejte úplný seznam nainstalovaných aplikací ze svého zařízení Android.  Nyní je uvedeno pouze to, co tato konfigurace již pojmenovává."
-
 msgid "Fetching..."
 msgstr "Načítání..."
-
 msgid "Fill all three fields in from the loaded configuration."
 msgstr "Vyplňte všechna tři pole z načtené konfigurace."
-
 msgid "Import Into Tasker"
 msgstr "Import do Taskeru"
-
 msgid "Listing the XML files on the Android device..."
 msgstr "Výpis souborů XML v zařízení Android..."
-
 msgid "More matches than can be shown -- narrow the search."
 msgstr "Více shod, než lze zobrazit – zúžit vyhledávání."
-
 msgid "No Icon"
 msgstr "Žádný ikona"
-
 msgid "Or a Tasker variable:"
 msgstr "Nebo proměnná v Tasker:"
-
 msgid "Pick"
 msgstr "Výběr"
-
 msgid "Pick an Application"
 msgstr "Vyberte aplikaci"
-
 msgid "Save As File"
 msgstr "Uložit jako soubor"
-
 msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
 msgstr "Aplikace, které jsou někde definovány ve načtené konfiguraci – nebo použijte proměnnou Tasker, která vyplní pole \"Balíček\" a \"Šablona\" a ponechá pole \"Třída\" prázdná, stejně jako to dělá Tasker."
-
 msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
 msgstr "Aplikace, které jsou někde uvedeny v načtené konfiguraci. Vyberte všechny, u kterých by měl tento argument odpovídat. Vše, co už je v poli, zůstane, pokud není uvedeno v seznamu."
-
 msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "Ikony použité někde v načtené konfiguraci.  To, co si vyberete, nahradí to, co pole obsahuje.  Ikona ze sady ikon, která není uvedena, musí být napsána: její názvy jsou uvnitř sady."
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Tím se profil umístí před vlastní importní obrazovku Taskeru na zařízení Android.  Poté klepněte na Importovat na zařízení pro dokončení – dokud to neuděláte, nic se neimportuje.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Tím se projekt – a každý profil a úkol v něm – dostane před vlastní importní obrazovku Taskeru na zařízení Android.  Poté klepněte na Importovat na zařízení pro dokončení; nic se neimportuje, dokud to neuděláte.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "To odešle scénu – a všechny její úkoly – na zařízení Android pod jejím vlastním názvem, do složky /Tasker/scenes, a spustí aplikaci Tasker.\n\nDokončíte to na zařízení pomocí funkce „Scény > Importovat jednu scénu“ v Taskeru a vyberete scénu podle názvu. Na rozdíl od profilu nebo projektu, scénu nelze importovat přímo z tohoto místa – Tasker ji neimportuje, i když ji vyberete.\n\nProjekt „Http Server Example“ v Taskeru musí být nainstalován a spuštěn, a Tasker musí být verze 6.2 nebo vyšší.\n\nZařízení vás požádá, abyste autorizovali MapTasker při prvním použití."
-
 msgid "Use Selected"
 msgstr "Použít vybrané"
-
 msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
 msgstr "Čekání na zařízení Android – přijměte výzvu k autorizaci, pokud se objeví.  To může trvat 30 sekund nebo více."
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
 msgstr "Sledujte své zařízení Android: Tasker vás požádá o autorizaci připojení a načítání nemůže pokračovat, dokud nepřijmete.  Jakmile budete mít, počkejte 30 sekund nebo více – na zařízení s několika stovkami aplikací déle, protože název každé z nich se vyhledává samostatně."
-
 msgid "applications, fetched"
 msgstr "aplikace, staženy"
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nThe file write needs no authorization prompt; the import asks for one, and you must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "Otevře se vám výběr ze dvou možností: zapsat úkol jako samostatný soubor do zařízení Android pod /Tasker/tasks nebo jej importovat přímo do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem (viz poznámky k přímému získávání XML v souboru README) a ​​Tasker musí být 6.2 nebo vyšší.\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nZápis souboru nevyžaduje výzvu k autorizaci; import si jeden vyžádá a vy musíte ukončit a restartovat Tasker, abyste viděli importovanou úlohu v uživatelském rozhraní Tasker."
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Tím se profil umístí před vlastní importní obrazovku Taskeru na zařízení Android.  Poté klepněte na Importovat na zařízení pro dokončení – dokud to neuděláte, nic se neimportuje.\n\nProfil je nejprve zkopírován do /Tasker/profiles pod svým vlastním jménem a odtud nabízen, takže zůstane pod jménem, ​​které můžete najít – pokud se nezobrazí obrazovka importu, importujte jej ručně z Taskeru.  Budete dotázáni, než nahradí soubor, který se již nachází v dané cestě.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Tím se projekt – a každý profil a úkol v něm – dostane před vlastní importní obrazovku Taskeru na zařízení Android.  Poté klepněte na Importovat na zařízení pro dokončení; nic se neimportuje, dokud to neuděláte.\n\nProjekt je nejprve zkopírován do /Tasker/projects pod svým vlastním jménem a odtud nabízen, takže zůstane pod názvem, který můžete najít – importujte jej ručně z Taskeru, pokud se nezobrazí obrazovka importu.  Budete dotázáni, než nahradí soubor, který se již nachází v dané cestě.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Tím se úkol dostane přímo do živé konfigurace Taskeru na zařízení Android.  Na rozdíl od profilu, projektu nebo scény není potřeba žádná obrazovka importu ani klepnutí na zařízení – rozhraní API/import Taskeru převezme úkol přímo.\n\nÚloha se nejprve zkopíruje do /Tasker/tasks v zařízení a odtud se importuje, takže kopie zůstane jako záznam toho, co přesně bylo importováno.  Budete dotázáni, než nahradí soubor, který se již nachází v dané cestě.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "To odešle scénu – a každý úkol se spustí – do zařízení Android pod jeho vlastním jménem do /Tasker/scenes a otevře se Tasker.\n\nDokončíte to na zařízení pomocí Taskeru „Scenes > Import One Scene“ a vyberete scénu podle názvu.  Na rozdíl od profilu nebo projektu nelze scénu odsud umístit před obrazovku importu Taskeru – Tasker na ni nebude brát jednu ruku, i když importuje úplně stejný soubor, když jej vyberete.\n\nBudete dotázáni, než nahradí soubor, který se již nachází v dané cestě.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Tím se úloha zapíše jako samostatný soubor do zařízení Android pod /Tasker/tasks.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nK tomu není potřeba žádná výzva k autorizaci."
-
 msgid "Delete them from Tasker's Tasks tab -- long-press one, then Delete.  Nothing here can do it: Tasker's HTTP API has no way to delete a Task."
 msgstr "Odstraňte je z karty Tasker's Tasks – dlouze stiskněte jednu a poté Delete.  Nic tady to nedokáže: HTTP API Taskeru nemá žádný způsob, jak smazat úkol."
-
 msgid "In use -- leave these alone:"
 msgstr "Používá se – tyto nechte na pokoji:"
-
 msgid "List Helper Tasks"
 msgstr "Vypsat pomocné úkoly"
-
 msgid "Lists the 'MapTasker ...' Tasks this program has installed on the Android device, and says which are left over from an earlier version.\n\nEach one is installed under a versioned name and never replaced -- Tasker's import adds a second Task rather than replacing the first -- so old ones stay behind in your Task list.  They do no harm; they are clutter.\n\nDelete the ones it names from Tasker's own Tasks tab.  Nothing here can do it for you: Tasker's HTTP API has no way to delete a Task."
 msgstr "Zobrazí seznam úkolů „MapTasker...“, které tento program nainstaloval do zařízení Android, a uvádí, které zbyly z dřívější verze.\n\nKaždý z nich je nainstalován pod názvem verze a nikdy není nahrazen – import Taskeru přidá druhý úkol namísto nahrazení prvního – takže staré zůstanou ve vašem seznamu úkolů.  Neškodí; jsou nepořádek.\n\nOdstraňte ty, které pojmenovává, z karty Úkoly Taskeru.  Nic zde to za vás nemůže udělat: HTTP API Taskeru nemá žádný způsob, jak odstranit úlohu."
-
 msgid "MapTasker Helper Tasks"
 msgstr "Pomocné úlohy MapTasker"
-
 msgid "Nothing left over -- every MapTasker Task on the device is in use."
 msgstr "Nic nezbylo – každá úloha MapTasker v zařízení se používá."
-
 msgid "This copies the Profile to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Tím se zkopíruje profil do zařízení a otevře se pro něj výběr „Otevřít pomocí...“ v systému Android.  Vyberte Tasker a objeví se vlastní obrazovka importu; poté klepněte na Importovat pro dokončení – dokud to neuděláte, nic se neimportuje.\n\nProfil je nejprve zkopírován do /Tasker/profiles pod svým vlastním jménem a odtud nabízen, takže zůstane pod jménem, ​​které můžete najít – pokud se nezobrazí obrazovka importu, importujte jej ručně z Taskeru.  Budete dotázáni, než nahradí soubor, který se již nachází v dané cestě.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "This copies the Project -- and every Profile and Task in it -- to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish, and nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Tím se zkopíruje projekt – a každý profil a úkol v něm – do zařízení a otevře se pro něj výběr „Otevřít pomocí...“ v systému Android.  Vyberte Tasker a objeví se vlastní obrazovka importu; dokončete klepnutím na Importovat a dokud to neuděláte, nic se neimportuje.\n\nProjekt je nejprve zkopírován do /Tasker/projects pod svým vlastním jménem a odtud nabízen, takže zůstane pod názvem, který můžete najít – importujte jej ručně z Taskeru, pokud se nezobrazí obrazovka importu.  Budete dotázáni, než nahradí soubor, který se již nachází v dané cestě.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nIf Tasker does not report the Task after two attempts, that copy is handed to Android's 'Open with...' chooser instead, so you can import it by picking Tasker.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Tím se úkol dostane přímo do živé konfigurace Taskeru na zařízení Android.  Na rozdíl od profilu, projektu nebo scény není potřeba žádná obrazovka importu ani klepnutí na zařízení – rozhraní API/import Taskeru převezme úkol přímo.\n\nÚloha se nejprve zkopíruje do /Tasker/tasks v zařízení a odtud se importuje, takže kopie zůstane jako záznam toho, co přesně bylo importováno.  Budete dotázáni, než nahradí soubor, který se již nachází v dané cestě.\n\nPokud Tasker neoznámí úkol ani po dvou pokusech, bude kopie předána do výběru „Otevřít pomocí...“ v systému Android, takže ji můžete importovat výběrem Tasker.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Android's 'Open with...' chooser for it.\n\nIf Tasker is in that chooser, pick it.  A Scene is the one kind Tasker has been seen to refuse when it is handed one, so if it is not there -- or nothing happens -- finish it with Tasker's 'Scenes > Import One Scene' and pick the Scene by name.  The file is on the device either way, and the message tells you its name.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Tím se scéna – a každý úkol spouští její prvky – do zařízení Android pod jeho vlastním jménem, ​​do /Tasker/scenes, a otevře se pro něj výběr „Otevřít pomocí...“ v Androidu.\n\nPokud je Tasker v tomto výběru, vyberte jej.  Scéna je ten typ, který Tasker odmítne, když je předán, takže pokud tam není – nebo se nic nestane – dokončete ji pomocí Taskeru 'Scenes > Import One Scene' a vyberte scénu podle názvu.  Soubor je v zařízení v obou směrech a zpráva vám sdělí jeho název.\n\nBudete dotázáni, než nahradí soubor, který se již nachází v dané cestě.\n\nMusí být nainstalován a spuštěn projekt Tasker „Http Server Example“ a Tasker musí být 6.2 nebo vyšší.\n\nZařízení vás poprvé požádá o autorizaci MapTasker."
-
 msgid "left over from an earlier version -- safe to delete in Tasker:"
 msgstr "zbylé z dřívější verze – bezpečné smazání v Taskeru:"
-
 msgid "Clear the field, leaving the action with no icon."
 msgstr "Vymažte pole a nechte akci bez ikony."
-
 msgid "Clicking this will launch 'pip install --upgrade maptasker' in the background, and then relaunch MapTasker."
 msgstr "Kliknutím na toto spustíte na pozadí 'pip install --upgrade maptasker' a poté znovu spustíte MapTasker."
-
 msgid "Display the changes in the new version."
 msgstr "Zobrazit změny v nové verzi."
-
 msgid "Enables the display a breakdown of the Tasker system Preferences in the output."
 msgstr "Povolí zobrazení rozpisu předvoleb systému Tasker ve výstupu."
-
 msgid "Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, and Prettier Output."
 msgstr "Umožňuje zobrazení podmínek, informací o TaskerNet, předvoleb, adresáře a hezčího výstupu."
-
 msgid "Enables the display of Profile Conditions (e.g. State, Event, etc.) details in the output."
 msgstr "Umožňuje zobrazení podrobností o podmínkách profilu (např. stav, událost atd.) ve výstupu."
-
 msgid "Enables the display of TaskerNet Descriptions in the output."
 msgstr "Umožňuje zobrazení popisů TaskerNet ve výstupu."
-
 msgid "Enables the display of aligned text in the output."
 msgstr "Umožňuje zobrazení zarovnaného textu ve výstupu."
-
 msgid "Enables the display of the Project/Profile/Task/Scene Directory in the output."
 msgstr "Umožňuje zobrazení adresáře Project/Profile/Task/Scene Directory ve výstupu."
-
 msgid "Fetch the full list of installed Applications from the Android device."
 msgstr "Získejte úplný seznam nainstalovaných aplikací ze zařízení Android."
-
 msgid "Pick a Task which will be called by this action."
 msgstr "Vyberte úkol, který bude vyvolán touto akcí."
-
 msgid "Saves this Profile as a standalone .prf.xml file on this computer."
 msgstr "Uloží tento profil jako samostatný soubor .prf.xml na tomto počítači."
-
 msgid "Select the model belonging to the AI you wish to use."
 msgstr "Vyberte si model, který odpovídá danému AI, které chcete použít."
-
 msgid "This will reach out to your Android device to list the available XML files belonging to Tasker."
 msgstr "Tím se dostanete do vašeho zařízení Android a zobrazí se seznam dostupných souborů XML patřících Taskeru."
-
 msgid "When enabled, Task details are hidden under a twisty (expand/collapse) control in the output."
 msgstr "Po aktivaci jsou detaily úkolu skryté pod otočným (rozbal/zmenšit) ovládacím prvkem ve výstupu."
-
 msgid "Clicking this button will result in the following actions:  \n- The IP Address will be used to ping the Android device.  \n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.  \n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.  \n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.  \nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.  \nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.  \n"
 msgstr "Kliknutí na toto tlačítko způsobí následující akce:  \n- IP adresa bude použita pro ping zařízení Android.  \n- IP adresa a číslo portu budou použity k dotazu na zařízení Android a získání seznamu dostupných souborů XML nalezených ve složce Tasker.  \n- Seznam nalezených souborů XML se zobrazí v rozbalovací nabídce, ze které si můžete vybrat ten, který chcete použít.  \n- Jakmile vyberete soubor XML, bude načten a ověřen jako platný XML, který se poté použije jako vstup do programu, jakmile následně kliknete na tlačítko 'Spustit' nebo 'Znovu spustit'.  \nVýpis se provádí pomocí malého úkolu s názvem 'MapTasker List Files v1', který MapTasker nainstaluje do vašeho zařízení Android při prvním použití tohoto tlačítka a poté tam nechá.  Nic se nemusí dovážet ručně.  Vyžaduje to projekt „HTTP Server Example“ spuštěný na zařízení a Tasker 6.2 nebo vyšší – stejné požadavky má „Uložit do Androidu“ – a Tasker vás poprvé požádá o autorizaci připojení.  \nPočkejte několik sekund: instalace úlohy (jednou), její spuštění a zpětné čtení její odpovědi není okamžité.\n"
-
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.  \nXML must first be obtained from the either local drive or Android device for the views to work.  \nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.  \nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.  \nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n\nThe Diagram View has the following behavior:  \n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.  \n - Click on a horizontal connector to highlight the entire connection in the diagram.  \n\nThe Tree View has the following behavior:  \n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.  \n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.  \n"
 msgstr "Zobrazte zobrazení 'Mapa', 'Diagram' nebo 'Strom' vaší konfigurace přímo v GUI.  \nAby zobrazení fungovala, musíte nejprve získat XML z místního disku nebo zařízení Android.  \nPokud již bylo XML načteno, bude použito jako vstup do pohledu.  Kliknutím na tlačítko „Vymazat“ vymažete data zobrazení.  \nVelmi velké konfigurace budou vyžadovat delší dobu běhu pro mapy a diagramy.  Nejlepšího výkonu dosáhnete výběrem jednoho projektu nebo profilu k mapování.  \nVolitelně omezte množství zpracovávaných dat pomocí nastavení „Limit zobrazení“.  Čím větší je limit, tím větší bude výstup, který bude možné mapovat.  Čím více výstupu je generováno, tím delší je doba zpracování.  \n\nZobrazení diagramu má následující chování:  \n - Lze zobrazit pouze projekty a profily. XML obsahující pouze jeden úkol nebo scénu se nezobrazí.  \n - Kliknutím na vodorovnou spojku zvýrazníte celé zapojení ve schématu.  \n\nStromové zobrazení má následující chování:  \n- Lze zobrazit pouze projekty. XML obsahující pouze jeden profil nebo úkol nebo scénu se nezobrazí.  \n- Všechny projekty, profily, úkoly a scény jsou zobrazeny bez ohledu na nastavení jediného názvu.\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.  \n- The numbers represent the relative amount of output lines to be generated.  \n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.  \n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.  \n- If the limit is hit when calculating the map, the output will stop there.  \n- You can experiment with this setting to see which setting is best for your use case.  \n- Selecting a single Project, Profile or Task is another means to limit the processing time.  \n"
 msgstr "'Limit zobrazení' je prostředek ke kontrole množství času zpracování použitého při generování zobrazení.  \n- Čísla představují relativní množství výstupních řádků, které mají být vygenerovány.  \n- Čím větší je limit, tím větší bude výstup, který bude možné mapovat.  Čím více výstupu je generováno, tím delší je doba zpracování.  \n- Velmi velké konfigurace budou generovat velmi velké výstupní mapy a způsobí delší dobu zpracování.  Na starších zařízeních to může trvat až 30 sekund nebo déle.  \n- Nastavením limitu můžete řídit dobu zpracování použitou při mapování konfigurace tím, že nepovolíte delší trvání.  \n- Pokud je při výpočtu mapy dosaženo limitu, výstup se tam zastaví.  \n- S tímto nastavením můžete experimentovat a zjistit, které nastavení je pro váš případ použití nejlepší.  \n- Výběr jednoho projektu, profilu nebo úkolu je dalším prostředkem k omezení doby zpracování.\n"
-
 msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.  \nThe following steps are required in order to run AI against your Profile.  \n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).  \n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.  \n3- Select the model you want to use.  \n   o The model selected will determine with which AI the analysis is to be performed.  \n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.  \n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.  \n   o The process may take some time and runs in the background.  The results will appear in a separate window.  \n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.  \nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.  \nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.  \n"
 msgstr "Karta Analyze se používá ke spuštění analýzy Ai ve vašem profilu, a to buď pomocí modelu místní lamy, nebo serverového modelu Open AI, Claude nebo DeepSeek.  \nChcete-li spustit AI ve vašem profilu, je třeba provést následující kroky.  \n1- Pokud používáte serverovou umělou inteligenci, musíte mít platný klíč API od poskytovatele (např. OpenAI).  K zadání klíče (klíčů) můžete použít tlačítko 'Zobrazit/upravit API klíč(y)'.  \n2- Výchozí výzva je: 'navrhnout zlepšení výkonu a čitelnosti: (váš projekt/profil/úkol)' a automaticky jí předchází: 'S ohledem na následující (Projekt/Profil/Úkol) v Taskeru, '.  Pokud upravujete výzvu, upravujete pouze část 'navrhnout vylepšení...'.  \n3- Vyberte model, který chcete použít.  \n   o Vybraný model určí, s jakou AI má být analýza provedena.  \n4- Klikněte na tlačítko „Spustit analýzu“.  Po zadání všech nezbytných údajů se rozsvítí zeleně.  \n   o Pokud jste ještě nevybrali model, výzvu nebo jeden projekt, profil nebo úlohu nebo platný klíč API, budete k tomu nejprve vyzváni.  \n   o Proces může nějakou dobu trvat a běží na pozadí.  Výsledky se zobrazí v samostatném okně.  \n   o Místní modely, které ještě nejsou načteny do vašeho počítače, budou načteny na pozadí, jakmile začne analýza.  \nVámi určené api-klíče (pokud existují), model, vybraný projekt, profil nebo úkol a výzva Ai budou uloženy napříč relacemi.  \nFunkce 'Rerun' bude použita pod krytem k zobrazení výsledků analýzy v novém okně.\n"
-
 msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.  \n1- Both this device and the Android device must be on the same named network.  \n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):  \n    https://tinyurl.com/4p5cz8sv  \nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.  \nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...  \n'192.168.0.210' is the default IP address,  \n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device  \n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.  \nUsage Notes:  \nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:  \nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}  \n- To fetch the XML file, click on the button  \n 'Get XML from Android Device'  \nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.  \n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.  \nClick on the 'Cancel Entry' button to back out of this fetch process.  \n"
 msgstr "K načtení souboru Tasker XML přímo z vašeho zařízení Android jsou vyžadovány následující kroky.  \n1- Toto zařízení i zařízení Android musí být ve stejné pojmenované síti.  \n2- Na zařízení Android musí být nainstalován a aktivní projekt Tasker 'HTTP Server Example' nebo stejná funkce (server musí být spuštěn):  \n    https://tinyurl.com/4p5cz8sv  \nTo je jediné požadované nastavení.  Volba 'List XML Files' dříve potřebovala druhý, samostatný profil ('MapTasker List') importovaný z TaskerNet a ponechaný povolený; už to neplatí.  MapTasker nyní nainstaluje do zařízení malou úlohu s názvem 'MapTasker List Files v1', aby provedl výpis, stejným způsobem 'Aplikace není uvedena?' nainstaluje jeden pro načtení vašich aplikací.  \nBudete požádáni o IP adresu, číslo portu pro vaše zařízení Android a také o umístění souboru na zařízení Android.  Jsou dodávány výchozí hodnoty, kde...  \n'192.168.0.210' je výchozí IP adresa,  \n„1821“ je výchozí číslo portu pro příklad serveru HTTP Tasker spuštěný na vašem zařízení Android  \n'/Tasker/configs/user/backup.xml' je výchozí umístění souboru.  Pokud neznáte umístění souboru a již jste zadali svou IP adresu a port, můžete kliknutím na tlačítko „Seznam souborů XML“ získat seznam dostupných souborů XML na vašem zařízení Android k výběru.  \nPoznámky k použití:  \nIP adresu a port lze získat instalací projektu „HTTP Server Example“ z výše uvedené adresy URL na vašem zařízení Android. Poté spusťte úlohu s názvem „Aktualizovat GD HTTP Info“, abyste obdrželi oznámení pro Android:  \nInformace o HTTP serveru\nInformace o serveru byly aktualizovány {\"název zařízení\":\"http://192.168.0.49:1821\"}  \n- Chcete-li načíst soubor XML, klikněte na tlačítko  \n „Získat XML ze zařízení Android“  \nPoté upravte výchozí hodnoty uvedené ve vstupních polích pod tímto tlačítkem a poté klikněte na tlačítko „Zadejte a klikněte sem pro nastavení podrobností XML“ nebo „Seznam souborů XML“.  \n- Stisknutím kteréhokoli tlačítka odešlete ping zařízení Android, abyste zjistili, zda je k dispozici.  Pokud zařízení není dosažitelné, ping po 10 sekundách vyprší.  Ujistěte se, že IP adresa je správná.  \nKliknutím na tlačítko 'Cancel Entry' (Zrušit záznam) ukončíte tento proces načítání.\n"
-
 msgid "This menu is where you define your AI API keys for use by the AI 'Analyze' button.  \nThe keys are saved across sessions.  \nThe keys are used to access the OpenAI, Claude AI, Gemini AI, and DeepSeek AI server-based models.  \nClick on the 'Clear' button to clear a specific API key entry.  \nSelect 'Ok' to save the changes or 'Cancel' to back out of the changes.  \n"
 msgstr "V této nabídce definujete klíče AI API pro použití tlačítkem AI 'Analyzovat'.  \nKlíče jsou uloženy napříč relacemi.  \nKlíče se používají pro přístup k serverovým modelům OpenAI, Claude AI, Gemini AI a DeepSeek AI.  \nKliknutím na tlačítko „Vymazat“ vymažete konkrétní položku klíče API.  \nVyberte 'OK' pro uložení změn nebo 'Cancel' pro zrušení změn.\n"
-
 msgid "A Legacy Scene has a pixel canvas and a list of UI elements. It is the original Scene format, and is what Tasker itself produces."
 msgstr "Starší scéna má pixelové plátno a seznam prvků uživatelského rozhraní. Je to původní formát Scene a je to, co sám Tasker produkuje."
-
 msgid "Displays the Diagram view.\n\nUse this to visualize the relationships between your Projects, Profiles, Tasks, and Scenes."
 msgstr "Zobrazí zobrazení Diagram.\n\nPoužijte toto k vizualizaci vztahů mezi vašimi projekty, profily, úkoly a scénami."
-
 msgid "Displays the Map view.\n\nUse this to display the Tasker configuration of your Projects, Profiles, Tasks, and Scenes."
 msgstr "Zobrazí zobrazení mapy.\n\nPoužijte toto k zobrazení konfigurace Taskeru vašich projektů, profilů, úkolů a scén."
-
 msgid "Displays the Tree view.\n\nUse this to navigate the hierarchical structure of your Projects, Profiles, Tasks, and Scenes."
 msgstr "Zobrazí stromové zobrazení.\n\nPoužijte toto k navigaci v hierarchické struktuře vašich projektů, profilů, úkolů a scén."
-
 msgid "Exports the Task as XML to a file on your computer."
 msgstr "Exportuje úlohu jako XML do souboru ve vašem počítači."
-
 msgid "Saves this Profile, with all of its conditions and linked Tasks, as one standalone .prf.xml file -- the same format Tasker's own Profile export produces.\n\nTasks the Profile runs are not included; they belong to their own Project."
 msgstr "Uloží tento profil se všemi jeho podmínkami a propojenými úkoly jako jeden samostatný soubor .prf.xml – ve stejném formátu, jaký vytváří export vlastního profilu Tasker.\n\nÚkoly, které profil spouští, nejsou zahrnuty; patří do jejich vlastního projektu."
-
 msgid "Select a specific Profile to target for display or editing."
 msgstr "Vyberte konkrétní profil, který chcete zobrazit nebo upravit."
-
 msgid "Select a specific Project to target for display or editing."
 msgstr "Vyberte konkrétní projekt, který chcete zobrazit nebo upravit."
-
 msgid "Select a specific Scene to target for display or editing."
 msgstr "Vyberte konkrétní scénu, kterou chcete zobrazit nebo upravit."
-
 msgid "Select a specific Task to target for display or editing."
 msgstr "Vyberte konkrétní úkol, který chcete zobrazit nebo upravit."
-
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Vyberte tuto možnost, chcete-li zahrnout profily a úkoly, které nemají v seznamu název."
-
 msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
 msgstr "Vyberte si z ikon použitých v načtené konfiguraci a z aplikací vašeho zařízení, pokud jste je stáhli."
-
 msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
 msgstr "Ikony pocházejí ze stejného místa jako aplikace: Tasker identifikuje vlastní ikonu aplikace podle jejího balíčku a aktivity spouštěče, takže každá aplikace nalezená v zařízení se stane ikonou, kterou si můžete vybrat.\n\nVlastní vestavěné ikony Taskeru nelze načíst – jsou uloženy v samotném Taskeru – a ani ikony uvnitř sady ikon, které je třeba zadat podle názvu."
-
 msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "Ikony použité někde v načtené konfiguraci plus vlastní ikona každé aplikace, pokud jste je stáhli ze svého zařízení.  To, co si vyberete, nahradí to, co pole obsahuje.  Ikona ze sady ikon, která není uvedena, musí být napsána: její názvy jsou uvnitř sady."
-
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
-msgstr "Další informace najdete v MapTasker [příkazová příručka] (https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).\n"
-
+msgstr "Další informace najdete v MapTasker [příkazová příručka] (https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)\n"
 msgid "(anonymous Task, stored in the Scene)"
 msgstr "(anonymní úkol, uložený ve scéně)"
-
 msgid "(new variable)"
 msgstr "(nová proměnná)"
-
 msgid "(no label)"
 msgstr "(bez označení)"
-
 msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
 msgstr "Seznam tabů, které se mají zobrazit v panelu akcí, oddělený čárkami. Výběrem jedné z tabů se spustí úkol „Tab Tap Task“ pro danou tab."
-
 msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
 msgstr "Seznam klíčů oddělených čárkou, které mají být zpracovány – buď podle názvu, nebo podle kódu, např. back/78/a. Všechny ostatní klíče jsou předány systému.\nNechte jej prázdný, pokud chcete zpracovat všechny klíče."
-
 msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "Styl panelu akcí, název, titulek, ikona a štítky karet se vztahují pouze na aktivitu. Jsou stále uloženy a zobrazí se, pokud přepnete Typ vlastnosti na Aktivitu."
-
 msgid "Action bar"
 msgstr "Panel akcí"
-
 msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "Položky panelu akcí se vztahují pouze na aktivitu. Jsou stále uloženy a zobrazí se, pokud přepnete Typ vlastnosti na Aktivitu."
-
 msgid "Actions of the"
 msgstr "Akce"
-
 msgid "Add Variable"
 msgstr "Přidat proměnnou"
-
 msgid "Add an action bar item"
 msgstr "Přidejte položku panelu akcí"
-
 msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
 msgstr "Přidá tuto úlohu do načtené konfigurace a nasměruje na ni tuto událost, stejně jako „Ok“ v dialogovém okně Přidat úlohu – nic se nezapisuje do souboru a nic se neodesílá do systému Android.  Ok to dělá i pro vás, takže toto je pouze pro vytvoření bez zavření.\nDo té doby Úloha existuje pouze v tomto okně a Storno ji zahodí. Poté je to Úkol jako každý jiný -- Zrušit vezme zpět vazbu, ale ne Úkol, a Zpět vezme obojí."
-
 msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
 msgstr "Žádný klíč obsluhovaný scénou není předán do systému – jak scéna brání klávese back, aby ji zavřela.\nNapsáno tak, jak to píše Tasker: <stopEvent> uvnitř <LinkClickFilter> scény, vytvořená, když je zaškrtnuta, a znovu odebrána, když je odškrtnutá a nic jiného v ní nezůstane."
-
 msgid "Apply to Task"
 msgstr "Použít na úkol"
-
 msgid "Changes kept for Task"
 msgstr "Změny zachovány pro Úkol"
-
 msgid "Create Task"
 msgstr "Vytvořit úkol"
-
 msgid "Created Task"
 msgstr "Vytvořený úkol"
-
 msgid "Display Name"
 msgstr "Zobrazovaný název"
-
 msgid "Exported Value"
 msgstr "Exportovaná hodnota"
-
 msgid "Icon"
 msgstr "Ikona"
-
 msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
 msgstr "Uchová vše, včetně akcí libovolného úkolu upraveného na kartě Událost.\nÚloha složená pod událostí, která žádnou neměla, je vytvořena a svázána, pokud do ní vložíte nějaké akce. Zpět vezme úpravu úkolu zpět."
-
 msgid "Keys"
 msgstr "Klíče"
-
 msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
 msgstr "Nejprve načtěte konfiguraci Taskeru – nová úloha ji potřebuje, aby získala ID."
-
 msgid "Name"
 msgstr "Jméno"
-
 msgid "New Task Name"
 msgstr "Název nového úkolu"
-
 msgid "No Task matches."
 msgstr "Žádné shody úkolů."
-
 msgid "No action bar items."
 msgstr "Žádné položky na panelu akcí."
-
 msgid "No variables."
 msgstr "Žádné proměnné."
-
 msgid "Nothing -- this event fires no Task."
 msgstr "Nic -- tato událost nespustí žádnou úlohu."
-
 msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
 msgstr "Zatím není nic svázáno, takže tyto akce jdou do nového Úkolu. Vytvoří se a tato událost na něj ukáže, když stisknete tlačítko níže nebo Ok. Zrušit ji zahodí."
-
 msgid "Nothing set."
 msgstr "Nic nastaveno."
-
 msgid "Prompt"
 msgstr "Výzva"
-
 msgid "Properties kept."
 msgstr "Vlastnosti zachovány."
-
 msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
 msgstr "Vloží tyto úpravy akcí do načtené konfigurace nyní, bez zavření – stejně jako 'Ok' v dialogu Upravit úlohu.  Dobře, dělá to za vás i tady, takže to je pouze pro jejich ponechání uprostřed úprav.\nNic se nezapisuje do souboru a nic se neodesílá do Androidu. Tato úloha není součástí scény, takže ani dialogové okno Zrušit v tomto okně ani dialog scény tyto úpravy po jejich zobrazení nevezme zpět. Zpět dělá."
-
 msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
 msgstr "Vrátí tyto vlastnosti zpět do stavu, v jakém byly, když se toto okno otevřelo, a zruší akce jakékoli úlohy upravené na kartě Událost.\nÚkol, který již byl vložen do konfigurace pomocí vlastního tlačítka -- 'Použít na úkol' nebo 'Vytvořit úkol' – tam zůstane. Undo je vezme zpět."
-
 msgid "Remove Variable"
 msgstr "Odebrat proměnnou"
-
 msgid "Same as Value"
 msgstr "Stejné jako Hodnota"
-
 msgid "Scene properties changes discarded."
 msgstr "Změny vlastností scény byly vyřazeny."
-
 msgid "Search Tasks"
 msgstr "Hledat úkoly"
-
 msgid "Stop Event"
 msgstr "Zastavit událost"
-
 msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
 msgstr "Ikona domů v levé horní části panelu akcí. Klepnutím na něj spustíte na kartě Události Home Tap Task."
-
 msgid "There are no Tasks in this configuration."
 msgstr "V této konfiguraci nejsou žádné úkoly."
-
 msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
 msgstr "Tento úkol je uložen uvnitř scény a není v seznamu úkolů, takže jeho akce zde nelze upravovat. Je přenášena nedotčená."
-
 msgid "This item has no action."
 msgstr "Tato položka nemá žádnou akci."
-
 msgid "Type"
 msgstr "Typ"
-
 msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
 msgstr "Pokud v části „Exportovaná hodnota“ zakážete možnost „Stejná jako hodnota“, můžete upravit, jaká hodnota se exportuje, když proměnnou sdílíte s ostatními uživateli.\nPole 'Exportovaná hodnota' můžete ponechat prázdné, pokud chcete, aby export neměl žádnou hodnotu, nebo můžete nastavit hodnotu, kterou chcete pro exporty vždy používat.\nPokud povolíte možnost 'Stejná jako hodnota', bude při exportu použita aktuální hodnota proměnné."
-
 msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
 msgstr "O tom, kde položka skončí, rozhoduje to, co jí dáte: samotná ikona je vždy na hlavní liště, ikona a štítek se tam zobrazují, pokud je místo, a samotný štítek je vždy v rozbalovací nabídce (3 tečky vpravo nahoře v Taskeru)."
-
 msgid "fires a Task on"
 msgstr "spustí úkol"
-
 msgid "is not in this backup, so there are no actions to show."
 msgstr "není v této záloze, takže zde nejsou žádné akce k zobrazení."
-
 msgid "no editable arguments."
 msgstr "žádné upravitelné argumenty."
-
 msgid "swallows the key press"
 msgstr "spolkne stisk klávesy"
-
 msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
 msgstr "Přečte XML zpět před jeho odesláním a odmítne uložení, pokud se na cestě něco změnilo.\n\nCo to zachycuje, je třída selhání, kterou nic jiného v cestě ukládání nemůže: hodnota, se kterou se autor a čtenář tohoto programu neshodnou – řekněme návrat vozíku uvnitř názvu, který je zapsán jako napsaný a čten zpět jako nový řádek.  Nahrání odpoví 200 a soubor v zařízení odpovídá souboru, který byl odeslán, protože oba jsou již špatně.\n\nKaždý objekt, který jde nahoru, je porovnán s objektem v načtené konfiguraci, včetně sdružených profilů, scén a úloh, které jste neupravovali.  Nic se neodesílá, pokud se některý z nich liší; dostanete hlášení, které a kde.\n\nStojí to zlomek sekundy a nic nekontaktuje -- celá kontrola probíhá zde, než se zařízení dotknete."
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "Otevře se vám výběr ze dvou možností: zapsat úkol jako samostatný soubor do zařízení Android pod /Tasker/tasks nebo jej importovat přímo do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem (viz poznámky k přímému získávání XML v souboru README) a ​​Tasker musí být 6.2 nebo vyšší.\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, když je spuštěno jedno z nich: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže.\n\nChcete-li zobrazit importovanou úlohu v uživatelském rozhraní Tasker, musíte Tasker ukončit a restartovat."
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Tím se profil zapíše jako samostatný soubor do zařízení Android pod /Tasker/profiles.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Tím se profil zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/profiles – neimportuje se do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ (http://spoo.me/http_svr_example) musí být nainstalován a aktivní na zařízení Android se spuštěným serverem (viz poznámky k přímému získávání XML v souboru README).\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Tím se profil zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/profiles – neimportuje se do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem (viz poznámky k přímému získávání XML v souboru README).\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Tím se projekt a vše v něm – každý profil a úloha – zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/projects – neimportuje se do živé konfigurace aplikace Tasker.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem.\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Tím se projekt a vše v něm zapíše jako samostatný soubor do zařízení Android pod /Tasker/projects.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Tím se scéna zapíše jako samostatný soubor do zařízení Android pod /Tasker/scenes.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Tím se scéna zapíše jako samostatný soubor do vašeho zařízení Android pod /Tasker/scenes – neimportuje se do živé konfigurace Taskeru.\n\nProjekt Tasker „Http Server Example“ musí být nainstalován a aktivní na zařízení Android se spuštěným serverem.\n\nZařízení Android musí být ve stejné síti a IP adresa a port musí odpovídat nastavení serveru Tasker.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Tím se úloha zapíše jako samostatný soubor do zařízení Android pod /Tasker/tasks.\n\nIP adresa a port musí odpovídat nastavení serveru Tasker zařízení Android.\n\nSledujte zařízení Android, zatímco to běží: Tasker vás požádá o autorizaci připojení několikrát pro jedno uložení a výzva, která zůstane neklepnutá, selže."
-
 msgid "Verify"
 msgstr "Ověřte"
-
 msgid "Verify Failed -- Nothing Was Sent"
 msgstr "Ověření se nezdařilo – nic nebylo odesláno"
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
 msgstr "Sledujte své zařízení Android: Tasker vás několikrát požádá o autorizaci připojení."
-
 msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
 msgstr "Vaše zařízení Android nebylo kontaktováno a nic se na něm nezměnilo.  Načtená konfigurace je také nedotčena -- jedná se o kontrolu toho, co se mělo zapsat, nikoli toho, co je na zařízení."
-
 msgid "'Refactor' makes the structural changes that Add, Edit and Delete cannot: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "'Refactor' provádí strukturální změny, které Add, Edit a Delete nedokážou: vytáhnout běh akcí úkolu do vlastního úkolu, složit provedení úkolu zpět do jeho volajícího, přesunout úkol nebo profil do jiného projektu nebo duplikovat jakýkoli objekt.\n\nNic se nezmění, dokud nestisknete tlačítko Náhled a poté Použít a v náhledu se krok za krokem neřekne, co se stane – nebo proč se tak nestane.\n\nCelý refaktor je poté jedním stisknutím tlačítka Zpět.\n\n"
-
 msgid "...to this Project"
 msgstr "...k tomuto Projektu"
-
 msgid "Apply"
 msgstr "Použít"
-
 msgid "Choose a single Task in 'Specific Name' to also see it drawn as a flowchart."
 msgstr "Vyberte si jeden úkol v 'Specific Name', aby se také zobrazil nakreslený jako vývojový diagram."
-
 msgid "Could not find Task"
 msgstr "Nemožné najít úkol."
-
 msgid "Drawing the first."
 msgstr "Kreslení první."
-
 msgid "Duplicate this"
 msgstr "Zkopírujte toto"
-
 msgid "Fill in every box first."
 msgstr "Nejprve vyplňte všechny políčka."
-
 msgid "First action"
 msgstr "První akce"
-
 msgid "Flowchart saved as"
 msgstr "Schéma bylo uloženo jako:"
-
 msgid "From Task"
 msgstr "Z Úkolu"
-
 msgid "In Task"
 msgstr "V Úkolu"
-
 msgid "Inline this call"
 msgstr "Vložit tento hovor"
-
 msgid "Last action"
 msgstr "Poslední akce"
-
 msgid "More than one Task is named"
 msgstr "Je pojmenován více než jeden úkol"
-
 msgid "Move this"
 msgstr "Přesuňte to"
-
 msgid "New Task name"
 msgstr "Název nového úkolu"
-
 msgid "New name (optional)"
 msgstr "Nový název (volitelné)"
-
 msgid "Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.\n\nWith a single Task chosen in the 'Specific Name' tab, that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Přečtěte si řídicí tok každého úkolu – jeho If/Else/End If, For/End For, Goto a Stop – a nahlaste, co nedrží pohromadě: blok, který není nikdy uzavřen, Goto zaměřené na štítek, který žádná akce nenese, a akce, které nic nemůže nikdy dosáhnout.\n\nPokud je na záložce 'Specific Name' vybrán jeden úkol, tento úkol se také nakreslí jako vývojový diagram ve vlastním okně se šipkou z každého tlačítka Goto na akci, na kterou přistane.\n\nZde se zobrazí výsledky a uloží se do textového souboru v aktuálním adresáři."
-
 msgid "Refactor"
 msgstr "Refaktor"
-
 msgid "Refactor preview could not be saved."
 msgstr "Náhled Refaktoru se nepodařilo uložit."
-
 msgid "Refactor preview saved as"
 msgstr "Náhled Refaktoru uložen jako"
-
 msgid "Task Flow"
 msgstr "Tok úkolů"
-
 msgid "Task Flow View opened in a new browser window."
 msgstr "Zobrazení toku úloh se otevřelo v novém okně prohlížeče."
-
 msgid "Task Flow found no control-flow problems."
 msgstr "Task Flow nenalezl žádné problémy s tokem řízení."
-
 msgid "Task Flow report could not be saved."
 msgstr "Zprávu Tok úkolů nebylo možné uložit."
-
 msgid "Task Flow report saved as"
 msgstr "Zpráva o toku úkolů uložena jako"
-
 msgid "cannot be done"
 msgstr "nelze provést"
-
 msgid "steps"
 msgstr "kroky"
-
 msgid "has no Tasks to extract from"
 msgstr "nemá žádné úkoly, ze kterých by bylo možné extrahovat"
-
 msgid "Change or clear that selection to reach other Tasks"
 msgstr "Změňte nebo zrušte výběr, abyste se dostali k dalším úkolům"
-
 msgid "Extract works on"
 msgstr "Extrahujte informace z"
-
 msgid "The structural changes that Add, Edit and Delete cannot make: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "Strukturální změny, které Add, Edit a Delete nemohou provést: vytáhnout běh akcí úkolu do vlastního úkolu, složit úkol provést zpět do jeho volajícího, přesunout úkol nebo profil do jiného projektu nebo duplikovat jakýkoli objekt.\n\nNic se nezmění, dokud nestisknete tlačítko Náhled a poté Použít a v náhledu se krok za krokem neřekne, co se stane – nebo proč se tak nestane.\n\nCelý refaktor je poté jedním stisknutím tlačítka Zpět.\n\n"
-
 msgid "What to call the copy.  Left empty, a free name is chosen for you -- the original's with '(copy)' after it."
 msgstr "Jak nazvat kopii.  Ponecháte-li prázdné, bude pro vás vybráno volné jméno – originál s „(kopie)“ za ním."
-
 msgid "What to call the new Task.  The 'Perform Task' left behind calls it by this name, so it has to be a name no other Task already has."
 msgstr "Jak nazvat nový úkol.  The 'Perform Task' left behind calls it by this name, so it has to be a name no other Task already has."
-
 msgid "is selected above and has no Tasks to extract from"
 msgstr "je vybráno výše a nemá žádné úkoly, ze kterých by bylo možné extrahovat"
-
 msgid "selected in the pulldowns above"
 msgstr "vybrané v rozevíracích seznamech výše"
-
 msgid "Click any line above to see that place in the Map view."
 msgstr "Kliknutím na libovolný řádek výše zobrazíte dané místo v zobrazení mapy."
-
 msgid "If you delete them too"
 msgstr "Pokud je také smažete"
-
 msgid "If you keep the contents"
 msgstr "Pokud si ponecháte obsah"
-
 msgid "Building the"
 msgstr "Stavba"
-
 msgid "Building the view"
 msgstr "Vytváření pohledu"
-
 msgid "Building the view.  Please stand by ..."
 msgstr "Vytváření pohledu. Prosím, počkejte ..."
-
 msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.  \nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.  \n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n    Level 5 = display level of 4 plus Scene argument details.  \n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.  \n* Display Conditions: Turn on the display of Profile and Task conditions.  \n* Display TaskerNet Info - If available, display TaskerNet publishing information.  \n* Display Tasker Preferences - display Tasker's system Preferences.  \n* Hide Task Details under Twisty: hide Task information within ► and click to display.  \n* Display Directory of hyperlinks at beginning.  \n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.  \n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.  \n* Task Action Limit: display a warning if the Task has more than the specified number of actions.  \n* Indentation amount for If/Then/Else Task Actions.  \n* Language: Select the language to be used for the output.  The default is English.  \n* Font To Use: Change the monospace font used for the output.  \n* View Limit: Control the amount of processing time used when generating the view.  \n* Notification Duration: How long a pop-up message stays on screen before it disappears.  'Until dismissed' keeps every message up until you close it.  \n* Dark Mode: Switch the GUI between light and dark appearance.  \n* Reset Options: Clear everything and start anew.  \n* Get Local XML File: fetch the backup/exported XML file from your local drive.  \n* Save Settings - Save these settings for later use.  \n* Restore Settings - Restore the settings from a previously saved session.  \n* Report Issue: Open the GitHub Issues page in your browser to report a problem or suggestion to the developer.  \n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.  \n* Clear: Clear the Map/Diagram/Tree view data currently held and displayed.  \n* Health Check: Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.  It also reports how your configuration will behave on the device: two Profiles watching the same trigger whose Tasks set the same thing opposite ways, a Profile whose conditions can never all be true, Tasks that poll in a loop, Profiles that keep a radio or sensor scanning or fire on a short timer, long-running Tasks left on the default collision handling, and actions that can block for ever because no timeout was set.  Click a finding to be taken to it in the Map.  \n* Compare Files: Compare another XML file against the loaded one to see what was added, removed, renamed and changed.  \n* Variable Xref: Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names are likely typos.  \n* Task Flow: Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.  With a single Task chosen in 'Specific Name', that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.  Click any line of it to be taken to that action in the Map.  \n* Open View In New Window: Open each Map/Diagram request in its own new window/tab rather than reusing that view's existing one.  \n* Close Tabs On Exit: Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tabs it opened.  \n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.  \n   - List XML Files: List the XML files found on the Android device so you can select one rather than typing its location.\n   - Cancel Entry: Back out of the Android fetch process.  \n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n   - List Unnamed Items: Include unnamed Profiles and Tasks in the four pulldowns above.  \n   Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with various save options...\n   - Add Project/Profile/Task/Scene: Create a new object and add it to the loaded XML.\n   - Edit Project/Profile/Task/Scene: Modify the object currently selected in the pulldowns above.\n   - Rename: Give the object being edited a new name.\n   - Delete: Remove the object being edited from the loaded XML.\n   - Duplicate: Make a copy of the selected Scene element.\n   - Preview: Display the Scene being edited as it will appear.\n   - Save / Export: Write the object out to a standalone XML file of your choosing.\n   - Save To Current File: Write the entire configuration to a new, timestamped file beside the loaded one.\n   - Save To Android: Write the object back to your Android device.\n     (A safety copy of anything a save is about to overwrite is kept in the 'MapTasker_Backups' folder.)  \n   Editing commands...\n   - Undo: Back out the most recent Add/Edit/Delete/Rename change made to the loaded XML.  This changes what is loaded, not any file.\n   - Redo: Reapply the change most recently backed out by 'Undo'.\n   - Edit History: List every change made to the loaded XML this session, newest first.  \n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n   - Reset to Default Colors: Restore every color to its default value.  \n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n   - Show/Edit API Key(s): Enter or change the API keys used by the server-based AI models.\n   - Change Prompt: Modify the prompt sent to the AI model.\n   - Run Analysis: Submit the selected Project/Profile/Task and prompt to the selected model.\n   - Extended: List all available models rather than just the default set.  \n* Debug tab: Display Runtime Settings option and turn on Debug mode.  \n* Map/Diagram/Tree view toolbar commands are...\n   - Search: Highlight every instance of the case-insensitive text entered in the search box, up to the first 200.  Click a line number to go to that line.\n   - Find/Replace: (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene.  Click a result to be taken to it.\n   - Save Results: Save the 'Find/Replace' results to a text file.\n   - Top / Bottom: Jump to the beginning or the end of the displayed output.\n   - Toggle Wrap: Turn line wrapping on or off in the displayed output.\n   - Profiles Per Line: (Diagram only) The number of Profiles drawn side-by-side on a single line.  \n* Display Help: Display this help text.  \n* Get Android Help: Display the help for fetching the XML file from your Android device.  \n* '?' buttons: Display the help specific to the section in which the button appears.  \n* Exit: Exit the program (quit).  \nNotes:  \n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md  \n- Changing the appearance mode will change the colors used for the output to their default values.  \n"
 msgstr "MapTasker zobrazuje vaši konfiguraci Tasker na základě nahráného souboru Tasker XML (např. 'backup.xml'). Zobrazení může volitelně obsahovat všechny projekty, profily, úkoly a jejich akce, podmínky profilů/úkolů a další informace související s profily/úkoly.\nJakmile je soubor XML načten, můžete volitelně upravovat své projekty, profily, úkoly a scény.\n* Možnosti zobrazení:\n    Úroveň 0: zobrazí pouze první akci úkolu, pouze pro neoznačené úkoly (tichý režim).\n    Úroveň 1 = zobrazí všechny detaily akcí úkolů pro neoznačené úkoly (výchozí).\n    Úroveň 2 = zobrazí kompletní název akce úkolu na každém úkolu.\n    Úroveň 3 = zobrazí kompletní detaily akce úkolu na každém úkolu s detaily akce.\n    Úroveň 4 = zobrazí úroveň 3 plus globální proměnné projektu.\n    Úroveň 5 = zobrazí úroveň 4 plus detaily argumentů scény.\n* Zobrazit vše: Zapne zobrazení podmínek, informací TaskerNet, preferencí, přehledného výstupu, adresářů a struktury konfigurace.\n* Zobrazit podmínky: Zapne zobrazení podmínek profilů a úkolů.\n* Zobrazit informace TaskerNet: Pokud jsou k dispozici, zobrazí informace o publikování TaskerNet.\n* Zobrazit preferované nastavení Tasker: Zobrazí systémové nastavení Tasker.\n* Skrýt detaily úkolů: Skryje informace o úkolech uvnitř ► a zobrazí je při kliknutí.\n* Zobrazit adresář odkazů na začátku.\n* Zobrazit přehledný výstup: Zjednodušte výstup pro čtení, přidáním mezer a odsazení pro všechny argumenty.\n* Možnosti pro pojmenování projektů/profilů/úkolů/scén: Možnost zvýraznění, tučné písmo, podtržení a/nebo zvýraznění názvů.\n* Omezení počtu akcí úkolu: Zobrazí upozornění, pokud úkol má více než specifikovaný počet akcí.\n* Odsazení pro akce úkolů If/Then/Else.\n* Jazyk: Vyberte jazyk pro výstup. Výchozí je angličtina.\n* Font: Změňte font používaný pro výstup.\n* Omezení doby zpracování: Ovládá dobu, kterou se používá pro generování zobrazení.\n* Doba trvání upozornění: Jak dlouho zůstane zpráva na obrazovce před tím, než zmizí. \"Dokud není zrušena\" ponechá všechny zprávy, dokud je nezavřete.\n* Tmavý režim: Přehoďte GUI mezi světlou a tmavou výstup.\n* Možnosti obnovení: Vymažte vše a začněte znovu.\n* Získat lokální soubor XML: Získejte soubor backup/exported XML ze svého lokálního úložiště.\n* Uložit nastavení: Uložte tato nastavení pro pozdější použití.\n* Obnovit nastavení: Obnovte nastavení ze uložené session.\n* Nahlásit problém: Otevřete stránku GitHub Issues ve svém prohlížeči, abyste nahlásili problém nebo návrh vývojáři.\n* Zobrazit zobrazení: Zobrazte vaši konfiguraci, diagram nebo stromový výstup vašich projektů, profilů, úkolů a scén přímo v GUI.\n* Vyčistit: Vymažte data aktuálního zobrazení mapy/diagramu/stromu.\n* Kontrola zdraví: Prozkoumejte načtený soubor XML, zda neobsahuje chybně odkazované, neoznačené úkoly, profily a scény a problémy s pojmenováním. Také hlásí, jak se vaše nastavení chová na zařízení: dva profily sledují stejný spouštěč, jehož úkoly nastavují stejnou věc protisměrně, profil, jehož podmínky nemohou být všechny pravé, úkoly, které provádějí cyklické dotazy, profily, které neustále skenují nebo spouští po krátkou dobu, dlouhotrvající úkoly ponechané ve výchozím režimu detekce kolize a akce, které mohou trvat navždy, protože nebyl nastaven časový limit. Kliknutím na nalezený bod se dostanete k němu ve zobrazení mapy.\n* Porovnat soubory: Porovnejte jiný soubor XML s načteným souborem, abyste viděli, co bylo přidáno, odstraněno, přejmenováno a změněno.\n* Proměnná Xref: Sledujte každou proměnnou % v načteném souboru XML: kde je nastavena, kde je čtena, které jsou četny, ale nejsou nastavovány, které jsou nastavovány, ale nejsou četny a které jsou téměř identické názvy, které jsou pravděpodobně překlepy.\n* Toková struktura: Projděte si kontrolní strukturu každého úkolu – jeho If/Else/End If, For/End For, Goto a Stop – a nahlaste, co není v souladu: blok, který není uzavřen, Goto, které směřuje na štítek, který nemá žádnou akci, a akce, kterým není možné dosáhnout. Při výběru konkrétního úkolu v poli „Specifický název“ je tento úkol také zobrazen jako diagram v samostatním okně, s šipkou z každého Goto, která směřuje na danou akci. Kliknutím na libovolnou řadu se přejde k dané akci v mapě.\n* Otevřít v novém okně: Otevřete každý požadavek na Mapu/Diagram v samostatném novém okně/nabídce, namísto opětovného použití stávajícího.\n* Zavřít nabídky při ukončení: Umožněte, aby se při ukončení zavřelo také hlavní okno MapTasker a všechna okna/nabídky Map/Diagram, která byla otevřena.\n* Získat XML z zařízení Android: Získejte soubor XML pro zálohu/export z zařízení Android. Budete vyzváni k zadání IP adresy a portového čísla vašeho zařízení Android, stejně jako umístění souboru na zařízení.\n   - Seznam XML souborů: Vypište XML soubory nalezené na zařízení Android, abyste mohli vybrat jeden, namísto zadávání jeho umístění.\n   - Zrušit vstup: Ukončete proces načítání z Androidu.\n* Tab \"Specifický název\": Zadejte jeden konkrétní název, který má být zobrazen...\n   - Název projektu: Zadejte konkrétní projekt, který má být zobrazen.\n   - Název profilu: Zadejte konkrétní profil, který má být zobrazen.\n   - Název úkolu: Zadejte konkrétní úkol, který má být zobrazen.\n   - Název scény: Zadejte konkrétní scénu, která má být zobrazen. Její název projektu a prvky scény (plus všechny úkoly, které tyto prvky spouští) jsou zobrazeny; profily a další scény projektu nejsou.\n   (Tyto čtyři jsou exkluzivní: uveďte pouze jeden)\n   - Seznam neoznačených položek: Zařaďte neoznačené profily a úkoly do výše uvedených čtyř rolovacích polí.\n   Přidávejte a upravujte projekty, profily, úkoly a scény přímo v rozhraní, s různými možnostmi uložení...\n   - Přidat projekt/profil/úkol/scénu: Vytvořte nový objekt a přidejte jej do načteného XML.\n   - Upravit projekt/profil/úkol/scénu: Upravte vybraný objekt v výše uvedených rolovacích polích.\n   - Přejmenovat: Přejmenujte objekt, který se upravuje.\n   - Odstranit: Odstraňte objekt, který se upravuje, z načteného XML.\n   - Duplikovat: Vytvořte kopii prvku scény.\n   - Předzobrazit: Zobrazte scénu, kterou se upravuje, tak, jak bude vypadat.\n   - Uložit / Exportovat: Uložte objekt do samostatného souboru XML podle vašeho výběru.\n   - Uložit do aktuálního souboru: Uložte celou konfiguraci do nového souboru s časovým razítkem vedle načteného souboru.\n   - Uložit do Android: Uložte objekt zpět do vašeho zařízení Android.\n     (Pro případ, kdy se má něco přepsat, je uložena záložní kopie ve složce \"MapTasker_Backups\".)\n   Příkazy pro úpravy...\n   - Odvolat: Ukončete nejnovější úpravu, kterou provedli pro načtené XML (přidání/úprava/smazání/přejmenování). Tato akce se týká načtených dat, nikoli souboru.\n   - Potvrdit: Znovu použijte nejnovější změnu, která byla \"odvolána\".\n   - Historie úprav: Vypište všechny změny provedené v načteném XML, od nejnovější.\n* Tab \"Barvy\": Vyberte barvy pro různé prvky zobrazení.\n              (např. barva pro projekty, profily, úkoly atd.)\n   - Resetovat na výchozí barvy: Obnovte všechny barvy na jejich výchozí hodnoty.\n* Tab \"Analýza\": Spusťte analýzu pro projekt, profil, úkol nebo scénu proti AI modelu.\n   - Zobrazit/Upravit klíč API: Zadejte nebo změňte klíče API, které používají servery založené na AI modelech.\n   - Změnit prompt: Upravte prompt, který je odeslán do AI modelu.\n   - Spustit analýzu: Odeslání vybraného projektu/profilu/úkolu a promptu do vybraného modelu.\n   - Rozšířené: Vypište všechny dostupné modely, nikoli jen výchozí sadu.\n* Tab \"Ladění\": Zobrazte možnost Nastavení pro spuštění a zapněte režim ladění.\n* Příkazy v nástrojové liště pro zobrazení Mapy/Diagramu/stromové struktury jsou...\n   - Vyhledat: Vybarvěte všechny instance textu, který jste zadali do vyhledávacího pole, až do první 200. Kliknutím na číslo řádku se přejde na tuto řádku.\n- Najít/Nahradit: (Pouze mapa a diagram) Položte otázku načtené konfiguraci namísto vyhledávání v textu na obrazovce: každá úloha, která provádí danou akci, každý profil, který spouští daný spouštěč, a vše, co odkazuje na danou aplikaci nebo scénu. Kliknutím na výsledek se dostanete k němu.\n- Uložit výsledky: Uložte výsledky funkce \"Najít/Nahradit\" do textového souboru.\n- Nahoru / Dolů: Přeskočte na začátek nebo konec zobrazeného výstupu.\n- Zapnout/Vypnout řádkovou obálku: Zapněte nebo vypněte řádkovou obálku ve zobrazeném výstupu.\n- Profilů na řádek: (Pouze diagram) Počet profilů, které jsou zobrazeny vedle sebe na jedné řadě.\n* Zobrazit nápovědu: Zobrazte tento text nápovědy.\n* Získat nápovědu pro Android: Zobrazte nápovědu pro získání souboru XML z vašeho zařízení Android.\n* Tlačítka '?': Zobrazte nápovědu specifickou pro sekci, ve které se tlačítko nachází.\n* Ukončit: Ukončete program (opustit).\nPoznámky:\n- Celou historii změn můžete zkontrolovat na https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n- Změna režimu zobrazení změní barvy použité pro výstup na jejich výchozí hodnoty.\n"
-
 msgid "Please stand by ..."
 msgstr "Prosím, zůstaňte prosím na místě..."
-
 msgid "Redact secrets"
 msgstr "Upravte tajemství"
-
 msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
 msgstr "Toto zaškrtněte, pokud bude exportovaný soubor odeslán někomu jinému – zveřejněn na fóru nebo zaslán tomu, kdo vám pomáhá.\n\nKlíče API, tokeny, hesla, telefonní čísla, e-mailové adresy a souřadnice umístění v něm jsou nahrazeny značkami [REDACTED:...] a komentář v horní části souboru říká, co bylo odstraněno.  Chcete-li zobrazit seznam, nejprve spusťte kontrolu stavu.\n\nJe to první průchod, nikoli záruka: heslo, které vypadá jako běžné slovo, nemá tvar, který by bylo možné rozpoznat, a jména se nikdy nemění, protože je soubor používá k odkazování na sebe.  Přečtěte si, co zveřejňujete.\n\nPonechejte nezaškrtnuté pro zálohování nebo přesun na jiné zařízení – importuje se redigovaný soubor s chybějícími klíči."
+msgid "Report these categories:"
+msgstr "Nahlásit tyto kategorie:"
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, naming problems, Task flow, variables, behaviour on the device, and secrets.\n\nYou choose which of those to report before it runs, and that choice is remembered.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Prohledejte načtený XML, zda neobsahuje poškozené odkazy, neodkazované úlohy, profily a scény, problémy s pojmenováním, tok úloh, proměnné, chování na zařízení a tajemství.\n\nVy si vyberete, které z nich chcete nahlásit před spuštěním, a tato volba se zapamatuje.\n\nZde se zobrazí výsledky a uloží se do textového souboru v aktuálním adresáři."
+msgid "TaskerNet information"
+msgstr "Informace o TaskerNet"
+msgid "Changes This Week"
+msgstr "Změny tento týden"
+msgid "Nothing has changed in your configuration over that period."
+msgstr "Za tu dobu se ve vaší konfiguraci nic nezměnilo."
+msgid "Timeline report could not be saved."
+msgstr "Přehled časové osy nelze uložit."
+msgid "Timeline saved as"
+msgstr "Časová osa uložena jako"
+msgid "What has changed in your configuration over the last seven days: what was added, removed, renamed and changed.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from a week ago is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Co se změnilo ve vaší konfiguraci za posledních sedm dní: co bylo přidáno, odstraněno, přejmenováno a změněno.\n\nŽádný soubor k výběru – každá konfigurace, kterou načtete, je uložena, komprimována, ve složce MapTasker_Timeline v aktuálním adresáři a ta z minulého týdne je porovnána s tím, co máte nyní otevřeno.\n\nZde se zobrazí výsledky a uloží se do textového souboru v aktuálním adresáři."
+msgid "Changes Since"
+msgstr "Změny od"
+msgid "Changes Since..."
+msgstr "Změny od..."
+msgid "Choose a date first."
+msgstr "Nejprve vyberte datum."
+msgid "Compare what you have open now against your configuration as it stood then."
+msgstr "Porovnejte to, co máte nyní otevřené, s konfigurací, jaká byla tehdy."
+msgid "Period"
+msgstr "Období"
+msgid "Show Changes"
+msgstr "Zobrazit změny"
+msgid "That date is in the future.  Choose a day that has happened."
+msgstr "Toto datum je v budoucnosti.  Vyberte den, který se stal."
+msgid "What has changed in your configuration since a moment you choose: today, this week, this month, everything kept, or a specific date.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from back then is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Co se ve vaší konfiguraci změnilo od okamžiku, který si vyberete: dnes, tento týden, tento měsíc, vše zachováno, nebo konkrétní datum.\n\nŽádný soubor k výběru – každá konfigurace, kterou načtete, je uložena, komprimována, ve složce MapTasker_Timeline v aktuálním adresáři a ta z té doby je porovnána s tím, co máte nyní otevřeno.\n\nZde se zobrazí výsledky a uloží se do textového souboru v aktuálním adresáři."

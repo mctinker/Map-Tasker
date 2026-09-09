@@ -29,7 +29,7 @@ set script_dir (dirname (status --current-filename))
 if set -q argv[1]
     set locale_dir $argv[1]
 else
-    set locale_dir $script_dir/../maptasker/locale
+    set locale_dir $script_dir/../../maptasker/locale
 end
 
 if not test -d $locale_dir
@@ -67,6 +67,6 @@ if set -q failed[1]
     echo "FAILED: $failed" >&2
     echo "A .mo was still written for those languages -- msgfmt reports these errors but" >&2
     echo "compiles anyway -- so fix the .po and re-run rather than trusting the output." >&2
-    echo "A msgid/msgstr newline mismatch is repairable with fix_newline_edges_in_po.py." >&2
+    echo "A msgid/msgstr newline mismatch is repairable with sync_and_clean_po.py --stages newlines." >&2
     exit 1
 end

@@ -23,7 +23,11 @@ All notable changes to this project will be documented in this file!
       - Clicking it brings up a panel listing all 45 kinds of finding it can report -- grouped as broken references, unreachable and unused objects, naming, Task flow, variables, behaviour on the device, and secrets -- each ticked, with 'Ok' to run and 'Cancel' to think better of it. 
        
       - Your choices are remembered for next time, and unticking a whole group means that part of the scan is skipped rather than merely hidden, which makes the check noticeably quicker on a large configuration.
-- Added: 'Health Check' now also lists what is in your configuration that is nobody else's business -- API keys, tokens, passwords, phone numbers, email addresses and the coordinates a location Profile watches -- wherever they sit, including a variable's stored value and Tasker's own preferences.  A new 'Redact secrets' tick-box on the Export button in Edit Project, Profile, Task and Scene then takes those same things out of the exported file and notes at the top of it what went, so a configuration can be posted on a forum or handed to somebody helping you.
+- Added: 'Health Check' now also lists what is in your configuration that is nobody else's business -
+      
+      - API keys, tokens, passwords, phone numbers, email addresses and the coordinates a location Profile watches -- wherever they sit, including a variable's stored value and Tasker's own preferences.
+      
+      - A new 'Redact secrets' tick-box on the Export button in Edit Project, Profile, Task and Scene then takes those same things out of the exported file and notes at the top of it what went, so a configuration can be posted on a forum or handed to somebody helping you.
 
 ### Changed
 

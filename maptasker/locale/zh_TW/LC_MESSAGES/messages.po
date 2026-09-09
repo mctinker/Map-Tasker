@@ -597,12 +597,10 @@ msgid "Prompt:"
 msgstr "迅速的："
 msgid "Buy Me A Coffee"
 msgstr "請我喝杯咖啡"
-
 msgid "The 'Profiles Per Line' setting is used to control the number of Profiles to be displayed per line when diagramming the configuration.\n\nThe smaller the number, the narrower the diagram and vice versa.\n\nFewer Profiles per line may make it easier too view the diagram connectors that extend to the right, while at the same time the Diagram wil be longer.\n\nSelecting a number will automatically re-generate the diagram with the new setting.\n\nThis setting is only valid for the currrent Diagram view, and will be reset back to the default value when the Diagram view is closed.\n\n"
 msgstr "“每行配置文件”設置用於控制在繪製配置圖表時每行顯示的配置文件數量。 \n\n數字越小，圖表越窄，反之亦然。 \n\n每行配置文件越少，也可以更容易地查看向右延伸的圖表連接器，同時圖表會更長。 \n\n選擇一個數字將自動使用新設置重新生成圖表。 \n\n此設置僅對當前圖表視圖，關閉圖表視圖時將重置回默認值。 \n\n"
 msgid "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the data.\n\nThe 'Search Here' button will search for and highlight every instance of the string entered in the search box, starting at the current screen.\n\nHover over any of the highlighted matching strings to see all matches.\n\nThe 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\nThe accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\nWhen the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\nThe 'Clear' button will clear the search results.\n\nThe 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
 msgstr "“搜索”按鈕將從數據頂部開始搜索並突出顯示在搜索框中輸入的字符串的每個實例。 \n\n“在此處搜索”按鈕將從當前屏幕開始搜索並突出顯示在搜索框中輸入的字符串的每個實例。 \n\n將鼠標懸停在任何突出顯示的匹配字符串上以查看所有匹配項。 \n\n“下一個”和“上一個”按鈕將嘗試使搜索字符串的下一個和上一個出現在文本視圖框中可見，並以不同的顏色突出顯示它們。 \n\n使搜索字符串可見的準確性並不總是完美的，並且不受此程序的控制。 \n\n當到達文本視圖框的末尾或開頭時，搜索將停止，並且將顯示一條消息幾秒鐘。 \n\n“清除”按鈕將清除搜索結果。 \n\n“僅顯示”按鈕將僅在其他窗口中顯示搜索結果中的匹配項。 \n\n"
-
 msgid "API Key Help"
 msgstr "API 密鑰幫助"
 msgid "Profiles Per Line Help"
@@ -806,8 +804,6 @@ msgid "What's New?"
 msgstr "什麼是新的？"
 msgid "color changed to"
 msgstr "顏色改為"
-  
-
 msgid "專案"
 msgstr "Projects"
 msgid "型材"
@@ -848,2067 +844,1411 @@ msgid "光"
 msgstr "Light"
 msgid "系統"
 msgstr "System"
-
 msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
 msgstr "針對特定項目、設定檔、任務或場景。 （僅選擇一項）"
-
 msgid "Rename"
 msgstr "重新命名"
-
 msgid "Export Project"
 msgstr "出口項目"
-
 msgid "Export Profile"
 msgstr "出口概況"
-
 msgid "Export Task"
 msgstr "匯出任務"
-
 msgid "Save"
 msgstr "節省"
-
 msgid "Overwrite"
 msgstr "覆蓋"
-
 msgid "Delete Project"
 msgstr "刪除項目"
-
 msgid "Delete Profile"
 msgstr "刪除個人資料"
-
 msgid "Delete Task"
 msgstr "刪除任務"
-
 msgid "Its"
 msgstr "它是"
-
 msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
 msgstr "連結的任務將被保留—它們屬於項目，而不屬於此配置檔案。"
-
 msgid "It has no linked Tasks."
 msgstr "它沒有連結的任務。"
-
 msgid "It will be removed from"
 msgstr "它將被刪除"
-
 msgid "Project(s) and unlinked from"
 msgstr "項目並取消鏈接"
-
 msgid "Profile(s) that run it. Those Profiles themselves are kept."
 msgstr "運行它的設定檔。這些設定檔本身被保留。"
-
 msgid "Keep Contents"
 msgstr "保留內容"
-
 msgid "Delete Contents"
 msgstr "刪除內容"
-
 msgid "Adding to Project:"
 msgstr "新增到項目："
-
 msgid "Save To Current File"
 msgstr "儲存到目前文件"
-
 msgid "Add Project"
 msgstr "新增項目"
-
 msgid "Add Profile"
 msgstr "新增個人資料"
-
 msgid "Add Task"
 msgstr "新增任務"
-
 msgid "Add an action"
 msgstr "增加一個動作"
-
 msgid "Actions in this Task"
 msgstr "此任務中的操作"
-
 msgid "No actions added yet."
 msgstr "尚未新增任何操作。"
-
 msgid "Actions & Control"
 msgstr "動作與控制"
-
 msgid "Display Conditions"
 msgstr "顯示條件"
-
 msgid "Task Action Limit:"
 msgstr "任務動作限制："
-
 msgid "Theme Configuration"
 msgstr "主題配置"
-
 msgid "Select a category to modify its color."
 msgstr "選擇一個類別以修改其顏色。"
-
 msgid "Select Category to Colorize"
 msgstr "選擇要著色的類別"
-
 msgid "Choose Hex Color"
 msgstr "選擇十六進位顏色"
-
 msgid "Open View In New Window"
 msgstr "在新視窗中開啟視圖"
-
 msgid "Close Tabs On Exit"
 msgstr "退出時關閉選項卡"
-
 msgid "Edit Project"
 msgstr "編輯項目"
-
 msgid "Edit Profile"
 msgstr "編輯個人資料"
-
 msgid "Edit Task"
 msgstr "編輯任務"
-
 msgid "Scene"
 msgstr "場景"
-
 msgid "Execution"
 msgstr "執行"
-
 msgid "File Operations"
 msgstr "文件操作"
-
 msgid "Display Views"
 msgstr "顯示視圖"
-
 msgid "Application Settings"
 msgstr "應用程式設定"
-
 msgid "Help & Information"
 msgstr "幫助和資訊"
-
 msgid "0 = least detail, 5 = most detail."
 msgstr "0 = 最不詳細，5 = 最詳細。"
-
 msgid "AI Analysis"
 msgstr "人工智慧分析"
-
 msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
 msgstr "分析正在後台運行。\n\n完成後，結果將顯示在新視窗中。\n\n請稍等..."
-
 msgid "Android Get XML Port Number"
 msgstr "Android 取得 XML 連接埠號"
-
 msgid "Android device at"
 msgstr "Android 裝置位於"
-
 msgid "Available Android Backups"
 msgstr "可用的 Android 備份"
-
 msgid "CAVEATS"
 msgstr "注意事項"
-
 msgid "Cancel Entry"
 msgstr "取消參賽"
-
 msgid "Check your IP/Port and verify the Tasker HTTP server is running"
 msgstr "檢查您的 IP/連接埠並驗證 Tasker HTTP 伺服器正在執行"
-
 msgid "Close"
 msgstr "關閉"
-
 msgid "Detail Level"
 msgstr "細節等級"
-
 msgid "Error"
 msgstr "錯誤"
-
 msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
 msgstr "從 Android 裝置取得 XML。\n\n您必須與 Android 裝置位於同一網絡，且該裝置必須正在運作並已連線。\n\n"
-
 msgid "Get Local XML File"
 msgstr "取得本機 XML 文件"
-
 msgid "It owns"
 msgstr "它擁有"
-
 msgid "No Profiles Found"
 msgstr "未找到個人資料"
-
 msgid "No file loaded"
 msgstr "沒有載入文件"
-
 msgid "No scenes found"
 msgstr "未找到場景"
-
 msgid "No tasks found"
 msgstr "沒有找到任務"
-
 msgid "None or unnamed!"
 msgstr "無或無名！"
-
 msgid "Profile(s) and"
 msgstr "個人資料和"
-
 msgid "Save To Android"
 msgstr "儲存到安卓"
-
 msgid "Scene to Analyze:"
 msgstr "場景分析："
-
 msgid "Scene:"
 msgstr "場景："
-
 msgid "Select XML From Android Device:"
 msgstr "從 Android 裝置選擇 XML："
-
 msgid "Task(s)."
 msgstr "任務。"
-
 msgid "Unnamed Task"
 msgstr "未命名任務"
-
 msgid "Update Available!"
 msgstr "更新可用！"
-
 msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
 msgstr "YouTube 直接串流媒體需要第三方 API 令牌。將目標曲目下載到本地即可查看。"
-
 msgid "is unreachable"
 msgstr "無法到達"
-
 msgid "'Cancel' button selected. No change to the API keys!"
 msgstr "選擇“取消”按鈕。 API 金鑰沒有變化！"
-
 msgid ".or."
 msgstr "。或者。"
-
 msgid "1-TCP/IP Address:"
 msgstr "1-TCP/IP 位址："
-
 msgid "2-Port Number:"
 msgstr "2 連接埠號碼："
-
 msgid "3-File Location:"
 msgstr "3-文件位置："
-
 msgid "AI Model"
 msgstr "人工智慧模型"
-
 msgid "Add 'If' Action"
 msgstr "新增“如果”操作"
-
 msgid "Add App Entry"
 msgstr "新增應用程式入口"
-
 msgid "Add Condition"
 msgstr "新增條件"
-
 msgid "All"
 msgstr "全部"
-
 msgid "Android IP Address"
 msgstr "安卓IP位址"
-
 msgid "Android configuration details matched successfully!"
 msgstr "Android配置詳情匹配成功！"
-
 msgid "Changes kept."
 msgstr "保留更改。"
-
 msgid "Choose a State type first."
 msgstr "首先選擇狀態類型。"
-
 msgid "Choose a Task"
 msgstr "選擇任務"
-
 msgid "Choose a Task first."
 msgstr "首先選擇一個任務。"
-
 msgid "Choose a condition type first."
 msgstr "首先選擇條件類型。"
-
 msgid "Choose an Event type first."
 msgstr "首先選擇事件類型。"
-
 msgid "Class (optional)"
 msgstr "班級（可選）"
-
 msgid "Cleared the search highlights."
 msgstr "清除搜尋突出顯示。"
-
 msgid "Click Here to Set XML Details"
 msgstr "按一下此處設定 XML 詳細信息"
-
 msgid "Click arrows to expand/collapse details."
 msgstr "按一下箭頭可展開/折疊詳細資訊。"
-
 msgid "Click on a row index line number to jump directly to that match block placement:"
 msgstr "按一下行索引行號可直接跳到該符合區塊位置："
-
 msgid "Click on connector to highlight"
 msgstr "按一下連接器以突出顯示"
-
 msgid "Condition Type"
 msgstr "條件類型"
-
 msgid "Conditions"
 msgstr "狀況"
-
 msgid "Configure Android Connection:"
 msgstr "設定安卓連線："
-
 msgid "Continue Task After Error"
 msgstr "錯誤後繼續執行任務"
-
 msgid "Copy"
 msgstr "複製"
-
 msgid "Dark Mode"
 msgstr "深色模式"
-
 msgid "Day of Month"
 msgstr "每月的某一天"
-
 msgid "Delete"
 msgstr "刪除"
-
 msgid "Delete Condition"
 msgstr "刪除條件"
-
 msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
 msgstr "僅刪除此設定檔。它的進入/退出任務被保留——任務由專案擁有，而不是由配置檔案擁有，並且相同的任務可以由其他配置檔案使用。"
-
 msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
 msgstr "刪除此任務以及對它的所有引用：它從擁有它的每個項目的任務中以及從將其作為其進入/退出任務運行的任何配置文件中刪除。設定檔本身被保留。"
-
 msgid "Diagram View opened in a new browser window."
 msgstr "圖表視圖在新的瀏覽器視窗中開啟。"
-
 msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
 msgstr "顯示所有可用型號的擴充清單。\n\n注意：如果沒有為 OpenAI 或 Gemini 設定 API 金鑰，\n      然後是各自的預設型號列表\n      將顯示AI提供者。\n\n注意：並非所有模型都經過驗證且\n      一個或多個可能會傳回分析錯誤。\n\n注意：首次啟用此選項將\n      強制安裝以下模組\n      以及它們的所有依賴項：\n      google-genai、anthropic、openai、ollama"
-
 msgid "End Time"
 msgstr "結束時間"
-
 msgid "Event Type"
 msgstr "事件類型"
-
 msgid "Every"
 msgstr "每一個"
-
 msgid "File path saved successfully!"
 msgstr "文件路徑儲存成功！"
-
 msgid "File selection canceled."
 msgstr "文件選擇已取消。"
-
 msgid "If"
 msgstr "如果"
-
 msgid "If condition set."
 msgstr "如果條件成立。"
-
 msgid "Insert just the 'If', or a complete block?"
 msgstr "只插入“If”，還是插入一個完整的區塊？"
-
 msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
 msgstr "指定的視圖類型無效。使用“地圖”、“圖表”或“樹”。"
-
 msgid "Label"
 msgstr "標籤"
-
 msgid "Last Day Of Month"
 msgstr "每月最後一天"
-
 msgid "Link"
 msgstr "關聯"
-
 msgid "List Files Selected"
 msgstr "列出選定的文件"
-
 msgid "List XML Files"
 msgstr "列出 XML 文件"
-
 msgid "Map View opened in a new browser window."
 msgstr "地圖視圖在新的瀏覽器視窗中開啟。"
-
 msgid "Map view creation skipped: No valid XML source found or action canceled."
 msgstr "已跳過地圖視圖建立：未找到有效的 XML 來源或操作已取消。"
-
 msgid "Month"
 msgstr "月"
-
 msgid "Move"
 msgstr "移動"
-
 msgid "Move to #"
 msgstr "移至#"
-
 msgid "New name"
 msgstr "新名稱"
-
 msgid "No Profile Tasks Found"
 msgstr "未找到設定檔任務"
-
 msgid "No XML data loaded! Please Get XML from Android or Local drive first."
 msgstr "未載入 XML 資料！請先從 Android 或本機磁碟機取得 XML。"
-
 msgid "No XML data loaded! Please select a valid XML file first."
 msgstr "未載入 XML 資料！請先選擇一個有效的 XML 檔案。"
-
 msgid "No actions in this Task."
 msgstr "此任務中沒有任何操作。"
-
 msgid "No backup file is currently loaded. Use 'Get Local XML' first."
 msgstr "目前未載入備份檔案。首先使用「取得本機 XML」。"
-
 msgid "No conditions on this Profile."
 msgstr "此設定檔沒有任何條件。"
-
 msgid "No editable arguments (code not mapped, or this condition has none)."
 msgstr "沒有可編輯的參數（程式碼未映射，或此條件沒有）。"
-
 msgid "No editable arguments."
 msgstr "沒有可編輯的參數。"
-
 msgid "Not configured..."
 msgstr "未配置..."
-
 msgid "Odd"
 msgstr "奇怪的"
-
 msgid "Ok"
 msgstr "好的"
-
 msgid "Operator"
 msgstr "操作員"
-
 msgid "Package"
 msgstr "包裹"
-
 msgid "Pick a Task"
 msgstr "選擇一個任務"
-
 msgid "Please enter a search term."
 msgstr "請輸入搜尋詞。"
-
 msgid "Port"
 msgstr "港口"
-
 msgid "Position"
 msgstr "位置"
-
 msgid "Priority"
 msgstr "優先事項"
-
 msgid "Profile Name"
 msgstr "個人資料名稱"
-
 msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "僅此會話保留設定檔 - 使用「儲存到目前檔案」將其永久保留。"
-
 msgid "Profiles Per Line"
 msgstr "每條線的輪廓"
-
 msgid "Project Name"
 msgstr "項目名稱"
-
 msgid "Project added."
 msgstr "項目已新增。"
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
 msgstr "立即提示輸入新名稱並將其套用至載入的備份。上面的項目名稱欄位是唯讀的——這是更改它的唯一方法。"
-
 msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
 msgstr "立即提示輸入新名稱並將其套用至載入的備份。此對話方塊中的其他所有內容都將保持待定狀態，直到確定/儲存為止，並且該對話方塊保持開啟狀態，以便您可以繼續編輯。"
-
 msgid "Remove"
 msgstr "消除"
-
 msgid "Save Profile To Android Device"
 msgstr "將設定檔儲存到 Android 設備"
-
 msgid "Save Project To Android Device"
 msgstr "將項目儲存到 Android 設備"
-
 msgid "Save Task To Android Device"
 msgstr "將任務儲存到 Android 設備"
-
 msgid "Save as"
 msgstr "另存為"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "儲存整個備份 - 其中的每個項目、設定檔和任務，而不僅僅是此設定檔 - 套用此對話方塊的編輯後，將保留相同的「確定」。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "儲存整個備份 - 其中的每個項目、設定檔和任務，而不僅僅是此項目 - 包括此會話中任何位置所做的每個編輯。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "儲存整個備份 - 其中的每個項目、設定檔和任務，而不僅僅是此任務 - 套用此對話方塊的編輯後，將保留相同的「確定」。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "保存整個備份——其中的每個項目、設定檔和任務，而不僅僅是這個——並將新設定檔添加到其專案中，與「確定」添加它的方式相同。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "保存整個備份——其中的每個項目、設定檔和任務，而不僅僅是這個——並添加新任務，與「確定」添加它的方式相同。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
-
 msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
 msgstr "將此項目及其中的所有內容（每個設定檔和任務）儲存為一個獨立檔案。"
-
 msgid "Search actions"
 msgstr "搜尋操作"
-
 msgid "Search..."
 msgstr "搜尋..."
-
 msgid "Select a single Profile first (Profile pulldown above)."
 msgstr "首先選擇一個設定檔（上面的設定檔下拉式選單）。"
-
 msgid "Select a single Project first (Project pulldown above)."
 msgstr "首先選擇一個項目（上面的項目下拉式選單）。"
-
 msgid "Select a single Task first (Task pulldown above)."
 msgstr "首先選擇一個任務（上面的任務下拉式選單）。"
-
 msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
 msgstr "選擇發出警告之前任務中的操作數。\n此警告出現在配置輸出底部附近，\n旨在幫助識別過於複雜的任務\n並且可能應該分解為多個任務。\n設定“100”表示沒有限制。"
-
 msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
 msgstr "設定 If/Then/Else 區塊的縮排量。\n\n預設值為“4”。\n\n這會影響地圖和圖表視圖中輸出的格式。"
-
 msgid "Settings Reset!"
 msgstr "設定重置！"
-
 msgid "Shutting down MapTasker..."
 msgstr "正在關閉 MapTasker..."
-
 msgid "Start Time"
 msgstr "開始時間"
-
 msgid "Starting AI Analysis..."
 msgstr "開始人工智慧分析..."
-
 msgid "State Type"
 msgstr "狀態類型"
-
 msgid "Submit"
 msgstr "提交"
-
 msgid "Target"
 msgstr "目標"
-
 msgid "Task Name"
 msgstr "任務名稱"
-
 msgid "Task Uploaded to Tasker"
 msgstr "任務已上傳至Tasker"
-
 msgid "Task Uploaded to Tasker."
 msgstr "任務已上傳至 Tasker。"
-
 msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "僅為本次會話保留的任務 - 使用「儲存到目前檔案」將其永久保留。"
-
 msgid "The 'Misc' view is running in the background.  Please stand by..."
 msgstr "“雜項”視圖在背景執行。  請稍等..."
-
 msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
 msgstr "「搜尋」按鈕將從資料頂部開始搜尋並反白在搜尋框中輸入的不區分大小寫字串的每個實例。\n\n它只會顯示搜尋字串的前 200 個實例。\n\n按一下行號可前往文字檢視方塊中的該行。\n\n“清除”按鈕將清除搜尋結果。\n\n"
-
 msgid "The change will take effect the next time you open the view."
 msgstr "變更將在您下次開啟視圖時生效。"
-
 msgid "This Task has no actions yet."
 msgstr "此任務還沒有任何操作。"
-
 msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
 msgstr "這是系統上可用的所有字體的列表，首先是等寬字體並進行了標記。\n\n所選字體將用於所有輸出。\n\n強烈建議圖表使用“Courier”或“Courier New”，以確保連接器正確對齊。非等寬字體將無法使圖表的連接器或輸出的縮排保持一致。"
-
 msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
 msgstr "這會將任務直接儲存到執行 Tasker 伺服器的 Android 裝置上執行的 Tasker 中。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n系統將提示您兩次授權在 Android 裝置上寫入 Tasker，並且 Task. 及其自身的操作將決定其在裝置上的保存位置。"
-
 msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
 msgstr "這會將任務直接儲存到 Android 裝置上的活動 Tasker 工作階段。\n\n需要 Tasker 版本 6.2 或更高版本才能運作。 Android 裝置必須位於同一網路上，且 IP 位址和連接埠\n必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n系統將提示您兩次授權在 Android 裝置上寫入 Tasker，並且任務將直接載入到活動的 Tasker 工作階段。\n\n您必須退出並重新啟動 Tasker 才能在 Tasker UI 中看到新任務。"
-
 msgid "This will save the Task directly to your current drive.\n\n"
 msgstr "這會將任務直接儲存到您目前的磁碟機。\n\n"
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "這會將設定檔作為獨立檔案寫入 Android 裝置的 /Tasker/profiles 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n為此不需要授權提示。"
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "這會將設定檔作為獨立檔案寫入您的 Android 裝置上的 /Tasker/profiles 下——它不會將其匯入到 Tasker 的即時配置中。\n\n「Http 伺服器範例」Tasker 專案 (http://spoo.me/http_svr_example) 必須在 Android 裝置上安裝並激活，且伺服器正在執行（請參閱自述文件的直接 XML 檢索說明）。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。為此不需要授權提示。"
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "這會將設定檔作為獨立檔案寫入您的 Android 裝置上的 /Tasker/profiles 下——它不會將其匯入到 Tasker 的即時配置中。\n\n「Http 伺服器範例」Tasker 專案必須在 Android 裝置上安裝並處於作用中狀態，且伺服器正在執行（請參閱自述文件的直接 XML 檢索說明）。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。為此不需要授權提示。"
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "這會將專案及其中的所有內容（每個設定檔和任務）作為獨立檔案寫入 Android 裝置上的 /Tasker/projects 下，但不會將其匯入到 Tasker 的即時設定中。\n\n必須在 Android 裝置上安裝並啟動「Http 伺服器範例」Tasker 項目，且伺服器正在運行。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。為此不需要授權提示。"
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "這會將專案及其中的所有內容作為獨立檔案寫入 Android 裝置的 /Tasker/projects 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n為此不需要授權提示。"
-
 msgid "Toggle Wrap"
 msgstr "切換包裹"
-
 msgid "Unlink"
 msgstr "取消連結"
-
 msgid "Value"
 msgstr "價值"
-
 msgid "View cleared."
 msgstr "視圖已清除。"
-
 msgid "Week-Day"
 msgstr "工作日"
-
 msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
 msgstr "啟用後，按一下「退出」也會關閉 MapTasker 主視窗及其開啟的任何地圖/圖表視窗/標籤。\n\n停用時，「退出」會關閉 MapTasker，但使這些視窗/選項卡保持開啟。"
-
 msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
 msgstr "啟用後，每個地圖/圖表請求都會在自己的新視窗/選項卡中打開，因此您可以將較早的請求與它放在一起進行比較。\n\n停用後，請求會重複使用該視圖的現有視窗/選項卡，取代其中的內容。\n\n除非您想進行比較，否則請將其關閉：您的瀏覽器可能會阻止一個全新的視窗/選項卡，因為它會在視圖完成建置後打開，而不是在您單擊時立即打開。"
-
 msgid "hh:mm AM/PM or %variable"
 msgstr "hh:mm AM/PM 或%變量"
-
 msgid "Close Results Window"
 msgstr "關閉結果視窗"
-
 msgid "MapTasker: view limit reached, stopping output to file:  output"
 msgstr "MapTasker：達到視圖限制，停止輸出到檔案：輸出"
-
 msgid "hardstop view limit"
 msgstr "硬停止視圖限制"
-
 msgid "(empty)"
 msgstr "（空的）"
-
 msgid "(no name)"
 msgstr "（無名）"
-
 msgid "(unnamed Task)"
 msgstr "（未命名任務）"
-
 msgid "(unnamed)"
 msgstr "（未命名）"
-
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1 表示該方向沒有自己的佈局。"
-
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "....還有 {count} 個 - 在上面輸入以縮小範圍。"
-
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "場景的元素位置以裝置像素存儲，但其文字大小以 Android 的 sp 單位存儲。兩者之間轉換的數字是顯示場景的手機的屬性，並且不在備份檔案中。\n\n所以就設定在這裡了。如果文字對於其元素來說太小，則提高它；如果文字溢出它們，則降低它。"
-
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "版本 2 場景沒有自己的大小 - 它會將自己放置在顯示的任何畫面內，因此備份檔案中沒有任何內容可以繪製它。\n\n更改此設定以查看佈局重新流動。流行的換行方式不同，任何針對 %sv2_render_width 編寫的「顯示時間」都在詢問這一點。"
-
 msgid "Actions"
 msgstr "行動"
-
 msgid "Add"
 msgstr "添加"
-
 msgid "Add Element"
 msgstr "新增元素"
-
 msgid "Add Scene"
 msgstr "新增場景"
-
 msgid "Add a background"
 msgstr "新增背景"
-
 msgid "Add action"
 msgstr "添加動作"
-
 msgid "Add event"
 msgstr "新增事件"
-
 msgid "Add handler"
 msgstr "新增處理程序"
-
 msgid "Add modifier"
 msgstr "新增修飾符"
-
 msgid "Add scene properties"
 msgstr "新增場景屬性"
-
 msgid "Addressed by id from"
 msgstr "由 id 尋址"
-
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "在場景中間的堆疊頂端新增一個元素。"
-
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "如果所選組件可以容納子組件，則添加到其內部，否則直接添加到其之後。"
-
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "將其新增至堆疊頂部、場景中間。將其拖曳到您想要的位置。"
-
 msgid "Also selected:"
 msgstr "還選擇了："
-
 msgid "Also update"
 msgstr "也更新"
-
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Amber：Tasker 列出了它，但 MapTasker 並沒有確認它的樣本。灰色：無法到達選擇將其放置的位置。"
-
 msgid "App icon"
 msgstr "應用程式圖標"
-
 msgid "Appearance Mode"
 msgstr "外觀模式"
-
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "依序套用－底部的位於頂部。"
-
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "儲存此場景時套用，而不是現在 - “場景”對話方塊上的「取消」會使元素和任務保持原樣。"
-
 msgid "Back to Editor"
 msgstr "返回編輯器"
-
 msgid "Bounds"
 msgstr "界線"
-
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "取消。對此場景的變更被丟棄。"
-
 msgid "Choose another file..."
 msgstr "選擇另一個文件..."
-
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "按一下元件將其選中，按住 Shift 鍵並點擊同一容器中的另一個元件以取得多個元件，然後拖曳以在其同級元件之間重新排序。將元件移入或移出容器是編輯器的“In”和“Out”按鈕；撤銷也在那裡。"
-
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "點擊一個元素將其選中，按住 Shift 鍵單擊或拖曳背景上的一個框以選取多個元素，然後拖曳其中任何一個以將它們全部移動 - 箭頭鍵微移，Shift 移動 10 像素。拖曳手把可調整單一元素的大小。撤銷以及有關元素的其他所有內容都會返回到編輯器中。"
-
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "點擊一個元素以選擇它，拖曳以移動，拖曳手柄以調整大小，箭頭鍵以微移（Shift 為 10 像素）。按住 Shift 鍵並點擊，或在背景上拖曳一個框，可以一次拍攝多個框。"
-
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "關閉而不儲存，並將此場景完全恢復到此對話方塊開啟時的狀態 - 包括在預覽中移動或調整大小的任何內容。\n\n重新命名是無法收回的一件事：它會在確認後套用至載入的備份，並關閉此對話方塊。"
-
 msgid "Compare Files"
 msgstr "比較文件"
-
 msgid "Compare With"
 msgstr "比較"
-
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "將另一個 XML 檔案與已載入的檔案進行比較：新增、刪除、重新命名和變更的內容。\n\n使用它可以查看 TaskerNet 導入帶來了什麼、編輯更改了什麼，或者兩個備份之間有什麼不同。\n\n如果載入的檔案來自“儲存到目前檔案”，則直接提供儲存該檔案的檔案。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"
-
 msgid "Comparison cancelled."
 msgstr "比較已取消。"
-
 msgid "Comparison report could not be saved."
 msgstr "無法儲存比較報告。"
-
 msgid "Comparison saved as"
 msgstr "比較另存為"
-
 msgid "Delete Scene"
 msgstr "刪除場景"
-
 msgid "Done"
 msgstr "完畢"
-
 msgid "Drawn in"
 msgstr "繪製在"
-
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "在主視窗中將此場景繪製為圖片 - 包括您在此處新增或變更但尚未儲存的元件。\n\n版本 2 佈局沒有自己的大小，因此預覽會將其佈局在您選擇的畫面中，並在您更改時重新排列。\n\n當預覽啟動時，此對話方塊將關閉，其中的所有內容都會保留；預覽的「返回編輯器」按鈕可將其返回。\n\n它是一種表示形式，而不是 Tasker 自己的渲染器：%變數是命名的而不是解析的，材質顏色來自基線調色板而不是設備的主題，圖像、視訊和網頁內容顯示為佔位符。"
-
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "將此場景繪製為主視窗中的圖片，尺寸為上面輸入的尺寸 - 包括尚未儲存的變更。\n\n當預覽啟動時，此對話方塊將關閉，其中的所有內容都會保留；預覽的「返回編輯器」按鈕可將其返回。\n\n它是一種表示，而不是 Tasker 自己的渲染器：%變數是命名的而不是解析的，圖像、影片和網頁內容顯示為佔位符。"
-
 msgid "Dropdown menu — shown when opened"
 msgstr "下拉式選單 — 開啟時顯示"
-
 msgid "Duplicate"
 msgstr "複製"
-
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "動態和選擇變數是在場景顯示時計算出來的。"
-
 msgid "Dynamic value"
 msgstr "動態值"
-
 msgid "Edit Scene"
 msgstr "編輯場景"
-
 msgid "Edit item layout"
 msgstr "編輯項目佈局"
-
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "相反，編輯該屬性，並保留選擇。"
-
 msgid "Event handlers"
 msgstr "事件處理程序"
-
 msgid "Export Scene"
 msgstr "匯出場景"
-
 msgid "Geometry"
 msgstr "幾何學"
-
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "灰色：MapTasker 沒有參數表，因此在不猜測 Tasker 期望內部內容的情況下無法建立它。標題是 MapTasker 自己的分組。"
-
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "陰影填充和斜體下劃線文字是%變數——它們的值存在於設備上，而不是備份中，因此它們是被命名的而不是被猜測的。圖像、影片、地圖和網頁內容顯示為佔位符。將滑鼠懸停在任何元素上以查看其幾何形狀、變數及其運行的任務。"
-
 msgid "Health Check"
 msgstr "健康檢查"
-
 msgid "Health Check found no errors or warnings."
 msgstr "健康檢查未發現任何錯誤或警告。"
-
 msgid "Health Check report could not be saved."
 msgstr "無法保存健康檢查報告。"
-
 msgid "Health Check saved as"
 msgstr "健康檢查另存為"
-
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "彈出訊息消失前在螢幕上停留的時間。\n\n「直到關閉」會保留每個訊息，直到您將其關閉，這在您無法閱讀訊息之前滾動過去的情況下非常有用。\n\n有些訊息設定了自己較長的持續時間，因為它們列出了您必須閱讀的內容 - 例如，受刪除或重命名場景元素影響的任務。無論這裡選擇什麼，它們都會保持自己的計時。"
-
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "在清單中：按住 Shift 鍵點選某個範圍，按住 Ctrl 或 Cmd 鍵點選以新增或刪除範圍。"
-
 msgid "Item layout"
 msgstr "專案佈局"
-
 msgid "Landscape"
 msgstr "景觀"
-
 msgid "Legacy"
 msgstr "遺產"
-
 msgid "Legacy Scene"
 msgstr "遺留場景"
-
 msgid "List"
 msgstr "清單"
-
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker：達到視圖限制，圖表被截斷"
-
 msgid "Modifiers"
 msgstr "修飾符"
-
 msgid "Never updated"
 msgstr "從未更新過"
-
 msgid "No Task addresses this element by name."
 msgstr "沒有任務透過名稱來定址該元素。"
-
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "尚未載入任何 XML 檔案。  首先取得 XML 檔案。"
-
 msgid "No element matches that."
 msgstr "沒有元素與之匹配。"
-
 msgid "Not an HTML colour name or #hex value."
 msgstr "不是 HTML 顏色名稱或 #hex 值。"
-
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "未更新 - 這些名稱同時命名此場景和此元素，但不是作為"
-
 msgid "Nothing here."
 msgstr "這裡什麼都沒有。"
-
 msgid "Notification Duration"
 msgstr "通知持續時間"
-
 msgid "Notification Duration:"
 msgstr "通知持續時間："
-
 msgid "On"
 msgstr "在"
-
 msgid "Only when"
 msgstr "僅當"
-
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "概述每個組件並按照設計者的樹命名方式對其進行命名。"
-
 msgid "Outline every element and name it."
 msgstr "概述每個元素並為其命名。"
-
 msgid "Pick a Material icon."
 msgstr "選擇一個材質圖示。"
-
 msgid "Pick an icon"
 msgstr "選擇一個圖標"
-
 msgid "Pick from the Scene's environment and global variables."
 msgstr "從場景的環境和全域變數中進行選擇。"
-
 msgid "Pick one of Material's own colour roles."
 msgstr "選擇 Material 自己的顏色角色之一。"
-
 msgid "Preview"
 msgstr "預覽"
-
 msgid "Project(s) that list it."
 msgstr "列出它的項目。"
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "提示輸入新名稱並將其應用於載入的備份，立即 - 在任何地方重新命名場景，包括在包含該場景的每個項目的場景清單中。\n\n按名稱顯示或隱藏此場景的任務不會更新；那些仍然命名為舊場景。\n\n上面的場景名稱欄位是唯讀的——這是更改它的唯一方法。"
-
 msgid "Properties"
 msgstr "特性"
-
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "一次編輯一個元素的屬性。拖曳並輕推移動所有選定的內容。"
-
 msgid "Refresh"
 msgstr "重新整理"
-
 msgid "Remove background"
 msgstr "刪除背景"
-
 msgid "Rename Element"
 msgstr "重新命名元素"
-
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "在這裡重命名元素不會清除備份：專案佈局沒有用於任務元素操作的場景名稱來尋址，因此無需重寫。"
-
 msgid "Repeats once per array entry"
 msgstr "每個數組條目重複一次"
-
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "將拖曳的位置和大小舍入到這麼多像素。"
-
 msgid "Save Scene To Android Device"
 msgstr "將場景儲存到 Android 設備"
-
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "儲存整個備份 - 其中的每個項目、設定檔、任務和場景，而不僅僅是此場景 - 包​​括此會話中任何位置所做的每個編輯。\n它將寫入目前載入的檔案的新的帶有時間戳記的副本：backup.xml 變成 backup_20260728_143005.xml。\n您加載的文件永遠不會被寫入，因此它會保持原樣。\n然後應用程式切換到新副本，該副本將成為當前文件以供進一步編輯和保存；再次保存會替換時間戳，而不是添加第二個時間戳。\n這僅寫入此電腦 - 不會將任何內容傳送到您的 Android 裝置。"
-
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "將此場景及其所有元素儲存為一個獨立的 .scn.xml 檔案 - 與 Tasker 自己的場景匯出產生的格式相同。\n\n不包括場景元素運行的任務；他們屬於自己的專案。"
-
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "掃描載入的 XML 以尋找損壞的引用、未引用的任務、設定檔和場景以及命名問題。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"
-
 msgid "Scene Components"
 msgstr "場景組件"
-
 msgid "Scene Elements"
 msgstr "場景元素"
-
 msgid "Scene Name"
 msgstr "場景名稱"
-
 msgid "Scene Preview"
 msgstr "場景預覽"
-
 msgid "Scene Properties"
 msgstr "場景屬性"
-
 msgid "Scene added."
 msgstr "場景已新增。"
-
 msgid "Scene type"
 msgstr "場景類型"
-
 msgid "Screen"
 msgstr "螢幕"
-
 msgid "Search elements"
 msgstr "搜尋元素"
-
 msgid "Search icons"
 msgstr "搜尋圖示"
-
 msgid "Search variables"
 msgstr "搜尋變數"
-
 msgid "Select a component on the left."
 msgstr "選擇左側的一個組件。"
-
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "選擇更大的檢視限製或單一項目/設定檔/任務以查看其餘內容。"
-
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "首先選擇一個場景（上面的場景下拉式選單）。"
-
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "選擇單一元素以複製、刪除或重新堆疊它。"
-
 msgid "Select an element first."
 msgstr "首先選擇一個元素。"
-
 msgid "Select an element on the canvas or in the list."
 msgstr "選擇畫布上或清單中的元素。"
-
 msgid "Show the Task each element runs."
 msgstr "顯示每個元素運行的任務。"
-
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "顯示每個元件在點擊時執行的操作以及寫入的內容。"
-
 msgid "Show when"
 msgstr "顯示時間"
-
 msgid "Size"
 msgstr "尺寸"
-
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "大小必須是整數（-1 表示無佈局）。"
-
 msgid "Snap"
 msgstr "折斷"
-
 msgid "Spinner"
 msgstr "旋轉器"
-
 msgid "Stop firing anything on this event."
 msgstr "停止在此事件中發射任何內容。"
-
 msgid "Task action(s) in"
 msgstr "任務操作"
-
 msgid "Task(s)"
 msgstr "任務"
-
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "任務透過匹配模式（元素可見性）來處理該場景。自己檢查一下"
-
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker 將此任務保留在場景中而不是其他地方，因此它沒有名稱，並且不能在不丟失它的情況下指向其他地方。它原封不動地進行著。"
-
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker 列出了這個元素，但 MapTasker 從未在保存的場景中看到過這個元素 - 因此添加它時只攜帶其類型和 id，甚至類型也是從上面的名稱推斷出來的（寫為 type：“{node_type}”）。如果 Tasker 無法辨識它，請按「撤銷」。"
-
 msgid "Tasker variable(s)"
 msgstr "任務執行者變數"
-
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Tasker 的螢幕建構器：一個聲明性元件樹（列、行、支架等），可以自行佈局，沒有固定的畫布大小。開始於："
-
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "任務透過名稱（元素文字、元素位置…總共 18 個操作代碼）來定址該元素，因此重新命名它不是欄位編輯。 「重新命名」對話方塊列出了取決於目前名稱的內容，並提供了將這些任務一起顯示的選項。"
-
 msgid "Text density"
 msgstr "文字密度"
-
 msgid "That component can't go there."
 msgstr "該組件不能去那裡。"
-
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "那是已經載入的檔案。  選擇一個不同的來進行比較。"
-
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "無法讀取材質圖示列表，因此請輸入名稱。"
-
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "該元件將其值寫入其中的 Tasker 變數。幾個用逗號分隔。留空以聲明綁定而不設定它。"
-
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "儲存此場景時，解決該問題的任務將會更新。"
-
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "一行的佈局。 Tasker 對清單中的每個條目繪製一次，因此您在這裡看到的是單行而不是清單。"
-
 msgid "The loaded file was saved from"
 msgstr "載入的文件保存自"
-
 msgid "The original"
 msgstr "原來的"
-
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "原始場景：放置在大小畫布上固定位置的 UI 元素（文字、按鈕、矩形、圖像、Web...）。"
-
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "螢幕大小是此預覽的，而不是場景的 - 版本 2 佈局沒有自己的大小，因此更改「螢幕」以查看它的重新流動。由 Material 角色命名的顏色取自 Material 3 基線調色板；設備根據自己的主題來解析它們，該主題在 Material You 下來自壁紙。陰影填充和斜體下劃線文字是%variables。琥珀色輪廓以“顯示時間”標記組件。將滑鼠懸停在任何組件上可查看其修飾符、變數和操作。"
-
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "搜索並未結束。視圖可能太大，或是瀏覽器正忙。"
-
 msgid "The two files hold the same configuration."
 msgstr "這兩個檔案包含相同的配置。"
-
 msgid "This Scene has no UI elements."
 msgstr "該場景沒有 UI 元素。"
-
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "該場景沒有自己的景觀佈局（其大小為-1）。"
-
 msgid "This Scene has no layout for this orientation."
 msgstr "該場景沒有適合該方向的佈局。"
-
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "該場景沒有屬性元素。 MapTasker 見過的 366 個場景中有 66 個也沒有，所以這是普通的而不是損壞。"
-
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "無法讀取該場景的版本 2 佈局，將保持原樣。"
-
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "此場景的版本 2 版面配置沒有根元件，因此無需設計任何內容。"
-
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "此應用程式沒有此元素類型的屬性表，因此只能在此處編輯其幾何形狀。否則它會保持不變。"
-
 msgid "This element has no layout for this orientation."
 msgstr "該元素沒有適合該方向的佈局。"
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "這會將場景作為獨立檔案寫入 Android 裝置的 /Tasker/scenes 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n為此不需要授權提示。"
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "這會將場景作為獨立檔案寫入 Android 裝置上的 /Tasker/scenes 下 - 它不會將其匯入到 Tasker 的即時配置中。\n\n必須在 Android 裝置上安裝並啟動「Http 伺服器範例」Tasker 項目，且伺服器正在運行。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。為此不需要授權提示。"
-
 msgid "Tree label"
 msgstr "樹標籤"
-
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "將螢幕翻轉過來，讓佈局重新融入其中。"
-
 msgid "Undo"
 msgstr "撤銷"
-
 msgid "Using the saved size"
 msgstr "使用已儲存的尺寸"
-
 msgid "Variable"
 msgstr "多變的"
-
 msgid "Variables"
 msgstr "變數"
-
 msgid "Version 2"
 msgstr "版本2"
-
 msgid "View Limit"
 msgstr "查看限制"
-
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "您選擇的內容會出現在遊標處。再次打開它以添加下一塊。"
-
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "你選擇的內容會取代該欄位所包含的內容。鍵入以縮小清單範圍。"
-
 msgid "Which kind of Scene?"
 msgstr "哪種場景？"
-
 msgid "Writes to variable"
 msgstr "寫入變數"
-
 msgid "Zoom"
 msgstr "飛漲"
-
 msgid "component(s)"
 msgstr "成分）"
-
 msgid "connectors"
 msgstr "連接器"
-
 msgid "drag or nudge any of them and they all move together."
 msgstr "拖曳或輕推其中任何一個，它們都會一起移動。"
-
 msgid "editing 1 of"
 msgstr "編輯 1 個"
-
 msgid "element(s)"
 msgstr "元素"
-
 msgid "elements selected"
 msgstr "選定的元素"
-
 msgid "is not a whole number"
 msgstr "不是整數"
-
 msgid "lines dropped"
 msgstr "線路掉線"
-
 msgid "none"
 msgstr "沒有任何"
-
 msgid "not drawn"
 msgstr "未繪製"
-
 msgid "pair"
 msgstr "一對"
-
 msgid "pixels"
 msgstr "像素"
-
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "按名稱顯示或隱藏此場景的任務不會更改，並保留在原處。"
-
 msgid "Building the Map to show"
 msgstr "建構地圖來顯示"
-
 msgid "Built the Map, but it has no line for"
 msgstr "建立了地圖，但沒有線路"
-
 msgid "Click a finding to see it in the Map view."
 msgstr "點擊某個結果即可在地圖視圖中查看它。"
-
 msgid "Click a variable or a place to see it in the Map view."
 msgstr "單擊變數或位置即可在地圖視圖中查看它。"
-
 msgid "No Map view is open.  Run Map View, then click this again."
 msgstr "沒有打開地圖視圖。  運行地圖視圖，然後再次按一下此按鈕。"
-
 msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "追蹤載入的 XML 中的每個 % 變數：每個變數在何處設定、在何處讀取、哪些已讀取但從未設定、哪些已設定但從未讀取，以及哪些幾乎相同的名稱（%MyVar 與 %Myvar）可能是拼字錯誤。\n\n搜尋：任務操作及其條件、插件配置、設定檔上下文和場景。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"
-
 msgid "Variable Cross-Reference found no suspect variables."
 msgstr "變數交叉引用沒有發現可疑變數。"
-
 msgid "Variable Cross-Reference report could not be saved."
 msgstr "無法儲存變數交叉引用報表。"
-
 msgid "Variable Xref"
 msgstr "可變外部參照"
-
 msgid "detail level"
 msgstr "詳細程度"
-
 msgid "is no longer in the loaded configuration."
 msgstr "不再處於載入的配置中。"
-
 msgid "Variable Cross-Reference saved as"
 msgstr "變數交叉引用另存為"
-
 msgid "whole file"
 msgstr "整份文件"
-
 msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
 msgstr "立即停用已載入的備份中的項目 - 與重新命名一樣，這會立即生效，而不是等待儲存，並且取消不會撤銷它。"
-
 msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "「尋找...」向載入的配置詢問一個問題，而不是搜尋畫面上的文字：執行給定操作的每個任務、給定觸發器觸發的每個設定檔、命名給定應用程式或場景的所有內容。\n\n這些框結合起來——選擇一個觸發器和一個操作來尋找以這種方式觸發的設定檔並運行執行該操作的任務。\n\n結果以物件清單的形式傳回；按一下其中一個即可前往該位置。\n\n"
-
 msgid "Changes Pending"
 msgstr "更改待定"
-
 msgid "Changes made to the loaded XML this session, newest first.  Undo steps back through them one at a time.  Nothing here has been written to a file."
 msgstr "本次會話對載入的 XML 進行的更改，最新的在前。  撤銷步驟一次退一步。  這裡沒有任何內容被寫入文件。"
-
 msgid "Choose an action, a trigger, an app, a Scene or some text."
 msgstr "選擇一個操作、觸發器、應用程式、場景或一些文字。"
-
 msgid "Each box narrows the answer, and they combine: a trigger and an action together find the Profiles that trigger that way AND run a Task that does that. Every entry offered is one this configuration actually uses, and the number beside it is how many places carry it."
 msgstr "每個框都縮小了答案，它們結合在一起：觸發器和操作一起找到以這種方式觸發的配置文件並運行執行此操作的任務。提供的每個條目都是該配置實際使用的一個，旁邊的數字表示有多少個地方攜帶它。"
-
 msgid "Edit History"
 msgstr "編輯歷史記錄"
-
 msgid "Editing"
 msgstr "編輯"
-
 msgid "Every Project"
 msgstr "每個項目"
-
 msgid "Find"
 msgstr "尋找"
-
 msgid "Find in"
 msgstr "尋找於"
-
 msgid "Find results could not be saved."
 msgstr "無法保存查找結果。"
-
 msgid "Find results saved as"
 msgstr "查找結果另存為"
-
 msgid "Find..."
 msgstr "尋找..."
-
 msgid "Help"
 msgstr "幫助"
-
 msgid "In no Project"
 msgstr "在沒有項目中"
-
 msgid "List every change made to the loaded XML this session, newest first."
 msgstr "列出本次會話對載入的 XML 所做的所有更改，最新的在最前面。"
-
 msgid "Narrow to Project"
 msgstr "縮小到專案範圍"
-
 msgid "No changes to undo."
 msgstr "沒有要撤銷的變更。"
-
 msgid "Nothing has been changed yet."
 msgstr "一切還沒改變。"
-
 msgid "Nothing in the loaded configuration answers this."
 msgstr "載入的配置中沒有任何內容可以回答這個問題。"
-
 msgid "Nothing is saved until you press Ok, Save or Export."
 msgstr "在您按「確定」、「儲存」或「匯出」之前，不會儲存任何內容。"
-
 msgid "Redid"
 msgstr "雷迪德"
-
 msgid "Redo"
 msgstr "重做"
-
 msgid "Run a Find first."
 msgstr "首先運行查找。"
-
 msgid "Save Results"
 msgstr "保存結果"
-
 msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
 msgstr "取回對載入的 XML 所做的最後變更 - 在任何編輯面板中進行編輯、新增、刪除或重新命名。\n\n這會更改載入的內容，而不是任何檔案：磁碟或 Android 裝置上的任何內容都不會受到影響。"
-
 msgid "Text (name, label or argument)"
 msgstr "文字（名稱、標籤或參數）"
-
 msgid "Undid"
 msgstr "取消"
-
 msgid "Updating MapTasker in the background.  Please stand by..."
 msgstr "在背景更新 MapTasker。  請稍等..."
-
 msgid "does not belong to a Project, so there is nowhere to attach a new"
 msgstr "不屬於項目，因此沒有地方可以附加新的"
-
 msgid "found for"
 msgstr "找到了"
-
 msgid "of"
 msgstr "的"
-
 msgid "...to this name"
 msgstr "…使用這個名稱"
-
 msgid "...with this one"
 msgstr "...以及這個"
-
 msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
 msgstr "回到整個圖表：不進行放大、不摺疊、不過濾。"
-
 msgid "Cannot be changed"
 msgstr "無法更改"
-
 msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
 msgstr "無論在哪個地方，只要修改一次，就會全部生效。直到您按下「預覽」再按下「取代」時，才會真正變更，而且每次變更之後，都可以透過「撤銷」功能來恢復。"
-
 msgid "Choose a variable, and type the new name."
 msgstr "選擇一個變數，並輸入新的名稱。"
-
 msgid "Choose an action to replace, and one to replace it with."
 msgstr "選擇一個要取代的動作，以及要用來取代它的動作。"
-
 msgid "Click a name for its Map entry · shift-click a Task for its call chain"
 msgstr "點擊名稱以檢視其地圖記錄 · 按住 Shift 鍵點擊任務以檢視其呼叫鏈"
-
 msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
 msgstr "將每一個專案都縮小到標題欄。\n\n單獨一個專案，只需點擊其方框頂緣即可完成收合。"
-
 msgid "Expand every collapsed Project."
 msgstr "展開所有已摺疊的專案。"
-
 msgid "Limited to"
 msgstr "僅限於"
-
 msgid "Nothing here would change."
 msgstr "這裡的一切都將保持不變。"
-
 msgid "Nothing is ticked."
 msgstr "沒有任何項目被選中。"
-
 msgid "Nothing was changed."
 msgstr "一切都沒變。"
-
 msgid "Press Preview first."
 msgstr "先預覽新聞稿。"
-
 msgid "Rename this variable"
 msgstr "重新命名這個變數"
-
 msgid "Replace"
 msgstr "取代"
-
 msgid "Replace preview could not be saved."
 msgstr "無法儲存預覽。"
-
 msgid "Replace preview saved as"
 msgstr "將預覽儲存"
-
 msgid "Replace this action"
 msgstr "取代這個動作"
-
 msgid "Save Preview"
 msgstr "儲存預覽"
-
 msgid "Task action"
 msgstr "任務行動"
-
 msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
 msgstr "該圖可點擊：\n\n按一下要在地圖中前往的項目、設定檔、任務或場景名稱。\n\n按住 Shift 鍵並點擊任務可點亮其參與的整個呼叫鏈 - 它所呼叫的所有內容、呼叫它的所有內容以及它們之間的箭頭。\n\n右鍵單擊其餘的任何名稱：折疊其項目，僅顯示該項目，跟隨其鏈。\n\n點擊項目旁邊的 ▾ 將其折疊，然後點擊 ▸ 將其恢復。\n\nCtrl（或 ⌘）和滾輪可縮放。  Esc 清除鏈條。"
-
 msgid "Undo is available."
 msgstr "功能已啟用。"
-
 msgid "Variable name"
 msgstr "變數名稱"
-
 msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "放大。按下 Ctrl/⌘鍵，或使用滾動圈，效果相同。"
-
 msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "放大縮放。按下 Ctrl/⌘ 鍵，或使用滑鼠滾輪，效果相同。"
-
 msgid "changed"
 msgstr "變更"
-
 msgid "clear the single-item selection to reach the whole configuration"
 msgstr "清除單一選項，以完成整個配置。"
-
 msgid "more"
 msgstr "更多"
-
 msgid "...and put this there"
 msgstr "……然後把這個放在那裡"
-
 msgid "...replace this argument"
 msgstr "....替換這個參數"
-
 msgid "Action argument"
 msgstr "行動論證"
-
 msgid "Add it where missing"
 msgstr "在缺少的地方添加它"
-
 msgid "Choose an action, and which of its arguments to replace."
 msgstr "選擇一個操作，以及要替換的參數。"
-
 msgid "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment."
 msgstr "使用等寬字體（例如 Courier New）顯示，以實現精確的列對齊。並關閉換行。\n名稱中的圖示或中文/韓文/日文可能會導致輕微的錯位。"
-
 msgid "Drawn for"
 msgstr "繪製為"
-
 msgid "Error: Single item specified but not found!  Try again."
 msgstr "錯誤：指定了單一項目但未找到！  再試一次。"
-
 msgid "In this action"
 msgstr "在這次行動中"
-
 msgid "Nothing in scope has that argument to change."
 msgstr "該論點範圍內的任何內容都不會改變。"
-
 msgid "Only the matching text"
 msgstr "僅匹配文本"
-
 msgid "Only where the value contains (optional)"
 msgstr "僅當值包含時（可選）"
-
 msgid "Press Diagram View to rebuild it."
 msgstr "按圖表視圖重建它。"
-
 msgid "Rebuild"
 msgstr "重建"
-
 msgid "The change is applied.  Press Map View to see it."
 msgstr "更改已套用。  按地圖視圖即可查看。"
-
 msgid "now showing"
 msgstr "現在顯示"
-
 msgid "the whole configuration"
 msgstr "整個配置"
-
 msgid "'Find/Replace' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "「尋找/取代」會向載入的配置詢問一個問題，而不是搜尋畫面上的文字：執行給定操作的每個任務、觸發給定觸發器的每個設定檔、命名給定應用程式或場景的所有內容。\n\n這些框結合在一起——選擇一個觸發器和一個操作來尋找以這種方式觸發的設定檔並運行執行該操作的任務。\n\n結果以物件清單的形式傳回；按一下其中一個即可前往該位置。\n\n"
-
 msgid "Choose a Profile condition to replace, and one to replace it with."
 msgstr "選擇要替換的設定檔條件，以及要替換的設定檔條件。"
-
 msgid "Find/Replace"
 msgstr "尋找/取代"
-
 msgid "Profile condition"
 msgstr "個人資料"
-
 msgid "Replace this Profile condition"
 msgstr "替換此設定檔條件"
-
 msgid "%variable_name"
 msgstr "%變數名"
-
 msgid "A variable name has to start with '%' -- for example %app_package."
 msgstr "變數名稱必須以“%”開頭——例如%app_package。"
-
 msgid "Also in this field"
 msgstr "也在這個領域"
-
 msgid "App not listed?"
 msgstr "應用程式未列出？"
-
 msgid "Choose from the Applications named in the loaded configuration."
 msgstr "從已載入的配置中指定的應用程式中進行選擇。"
-
 msgid "Choose from the icons used in the loaded configuration."
 msgstr "從已載入的配置中使用的圖示中進行選擇。"
-
 msgid "Fetch"
 msgstr "拿來"
-
 msgid "Fetch Applications From Android Device"
 msgstr "從 Android 裝置取得應用程式"
-
 msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
 msgstr "從 Android 裝置取得已安裝應用程式的完整清單。  現在列出的只是該配置已經命名的內容。"
-
 msgid "Fetching..."
 msgstr "正在獲取..."
-
 msgid "Fill all three fields in from the loaded configuration."
 msgstr "填寫載入的配置中的所有三個欄位。"
-
 msgid "Import Into Tasker"
 msgstr "導入到 Tasker"
-
 msgid "Listing the XML files on the Android device..."
 msgstr "列出 Android 裝置上的 XML 檔案..."
-
 msgid "More matches than can be shown -- narrow the search."
 msgstr "匹配項超出可顯示的範圍 - 縮小搜尋範圍。"
-
 msgid "No Icon"
 msgstr "無圖示"
-
 msgid "Or a Tasker variable:"
 msgstr "或者，可以設定一個工作者變數："
-
 msgid "Pick"
 msgstr "挑選"
-
 msgid "Pick an Application"
 msgstr "選擇一個應用程式"
-
 msgid "Save As File"
 msgstr "儲存為..."
-
 msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
 msgstr "這些應用程式，可以在載入的設定中找到，或是指定一個 Tasker 變數，讓該變數填入「套件」和「標籤」欄位，並將「類別」欄位留空，就像 Tasker 預設的方式。"
-
 msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
 msgstr "這些應用程式會在載入的設定中被指定。 請確認所有選項都符合此條件。 任何在欄位中已經存在的，但未列出的內容，都會保留。"
-
 msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "這些圖示可能出現在載入的設定中。您選擇的圖示會取代該欄位所顯示的內容。如果從圖示套件中選擇的圖示沒有列出，則必須手動輸入其名稱，因為這些名稱存在於套件中。"
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將「個人資料」頁面顯示在 Android 裝置上 Tasker 自身的匯入介面。 然後，您在裝置上點擊「匯入」按鈕以完成操作 – 除非您執行此操作，否則不會匯入任何資料。\n\n「HTTP 伺服器範例」的 Tasker 專案必須已安裝並運作，且 Tasker 必須為 6.2 或更高版本。\n\n裝置會詢問您是否允許 MapTasker 第一次使用。"
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將專案（以及其中每個個人資料和任務）呈現給 Tasker 自己的匯入畫面，您接著在裝置上點擊「匯入」以完成操作，直到您執行匯入操作，才會有資料匯入。\n\n「Http Server 範例」的 Tasker 專案必須已安裝並執行，且 Tasker 必須為 6.2 或更高版本。\n\n裝置會詢問您是否授權 MapTasker 第一次使用。"
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將「場景」及其所有任務元素發送到 Android 裝置，並在「/Tasker/scenes」目錄下執行，並開啟 Tasker。\n\n您可以在 Tasker 的「場景 > 匯入一個場景」中使用，並根據場景名稱進行選擇。與「個人資料」或「專案」不同，場景無法直接從這裡匯入到 Tasker 的匯入畫面中——即使您選擇它，Tasker 仍然不會匯入相同的檔案。\n\n「HTTP 伺服器範例」的 Tasker 專案必須已安裝並正在執行，且 Tasker 必須是 6.2 或更高版本。\n\n裝置會要求您第一次授權 MapTasker。"
-
 msgid "Use Selected"
 msgstr "使用選定的"
-
 msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
 msgstr "在 Android 裝置上等待 -- 如果出現提示，請在那裡接受授權。這可能需要 30 秒或更長時間。"
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
 msgstr "觀看您的 Android 裝置：Tasker 會要求您授權連接，在您接受之前，提取無法繼續。  如果您有數百個應用程序，則需要等待 30 秒或更長時間，因為每個應用程式的名稱都是單獨查找的。"
-
 msgid "applications, fetched"
 msgstr "應用程式，取得"
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nThe file write needs no authorization prompt; the import asks for one, and you must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "這將開啟兩個選擇：將任務作為獨立檔案寫入 Android 裝置上的 /Tasker/tasks 下，或將其直接匯入 Tasker 的即時配置中。\n\n「Http 伺服器範例」Tasker 專案必須在 Android 裝置上安裝並處於活動狀態，且伺服器正在執行（請參閱自述文件的直接 XML 檢索說明），且 Tasker 必須為 6.2 或更高版本。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。\n\n檔案寫入無需授權提示；匯入需要一個任務，您必須退出並重新啟動 Tasker 才能在 Tasker UI 中看到匯入的任務。"
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將設定檔置於 Android 裝置上 Tasker 自己的匯入畫面前面。  然後，您點擊裝置上的「匯入」即可完成 - 在您執行此操作之前，不會匯入任何內容。\n\n設定檔首先以其自己的名稱複製到 /Tasker/profiles 並從那裡提供，因此它會保留在您可以找到的名稱下 - 如果導入螢幕未出現，請從 Tasker 手動導入它。  在替換該路徑中已有的檔案之前，系統會詢問您。\n\n必須安裝並執行「Http Server 範例」Tasker 項目，且 Tasker 必須為 6.2 或更高版本。\n\n設備第一次會要求您授權MapTasker。"
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將專案以及其中的每個設定檔和任務置於 Android 裝置上 Tasker 自己的匯入畫面前。  然後點擊裝置上的「導入」即可完成；在您執行此操作之前，不會匯入任何內容。\n\n該專案首先以其自己的名稱複製到 /Tasker/projects 並從那裡提供，因此它會以您可以找到的名稱保留在後面 - 如果導入螢幕沒有出現，請從 Tasker 手動導入它。  在替換該路徑中已有的檔案之前，系統會詢問您。\n\n必須安裝並執行「Http Server 範例」Tasker 項目，且 Tasker 必須為 6.2 或更高版本。\n\n設備第一次會要求您授權MapTasker。"
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將任務直接放入 Android 裝置上的 Tasker 即時配置中。  與設定檔、專案或場景不同，不需要匯入螢幕，也不需要點擊裝置——Tasker 的 api/import 直接接受任務。\n\n任務首先複製到裝置上的 /Tasker/tasks 並從那裡匯入，因此副本會保留下來作為匯入內容的準確記錄。  在替換該路徑中已有的檔案之前，系統會詢問您。\n\n必須安裝並執行「Http Server 範例」Tasker 項目，且 Tasker 必須為 6.2 或更高版本。\n\n設備第一次會要求您授權MapTasker。"
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將場景（及其觸發的每個任務元素）發送到 Android 設備，並以其自己的名稱發送到 /Tasker/scenes，並開啟 Tasker。\n\n您可以使用 Tasker 的「場景 > 匯入一個場景」在裝置上完成此操作，然後按名稱選擇場景。  與設定檔或專案不同，場景不能從此處放置在 Tasker 的導入畫面前 - Tasker 不會用一隻手來處理它，儘管當您選擇它時它會導入完全相同的檔案。\n\n在替換該路徑中已有的檔案之前，系統會詢問您。\n\n必須安裝並執行「Http Server 範例」Tasker 項目，且 Tasker 必須為 6.2 或更高版本。\n\n設備第一次會要求您授權MapTasker。"
-
 msgid "Delete them from Tasker's Tasks tab -- long-press one, then Delete.  Nothing here can do it: Tasker's HTTP API has no way to delete a Task."
 msgstr "從 Tasker 的「任務」標籤中刪除它們——長按其中一個，然後刪除。  這裡沒有辦法做到這一點：Tasker 的 HTTP API 無法刪除任務。"
-
 msgid "In use -- leave these alone:"
 msgstr "使用中－不要管這些："
-
 msgid "List Helper Tasks"
 msgstr "列出助手任務"
-
 msgid "Lists the 'MapTasker ...' Tasks this program has installed on the Android device, and says which are left over from an earlier version.\n\nEach one is installed under a versioned name and never replaced -- Tasker's import adds a second Task rather than replacing the first -- so old ones stay behind in your Task list.  They do no harm; they are clutter.\n\nDelete the ones it names from Tasker's own Tasks tab.  Nothing here can do it for you: Tasker's HTTP API has no way to delete a Task."
 msgstr "列出程式已安裝在 Android 裝置上的「MapTasker ...」任務，並說明哪些是早期版本遺留下來的。\n\n每個任務都以版本化名稱安裝，並且永遠不會被替換——Tasker 的導入會添加第二個任務，而不是替換第一個任務——因此舊任務會保留在您的任務列表中。  它們不會造成傷害；他們很混亂。\n\n從 Tasker 自己的「任務」標籤中刪除它指定的任務。  這裡沒有任何東西可以為您做這件事：Tasker 的 HTTP API 無法刪除任務。"
-
 msgid "MapTasker Helper Tasks"
 msgstr "MapTasker 助理任務"
-
 msgid "Nothing left over -- every MapTasker Task on the device is in use."
 msgstr "沒有留下任何東西——設備上的每個 MapTasker 任務都在使用中。"
-
 msgid "This copies the Profile to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將設定檔複製到裝置並為其開啟 Android 的「開啟方式...」選擇器。  選擇Tasker，就會出現它自己的導入畫面；然後點擊「導入」即可完成－在您執行此操作之前，不會導入任何內容。\n\n設定檔首先以其自己的名稱複製到 /Tasker/profiles 並從那裡提供，因此它會保留在您可以找到的名稱下 - 如果導入螢幕未出現，請從 Tasker 手動導入它。  在替換該路徑中已有的檔案之前，系統會詢問您。\n\n必須安裝並執行「Http Server 範例」Tasker 項目，且 Tasker 必須為 6.2 或更高版本。\n\n設備第一次會要求您授權MapTasker。"
-
 msgid "This copies the Project -- and every Profile and Task in it -- to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish, and nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將項目及其中的每個設定檔和任務複製到裝置並為其開啟 Android 的「開啟方式...」選擇器。  選擇Tasker，就會出現它自己的導入畫面；然後點擊「導入」即可完成，在您執行此操作之前，不會導入任何內容。\n\n該專案首先以其自己的名稱複製到 /Tasker/projects 並從那裡提供，因此它會以您可以找到的名稱保留在後面 - 如果導入螢幕沒有出現，請從 Tasker 手動導入它。  在替換該路徑中已有的檔案之前，系統會詢問您。\n\n必須安裝並執行「Http Server 範例」Tasker 項目，且 Tasker 必須為 6.2 或更高版本。\n\n設備第一次會要求您授權MapTasker。"
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nIf Tasker does not report the Task after two attempts, that copy is handed to Android's 'Open with...' chooser instead, so you can import it by picking Tasker.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將任務直接放入 Android 裝置上的 Tasker 即時配置中。  與設定檔、專案或場景不同，不需要匯入螢幕，也不需要點擊裝置——Tasker 的 api/import 直接接受任務。\n\n任務首先複製到裝置上的 /Tasker/tasks 並從那裡匯入，因此副本會保留下來作為匯入內容的準確記錄。  在替換該路徑中已有的檔案之前，系統會詢問您。\n\n如果 Tasker 在兩次嘗試後未報告任務，則該副本將交給 Android 的「開啟方式...」選擇器，因此您可以透過選擇 Tasker 來匯入它。\n\n必須安裝並執行「Http Server 範例」Tasker 項目，且 Tasker 必須為 6.2 或更高版本。\n\n設備第一次會要求您授權MapTasker。"
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Android's 'Open with...' chooser for it.\n\nIf Tasker is in that chooser, pick it.  A Scene is the one kind Tasker has been seen to refuse when it is handed one, so if it is not there -- or nothing happens -- finish it with Tasker's 'Scenes > Import One Scene' and pick the Scene by name.  The file is on the device either way, and the message tells you its name.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "這會將場景（及其觸發的每個任務元素）發送到 Android 設備，並以其自己的名稱發送到 /Tasker/scenes，並為其打開 Android 的「開啟方式...」選擇器。\n\n如果 Tasker 在該選擇器中，請選擇它。  場景是一種Tasker在收到場景時會拒絕的類型，所以如果它不存在——或者什麼也沒有發生——用Tasker的“場景>導入一個場景”來完成它，並按名稱選擇場景。  無論哪種方式，該文件都位於裝置上，並且訊息會告訴您其名稱。\n\n在替換該路徑中已有的檔案之前，系統會詢問您。\n\n必須安裝並執行「Http Server 範例」Tasker 項目，且 Tasker 必須為 6.2 或更高版本。\n\n設備第一次會要求您授權MapTasker。"
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "這會將任務作為獨立檔案寫入 Android 裝置上的 /Tasker/tasks 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n為此不需要授權提示。"
-
 msgid "left over from an earlier version -- safe to delete in Tasker:"
 msgstr "早期版本留下的內容－可以在 Tasker 中安全刪除："
-
 msgid "Clear the field, leaving the action with no icon."
 msgstr "清除該字段，使操作不帶圖示。"
-
 msgid "Clicking this will launch 'pip install --upgrade maptasker' in the background, and then relaunch MapTasker."
 msgstr "點擊此按鈕將在背景啟動“pip install --upgrade maptasker”，然後重新啟動 MapTasker。"
-
 msgid "Display the changes in the new version."
 msgstr "顯示新版本中的變更。"
-
 msgid "Enables the display a breakdown of the Tasker system Preferences in the output."
 msgstr "啟用在輸出中顯示 Tasker 系統首選項的詳細資訊。"
-
 msgid "Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, and Prettier Output."
 msgstr "啟用條件、TaskerNet 資訊、首選項、目錄和 Prettier 輸出的顯示。"
-
 msgid "Enables the display of Profile Conditions (e.g. State, Event, etc.) details in the output."
 msgstr "啟用在輸出中顯示設定檔條件（例如狀態、事件等）詳細資訊。"
-
 msgid "Enables the display of TaskerNet Descriptions in the output."
 msgstr "啟用在輸出中顯示 TaskerNet 描述。"
-
 msgid "Enables the display of aligned text in the output."
 msgstr "啟用在輸出中顯示對齊文字。"
-
 msgid "Enables the display of the Project/Profile/Task/Scene Directory in the output."
 msgstr "啟用在輸出中顯示項目/設定檔/任務/場景目錄。"
-
 msgid "Fetch the full list of installed Applications from the Android device."
 msgstr "從 Android 裝置取得已安裝應用程式的完整清單。"
-
 msgid "Pick a Task which will be called by this action."
 msgstr "選擇此操作將呼叫的任務。"
-
 msgid "Saves this Profile as a standalone .prf.xml file on this computer."
 msgstr "將此設定檔另存為該電腦上的獨立 .prf.xml 檔案。"
-
 msgid "Select the model belonging to the AI you wish to use."
 msgstr "選擇屬於您想要使用的 AI 的型號。"
-
 msgid "This will reach out to your Android device to list the available XML files belonging to Tasker."
 msgstr "這將連接到您的 Android 設備，列出屬於 Tasker 的可用 XML 檔案。"
-
 msgid "When enabled, Task details are hidden under a twisty (expand/collapse) control in the output."
 msgstr "啟用後，任務詳細資訊將隱藏在輸出中的扭曲（展開/折疊）控制項下。"
-
 msgid "Clicking this button will result in the following actions:  \n- The IP Address will be used to ping the Android device.  \n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.  \n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.  \n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.  \nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.  \nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.  \n"
 msgstr "單擊此按鈕將導致以下操作：\n- IP 位址將用於 ping Android 裝置。  \n- IP 位址和連接埠號碼將用於查詢 Android 裝置並取得在 Tasker 資料夾中找到的可用 XML 檔案的清單。  \n- 找到的 XML 檔案清單將顯示在下拉式選單中，您可以從中選擇要使用的檔案。  \n- 一旦您選擇了 XML 文件，它將被獲取並驗證為有效的 XML，然後在您隨後單擊“運行”或“重新運行”按鈕時將其用作程式的輸入。  \n該清單是由一個名為「MapTasker List Files v1」的小任務完成的，當您第一次使用此按鈕時，MapTasker 會在您的 Android 裝置上安裝該任務，然後將其保留在那裡。  無需手動匯入任何內容。  它需要在裝置和 Tasker 6.2 或更高版本上執行「HTTP 伺服器範例」專案 - 與「儲存到 Android」的要求相同 - 並且 Tasker 會要求您首次授權連線。  \n等待幾秒鐘：安裝任務（一次）、運行它並讀回它的答案不是即時的。\n"
-
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.  \nXML must first be obtained from the either local drive or Android device for the views to work.  \nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.  \nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.  \nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n\nThe Diagram View has the following behavior:  \n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.  \n - Click on a horizontal connector to highlight the entire connection in the diagram.  \n\nThe Tree View has the following behavior:  \n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.  \n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.  \n"
 msgstr "直接在 GUI 中顯示您的配置的「地圖」、「圖表」或「樹狀圖」視圖。\n為了讓這些視圖正常運作，必須先從本地硬碟或 Android 裝置取得 XML 檔案。\n如果已經取得 XML 檔案，則會用作視圖的輸入。點擊「清除」按鈕即可清除視圖資料。\n對於非常大的配置，地圖和圖表的運作時間可能會變長。為了獲得最佳效能，請選擇一個單一專案或個人資料進行映射。\n可選地，可以使用「視圖限制」設定來限制要處理的資料量。限制越大，允許映射的資料量就越大。產生越多資料，處理時間就越長。\n\n「圖表」視圖具有以下行為：\n- 只能顯示專案和個人資料。僅包含單一任務或場景的 XML 將不會顯示。\n- 點擊水平連接線以高亮顯示整個圖表的連接。\n\n「樹狀圖」視圖具有以下行為：\n- 只能顯示專案。僅包含單一個人資料、任務或場景的 XML 將不會顯示。\n- 無論設定單一名稱，都能顯示所有專案、個人資料、任務和場景。\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.  \n- The numbers represent the relative amount of output lines to be generated.  \n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.  \n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.  \n- If the limit is hit when calculating the map, the output will stop there.  \n- You can experiment with this setting to see which setting is best for your use case.  \n- Selecting a single Project, Profile or Task is another means to limit the processing time.  \n"
 msgstr "「視圖限制」是一種控制產生視圖時所使用的處理時間量的方法。  \n- 數字表示要產生的輸出行的相對數量。  \n- 限制越大，允許映射的輸出就越大。  產生的輸出越多，處理時間就越長。  \n- 非常大的配置將產生非常大的輸出圖並導致更長的處理時間。  在較舊的設備上，這可能需要長達 30 秒或更長時間。  \n- 透過設定限制，您可以透過不允許更長的持續時間來控制映射配置時使用的處理時間。  \n- 如果計算地圖時達到限制，輸出將在那裡停止。  \n- 您可以嘗試此設置，看看哪種設置最適合您的使用案例。  \n- 選擇單一項目、設定檔或任務是限制處理時間的另一種方法。\n"
-
 msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.  \nThe following steps are required in order to run AI against your Profile.  \n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).  \n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.  \n3- Select the model you want to use.  \n   o The model selected will determine with which AI the analysis is to be performed.  \n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.  \n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.  \n   o The process may take some time and runs in the background.  The results will appear in a separate window.  \n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.  \nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.  \nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.  \n"
 msgstr "「分析」標籤用於使用本地 llama 模型或基於伺服器的 Open AI、Claude 或 DeepSeek 模型對您的個人資料執行 Ai 分析。  \n為了針對您的個人資料執行 AI，需要執行以下步驟。  \n1- 如果使用基於伺服器的 AI，您必須擁有提供者提供的有效 API 金鑰（例如 OpenAI）。  您可以使用「顯示/編輯 API 金鑰」按鈕輸入您的金鑰。  \n2- 預設提示為：“建議效能和可讀性改進：（您的專案/設定檔/任務）”，並自動前面加上：“在 Tasker 中給出以下（專案/設定檔/任務），”。  如果修改提示，您只需修改“建議改進...”部分。  \n3- 選擇您要使用的型號。  \n   o 所選模型將決定使用哪一個 AI 進行分析。  \n4- 點選“運行分析”按鈕。  輸入所有必要的數據後，它將變為綠色。  \n   o 如果您尚未選擇模型、提示或單一專案、設定檔或任務或有效的 API 金鑰，系統將提示您先進行選擇。  \n   o 過程可能需要一些時間並在背景運行。  結果將顯示在單獨的視窗中。  \n   o 分析開始後，尚未載入到電腦上的本機模型將在背景載入。  \n您指定的 api-keys（如果有）、模型、選定的項目、設定檔或任務以及 Ai 提示都會跨會話儲存。  \n「重新運行」功能將在幕後使用，在新視窗中顯示分析結果。\n"
-
 msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.  \n1- Both this device and the Android device must be on the same named network.  \n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):  \n    https://tinyurl.com/4p5cz8sv  \nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.  \nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...  \n'192.168.0.210' is the default IP address,  \n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device  \n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.  \nUsage Notes:  \nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:  \nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}  \n- To fetch the XML file, click on the button  \n 'Get XML from Android Device'  \nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.  \n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.  \nClick on the 'Cancel Entry' button to back out of this fetch process.  \n"
 msgstr "需要執行以下步驟才能直接從 Android 裝置取得 Tasker XML 檔案。  \n1- 此裝置和 Android 裝置必須位於同一命名網路上。  \n2- 必須在 Android 裝置上安裝並啟動 Tasker 專案「HTTP 伺服器範例」或相同功能（伺服器必須正在執行）：\n    https://tinyurl.com/4p5cz8sv\n這是唯一需要的設定。  「列出 XML 檔案」選項過去需要從 TaskerNet 匯入第二個單獨的設定檔（「MapTasker 清單」）並保持啟用狀態；現在不再這樣了。  MapTasker 現在會在裝置上安裝一個名為「MapTasker List Files v1」的小任務來進行列表，與「應用程式未列出？」的方式相同。安裝一個來獲取您的應用程式。  \n系統會要求您提供 Android 裝置的 IP 位址、連接埠號碼以及 Android 裝置上的檔案位置。  提供了預設值，其中...\n‘192.168.0.210’是預設IP位址，\n「1821」是 Android 裝置上執行的 Tasker HTTP 伺服器範例的預設連接埠號\n“/Tasker/configs/user/backup.xml”是預設檔案位置。  如果您不知道檔案位置並且已經輸入了 IP 位址和端口，則可以選擇「列出 XML 檔案」按鈕來取得 Android 裝置上可用 XML 檔案的清單以供選擇。  \n使用注意事項：\n可以透過在 Android 裝置上安裝上述 URL 中的「HTTP 伺服器範例」項目來取得 IP 位址和連接埠。然後執行名為「Update GD HTTP Info」的任務來取得 Android 通知：\nHTTP 伺服器資訊\n伺服器資訊已更新 {\"device name\":\"http://192.168.0.49:1821\"}\n- 若要取得 XML 文件，請按一下按鈕\n “從 Android 裝置取得 XML”\n然後修改此按鈕下方輸入欄位中顯示的預設值，然後按一下「輸入並按一下此處設定 XML 詳細資料」或「列出 XML 檔案」按鈕。  \n- 點擊任一按鈕都會對 Android 裝置執行 ping 操作以查看是否可用。  如果裝置無法存取，則 ping 將在 10 秒後逾時。  確保 IP 位址正確。  \n按一下「取消輸入」按鈕可退出此取得程序。\n"
-
 msgid "This menu is where you define your AI API keys for use by the AI 'Analyze' button.  \nThe keys are saved across sessions.  \nThe keys are used to access the OpenAI, Claude AI, Gemini AI, and DeepSeek AI server-based models.  \nClick on the 'Clear' button to clear a specific API key entry.  \nSelect 'Ok' to save the changes or 'Cancel' to back out of the changes.  \n"
 msgstr "您可以在此選單中定義供 AI「分析」按鈕使用的 AI API 金鑰。  \n密鑰跨會話保存。  \n這些金鑰用於存取 OpenAI、Claude AI、Gemini AI 和 DeepSeek AI 基於伺服器的模型。  \n按一下「清除」按鈕可清除特定的 API 金鑰條目。  \n選擇“確定”儲存更改，或選擇“取消”取消更改。\n"
-
 msgid "A Legacy Scene has a pixel canvas and a list of UI elements. It is the original Scene format, and is what Tasker itself produces."
 msgstr "一個 Legacy 場景包含一個像素畫布和 UI 元素的清單。這是原始場景格式，也是 Tasker 程式本身產生的格式。"
-
 msgid "Displays the Diagram view.\n\nUse this to visualize the relationships between your Projects, Profiles, Tasks, and Scenes."
 msgstr "顯示圖表視圖。\n\n使用它來視覺化專案、設定檔、任務和場景之間的關係。"
-
 msgid "Displays the Map view.\n\nUse this to display the Tasker configuration of your Projects, Profiles, Tasks, and Scenes."
 msgstr "顯示地圖視圖。\n\n使用它來顯示專案、設定檔、任務和場景的 Tasker 配置。"
-
 msgid "Displays the Tree view.\n\nUse this to navigate the hierarchical structure of your Projects, Profiles, Tasks, and Scenes."
 msgstr "顯示樹視圖。\n\n使用它來導航專案、設定檔、任務和場景的層次結構。"
-
 msgid "Exports the Task as XML to a file on your computer."
 msgstr "將任務匯出為 XML 到電腦上的文件。"
-
 msgid "Saves this Profile, with all of its conditions and linked Tasks, as one standalone .prf.xml file -- the same format Tasker's own Profile export produces.\n\nTasks the Profile runs are not included; they belong to their own Project."
 msgstr "將此設定檔及其所有條件和連結的任務儲存為一個獨立的 .prf.xml 檔案 - 與 Tasker 自己的設定檔匯出產生的格式相同。\n\n不包括設定檔運行的任務；他們屬於自己的專案。"
-
 msgid "Select a specific Profile to target for display or editing."
 msgstr "選擇要顯示或編輯的特定設定檔。"
-
 msgid "Select a specific Project to target for display or editing."
 msgstr "選擇要顯示或編輯的特定項目。"
-
 msgid "Select a specific Scene to target for display or editing."
 msgstr "選擇要顯示或編輯的特定場景。"
-
 msgid "Select a specific Task to target for display or editing."
 msgstr "選擇要顯示或編輯的特定任務。"
-
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "選擇此選項可包括清單中沒有名稱的設定檔和任務。"
-
 msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
 msgstr "從載入的設定中選擇您想要的圖示，或從您已下載的應用程式中選擇。"
-
 msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
 msgstr "這些圖示來自應用程式相同的來源：Tasker 能夠透過應用程式的套件和啟動器活動來辨識應用程式本身的圖示，因此裝置上找到的每一個應用程式都可以作為可選的圖示。\n\nTasker 本身內建的圖示無法取得，它們存在於 Tasker 程式本身，同樣地，圖示套組內的圖示也必須依名稱輸入。"
-
 msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "在載入的設定中使用的任何圖示，以及您從裝置上取得的應用程式本身的圖示。您選擇的圖示會取代該欄位所顯示的內容。如果圖示來自未列出的圖示集，則必須手動輸入：這些圖示名稱都存在於該圖示集中。"
-
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
-msgstr "有關更多信息，請參閱 MapTasker [命令參考](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)。\n"
-
+msgstr "有關更多信息，請參閱 MapTasker [命令參考](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) 。\n"
 msgid "(anonymous Task, stored in the Scene)"
 msgstr "（匿名任務，儲存在場景中）"
-
 msgid "(new variable)"
 msgstr "（新變數）"
-
 msgid "(no label)"
 msgstr "（無標籤）"
-
 msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
 msgstr "要在操作列中顯示的以逗號分隔的選項卡清單。選擇其中一個會觸發「事件」標籤的「選項卡點擊任務」。"
-
 msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
 msgstr "要處理的按鍵的斜線分隔清單 - 按名稱或代碼，例如返回/78/a。任何其他密鑰都會傳遞到系統。\n將其留空以處理每個鍵。"
-
 msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "操作列樣式、標題、副標題、圖示和標籤標籤僅適用於活動。它們仍然會被存儲，並且如果您將“屬性類型”切換為“活動”，則會顯示它們。"
-
 msgid "Action bar"
 msgstr "操作欄"
-
 msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "操作欄項目僅適用於活動。它們仍然會被存儲，並且如果您將“屬性類型”切換為“活動”，則會顯示它們。"
-
 msgid "Actions of the"
 msgstr "的行動"
-
 msgid "Add Variable"
 msgstr "新增變數"
-
 msgid "Add an action bar item"
 msgstr "新增操作欄項目"
-
 msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
 msgstr "將此任務新增至已載入的設定中，並將此事件指向它，與「新增任務」對話方塊中的「確定」相同 - 不會將任何內容寫入文件，也不會將任何內容傳送到 Android。  好的，也為你做，所以這只是為了創建它而不關閉。\n在此之前，任務僅存在於該視窗中，並且「取消」會丟棄它。之後，它就像任何其他任務一樣 - 取消會收回綁定，但不會收回任務，而撤消則收回兩者。"
-
 msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
 msgstr "場景處理的任何鍵都不會傳遞到系統 - 場景如何防止後退鍵關閉它。\n依照 Tasker 的方式編寫：場景的 <LinkClickFilter> 內有一個 <stopEvent>，在勾選此項目時創建，並在取消勾選且其中不留任何其他內容時再次刪除。"
-
 msgid "Apply to Task"
 msgstr "應用於任務"
-
 msgid "Changes kept for Task"
 msgstr "為任務保留的更改"
-
 msgid "Create Task"
 msgstr "建立任務"
-
 msgid "Created Task"
 msgstr "建立任務"
-
 msgid "Display Name"
 msgstr "顯示名稱"
-
 msgid "Exported Value"
 msgstr "出口價值"
-
 msgid "Icon"
 msgstr "圖示"
-
 msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
 msgstr "能夠保留所有內容，包括在「活動」選項下所編輯的任何任務。\n\n如果一個任務是由沒有活動所建立，並在其中加入任何動作，則會自動建立並與該活動連結。「撤銷」功能可以將任務編輯恢復。"
-
 msgid "Keys"
 msgstr "鑰匙"
-
 msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
 msgstr "首先載入 Tasker 配置－新任務需要一個來取得 id。"
-
 msgid "Name"
 msgstr "姓名"
-
 msgid "New Task Name"
 msgstr "新任務名稱"
-
 msgid "No Task matches."
 msgstr "沒有任務匹配。"
-
 msgid "No action bar items."
 msgstr "沒有任何動作欄上的選項。"
-
 msgid "No variables."
 msgstr "沒有變數。"
-
 msgid "Nothing -- this event fires no Task."
 msgstr "什麼都沒有——該事件不會觸發任何任務。"
-
 msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
 msgstr "尚未綁定任何內容，因此這些操作將進入一個新任務。當您按下下面的按鈕或「確定」時，它就會創建，並且該事件指向它。取消會丟棄它。"
-
 msgid "Nothing set."
 msgstr "什麼都沒有設定。"
-
 msgid "Prompt"
 msgstr "迅速的"
-
 msgid "Properties kept."
 msgstr "保留財產。"
-
 msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
 msgstr "現在將這些操作編輯放入已載入的配置中，無需關閉 - 與「編輯任務」對話方塊中的「確定」相同。  好的，這裡也為您做這件事，所以這只是為了讓他們保持編輯狀態。\n沒有任何內容寫入文件，也沒有發送任何內容到 Android。此任務不是場景的一部分，因此此視窗的「取消」和「場景」對話方塊的「取消」和「場景」對話方塊在這些編輯完成後都不會取回這些編輯。撤消即可。"
-
 msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
 msgstr "將這些屬性還原到此視窗開啟時的狀態，並刪除在「事件」標籤下編輯的任何任務的操作。\n已透過自己的按鈕（「套用到任務」或「建立任務」）放入配置中的任務將保留在那裡。撤銷會將這些恢復。"
-
 msgid "Remove Variable"
 msgstr "刪除變數"
-
 msgid "Same as Value"
 msgstr "與值相同"
-
 msgid "Scene properties changes discarded."
 msgstr "場景屬性更改被丟棄。"
-
 msgid "Search Tasks"
 msgstr "搜尋任務"
-
 msgid "Stop Event"
 msgstr "停止事件"
-
 msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
 msgstr "操作列左上角的主頁圖示。點擊它會觸發「事件」標籤的「主頁點擊任務」。"
-
 msgid "There are no Tasks in this configuration."
 msgstr "此配置中沒有任務。"
-
 msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
 msgstr "該任務儲存在場景內，不在任務清單中，因此無法在此編輯其操作。它原封不動地進行著。"
-
 msgid "This item has no action."
 msgstr "該項目沒有任何操作。"
-
 msgid "Type"
 msgstr "類型"
-
 msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
 msgstr "在「匯出值」下，如果停用「與值相同」選項，則可以自訂與其他使用者共用變數時所匯出的值。\n如果您希望匯出根本沒有值，則可以將「匯出值」欄位保留為空，或者您可以設定您希望始終用於匯出的值。\n如果啟用「與值相同」選項，匯出時將使用目前變數值。"
-
 msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
 msgstr "項目的最終位置取決於您給它的內容：單獨的圖示始終位於主欄中，如果有空間，則在那裡顯示圖示和標籤，並且單獨的標籤始終位於溢出選單中（Tasker 中右上角的 3 個點）。"
-
 msgid "fires a Task on"
 msgstr "觸發任務"
-
 msgid "is not in this backup, so there are no actions to show."
 msgstr "不在此備份中，因此沒有可顯示的操作。"
-
 msgid "no editable arguments."
 msgstr "沒有可編輯的參數。"
-
 msgid "swallows the key press"
 msgstr "吞下按鍵"
-
 msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
 msgstr "在傳送之前讀回 XML，如果傳輸過程中發生任何更改，則拒絕儲存。\n\n它捕獲的是保存路徑中其他任何東西都無法捕獲的失敗類別：該程式自己的編寫者和讀者不同意的值 - 名稱內的回車符，例如，以鍵入的形式寫出並以換行符的形式讀回。  上傳回答 200 並且設備上的文件與發送的文件匹配，因為兩者都已經錯誤。\n\n每個上升的物件都會與載入的配置中的物件進行比較，包括您未編輯的捆綁的設定檔、場景和任務。  如果其中任何一個不同，則不會發送任何內容；您將收到一份報告，說明具體內容和地點。\n\n它只需要幾分之一秒的時間，並且不接觸任何東西——整個檢查在設備被接觸之前就在這裡運行。"
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "這將開啟兩個選擇：將任務作為獨立檔案寫入 Android 裝置上的 /Tasker/tasks 下，或將其直接匯入 Tasker 的即時配置中。\n\n「Http 伺服器範例」Tasker 專案必須在 Android 裝置上安裝並處於活動狀態，且伺服器正在執行（請參閱自述文件的直接 XML 檢索說明），且 Tasker 必須為 6.2 或更高版本。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。\n\n在任一裝置運行時觀察 Android 裝置：Tasker 會要求您多次授權連線才能儲存，而未點擊的提示會導致失敗。\n\n您必須退出並重新啟動 Tasker 才能在 Tasker UI 中看到匯入的任務。"
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "這會將設定檔作為獨立檔案寫入 Android 裝置的 /Tasker/profiles 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n執行時間觀察 Android 裝置：Tasker 要求您多次授權連線才能儲存一次，而未點擊的提示會導致失敗。"
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "這會將設定檔作為獨立檔案寫入您的 Android 裝置上的 /Tasker/profiles 下——它不會將其匯入到 Tasker 的即時配置中。\n\n「Http 伺服器範例」Tasker 專案 (http://spoo.me/http_svr_example) 必須在 Android 裝置上安裝並激活，且伺服器正在執行（請參閱自述文件的直接 XML 檢索說明）。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。\n\n執行時間觀察 Android 裝置：Tasker 要求您多次授權連線才能儲存一次，而未點擊的提示會導致失敗。"
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "這會將設定檔作為獨立檔案寫入您的 Android 裝置上的 /Tasker/profiles 下——它不會將其匯入到 Tasker 的即時配置中。\n\n「Http 伺服器範例」Tasker 專案必須在 Android 裝置上安裝並處於活動狀態，且伺服器正在執行（請參閱自述文件的直接 XML 檢索說明）。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。\n\n執行時間觀察 Android 裝置：Tasker 要求您多次授權連線才能儲存一次，而未點擊的提示會導致失敗。"
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "這會將專案及其中的所有內容（每個設定檔和任務）作為獨立檔案寫入 Android 裝置上的 /Tasker/projects 下，但不會將其匯入到 Tasker 的即時設定中。\n\n必須在 Android 裝置上安裝並啟動「Http 伺服器範例」Tasker 項目，且伺服器正在運行。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。\n\n執行時間觀察 Android 裝置：Tasker 要求您多次授權連線才能儲存一次，而未點擊的提示會導致失敗。"
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "這會將專案及其中的所有內容作為獨立檔案寫入 Android 裝置的 /Tasker/projects 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n執行時間觀察 Android 裝置：Tasker 要求您多次授權連線才能儲存一次，而未點擊的提示會導致失敗。"
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "這會將場景作為獨立檔案寫入 Android 裝置的 /Tasker/scenes 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n執行時間觀察 Android 裝置：Tasker 要求您多次授權連線才能儲存一次，而未點擊的提示會導致失敗。"
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "這會將場景作為獨立檔案寫入 Android 裝置上的 /Tasker/scenes 下 - 它不會將其匯入到 Tasker 的即時配置中。\n\n必須在 Android 裝置上安裝並啟動「Http 伺服器範例」Tasker 項目，且伺服器正在運行。\n\nAndroid 裝置必須位於同一網絡，且 IP 位址和連接埠必須與其 Tasker 伺服器設定相符。\n\n執行時間觀察 Android 裝置：Tasker 要求您多次授權連線才能儲存一次，而未點擊的提示會導致失敗。"
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "這會將任務作為獨立檔案寫入 Android 裝置上的 /Tasker/tasks 下。\n\nIP 位址和連接埠必須與 Android 裝置的 Tasker 伺服器設定相符。\n\n執行時間觀察 Android 裝置：Tasker 要求您多次授權連線才能儲存一次，而未點擊的提示會導致失敗。"
-
 msgid "Verify"
 msgstr "核實"
-
 msgid "Verify Failed -- Nothing Was Sent"
 msgstr "驗證失敗 -- 無任何資料傳送"
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
 msgstr "觀看您的 Android 裝置：Tasker 會多次要求您授權連線。"
-
 msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
 msgstr "系統未聯絡您的 Android 設備，設備上的任何內容均未更改。  載入的配置也保持不變——這是對即將寫入的內容的檢查，而不是對裝置上的內容的檢查。"
-
 msgid "'Refactor' makes the structural changes that Add, Edit and Delete cannot: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "「重構」可以進行「新增」、「編輯」和「刪除」無法進行的結構變更：將任務操作的運行拉出到自己的任務中，將執行任務折疊回其呼叫者中，將任務或設定檔移至另一個項目，或複製任何物件。\n\n在您按下「預覽」然後「套用」之前，不會發生任何更改，預覽會逐步說明將發生什麼，或為什麼不會發生。\n\n整個重構就是事後按一下「撤銷鍵」。\n\n"
-
 msgid "...to this Project"
 msgstr "……這個項目"
-
 msgid "Apply"
 msgstr "申請"
-
 msgid "Choose a single Task in 'Specific Name' to also see it drawn as a flowchart."
 msgstr "請選擇「特定名稱」中的單一任務，以便同時以流程圖的形式顯示。"
-
 msgid "Could not find Task"
 msgstr "未能找到任務"
-
 msgid "Drawing the first."
 msgstr "先畫第一張。"
-
 msgid "Duplicate this"
 msgstr "複製此"
-
 msgid "Fill in every box first."
 msgstr "請先填寫每一個方框。"
-
 msgid "First action"
 msgstr "第一個動作"
-
 msgid "Flowchart saved as"
 msgstr "流程圖已儲存為"
-
 msgid "From Task"
 msgstr "來自任務"
-
 msgid "In Task"
 msgstr "在任務中"
-
 msgid "Inline this call"
 msgstr "內聯此調用"
-
 msgid "Last action"
 msgstr "最後一次動作"
-
 msgid "More than one Task is named"
 msgstr "命名了多個任務"
-
 msgid "Move this"
 msgstr "移動這個"
-
 msgid "New Task name"
 msgstr "新任務名稱"
-
 msgid "New name (optional)"
 msgstr "新名稱（可選）"
-
 msgid "Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.\n\nWith a single Task chosen in the 'Specific Name' tab, that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "讀取每個任務的控制流 - 它的 If/Else/End If、For/End For、Goto 和 Stop - 並報告不連貫的內容：永遠不會關閉的區塊、針對沒有操作攜帶的標籤的 Goto 以及任何操作都無法到達的操作。\n\n在「特定名稱」標籤中選擇單一任務後，該任務也會在其自己的視窗中繪製為流程圖，並帶有從每個轉到其所在操作的箭頭。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"
-
 msgid "Refactor"
 msgstr "重構"
-
 msgid "Refactor preview could not be saved."
 msgstr "無法儲存重構預覽。"
-
 msgid "Refactor preview saved as"
 msgstr "重構預覽另存為"
-
 msgid "Task Flow"
 msgstr "任務流程"
-
 msgid "Task Flow View opened in a new browser window."
 msgstr "任務流程視圖在新的瀏覽器視窗中開啟。"
-
 msgid "Task Flow found no control-flow problems."
 msgstr "Task Flow 找不到任何控制流程問題。"
-
 msgid "Task Flow report could not be saved."
 msgstr "無法儲存「工作流程」報告。"
-
 msgid "Task Flow report saved as"
 msgstr "工作流程報告已儲存為"
-
 msgid "cannot be done"
 msgstr "無法完成"
-
 msgid "steps"
 msgstr "步驟"
-
 msgid "has no Tasks to extract from"
 msgstr "沒有任何需要提取的任務。"
-
 msgid "Change or clear that selection to reach other Tasks"
 msgstr "請修改或清除該選項，以便完成其他任務。"
-
 msgid "Extract works on"
 msgstr "提取相關作品"
-
 msgid "The structural changes that Add, Edit and Delete cannot make: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "Add、編輯和刪除等操作無法進行的結構性變更：將某項任務的動作拆分成獨立的任務、將「執行任務」重新歸還給其呼叫者、將某項任務或個人資料移至其他專案，或複製任何物件。\n\n在按下「預覽」之後，再按下「應用」才會進行變更，預覽功能會一步步顯示會發生的情況，或說明為何不會發生。\n\n整個重構操作只需按下「撤銷」即可完成。\n\n"
-
 msgid "What to call the copy.  Left empty, a free name is chosen for you -- the original's with '(copy)' after it."
 msgstr "如何命名複製檔案？ 如果保持空白，系統會自動為您選擇一個名稱，並在原始檔案名稱後加上「(複製)」。"
-
 msgid "What to call the new Task.  The 'Perform Task' left behind calls it by this name, so it has to be a name no other Task already has."
 msgstr "這個新任務應該怎麼命名？「執行任務」這個名稱已經被使用，因此必須選擇一個其他任務沒有使用的名稱。"
-
 msgid "is selected above and has no Tasks to extract from"
 msgstr "已選取，且沒有需要提取的任務。"
-
 msgid "selected in the pulldowns above"
 msgstr "在上面的下拉式選單中選擇"
-
 msgid "Click any line above to see that place in the Map view."
 msgstr "點擊上面的任何行即可在地圖視圖中查看該地點。"
-
 msgid "If you delete them too"
 msgstr "如果你也刪除它們"
-
 msgid "If you keep the contents"
 msgstr "如果您保留內容"
-
 msgid "Building the"
 msgstr "建造"
-
 msgid "Building the view"
 msgstr "建立視角"
-
 msgid "Building the view.  Please stand by ..."
 msgstr "建立視角。請稍候..."
-
 msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.  \nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.  \n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n    Level 5 = display level of 4 plus Scene argument details.  \n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.  \n* Display Conditions: Turn on the display of Profile and Task conditions.  \n* Display TaskerNet Info - If available, display TaskerNet publishing information.  \n* Display Tasker Preferences - display Tasker's system Preferences.  \n* Hide Task Details under Twisty: hide Task information within ► and click to display.  \n* Display Directory of hyperlinks at beginning.  \n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.  \n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.  \n* Task Action Limit: display a warning if the Task has more than the specified number of actions.  \n* Indentation amount for If/Then/Else Task Actions.  \n* Language: Select the language to be used for the output.  The default is English.  \n* Font To Use: Change the monospace font used for the output.  \n* View Limit: Control the amount of processing time used when generating the view.  \n* Notification Duration: How long a pop-up message stays on screen before it disappears.  'Until dismissed' keeps every message up until you close it.  \n* Dark Mode: Switch the GUI between light and dark appearance.  \n* Reset Options: Clear everything and start anew.  \n* Get Local XML File: fetch the backup/exported XML file from your local drive.  \n* Save Settings - Save these settings for later use.  \n* Restore Settings - Restore the settings from a previously saved session.  \n* Report Issue: Open the GitHub Issues page in your browser to report a problem or suggestion to the developer.  \n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.  \n* Clear: Clear the Map/Diagram/Tree view data currently held and displayed.  \n* Health Check: Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.  It also reports how your configuration will behave on the device: two Profiles watching the same trigger whose Tasks set the same thing opposite ways, a Profile whose conditions can never all be true, Tasks that poll in a loop, Profiles that keep a radio or sensor scanning or fire on a short timer, long-running Tasks left on the default collision handling, and actions that can block for ever because no timeout was set.  Click a finding to be taken to it in the Map.  \n* Compare Files: Compare another XML file against the loaded one to see what was added, removed, renamed and changed.  \n* Variable Xref: Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names are likely typos.  \n* Task Flow: Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.  With a single Task chosen in 'Specific Name', that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.  Click any line of it to be taken to that action in the Map.  \n* Open View In New Window: Open each Map/Diagram request in its own new window/tab rather than reusing that view's existing one.  \n* Close Tabs On Exit: Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tabs it opened.  \n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.  \n   - List XML Files: List the XML files found on the Android device so you can select one rather than typing its location.\n   - Cancel Entry: Back out of the Android fetch process.  \n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n   - List Unnamed Items: Include unnamed Profiles and Tasks in the four pulldowns above.  \n   Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with various save options...\n   - Add Project/Profile/Task/Scene: Create a new object and add it to the loaded XML.\n   - Edit Project/Profile/Task/Scene: Modify the object currently selected in the pulldowns above.\n   - Rename: Give the object being edited a new name.\n   - Delete: Remove the object being edited from the loaded XML.\n   - Duplicate: Make a copy of the selected Scene element.\n   - Preview: Display the Scene being edited as it will appear.\n   - Save / Export: Write the object out to a standalone XML file of your choosing.\n   - Save To Current File: Write the entire configuration to a new, timestamped file beside the loaded one.\n   - Save To Android: Write the object back to your Android device.\n     (A safety copy of anything a save is about to overwrite is kept in the 'MapTasker_Backups' folder.)  \n   Editing commands...\n   - Undo: Back out the most recent Add/Edit/Delete/Rename change made to the loaded XML.  This changes what is loaded, not any file.\n   - Redo: Reapply the change most recently backed out by 'Undo'.\n   - Edit History: List every change made to the loaded XML this session, newest first.  \n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n   - Reset to Default Colors: Restore every color to its default value.  \n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n   - Show/Edit API Key(s): Enter or change the API keys used by the server-based AI models.\n   - Change Prompt: Modify the prompt sent to the AI model.\n   - Run Analysis: Submit the selected Project/Profile/Task and prompt to the selected model.\n   - Extended: List all available models rather than just the default set.  \n* Debug tab: Display Runtime Settings option and turn on Debug mode.  \n* Map/Diagram/Tree view toolbar commands are...\n   - Search: Highlight every instance of the case-insensitive text entered in the search box, up to the first 200.  Click a line number to go to that line.\n   - Find/Replace: (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene.  Click a result to be taken to it.\n   - Save Results: Save the 'Find/Replace' results to a text file.\n   - Top / Bottom: Jump to the beginning or the end of the displayed output.\n   - Toggle Wrap: Turn line wrapping on or off in the displayed output.\n   - Profiles Per Line: (Diagram only) The number of Profiles drawn side-by-side on a single line.  \n* Display Help: Display this help text.  \n* Get Android Help: Display the help for fetching the XML file from your Android device.  \n* '?' buttons: Display the help specific to the section in which the button appears.  \n* Exit: Exit the program (quit).  \nNotes:  \n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md  \n- Changing the appearance mode will change the colors used for the output to their default values.  \n"
 msgstr "MapTasker會根據您上傳的Tasker XML檔案（例如「backup.xml」）顯示您的Android Tasker設定。顯示內容可選地包含所有專案、個人資料、任務及其動作、個人資料/任務條件以及其他個人資料/任務相關資訊。\n一旦XML檔案已載入，您可以選擇編輯您的專案、個人資料、任務和場景。\n* 顯示選項：\n    等級 0：僅顯示未命名任務的第一個動作（靜態）。\n    等級 1：僅顯示未知任務的所有動作詳細資訊（預設）。\n    等級 2：在每個任務上顯示完整的動作名稱。\n    等級 3：在每個任務上顯示完整的動作詳細資訊。\n    等級 4：顯示等級 3及專案的全球變數。\n    等級 5：顯示等級 4及場景參數的詳細資訊。\n* 顯示所有內容：開啟條件、TaskerNet資訊、偏好設定、易讀輸出、目錄和設定摘要的顯示。\n* 顯示條件：開啟個人資料和任務條件的顯示。\n* 顯示TaskerNet資訊：如果可用，顯示TaskerNet發布資訊。\n* 顯示Tasker偏好設定：顯示Tasker的系統偏好設定。\n* 在「Twisty」中隱藏詳細資訊：在「►」中隱藏任務資訊，然後點擊以顯示。\n* 顯示開頭的超連結目錄。\n* 顯示易讀輸出：透過為所有參數新增換行和縮排，使輸出更易於閱讀。\n* 專案/個人資料/任務/場景名稱選項：可讓您將名稱以斜體、粗體、下劃線或高亮顯示。\n* 任務動作限制：如果任務有多個預定義動作，則顯示警告。\n* If/Then/Else 任務動作的縮排量。\n* 語言：選擇用於輸出的語言。預設為英文。\n* 顯示字體：變更用於輸出的單字體。\n* 顯示限制：控制產生顯示時的處理時間。\n* 通知持續時間：彈出訊息在消失之前在螢幕上顯示的時間。 「直到關閉」會讓每個訊息在您關閉之前顯示。\n* 深色模式：在淺色和深色之間切換GUI。\n* 重置選項：清除所有內容並重新開始。\n* 取得本地XML檔案：從您的本地硬碟取得備份/匯出的XML檔案。\n* 儲存設定：儲存這些設定以供稍後使用。\n* 還原設定：從先前儲存的會話中還原設定。\n* 報告問題：在瀏覽器中開啟GitHub Issues頁面，向開發人員報告問題或建議。\n* 顯示視圖：直接在GUI中顯示您的專案、個人資料、任務和場景的Map、圖表或樹狀視圖設定。\n* 清除：清除目前儲存和顯示的Map/圖表/樹狀視圖資料。\n* 健康檢查：掃描已載入的XML檔案，以找出損壞的參考、未被引用的任務、個人資料和場景，以及命名問題。它還會報告您的設定在裝置上的行為：兩個個人資料同時監聽相同的觸發，但其任務設定相反，一個個人資料的條件永遠不可能為真，迴圈中的任務，持續監測或觸發的個人資料、使用預設碰撞處理的長時間任務，以及由於沒有設定時間限制而永遠無法運作的動作。點擊結果以在Map中導航到該處。\n* 比較檔案：將另一個XML檔案與已載入的檔案進行比較，以查看新增、移除、更名和變更的內容。\n* 變數參考：追蹤已載讀取的XML中的所有%變數：確定其位置、讀取其位置、哪些變數已讀取但未確定，哪些變數已確定但未讀取，以及哪些幾乎相同的名稱可能是輸入錯誤。\n* 流程：逐一檢查每個任務的流程（包括 If/Else/End If、For/End For、Goto 和 Stop），並報告任何不一致的部分：永遠沒有關閉的區塊、指向沒有動作的標籤的 Goto，以及無法到達的動作。 在「特定名稱」中選擇一個任務時，該任務也會以流程圖的形式顯示在自己的視窗中，並從每個 Goto 標記指向其目標動作。 點擊任何線條，即可在地圖中導向該動作。\n* 在新視窗/標籤中開啟：而不是重複使用現有視窗，請在新的視窗/標籤中開啟每個地圖/圖表。\n* 退出時關閉標籤：確保「退出」也會關閉主視窗 MapTasker 以及它開啟的所有地圖/圖表視窗/標籤。\n* 從 Android 裝置取得 XML：從 Android 裝置取得備份/匯出的 XML 檔案。 您將會被要求提供 Android 裝置的 IP 位址和埠號碼，以及裝置上的檔案位置。\n    - 列出 XML 檔案：列出 Android 裝置上找到的 XML 檔案，以便您可以選擇一個，而不是自行輸入檔案位置。\n    - 取消匯入：取消 Android 匯入的流程。\n* 「特定名稱」標籤：輸入一個特定的名稱，以顯示...\n    - 專案名稱：輸入一個要顯示的特定專案。\n    - 檔案名稱：輸入一個要顯示的特定檔案。\n    - 任務名稱：輸入一個要顯示的特定任務。\n    - 場景名稱：輸入一個要顯示的特定場景。 其擁有專案的標題以及\n                場景的元素（以及引發這些元素的任務）都會顯示；\n                專案的檔案和場景則不會顯示。\n    (這四個是獨立的：只能輸入一個)\n    - 列出未命名檔案：將未命名的檔案和任務包含在上述下拉式選單中。\n    直接在 GUI 中新增和編輯專案、檔案、任務和場景，並提供多種儲存選項...\n    - 新增專案/檔案/任務/場景：建立一個新的物件，並將其新增到載入的 XML 中。\n    - 編輯專案/檔案/任務/場景：修改上述下拉式選單中選取的物件。\n    - 重新命名：為正在編輯的物件給予新的名稱。\n    - 刪除：從載入的 XML 中刪除正在編輯的物件。\n    - 複製：複製選取的場景元素。\n    - 預覽：顯示正在編輯的場景，以顯示其顯示方式。\n    - 儲存/匯出：將物件寫入您選擇的獨立 XML 檔案。\n    - 儲存至目前檔案：將整個設定寫入載入檔案旁邊的一個新檔案，並包含時間戳。\n    - 儲存至 Android：將物件寫回您的 Android 裝置。\n      （任何將會被重寫的物件，都將儲存在「MapTasker_Backups」資料夾中。）\n    編輯指令...\n    - 撤銷：撤銷載入的 XML 中所做的最新新增/編輯/刪除/重新命名。 此操作會修改載入的內容，而非任何檔案。\n    - 重新執行：重新執行「撤銷」操作。\n    - 編輯歷史：列出該會期的所有對載入的 XML 進行的變更，由新到舊排列。\n* 色彩標籤：選擇用於顯示各種元素的顏色。\n    (例如：專案、檔案、任務等的顏色)\n    - 恢復至預設顏色：將所有顏色恢復到預設值。\n* 分析標籤：針對專案、檔案、任務或場景，執行與 AI 模型進行的分析。\n    - 顯示/編輯 API 金鑰：輸入或修改用於服務型 AI 模型的 API 金鑰。\n    - 變更提示：修改發送至 AI 模型的提示。\n    - 執行分析：將選取的專案/檔案/任務和提示提交到選取的模型。\n    - 擴展：列出所有可用的模型，而不是僅限於預設集。\n* 偵錯標籤：顯示「執行時間設定」選項，並開啟偵錯模式。\n* Map/Diagram/Tree 視窗的工具列命令如下：\n    - 搜尋：高亮顯示搜尋框中輸入的任何文字，最多 200 個字，且不區分大小寫。 點擊一行，即可導向該行。\n- 尋找/取代：(僅限地圖和圖表) 詢問已載入的設定，而不是在螢幕上搜尋文字：每個執行特定動作的任務、每個觸發特定條件的個人資料、以及命名特定應用程式或場景的內容。 點擊結果即可前往。\n- 儲存結果：將「尋找/取代」的結果儲存到文字檔中。\n- 上/下：直接跳到顯示輸出的開頭或結尾。\n- 調整換行：在顯示輸出中，開啟或關閉換行功能。\n- 每個行顯示個人資料：(僅限圖表) 顯示單一行中顯示的個人資料數量。\n\n* 顯示說明：顯示此說明文字。\n* 取得 Android 說明：顯示從您的 Android 裝置取得 XML 檔案的說明。\n* 「？」按鈕：顯示特定按鈕所在部分的說明。\n* 結束：結束程式 (關閉)。\n\n備註：\n- 請瀏覽完整的變更記錄歷史：https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n- 更改顯示模式會將輸出所使用的顏色設定為預設值。\n"
-
 msgid "Please stand by ..."
 msgstr "請稍候..."
-
 msgid "Redact secrets"
 msgstr "刪除敏感資訊"
-
 msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
 msgstr "勾選此處，當您將檔案傳送給其他人時 -- 例如，在論壇上發布或傳送給協助您的人。\n\n其中包含的 API 鑰匙、代碼、密碼、電話號碼、電子郵件地址和地理位置座標，都已用 [已刪除：...] 標記取代，並且檔案頂部有一則註解說明已移除哪些內容。 首先執行健康檢查，查看清單。\n\n這只是初步檢查，並非保證：即使看似普通的密碼沒有明顯的形狀，名稱也未被更改，因為檔案會利用它們來指代自身。 請仔細閱讀您發布的內容。\n\n若要備份或移動檔案，請保持此處未勾選：刪除檔案會導致缺少鑰匙。"
+msgid "Report these categories:"
+msgstr "報告這些類別："
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, naming problems, Task flow, variables, behaviour on the device, and secrets.\n\nYou choose which of those to report before it runs, and that choice is remembered.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "掃描載入的 XML 以尋找損壞的參考、未引用的任務、設定檔和場景、命名問題、任務流程、變數、裝置上的行為和機密。\n\n您可以在運行之前選擇要報告的內容，並且會記住該選擇。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"
+msgid "TaskerNet information"
+msgstr "任務網資訊"
+msgid "Changes This Week"
+msgstr "本週的變化"
+msgid "Nothing has changed in your configuration over that period."
+msgstr "在此期間您的配置沒有任何變更。"
+msgid "Timeline report could not be saved."
+msgstr "無法儲存時間軸報告。"
+msgid "Timeline saved as"
+msgstr "時間軸另存為"
+msgid "What has changed in your configuration over the last seven days: what was added, removed, renamed and changed.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from a week ago is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "過去 7 天內您的配置發生了哪些變化：新增、刪除、重新命名和更改了哪些內容。\n\n無需選擇檔案 - 您載入的每個配置都會儲存並壓縮在目前目錄的 MapTasker_Timeline 資料夾中，並將一週前的配置與您現在開啟的配置進行比較。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"
+msgid "Changes Since"
+msgstr "變化自"
+msgid "Changes Since..."
+msgstr "變化自..."
+msgid "Choose a date first."
+msgstr "首先選擇一個日期。"
+msgid "Compare what you have open now against your configuration as it stood then."
+msgstr "將您現在開啟的內容與當時的配置進行比較。"
+msgid "Period"
+msgstr "時期"
+msgid "Show Changes"
+msgstr "顯示變更"
+msgid "That date is in the future.  Choose a day that has happened."
+msgstr "那個日期是未來的日期。  選擇已經發生的一天。"
+msgid "What has changed in your configuration since a moment you choose: today, this week, this month, everything kept, or a specific date.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from back then is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "自您選擇的那一刻起，您的配置發生了哪些變化：今天、本週、本月、保留的所有內容或特定日期。\n\n無需選擇檔案 - 您載入的每個配置都會儲存並壓縮在目前目錄的 MapTasker_Timeline 資料夾中，然後將當時的配置與您現在開啟的配置進行比較。\n\n結果顯示在此處並儲存到目前目錄中的文字檔案中。"

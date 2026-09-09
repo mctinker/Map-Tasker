@@ -597,12 +597,10 @@ msgid "Prompt:"
 msgstr "तत्पर:"
 msgid "Buy Me A Coffee"
 msgstr "मेरे लिए एक कॉफ़ी खरीदें"
-
 msgid "The 'Profiles Per Line' setting is used to control the number of Profiles to be displayed per line when diagramming the configuration.\n\nThe smaller the number, the narrower the diagram and vice versa.\n\nFewer Profiles per line may make it easier too view the diagram connectors that extend to the right, while at the same time the Diagram wil be longer.\n\nSelecting a number will automatically re-generate the diagram with the new setting.\n\nThis setting is only valid for the currrent Diagram view, and will be reset back to the default value when the Diagram view is closed.\n\n"
 msgstr "'प्रोफ़ाइल प्रति पंक्ति' सेटिंग का उपयोग कॉन्फ़िगरेशन को आरेखित करते समय प्रति पंक्ति प्रदर्शित होने वाली प्रोफ़ाइल की संख्या को नियंत्रित करने के लिए किया जाता है।\n\nसंख्या जितनी छोटी होगी, आरेख उतना ही संकीर्ण होगा और इसके विपरीत।\n\nप्रति पंक्ति कम प्रोफ़ाइल से दाईं ओर विस्तारित आरेख कनेक्टर्स को देखना आसान हो सकता है, जबकि साथ ही आरेख लंबा हो जाएगा।\n\nकिसी संख्या का चयन करने से स्वचालित रूप से नई सेटिंग के साथ आरेख पुन: उत्पन्न हो जाएगा।\n\nयह सेटिंग है केवल वर्तमान आरेख दृश्य के लिए मान्य है, और आरेख दृश्य बंद होने पर वापस डिफ़ॉल्ट मान पर रीसेट कर दिया जाएगा।\n\n"
 msgid "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the data.\n\nThe 'Search Here' button will search for and highlight every instance of the string entered in the search box, starting at the current screen.\n\nHover over any of the highlighted matching strings to see all matches.\n\nThe 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\nThe accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\nWhen the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\nThe 'Clear' button will clear the search results.\n\nThe 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
 msgstr "'खोज' बटन डेटा के शीर्ष से शुरू होकर, खोज बॉक्स में दर्ज स्ट्रिंग के प्रत्येक उदाहरण को खोजेगा और हाइलाइट करेगा।\n\n'यहां खोजें' बटन वर्तमान स्क्रीन से शुरू करके, खोज बॉक्स में दर्ज स्ट्रिंग के प्रत्येक उदाहरण को खोजेगा और हाइलाइट करेगा।\n\nसभी मिलान देखने के लिए किसी भी हाइलाइट किए गए मिलान स्ट्रिंग पर होवर करें।\n\n'अगला' और 'पिछला' बटन टेक्स्ट दृश्य में खोज स्ट्रिंग की अगली और पिछली घटना को दृश्यमान बनाने का प्रयास करेंगे। बॉक्स, और उन्हें एक अलग रंग में हाइलाइट करें।\n\nखोज स्ट्रिंग को दृश्यमान बनाने की सटीकता हमेशा सही नहीं होती है और इस प्रोग्राम के नियंत्रण से बाहर है।\n\nजब टेक्स्ट व्यू बॉक्स का अंत या शुरुआत पहुंच जाती है, तो खोज बंद हो जाएगी और कई सेकंड के लिए एक संदेश प्रदर्शित होगा।\n\n'साफ़ करें' बटन खोज परिणामों को साफ़ कर देगा।\n\n'केवल प्रदर्शन करें' बटन एक विविध विंडो में खोज से केवल मिलान प्रदर्शित करेगा परिणाम.\n\n"
-
 msgid "API Key Help"
 msgstr "एपीआई कुंजी सहायता"
 msgid "Profiles Per Line Help"
@@ -928,2075 +926,1417 @@ msgid "शीर्षक"
 msgstr "Heading"
 msgid "color changed to"
 msgstr "रंग बदल गया"
-  
-
 msgid "अँधेरा"
 msgstr "Dark"
 msgid "रोशनी"
 msgstr "Light"
 msgid "प्रणाली"
 msgstr "System"
-
 msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
 msgstr "विशिष्ट परियोजनाओं, प्रोफ़ाइलों, कार्यों या दृश्यों को लक्षित करें। (केवल एक का चयन करें)"
-
 msgid "Rename"
 msgstr "नाम बदलें"
-
 msgid "Export Project"
 msgstr "निर्यात परियोजना"
-
 msgid "Export Profile"
 msgstr "प्रोफ़ाइल निर्यात करें"
-
 msgid "Export Task"
 msgstr "निर्यात कार्य"
-
 msgid "Save"
 msgstr "बचाना"
-
 msgid "Overwrite"
 msgstr "ओवरराइट"
-
 msgid "Delete Project"
 msgstr "प्रोजेक्ट हटाएँ"
-
 msgid "Delete Profile"
 msgstr "प्रोफ़ाइल हटाएं"
-
 msgid "Delete Task"
 msgstr "कार्य हटाएँ"
-
 msgid "Its"
 msgstr "इसका"
-
 msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
 msgstr "लिंक किए गए कार्य रखे जाएंगे - वे प्रोजेक्ट से संबंधित हैं, इस प्रोफ़ाइल से नहीं।"
-
 msgid "It has no linked Tasks."
 msgstr "इसमें कोई लिंक्ड कार्य नहीं है."
-
 msgid "It will be removed from"
 msgstr "इसे हटा दिया जाएगा"
-
 msgid "Project(s) and unlinked from"
 msgstr "प्रोजेक्ट(ओं) और से अनलिंक किया गया"
-
 msgid "Profile(s) that run it. Those Profiles themselves are kept."
 msgstr "प्रोफ़ाइल जो इसे चलाती हैं। वे प्रोफ़ाइलें स्वयं रखी जाती हैं."
-
 msgid "Keep Contents"
 msgstr "सामग्री रखें"
-
 msgid "Delete Contents"
 msgstr "सामग्री हटाएँ"
-
 msgid "Adding to Project:"
 msgstr "प्रोजेक्ट में जोड़ा जा रहा है:"
-
 msgid "Save To Current File"
 msgstr "वर्तमान फ़ाइल में सहेजें"
-
 msgid "Add Project"
 msgstr "प्रोजेक्ट जोड़ें"
-
 msgid "Add Profile"
 msgstr "प्रोफ़ाइल जोड़ें"
-
 msgid "Add Task"
 msgstr "कार्य जोड़ें"
-
 msgid "Add an action"
 msgstr "एक क्रिया जोड़ें"
-
 msgid "Actions in this Task"
 msgstr "इस कार्य में क्रियाएँ"
-
 msgid "No actions added yet."
 msgstr "अभी तक कोई कार्रवाई नहीं जोड़ी गई."
-
 msgid "Actions & Control"
 msgstr "क्रियाएँ एवं नियंत्रण"
-
 msgid "Display Conditions"
 msgstr "प्रदर्शन शर्तें"
-
 msgid "Task Action Limit:"
 msgstr "कार्य कार्रवाई सीमा:"
-
 msgid "Theme Configuration"
 msgstr "थीम कॉन्फ़िगरेशन"
-
 msgid "Select a category to modify its color."
 msgstr "किसी श्रेणी का रंग संशोधित करने के लिए उसका चयन करें."
-
 msgid "Select Category to Colorize"
 msgstr "रंगीन करने के लिए श्रेणी का चयन करें"
-
 msgid "Choose Hex Color"
 msgstr "हेक्स रंग चुनें"
-
 msgid "Open View In New Window"
 msgstr "नई विंडो में दृश्य खोलें"
-
 msgid "Close Tabs On Exit"
 msgstr "बाहर निकलने पर टैब बंद करें"
-
 msgid "Edit Project"
 msgstr "प्रोजेक्ट संपादित करें"
-
 msgid "Edit Profile"
 msgstr "प्रोफ़ाइल संपादित करें"
-
 msgid "Edit Task"
 msgstr "कार्य संपादित करें"
-
 msgid "Scene"
 msgstr "दृश्य"
-
 msgid "Execution"
 msgstr "कार्यान्वयन"
-
 msgid "File Operations"
 msgstr "फ़ाइल संचालन"
-
 msgid "Display Views"
 msgstr "दृश्य प्रदर्शित करें"
-
 msgid "Application Settings"
 msgstr "एप्लिकेशन सेटिंग्स"
-
 msgid "Help & Information"
 msgstr "सहायता एवं सूचना"
-
 msgid "0 = least detail, 5 = most detail."
 msgstr "0 = सबसे कम विवरण, 5 = सबसे अधिक विवरण।"
-
 msgid "AI Analysis"
 msgstr "एआई विश्लेषण"
-
 msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
 msgstr "पृष्ठभूमि में विश्लेषण चल रहा है.\n\nएक बार पूरा होने पर, परिणाम एक नई विंडो में दिखाई देंगे।\n\nकृपया प्रतीक्षा करें..."
-
 msgid "Android Get XML Port Number"
 msgstr "एंड्रॉइड XML पोर्ट नंबर प्राप्त करें"
-
 msgid "Android device at"
 msgstr "एंड्रॉइड डिवाइस पर"
-
 msgid "Available Android Backups"
 msgstr "उपलब्ध एंड्रॉइड बैकअप"
-
 msgid "CAVEATS"
 msgstr "चेतावनियां"
-
 msgid "Cancel Entry"
 msgstr "प्रवेश रद्द करें"
-
 msgid "Check your IP/Port and verify the Tasker HTTP server is running"
 msgstr "अपने आईपी/पोर्ट की जांच करें और सत्यापित करें कि टास्कर HTTP सर्वर चल रहा है"
-
 msgid "Close"
 msgstr "बंद करना"
-
 msgid "Detail Level"
 msgstr "विवरण स्तर"
-
 msgid "Error"
 msgstr "गलती"
-
 msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
 msgstr "किसी Android डिवाइस से XML प्राप्त करें.\n\nआपको एंड्रॉइड डिवाइस के समान नेटवर्क पर होना चाहिए, और डिवाइस चालू और कनेक्ट होना चाहिए।\n\n"
-
 msgid "Get Local XML File"
 msgstr "स्थानीय XML फ़ाइल प्राप्त करें"
-
 msgid "It owns"
 msgstr "इसका मालिक है"
-
 msgid "No Profile Tasks Found"
 msgstr "कोई प्रोफ़ाइल कार्य नहीं मिला"
-
 msgid "No Profiles Found"
 msgstr "कोई प्रोफ़ाइल नहीं मिली"
-
 msgid "No file loaded"
 msgstr "कोई फ़ाइल लोड नहीं हुई"
-
 msgid "No scenes found"
 msgstr "कोई दृश्य नहीं मिला"
-
 msgid "No tasks found"
 msgstr "कोई कार्य नहीं मिला"
-
 msgid "None or unnamed!"
 msgstr "कोई नहीं या अनाम!"
-
 msgid "Profile(s) and"
 msgstr "प्रोफ़ाइल(ओं) और"
-
 msgid "Save To Android"
 msgstr "Android पर सहेजें"
-
 msgid "Scene to Analyze:"
 msgstr "विश्लेषण करने के लिए दृश्य:"
-
 msgid "Scene:"
 msgstr "दृश्य:"
-
 msgid "Select XML From Android Device:"
 msgstr "Android डिवाइस से XML चुनें:"
-
 msgid "Task(s)."
 msgstr "कार्य."
-
 msgid "Unnamed Task"
 msgstr "अनाम कार्य"
-
 msgid "Update Available!"
 msgstr "उपलब्ध अद्यतन!"
-
 msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
 msgstr "YouTube डायरेक्ट स्ट्रीमिंग के लिए तृतीय-पक्ष API टोकन की आवश्यकता होती है। देखने के लिए लक्ष्य ट्रैक को स्थानीय रूप से डाउनलोड करें।"
-
 msgid "is unreachable"
 msgstr "पहुंच योग्य नहीं है"
-
 msgid "'Cancel' button selected. No change to the API keys!"
 msgstr "'रद्द करें' बटन चयनित. एपीआई कुंजियों में कोई बदलाव नहीं!"
-
 msgid ".or."
 msgstr "।या।"
-
 msgid "1-TCP/IP Address:"
 msgstr "1-टीसीपी/आईपी पता:"
-
 msgid "2-Port Number:"
 msgstr "2-पोर्ट नंबर:"
-
 msgid "3-File Location:"
 msgstr "3-फ़ाइल स्थान:"
-
 msgid "AI Model"
 msgstr "एआई मॉडल"
-
 msgid "Add 'If' Action"
 msgstr "'यदि' क्रिया जोड़ें"
-
 msgid "Add App Entry"
 msgstr "ऐप एंट्री जोड़ें"
-
 msgid "Add Condition"
 msgstr "शर्त जोड़ें"
-
 msgid "All"
 msgstr "सभी"
-
 msgid "Android IP Address"
 msgstr "एंड्रॉइड आईपी पता"
-
 msgid "Android configuration details matched successfully!"
 msgstr "एंड्रॉइड कॉन्फ़िगरेशन विवरण सफलतापूर्वक मिलान हो गया!"
-
 msgid "Changes kept."
 msgstr "परिवर्तन रखा गया."
-
 msgid "Choose a State type first."
 msgstr "पहले एक राज्य प्रकार चुनें."
-
 msgid "Choose a Task"
 msgstr "एक कार्य चुनें"
-
 msgid "Choose a Task first."
 msgstr "पहले एक कार्य चुनें."
-
 msgid "Choose a condition type first."
 msgstr "पहले एक शर्त प्रकार चुनें."
-
 msgid "Choose an Event type first."
 msgstr "पहले एक ईवेंट प्रकार चुनें."
-
 msgid "Class (optional)"
 msgstr "कक्षा (वैकल्पिक)"
-
 msgid "Cleared the search highlights."
 msgstr "खोज हाइलाइट साफ़ किए गए."
-
 msgid "Click Here to Set XML Details"
 msgstr "XML विवरण सेट करने के लिए यहां क्लिक करें"
-
 msgid "Click arrows to expand/collapse details."
 msgstr "विवरण को विस्तृत/संक्षिप्त करने के लिए तीरों पर क्लिक करें।"
-
 msgid "Click on a row index line number to jump directly to that match block placement:"
 msgstr "सीधे उस मिलान ब्लॉक प्लेसमेंट पर जाने के लिए पंक्ति अनुक्रमणिका पंक्ति संख्या पर क्लिक करें:"
-
 msgid "Click on connector to highlight"
 msgstr "हाइलाइट करने के लिए कनेक्टर पर क्लिक करें"
-
 msgid "Close Results Window"
 msgstr "परिणाम विंडो बंद करें"
-
 msgid "Condition Type"
 msgstr "शर्त प्रकार"
-
 msgid "Conditions"
 msgstr "स्थितियाँ"
-
 msgid "Configure Android Connection:"
 msgstr "Android कनेक्शन कॉन्फ़िगर करें:"
-
 msgid "Continue Task After Error"
 msgstr "त्रुटि के बाद कार्य जारी रखें"
-
 msgid "Copy"
 msgstr "प्रतिलिपि"
-
 msgid "Dark Mode"
 msgstr "डार्क मोड"
-
 msgid "Day of Month"
 msgstr "महीने का दिन"
-
 msgid "Delete"
 msgstr "मिटाना"
-
 msgid "Delete Condition"
 msgstr "शर्त हटाएँ"
-
 msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
 msgstr "केवल यह प्रोफ़ाइल हटाता है. इसके प्रवेश/निकास कार्य रखे जाते हैं - एक कार्य प्रोजेक्ट के स्वामित्व में होता है, प्रोफ़ाइल के पास नहीं, और उसी कार्य का उपयोग अन्य प्रोफ़ाइल द्वारा किया जा सकता है।"
-
 msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
 msgstr "इस कार्य और इसके प्रत्येक संदर्भ को हटा देता है: इसे प्रत्येक प्रोजेक्ट के कार्य से हटा दिया जाता है जो इसका स्वामी है, और किसी भी प्रोफ़ाइल से जो इसे इसके प्रवेश/निकास कार्य के रूप में चलाता है। प्रोफ़ाइलें स्वयं रखी जाती हैं."
-
 msgid "Diagram View opened in a new browser window."
 msgstr "आरेख दृश्य एक नई ब्राउज़र विंडो में खोला गया।"
-
 msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
 msgstr "सभी उपलब्ध मॉडलों की एक विस्तृत सूची प्रदर्शित करें।\n\nनोट: यदि एपीआई कुंजी ओपनएआई या जेमिनी के लिए सेट नहीं है,\n      फिर संबंधित के लिए डिफ़ॉल्ट मॉडल सूची\n      एआई प्रदाता प्रदर्शित किया जाएगा।\n\nध्यान दें: सभी मॉडलों को मान्य नहीं किया गया है और\n      एक या अधिक विश्लेषण पर त्रुटि दे सकते हैं।\n\nध्यान दें: इस विकल्प को पहली बार सक्षम करने से\n      निम्नलिखित मॉड्यूल की स्थापना को बाध्य करें\n      और उनकी सभी निर्भरताएँ:\n      गूगल-जेनाई, एंथ्रोपिक, ओपनाई, ओलामा"
-
 msgid "End Time"
 msgstr "अंत समय"
-
 msgid "Event Type"
 msgstr "इवेंट प्रकार"
-
 msgid "Every"
 msgstr "प्रत्येक"
-
 msgid "File path saved successfully!"
 msgstr "फ़ाइल पथ सफलतापूर्वक सहेजा गया!"
-
 msgid "File selection canceled."
 msgstr "फ़ाइल चयन रद्द कर दिया गया."
-
 msgid "If"
 msgstr "अगर"
-
 msgid "If condition set."
 msgstr "यदि शर्त निर्धारित है."
-
 msgid "Insert just the 'If', or a complete block?"
 msgstr "केवल 'यदि' डालें, या पूरा ब्लॉक डालें?"
-
 msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
 msgstr "अमान्य दृश्य प्रकार निर्दिष्ट. 'मानचित्र', 'आरेख', या 'वृक्ष' का प्रयोग करें।"
-
 msgid "Label"
 msgstr "लेबल"
-
 msgid "Last Day Of Month"
 msgstr "महीने का आखिरी दिन"
-
 msgid "Link"
 msgstr "जोड़ना"
-
 msgid "List Files Selected"
 msgstr "चयनित फ़ाइलों की सूची बनाएं"
-
 msgid "List XML Files"
 msgstr "XML फ़ाइलें सूचीबद्ध करें"
-
 msgid "Map View opened in a new browser window."
 msgstr "मानचित्र दृश्य एक नई ब्राउज़र विंडो में खोला गया।"
-
 msgid "Map view creation skipped: No valid XML source found or action canceled."
 msgstr "मानचित्र दृश्य निर्माण छोड़ दिया गया: कोई वैध XML स्रोत नहीं मिला या कार्रवाई रद्द कर दी गई।"
-
 msgid "Month"
 msgstr "महीना"
-
 msgid "Move"
 msgstr "कदम"
-
 msgid "Move to #"
 msgstr "करने के लिए कदम #"
-
 msgid "New name"
 msgstr "नया नाम"
-
 msgid "No XML data loaded! Please Get XML from Android or Local drive first."
 msgstr "कोई XML डेटा लोड नहीं हुआ! कृपया पहले एंड्रॉइड या लोकल ड्राइव से एक्सएमएल प्राप्त करें।"
-
 msgid "No XML data loaded! Please select a valid XML file first."
 msgstr "कोई XML डेटा लोड नहीं हुआ! कृपया पहले एक वैध XML फ़ाइल चुनें."
-
 msgid "No actions in this Task."
 msgstr "इस कार्य में कोई कार्रवाई नहीं."
-
 msgid "No backup file is currently loaded. Use 'Get Local XML' first."
 msgstr "वर्तमान में कोई बैकअप फ़ाइल लोड नहीं है. पहले 'स्थानीय XML प्राप्त करें' का प्रयोग करें."
-
 msgid "No conditions on this Profile."
 msgstr "इस प्रोफ़ाइल पर कोई शर्त नहीं."
-
 msgid "No editable arguments (code not mapped, or this condition has none)."
 msgstr "कोई संपादन योग्य तर्क नहीं (कोड मैप नहीं किया गया, या इस शर्त में कोई नहीं है)।"
-
 msgid "No editable arguments."
 msgstr "कोई संपादन योग्य तर्क नहीं."
-
 msgid "Not configured..."
 msgstr "कॉन्फ़िगर नहीं किया गया..."
-
 msgid "Odd"
 msgstr "विषम"
-
 msgid "Ok"
 msgstr "ठीक है"
-
 msgid "Operator"
 msgstr "संचालिका"
-
 msgid "Package"
 msgstr "पैकेट"
-
 msgid "Pick a Task"
 msgstr "एक काम लो"
-
 msgid "Please enter a search term."
 msgstr "कृपया खोज शब्द एंटर करें।"
-
 msgid "Port"
 msgstr "पत्तन"
-
 msgid "Position"
 msgstr "पद"
-
 msgid "Priority"
 msgstr "प्राथमिकता"
-
 msgid "Profile Name"
 msgstr "प्रोफ़ाइल नाम"
-
 msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "प्रोफ़ाइल केवल इस सत्र के लिए रखी गई है - इसे स्थायी रूप से रखने के लिए 'वर्तमान फ़ाइल में सहेजें' का उपयोग करें।"
-
 msgid "Profiles Per Line"
 msgstr "प्रोफ़ाइल प्रति पंक्ति"
-
 msgid "Project Name"
 msgstr "प्रोजेक्ट का नाम"
-
 msgid "Project added."
 msgstr "प्रोजेक्ट जोड़ा गया."
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
 msgstr "एक नए नाम के लिए संकेत देता है और इसे अभी लोड किए गए बैकअप पर लागू करता है। उपरोक्त प्रोजेक्ट नाम फ़ील्ड केवल पढ़ने के लिए है - इसे बदलने का यही एकमात्र तरीका है।"
-
 msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
 msgstr "एक नए नाम के लिए संकेत देता है और उसे अभी लोड किए गए बैकअप पर लागू करता है। इस डायलॉग में बाकी सब कुछ ओके/सेव होने तक लंबित रहता है और डायलॉग खुला रहता है ताकि आप संपादन जारी रख सकें।"
-
 msgid "Remove"
 msgstr "निकालना"
-
 msgid "Save Profile To Android Device"
 msgstr "प्रोफ़ाइल को Android डिवाइस में सहेजें"
-
 msgid "Save Project To Android Device"
 msgstr "प्रोजेक्ट को एंड्रॉइड डिवाइस में सहेजें"
-
 msgid "Save Task To Android Device"
 msgstr "कार्य को Android डिवाइस में सहेजें"
-
 msgid "Save as"
 msgstr "के रूप रक्षित करें"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "संपूर्ण बैकअप सहेजता है - इसमें प्रत्येक प्रोजेक्ट, प्रोफ़ाइल और कार्य, न कि केवल यह प्रोफ़ाइल - इस संवाद के संपादन लागू होने पर, वही 'ओके' रखा जाएगा।\nयह वर्तमान में लोड की गई फ़ाइल की एक नई, टाइमस्टैम्प्ड प्रतिलिपि पर लिखा गया है: बैकअप.एक्सएमएल बैकअप_20260728_143005.xml बन जाता है।\nआपके द्वारा लोड की गई फ़ाइल कभी भी लिखी नहीं गई है, इसलिए इसे बिल्कुल वैसे ही छोड़ दिया गया है जैसे यह थी।\nऐप फिर नई प्रतिलिपि पर स्विच हो जाता है, जो किसी भी आगे के संपादन और बचत के लिए वर्तमान फ़ाइल बन जाती है; दोबारा सहेजने से दूसरा जोड़ने के बजाय टाइमस्टैम्प बदल जाता है।\nयह केवल इस कंप्यूटर पर लिखता है - आपके एंड्रॉइड डिवाइस पर कुछ भी नहीं भेजा जाता है।"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "संपूर्ण बैकअप सहेजता है - प्रत्येक प्रोजेक्ट, प्रोफ़ाइल और कार्य, न कि केवल यह प्रोजेक्ट - जिसमें इस सत्र में कहीं भी किया गया प्रत्येक संपादन शामिल है।\nयह वर्तमान में लोड की गई फ़ाइल की एक नई, टाइमस्टैम्प्ड प्रतिलिपि पर लिखा गया है: बैकअप.एक्सएमएल बैकअप_20260728_143005.xml बन जाता है।\nआपके द्वारा लोड की गई फ़ाइल कभी भी लिखी नहीं गई है, इसलिए इसे बिल्कुल वैसे ही छोड़ दिया गया है जैसे यह थी।\nऐप फिर नई प्रतिलिपि पर स्विच हो जाता है, जो किसी भी आगे के संपादन और बचत के लिए वर्तमान फ़ाइल बन जाती है; दोबारा सहेजने से दूसरा जोड़ने के बजाय टाइमस्टैम्प बदल जाता है।\nयह केवल इस कंप्यूटर पर लिखता है - आपके एंड्रॉइड डिवाइस पर कुछ भी नहीं भेजा जाता है।"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "संपूर्ण बैकअप सहेजता है - इसमें प्रत्येक प्रोजेक्ट, प्रोफ़ाइल और कार्य, न कि केवल यह कार्य - इस संवाद के संपादन लागू होने पर, वही 'ओके' रखा जाएगा।\nयह वर्तमान में लोड की गई फ़ाइल की एक नई, टाइमस्टैम्प्ड प्रतिलिपि पर लिखा गया है: बैकअप.एक्सएमएल बैकअप_20260728_143005.xml बन जाता है।\nआपके द्वारा लोड की गई फ़ाइल कभी भी लिखी नहीं गई है, इसलिए इसे बिल्कुल वैसे ही छोड़ दिया गया है जैसे यह थी।\nऐप फिर नई प्रतिलिपि पर स्विच हो जाता है, जो किसी भी आगे के संपादन और बचत के लिए वर्तमान फ़ाइल बन जाती है; दोबारा सहेजने से दूसरा जोड़ने के बजाय टाइमस्टैम्प बदल जाता है।\nयह केवल इस कंप्यूटर पर लिखता है - आपके एंड्रॉइड डिवाइस पर कुछ भी नहीं भेजा जाता है।"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "संपूर्ण बैकअप सहेजता है - इसमें प्रत्येक प्रोजेक्ट, प्रोफ़ाइल और कार्य, न कि केवल यह - अपने प्रोजेक्ट में नई प्रोफ़ाइल जोड़ने के साथ, उसी तरह जैसे 'ओके' इसे जोड़ता है।\nयह वर्तमान में लोड की गई फ़ाइल की एक नई, टाइमस्टैम्प्ड प्रतिलिपि पर लिखा गया है: बैकअप.एक्सएमएल बैकअप_20260728_143005.xml बन जाता है।\nआपके द्वारा लोड की गई फ़ाइल कभी भी लिखी नहीं गई है, इसलिए इसे बिल्कुल वैसे ही छोड़ दिया गया है जैसे यह थी।\nऐप फिर नई प्रतिलिपि पर स्विच हो जाता है, जो किसी भी आगे के संपादन और बचत के लिए वर्तमान फ़ाइल बन जाती है; दोबारा सहेजने से दूसरा जोड़ने के बजाय टाइमस्टैम्प बदल जाता है।\nयह केवल इस कंप्यूटर पर लिखता है - आपके एंड्रॉइड डिवाइस पर कुछ भी नहीं भेजा जाता है।"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "संपूर्ण बैकअप सहेजता है - इसमें प्रत्येक प्रोजेक्ट, प्रोफ़ाइल और कार्य, न कि केवल यह - इसमें नया कार्य जोड़ने के साथ, उसी तरह जैसे 'ओके' इसे जोड़ता है।\nयह वर्तमान में लोड की गई फ़ाइल की एक नई, टाइमस्टैम्प्ड प्रतिलिपि पर लिखा गया है: बैकअप.एक्सएमएल बैकअप_20260728_143005.xml बन जाता है।\nआपके द्वारा लोड की गई फ़ाइल कभी भी लिखी नहीं गई है, इसलिए इसे बिल्कुल वैसे ही छोड़ दिया गया है जैसे यह थी।\nऐप फिर नई प्रतिलिपि पर स्विच हो जाता है, जो किसी भी आगे के संपादन और बचत के लिए वर्तमान फ़ाइल बन जाती है; दोबारा सहेजने से दूसरा जोड़ने के बजाय टाइमस्टैम्प बदल जाता है।\nयह केवल इस कंप्यूटर पर लिखता है - आपके एंड्रॉइड डिवाइस पर कुछ भी नहीं भेजा जाता है।"
-
 msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
 msgstr "इस प्रोजेक्ट और इसमें मौजूद सभी चीज़ों - प्रत्येक प्रोफ़ाइल और कार्य - को एक स्टैंडअलोन फ़ाइल के रूप में सहेजता है।"
-
 msgid "Search actions"
 msgstr "खोज क्रियाएँ"
-
 msgid "Search..."
 msgstr "खोज..."
-
 msgid "Select a single Profile first (Profile pulldown above)."
 msgstr "पहले एक एकल प्रोफ़ाइल चुनें (प्रोफ़ाइल ऊपर पुलडाउन)।"
-
 msgid "Select a single Project first (Project pulldown above)."
 msgstr "पहले एक एकल प्रोजेक्ट चुनें (ऊपर प्रोजेक्ट पुलडाउन)।"
-
 msgid "Select a single Task first (Task pulldown above)."
 msgstr "पहले एक एकल कार्य चुनें (ऊपर कार्य पुलडाउन)।"
-
 msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
 msgstr "चेतावनी जारी करने से पहले चुनें कि किसी कार्य में कितनी कार्रवाइयाँ हैं।\nचेतावनी कॉन्फ़िगरेशन आउटपुट के नीचे दिखाई देती है,\nऔर इसका उद्देश्य उन कार्यों की पहचान करने में मदद करना है जो बहुत जटिल हैं\nऔर जिसे संभावित रूप से कई कार्यों में विभाजित किया जाना चाहिए।\n'100' की सेटिंग का मतलब है कि कोई सीमा नहीं है।"
-
 msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
 msgstr "यदि/तब/अन्यथा ब्लॉक के लिए इंडेंटेशन राशि निर्धारित करें।\n\nडिफ़ॉल्ट '4' है.\n\nयह प्रभावित करता है कि मानचित्र और आरेख दृश्यों में आउटपुट को कैसे स्वरूपित किया जाता है।"
-
 msgid "Settings Reset!"
 msgstr "सेटिंग्स रीसेट करें!"
-
 msgid "Shutting down MapTasker..."
 msgstr "मैपटास्कर बंद किया जा रहा है..."
-
 msgid "Start Time"
 msgstr "समय शुरू"
-
 msgid "Starting AI Analysis..."
 msgstr "एआई विश्लेषण शुरू हो रहा है..."
-
 msgid "State Type"
 msgstr "राज्य का प्रकार"
-
 msgid "Submit"
 msgstr "जमा करना"
-
 msgid "Target"
 msgstr "लक्ष्य"
-
 msgid "Task Name"
 msgstr "कार्य का नाम"
-
 msgid "Task Uploaded to Tasker"
 msgstr "टास्क टास्कर पर अपलोड किया गया"
-
 msgid "Task Uploaded to Tasker."
 msgstr "टास्क टास्कर पर अपलोड किया गया।"
-
 msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "कार्य केवल इस सत्र के लिए रखा गया है - इसे स्थायी रूप से रखने के लिए 'वर्तमान फ़ाइल में सहेजें' का उपयोग करें।"
-
 msgid "The 'Misc' view is running in the background.  Please stand by..."
 msgstr "पृष्ठभूमि में 'विविध' दृश्य चल रहा है।  कृपया प्रतीक्षा करें..."
-
 msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
 msgstr "'खोज' बटन डेटा के शीर्ष से शुरू होकर, खोज बॉक्स में दर्ज केस-असंवेदनशील स्ट्रिंग के प्रत्येक उदाहरण को खोजेगा और हाइलाइट करेगा।\n\nयह खोज स्ट्रिंग के केवल पहले 200 उदाहरण दिखाएगा।\n\nटेक्स्ट व्यू बॉक्स में उस लाइन पर जाने के लिए लाइन नंबर पर क्लिक करें।\n\n'साफ़ करें' बटन खोज परिणामों को साफ़ कर देगा।\n\n"
-
 msgid "The change will take effect the next time you open the view."
 msgstr "अगली बार जब आप दृश्य खोलेंगे तो परिवर्तन प्रभावी होगा।"
-
 msgid "This Task has no actions yet."
 msgstr "इस कार्य में अभी तक कोई कार्रवाई नहीं हुई है."
-
 msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
 msgstr "यह आपके सिस्टम पर उपलब्ध सभी फ़ॉन्ट्स की एक सूची है, पहले मोनोस्पेस वाले और इस प्रकार चिह्नित किए गए।\n\nचयनित फ़ॉन्ट का उपयोग सभी आउटपुट में किया जाएगा।\n\nउचित कनेक्टर संरेखण सुनिश्चित करने के लिए डायग्राम के लिए 'कूरियर' या 'कूरियर न्यू' की अत्यधिक अनुशंसा की जाती है। एक फ़ॉन्ट जो मोनोस्पेस्ड नहीं है वह डायग्राम के कनेक्टर्स या आउटपुट के इंडेंटेशन को लाइन में नहीं रखेगा।"
-
 msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
 msgstr "यह टास्क को सीधे टास्कर सर्वर पर चलने वाले एंड्रॉइड डिवाइस पर चल रहे टास्कर में सहेज देगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nआपको एंड्रॉइड डिवाइस पर टास्कर को लिखने के लिए प्राधिकरण के लिए दो बार संकेत दिया जाएगा, और टास्क.और उसके स्वयं के कार्य यह निर्धारित करेंगे कि यह डिवाइस पर कहां सहेजा गया है।"
-
 msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
 msgstr "यह टास्क को सीधे आपके एंड्रॉइड डिवाइस पर सक्रिय टास्कर सत्र में सहेज देगा।\n\nइसे काम करने के लिए टास्कर संस्करण 6.2 या उससे अधिक की आवश्यकता है। एंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट\nएंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nआपको एंड्रॉइड डिवाइस पर टास्कर को लिखने के लिए प्राधिकरण के लिए दो बार संकेत दिया जाएगा, और टास्क को सीधे सक्रिय टास्कर सत्र में लोड किया जाएगा।\n\nटास्कर यूआई में नया कार्य देखने के लिए आपको टास्कर से बाहर निकलना होगा और पुनः आरंभ करना होगा।"
-
 msgid "This will save the Task directly to your current drive.\n\n"
 msgstr "यह कार्य को सीधे आपकी वर्तमान ड्राइव पर सहेज देगा।\n\n"
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "यह प्रोफ़ाइल को एंड्रॉइड डिवाइस पर /टास्कर/प्रोफाइल के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसके लिए किसी प्राधिकरण संकेत की आवश्यकता नहीं है."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "यह प्रोफ़ाइल को आपके एंड्रॉइड डिवाइस पर /टास्कर/प्रोफाइल के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट (http://spoo.me/http_svr_example) को सर्वर चालू होने के साथ एंड्रॉइड डिवाइस पर स्थापित और सक्रिय होना चाहिए (README के ​​डायरेक्ट XML पुनर्प्राप्ति नोट्स देखें)।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए। इसके लिए किसी प्राधिकरण संकेत की आवश्यकता नहीं है."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "यह प्रोफ़ाइल को आपके एंड्रॉइड डिवाइस पर /टास्कर/प्रोफाइल के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को सर्वर चालू होने के साथ एंड्रॉइड डिवाइस पर स्थापित और सक्रिय होना चाहिए (README के ​​डायरेक्ट XML पुनर्प्राप्ति नोट्स देखें)।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए। इसके लिए किसी प्राधिकरण संकेत की आवश्यकता नहीं है."
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "यह प्रोजेक्ट और उसमें मौजूद हर चीज़ - प्रत्येक प्रोफ़ाइल और कार्य - को आपके एंड्रॉइड डिवाइस पर /टास्कर/प्रोजेक्ट्स के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को एंड्रॉइड डिवाइस पर सर्वर चालू होने के साथ इंस्टॉल और सक्रिय होना चाहिए।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए। इसके लिए किसी प्राधिकरण संकेत की आवश्यकता नहीं है."
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "यह प्रोजेक्ट और उसमें मौजूद सभी चीज़ों को एंड्रॉइड डिवाइस पर /टास्कर/प्रोजेक्ट्स के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसके लिए किसी प्राधिकरण संकेत की आवश्यकता नहीं है."
-
 msgid "Toggle Wrap"
 msgstr "लपेटें टॉगल करें"
-
 msgid "Unlink"
 msgstr "अनलिंक"
-
 msgid "Value"
 msgstr "कीमत"
-
 msgid "View cleared."
 msgstr "दृश्य साफ़ किया गया."
-
 msgid "Week-Day"
 msgstr "सप्ताह दिन"
-
 msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
 msgstr "सक्षम होने पर, 'बाहर निकलें' पर क्लिक करने से मुख्य मैपटास्कर विंडो और उसके द्वारा खोले गए सभी मैप/आरेख विंडो/टैब भी बंद हो जाते हैं।\n\nअक्षम होने पर, 'बाहर निकलें' मैपटास्कर को बंद कर देता है लेकिन उन विंडो/टैब को खुला छोड़ देता है।"
-
 msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
 msgstr "सक्षम होने पर, प्रत्येक मानचित्र/आरेख अनुरोध अपनी नई विंडो/टैब में खुलता है, ताकि आप तुलना करने के लिए पहले वाले को इसके साथ रख सकें।\n\nअक्षम होने पर, एक अनुरोध उस दृश्य की मौजूदा विंडो/टैब का पुन: उपयोग करता है, जो उसमें है उसे प्रतिस्थापित करता है।\n\nजब तक आप तुलना नहीं करना चाहते, इसे छोड़ दें: एक बिल्कुल नई विंडो/टैब वह है जिसे आपका ब्राउज़र ब्लॉक कर सकता है, क्योंकि यह आपके क्लिक करने के तुरंत बाद नहीं बल्कि दृश्य के निर्माण के बाद खुलता है।"
-
 msgid "hh:mm AM/PM or %variable"
 msgstr "hh:mm AM/PM या %चर"
-
 msgid "MapTasker: view limit reached, stopping output to file:  output"
 msgstr "मैपटास्कर: देखने की सीमा पूरी हो गई, आउटपुट को फ़ाइल में रोक दिया गया: आउटपुट"
-
 msgid "hardstop view limit"
 msgstr "हार्डस्टॉप दृश्य सीमा"
-
 msgid "(empty)"
 msgstr "(खाली)"
-
 msgid "(no name)"
 msgstr "(कोई नाम नहीं)"
-
 msgid "(unnamed Task)"
 msgstr "(अनाम कार्य)"
-
 msgid "(unnamed)"
 msgstr "(अनाम)"
-
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1 का अर्थ है कि इस ओरिएंटेशन का अपना कोई लेआउट नहीं है।"
-
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...और {गिनती} और - इसे सीमित करने के लिए ऊपर टाइप करें।"
-
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "एक दृश्य के तत्व की स्थिति डिवाइस पिक्सल में संग्रहीत होती है, लेकिन इसके टेक्स्ट आकार एंड्रॉइड की एसपी इकाइयों में संग्रहीत होते हैं। दोनों के बीच परिवर्तित होने वाला नंबर उस फ़ोन की संपत्ति है जिस पर दृश्य दिखाया गया है, और बैकअप फ़ाइल में नहीं है।\n\nतो यह यहाँ सेट है. यदि पाठ अपने तत्वों के लिए बहुत छोटा दिखता है तो इसे ऊपर उठाएं, यदि पाठ उनके तत्वों से अधिक हो जाए तो इसे नीचे कर दें।"
-
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "संस्करण 2 के दृश्य का अपना कोई आकार नहीं होता - यह जिस भी स्क्रीन पर दिखाया जाता है, उसके अंदर खुद को प्रदर्शित करता है, इसलिए इसे खींचने के लिए बैकअप फ़ाइल में कुछ भी नहीं है।\n\nलेआउट को पुनः प्रवाहित होते देखने के लिए इसे बदलें। एक फ़्लो पंक्ति अलग तरह से लपेटी जाती है, और %sv2_render_width के विरुद्ध लिखा गया कोई भी 'शो कब' बिल्कुल इसी के बारे में पूछ रहा है।"
-
 msgid "Actions"
 msgstr "कार्रवाई"
-
 msgid "Add"
 msgstr "जोड़ना"
-
 msgid "Add Element"
 msgstr "तत्व जोड़ें"
-
 msgid "Add Scene"
 msgstr "दृश्य जोड़ें"
-
 msgid "Add a background"
 msgstr "एक पृष्ठभूमि जोड़ें"
-
 msgid "Add action"
 msgstr "क्रिया जोड़ें"
-
 msgid "Add event"
 msgstr "कार्यक्रम जोड़ें"
-
 msgid "Add handler"
 msgstr "हैंडलर जोड़ें"
-
 msgid "Add modifier"
 msgstr "संशोधक जोड़ें"
-
 msgid "Add scene properties"
 msgstr "दृश्य गुण जोड़ें"
-
 msgid "Addressed by id from"
 msgstr "से आईडी द्वारा संबोधित किया गया"
-
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "दृश्य के मध्य में, स्टैक के शीर्ष पर एक तत्व जोड़ता है।"
-
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "यदि यह बच्चों को पकड़ सकता है तो चयनित घटक के अंदर जोड़ता है, अन्यथा सीधे इसके बाद।"
-
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "इसे स्टैक के शीर्ष पर, दृश्य के मध्य में जोड़ता है। इसे जहाँ चाहें वहाँ खींचें।"
-
 msgid "Also selected:"
 msgstr "ये भी चयनित:"
-
 msgid "Also update"
 msgstr "अपडेट भी करें"
-
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "एम्बर: टास्कर इसे सूचीबद्ध करता है, लेकिन मैपटास्कर के पास इसका कोई पुष्ट नमूना नहीं है। ग्रे: वहां नहीं जा सकता जहां चयन उसे रखेगा।"
-
 msgid "App icon"
 msgstr "ऐप आइकन"
-
 msgid "Appearance Mode"
 msgstr "उपस्थिति मोड"
-
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "क्रम में लागू - जो नीचे है वह शीर्ष पर बैठता है।"
-
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "यह दृश्य सहेजे जाने पर लागू होता है, अभी नहीं - दृश्य संवाद पर रद्द करें तत्व और कार्य दोनों को वैसे ही छोड़ देता है जैसे वे थे।"
-
 msgid "Back to Editor"
 msgstr "संपादक के पास वापस जाएँ"
-
 msgid "Bounds"
 msgstr "सीमा"
-
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "रद्द कर दिया गया. इस दृश्य में परिवर्तन खारिज कर दिए गए।"
-
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "किसी घटक को चुनने के लिए उस पर क्लिक करें, कई घटकों को लेने के लिए उसी कंटेनर में दूसरे घटक पर शिफ्ट-क्लिक करें, और उन्हें अपने भाई-बहनों के बीच पुन: व्यवस्थित करने के लिए खींचें। किसी घटक को कंटेनर के अंदर या बाहर ले जाना संपादक के इन और आउट बटन हैं; पूर्ववत भी है."
-
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "किसी तत्व को चुनने के लिए उस पर क्लिक करें, कई तत्वों को लेने के लिए पृष्ठभूमि पर एक बॉक्स को शिफ्ट-क्लिक करें या खींचें, और उन सभी को स्थानांतरित करने के लिए उनमें से किसी एक को खींचें - तीर कुंजी नज, 10px के लिए शिफ्ट। किसी एक तत्व का आकार बदलने के लिए हैंडल खींचें। पूर्ववत करें, और तत्व के बारे में बाकी सब कुछ, संपादक में वापस आ गया है।"
-
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "किसी तत्व को चुनने के लिए उस पर क्लिक करें, स्थानांतरित करने के लिए खींचें, आकार बदलने के लिए हैंडल खींचें, न्यूड करने के लिए तीर कुंजियाँ खींचें (10px के लिए Shift)। एक साथ कई बॉक्स लेने के लिए, किसी बॉक्स को शिफ़्ट-क्लिक करें या पृष्ठभूमि पर खींचें।"
-
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "सहेजे बिना बंद हो जाता है, और इस दृश्य को ठीक उसी तरह वापस रख देता है जैसा यह तब था जब यह संवाद खोला गया था - पूर्वावलोकन में कुछ भी स्थानांतरित या आकार बदलने सहित।\n\nनाम बदलना एक ऐसी चीज़ है जिसे इसे वापस नहीं लिया जा सकता है: इसकी पुष्टि होते ही इसे लोड किए गए बैकअप पर लागू किया जाता है, और इसके साथ यह संवाद बंद हो जाता है।"
-
 msgid "Delete Scene"
 msgstr "दृश्य हटाएँ"
-
 msgid "Done"
 msgstr "हो गया"
-
 msgid "Drawn in"
 msgstr "अंदर खींचा गया"
-
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "इस दृश्य को मुख्य विंडो में एक चित्र के रूप में खींचता है - जिसमें वे घटक भी शामिल हैं जिन्हें आपने यहां जोड़ा या बदला है लेकिन अभी तक सहेजा नहीं है।\n\nसंस्करण 2 लेआउट का अपना कोई आकार नहीं होता है, इसलिए पूर्वावलोकन इसे आपके द्वारा चुनी गई स्क्रीन में प्रदर्शित करता है, और जब आप इसे बदलते हैं तो इसे फिर से प्रवाहित करता है।\n\nपूर्वावलोकन चालू होने पर यह संवाद बंद हो जाता है, इसमें सब कुछ रखा रहता है; पूर्वावलोकन का 'बैक टू एडिटर' बटन इसे वापस लाता है।\n\nयह एक प्रतिनिधित्व है, टास्कर का अपना रेंडरर नहीं: %चरों को हल करने के बजाय नाम दिया गया है, सामग्री के रंग डिवाइस की थीम के बजाय बेसलाइन पैलेट से आते हैं, और छवियां, वीडियो और वेब सामग्री प्लेसहोल्डर के रूप में दिखाई जाती हैं।"
-
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "इस दृश्य को ऊपर टाइप किए गए आकार में मुख्य विंडो में एक चित्र के रूप में खींचता है - जिसमें अभी तक सहेजे नहीं गए परिवर्तन भी शामिल हैं।\n\nपूर्वावलोकन चालू होने पर यह संवाद बंद हो जाता है, इसमें सब कुछ रखा रहता है; पूर्वावलोकन का 'बैक टू एडिटर' बटन इसे वापस लाता है।\n\nयह एक प्रतिनिधित्व है, टास्कर का अपना रेंडरर नहीं: %चरों को हल करने के बजाय नाम दिया गया है, और छवियों, वीडियो और वेब सामग्री को प्लेसहोल्डर के रूप में दिखाया गया है।"
-
 msgid "Dropdown menu — shown when opened"
 msgstr "ड्रॉपडाउन मेनू - खोले जाने पर दिखाया जाता है"
-
 msgid "Duplicate"
 msgstr "डुप्लिकेट"
-
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "जब दृश्य दिखाया जाता है तो डायनामिक और सेलेक्ट वेरिएबल पर काम किया जाता है।"
-
 msgid "Dynamic value"
 msgstr "गतिशील मूल्य"
-
 msgid "Edit Scene"
 msgstr "दृश्य संपादित करें"
-
 msgid "Edit item layout"
 msgstr "आइटम लेआउट संपादित करें"
-
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "इसके बजाय चयन को ध्यान में रखते हुए इसके गुणों को संपादित करें।"
-
 msgid "Event handlers"
 msgstr "इवेंट संचालक"
-
 msgid "Export Scene"
 msgstr "निर्यात दृश्य"
-
 msgid "Geometry"
 msgstr "ज्यामिति"
-
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "ग्रे: मैपटास्कर के पास इसके लिए कोई तर्क तालिका नहीं है, इसलिए यह अनुमान लगाए बिना नहीं बनाया जा सकता है कि टास्कर अंदर क्या अपेक्षा करता है। शीर्षक मैपटास्कर का अपना समूह हैं।"
-
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "हैच्ड भरण और इटैलिक रेखांकित पाठ %चर हैं - उनके मान डिवाइस पर रहते हैं, बैकअप में नहीं, इसलिए उनका अनुमान लगाने के बजाय नाम दिया गया है। छवियाँ, वीडियो, मानचित्र और वेब सामग्री प्लेसहोल्डर के रूप में दिखाई जाती हैं। किसी भी तत्व को उसकी ज्यामिति, उसके चर और उसके द्वारा चलाए जाने वाले कार्यों के लिए होवर करें।"
-
 msgid "Health Check"
 msgstr "स्वास्थ्य जांच"
-
 msgid "Health Check found no errors or warnings."
 msgstr "स्वास्थ्य जांच में कोई त्रुटि या चेतावनी नहीं मिली।"
-
 msgid "Health Check report could not be saved."
 msgstr "स्वास्थ्य जांच रिपोर्ट सहेजी नहीं जा सकी."
-
 msgid "Health Check saved as"
 msgstr "स्वास्थ्य जांच को इस रूप में सहेजा गया"
-
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "पॉप-अप संदेश गायब होने से पहले कितनी देर तक स्क्रीन पर रहता है।\n\n'जब तक खारिज नहीं किया जाता' हर संदेश को तब तक चालू रखता है जब तक आप उसे बंद नहीं कर देते, जो तब उपयोगी होता है जब कोई संदेश आपके पढ़ने से पहले स्क्रॉल हो जाता है।\n\nकुछ संदेश अपनी लंबी अवधि निर्धारित करते हैं क्योंकि वे उन चीजों को सूचीबद्ध करते हैं जिन्हें आपको पढ़ना है - उदाहरण के लिए, दृश्य तत्व को हटाने या उसका नाम बदलने से प्रभावित कार्य। यहां जो भी चुना जाता है, वे अपनी टाइमिंग रखते हैं।"
-
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "सूची में: किसी श्रेणी के लिए शिफ़्ट-क्लिक करें, किसी को जोड़ने या हटाने के लिए Ctrl- या Cmd-क्लिक करें।"
-
 msgid "Item layout"
 msgstr "आइटम लेआउट"
-
 msgid "Landscape"
 msgstr "परिदृश्य"
-
 msgid "Legacy"
 msgstr "परंपरा"
-
 msgid "Legacy Scene"
 msgstr "विरासत दृश्य"
-
 msgid "List"
 msgstr "सूची"
-
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "मैपटास्कर: देखने की सीमा पूरी हो गई, आरेख छोटा कर दिया गया"
-
 msgid "Modifiers"
 msgstr "संशोधक"
-
 msgid "Never updated"
 msgstr "कभी अद्यतन नहीं किया गया"
-
 msgid "No Task addresses this element by name."
 msgstr "कोई भी कार्य इस तत्व को नाम से संबोधित नहीं करता है।"
-
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "कोई XML फ़ाइल लोड नहीं की गई है.  पहले एक XML फ़ाइल प्राप्त करें."
-
 msgid "No element matches that."
 msgstr "कोई भी तत्व उससे मेल नहीं खाता."
-
 msgid "Not an HTML colour name or #hex value."
 msgstr "HTML रंग नाम या #हेक्स मान नहीं।"
-
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "अद्यतन नहीं - ये इस दृश्य और इस तत्व दोनों को नाम देते हैं, लेकिन एक के रूप में नहीं"
-
 msgid "Nothing here."
 msgstr "यहाँ कुछ भी नहीं है।"
-
 msgid "Notification Duration"
 msgstr "अधिसूचना अवधि"
-
 msgid "Notification Duration:"
 msgstr "अधिसूचना अवधि:"
-
 msgid "On"
 msgstr "पर"
-
 msgid "Only when"
 msgstr "केवल जब"
-
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "प्रत्येक घटक की रूपरेखा बनाएं और उसे नाम दें, जैसे डिज़ाइनर का पेड़ उसे नाम देता है।"
-
 msgid "Outline every element and name it."
 msgstr "प्रत्येक तत्व की रूपरेखा तैयार करें और उसे नाम दें।"
-
 msgid "Pick a Material icon."
 msgstr "एक सामग्री आइकन चुनें."
-
 msgid "Pick an icon"
 msgstr "एक आइकन चुनें"
-
 msgid "Pick from the Scene's environment and global variables."
 msgstr "दृश्य के परिवेश और वैश्विक चर में से चुनें।"
-
 msgid "Pick one of Material's own colour roles."
 msgstr "सामग्री की अपनी रंग भूमिकाओं में से एक चुनें।"
-
 msgid "Preview"
 msgstr "पूर्व दर्शन"
-
 msgid "Project(s) that list it."
 msgstr "प्रोजेक्ट जो इसे सूचीबद्ध करते हैं।"
-
 msgid "Properties"
 msgstr "गुण"
-
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "गुणों को एक समय में एक तत्व संपादित किया जाता है। खींचकर और कुहनी मारकर चयनित सभी चीज़ों को स्थानांतरित करें।"
-
 msgid "Refresh"
 msgstr "ताज़ा करना"
-
 msgid "Remove background"
 msgstr "पृष्ठभूमि निकालें"
-
 msgid "Rename Element"
 msgstr "तत्व का नाम बदलें"
-
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "यहां किसी तत्व का नाम बदलने से बैकअप स्वीप नहीं होता है: किसी आइटम लेआउट में टास्क के तत्व क्रिया के लिए इसे संबोधित करने के लिए कोई दृश्य नाम नहीं होता है, इसलिए फिर से लिखने के लिए कुछ भी नहीं है।"
-
 msgid "Repeats once per array entry"
 msgstr "प्रति सरणी प्रविष्टि एक बार दोहराई जाती है"
-
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "खींचे गए पदों और आकारों को इतने पिक्सेल तक गोल करें।"
-
 msgid "Save Scene To Android Device"
 msgstr "एंड्रॉइड डिवाइस पर दृश्य सहेजें"
-
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "संपूर्ण बैकअप सहेजता है - इसमें प्रत्येक प्रोजेक्ट, प्रोफ़ाइल, कार्य और दृश्य, न कि केवल यह दृश्य - इस सत्र में कहीं भी किए गए प्रत्येक संपादन सहित।\nयह वर्तमान में लोड की गई फ़ाइल की एक नई, टाइमस्टैम्प्ड प्रतिलिपि पर लिखा गया है: बैकअप.xml बैकअप_20260728_143005.xml बन जाता है।\nआपके द्वारा लोड की गई फ़ाइल कभी भी लिखी नहीं गई है, इसलिए इसे वैसे ही छोड़ दिया गया है जैसे यह थी।\nऐप फिर नई प्रतिलिपि पर स्विच हो जाता है, जो किसी भी आगे के संपादन और बचत के लिए वर्तमान फ़ाइल बन जाती है; दोबारा सहेजने से दूसरा जोड़ने के बजाय टाइमस्टैम्प बदल जाता है।\nयह केवल इस कंप्यूटर पर लिखता है - आपके एंड्रॉइड डिवाइस पर कुछ भी नहीं भेजा जाता है।"
-
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "इस दृश्य को, इसके सभी तत्वों के साथ, एक स्टैंडअलोन .scn.xml फ़ाइल के रूप में सहेजता है - वही प्रारूप जो टास्कर का स्वयं का दृश्य निर्यात उत्पन्न करता है।\n\nदृश्य के तत्वों द्वारा चलाए जाने वाले कार्य शामिल नहीं हैं; वे अपने स्वयं के प्रोजेक्ट से संबंधित हैं।"
-
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "टूटे हुए संदर्भों, गैर-संदर्भित कार्यों, प्रोफ़ाइलों और दृश्यों और नामकरण समस्याओं के लिए लोड किए गए XML को स्कैन करें।\n\nपरिणाम यहां प्रदर्शित होते हैं और वर्तमान निर्देशिका में एक टेक्स्ट फ़ाइल में सहेजे जाते हैं।"
-
 msgid "Scene Elements"
 msgstr "दृश्य तत्व"
-
 msgid "Scene Name"
 msgstr "दृश्य का नाम"
-
 msgid "Scene Preview"
 msgstr "दृश्य पूर्वावलोकन"
-
 msgid "Scene Properties"
 msgstr "दृश्य गुण"
-
 msgid "Scene added."
 msgstr "दृश्य जोड़ा गया."
-
 msgid "Scene type"
 msgstr "दृश्य प्रकार"
-
 msgid "Screen"
 msgstr "स्क्रीन"
-
 msgid "Search elements"
 msgstr "तत्व खोजें"
-
 msgid "Search icons"
 msgstr "चिह्न खोजें"
-
 msgid "Search variables"
 msgstr "चर खोजें"
-
 msgid "Select a component on the left."
 msgstr "बाईं ओर एक घटक चुनें."
-
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "बाकी देखने के लिए एक बड़ी दृश्य सीमा या एकल प्रोजेक्ट/प्रोफ़ाइल/कार्य का चयन करें।"
-
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "पहले एक दृश्य चुनें (ऊपर दृश्य पुलडाउन)।"
-
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "डुप्लिकेट करने, हटाने या पुनः स्टैक करने के लिए किसी एक तत्व का चयन करें।"
-
 msgid "Select an element first."
 msgstr "पहले एक तत्व चुनें."
-
 msgid "Select an element on the canvas or in the list."
 msgstr "कैनवास पर या सूची में एक तत्व का चयन करें।"
-
 msgid "Show the Task each element runs."
 msgstr "प्रत्येक तत्व द्वारा चलाया जाने वाला कार्य दिखाएँ।"
-
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "दिखाएँ कि टैप करने पर प्रत्येक घटक क्या करता है और वह क्या लिखता है।"
-
 msgid "Show when"
 msgstr "कब दिखाओ"
-
 msgid "Size"
 msgstr "आकार"
-
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "आकार एक पूर्णांक होना चाहिए (बिना किसी लेआउट के -1)।"
-
 msgid "Snap"
 msgstr "स्नैप"
-
 msgid "Spinner"
 msgstr "स्पिनर"
-
 msgid "Stop firing anything on this event."
 msgstr "इस घटना पर कुछ भी फायरिंग करना बंद करें."
-
 msgid "Task action(s) in"
 msgstr "कार्य क्रिया(ओं) में"
-
 msgid "Task(s)"
 msgstr "कार्य"
-
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "कार्य इस दृश्य को एक मिलान पैटर्न (तत्व दृश्यता) द्वारा संबोधित करते हैं। उन्हें स्वयं जांचें"
-
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "टास्कर इस कार्य को दृश्य के अंदर रखता है और कहीं नहीं, इसलिए इसका कोई नाम नहीं है और इसे खोए बिना कहीं और इंगित नहीं किया जा सकता है। इसे अछूते तरीके से ले जाया जाता है।"
-
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "टास्कर इस तत्व को सूचीबद्ध करता है, लेकिन मैपटास्कर ने कभी भी सहेजे गए दृश्य में इसे नहीं देखा है - इसलिए इसे इसके प्रकार और आईडी के अलावा कुछ भी नहीं जोड़ा गया है, और यहां तक ​​कि प्रकार का अनुमान ऊपर दिए गए नाम से लगाया गया है (प्रकार के रूप में लिखा गया है: \"{नोड_टाइप}\")। यदि टास्कर इसे नहीं पहचानता है, तो पूर्ववत करें दबाएँ।"
-
 msgid "Tasker variable(s)"
 msgstr "टास्कर चर"
-
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "टास्कर का स्क्रीन बिल्डर: एक घोषणात्मक घटक वृक्ष (स्तंभ, पंक्ति, मचान, ...) जो बिना किसी निश्चित कैनवास आकार के, स्वयं को प्रस्तुत करता है। से शुरु करें:"
-
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "कार्य इस तत्व को नाम से संबोधित करते हैं (तत्व पाठ, तत्व स्थिति, ... कुल मिलाकर 18 क्रिया कोड), इसलिए इसका नाम बदलना कोई फ़ील्ड संपादन नहीं है। नाम बदलें संवाद सूचीबद्ध करता है कि वर्तमान नाम पर क्या निर्भर करता है और उन कार्यों को साथ लाने की पेशकश करता है।"
-
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "इस दृश्य को नाम से दिखाने या छिपाने वाले कार्य नहीं बदले जाते हैं, और वे जहां हैं वहीं छोड़ दिए जाते हैं।"
-
 msgid "Text density"
 msgstr "पाठ घनत्व"
-
 msgid "That component can't go there."
 msgstr "वह घटक वहां नहीं जा सकता."
-
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "सामग्री आइकन सूची पढ़ी नहीं जा सकी, इसलिए इसके स्थान पर नाम टाइप करें।"
-
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "यह घटक टास्कर वैरिएबल में अपना मान लिखता है। कई को अल्पविराम से अलग करें. बाइंडिंग को बिना सेट किए घोषित करने के लिए खाली छोड़ दें।"
-
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "इस दृश्य के सहेजे जाने पर इसे संबोधित करने वाले कार्य अपडेट हो जाएंगे।"
-
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "एक पंक्ति का लेआउट. टास्कर सूची में जो कुछ भी भरता है उसे प्रति प्रविष्टि एक बार खींचता है, इसलिए आप यहां जो देख रहे हैं वह सूची के बजाय एक पंक्ति है।"
-
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "मूल दृश्य: यूआई तत्वों को एक आकार के कैनवास (टेक्स्ट, बटन, रेक्ट, छवि, वेब, ...) पर निश्चित स्थानों पर रखा गया है।"
-
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "स्क्रीन का आकार इस पूर्वावलोकन का है, दृश्य का नहीं - संस्करण 2 लेआउट का अपना कोई आकार नहीं है, इसलिए इसे पुनः प्रवाहित होते देखने के लिए 'स्क्रीन' बदलें। सामग्री भूमिका द्वारा नामित रंग सामग्री 3 बेसलाइन पैलेट से खींचे जाते हैं; डिवाइस उन्हें अपनी थीम के अनुसार हल करता है, जो मटेरियल यू के अंतर्गत वॉलपेपर से आता है। रचित भरण और इटैलिक रेखांकित पाठ %चर हैं। एम्बर 'कब दिखाएँ' के साथ घटकों को रेखांकित करता है। किसी भी घटक को उसके संशोधक, चर और क्रियाओं के लिए होवर करें।"
-
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "तलाश ख़त्म नहीं हुई. दृश्य बहुत बड़ा हो सकता है, या ब्राउज़र व्यस्त है."
-
 msgid "This Scene has no UI elements."
 msgstr "इस दृश्य में कोई यूआई तत्व नहीं है।"
-
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "इस दृश्य का अपना कोई लैंडस्केप लेआउट नहीं है (इसका आकार -1 है)।"
-
 msgid "This Scene has no layout for this orientation."
 msgstr "इस दृश्य में इस अभिविन्यास के लिए कोई लेआउट नहीं है।"
-
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "इस दृश्य में कोई गुण तत्व नहीं है. मैपटास्कर द्वारा देखे गए 366 दृश्यों में से 66 में कोई भी नहीं है, इसलिए यह क्षति के बजाय सामान्य है।"
-
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "इस दृश्य के संस्करण 2 लेआउट को पढ़ा नहीं जा सका, और इसे वैसे ही छोड़ दिया जाएगा जैसा यह है।"
-
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "इस दृश्य के संस्करण 2 लेआउट में कोई रूट घटक नहीं है, इसलिए डिज़ाइन करने के लिए कुछ भी नहीं है।"
-
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "इस ऐप में इस तत्व प्रकार के लिए कोई संपत्ति तालिका नहीं है, इसलिए यहां केवल इसकी ज्यामिति को संपादित किया जा सकता है। इसे अन्यथा बिना छुए ही ले जाया जाता है।"
-
 msgid "This element has no layout for this orientation."
 msgstr "इस तत्व में इस अभिविन्यास के लिए कोई लेआउट नहीं है।"
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "यह दृश्य को एंड्रॉइड डिवाइस पर /टास्कर/सीन के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसके लिए किसी प्राधिकरण संकेत की आवश्यकता नहीं है."
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "यह दृश्य को आपके एंड्रॉइड डिवाइस पर /टास्कर/सीन के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को एंड्रॉइड डिवाइस पर सर्वर चालू होने के साथ इंस्टॉल और सक्रिय होना चाहिए।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए। इसके लिए किसी प्राधिकरण संकेत की आवश्यकता नहीं है."
-
 msgid "Tree label"
 msgstr "वृक्ष लेबल"
-
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "स्क्रीन को उसकी तरफ घुमाएं और लेआउट को उसमें फिर से प्रवाहित होने दें।"
-
 msgid "Undo"
 msgstr "पूर्ववत"
-
 msgid "Using the saved size"
 msgstr "सहेजे गए आकार का उपयोग करना"
-
 msgid "Variable"
 msgstr "चर"
-
 msgid "Variables"
 msgstr "चर"
-
 msgid "Version 2"
 msgstr "संस्करण 2"
-
 msgid "View Limit"
 msgstr "सीमा देखें"
-
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "आप जो चुनते हैं वह कर्सर पर चला जाता है। अगला टुकड़ा जोड़ने के लिए इसे फिर से खोलें।"
-
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "आप जो चुनते हैं वह फ़ील्ड में मौजूद चीज़ों को प्रतिस्थापित कर देता है। सूची को छोटा करने के लिए टाइप करें."
-
 msgid "Which kind of Scene?"
 msgstr "किस तरह का सीन?"
-
 msgid "Writes to variable"
 msgstr "वेरिएबल को लिखता है"
-
 msgid "Zoom"
 msgstr "ज़ूम"
-
 msgid "component(s)"
 msgstr "अवयव)"
-
 msgid "connectors"
 msgstr "कनेक्टर्स"
-
 msgid "drag or nudge any of them and they all move together."
 msgstr "उनमें से किसी को खींचें या धक्का दें और वे सभी एक साथ आगे बढ़ें।"
-
 msgid "editing 1 of"
 msgstr "का संपादन 1"
-
 msgid "element(s)"
 msgstr "तत्व"
-
 msgid "elements selected"
 msgstr "तत्वों का चयन किया गया"
-
 msgid "is not a whole number"
 msgstr "पूर्ण संख्या नहीं है"
-
 msgid "lines dropped"
 msgstr "लाइनें गिरा दी गईं"
-
 msgid "none"
 msgstr "कोई नहीं"
-
 msgid "not drawn"
 msgstr "खींचा नहीं गया"
-
 msgid "pair"
 msgstr "जोड़ा"
-
 msgid "pixels"
 msgstr "पिक्सेल"
-
 msgid "Choose another file..."
 msgstr "कोई अन्य फ़ाइल चुनें..."
-
 msgid "Compare Files"
 msgstr "फ़ाइलों की तुलना करें"
-
 msgid "Compare With"
 msgstr "साथ तुलना करें"
-
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "लोड की गई XML फ़ाइल के विरुद्ध किसी अन्य XML फ़ाइल की तुलना करें: क्या जोड़ा गया, हटाया गया, नाम बदला गया और बदला गया।\n\nइसका उपयोग यह देखने के लिए करें कि टास्करनेट आयात क्या लेकर आया, संपादन में क्या बदलाव आया, या दो बैकअप के बीच क्या अंतर है।\n\nयदि लोड की गई फ़ाइल 'वर्तमान फ़ाइल में सहेजें' से आई है, तो जिस फ़ाइल से इसे सहेजा गया था वह सीधे पेश की जाती है।\n\nपरिणाम यहां प्रदर्शित होते हैं और वर्तमान निर्देशिका में एक टेक्स्ट फ़ाइल में सहेजे जाते हैं।"
-
 msgid "Comparison cancelled."
 msgstr "तुलना रद्द कर दी गई."
-
 msgid "Comparison report could not be saved."
 msgstr "तुलना रिपोर्ट सहेजी नहीं जा सकी."
-
 msgid "Comparison saved as"
 msgstr "तुलना के रूप में सहेजा गया"
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "एक नए नाम के लिए संकेत देता है और इसे अभी लोड किए गए बैकअप पर लागू करता है - हर जगह दृश्य का नाम बदलना, जिसमें इसे रखने वाले प्रत्येक प्रोजेक्ट की दृश्य सूची भी शामिल है।\n\nइस दृश्य को नाम से दिखाने या छिपाने वाले कार्य अद्यतन नहीं किए जाते हैं; वे अभी भी पुराने दृश्य का नाम देते हैं।\n\nउपरोक्त दृश्य नाम फ़ील्ड केवल पढ़ने के लिए है - इसे बदलने का यही एकमात्र तरीका है।"
-
 msgid "Scene Components"
 msgstr "दृश्य घटक"
-
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "वह फ़ाइल पहले ही लोड हो चुकी है.  तुलना करने के लिए कोई भिन्न चुनें."
-
 msgid "The loaded file was saved from"
 msgstr "लोड की गई फ़ाइल से सहेजी गई थी"
-
 msgid "The original"
 msgstr "मूल"
-
 msgid "The two files hold the same configuration."
 msgstr "दोनों फ़ाइलें समान कॉन्फ़िगरेशन रखती हैं।"
-
 msgid "Building the Map to show"
 msgstr "दिखाने के लिए मानचित्र बनाना"
-
 msgid "Built the Map, but it has no line for"
 msgstr "मानचित्र बनाया, लेकिन इसमें कोई रेखा नहीं है"
-
 msgid "Click a finding to see it in the Map view."
 msgstr "किसी खोज को मानचित्र दृश्य में देखने के लिए उस पर क्लिक करें।"
-
 msgid "Click a variable or a place to see it in the Map view."
 msgstr "किसी चर या स्थान को मानचित्र दृश्य में देखने के लिए उस पर क्लिक करें।"
-
 msgid "No Map view is open.  Run Map View, then click this again."
 msgstr "कोई मानचित्र दृश्य खुला नहीं है.  मानचित्र दृश्य चलाएँ, फिर इस पर दोबारा क्लिक करें।"
-
 msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "लोड किए गए XML में प्रत्येक %वेरिएबल को ट्रेस करें: जहां प्रत्येक को सेट किया गया है, जहां इसे पढ़ा जाता है, जो पढ़ा जाता है लेकिन कभी सेट नहीं किया जाता है, जो सेट किया जाता है लेकिन कभी पढ़ा नहीं जाता है, और जो लगभग समान नाम (%MyVar बनाम %MyVar) संभावित टाइपो हैं।\n\nखोजा गया: कार्य क्रियाएँ और उनकी स्थितियाँ, प्लगइन कॉन्फ़िगरेशन, प्रोफ़ाइल संदर्भ और दृश्य।\n\nपरिणाम यहां प्रदर्शित होते हैं और वर्तमान निर्देशिका में एक टेक्स्ट फ़ाइल में सहेजे जाते हैं।"
-
 msgid "Variable Cross-Reference report could not be saved."
 msgstr "परिवर्तनीय क्रॉस-रेफरेंस रिपोर्ट सहेजी नहीं जा सकी."
-
 msgid "Variable Cross-Reference saved as"
 msgstr "वेरिएबल क्रॉस-रेफरेंस को इस रूप में सहेजा गया"
-
 msgid "detail level"
 msgstr "विवरण स्तर"
-
 msgid "is no longer in the loaded configuration."
 msgstr "अब लोडेड कॉन्फ़िगरेशन में नहीं है."
-
 msgid "whole file"
 msgstr "संपूर्ण फ़ाइल"
-
 msgid "Variable Cross-Reference found no suspect variables."
 msgstr "वेरिएबल क्रॉस-रेफरेंस में कोई संदिग्ध वेरिएबल नहीं मिला।"
-
 msgid "Variable Xref"
 msgstr "परिवर्तनीय Xref"
-
 msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
 msgstr "लोड किए गए बैकअप में प्रोजेक्ट को अभी अक्षम कर देता है - जैसे नाम बदलें, यह सेव की प्रतीक्षा करने के बजाय तुरंत प्रभावी होता है, और रद्द करें इसे पूर्ववत नहीं करता है।"
-
 msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "'ढूंढें...' स्क्रीन पर टेक्स्ट को खोजने के बजाय लोड किए गए कॉन्फ़िगरेशन से एक प्रश्न पूछता है: प्रत्येक कार्य एक दी गई कार्रवाई करता है, प्रत्येक प्रोफ़ाइल एक दिया गया ट्रिगर सक्रिय करता है, वह सब कुछ जो किसी दिए गए ऐप या दृश्य को नाम देता है।\n\nबक्से संयोजित होते हैं - उस तरह से ट्रिगर करने वाले प्रोफाइल को ढूंढने के लिए एक ट्रिगर और एक क्रिया चुनें और ऐसा करने वाला एक कार्य चलाएं।\n\nपरिणाम वस्तुओं की सूची के रूप में वापस आते हैं; उस पर जाने के लिए एक पर क्लिक करें।\n\n"
-
 msgid "Changes Pending"
 msgstr "परिवर्तन लंबित"
-
 msgid "Changes made to the loaded XML this session, newest first.  Undo steps back through them one at a time.  Nothing here has been written to a file."
 msgstr "इस सत्र में लोड किए गए XML में किए गए परिवर्तन, सबसे पहले नवीनतम।  एक-एक करके उनमें से एक कदम वापस पूर्ववत करें।  यहां किसी फ़ाइल में कुछ भी नहीं लिखा गया है।"
-
 msgid "Choose an action, a trigger, an app, a Scene or some text."
 msgstr "एक क्रिया, एक ट्रिगर, एक ऐप, एक दृश्य या कुछ टेक्स्ट चुनें।"
-
 msgid "Each box narrows the answer, and they combine: a trigger and an action together find the Profiles that trigger that way AND run a Task that does that. Every entry offered is one this configuration actually uses, and the number beside it is how many places carry it."
 msgstr "प्रत्येक बॉक्स उत्तर को संक्षिप्त करता है, और वे संयोजित होते हैं: एक ट्रिगर और एक क्रिया एक साथ उन प्रोफ़ाइलों को ढूंढते हैं जो उस तरह से ट्रिगर करते हैं और एक कार्य चलाते हैं जो ऐसा करता है। प्रस्तावित प्रत्येक प्रविष्टि वह है जिसका यह कॉन्फ़िगरेशन वास्तव में उपयोग करता है, और इसके आगे की संख्या यह दर्शाती है कि इसे कितने स्थानों पर ले जाया जाता है।"
-
 msgid "Edit History"
 msgstr "इतिहास संपादित करें"
-
 msgid "Editing"
 msgstr "संपादन"
-
 msgid "Every Project"
 msgstr "हर प्रोजेक्ट"
-
 msgid "Find"
 msgstr "खोजो"
-
 msgid "Find in"
 msgstr "में देखो"
-
 msgid "Find results could not be saved."
 msgstr "खोजें परिणाम सहेजे नहीं जा सके."
-
 msgid "Find results saved as"
 msgstr "इस रूप में सहेजे गए परिणाम ढूंढें"
-
 msgid "Find..."
 msgstr "खोजो..."
-
 msgid "Help"
 msgstr "मदद"
-
 msgid "In no Project"
 msgstr "किसी प्रोजेक्ट में नहीं"
-
 msgid "List every change made to the loaded XML this session, newest first."
 msgstr "इस सत्र में लोड किए गए XML में किए गए प्रत्येक परिवर्तन को सबसे पहले सूचीबद्ध करें।"
-
 msgid "Narrow to Project"
 msgstr "प्रोजेक्ट तक सीमित करें"
-
 msgid "No changes to undo."
 msgstr "पूर्ववत करने के लिए कोई परिवर्तन नहीं."
-
 msgid "Nothing has been changed yet."
 msgstr "अभी तक कुछ भी नहीं बदला गया है."
-
 msgid "Nothing in the loaded configuration answers this."
 msgstr "लोड किए गए कॉन्फ़िगरेशन में कुछ भी इसका उत्तर नहीं देता है।"
-
 msgid "Nothing is saved until you press Ok, Save or Export."
 msgstr "जब तक आप ओके, सेव या एक्सपोर्ट नहीं दबाते, कुछ भी सेव नहीं होता।"
-
 msgid "Redid"
 msgstr "Redid"
-
 msgid "Redo"
 msgstr "फिर से करना"
-
 msgid "Run a Find first."
 msgstr "पहले एक खोज चलाएँ।"
-
 msgid "Save Results"
 msgstr "परिणाम सहेजें"
-
 msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
 msgstr "लोड किए गए XML में किए गए अंतिम परिवर्तन को वापस लें - किसी भी संपादन पैनल में एक संपादन, एक जोड़ें, एक हटाएं या एक नाम बदलें।\n\nयह लोड की गई चीज़ को बदलता है, किसी फ़ाइल को नहीं: डिस्क पर या एंड्रॉइड डिवाइस पर कुछ भी नहीं छुआ जाता है।"
-
 msgid "Text (name, label or argument)"
 msgstr "पाठ (नाम, लेबल या तर्क)"
-
 msgid "Undid"
 msgstr "पूर्ववत"
-
 msgid "Updating MapTasker in the background.  Please stand by..."
 msgstr "बैकग्राउंड में मैपटास्कर को अपडेट किया जा रहा है।  कृपया प्रतीक्षा करें..."
-
 msgid "does not belong to a Project, so there is nowhere to attach a new"
 msgstr "किसी प्रोजेक्ट से संबंधित नहीं है, इसलिए नया संलग्न करने के लिए कहीं नहीं है"
-
 msgid "found for"
 msgstr "के लिए मिला"
-
 msgid "of"
 msgstr "का"
-
 msgid "...to this name"
 msgstr "...इस नाम"
-
 msgid "...with this one"
 msgstr "...और इस चीज़ के साथ"
-
 msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
 msgstr "संपूर्ण आरेख पर वापस: कोई ज़ूम नहीं, कुछ भी नहीं मोड़ा, कुछ भी फ़िल्टर नहीं किया।"
-
 msgid "Cannot be changed"
 msgstr "इसे बदला नहीं जा सकता"
-
 msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
 msgstr "जहां भी यह दिखाई देता है, उसे बदल दें। जब तक आप \"प्रीव्यू\" और फिर \"रिप्लेस\" पर क्लिक नहीं करते, तब तक कुछ भी नहीं बदलता, और हर बदलाव के बाद आप \"अनडू\" का उपयोग कर सकते हैं।"
-
 msgid "Choose a variable, and type the new name."
 msgstr "एक चर चुनें, और नए नाम को टाइप करें।"
-
 msgid "Choose an action to replace, and one to replace it with."
 msgstr "एक क्रिया का चयन करें जिसे आप बदलना चाहते हैं, और एक ऐसी क्रिया का चयन करें जिससे आप उसे बदलें।"
-
 msgid "Click a name for its Map entry · shift-click a Task for its call chain"
 msgstr "किसी नाम पर क्लिक करके उसका मानचित्र देखें · किसी कार्य पर शिफ्ट-क्लिक करके उसके कॉल चेन को देखें"
-
 msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
 msgstr "प्रत्येक परियोजना को उसके शीर्षक बार तक कम करें।\n\nएक परियोजना को अपने बॉक्स के ऊपरी किनारे पर क्लिक करके स्वचालित रूप से बंद किया जा सकता है।"
-
 msgid "Expand every collapsed Project."
 msgstr "हर बंद परियोजना को खोलें।"
-
 msgid "Limited to"
 msgstr "सीमित"
-
 msgid "Nothing here would change."
 msgstr "यहां कुछ भी नहीं बदलेगा."
-
 msgid "Nothing is ticked."
 msgstr "कुछ भी चिह्नित नहीं है।"
-
 msgid "Nothing was changed."
 msgstr "कुछ भी नहीं बदला।"
-
 msgid "Press Preview first."
 msgstr "सबसे पहले प्रेस का पूर्वावलोकन करें।"
-
 msgid "Rename this variable"
 msgstr "इस वेरिएबल का नाम बदलें।"
-
 msgid "Replace"
 msgstr "बदलें"
-
 msgid "Replace preview could not be saved."
 msgstr "\"पूर्वावलोकन को सहेज नहीं किया जा सका।\""
-
 msgid "Replace preview saved as"
 msgstr "\"पहले से सहे हुए पूर्वावलोकन को बदलें\""
-
 msgid "Replace this action"
 msgstr "इस कार्रवाई को बदलें"
-
 msgid "Save Preview"
 msgstr "पूर्वावलोकन सहेजें"
-
 msgid "Task action"
 msgstr "कार्य क्रिया"
-
 msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
 msgstr "यह आरेख क्लिक करने योग्य है:\n\nमानचित्र में किसी प्रोजेक्ट, प्रोफाइल, कार्य या दृश्य के नाम पर क्लिक करने से, आप उस पर जा सकते हैं।\n\nकिसी कार्य पर Shift-क्लिक करने से, उस कार्य द्वारा किए गए सभी कार्यों और उन कार्यों द्वारा किए गए सभी कार्यों की श्रृंखला उजागर हो जाएगी, साथ ही उनके बीच के तीर भी दिखाई देंगे।\n\nअन्य नामों के लिए, दाईं ओर क्लिक करके: उसका प्रोजेक्ट बंद करें, केवल उस प्रोजेक्ट को दिखाएं, उसकी श्रृंखला का पालन करें।\n\nकिसी प्रोजेक्ट के बगल में दिए गए ▾ पर क्लिक करके, आप उसे बंद कर सकते हैं, और ▸ पर क्लिक करके उसे वापस ला सकते हैं।\n\nCtrl (या ⌘) और स्क्रॉल व्हील ज़ूम करते हैं। Esc एक श्रृंखला को साफ़ करता है।"
-
 msgid "Undo is available."
 msgstr "\"रद्द करने\" की सुविधा उपलब्ध है।"
-
 msgid "Variable name"
 msgstr "चर का नाम"
-
 msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "ज़ूम इन करें। Ctrl/⌘ और स्क्रॉल व्हील भी यही करता है।"
-
 msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "ज़ूम आउट करें। Ctrl/⌘ और स्क्रॉल व्हील दोनों एक ही काम करते हैं।"
-
 msgid "changed"
 msgstr "परिवर्तित"
-
 msgid "clear the single-item selection to reach the whole configuration"
 msgstr "एकल आइटम का चयन को साफ़ करके पूरे कॉन्फ़िगरेशन तक पहुंचें।"
-
 msgid "more"
 msgstr "अधिक"
-
 msgid "...and put this there"
 msgstr "...और इसे वहाँ रख दें।"
-
 msgid "...replace this argument"
 msgstr "...इस तर्क को बदलें"
-
 msgid "Action argument"
 msgstr "कार्रवाई पर बहस"
-
 msgid "Add it where missing"
 msgstr "जहां आवश्यक हो, वहां जोड़ें।"
-
 msgid "Choose an action, and which of its arguments to replace."
 msgstr "एक कार्रवाई चुनें, और यह तय करें कि आप किस तर्क को बदलना चाहते हैं।"
-
 msgid "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment."
 msgstr "सटीक कॉलम संरेखण के लिए मोनोस्पेस फ़ॉन्ट (जैसे कि Courier New) का उपयोग करें। और लाइन रैप को बंद कर दें।\nनामों में आइकन या चीनी/कोरियाई/जापानी अक्षरों का उपयोग करने से मामूली संरेखण की समस्या हो सकती है।"
-
 msgid "Drawn for"
 msgstr "यह रेखाचित्र के लिए"
-
 msgid "Error: Single item specified but not found!  Try again."
 msgstr "त्रुटि: एक आइटम निर्दिष्ट किया गया है, लेकिन यह नहीं मिला! फिर से प्रयास करें।"
-
 msgid "In this action"
 msgstr "इस कार्रवाई में"
-
 msgid "Nothing in scope has that argument to change."
 msgstr "इस दायरे में मौजूद किसी भी चीज़ में इस तर्क को बदलने की क्षमता नहीं है।"
-
 msgid "Only the matching text"
 msgstr "केवल वही पाठ जो मेल खाता हो"
-
 msgid "Only where the value contains (optional)"
 msgstr "केवल उन स्थानों पर जहाँ मान में (वैकल्पिक) शामिल है।"
-
 msgid "Press Diagram View to rebuild it."
 msgstr "पुन: निर्माण करने के लिए, \"दशबोर्ड\" दृश्य पर क्लिक करें।"
-
 msgid "Rebuild"
 msgstr "पुनर्निर्माण"
-
 msgid "The change is applied.  Press Map View to see it."
 msgstr "परिवर्तन लागू कर दिया गया है। इसे देखने के लिए \"मैप व्यू\" पर क्लिक करें।"
-
 msgid "now showing"
 msgstr "वर्तमान में प्रदर्शित"
-
 msgid "the whole configuration"
 msgstr "पूरा कॉन्फ़िगरेशन"
-
 msgid "'Find/Replace' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "'फाइंड/रिप्लेस' स्क्रीन पर टेक्स्ट को सर्च करने के बजाय, लोड किए गए कॉन्फ़िगरेशन से एक सवाल पूछता है: प्रत्येक टास्क जो एक निश्चित कार्य करता है, प्रत्येक प्रोफाइल जो एक निश्चित ट्रिगर को सक्रिय करता है, और प्रत्येक ऐप या सीन का नाम।\n\nये बॉक्स एक साथ काम करते हैं - एक ट्रिगर और एक क्रिया चुनें ताकि उन प्रोफाइल को खोजा जा सके जो उसी तरह ट्रिगर करते हैं, और उस टास्क को चलाएं जो वह कार्य करता है।\n\nपरिणाम एक ऑब्जेक्ट की सूची के रूप में वापस आते हैं; एक पर क्लिक करके, आप उस तक पहुंच जाएंगे।\n\n"
-
 msgid "Choose a Profile condition to replace, and one to replace it with."
 msgstr "एक प्रोफ़ाइल की स्थिति चुनें जिसे आप बदलना चाहते हैं, और एक ऐसी स्थिति चुनें जिसके साथ आप इसे बदलें।"
-
 msgid "Find/Replace"
 msgstr "खोजें/बदलें"
-
 msgid "Profile condition"
 msgstr "प्रोफाइल की स्थिति"
-
 msgid "Replace this Profile condition"
 msgstr "इस प्रोफाइल की स्थिति को बदलें।"
-
 msgid "%variable_name"
 msgstr "%चर का नाम"
-
 msgid "A variable name has to start with '%' -- for example %app_package."
 msgstr "एक वेरिएबल नाम '%' से शुरू होना चाहिए - उदाहरण के लिए %app_package।"
-
 msgid "Also in this field"
 msgstr "इस क्षेत्र में भी"
-
 msgid "App not listed?"
 msgstr "ऐप सूचीबद्ध नहीं है?"
-
 msgid "Choose from the Applications named in the loaded configuration."
 msgstr "लोड किए गए कॉन्फ़िगरेशन में नामित एप्लिकेशन में से चुनें।"
-
 msgid "Choose from the icons used in the loaded configuration."
 msgstr "लोड किए गए कॉन्फ़िगरेशन में उपयोग किए गए आइकन में से चुनें।"
-
 msgid "Fetch"
 msgstr "लाना"
-
 msgid "Fetch Applications From Android Device"
 msgstr "एंड्रॉइड डिवाइस से एप्लिकेशन प्राप्त करें"
-
 msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
 msgstr "अपने एंड्रॉइड डिवाइस से इंस्टॉल किए गए एप्लिकेशन की पूरी सूची प्राप्त करें।  अभी जो सूचीबद्ध है वह वही है जो इस कॉन्फ़िगरेशन में पहले से ही नाम है।"
-
 msgid "Fetching..."
 msgstr "लाया जा रहा है..."
-
 msgid "Fill all three fields in from the loaded configuration."
 msgstr "लोड किए गए कॉन्फ़िगरेशन से सभी तीन फ़ील्ड भरें।"
-
 msgid "Import Into Tasker"
 msgstr "टास्कर में आयात करें"
-
 msgid "Listing the XML files on the Android device..."
 msgstr "एंड्रॉइड डिवाइस पर XML फ़ाइलों को सूचीबद्ध करना..."
-
 msgid "More matches than can be shown -- narrow the search."
 msgstr "दिखाए जा सकने वाले मिलान से अधिक - खोज को सीमित करें।"
-
 msgid "No Icon"
 msgstr "कोई चिह्न नहीं"
-
 msgid "Or a Tasker variable:"
 msgstr "या एक टास्कर वैरिएबल:"
-
 msgid "Pick"
 msgstr "चुनना"
-
 msgid "Pick an Application"
 msgstr "एक एप्लिकेशन चुनें"
-
 msgid "Save As File"
 msgstr "फ़ाइल के रूप में सहेजें"
-
 msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
 msgstr "लोड किए गए कॉन्फ़िगरेशन में कहीं न कहीं एप्लिकेशन का नाम दिया गया है - या एक टास्कर वैरिएबल का नाम दिया गया है, जो पैकेज और लेबल फ़ील्ड को इसके साथ भरता है और क्लास को खाली छोड़ देता है, जिस तरह से टास्कर लिखता है।"
-
 msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
 msgstr "लोड किए गए कॉन्फ़िगरेशन में कहीं न कहीं एप्लिकेशन का नाम दिया गया है।  इस तर्क से मेल खाने वाले प्रत्येक पर निशान लगाएं।  फ़ील्ड में पहले से मौजूद कोई भी चीज़ जो सूचीबद्ध नहीं है वह बनी रहती है।"
-
 msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "कॉन्फ़िगरेशन में कहीं उपयोग किए गए आइकन। आप जो आइकन चुनते हैं, वह उस फ़ील्ड में मौजूद आइकन को बदल देता है। यदि कोई आइकन, जो सूची में नहीं है, का उपयोग किया जाता है, तो उसका नाम टाइप करना होगा: इसका नाम उस पैक के अंदर मौजूद होता है।"
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "इससे प्रोफाइल, एंड्रॉइड डिवाइस पर टास्कर के अपने इम्पोर्ट स्क्रीन के सामने आ जाएगा। फिर आप डिवाइस पर \"इम्पोर्ट\" पर टैप करके इसे पूरा कर सकते हैं - जब तक आप ऐसा नहीं करते, तब तक कुछ भी इम्पोर्ट नहीं होगा।\n\n'Http Server एग्जांपल' टास्कर प्रोजेक्ट को इंस्टॉल और चालू होना चाहिए, और टास्कर का संस्करण 6.2 या उससे अधिक होना चाहिए।\n\nडिवाइस आपसे पहली बार MapTasker को अधिकृत करने के लिए कहेगा।"
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "इससे प्रोजेक्ट – और इसमें मौजूद प्रत्येक प्रोफाइल और टास्क – को एंड्रॉइड डिवाइस पर टास्कर के अपने इम्पोर्ट स्क्रीन के सामने लाया जाता है। फिर आप डिवाइस पर \"इम्पोर्ट\" पर टैप करके इसे पूरा करते हैं; जब तक आप ऐसा नहीं करते, तब तक कुछ भी इम्पोर्ट नहीं होता।\n\n'Http Server एग्जांपल' टास्कर प्रोजेक्ट को इंस्टॉल और चालू किया जाना चाहिए, और टास्कर का वर्जन 6.2 या उससे अधिक होना चाहिए।\n\nडिवाइस आपको पहली बार MapTasker को अधिकृत करने के लिए कहेगा।"
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "यह सीन—और इसके तत्वों को जो टास्क में मौजूद हैं—को अपने नाम के तहत एंड्रॉइड डिवाइस पर /Tasker/scenes में भेजता है, और टास्कर को खोलता है।\n\nआप टास्कर के 'सीन > एक सीन आयात करें' फीचर का उपयोग करके इसे डिवाइस पर पूरा करते हैं, और नाम से सीन का चयन करते हैं। एक प्रोफाइल या प्रोजेक्ट के विपरीत, आप यहां टास्कर के इम्पोर्ट स्क्रीन पर यह सीन नहीं डाल सकते—भले ही आप इसे चुनते हैं, टास्कर इसे इम्पोर्ट कर देगा।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को इंस्टॉल और रन करना होगा, और टास्कर का संस्करण 6.2 या उससे ऊपर का होना चाहिए।\n\nडिवाइस आपको पहली बार MapTasker को अधिकृत करने के लिए कहेगा।"
-
 msgid "Use Selected"
 msgstr "चुनिंदा"
-
 msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
 msgstr "एंड्रॉइड डिवाइस पर प्रतीक्षा करें – यदि कोई संकेत दिखाई देता है, तो वहां प्राधिकरण स्वीकार करें। इसमें 30 सेकंड या उससे अधिक समय लग सकता है।"
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
 msgstr "अपने एंड्रॉइड डिवाइस पर निगरानी रखें: टास्कर आपसे कनेक्शन को अधिकृत करने के लिए कहेगा, और प्रक्रिया तब तक जारी नहीं रहेगी जब तक आप इसे स्वीकार नहीं कर लेते। यदि आपके डिवाइस पर सैकड़ों एप्लिकेशन हैं, तो 30 सेकंड या उससे अधिक समय दें, क्योंकि प्रत्येक एप्लिकेशन का नाम अलग-अलग खोजा जाएगा।"
-
 msgid "applications, fetched"
 msgstr "आवेदन, प्राप्त"
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nThe file write needs no authorization prompt; the import asks for one, and you must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "यह दो में से एक विकल्प खोलता है: टास्क को अपने एंड्रॉइड डिवाइस पर /टास्कर/टास्क के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखें, या इसे सीधे टास्कर के लाइव कॉन्फ़िगरेशन में आयात करें।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को एंड्रॉइड डिवाइस पर स्थापित और सक्रिय होना चाहिए, सर्वर चालू होने के साथ (रीडमी के डायरेक्ट एक्सएमएल रिट्रीवल नोट्स देखें), और टास्कर 6.2 या उच्चतर होना चाहिए।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nफ़ाइल लिखने के लिए किसी प्राधिकरण संकेत की आवश्यकता नहीं है; आयात एक मांगता है, और आपको टास्कर यूआई में एक आयातित कार्य देखने के लिए टास्कर से बाहर निकलना होगा और पुनः आरंभ करना होगा।"
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "यह प्रोफ़ाइल को एंड्रॉइड डिवाइस पर टास्कर की अपनी आयात स्क्रीन के सामने रखता है।  फिर आप समाप्त करने के लिए डिवाइस पर आयात टैप करें - जब तक आप ऐसा नहीं करते तब तक कुछ भी आयात नहीं किया जाता है।\n\nप्रोफ़ाइल को पहले अपने नाम के तहत /टास्कर/प्रोफाइल में कॉपी किया जाता है और वहां से पेश किया जाता है, इसलिए यह एक नाम के तहत पीछे रहता है जिसे आप पा सकते हैं - यदि आयात स्क्रीन नहीं आती है तो इसे टास्कर से हाथ से आयात करें।  उस पथ पर पहले से मौजूद किसी फ़ाइल को बदलने से पहले आपसे पूछा जाएगा।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट स्थापित और चालू होना चाहिए, और टास्कर 6.2 या उच्चतर होना चाहिए।\n\nडिवाइस आपसे पहली बार मैपटास्कर को अधिकृत करने के लिए कहेगा।"
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "यह प्रोजेक्ट - और उसमें प्रत्येक प्रोफ़ाइल और कार्य - को एंड्रॉइड डिवाइस पर टास्कर की अपनी आयात स्क्रीन के सामने रखता है।  फिर आप समाप्त करने के लिए डिवाइस पर आयात टैप करें; जब तक आप ऐसा नहीं करते तब तक कुछ भी आयात नहीं किया जाता है।\n\nप्रोजेक्ट को पहले अपने नाम के तहत /टास्कर/प्रोजेक्ट्स में कॉपी किया जाता है और वहां से पेश किया जाता है, इसलिए यह एक नाम के तहत पीछे रहता है जिसे आप पा सकते हैं - यदि आयात स्क्रीन नहीं आती है तो इसे टास्कर से हाथ से आयात करें।  उस पथ पर पहले से मौजूद किसी फ़ाइल को बदलने से पहले आपसे पूछा जाएगा।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट स्थापित और चालू होना चाहिए, और टास्कर 6.2 या उच्चतर होना चाहिए।\n\nडिवाइस आपसे पहली बार मैपटास्कर को अधिकृत करने के लिए कहेगा।"
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "यह टास्क को सीधे एंड्रॉइड डिवाइस पर टास्कर के लाइव कॉन्फ़िगरेशन में डाल देता है।  प्रोफ़ाइल, प्रोजेक्ट या दृश्य के विपरीत, कोई आयात स्क्रीन और डिवाइस पर कोई टैप की आवश्यकता नहीं है - टास्कर का एपीआई/आयात सीधे कार्य लेता है।\n\nकार्य को पहले डिवाइस पर /Tasker/tasks में कॉपी किया जाता है और वहां से आयात किया जाता है, इसलिए प्रतिलिपि वास्तव में जो आयात किया गया था उसके रिकॉर्ड के रूप में पीछे रहती है।  उस पथ पर पहले से मौजूद किसी फ़ाइल को बदलने से पहले आपसे पूछा जाएगा।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट स्थापित और चालू होना चाहिए, और टास्कर 6.2 या उच्चतर होना चाहिए।\n\nडिवाइस आपसे पहली बार मैपटास्कर को अधिकृत करने के लिए कहेगा।"
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "यह दृश्य भेजता है - और प्रत्येक कार्य उसके तत्वों को सक्रिय करता है - एंड्रॉइड डिवाइस पर उसके नाम के तहत, /टास्कर/दृश्यों में, और टास्कर खोलता है।\n\nआप इसे डिवाइस पर टास्कर के 'दृश्य > एक दृश्य आयात करें' के साथ समाप्त करते हैं, और दृश्य को नाम से चुनते हैं।  प्रोफ़ाइल या प्रोजेक्ट के विपरीत, यहां से एक दृश्य को टास्कर की आयात स्क्रीन के सामने नहीं रखा जा सकता है - टास्कर इसे एक हाथ से नहीं लेगा, हालांकि जब आप इसे चुनते हैं तो यह उसी फ़ाइल को आयात करता है।\n\nउस पथ पर पहले से मौजूद किसी फ़ाइल को बदलने से पहले आपसे पूछा जाएगा।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट स्थापित और चालू होना चाहिए, और टास्कर 6.2 या उच्चतर होना चाहिए।\n\nडिवाइस आपसे पहली बार मैपटास्कर को अधिकृत करने के लिए कहेगा।"
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "यह कार्य को एंड्रॉइड डिवाइस पर /Tasker/tasks के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसके लिए किसी प्राधिकरण संकेत की आवश्यकता नहीं है."
-
 msgid "Delete them from Tasker's Tasks tab -- long-press one, then Delete.  Nothing here can do it: Tasker's HTTP API has no way to delete a Task."
 msgstr "टास्कर के \"टास्क\" टैब से उन्हें हटा दें – एक पर लंबी दबाएं, फिर \"डिलीट\" करें। यहाँ कोई भी विकल्प नहीं है: टास्कर का HTTP API किसी टास्क को हटाने का कोई तरीका प्रदान नहीं करता है।"
-
 msgid "In use -- leave these alone:"
 msgstr "उपयोग में: इन वस्तुओं को अकेला छोड़ दें:"
-
 msgid "List Helper Tasks"
 msgstr "सहायक कार्यों की सूची"
-
 msgid "Lists the 'MapTasker ...' Tasks this program has installed on the Android device, and says which are left over from an earlier version.\n\nEach one is installed under a versioned name and never replaced -- Tasker's import adds a second Task rather than replacing the first -- so old ones stay behind in your Task list.  They do no harm; they are clutter.\n\nDelete the ones it names from Tasker's own Tasks tab.  Nothing here can do it for you: Tasker's HTTP API has no way to delete a Task."
 msgstr "यह प्रोग्राम Android डिवाइस पर इंस्टॉल किए गए 'MapTasker...' कार्यों की सूची दिखाता है, और बताता है कि कौन से कार्यों का पहले के संस्करण से संबंध है।\n\nप्रत्येक कार्य को एक संस्करणित नाम के तहत इंस्टॉल किया जाता है और कभी भी प्रतिस्थापित नहीं किया जाता है। Tasker का आयात पहले कार्य को प्रतिस्थापित करने के बजाय एक अतिरिक्त कार्य जोड़ता है, इसलिए पुराने कार्य आपके कार्य सूची में बने रहते हैं। वे हानिकारक नहीं हैं; वे केवल अनावश्यक हैं।\n\nTasker के 'टास्क' टैब से उन कार्यों को हटा दें जिन पर यह नाम देता है। यहां कुछ भी ऐसा नहीं कर सकता जो आपके लिए यह कर सके: Tasker का HTTP API किसी कार्य को हटाने का कोई तरीका प्रदान नहीं करता है।"
-
 msgid "MapTasker Helper Tasks"
 msgstr "मैपटास्कर हेल्पर कार्य"
-
 msgid "Nothing left over -- every MapTasker Task on the device is in use."
 msgstr "कोई भी कार्य शेष नहीं – डिवाइस पर मौजूद प्रत्येक \"मैपटास्कर\" कार्य उपयोग में है।"
-
 msgid "This copies the Profile to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "यह प्रोफाइल को डिवाइस पर कॉपी करता है और Android के लिए \"इस ऐप के साथ खोलें...\" विकल्प खोलता है। Tasker का चयन करें, और उसके अपने इम्पोर्ट स्क्रीन खुल जाएगा; फिर इम्पोर्ट पर टैप करके इसे पूरा करें - जब तक आप ऐसा नहीं करते, तब तक कुछ भी इम्पोर्ट नहीं होगा।\n\nसबसे पहले, प्रोफाइल को \"/Tasker/profiles\" के अंतर्गत अपने नाम के साथ कॉपी किया जाता है और फिर वहां से एक्सेस किया जा सकता है, इसलिए यह आपके द्वारा पहचाने जाने वाले नाम के तहत रहता है। यदि इम्पोर्ट स्क्रीन नहीं खुलती है, तो आप Tasker से मैन्युअल रूप से इम्पोर्ट कर सकते हैं। इससे पहले कि यह पहले से मौजूद किसी फ़ाइल को बदल दे, आपको एक संकेत दिया जाएगा।\n\n'Http Server Example' Tasker प्रोजेक्ट को इंस्टॉल और चलाना होगा, और Tasker का संस्करण 6.2 या उससे अधिक होना चाहिए।\n\nडिवाइस पहली बार MapTasker को एक्सेस करने के लिए आपको अनुमति मांगेगा।"
-
 msgid "This copies the Project -- and every Profile and Task in it -- to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish, and nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "यह प्रोजेक्ट और इसमें मौजूद प्रत्येक प्रोफाइल और टास्क को डिवाइस पर कॉपी करता है और Android के लिए \"ओपन विथ...\" विकल्प खोलता है। टास्कर का चयन करें, और इसका अपना इम्पोर्ट स्क्रीन दिखाई देगा। फिर इम्पोर्ट पर टैप करके इसे पूरा करें, और जब तक आप ऐसा नहीं करते, तब तक कुछ भी इम्पोर्ट नहीं होगा।\n\nप्रोजेक्ट को पहले अपने नाम के तहत /Tasker/projects में कॉपी किया जाता है और फिर इसे वहां से एक्सेस किया जा सकता है, इसलिए यह एक नाम के तहत रहता है जिसे आप ढूंढ सकते हैं। यदि इम्पोर्ट स्क्रीन दिखाई नहीं देती है, तो आप टास्कर से इसे मैन्युअल रूप से इम्पोर्ट कर सकते हैं। इससे पहले कि यह कोई मौजूदा फ़ाइल बदल दे, आपको इसकी जानकारी दी जाएगी।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को इंस्टॉल और चालू होना चाहिए, और टास्कर का संस्करण 6.2 या उससे अधिक होना चाहिए।\n\nडिवाइस आपको पहली बार MapTasker को अनुमति देने के लिए कहेगा।"
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nIf Tasker does not report the Task after two attempts, that copy is handed to Android's 'Open with...' chooser instead, so you can import it by picking Tasker.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "इससे टास्क सीधे एंड्रॉइड डिवाइस पर टास्कर के लाइव कॉन्फ़िगरेशन में आ जाता है। एक प्रोफाइल, प्रोजेक्ट या सीन के विपरीत, इसमें कोई इम्पोर्ट स्क्रीन या डिवाइस पर टैप करने की आवश्यकता नहीं होती है - टास्कर का API/इम्पोर्ट सीधे टास्क लेता है।\n\nसबसे पहले, टास्क को डिवाइस पर /Tasker/tasks में कॉपी किया जाता है और फिर उससे इम्पोर्ट किया जाता है, जिससे कॉपी एक रिकॉर्ड के रूप में बनी रहती है, जो दर्शाता है कि वास्तव में क्या इम्पोर्ट किया गया था। इससे पहले कि यह कोई मौजूदा फ़ाइल को बदल दे, आपसे पूछा जाएगा।\n\nयदि टास्कर दो प्रयासों के बाद टास्क की रिपोर्ट नहीं करता है, तो उस कॉपी को एंड्रॉइड के 'Open with...' विकल्प को दिया जाता है, ताकि आप टास्कर का उपयोग करके इसे इम्पोर्ट कर सकें।\n\n'Http Server Example' टास्कर प्रोजेक्ट को इंस्टॉल और चालू होना चाहिए, और टास्कर का संस्करण 6.2 या उससे अधिक होना चाहिए।\n\nडिवाइस आपको पहली बार MapTasker को अधिकृत करने के लिए कहेगा।"
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Android's 'Open with...' chooser for it.\n\nIf Tasker is in that chooser, pick it.  A Scene is the one kind Tasker has been seen to refuse when it is handed one, so if it is not there -- or nothing happens -- finish it with Tasker's 'Scenes > Import One Scene' and pick the Scene by name.  The file is on the device either way, and the message tells you its name.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "यह दृश्य – और इसके अंतर्गत आने वाले सभी कार्यों के तत्वों को – Android डिवाइस पर उसकी अपनी नाम के तहत, /Tasker/scenes में भेजता है, और उसके लिए Android का 'Open with...' विकल्प खोलता है।\n\nयदि Tasker उस विकल्प में है, तो उसे चुनें। Tasker द्वारा एक दृश्य को स्वीकार करने से इनकार करने के मामले में, यह एक ऐसा ही दृश्य है, इसलिए यदि यह वहां नहीं है, तो या कुछ नहीं होता है, तो Tasker के 'Scenes > Import One Scene' का उपयोग करके इसे Tasker के साथ पूरा करें और नाम से दृश्य का चयन करें। फ़ाइल किसी भी मामले में डिवाइस पर मौजूद होगी, और संदेश आपको इसका नाम बताता है।\n\nइससे पहले कि यह किसी मौजूदा फ़ाइल को उस पथ पर बदल दे, आपसे पूछा जाएगा।\n\n'Http Server Example' नामक Tasker प्रोजेक्ट को स्थापित और चालू किया जाना चाहिए, और Tasker का संस्करण 6.2 या उससे अधिक होना चाहिए।\n\nडिवाइस आपको पहली बार MapTasker को अधिकृत करने के लिए कहेगा।"
-
 msgid "left over from an earlier version -- safe to delete in Tasker:"
 msgstr "पहले के संस्करण से बचा हुआ – टास्कर में सुरक्षित रूप से हटा सकते हैं:"
-
 msgid "Clear the field, leaving the action with no icon."
 msgstr "कार्रवाई को बिना आइकन के छोड़कर, फ़ील्ड साफ़ करें।"
-
 msgid "Clicking this will launch 'pip install --upgrade maptasker' in the background, and then relaunch MapTasker."
 msgstr "इस पर क्लिक करने से बैकग्राउंड में 'पिप इंस्टाल --अपग्रेड मैपटास्कर' लॉन्च होगा और फिर मैपटास्कर फिर से लॉन्च होगा।"
-
 msgid "Display the changes in the new version."
 msgstr "नए संस्करण में परिवर्तन प्रदर्शित करें."
-
 msgid "Enables the display a breakdown of the Tasker system Preferences in the output."
 msgstr "आउटपुट में टास्कर सिस्टम प्राथमिकताओं का विवरण प्रदर्शित करने में सक्षम बनाता है।"
-
 msgid "Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, and Prettier Output."
 msgstr "शर्तें, टास्करनेट जानकारी, प्राथमिकताएं, निर्देशिका और प्रीटियर आउटपुट के प्रदर्शन को सक्षम करता है।"
-
 msgid "Enables the display of Profile Conditions (e.g. State, Event, etc.) details in the output."
 msgstr "आउटपुट में प्रोफ़ाइल शर्तों (जैसे राज्य, घटना, आदि) के विवरण को प्रदर्शित करने में सक्षम बनाता है।"
-
 msgid "Enables the display of TaskerNet Descriptions in the output."
 msgstr "आउटपुट में टास्करनेट विवरण के प्रदर्शन को सक्षम करता है।"
-
 msgid "Enables the display of aligned text in the output."
 msgstr "आउटपुट में संरेखित पाठ के प्रदर्शन को सक्षम करता है।"
-
 msgid "Enables the display of the Project/Profile/Task/Scene Directory in the output."
 msgstr "आउटपुट में प्रोजेक्ट/प्रोफ़ाइल/कार्य/दृश्य निर्देशिका के प्रदर्शन को सक्षम करता है।"
-
 msgid "Fetch the full list of installed Applications from the Android device."
 msgstr "एंड्रॉइड डिवाइस से इंस्टॉल किए गए एप्लिकेशन की पूरी सूची प्राप्त करें।"
-
 msgid "Pick a Task which will be called by this action."
 msgstr "एक कार्य चुनें जिसे इस क्रिया द्वारा बुलाया जाएगा।"
-
 msgid "Saves this Profile as a standalone .prf.xml file on this computer."
 msgstr "इस प्रोफ़ाइल को इस कंप्यूटर पर एक स्टैंडअलोन .prf.xml फ़ाइल के रूप में सहेजता है।"
-
 msgid "Select the model belonging to the AI you wish to use."
 msgstr "आप जिस एआई का उपयोग करना चाहते हैं, उससे संबंधित मॉडल का चयन करें।"
-
 msgid "This will reach out to your Android device to list the available XML files belonging to Tasker."
 msgstr "यह टास्कर से संबंधित उपलब्ध एक्सएमएल फाइलों को सूचीबद्ध करने के लिए आपके एंड्रॉइड डिवाइस तक पहुंच जाएगा।"
-
 msgid "When enabled, Task details are hidden under a twisty (expand/collapse) control in the output."
 msgstr "सक्षम होने पर, कार्य विवरण आउटपुट में एक ट्विस्टी (विस्तार/संक्षिप्त) नियंत्रण के तहत छिपा हुआ है।"
-
 msgid "Clicking this button will result in the following actions:  \n- The IP Address will be used to ping the Android device.  \n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.  \n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.  \n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.  \nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.  \nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.  \n"
 msgstr "इस बटन पर क्लिक करने पर निम्नलिखित क्रियाएं होंगी:  \n- आईपी एड्रेस का उपयोग एंड्रॉइड डिवाइस को पिंग करने के लिए किया जाएगा।  \n- आईपी एड्रेस और पोर्ट नंबर का उपयोग एंड्रॉइड डिवाइस से पूछताछ करने और टास्कर फ़ोल्डर में उपलब्ध एक्सएमएल फाइलों की एक सूची प्राप्त करने के लिए किया जाएगा।  \n- पाई गई XML फ़ाइलों की सूची एक पुलडाउन मेनू में प्रस्तुत की जाएगी जिसमें से आप वह चुन सकते हैं जिसका आप उपयोग करना चाहते हैं।  \n- एक बार जब आप XML फ़ाइल का चयन कर लेते हैं, तो इसे वैध XML के रूप में लाया और सत्यापित किया जाएगा, जिसे बाद में 'रन' या 'रीरन' बटन पर क्लिक करने पर प्रोग्राम में इनपुट के रूप में उपयोग किया जाता है।  \nलिस्टिंग 'मैपटास्कर लिस्ट फाइल्स v1' नाम के एक छोटे टास्क द्वारा की जाती है, जिसे मैपटास्कर आपके एंड्रॉइड डिवाइस पर पहली बार इस बटन का उपयोग करने पर इंस्टॉल करता है और फिर वहीं छोड़ देता है।  कुछ भी हाथ से आयात नहीं करना पड़ता।  इसके लिए डिवाइस पर चलने वाले 'HTTP सर्वर उदाहरण' प्रोजेक्ट और टास्कर 6.2 या उच्चतर की आवश्यकता होती है - वही आवश्यकताएं जो 'एंड्रॉइड में सहेजें' के लिए हैं - और टास्कर आपसे पहली बार कनेक्शन को अधिकृत करने के लिए कहेगा।  \nकुछ सेकंड का समय दें: कार्य को स्थापित करना (एक बार), उसे चलाना और उसका उत्तर वापस पढ़ना तत्काल नहीं है।\n"
-
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.  \nXML must first be obtained from the either local drive or Android device for the views to work.  \nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.  \nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.  \nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n\nThe Diagram View has the following behavior:  \n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.  \n - Click on a horizontal connector to highlight the entire connection in the diagram.  \n\nThe Tree View has the following behavior:  \n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.  \n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.  \n"
 msgstr "अपने कॉन्फ़िगरेशन का 'मानचित्र', 'आरेख' या 'वृक्ष' दृश्य सीधे GUI के भीतर प्रदर्शित करें।  \nदृश्यों को कार्यान्वित करने के लिए XML को पहले स्थानीय ड्राइव या एंड्रॉइड डिवाइस से प्राप्त किया जाना चाहिए।  \nयदि XML पहले ही लाया जा चुका है, तो इसे दृश्य में इनपुट के रूप में उपयोग किया जाएगा।  'साफ़ करें' बटन दबाने से दृश्य डेटा साफ़ हो जाएगा।  \nबहुत बड़े कॉन्फ़िगरेशन के लिए मानचित्र और आरेख के लिए विस्तारित रन समय लगेगा।  सर्वोत्तम प्रदर्शन के लिए, मैप करने के लिए किसी एकल प्रोजेक्ट या प्रोफ़ाइल का चयन करें।  \nवैकल्पिक रूप से, 'व्यू लिमिट' सेटिंग का उपयोग करके संसाधित किए जाने वाले डेटा की मात्रा को सीमित करें।  सीमा जितनी बड़ी होगी, आउटपुट उतना ही बड़ा होगा जिसे मैप करने की अनुमति होगी।  जितना अधिक आउटपुट उत्पन्न होगा, प्रसंस्करण समय उतना ही अधिक होगा।  \n\nआरेख दृश्य में निम्नलिखित व्यवहार है:  \n - केवल प्रोजेक्ट और प्रोफाइल प्रदर्शित किए जा सकते हैं। केवल एक कार्य या दृश्य से युक्त XML प्रदर्शित नहीं किया जाएगा।  \n - आरेख में संपूर्ण कनेक्शन को हाइलाइट करने के लिए क्षैतिज कनेक्टर पर क्लिक करें।  \n\nट्री व्यू में निम्नलिखित व्यवहार है:  \n- केवल परियोजनाएं प्रदर्शित की जा सकती हैं। केवल एक प्रोफ़ाइल या कार्य या दृश्य से युक्त XML प्रदर्शित नहीं किया जाएगा।  \n- एकल नाम सेटिंग की परवाह किए बिना सभी प्रोजेक्ट, प्रोफ़ाइल, कार्य और दृश्य प्रदर्शित किए जाते हैं।\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.  \n- The numbers represent the relative amount of output lines to be generated.  \n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.  \n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.  \n- If the limit is hit when calculating the map, the output will stop there.  \n- You can experiment with this setting to see which setting is best for your use case.  \n- Selecting a single Project, Profile or Task is another means to limit the processing time.  \n"
 msgstr "'व्यू लिमिट' का उपयोग व्यू उत्पन्न करने के दौरान उपयोग किए जाने वाले प्रसंस्करण समय को नियंत्रित करने का एक साधन है।\n- ये संख्याएँ उत्पन्न होने वाले आउटपुट लाइनों की सापेक्ष मात्रा दर्शाती हैं।\n- जितना बड़ा सीमा होगा, उतना ही अधिक आउटपुट को मैप करने की अनुमति होगी। जितना अधिक आउटपुट उत्पन्न होगा, उतना ही अधिक प्रसंस्करण समय लगेगा।\n- बहुत बड़े कॉन्फ़िगरेशन बहुत बड़े आउटपुट मैप उत्पन्न करेंगे और इससे अधिक प्रसंस्करण समय लगेगा। पुराने उपकरणों पर, इससे 30 सेकंड या उससे अधिक समय लग सकता है।\n- एक सीमा निर्धारित करके, आप लंबे समय की अनुमति न देकर कॉन्फ़िगरेशन को मैप करने के लिए उपयोग किए जाने वाले प्रसंस्करण समय को नियंत्रित कर सकते हैं।\n- यदि मानचित्र की गणना करते समय सीमा पर पहुँच जाती है, तो आउटपुट वहीं रुक जाएगा।\n- आप इस सेटिंग के साथ प्रयोग करके देख सकते हैं कि आपकी आवश्यकताओं के लिए कौन सी सेटिंग सबसे अच्छी है।\n- एक एकल प्रोजेक्ट, प्रोफाइल या टास्क का चयन भी प्रसंस्करण समय को सीमित करने का एक और तरीका है।\n"
-
 msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.  \nThe following steps are required in order to run AI against your Profile.  \n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).  \n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.  \n3- Select the model you want to use.  \n   o The model selected will determine with which AI the analysis is to be performed.  \n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.  \n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.  \n   o The process may take some time and runs in the background.  The results will appear in a separate window.  \n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.  \nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.  \nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.  \n"
 msgstr "विश्लेषण टैब का उपयोग स्थानीय लामा मॉडल या सर्वर-आधारित ओपन एआई, क्लाउड या डीपसीक मॉडल का उपयोग करके, आपकी प्रोफ़ाइल पर एआई विश्लेषण चलाने के लिए किया जाता है।  \nआपकी प्रोफ़ाइल के विरुद्ध AI चलाने के लिए निम्नलिखित चरणों की आवश्यकता है।  \n1- यदि सर्वर-आधारित एआई का उपयोग कर रहे हैं, तो आपके पास प्रदाता से एक वैध एपीआई कुंजी होनी चाहिए (उदाहरण के लिए ओपनएआई)।  आप अपनी कुंजी दर्ज करने के लिए 'एपीआई कुंजी दिखाएं/संपादित करें' बटन का उपयोग कर सकते हैं।  \n2- डिफ़ॉल्ट प्रॉम्प्ट है: 'प्रदर्शन और पठनीयता में सुधार का सुझाव दें: (आपका प्रोजेक्ट/प्रोफ़ाइल/कार्य)', और स्वचालित रूप से इसके पहले होता है: 'टास्कर में निम्नलिखित (प्रोजेक्ट/प्रोफ़ाइल/कार्य) दिया गया है।'  यदि संकेत को संशोधित कर रहे हैं, तो आप केवल 'सुधार सुझाएँ...' भाग को संशोधित कर रहे हैं।  \n3- वह मॉडल चुनें जिसे आप उपयोग करना चाहते हैं।  \n   o चयनित मॉडल यह निर्धारित करेगा कि विश्लेषण किस एआई के साथ किया जाना है।  \n4- 'रन एनालिसिस' बटन पर क्लिक करें।  जब सभी आवश्यक डेटा दर्ज कर दिया जाएगा तो यह हरा हो जाएगा।  \n   o यदि आपने अभी तक कोई मॉडल, प्रॉम्प्ट या एकल प्रोजेक्ट, प्रोफ़ाइल या कार्य, या वैध एपीआई कुंजी का चयन नहीं किया है, तो आपको पहले ऐसा करने के लिए प्रेरित किया जाएगा।  \n   o इस प्रक्रिया में कुछ समय लग सकता है और यह पृष्ठभूमि में चलती रहेगी।  परिणाम एक अलग विंडो में दिखाई देंगे.  \n   o विश्लेषण शुरू होते ही आपके कंप्यूटर पर अभी तक लोड नहीं किए गए स्थानीय मॉडल पृष्ठभूमि में लोड हो जाएंगे।  \nआपकी निर्दिष्ट एपीआई-कुंजियाँ (यदि कोई हो), मॉडल, चयनित प्रोजेक्ट, प्रोफ़ाइल या कार्य और एआई प्रॉम्प्ट सभी सत्रों में सहेजे जाएंगे।  \nविश्लेषण के परिणामों को एक नई विंडो में प्रदर्शित करने के लिए 'रीरन' सुविधा का उपयोग अंडर-द-कवर किया जाएगा।\n"
-
 msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.  \n1- Both this device and the Android device must be on the same named network.  \n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):  \n    https://tinyurl.com/4p5cz8sv  \nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.  \nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...  \n'192.168.0.210' is the default IP address,  \n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device  \n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.  \nUsage Notes:  \nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:  \nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}  \n- To fetch the XML file, click on the button  \n 'Get XML from Android Device'  \nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.  \n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.  \nClick on the 'Cancel Entry' button to back out of this fetch process.  \n"
 msgstr "अपने Android डिवाइस से सीधे Tasker XML फ़ाइल प्राप्त करने के लिए निम्नलिखित चरणों की आवश्यकता है।\n1- इस डिवाइस और Android डिवाइस दोनों को एक ही नाम वाले नेटवर्क पर होना चाहिए।\n2- Tasker प्रोजेक्ट 'HTTP सर्वर उदाहरण' या समान फ़ंक्शन को Android डिवाइस पर स्थापित और सक्रिय किया जाना चाहिए (सर्वर को चलाने की आवश्यकता है):\n    https://tinyurl.com/4p5cz8sv\nयह एकमात्र आवश्यक सेटअप है। 'XML फ़ाइलों की सूची' विकल्प के लिए पहले एक दूसरे, अलग प्रोफाइल ('MapTasker List') को TaskerNet से आयात करने और सक्रिय रखने की आवश्यकता थी; अब इसकी आवश्यकता नहीं है। MapTasker अब डिवाइस पर 'MapTasker List Files v1' नामक एक छोटा Task स्थापित करता है ताकि सूची बनाई जा सके, ठीक उसी तरह जैसे 'App not listed?' आपके एप्लिकेशन प्राप्त करने के लिए एक स्थापित करता है।\nआपको अपने Android डिवाइस के लिए IP पता, पोर्ट नंबर और Android डिवाइस पर फ़ाइल स्थान के लिए जानकारी प्रदान करने के लिए कहा जाएगा। डिफ़ॉल्ट मान प्रदान किए गए हैं, जहाँ...\n'192.168.0.210' डिफ़ॉल्ट IP पता है,\n'1821' आपके Android डिवाइस पर चल रहे Tasker HTTP सर्वर उदाहरण के लिए डिफ़ॉल्ट पोर्ट नंबर है\n'/Tasker/configs/user/backup.xml' डिफ़ॉल्ट फ़ाइल स्थान है। यदि आपको फ़ाइल स्थान ज्ञात नहीं है और आपने पहले अपना IP पता और पोर्ट दर्ज कर लिया है, तो आप अपने Android डिवाइस पर उपलब्ध XML फ़ाइलों की सूची प्राप्त करने के लिए 'List XML Files' बटन का चयन कर सकते हैं।\nउपयोग नोट्स:\nआप अपने Android डिवाइस पर ऊपर दिए गए URL से 'HTTP सर्वर उदाहरण' प्रोजेक्ट को स्थापित करके IP पता और पोर्ट प्राप्त कर सकते हैं। फिर 'Update GD HTTP Info' नामक कार्य चलाएं ताकि Android पर सूचना प्राप्त हो:\nHTTP सर्वर जानकारी\nसर्वर जानकारी अपडेट {\"डिवाइस का नाम\":\"http://192.168.0.49:1821\"}\n- XML फ़ाइल प्राप्त करने के लिए, 'Android डिवाइस से XML प्राप्त करें' बटन पर क्लिक करें।\nफिर इस बटन के नीचे दिए गए इनपुट फ़ील्ड में दिए गए डिफ़ॉल्ट मानों को संशोधित करें, और फिर 'XML विवरण सेट करें' या 'List XML Files' बटन पर क्लिक करें।\n- किसी भी बटन पर क्लिक करने से Android डिवाइस को जांचा जाएगा कि यह उपलब्ध है या नहीं। यदि डिवाइस तक नहीं पहुंचा जा सकता है, तो पिंग 10 सेकंड के बाद समाप्त हो जाएगा। सुनिश्चित करें कि IP पता सही है।\nइस प्रक्रिया से बाहर निकलने के लिए 'Cancel Entry' बटन पर क्लिक करें।\n"
-
 msgid "This menu is where you define your AI API keys for use by the AI 'Analyze' button.  \nThe keys are saved across sessions.  \nThe keys are used to access the OpenAI, Claude AI, Gemini AI, and DeepSeek AI server-based models.  \nClick on the 'Clear' button to clear a specific API key entry.  \nSelect 'Ok' to save the changes or 'Cancel' to back out of the changes.  \n"
 msgstr "यह मेनू वह जगह है जहाँ आप AI 'Analyze' बटन द्वारा उपयोग के लिए अपने AI API कुंजियों को परिभाषित करते हैं।\nये कुंजियाँ सत्रों के बीच सहेजी जाती हैं।\nये कुंजियाँ OpenAI, Claude AI, Gemini AI, और DeepSeek AI सर्वर-आधारित मॉडलों तक पहुँचने के लिए उपयोग की जाती हैं।\nविशिष्ट API कुंजी प्रविष्टि को साफ़ करने के लिए 'Clear' बटन पर क्लिक करें।\nपरिवर्तनों को सहेजने के लिए 'Ok' चुनें या परिवर्तनों से पीछे हटने के लिए 'Cancel' चुनें।\n"
-
 msgid "A Legacy Scene has a pixel canvas and a list of UI elements. It is the original Scene format, and is what Tasker itself produces."
 msgstr "लीगेसी सीन में एक पिक्सेल कैनवास और यूआई तत्वों की एक सूची होती है। यह मूल दृश्य प्रारूप है, और इसे टास्कर स्वयं निर्मित करता है।"
-
 msgid "Displays the Diagram view.\n\nUse this to visualize the relationships between your Projects, Profiles, Tasks, and Scenes."
 msgstr "आरेख दृश्य प्रदर्शित करता है.\n\nअपने प्रोजेक्ट, प्रोफ़ाइल, कार्य और दृश्यों के बीच संबंधों की कल्पना करने के लिए इसका उपयोग करें।"
-
 msgid "Displays the Map view.\n\nUse this to display the Tasker configuration of your Projects, Profiles, Tasks, and Scenes."
 msgstr "मानचित्र दृश्य प्रदर्शित करता है.\n\nअपने प्रोजेक्ट, प्रोफ़ाइल, कार्य और दृश्यों के टास्कर कॉन्फ़िगरेशन को प्रदर्शित करने के लिए इसका उपयोग करें।"
-
 msgid "Displays the Tree view.\n\nUse this to navigate the hierarchical structure of your Projects, Profiles, Tasks, and Scenes."
 msgstr "वृक्ष दृश्य प्रदर्शित करता है.\n\nअपने प्रोजेक्ट, प्रोफ़ाइल, कार्य और दृश्यों की पदानुक्रमित संरचना को नेविगेट करने के लिए इसका उपयोग करें।"
-
 msgid "Exports the Task as XML to a file on your computer."
 msgstr "कार्य को आपके कंप्यूटर पर एक फ़ाइल में XML के रूप में निर्यात करता है।"
-
 msgid "Saves this Profile, with all of its conditions and linked Tasks, as one standalone .prf.xml file -- the same format Tasker's own Profile export produces.\n\nTasks the Profile runs are not included; they belong to their own Project."
 msgstr "इस प्रोफ़ाइल को, इसकी सभी शर्तों और लिंक किए गए कार्यों के साथ, एक स्टैंडअलोन .prf.xml फ़ाइल के रूप में सहेजता है - वही प्रारूप जो टास्कर का अपना प्रोफ़ाइल निर्यात उत्पन्न करता है।\n\nप्रोफ़ाइल द्वारा चलाए जाने वाले कार्य शामिल नहीं हैं; वे अपने स्वयं के प्रोजेक्ट से संबंधित हैं।"
-
 msgid "Select a specific Profile to target for display or editing."
 msgstr "प्रदर्शन या संपादन को लक्षित करने के लिए एक विशिष्ट प्रोफ़ाइल का चयन करें।"
-
 msgid "Select a specific Project to target for display or editing."
 msgstr "प्रदर्शन या संपादन को लक्षित करने के लिए एक विशिष्ट प्रोजेक्ट का चयन करें।"
-
 msgid "Select a specific Scene to target for display or editing."
 msgstr "प्रदर्शन या संपादन को लक्षित करने के लिए एक विशिष्ट दृश्य का चयन करें।"
-
 msgid "Select a specific Task to target for display or editing."
 msgstr "प्रदर्शन या संपादन को लक्षित करने के लिए एक विशिष्ट कार्य का चयन करें।"
-
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "उन प्रोफ़ाइलों और कार्यों को शामिल करने के लिए इसका चयन करें जिनका सूची में कोई नाम नहीं है।"
-
 msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
 msgstr "लोड किए गए कॉन्फ़िगरेशन में उपयोग किए गए आइकन में से चुनें, और यदि आपने उन्हें डाउनलोड किया है, तो अपने डिवाइस पर मौजूद ऐप्स से भी चुनें।"
-
 msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
 msgstr "आइकन उसी स्थान से आते हैं जहां से एप्लिकेशन आते हैं: टास्कर किसी एप्लिकेशन के अपने आइकन को उसके पैकेज और लॉन्चर गतिविधि द्वारा पहचानता है, इसलिए डिवाइस पर पाया जाने वाला प्रत्येक एप्लिकेशन एक आइकन बन जाता है जिसे आप चुन सकते हैं।\n\nटास्कर के स्वयं के अंतर्निर्मित आइकन नहीं लाए जा सकते - वे टास्कर के अंदर ही रहते हैं - और न ही आइकन पैक के अंदर के आइकन लाए जा सकते हैं, जिन्हें नाम से टाइप करना होता है।"
-
 msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "कॉन्फ़िगरेशन में कहीं उपयोग किए गए आइकन, साथ ही यदि आपने अपने डिवाइस से प्राप्त किए हैं, तो प्रत्येक एप्लिकेशन का अपना आइकन। आप जो चुनते हैं, वह उस फ़ील्ड में मौजूद चीज़ को बदल देता है। यदि आपने किसी ऐसे आइकन पैक से आइकन चुना है जो सूचीबद्ध नहीं है, तो आपको उसका नाम दर्ज करना होगा: उसका नाम उस पैक के अंदर मौजूद होता है।"
-
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
 msgstr "अधिक जानकारी के लिए मैपटास्कर [कमांड रेफरेंस](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) देखें।\n"
-
 msgid "(anonymous Task, stored in the Scene)"
 msgstr "(अनाम कार्य, दृश्य में संग्रहीत)"
-
 msgid "(new variable)"
 msgstr "(नया चर)"
-
 msgid "(no label)"
 msgstr "(लेबल नहीं)"
-
 msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
 msgstr "एक्शन बार में दिखाने के लिए टैब की अल्पविराम से अलग की गई सूची। किसी एक का चयन करने से इवेंट टैब का टैब टैप कार्य सक्रिय हो जाता है।"
-
 msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
 msgstr "संभाली जाने वाली कुंजियों की एक स्लैश-पृथक सूची - नाम या कोड द्वारा, उदाहरण के लिए। वापस/78/ए. कोई अन्य कुंजी सिस्टम को भेज दी जाती है.\nप्रत्येक कुंजी को संभालने के लिए इसे खाली छोड़ दें।"
-
 msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "एक्शन बार शैली, शीर्षक, उपशीर्षक, चिह्न और टैब लेबल केवल गतिविधि पर लागू होते हैं। वे अभी भी संग्रहीत हैं, और यदि आप संपत्ति प्रकार को गतिविधि में बदलते हैं तो दिखाए जाते हैं।"
-
 msgid "Action bar"
 msgstr "कार्रवाई बार"
-
 msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "एक्शन बार आइटम केवल एक गतिविधि पर लागू होते हैं। वे अभी भी संग्रहीत हैं, और यदि आप संपत्ति प्रकार को गतिविधि में बदलते हैं तो दिखाए जाते हैं।"
-
 msgid "Actions of the"
 msgstr "की कार्रवाई"
-
 msgid "Add Variable"
 msgstr "वेरिएबल जोड़ें"
-
 msgid "Add an action bar item"
 msgstr "एक एक्शन बार आइटम जोड़ें"
-
 msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
 msgstr "इस कार्य को लोड किए गए कॉन्फ़िगरेशन में जोड़ता है और इस ईवेंट को उस पर इंगित करता है, कार्य जोड़ें संवाद में 'ओके' के समान - फ़ाइल में कुछ भी नहीं लिखा जाता है और एंड्रॉइड पर कुछ भी नहीं भेजा जाता है।  ठीक है यह आपके लिए भी करता है, इसलिए यह केवल इसे बंद किए बिना बनाने के लिए है।\nतब तक कार्य केवल इस विंडो में मौजूद है और रद्द इसे खारिज कर देता है। बाद में यह किसी भी अन्य कार्य की तरह एक कार्य है - रद्द करना बाइंडिंग को वापस ले जाता है लेकिन कार्य को नहीं, और पूर्ववत करने पर दोनों को वापस ले लिया जाता है।"
-
 msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
 msgstr "दृश्य द्वारा संभाली गई कोई भी कुंजी सिस्टम को नहीं दी जाती है - कैसे एक दृश्य पिछली कुंजी को इसे बंद करने से रोकता है।\nजिस तरह से टास्कर इसे लिखता है, उसी तरह लिखा गया है: दृश्य के <LinkClickFilter> के अंदर एक <stopEvent>, जब इसे टिक किया जाता है तो बनाया जाता है और जब इसे अनचेक किया जाता है तो इसे फिर से हटा दिया जाता है और इसमें कुछ भी नहीं बचा होता है।"
-
 msgid "Apply to Task"
 msgstr "कार्य के लिए आवेदन करें"
-
 msgid "Changes kept for Task"
 msgstr "कार्य के लिए किए गए बदलाव"
-
 msgid "Create Task"
 msgstr "कार्य बनाएँ"
-
 msgid "Created Task"
 msgstr "कार्य बनाया गया"
-
 msgid "Display Name"
 msgstr "प्रदर्शित होने वाला नाम"
-
 msgid "Exported Value"
 msgstr "निर्यातित मूल्य"
-
 msgid "Icon"
 msgstr "आइकन"
-
 msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
 msgstr "इवेंट टैब के अंतर्गत संपादित किसी भी कार्य की गतिविधियों सहित सब कुछ रखता है।\nकिसी ईवेंट के तहत बनाया गया एक कार्य जिसमें कोई भी नहीं था, यदि आप उसमें कोई क्रिया डालते हैं तो वह बन जाता है और बाध्य हो जाता है। पूर्ववत करने से कार्य संपादन वापस आ जाता है।"
-
 msgid "Keys"
 msgstr "कुंजियाँ"
-
 msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
 msgstr "पहले एक टास्कर कॉन्फ़िगरेशन लोड करें - एक नए कार्य के लिए एक आईडी प्राप्त करने की आवश्यकता होती है।"
-
 msgid "Name"
 msgstr "नाम"
-
 msgid "New Task Name"
 msgstr "नये कार्य का नाम"
-
 msgid "No Task matches."
 msgstr "कोई कार्य मेल नहीं खाता."
-
 msgid "No action bar items."
 msgstr "कोई एक्शन बार आइटम नहीं."
-
 msgid "No variables."
 msgstr "कोई चर नहीं."
-
 msgid "Nothing -- this event fires no Task."
 msgstr "कुछ भी नहीं - यह ईवेंट कोई कार्य प्रारंभ नहीं करता है।"
-
 msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
 msgstr "अभी तक कुछ भी बाध्य नहीं है, इसलिए ये क्रियाएं एक नए कार्य में चली जाती हैं। यह बनाया जाता है, और यह घटना इस पर इंगित करती है, जब आप नीचे या ठीक बटन दबाते हैं। रद्द करें इसे खारिज कर देता है।"
-
 msgid "Nothing set."
 msgstr "कुछ भी सेट नहीं है."
-
 msgid "Prompt"
 msgstr "तत्पर"
-
 msgid "Properties kept."
 msgstr "संपत्तियां रखीं."
-
 msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
 msgstr "इन क्रिया संपादनों को अब लोड किए गए कॉन्फ़िगरेशन में डालता है, बिना बंद किए - संपादन कार्य संवाद में 'ओके' के समान।  ठीक है, यह आपके लिए यहां भी है, इसलिए यह केवल उन्हें मध्य-संपादन में रखने के लिए है।\nकिसी फ़ाइल में कुछ भी नहीं लिखा जाता है और Android पर कुछ भी नहीं भेजा जाता है। यह कार्य दृश्य का हिस्सा नहीं है, इसलिए न तो इस विंडो का कैंसिल और न ही दृश्य संवाद इन संपादनों को एक बार लैंड करने के बाद वापस लेता है। पूर्ववत करता है."
-
 msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
 msgstr "इन गुणों को उसी तरह वापस रख देता है जैसे वे इस विंडो के खुलने पर थे, और ईवेंट टैब के अंतर्गत संपादित किसी भी कार्य की गतिविधियों को छोड़ देता है।\nएक कार्य पहले से ही अपने बटन द्वारा कॉन्फ़िगरेशन में डाल दिया गया है - 'कार्य पर लागू करें', या 'कार्य बनाएं' - वहीं रहता है। पूर्ववत उन्हें वापस ले लेता है।"
-
 msgid "Remove Variable"
 msgstr "वेरिएबल हटाएँ"
-
 msgid "Same as Value"
 msgstr "मान के समान"
-
 msgid "Scene properties changes discarded."
 msgstr "दृश्य गुण परिवर्तन खारिज कर दिए गए।"
-
 msgid "Search Tasks"
 msgstr "कार्य खोजें"
-
 msgid "Stop Event"
 msgstr "इवेंट रोकें"
-
 msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
 msgstr "एक्शन बार के ऊपर बाईं ओर होम आइकन। इसे टैप करने से इवेंट टैब का होम टैप टास्क सक्रिय हो जाता है।"
-
 msgid "There are no Tasks in this configuration."
 msgstr "इस कॉन्फ़िगरेशन में कोई कार्य नहीं हैं."
-
 msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
 msgstr "यह कार्य दृश्य के भीतर संग्रहीत है और यह कार्य सूची में मौजूद नहीं है, इसलिए इसे यहां संपादित नहीं किया जा सकता। यह बिना किसी बदलाव के ही आगे बढ़ जाता है।"
-
 msgid "This item has no action."
 msgstr "इस आइटम पर कोई कार्रवाई नहीं है."
-
 msgid "Type"
 msgstr "प्रकार"
-
 msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
 msgstr "'निर्यातित मूल्य' के अंतर्गत, यदि आप 'मूल के समान' विकल्प को अक्षम करते हैं, तो आप यह अनुकूलित कर सकते हैं कि जब आप अन्य उपयोगकर्ताओं के साथ चर साझा करते हैं, तो किस मूल्य का निर्यात किया जाए।\nयदि आप निर्यात में कोई मूल्य नहीं रखना चाहते हैं, तो आप 'निर्यातित मूल्य' फ़ील्ड को खाली छोड़ सकते हैं, या आप उस मूल्य को निर्धारित कर सकते हैं जिसका आप हमेशा निर्यात के लिए उपयोग करना चाहते हैं।\nयदि आप 'मूल के समान' विकल्प को सक्षम करते हैं, तो वर्तमान चर का मूल्य निर्यात के लिए उपयोग किया जाएगा।"
-
 msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
 msgstr "कोई आइटम कहां समाप्त होगा यह इस बात से तय होता है कि आप उसे क्या देते हैं: एक आइकन हमेशा मुख्य बार में होता है, अगर जगह होती है तो एक आइकन और एक लेबल वहां दिखाया जाता है, और एक लेबल हमेशा ओवरफ्लो मेनू में होता है (टास्कर में शीर्ष दाईं ओर 3 बिंदु)।"
-
 msgid "fires a Task on"
 msgstr "एक कार्य चालू करता है"
-
 msgid "is not in this backup, so there are no actions to show."
 msgstr "इस बैकअप में नहीं है, इसलिए दिखाने के लिए कोई कार्रवाई नहीं है।"
-
 msgid "no editable arguments."
 msgstr "कोई संपादन योग्य तर्क नहीं."
-
 msgid "swallows the key press"
 msgstr "कुंजी दबाने को निगल जाता है"
-
 msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
 msgstr "भेजने से पहले XML को पढ़ता है, और रास्ते में कुछ भी बदलने पर सेव करने से इंकार कर देता है।\n\nयह जो पकड़ता है वह विफलता का वर्ग है जिसे सेव पथ में और कुछ नहीं कर सकता है: एक मूल्य जिसके बारे में इस प्रोग्राम के लेखक और पाठक असहमत हैं - एक नाम के अंदर एक कैरिज रिटर्न, मान लीजिए, जिसे टाइप किया गया है और एक नई लाइन के रूप में वापस पढ़ा जाता है।  अपलोड का उत्तर 200 है और डिवाइस पर फ़ाइल भेजी गई फ़ाइल से मेल खाती है, क्योंकि दोनों पहले से ही गलत हैं।\n\nऊपर जाने वाली प्रत्येक वस्तु की तुलना लोड किए गए कॉन्फ़िगरेशन में से एक से की जाती है, जिसमें बंडल किए गए प्रोफ़ाइल, दृश्य और कार्य शामिल हैं जिन्हें आपने संपादित नहीं किया है।  यदि उनमें से कोई भी भिन्न है तो कुछ भी नहीं भेजा जाता है; आपको एक रिपोर्ट मिलती है जिसमें कहा गया है कि कौन सी और कहां।\n\nइसमें एक सेकंड का एक अंश खर्च होता है और कुछ भी संपर्क नहीं होता है - डिवाइस को छूने से पहले, पूरा चेक यहां चलता है।"
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "यह दो में से एक विकल्प खोलता है: टास्क को अपने एंड्रॉइड डिवाइस पर /टास्कर/टास्क के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखें, या इसे सीधे टास्कर के लाइव कॉन्फ़िगरेशन में आयात करें।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को एंड्रॉइड डिवाइस पर स्थापित और सक्रिय होना चाहिए, सर्वर चालू होने के साथ (रीडमी के डायरेक्ट एक्सएमएल रिट्रीवल नोट्स देखें), और टास्कर 6.2 या उच्चतर होना चाहिए।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nएंड्रॉइड डिवाइस को चलाते समय देखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।\n\nटास्कर यूआई में आयातित कार्य को देखने के लिए आपको टास्कर से बाहर निकलना होगा और पुनः आरंभ करना होगा।"
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "यह प्रोफ़ाइल को एंड्रॉइड डिवाइस पर /टास्कर/प्रोफाइल के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "यह प्रोफ़ाइल को आपके एंड्रॉइड डिवाइस पर /टास्कर/प्रोफाइल के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट (http://spoo.me/http_svr_example) को सर्वर चालू होने के साथ एंड्रॉइड डिवाइस पर स्थापित और सक्रिय होना चाहिए (README के ​​डायरेक्ट XML पुनर्प्राप्ति नोट्स देखें)।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "यह प्रोफ़ाइल को आपके एंड्रॉइड डिवाइस पर /टास्कर/प्रोफाइल के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को सर्वर चालू होने के साथ एंड्रॉइड डिवाइस पर स्थापित और सक्रिय होना चाहिए (README के ​​डायरेक्ट XML पुनर्प्राप्ति नोट्स देखें)।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "यह प्रोजेक्ट और उसमें मौजूद हर चीज़ - प्रत्येक प्रोफ़ाइल और कार्य - को आपके एंड्रॉइड डिवाइस पर /टास्कर/प्रोजेक्ट्स के तहत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को एंड्रॉइड डिवाइस पर सर्वर चालू होने के साथ इंस्टॉल और सक्रिय होना चाहिए।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "यह प्रोजेक्ट और उसमें मौजूद सभी चीज़ों को एंड्रॉइड डिवाइस पर /टास्कर/प्रोजेक्ट्स के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "यह Android डिवाइस पर `/Tasker/scenes` के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में दृश्य को लिख देगा।\n\nआईपी ​​एड्रेस और पोर्ट को Android डिवाइस के Tasker सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nजब यह चल रहा हो, तो Android डिवाइस पर ध्यान दें: Tasker को एक बार सहेजने के लिए आपको कनेक्शन को कई बार अधिकृत करने के लिए कहा जाएगा, और यदि कोई संकेत अधूरा छोड़ दिया जाता है, तो यह विफल हो जाएगा।"
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "यह दृश्य को आपके एंड्रॉइड डिवाइस पर /टास्कर/सीन के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा - यह इसे टास्कर के लाइव कॉन्फ़िगरेशन में आयात नहीं करता है।\n\n'Http सर्वर उदाहरण' टास्कर प्रोजेक्ट को एंड्रॉइड डिवाइस पर सर्वर चालू होने के साथ इंस्टॉल और सक्रिय होना चाहिए।\n\nएंड्रॉइड डिवाइस एक ही नेटवर्क पर होना चाहिए, और आईपी एड्रेस और पोर्ट को उसके टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "यह कार्य को एंड्रॉइड डिवाइस पर /Tasker/tasks के अंतर्गत एक स्टैंडअलोन फ़ाइल के रूप में लिखेगा।\n\nआईपी ​​एड्रेस और पोर्ट को एंड्रॉइड डिवाइस की टास्कर सर्वर सेटिंग्स से मेल खाना चाहिए।\n\nइसे चलाते समय एंड्रॉइड डिवाइस पर नजर रखें: टास्कर आपसे एक सेव के लिए कई बार कनेक्शन को अधिकृत करने के लिए कहता है, और एक संकेत जिसे बिना टैप किए छोड़ दिया जाता है वह विफल हो जाता है।"
-
 msgid "Verify"
 msgstr "सत्यापित करें"
-
 msgid "Verify Failed -- Nothing Was Sent"
 msgstr "सत्यापन विफल - कुछ भी नहीं भेजा गया"
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
 msgstr "अपने एंड्रॉइड डिवाइस को देखें: टास्कर आपसे कई बार कनेक्शन को अधिकृत करने के लिए कहेगा।"
-
 msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
 msgstr "आपके एंड्रॉइड डिवाइस से संपर्क नहीं किया गया था और उस पर कुछ भी नहीं बदला गया था।  लोड किया गया कॉन्फ़िगरेशन भी अछूता है - यह इस बात की जांच है कि क्या लिखा जाने वाला था, न कि डिवाइस पर क्या है।"
-
 msgid "'Refactor' makes the structural changes that Add, Edit and Delete cannot: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "'रिफैक्टर' ऐसे संरचनात्मक परिवर्तन करता है जो जोड़ें, संपादित करें और हटाएं नहीं कर सकते: किसी कार्य की क्रियाओं को अपने स्वयं के कार्य में खींचें, किसी कार्य को उसके कॉलर में वापस मोड़ें, किसी कार्य या प्रोफ़ाइल को किसी अन्य प्रोजेक्ट में ले जाएं, या किसी ऑब्जेक्ट की नकल करें।\n\nजब तक आप पूर्वावलोकन नहीं दबाते और फिर लागू नहीं करते तब तक कुछ भी नहीं बदलता है, और पूर्वावलोकन बताता है कि चरण दर चरण क्या होगा - या ऐसा क्यों नहीं होगा।\n\nएक रिफैक्टर का पूरा हिस्सा बाद में पूर्ववत करने का एक प्रेस है।\n\n"
-
 msgid "...to this Project"
 msgstr "...इस परियोजना के लिए"
-
 msgid "Apply"
 msgstr "आवेदन करना"
-
 msgid "Choose a single Task in 'Specific Name' to also see it drawn as a flowchart."
 msgstr "इसे फ़्लोचार्ट के रूप में देखने के लिए 'विशिष्ट नाम' में एक एकल कार्य चुनें।"
-
 msgid "Could not find Task"
 msgstr "कार्य नहीं मिल सका"
-
 msgid "Drawing the first."
 msgstr "पहला चित्रण."
-
 msgid "Duplicate this"
 msgstr "इसे डुप्लिकेट करें"
-
 msgid "Fill in every box first."
 msgstr "पहले हर बॉक्स भरें."
-
 msgid "First action"
 msgstr "पहली कार्रवाई"
-
 msgid "Flowchart saved as"
 msgstr "फ़्लोचार्ट के रूप में सहेजा गया"
-
 msgid "From Task"
 msgstr "कार्य से"
-
 msgid "In Task"
 msgstr "टास्क में"
-
 msgid "Inline this call"
 msgstr "इस कॉल को सीधे करें।"
-
 msgid "Last action"
 msgstr "अंतिम कार्रवाई"
-
 msgid "More than one Task is named"
 msgstr "एक से अधिक कार्य का नाम दिया गया है।"
-
 msgid "Move this"
 msgstr "इसे ले जाएं"
-
 msgid "New Task name"
 msgstr "नया कार्य नाम"
-
 msgid "New name (optional)"
 msgstr "नया नाम (वैकल्पिक)"
-
 msgid "Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.\n\nWith a single Task chosen in the 'Specific Name' tab, that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "प्रत्येक कार्य के नियंत्रण प्रवाह को पढ़ें - इसका इफ/एल्स/एंड इफ, फॉर/एंड फॉर, गोटो और स्टॉप - और रिपोर्ट करें कि क्या एक साथ नहीं रहता है: एक ब्लॉक जो कभी बंद नहीं होता है, एक गोटो जिसका लक्ष्य एक लेबल है जिसमें कोई कार्रवाई नहीं होती है, और ऐसी क्रियाएं जिन तक कुछ भी नहीं पहुंच सकता है।\n\n'विशिष्ट नाम' टैब में चुने गए एकल कार्य के साथ, उस कार्य को अपनी विंडो में एक फ़्लोचार्ट के रूप में भी तैयार किया जाता है, जिसमें प्रत्येक गोटो से उस क्रिया तक एक तीर होता है जिस पर वह उतरता है।\n\nपरिणाम यहां प्रदर्शित होते हैं और वर्तमान निर्देशिका में एक टेक्स्ट फ़ाइल में सहेजे जाते हैं।"
-
 msgid "Refactor"
 msgstr "रिफैक्टर"
-
 msgid "Refactor preview could not be saved."
 msgstr "रिफैक्टर पूर्वावलोकन सहेजा नहीं जा सका."
-
 msgid "Refactor preview saved as"
 msgstr "रिफैक्टर पूर्वावलोकन के रूप में सहेजा गया"
-
 msgid "Task Flow"
 msgstr "कार्य प्रवाह"
-
 msgid "Task Flow View opened in a new browser window."
 msgstr "कार्य प्रवाह दृश्य एक नई ब्राउज़र विंडो में खोला गया।"
-
 msgid "Task Flow found no control-flow problems."
 msgstr "कार्य प्रवाह में कोई नियंत्रण-प्रवाह समस्या नहीं पाई गई।"
-
 msgid "Task Flow report could not be saved."
 msgstr "कार्य प्रवाह रिपोर्ट सहेजी नहीं जा सकी."
-
 msgid "Task Flow report saved as"
 msgstr "कार्य प्रवाह रिपोर्ट इस रूप में सहेजी गई"
-
 msgid "cannot be done"
 msgstr "नहीं किया जा सकता"
-
 msgid "steps"
 msgstr "कदम"
-
 msgid "has no Tasks to extract from"
 msgstr "निकालने के लिए कोई कार्य नहीं है"
-
 msgid "Change or clear that selection to reach other Tasks"
 msgstr "अन्य कार्यों तक पहुंचने के लिए, उस चयन को बदलें या उसे स्पष्ट करें।"
-
 msgid "Extract works on"
 msgstr "कार्य निकालना"
-
 msgid "The structural changes that Add, Edit and Delete cannot make: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "जो कि Add, Edit और Delete विकल्पों द्वारा नहीं किया जा सकता: किसी कार्य के कार्यों को एक अलग कार्य में निकालें, \"Perform Task\" को वापस उसके मूल स्थान पर ले जाएं, किसी कार्य या प्रोफाइल को किसी अन्य प्रोजेक्ट में ले जाएं, या किसी भी ऑब्जेक्ट की प्रतिलिपि बनाएं।\n\nजब तक आप \"Preview\" दबाकर \"Apply\" नहीं करते, तब तक कुछ भी नहीं बदलता है, और \"Preview\" यह बताता है कि प्रत्येक चरण में क्या होगा – या ऐसा क्यों नहीं होगा।\n\nकिसी भी बदलाव को करने के बाद, \"Undo\" एक बार दबाकर पूरा काम हो जाता है।\n\n"
-
 msgid "What to call the copy.  Left empty, a free name is chosen for you -- the original's with '(copy)' after it."
 msgstr "इसे किस नाम से पुकारें। यदि इसे खाली छोड़ दिया जाए, तो आपके लिए एक मुफ्त नाम चुना जाएगा – मूल नाम के साथ '(कॉपी)' जोड़ा जाएगा।"
-
 msgid "What to call the new Task.  The 'Perform Task' left behind calls it by this name, so it has to be a name no other Task already has."
 msgstr "नए कार्य को क्या कहें?  पीछे छोड़ा गया 'कार्य निष्पादित करें' इसे इसी नाम से बुलाता है, इसलिए यह ऐसा नाम होना चाहिए जो पहले से किसी अन्य कार्य के पास नहीं है।"
-
 msgid "is selected above and has no Tasks to extract from"
 msgstr "ऊपर सूचीबद्ध किया गया है और इसमें कोई कार्य नहीं है जिससे जानकारी निकाली जा सके।"
-
 msgid "selected in the pulldowns above"
 msgstr "ऊपर दिए गए ड्रॉप-डाउन मेनू से चुना गया"
-
 msgid "Click any line above to see that place in the Map view."
 msgstr "मानचित्र दृश्य में उस स्थान को देखने के लिए ऊपर किसी भी पंक्ति पर क्लिक करें।"
-
 msgid "If you delete them too"
 msgstr "अगर आप उन्हें भी डिलीट कर देते हैं"
-
 msgid "If you keep the contents"
 msgstr "यदि आप सामग्री को सुरक्षित रखते हैं"
-
 msgid "Building the"
 msgstr "निर्माण"
-
 msgid "Building the view"
 msgstr "दृश्य बनाना"
-
 msgid "Building the view.  Please stand by ..."
 msgstr "दृश्य बनाना। कृपया प्रतीक्षा करें..."
-
 msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.  \nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.  \n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n    Level 5 = display level of 4 plus Scene argument details.  \n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.  \n* Display Conditions: Turn on the display of Profile and Task conditions.  \n* Display TaskerNet Info - If available, display TaskerNet publishing information.  \n* Display Tasker Preferences - display Tasker's system Preferences.  \n* Hide Task Details under Twisty: hide Task information within ► and click to display.  \n* Display Directory of hyperlinks at beginning.  \n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.  \n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.  \n* Task Action Limit: display a warning if the Task has more than the specified number of actions.  \n* Indentation amount for If/Then/Else Task Actions.  \n* Language: Select the language to be used for the output.  The default is English.  \n* Font To Use: Change the monospace font used for the output.  \n* View Limit: Control the amount of processing time used when generating the view.  \n* Notification Duration: How long a pop-up message stays on screen before it disappears.  'Until dismissed' keeps every message up until you close it.  \n* Dark Mode: Switch the GUI between light and dark appearance.  \n* Reset Options: Clear everything and start anew.  \n* Get Local XML File: fetch the backup/exported XML file from your local drive.  \n* Save Settings - Save these settings for later use.  \n* Restore Settings - Restore the settings from a previously saved session.  \n* Report Issue: Open the GitHub Issues page in your browser to report a problem or suggestion to the developer.  \n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.  \n* Clear: Clear the Map/Diagram/Tree view data currently held and displayed.  \n* Health Check: Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.  It also reports how your configuration will behave on the device: two Profiles watching the same trigger whose Tasks set the same thing opposite ways, a Profile whose conditions can never all be true, Tasks that poll in a loop, Profiles that keep a radio or sensor scanning or fire on a short timer, long-running Tasks left on the default collision handling, and actions that can block for ever because no timeout was set.  Click a finding to be taken to it in the Map.  \n* Compare Files: Compare another XML file against the loaded one to see what was added, removed, renamed and changed.  \n* Variable Xref: Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names are likely typos.  \n* Task Flow: Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.  With a single Task chosen in 'Specific Name', that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.  Click any line of it to be taken to that action in the Map.  \n* Open View In New Window: Open each Map/Diagram request in its own new window/tab rather than reusing that view's existing one.  \n* Close Tabs On Exit: Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tabs it opened.  \n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.  \n   - List XML Files: List the XML files found on the Android device so you can select one rather than typing its location.\n   - Cancel Entry: Back out of the Android fetch process.  \n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n   - List Unnamed Items: Include unnamed Profiles and Tasks in the four pulldowns above.  \n   Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with various save options...\n   - Add Project/Profile/Task/Scene: Create a new object and add it to the loaded XML.\n   - Edit Project/Profile/Task/Scene: Modify the object currently selected in the pulldowns above.\n   - Rename: Give the object being edited a new name.\n   - Delete: Remove the object being edited from the loaded XML.\n   - Duplicate: Make a copy of the selected Scene element.\n   - Preview: Display the Scene being edited as it will appear.\n   - Save / Export: Write the object out to a standalone XML file of your choosing.\n   - Save To Current File: Write the entire configuration to a new, timestamped file beside the loaded one.\n   - Save To Android: Write the object back to your Android device.\n     (A safety copy of anything a save is about to overwrite is kept in the 'MapTasker_Backups' folder.)  \n   Editing commands...\n   - Undo: Back out the most recent Add/Edit/Delete/Rename change made to the loaded XML.  This changes what is loaded, not any file.\n   - Redo: Reapply the change most recently backed out by 'Undo'.\n   - Edit History: List every change made to the loaded XML this session, newest first.  \n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n   - Reset to Default Colors: Restore every color to its default value.  \n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n   - Show/Edit API Key(s): Enter or change the API keys used by the server-based AI models.\n   - Change Prompt: Modify the prompt sent to the AI model.\n   - Run Analysis: Submit the selected Project/Profile/Task and prompt to the selected model.\n   - Extended: List all available models rather than just the default set.  \n* Debug tab: Display Runtime Settings option and turn on Debug mode.  \n* Map/Diagram/Tree view toolbar commands are...\n   - Search: Highlight every instance of the case-insensitive text entered in the search box, up to the first 200.  Click a line number to go to that line.\n   - Find/Replace: (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene.  Click a result to be taken to it.\n   - Save Results: Save the 'Find/Replace' results to a text file.\n   - Top / Bottom: Jump to the beginning or the end of the displayed output.\n   - Toggle Wrap: Turn line wrapping on or off in the displayed output.\n   - Profiles Per Line: (Diagram only) The number of Profiles drawn side-by-side on a single line.  \n* Display Help: Display this help text.  \n* Get Android Help: Display the help for fetching the XML file from your Android device.  \n* '?' buttons: Display the help specific to the section in which the button appears.  \n* Exit: Exit the program (quit).  \nNotes:  \n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md  \n- Changing the appearance mode will change the colors used for the output to their default values.  \n"
 msgstr "MapTasker आपके द्वारा अपलोड किए गए Tasker XML फ़ाइल (जैसे, 'backup.xml') के आधार पर आपके Android Tasker कॉन्फ़िगरेशन को प्रदर्शित करता है। प्रदर्शन में वैकल्पिक रूप से सभी प्रोजेक्ट, प्रोफाइल, टास्क और उनके कार्यों, प्रोफाइल/टास्क की शर्तों और अन्य प्रोफाइल/टास्क से संबंधित जानकारी शामिल हो सकती है।\nएक बार XML फ़ाइल लोड हो जाने के बाद, आप वैकल्पिक रूप से अपने प्रोजेक्ट, प्रोफाइल, टास्क और सीन को संपादित कर सकते हैं।\n* प्रदर्शन विकल्प:\n    स्तर 0: केवल अज्ञात टास्क के लिए केवल पहले टास्क कार्रवाई को प्रदर्शित करें (शांत)।\n    स्तर 1 = अज्ञात टास्क के लिए सभी टास्क कार्रवाई विवरण प्रदर्शित करें (डिफ़ॉल्ट)।\n    स्तर 2 = प्रत्येक टास्क पर पूर्ण टास्क कार्रवाई का नाम प्रदर्शित करें।\n    स्तर 3 = प्रत्येक टास्क के साथ कार्रवाई विवरण सहित पूर्ण टास्क कार्रवाई विवरण प्रदर्शित करें।\n    स्तर 4 = स्तर 3 के साथ, प्रोजेक्ट के वैश्विक चर प्रदर्शित करें।\n    स्तर 5 = स्तर 4 के साथ, दृश्य तर्क प्रदर्शित करें।\n* सब कुछ प्रदर्शित करें: शर्तों, TaskerNet जानकारी, प्राथमिकताओं, सुंदर आउटपुट, निर्देशिका और कॉन्फ़िगरेशन रूपरेखा को प्रदर्शित करने के लिए चालू करें।\n* शर्तों को प्रदर्शित करें: प्रोफाइल और टास्क की शर्तों को प्रदर्शित करने के लिए चालू करें।\n* TaskerNet जानकारी प्रदर्शित करें - यदि उपलब्ध हो, तो TaskerNet प्रकाशन जानकारी प्रदर्शित करें।\n* Tasker प्राथमिकताओं को प्रदर्शित करें - Tasker की सिस्टम प्राथमिकताओं को प्रदर्शित करें।\n* Twisty के तहत टास्क विवरण को छिपाएँ: ► के अंदर टास्क जानकारी को छिपाएँ और प्रदर्शित करने के लिए क्लिक करें।\n* शुरुआत में हाइपरलिंक की निर्देशिका प्रदर्शित करें।\n* सुंदर आउटपुट: सभी तर्कों के लिए नई पंक्तियों और इंडेंटेशन जोड़कर आउटपुट को अधिक मानवीय रूप से पठनीय बनाएं।\n* प्रोजेक्ट/प्रोफाइल/टास्क/सीन नामों के विकल्प: उनके नामों को इटैलिक, बोल्ड, अंडरलाइन और/या हाइलाइट करने के लिए।\n* टास्क कार्रवाई सीमा: यदि टास्क में निर्दिष्ट संख्या से अधिक कार्रवाई हैं, तो एक चेतावनी प्रदर्शित करें।\n* इफ/थेन/एलिस टास्क कार्रवाई के लिए इंडेंटेशन की मात्रा।\n* भाषा: आउटपुट के लिए उपयोग की जाने वाली भाषा का चयन करें। डिफ़ॉल्ट अंग्रेजी है।\n* उपयोग करने के लिए फ़ॉन्ट: आउटपुट के लिए उपयोग किए जाने वाले मोनोस्पेस फ़ॉन्ट को बदलें।\n* दृश्य सीमा: दृश्य उत्पन्न करने के लिए उपयोग किए जाने वाले प्रसंस्करण समय की मात्रा को नियंत्रित करें।\n* सूचना अवधि: पॉप-अप संदेश स्क्रीन पर कितने समय तक रहता है, इससे पहले कि वह गायब हो जाए। 'जब तक इसे बंद न किया जाए' तब तक प्रत्येक संदेश प्रदर्शित होता रहता है जब तक आप इसे बंद नहीं कर देते।\n* डार्क मोड: GUI को हल्के और गहरे रूप में स्विच करें।\n* रीसेट विकल्प: सब कुछ साफ़ करें और फिर से शुरू करें।\n* स्थानीय XML फ़ाइल प्राप्त करें: अपने स्थानीय ड्राइव से बैकअप/निर्यातित XML फ़ाइल प्राप्त करें।\n* सेटिंग्स सहेजें: बाद में उपयोग के लिए इन सेटिंग्स सहेजें।\n* सेटिंग्स पुनर्स्थापित करें: पहले सहेजे गए सत्र से सेटिंग्स पुनर्स्थापित करें।\n* समस्या रिपोर्ट करें: डेवलपर को समस्या या सुझाव रिपोर्ट करने के लिए अपने ब्राउज़र में GitHub Issues पृष्ठ खोलें।\n* दृश्य प्रदर्शित करें: अपने प्रोजेक्ट, प्रोफाइल, टास्क और सीन के GUI में सीधे Map, Diagram, या Tree दृश्य प्रदर्शित करें।\n* साफ़ करें: वर्तमान में प्रदर्शित और संग्रहीत Map/Diagram/Tree दृश्य डेटा को साफ़ करें।\n* स्वास्थ्य जांच: लोड किए गए XML में टूटे हुए संदर्भ, अप्रयुक्त टास्क, प्रोफाइल और सीन, और नामकरण समस्याओं के लिए स्कैन करें। यह आपको यह भी बताता है कि आपके कॉन्फ़िगरेशन का डिवाइस पर कैसे व्यवहार होगा: दो प्रोफाइल एक ही ट्रिगर पर ध्यान दे रहे हैं, जिसके टास्क विपरीत तरीकों से एक ही चीज़ सेट करते हैं, एक प्रोफाइल की स्थितियां कभी भी सभी सही नहीं हो सकती हैं, टास्क जो लूप में पोल करते हैं, प्रोफाइल जो रेडियो या सेंसर को स्कैन करते हैं या एक छोटे समय अंतराल पर फायर करते हैं, लंबे समय तक चलने वाले टास्क जो डिफ़ॉल्ट टकराव हैंडलिंग पर छोड़ दिए गए हैं, और कार्य जो कभी समाप्त नहीं होते क्योंकि कोई टाइमआउट सेट नहीं किया गया है। Map में किसी निष्कर्ष पर क्लिक करके उस तक पहुंचें।\n* फ़ाइलों की तुलना करें: देखें कि क्या जोड़ा गया, हटाया गया, नाम बदला गया और बदला गया है, इस बात की पुष्टि करने के लिए लोड किए गए XML के विरुद्ध किसी अन्य XML फ़ाइल की तुलना करें।\n* वेरिएबल Xref: लोड किए गए XML में प्रत्येक %वेरिएबल को ट्रेस करें: प्रत्येक को कहां सेट किया गया है, कहां पढ़ा जाता है, कौन पढ़ा जाता है लेकिन कभी सेट नहीं किया जाता, कौन सेट किया जाता है लेकिन कभी पढ़ा नहीं जाता है, और जिन लगभग समान नामों को गलत टाइपिंग माना जा सकता है।\n* कार्य प्रवाह: प्रत्येक कार्य के नियंत्रण प्रवाह को पढ़ें - इसके If/Else/End If, For/End For, Goto और Stop – और उन चीजों की रिपोर्ट करें जो एक साथ काम नहीं करती हैं: एक ऐसा ब्लॉक जो कभी बंद नहीं होता, एक Goto जो किसी कार्रवाई को नहीं करता, और ऐसी कार्रवाइयां जो कभी नहीं हो सकती। 'विशिष्ट नाम' में एक कार्य का चयन करने पर, उस कार्य को अपने विंडो में एक फ्लो चार्ट के रूप में भी दर्शाया जाएगा, जिसमें प्रत्येक Goto से उस कार्रवाई तक एक तीर होगा जिस पर यह गिरती है। इसे मानचित्र में उस कार्रवाई तक पहुंचने के लिए किसी भी पंक्ति पर क्लिक करें।\n* नए विंडो में दृश्य खोलें: मौजूदा दृश्य के बजाय, प्रत्येक मानचित्र/आरेख अनुरोध को अपने स्वयं के नए विंडो/टैब में खोलें।\n* बाहर निकलने पर टैब बंद करें: 'बाहर निकलें' मुख्य MapTasker विंडो और किसी भी Map/आरेख विंडो/टैब को बंद कर दे।\n* एंड्रॉइड डिवाइस से XML प्राप्त करें: एंड्रॉइड डिवाइस से बैकअप/निर्यातित XML फ़ाइल प्राप्त करें। आपको अपने एंड्रॉइड डिवाइस के लिए IP पता और पोर्ट नंबर, साथ ही डिवाइस पर फ़ाइल स्थान के बारे में पूछा जाएगा।\n   - XML फ़ाइलों की सूची: एंड्रॉइड डिवाइस पर पाई गई XML फ़ाइलों की सूची बनाएं ताकि आप टाइप करने के बजाय उनमें से एक का चयन कर सकें।\n   - प्रविष्टि रद्द करें: एंड्रॉइड से प्राप्त प्रक्रिया को रद्द करें।\n* विशिष्ट नाम टैब: प्रदर्शित करने के लिए एक विशिष्ट नाम वाली वस्तु दर्ज करें...\n   - परियोजना का नाम: प्रदर्शित करने के लिए एक विशिष्ट परियोजना दर्ज करें।\n   - प्रोफाइल का नाम: प्रदर्शित करने के लिए एक विशिष्ट प्रोफाइल दर्ज करें।\n   - कार्य का नाम: प्रदर्शित करने के लिए एक विशिष्ट कार्य दर्ज करें।\n   - दृश्य का नाम: प्रदर्शित करने के लिए एक विशिष्ट दृश्य दर्ज करें। इसके मालिक परियोजना का शीर्षक और दृश्य के तत्व (और उन तत्वों द्वारा शुरू किए जाने वाले किसी भी कार्य) प्रदर्शित किए जाएंगे; परियोजना के प्रोफाइल और अन्य दृश्य प्रदर्शित नहीं किए जाएंगे।\n   (ये चार एक साथ उपयोग किए जा सकते हैं: केवल एक दर्ज करें)\n   - बिना नाम वाली वस्तुओं की सूची: ऊपर दिए गए चार ड्रॉप-डाउन में बिना नाम वाले प्रोफाइल और कार्यों को शामिल करें।\n   GUI में परियोजनाओं, प्रोफाइल, कार्यों और दृश्यों को सीधे जोड़ें और संपादित करें, विभिन्न सहेजने के विकल्पों के साथ...\n   - परियोजना/प्रोफाइल/कार्य/दृश्य जोड़ें: एक नई वस्तु बनाएं और इसे लोड किए गए XML में जोड़ें।\n   - परियोजना/प्रोफाइल/कार्य/दृश्य संपादित करें: ऊपर दिए गए ड्रॉप-डाउन में वर्तमान में चयनित वस्तु को संपादित करें।\n   - नाम बदलें: संपादित की जा रही वस्तु को एक नया नाम दें।\n   - हटाएं: लोड किए गए XML से संपादित की जा रही वस्तु को हटाएं।\n   - डुप्लिकेट करें: चयनित दृश्य तत्व की एक प्रति बनाएं।\n   - पूर्वावलोकन: दिखाएं कि संपादित दृश्य कैसा दिखाई देगा।\n   - सहेजें / निर्यात करें: अपनी पसंद के एक स्टैंडअलोन XML फ़ाइल में वस्तु को लिखें।\n   - वर्तमान फ़ाइल में सहेजें: लोड किए गए एक नए, टाइमस्टैम्प वाली फ़ाइल के बगल में संपूर्ण कॉन्फ़िगरेशन को लिखें।\n   - एंड्रॉइड पर सहेजें: अपने एंड्रॉइड डिवाइस पर वस्तु को वापस लिखें।\n     (एक सुरक्षा प्रतिलिपि जो किसी भी सहेजने के प्रयास द्वारा अधिलेखित की जाएगी, 'MapTasker_Backups' फ़ोल्डर में रखी जाती है।)\n   संपादन कमांड...\n   - रद्द करें: लोड किए गए XML में किए गए नवीनतम Add/Edit/Delete/Rename परिवर्तन को रद्द करें। यह लोड किए गए, किसी भी फ़ाइल को नहीं बदलता है।\n   - दोहराएं: 'रद्द करें' द्वारा हाल ही में रद्द किए गए परिवर्तन को फिर से लागू करें।\n   - इतिहास संपादित करें: इस सत्र में लोड किए गए XML में किए गए प्रत्येक परिवर्तन को सूचीबद्ध करें, नवीनतम पहले।\n* रंग टैब: प्रदर्शन के विभिन्न तत्वों के लिए रंग चुनें।\n              (उदाहरण के लिए, परियोजनाओं, प्रोफाइल, कार्यों आदि के लिए रंग)।\n   - डिफ़ॉल्ट रंगों पर रीसेट करें: प्रत्येक रंग को अपने डिफ़ॉल्ट मान पर बहाल करें।\n* विश्लेषण टैब: एक AI मॉडल के विरुद्ध एक परियोजना, प्रोफाइल, कार्य या दृश्य के लिए विश्लेषण चलाएं।\n   - API कुंजी(ओं) दिखाएं/संपादित करें: सर्वर-आधारित AI मॉडलों द्वारा उपयोग किए जाने वाले API कुंजी को दर्ज या बदलें।\n   - संकेत बदलें: AI मॉडल को भेजे जाने वाले संकेत को संशोधित करें।\n   - विश्लेषण चलाएं: चयनित परियोजना/प्रोफाइल/कार्य और संकेत को चयनित मॉडल पर सबमिट करें।\n   - विस्तारित: केवल डिफ़ॉल्ट सेट के बजाय सभी उपलब्ध मॉडलों को सूचीबद्ध करें।\n* डिबग टैब: रनटाइम सेटिंग्स विकल्प प्रदर्शित करें और डिबग मोड चालू करें।\n* Map/आरेख/ट्री दृश्य टूलबार कमांड हैं...\n   - खोजें: खोज बॉक्स में दर्ज किए गए गैर-केस-संवेदनशील टेक्स्ट के प्रत्येक उदाहरण को हाइलाइट करें, पहले 200 तक। मामले की संख्या पर क्लिक करके उस पंक्ति पर जाएं।\n- खोज/बदलें: (केवल मानचित्र और आरेख) स्क्रीन पर टेक्स्ट की खोज करने के बजाय, लोड किए गए कॉन्फ़िगरेशन से एक प्रश्न पूछें: प्रत्येक कार्य जो एक विशिष्ट क्रिया करता है, प्रत्येक प्रोफ़ाइल जो एक विशिष्ट ट्रिगर को सक्रिय करती है, और प्रत्येक एप्लिकेशन या दृश्य का नाम। परिणाम पर क्लिक करके उस पर जाएं।\n- परिणाम सहेजें: 'खोज/बदलें' के परिणाम को एक टेक्स्ट फ़ाइल में सहेजें।\n- ऊपर/नीचे: प्रदर्शित आउटपुट के प्रारंभ या अंत पर जाएं।\n- लाइन रैपिंग को टॉगल करें: प्रदर्शित आउटपुट में लाइन रैपिंग को चालू या बंद करें।\n- प्रति पंक्ति प्रोफ़ाइल: (केवल आरेख) एक ही पंक्ति पर एक साथ खींची गई प्रोफ़ाइलों की संख्या।\n* सहायता प्रदर्शित करें: यह सहायता पाठ प्रदर्शित करें।\n* एंड्रॉइड सहायता प्राप्त करें: अपने एंड्रॉइड डिवाइस से XML फ़ाइल प्राप्त करने के लिए सहायता प्रदर्शित करें।\n* '?' बटन: जिस अनुभाग में बटन दिखाई देता है, उसके लिए विशिष्ट सहायता प्रदर्शित करें।\n* बाहर निकलें: प्रोग्राम से बाहर निकलें।\n\nध्यान दें:\n- संपूर्ण परिवर्तन लॉग इतिहास देखने के लिए https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md पर जाएं।\n- स्वरूपण मोड बदलने से आउटपुट के लिए उपयोग किए जाने वाले रंगों को उनके डिफ़ॉल्ट मानों में बदल दिया जाएगा।\n"
-
 msgid "Please stand by ..."
 msgstr "कृपया प्रतीक्षा करें..."
-
 msgid "Redact secrets"
 msgstr "रहस्य संपादित करें"
-
 msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
 msgstr "जब निर्यात की गई फ़ाइल किसी और के पास जा रही हो - किसी फ़ोरम पर पोस्ट की गई हो, या जो कोई भी आपकी मदद कर रहा हो, उसे भेजा गया हो तो इसे चेक करें।\n\nइसमें एपीआई कुंजी, टोकन, पासवर्ड, फोन नंबर, ईमेल पते और स्थान निर्देशांक को [REDACTED:...] मार्करों से बदल दिया गया है, और फ़ाइल के शीर्ष पर एक टिप्पणी बताती है कि क्या निकाला गया था।  सूची देखने के लिए सबसे पहले स्वास्थ्य जांच चलाएँ।\n\nयह पहली पास है, कोई गारंटी नहीं: एक पासवर्ड जो एक सामान्य शब्द की तरह दिखता है, उसे पहचानने के लिए कोई आकार नहीं होता है, और नाम कभी नहीं बदले जाते हैं, क्योंकि फ़ाइल स्वयं को संदर्भित करने के लिए उनका उपयोग करती है।  आप जो पोस्ट करते हैं उसे पढ़ें.\n\nबैकअप या किसी अन्य डिवाइस पर ले जाने के लिए इसे अनचेक छोड़ दें - एक संशोधित फ़ाइल गायब कुंजियों के साथ आयात होती है।"
+msgid "Report these categories:"
+msgstr "इन श्रेणियों की रिपोर्ट करें:"
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, naming problems, Task flow, variables, behaviour on the device, and secrets.\n\nYou choose which of those to report before it runs, and that choice is remembered.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "टूटे हुए संदर्भों, गैर-संदर्भित कार्यों, प्रोफ़ाइलों और दृश्यों, नामकरण समस्याओं, कार्य प्रवाह, चर, डिवाइस पर व्यवहार और रहस्यों के लिए लोड किए गए XML को स्कैन करें।\n\nआप चुनते हैं कि चलने से पहले उनमें से किसे रिपोर्ट करना है, और वह विकल्प याद रखा जाता है।\n\nपरिणाम यहां प्रदर्शित होते हैं और वर्तमान निर्देशिका में एक टेक्स्ट फ़ाइल में सहेजे जाते हैं।"
+msgid "TaskerNet information"
+msgstr "टास्करनेट जानकारी"
+msgid "Changes This Week"
+msgstr "इस सप्ताह परिवर्तन"
+msgid "Nothing has changed in your configuration over that period."
+msgstr "उस अवधि में आपके कॉन्फ़िगरेशन में कुछ भी नहीं बदला है."
+msgid "Timeline report could not be saved."
+msgstr "टाइमलाइन रिपोर्ट सहेजी नहीं जा सकी."
+msgid "Timeline saved as"
+msgstr "समयरेखा के रूप में सहेजा गया"
+msgid "What has changed in your configuration over the last seven days: what was added, removed, renamed and changed.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from a week ago is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "पिछले सात दिनों में आपके कॉन्फ़िगरेशन में क्या बदलाव आया है: क्या जोड़ा गया, हटाया गया, नाम बदला गया और बदला गया।\n\nचुनने के लिए कोई फ़ाइल नहीं है - आपके द्वारा लोड किया गया प्रत्येक कॉन्फ़िगरेशन वर्तमान निर्देशिका में MapTasker_Timeline फ़ोल्डर में संपीड़ित किया जाता है, और एक सप्ताह पहले की तुलना आपके द्वारा अभी खोले गए कॉन्फ़िगरेशन से की जाती है।\n\nपरिणाम यहां प्रदर्शित होते हैं और वर्तमान निर्देशिका में एक टेक्स्ट फ़ाइल में सहेजे जाते हैं।"
+msgid "Changes Since"
+msgstr "तब से परिवर्तन"
+msgid "Changes Since..."
+msgstr "...से परिवर्तन"
+msgid "Choose a date first."
+msgstr "पहले एक तारीख चुनें."
+msgid "Compare what you have open now against your configuration as it stood then."
+msgstr "अब आपके पास जो खुला है उसकी तुलना अपने उस कॉन्फ़िगरेशन से करें जैसा वह तब था।"
+msgid "Period"
+msgstr "अवधि"
+msgid "Show Changes"
+msgstr "परिवर्तनों को दिखाएं"
+msgid "That date is in the future.  Choose a day that has happened."
+msgstr "वह तारीख भविष्य में है। एक ऐसी तारीख चुनें जो पहले ही हो चुकी है।"
+msgid "What has changed in your configuration since a moment you choose: today, this week, this month, everything kept, or a specific date.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from back then is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "आपने जब कोई विकल्प चुना, तब से आपकी सेटिंग्स में क्या बदलाव आया है: आज, इस सप्ताह, इस महीने, या किसी विशिष्ट तिथि पर।\n\nकोई फ़ाइल नहीं - आप जो भी कॉन्फ़िगरेशन लोड करते हैं, वह वर्तमान निर्देशिका में MapTasker_Timeline नामक फ़ोल्डर में सहेजा जाता है, और उस समय का कॉन्फ़िगरेशन वर्तमान में खुले कॉन्फ़िगरेशन के साथ तुलना किया जाता है।\n\nपरिणाम यहां प्रदर्शित किए जाते हैं और वर्तमान निर्देशिका में एक टेक्स्ट फ़ाइल में सहेजे जाते हैं।"

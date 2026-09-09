@@ -594,12 +594,10 @@ msgid "Analysis is running in the background.\n\nOnce complete, the program will
 msgstr "L'analisi è in esecuzione in background.\n\nUna volta completata, il programma si riavvierà e i risultati verranno visualizzati in una nuova finestra.\n\nPer favore, attendete..."
 msgid "Buy Me A Coffee"
 msgstr "Comprami un caffè"
-
 msgid "The 'Profiles Per Line' setting is used to control the number of Profiles to be displayed per line when diagramming the configuration.\n\nThe smaller the number, the narrower the diagram and vice versa.\n\nFewer Profiles per line may make it easier too view the diagram connectors that extend to the right, while at the same time the Diagram wil be longer.\n\nSelecting a number will automatically re-generate the diagram with the new setting.\n\nThis setting is only valid for the currrent Diagram view, and will be reset back to the default value when the Diagram view is closed.\n\n"
 msgstr "L'impostazione 'Profili per riga' viene utilizzata per controllare il numero di profili da visualizzare per riga durante la creazione del diagramma della configurazione.\n\nPiù piccolo è il numero, più stretto sarà il diagramma e viceversa.\n\nMeno profili per riga potrebbero rendere più semplice la visualizzazione dei connettori del diagramma che si estendono a destra, mentre allo stesso tempo il diagramma sarà più lungo.\n\nSelezionando un numero si rigenererà automaticamente il diagramma con la nuova impostazione.\n\nQuesta impostazione è valida solo per visualizzazione diagramma corrente e verrà ripristinato il valore predefinito quando la visualizzazione diagramma viene chiusa.\n\n"
 msgid "The 'Search' button will search for and highlight every instance of the string entered in the search box, starting at the top of the data.\n\nThe 'Search Here' button will search for and highlight every instance of the string entered in the search box, starting at the current screen.\n\nHover over any of the highlighted matching strings to see all matches.\n\nThe 'Next' and 'Prev' buttons will try to make the next and previous occurrence of the search string visible in the text view box, and highlight them in a different color.\n\nThe accuracy of making the search string visible is not always perfect and is out of the control of the this program.\n\nWhen the end or beginning of the text view box is reached, the search will stop and a message will be displayed for several seconds.\n\nThe 'Clear' button will clear the search results.\n\nThe 'Display Only' button will display in a miscellaneous window ONLY the matches from the search results.\n\n"
 msgstr "Il pulsante 'Cerca' cercherà ed evidenzierà ogni istanza della stringa inserita nella casella di ricerca, iniziando dalla parte superiore dei dati.\n\nIl pulsante 'Cerca qui' cercherà ed evidenzierà ogni istanza della stringa immessa nella casella di ricerca, iniziando dalla schermata corrente.\n\nPassa il mouse sopra una qualsiasi delle stringhe corrispondenti evidenziate per vedere tutte le corrispondenze.\n\nI pulsanti 'Avanti' e 'Precedente' proveranno a rendere visibile l'occorrenza successiva e precedente della stringa di ricerca in nella casella di visualizzazione del testo ed evidenziarli con un colore diverso.\n\nLa precisione nel rendere visibile la stringa di ricerca non è sempre perfetta e va fuori dal controllo di questo programma.\n\nQuando viene raggiunta la fine o l'inizio della casella di visualizzazione del testo, la ricerca si interromperà e verrà visualizzato un messaggio per diversi secondi.\n\nIl pulsante 'Cancella' cancellerà i risultati della ricerca.\n\nIl pulsante 'Sola visualizzazione' visualizzerà in una finestra varie SOLO le corrispondenze della ricerca risultati.\n\n"
-
 msgid "API Key Help"
 msgstr "Guida alla chiave API"
 msgid "Profiles Per Line Help"
@@ -931,2075 +929,1417 @@ msgid "Intestazione"
 msgstr "Heading"
 msgid "color changed to"
 msgstr "il colore è cambiato in"
-  
-
 msgid "Buio"
 msgstr "Dark"
 msgid "Leggero"
 msgstr "Light"
 msgid "Sistema"
 msgstr "System"
-
 msgid "Target specific Projects, Profiles, Tasks or Scenes. (Select only one)"
 msgstr "Scegli come target progetti, profili, attività o scene specifici. (Seleziona solo uno)"
-
 msgid "Rename"
 msgstr "Rinominare"
-
 msgid "Export Project"
 msgstr "Esporta progetto"
-
 msgid "Export Profile"
 msgstr "Esporta profilo"
-
 msgid "Export Task"
 msgstr "Esporta attività"
-
 msgid "Save"
 msgstr "Salva"
-
 msgid "Overwrite"
 msgstr "Sovrascrivi"
-
 msgid "Delete Project"
 msgstr "Elimina progetto"
-
 msgid "Delete Profile"
 msgstr "Elimina profilo"
-
 msgid "Delete Task"
 msgstr "Elimina attività"
-
 msgid "Its"
 msgstr "Suo"
-
 msgid "linked Task(s) will be kept -- they belong to the Project, not to this Profile."
 msgstr "Le attività collegate verranno mantenute: appartengono al progetto, non a questo profilo."
-
 msgid "It has no linked Tasks."
 msgstr "Non ha attività collegate."
-
 msgid "It will be removed from"
 msgstr "Verrà rimosso da"
-
 msgid "Project(s) and unlinked from"
 msgstr "Progetto/i e scollegato da"
-
 msgid "Profile(s) that run it. Those Profiles themselves are kept."
 msgstr "Profilo/i che lo esegue. Questi profili stessi vengono mantenuti."
-
 msgid "Keep Contents"
 msgstr "Conserva i contenuti"
-
 msgid "Delete Contents"
 msgstr "Elimina contenuto"
-
 msgid "Adding to Project:"
 msgstr "Aggiunta al progetto:"
-
 msgid "Save To Current File"
 msgstr "Salva nel file corrente"
-
 msgid "Add Project"
 msgstr "Aggiungi progetto"
-
 msgid "Add Profile"
 msgstr "Aggiungi profilo"
-
 msgid "Add Task"
 msgstr "Aggiungi attività"
-
 msgid "Add an action"
 msgstr "Aggiungi un'azione"
-
 msgid "Actions in this Task"
 msgstr "Azioni in questa attività"
-
 msgid "No actions added yet."
 msgstr "Nessuna azione ancora aggiunta."
-
 msgid "Actions & Control"
 msgstr "Azioni e controllo"
-
 msgid "Display Conditions"
 msgstr "Condizioni di visualizzazione"
-
 msgid "Task Action Limit:"
 msgstr "Limite dell'azione dell'attività:"
-
 msgid "Theme Configuration"
 msgstr "Configurazione del tema"
-
 msgid "Select a category to modify its color."
 msgstr "Seleziona una categoria per modificarne il colore."
-
 msgid "Select Category to Colorize"
 msgstr "Seleziona la categoria da colorare"
-
 msgid "Choose Hex Color"
 msgstr "Scegli il colore esadecimale"
-
 msgid "Open View In New Window"
 msgstr "Apri vista in una nuova finestra"
-
 msgid "Close Tabs On Exit"
 msgstr "Chiudi le schede all'uscita"
-
 msgid "Edit Project"
 msgstr "Modifica progetto"
-
 msgid "Edit Profile"
 msgstr "Modifica profilo"
-
 msgid "Edit Task"
 msgstr "Modifica attività"
-
 msgid "Execution"
 msgstr "Esecuzione"
-
 msgid "File Operations"
 msgstr "Operazioni sui file"
-
 msgid "Display Views"
 msgstr "Visualizza visualizzazioni"
-
 msgid "Application Settings"
 msgstr "Impostazioni dell'applicazione"
-
 msgid "Help & Information"
 msgstr "Aiuto e informazioni"
-
 msgid "0 = least detail, 5 = most detail."
 msgstr "0 = minimo dettaglio, 5 = massimo dettaglio."
-
 msgid "AI Analysis"
 msgstr "Analisi dell'intelligenza artificiale"
-
 msgid "Analysis is running in the background.\n\nOnce complete, the results will appear in a new window.\n\nPlease stand by..."
 msgstr "L'analisi è in esecuzione in background.\n\nUna volta completato, i risultati appariranno in una nuova finestra.\n\nPer favore, restate in attesa..."
-
 msgid "Android Get XML Port Number"
 msgstr "Android Ottieni il numero di porta XML"
-
 msgid "Android device at"
 msgstr "Dispositivo Android su"
-
 msgid "Available Android Backups"
 msgstr "Backup Android disponibili"
-
 msgid "CAVEATS"
 msgstr "AVVERTENZE"
-
 msgid "Cancel Entry"
 msgstr "Annulla immissione"
-
 msgid "Check your IP/Port and verify the Tasker HTTP server is running"
 msgstr "Controlla il tuo IP/Porta e verifica che il server HTTP Tasker sia in esecuzione"
-
 msgid "Close"
 msgstr "Vicino"
-
 msgid "Detail Level"
 msgstr "Livello di dettaglio"
-
 msgid "Error"
 msgstr "Errore"
-
 msgid "Fetch XML from an Android device.\n\nYou must be on the same network as the Android device, and the device must be running and connected.\n\n"
 msgstr "Recupera XML da un dispositivo Android.\n\nÈ necessario trovarsi sulla stessa rete del dispositivo Android e il dispositivo deve essere in esecuzione e connesso.\n\n"
-
 msgid "Get Local XML File"
 msgstr "Ottieni file XML locale"
-
 msgid "It owns"
 msgstr "Possiede"
-
 msgid "No Profile Tasks Found"
 msgstr "Nessuna attività del profilo trovata"
-
 msgid "No Profiles Found"
 msgstr "Nessun profilo trovato"
-
 msgid "No file loaded"
 msgstr "Nessun file caricato"
-
 msgid "No scenes found"
 msgstr "Nessuna scena trovata"
-
 msgid "No tasks found"
 msgstr "Nessuna attività trovata"
-
 msgid "None or unnamed!"
 msgstr "Nessuno o senza nome!"
-
 msgid "Profile(s) and"
 msgstr "Profilo/i e"
-
 msgid "Prompt:"
 msgstr "Richiesta:"
-
 msgid "Save To Android"
 msgstr "Salva su Android"
-
 msgid "Scene to Analyze:"
 msgstr "Scena da analizzare:"
-
 msgid "Scene:"
 msgstr "Scena:"
-
 msgid "Select XML From Android Device:"
 msgstr "Seleziona XML dal dispositivo Android:"
-
 msgid "Task(s)."
 msgstr "Compiti)."
-
 msgid "Unnamed Task"
 msgstr "Attività senza nome"
-
 msgid "Update Available!"
 msgstr "Aggiornamento disponibile!"
-
 msgid "YouTube direct streaming requires third-party API tokens. Download the target track locally to view."
 msgstr "Lo streaming diretto di YouTube richiede token API di terze parti. Scarica la traccia di destinazione localmente per visualizzarla."
-
 msgid "is unreachable"
 msgstr "è irraggiungibile"
-
 msgid "'Cancel' button selected. No change to the API keys!"
 msgstr "Pulsante \"Annulla\" selezionato. Nessuna modifica alle chiavi API!"
-
 msgid ".or."
 msgstr ".O."
-
 msgid "1-TCP/IP Address:"
 msgstr "1-Indirizzo TCP/IP:"
-
 msgid "2-Port Number:"
 msgstr "Numero di 2 porte:"
-
 msgid "3-File Location:"
 msgstr "Posizione di 3 file:"
-
 msgid "AI Model"
 msgstr "Modello di intelligenza artificiale"
-
 msgid "Add 'If' Action"
 msgstr "Aggiungi l'azione \"Se\"."
-
 msgid "Add App Entry"
 msgstr "Aggiungi voce app"
-
 msgid "Add Condition"
 msgstr "Aggiungi condizione"
-
 msgid "All"
 msgstr "Tutto"
-
 msgid "Android IP Address"
 msgstr "Indirizzo IP dell'Android"
-
 msgid "Android configuration details matched successfully!"
 msgstr "I dettagli della configurazione Android sono stati abbinati correttamente!"
-
 msgid "Changes kept."
 msgstr "Modifiche mantenute."
-
 msgid "Choose a State type first."
 msgstr "Scegli prima un tipo di stato."
-
 msgid "Choose a Task"
 msgstr "Scegli un'attività"
-
 msgid "Choose a Task first."
 msgstr "Scegli prima un'attività."
-
 msgid "Choose a condition type first."
 msgstr "Scegli prima un tipo di condizione."
-
 msgid "Choose an Event type first."
 msgstr "Scegli prima un tipo di evento."
-
 msgid "Class (optional)"
 msgstr "Classe (facoltativo)"
-
 msgid "Cleared the search highlights."
 msgstr "Cancellati i punti salienti della ricerca."
-
 msgid "Click Here to Set XML Details"
 msgstr "Fare clic qui per impostare i dettagli XML"
-
 msgid "Click arrows to expand/collapse details."
 msgstr "Fare clic sulle frecce per espandere/comprimere i dettagli."
-
 msgid "Click on a row index line number to jump directly to that match block placement:"
 msgstr "Fai clic sul numero della riga dell'indice di una riga per passare direttamente al posizionamento del blocco di corrispondenza:"
-
 msgid "Click on connector to highlight"
 msgstr "Fare clic sul connettore per evidenziarlo"
-
 msgid "Close Results Window"
 msgstr "Chiudi la finestra dei risultati"
-
 msgid "Condition Type"
 msgstr "Tipo di condizione"
-
 msgid "Conditions"
 msgstr "Condizioni"
-
 msgid "Configure Android Connection:"
 msgstr "Configura la connessione Android:"
-
 msgid "Continue Task After Error"
 msgstr "Continua l'attività dopo l'errore"
-
 msgid "Copy"
 msgstr "Copia"
-
 msgid "Dark Mode"
 msgstr "Modalità oscura"
-
 msgid "Day of Month"
 msgstr "Giorno del mese"
-
 msgid "Delete"
 msgstr "Eliminare"
-
 msgid "Delete Condition"
 msgstr "Elimina condizione"
-
 msgid "Deletes only this Profile. Its Entry/Exit Tasks are kept -- a Task is owned by the Project, not by the Profile, and the same Task can be used by other Profiles."
 msgstr "Elimina solo questo profilo. Le sue attività di entrata/uscita vengono mantenute: un'attività è di proprietà del progetto, non del profilo, e la stessa attività può essere utilizzata da altri profili."
-
 msgid "Deletes this Task and every reference to it: it is removed from the Tasks of every Project that owns it, and from any Profile that runs it as its Entry/Exit Task. The Profiles themselves are kept."
 msgstr "Elimina questa Attività e ogni riferimento ad essa: viene rimossa dalle Attività di ogni Progetto che la possiede e da qualsiasi Profilo che la esegue come sua Attività di Entrata/Uscita. I profili stessi vengono mantenuti."
-
 msgid "Diagram View opened in a new browser window."
 msgstr "Vista diagramma aperta in una nuova finestra del browser."
-
 msgid "Display an extended list of ALL available models.\n\nNote: If the API key is not set for OpenAI or Gemini,\n      then the default model list for the respective\n      AI provider will be displayed.\n\nNote: Not all models have been validated and\n      one or more may return an error on analysis.\n\nNote: Enabling this option for the first time will\n      force the installation of the following modules\n      and all of their dependencies:\n      google-genai, anthropic, openai, ollama"
 msgstr "Visualizza un elenco esteso di TUTTI i modelli disponibili.\n\nNota: se la chiave API non è impostata per OpenAI o Gemini,\n      quindi l'elenco dei modelli predefiniti per il rispettivo\n      Verrà visualizzato il fornitore AI.\n\nNota: non tutti i modelli sono stati convalidati e\n      uno o più potrebbero restituire un errore durante l'analisi.\n\nNota: l'abilitazione di questa opzione per la prima volta lo farà\n      forzare l'installazione dei seguenti moduli\n      e tutte le loro dipendenze:\n      google-genai, antropico, openai, ollama"
-
 msgid "End Time"
 msgstr "Ora di fine"
-
 msgid "Event Type"
 msgstr "Tipo di evento"
-
 msgid "Every"
 msgstr "Ogni"
-
 msgid "File path saved successfully!"
 msgstr "Percorso del file salvato con successo!"
-
 msgid "File selection canceled."
 msgstr "Selezione file annullata."
-
 msgid "If"
 msgstr "Se"
-
 msgid "If condition set."
 msgstr "Se la condizione è impostata."
-
 msgid "Insert just the 'If', or a complete block?"
 msgstr "Inserire solo il \"Se\" o un blocco completo?"
-
 msgid "Invalid view type specified. Use 'map', 'diagram', or 'tree'."
 msgstr "È stato specificato un tipo di vista non valido. Utilizza \"mappa\", \"diagramma\" o \"albero\"."
-
 msgid "Label"
 msgstr "Etichetta"
-
 msgid "Last Day Of Month"
 msgstr "Ultimo giorno del mese"
-
 msgid "Link"
 msgstr "Collegamento"
-
 msgid "List Files Selected"
 msgstr "Elenca i file selezionati"
-
 msgid "List XML Files"
 msgstr "Elenca file XML"
-
 msgid "Map View opened in a new browser window."
 msgstr "Visualizzazione mappa aperta in una nuova finestra del browser."
-
 msgid "Map view creation skipped: No valid XML source found or action canceled."
 msgstr "Creazione della vista mappa saltata: nessuna origine XML valida trovata o azione annullata."
-
 msgid "Month"
 msgstr "Mese"
-
 msgid "Move"
 msgstr "Mossa"
-
 msgid "Move to #"
 msgstr "Sposta in #"
-
 msgid "New name"
 msgstr "Nuovo nome"
-
 msgid "No XML data loaded! Please Get XML from Android or Local drive first."
 msgstr "Nessun dato XML caricato! Ottieni prima XML da Android o dall'unità locale."
-
 msgid "No XML data loaded! Please select a valid XML file first."
 msgstr "Nessun dato XML caricato! Seleziona prima un file XML valido."
-
 msgid "No actions in this Task."
 msgstr "Nessuna azione in questa attività."
-
 msgid "No backup file is currently loaded. Use 'Get Local XML' first."
 msgstr "Nessun file di backup è attualmente caricato. Utilizza prima \"Ottieni XML locale\"."
-
 msgid "No conditions on this Profile."
 msgstr "Nessuna condizione su questo profilo."
-
 msgid "No editable arguments (code not mapped, or this condition has none)."
 msgstr "Nessun argomento modificabile (codice non mappato o questa condizione non ne ha)."
-
 msgid "No editable arguments."
 msgstr "Nessun argomento modificabile."
-
 msgid "Not configured..."
 msgstr "Non configurato..."
-
 msgid "Odd"
 msgstr "Strano"
-
 msgid "Ok"
 msgstr "OK"
-
 msgid "Operator"
 msgstr "Operatore"
-
 msgid "Package"
 msgstr "Pacchetto"
-
 msgid "Pick a Task"
 msgstr "Scegli un'attività"
-
 msgid "Please enter a search term."
 msgstr "Inserisci un termine di ricerca."
-
 msgid "Port"
 msgstr "Porta"
-
 msgid "Position"
 msgstr "Posizione"
-
 msgid "Priority"
 msgstr "Priorità"
-
 msgid "Profile Name"
 msgstr "Nome del profilo"
-
 msgid "Profile kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "Profilo conservato solo per questa sessione: utilizza \"Salva nel file corrente\" per conservarlo in modo permanente."
-
 msgid "Profiles Per Line"
 msgstr "Profili per linea"
-
 msgid "Project Name"
 msgstr "Nome del progetto"
-
 msgid "Project added."
 msgstr "Progetto aggiunto."
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now. The Project Name field above is read-only -- this is the only way to change it."
 msgstr "Richiede un nuovo nome e lo applica immediatamente al backup caricato. Il campo Nome progetto sopra è di sola lettura: questo è l'unico modo per modificarlo."
-
 msgid "Prompts for a new name and applies just that to the loaded backup, right now. Everything else in this dialog stays pending until Ok/Save, and the dialog stays open so you can carry on editing."
 msgstr "Richiede un nuovo nome e lo applica proprio al backup caricato, proprio adesso. Tutto il resto in questa finestra di dialogo rimane in sospeso fino a quando non viene eseguito Ok/Salva e la finestra di dialogo rimane aperta in modo da poter continuare a modificare."
-
 msgid "Remove"
 msgstr "Rimuovere"
-
 msgid "Save Profile To Android Device"
 msgstr "Salva profilo sul dispositivo Android"
-
 msgid "Save Project To Android Device"
 msgstr "Salva progetto sul dispositivo Android"
-
 msgid "Save Task To Android Device"
 msgstr "Salva attività sul dispositivo Android"
-
 msgid "Save as"
 msgstr "Salva con nome"
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Profile -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Salva l'intero backup (ogni progetto, profilo e attività in esso contenuto, non solo questo profilo) con le modifiche di questa finestra di dialogo applicate, le stesse che manterrebbe \"Ok\".\nViene scritto su una nuova copia con timestamp del file attualmente caricato: backup.xml diventa backup_20260728_143005.xml.\nIl file caricato non viene mai scritto, quindi viene lasciato esattamente com'era.\nL'app passa quindi alla nuova copia, che diventa il file corrente per eventuali ulteriori modifiche e salvataggi; il salvataggio di nuovo sostituisce il timestamp anziché aggiungerne un secondo.\nViene scritto solo su questo computer: non viene inviato nulla al tuo dispositivo Android."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Project -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Salva l'intero backup (ogni progetto, profilo e attività in esso contenuto, non solo questo progetto) inclusa ogni modifica apportata in qualsiasi punto di questa sessione.\nViene scritto su una nuova copia con timestamp del file attualmente caricato: backup.xml diventa backup_20260728_143005.xml.\nIl file caricato non viene mai scritto, quindi viene lasciato esattamente com'era.\nL'app passa quindi alla nuova copia, che diventa il file corrente per eventuali ulteriori modifiche e salvataggi; il salvataggio di nuovo sostituisce il timestamp anziché aggiungerne un secondo.\nViene scritto solo su questo computer: non viene inviato nulla al tuo dispositivo Android."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this Task -- with this dialog's edits applied, the same ones 'Ok' would keep.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Salva l'intero backup (ogni progetto, profilo e attività al suo interno, non solo questa attività) con le modifiche di questa finestra di dialogo applicate, le stesse che manterrebbe \"Ok\".\nViene scritto su una nuova copia con timestamp del file attualmente caricato: backup.xml diventa backup_20260728_143005.xml.\nIl file caricato non viene mai scritto, quindi viene lasciato esattamente com'era.\nL'app passa quindi alla nuova copia, che diventa il file corrente per eventuali ulteriori modifiche e salvataggi; il salvataggio di nuovo sostituisce il timestamp anziché aggiungerne un secondo.\nViene scritto solo su questo computer: non viene inviato nulla al tuo dispositivo Android."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Profile added to its Project, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Salva l'intero backup (ogni progetto, profilo e attività in esso contenuto, non solo questo) con il nuovo profilo aggiunto al suo progetto, nello stesso modo in cui lo aggiunge \"Ok\".\nViene scritto su una nuova copia con timestamp del file attualmente caricato: backup.xml diventa backup_20260728_143005.xml.\nIl file caricato non viene mai scritto, quindi viene lasciato esattamente com'era.\nL'app passa quindi alla nuova copia, che diventa il file corrente per eventuali ulteriori modifiche e salvataggi; il salvataggio di nuovo sostituisce il timestamp anziché aggiungerne un secondo.\nViene scritto solo su questo computer: non viene inviato nulla al tuo dispositivo Android."
-
 msgid "Saves the entire backup -- every Project, Profile and Task in it, not just this one -- with the new Task added to it, the same way 'Ok' adds it.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Salva l'intero backup (ogni progetto, profilo e attività in esso contenuto, non solo questo) con la nuova attività aggiunta, nello stesso modo in cui la aggiunge \"Ok\".\nViene scritto su una nuova copia con timestamp del file attualmente caricato: backup.xml diventa backup_20260728_143005.xml.\nIl file caricato non viene mai scritto, quindi viene lasciato esattamente com'era.\nL'app passa quindi alla nuova copia, che diventa il file corrente per eventuali ulteriori modifiche e salvataggi; il salvataggio di nuovo sostituisce il timestamp anziché aggiungerne un secondo.\nViene scritto solo su questo computer: non viene inviato nulla al tuo dispositivo Android."
-
 msgid "Saves this Project, and everything in it -- every Profile and Task -- as one standalone file."
 msgstr "Salva questo progetto e tutto ciò che contiene, ogni profilo e attività, come un file autonomo."
-
 msgid "Search actions"
 msgstr "Azioni di ricerca"
-
 msgid "Search..."
 msgstr "Ricerca..."
-
 msgid "Select a single Profile first (Profile pulldown above)."
 msgstr "Seleziona prima un singolo profilo (elenco a discesa Profilo sopra)."
-
 msgid "Select a single Project first (Project pulldown above)."
 msgstr "Seleziona prima un singolo progetto (elenco a discesa del progetto sopra)."
-
 msgid "Select a single Task first (Task pulldown above)."
 msgstr "Selezionare prima una singola attività (elenco a discesa Attività sopra)."
-
 msgid "Select how many actions in a Task before issuing a warning.\nThe warning appears near the bottom of the configuration output,\nand is intended to help identify Tasks that are too complex\nand which should potentially be broken up into multiple Tasks.\nA setting of '100' means there is no limit."
 msgstr "Seleziona quante azioni in un'attività prima di emettere un avviso.\nL'avviso appare nella parte inferiore dell'output di configurazione,\ne ha lo scopo di aiutare a identificare le attività troppo complesse\ne che dovrebbe potenzialmente essere suddiviso in più attività.\nUn'impostazione pari a '100' significa che non esiste alcun limite."
-
 msgid "Set the indentation amount for If/Then/Else blocks.\n\nThe default is '4'.\n\nThis affects how the output is formatted in the Map and Diagram views."
 msgstr "Imposta la quantità di rientro per i blocchi If/Then/Else.\n\nIl valore predefinito è '4'.\n\nCiò influisce sulla formattazione dell'output nelle visualizzazioni Mappa e Diagramma."
-
 msgid "Settings Reset!"
 msgstr "Ripristina impostazioni!"
-
 msgid "Shutting down MapTasker..."
 msgstr "Spegnimento di MapTasker..."
-
 msgid "Start Time"
 msgstr "Ora di inizio"
-
 msgid "Starting AI Analysis..."
 msgstr "Avvio dell'analisi AI..."
-
 msgid "State Type"
 msgstr "Tipo di stato"
-
 msgid "Submit"
 msgstr "Invia"
-
 msgid "Target"
 msgstr "Bersaglio"
-
 msgid "Task Name"
 msgstr "Nome dell'attività"
-
 msgid "Task Uploaded to Tasker"
 msgstr "Attività caricata su Tasker"
-
 msgid "Task Uploaded to Tasker."
 msgstr "Attività caricata su Tasker."
-
 msgid "Task kept for this session only -- use 'Save To Current File' to keep it permanently."
 msgstr "Attività conservata solo per questa sessione: utilizza \"Salva nel file corrente\" per conservarla in modo permanente."
-
 msgid "The 'Misc' view is running in the background.  Please stand by..."
 msgstr "La vista \"Varie\" è in esecuzione in background.  Per favore, restate in attesa..."
-
 msgid "The 'Search' button will search for and highlight every instance of the case-insensitive string entered in the search box, starting at the top of the data.\n\nIt will only show the first 200 instances of the search string.\n\nClick on the line number to go to that line in the text view box.\n\nThe 'Clear' button will clear the search results.\n\n"
 msgstr "Il pulsante \"Cerca\" cercherà ed evidenzierà ogni istanza della stringa senza distinzione tra maiuscole e minuscole immessa nella casella di ricerca, iniziando dalla parte superiore dei dati.\n\nMostrerà solo le prime 200 istanze della stringa di ricerca.\n\nFare clic sul numero di riga per passare a quella riga nella casella di visualizzazione del testo.\n\nIl pulsante \"Cancella\" cancellerà i risultati della ricerca.\n\n"
-
 msgid "The change will take effect the next time you open the view."
 msgstr "La modifica avrà effetto alla successiva apertura della vista."
-
 msgid "This Task has no actions yet."
 msgstr "Questa attività non ha ancora azioni."
-
 msgid "This is a list of all of the fonts available on your system, monospaced ones first and marked as such.\n\nThe font selected will be used in all output.\n\n'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line."
 msgstr "Questo è un elenco di tutti i caratteri disponibili sul tuo sistema, prima quelli a spaziatura fissa e contrassegnati come tali.\n\nIl carattere selezionato verrà utilizzato in tutto l'output.\n\n'Courier' o 'Courier New' è altamente raccomandato per i diagrammi per garantire il corretto allineamento del connettore. Un carattere che non è a spaziatura fissa non manterrà in linea i connettori del diagramma o il rientro dell'output."
-
 msgid "This will save the Task directly into Tasker running on the Android device running the Tasker server.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task.and its own actions will determine where it is saved on the device."
 msgstr "Ciò salverà l'attività direttamente in Tasker in esecuzione sul dispositivo Android che esegue il server Tasker.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nTi verrà richiesta due volte l'autorizzazione a scrivere su Tasker sul dispositivo Android e Task. e le sue stesse azioni determineranno dove verrà salvato sul dispositivo."
-
 msgid "This will save the Task directly into the active Tasker session on your Android device.\n\nTasker version 6.2 or greater is required for this to work.The Android device must be on the same network, and the IP Address and Port\nmust match the Android device's Tasker server settings.\n\nYou will be prompted twice for authorization to write to Tasker on the Android device, and the Task will be loaded directly into the active Tasker session.\n\nYou must exit and restart Tasker to see the new Task in the Tasker UI."
 msgstr "Ciò salverà l'attività direttamente nella sessione Tasker attiva sul tuo dispositivo Android.\n\nAffinché funzioni è necessaria la versione 6.2 o successiva di Tasker. Il dispositivo Android deve essere sulla stessa rete e l'indirizzo IP e la porta\ndeve corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nTi verrà richiesta due volte l'autorizzazione a scrivere su Tasker sul dispositivo Android e l'attività verrà caricata direttamente nella sessione attiva di Tasker.\n\nÈ necessario uscire e riavviare Tasker per vedere la nuova attività nell'interfaccia utente di Tasker."
-
 msgid "This will save the Task directly to your current drive.\n\n"
 msgstr "Ciò salverà l'attività direttamente sull'unità corrente.\n\n"
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Questo scriverà il profilo come file autonomo sul dispositivo Android, in /Tasker/profiles.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nPer questo non è necessaria alcuna richiesta di autorizzazione."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Questo scriverà il profilo come file autonomo sul tuo dispositivo Android, in /Tasker/profiles - non lo importerà nella configurazione live di Tasker.\n\nIl progetto Tasker 'Http Server Esempio' (http://spoo.me/http_svr_example) deve essere installato e attivo sul dispositivo Android, con il server in esecuzione (vedere le note sul recupero XML diretto del README).\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker. Per questo non è necessaria alcuna richiesta di autorizzazione."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Questo scriverà il profilo come file autonomo sul tuo dispositivo Android, in /Tasker/profiles - non lo importerà nella configurazione live di Tasker.\n\nIl progetto Tasker 'Http Server Esempio' deve essere installato e attivo sul dispositivo Android, con il server in esecuzione (vedere le note sul recupero XML diretto del README).\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker. Per questo non è necessaria alcuna richiesta di autorizzazione."
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Questo scriverà il progetto e tutto ciò che contiene - ogni profilo e attività - come file autonomo sul tuo dispositivo Android, in /Tasker/projects - non lo importerà nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker. Per questo non è necessaria alcuna richiesta di autorizzazione."
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Questo scriverà il progetto, e tutto ciò che contiene, come file autonomo sul dispositivo Android, in /Tasker/projects.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nPer questo non è necessaria alcuna richiesta di autorizzazione."
-
 msgid "Toggle Wrap"
 msgstr "Attiva/disattiva Avvolgi"
-
 msgid "Unlink"
 msgstr "Scollega"
-
 msgid "Value"
 msgstr "Valore"
-
 msgid "View cleared."
 msgstr "Visualizzazione cancellata."
-
 msgid "Week-Day"
 msgstr "Giorno della settimana"
-
 msgid "When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/Diagram windows/tabs it opened.\n\nWhen disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open."
 msgstr "Se abilitato, facendo clic su \"Esci\" si chiude anche la finestra principale di MapTasker e tutte le finestre/schede Mappa/Diagramma aperte.\n\nQuando disabilitato, 'Esci' chiude MapTasker ma lascia aperte le finestre/schede."
-
 msgid "When enabled, each Map/Diagram request opens in its own new window/tab, so you can keep earlier ones up alongside it to compare.\n\nWhen disabled, a request reuses that view's existing window/tab, replacing what's in it.\n\nLeave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click."
 msgstr "Se abilitata, ogni richiesta di mappa/diagramma si apre nella sua nuova finestra/scheda, in modo da poter tenere accanto quelle precedenti per confrontarle.\n\nQuando disabilitata, una richiesta riutilizza la finestra/scheda esistente di quella vista, sostituendo ciò che contiene.\n\nLascialo disattivato a meno che tu non voglia fare un confronto: una finestra/scheda nuova di zecca è quella che il tuo browser potrebbe bloccare, poiché viene aperta una volta terminata la creazione della vista anziché nell'istante in cui fai clic."
-
 msgid "hh:mm AM/PM or %variable"
 msgstr "hh:mm AM/PM o % variabile"
-
 msgid "MapTasker: view limit reached, stopping output to file:  output"
 msgstr "MapTasker: limite di visualizzazione raggiunto, arresto dell'output nel file: output"
-
 msgid "hardstop view limit"
 msgstr "limite di visualizzazione dell'hardstop"
-
 msgid "(empty)"
 msgstr "(vuoto)"
-
 msgid "(no name)"
 msgstr "(nessun nome)"
-
 msgid "(unnamed Task)"
 msgstr "(Attività senza nome)"
-
 msgid "-1 means this orientation has no layout of its own."
 msgstr "-1 significa che questo orientamento non ha un layout proprio."
-
 msgid "...and {count} more -- type above to narrow it down."
 msgstr "...e altri {count} -- scrivi sopra per restringere il campo."
-
 msgid "A Scene's element positions are stored in device pixels, but its text sizes are stored in Android's sp units. The number that converts between the two is a property of the phone the Scene is shown on, and is not in the backup file.\n\nSo it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them."
 msgstr "Le posizioni degli elementi di una scena vengono archiviate in pixel del dispositivo, ma le dimensioni del testo vengono archiviate nelle unità sp di Android. Il numero che converte tra i due è una proprietà del telefono su cui viene mostrata la scena e non è presente nel file di backup.\n\nQuindi è ambientato qui. Alzalo se il testo sembra troppo piccolo per i suoi elementi, abbassalo se il testo li trabocca."
-
 msgid "A Version 2 Scene has no size of its own -- it lays itself out inside whatever screen it is shown on, so there is nothing in the backup file to draw it at.\n\nChange this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this."
 msgstr "Una scena della versione 2 non ha dimensioni proprie: si dispone all'interno dello schermo su cui viene mostrata, quindi non c'è nulla nel file di backup su cui disegnarla.\n\nModificarlo per vedere il layout rifluire. Una riga di flusso va a capo in modo diverso e qualsiasi \"Mostra quando\" scritto su %sv2_render_width chiede esattamente questo."
-
 msgid "Actions"
 msgstr "Azioni"
-
 msgid "Add"
 msgstr "Aggiungere"
-
 msgid "Add Element"
 msgstr "Aggiungi elemento"
-
 msgid "Add Scene"
 msgstr "Aggiungi scena"
-
 msgid "Add a background"
 msgstr "Aggiungi uno sfondo"
-
 msgid "Add action"
 msgstr "Aggiungi azione"
-
 msgid "Add event"
 msgstr "Aggiungi evento"
-
 msgid "Add handler"
 msgstr "Aggiungi gestore"
-
 msgid "Add modifier"
 msgstr "Aggiungi modificatore"
-
 msgid "Addressed by id from"
 msgstr "Indirizzato dall'ID di"
-
 msgid "Adds an element on top of the stack, in the middle of the Scene."
 msgstr "Aggiunge un elemento in cima alla pila, al centro della scena."
-
 msgid "Adds inside the selected component if it can hold children, otherwise directly after it."
 msgstr "Aggiunge all'interno del componente selezionato se può contenere figli, altrimenti direttamente dopo di esso."
-
 msgid "(unnamed)"
 msgstr "(senza nome)"
-
 msgid "Add scene properties"
 msgstr "Aggiungi proprietà alla scena"
-
 msgid "Adds it on top of the stack, in the middle of the Scene. Drag it where you want it."
 msgstr "Lo aggiunge in cima allo stack, al centro della scena. Trascinalo dove vuoi."
-
 msgid "Also selected:"
 msgstr "Selezionato anche:"
-
 msgid "Also update"
 msgstr "Aggiorna anche"
-
 msgid "Amber: Tasker lists it, but MapTasker has no confirmed sample of it. Grey: can't go where the selection would put it."
 msgstr "Ambra: Tasker lo elenca, ma MapTasker non ne ha un campione confermato. Grigio: non può andare dove lo metterebbe la selezione."
-
 msgid "App icon"
 msgstr "Icona dell'app"
-
 msgid "Appearance Mode"
 msgstr "Modalità Aspetto"
-
 msgid "Applied in order — the one at the bottom sits on top."
 msgstr "Applicato in ordine: quello in basso si trova sopra."
-
 msgid "Applied when this Scene is saved, not now -- Cancel on the Scene dialog leaves both the element and the Tasks exactly as they were."
 msgstr "Applicato quando questa scena viene salvata, non ora: Annulla nella finestra di dialogo Scena lascia sia l'elemento che le attività esattamente come erano."
-
 msgid "Back to Editor"
 msgstr "Torniamo all'editore"
-
 msgid "Bounds"
 msgstr "Limiti"
-
 msgid "Cancelled. Changes to this Scene were discarded."
 msgstr "Annullato. Le modifiche a questa scena sono state scartate."
-
 msgid "Choose another file..."
 msgstr "Scegli un altro file..."
-
 msgid "Click a component to select it, shift-click another in the same container to take several, and drag to reorder them among their own siblings. Moving a component into or out of a container is the editor's In and Out buttons; Undo is there too."
 msgstr "Fare clic su un componente per selezionarlo, fare clic tenendo premuto il tasto Maiusc su un altro nello stesso contenitore per prenderne diversi e trascinarli per riordinarli tra i propri fratelli. Lo spostamento di un componente dentro o fuori da un contenitore avviene tramite i pulsanti Dentro e Fuori dell'editor; C'è anche l'annullamento."
-
 msgid "Click an element to select it, Shift-click or drag a box on the background to take several, and drag any of them to move them all -- arrow keys nudge, Shift for 10px. Drag a handle to resize a single element. Undo, and everything else about an element, is back in the editor."
 msgstr "Fai clic su un elemento per selezionarlo, fai clic tenendo premuto il tasto Maiusc o trascina una casella sullo sfondo per prenderne diversi e trascina uno di essi per spostarli tutti: i tasti freccia spingono, Maiusc per 10px. Trascina una maniglia per ridimensionare un singolo elemento. L'annullamento e tutto il resto relativo a un elemento sono tornati nell'editor."
-
 msgid "Click an element to select it, drag to move, drag a handle to resize, arrow keys to nudge (Shift for 10px). Shift-click, or drag a box on the background, to take several at once."
 msgstr "Fare clic su un elemento per selezionarlo, trascinare per spostare, trascinare una maniglia per ridimensionare, i tasti freccia per spostare (Shift per 10px). Fai clic tenendo premuto il tasto Maiusc o trascina una casella sullo sfondo per scattarne diverse contemporaneamente."
-
 msgid "Closes without saving, and puts this Scene back exactly as it was when this dialog opened -- including anything moved or resized in the Preview.\n\nA Rename is the one thing this cannot take back: it is applied to the loaded backup as it is confirmed, and closes this dialog with it."
 msgstr "Si chiude senza salvare e ripristina la scena esattamente com'era all'apertura della finestra di dialogo, incluso qualsiasi cosa spostata o ridimensionata nell'anteprima.\n\nUna Rinomina è l'unica cosa che non può essere annullata: viene applicata al backup caricato non appena viene confermato e chiude con esso questa finestra di dialogo."
-
 msgid "Compare Files"
 msgstr "Confronta file"
-
 msgid "Compare With"
 msgstr "Confronta con"
-
 msgid "Compare another XML file against the loaded one: what was added, removed, renamed and changed.\n\nUse it to see what a TaskerNet import brought in, what an edit changed, or what is different between two backups.\n\nIf the loaded file came from 'Save to Current File', the file it was saved from is offered directly.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Confronta un altro file XML con quello caricato: cosa è stato aggiunto, rimosso, rinominato e modificato.\n\nUsalo per vedere cosa ha portato un'importazione TaskerNet, cosa è cambiato una modifica o cosa c'è di diverso tra due backup.\n\nSe il file caricato proviene da \"Salva nel file corrente\", viene proposto direttamente il file da cui è stato salvato.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."
-
 msgid "Comparison cancelled."
 msgstr "Confronto annullato."
-
 msgid "Comparison report could not be saved."
 msgstr "Impossibile salvare il rapporto di confronto."
-
 msgid "Comparison saved as"
 msgstr "Confronto salvato con nome"
-
 msgid "Delete Scene"
 msgstr "Elimina scena"
-
 msgid "Done"
 msgstr "Fatto"
-
 msgid "Drawn in"
 msgstr "Attratto"
-
 msgid "Draws this Scene as a picture in the main window -- including the components you have added or changed here but not yet saved.\n\nA Version 2 layout has no size of its own, so the preview lays it out in a screen you pick, and re-flows it when you change that.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, Material colours come from the baseline palette rather than the device's theme, and images, video and web content are shown as placeholders."
 msgstr "Disegna questa scena come un'immagine nella finestra principale, inclusi i componenti che hai aggiunto o modificato qui ma non ancora salvati.\n\nUn layout della versione 2 non ha dimensioni proprie, quindi l'anteprima lo dispone in una schermata scelta e la ridispone quando la modifichi.\n\nQuesta finestra di dialogo si chiude mentre l'anteprima è attiva, mantenendo tutto ciò che contiene; il pulsante \"Torna all'editor\" dell'anteprima lo riporta indietro.\n\nÈ una rappresentazione, non il renderer di Tasker: le %variabili sono denominate anziché risolte, i colori dei materiali provengono dalla tavolozza di base anziché dal tema del dispositivo e immagini, video e contenuti Web vengono visualizzati come segnaposto."
-
 msgid "Draws this Scene as a picture in the main window, at the size typed above -- including changes not yet saved.\n\nThis dialog closes while the preview is up, with everything in it kept; the preview's 'Back to Editor' button brings it back.\n\nIt is a representation, not Tasker's own renderer: %variables are named rather than resolved, and images, video and web content are shown as placeholders."
 msgstr "Disegna questa scena come un'immagine nella finestra principale, nella dimensione digitata sopra, comprese le modifiche non ancora salvate.\n\nQuesta finestra di dialogo si chiude mentre l'anteprima è attiva, mantenendo tutto ciò che contiene; il pulsante \"Torna all'editor\" dell'anteprima lo riporta indietro.\n\nÈ una rappresentazione, non il renderer di Tasker: le variabili % sono denominate anziché risolte e immagini, video e contenuto web vengono mostrati come segnaposto."
-
 msgid "Dropdown menu — shown when opened"
 msgstr "Menu a discesa: mostrato all'apertura"
-
 msgid "Duplicate"
 msgstr "Duplicato"
-
 msgid "Dynamic and Select Variable are worked out when the Scene is shown."
 msgstr "Dynamic e Select Variable vengono elaborati quando viene mostrata la scena."
-
 msgid "Dynamic value"
 msgstr "Valore dinamico"
-
 msgid "Edit Scene"
 msgstr "Modifica scena"
-
 msgid "Edit item layout"
 msgstr "Modifica il layout dell'elemento"
-
 msgid "Event handlers"
 msgstr "Gestori di eventi"
-
 msgid "Export Scene"
 msgstr "Esporta scena"
-
 msgid "Grey: MapTasker has no argument table for it, so it can't be created without guessing what Tasker expects inside. Headings are MapTasker's own grouping."
 msgstr "Grigio: MapTasker non ha una tabella degli argomenti, quindi non può essere creato senza indovinare cosa si aspetta Tasker al suo interno. Le intestazioni sono il raggruppamento di MapTasker."
-
 msgid "Hatched fills and italic underlined text are %variables -- their values live on the device, not in the backup, so they are named rather than guessed at. Images, video, maps and web content are shown as placeholders. Hover any element for its geometry, its variables and the Tasks it runs."
 msgstr "I riempimenti tratteggiati e il testo sottolineato in corsivo sono variabili %: i loro valori risiedono sul dispositivo, non nel backup, quindi vengono nominati anziché indovinati. Immagini, video, mappe e contenuti web vengono visualizzati come segnaposto. Passa il mouse su qualsiasi elemento per la sua geometria, le sue variabili e le attività che esegue."
-
 msgid "Health Check"
 msgstr "Controllo dello stato di salute"
-
 msgid "Health Check found no errors or warnings."
 msgstr "Il controllo dello stato non ha rilevato errori o avvisi."
-
 msgid "Health Check report could not be saved."
 msgstr "Impossibile salvare il rapporto di controllo dello stato."
-
 msgid "Health Check saved as"
 msgstr "Controllo dello stato salvato con nome"
-
 msgid "How long a pop-up message stays on screen before it disappears.\n\n'Until dismissed' keeps every message up until you close it, which is useful when a message scrolls past before you can read it.\n\nA few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here."
 msgstr "Quanto tempo un messaggio pop-up rimane sullo schermo prima di scomparire.\n\n\"Fino al licenziamento\" mantiene tutti i messaggi finché non li chiudi, il che è utile quando un messaggio scorre prima che tu possa leggerlo.\n\nAlcuni messaggi impostano una durata più lunga perché elencano le cose che devi leggere, ad esempio le attività interessate dall'eliminazione o dalla ridenominazione di un elemento della scena. Quelli mantengono i propri tempi qualunque sia scelto qui."
-
 msgid "In the list: Shift-click for a range, Ctrl- or Cmd-click to add or remove one."
 msgstr "Nell'elenco: fare clic tenendo premuto Maiusc per un intervallo, fare clic tenendo premuto Ctrl o Comando per aggiungerne o rimuoverne uno."
-
 msgid "Item layout"
 msgstr "Disposizione dell'articolo"
-
 msgid "Landscape"
 msgstr "Paesaggio"
-
 msgid "Legacy"
 msgstr "Eredità"
-
 msgid "Legacy Scene"
 msgstr "Scena ereditaria"
-
 msgid "List"
 msgstr "Lista"
-
 msgid "MapTasker: view limit reached, diagram truncated"
 msgstr "MapTasker: limite di visualizzazione raggiunto, diagramma troncato"
-
 msgid "Modifiers"
 msgstr "Modificatori"
-
 msgid "Never updated"
 msgstr "Mai aggiornato"
-
 msgid "No Task addresses this element by name."
 msgstr "Nessuna attività indirizza questo elemento per nome."
-
 msgid "No XML file has been loaded.  Get an XML file first."
 msgstr "Nessun file XML è stato caricato.  Ottieni prima un file XML."
-
 msgid "No element matches that."
 msgstr "Nessun elemento corrisponde a quello."
-
 msgid "Not an HTML colour name or #hex value."
 msgstr "Non un nome di colore HTML o un valore #hex."
-
 msgid "Not updated -- these name both this Scene and this element, but not as a"
 msgstr "Non aggiornato: nominano sia questa scena che questo elemento, ma non come a"
-
 msgid "Nothing here."
 msgstr "Niente qui."
-
 msgid "Notification Duration"
 msgstr "Durata della notifica"
-
 msgid "Notification Duration:"
 msgstr "Durata della notifica:"
-
 msgid "On"
 msgstr "SU"
-
 msgid "Only when"
 msgstr "Solo quando"
-
 msgid "Outline every component and name it, the way the designer's tree names it."
 msgstr "Delinea ogni componente e assegnagli un nome, come lo chiama l'albero del progettista."
-
 msgid "Outline every element and name it."
 msgstr "Delinea ogni elemento e dagli un nome."
-
 msgid "Pick a Material icon."
 msgstr "Scegli un'icona Materiale."
-
 msgid "Pick an icon"
 msgstr "Scegli un'icona"
-
 msgid "Pick from the Scene's environment and global variables."
 msgstr "Scegli dall'ambiente della scena e dalle variabili globali."
-
 msgid "Pick one of Material's own colour roles."
 msgstr "Scegli uno dei ruoli cromatici del Materiale."
-
 msgid "Preview"
 msgstr "Anteprima"
-
 msgid "Project(s) that list it."
 msgstr "Progetti che lo elencano."
-
 msgid "Prompts for a new name and applies it to the loaded backup, right now -- renaming the Scene everywhere, including in the Scene list of every Project that holds it.\n\nTasks that show or hide this Scene by name are NOT updated; those still name the old Scene.\n\nThe Scene Name field above is read-only -- this is the only way to change it."
 msgstr "Richiede un nuovo nome e lo applica subito al backup caricato, rinominando la scena ovunque, incluso nell'elenco delle scene di ogni progetto che la contiene.\n\nLe attività che mostrano o nascondono questa scena per nome NON vengono aggiornate; quelli chiamano ancora la vecchia Scena.\n\nIl campo Nome scena sopra è di sola lettura: questo è l'unico modo per modificarlo."
-
 msgid "Properties"
 msgstr "Proprietà"
-
 msgid "Properties are edited one element at a time. Dragging and nudging move everything selected."
 msgstr "Le proprietà vengono modificate un elemento alla volta. Trascinando e spingendo si sposta tutto ciò che è selezionato."
-
 msgid "Refresh"
 msgstr "Aggiorna"
-
 msgid "Remove background"
 msgstr "Rimuovi lo sfondo"
-
 msgid "Rename Element"
 msgstr "Rinomina elemento"
-
 msgid "Renaming an element in here does not sweep the backup: an item layout has no Scene name for a Task's Element action to address it by, so there is nothing to rewrite."
 msgstr "Rinominare un elemento qui non spazza il backup: il layout di un elemento non ha un nome di scena per l'azione Elemento di un'attività con cui indirizzarlo, quindi non c'è nulla da riscrivere."
-
 msgid "Repeats once per array entry"
 msgstr "Si ripete una volta per voce dell'array"
-
 msgid "Round dragged positions and sizes to this many pixels."
 msgstr "Arrotonda le posizioni e le dimensioni trascinate a questo numero di pixel."
-
 msgid "Save Scene To Android Device"
 msgstr "Salva scena sul dispositivo Android"
-
 msgid "Saves the entire backup -- every Project, Profile, Task and Scene in it, not just this Scene -- including every edit made anywhere in this session.\nIt is written to a new, timestamped copy of the file currently loaded: backup.xml becomes backup_20260728_143005.xml.\nThe file you loaded is never written to, so it is left exactly as it was.\nThe app then switches to the new copy, which becomes the current file for any further editing and saving; saving again replaces the timestamp rather than adding a second one.\nThis writes to this computer only -- nothing is sent to your Android device."
 msgstr "Salva l'intero backup (ogni progetto, profilo, attività e scena al suo interno, non solo questa scena) inclusa ogni modifica apportata ovunque in questa sessione.\nViene scritto su una nuova copia con timestamp del file attualmente caricato: backup.xml diventa backup_20260728_143005.xml.\nIl file caricato non viene mai scritto, quindi viene lasciato esattamente com'era.\nL'app passa quindi alla nuova copia, che diventa il file corrente per eventuali ulteriori modifiche e salvataggi; il salvataggio di nuovo sostituisce il timestamp anziché aggiungerne un secondo.\nViene scritto solo su questo computer: non viene inviato nulla al tuo dispositivo Android."
-
 msgid "Saves this Scene, with all of its elements, as one standalone .scn.xml file -- the same format Tasker's own Scene export produces.\n\nTasks the Scene's elements run are not included; they belong to their own Project."
 msgstr "Salva questa scena, con tutti i suoi elementi, come un file .scn.xml autonomo, lo stesso formato prodotto dall'esportazione della scena di Tasker.\n\nLe attività eseguite dagli elementi della scena non sono incluse; appartengono al proprio Progetto."
-
 msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Esegui la scansione del codice XML caricato per individuare riferimenti interrotti, attività, profili e scene senza riferimenti e problemi di denominazione.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."
-
 msgid "Scene Components"
 msgstr "Componenti della scena"
-
 msgid "Scene Elements"
 msgstr "Elementi di scena"
-
 msgid "Scene Name"
 msgstr "Nome della scena"
-
 msgid "Scene Preview"
 msgstr "Anteprima della scena"
-
 msgid "Scene Properties"
 msgstr "Proprietà della scena"
-
 msgid "Scene added."
 msgstr "Scena aggiunta."
-
 msgid "Scene type"
 msgstr "Tipo di scena"
-
 msgid "Screen"
 msgstr "Schermo"
-
 msgid "Search elements"
 msgstr "Cerca elementi"
-
 msgid "Search icons"
 msgstr "Icone di ricerca"
-
 msgid "Search variables"
 msgstr "Cerca variabili"
-
 msgid "Select a component on the left."
 msgstr "Seleziona un componente a sinistra."
-
 msgid "Select a larger View Limit or a single Project / Profile / Task to see the rest."
 msgstr "Seleziona un limite di visualizzazione più ampio o un singolo progetto/profilo/attività per vedere il resto."
-
 msgid "Select a single Scene first (Scene pulldown above)."
 msgstr "Selezionare prima una singola scena (elenco a discesa delle scene sopra)."
-
 msgid "Select a single element to duplicate, delete or restack it."
 msgstr "Seleziona un singolo elemento per duplicarlo, eliminarlo o rimontarlo."
-
 msgid "Select an element first."
 msgstr "Seleziona prima un elemento."
-
 msgid "Select an element on the canvas or in the list."
 msgstr "Seleziona un elemento nell'area di disegno o nell'elenco."
-
 msgid "Show the Task each element runs."
 msgstr "Mostra l'attività eseguita da ciascun elemento."
-
 msgid "Show what each component does when tapped, and what it writes to."
 msgstr "Mostra cosa fa ogni componente quando viene toccato e su cosa scrive."
-
 msgid "Show when"
 msgstr "Mostra quando"
-
 msgid "Size"
 msgstr "Misurare"
-
 msgid "Size must be a whole number (-1 for no layout)."
 msgstr "La dimensione deve essere un numero intero (-1 per nessun layout)."
-
 msgid "Snap"
 msgstr "Affrettato"
-
 msgid "Spinner"
 msgstr "Filatore"
-
 msgid "Stop firing anything on this event."
 msgstr "Smettila di sparare qualsiasi cosa su questo evento."
-
 msgid "Task action(s) in"
 msgstr "Azione/i dell'attività in"
-
 msgid "Task(s)"
 msgstr "Compiti)"
-
 msgid "Task(s) address this Scene by a match pattern (Element Visibility). Check them yourself"
 msgstr "Le attività affrontano questa scena tramite un modello di corrispondenza (visibilità dell'elemento). Controllali tu stesso"
-
 msgid "Tasker keeps this Task inside the Scene and nowhere else, so it has no name and cannot be pointed somewhere else without losing it. It is carried through untouched."
 msgstr "Tasker mantiene questa attività all'interno della scena e da nessun'altra parte, quindi non ha nome e non può essere indirizzata altrove senza perderla. Viene portato avanti intatto."
-
 msgid "Tasker lists this element, but MapTasker has never seen one in a saved Scene -- so it is added carrying nothing but its type and id, and even the type is inferred from the name above (written as type: \"{node_type}\"). If Tasker doesn't recognise it, press Undo."
 msgstr "Tasker elenca questo elemento, ma MapTasker non ne ha mai visto uno in una scena salvata, quindi viene aggiunto non portando altro che il suo tipo e id, e anche il tipo viene dedotto dal nome sopra (scritto come tipo: \"{node_type}\"). Se Tasker non lo riconosce, premi Annulla."
-
 msgid "Tasker variable(s)"
 msgstr "Variabili di Tasker"
-
 msgid "Tasker's Screen Builder: a declarative component tree (Column, Row, Scaffold, ...) that lays itself out, with no fixed canvas size. Start from:"
 msgstr "Screen Builder di Tasker: un albero di componenti dichiarativi (colonna, riga, impalcatura, ...) che si dispone da solo, senza dimensioni fisse della tela. Inizia da:"
-
 msgid "Tasks address this element by name (Element Text, Element Position, ... 18 action codes in all), so renaming it is not a field edit. The Rename dialog lists what depends on the current name and offers to bring those Tasks along."
 msgstr "Le attività indirizzano questo elemento per nome (Testo elemento, Posizione elemento, ... 18 codici azione in tutto), quindi rinominarlo non è una modifica del campo. La finestra di dialogo Rinomina elenca ciò che dipende dal nome corrente e offre di portare con sé tali attività."
-
 msgid "Tasks that show or hide this Scene by name are not changed, and are left where they are."
 msgstr "Le attività che mostrano o nascondono questa scena per nome non vengono modificate e rimangono dove sono."
-
 msgid "Text density"
 msgstr "Densità del testo"
-
 msgid "That component can't go there."
 msgstr "Quel componente non può andare lì."
-
 msgid "That is the file already loaded.  Choose a different one to compare against."
 msgstr "Questo è il file già caricato.  Scegline uno diverso con cui confrontarlo."
-
 msgid "The Material icon list could not be read, so type the name instead."
 msgstr "Impossibile leggere l'elenco delle icone dei materiali, quindi digita il nome."
-
 msgid "The Tasker variable this component writes its value into. Separate several with commas. Leave empty to declare the binding without setting it."
 msgstr "La variabile Tasker in cui questo componente scrive il suo valore. Separarne diversi con virgole. Lasciare vuoto per dichiarare l'associazione senza impostarla."
-
 msgid "The Tasks that address it will be updated when this Scene is saved."
 msgstr "Le attività che lo affrontano verranno aggiornate quando questa scena viene salvata."
-
 msgid "The layout of one row. Tasker draws it once per entry of whatever fills the list, so what you see here is a single row rather than the list."
 msgstr "Il layout di una riga. Tasker lo disegna una volta per ogni voce di qualunque cosa riempia l'elenco, quindi quello che vedi qui è una singola riga anziché l'elenco."
-
 msgid "The loaded file was saved from"
 msgstr "Il file caricato è stato salvato da"
-
 msgid "The original"
 msgstr "L'originale"
-
 msgid "The original Scene: UI elements placed at fixed positions on a sized canvas (Text, Button, Rect, Image, Web, ...)."
 msgstr "La scena originale: elementi dell'interfaccia utente posizionati in posizioni fisse su una tela di dimensioni (testo, pulsante, rettangolo, immagine, Web, ...)."
-
 msgid "The screen size is this preview's, not the Scene's -- a Version 2 layout has no size of its own, so change 'Screen' to see it re-flow. Colours named by Material role are drawn from the Material 3 baseline palette; the device resolves them against its own theme, which under Material You comes from the wallpaper. Hatched fills and italic underlined text are %variables. Amber outlines mark components with a 'Show when'. Hover any component for its modifiers, variables and actions."
 msgstr "La dimensione dello schermo è quella di questa anteprima, non quella della scena: un layout della versione 2 non ha dimensioni proprie, quindi cambia \"Schermo\" per vederlo rifluire. I colori nominati in base al ruolo del materiale vengono estratti dalla tavolozza di base del Materiale 3; il dispositivo li risolve rispetto al proprio tema, che in Material You proviene dallo sfondo. I riempimenti tratteggiati e il testo sottolineato in corsivo sono variabili %. I contorni color ambra contrassegnano i componenti con \"Mostra quando\". Passa il mouse su qualsiasi componente per i suoi modificatori, variabili e azioni."
-
 msgid "The search did not finish. The view may be too large, or the browser is busy."
 msgstr "La ricerca non è finita. La visualizzazione potrebbe essere troppo grande o il browser è occupato."
-
 msgid "The two files hold the same configuration."
 msgstr "I due file contengono la stessa configurazione."
-
 msgid "This Scene has no UI elements."
 msgstr "Questa scena non ha elementi dell'interfaccia utente."
-
 msgid "This Scene has no landscape layout of its own (its size is -1)."
 msgstr "Questa scena non ha una propria disposizione orizzontale (la sua dimensione è -1)."
-
 msgid "This Scene has no layout for this orientation."
 msgstr "Questa scena non ha layout per questo orientamento."
-
 msgid "This Scene has no properties element. 66 of the 366 Scenes MapTasker has seen have none either, so this is ordinary rather than damage."
 msgstr "Questa scena non ha elementi proprietà. Anche 66 delle 366 scene che MapTasker ha visto non ne hanno, quindi si tratta di un danno normale e non di un danno."
-
 msgid "This Scene's Version 2 layout could not be read, and will be left exactly as it is."
 msgstr "Impossibile leggere il layout della versione 2 di questa scena e verrà lasciato esattamente così com'è."
-
 msgid "This Scene's Version 2 layout has no root component, so there is nothing to design."
 msgstr "Il layout della versione 2 di questa scena non ha un componente root, quindi non c'è nulla da progettare."
-
 msgid "This app has no property table for this element type, so only its geometry can be edited here. It is otherwise carried through untouched."
 msgstr "Questa app non ha una tabella delle proprietà per questo tipo di elemento, quindi qui è possibile modificare solo la sua geometria. Altrimenti viene portato avanti intatto."
-
 msgid "This element has no layout for this orientation."
 msgstr "Questo elemento non ha layout per questo orientamento."
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Questo scriverà la scena come file autonomo sul dispositivo Android, in /Tasker/scene.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nPer questo non è necessaria alcuna richiesta di autorizzazione."
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings. No authorization prompt is needed for this."
 msgstr "Questo scriverà la scena come file autonomo sul tuo dispositivo Android, in /Tasker/scene - non la importerà nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker. Per questo non è necessaria alcuna richiesta di autorizzazione."
-
 msgid "Tree label"
 msgstr "Etichetta dell'albero"
-
 msgid "Turn the screen on its side and let the layout re-flow into it."
 msgstr "Capovolgi lo schermo e lascia che il layout rifluisca al suo interno."
-
 msgid "Undo"
 msgstr "Disfare"
-
 msgid "Using the saved size"
 msgstr "Utilizzando la dimensione salvata"
-
 msgid "Variable"
 msgstr "Variabile"
-
 msgid "Variables"
 msgstr "Variabili"
-
 msgid "Version 2"
 msgstr "Versione 2"
-
 msgid "View Limit"
 msgstr "Visualizza limite"
-
 msgid "What you pick goes in at the cursor. Open this again to add the next piece."
 msgstr "Ciò che scegli va in corrispondenza del cursore. Aprilo di nuovo per aggiungere il pezzo successivo."
-
 msgid "Edit this one's properties instead, keeping the selection."
 msgstr "Modifica invece le proprietà di questo, mantenendo la selezione."
-
 msgid "Geometry"
 msgstr "Geometria"
-
 msgid "What you pick replaces what the field holds. Type to narrow the list down."
 msgstr "Ciò che scegli sostituisce ciò che contiene il campo. Digitare per restringere l'elenco."
-
 msgid "Which kind of Scene?"
 msgstr "Che tipo di scena?"
-
 msgid "Writes to variable"
 msgstr "Scrive nella variabile"
-
 msgid "Zoom"
 msgstr "Zoom"
-
 msgid "component(s)"
 msgstr "componente(i)"
-
 msgid "connectors"
 msgstr "connettori"
-
 msgid "drag or nudge any of them and they all move together."
 msgstr "trascina o spostane uno e si muoveranno tutti insieme."
-
 msgid "element(s)"
 msgstr "elementi)"
-
 msgid "is not a whole number"
 msgstr "non è un numero intero"
-
 msgid "elements selected"
 msgstr "elementi selezionati"
-
 msgid "lines dropped"
 msgstr "le linee sono cadute"
-
 msgid "none"
 msgstr "nessuno"
-
 msgid "not drawn"
 msgstr "non disegnato"
-
 msgid "pair"
 msgstr "paio"
-
 msgid "pixels"
 msgstr "pixel"
-
 msgid "editing 1 of"
 msgstr "modifica 1 di"
-
 msgid "Building the Map to show"
 msgstr "Costruire la mappa da mostrare"
-
 msgid "Built the Map, but it has no line for"
 msgstr "Ha costruito la mappa, ma non ha una linea per"
-
 msgid "Click a finding to see it in the Map view."
 msgstr "Fai clic su un risultato per visualizzarlo nella visualizzazione Mappa."
-
 msgid "Click a variable or a place to see it in the Map view."
 msgstr "Fai clic su una variabile o su un luogo per visualizzarlo nella visualizzazione Mappa."
-
 msgid "No Map view is open.  Run Map View, then click this again."
 msgstr "Nessuna visualizzazione mappa è aperta.  Esegui Visualizzazione mappa, quindi fai di nuovo clic su questo."
-
 msgid "Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names (%MyVar against %Myvar) are likely typos.\n\nSearched: Task actions and their conditions, plugin configuration, Profile contexts and Scenes.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Traccia ogni %variabile nell'XML caricato: dove ciascuna è impostata, dove viene letta, quali vengono lette ma mai impostate, quali vengono impostate ma mai lette e quali nomi quasi identici (%MyVar contro %Myvar) sono probabilmente errori di battitura.\n\nRicerca: azioni delle attività e relative condizioni, configurazione del plug-in, contesti del profilo e scene.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."
-
 msgid "Variable Cross-Reference found no suspect variables."
 msgstr "Il riferimento incrociato delle variabili non ha trovato variabili sospette."
-
 msgid "Variable Cross-Reference report could not be saved."
 msgstr "Impossibile salvare il report dei riferimenti incrociati variabili."
-
 msgid "Variable Cross-Reference saved as"
 msgstr "Riferimento incrociato variabile salvato con nome"
-
 msgid "Variable Xref"
 msgstr "Xrif variabile"
-
 msgid "detail level"
 msgstr "livello di dettaglio"
-
 msgid "is no longer in the loaded configuration."
 msgstr "non è più nella configurazione caricata."
-
 msgid "whole file"
 msgstr "intero fascicolo"
-
 msgid "Disables the Project in the loaded backup, right now -- like Rename, this takes effect immediately rather than waiting for a save, and Cancel does not undo it."
 msgstr "Disabilita subito il progetto nel backup caricato: come Rinomina, ha effetto immediatamente anziché attendere un salvataggio e Annulla non lo annulla."
-
 msgid "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "'Find...' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nLe caselle si combinano: scegli un trigger e un'azione per trovare i profili che si attivano in quel modo ed esegui un'attività che lo fa.\n\nI risultati ritornano come un elenco di oggetti; fare clic su uno per accedervi.\n\n"
-
 msgid "Changes Pending"
 msgstr "Modifiche in sospeso"
-
 msgid "Changes made to the loaded XML this session, newest first.  Undo steps back through them one at a time.  Nothing here has been written to a file."
 msgstr "Modifiche apportate all'XML caricato in questa sessione, a partire dalla più recente.  Annulla i passaggi indietro uno alla volta.  Niente qui è stato scritto in un file."
-
 msgid "Choose an action, a trigger, an app, a Scene or some text."
 msgstr "Scegli un'azione, un trigger, un'app, una scena o del testo."
-
 msgid "Edit History"
 msgstr "Modifica cronologia"
-
 msgid "Editing"
 msgstr "Modifica"
-
 msgid "Find in"
 msgstr "Trova dentro"
-
 msgid "Find results could not be saved."
 msgstr "Impossibile salvare i risultati della ricerca."
-
 msgid "Find results saved as"
 msgstr "Trova i risultati salvati con nome"
-
 msgid "Help"
 msgstr "Aiuto"
-
 msgid "In no Project"
 msgstr "In nessun progetto"
-
 msgid "List every change made to the loaded XML this session, newest first."
 msgstr "Elenca tutte le modifiche apportate all'XML caricato in questa sessione, iniziando dalla più recente."
-
 msgid "Narrow to Project"
 msgstr "Limita al progetto"
-
 msgid "No changes to undo."
 msgstr "Nessuna modifica da annullare."
-
 msgid "Nothing has been changed yet."
 msgstr "Non è stato ancora cambiato nulla."
-
 msgid "Nothing in the loaded configuration answers this."
 msgstr "Niente nella configurazione caricata risponde a questa domanda."
-
 msgid "Nothing is saved until you press Ok, Save or Export."
 msgstr "Non viene salvato nulla finché non si preme Ok, Salva o Esporta."
-
 msgid "Redid"
 msgstr "Rifatto"
-
 msgid "Redo"
 msgstr "Rifare"
-
 msgid "Run a Find first."
 msgstr "Eseguire prima una ricerca."
-
 msgid "Save Results"
 msgstr "Salva risultati"
-
 msgid "Take back the last change made to the loaded XML -- an edit, an Add, a Delete or a Rename, in any of the Edit panels.\n\nThis changes what is loaded, not any file: nothing on disk or on the Android device is touched."
 msgstr "Ripristina l'ultima modifica apportata all'XML caricato: una modifica, un'aggiunta, un'eliminazione o una ridenominazione, in uno qualsiasi dei pannelli Modifica.\n\nQuesto cambia ciò che viene caricato, non qualsiasi file: non viene toccato nulla sul disco o sul dispositivo Android."
-
 msgid "Undid"
 msgstr "Annullato"
-
 msgid "Updating MapTasker in the background.  Please stand by..."
 msgstr "Aggiornamento di MapTasker in background.  Per favore, restate in attesa..."
-
 msgid "does not belong to a Project, so there is nowhere to attach a new"
 msgstr "non appartiene a un progetto, quindi non è possibile allegarne uno nuovo"
-
 msgid "found for"
 msgstr "trovato per"
-
 msgid "of"
 msgstr "Di"
-
 msgid "Each box narrows the answer, and they combine: a trigger and an action together find the Profiles that trigger that way AND run a Task that does that. Every entry offered is one this configuration actually uses, and the number beside it is how many places carry it."
 msgstr "Ogni casella restringe la risposta e si combinano: un trigger e un'azione insieme trovano i profili che si attivano in quel modo ED eseguono un'attività che lo fa. Ogni voce offerta è quella effettivamente utilizzata da questa configurazione e il numero accanto indica quanti posti la contengono."
-
 msgid "Every Project"
 msgstr "Ogni progetto"
-
 msgid "Find"
 msgstr "Trovare"
-
 msgid "Find..."
 msgstr "Trovare..."
-
 msgid "Text (name, label or argument)"
 msgstr "Testo (nome, etichetta o argomento)"
-
 msgid "...to this name"
 msgstr "...a questo nome"
-
 msgid "...with this one"
 msgstr "...con questo"
-
 msgid "Back to the whole diagram: no zoom, nothing folded, nothing filtered."
 msgstr "Ritorna al diagramma completo: nessuna ingrandimento, niente piegato, niente filtrato."
-
 msgid "Cannot be changed"
 msgstr "Non può essere modificato."
-
 msgid "Change one thing everywhere it appears. Nothing is altered until you press Preview and then Replace, and every change is one Undo away afterwards."
 msgstr "Modifica una singola cosa ogni volta che compare. Nessuna modifica viene applicata finché non premi \"Anteprima\" e poi \"Sostituisci\", e ogni modifica può essere annullata facilmente."
-
 msgid "Choose a variable, and type the new name."
 msgstr "Scegli una variabile e digita il nuovo nome."
-
 msgid "Choose an action to replace, and one to replace it with."
 msgstr "Scegli un'azione da sostituire e una per sostituirla."
-
 msgid "Click a name for its Map entry · shift-click a Task for its call chain"
 msgstr "Cliccare su un nome per visualizzare la sua voce nella mappa · fare clic con il tasto destro su un'attività per visualizzare la sua catena di chiamate"
-
 msgid "Collapse every Project down to its title bar.\n\nOne Project on its own collapses by clicking the top edge of its box."
 msgstr "Riduci ogni progetto alla sua barra del titolo.\n\nUn singolo progetto può essere ridotto alla sua dimensione facendo clic sul bordo superiore della sua finestra."
-
 msgid "Expand every collapsed Project."
 msgstr "Espandi ogni progetto non ancora visualizzato."
-
 msgid "Limited to"
 msgstr "Limitato a"
-
 msgid "Nothing here would change."
 msgstr "Niente qui cambierebbe."
-
 msgid "Nothing is ticked."
 msgstr "Nessun elemento è selezionato."
-
 msgid "Nothing was changed."
 msgstr "Niente è cambiato."
-
 msgid "Press Preview first."
 msgstr "Prima, fare una anteprima per la stampa."
-
 msgid "Rename this variable"
 msgstr "Rinominare questa variabile"
-
 msgid "Replace"
 msgstr "Sostituire"
-
 msgid "Replace preview could not be saved."
 msgstr "Impossibile salvare la versione di anteprima."
-
 msgid "Replace preview saved as"
 msgstr "Sostituisci la anteprima salvata come"
-
 msgid "Replace this action"
 msgstr "Sostituire questa azione"
-
 msgid "Save Preview"
 msgstr "Salva anteprima"
-
 msgid "Task action"
 msgstr "Azione da eseguire"
-
 msgid "The diagram is clickable:\n\nClick a Project, Profile, Task or Scene name to be taken to it in the Map.\n\nShift-click a Task to light up the whole chain of calls it takes part in -- everything it calls, everything that calls it, and the arrows between them.\n\nRight-click any name for the rest: collapse its Project, show only that Project, follow its chain.\n\nClick the ▾ beside a Project to collapse it, and the ▸ to bring it back.\n\nCtrl (or ⌘) and the scroll wheel zooms.  Esc clears a chain."
 msgstr "Il diagramma è interattivo:\n\nCliccare su un nome di Progetto, Profilo, Attività o Scena per essere portati direttamente a tale elemento nella mappa.\n\nCliccare con il tasto Shift su un'Attività per evidenziare l'intera catena di chiamate a cui partecipa: ogni chiamata che effettua, ogni chiamata che riceve, e le frecce che le collegano.\n\nCliccare con il tasto destro su qualsiasi nome per eseguire le seguenti azioni: espandere il Progetto, visualizzare solo quel Progetto, seguire la catena.\n\nCliccare sul triangolo ▾ accanto a un Progetto per espanderlo, e sul triangolo ▸ per ripristinarlo.\n\nPremere Ctrl (o ⌘) e la rotella del mouse per zoomare. Premere Esc per interrompere una catena."
-
 msgid "Undo is available."
 msgstr "È possibile annullare l'operazione."
-
 msgid "Variable name"
 msgstr "Nome della variabile"
-
 msgid "Zoom in.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "Ingrandisci. Premendo Ctrl/⌘ e utilizzando lo scroll, si ottiene lo stesso risultato."
-
 msgid "Zoom out.  Ctrl/⌘ and the scroll wheel does the same."
 msgstr "Riduci la visualizzazione. Premi Ctrl/⌘ e utilizza il rotellino per ottenere lo stesso effetto."
-
 msgid "changed"
 msgstr "modificato"
-
 msgid "clear the single-item selection to reach the whole configuration"
 msgstr "elimina la selezione di un singolo elemento per accedere alla configurazione completa"
-
 msgid "more"
 msgstr "più"
-
 msgid "...and put this there"
 msgstr "...e posizionalo lì."
-
 msgid "...replace this argument"
 msgstr "...sostituisci questo argomento"
-
 msgid "Action argument"
 msgstr "Argomentazione basata sull'azione"
-
 msgid "Add it where missing"
 msgstr "Aggiungilo dove manca"
-
 msgid "Choose an action, and which of its arguments to replace."
 msgstr "Scegli un'azione e indica quale dei suoi argomenti vuoi sostituire."
-
 msgid "Display with a monospaced font (e.g. Courier New) for accurate column alignment. And turn off line wrap.\nIcons or Chinese/Korean/Japanese in names can cause minor mis-alignment."
 msgstr "Display con un carattere a spaziatura fissa (ad esempio Courier New) per un allineamento accurato delle colonne. E disattiva il ritorno a capo della riga.\nLe icone o i nomi cinesi/coreani/giapponesi possono causare lievi disallineamenti."
-
 msgid "Drawn for"
 msgstr "Disegnato per"
-
 msgid "Error: Single item specified but not found!  Try again."
 msgstr "Errore: singolo articolo specificato ma non trovato!  Riprova."
-
 msgid "In this action"
 msgstr "In questa azione"
-
 msgid "Nothing in scope has that argument to change."
 msgstr "Nessun aspetto di ciò che è stato definito non può essere modificato."
-
 msgid "Only the matching text"
 msgstr "Solo il testo corrispondente."
-
 msgid "Only where the value contains (optional)"
 msgstr "Solo quando il valore contiene (opzionale)"
-
 msgid "Press Diagram View to rebuild it."
 msgstr "Per ricostruire il diagramma, seleziona la visualizzazione \"Diagramma\"."
-
 msgid "Rebuild"
 msgstr "Ricostruire"
-
 msgid "The change is applied.  Press Map View to see it."
 msgstr "La modifica è stata applicata. Per visualizzarla, fare clic su \"Visualizza mappa\"."
-
 msgid "now showing"
 msgstr "ora mostra"
-
 msgid "the whole configuration"
 msgstr "l'intera configurazione"
-
 msgid "'Find/Replace' asks the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything that names a given app or Scene.\n\nThe boxes combine -- pick a trigger and an action to find the Profiles that trigger that way and run a Task that does that.\n\nResults come back as a list of objects; click one to be taken to it.\n\n"
 msgstr "La funzione \"Trova/Sostituisci\" pone una domanda alla configurazione caricata piuttosto che cercare nel testo sullo schermo: ogni attività che esegue un'azione specifica, ogni profilo che attiva un determinato trigger, e qualsiasi elemento che nomina un'app o una scena specifica.\n\nLe caselle si combinano: seleziona un trigger e un'azione per trovare i profili che attivano in quel modo, ed eseguire un'attività che esegue quella azione.\n\nI risultati vengono restituiti come una lista di oggetti; cliccando su uno, si viene indirizzati a quell'oggetto.\n\n"
-
 msgid "Choose a Profile condition to replace, and one to replace it with."
 msgstr "Seleziona la condizione del profilo da sostituire e quella con cui sostituirla."
-
 msgid "Find/Replace"
 msgstr "Trova/Sostituisci"
-
 msgid "Profile condition"
 msgstr "Condizioni del profilo"
-
 msgid "Replace this Profile condition"
 msgstr "Sostituire questa condizione del profilo."
-
 msgid "%variable_name"
 msgstr "%nome_variabile"
-
 msgid "A variable name has to start with '%' -- for example %app_package."
 msgstr "Il nome di una variabile deve iniziare con '%', ad esempio %app_package."
-
 msgid "Also in this field"
 msgstr "Anche in questo campo"
-
 msgid "App not listed?"
 msgstr "App non elencata?"
-
 msgid "Choose from the Applications named in the loaded configuration."
 msgstr "Scegli tra le applicazioni denominate nella configurazione caricata."
-
 msgid "Choose from the icons used in the loaded configuration."
 msgstr "Scegli tra le icone utilizzate nella configurazione caricata."
-
 msgid "Fetch"
 msgstr "Andare a prendere"
-
 msgid "Fetch Applications From Android Device"
 msgstr "Recupera applicazioni dal dispositivo Android"
-
 msgid "Fetch the full list of installed applications from your Android device.  What is listed now is only what this configuration already names."
 msgstr "Recupera l'elenco completo delle applicazioni installate dal tuo dispositivo Android.  Ciò che è elencato ora è solo ciò che questa configurazione già nomina."
-
 msgid "Fetching..."
 msgstr "Recupero..."
-
 msgid "Fill all three fields in from the loaded configuration."
 msgstr "Compila tutti e tre i campi dalla configurazione caricata."
-
 msgid "Import Into Tasker"
 msgstr "Importa in Tasker"
-
 msgid "Listing the XML files on the Android device..."
 msgstr "Elenco dei file XML sul dispositivo Android..."
-
 msgid "More matches than can be shown -- narrow the search."
 msgstr "Sono presenti più corrispondenze di quelle che possono essere visualizzate: restringi la ricerca."
-
 msgid "No Icon"
 msgstr "Nessuna icona"
-
 msgid "Or a Tasker variable:"
 msgstr "O una variabile Tasker:"
-
 msgid "Pick"
 msgstr "Scegliere"
-
 msgid "Pick an Application"
 msgstr "Scegli un'applicazione"
-
 msgid "Save As File"
 msgstr "Salva come file"
-
 msgid "The Applications named somewhere in the loaded configuration -- or name a Tasker variable, which fills the Package and Label fields with it and leaves the Class empty, the way Tasker writes one."
 msgstr "Le applicazioni hanno un nome da qualche parte nella configurazione caricata - o nominano una variabile Tasker, che riempie i campi Pacchetto ed Etichetta con essa e lascia la Classe vuota, nel modo in cui Tasker ne scrive una."
-
 msgid "The Applications named somewhere in the loaded configuration.  Tick every one this argument should match.  Anything already in the field that isn't listed stays."
 msgstr "Le applicazioni nominate da qualche parte nella configurazione caricata.  Seleziona tutti quelli a cui questo argomento dovrebbe corrispondere.  Tutto ciò che è già nel campo e non è elencato rimane."
-
 msgid "The icons used somewhere in the loaded configuration.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "Gli icone utilizzate da qualche parte nella configurazione caricata. L'icona che scegliete sostituisce il contenuto del campo. Se un'icona proveniente da un set di icone non elencato viene utilizzata, è necessario specificarne il nome, che si trova all'interno del set."
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Questo fa sì che il profilo si apra direttamente sullo schermo di importazione di Tasker sul dispositivo Android. Quindi, tocca \"Importa\" sul dispositivo per completare l'operazione – nulla viene importato fino a quando non lo fai.\n\nIl progetto \"Esempio di Server HTTP\" di Tasker deve essere installato e in esecuzione, e Tasker deve essere versione 6.2 o superiore.\n\nIl dispositivo ti chiederà di autorizzare MapTasker la prima volta."
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Ciò mette il Progetto – e ogni Profilo e Attività al suo interno – davanti allo schermo di importazione di Tasker sul dispositivo Android. Quindi, sul dispositivo, cliccate su \"Importa\" per completare; nulla viene importato finché non lo fate.\n\nIl Progetto \"Esempio di Server HTTP\" di Tasker deve essere installato e in esecuzione, e Tasker deve essere versione 6.2 o superiore.\n\nIl dispositivo vi chiederà di autorizzare MapTasker la prima volta."
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Questo invia la scena – e tutti i compiti e i loro elementi – al dispositivo Android, sotto il loro nome, nella cartella /Tasker/scenes, e apre l'applicazione Tasker.\n\nÈ possibile completare questa operazione sul dispositivo tramite la funzione \"Scene > Importa una scena\" di Tasker, selezionando la scena per nome. A differenza di un profilo o di un progetto, una scena non può essere importata direttamente tramite la schermata di importazione di Tasker – Tasker non accetterà una scena fornita, anche se importerà lo stesso file quando la seleziona.\n\nIl progetto \"Http Server Example\" di Tasker deve essere installato e in esecuzione, e Tasker deve essere versione 6.2 o superiore.\n\nIl dispositivo chiederà di autorizzare MapTasker la prima volta."
-
 msgid "Use Selected"
 msgstr "Utilizza le opzioni selezionate"
-
 msgid "Waiting on the Android device -- accept the authorization prompt there if one appears.  This can take 30 seconds or more."
 msgstr "In attesa sul dispositivo Android: accettare la richiesta di autorizzazione se appare. Questo potrebbe richiedere dai 30 secondi in poi."
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection, and the fetch cannot go on until you accept.  Allow 30 seconds or more once you have -- longer on a device with several hundred applications, since each one's name is looked up individually."
 msgstr "Monitora il tuo dispositivo Android: Tasker ti chiederà di autorizzare la connessione, e il download non potrà procedere fino a quando non la accetterai. Prevedi circa 30 secondi o più, soprattutto se il dispositivo ha centinaia di applicazioni, poiché in tal caso ogni nome deve essere ricercato singolarmente."
-
 msgid "applications, fetched"
 msgstr "richieste, recuperate"
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nThe file write needs no authorization prompt; the import asks for one, and you must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "Questo apre una scelta tra due: scrivere l'attività come file autonomo sul tuo dispositivo Android in /Tasker/tasks o importarla direttamente nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio di server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione (vedere le note sul recupero XML diretto del README) e Tasker deve essere 6.2 o versione successiva.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nLa scrittura del file non necessita di richiesta di autorizzazione; l'importazione ne richiede uno e devi uscire e riavviare Tasker per vedere un'attività importata nell'interfaccia utente di Tasker."
-
 msgid "This puts the Profile in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Ciò mette il profilo davanti alla schermata di importazione di Tasker sul dispositivo Android.  Quindi tocca Importa sul dispositivo per terminare: finché non lo fai, nulla verrà importato.\n\nIl profilo viene prima copiato in /Tasker/profiles con il proprio nome e offerto da lì, quindi rimane con un nome che puoi trovare: importalo manualmente da Tasker se la schermata di importazione non viene visualizzata.  Ti verrà chiesto prima di sostituire un file già in quel percorso.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e in esecuzione e Tasker deve essere 6.2 o versione successiva.\n\nIl dispositivo ti chiederà di autorizzare MapTasker la prima volta."
-
 msgid "This puts the Project -- and every Profile and Task in it -- in front of Tasker's own import screen on the Android device.  You then tap Import on the device to finish; nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Ciò mette il progetto - e ogni profilo e attività in esso contenuto - davanti alla schermata di importazione di Tasker sul dispositivo Android.  Quindi tocca Importa sul dispositivo per terminare; nulla viene importato finché non lo fai.\n\nIl progetto viene prima copiato in /Tasker/projects con il proprio nome e offerto da lì, quindi rimane con un nome che puoi trovare: importalo manualmente da Tasker se la schermata di importazione non viene visualizzata.  Ti verrà chiesto prima di sostituire un file già in quel percorso.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e in esecuzione e Tasker deve essere 6.2 o versione successiva.\n\nIl dispositivo ti chiederà di autorizzare MapTasker la prima volta."
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Ciò inserisce l'attività direttamente nella configurazione live di Tasker sul dispositivo Android.  A differenza di un profilo, un progetto o una scena, non è necessaria alcuna schermata di importazione né tocco sul dispositivo: l'API/importazione di Tasker esegue direttamente un'attività.\n\nL'attività viene prima copiata in /Tasker/tasks sul dispositivo e importata da lì, quindi la copia rimane come record di esattamente ciò che è stato importato.  Ti verrà chiesto prima di sostituire un file già in quel percorso.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e in esecuzione e Tasker deve essere 6.2 o versione successiva.\n\nIl dispositivo ti chiederà di autorizzare MapTasker la prima volta."
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Tasker.\n\nYou finish it on the device with Tasker's 'Scenes > Import One Scene', and pick the Scene by name.  Unlike a Profile or a Project, a Scene cannot be put in front of Tasker's import screen from here -- Tasker will not take one handed to it, though it imports the very same file when you pick it.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Questo invia la scena – e tutti i compiti e i loro elementi – al dispositivo Android, sotto il suo stesso nome, nella cartella /Tasker/scenes, e apre l'applicazione Tasker.\n\nPuoi completare il processo sul dispositivo utilizzando la funzione \"Scene > Importa una scena\" di Tasker e selezionando la scena per nome. A differenza di un profilo o di un progetto, una scena non può essere importata direttamente dalla schermata di importazione di Tasker – Tasker non accetterà una scena fornita, anche se importerà lo stesso file quando la selezioni.\n\nTi verrà chiesto prima di sostituire un file già presente in quella cartella.\n\nIl progetto \"Http Server Example\" di Tasker deve essere installato e in esecuzione, e Tasker deve essere versione 6.2 o superiore.\n\nIl dispositivo ti chiederà di autorizzare MapTasker la prima volta."
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nNo authorization prompt is needed for this."
 msgstr "Questo creerà il Task come un file autonomo sul dispositivo Android, nella cartella /Tasker/tasks.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker sul dispositivo Android.\n\nNon è necessaria alcuna richiesta di autorizzazione per questa operazione."
-
 msgid "Delete them from Tasker's Tasks tab -- long-press one, then Delete.  Nothing here can do it: Tasker's HTTP API has no way to delete a Task."
 msgstr "Eliminali dalla scheda Attività di Tasker: premi a lungo uno, quindi Elimina.  Niente qui può farlo: l'API HTTP di Tasker non ha modo di eliminare un'attività."
-
 msgid "In use -- leave these alone:"
 msgstr "In uso – non toccare:"
-
 msgid "List Helper Tasks"
 msgstr "Elenco di attività di assistenza"
-
 msgid "Lists the 'MapTasker ...' Tasks this program has installed on the Android device, and says which are left over from an earlier version.\n\nEach one is installed under a versioned name and never replaced -- Tasker's import adds a second Task rather than replacing the first -- so old ones stay behind in your Task list.  They do no harm; they are clutter.\n\nDelete the ones it names from Tasker's own Tasks tab.  Nothing here can do it for you: Tasker's HTTP API has no way to delete a Task."
 msgstr "Elenca le attività \"MapTasker ...\" installate da questo programma sul dispositivo Android, e indica quali sono quelle residue da una versione precedente.\n\nOgni attività è installata con un nome che indica la versione e non viene mai sostituita: l'importazione di Tasker aggiunge semplicemente una seconda attività anziché sostituire la prima, quindi le versioni precedenti rimangono nella lista delle attività. Non causano problemi; sono solo elementi inutili.\n\nEliminate quelle indicate da Tasker dalla sezione \"Attività\" di Tasker. Nessuna di queste opzioni può farlo automaticamente: l'API HTTP di Tasker non offre la possibilità di eliminare un'attività."
-
 msgid "MapTasker Helper Tasks"
 msgstr "Compiti di supporto per MapTasker"
-
 msgid "Nothing left over -- every MapTasker Task on the device is in use."
 msgstr "Non ci sono attività inutilizzate – ogni attività MapTasker presente sul dispositivo è in esecuzione."
-
 msgid "This copies the Profile to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish -- nothing is imported until you do.\n\nThe Profile is copied to /Tasker/profiles under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Questo copia il Profilo sul dispositivo e apre la finestra di scelta \"Apri con...\" di Android. Seleziona Tasker, e si aprirà la propria schermata di importazione; quindi, tocca \"Importa\" per completare -- nulla verrà importato fino a quando non lo farai.\n\nIl Profilo viene copiato in /Tasker/profiles sotto il suo stesso nome e sarà disponibile da lì, in modo che rimarrà nascosto sotto un nome che puoi trovare -- importalo manualmente da Tasker se la schermata di importazione non si apre. Ti verrà chiesto prima di sostituire un file già presente in quella posizione.\n\nIl progetto \"Http Server Example\" di Tasker deve essere installato e in esecuzione, e Tasker deve essere versione 6.2 o superiore.\n\nIl dispositivo ti chiederà di autorizzare MapTasker la prima volta."
-
 msgid "This copies the Project -- and every Profile and Task in it -- to the device and opens Android's 'Open with...' chooser for it.  Pick Tasker, and its own import screen comes up; you then tap Import to finish, and nothing is imported until you do.\n\nThe Project is copied to /Tasker/projects under its own name first and offered from there, so it stays behind under a name you can find -- import it by hand from Tasker if the import screen does not come up.  You will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Questo copia il Progetto – e tutti i Profili e i Compiti al suo interno – sul dispositivo e apre la finestra di scelta \"Apri con...\" di Android per esso. Seleziona Tasker, e si aprirà la propria schermata di importazione; quindi, tocca \"Importa\" per completare, e nulla verrà importato finché non lo fai.\n\nIl Progetto viene copiato in /Tasker/projects sotto il suo nome, e viene offerto da lì, in modo che rimanga nascosto sotto un nome che puoi trovare – puoi importarlo manualmente da Tasker se la schermata di importazione non appare. Ti verrà chiesto prima di sostituire un file già presente in quella posizione.\n\nIl Progetto \"Esempio di Server HTTP\" di Tasker deve essere installato e in esecuzione, e Tasker deve essere versione 6.2 o superiore.\n\nIl dispositivo ti chiederà di autorizzare MapTasker la prima volta."
-
 msgid "This puts the Task straight into Tasker's live configuration on the Android device.  Unlike a Profile, a Project or a Scene, no import screen and no tap on the device are needed -- Tasker's api/import takes a Task directly.\n\nThe Task is copied to /Tasker/tasks on the device first and imported from there, so the copy stays behind as a record of exactly what was imported.  You will be asked before it replaces a file already at that path.\n\nIf Tasker does not report the Task after two attempts, that copy is handed to Android's 'Open with...' chooser instead, so you can import it by picking Tasker.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Questo permette al Task di essere direttamente configurato nell'ambiente live di Tasker sul dispositivo Android. A differenza di un Profilo, un Progetto o una Scena, non è necessario alcun schermo di importazione né un clic sul dispositivo: l'API/import di Tasker accetta il Task direttamente.\n\nIl Task viene prima copiato in `/Tasker/tasks` sul dispositivo e poi importato da lì, in modo che la copia rimanga come riferimento esatto di ciò che è stato importato. Vi verrà chiesto prima di sostituire un file già presente in quella posizione.\n\nSe Tasker non segnala il Task dopo due tentativi, la copia verrà invece offerta al selettore \"Apri con...\" di Android, in modo da poterlo importare selezionando Tasker.\n\nIl Progetto \"Http Server Example\" di Tasker deve essere installato ed in esecuzione, e Tasker deve essere versione 6.2 o superiore.\n\nIl dispositivo vi chiederà di autorizzare MapTasker la prima volta."
-
 msgid "This sends the Scene -- and every Task its elements fire -- to the Android device under its own name, into /Tasker/scenes, and opens Android's 'Open with...' chooser for it.\n\nIf Tasker is in that chooser, pick it.  A Scene is the one kind Tasker has been seen to refuse when it is handed one, so if it is not there -- or nothing happens -- finish it with Tasker's 'Scenes > Import One Scene' and pick the Scene by name.  The file is on the device either way, and the message tells you its name.\n\nYou will be asked before it replaces a file already at that path.\n\nThe 'Http Server Example' Tasker Project must be installed and running, and Tasker must be 6.2 or higher.\n\nThe device will ask you to authorize MapTasker the first time."
 msgstr "Questo invia la scena – e tutti i task e i loro elementi – al dispositivo Android, sotto il suo nome, nella cartella /Tasker/scenes, e apre la funzione \"Apri con...\" di Android per essa.\n\nSe Tasker è presente in quella lista, selezionalo. Una scena è l'unico tipo di task per cui Tasker ha dimostrato di rifiutarsi quando gli viene presentato, quindi se non è presente – o se non succede nulla – utilizzalo con la funzione \"Scene > Importa una scena\" di Tasker e seleziona la scena per nome. Il file sarà comunque presente sul dispositivo, e il messaggio ti indicherà il suo nome.\n\nTi verrà chiesto prima di sostituire un file già presente in quella posizione.\n\nIl progetto \"Http Server Example\" di Tasker deve essere installato ed in esecuzione, e Tasker deve essere versione 6.2 o superiore.\n\nIl dispositivo ti chiederà di autorizzare MapTasker la prima volta."
-
 msgid "left over from an earlier version -- safe to delete in Tasker:"
 msgstr "rimanenze di una versione precedente – sicure da eliminare in Tasker:"
-
 msgid "Clear the field, leaving the action with no icon."
 msgstr "Cancella il campo, lasciando l'azione senza icona."
-
 msgid "Clicking this will launch 'pip install --upgrade maptasker' in the background, and then relaunch MapTasker."
 msgstr "Facendo clic su questo verrà avviato \"pip install --upgrade maptasker\" in background, quindi riavvierà MapTasker."
-
 msgid "Display the changes in the new version."
 msgstr "Visualizza le modifiche nella nuova versione."
-
 msgid "Enables the display a breakdown of the Tasker system Preferences in the output."
 msgstr "Abilita la visualizzazione di una suddivisione delle Preferenze di sistema Tasker nell'output."
-
 msgid "Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, and Prettier Output."
 msgstr "Abilita la visualizzazione di Condizioni, Informazioni TaskerNet, Preferenze, Directory e Risultati più belli."
-
 msgid "Enables the display of Profile Conditions (e.g. State, Event, etc.) details in the output."
 msgstr "Abilita la visualizzazione dei dettagli delle condizioni del profilo (ad esempio stato, evento, ecc.) nell'output."
-
 msgid "Enables the display of TaskerNet Descriptions in the output."
 msgstr "Abilita la visualizzazione delle descrizioni TaskerNet nell'output."
-
 msgid "Enables the display of aligned text in the output."
 msgstr "Abilita la visualizzazione del testo allineato nell'output."
-
 msgid "Enables the display of the Project/Profile/Task/Scene Directory in the output."
 msgstr "Abilita la visualizzazione della directory Progetto/Profilo/Attività/Scena nell'output."
-
 msgid "Fetch the full list of installed Applications from the Android device."
 msgstr "Recupera l'elenco completo delle applicazioni installate dal dispositivo Android."
-
 msgid "Pick a Task which will be called by this action."
 msgstr "Scegli un'attività che verrà richiamata da questa azione."
-
 msgid "Saves this Profile as a standalone .prf.xml file on this computer."
 msgstr "Salva questo profilo come file .prf.xml autonomo su questo computer."
-
 msgid "Select the model belonging to the AI you wish to use."
 msgstr "Seleziona il modello appartenente all'IA che desideri utilizzare."
-
 msgid "This will reach out to your Android device to list the available XML files belonging to Tasker."
 msgstr "Questo raggiungerà il tuo dispositivo Android per elencare i file XML disponibili appartenenti a Tasker."
-
 msgid "When enabled, Task details are hidden under a twisty (expand/collapse) control in the output."
 msgstr "Se abilitati, i dettagli dell'attività vengono nascosti sotto un controllo tortuoso (espandi/comprimi) nell'output."
-
 msgid "Clicking this button will result in the following actions:  \n- The IP Address will be used to ping the Android device.  \n- The IP Address and port number will be used to query the Android device and get a list of available XML files found in the Tasker folder.  \n- The list of found XML files will be presented in a pulldown menu from which you can select the one you want to use.  \n- Once you have selected the XML file, it will be fetched and verified as valid XML which is then used as input to the program once you subsequently click on the 'Run' or 'ReRun' button.  \nThe listing is done by a small Task named 'MapTasker List Files v1', which MapTasker installs on your Android device the first time you use this button and then leaves there.  Nothing has to be imported by hand.  It requires the 'HTTP Server Example' project running on the device and Tasker 6.2 or higher -- the same requirements 'Save to Android' has -- and Tasker will ask you to authorize the connection the first time.  \nAllow a few seconds: installing the Task (once), running it and reading back its answer is not instant.  \n"
 msgstr "Cliccando su questo pulsante verranno eseguite le seguenti azioni:\n- L'indirizzo IP verrà utilizzato per inviare un ping al dispositivo Android.\n- L'indirizzo IP e il numero di porta verranno utilizzati per interrogare il dispositivo Android e ottenere un elenco dei file XML disponibili presenti nella cartella Tasker.\n- L'elenco dei file XML trovati verrà presentato in un menu a tendina da cui è possibile selezionare quello desiderato.\n- Una volta selezionato il file XML, verrà recuperato e verificato come XML valido, che verrà quindi utilizzato come input al programma una volta che si clicca sui pulsanti \"Esegui\" o \"Esegui di nuovo\".\nL'elenco viene effettuato da un piccolo Task chiamato \"MapTasker List Files v1\", che MapTasker installa sul tuo dispositivo Android la prima volta che utilizzi questo pulsante e lo lascia lì. Non è necessario importare manualmente nulla. È necessario che il progetto \"HTTP Server Example\" sia in esecuzione sul dispositivo e che sia installato Tasker 6.2 o superiore – gli stessi requisiti di \"Save to Android\" – e Tasker ti chiederà di autorizzare la connessione la prima volta.\nÈ necessario attendere alcuni secondi: l'installazione del Task (una sola volta), l'esecuzione e la lettura della sua risposta non sono istantanee.\n"
-
 msgid "Display the 'Map', 'Diagram' or 'Tree' view of your configuration directly within the GUI.  \nXML must first be obtained from the either local drive or Android device for the views to work.  \nIf the XML has already been fetched, it will be used as input to the view.  Hitting the 'Clear' button will clear the view data.  \nVery large configurations will incur extended run times for Maps and Diagrams.  For best performance, select a single Project or Profile to map.  \nOptionally, limit the amount of data to be processed by using the 'View Limit' setting.  The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n\nThe Diagram View has the following behavior:  \n - Only Projects and Profiles can be displayed. XML consisting of only a single Task or Scene will not be displayed.  \n - Click on a horizontal connector to highlight the entire connection in the diagram.  \n\nThe Tree View has the following behavior:  \n- Only Projects can be displayed. XML consisting of only a single Profile or Task or Scene will not be displayed.  \n- All Projects, Profiles, Tasks and Scenes are displayed regardless of the single name setting.  \n"
 msgstr "Visualizza la vista \"Mappa\", \"Diagramma\" o \"Albero\" della tua configurazione direttamente nella GUI.  \nAffinché le visualizzazioni funzionino, è necessario prima ottenere XML dall'unità locale o dal dispositivo Android.  \nSe l'XML è già stato recuperato, verrà utilizzato come input per la vista.  Premendo il pulsante \"Cancella\" si cancelleranno i dati di visualizzazione.  \nConfigurazioni molto grandi comporteranno tempi di esecuzione prolungati per mappe e diagrammi.  Per prestazioni ottimali, seleziona un singolo progetto o profilo da mappare.  \nFacoltativamente, limitare la quantità di dati da elaborare utilizzando l'impostazione \"Limite visualizzazione\".  Maggiore è il limite, maggiore sarà l'output che potrà essere mappato.  Maggiore è l'output generato, maggiore è il tempo di elaborazione.  \n\nLa vista diagramma ha il seguente comportamento:  \n - È possibile visualizzare solo progetti e profili. L'XML costituito da una sola attività o scena non verrà visualizzato.  \n - Fare clic su un connettore orizzontale per evidenziare l'intera connessione nello schema.  \n\nLa visualizzazione ad albero ha il seguente comportamento:  \n- È possibile visualizzare solo i progetti. L'XML costituito da un solo profilo, attività o scena non verrà visualizzato.  \n- Tutti i progetti, i profili, le attività e le scene vengono visualizzati indipendentemente dall'impostazione del nome singolo.\n"
-
 msgid "The 'View Limit' is a means to control the amount of processing time used when generating the view.  \n- The numbers represent the relative amount of output lines to be generated.  \n- The larger the limit, the larger the output that will be allowed to be mapped.  The more output that is generated, the greater the processing time.  \n- Very large configurations will generate very large output maps and will cause greater processing time.  On older devices, this can take up to 30 seconds or more.  \n- By setting a limit, you can control the processing time used when mapping a configuration by not allowing longer durations.  \n- If the limit is hit when calculating the map, the output will stop there.  \n- You can experiment with this setting to see which setting is best for your use case.  \n- Selecting a single Project, Profile or Task is another means to limit the processing time.  \n"
 msgstr "Il \"Limite di visualizzazione\" è un mezzo per controllare la quantità di tempo di elaborazione utilizzato durante la generazione della vista.  \n- I numeri rappresentano la quantità relativa di linee di output da generare.  \n- Maggiore è il limite, maggiore sarà l'output che potrà essere mappato.  Maggiore è l'output generato, maggiore è il tempo di elaborazione.  \n- Configurazioni molto grandi genereranno mappe di output molto grandi e causeranno tempi di elaborazione maggiori.  Sui dispositivi più vecchi, l'operazione può richiedere fino a 30 secondi o più.  \n- Impostando un limite, è possibile controllare il tempo di elaborazione utilizzato durante la mappatura di una configurazione non consentendo durate più lunghe.  \n- Se il limite viene raggiunto durante il calcolo della mappa, l'output si fermerà lì.  \n- Puoi sperimentare questa impostazione per vedere quale è la migliore per il tuo caso d'uso.  \n- Selezionare un singolo progetto, profilo o attività è un altro mezzo per limitare il tempo di elaborazione.\n"
-
 msgid "The Analyze tab is used to run the Ai analysis on your Profile, using either the local llama model or the server-based Open AI, Claude or DeepSeek models.  \nThe following steps are required in order to run AI against your Profile.  \n1- If using a server-based AI, you must have a valid API key from the provider (e.g. OpenAI).  You can use the 'Show/Edit API Key(s)' button to enter your key(s).  \n2- The default prompt is: 'suggest improvements in performance and readibility: (your project/profile/task)', and is automatically preceded by: 'Given the following (Project/Profile/Task) in Tasker, '.  If modifying the prompt, you are only modifing the 'suggest improvements...' portion.  \n3- Select the model you want to use.  \n   o The model selected will determine with which AI the analysis is to be performed.  \n4- Click the 'Run Analysis' button.  It will turn green when all of the necessary data has been entered.  \n   o If you have not yet selected a model, prompt or single Project, Profile or Task, or valid API key, then you will be prompted to do so first.  \n   o The process may take some time and runs in the background.  The results will appear in a separate window.  \n   o Local models not yet loaded onto your computer will be loaded in the background once the analysis begins.  \nYour designated api-keys (if any), model, selected Project, Profile or Task and Ai prompt will all be saved across sessions.  \nThe 'Rerun' feature will be used under-the-covers to display the results of the analysis in a new window.  \n"
 msgstr "La scheda Analizza viene utilizzata per eseguire l'analisi Ai sul tuo profilo, utilizzando il modello lama locale o i modelli Open AI, Claude o DeepSeek basati su server.  \nPer eseguire l'intelligenza artificiale sul tuo profilo sono necessari i seguenti passaggi.  \n1- Se si utilizza un'intelligenza artificiale basata su server, è necessario disporre di una chiave API valida dal provider (ad esempio OpenAI).  Puoi utilizzare il pulsante \"Mostra/Modifica chiave(i) API\" per inserire le tue chiavi.  \n2- Il messaggio predefinito è: \"suggerisci miglioramenti in termini di prestazioni e leggibilità: (il tuo progetto/profilo/attività)\", ed è automaticamente preceduto da: \"Dato quanto segue (Progetto/Profilo/Attività) in Tasker, \".  Se modifichi il prompt, stai modificando solo la parte \"suggerisci miglioramenti...\".  \n3- Seleziona il modello che desideri utilizzare.  \n   o Il modello selezionato determinerà con quale IA verrà eseguita l'analisi.  \n4- Fare clic sul pulsante \"Esegui analisi\".  Diventerà verde una volta inseriti tutti i dati necessari.  \n   o Se non hai ancora selezionato un modello, un prompt o un singolo progetto, profilo o attività oppure una chiave API valida, ti verrà chiesto di farlo prima.  \n   o Il processo potrebbe richiedere del tempo e verrà eseguito in background.  I risultati appariranno in una finestra separata.  \n   o I modelli locali non ancora caricati sul computer verranno caricati in background una volta iniziata l'analisi.  \nLe chiavi API designate (se presenti), il modello, il progetto, il profilo o l'attività selezionati e il prompt Ai verranno tutti salvati tra le sessioni.  \nLa funzione \"Riesegui\" verrà utilizzata segretamente per visualizzare i risultati dell'analisi in una nuova finestra.\n"
-
 msgid "The following steps are required in order to fetch a Tasker XML file directly from your Android device.  \n1- Both this device and the Android device must be on the same named network.  \n2- The Tasker Project 'HTTP Server Example' or identical function must be installed and active on the Android device (the server must be running):  \n    https://tinyurl.com/4p5cz8sv  \nThat is the only setup required.  The 'List XML Files' option used to need a second, separate profile ('MapTasker List') imported from TaskerNet and left enabled; it no longer does.  MapTasker now installs a small Task named 'MapTasker List Files v1' on the device to do the listing, the same way 'App not listed?' installs one to fetch your applications.  \nYou will be asked for the IP address, the port number for your Android device, as well as the file location on the Android device.  Default values are supplied, where...  \n'192.168.0.210' is the default IP address,  \n'1821' is the default port number for the Tasker HTTP Server Example running on your Android device  \n'/Tasker/configs/user/backup.xml' is the default file location.  If you don't know the file location and have already entered your IP address and port, then you can select the 'List XML Files' button to get a list of available XML files on your Android device for selection.  \nUsage Notes:  \nThe IP address and port can be obtained by installing the 'HTTP Server Example' project from the above URL on your Android device. Then run the task named 'Update GD HTTP Info' to get the Android notification:  \nHTTP Server Info\nServer info updated {\"device name\":\"http://192.168.0.49:1821\"}  \n- To fetch the XML file, click on the button  \n 'Get XML from Android Device'  \nThen modify the default values presented in the input fields below this button, and then click on the button 'Enter and Click Here to Set XML Details' or 'List XML Files'.  \n- Hitting either button will ping the Android device to see if it is available.  The ping will timeout after 10 seconds if the device is not reachable.  Make sure that the IP address is correct.  \nClick on the 'Cancel Entry' button to back out of this fetch process.  \n"
 msgstr "I seguenti passaggi sono necessari per recuperare un file XML Tasker direttamente dal tuo dispositivo Android.  \n1- Sia questo dispositivo che il dispositivo Android devono trovarsi sulla stessa rete denominata.  \n2- Il progetto Tasker 'HTTP Server Esempio' o una funzione identica deve essere installato e attivo sul dispositivo Android (il server deve essere in esecuzione):  \n    https://tinyurl.com/4p5cz8sv  \nQuesta è l'unica configurazione richiesta.  L'opzione 'Elenca file XML' richiedeva un secondo profilo separato (\"Elenco MapTasker\") importato da TaskerNet e lasciato abilitato; non lo fa più.  MapTasker ora installa una piccola attività denominata \"MapTasker List Files v1\" sul dispositivo per eseguire l'elenco, allo stesso modo di \"App non elencata?\" ne installa uno per recuperare le tue applicazioni.  \nTi verrà chiesto l'indirizzo IP, il numero di porta del tuo dispositivo Android e la posizione del file sul dispositivo Android.  Vengono forniti i valori predefiniti, dove...  \n'192.168.0.210' è l'indirizzo IP predefinito,  \n'1821' è il numero di porta predefinito per Tasker HTTP Server Esempio in esecuzione sul tuo dispositivo Android  \n'/Tasker/configs/user/backup.xml' è il percorso file predefinito.  Se non conosci la posizione del file e hai già inserito il tuo indirizzo IP e la porta, puoi selezionare il pulsante \"Elenca file XML\" per ottenere un elenco di file XML disponibili sul tuo dispositivo Android da selezionare.  \nNote sull'utilizzo:  \nL'indirizzo IP e la porta possono essere ottenuti installando il progetto \"HTTP Server Esempio\" dall'URL sopra riportato sul tuo dispositivo Android. Quindi esegui l'attività denominata \"Aggiorna informazioni HTTP GD\" per ricevere la notifica Android:  \nInformazioni sul server HTTP\nInformazioni sul server aggiornate {\"nome dispositivo\":\"http://192.168.0.49:1821\"}  \n- Per recuperare il file XML, fare clic sul pulsante  \n \"Ottieni XML dal dispositivo Android\"  \nQuindi modificare i valori predefiniti presentati nei campi di input sotto questo pulsante, quindi fare clic sul pulsante \"Inserisci e fai clic qui per impostare i dettagli XML\" o \"Elenca file XML\".  \n- Premendo uno dei pulsanti verrà eseguito il ping del dispositivo Android per vedere se è disponibile.  Il ping scade dopo 10 secondi se il dispositivo non è raggiungibile.  Assicurati che l'indirizzo IP sia corretto.  \nFare clic sul pulsante \"Annulla voce\" per annullare il processo di recupero.\n"
-
 msgid "This menu is where you define your AI API keys for use by the AI 'Analyze' button.  \nThe keys are saved across sessions.  \nThe keys are used to access the OpenAI, Claude AI, Gemini AI, and DeepSeek AI server-based models.  \nClick on the 'Clear' button to clear a specific API key entry.  \nSelect 'Ok' to save the changes or 'Cancel' to back out of the changes.  \n"
 msgstr "In questo menu puoi definire le chiavi API AI da utilizzare con il pulsante \"Analizza\" AI.  \nLe chiavi vengono salvate tra le sessioni.  \nLe chiavi vengono utilizzate per accedere ai modelli basati su server OpenAI, Claude AI, Gemini AI e DeepSeek AI.  \nFare clic sul pulsante \"Cancella\" per cancellare una voce chiave API specifica.  \nSeleziona \"Ok\" per salvare le modifiche o \"Annulla\" per annullare le modifiche.\n"
-
 msgid "A Legacy Scene has a pixel canvas and a list of UI elements. It is the original Scene format, and is what Tasker itself produces."
 msgstr "Una scena legacy ha una tela di pixel e un elenco di elementi dell'interfaccia utente. È il formato Scena originale ed è ciò che Tasker stesso produce."
-
 msgid "Displays the Diagram view.\n\nUse this to visualize the relationships between your Projects, Profiles, Tasks, and Scenes."
 msgstr "Mostra la vista del diagramma.\n\nUtilizza questa funzione per visualizzare le relazioni tra i tuoi progetti, profili, attività e scene."
-
 msgid "Displays the Map view.\n\nUse this to display the Tasker configuration of your Projects, Profiles, Tasks, and Scenes."
 msgstr "Visualizza la vista Mappa.\n\nUtilizzalo per visualizzare la configurazione Tasker di progetti, profili, attività e scene."
-
 msgid "Displays the Tree view.\n\nUse this to navigate the hierarchical structure of your Projects, Profiles, Tasks, and Scenes."
 msgstr "Visualizza la visualizzazione ad albero.\n\nUsalo per navigare nella struttura gerarchica dei tuoi progetti, profili, attività e scene."
-
 msgid "Exports the Task as XML to a file on your computer."
 msgstr "Esporta l'attività come XML in un file sul tuo computer."
-
 msgid "Saves this Profile, with all of its conditions and linked Tasks, as one standalone .prf.xml file -- the same format Tasker's own Profile export produces.\n\nTasks the Profile runs are not included; they belong to their own Project."
 msgstr "Salva questo profilo, con tutte le sue condizioni e le attività collegate, come un file .prf.xml autonomo: lo stesso formato prodotto dall'esportazione del profilo di Tasker.\n\nLe attività eseguite dal profilo non sono incluse; appartengono al proprio Progetto."
-
 msgid "Select a specific Profile to target for display or editing."
 msgstr "Seleziona un profilo specifico da targetizzare per la visualizzazione o la modifica."
-
 msgid "Select a specific Project to target for display or editing."
 msgstr "Seleziona un progetto specifico da targetizzare per la visualizzazione o la modifica."
-
 msgid "Select a specific Scene to target for display or editing."
 msgstr "Seleziona una scena specifica da targetizzare per la visualizzazione o la modifica."
-
 msgid "Select a specific Task to target for display or editing."
 msgstr "Seleziona un'attività specifica da destinare alla visualizzazione o alla modifica."
-
 msgid "Select this to include Profiles and Tasks that do not have a name in the list."
 msgstr "Seleziona questa opzione per includere Profili e Attività che non hanno un nome nella lista."
-
 msgid "Choose from the icons used in the loaded configuration, and from your device's applications if you have fetched them."
 msgstr "Scegli tra le icone utilizzate nella configurazione caricata, e tra le applicazioni del tuo dispositivo se le hai scaricate."
-
 msgid "Icons come from the same place Applications do: Tasker identifies an application's own icon by its package and launcher activity, so every application found on the device becomes an icon you can pick.\n\nTasker's own built-in icons cannot be fetched -- they live inside Tasker itself -- and neither can the icons inside an icon pack, which have to be typed by name."
 msgstr "Gli icone provengono dalla stessa fonte delle applicazioni: Tasker identifica l'icona di un'applicazione in base al suo pacchetto e all'attività del launcher, quindi ogni applicazione presente sul dispositivo può diventare un'icona selezionabile.\n\nLe icone integrate in Tasker non possono essere recuperate: risiedono all'interno di Tasker stesso, e allo stesso modo, le icone all'interno di un pacchetto di icone devono essere inserite manualmente digitando il nome."
-
 msgid "The icons used somewhere in the loaded configuration, plus every application's own icon if you have fetched them from your device.  What you pick replaces what the field holds.  An icon from an icon pack that isn't listed has to be typed: its names live inside the pack."
 msgstr "Gli icone utilizzate da qualche parte nella configurazione caricata, insieme all'icona di ogni applicazione se l'hai recuperata dal tuo dispositivo. L'icona che selezioni sostituisce il contenuto del campo. Se l'icona proviene da un pacchetto di icone non elencato, è necessario digitarne il nome: le informazioni si trovano all'interno del pacchetto."
-
 msgid "See the MapTasker [Command Reference](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference) for more information.  \n"
-msgstr "Per ulteriori informazioni, vedere MapTasker [riferimento comandi](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference).\n"
-
+msgstr "Per ulteriori informazioni, vedere MapTasker [riferimento comandi](https://github.com/mctinker/Map-Tasker/wiki/Command-Reference)\n"
 msgid "(anonymous Task, stored in the Scene)"
 msgstr "(attività anonima, memorizzata nella scena)"
-
 msgid "(new variable)"
 msgstr "(nuova variabile)"
-
 msgid "(no label)"
 msgstr "(nessuna etichetta)"
-
 msgid "A comma-separated list of the tabs to show in the action bar. Selecting one fires the Event tab's Tab Tap Task."
 msgstr "Un elenco separato da virgole delle schede da visualizzare nella barra delle azioni. Selezionandone uno si attiva l'attività Tab Tap della scheda Evento."
-
 msgid "A slash-separated list of the keys to handle -- by name or by code, e.g. back/78/a. Any other key is passed on to the system.\nLeave it empty to handle every key."
 msgstr "Un elenco separato da barre delle chiavi da gestire, per nome o per codice, ad es. indietro/78/a. Qualsiasi altra chiave viene trasmessa al sistema.\nLascialo vuoto per gestire ogni chiave."
-
 msgid "Action Bar Style, Title, Subtitle, Icon and Tab Labels apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "Lo stile della barra delle azioni, il titolo, il sottotitolo, l'icona e le etichette delle schede si applicano solo a un'attività. Sono ancora archiviati e vengono visualizzati se si passa da Tipo di proprietà ad Attività."
-
 msgid "Action bar"
 msgstr "Barra delle azioni"
-
 msgid "Action bar items apply to an Activity only. They are still stored, and are shown if you switch Property Type to Activity."
 msgstr "Gli elementi della barra delle azioni si applicano solo a un'attività. Sono ancora archiviati e vengono visualizzati se si passa da Tipo di proprietà ad Attività."
-
 msgid "Actions of the"
 msgstr "Azioni del"
-
 msgid "Add Variable"
 msgstr "Aggiungi variabile"
-
 msgid "Add an action bar item"
 msgstr "Aggiungi un elemento della barra delle azioni"
-
 msgid "Adds this Task to the loaded configuration and points this event at it, the same as 'Ok' in the Add Task dialog -- nothing is written to a file and nothing is sent to Android.  Ok does it for you too, so this is only for creating it without closing.\nUntil then the Task exists only in this window and Cancel discards it. Afterwards it is a Task like any other -- Cancel takes the binding back but not the Task, and Undo takes both."
 msgstr "Aggiunge questa attività alla configurazione caricata e punta questo evento su di essa, come \"Ok\" nella finestra di dialogo Aggiungi attività: nulla viene scritto su un file e nulla viene inviato ad Android.  Ok, lo fa anche per te, quindi serve solo per crearlo senza chiuderlo.\nFino ad allora l'attività esiste solo in questa finestra e Annulla la scarta. Successivamente è un'attività come le altre: Annulla ripristina l'associazione ma non l'attività, mentre Annulla riprende entrambe."
-
 msgid "Any key handled by the scene is not passed on to the system -- how a Scene keeps the back key from closing it.\nWritten the way Tasker writes it: a <stopEvent> inside the Scene's <LinkClickFilter>, created when this is ticked and taken away again when it is unticked and nothing else is left in it."
 msgstr "Qualsiasi tasto gestito dalla scena non viene trasmesso al sistema: come una scena impedisce al tasto Indietro di chiuderla.\nScritto nel modo in cui lo scrive Tasker: un <stopEvent> all'interno del <LinkClickFilter> della scena, creato quando questo è selezionato e portato via di nuovo quando è deselezionato e non rimane nient'altro al suo interno."
-
 msgid "Apply to Task"
 msgstr "Applica all'attività"
-
 msgid "Changes kept for Task"
 msgstr "Modifiche mantenute per l'attività"
-
 msgid "Create Task"
 msgstr "Crea attività"
-
 msgid "Created Task"
 msgstr "Attività creata"
-
 msgid "Display Name"
 msgstr "Nome da visualizzare"
-
 msgid "Exported Value"
 msgstr "Valore esportato"
-
 msgid "Icon"
 msgstr "Icona"
-
 msgid "Keeps everything, including the actions of any Task edited under the Event tab.\nA Task composed under an event that had none is created and bound if you put any actions in it. Undo takes a Task edit back."
 msgstr "Mantiene tutto, comprese le azioni di qualsiasi attività modificata nella scheda Evento.\nUn'attività composta in un evento che non ne aveva nessuno viene creata e associata se si inseriscono delle azioni al suo interno. Annulla ripristina la modifica di un'attività."
-
 msgid "Keys"
 msgstr "Chiavi"
-
 msgid "Load a Tasker configuration first -- a new Task needs one to get an id."
 msgstr "Carica prima una configurazione di Tasker: una nuova attività ne ha bisogno per ottenere un ID."
-
 msgid "Name"
 msgstr "Nome"
-
 msgid "New Task Name"
 msgstr "Nuovo nome attività"
-
 msgid "No Task matches."
 msgstr "Nessuna attività corrisponde."
-
 msgid "No action bar items."
 msgstr "Nessun elemento della barra delle azioni."
-
 msgid "No variables."
 msgstr "Nessuna variabile."
-
 msgid "Nothing -- this event fires no Task."
 msgstr "Niente: questo evento non attiva alcuna attività."
-
 msgid "Nothing is bound yet, so these actions go into a new Task. It is created, and this event pointed at it, when you press the button below or Ok. Cancel discards it."
 msgstr "Non è ancora stato vincolato nulla, quindi queste azioni vengono inserite in una nuova attività. Viene creato, e questo evento lo indica, quando si preme il pulsante in basso o Ok. Annulla lo scarta."
-
 msgid "Nothing set."
 msgstr "Niente di impostato."
-
 msgid "Prompt"
 msgstr "Richiesta"
-
 msgid "Properties kept."
 msgstr "Proprietà mantenute."
-
 msgid "Puts these action edits into the loaded configuration now, without closing -- the same as 'Ok' in the Edit Task dialog.  Ok does it for you here too, so this is only for keeping them mid-edit.\nNothing is written to a file and nothing is sent to Android. This Task is not part of the Scene, so neither this window's Cancel nor the Scene dialog's takes these edits back once they have landed. Undo does."
 msgstr "Inserisce subito queste modifiche all'azione nella configurazione caricata, senza chiudere, come con \"Ok\" nella finestra di dialogo Modifica attività.  Ok, lo fa anche per te qui, quindi è solo per mantenerli a metà modifica.\nNulla viene scritto su un file e nulla viene inviato ad Android. Questa attività non fa parte della scena, quindi né l'annullamento di questa finestra né la finestra di dialogo della scena ripristinano queste modifiche una volta apportate. Annulla lo fa."
-
 msgid "Puts these properties back the way they were when this window opened, and drops the actions of any Task edited under the Event tab.\nA Task already put into the configuration by its own button -- 'Apply to Task', or 'Create Task' -- stays there. Undo takes those back."
 msgstr "Riporta queste proprietà allo stato in cui si trovavano all'apertura della finestra ed elimina le azioni di qualsiasi attività modificata nella scheda Evento.\nUn'attività già inserita nella configurazione tramite il proprio pulsante - \"Applica all'attività\" o \"Crea attività\" - rimane lì. Annulla li riprende."
-
 msgid "Remove Variable"
 msgstr "Rimuovi variabile"
-
 msgid "Same as Value"
 msgstr "Uguale a Valore"
-
 msgid "Scene properties changes discarded."
 msgstr "Le modifiche alle proprietà della scena vengono eliminate."
-
 msgid "Search Tasks"
 msgstr "Compiti di ricerca"
-
 msgid "Stop Event"
 msgstr "Evento interrotto"
-
 msgid "The home icon at the top left of the action bar. Tapping it fires the Event tab's Home Tap Task."
 msgstr "L'icona a forma di casa nella parte superiore a sinistra della barra delle azioni. Toccandola, si avvia il compito \"Home Tap\" nella scheda \"Eventi\"."
-
 msgid "There are no Tasks in this configuration."
 msgstr "Non ci sono attività definite in questa configurazione."
-
 msgid "This Task is stored inside the Scene and is not in the Task list, so its actions cannot be edited here. It is carried through untouched."
 msgstr "Questa attività è memorizzata all'interno della scena e non è presente nella lista delle attività, pertanto non è possibile modificarla qui. Rimane intatta."
-
 msgid "This item has no action."
 msgstr "Questo elemento non ha alcuna funzione o azione."
-
 msgid "Type"
 msgstr "Tipo"
-
 msgid "Under 'Exported Value' if you disable the 'Same as Value' option, you can customize what value gets exported when you share the variable with other users.\nYou can keep the 'Exported Value' field blank if you want the export to not have a value at all, or you can set the value you wish to always use for exports.\nIf you enable the 'Same as Value' option, the current variable value will be used when exporting."
 msgstr "Nella sezione \"Valore esportato\", se disabiliti l'opzione \"Uguale al valore\", potrai personalizzare quale valore verrà esportato quando condividi la variabile con altri utenti.\nPuoi lasciare vuoto il campo \"Valore esportato\" se desideri che l'esportazione non contenga alcun valore, oppure puoi impostare il valore che desideri utilizzare sempre per le esportazioni.\nSe abiliti l'opzione \"Uguale al valore\", verrà utilizzato il valore corrente della variabile durante l'esportazione."
-
 msgid "Where an item ends up is decided by what you give it: an icon alone is always in the main bar, an icon and a label are shown there if there is room, and a label alone is always in the overflow menu (the 3 dots at the top right in Tasker)."
 msgstr "La posizione in cui un elemento viene visualizzato dipende da ciò che gli viene assegnato: un'icona da sola è sempre nella barra principale, un'icona e un'etichetta vengono visualizzate se c'è spazio, e un'etichetta da sola è sempre nel menu di overflow (i tre punti in alto a destra in Tasker)."
-
 msgid "fires a Task on"
 msgstr "avvia un'attività"
-
 msgid "is not in this backup, so there are no actions to show."
 msgstr "non è presente in questa copia di backup, quindi non ci sono azioni da visualizzare."
-
 msgid "no editable arguments."
 msgstr "nessun argomento modificabile."
-
 msgid "swallows the key press"
 msgstr "inghiotte la pressione del tasto"
-
 msgid "Reads the XML back before it is sent, and refuses the save if anything changed on the way through.\n\nWhat this catches is the class of failure nothing else in the save path can: a value that this program's own writer and reader disagree about -- a carriage return inside a name, say, which is written out as typed and read back as a newline.  The upload answers 200 and the file on the device matches the file that was sent, because both are already wrong.\n\nEvery object going up is compared against the one in the loaded configuration, including the Profiles, Scenes and Tasks bundled in that you did not edit.  Nothing is sent if any of them differs; you get a report saying which and where.\n\nIt costs a fraction of a second and contacts nothing -- the whole check runs here, before the device is touched."
 msgstr "Rilegge l'XML prima che venga inviato e rifiuta il salvataggio se qualcosa è cambiato durante il processo.\n\nCiò che questo rileva è la classe di fallimento che nient'altro nel percorso di salvataggio può fare: un valore su cui lo scrittore e il lettore di questo programma non sono d'accordo - un ritorno a capo all'interno di un nome, diciamo, che viene scritto come digitato e riletto come una nuova riga.  Il caricamento risponde 200 e il file sul dispositivo corrisponde al file inviato, perché entrambi sono già sbagliati.\n\nOgni oggetto visualizzato viene confrontato con quello nella configurazione caricata, inclusi i profili, le scene e le attività raggruppati che non hai modificato.  Non viene inviato nulla se qualcuno di essi differisce; ricevi un rapporto che dice quale e dove.\n\nCosta una frazione di secondo e non contatta nulla: l'intero controllo viene eseguito qui, prima che il dispositivo venga toccato."
-
 msgid "This opens a choice of two: write the Task as a standalone file onto your Android device under /Tasker/tasks, or import it straight into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes), and Tasker must be 6.2 or higher.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while either one runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it.\n\nYou must exit and restart Tasker to see an imported Task in the Tasker UI."
 msgstr "Questo apre una scelta tra due: scrivere l'attività come file autonomo sul tuo dispositivo Android in /Tasker/tasks o importarla direttamente nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione (vedere le note sul recupero XML diretto del README) e Tasker deve essere 6.2 o versione successiva.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre uno dei due è in esecuzione: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce.\n\nÈ necessario uscire e riavviare Tasker per visualizzare un'attività importata nell'interfaccia utente di Tasker."
-
 msgid "This will write the Profile as a standalone file onto the Android device, under /Tasker/profiles.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Questo scriverà il profilo come file autonomo sul dispositivo Android, in /Tasker/profiles.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project (http://spoo.me/http_svr_example) must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Questo scriverà il profilo come file autonomo sul tuo dispositivo Android, in /Tasker/profiles - non lo importerà nella configurazione live di Tasker.\n\nIl progetto Tasker 'Http Server Esempio' (http://spoo.me/http_svr_example) deve essere installato e attivo sul dispositivo Android, con il server in esecuzione (vedere le note sul recupero XML diretto del README).\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
-
 msgid "This will write the Profile as a standalone file onto your Android device, under /Tasker/profiles -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running (see the README's Direct XML Retrieval notes).\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Questo scriverà il profilo come file autonomo sul tuo dispositivo Android, in /Tasker/profiles - non lo importerà nella configurazione live di Tasker.\n\nIl progetto Tasker 'Http Server Esempio' deve essere installato e attivo sul dispositivo Android, con il server in esecuzione (vedere le note sul recupero XML diretto del README).\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
-
 msgid "This will write the Project, and everything in it -- every Profile and Task -- as a standalone file onto your Android device, under /Tasker/projects -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Questo scriverà il progetto e tutto ciò che contiene - ogni profilo e attività - come file autonomo sul tuo dispositivo Android, in /Tasker/projects - non lo importerà nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
-
 msgid "This will write the Project, and everything in it, as a standalone file onto the Android device, under /Tasker/projects.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Questo scriverà il progetto, e tutto ciò che contiene, come file autonomo sul dispositivo Android, in /Tasker/projects.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
-
 msgid "This will write the Scene as a standalone file onto the Android device, under /Tasker/scenes.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Questo scriverà la scena come file autonomo sul dispositivo Android, in /Tasker/scene.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
-
 msgid "This will write the Scene as a standalone file onto your Android device, under /Tasker/scenes -- it does not import it into Tasker's live configuration.\n\nThe 'Http Server Example' Tasker Project must be installed and active on the Android device, with the server running.\n\nThe Android device must be on the same network, and the IP Address and Port must match its Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Questo scriverà la scena come file autonomo sul tuo dispositivo Android, in /Tasker/scene - non la importerà nella configurazione live di Tasker.\n\nIl progetto Tasker \"Esempio server HTTP\" deve essere installato e attivo sul dispositivo Android, con il server in esecuzione.\n\nIl dispositivo Android deve trovarsi sulla stessa rete e l'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
-
 msgid "This will write the Task as a standalone file onto the Android device, under /Tasker/tasks.\n\nThe IP Address and Port must match the Android device's Tasker server settings.\n\nWatch the Android device while this runs: Tasker asks you to authorize the connection several times for one save, and a prompt left untapped fails it."
 msgstr "Questo scriverà l'attività come file autonomo sul dispositivo Android, in /Tasker/tasks.\n\nL'indirizzo IP e la porta devono corrispondere alle impostazioni del server Tasker del dispositivo Android.\n\nGuarda il dispositivo Android mentre viene eseguito: Tasker ti chiede di autorizzare la connessione più volte per un salvataggio e un prompt lasciato non sfruttato fallisce."
-
 msgid "Verify"
 msgstr "Verificare"
-
 msgid "Verify Failed -- Nothing Was Sent"
 msgstr "Verifica non riuscita: non è stato inviato nulla"
-
 msgid "Watch your Android device: Tasker will ask you to authorize the connection several times."
 msgstr "Guarda il tuo dispositivo Android: Tasker ti chiederà più volte di autorizzare la connessione."
-
 msgid "Your Android device was not contacted and nothing on it was changed.  The loaded configuration is untouched as well -- this is a check on what was about to be written, not on what is on the device."
 msgstr "Il tuo dispositivo Android non è stato contattato e non è stato modificato nulla su di esso.  Anche la configurazione caricata non è stata modificata: si tratta di un controllo su ciò che stava per essere scritto, non su ciò che è presente sul dispositivo."
-
 msgid "'Refactor' makes the structural changes that Add, Edit and Delete cannot: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "'Rifattorizza' consente di apportare modifiche strutturali che le funzioni di Aggiungi, Modifica ed Elimina non possono: estrarre una sequenza di azioni di un Task e trasformarla in un Task separato, ripristinare un Task al suo chiamante, spostare un Task o un Profilo in un altro Progetto, o duplicare qualsiasi oggetto.\n\nNessuna modifica viene apportata fino a quando non si preme \"Anteprima\" e quindi \"Applica\". In questo modo, l'anteprima mostra passo dopo passo cosa accadrà – o perché non accadrà.\n\nL'intero processo di rifattorizzazione richiede un solo comando \"Annulla\" dopo.\n\n"
-
 msgid "...to this Project"
 msgstr "...a questo progetto"
-
 msgid "Apply"
 msgstr "Fare domanda a"
-
 msgid "Choose a single Task in 'Specific Name' to also see it drawn as a flowchart."
 msgstr "Scegli una singola attività in \"Nome specifico\" per vederla disegnata anche come diagramma di flusso."
-
 msgid "Could not find Task"
 msgstr "Impossibile trovare l'attività."
-
 msgid "Drawing the first."
 msgstr "Fare il primo disegno."
-
 msgid "Duplicate this"
 msgstr "Duplica questo"
-
 msgid "Fill in every box first."
 msgstr "Compila ogni casella prima."
-
 msgid "First action"
 msgstr "Prima azione"
-
 msgid "Flowchart saved as"
 msgstr "Diagramma di flusso salvato con nome"
-
 msgid "From Task"
 msgstr "Dall'attività"
-
 msgid "In Task"
 msgstr "Nel compito"
-
 msgid "Inline this call"
 msgstr "In linea questa chiamata"
-
 msgid "Last action"
 msgstr "Ultima azione"
-
 msgid "More than one Task is named"
 msgstr "Viene nominata più di un'attività"
-
 msgid "Move this"
 msgstr "Sposta questo"
-
 msgid "New Task name"
 msgstr "Nuovo nome dell'attività"
-
 msgid "New name (optional)"
 msgstr "Nuovo nome (facoltativo)"
-
 msgid "Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.\n\nWith a single Task chosen in the 'Specific Name' tab, that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.\n\nResults are displayed here and saved to a text file in the current directory."
 msgstr "Leggi il flusso di controllo di ogni attività - i suoi If/Else/End If, For/End For, Goto e Stop - e segnala ciò che non tiene insieme: un blocco che non viene mai chiuso, un Goto mirato a un'etichetta che nessuna azione porta e azioni che nulla potrà mai raggiungere.\n\nCon una singola attività scelta nella scheda \"Nome specifico\", tale attività viene anche disegnata come un diagramma di flusso nella propria finestra, con una freccia da ogni Vai all'azione su cui si ferma.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."
-
 msgid "Refactor"
 msgstr "Rielaborare"
-
 msgid "Refactor preview could not be saved."
 msgstr "Non è stato possibile salvare la anteprima della refactoring."
-
 msgid "Refactor preview saved as"
 msgstr "Anteprima del refactoring salvata con nome"
-
 msgid "Task Flow"
 msgstr "Flusso di lavoro"
-
 msgid "Task Flow View opened in a new browser window."
 msgstr "La vista del flusso di lavoro è stata aperta in una nuova finestra del browser."
-
 msgid "Task Flow found no control-flow problems."
 msgstr "Task Flow non ha rilevato problemi di flusso di controllo."
-
 msgid "Task Flow report could not be saved."
 msgstr "Il rapporto sullo flusso di lavoro non è stato salvato."
-
 msgid "Task Flow report saved as"
 msgstr "Rapporto sul flusso di lavoro salvato come"
-
 msgid "cannot be done"
 msgstr "non è possibile"
-
 msgid "steps"
 msgstr "passaggi"
-
 msgid "has no Tasks to extract from"
 msgstr "non ha attività da cui estrarre"
-
 msgid "Change or clear that selection to reach other Tasks"
 msgstr "Modifica o elimina quella selezione per accedere ad altre attività."
-
 msgid "Extract works on"
 msgstr "Estrarre informazioni da"
-
 msgid "The structural changes that Add, Edit and Delete cannot make: pull a run of a Task's actions out into a Task of their own, fold a Perform Task back into its caller, move a Task or Profile to another Project, or duplicate any object.\n\nNothing is changed until you press Preview and then Apply, and the preview says what will happen step by step -- or why it will not.\n\nThe whole of a refactor is one press of Undo afterwards.\n\n"
 msgstr "Le modifiche strutturali che le funzioni Aggiungi, Modifica e Elimina non possono effettuare: estrarre una sequenza di azioni di un Task e trasformarla in un Task separato, riportare un Task al suo chiamante, spostare un Task o un Profilo in un altro Progetto, oppure duplicare qualsiasi oggetto.\n\nNiente cambia fino a quando non si preme \"Anteprima\" e poi \"Applica\". In questo modo, l'anteprima mostra passo dopo passo cosa accadrà – o perché non accadrà.\n\nL'intero processo di refactoring può essere completato con un solo comando \"Annulla\".\n\n"
-
 msgid "What to call the copy.  Left empty, a free name is chosen for you -- the original's with '(copy)' after it."
 msgstr "Come chiamare la copia. Se lasciato vuoto, verrà scelto un nome a caso per te – quello originale sarà seguito dalla dicitura '(copia)'."
-
 msgid "What to call the new Task.  The 'Perform Task' left behind calls it by this name, so it has to be a name no other Task already has."
 msgstr "Come chiamare la nuova attività.  L'\"Esegui attività\" lasciata lo chiama con questo nome, quindi deve essere un nome che nessun'altra attività ha già."
-
 msgid "is selected above and has no Tasks to extract from"
 msgstr "è selezionato sopra e non ha attività da cui estrarre"
-
 msgid "selected in the pulldowns above"
 msgstr "selezionati dai menu a tendina sopra"
-
 msgid "Click any line above to see that place in the Map view."
 msgstr "Fare clic su una qualsiasi delle linee precedenti per visualizzare quel luogo nella vista della mappa."
-
 msgid "If you delete them too"
 msgstr "Se le elimini anche tu"
-
 msgid "If you keep the contents"
 msgstr "Se desiderate conservare i contenuti"
-
 msgid "Building the"
 msgstr "Costruzione di"
-
 msgid "Building the view"
 msgstr "Creare la visualizzazione"
-
 msgid "Building the view.  Please stand by ..."
 msgstr "Creazione della visualizzazione. Si prega di attendere..."
-
 msgid "MapTasker displays your Android Tasker configuration based on your uploaded Tasker XML file (e.g. 'backup.xml'). The display will optionally include all Projects, Profiles, Tasks and their actions, Profile/Task conditions and other Profile/Task related information.  \nOnce the XML file is loaded, you can optionally edit your Projects, Profiles, Tasks, and Scenes.  \n* Display options are:\n    Level 0: display first Task action only, for unnamed Tasks only (silent).\n    Level 1 = display all Task action details for unknown Tasks only (default).\n    Level 2 = display full Task action name on every Task.\n    Level 3 = display full Task action details on every Task with action details.\n    Level 4 = display level of 3 plus Project's global variables.\n    Level 5 = display level of 4 plus Scene argument details.  \n* Just Display Everything: Turns on the display of conditions, TaskerNet information, preferences, pretty output, directory, and configuration outline.  \n* Display Conditions: Turn on the display of Profile and Task conditions.  \n* Display TaskerNet Info - If available, display TaskerNet publishing information.  \n* Display Tasker Preferences - display Tasker's system Preferences.  \n* Hide Task Details under Twisty: hide Task information within ► and click to display.  \n* Display Directory of hyperlinks at beginning.  \n* Display Prettier Output: Make the output more human-readable by adding newlines and indentation for all arguments.  \n* Project/Profile/Task/Scene Names options to italicize, bold, underline and/or highlight their names.  \n* Task Action Limit: display a warning if the Task has more than the specified number of actions.  \n* Indentation amount for If/Then/Else Task Actions.  \n* Language: Select the language to be used for the output.  The default is English.  \n* Font To Use: Change the monospace font used for the output.  \n* View Limit: Control the amount of processing time used when generating the view.  \n* Notification Duration: How long a pop-up message stays on screen before it disappears.  'Until dismissed' keeps every message up until you close it.  \n* Dark Mode: Switch the GUI between light and dark appearance.  \n* Reset Options: Clear everything and start anew.  \n* Get Local XML File: fetch the backup/exported XML file from your local drive.  \n* Save Settings - Save these settings for later use.  \n* Restore Settings - Restore the settings from a previously saved session.  \n* Report Issue: Open the GitHub Issues page in your browser to report a problem or suggestion to the developer.  \n* Display Views: Display your configuration Map, Diagram, or Tree view of your Projects, Profiles, Tasks and Scenes directly in the GUI.  \n* Clear: Clear the Map/Diagram/Tree view data currently held and displayed.  \n* Health Check: Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, and naming problems.  It also reports how your configuration will behave on the device: two Profiles watching the same trigger whose Tasks set the same thing opposite ways, a Profile whose conditions can never all be true, Tasks that poll in a loop, Profiles that keep a radio or sensor scanning or fire on a short timer, long-running Tasks left on the default collision handling, and actions that can block for ever because no timeout was set.  Click a finding to be taken to it in the Map.  \n* Compare Files: Compare another XML file against the loaded one to see what was added, removed, renamed and changed.  \n* Variable Xref: Trace every %variable in the loaded XML: where each one is set, where it is read, which are read but never set, which are set but never read, and which near-identical names are likely typos.  \n* Task Flow: Read every Task's control flow -- its If/Else/End If, For/End For, Goto and Stop -- and report what does not hold together: a block that is never closed, a Goto aimed at a label no action carries, and actions nothing can ever reach.  With a single Task chosen in 'Specific Name', that Task is also drawn as a flowchart in its own window, with an arrow from every Goto to the action it lands on.  Click any line of it to be taken to that action in the Map.  \n* Open View In New Window: Open each Map/Diagram request in its own new window/tab rather than reusing that view's existing one.  \n* Close Tabs On Exit: Have 'Exit' also close the main MapTasker window and any Map/Diagram windows/tabs it opened.  \n* Get XML from Android Device: fetch the backup/exported XML file from Android device.  You will be asked for the IP address and port number for your Android device, as well as the file location on the device.  \n   - List XML Files: List the XML files found on the Android device so you can select one rather than typing its location.\n   - Cancel Entry: Back out of the Android fetch process.  \n* Specific Name tab: enter a single, specific named item to display...\n   - Project Name: enter a specific Project to display.\n   - Profile Name: enter a specific Profile to display.\n   - Task Name: enter a specific Task to display.\n   - Scene Name: enter a specific Scene to display.  Its owning Project's heading and the\n                 Scene's elements (plus any Tasks those elements invoke) are displayed;\n                 the Project's Profiles and its other Scenes are not.\n   (These four are exclusive: enter one only)\n   - List Unnamed Items: Include unnamed Profiles and Tasks in the four pulldowns above.  \n   Add and Edit Projects, Profiles, Tasks and Scenes directly in the GUI, with various save options...\n   - Add Project/Profile/Task/Scene: Create a new object and add it to the loaded XML.\n   - Edit Project/Profile/Task/Scene: Modify the object currently selected in the pulldowns above.\n   - Rename: Give the object being edited a new name.\n   - Delete: Remove the object being edited from the loaded XML.\n   - Duplicate: Make a copy of the selected Scene element.\n   - Preview: Display the Scene being edited as it will appear.\n   - Save / Export: Write the object out to a standalone XML file of your choosing.\n   - Save To Current File: Write the entire configuration to a new, timestamped file beside the loaded one.\n   - Save To Android: Write the object back to your Android device.\n     (A safety copy of anything a save is about to overwrite is kept in the 'MapTasker_Backups' folder.)  \n   Editing commands...\n   - Undo: Back out the most recent Add/Edit/Delete/Rename change made to the loaded XML.  This changes what is loaded, not any file.\n   - Redo: Reapply the change most recently backed out by 'Undo'.\n   - Edit History: List every change made to the loaded XML this session, newest first.  \n* Colors tab: select colors for various elements of the display.\n              (e.g. color for Projects, Profiles, Tasks, etc.).\n   - Reset to Default Colors: Restore every color to its default value.  \n* Analyze tab: Run the analysis for a Project, Profile, Task or Scene against an Ai model.\n   - Show/Edit API Key(s): Enter or change the API keys used by the server-based AI models.\n   - Change Prompt: Modify the prompt sent to the AI model.\n   - Run Analysis: Submit the selected Project/Profile/Task and prompt to the selected model.\n   - Extended: List all available models rather than just the default set.  \n* Debug tab: Display Runtime Settings option and turn on Debug mode.  \n* Map/Diagram/Tree view toolbar commands are...\n   - Search: Highlight every instance of the case-insensitive text entered in the search box, up to the first 200.  Click a line number to go to that line.\n   - Find/Replace: (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene.  Click a result to be taken to it.\n   - Save Results: Save the 'Find/Replace' results to a text file.\n   - Top / Bottom: Jump to the beginning or the end of the displayed output.\n   - Toggle Wrap: Turn line wrapping on or off in the displayed output.\n   - Profiles Per Line: (Diagram only) The number of Profiles drawn side-by-side on a single line.  \n* Display Help: Display this help text.  \n* Get Android Help: Display the help for fetching the XML file from your Android device.  \n* '?' buttons: Display the help specific to the section in which the button appears.  \n* Exit: Exit the program (quit).  \nNotes:  \n- View the entire change log history at https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md  \n- Changing the appearance mode will change the colors used for the output to their default values.  \n"
 msgstr "MapTasker visualizza la tua configurazione di Tasker basata sul file XML di Tasker caricato (ad esempio, 'backup.xml'). La visualizzazione può includere opzionalmente tutti i progetti, i profili, i task e le loro azioni, le condizioni del profilo/task e altre informazioni correlate.\nUna volta caricato il file XML, è possibile modificare opzionalmente i tuoi progetti, profili, task e scene.\n* Opzioni di visualizzazione:\n    Livello 0: visualizza solo la prima azione del task, solo per i task non nominati (silenzioso).\n    Livello 1 = visualizza tutti i dettagli delle azioni del task per i task non nominati (predefinito).\n    Livello 2 = visualizza il nome completo dell'azione del task su ogni task.\n    Livello 3 = visualizza tutti i dettagli dell'azione del task su ogni task con i dettagli dell'azione.\n    Livello 4 = visualizza il livello 3 più le variabili globali del progetto.\n    Livello 5 = visualizza il livello 4 più i dettagli degli argomenti della scena.\n* Visualizza tutto: attiva la visualizzazione delle condizioni, delle informazioni di TaskerNet, delle preferenze, dell'output formattato, della directory e dell'outline della configurazione.\n* Visualizza le condizioni: attiva la visualizzazione delle condizioni del profilo e del task.\n* Visualizza le informazioni di TaskerNet: visualizza le informazioni di pubblicazione di TaskerNet, se disponibili.\n* Visualizza le preferenze di Tasker: visualizza le preferenze di Tasker.\n* Nascondi i dettagli del task: nasconde le informazioni del task all'interno di ► e clicca per visualizzarle.\n* Visualizza la directory di hyperlink all'inizio.\n* Visualizza l'output formattato: rende l'output più leggibile per gli esseri umani aggiungendo nuove righe e indentazione per tutti gli argomenti.\n* Opzioni per il nome di progetto/profilo/task/scena: per mettere in grassetto, sottolineare o evidenziare i loro nomi.\n* Limite delle azioni del task: visualizza un avviso se il task ha più di un numero specificato di azioni.\n* Quantità di indentazione per le azioni If/Then/Else.\n* Lingua: seleziona la lingua da utilizzare per l'output. Il valore predefinito è l'inglese.\n* Carattere da utilizzare: modifica il carattere a spaziatura fissa da utilizzare per l'output.\n* Limite di visualizzazione: controlla la quantità di tempo di elaborazione utilizzato per generare la visualizzazione.\n* Durata della notifica: per quanto tempo un messaggio pop-up rimane sullo schermo prima di scomparire. \"Finché non viene chiuso\" mantiene ogni messaggio fino a quando non viene chiuso.\n* Modalità scura: passa l'interfaccia tra l'aspetto chiaro e scuro.\n* Opzioni di ripristino: cancella tutto e ricomincia.\n* Ottieni il file XML locale: recupera il file XML di backup/esportato dal tuo disco locale.\n* Salva le impostazioni: salva queste impostazioni per un utilizzo successivo.\n* Ripristina le impostazioni: ripristina le impostazioni da una sessione precedentemente salvata.\n* Segnala un problema: apri la pagina GitHub Issues nel tuo browser per segnalare un problema o un suggerimento al sviluppatore.\n* Visualizza le viste: visualizza la tua configurazione, la vista Diagramma o Albero dei tuoi progetti, profili, task e scene direttamente nell'interfaccia.\n* Cancella: cancella i dati della vista Map/Diagramma/Albero attualmente visualizzati.\n* Controllo dello stato: scansiona il file XML caricato per riferimenti danneggiati, task, profili e scene non referenziati e problemi di denominazione. Inoltre, segnala come si comporterà la tua configurazione sul dispositivo: due profili che monitorano lo stesso trigger, il cui task imposta lo stesso risultato in modi opposti, un profilo le cui condizioni non possono essere tutte vere, task che sondano in un ciclo, profili che mantengono un radio o un sensore in esecuzione o che scattano su un timer breve, task a lunga esecuzione lasciati nella gestione predefinita delle collisioni e azioni che possono rimanere bloccate indefinitamente perché non è stato impostato un timeout. Clicca su un risultato per visualizzarlo nella mappa.\n* Confronta i file: confronta un altro file XML con quello caricato per vedere cosa è stato aggiunto, rimosso, rinominato e modificato.\n* Variabile Xref: traccia ogni %variabile nel file XML caricato: dove è impostato, dove è letto, quali sono letti ma non impostati, quali sono impostati ma non letti e quali nomi simili sono probabilmente errori di battitura.\n* Flusso delle attività: esaminare il flusso di controllo di ogni attività (le istruzioni If/Else/End If, For/End For, Goto e Stop) e segnalare eventuali incongruenze: un blocco che non viene mai chiuso, un Goto che punta a un'etichetta senza azioni, o azioni a cui non si può accedere. Se si seleziona un'attività specifica nel campo \"Nome specifico\", l'attività viene anche rappresentata come diagramma di flusso in una finestra separata, con una freccia da ogni Goto all'azione a cui si riferisce. Cliccando su qualsiasi riga, si accede all'azione corrispondente nel diagramma.\n* Apri nella nuova finestra: aprire ogni richiesta di Mappa/Diagramma in una nuova finestra/scheda, anziché riutilizzare quella esistente.\n* Chiudi le schede all'uscita: quando si esce, chiudere anche la finestra principale di MapTasker e tutte le finestre/schede di Mappe/Diagrammi aperte.\n* Ottieni il file XML da un dispositivo Android: recuperare il file XML di backup/esportato dal dispositivo Android. Verrà richiesto l'indirizzo IP e il numero di porta del dispositivo Android, nonché la posizione del file sul dispositivo.\n   - Elenco dei file XML: elencare i file XML trovati sul dispositivo Android, in modo da poter selezionarne uno anziché digitare la sua posizione.\n   - Annulla l'operazione: uscire dal processo di recupero dal dispositivo Android.\n* Scheda \"Nome specifico\": inserire un singolo nome specifico da visualizzare...\n   - Nome del progetto: inserire un progetto specifico da visualizzare.\n   - Nome del profilo: inserire un profilo specifico da visualizzare.\n   - Nome dell'attività: inserire un'attività specifica da visualizzare.\n   - Nome della scena: inserire una scena specifica da visualizzare. Verranno visualizzati l'intestazione del progetto di appartenenza e gli elementi della scena (inclusi eventuali attività che invocano tali elementi); non verranno visualizzati i profili e le altre scene del progetto.\n   (Questi quattro sono esclusivi: è necessario inserire solo uno)\n   - Elenco di elementi senza nome: includere profili e attività senza nome nelle quattro liste a tendina precedenti.\n   Aggiungere e modificare progetti, profili, attività e scene direttamente nell'interfaccia grafica, con varie opzioni di salvataggio...\n   - Aggiungi progetto/profilo/attività/scena: creare un nuovo oggetto e aggiungerlo all'XML caricato.\n   - Modifica progetto/profilo/attività/scena: modificare l'oggetto attualmente selezionato nelle liste a tendina precedenti.\n   - Rinomina: dare un nuovo nome all'oggetto in modifica.\n   - Elimina: rimuovere l'oggetto in modifica dall'XML caricato.\n   - Duplica: creare una copia dell'elemento della scena selezionato.\n   - Anteprima: visualizzare la scena in modifica come apparirà.\n   - Salva/Esporta: salvare l'oggetto in un file XML autonomo di tua scelta.\n   - Salva nel file corrente: salvare l'intera configurazione in un nuovo file con data/ora accanto a quello caricato.\n   - Salva sull'Android: salvare l'oggetto sul tuo dispositivo Android.\n     (In caso di salvataggio, viene mantenuta una copia di sicurezza di ciò che andrà sovrascritto nella cartella \"MapTasker_Backups\".)\n   Comandi di modifica...\n   - Annulla: annullare l'ultima modifica aggiunta/modificata/eliminata/rinominata apportata all'XML caricato. Questo modifica ciò che è caricato, non un file.\n   - Ripeti: applicare nuovamente la modifica più di recente annullata con \"Annulla\".\n   - Cronologia delle modifiche: elencare tutte le modifiche apportate all'XML caricato in questa sessione, dalla più recente alla più vecchia.\n* Scheda \"Colori\": selezionare i colori per vari elementi del display.\n              (ad esempio, il colore per i progetti, i profili, le attività, ecc.).\n   - Ripristina colori predefiniti: ripristinare tutti i colori ai loro valori predefiniti.\n* Scheda \"Analisi\": eseguire l'analisi per un progetto, un profilo, un'attività o una scena rispetto a un modello AI.\n   - Mostra/Modifica chiave API: inserire o modificare le chiavi API utilizzate dai modelli AI basati su server.\n   - Modifica prompt: modificare il prompt inviato al modello AI.\n   - Esegui l'analisi: inviare il progetto/profilo/attività e il prompt selezionati al modello selezionato.\n   - Esteso: elencare tutti i modelli disponibili anziché solo quelli predefiniti.\n* Scheda \"Debug\": visualizzare l'opzione \"Impostazioni di runtime\" e attivare la modalità debug.\n* I comandi della barra degli strumenti per Mappe/Diagrammi/Vista ad albero sono:\n   - Cerca: evidenziare ogni istanza del testo inserito nella casella di ricerca, fino a 200 caratteri. Cliccando su un numero di riga, si va a quella riga.\n- Trova/Sostituisci: (Solo mappa e diagramma) Invece di cercare nel testo sullo schermo, porre una domanda alla configurazione caricata: ogni attività che esegue un'azione specifica, ogni profilo che attiva un determinato trigger, ogni elemento che fa riferimento a un'app o a una scena specifica. Cliccare su un risultato per essere indirizzati a esso.\n- Salva i risultati: Salvare i risultati di \"Trova/Sostituisci\" in un file di testo.\n- In alto / In basso: Saltare all'inizio o alla fine dell'output visualizzato.\n- Attiva/Disattiva il wrapping: Attivare o disattivare il wrapping delle righe nell'output visualizzato.\n- Profili per riga: (Solo diagramma) Il numero di profili visualizzati uno accanto all'altro su una singola riga.\n* Mostra aiuto: Visualizzare questo testo di aiuto.\n* Ottieni aiuto per Android: Visualizzare l'aiuto per il recupero del file XML dal tuo dispositivo Android.\n* Pulsanti \"?\": Visualizzare l'aiuto specifico per la sezione in cui appare il pulsante.\n* Esci: Uscire dal programma (chiudere).\nNote:\n- Visualizzare l'intera cronologia delle modifiche all'indirizzo https://github.com/mctinker/Map-Tasker/blob/Master/Changelog.md\n- Cambiare la modalità di visualizzazione cambierà i colori utilizzati per l'output ai loro valori predefiniti.\n"
-
 msgid "Please stand by ..."
 msgstr "Si prega di rimanere in attesa..."
-
 msgid "Redact secrets"
 msgstr "Redigere segreti"
-
 msgid "Tick this when the exported file is going to somebody else -- posted on a forum, or sent to whoever is helping you.\n\nThe API keys, tokens, passwords, phone numbers, email addresses and location coordinates in it are replaced with [REDACTED:...] markers, and a comment at the top of the file says what was taken out.  Run Health Check first to see the list.\n\nIt is a first pass, not a guarantee: a password that looks like an ordinary word has no shape to recognise, and names are never changed, because the file uses them to refer to itself.  Read what you post.\n\nLeave it unticked for a backup or a move to another device -- a redacted file imports with the keys missing."
 msgstr "Seleziona questa opzione quando il file esportato verrà inviato a qualcun altro: pubblicato su un forum o inviato a chiunque ti stia aiutando.\n\nLe chiavi API, i token, le password, i numeri di telefono, gli indirizzi e-mail e le coordinate di posizione in esso contenuti vengono sostituiti con indicatori [REDACTED:...] e un commento nella parte superiore del file indica cosa è stato eliminato.  Esegui prima il controllo dello stato per visualizzare l'elenco.\n\nÈ un primo passaggio, non una garanzia: una password che assomiglia a una parola qualunque non ha forma da riconoscere, e i nomi non vengono mai cambiati, perché il file li usa per riferirsi a se stesso.  Leggi quello che pubblichi.\n\nLascialo deselezionato per un backup o uno spostamento su un altro dispositivo: un file oscurato viene importato con le chiavi mancanti."
+msgid "Report these categories:"
+msgstr "Segnala queste categorie:"
+msgid "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and Scenes, naming problems, Task flow, variables, behaviour on the device, and secrets.\n\nYou choose which of those to report before it runs, and that choice is remembered.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Esegui la scansione del codice XML caricato per individuare riferimenti interrotti, attività senza riferimenti, profili e scene, problemi di denominazione, flusso di attività, variabili, comportamento sul dispositivo e segreti.\n\nScegli quale di questi segnalare prima che venga eseguito e quella scelta viene ricordata.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."
+msgid "TaskerNet information"
+msgstr "Informazioni su TaskerNet"
+msgid "Changes This Week"
+msgstr "Cambiamenti questa settimana"
+msgid "Nothing has changed in your configuration over that period."
+msgstr "Non è cambiato nulla nella tua configurazione durante quel periodo."
+msgid "Timeline report could not be saved."
+msgstr "Impossibile salvare il rapporto sulla sequenza temporale."
+msgid "Timeline saved as"
+msgstr "Cronologia salvata con nome"
+msgid "What has changed in your configuration over the last seven days: what was added, removed, renamed and changed.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from a week ago is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Cosa è cambiato nella tua configurazione negli ultimi sette giorni: cosa è stato aggiunto, rimosso, rinominato e modificato.\n\nNessun file da scegliere: ogni configurazione caricata viene conservata, compressa, in una cartella MapTasker_Timeline nella directory corrente e quella di una settimana fa viene confrontata con quella che hai aperto adesso.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."
+msgid "Changes Since"
+msgstr "Modifiche apportate"
+msgid "Changes Since..."
+msgstr "Modifiche rispetto a..."
+msgid "Choose a date first."
+msgstr "Scegli prima una data."
+msgid "Compare what you have open now against your configuration as it stood then."
+msgstr "Confronta ciò che hai aperto ora con la configurazione che avevi in quel momento."
+msgid "Period"
+msgstr "Periodo"
+msgid "Show Changes"
+msgstr "Mostra modifiche"
+msgid "That date is in the future.  Choose a day that has happened."
+msgstr "Quella data è futura. Scegli un giorno che è già passato."
+msgid "What has changed in your configuration since a moment you choose: today, this week, this month, everything kept, or a specific date.\n\nNo file to pick -- every configuration you load is kept, compressed, in a MapTasker_Timeline folder in the current directory, and the one from back then is compared against what you have open now.\n\nResults are displayed here and saved to a text file in the current directory."
+msgstr "Cosa è cambiato nella sua configurazione da un momento in cui ha scelto: oggi, questa settimana, questo mese, o da una data specifica?\n\nNon è necessario selezionare alcun file: ogni configurazione che carica viene salvata, compressa, in una cartella chiamata \"MapTasker_Timeline\" nella directory corrente, e viene confrontata con quella che ha attualmente aperta.\n\nI risultati vengono visualizzati qui e salvati in un file di testo nella directory corrente."

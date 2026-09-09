@@ -20,22 +20,37 @@ use them:
 
 | Script | What it does |
 | --- | --- |
-| `sync_missing_msgids.py` | Adds msgids the code asks for but no catalog holds |
-| `prune_stale_help_msgids.py` | Drops help-text entries whose English has since been reworded |
+| `sync_and_clean_po.py` | Brings every catalog up to date and repairs it, in seven stages |
 | `translate_po.py` | Machine-translates untranslated entries (Google Translate) |
 | `translate_text_lines_to_po.py` | Turns a plain list of strings into catalog entries |
-| `fix_urls_in_po.py` | Restores URLs that machine translation mangled |
-| `fix_newline_edges_in_po.py` | Makes each msgstr agree with its msgid on leading/trailing newlines |
-| `fix_msgstr_double_quotes_in_po.py` | Repairs msgstr lines with unescaped quotes |
 | `find_english_msgstr_liners.py` | Reports translations that are still English |
-| `delete_dups_from_po.py`, `delete_blank_lines_in_po.py`, `replace_line_in_po.py`, `reset_messages_po_file.py` | Small catalog edits |
+| `replace_line_in_po.py`, `reset_messages_po_file.py` | Small catalog edits |
 | `po_to_mo.sh` | Compiles every `messages.po` to the `messages.mo` the app loads |
 
-`sync_missing_msgids.py` and `prune_stale_help_msgids.py` are the pair
-`tests/test_userhelp.py` points at when a help-text assertion fails.
+`sync_and_clean_po.py` is the one to reach for after adding a
+`translate_string()` call or rewording a help screen, and the one to run when a
+`tests/test_userhelp.py` help-text assertion fails. Its stages, in order:
+
+| # | Name | What it does |
+| --- | --- | --- |
+| 1 | `sync` | Adds msgids the code asks for but a catalog does not hold |
+| 2 | `prune` | Drops help-text entries whose English has since been reworded |
+| 3 | `dups` | Removes second and later definitions of the same msgid |
+| 4 | `newlines` | Makes each msgstr agree with its msgid on leading/trailing newlines |
+| 5 | `urls` | Restores URLs that machine translation mangled |
+| 6 | `quotes` | Repairs msgstr lines with unescaped quotes |
+| 7 | `blanks` | Keeps only the first blank line of each catalog |
+
+It writes by default and is safe to re-run. `--stages` takes a subset by number
+or name; `--dry-run-prune` and `--dry-run-urls` make those two stages report
+instead of edit. Recompile afterwards with `po_to_mo.sh`.
+
+```
+python tools/language_support/sync_and_clean_po.py --stages newlines,urls
+```
 
 `reverse.txt`, `reverse_language.po` and `reverse_language.pot` are fixture
-input for those scripts, not catalogs the app loads.
+input for `translate_po.py`, not catalogs the app loads.
 
 ## misc/
 
