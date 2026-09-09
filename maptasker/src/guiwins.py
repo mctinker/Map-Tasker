@@ -36,6 +36,7 @@ from nicegui import Event, app, context, ui
 
 from maptasker.src import (
     diagintr,
+    healthck,
     mapfind,
     mapjump,
     mapswap,
@@ -3066,6 +3067,58 @@ def build_save_scene_to_android_dialog(
                 ).style("white-space: pre-wrap")
 
     android_dialog.open()
+
+
+def build_health_check_dialog(on_run: Callable[[list[str]], None]) -> None:
+    """Ask which categories of finding the Health Check should report, then run it.
+
+    A panel rather than a settings screen because the answer is a property of the QUESTION
+    being asked, not of the program: the check reports forty-five kinds of thing, and a
+    user chasing one broken Perform Task does not want to read two hundred findings about
+    variables that are set and never read.  Every box starts ticked, so the default is
+    still "tell me everything" and nothing is quietly left out of a report unless somebody
+    chose to leave it out.
+
+    What is remembered between sessions is the UNTICKED set (program_arguments
+    ["health_check_skip"]).  Storing it that way round is what lets a category added in a
+    later release arrive already ticked -- see healthck.CATEGORIES.
+
+    on_run is handed the list to leave out.  The caller does the running and the saving:
+    this module builds windows and knows nothing about what a health check is.
+    """
+    skip = set(PrimeItems.program_arguments.get("health_check_skip", []) or [])
+    boxes: dict[str, ui.checkbox] = {}
+
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[520px] max-w-[720px] w-full p-6"):
+        ui.label(translate_string("Health Check")).classes("text-lg font-bold text-blue-600")
+        ui.label(translate_string("Report these categories:")).classes("text-sm text-gray-500")
+
+        # Scrolled rather than fitted: the list is forty-five entries and grows with every
+        # check added, and a dialog taller than the window is one whose buttons cannot be
+        # reached.  The headings are just headings -- a group is not itself a choice, so
+        # there is nothing here that can be ticked but does not correspond to a finding.
+        with ui.scroll_area().classes("w-full h-[420px] mt-2 border rounded"):
+            group = ""
+            for category in healthck.CATEGORIES:
+                if category.group != group:
+                    group = category.group
+                    ui.label(translate_string(group)).classes("font-bold text-sm mt-3 mb-1")
+                with ui.row().classes("items-center gap-2 ml-2 no-wrap"):
+                    boxes[category.tag] = ui.checkbox(value=category.tag not in skip).props("dense")
+                    with ui.column().classes("gap-0"):
+                        ui.label(category.tag).classes("font-mono text-xs")
+                        ui.label(translate_string(category.what)).classes("text-xs text-gray-500")
+
+        def run() -> None:
+            """Close the panel, then run the check for whatever is still ticked."""
+            dialog.close()
+            on_run([tag for tag, box in boxes.items() if not box.value])
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
+            ui.button(translate_string("Ok"), on_click=run).classes("bg-blue-600")
+
+    dialog.open()
 
 
 def build_helper_tasks_dialog(stale: list[str], current: list[str], device: str) -> None:
@@ -8027,8 +8080,10 @@ def initialize_screen(self: MyGui) -> None:
             ui.tooltip(
                 translate_string(
                     "Scan the loaded XML for broken references, unreferenced Tasks, Profiles and "
-                    "Scenes, and naming problems.\n\nResults are displayed here and saved to a "
-                    "text file in the current directory.",
+                    "Scenes, naming problems, Task flow, variables, behaviour on the device, and "
+                    "secrets.\n\nYou choose which of those to report before it runs, and that "
+                    "choice is remembered.\n\nResults are displayed here and saved to a text file "
+                    "in the current directory.",
                 ),
             ).style("white-space: pre-wrap")
 

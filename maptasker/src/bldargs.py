@@ -15,8 +15,8 @@ from collections import Counter, defaultdict
 
 import defusedxml.ElementTree as ET
 
+from maptasker.src import console
 from maptasker.src.actionc import action_codes
-from maptasker.src.sysconst import logger
 
 # Owning xml element tag > suffix of the action_codes key, same mapping bldbndle.py uses.
 OWNER_SUFFIX = {"Event": "e", "State": "s", "Action": "t"}
@@ -176,7 +176,7 @@ def insert_arguments(overlay_file: str, missing: dict) -> int:
         added += len(slots)
 
     for key, slots in published.items():
-        print(
+        console.say(
             f"bldargs: {key} is published in task_all_actions.json and was NOT changed -- "
             f"this backup uses argument(s) {', '.join(sorted(slots, key=int))} that Tasker "
             f"does not declare.  Add an 'extra' entry by hand if that is really wanted.",
@@ -211,36 +211,35 @@ def build_arguments(xml_file: str = "", overlay_file: str = "") -> int:
     for needed in (xml_file, overlay_file):
         if not os.path.isfile(needed):
             msg = f"bldargs: file not found: {needed}"
-            logger.error(msg)
-            print(msg)
+            console.error(msg)
             return 1
 
-    print("")
-    print(f"bldargs: Reading {xml_file} ...")
+    console.say("")
+    console.say(f"bldargs: Reading {xml_file} ...")
 
     try:
         harvested = get_backup_arguments(xml_file)
     except ET.ParseError as error:
         msg = f"bldargs: error parsing {xml_file}: {error}"
-        logger.error(msg)
-        print(msg)
+        console.error(msg)
         return 2
 
     missing = find_missing_arguments(harvested)
     if not missing:
-        print("bldargs: No missing arguments -- the action code tables already declare everything this backup uses.")
-        print("")
+        console.say(
+            "bldargs: No missing arguments -- the action code tables already declare everything this backup uses."
+        )
+        console.say("")
         return 0
 
     try:
         added = insert_arguments(overlay_file, missing)
     except OSError as error:
         msg = f"bldargs: error updating {overlay_file}: {error}"
-        logger.error(msg)
-        print(msg)
+        console.error(msg)
         return 3
 
-    print(f"bldargs: Build Complete.  Added {added} argument(s) to '{overlay_file}'.")
-    print("")
+    console.say(f"bldargs: Build Complete.  Added {added} argument(s) to '{overlay_file}'.")
+    console.say("")
 
     return 0

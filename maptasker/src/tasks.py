@@ -12,6 +12,7 @@ import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.actione as action_evaluate
 import maptasker.src.taskflag as task_flags
+from maptasker.src import console
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
@@ -93,7 +94,7 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
     try:
         task_actions = current_task.findall("Action")
     except defusedxml.DefusedXmlException:
-        print("tasks.py current Task:", current_task)
+        console.debug(f"tasks.py current Task: {current_task}")
         error_handler("Error: No action found!!!", 0)
         return []
 

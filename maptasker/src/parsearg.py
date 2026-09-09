@@ -11,6 +11,7 @@ import argparse
 import textwrap
 from argparse import ArgumentParser
 
+from maptasker.src import console
 from maptasker.src.error import error_handler
 from maptasker.src.mapfonts import get_monospaced_fonts
 from maptasker.src.maputils import validate_ip_address, validate_port
@@ -134,7 +135,7 @@ def font_validation(x: str) -> str:
         error_handler(msg, 7)
         # raise argparse.ArgumentTypeError(msg)
     elif x == "help":
-        print("Valid monospace fonts: ", ", ".join(valid_fonts))
+        console.say(f"Valid monospace fonts:  {', '.join(valid_fonts)}")
     return x
 
 

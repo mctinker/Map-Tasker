@@ -17,6 +17,8 @@
 # machinery, and the overrides directory carried a patched customtkinter that the move  #
 # to NiceGUI retired.                                                                   #
 #                                                                                       #
+import sys
+
 from maptasker.src.mapit import mapit_all
 
 
@@ -24,10 +26,13 @@ def main() -> int:
     """Kick off the main program, and return its exit code.
 
     The console script entry point (see pyproject.toml) and `python -m maptasker.main`
-    both arrive here.
+    both arrive here.  The generated console script does sys.exit(main()), so returning
+    the code is all that is needed there; the __main__ block below does it by hand.
     """
     return mapit_all()
 
 
 if __name__ == "__main__":
-    main()
+    # sys.exit() rather than a bare main(): the return value was being discarded, so
+    # `python -m maptasker.main` reported success no matter how the run actually ended.
+    sys.exit(main())

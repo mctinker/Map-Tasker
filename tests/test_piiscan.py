@@ -23,8 +23,9 @@ from maptasker.src import mapjump, piiscan, taskerd
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
-from maptasker.src.mapjump import TASK, Target
+from maptasker.src.mapjump import PROJECT, TASK, Target
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.property import get_properties
 from maptasker.src.share import share
 
 # One of everything, with its clean counterpart alongside it.
@@ -497,3 +498,101 @@ def test_the_other_share_tags_still_belong_to_the_object(shared_problems: list) 
     places = {problem.where.anchor for problem in findings}
     assert "mt-task-30" in places
     assert "mt-task-30-etaskernet" in places
+
+
+# An object's "...Properties..." line is where its comment and its import-time variables
+# are shown -- and an import-time variable's stored value is the place a shared
+# configuration is MEANT to keep its key, so it is the likeliest property of the lot to
+# hold something.  property.py writes the whole block as ONE line, well below the object's
+# own, which is why the finding has to aim at that line rather than at the object.
+_PROPERTIES_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
+  <Project sr="proj0" ve="2">
+    <name>Server</name>
+    <pids>40</pids>
+    <tids>41</tids>
+    <ProfileVariable sr="pv0">
+      <pvn>%account</pvn>
+      <pvv>someone@example.com</pvv>
+      <pvt>t</pvt>
+    </ProfileVariable>
+  </Project>
+  <Profile sr="prof40" ve="2">
+    <id>40</id>
+    <nme>Watcher</nme>
+    <mid0>41</mid0>
+    <pc>ask admin@example.com about this</pc>
+  </Profile>
+  <Task sr="task41">
+    <id>41</id>
+    <nme>Serve</nme>
+    <pc>owner is tasks@example.com</pc>
+    <Action sr="act0" ve="7"><code>548</code><Str sr="arg0" ve="3">hello</Str></Action>
+  </Task>
+</TaskerData>"""
+
+
+@pytest.fixture
+def property_problems() -> list[piiscan.Problem]:
+    """What the scan finds in objects whose PROPERTIES hold an address."""
+    _load(_PROPERTIES_XML)
+    return piiscan.lint_problems()
+
+
+@pytest.mark.parametrize(
+    ("anchor", "holder"),
+    [
+        ("mt-project-Server-eproperties", "the import-time variable's stored value"),
+        ("mt-profile-40-eproperties", "the Profile's comment"),
+        ("mt-task-41-eproperties", "the Task's comment"),
+    ],
+)
+def test_a_finding_about_a_property_points_at_the_properties_line(
+    property_problems: list,
+    anchor: str,
+    holder: str,
+) -> None:
+    """One per kind of object, because each is written by a different caller of
+    property.get_properties and each used to send the reader to the object's own line.
+    """
+    assert anchor in {problem.where.anchor for problem in property_problems}, holder
+
+
+def test_the_map_writes_the_properties_anchor_a_finding_points_at(property_problems: list) -> None:
+    """The other half of the contract: an id one side writes and the other does not is a
+    click that goes nowhere.  Held against each other here rather than assumed.
+    """
+    finding = next(
+        problem for problem in property_problems if problem.where.anchor == "mt-project-Server-eproperties"
+    )
+    PrimeItems.program_arguments = initialize_runtime_arguments()
+    PrimeItems.program_arguments["display_detail_level"] = mapjump.minimum_detail_level(finding.where)
+    PrimeItems.colors_to_use = set_color_mode("dark")
+    PrimeItems.output_lines = LineOut()
+    PrimeItems.emitted_anchors = set()
+
+    get_properties("Project:", PrimeItems.tasker_root_elements["all_projects"]["Server"]["xml"], finding.where)
+    output = "".join(PrimeItems.output_lines.output_lines)
+
+    assert f'<a id="{finding.where.anchor}" class="mt-anchor"' in output
+    assert "someone@example.com" in output[output.index(finding.where.anchor) :]
+
+
+def test_the_properties_line_needs_a_detail_level_the_object_itself_does_not() -> None:
+    """A Project's own line is on the Map from level 0, but its Properties line is written
+    only above level 2 -- so a jump that rebuilt the Map at the Project's own floor would
+    land in a Map that has no such line.
+    """
+    project = Target(PROJECT, "Server", "Server")
+    assert mapjump.minimum_detail_level(project) == 0
+    assert mapjump.minimum_detail_level(project.at_part(mapjump.PROPERTIES_PART)) > 2
+
+
+def test_what_is_not_on_the_properties_line_still_names_the_object() -> None:
+    """A Task carries more than its Properties: the Kid App block, for one, which the Map
+    shows on the Task's own line.  Aiming those at a Properties line they are not on would
+    be the same defect pointing the other way.
+    """
+    _load(_PROPERTIES_XML.replace("<pc>owner is tasks@example.com</pc>", '<Kid sr="Kid"><vnme>b@example.com</vnme></Kid>'))
+    places = {problem.where.anchor for problem in piiscan.lint_problems() if problem.tag == "PII-EMAIL"}
+    assert "mt-task-41" in places
+    assert "mt-task-41-eproperties" not in places

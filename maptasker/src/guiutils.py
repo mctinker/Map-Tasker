@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import defusedxml
 from nicegui import app, run, ui
 
-from maptasker.src import deviceinv
+from maptasker.src import console, deviceinv
 
 # Keep your existing logic imports (e.g., from maptasker.src.aiutils import ...)
 from maptasker.src.aiutils import (
@@ -1381,7 +1381,8 @@ def add_logo(self: "MyGui", logo_name: str) -> None:
                 # Flags do not change based on dark mode status.
                 ui.image(img_src).classes(f"{size_classes} object-contain")
 
-        except Exception as e:  # noqa: BLE001
+        except Exception as e:  # noqa: BLE001  A logo that will not draw is cosmetic;
+            # nothing here is worth failing the window build over.
             if "rutroh_error" in globals():
                 rutroh_error(f"Error displaying {logo_name} logo: {e}")
 
@@ -1472,7 +1473,7 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
         os.remove(ERROR_FILE)
     except PermissionError:
         # If the error file is locked up by us, then just rename the file.
-        print(f"Unable to delete the error file: {ERROR_FILE}.  You must delete it manually!")
+        console.error(f"Unable to delete the error file: {ERROR_FILE}.  You must delete it manually!")
     except FileNotFoundError:
         pass
 
@@ -1611,7 +1612,8 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
             # whole question here.  Anything else is a connection failure, a timeout or a
             # server error, and none of those mean 'reachable'.
             return return_code in (0, 6)  # noqa: TRY300
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001  This probe answers one question -- "did the
+            # device reply?" -- and every way of failing to reply is the same answer.
             return False
 
     # Show a brief non-blocking notification toast to show progress
@@ -1632,7 +1634,8 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
         self.display_message_box(error_msg, "Red")
         return False  # noqa: TRY300
 
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:  # noqa: BLE001  Reported to the user in the window rather than
+        # raised: an unreachable device is a normal outcome of pressing this button.
         self.display_message_box(f"Ping execution failure: {e!s}", "Red")
         return False
 

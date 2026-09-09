@@ -25,6 +25,7 @@ import pytest
 from maptasker.src import taskerd
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.lineout import LineOut
+from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import UNNAMED_ITEM
 
@@ -299,6 +300,11 @@ def test_the_gui_is_told_why_a_file_was_refused() -> None:
 def test_a_corrupt_file_stops_the_run() -> None:
     """XML that does not parse cannot be recovered from -- continuing would run the rest
     of the program against whatever configuration was loaded before it.
+
+    MapTaskerError, not SystemExit: stopping the run is not the same thing as stopping the
+    process, and this path runs under the GUI's event loop and under pytest as well as on
+    a command line.  The exit code the process WOULD end on still travels with it.
     """
-    with pytest.raises(SystemExit):
+    with pytest.raises(MapTaskerError) as raised:
         _load_file("<TaskerData><unclosed>")
+    assert raised.value.exit_code == 1

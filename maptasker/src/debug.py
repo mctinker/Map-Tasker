@@ -14,6 +14,7 @@ import os
 import sys
 from typing import TYPE_CHECKING
 
+from maptasker.src import console
 from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
@@ -80,7 +81,7 @@ def display_debug_info(config: RunConfig) -> None:
             f"Debug...Current Path: {os.getcwd()}",
             ["", "disabled_profile_color", FormatLine.add_end_span],
         )
-        print("Debug...Current Path:", os.getcwd())
+        console.debug(f"Debug...Current Path: {os.getcwd()}")
     # print(
     #     "__file__={0:<35} | __name__={1:<25} | __package__={2:<25}".format(
     #         __file__, __name__, str(__package__)
@@ -186,5 +187,4 @@ def not_in_dictionary(condition_type: str, code: str) -> None:
     logger.debug(
         f"Error action code {code} not in the dictionary!",
     )
-    if PrimeItems.program_arguments["debug"]:
-        print(f"{condition_type} code {code} not found in actionc!")
+    console.debug(f"{condition_type} code {code} not found in actionc!")

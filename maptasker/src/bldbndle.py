@@ -16,7 +16,7 @@ from xml.etree.ElementTree import Element  # Need for type hints
 
 import defusedxml.ElementTree as ET
 
-from maptasker.src.sysconst import logger
+from maptasker.src import console
 
 # Owning xml element tag > suffix appended to the <code> value to make the key.
 OWNER_SUFFIX = {"Event": "e", "State": "s", "Action": "t"}
@@ -158,8 +158,7 @@ def load_existing_bundles(path: str) -> dict:
         return dict(module.bundles)
     except (OSError, SyntaxError, ValueError, AttributeError) as error:
         msg = f"bldbndle: could not read existing bundles from {path}: {error}"
-        logger.error(msg)
-        print(msg)
+        console.error(msg)
         return {}
 
 
@@ -271,19 +270,17 @@ def build_bundles(xml_file: str = "", output_file: str = "", live_file: str = ""
 
     if not os.path.isfile(xml_file):
         msg = f"bldbndle: backup xml file not found: {xml_file}"
-        logger.error(msg)
-        print(msg)
+        console.error(msg)
         return 1
 
-    print("")
-    print(f"bldbndle: Reading {xml_file} ...")
+    console.say("")
+    console.say(f"bldbndle: Reading {xml_file} ...")
 
     try:
         harvested = get_bundles(xml_file)
     except ET.ParseError as error:
         msg = f"bldbndle: error parsing {xml_file}: {error}"
-        logger.error(msg)
-        print(msg)
+        console.error(msg)
         return 2
 
     # Merge into everything already recorded.  Both the file the program imports and the
@@ -300,16 +297,15 @@ def build_bundles(xml_file: str = "", output_file: str = "", live_file: str = ""
         save_bundles(bundles, output_file, xml_file)
     except OSError as error:
         msg = f"bldbndle: error writing {output_file}: {error}"
-        logger.error(msg)
-        print(msg)
+        console.error(msg)
         return 3
 
     for note in notes:
-        print(f"bldbndle: {note}")
-    print(
+        console.say(f"bldbndle: {note}")
+    console.say(
         f"bldbndle: Build Complete.  {len(bundles)} bundles written to '{output_file}' "
         f"({added} new, {len(existing)} already recorded).",
     )
-    print("")
+    console.say("")
 
     return 0

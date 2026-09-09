@@ -175,9 +175,11 @@ def test_a_malformed_file_reports_and_does_not_exit(tmp_path) -> None:
     """A corrupt comparison file must never take the program down.
 
     taskerd hands a parse failure to error_handler, which outside GUI mode ends in
-    exit_program -> sys.exit.  This test runs with "gui" False precisely so that a
-    regression there shows up as the test process dying rather than as a quiet pass, and
-    asserts the flag was put back afterwards.
+    exit_program.  This test runs with "gui" False precisely so that a regression there
+    shows up here rather than as a quiet pass, and asserts the flag was put back
+    afterwards.  exit_program raises MapTaskerError rather than calling sys.exit, so a
+    regression is now a failed test instead of a killed test session -- but the thing
+    being guarded is the same: a bad comparison file must not end the run.
     """
     PrimeItems.program_arguments["gui"] = False
     before = _snapshot()

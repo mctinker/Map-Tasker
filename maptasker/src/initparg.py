@@ -40,6 +40,7 @@ def initialize_runtime_arguments() -> dict:
         "font": OUTPUT_FONT,  # Font to use in the output
         "gui": False,  # Use the GUI to get the runtime and color options
         "guiview": False,  # Use the GUI to get the view (Map, Diagram, Tree)
+        "health_check_skip": [],  # Health Check categories to leave out of the report
         "highlight": False,  # Highlight Project/Profile?Task/Scene names
         "icon_alignement": True,  # Align Diagram view with icons
         "indent": 4,  # Backup file was fetched from Android device

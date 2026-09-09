@@ -743,7 +743,7 @@ def get_profile_details_and_output(
 
     # Process Project Properties
     if PrimeItems.program_arguments["display_detail_level"] > 2:
-        get_properties("Project:", project)
+        get_properties("Project:", project, Target(PROJECT, project_name, project_name))
 
     # Process TaskerNet details if requested
     if PrimeItems.program_arguments["taskernet"]:

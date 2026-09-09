@@ -101,11 +101,32 @@ _GOTO_END_OF_IF = "4"
 _GOTO_BLOCK_KINDS = {_GOTO_TOP_OF_LOOP: "For", _GOTO_END_OF_LOOP: "For", _GOTO_END_OF_IF: "If"}
 # Block kinds a Goto may name from outside without it being a defect -- see _goto_by_block.
 _GOTO_BLOCKS_ALLOWED_LOOSE = frozenset({"For"})
+# The two kinds of block a Task can open, spelled the way Block.kind spells them.  Named so
+# the tag families below can be built from them rather than transcribed.
+_BLOCK_KINDS = ("If", "For")
 _GOTO_PHRASES = {
     _GOTO_TOP_OF_LOOP: "top of loop",
     _GOTO_END_OF_LOOP: "end of loop",
     _GOTO_END_OF_IF: "end of If",
 }
+
+# Every tag this module raises, including the ones built from a block's kind rather than
+# written out ("FLOW-END-IF-WITHOUT-IF" and friends).  Exported for proflint.TAGS' reason
+# and one more: healthck offers the user a checkbox per category of finding, and a family
+# spelled out only inside an f-string could not be offered at all.
+TAGS: frozenset[str] = frozenset(
+    {
+        "FLOW-MISMATCHED-BLOCK",
+        "FLOW-ELSE-WITHOUT-IF",
+        "FLOW-GOTO-MISSING-LABEL",
+        "FLOW-GOTO-BAD-NUMBER",
+        "FLOW-DUPLICATE-LABEL",
+        "FLOW-UNREACHABLE",
+    }
+    | {f"FLOW-END-{kind.upper()}-WITHOUT-{kind.upper()}" for kind in _BLOCK_KINDS}
+    | {f"FLOW-{kind.upper()}-WITHOUT-END-{kind.upper()}" for kind in _BLOCK_KINDS}
+    | {f"FLOW-GOTO-OUTSIDE-{kind.upper()}" for kind in set(_GOTO_BLOCK_KINDS.values()) - _GOTO_BLOCKS_ALLOWED_LOOSE}
+)
 
 # How a condition's <op> reads.  action.py's own table, in symbols rather than words: this
 # goes inside a flowchart node, where "%i > 5" fits and " > " as prose does not.

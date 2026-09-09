@@ -19,7 +19,7 @@ from datetime import datetime
 from functools import lru_cache
 
 import requests
-from requests.exceptions import ConnectionError, InvalidSchema, Timeout
+from requests.exceptions import ConnectionError, InvalidSchema, RequestException, Timeout
 
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, NOW_TIME, logger, logging
@@ -231,7 +231,10 @@ def http_request(
                 f"Request failed for url: {url} .  Timeout error.  Check that the Tasker "
                 "'HTTP Server Example' project is installed and running on the Android device."
             )
-        except Exception as e:  # noqa: BLE001
+        except RequestException as e:
+            # RequestException is the base of everything requests raises -- including the
+            # three caught by name above -- so this is the whole of "the request failed",
+            # and no longer the whole of "anything at all went wrong in this block".
             error_message = f"Request failed for url: {url}, error: {e} ."
 
     # If we have an error message, return as error.
@@ -373,7 +376,10 @@ def _request_android_auth_key(url: str) -> tuple[int, str, bool]:
             error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
         except Timeout:
             error_message = f"Request failed for url: {url} .  Timeout error."
-        except Exception as e:  # noqa: BLE001
+        except RequestException as e:
+            # RequestException is the base of everything requests raises -- including the
+            # three caught by name above -- so this is the whole of "the request failed",
+            # and no longer the whole of "anything at all went wrong in this block".
             error_message = f"Request failed for url: {url}, error: {e} ."
 
     if error_message:
@@ -507,7 +513,10 @@ def http_post_request(
             error_message = f"Request failed for url: {url} .  Connection error! Unable to post XML to Android device."
         except Timeout:
             error_message = f"Request failed for url: {url} .  Timeout error.  Perhaps Tasker server is not active or the Project 'HTTP Server Example' has not been imported into Tasker on the Android device!"
-        except Exception as e:  # noqa: BLE001
+        except RequestException as e:
+            # RequestException is the base of everything requests raises -- including the
+            # three caught by name above -- so this is the whole of "the request failed",
+            # and no longer the whole of "anything at all went wrong in this block".
             error_message = f"Request failed for url: {url}, error: {e} ."
 
     # If we have an error message, return as error.
@@ -593,7 +602,10 @@ def http_upload_request(
             error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
         except Timeout:
             error_message = f"Request failed for url: {url} .  Timeout error."
-        except Exception as e:  # noqa: BLE001
+        except RequestException as e:
+            # RequestException is the base of everything requests raises -- including the
+            # three caught by name above -- so this is the whole of "the request failed",
+            # and no longer the whole of "anything at all went wrong in this block".
             error_message = f"Request failed for url: {url}, error: {e} ."
 
     if error_message:
@@ -649,7 +661,10 @@ def http_delete_request(
             error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
         except Timeout:
             error_message = f"Request failed for url: {url} .  Timeout error."
-        except Exception as e:  # noqa: BLE001
+        except RequestException as e:
+            # RequestException is the base of everything requests raises -- including the
+            # three caught by name above -- so this is the whole of "the request failed",
+            # and no longer the whole of "anything at all went wrong in this block".
             error_message = f"Request failed for url: {url}, error: {e} ."
 
     if error_message:

@@ -28,13 +28,15 @@ This is the main coordinator module that kicks-off the other components that lau
 #                                                                                      #
 import asyncio
 import sys
-from venv import logger
 
 import maptasker.src.proginit as initialize
+from maptasker.src import console
 from maptasker.src.lineout import LineOut
+from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
 from maptasker.src.sysconst import (
     debug_file,
+    logger,
 )
 
 crash_debug = False
@@ -60,28 +62,27 @@ def on_crash(exctype: object, value: str, traceback: list) -> None:
     if crash_debug:
         if "does not support chat" in value.error:
             PrimeItems.program_arguments["ai_analysis"] = False
-            print(value.error)
+            console.error(value.error)
             return
         # sys.__excepthook__ is the default excepthook that prints the stack trace
         # So we use it directly if we want to see it
         sys.__excepthook__(exctype, value, traceback)
-        print(
+        console.error(
             "MapTasker encountered a runtime error!  Error can be found in maptasker_debug.log",
         )
-        print(
-            "]\nGo to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n",
+        console.error(
+            "Go to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n",
         )
     # Give the user a more graceful error message.
     else:
-        # Instead of the stack trace, we print an error message to stderr
-        print("\nMapTasker encountered a runtime error!", file=sys.stderr)
-        # print("Exception type:", exctype, " value:", value)
-        print(f"The error log can be found in {debug_file}.")
-        print(
+        # Instead of the stack trace, a plain message.  console.error writes to stderr and
+        # logs it, so the same words are in the log file this message points the user at.
+        console.error("\nMapTasker encountered a runtime error!")
+        console.error(f"The error log can be found in {debug_file}.")
+        console.error(
             "Go to https://github.com/mctinker/Map-Tasker/issues to report the problem.\n",
-            file=sys.stderr,
         )
-        print("\a", end="", flush=True)
+        console.say("\a", end="", flush=True)  # Bell
         # Redirect print to a debug log
         with open(debug_file, "w") as log:
             # sys.stdout = log
@@ -94,15 +95,12 @@ def handle_async_exceptions(loop, context) -> None:
     exception = context.get("exception")
     message = context.get("message")
 
-    # Silence the stack trace completely, and route a clean message to your logger
-    if exception:
-        err_message = f"Async Background Task aborted: {exception}"
-        print(err_message)
-        logger.error(err_message)
-    else:
-        err_message = f"Async Loop Error: : {message}"
-        print(err_message)
-        logger.error(err_message)
+    # Silence the stack trace completely, and route a clean message to the log.  These are
+    # background-task failures: worth recording every time, worth showing only to whoever
+    # is debugging.  console.error logs and shows; console.debug logs and stays quiet.
+    err_message = f"Async Background Task aborted: {exception}" if exception else f"Async Loop Error: {message}"
+    console.debug(err_message)
+    logger.error(err_message)
 
 
 # Set up the major variables used within this program, and set up crash routine
@@ -163,7 +161,9 @@ def mapit_all() -> int:
         None
 
     Returns:
-        int: 0
+        int: the status the process should exit with -- 0 when the run finished or was
+            shut down cleanly, otherwise the code carried by the MapTaskerError that
+            ended it.
 
     Processes Projects and their Profiles:
 
@@ -172,7 +172,21 @@ def mapit_all() -> int:
 
         This will eventually call rungui or runcli.
     """
-    _, _, _ = initialize_everything()
+    try:
+        _, _, _ = initialize_everything()
+    except MapTaskerError as error:
+        # The top of the process, and the only place that turns "MapTasker cannot carry
+        # on" back into an exit status.  Everything below here raises rather than exits
+        # (see maputils.exit_program) precisely so that this decision is made once, here,
+        # where it is known that MapTasker really is the whole program.
+        #
+        # A message is only shown for a genuine failure.  A clean shutdown -- the GUI's
+        # Exit button, "-v" having printed the version -- arrives here too, carrying code
+        # 0, and has already said whatever it had to say.
+        if error.exit_code and error.message:
+            console.error(error.message)
+        logger.debug(f"mapit_all exiting with code {error.exit_code}: {error.message}")
+        return error.exit_code
 
     # Code drops down here upon exit of the GUI.
 

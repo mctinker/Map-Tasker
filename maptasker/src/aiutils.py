@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 # import ollama
 # from google.genai import Client
 # from openai import OpenAI
+from maptasker.src import console
 from maptasker.src.error import rutroh_error
 from maptasker.src.maputil3 import ensure_and_import
 from maptasker.src.primitem import PrimeItems
@@ -90,7 +91,7 @@ def start_ollama_server() -> tuple[bool, str]:
             f"Ollama is not installed.  Please install the Ollama app from '{OLLAMA_DOWNLOAD_URL}' and try again.",
         )
 
-    print("MapTasker: --- Starting the Ollama server ('ollama serve')... ---")
+    console.say("MapTasker: --- Starting the Ollama server ('ollama serve')... ---")
     try:
         # Not waited on: 'ollama serve' runs for as long as the server does.  Left running
         # afterwards on purpose -- an analysis needs it for its whole duration, and cria finds
@@ -107,7 +108,7 @@ def start_ollama_server() -> tuple[bool, str]:
     deadline = time.monotonic() + OLLAMA_STARTUP_TIMEOUT
     while time.monotonic() < deadline:
         if ollama_is_responding(ollama):
-            print("MapTasker: --- The Ollama server is running. ---")
+            console.say("MapTasker: --- The Ollama server is running. ---")
             return True, ""
         time.sleep(OLLAMA_POLL_SECONDS)
 
@@ -181,7 +182,9 @@ def get_openai_models() -> list:
             and not contains_any_substring_loop(model.id, bad_models)
         ]
 
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:  # noqa: BLE001  The OpenAI SDK's own hierarchy, plus whatever
+        # a changed response shape does to the comprehension above.  Any of it means the
+        # same thing here: fall back to the built-in model list.
         rutroh_error(f"An error occurred trying to list OpenAi models: {e}")
         return OPENAI_MODELS
 
@@ -256,7 +259,9 @@ def get_gemini_models() -> list:
             return GEMINI_MODELS
         # genai = google_lib.genai
         client = google_lib.Client(api_key=api_key)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:  # noqa: BLE001  google.genai installs itself on demand here,
+        # so this covers both the install and the client construction -- two third-party
+        # exception hierarchies, neither of which is worth enumerating to say "no Gemini".
         rutroh_error(f"Error initializing client: {e}")
         rutroh_error("\nPlease ensure your GOOGLE_API_KEY environment variable is set correctly.")
         return []
@@ -444,7 +449,7 @@ def get_llama_models() -> list:
             return extended_list
         try:
             all_models = ollama.list()
-        except Exception as retry_error:  # noqa: BLE001
+        except Exception as retry_error:  # noqa: BLE001  As above: the retry did not answer either.
             rutroh_error(f"Error connecting to Ollama: {retry_error}")
             return extended_list
 

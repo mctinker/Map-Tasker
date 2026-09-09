@@ -5,7 +5,6 @@ import contextlib
 import html
 import os
 import pickle
-import sys
 import time
 import webbrowser
 from collections.abc import Callable, Coroutine
@@ -16,6 +15,7 @@ from urllib.parse import urlencode
 from nicegui import Event, context, run, ui
 
 from maptasker.src import (
+    console,
     deviceinv,
     mapjump,
     objprops,
@@ -95,6 +95,7 @@ from maptasker.src.guiwins import (
     build_delete_scene_dialog,
     build_edit_project_dialog,
     build_edit_scene_dialog,
+    build_health_check_dialog,
     build_helper_tasks_dialog,
     build_object_properties_dialog,
     build_overwrite_confirm_dialog,
@@ -152,6 +153,7 @@ from maptasker.src.maputils import (
     rename_file,
     update_maptasker,
 )
+from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.outline import outline_the_configuration
 from maptasker.src.primitem import (
     PrimeItems,
@@ -372,9 +374,17 @@ class MyGui:
             initialize_screen(self)
         except Exception as e:  # noqa: BLE001
             ui.label(f"CRASH IN UI LAYOUT: {e}").classes("text-2xl text-red-500 m-8 font-mono")
-            print("\n" + "=" * 50)
-            print("🚨 CRITICAL UI BUILD ERROR 🚨", e)
-            sys.exit()
+            # Whatever went wrong, the label above is now the window's entire content, so
+            # the user can see it.  sys.exit() used to follow, which was the worst of both
+            # worlds: raised inside a NiceGUI page builder it does not end the process, it
+            # kills the request handling this page and leaves uvicorn logging a SystemExit
+            # traceback -- so the message just written was never displayed.  Returning
+            # leaves the message on screen and the server up.
+            console.error("\n" + "=" * 50)
+            console.error(f"🚨 CRITICAL UI BUILD ERROR 🚨 {e}")
+            console.error("=" * 50 + "\n")
+            logger.exception("Building the GUI layout failed", exc_info=e)
+            return
 
         # Now restore the settings and update the fields if not resetting.
         if not PrimeItems.program_arguments["reset"]:
@@ -383,9 +393,6 @@ class MyGui:
             # 3. Synchronize runtime arguments
             if self.color_lookup and not PrimeItems.colors_to_use:
                 capture_gui_state(self, {})
-
-            # traceback.print_exc()
-            print("=" * 50 + "\n")
 
         # Check if newer version of our code is available on Pypi.
         check_new_version(self)
@@ -2404,9 +2411,13 @@ class MapTaskerEventHandlers:
                 try:
                     # 2. RUN IO BOUND: Uses background threads to preserve memory singletons safely
                     await run.io_bound(build_html, "")
-                except SystemExit as e:
-                    # Intercept background termination codes gracefully
-                    error_code_extracted = e.code if hasattr(e, "code") else 6
+                except MapTaskerError as e:
+                    # Intercept background termination codes gracefully.  This was
+                    # "except SystemExit" and had to be: build_html and everything under it
+                    # ended the process outright on any error.  They raise this now, which
+                    # is an ordinary Exception, so a failed build is one failed build --
+                    # the window stays up and says what happened.
+                    error_code_extracted = e.exit_code
                     if error_code_extracted == 6:
                         gui.display_message_box(
                             translate_string(
@@ -2737,7 +2748,14 @@ class MapTaskerEventHandlers:
         self._step_edit_history(forwards=True)
 
     def health_check_event(self: "MapTaskerEventHandlers") -> None:
-        """Scan the loaded configuration for problems, display the report and save it to a file."""
+        """Ask which categories to report, then scan, display and save.
+
+        The panel comes first rather than after the scan for two reasons: it is the answer
+        to "what am I looking for", which the user has in mind before they press the
+        button; and unticking a whole family lets the scan skip that walk over the
+        configuration altogether (healthck.run_health_check), which is most of the time it
+        takes on a large backup.
+        """
         gui = self.gui
         if not PrimeItems.tasker_root_elements["all_tasks"]:
             gui.display_message_box(
@@ -2746,7 +2764,20 @@ class MapTaskerEventHandlers:
             )
             return
 
-        rows, counts = run_health_check()
+        build_health_check_dialog(self.run_health_check_for)
+
+    def run_health_check_for(self: "MapTaskerEventHandlers", skip: list[str]) -> None:
+        """Run the check for the categories the panel left ticked, and show the report.
+
+        The choice is remembered here rather than in the panel: the panel closes on Cancel
+        without calling this at all, and a Cancel that had already written the settings
+        would have changed something on its way out.
+        """
+        gui = self.gui
+        PrimeItems.program_arguments["health_check_skip"] = skip
+        save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+
+        rows, counts = run_health_check(skip)
         file_name = write_health_check_report(rows)
 
         if file_name:
@@ -4563,8 +4594,7 @@ class MapTaskerEventHandlers:
             # say so, so the user knows where it went.
             replaced_note = f" The file it replaced was copied to {safety_copy}." if safety_copy else ""
             ui.notify(
-                f"Saved Project '{edited_project.project_name}' to {save_path}."
-                f"{replaced_note}{_redacted_note(redact)}",
+                f"Saved Project '{edited_project.project_name}' to {save_path}.{replaced_note}{_redacted_note(redact)}",
                 type="positive",
             )
             dialog.close()

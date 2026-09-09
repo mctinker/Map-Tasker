@@ -244,11 +244,14 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
     comparable.  Parsing a copy makes that impossible by construction rather than by
     hoping the encoding is fine.
 
-    "gui" is forced True for the duration, and this is load-bearing rather than tidy: on
-    a parse error taskerd calls error_handler, which outside GUI mode ends in
-    exit_program -> sys.exit.  A corrupt file picked for comparison would take the whole
-    program down, unsaved edits and all.  In GUI mode it records the error and returns,
-    which is the only acceptable outcome here.
+    "gui" is forced True for the duration so that a parse error is RECORDED rather than
+    raised: taskerd calls error_handler, which in GUI mode puts the reason on PrimeItems
+    and returns, and outside it goes to exit_program.  That used to be sys.exit, which
+    would have taken the whole program down over a bad file picked for comparison --
+    unsaved edits and all.  exit_program raises MapTaskerError now, which the except
+    below would catch anyway, so this is no longer the only thing standing between a
+    corrupt comparison file and a dead process.  It is still the better path: an error
+    recorded on PrimeItems carries the reason this function has to return.
 
     "directory" is forced False because conditions_to_name calls add_directory_item when
     it is on, which would append the other file's Profiles to the live directory list.

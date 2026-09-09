@@ -11,6 +11,8 @@ from collections.abc import Generator, Iterator
 from contextlib import ContextDecorator
 from typing import Any
 
+from maptasker.src import console
+
 # import httpx
 # import ollama
 # import psutil
@@ -20,10 +22,10 @@ from maptasker.src.primitem import PrimeItems
 
 httpx = ensure_and_import("httpx", "httpx")
 if httpx is None:
-    print("MapTasker Cria: httpx could not be installed.")
+    console.error("MapTasker Cria: httpx could not be installed.")
 psutil = ensure_and_import("psutil", "psutil")
 if psutil is None:
-    print("MapTasker Cria: psutil could not be installed.")
+    console.error("MapTasker Cria: psutil could not be installed.")
 
 
 DEFAULT_MODEL = "llama3.1:8b"
@@ -152,28 +154,28 @@ def check_models(model: str, silence_output: bool) -> str | None:
             m_without_version = next(iter(m_name.split(":")), "")
             if model == m_without_version:
                 if not silence_output:
-                    print(f"LLM model found, running {m_name}...")
+                    console.say(f"LLM model found, running {m_name}...")
                 return m_name
             if not silence_output:
-                print(f"LLM partial match found, running {m_name}...")
+                console.say(f"LLM partial match found, running {m_name}...")
             return m_name
     model_match = next((True if m.get("name") == model else False for m in model_list), False)
     if model_match:
         return model
 
     if not silence_output:
-        print(f"LLM model not found, searching '{model}'...")
+        console.say(f"LLM model not found, searching '{model}'...")
 
     try:
         progress = ollama.pull(model, stream=True)
-        print(f"LLM model {model} found, downloading... (this will probably take a while)")
+        console.say(f"LLM model {model} found, downloading... (this will probably take a while)")
         if not silence_output:
             for chunk in progress:
-                print(chunk)
-            print(f"'{model}' downloaded, starting processes.")
+                console.say(str(chunk))
+            console.say(f"'{model}' downloaded, starting processes.")
         return model
-    except Exception as e:
-        print(e)
+    except Exception as e:  # noqa: BLE001  ollama.pull raises its own hierarchy; any of it means "no model".
+        console.error(str(e))
         # Model not found!
         PrimeItems.error_code = 1
         PrimeItems.error_msg = f"Invalid model {model} passed. See the model library here: https://ollama.com/library"

@@ -46,6 +46,8 @@ from maptasker.src.sysconst import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
     import defusedxml.ElementTree  # Need for type hints
 
 # Severity ordering is the order findings are reported in, worst first.
@@ -71,10 +73,26 @@ _ANONYMOUS_TASK_PREFIX = "-"
 # action set; every other Task reference in a backup is by id.
 _PERFORM_TASK_CODE = "130"
 
-# Create/Show/Hide/Destroy Scene.  These name a Scene in arg0, but their argument is
-# called "Name" rather than "Scene Name", so _scene_name_args() below cannot find them
-# by name the way it finds the twenty-odd "Element ..." actions.
-_SCENE_LIFECYCLE_CODES = {"46": "0", "47": "0", "48": "0", "49": "0"}
+# Actions that name a Scene in an argument the action table does NOT call "Scene Name", so
+# the derivation below cannot find them the way it finds the twenty-odd "Element ..." ones:
+#
+#   46 / 47 / 48 / 49   Create / Show / Hide / Destroy Scene   arg0, called "Name"
+#   194                 Test Scene                             arg0, called "Name"
+#   479                 Show Scene v2                          arg1, called "Name/JSON"
+#
+# 479 is the Screen Builder's own Show Scene, and the only one of that family that names a
+# Scene at all.  The other eight -- Dismiss, Update, Update Overlay, Get Values, Wait For
+# Result, Run Action, Trigger Event -- address a screen that is ALREADY showing, by a
+# "Screen ID" the user makes up at the moment they show it.  Measured against a real
+# backup, most of those ids look nothing like a Scene name ("Freeze5yhu7tgge46yht", "id",
+# "kaka"), so reading one as a Scene name would invent a broken reference for nearly every
+# one of them.
+_SCENE_NAME_CODES = {"46": "0", "47": "0", "48": "0", "49": "0", "194": "0", "479": "1"}
+
+# What "Show Scene v2" holds when its "Name/JSON" argument is a whole layout written inline
+# rather than the name of a Scene in this file.  A layout names no Scene, so it is neither
+# a reference to one nor a broken one.
+_INLINE_LAYOUT_PREFIXES = ("{", "[")
 
 # Set Widget Icon / Set Widget Label.  Their arg0 is a home screen widget's name, and a
 # Tasker widget is named for the Task it launches -- so a Task named here almost certainly
@@ -83,6 +101,109 @@ _SCENE_LIFECYCLE_CODES = {"46": "0", "47": "0", "48": "0", "49": "0"}
 # evidence is circumstantial, but a false "unreferenced" on a Task the user taps daily is a
 # much worse answer than staying quiet about one.
 _WIDGET_NAME_CODES = {"152": "0", "155": "0"}
+
+# ##################################################################################
+# What the check looks for, as the chooser offers it.
+#
+# One entry per tag a finding can carry, because that is the unit the report itself uses:
+# a finding line reads "[UNUSED-SCENE]  Project 'Home' > Scene 'Menu'", so a user who wants
+# to stop seeing those knows the word to untick without having to learn a second vocabulary
+# of groupings.  The groups below are headings for the panel, not selections of their own.
+#
+# The four folded-in modules declare their own tags (proflint.TAGS and friends) and this
+# list is checked against them by the tests, so a category added there and not described
+# here is caught rather than quietly missing from the panel.  Whichever way that drift
+# happens, an UNKNOWN tag is SHOWN: what is stored is the set to leave out, so a check
+# added in a later release reports itself until the user says otherwise, rather than
+# silently disappearing from a report they believe is complete.
+# ##################################################################################
+GROUP_REFERENCES = "Broken references"
+GROUP_REACHABILITY = "Unreachable and unused"
+GROUP_NAMING = "Naming"
+GROUP_HYGIENE = "Worth knowing"
+GROUP_FLOW = "Task flow"
+GROUP_VARIABLES = "Variables"
+GROUP_BEHAVIOUR = "Behaviour on the device"
+GROUP_SECRETS = "Secrets and personal details"
+
+
+@dataclass(frozen=True)
+class Category:
+    """One kind of finding, as the chooser panel lists it.
+
+    'what' is one line, written for somebody deciding whether they care -- not a
+    restatement of the tag, which they can already read.
+    """
+
+    tag: str
+    group: str
+    what: str
+
+
+CATEGORIES: tuple[Category, ...] = (
+    Category("BROKEN-TID-REF", GROUP_REFERENCES, "A Project lists a Task that is not in the file."),
+    Category("BROKEN-PROFILE-REF", GROUP_REFERENCES, "A Project lists a Profile that is not in the file."),
+    Category("BROKEN-SCENE-REF", GROUP_REFERENCES, "A Project lists a Scene that is not in the file."),
+    Category("BROKEN-TASK-REF", GROUP_REFERENCES, "A Profile runs a Task that is not in the file."),
+    Category("BROKEN-SCENE-TASK", GROUP_REFERENCES, "A Scene element fires a Task that is not in the file."),
+    Category("BROKEN-PERFORM-TASK", GROUP_REFERENCES, "A Perform Task action calls a Task that is not here."),
+    Category("BROKEN-SCENE-ACTION", GROUP_REFERENCES, "An action acts on a Scene that is not in the file."),
+    Category("ORPHAN-PROFILE", GROUP_REACHABILITY, "No Project lists it, so Tasker will not run it."),
+    Category("ORPHAN-SCENE", GROUP_REACHABILITY, "No Project lists it."),
+    Category("EMPTY-PROJECT", GROUP_REACHABILITY, "A Project holding no Profiles and no Tasks."),
+    Category("UNREFERENCED-TASK", GROUP_REACHABILITY, "Nothing in this file runs it."),
+    Category("UNUSED-SCENE", GROUP_REACHABILITY, "No action shows, hides or changes it."),
+    Category("DUPLICATE-NAME", GROUP_NAMING, "Two objects of one kind sharing a name."),
+    Category("DISABLED-PROFILE", GROUP_HYGIENE, "Disabled in Tasker, so none of its Tasks will run."),
+    Category("LARGE-TASK", GROUP_HYGIENE, "More actions than your warning limit."),
+    Category("FLOW-MISMATCHED-BLOCK", GROUP_FLOW, "An 'End If' closing a 'For', or the other way round."),
+    Category("FLOW-END-IF-WITHOUT-IF", GROUP_FLOW, "An 'End If' with no 'If' open above it."),
+    Category("FLOW-END-FOR-WITHOUT-FOR", GROUP_FLOW, "An 'End For' with no 'For' open above it."),
+    Category("FLOW-IF-WITHOUT-END-IF", GROUP_FLOW, "An 'If' that is never closed."),
+    Category("FLOW-FOR-WITHOUT-END-FOR", GROUP_FLOW, "A 'For' that is never closed."),
+    Category("FLOW-ELSE-WITHOUT-IF", GROUP_FLOW, "An 'Else' with no 'If' open above it."),
+    Category("FLOW-GOTO-MISSING-LABEL", GROUP_FLOW, "A 'Goto' aimed at a label nothing carries."),
+    Category("FLOW-GOTO-BAD-NUMBER", GROUP_FLOW, "A 'Goto' aimed at an action number that is not there."),
+    Category("FLOW-GOTO-OUTSIDE-IF", GROUP_FLOW, "A 'Goto end of If' written outside any 'If'."),
+    Category("FLOW-DUPLICATE-LABEL", GROUP_FLOW, "Two actions carrying the same label."),
+    Category("FLOW-UNREACHABLE", GROUP_FLOW, "Actions nothing can reach."),
+    Category("VAR-NEAR-DUPLICATE", GROUP_VARIABLES, "Two variable names differing only in spelling."),
+    Category("VAR-NEVER-SET", GROUP_VARIABLES, "A variable that is read but nothing sets."),
+    Category("VAR-NEVER-READ", GROUP_VARIABLES, "A variable that is set but nothing reads."),
+    Category("PROFILE-CONFLICT", GROUP_BEHAVIOUR, "Two Profiles that will fight over the same setting."),
+    Category("PROFILE-DUPLICATE-TRIGGER", GROUP_BEHAVIOUR, "Two Profiles watching for the same thing."),
+    Category("PROFILE-NEVER-FIRES", GROUP_BEHAVIOUR, "Conditions that can never all be true at once."),
+    Category("ALWAYS-ON-MONITOR", GROUP_BEHAVIOUR, "A Profile keeping a radio or sensor awake."),
+    Category("FREQUENT-TRIGGER", GROUP_BEHAVIOUR, "A Profile firing on a very short timer."),
+    Category("POLLING-LOOP", GROUP_BEHAVIOUR, "A Task looping around a short Wait."),
+    Category("MISSING-COLLISION", GROUP_BEHAVIOUR, "A long-running Task left on the default collision handling."),
+    Category("NO-TIMEOUT", GROUP_BEHAVIOUR, "An action that can block for ever."),
+    Category("SECRET-API-KEY", GROUP_SECRETS, "An API key or access token."),
+    Category("SECRET-TOKEN", GROUP_SECRETS, "A bearer token in an Authorization header."),
+    Category("SECRET-PASSWORD", GROUP_SECRETS, "A password written into a value."),
+    Category("SECRET-PRIVATE-KEY", GROUP_SECRETS, "A private key, in full."),
+    Category("SECRET-CREDENTIAL", GROUP_SECRETS, "A field Tasker itself calls Password or Username, filled in."),
+    Category("PII-EMAIL", GROUP_SECRETS, "An email address."),
+    Category("PII-PHONE", GROUP_SECRETS, "A telephone number."),
+    Category("PII-LOCATION", GROUP_SECRETS, "Coordinates precise enough to be an address."),
+)
+
+# The tags each folded-in pass can raise, so a pass whose every category has been unticked
+# can be skipped outright rather than run and then filtered.  Each is a separate walk over
+# the whole configuration -- the reason those passes exist as their own modules -- so this
+# is the difference between "leave it out of the report" and "do not do the work at all".
+_PASS_TAGS = {
+    "flow": taskflow.TAGS,
+    "variables": frozenset(f"VAR-{tag}" for tag in (varxref.NEAR_DUPLICATE, varxref.NEVER_SET, varxref.NEVER_READ)),
+    "behaviour": proflint.TAGS,
+    "secrets": piiscan.TAGS,
+}
+
+
+def all_categories() -> tuple[Category, ...]:
+    """Every category the check can report, in the order the chooser lists them."""
+    return CATEGORIES
+
 
 # How one place points at a Task or a Scene.  The index below records which sort each
 # reference is, because that is what decides whether a delete has to rewrite it: an id in
@@ -221,10 +342,9 @@ def _scene_name_args() -> dict[str, str]:
     Derived from the action table rather than listed here, so an action added to
     actionc.py in a later Tasker release is covered without this module being touched.
     The twenty-odd "Element ..." actions all declare an argument literally named
-    "Scene Name"; the four lifecycle actions that do not are added from
-    _SCENE_LIFECYCLE_CODES.
+    "Scene Name"; the six that do not are added from _SCENE_NAME_CODES.
     """
-    codes = dict(_SCENE_LIFECYCLE_CODES)
+    codes = dict(_SCENE_NAME_CODES)
     for key, action in action_codes.items():
         if not key.endswith("t"):  # 'e' keys are Profile events/states, not Task actions.
             continue
@@ -503,7 +623,7 @@ def _index_one_action(
 
     elif code in scene_args:
         scene_name = _string_argument(action, scene_args[code])
-        if not scene_name:
+        if not scene_name or scene_name.startswith(_INLINE_LAYOUT_PREFIXES):
             return
         if not _is_resolvable(scene_name):
             # A Scene named by a variable ("%Which_Scene") is chosen on the device, so this
@@ -1091,23 +1211,44 @@ def build_reference_index() -> ReferenceIndex:
     return index
 
 
-def run_health_check() -> tuple[list[Row], dict]:
+def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
     """Scan the loaded configuration and return (report rows, counts by severity).
 
     Rows rather than finished text: the caller saves them as plain text and shows them as
     HTML, and the two have to be the same report (see _build_report).
 
+    skip is the set of category tags to leave out -- what the chooser panel's unticked
+    boxes come to.  Stated as what to LEAVE OUT rather than what to include so that a
+    category added in a later release is reported by default: a saved list of wanted tags
+    would silently hide every check written after the day it was saved, and a report that
+    quietly stopped looking for something is worse than one that asks an extra question.
+
+    Findings are dropped after the passes run, EXCEPT for the four folded-in ones, each of
+    which is a separate walk over the whole configuration and is skipped outright when
+    every category it can raise has been unticked.
+
     Safe to call with nothing loaded -- the tables are empty and the report says so --
     but the GUI checks first so it can say something more useful than "0 Projects".
     """
+    skip = frozenset(skip)
     index = build_reference_index()
 
     _check_reachability(index)
     _check_hygiene(index)
-    _check_control_flow(index)
-    _check_variables(index)
-    _check_behaviour(index)
-    _check_secrets(index)
+    if not _PASS_TAGS["flow"] <= skip:
+        _check_control_flow(index)
+    if not _PASS_TAGS["variables"] <= skip:
+        _check_variables(index)
+    if not _PASS_TAGS["behaviour"] <= skip:
+        _check_behaviour(index)
+    if not _PASS_TAGS["secrets"] <= skip:
+        _check_secrets(index)
+
+    if skip:
+        # The closing notes are keyed off what is left (see _limitations), so filtering
+        # here takes the note about a category with it rather than leaving a paragraph
+        # explaining findings that are no longer in the report.
+        index.findings = [item for item in index.findings if item.tag not in skip]
 
     return _build_report(index, datetime.now()), _counts(index.findings)  # noqa: DTZ005
 

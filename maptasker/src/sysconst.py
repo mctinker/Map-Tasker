@@ -150,6 +150,10 @@ ARGUMENT_NAMES = {
     "font": "Font To Use",
     "gui": "GUI Mode",
     "guiview": "Use GUI Map",
+    # The Health Check categories the user has unticked.  Stored as what to LEAVE OUT so a
+    # category added in a later release is reported until they say otherwise -- see
+    # healthck.CATEGORIES.
+    "health_check_skip": "Health Check Categories To Leave Out",
     "highlight": "Highlight Names",
     "indent": "Indentation Amount",
     "italicize": "Italicize Names",
@@ -192,6 +196,18 @@ TRANSIENT_ARGUMENTS = {"ai_analyze": False}
 
 # Debug stuff
 logger = logging.getLogger("MapTasker")
+# Nothing this logger is given reaches a terminal on its own.  maputil2.setup_logging()
+# only runs in debug mode, so outside it this logger has no handler anywhere up the chain
+# and logging falls back to its "last resort" handler, which writes every WARNING and
+# above straight to stderr.  That put bare, contextless lines ("Undo checkpoint could not
+# be taken: ...") on the user's terminal as a side effect of recording them, and printed
+# twice the several messages that were deliberately printed AND logged.
+#
+# A NullHandler is the library-side fix for exactly this: it stops the fallback without
+# stopping propagation, so the FileHandler basicConfig() puts on the ROOT logger in debug
+# mode still receives everything as before.  Terminal output is console.py's job now, and
+# only console.py's.
+logger.addHandler(logging.NullHandler())
 debug_out = False  # Prints the line to be added to the output
 DEBUG_PROGRAM = False
 debug_file = "maptasker_debug.log"

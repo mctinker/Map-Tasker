@@ -330,7 +330,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Refactor Task or Profile
 
-- [ ] Impact Analysis Before Destructive Edit
+- [x] Impact Analysis Before Destructive Edit
 
 - [ ] Test-run Task on Android
 

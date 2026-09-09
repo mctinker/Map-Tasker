@@ -16,6 +16,7 @@ from json import dumps, loads
 from pathlib import Path
 
 import maptasker.src.progargs as get_arguments
+from maptasker.src import console
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE, GUI
 from maptasker.src.error import error_handler
@@ -229,7 +230,7 @@ def get_data_and_output_intro(do_front_matter: bool) -> int:
         # and not running from the GUI.
         if not PrimeItems.file_to_get and run_counter < 1 and not GUI:
             msg = translate_string("Locate the Tasker XML file to use to map your Tasker environment")
-            print(f"MapTasker: {msg}")
+            console.say(f"MapTasker: {msg}")
 
         # Open and read the file...
         open_and_get_backup_xml_file()
@@ -269,9 +270,11 @@ def check_versions() -> None:
     if major < 3 or (major == 3 and minor < 11):
         msg = f"Python version {sys.version} is not supported.  Please use Python 3.11 or greater."
     if msg:
-        logger.error("MapTasker", msg)
-        print(msg)
-        exit(0)  # noqa: PLR1722
+        # Code 1, not 0: an unsupported interpreter is a failed run, and the exit status
+        # is what a shell script wrapping MapTasker actually tests.  exit_program rather
+        # than exit() so this is survivable when MapTasker is not the whole process.
+        console.error(msg)
+        exit_program(1)
 
 
 def load_arg_specs() -> None:
@@ -370,7 +373,7 @@ def start_up() -> dict:
     """
     # If debug mode, fire-up the log.
     if "-d" in sys.argv or "-debug" in sys.argv:
-        print("Debug turned on via startup argument")
+        console.say("Debug turned on via startup argument")
         log_startup_values()
     logger.info(f"sys.argv{sys.argv!s}")
 

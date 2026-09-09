@@ -6,7 +6,9 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 import string
 
+from maptasker.src import console
 from maptasker.src.error import error_handler
+from maptasker.src.maputils import exit_program
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES, logger
 
@@ -23,16 +25,18 @@ def print_list(title: str, parse_items: list) -> None:
     seperator = ", "
     list_length = len(parse_items) - 1
     if title:
-        print(title)
+        console.say(title)
     for item in parse_items:
         if parse_items.index(item) == list_length:  # Last item in list?
             seperator = ""
         line_out = f"{line_out}{item}{seperator}"
-    print(line_out)
+    console.say(line_out)
 
 
 # Validate the color name provided.  If color name is 'h', simply display all the colors
-def validate_color(the_color: str) -> object:
+# The "h" branch ends in exit_program, which never returns -- but ruff cannot see the
+# NoReturn on it from another module, hence the RET503 exemption.
+def validate_color(the_color: str) -> object:  # noqa: RET503
     """
     Validate the color name provided.
         If color name is 'h', simply display all the colors and exit.
@@ -239,7 +243,10 @@ def validate_color(the_color: str) -> object:
     print_list("\nWhite color names:", white_color_names)
     print_list("\nGray color names:", gray_color_names)
     print_list("\nAny color:", any_color)
-    exit(0)
+    # The colour list IS the run when "-ch" is given: there is nothing else to do once it
+    # is on screen.  exit_program rather than exit() so the GUI and the test suite survive
+    # somebody asking for it (see maputils.exit_program).
+    exit_program(0)
 
 
 # Get the runtime option for a color change and set it

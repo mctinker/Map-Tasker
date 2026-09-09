@@ -103,7 +103,11 @@ def decompress_gzip_json(b64_string: str) -> dict | str:
         # 3. Parse JSON
         return json.loads(decompressed_data.decode("utf-8"))
 
-    except Exception as e:  # noqa: BLE001
+    except (ValueError, OSError, EOFError) as e:
+        # The whole of what this decode chain throws on bad input: binascii.Error and
+        # json.JSONDecodeError and UnicodeDecodeError are all ValueError, gzip.BadGzipFile
+        # is an OSError, and a truncated member is EOFError.  A TypeError here would be a
+        # bug in the caller and no longer disappears into this string.
         return f"An error occurred: {e}"
 
 

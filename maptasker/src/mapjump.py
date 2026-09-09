@@ -266,6 +266,13 @@ def minimum_detail_level(target: Target) -> int:
       Variables                   DISPLAY_DETAIL_LEVEL_everything.  The two variable tables
                                   are gated a level below, but the top level walks more of
                                   the file, so globalvr collects more variables to list.
+      An object's Properties      DISPLAY_DETAIL_LEVEL_all_parameters, whatever the object.
+                                  A Project's own line is on the Map from level 0, but its
+                                  "Project: Properties..." line -- which is where the
+                                  comment, the collision handling and the import-time
+                                  variables are, and so where a finding about any of them
+                                  points -- is written only above level 2 (property.py's
+                                  three callers all gate on the same figure).
 
     A floor, never a ceiling: a user already higher keeps what they have.  The cost of the
     higher floors is small now that a jump narrows the Map to one Project -- for the Project
@@ -273,6 +280,8 @@ def minimum_detail_level(target: Target) -> int:
     """
     if target.kind in (VARIABLE, SCENE):
         return DISPLAY_DETAIL_LEVEL_everything
+    if target.part == PROPERTIES_PART:
+        return DISPLAY_DETAIL_LEVEL_all_parameters
     if target.kind == TASK:
         return DISPLAY_DETAIL_LEVEL_all_parameters
     return 0
@@ -355,6 +364,13 @@ def scene_element_parts(scene_element: object) -> dict[int, str]:
 # key a path can otherwise begin with: a path's first step names a slot INSIDE the root.
 _V2_ROOT_PART = "root"
 
+
+# The part naming the "...Properties..." line a Project, Profile or Task carries: its
+# comment, its collision handling, and the import-time variables Tasker prompts for -- see
+# property.get_properties, which writes the lot as a single line and anchors it.  A finding
+# about any of them points here rather than at the object's own line, which on a Project
+# with several Profiles is a long way above it.
+PROPERTIES_PART = "properties"
 
 # The part naming an object's TaskerNet description -- the text whoever published it to
 # TaskerNet wrote about it, which Tasker keeps in <Share><d> and the Map shows only when

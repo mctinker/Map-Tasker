@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 """Error handling module for MapTasker."""
 
+from maptasker.src import console
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ERROR_FILE, Colors, logger
 
@@ -24,13 +25,17 @@ def error_handler(error_message: str, exit_code: int) -> None:
 
     # Process an error?
     if exit_code > 0 and exit_code < 100:
-        logger.debug(final_error_message)
+        # Show it on the terminal only where there is a user watching one: in GUI mode the
+        # message goes to the window instead (just below).  Either way it is recorded --
+        # console.error logs what it shows, and logger.debug covers the quiet case.
         if (
             PrimeItems.program_arguments
             and PrimeItems.program_arguments["debug"]
             and not PrimeItems.program_arguments["gui"]
         ) or exit_code == 5:
-            print(final_error_message)
+            console.error(final_error_message)
+        else:
+            logger.debug(final_error_message)
 
         # If coming from GUI, set error info. and return to GUI.
         if PrimeItems.program_arguments and PrimeItems.program_arguments["gui"]:
@@ -42,20 +47,17 @@ def error_handler(error_message: str, exit_code: int) -> None:
             PrimeItems.error_code = exit_code
             PrimeItems.error_msg = error_message
             return
-        # Not coming from GUI...just print error.
-        logger.debug(final_error_message)
+        # Not coming from GUI.  Stop the run, carrying the code with it.
         exit_program(exit_code)
 
     # If exit code is 100, then the user closed the window
     elif exit_code == 100:
-        print(final_error_message)
-        logger.info(final_error_message)
+        console.say(final_error_message)
         exit_program(0)
 
     # return code 0
     else:
-        print(final_error_message)
-        logger.info(final_error_message)
+        console.say(final_error_message)
         return
 
 
@@ -67,6 +69,4 @@ def rutroh_error(message: str) -> None:
     Returns:
         None: Does not return anything
     """
-    if PrimeItems.program_arguments["debug"]:
-        print(f"Rutroh! {message}")
-    logger.debug(f"Rutroh! {message}")
+    console.debug(f"Rutroh! {message}")

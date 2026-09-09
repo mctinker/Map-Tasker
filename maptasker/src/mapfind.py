@@ -132,11 +132,24 @@ _PLAIN_TRIGGER_LABELS = {
     _APP_CONTEXT: "Application",
 }
 
-# Create Scene, Show Scene, Hide Scene, Destroy Scene: the four whose Scene argument
-# actionc.py labels "Name" rather than "Scene Name", so the derivation below cannot find
-# them.  healthck's own four, repeated rather than imported -- importing them would make a
-# search depend on the health check module, and the two are deliberately independent.
-_SCENE_LIFECYCLE_CODES = {"46": "0", "47": "0", "48": "0", "49": "0"}
+# Actions that name a Scene in an argument the action table does NOT call "Scene Name", so
+# the derivation below cannot find them the way it finds the twenty-odd "Element ..." ones:
+#
+#   46 / 47 / 48 / 49   Create / Show / Hide / Destroy Scene   arg0, called "Name"
+#   194                 Test Scene                             arg0, called "Name"
+#   479                 Show Scene v2                          arg1, called "Name/JSON"
+#
+# 479 is the Screen Builder's own Show Scene, and the only one of that family that names a
+# Scene at all.  The other eight -- Dismiss, Update, Update Overlay, Get Values, Wait For
+# Result, Run Action, Trigger Event -- address a screen that is ALREADY showing, by a
+# "Screen ID" the user makes up at the moment they show it.  Measured against a real
+# backup, most of those ids look nothing like a Scene name ("Freeze5yhu7tgge46yht", "id",
+# "kaka"), so reading one as a Scene name would invent a broken reference for nearly every
+# one of them.
+#
+# healthck's own table, repeated rather than imported -- importing it would make a search
+# depend on the health check module, and the two are deliberately independent.
+_SCENE_NAME_CODES = {"46": "0", "47": "0", "48": "0", "49": "0", "194": "0", "479": "1"}
 
 
 @dataclass(frozen=True)
@@ -405,10 +418,10 @@ def _scene_name_args() -> dict[str, str]:
 
     Derived from the action table rather than listed, so a Scene action added in a later
     Tasker release is covered when actionc.py is regenerated -- the twenty-odd "Element
-    ..." actions all declare an argument literally named "Scene Name".  The four
-    lifecycle actions that do not are added by hand above.
+    ..." actions all declare an argument literally named "Scene Name".  The six that do
+    not are added by hand above.
     """
-    codes = dict(_SCENE_LIFECYCLE_CODES)
+    codes = dict(_SCENE_NAME_CODES)
     for key, action in action_codes.items():
         if not key.endswith("t"):  # 'e'/'s' keys are Profile events and states, not actions.
             continue

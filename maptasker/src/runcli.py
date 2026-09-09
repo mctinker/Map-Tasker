@@ -16,6 +16,7 @@ from collections import namedtuple
 
 import darkdetect
 
+from maptasker.src import console
 from maptasker.src.clip import clip_figure
 from maptasker.src.colors import get_and_set_the_color, validate_color
 from maptasker.src.colrmode import set_color_mode
@@ -317,9 +318,9 @@ def display_version() -> None:
 
 """
     color_to_use = Colors.Yellow if darkdetect.isDark() else Colors.Blue
-    print(header)
-    print(f"{color_to_use}{MY_VERSION}, under license {MY_LICENSE}\033[0m")
-    print("")
+    console.say(header)
+    console.say(f"{color_to_use}{MY_VERSION}, under license {MY_LICENSE}\033[0m")
+    console.say("")
     clip_figure("castles", False)
     exit_program(0)
 
@@ -466,7 +467,7 @@ def unit_test() -> namedtuple:  # noqa: PYI024
         v=False,
     )
     # Go through each argument from runtest
-    print("Running Unit Test.")
+    console.say("Running Unit Test.")
     for the_argument in sys.argv:
         if the_argument == "-test=yes":  # Remove unit test trigger
             continue
@@ -508,15 +509,13 @@ def validate_arguments() -> None:
     # It doesn't make sense to do twisties if notr displaying full detail.
     if program_arguments["display_detail_level"] < 3 and program_arguments["twisty"]:
         message = "Twisty disabled since the display level is not 3 or above."
-        print(f"{Colors.Yellow}{message}")
-        logger.info(message)
+        console.warn(f"{Colors.Yellow}{message}")
 
     # A single Scene below detail level 3 is just the Scene's name: scenes.get_details
     # only outputs the Scene's elements above level 2.  Bump it, as '-scene' advertises.
     if program_arguments["display_detail_level"] < 3 and program_arguments["single_scene_name"]:
         message = "Display level set to 3: a single Scene needs level 3 or above to show its elements."
-        print(f"{Colors.Yellow}{message}")
-        logger.info(message)
+        console.warn(f"{Colors.Yellow}{message}")
         program_arguments["display_detail_level"] = 3
 
 

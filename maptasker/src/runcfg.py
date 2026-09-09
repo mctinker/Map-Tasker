@@ -125,6 +125,15 @@ class RunConfig:
     ai_name: str = ""  # AI name
     ai_prompt: str = ""  # AI prompt
 
+    # --- What the Health Check reports -----------------------------------------------
+    # The categories the user unticked in the Health Check panel, by tag.  Stored as what
+    # to LEAVE OUT so a category added in a later release arrives reported rather than
+    # silently hidden -- see healthck.CATEGORIES.  A list rather than a tuple because that
+    # is what it is in program_arguments and what a TOML settings file reads back as, and
+    # the two are compared field for field (see the tests); default_factory because a
+    # dataclass will not take a mutable default written outright.
+    health_check_skip: list[str] = field(default_factory=list)
+
     # --- How we were invoked ---------------------------------------------------------
     gui: bool = False  # Use the GUI for the runtime and color options
     guiview: bool = False  # Use the GUI to get the view (Map, Diagram, Tree)

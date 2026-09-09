@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any
 
 from nicegui import core, ui
 
+from maptasker.src import console
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.getputer import save_restore_args
@@ -473,7 +474,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
             )
 
     logger.info("GUI closed. Cleaning up...")
-    print("MapTasker GUI closed. Cleaning up...")
+    console.say("MapTasker GUI closed. Cleaning up...")
 
     # 4. Retrieve the state created by the web browser session
     user_input = shared_state.get("user_input")

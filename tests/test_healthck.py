@@ -19,10 +19,12 @@ from __future__ import annotations
 import os
 import re
 import xml.etree.ElementTree as ET
+from unittest import mock
 
 import pytest
-from maptasker.src import taskerd
+from maptasker.src import healthck, piiscan, proflint, taskerd, taskflow
 from maptasker.src.healthck import (
+    CATEGORIES,
     ERROR,
     INFO,
     WARNING,
@@ -198,15 +200,18 @@ def _load(xml_text: str) -> None:
     PrimeItems.tasker_root_elements = tables
 
 
-def _run() -> tuple[str, dict]:
+def _run(skip: list[str] | None = None) -> tuple[str, dict]:
     """The health check as (report text, counts by severity).
 
     run_health_check returns Rows -- one per line, each carrying where clicking it goes --
     because the report is rendered twice, as saved text and as clickable HTML.  These tests
     are about what the report SAYS, which is the text half, so the rows are rendered here
     with the same function that writes the file.
+
+    skip is what the chooser panel's unticked boxes come to; the default of nothing
+    unticked is what every test but the ones about the panel itself wants.
     """
-    rows, totals = run_health_check()
+    rows, totals = run_health_check(skip or [])
     return text_report(rows), totals
 
 
@@ -679,3 +684,181 @@ def test_report_is_written_to_the_runtime_directory(tmp_path: object, monkeypatc
     # the GUI handler, on a copy, and must not reach the file.
     with open(written, encoding="utf-8") as saved:
         assert saved.read() == text_report(rows)
+
+
+# ##################################################################################
+# Scene v2 -- the Screen Builder's own actions
+# ##################################################################################
+#
+# Tasker's Screen Builder brought a second family of Scene actions, and only ONE of them
+# names a Scene: "Show Scene v2" (479), whose argument actionc.py calls "Name/JSON" rather
+# than "Scene Name".  The derivation that finds the twenty-odd "Element ..." actions
+# therefore missed it, and every Scene shown only by the Screen Builder read as a Scene
+# nothing displays -- on a real backup, two of them, both shown every day.
+#
+# The rest of that family address a screen that is already showing, by a "Screen ID" the
+# user makes up at the moment they show it.  Reading one of those as a Scene name is the
+# opposite mistake and just as bad: the ids in a real backup look like "Freeze5yhu7tgge46yht"
+# and "id", so nearly every one would be reported as a reference to a Scene that is not in
+# the file.
+_V2_SCENE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
+  <Project sr="proj0" ve="2">
+    <name>Screens</name><pids>10</pids><tids>20</tids><scenes>Shown,Tested,Quiet</scenes>
+  </Project>
+  <Profile sr="prof10" ve="2"><id>10</id><nme>Go</nme><mid0>20</mid0></Profile>
+  <Task sr="task20">
+    <id>20</id><nme>Open Them</nme>
+    <Action sr="act0" ve="7"><code>479</code><Str sr="arg1" ve="3">Shown</Str>
+      <Str sr="arg2" ve="3">my_screen_handle</Str></Action>
+    <Action sr="act1" ve="7"><code>194</code><Str sr="arg0" ve="3">Tested</Str></Action>
+    <Action sr="act2" ve="7"><code>480</code><Str sr="arg0" ve="3">my_screen_handle</Str></Action>
+  </Task>
+  <Scene sr="scene0"><nme>Shown</nme></Scene>
+  <Scene sr="scene1"><nme>Tested</nme></Scene>
+  <Scene sr="scene2"><nme>Quiet</nme></Scene>
+</TaskerData>
+"""
+
+
+@pytest.fixture
+def v2_report() -> str:
+    """The report for a configuration driven by the Screen Builder's actions."""
+    _load(_V2_SCENE_XML)
+    text, _ = _run()
+    return text
+
+
+def test_a_scene_shown_by_show_scene_v2_is_not_unused(v2_report: str) -> None:
+    """The defect this section exists for: 'Shown' is displayed on every run."""
+    assert "Shown" not in "".join(_findings_for(v2_report, "UNUSED-SCENE"))
+
+
+def test_a_scene_named_by_test_scene_is_not_unused(v2_report: str) -> None:
+    """Test Scene names a Scene in an argument called "Name", the same blind spot."""
+    assert "Tested" not in "".join(_findings_for(v2_report, "UNUSED-SCENE"))
+
+
+def test_the_check_still_fires_for_a_scene_the_screen_builder_never_shows(v2_report: str) -> None:
+    """Widened to cover the v2 actions, not widened into silence."""
+    assert _findings_for(v2_report, "UNUSED-SCENE") == ["[UNUSED-SCENE]  Project 'Screens' > Scene 'Quiet'"]
+
+
+def test_a_screen_id_is_not_read_as_a_scene_name(v2_report: str) -> None:
+    """'my_screen_handle' is what the user called this showing of the Scene, not a Scene.
+    Reported as a broken reference, it would be one finding per v2 action in the file.
+    """
+    assert not _findings_for(v2_report, "BROKEN-SCENE-ACTION")
+
+
+def test_show_scene_v2_still_reports_a_name_that_is_not_in_the_file() -> None:
+    """The reference really is broken when the name is one: renaming a Scene and leaving
+    the action behind is exactly how it happens, and it is worth being told.
+    """
+    _load(_V2_SCENE_XML.replace('<Str sr="arg1" ve="3">Shown</Str>', '<Str sr="arg1" ve="3">Renamed</Str>'))
+    text, _ = _run()
+    assert "action 1 refers to Scene 'Renamed', which is not in this file." in text
+
+
+def test_a_layout_written_into_show_scene_v2_names_no_scene() -> None:
+    """Its argument is "Name/JSON": a whole layout can be written inline instead of a name.
+    That names no Scene in the file, so it is neither a reference nor a broken one.
+    """
+    _load(_V2_SCENE_XML.replace('<Str sr="arg1" ve="3">Shown</Str>', '<Str sr="arg1" ve="3">{"root":{"type":"Column"}}</Str>'))
+    text, _ = _run()
+    assert not _findings_for(text, "BROKEN-SCENE-ACTION")
+    assert "Shown" in "".join(_findings_for(text, "UNUSED-SCENE"))
+
+
+# ##################################################################################
+# Choosing what the check reports
+# ##################################################################################
+#
+# The Health Check button opens a panel of one checkbox per category, all ticked, and what
+# comes back is the list to LEAVE OUT.  That direction is the whole of why these tests are
+# worth having: stored the other way round -- as the list to include -- a category added in
+# a later release would be missing from every saved settings file, and so would quietly
+# vanish from reports that people believe are complete.
+def test_every_tag_the_folded_in_passes_raise_is_offered(report: str) -> None:
+    """The panel is built from CATEGORIES, so a tag missing from it cannot be unticked.
+
+    Checked against the four modules that declare their own tags; healthck's own are
+    literals in its index.add calls and are covered by the fixture-driven tests above.
+    """
+    offered = {category.tag for category in CATEGORIES}
+    declared = taskflow.TAGS | proflint.TAGS | piiscan.TAGS
+    assert declared - offered == set()
+
+
+def test_every_category_offered_is_one_that_can_be_raised() -> None:
+    """And the other direction, so the panel does not offer a check that no longer exists."""
+    from maptasker.src.healthck import _PASS_TAGS  # noqa: PLC0415
+
+    own = {
+        "BROKEN-TID-REF", "BROKEN-PROFILE-REF", "BROKEN-SCENE-REF", "BROKEN-TASK-REF",
+        "BROKEN-SCENE-TASK", "BROKEN-PERFORM-TASK", "BROKEN-SCENE-ACTION", "ORPHAN-PROFILE",
+        "ORPHAN-SCENE", "EMPTY-PROJECT", "UNREFERENCED-TASK", "UNUSED-SCENE", "DUPLICATE-NAME",
+        "DISABLED-PROFILE", "LARGE-TASK",
+    }
+    raisable = own.union(*_PASS_TAGS.values())
+    assert {category.tag for category in CATEGORIES} - raisable == set()
+
+
+def test_every_category_has_a_group_and_a_description() -> None:
+    """Forty-five bare tags is a list nobody can choose from."""
+    assert all(category.group and category.what for category in CATEGORIES)
+    assert len({category.tag for category in CATEGORIES}) == len(CATEGORIES)
+
+
+def test_nothing_skipped_reports_everything(report: str) -> None:
+    """The default, and what every other test in this file exercises."""
+    assert _findings_for(report, "UNREFERENCED-TASK")
+    assert _findings_for(report, "UNUSED-SCENE")
+
+
+def test_an_unticked_category_is_left_out() -> None:
+    """The point of the panel."""
+    _load(_DEFECTIVE_XML)
+    text, _ = _run(skip=["UNREFERENCED-TASK"])
+    assert not _findings_for(text, "UNREFERENCED-TASK")
+    # ...and only that one: unticking a category is not a way to lose the rest.
+    assert _findings_for(text, "UNUSED-SCENE")
+
+
+def test_an_unticked_category_is_left_out_of_the_counts() -> None:
+    """The heading counts the findings, so a filtered report must not claim the ones it
+    is no longer showing.
+    """
+    _load(_DEFECTIVE_XML)
+    everything, counts_all = _run()
+    _load(_DEFECTIVE_XML)
+    _, counts_less = _run(skip=["UNREFERENCED-TASK"])
+    dropped = len(_findings_for(everything, "UNREFERENCED-TASK"))
+    assert dropped
+    assert sum(counts_all.values()) - sum(counts_less.values()) == dropped
+
+
+def test_the_note_about_a_category_goes_with_it() -> None:
+    """Each closing note explains findings that are in the report.  Left behind, it would
+    be a paragraph about things the reader cannot see.
+    """
+    _load(_DEFECTIVE_XML)
+    assert "NOTE ON UNREFERENCED TASKS" in _run()[0]
+    _load(_DEFECTIVE_XML)
+    assert "NOTE ON UNREFERENCED TASKS" not in _run(skip=["UNREFERENCED-TASK"])[0]
+
+
+def test_unticking_a_whole_family_skips_its_scan() -> None:
+    """Each folded-in pass is its own walk over the configuration, and is the bulk of what
+    a check on a large backup costs.  Unticking every category it can raise has to skip the
+    walk, not run it and throw the answers away.
+    """
+    _load(_DEFECTIVE_XML)
+    with mock.patch.object(healthck, "_check_secrets") as secrets:
+        _run(skip=list(piiscan.TAGS))
+    secrets.assert_not_called()
+
+    _load(_DEFECTIVE_XML)
+    with mock.patch.object(healthck, "_check_secrets") as secrets:
+        # One category of that family still ticked, so the walk still has to happen.
+        _run(skip=list(piiscan.TAGS - {"PII-EMAIL"}))
+    secrets.assert_called_once()

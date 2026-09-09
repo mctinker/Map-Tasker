@@ -19,6 +19,7 @@ import sys
 import threading
 import time
 from datetime import datetime
+from typing import NoReturn
 from zoneinfo import (
     ZoneInfo,
     ZoneInfoNotFoundError,
@@ -28,11 +29,13 @@ import defusedxml.ElementTree as et  # noqa: N813
 import requests
 from requests.exceptions import ConnectionError  # noqa: A004
 
+from maptasker.src import console
 from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
 from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.getids import get_ids
 from maptasker.src.maputil2 import translate_string
+from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import HOTLINK_STYLE, FormatLine, logger, logging
 from maptasker.src.taskerd import get_the_xml_data
@@ -96,11 +99,11 @@ def update_maptasker() -> None:
         # Build the command for uv
         # uv uses the syntax: uv pip install <package>
         command = ["uv", "pip", "install", packageversion, "--upgrade"]
-        print("Updating with uv...")
+        console.say("Updating with uv...")
     else:
         # Build the fallback command for pip
         command = [sys.executable, "-m", "pip", "install", packageversion, "--upgrade"]
-        print("Updating with pip...")
+        console.say("Updating with pip...")
 
     # 2. Execute the chosen command
     subprocess.call(command)  # noqa: S603
@@ -185,7 +188,10 @@ def validate_xml(
                     error_message = f"Unicode error in {android_file}.  Try again."
                     break
                 process_file = True  # Loop one more time.
-            except Exception as e:  # any other errorError out and exit  # noqa: BLE001
+            except (OSError, LookupError) as e:
+                # What is left once ParseError and UnicodeDecodeError are taken above: the
+                # file not being readable, and the hard-coded parser encoding not being a
+                # codec this interpreter knows.
                 error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
                 process_file = False  # Get out of while/loop
 
@@ -253,11 +259,11 @@ def pretty(d: dict, indent: int = 0) -> None:
     """
     _pretty = pretty
     for key, value in d.items():
-        print("\t" * indent + str(key))
+        console.debug("\t" * indent + str(key))
         if isinstance(value, dict):
             _pretty(value, indent + 1)
         else:
-            print("\t" * (indent + 1) + str(value))
+            console.debug("\t" * (indent + 1) + str(value))
 
 
 def find_all_positions(string: str, substring: str, start_position: int = 0) -> list:
@@ -526,10 +532,34 @@ def close_logfile() -> None:
             target.removeHandler(handler)  # Remove the handler from the logger
 
 
-def exit_program(return_code: int = 0) -> None:
-    """Common program exit code."""
+def exit_program(return_code: int = 0) -> NoReturn:
+    """Stop the run, from anywhere, without stopping the interpreter.
+
+    This used to be close_logfile() followed by sys.exit(), and every caller below it in
+    this package inherited that: a Task name that did not match, a missing output
+    directory, a corrupt XML file: each ended the process outright.
+
+    That is only ever right when MapTasker is the whole program.  It no longer always is.
+    The same functions run underneath a NiceGUI event loop, where SystemExit raised in a
+    `run.io_bound` worker takes the server down instead of the one build that failed, and
+    under pytest, where it ends the test session instead of the test.  diffload even had
+    to force "gui" on solely to steer taskerd's error path away from here.
+
+    So this raises MapTaskerError, which is an ordinary Exception and can therefore be
+    caught, and mapit.mapit_all -- the top of the process -- turns it back into an exit
+    status.  Callers need no change: control still leaves at the call, and the code still
+    travels with it.
+
+    Args:
+        return_code: the status the process should end on if nothing catches this.  0 is
+            a normal, deliberate shutdown and is raised just the same, because the point
+            is to stop unwinding, not to report a failure.
+
+    Raises:
+        MapTaskerError: always.  This function has no normal return.
+    """
     close_logfile()
-    sys.exit(return_code)
+    raise MapTaskerError(exit_code=return_code)
 
 
 def append_to_filename(original_filename_with_type: str, text_to_append: str) -> str:
@@ -588,7 +618,10 @@ def get_timezone_from_ip() -> str:
     except requests.exceptions.RequestException as e:
         logger.debug(f"Error connecting to geolocation service or getting data: {e}")
         return None
-    except Exception as e:  # noqa: BLE001
+    except (ValueError, AttributeError) as e:
+        # The request itself is covered above.  This is the response being something other
+        # than the JSON object this expects: .json() raises ValueError, and .get() on a
+        # decoded list rather than a dict raises AttributeError.
         logger.debug(f"An unexpected error occurred during IP geolocation: {e}")
         return None
 
@@ -613,7 +646,9 @@ def get_current_local_time_auto_timezone() -> str:
                 f"Error: Discovered timezone '{timezone_string}' is not recognized by zoneinfo.",
             )
             return datetime.now()  # noqa: DTZ005
-        except Exception as e:  # noqa: BLE001
+        except ValueError as e:
+            # ZoneInfo rejects a key that is not a well-formed name with ValueError, and
+            # raises ZoneInfoNotFoundError (caught above) for one that simply is not there.
             logger.debug(f"Error creating timezone-aware datetime: {e}")
             return datetime.now()  # noqa: DTZ005
     else:
@@ -672,7 +707,7 @@ def restart_program_subprocess() -> None:
     new_process_args = [sys.executable, script_path, *sys.argv[1:]]
 
     subprocess.Popen(new_process_args)  # noqa: S603
-    print("Restarting program.  Please stand by...")
+    console.say("Restarting program.  Please stand by...")
     time.sleep(0.2)
 
     # If we're inside a running event loop (e.g. this was triggered from a NiceGUI

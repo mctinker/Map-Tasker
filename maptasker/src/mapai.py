@@ -11,6 +11,7 @@ import sys
 
 from nicegui import run
 
+from maptasker.src import console
 from maptasker.src.aiutils import OLLAMA_DOWNLOAD_URL, get_api_key, start_ollama_server
 from maptasker.src.error import error_handler
 from maptasker.src.guiwins import create_popup_window
@@ -59,7 +60,7 @@ def valid_api_key(ai: str, api_key: str) -> bool:
             except OpenAIError:
                 return False
         except Exception as e:  # noqa: BLE001
-            print(f"Error importing OpenAI: {e}")
+            console.error(f"Error importing OpenAI: {e}")
             return False
 
     elif ai == "anthropic_key":
@@ -228,7 +229,7 @@ def local_ai(query: str, ai_object: str, item: str) -> None:
         error_handler("No model selected.", 12)
         return
 
-    print(f"Model: {PrimeItems.program_arguments['ai_model']}")
+    console.say(f"Model: {PrimeItems.program_arguments['ai_model']}")
     # print(f"Query: {query}")
 
     # Prep the querey for the model.
@@ -403,7 +404,9 @@ def process_ai_query_and_response(
             record_response(response, ai_object, item)
         else:
             error_handler("Invalid AI name selected.", 12)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:  # noqa: BLE001  Five AI providers, five unrelated exception
+        # hierarchies -- handle_ai_error exists precisely to turn any of them into a
+        # sentence, so enumerating them here would duplicate that and go stale faster.
         error_message = handle_ai_error(e)  # Pass the exception object directly
         with open(ERROR_FILE, "w") as response_file:
             response_file.write(error_message)
@@ -586,7 +589,7 @@ async def _run_analysis_in_background(popup: popupwindow) -> None:
         for line in temp_output:
             query += f"{line}\n"
 
-        print(
+        console.say(
             f"MapTasker analysis for {ai_object} '{item}' is running in the background.  Please wait...",
         )
 
@@ -611,7 +614,7 @@ async def _run_analysis_in_background(popup: popupwindow) -> None:
         # "Please wait..." message.
         await run.io_bound(ai_func, query, ai_object, item)
 
-        print(f"MapTasker analysis for {ai_object} '{item}' is done.")
+        console.say(f"MapTasker analysis for {ai_object} '{item}' is done.")
 
     finally:
         # 3. Resume main thread operations securely

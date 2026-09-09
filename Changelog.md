@@ -17,12 +17,19 @@ All notable changes to this project will be documented in this file!
       - long-running Tasks left on Tasker's default collision handling, and actions that can block for ever because no timeout was set.  
       
       Every one of these is read from the file alone, so the report closes with a note saying they are questions to consider rather than faults to fix.
+- Added: 'Health Check' now asks what to look for before it runs.  
+
+      - Clicking it brings up a panel listing all 45 kinds of finding it can report -- grouped as broken references, unreachable and unused objects, naming, Task flow, variables, behaviour on the device, and secrets -- each ticked, with 'Ok' to run and 'Cancel' to think better of it. 
+       
+      - Your choices are remembered for next time, and unticking a whole group means that part of the scan is skipped rather than merely hidden, which makes the check noticeably quicker on a large configuration.
 - Added: 'Health Check' now also lists what is in your configuration that is nobody else's business -- API keys, tokens, passwords, phone numbers, email addresses and the coordinates a location Profile watches -- wherever they sit, including a variable's stored value and Tasker's own preferences.  A new 'Redact secrets' tick-box on the Export button in Edit Project, Profile, Task and Scene then takes those same things out of the exported file and notes at the top of it what went, so a configuration can be posted on a forum or handed to somebody helping you.
 
 ### Changed
 
 - Changed: The Map view now says it is being built for as long as the build actually takes, instead of flashing a message that was gone a second later while the wait carried on.  The view's own window also opens with a progress line rather than sitting empty until the whole map has arrived.
 - Changed: The build process used when there is a new version of Tasker has been drastically modified for efficiency and performance.
+- Changed: Internal diagnostic messages are now kept to the log file instead of being printed to the terminal, so ordinary runs are much quieter.  Anything genuinely meant for you is still shown, and turning on debug brings the rest back.
+- Changed: The maintainer utilities that were scattered across two top-level folders now sit together under 'tools', alongside a note saying what each one is for.  None of them is part of MapTasker itself, so it is now clear at a glance which files are the program and which are the workbench.
 
 ### Removed
 
@@ -32,9 +39,17 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: Actions and conditions that Tasker has deprecated are now marked as deprecated in the map.  The notice had been written but a pair of faults meant it could never actually appear.
 - Fixed: 'Health Check' no longer raises three false alarms about Task flow: a 'Goto top/end of loop' written outside any 'For', which Tasker allows; an 'End If' or 'End For' nothing can reach, which is punctuation rather than a stranded action; and a 'Stop' that names another Task, which shuts that Task down and then carries straight on.  A 'Stop' naming the Task it is written in is still reported as ending it.
+- Fixed: 'Health Check' no longer reports a Scene as unused when the only thing that shows it is a Screen Builder 'Show Scene v2' or a 'Test Scene' action.  Neither was recognised as naming a Scene, so a screen displayed every day was listed as one nothing displays -- and a 'Show Scene v2' still pointing at a Scene you have since renamed is now reported as the broken reference it is.
 - Fixed: A plugin action now shows the settings it was configured with, not just the one-line summary the plugin writes of itself.  A PushBullet push, for instance, was shown without the account it sends from, so a 'Health Check' finding about that account pointed at an action with nothing visibly wrong.
+- Fixed: A 'Health Check' finding about a Project, Profile or Task property -- a comment, or the value stored in a variable Tasker prompts for on import -- now takes you to that object's 'Properties' line in the Map rather than to the object's name, which can be several screens above it.
 - Fixed: A 'Health Check' finding about something written in a TaskerNet description now says so and takes you to the description, rather than to the top of the Project, Profile or Task it belongs to.  The Map is built with TaskerNet information showing if it was switched off.
 - Fixed: A 'Health Check' or 'Variable Xref' finding about a variable used in a Scene now names the element that uses it, and clicking it takes you to that element's own line in the Map rather than to the top of the Scene.  This works for both kinds of Scene: a Legacy element lands on its properties line, and a Screen Builder (V2) component on the very property that holds the variable.
+- Fixed: An error while building the Map, Diagram or Task Flow view no longer shuts MapTasker down.  The window stays open and tells you what went wrong, so unsaved edits are no longer lost to a problem with one view.
+- Fixed: A crash while the main window was being drawn now leaves the error on screen instead of killing the page that was about to display it.
+- Fixed: Running MapTasker from a script or the command line now reports failure properly.  It previously signalled success no matter how the run had actually ended, so a wrapping script could not tell that anything had gone wrong.
+- Fixed: Warnings such as 'Twisty disabled since the display level is not 3 or above' are no longer printed twice.
+- Fixed: The installed package no longer carries stray files picked up from the development machine -- a Windows thumbnail cache and two leftover run-state files.  Nothing ever read them, but they shipped with every release.
+- Fixed: The MIT licence is now included in the source distribution, which had until now been built without it.
 - Fixed:
 
 ### Known Issues

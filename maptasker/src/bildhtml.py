@@ -3,11 +3,10 @@
 import contextlib
 import gc
 import os
-import sys
 import webbrowser
 
 import maptasker.src.taskuniq as special_tasks
-from maptasker.src import projects
+from maptasker.src import console, projects
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory
 from maptasker.src.error import error_handler, rutroh_error
@@ -22,6 +21,7 @@ from maptasker.src.maputils import (
     exit_program,
     restart_program_subprocess,
 )
+from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import (
     PrimeItems,
     PrimeItemsReset,
@@ -67,16 +67,19 @@ def build_html(file_to_get: str) -> int:
           flag remains active at the end of execution.
     """
     # Let the userr know we are in debug mode.
-    if PrimeItems.program_arguments["debug"]:
-        print(">>>  MapTasker is in debug mode.  <<<")
+    console.debug(">>>  MapTasker is in debug mode.  <<<")
 
     if PrimeItems.error_code > 0:
         # We have a error.  Spit it out and exit.
         exit_program(PrimeItems.error_code)
 
     if PrimeItems.xml_root is None:
-        print(">>>  MapTasker: No file to read in.  Exiting.  <<<")
-        sys.exit(6)  # No file to read in.  Exit with error code 6.  userintr will intercept and display a msg.
+        # Code 6 is "nothing to read".  Raised rather than sys.exit()ed because this runs
+        # inside a run.io_bound worker when the GUI is driving: view_event catches it and
+        # says so in the window (see MapTaskerEventHandlers.view_event).
+        message = "MapTasker: No file to read in."
+        console.debug(f">>>  {message}  Exiting.  <<<")
+        raise MapTaskerError(message, exit_code=6)
 
     # Set up file to read if it is passed in (via rerun)
     if file_to_get:

@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import BinaryIO
 
+from maptasker.src import console
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import error_handler
 from maptasker.src.initparg import initialize_runtime_arguments
@@ -78,6 +79,10 @@ def write_atomically(target_file: str, write_settings: Callable[[BinaryIO], None
             os.chmod(temp_name, target.stat().st_mode & 0o7777)
         os.replace(temp_name, target)
     except BaseException:
+        # BaseException, not Exception, and deliberately so: this cleans up and RE-RAISES,
+        # swallowing nothing.  A Ctrl-C or a MapTaskerError partway through the write would
+        # otherwise leave the half-written ".MapTasker_Settings.toml.<random>.tmp" behind
+        # in the user's directory, once per interrupted save.
         with contextlib.suppress(OSError):
             os.unlink(temp_name)
         raise
@@ -201,8 +206,7 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     except TypeError as e:
         # The previous settings file is still intact -- write_atomically threw away the
         # partial one -- so the user loses this save, not everything saved before it.
-        logger.debug(f"getputer tomli failure: {e}")
-        print(f"getputer tomli failure: {e}...one or more settings is 'None'!")
+        console.error(f"getputer tomli failure: {e}...one or more settings is 'None'!")
 
     # Write out the system program arguments (e.g. window positions) in PICKLE format.
     logger.info("Saving system args file...")

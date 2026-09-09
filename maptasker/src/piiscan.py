@@ -66,6 +66,7 @@ from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import (
     PROFILE,
     PROJECT,
+    PROPERTIES_PART,
     SCENE,
     TASK,
     TASKERNET_PART,
@@ -671,31 +672,77 @@ def _scan_properties(
     element: defusedxml.ElementTree.Element,
     skip: set[int],
 ) -> None:
-    """Everything on an object that is not one of its actions."""
+    """Everything on an object that is not one of its actions.
+
+    Each finding points at the line of the Map that actually SHOWS what was found, which
+    for an object is one of three places:
+
+      its TaskerNet description   drawn as a block of its own (share.py), well below the
+                                  object's line.
+      its Properties line         the comment, the collision handling and the import-time
+                                  variables, written as one line by property.py -- and the
+                                  place a shared configuration is meant to keep its API key.
+      the object itself           everything else it carries: its name, its member lists,
+                                  the icon, the dates.
+
+    The distinction is the whole point.  "Found in this object's own properties" pointing
+    at a Project's own line sent the reader to a line with nothing wrong on it, several
+    screens above the property that did hold the address -- which reads as the scan being
+    wrong rather than the finding being badly aimed.
+    """
     description = element.find(f"{_SHARE}/{_SHARE_DESCRIPTION}")
+    on_properties = _properties_elements(element)
     for child in element.iter():
         if child is element or id(child) in skip:
             continue
         value = _scannable(child)
         if not value:
             continue
-        # The TaskerNet description is named, and pointed at, in its own right.  It is the
-        # one property of an object that the Map draws as a block of its own, a screenful
-        # below the object's own line -- so a finding that said "this object's own
-        # properties" sent the reader to a line with nothing wrong on it and no clue where
-        # to look next.  What people leave in these is real: on this repo's reference
-        # backup it is an author's email address, offered for support.
         if child is description:
             collect.text(where.at_part(TASKERNET_PART), "the TaskerNet description", value)
+        elif id(child) in on_properties:
+            collect.text(where.at_part(PROPERTIES_PART), "this object's own properties", value)
         else:
             collect.text(where, "this object's own properties", value)
 
 
+def _properties_elements(element: defusedxml.ElementTree.Element) -> set[int]:
+    """{id(child)} for everything the object's "...Properties..." line shows.
+
+    Which tags those are is property.PROPERTY_TAGS, read from there rather than restated
+    here so that the line a finding points at cannot drift from the line the Map writes --
+    the same contract mapjump.scene_element_parts holds for a Scene's elements.
+
+    property is imported inside the function for the reason healthck and varxref import
+    sceneedit inside theirs: it is part of the Map-output stack, nothing else here needs
+    it, and keeping the dependency in the one place that uses it leaves this module
+    importable, and testable, on its own.
+    """
+    from maptasker.src.property import PROPERTY_TAGS, VARIABLE_TAG  # noqa: PLC0415
+
+    shown: set[int] = set()
+    for child in element:
+        if child.tag in PROPERTY_TAGS:
+            shown.add(id(child))
+        elif child.tag == VARIABLE_TAG:
+            # The whole subtree: parse_variable displays essentially every child of one.
+            shown.update(id(node) for node in child.iter())
+    return shown
+
+
 def _scan_profiles(collect: _Collector) -> None:
-    """Every Profile's conditions, and the coordinates a location condition holds."""
+    """Every Profile's conditions, the coordinates a location condition holds, and its
+    own properties.
+
+    A Profile carries the same "...Properties..." line a Project and a Task do -- its
+    comment and its import-time variables -- and it is drawn in the same place, well below
+    the Profile's own line.  So a finding about one of those is aimed there rather than at
+    the Profile, exactly as _scan_properties aims the other two.
+    """
     owners = _project_owners("pids")
     for profile_id, profile in PrimeItems.tasker_root_elements["all_profiles"].items():
         where = Target(PROFILE, profile_id, profile["name"], owners.get(profile_id, ""))
+        on_properties = _properties_elements(profile["xml"])
         for element in profile["xml"].iter():
             if element.tag == _LOCATION_CONDITION and _has_coordinates(element):
                 collect.note(where, "this Profile's location condition", _LOCATION_FINDING)
@@ -703,7 +750,11 @@ def _scan_profiles(collect: _Collector) -> None:
             if element.tag in (_LATITUDE, _LONGITUDE):
                 continue
             value = _scannable(element)
-            if value:
+            if not value:
+                continue
+            if id(element) in on_properties:
+                collect.text(where.at_part(PROPERTIES_PART), "this Profile's own properties", value)
+            else:
                 collect.text(where, "this Profile's conditions", value)
 
 

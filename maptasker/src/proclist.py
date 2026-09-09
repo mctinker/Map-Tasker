@@ -445,7 +445,7 @@ def format_item(
         and PrimeItems.program_arguments["display_detail_level"] > 2
         and not PrimeItems.displaying_named_tasks_not_in_profile
     ):
-        get_properties("Task:", the_task)
+        get_properties("Task:", the_task, Target(TASK, the_task.attrib.get("sr", "")[4:]))
 
 
 # Process Given a Task/Scene, process it.

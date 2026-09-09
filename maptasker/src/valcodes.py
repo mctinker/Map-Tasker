@@ -29,6 +29,7 @@ import re
 
 import requests
 
+from maptasker.src import console
 from maptasker.src.actionc import action_codes
 from maptasker.src.primitem import PrimeItems
 
@@ -78,7 +79,7 @@ def debug_print(message: str) -> None:
     filename = "buildit.log"
 
     if PrimeItems.program_arguments["debug"]:
-        print(message)
+        console.say(message)
         try:
             # 2. Open the file in write mode ('w')
             # 'w' mode will create the file if it doesn't exist, or overwrite it if it does.
@@ -87,10 +88,10 @@ def debug_print(message: str) -> None:
                 file.write(message)
         except OSError as e:
             # 4. Handle potential I/O errors (e.g., permission issues, disk full)
-            print(f"valcodes:Error: Could not write to file '{filename}'. Reason: {e}")
-        except Exception as e:  # noqa: BLE001
-            # Catch any other unexpected errors
-            print(f"valcodes: An unexpected error occurred: {e}")
+            console.error(f"valcodes:Error: Could not write to file '{filename}'. Reason: {e}")
+        except Exception as e:  # noqa: BLE001  A maintainer-only trace file: OSError is
+            # handled above, and nothing else failing to be written is worth stopping for.
+            console.error(f"valcodes: An unexpected error occurred: {e}")
 
 
 def format_string(s: str) -> str:

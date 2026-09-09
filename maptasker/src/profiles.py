@@ -536,7 +536,7 @@ def do_profile(
 
     # Process Profile Properties
     if PrimeItems.program_arguments["display_detail_level"] > 2:
-        get_properties("Profile:", profile)
+        get_properties("Profile:", profile, Target(PROFILE, profile.attrib.get("sr", "")[4:]))
 
     # Process any <Share> information from TaskerNet.  The Profile's identity comes from
     # its "sr" attribute the same way get_profile_name reads it -- see the anchor written

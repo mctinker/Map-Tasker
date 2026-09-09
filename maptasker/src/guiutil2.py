@@ -167,6 +167,8 @@ def get_font_choices() -> dict[str, str]:
     """
     try:
         return get_font_selections(INCLUDE_PROPORTIONAL_FONTS)
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:  # noqa: BLE001  Font discovery reads whatever the platform
+        # has installed and must never take the GUI down -- see mapfonts.get_font_selections,
+        # which guards its own enumeration for the same reason.  There is a usable fallback.
         rutroh_error(f"Unable to retrieve the system fonts: {e}")
         return {"Courier New": "Courier New", "Courier": "Courier"}

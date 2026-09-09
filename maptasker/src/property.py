@@ -11,6 +11,7 @@ import defusedxml.ElementTree  # Need for type hints
 
 from maptasker.src import objprops
 from maptasker.src.error import rutroh_error
+from maptasker.src.mapjump import PROPERTIES_PART, Target, anchor_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine
 
@@ -212,14 +213,32 @@ def profile_properties(header: defusedxml.ElementTree) -> list:
     ]
 
 
+# The tags get_properties below reads to build an object's "...Properties..." line.
+#
+# NAMED HERE, BESIDE THE CODE THAT READS THEM, BECAUSE A SECOND MODULE NEEDS THE SAME LIST.
+# piiscan reports a secret or an address found in an object's own properties and points the
+# finding at the line that shows it -- and "the line that shows it" is decided by exactly
+# this list.  A tag read here and not listed here would leave a finding pointing at a
+# Properties line that never mentions it; one listed and not read would send a finding to a
+# line that is not there at all.
+#
+# <ProfileVariable> is the subtree rather than a tag of its own: parse_variable displays
+# essentially all of its children, and a variable's value -- the place a shared
+# configuration is MEANT to keep its API key -- is one of them.
+PROPERTY_TAGS = frozenset({"pc", "stayawake", "rty", "cldm", "limit", "flags"})
+VARIABLE_TAG = "ProfileVariable"
+
+
 # Given the xml header to the Project/Profile/Task, get the properties belonging
 # to this header and write them out.
-def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
+def get_properties(property_tag: str, header: defusedxml.ElementTree, where: Target | None = None) -> None:
     """
 
     Args:
         property_tag (str): Either "Project:", "Profile:", or "Task:"
         header (defusedxml.ElementTree): xml header to Project/Profile/Task
+        where (Target): the object these properties belong to, so the line can be marked as
+            somewhere a report finding can jump to.  None leaves it unmarked.
 
     Returns:
         nothing
@@ -299,6 +318,13 @@ def get_properties(property_tag: str, header: defusedxml.ElementTree) -> None:
         separator = f"<br>{blank * number_of_blanks}"
     else:
         separator = ", "
+
+    # Mark the line's place before writing it, so a finding about one of these properties
+    # lands here rather than on the object's own line -- which, on a Project with several
+    # Profiles, is a long way above.  There is nothing finer to aim at: every property of
+    # an object goes out as ONE line, which is what the separator above is joining.
+    if where is not None and (anchor := anchor_html(where.at_part(PROPERTIES_PART))):
+        PrimeItems.output_lines.add_line_to_output(5, anchor, FormatLine.dont_format_line)
 
     # Ok, output the properties as a single line.
     out_string = f"<br>{property_tag} Properties..." + separator.join(properties) + "<br>"

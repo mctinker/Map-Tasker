@@ -20,7 +20,7 @@ import re
 from bisect import bisect_left
 from typing import TYPE_CHECKING
 
-from maptasker.src import diagintr
+from maptasker.src import console, diagintr
 from maptasker.src.diagcnst import (
     CONNECTOR_DIRECTIONS,
     angle,
@@ -1509,14 +1509,11 @@ def cleanup_task_names(output_lines: list, num: int, line: str) -> list:
                     + (blank * num_occurences)
                     + output_lines[num][brackets_position + 1 :]
                 )
-        elif PrimeItems.program_arguments["debug"]:
-            print("Rutroh!  Diagram: No call position found in line", num, line)
         else:
-            logger.error(
-                "Rutroh!  Diagram: No call position found in line %s %s",
-                num,
-                line,
-            )
+            # Always recorded, shown only when debugging.  It used to be printed OR logged
+            # depending on the debug flag, so the non-debug run had no record of it at all
+            # beyond a line on a terminal nobody was reading.
+            console.debug(f"Rutroh!  Diagram: No call position found in line {num} {line}")
     return output_lines
 
 

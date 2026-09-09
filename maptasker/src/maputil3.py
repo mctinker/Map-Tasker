@@ -13,6 +13,7 @@ import shutil
 import subprocess
 import sys
 
+from maptasker.src import console
 from maptasker.src.maputil2 import http_request
 from maptasker.src.maputils import validate_xml
 from maptasker.src.sysconst import logger
@@ -30,7 +31,7 @@ def ensure_and_import(pypi_name: str, import_path: str) -> object:
     except ImportError:
         pass
 
-    print(f"MapTasker: --- Package {import_path} not found. Preparing installation... ---")
+    console.say(f"MapTasker: --- Package {import_path} not found. Preparing installation... ---")
 
     # 2. Determine the installer command
     # Check if uv is available and if we are in a uv-managed env or if pip is missing
@@ -47,10 +48,10 @@ def ensure_and_import(pypi_name: str, import_path: str) -> object:
     if use_uv:
         # 'uv pip install' targets the active virtualenv by default
         cmd = ["uv", "pip", "install", pypi_name]
-        print(f"MapTasker: --- Using uv to install {pypi_name} ---")
+        console.say(f"MapTasker: --- Using uv to install {pypi_name} ---")
     else:
         cmd = [sys.executable, "-m", "pip", "install", pypi_name]
-        print(f"MapTasker: --- Using pip to install {pypi_name} ---")
+        console.say(f"MapTasker: --- Using pip to install {pypi_name} ---")
 
     # 3. Execution
     try:
@@ -66,7 +67,7 @@ def ensure_and_import(pypi_name: str, import_path: str) -> object:
         return importlib.import_module(import_path)
 
     except (subprocess.CalledProcessError, ImportError) as e:
-        print(f"MapTasker: --- Failed to provide Package {import_path}: {e} ---")
+        console.error(f"MapTasker: --- Failed to provide Package {import_path}: {e} ---")
         return None
 
 
