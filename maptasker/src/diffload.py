@@ -36,7 +36,7 @@ import tempfile
 from datetime import datetime
 from typing import NamedTuple
 
-from maptasker.src import sessundo
+from maptasker.src import sessundo, timeline
 from maptasker.src.maputil2 import TIMESTAMP_SUFFIX_RE
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
@@ -176,7 +176,7 @@ def original_of(file_path: str) -> str:
     return original if os.path.isfile(original) else ""  # noqa: PTH113
 
 
-def write_comparison_report(report: str) -> str:
+def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
     """Write the report to a timestamped file in the current runtime directory.
 
     Returns the file name written, or "" if the write failed -- a comparison whose
@@ -187,9 +187,14 @@ def write_comparison_report(report: str) -> str:
     one day sort by when they were run, and datetime.now() rather than maputils'
     get_current_local_time_auto_timezone -- that one geolocates by IP with a five second
     timeout, which is a strange thing to make a local button click wait for.
+
+    base_name is what to stamp.  It defaults to the two-file comparison's own name; the
+    timeline passes TIMELINE_FILE so that "what changed since Tuesday" does not land in
+    the same pile as "how do these two files differ", which is a different question with
+    a different answer.
     """
     stamp = datetime.now().strftime("_%m-%d-%Y_%H-%M-%S")  # noqa: DTZ005
-    file_name = append_to_filename(COMPARE_FILE, stamp)
+    file_name = append_to_filename(base_name, stamp)
     if not file_name:
         return ""
     try:
@@ -300,7 +305,13 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
             PrimeItems.error_msg = ""
             PrimeItems.program_arguments.update(_FORCED_ARGUMENTS)
 
-            parsed = _Parsed(get_the_xml_data(), PrimeItems.tasker_root_elements, PrimeItems.xml_root, scratch)
+            # The file being compared against is not a configuration the user opened, so
+            # it does not belong in the timeline history -- without this, every comparison
+            # anyone ran would file the other file into the history of the one they are
+            # working on.  Only this call can record: it is the load.
+            with timeline.suppressed():
+                return_code = get_the_xml_data()
+            parsed = _Parsed(return_code, PrimeItems.tasker_root_elements, PrimeItems.xml_root, scratch)
         except Exception as error:  # noqa: BLE001
             # Deliberately every exception, not just OSError.  The contract this module
             # owes its caller is that picking a bad file to compare against produces a

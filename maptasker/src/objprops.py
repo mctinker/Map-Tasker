@@ -667,7 +667,7 @@ def set_child_text_in_tag_order(
     if child is None:
         # Match the parent's actual Element class: defusedxml's hardened parser yields the
         # pure-Python implementation, and ETW.SubElement would build a stdlib-class child
-        # that parent.append() rejects.  Same note as projedit._set_child_text.
+        # that parent.append() rejects.  Same note as editcommon.set_child_text.
         child = type(parent)(tag)
         position = next(
             (index for index, sibling in enumerate(parent) if (sibling.tag[:1].isupper() or sibling.tag > tag)),

@@ -36,7 +36,6 @@ save_profile_to_android) -- mirroring taskedit.py's Task-editing design 1:1.
 from __future__ import annotations
 
 import copy
-import os
 import re
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
@@ -46,8 +45,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import deviceinv, piiscan, sessundo, taskedit
+from maptasker.src import deviceinv, editcommon, piiscan, sessundo, taskedit
 from maptasker.src.actionc import action_codes
+from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
@@ -64,6 +64,12 @@ from maptasker.src.projedit import touch_project_mdate
 CONDITION_TYPES_ADDABLE = ("Time", "Day", "App", "Loc", "Event", "State")
 # Destination folder on the Android device for Save To Android -- see android_profile_path.
 ANDROID_PROFILE_LOCATION = "Tasker/profiles"
+# What this editor's exports need that the other three's don't -- see editcommon.EditorKind.
+EXPORT = editcommon.EditorKind(
+    fallback="profile",
+    extension=".prf.xml",
+    android_location=ANDROID_PROFILE_LOCATION,
+)
 # Every condition type this codebase recognizes (see condition.py's parse_profile_condition).
 _CONDITION_TAGS = ("Time", "Day", "State", "Event", "App", "Loc")
 # Profile children that are metadata, not conditions -- mirrors condition.py's
@@ -731,16 +737,6 @@ def apply_edits_to_profile(
     return []
 
 
-def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
-    child = parent.find(tag)
-    if child is None:
-        # Match parent's actual Element class (see render_standalone_profile_xml) --
-        # ETW.SubElement() would build a stdlib-class child and fail parent.append().
-        child = type(parent)(tag)
-        parent.append(child)
-    child.text = text
-
-
 def condition_field_key(cond_index: int, field_name: str) -> str:
     """Key format shared with the dialog builder for condition_values dict lookups."""
     return f"cond{cond_index}_{field_name}"
@@ -1034,22 +1030,22 @@ def remove_app_entry(condition: EditableCondition, entry_index: int) -> None:
 
 
 def sanitize_filename(name: str) -> str:
-    """Strip characters illegal in filenames from a Profile name (minimal, not a full slugify)."""
-    return re.sub(r'[\\/:*?"<>|]', "_", name).strip() or "profile"
+    """Strip characters illegal in filenames from a Profile name, falling back to "profile"."""
+    return EXPORT.sanitize_filename(name)
 
 
 def default_save_path(profile_name: str) -> str:
     """Default standalone-export path: {current runtime directory}/{sanitized name}.prf.xml."""
-    return os.path.join(os.getcwd(), f"{sanitize_filename(profile_name)}.prf.xml")
+    return EXPORT.default_save_path(profile_name)
 
 
 def android_profile_path(profile_name: str) -> str:
-    """The absolute path a Save To Android of this Profile would write to on the
-    device -- single source of truth for that path, mirroring
-    projedit.android_project_path (see it for the sanitized-name collision
-    caveat the overwrite prompt exists to catch).
+    """The absolute path a Save To Android of this Profile would write to on the device.
+
+    See EditorKind.android_path for the sanitized-name collision the overwrite prompt
+    this feeds exists to catch.
     """
-    return f"/{ANDROID_PROFILE_LOCATION}/{sanitize_filename(profile_name)}.prf.xml"
+    return EXPORT.android_path(profile_name)
 
 
 def profile_name_exists(name: str) -> bool:
@@ -1059,7 +1055,7 @@ def profile_name_exists(name: str) -> bool:
 
 def save_path_exists(output_path: str) -> bool:
     """Whether a file already sits at this save path (would be silently overwritten)."""
-    return bool(output_path) and os.path.exists(output_path)
+    return editcommon.save_path_exists(output_path)
 
 
 def render_standalone_profile_xml(edited_profile: EditableProfile, *, redact: bool = False) -> str:
@@ -1148,40 +1144,19 @@ def save_profile_to_android(
     into Tasker's live configuration. Tasker does not watch that directory for files
     to auto-import; this only places a standalone .prf.xml file where the user (or
     their own device-side automation) can pick it up. Mirrors
-    projedit.save_project_to_android exactly.
-
-    /upload answers 200 even for a nonexistent/bogus location -- it silently creates
-    missing folders and never reports failure at the HTTP layer -- so a 200 alone
-    proves nothing. This reads the file back afterward and compares its bytes to what
-    was sent before calling it a success.
+    projedit.save_project_to_android exactly -- both are EditorKind.upload_and_verify,
+    which see for why a 200 from /upload proves nothing on its own and the file has to
+    be read back before this reports success.
 
     Returns (0, device_file_path) on success, or (return_code, error_message).
     """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
-
-    ip_address = ip_address.strip()
-    ip_port = ip_port.strip()
-    if not ip_address or not ip_port:
-        return 8, "Android IP address and port are required."
-
-    xml_bytes = render_standalone_profile_xml(edited_profile).encode("utf-8")
-    device_path = android_profile_path(profile_name)
-    filename = device_path.rsplit("/", 1)[-1]
-
-    return_code, response = http_upload_request(ip_address, ip_port, ANDROID_PROFILE_LOCATION, filename, xml_bytes)
-    if return_code != 0:
-        return return_code, str(response)
-
-    # Retried rather than trusted: /upload is a Tasker Task writing to storage and this read
-    # is a second request answered by a second Task, so a write still settling answers 404 to
-    # a read that arrives too soon -- and failing on the first miss aborts a save whose file
-    # is on the device a moment later.  See maputil2.read_back_uploaded_file.
-    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
-    if verify_code != 0:
-        return 8, str(verify_content)
-
-    return 0, device_path
+    return_code, result, _on_device = EXPORT.upload_and_verify(
+        ip_address,
+        ip_port,
+        profile_name,
+        lambda: render_standalone_profile_xml(edited_profile).encode("utf-8"),
+    )
+    return return_code, result
 
 
 def register_new_profile(edited_profile: EditableProfile, profile_name: str) -> None:

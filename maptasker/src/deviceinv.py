@@ -55,6 +55,8 @@ if TYPE_CHECKING:
 
     import defusedxml.ElementTree
 
+from maptasker.src.editcommon import sanitize_filename
+from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import APPS_CACHE_FILE, logger
 
@@ -140,19 +142,6 @@ class IconRef:
 def _child_text(element: defusedxml.ElementTree.Element, tag: str) -> str:
     child = element.find(tag)
     return (child.text or "").strip() if child is not None else ""
-
-
-def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
-    """Set (creating if need be) one child's text.  Builds a new child with the parent's
-    own class rather than ETW.SubElement: the tree being edited is parsed by defusedxml,
-    and .append() enforces an exact type match, so a stdlib-class child would be refused
-    (the same reasoning as profedit._set_child_text and taskedit's own).
-    """
-    child = parent.find(tag)
-    if child is None:
-        child = type(parent)(tag)
-        parent.append(child)
-    child.text = text
 
 
 def _remove_children(parent: defusedxml.ElementTree.Element, tags: tuple[str, ...]) -> None:
@@ -629,12 +618,6 @@ _PAYLOAD_SECTIONS = (_PAYLOAD_PACKAGES, _PAYLOAD_LABELS, _PAYLOAD_ACTIVITIES)
 # staged file carry the object's own name instead of one baked-in filename shared by every
 # import.
 _STAGE_PATH_PARAMETER = "%par1"
-# The characters Tasker names are free to contain and filenames are not.  The same
-# substitution profedit.sanitize_filename and projedit.sanitize_filename make -- spelled
-# again rather than imported, because importing either module would be a cycle (see the
-# module docstring), and held to theirs by a test the way the folder names are.
-_ILLEGAL_IN_FILENAME = re.compile(r'[\\/:*?"<>|]')
-
 _LIST_APPS_ACTION = "815t"  # arg0 Type (dropdown), arg1 Match, arg2 Store Result In
 _VARIABLE_JOIN_ACTION = "592t"  # arg0 Name, arg1 Joiner, arg2 Delete Parts
 _WRITE_FILE_ACTION = "410t"  # arg0 File, arg1 Text, arg2 Append, arg3 Add Newline
@@ -907,12 +890,13 @@ def staged_paths(location: str, object_name: str, extension: str, fallback: str)
     handoff to Tasker fails, what is waiting in Tasker's own import browser is a file with
     the right name on it, which is exactly how the Scene route already works.
 
-    fallback is what an object whose name is nothing but illegal characters falls back to,
-    mirroring each editor's own sanitize_filename.  Two names can still sanitize onto one
+    fallback is what an object whose name is blank falls back to; the substitution itself
+    is editcommon.sanitize_filename, the same one the editors use (see it for why a name
+    of nothing but illegal characters keeps them, substituted, rather than falling back).  Two names can still sanitize onto one
     path ('Wake: Up' and 'Wake_ Up'), which is the collision the file-save buttons prompt
     about; here the caller takes a safety copy instead.
     """
-    filename = f"{_ILLEGAL_IN_FILENAME.sub('_', object_name).strip() or fallback}.{extension}"
+    filename = f"{sanitize_filename(object_name, fallback)}.{extension}"
     return filename, f"/{location}/{filename}", f"/storage/emulated/0/{location}/{filename}"
 
 

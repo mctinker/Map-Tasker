@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: A new 'Changes Since...' button reports what has changed in your configuration -- added, removed, renamed and edited -- over today, this week, this month, everything kept, or since a date you pick.  Every configuration you load is now kept, compressed, in a MapTasker_Timeline folder, so the older version is already there and there is no file to hunt for.
 - Added: Four Home Assistant plugin actions are recognised -- Call Service, Set WebSocket Connection, Test Connection and send message back.  Each now shows its name and configuration instead of an unmapped code number.
 - Added: Nine more Tasker plugin actions are recognised -- the AM series (Collect Pixel Colors, Create QR, Custom Keyboard Routine, Data Processor, Decoder QR, OpenVPN, Regex, Termux and UDP Client).
 - Added: Tasker's 'Fingerprint Gesture' event is now recognised, so a profile using it shows the event by name instead of an unmapped code number.  It is flagged as deprecated, since Tasker no longer supports it.
@@ -30,6 +31,7 @@ All notable changes to this project will be documented in this file!
 - Changed: The build process used when there is a new version of Tasker has been drastically modified for efficiency and performance.
 - Changed: Internal diagnostic messages are now kept to the log file instead of being printed to the terminal, so ordinary runs are much quieter.  Anything genuinely meant for you is still shown, and turning on debug brings the rest back.
 - Changed: The maintainer utilities that were scattered across two top-level folders now sit together under 'tools', alongside a note saying what each one is for.  None of them is part of MapTasker itself, so it is now clear at a glance which files are the program and which are the workbench.
+- Changed: Exporting a Project, Profile, Task or Scene now goes through one shared implementation rather than four near-identical copies.  The four had already begun to differ, and a fix to how a name becomes a filename or how a save to the device is verified had to be made four times to reach every export.
 
 ### Removed
 

@@ -8,6 +8,7 @@ import pickle
 import time
 import webbrowser
 from collections.abc import Callable, Coroutine
+from datetime import date
 from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import urlencode
@@ -26,6 +27,7 @@ from maptasker.src import (
     sceneedit,
     sessundo,
     taskedit,
+    timeline,
 )
 from maptasker.src.aiutils import get_api_key
 from maptasker.src.bildhtml import build_html
@@ -91,6 +93,7 @@ from maptasker.src.guiwins import (
     build_add_project_dialog,
     build_add_scene_dialog,
     build_add_scene_version_dialog,
+    build_changes_since_dialog,
     build_delete_project_dialog,
     build_delete_scene_dialog,
     build_edit_project_dialog,
@@ -173,6 +176,7 @@ from maptasker.src.sysconst import (
     NOTIFY_TIMEOUT_DEFAULT,
     POPOUT_WINDOW_PREFIX,
     TAB_NAMES,
+    TIMELINE_FILE,
     TYPES_OF_COLOR_NAMES,
     VIEW_LIMIT_DEFAULT,
     logger,
@@ -3009,6 +3013,71 @@ class MapTaskerEventHandlers:
         # nobody is left wondering whether the comparison actually ran.
         if not any(counts.values()):
             ui.notify(translate_string("The two files hold the same configuration."), type="positive")
+
+    async def timeline_event(self: "MapTaskerEventHandlers") -> None:
+        """Ask how far back to look, then report what has changed since then.
+
+        The "nothing loaded" guard is here rather than in the report below, and rather
+        than left to timeline's own: asking someone to choose a period and only then
+        telling them there is nothing to compare it against wastes the choice.  Same
+        check, and the same wording, as compare_files_event.
+        """
+        if not PrimeItems.tasker_root_elements["all_tasks"]:
+            self.gui.display_message_box(
+                translate_string("No XML file has been loaded.  Get an XML file first."),
+                "Red",
+            )
+            return
+
+        build_changes_since_dialog(self.report_changes_since)
+
+    async def report_changes_since(
+        self: "MapTaskerEventHandlers",
+        period: str,
+        on_date: date | None = None,
+    ) -> None:
+        """Produce the report for one chosen period -- what build_changes_since_dialog calls.
+
+        The same report compare_files_event produces, with the older side taken from the
+        history timeline.py keeps rather than from a file the user has to find -- which is
+        the whole point: the question is asked precisely when nobody remembers which file
+        on disk was the configuration last Tuesday.
+
+        A period of ALL resolves to no cutoff at all, which is how timeline is told to
+        reach back as far as it holds rather than to a date.
+        """
+        gui = self.gui
+        cutoff = timeline.cutoff_for(period, on_date=on_date)
+        result = await run.io_bound(timeline.changes_since, cutoff)
+
+        if result.problem:
+            gui.display_message_box(translate_string(result.problem), "Red")
+            return
+
+        # Said before the report is displayed, not after: it changes what the report means.
+        if result.note:
+            ui.notify(translate_string(result.note), type="warning")
+
+        file_name = write_comparison_report(result.report, TIMELINE_FILE)
+        if file_name:
+            gui.display_message_box(f"{translate_string('Timeline saved as')} {file_name}", "Green")
+        else:
+            gui.display_message_box(translate_string("Timeline report could not be saved."), "Red")
+
+        # Escaped for display only -- the file above keeps the plain text.  Same reasoning as
+        # compare_files_event above: a Tasker name holding '<', '>' or '&' would otherwise be
+        # read as markup rather than shown as the name it is.
+        self.gui.textview = NiceGuiTextView(
+            gui,
+            title="Misc View",
+            the_data=html.escape(result.report),
+        )
+
+        if result.nothing_changed:
+            ui.notify(
+                translate_string("Nothing has changed in your configuration over that period."),
+                type="positive",
+            )
 
     # ==========================================
     # 3. INPUT & DROPDOWN EVENTS

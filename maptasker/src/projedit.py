@@ -37,7 +37,6 @@ for why this does not import into Tasker's live configuration.
 from __future__ import annotations
 
 import copy
-import os
 import re
 import time
 import uuid
@@ -48,13 +47,20 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import objprops, piiscan, sessundo
+from maptasker.src import editcommon, objprops, piiscan, sessundo
+from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 
 BASE_PROJECT_NAME = "Base"
 # Destination folder on the Android device for Save To Android -- see android_project_path.
 ANDROID_PROJECT_LOCATION = "Tasker/projects"
+# What this editor's exports need that the other three's don't -- see editcommon.EditorKind.
+EXPORT = editcommon.EditorKind(
+    fallback="project",
+    extension=".prj.xml",
+    android_location=ANDROID_PROJECT_LOCATION,
+)
 # A Project's identity children, which an export must carry.
 #
 # These used to be STRIPPED, on the belief that Tasker's own single-Project export leaves
@@ -195,16 +201,6 @@ def apply_edits_to_project(edited_project: EditableProject, new_name: str) -> li
     # Project pulldown.
     edited_project.project_name = new_name
     return []
-
-
-def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
-    child = parent.find(tag)
-    if child is None:
-        # Match parent's actual Element class (see create_new_project) --
-        # ETW.SubElement() would build a stdlib-class child and fail parent.append().
-        child = type(parent)(tag)
-        parent.append(child)
-    child.text = text
 
 
 def _set_child_text_in_tag_order(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
@@ -459,41 +455,27 @@ def project_profile_names(project_name: str) -> list[str]:
 
 
 def sanitize_filename(name: str) -> str:
-    """Strip characters illegal in filenames from a Project name (minimal, not a full slugify).
-
-    Mirrors profedit.sanitize_filename/taskedit.sanitize_filename exactly -- kept as its own
-    copy rather than a shared import since each already stands alone with its own
-    type-appropriate fallback ("project" here vs. "profile"/"task").
-    """
-    return re.sub(r'[\\/:*?"<>|]', "_", name).strip() or "project"
+    """Strip characters illegal in filenames from a Project name, falling back to "project"."""
+    return EXPORT.sanitize_filename(name)
 
 
 def default_project_save_path(project_name: str) -> str:
     """Default standalone-export path: {current runtime directory}/{sanitized name}.prj.xml."""
-    return os.path.join(os.getcwd(), f"{sanitize_filename(project_name)}.prj.xml")
+    return EXPORT.default_save_path(project_name)
 
 
 def save_path_exists(output_path: str) -> bool:
-    """Whether a file already sits at this save path (would be silently overwritten).
-    Mirrors profedit.save_path_exists/taskedit.save_path_exists.
-    """
-    return bool(output_path) and os.path.exists(output_path)
+    """Whether a file already sits at this save path (would be silently overwritten)."""
+    return editcommon.save_path_exists(output_path)
 
 
 def android_project_path(project_name: str) -> str:
-    """The absolute path a Save To Android of this Project would write to on the
-    device. Single source of truth for that path -- save_project_to_android
-    writes here, and the GUI's overwrite check reads it back through
-    maputil2.read_android_file, so the two must never drift apart.
+    """The absolute path a Save To Android of this Project would write to on the device.
 
-    Note the path is derived from the *sanitized* name, so two differently-named
-    Projects can map to the same file (e.g. "Home/Work" and "Home_Work" both
-    become "Home_Work.prj.xml"), and a name that is empty or entirely illegal
-    characters falls back to "project.prj.xml" -- the overwrite prompt this
-    feeds is the only thing standing between those collisions and silent data
-    loss, since /upload itself reports success either way.
+    See EditorKind.android_path for the sanitized-name collision the overwrite prompt
+    this feeds exists to catch.
     """
-    return f"/{ANDROID_PROJECT_LOCATION}/{sanitize_filename(project_name)}.prj.xml"
+    return EXPORT.android_path(project_name)
 
 
 # The device screen size an export was written on, as "width,height" floats -- Tasker's own
@@ -752,45 +734,30 @@ def write_standalone_project_xml(project_name: str, output_path: str, *, redact:
 
 def save_project_to_android(project_name: str, ip_address: str, ip_port: str) -> tuple[int, str]:
     """Writes the Project -- every Profile and Task it owns -- onto the Android
-    device's storage under /Tasker/projects, via the same POST /upload mechanism
-    as profedit.save_profile_to_android (see that function's docstring for why a
-    readback-verify is required, and why this does not touch Tasker's live
-    configuration). Mirrors it exactly, except a Project has no separate "edited"
-    model to render from -- render_standalone_project_xml reads the live
-    all_projects/all_profiles/all_tasks tables directly by name, same as
-    write_standalone_project_xml (the local-file "Export Project" button).
+    device's storage under /Tasker/projects.  The upload and its readback-verify are
+    EditorKind.upload_and_verify, shared with the other three editors; see it for why
+    a 200 from /upload proves nothing on its own, and why this does not touch Tasker's
+    live configuration.
+
+    What differs here is only the render: a Project has no separate "edited" model, so
+    render_standalone_project_xml reads the live all_projects/all_profiles/all_tasks
+    tables directly by name, same as write_standalone_project_xml (the local-file
+    "Export Project" button).
 
     Returns (0, device_file_path) on success, or (return_code, error_message).
     """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
-
-    ip_address = ip_address.strip()
-    ip_port = ip_port.strip()
-    if not ip_address or not ip_port:
-        return 8, "Android IP address and port are required."
-
+    # render_standalone_project_xml raises where the Project has been deleted since the
+    # dialog opened; upload_and_verify calls it only once the address checks out.
     try:
-        xml_bytes = render_standalone_project_xml(project_name).encode("utf-8")
+        return_code, result, _on_device = EXPORT.upload_and_verify(
+            ip_address,
+            ip_port,
+            project_name,
+            lambda: render_standalone_project_xml(project_name).encode("utf-8"),
+        )
     except ValueError as e:
         return 8, str(e)
-
-    device_path = android_project_path(project_name)
-    filename = device_path.rsplit("/", 1)[-1]
-
-    return_code, response = http_upload_request(ip_address, ip_port, ANDROID_PROJECT_LOCATION, filename, xml_bytes)
-    if return_code != 0:
-        return return_code, str(response)
-
-    # Retried rather than trusted: /upload is a Tasker Task writing to storage and this read
-    # is a second request answered by a second Task, so a write still settling answers 404 to
-    # a read that arrives too soon -- and failing on the first miss aborts a save whose file
-    # is on the device a moment later.  See maputil2.read_back_uploaded_file.
-    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
-    if verify_code != 0:
-        return 8, str(verify_content)
-
-    return 0, device_path
+    return return_code, result
 
 
 def delete_profiles_and_tasks_of_project(project_name: str) -> None:

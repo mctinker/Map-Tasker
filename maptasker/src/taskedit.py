@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import copy
 import json
-import os
 import re
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
@@ -29,10 +28,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import deviceinv, piiscan, sessundo
+from maptasker.src import deviceinv, editcommon, piiscan, sessundo
 from maptasker.src.actionc import action_codes
 from maptasker.src.actiont import lookup_values
 from maptasker.src.bundle import bundles
+from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
@@ -1972,47 +1972,36 @@ def rename_task_in_live_tree(edited_task: EditableTask) -> str:
         return old_name
 
 
-def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
-    child = parent.find(tag)
-    if child is None:
-        # Match parent's actual Element class (see write_standalone_task_xml) --
-        # ETW.SubElement() would build a stdlib-class child and fail parent.append().
-        child = type(parent)(tag)
-        parent.append(child)
-    child.text = text
-
-
 # Destination folder on the Android device for Save To Android's file write -- the Task
 # sibling of profedit.ANDROID_PROFILE_LOCATION ("Tasker/profiles") and
 # sceneedit.ANDROID_SCENE_LOCATION ("Tasker/scenes"); see android_task_path.
 ANDROID_TASK_LOCATION = "Tasker/tasks"
+# What this editor's exports need that the other three's don't -- see editcommon.EditorKind.
+EXPORT = editcommon.EditorKind(
+    fallback="task",
+    extension=".tsk.xml",
+    android_location=ANDROID_TASK_LOCATION,
+)
 
 
 def sanitize_filename(name: str) -> str:
-    """Strip characters illegal in filenames from a Task name (minimal, not a full slugify)."""
-    return re.sub(r'[\\/:*?"<>|]', "_", name).strip() or "task"
+    """Strip characters illegal in filenames from a Task name, falling back to "task"."""
+    return EXPORT.sanitize_filename(name)
 
 
 def default_save_path(task_name: str) -> str:
-    """Default standalone-export path: {current runtime directory}/{sanitized name}.tsk.xml.
-
-    Uses os.getcwd() (the directory the app is running from) rather than the
-    loaded backup file's directory -- the backup is picked from wherever the user
-    keeps their XML (see getxml_event/local_xml_start_directory in userintr.py),
-    which isn't necessarily where a Task should land.
-    """
-    return os.path.join(os.getcwd(), f"{sanitize_filename(task_name)}.tsk.xml")
+    """Default standalone-export path: {current runtime directory}/{sanitized name}.tsk.xml."""
+    return EXPORT.default_save_path(task_name)
 
 
 def android_task_path(task_name: str) -> str:
-    """The absolute path a Save To Android of this Task writes to on the device.  Single
-    source of truth for that path -- save_task_to_android_file writes there and
-    userintr.save_task_to_android_file_event asks maputil2.read_android_file about the
-    same string, so the two must never drift apart.  Mirrors
-    profedit.android_profile_path, including the sanitized-name collision its overwrite
-    prompt exists to catch (two Tasks named 'Wake: Up' and 'Wake_ Up' land on one path).
+    """The absolute path a Save To Android of this Task writes to on the device.
+
+    See EditorKind.android_path for the sanitized-name collision the overwrite prompt
+    this feeds exists to catch (two Tasks named 'Wake: Up' and 'Wake_ Up' land on one
+    path).
     """
-    return f"/{ANDROID_TASK_LOCATION}/{sanitize_filename(task_name)}.tsk.xml"
+    return EXPORT.android_path(task_name)
 
 
 def task_name_exists(name: str) -> bool:
@@ -2022,7 +2011,7 @@ def task_name_exists(name: str) -> bool:
 
 def save_path_exists(output_path: str) -> bool:
     """Whether a file already sits at this save path (would be silently overwritten)."""
-    return bool(output_path) and os.path.exists(output_path)
+    return editcommon.save_path_exists(output_path)
 
 
 def render_standalone_task_xml(edited_task: EditableTask, *, redact: bool = False) -> str:
@@ -2198,31 +2187,16 @@ def _put_task_file_on_android(
     One read serves both.  Reading it twice would leave the verified bytes and the imported
     bytes as separate facts about the device, which is exactly the gap where they could
     differ.
+
+    The write and the readback are EditorKind.upload_and_verify, shared with the other
+    three editors -- this is the one caller that keeps the third value it hands back.
     """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
-
-    ip_address = ip_address.strip()
-    ip_port = ip_port.strip()
-    if not ip_address or not ip_port:
-        return 8, "Android IP address and port are required.", b""
-
-    xml_bytes = render_standalone_task_xml(edited_task).encode("utf-8")
-    device_path = android_task_path(task_name)
-    filename = device_path.rsplit("/", 1)[-1]
-
-    return_code, response = http_upload_request(ip_address, ip_port, ANDROID_TASK_LOCATION, filename, xml_bytes)
-    if return_code != 0:
-        return return_code, str(response), b""
-
-    # Retried rather than trusted -- the write and the read are two unrelated Tasker Tasks,
-    # and a write still settling answers 404 to a read that arrives too soon.  See
-    # maputil2.read_back_uploaded_file.
-    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
-    if verify_code != 0:
-        return 8, str(verify_content), b""
-
-    return 0, device_path, verify_content
+    return EXPORT.upload_and_verify(
+        ip_address,
+        ip_port,
+        task_name,
+        lambda: render_standalone_task_xml(edited_task).encode("utf-8"),
+    )
 
 
 def save_task_to_android_file(

@@ -30,6 +30,7 @@ import os
 import re
 import weakref
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to serialize, never to parse
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 
 from nicegui import Event, app, context, ui
@@ -47,6 +48,7 @@ from maptasker.src import (
     sceneview,
     sessundo,
     taskedit,
+    timeline,
     varxref,
 )
 from maptasker.src.colrmode import set_color_mode
@@ -3219,6 +3221,88 @@ def build_overwrite_confirm_dialog(
             ui.button(translate_string("Overwrite"), on_click=_confirm).classes("bg-orange-600 text-white")
 
     confirm_dialog.open()
+
+
+def build_changes_since_dialog(on_choose: Callable[[str, date | None], Coroutine]) -> None:
+    """Asks how far back "Changes Since..." should look, then hands the answer over.
+
+    The periods and what they resolve to are timeline's (see timeline.PERIOD_LABELS and
+    cutoff_for) -- this only shows them.  Keeping the vocabulary there is what stops the
+    label and the date it means from drifting apart.
+
+    The date picker is built once and hidden, rather than created when the choice lands
+    on "Since a specific date...".  A calendar appearing where a pulldown used to be
+    resizes the dialog under the pointer; hiding it keeps the dialog one shape.
+
+    on_choose is awaited with the period key and, for that one option, the date -- and
+    only once the choice is complete, so it never has to re-check it.  Awaited rather than
+    called because producing the report means expanding and re-parsing a snapshot, which is
+    megabytes of work that has to go off the event loop.  Cancel calls nothing, the same
+    convention as build_overwrite_confirm_dialog.
+    """
+    options = {key: translate_string(label) for key, label in timeline.PERIOD_LABELS.items()}
+
+    with ui.dialog().props("persistent") as period_dialog, ui.card().classes("min-w-[420px] max-w-[560px] w-full p-6"):
+        ui.label(translate_string("Changes Since")).classes("text-lg font-bold")
+        ui.label(
+            translate_string(
+                "Compare what you have open now against your configuration as it stood then.",
+            ),
+        ).classes("text-sm opacity-70 mt-1")
+
+        period = ui.select(
+            options,
+            value=timeline.THIS_WEEK,
+            label=translate_string("Period"),
+        ).classes("w-full mt-3")
+
+        # Quasar's own calendar.  landscape=False keeps it portrait, which fits the
+        # dialog's width without the card growing sideways on a narrow drawer.
+        date_holder = ui.column().classes("w-full items-center mt-3")
+        with date_holder:
+            picked_date = ui.date().props("minimal")
+        date_holder.bind_visibility_from(period, "value", lambda value: value == timeline.ON_DATE)
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Cancel"), on_click=period_dialog.close).props("outline")
+
+            async def _confirm() -> None:
+                chosen = period.value
+                on_date = None
+                if chosen == timeline.ON_DATE:
+                    on_date = _parse_picked_date(picked_date.value)
+                    if on_date is None:
+                        ui.notify(translate_string("Choose a date first."), type="warning")
+                        return
+                    if on_date > date.today():  # noqa: DTZ011
+                        ui.notify(
+                            translate_string("That date is in the future.  Choose a day that has happened."),
+                            type="warning",
+                        )
+                        return
+                # Closed before the work starts: the report opens its own view, and
+                # leaving this dialog stacked on top would hide it.  Same reasoning as
+                # build_overwrite_confirm_dialog's _confirm.
+                period_dialog.close()
+                await on_choose(chosen, on_date)
+
+            ui.button(translate_string("Show Changes"), on_click=_confirm).classes("bg-teal-600 text-white")
+
+    period_dialog.open()
+
+
+def _parse_picked_date(value: object) -> date | None:
+    """ui.date's "YYYY-MM-DD" as a date, or None when nothing usable was picked.
+
+    None rather than an exception for an empty or malformed value: the picker starts
+    empty, so "nothing chosen yet" is the ordinary state, not a fault.
+    """
+    if not isinstance(value, str) or not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()  # noqa: DTZ007
+    except ValueError:
+        return None
 
 
 def build_rename_dialog(
@@ -8109,6 +8193,31 @@ def initialize_screen(self: MyGui) -> None:
                     "file came from 'Save to Current File', the file it was saved from is offered "
                     "directly.\n\nResults are displayed here and saved to a text file in the "
                     "current directory.",
+                ),
+            ).style("white-space: pre-wrap")
+
+        # The comparison above needs two files and the user to know which two.  This one
+        # needs neither: every configuration loaded is kept (see timeline.py), so the
+        # older side is already on disk and picked by date.
+        self.timeline_button = (
+            ui.button(
+                translate_string("Changes Since..."),
+                color="teal",
+                on_click=self.event_handlers.timeline_event,
+                icon="history",
+            )
+            .classes("w-full justify-center")
+            .style("margin-top:-6px")
+        )
+        with self.timeline_button:
+            ui.tooltip(
+                translate_string(
+                    "What has changed in your configuration since a moment you choose: today, "
+                    "this week, this month, everything kept, or a specific date.\n\nNo file to "
+                    "pick -- every configuration you load is kept, compressed, in a "
+                    "MapTasker_Timeline folder in the current directory, and the one from back "
+                    "then is compared against what you have open now.\n\nResults are displayed "
+                    "here and saved to a text file in the current directory.",
                 ),
             ).style("white-space: pre-wrap")
 

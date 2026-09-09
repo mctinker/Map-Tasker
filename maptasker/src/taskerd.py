@@ -9,7 +9,7 @@ import re
 
 import defusedxml.ElementTree as ET  # noqa: N817
 
-from maptasker.src import condition, sessundo
+from maptasker.src import condition, sessundo, timeline
 from maptasker.src.actione import get_action_code
 from maptasker.src.error import error_handler
 from maptasker.src.maputil2 import strip_html_tags, truncate_string
@@ -218,6 +218,14 @@ def get_the_xml_data() -> bool:
     # diffload puts the history back afterwards: it comes through here too, to parse the
     # file being compared against, and that load does not replace what the user has open.
     sessundo.clear()
+
+    # And this configuration goes into the history, for the same reason and in the same
+    # place: every way of loading a file arrives here.  timeline.record decides whether
+    # there is anything to store -- reloading an unchanged file adds nothing -- and never
+    # raises, so a history that cannot be written cannot cost the user the load.  The
+    # comparison's own load comes through here too and must NOT be recorded; diffload
+    # wraps its window in timeline.suppressed().
+    timeline.record(file_to_parse)
 
     build_tasker_tables()
     return 0

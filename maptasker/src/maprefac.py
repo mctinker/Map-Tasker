@@ -75,6 +75,7 @@ from typing import TYPE_CHECKING
 
 from maptasker.src import mapjump, maputil2, profedit, projedit, sessundo, taskedit, varxref
 from maptasker.src.actionc import action_codes
+from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Row, Target, text_report
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.primitem import PrimeItems
@@ -323,19 +324,6 @@ def _describe_actions(numbers: list[int]) -> str:
 def _now_millis() -> str:
     """Tasker's timestamp format: milliseconds since the epoch, as text."""
     return str(int(time.time() * 1000))
-
-
-def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
-    """Set (creating if need be) a child's text, in the parent's own Element class.
-
-    The class matters: a stdlib SubElement built under a defusedxml-parsed parent fails the
-    append.  Same body and same note as taskedit/profedit/projedit each keep privately.
-    """
-    child = parent.find(tag)
-    if child is None:
-        child = type(parent)(tag)
-        parent.append(child)
-    child.text = text
 
 
 # ##################################################################################

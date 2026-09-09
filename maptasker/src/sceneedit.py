@@ -72,7 +72,6 @@ import html
 import io
 import json
 import os
-import re
 import time
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from dataclasses import dataclass, field
@@ -81,7 +80,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import piiscan, sessundo
+from maptasker.src import editcommon, piiscan, sessundo
+from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.projedit import touch_project_mdate
@@ -90,6 +90,12 @@ from maptasker.src.sysconst import SCENE_TASK_TYPES
 # Destination folder on the Android device for Save To Android -- the Scene sibling of
 # projedit.ANDROID_PROJECT_LOCATION ("Tasker/projects"); see android_scene_path.
 ANDROID_SCENE_LOCATION = "Tasker/scenes"
+# What this editor's exports need that the other three's don't -- see editcommon.EditorKind.
+EXPORT = editcommon.EditorKind(
+    fallback="scene",
+    extension=".scn.xml",
+    android_location=ANDROID_SCENE_LOCATION,
+)
 # A brand-new *Legacy* Scene's size, in the same units Tasker itself writes.  Portrait gets
 # a real default so a new Scene is visible at all; landscape gets -1, which is what Tasker
 # uses for "not laid out for this orientation" (every Scene in this repo's sample data that
@@ -2913,16 +2919,6 @@ def apply_edits_to_scene(edited_scene: EditableScene, new_name: str) -> list[str
     return []
 
 
-def _set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) -> None:
-    child = parent.find(tag)
-    if child is None:
-        # Match parent's actual Element class (see projedit._set_child_text's
-        # identical note) -- ETW.SubElement() would build a stdlib-class child.
-        child = type(parent)(tag)
-        parent.append(child)
-    child.text = text
-
-
 def touch_scene_edate(scene_element: defusedxml.ElementTree.Element) -> None:
     """Stamps a Scene's <edate> with the current time.  A Scene uses <edate> for
     "last modified", the way Task/Profile do -- not <mdate>, which is the
@@ -3148,33 +3144,27 @@ def delete_scene(scene_name: str) -> list[str]:
 
 
 def sanitize_filename(name: str) -> str:
-    """Strip characters illegal in filenames from a Scene name (minimal, not a
-    full slugify).  Mirrors projedit/profedit/taskedit's own copies exactly,
-    with the type-appropriate fallback.
-    """
-    return re.sub(r'[\\/:*?"<>|]', "_", name).strip() or "scene"
+    """Strip characters illegal in filenames from a Scene name, falling back to "scene"."""
+    return EXPORT.sanitize_filename(name)
 
 
 def default_scene_save_path(scene_name: str) -> str:
     """Default standalone-export path: {current runtime directory}/{sanitized name}.scn.xml."""
-    return os.path.join(os.getcwd(), f"{sanitize_filename(scene_name)}.scn.xml")
+    return EXPORT.default_save_path(scene_name)
 
 
 def save_path_exists(output_path: str) -> bool:
-    """Whether a file already sits at this save path (would be silently overwritten).
-    Mirrors projedit.save_path_exists.
-    """
-    return bool(output_path) and os.path.exists(output_path)
+    """Whether a file already sits at this save path (would be silently overwritten)."""
+    return editcommon.save_path_exists(output_path)
 
 
 def android_scene_path(scene_name: str) -> str:
-    """The absolute path a Save To Android of this Scene would write to on the
-    device.  Single source of truth for that path -- save_scene_to_android
-    writes here and the GUI's overwrite check reads it back through
-    maputil2.read_android_file, so the two must never drift apart.  See
-    projedit.android_project_path for the sanitized-name collision this shares.
+    """The absolute path a Save To Android of this Scene would write to on the device.
+
+    See EditorKind.android_path for the sanitized-name collision the overwrite prompt
+    this feeds exists to catch.
     """
-    return f"/{ANDROID_SCENE_LOCATION}/{sanitize_filename(scene_name)}.scn.xml"
+    return EXPORT.android_path(scene_name)
 
 
 # The device screen size an export was written on, as "width,height" floats -- Tasker's own
@@ -3311,42 +3301,25 @@ def write_standalone_scene_xml(scene_name: str, output_path: str, *, redact: boo
 
 
 def save_scene_to_android(scene_name: str, ip_address: str, ip_port: str) -> tuple[int, str]:
-    """Writes the Scene onto the Android device's storage under /Tasker/scenes,
-    via the same POST /upload mechanism as projedit.save_project_to_android (see
-    that function's docstring for why a readback-verify is required, and why
-    this does not touch Tasker's live configuration).
+    """Writes the Scene onto the Android device's storage under /Tasker/scenes.  The
+    upload and its readback-verify are EditorKind.upload_and_verify, shared with the
+    other three editors; see it for why a 200 from /upload proves nothing on its own,
+    and why this does not touch Tasker's live configuration.
 
     Returns (0, device_file_path) on success, or (return_code, error_message).
     """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_upload_request, read_back_uploaded_file  # noqa: PLC0415
-
-    ip_address = ip_address.strip()
-    ip_port = ip_port.strip()
-    if not ip_address or not ip_port:
-        return 8, "Android IP address and port are required."
-
+    # render_standalone_scene_xml raises where the Scene has been deleted since the
+    # dialog opened; upload_and_verify calls it only once the address checks out.
     try:
-        xml_bytes = render_standalone_scene_xml(scene_name).encode("utf-8")
+        return_code, result, _on_device = EXPORT.upload_and_verify(
+            ip_address,
+            ip_port,
+            scene_name,
+            lambda: render_standalone_scene_xml(scene_name).encode("utf-8"),
+        )
     except ValueError as e:
         return 8, str(e)
-
-    device_path = android_scene_path(scene_name)
-    filename = device_path.rsplit("/", 1)[-1]
-
-    return_code, response = http_upload_request(ip_address, ip_port, ANDROID_SCENE_LOCATION, filename, xml_bytes)
-    if return_code != 0:
-        return return_code, str(response)
-
-    # Retried rather than trusted: /upload is a Tasker Task writing to storage and this read
-    # is a second request answered by a second Task, so a write still settling answers 404 to
-    # a read that arrives too soon -- and failing on the first miss aborts a save whose file
-    # is on the device a moment later.  See maputil2.read_back_uploaded_file.
-    verify_code, verify_content = read_back_uploaded_file(ip_address, ip_port, device_path, xml_bytes)
-    if verify_code != 0:
-        return 8, str(verify_content)
-
-    return 0, device_path
+    return return_code, result
 
 
 # --------------------------------------------------------------------------------------

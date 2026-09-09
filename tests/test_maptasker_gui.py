@@ -26,19 +26,27 @@ keeps that true regardless of what an earlier test did.
 
 import asyncio
 import contextlib
+from datetime import date, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from maptasker.src import timeline
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     clear_single_item_view_names,
     is_no_selection,
     reset_single_item_selection,
 )
-from maptasker.src.guiwins import NiceGuiTextView, document_language_html, set_document_language_js
+from maptasker.src import guiwins
+from maptasker.src.guiwins import (
+    NiceGuiTextView,
+    document_language_html,
+    set_document_language_js,
+)
 from maptasker.src.mapfonts import get_monospaced_fonts
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.sysconst import TIMELINE_FILE
 from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
 
 # ==========================================
@@ -677,6 +685,179 @@ async def test_compare_still_displays_when_the_save_fails(event_handler, mock_gu
 
     assert "could not be saved" in mock_gui_instance.display_message_box.call_args[0][0]
     view.assert_called_once()
+
+
+# ==========================================
+# "Changes Since..." -- the same report, with the older side taken from the timeline
+# history instead of from a file the user has to find.
+#
+# Two halves, and they are tested apart because they fail apart.  timeline_event only asks
+# how far back to look; report_changes_since does the work.  What the history holds and how
+# the older side is chosen is test_timeline.py's business.
+# ==========================================
+@contextlib.contextmanager
+def _patched_timeline(comparison, writer=None):
+    """Patch what report_changes_since reaches for: the query, the writer and the view."""
+    with contextlib.ExitStack() as stack:
+        # changes_since is deliberately NOT patched: what run.io_bound is handed has to be
+        # that function itself, and a mock in its place would make the check vacuous.
+        io_bound = AsyncMock(return_value=comparison)
+        stack.enter_context(patch("maptasker.src.userintr.run.io_bound", io_bound))
+        stack.enter_context(
+            patch(
+                "maptasker.src.userintr.write_comparison_report",
+                writer or MagicMock(return_value="MapTasker_Timeline_01-01-2026_00-00-00.txt"),
+            ),
+        )
+        view = MagicMock()
+        stack.enter_context(patch("maptasker.src.userintr.NiceGuiTextView", view))
+        notify = MagicMock()
+        stack.enter_context(patch("maptasker.src.userintr.ui", notify))
+        yield io_bound, view, notify
+
+
+# ---- the asking half ----------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_the_button_asks_how_far_back_before_doing_anything(event_handler, _loaded_configuration):
+    """Clicking it opens the picker; nothing is compared until a period is chosen."""
+    dialog = MagicMock()
+    with patch("maptasker.src.userintr.build_changes_since_dialog", dialog):
+        await event_handler.timeline_event()
+
+    dialog.assert_called_once_with(event_handler.report_changes_since)
+
+
+@pytest.mark.asyncio
+async def test_the_button_refuses_with_nothing_loaded(event_handler, mock_gui_instance):
+    """Asking someone to choose a period and only then saying there is nothing to compare
+    it against wastes the choice.  Guarded before the picker opens, like Compare Files.
+    """
+    previous = PrimeItems.tasker_root_elements
+    PrimeItems.tasker_root_elements = {"all_tasks": {}}
+    dialog = MagicMock()
+    try:
+        with patch("maptasker.src.userintr.build_changes_since_dialog", dialog):
+            await event_handler.timeline_event()
+    finally:
+        PrimeItems.tasker_root_elements = previous
+
+    dialog.assert_not_called()
+    assert "No XML file has been loaded" in mock_gui_instance.display_message_box.call_args[0][0]
+
+
+# ---- the reporting half -------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_the_chosen_period_is_what_gets_reported(event_handler, mock_gui_instance):
+    """The happy path: a report, saved under its own name and displayed."""
+    result = timeline.Comparison(report="what changed", counts={"ADDED": 1, "CHANGED": 2})
+    writer = MagicMock(return_value="MapTasker_Timeline_01-01-2026_00-00-00.txt")
+
+    with _patched_timeline(result, writer) as (io_bound, view, _notify):
+        await event_handler.report_changes_since(timeline.THIS_WEEK)
+
+    # Off the event loop: expanding and re-parsing a snapshot is megabytes of work.
+    io_bound.assert_awaited_once()
+    assert io_bound.await_args[0][0] is timeline.changes_since
+    # A week back, not None and not today -- the cutoff actually reflects the choice.
+    cutoff = io_bound.await_args[0][1]
+    assert 6 < (datetime.now() - cutoff).days < 8
+    # Its own file name, so "what changed since" does not land in the same pile as
+    # "how do these two files differ".
+    assert writer.call_args[0][1] == TIMELINE_FILE
+    view.assert_called_once()
+    assert "Timeline saved as" in mock_gui_instance.display_message_box.call_args[0][0]
+
+
+@pytest.mark.asyncio
+async def test_every_period_the_picker_offers_reaches_the_report(event_handler, mock_gui_instance):
+    """Each option resolves to its own cutoff, and 'All' to none at all.
+
+    Parameterized over PERIOD_LABELS rather than a hand-written list, so an option added
+    to the picker without a cutoff to go with it fails here.
+    """
+    result = timeline.Comparison(report="what changed", counts={"ADDED": 1})
+    chosen_date = date.today() - timedelta(days=100)  # noqa: DTZ011
+    expected_days = {timeline.TODAY: 0, timeline.THIS_WEEK: 7, timeline.THIS_MONTH: 30, timeline.ON_DATE: 100}
+
+    for period in timeline.PERIOD_LABELS:
+        with _patched_timeline(result) as (io_bound, _view, _notify):
+            await event_handler.report_changes_since(period, chosen_date)
+        cutoff = io_bound.await_args[0][1]
+        if period == timeline.ALL:
+            assert cutoff is None, "All must reach back as far as the history goes"
+            continue
+        assert cutoff is not None, period
+        assert abs((datetime.now() - cutoff).days - expected_days[period]) <= 1, period
+
+
+@pytest.mark.asyncio
+async def test_the_report_explains_itself_when_there_is_no_history(event_handler, mock_gui_instance):
+    """Nothing to compare against is a message, not an empty report."""
+    result = timeline.Comparison(problem="No configuration history has been recorded yet.")
+
+    with _patched_timeline(result) as (_io_bound, view, _notify):
+        await event_handler.report_changes_since(timeline.THIS_WEEK)
+
+    view.assert_not_called()
+    assert "No configuration history" in mock_gui_instance.display_message_box.call_args[0][0]
+
+
+@pytest.mark.asyncio
+async def test_the_report_passes_on_a_short_history_note(event_handler, mock_gui_instance):
+    """The report is still produced; the caveat about how far back it reaches is said too."""
+    result = timeline.Comparison(report="what changed", counts={"ADDED": 1}, note="does not reach back that far")
+
+    with _patched_timeline(result) as (_io_bound, view, notify):
+        await event_handler.report_changes_since(timeline.THIS_MONTH)
+
+    view.assert_called_once()
+    assert any("does not reach back" in str(call) for call in notify.notify.call_args_list)
+
+
+@pytest.mark.asyncio
+async def test_the_report_says_so_when_nothing_changed(event_handler, mock_gui_instance):
+    """A report that ran and found nothing looks identical to one that failed to run."""
+    result = timeline.Comparison(report="a header and nothing else", counts={"ADDED": 0, "CHANGED": 0})
+
+    with _patched_timeline(result) as (_io_bound, view, notify):
+        await event_handler.report_changes_since(timeline.TODAY)
+
+    view.assert_called_once()
+    assert any("Nothing has changed" in str(call) for call in notify.notify.call_args_list)
+
+
+@pytest.mark.asyncio
+async def test_the_report_still_displays_when_the_save_fails(event_handler, mock_gui_instance):
+    """Same as the comparison's: a failed save is not a reason to withhold the findings."""
+    result = timeline.Comparison(report="what changed", counts={"ADDED": 1})
+
+    with _patched_timeline(result, MagicMock(return_value="")) as (_io_bound, view, _notify):
+        await event_handler.report_changes_since(timeline.ALL)
+
+    assert "could not be saved" in mock_gui_instance.display_message_box.call_args[0][0]
+    view.assert_called_once()
+
+
+# ---- the date the picker hands back -------------------------------------------------
+@pytest.mark.parametrize(
+    ("picked", "expected"),
+    [
+        ("2026-08-20", date(2026, 8, 20)),
+        # The picker starts empty, so "nothing chosen yet" is the ordinary state.
+        ("", None),
+        (None, None),
+        # Quasar can hand back a range or a list when its props change; neither is a day.
+        ({"from": "2026-08-01", "to": "2026-08-20"}, None),
+        (["2026-08-20"], None),
+        ("not a date", None),
+        ("2026-02-30", None),
+    ],
+)
+def test_the_picked_date_is_read_or_refused(picked, expected):
+    """A malformed or absent value is None, not an exception -- _confirm turns None into
+    "Choose a date first" and leaves the dialog open, which is the recoverable answer.
+    """
+    assert guiwins._parse_picked_date(picked) == expected
 
 
 # ==========================================

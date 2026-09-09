@@ -36,8 +36,14 @@ ANCHOR = '<Action sr="act0"><code>300</code><label>Top of loop</label></Action>'
 
 
 @pytest.fixture(autouse=True)
-def _prime_items() -> None:
-    """The globals taskerd writes into: the settings it reads, and somewhere to put lines."""
+def _prime_items(tmp_path, monkeypatch) -> None:
+    """The globals taskerd writes into: the settings it reads, and somewhere to put lines.
+
+    In a working directory of our own, because a successful load now writes the
+    configuration into timeline's history folder -- which without this would be created
+    in whatever directory the tests happened to be run from.
+    """
+    monkeypatch.chdir(tmp_path)
     PrimeItems.program_arguments = {
         "debug": False,
         "directory": False,
