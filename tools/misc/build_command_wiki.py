@@ -27,12 +27,12 @@ text, no comment above it in the source -- is left off the page entirely and wri
 to a log instead, so the gap is a list to work through rather than a page full of
 "no description available".
 
-Run it whenever commands are added or changed.  It lives in 'Misc Utilities' and
+Run it whenever commands are added or changed.  It lives in 'tools/misc' and
 finds the source, and writes the page, wherever it is run from::
 
-    python "Misc Utilities/build_command_wiki.py"            # write Command-Reference.md
-    python "Misc Utilities/build_command_wiki.py" --stats    # ... and report what it found
-    python "Misc Utilities/build_command_wiki.py" --publish  # ... and push it to the wiki
+    python tools/misc/build_command_wiki.py            # write Command-Reference.md
+    python tools/misc/build_command_wiki.py --stats    # ... and report what it found
+    python tools/misc/build_command_wiki.py --publish  # ... and push it to the wiki
 
 Publishing clones https://github.com/mctinker/Map-Tasker.wiki.git into a temporary
 directory, replaces the one page, commits and pushes.  Push credentials are
@@ -1196,7 +1196,7 @@ def command_line_arguments(source: Path) -> list[dict]:
 # ##################################################################################
 def find_source() -> Path:
     """The maptasker/src directory, looked for above this program and above the current
-    directory.  This lives in 'Misc Utilities', but it keeps working if it is moved
+    directory.  This lives in 'tools/misc', but it keeps working if it is moved
     elsewhere in the tree or run from somewhere else.
     """
     for start in (HERE, Path.cwd().resolve()):
@@ -1421,7 +1421,7 @@ class PageWriter:
             "To refresh it after commands are added or changed:",
             "",
             "```",
-            'python "Misc Utilities/build_command_wiki.py" --publish',
+            'python tools/misc/build_command_wiki.py --publish',
             "```",
             "",
         ]
@@ -1526,10 +1526,10 @@ def parse_arguments(argv: list[str] | None = None) -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            '  python "Misc Utilities/build_command_wiki.py"            write the page\n'
-            '  python "Misc Utilities/build_command_wiki.py" --stats    ... and report what was found\n'
-            '  python "Misc Utilities/build_command_wiki.py" --publish  ... and push it to the wiki\n'
-            '  python "Misc Utilities/build_command_wiki.py" --publish --dry-run   show what would be pushed\n'
+            '  python tools/misc/build_command_wiki.py            write the page\n'
+            '  python tools/misc/build_command_wiki.py --stats    ... and report what was found\n'
+            '  python tools/misc/build_command_wiki.py --publish  ... and push it to the wiki\n'
+            '  python tools/misc/build_command_wiki.py --publish --dry-run   show what would be pushed\n'
         ),
     )
     parser.add_argument("--source", type=Path, default=None, help="MapTasker source directory.")

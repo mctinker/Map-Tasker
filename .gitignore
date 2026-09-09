@@ -1,3 +1,11 @@
+# This repository ignores everything at the top level and then names what it
+# keeps.  The working tree doubles as the developer's scratch space -- program
+# output, sample Tasker backups, one-off notes -- and an allow-list is the only
+# way to stop that leaking into the repository as it accumulates.
+#
+# Adding a top-level file or directory to the project therefore means adding a
+# '!' line for it below.  Nothing else is needed; everything else stays out.
+
 # ignore all root items
 /*
 
@@ -11,6 +19,7 @@
 !.gitignore
 !Changelog.md
 !Build.txt
+!LICENSE
 !README.md
 !README_PyPl.md
 !pyproject.toml
@@ -21,8 +30,10 @@
 !maptasker
 !tests
 dmg_builder
-!Misc Utilities
-!Language_Support_Utilities
+# Maintainer utilities -- not shipped, not imported by the package.  Kept out of
+# 'scripts/', which [tool.ruff] lints, because these are one-off tools written to
+# no particular standard and linting them would only add noise.
+!tools
 
 
 # recursively re-ignore
@@ -36,3 +47,43 @@ __pycache__
 .coverage.*
 coverage.xml
 htmlcov
+
+# ---------------------------------------------------------------------------
+# Everything below is already covered by the '/*' rule at the top when it sits
+# in the root.  It is spelled out anyway so the same file is still ignored when
+# a run drops it inside 'maptasker/' or 'tools/' -- which is how the stray copies
+# of .MapTasker_RunCount.txt and .MapTasker_Settings.pkl got committed under
+# maptasker/assets/ in the first place.
+# ---------------------------------------------------------------------------
+
+# Program output: the map, the reports and the diagrams MapTasker writes.
+MapTasker.html
+MapTasker_Map.txt
+MapTasker_Apps.json
+MapTasker_Apps.jsontemp
+MapTasker_HealthCheck_*.txt
+MapTasker_VarXref_*.txt
+MapTasker_TaskFlow_*.txt
+MapTasker_Flowchart_*.txt
+MapTasker_Backups/
+ziplog.txt
+
+# Per-user run state, written to the working directory on every run.
+.MapTasker_RunCount.txt
+.MapTasker_Settings.pkl
+MapTasker_Settings.toml
+.maptasker.pkl
+.maptasker_last_run.txt
+
+# Build artifacts.
+dist/
+build/
+*.egg-info/
+*.py[cod]
+
+# Regenerated in full on every run of tools/misc/build_command_wiki.py.
+tools/misc/no_description.log
+
+# OS and editor metadata.
+.DS_Store
+Thumbs.db

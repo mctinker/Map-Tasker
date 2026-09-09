@@ -4232,5 +4232,5 @@ maptasker [arguments]
 This page is generated from the MapTasker source by [`build_command_wiki.py`](https://github.com/mctinker/Map-Tasker/blob/Master/Misc%20Utilities/build_command_wiki.py). To refresh it after commands are added or changed:
 
 ```
-python "Misc Utilities/build_command_wiki.py" --publish
+python tools/misc/build_command_wiki.py --publish
 ```

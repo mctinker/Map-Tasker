@@ -24,9 +24,9 @@ import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from Language_Support_Utilities.sync_missing_msgids import help_text_strings
+from sync_missing_msgids import help_text_strings
 
 LOCALE_PATH = Path("/Users/mikrubin/MapTasker_Dev/maptasker/locale")
 

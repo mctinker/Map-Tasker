@@ -22,7 +22,7 @@ from maptasker.src.sysconst import (
 
 def translate_po_file(
     input_file: str = "/Users/mikrubin/MapTasker/maptasker/locale/es/LC_MESSAGES/messages.po",
-    output_file: str = "/Users/mikrubin/MapTasker/Language_Support_Utilities/messages_translated.po",
+    output_file: str = "/Users/mikrubin/MapTasker_Dev/tools/language_support/messages_translated.po",
     source_lang: str = "en",
     target_lang: str = "es",
     reverse_translate: bool = False,
@@ -328,7 +328,7 @@ def check_and_append_to_file(filepath: str, target_string: str) -> bool:
 
 if __name__ == "__main__":
     # Input text expected to be in the format of a PO file, with msgid and msgstr pairs, or just msgid "text"
-    in_file = "/Users/mikrubin/MapTasker/Language_Support_Utilities/reverse.txt"
+    in_file = "/Users/mikrubin/MapTasker_Dev/tools/language_support/reverse.txt"
     # Translate just the new text
     # translate_po_file(input_file=in_file, target_lang="es")
     # translate_po_file(input_file=in_file, target_lang="de")

@@ -92,7 +92,7 @@ def test_help_piece_is_still_a_msgid(name: str, german: None) -> None:
     A reworded help string is a new msgid, and its translation is lost until the catalogs
     are synced -- with no error, no warning and no visible difference from a screen that
     was never translated.  This is the test that says so: if it fails after an edit to
-    userhelp.py, run Language_Support_Utilities/sync_missing_msgids.py and then po_to_mo.sh.
+    userhelp.py, run tools/language_support/sync_missing_msgids.py and then po_to_mo.sh.
     """
     english = getattr(userhelp, name)
     assert translate_string(english) != english, f"{name} is no longer in the German catalog"
