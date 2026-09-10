@@ -46,15 +46,16 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Your choice of output detail level, from a summary overview to a very detailed level of your configuration.
 - Display just a single Project, Profile, or Task.
 - Include/exclude Profile and Task conditions: States, Events, etc.
-- Just stream everything and/or make the output "pretty" by aligning all of the fields.
-- Change the appearance: select 'light', or 'dark' or use the 'system' default.
+- Just stream everything or make the output "pretty" by aligning all of the fields.
+- Change the appearance: select 'light', or 'dark' modes.
 - Output using your favorite monospaced font, and accent Project, Profile and Task names by making them italicized, bold, highlighted and/or underscored.
 - Modify the colors associated with various aspects of the output to suit your mood.
 - Include TaskerNet descriptions and/or Tasker preferences.
 - For complex configurations, optionally include a dictionary of hotlinks to your Projects, Profiles, Tasks and Scenes.
-- Display a diagram of your entire Tasker configuration.
+- Display a diagram of your entire Tasker configuration as well as a Task Flow.
 - Command line or GUI interface.
 - Use exported XML or fetch the XML directly from your Android device for the configuration mapping.
+- Send Projects, Profiles, Tasks and Scenes back to Tasker on your ANdroid device.
 - Save and restore runtime settings.
 - Identify Tasks that have too many 'actions', and which should potentially be broken up into multiple Tasks.
 - Ai Analysis option to analyze a specific Project, Profile, Task or Scene using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models.
@@ -62,8 +63,9 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Automatic update detection and optional installation of new versions.
 - Enhanced search and structured 'Find/Replace'.
 - Add and Edit Projects, Profiles, Tasks, and Scenes (see [Note 6](#6))
+- List changes since a specific date.
 - Analyze the health of the Tasker XML as well as the numerous variables throughout the configuration.
-- Compare an XML file against the loaded XML. 
+- Compare an XML file against the loaded XML.
 
 ## Program Dependencies
 
