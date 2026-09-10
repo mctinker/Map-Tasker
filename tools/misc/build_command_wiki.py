@@ -1227,6 +1227,15 @@ def slug(text: str) -> str:
     return cleaned or "command"
 
 
+def heading_anchor(text: str) -> str:
+    """The anchor GitHub gives a Markdown heading, for linking to it.
+
+    Not slug(): GitHub drops punctuation but turns every space into its own hyphen,
+    so "Map / Diagram / Tree View Toolbar" is #map--diagram--tree-view-toolbar.
+    """
+    return re.sub(r"[^\w\- ]", "", text.casefold()).replace(" ", "-")
+
+
 def cell(text: str) -> str:
     """Text made safe for a Markdown table cell."""
     return text.replace("|", "\\|").replace("\n", " ").strip()
@@ -1322,7 +1331,10 @@ class PageWriter:
             "## Contents",
             "",
             "* [Command Index (A-Z)](#command-index-a-z)",
-            *[f"* [{self.model.title_of(root)}](#{slug(self.model.title_of(root))})" for root in self.model.roots()],
+            *[
+                f"* [{self.model.title_of(root)}](#{heading_anchor(self.model.title_of(root))})"
+                for root in self.model.roots()
+            ],
             "* [Command-Line Arguments](#command-line-arguments)",
             "",
         ]

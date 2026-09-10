@@ -3088,13 +3088,36 @@ def build_health_check_dialog(
     ["health_check_skip"]).  Storing it that way round is what lets a category added in a
     later release arrive already ticked -- see healthck.CATEGORIES.
 
-    on_run is handed the list to leave out when Run is pressed.  on_save is handed it the
-    moment Select All or Deselect All is pressed: those replace every choice at once, and
-    should not be lost to a Cancel or an exit.  The caller does the running and the saving:
-    this module builds windows and knows nothing about what a health check is.
+    on_run is handed the list to leave out when Run is pressed.  on_save is handed it every
+    time a choice changes -- one box, or all of them through Select All or Deselect All --
+    so what is ticked is never lost to a Cancel or an exit.  The caller does the running and
+    the saving: this module builds windows and knows nothing about what a health check is.
     """
     skip = set(PrimeItems.program_arguments.get("health_check_skip", []) or [])
     boxes: dict[str, ui.checkbox] = {}
+    # Select All and Deselect All set every box in turn, and each of those would otherwise
+    # save the settings file on its own: forty-five writes for one click.
+    setting_all = False
+
+    def skipped() -> list[str]:
+        """The categories currently unticked."""
+        return [tag for tag, box in boxes.items() if not box.value]
+
+    def box_changed() -> None:
+        """Remember a single box being ticked or unticked, as it happens."""
+        if not setting_all:
+            on_save(skipped())
+
+    def set_all(ticked: bool) -> None:
+        """Tick or untick every category at once, and remember that with a single save."""
+        nonlocal setting_all
+        setting_all = True
+        try:
+            for box in boxes.values():
+                box.value = ticked
+        finally:
+            setting_all = False
+        on_save(skipped())
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[520px] max-w-[720px] w-full p-6"):
         ui.label(translate_string("Health Check")).classes("text-lg font-bold text-blue-600")
@@ -3111,25 +3134,18 @@ def build_health_check_dialog(
                     group = category.group
                     ui.label(translate_string(group)).classes("font-bold text-sm mt-3 mb-1")
                 with ui.row().classes("items-center gap-2 ml-2 no-wrap"):
-                    boxes[category.tag] = ui.checkbox(value=category.tag not in skip).props("dense")
+                    boxes[category.tag] = ui.checkbox(
+                        value=category.tag not in skip,
+                        on_change=box_changed,
+                    ).props("dense")
                     with ui.column().classes("gap-0"):
                         ui.label(category.tag).classes("font-mono text-xs")
                         ui.label(translate_string(category.what)).classes("text-xs text-gray-500")
-
-        def skipped() -> list[str]:
-            """The categories currently unticked."""
-            return [tag for tag, box in boxes.items() if not box.value]
 
         def run() -> None:
             """Close the panel, then run the check for whatever is still ticked."""
             dialog.close()
             on_run(skipped())
-
-        def set_all(ticked: bool) -> None:
-            """Tick or untick every category at once, and remember that straight away."""
-            for box in boxes.values():
-                box.value = ticked
-            on_save(skipped())
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
@@ -7790,10 +7806,16 @@ def inject_shared_head_styles() -> None:
                    Project box is always indented by (diagutil.print_box), which is the only
                    place on the line that is guaranteed to be empty.  At a fixed size for the
                    same reason -- a control is not part of the drawing, and one measured in em
-                   would grow with the zoom until it covered the box it belongs to. */
+                   would grow with the zoom until it covered the box it belongs to.  Large enough
+                to see and aim at, and centred on the line with a line-height of 1 so the
+                bigger glyph does not hang down over the line below. */
                 position: absolute;
-                font-size: 12px;
-                opacity: 0.55;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 22px;
+                line-height: 1;
+                opacity: 0.75;
                 font-weight: bold;
             }
             .mt-dline[data-fold][data-fold-state="closed"]::before {

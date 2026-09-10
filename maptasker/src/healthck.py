@@ -1037,13 +1037,17 @@ def _counts(findings: list[Finding]) -> dict:
     return {severity: sum(1 for item in findings if item.severity == severity) for severity in _SEVERITY_ORDER}
 
 
-def _build_report(index: ReferenceIndex, when: datetime) -> list[Row]:
+def _build_report(index: ReferenceIndex, when: datetime, skip: frozenset[str] = frozenset()) -> list[Row]:
     """Render the findings, one Row per line of the report.
 
     Rows rather than strings so the report can be written twice from one source: as the
     plain text that is saved (mapjump.text_report) and as the HTML shown in the GUI
     (mapjump.html_report), where the line naming each finding's location is clickable.
     Every row but those carries no target and renders as plain text in both.
+
+    skip is the set of categories unticked in the chooser panel.  They are listed at the
+    very end (see _not_run), so the report never passes for a clean bill of health on
+    something it was told not to look at.
     """
     root = PrimeItems.tasker_root_elements
     counts = _counts(index.findings)
@@ -1070,7 +1074,7 @@ def _build_report(index: ReferenceIndex, when: datetime) -> list[Row]:
 
     if not index.findings:
         lines += ["Nothing to report -- no broken references, unreferenced objects or", "naming problems found.", ""]
-        return [Row(line) for line in lines]
+        return [Row(line) for line in lines + _not_run(skip)]
 
     rows = [Row(line) for line in lines]
 
@@ -1093,7 +1097,7 @@ def _build_report(index: ReferenceIndex, when: datetime) -> list[Row]:
             )
             rows += [Row(f"[{item.tag}]  {item.where}", item.target), detail_row, Row("")]
 
-    return rows + [Row(line) for line in _limitations(index)]
+    return rows + [Row(line) for line in _limitations(index) + _not_run(skip)]
 
 
 def _limitations(index: ReferenceIndex) -> list[str]:
@@ -1180,6 +1184,37 @@ def _limitations(index: ReferenceIndex) -> list[str]:
     return notes
 
 
+def _not_run(skip: frozenset[str]) -> list[str]:
+    """The closing list of categories that were unticked, and so were not looked for.
+
+    Last in the report, after the notes, because it qualifies everything above it: a
+    report that finds no secrets says something very different when the secrets checks
+    never ran.  Grouped the way the chooser panel groups them, so the list reads the way
+    the choice was made, and indented so that no line starts with '[' the way a finding
+    does.  A tag in skip that is no longer a category -- saved by an older release -- is
+    not a check that could have run, and is left off.
+    """
+    not_run = [category for category in CATEGORIES if category.tag in skip]
+    if not not_run:
+        return []
+
+    width = max(len(category.tag) for category in not_run)
+    lines = [
+        "",
+        f"CHECKS NOT RUN ({len(not_run)} of {len(CATEGORIES)})",
+        "-" * _REPORT_WIDTH,
+        "These were unticked in the Health Check panel, so this report says nothing",
+        "about them.  Tick them again to have them checked.",
+    ]
+    group = ""
+    for category in not_run:
+        if category.group != group:
+            group = category.group
+            lines += ["", group]
+        lines.append(f"    {category.tag:<{width}}  {category.what}")
+    return [*lines, ""]
+
+
 def build_reference_index() -> ReferenceIndex:
     """Everything in the file that points at something else, gathered but not yet judged.
 
@@ -1223,6 +1258,9 @@ def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
     would silently hide every check written after the day it was saved, and a report that
     quietly stopped looking for something is worse than one that asks an extra question.
 
+    The categories left out are named at the end of the report, so a reader can tell a
+    check that found nothing from a check that never ran.
+
     Findings are dropped after the passes run, EXCEPT for the four folded-in ones, each of
     which is a separate walk over the whole configuration and is skipped outright when
     every category it can raise has been unticked.
@@ -1250,7 +1288,7 @@ def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
         # explaining findings that are no longer in the report.
         index.findings = [item for item in index.findings if item.tag not in skip]
 
-    return _build_report(index, datetime.now()), _counts(index.findings)  # noqa: DTZ005
+    return _build_report(index, datetime.now(), skip), _counts(index.findings)  # noqa: DTZ005
 
 
 def write_health_check_report(rows: list[Row]) -> str:

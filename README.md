@@ -13,7 +13,6 @@
 ![Python](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fmctinker%2FMap-Tasker%2Frefs%2Fheads%2FMaster%2Fpyproject.toml)
 ![PyPI - License](https://img.shields.io/pypi/l/maptasker)
 ![](https://tokei.rs/b1/github/mctinker/Map-Tasker)
-<!-- [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai) -->
 [![Code style: ruff](https://img.shields.io/badge/code%20style-black-000000.svg)](https://docs.astral.sh/ruff/formatter/)
 [!["Buy Me A Coffee"](/documentation_images/coffee.png)](https://www.buymeacoffee.com/mctinker)
 
@@ -163,9 +162,15 @@ This is the output from the Variable Xref (cross reference) run.
 
 - MapTasker_Apps.json
 
-  This contains a list of all Android applications gleaned either the XML file or directly from the Android device.  The list is useed to populate the app list when editing a Task action such as 'Launch App'.
+  This contains a list of all Android applications gleaned either the XML file or directly from the Android device.  The list is used to populate the app list when editing a Task action such as 'Launch App'.
 
-  - Android
+- MapTasker_Timeline and MapTasker_Backups Directories
+
+  MapTasker_Timeline is used to track changes.  
+  
+  MapTasker_Backups is used to copy a file just before a save would overwrite an existing file, and only the 10 newest copies are saved. If nothing is at the target path, no copy is made.  While MapTasker removes old backups automatically, you can remove them yourself at anytime.  The copies exist only so you can get a file back yourself. You can delete single copies or the whole folder at any time without breaking anything, and the folder is recreated the next time a save needs to overwrite a file.
+
+- Android
 
   Various 'maptasker.***' files are created, including Tasker files, to manage the to/from travel of XML.  Examples are: maptasker_import.xxx.xml, maptasker_apps.txt, maptasker_files.txt
 
@@ -363,7 +368,7 @@ Network traffic is as follows:
 - Read file 'maptasker_changelog.json' from '<https://github.com/mctinker/Map-Tasker>' if "What's New" is selected in the GUI.
 - Use chatgpt.com when using AI analysis with any of the OpenAi models.  The output of MapTasker is sent to the server via the standard API call for analysis.  Likewise for Claude (Anthropic), Google (Gemini) and DeepSeek.
 - New and updated local Ai models will be loaded from '<https://ollama.com/library>' when running the AI Analysis feature.
-- Image and video sources as defined via the '<img src=https://...>' HTML tag in Task action labels and TaskerNet descriptions will be accessed.  Examples: imggur.com, Youtube, Dropbox, Google Drice, etc.
+- Image and video sources as defined via the '<img src=https://...>' HTML tag in Task action labels and TaskerNet descriptions will be accessed.  Examples: imggur.com, Youtube, Dropbox, Google Drive, etc.
 
 ## Contributing
 

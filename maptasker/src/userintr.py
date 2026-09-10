@@ -2785,13 +2785,10 @@ class MapTaskerEventHandlers:
     def run_health_check_for(self: "MapTaskerEventHandlers", skip: list[str]) -> None:
         """Run the check for the categories the panel left ticked, and show the report.
 
-        The choice is remembered here rather than in the panel: the panel closes on Cancel
-        without calling this at all, so boxes ticked or unticked one at a time are dropped
-        by a Cancel.  Select All and Deselect All are the exception -- they save as they are
-        pressed, through save_health_check_skip.
+        Nothing is saved here: the panel has already saved every change as it was made,
+        through save_health_check_skip, so what is ticked now is what the settings file holds.
         """
         gui = self.gui
-        self.save_health_check_skip(skip)
 
         rows, counts = run_health_check(skip)
         file_name = write_health_check_report(rows)

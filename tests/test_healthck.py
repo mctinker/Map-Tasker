@@ -847,6 +847,50 @@ def test_the_note_about_a_category_goes_with_it() -> None:
     assert "NOTE ON UNREFERENCED TASKS" not in _run(skip=["UNREFERENCED-TASK"])[0]
 
 
+def test_checks_not_run_are_listed_at_the_end() -> None:
+    """A report is read as covering everything unless it says otherwise, so the unticked
+    categories are named -- last, after the closing notes, as the panel describes them.
+    """
+    _load(_DEFECTIVE_XML)
+    skipped = ["UNUSED-SCENE", "PII-EMAIL"]
+    text, _ = _run(skip=skipped)
+    heading = f"CHECKS NOT RUN (2 of {len(CATEGORIES)})"
+    assert heading in text
+    # After the closing notes, not before them.
+    assert text.index("NOTE ON UNREFERENCED TASKS") < text.index(heading)
+    tail = text[text.index(heading) :]
+    assert "NOTE ON" not in tail
+    for tag in skipped:
+        category = next(item for item in CATEGORIES if item.tag == tag)
+        assert category.group in tail
+        assert any(line.split()[:1] == [tag] and category.what in line for line in tail.splitlines())
+    # Listed, not reported: no line of the list reads as a finding of that tag.
+    assert not _findings_for(text, "UNUSED-SCENE")
+
+
+def test_nothing_unticked_lists_no_checks_not_run(report: str) -> None:
+    """With every box ticked there is nothing to qualify the report with."""
+    assert "CHECKS NOT RUN" not in report
+
+
+def test_checks_not_run_are_listed_even_when_nothing_is_found() -> None:
+    """'Nothing to report' is exactly where a check that never ran is most misleading."""
+    _load(_DEFECTIVE_XML)
+    everything = [category.tag for category in CATEGORIES]
+    text, counts = _run(skip=everything)
+    assert not sum(counts.values())
+    heading = f"CHECKS NOT RUN ({len(CATEGORIES)} of {len(CATEGORIES)})"
+    assert text.index("Nothing to report") < text.index(heading)
+
+
+def test_a_saved_tag_that_is_no_longer_a_category_is_not_listed() -> None:
+    """A tag an older release saved is not a check that could have run."""
+    _load(_DEFECTIVE_XML)
+    text, _ = _run(skip=["NO-SUCH-CHECK"])
+    assert "CHECKS NOT RUN" not in text
+    assert "NO-SUCH-CHECK" not in text
+
+
 def test_unticking_a_whole_family_skips_its_scan() -> None:
     """Each folded-in pass is its own walk over the configuration, and is the bulk of what
     a check on a large backup costs.  Unticking every category it can raise has to skip the

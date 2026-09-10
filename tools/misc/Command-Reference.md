@@ -2,7 +2,7 @@
 
 Every command, option and pulldown in the MapTasker user interface: **335** entries (**273** of them commands) across **14** windows.
 
-_Generated from the MapTasker 14.0.0 source on 2026-09-10 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
+_Generated from the MapTasker 14.0.1 source on 2026-09-10 by `build_command_wiki.py`._ _Do not edit this page by hand -- rerun that program instead._
 
 ## How to use this page
 
@@ -21,7 +21,7 @@ _Generated from the MapTasker 14.0.0 source on 2026-09-10 by `build_command_wiki
 * [Delete Scene](#delete-scene)
 * [If Variant](#if-variant)
 * [Item Layout](#item-layout)
-* [Map / Diagram / Tree View Toolbar](#map-diagram-tree-view-toolbar)
+* [Map / Diagram / Tree View Toolbar](#map--diagram--tree-view-toolbar)
 * [New Version Notice](#new-version-notice)
 * [Object Properties](#object-properties)
 * [Overwrite Confirmation](#overwrite-confirmation)
@@ -472,7 +472,7 @@ Closes this window without changing anything.
 
 Switch the GUI between light and dark appearance.
 
-<sub>Source: `guiwins.py` line 7962</sub>
+<sub>Source: `guiwins.py` line 7978</sub>
 
 <a id="cmd-detail-level"></a>
 ### Detail Level
@@ -482,7 +482,7 @@ Switch the GUI between light and dark appearance.
 
 0 = least detail, 5 = most detail.
 
-<sub>Source: `guiwins.py` line 7986</sub>
+<sub>Source: `guiwins.py` line 8002</sub>
 
 <a id="cmd-just-display-everything"></a>
 ### Just Display Everything!
@@ -492,7 +492,7 @@ Switch the GUI between light and dark appearance.
 
 Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, and Prettier Output.
 
-<sub>Source: `guiwins.py` line 7998</sub>
+<sub>Source: `guiwins.py` line 8014</sub>
 
 <a id="cmd-display-conditions"></a>
 ### Display Conditions
@@ -502,7 +502,7 @@ Enables the display of Conditions, TaskerNet Info, Preferences, the Directory, a
 
 Enables the display of Profile Conditions (e.g. State, Event, etc.) details in the output.
 
-<sub>Source: `guiwins.py` line 8007</sub>
+<sub>Source: `guiwins.py` line 8023</sub>
 
 <a id="cmd-display-taskernet-info"></a>
 ### Display TaskerNet Info
@@ -512,7 +512,7 @@ Enables the display of Profile Conditions (e.g. State, Event, etc.) details in t
 
 Enables the display of TaskerNet Descriptions in the output.
 
-<sub>Source: `guiwins.py` line 8016</sub>
+<sub>Source: `guiwins.py` line 8032</sub>
 
 <a id="cmd-display-tasker-preferences"></a>
 ### Display Tasker Preferences
@@ -522,7 +522,7 @@ Enables the display of TaskerNet Descriptions in the output.
 
 Enables the display a breakdown of the Tasker system Preferences in the output.
 
-<sub>Source: `guiwins.py` line 8021</sub>
+<sub>Source: `guiwins.py` line 8037</sub>
 
 <a id="cmd-hide-task-details-under-twisty"></a>
 ### Hide Task Details Under Twisty
@@ -532,7 +532,7 @@ Enables the display a breakdown of the Tasker system Preferences in the output.
 
 When enabled, Task details are hidden under a twisty (expand/collapse) control in the output.
 
-<sub>Source: `guiwins.py` line 8026</sub>
+<sub>Source: `guiwins.py` line 8042</sub>
 
 <a id="cmd-display-directory"></a>
 ### Display Directory
@@ -542,7 +542,7 @@ When enabled, Task details are hidden under a twisty (expand/collapse) control i
 
 Enables the display of the Project/Profile/Task/Scene Directory in the output.
 
-<sub>Source: `guiwins.py` line 8035</sub>
+<sub>Source: `guiwins.py` line 8051</sub>
 
 <a id="cmd-display-prettier-output"></a>
 ### Display Prettier Output
@@ -552,7 +552,7 @@ Enables the display of the Project/Profile/Task/Scene Directory in the output.
 
 Enables the display of aligned text in the output.
 
-<sub>Source: `guiwins.py` line 8040</sub>
+<sub>Source: `guiwins.py` line 8056</sub>
 
 <a id="cmd-get-local-xml-file"></a>
 ### Get Local XML File
@@ -566,7 +566,7 @@ The XML fetched will become the current source for MapTasker commands.
 
 Opens **Local File Picker**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8069</sub>
+<sub>Source: `guiwins.py` line 8085</sub>
 
 <a id="cmd-get-local-xml-file-cancel"></a>
 #### Cancel
@@ -596,7 +596,7 @@ Keeps what this dialog holds and closes it. Nothing is written to a file: the ch
 
 Exit the program (quit).
 
-<sub>Source: `guiwins.py` line 8082</sub>
+<sub>Source: `guiwins.py` line 8098</sub>
 
 <a id="cmd-close-tabs-on-exit"></a>
 ### Close Tabs On Exit
@@ -608,7 +608,7 @@ When enabled, clicking 'Exit' also closes the main MapTasker window and any Map/
 
 When disabled, 'Exit' shuts down MapTasker but leaves those windows/tabs open.
 
-<sub>Source: `guiwins.py` line 8091</sub>
+<sub>Source: `guiwins.py` line 8107</sub>
 
 <a id="cmd-open-view-in-new-window"></a>
 ### Open View In New Window
@@ -622,7 +622,7 @@ When disabled, a request reuses that view's existing window/tab, replacing what'
 
 Leave it off unless you want to compare: a brand new window/tab is the one your browser may block, since it gets opened once the view has finished building rather than the instant you click.
 
-<sub>Source: `guiwins.py` line 8106</sub>
+<sub>Source: `guiwins.py` line 8122</sub>
 
 <a id="cmd-map"></a>
 ### Map
@@ -634,7 +634,7 @@ Displays the Map view.
 
 Use this to display the Tasker configuration of your Projects, Profiles, Tasks, and Scenes.
 
-<sub>Source: `guiwins.py` line 8132</sub>
+<sub>Source: `guiwins.py` line 8148</sub>
 
 <a id="cmd-diagram"></a>
 ### Diagram
@@ -646,7 +646,7 @@ Displays the Diagram view.
 
 Use this to visualize the relationships between your Projects, Profiles, Tasks, and Scenes.
 
-<sub>Source: `guiwins.py` line 8141</sub>
+<sub>Source: `guiwins.py` line 8157</sub>
 
 <a id="cmd-tree"></a>
 ### Tree
@@ -658,7 +658,7 @@ Displays the Tree view.
 
 Use this to navigate the hierarchical structure of your Projects, Profiles, Tasks, and Scenes.
 
-<sub>Source: `guiwins.py` line 8153</sub>
+<sub>Source: `guiwins.py` line 8169</sub>
 
 <a id="cmd-health-check"></a>
 ### Health Check
@@ -674,7 +674,7 @@ Results are displayed here and saved to a text file in the current directory.
 
 Opens **Health Check**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8171</sub>
+<sub>Source: `guiwins.py` line 8187</sub>
 
 <a id="cmd-health-check-cancel"></a>
 #### Cancel
@@ -684,7 +684,7 @@ Opens **Health Check**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3135</sub>
+<sub>Source: `guiwins.py` line 3151</sub>
 
 <a id="cmd-compare-files"></a>
 ### Compare Files
@@ -702,7 +702,7 @@ Results are displayed here and saved to a text file in the current directory.
 
 Opens **Compare Files**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8195</sub>
+<sub>Source: `guiwins.py` line 8211</sub>
 
 <a id="cmd-compare-files-cancel"></a>
 #### Cancel
@@ -728,7 +728,7 @@ Results are displayed here and saved to a text file in the current directory.
 
 Opens **Changes Since**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8220</sub>
+<sub>Source: `guiwins.py` line 8236</sub>
 
 <a id="cmd-changes-since-cancel"></a>
 #### Cancel
@@ -738,7 +738,7 @@ Opens **Changes Since**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3284</sub>
+<sub>Source: `guiwins.py` line 3300</sub>
 
 <a id="cmd-variable-xref"></a>
 ### Variable Xref
@@ -752,7 +752,7 @@ Searched: Task actions and their conditions, plugin configuration, Profile conte
 
 Results are displayed here and saved to a text file in the current directory.
 
-<sub>Source: `guiwins.py` line 8245</sub>
+<sub>Source: `guiwins.py` line 8261</sub>
 
 <a id="cmd-task-flow"></a>
 ### Task Flow
@@ -766,7 +766,7 @@ With a single Task chosen in the 'Specific Name' tab, that Task is also drawn as
 
 Results are displayed here and saved to a text file in the current directory.
 
-<sub>Source: `guiwins.py` line 8270</sub>
+<sub>Source: `guiwins.py` line 8286</sub>
 
 <a id="cmd-clear"></a>
 ### Clear
@@ -776,7 +776,7 @@ Results are displayed here and saved to a text file in the current directory.
 
 Clear the Map/Diagram/Tree view data currently held and displayed.
 
-<sub>Source: `guiwins.py` line 8292</sub>
+<sub>Source: `guiwins.py` line 8308</sub>
 
 <a id="cmd-specific-name"></a>
 ### Specific Name
@@ -786,7 +786,7 @@ Clear the Map/Diagram/Tree view data currently held and displayed.
 
 enter a single, specific named item to display...
 
-<sub>Source: `guiwins.py` line 8324</sub>
+<sub>Source: `guiwins.py` line 8340</sub>
 
 <a id="cmd-colors"></a>
 ### Colors
@@ -796,7 +796,7 @@ enter a single, specific named item to display...
 
 select colors for various elements of the display.
 
-<sub>Source: `guiwins.py` line 8329</sub>
+<sub>Source: `guiwins.py` line 8345</sub>
 
 <a id="cmd-analyze"></a>
 ### Analyze
@@ -806,7 +806,7 @@ select colors for various elements of the display.
 
 Run the analysis for a Project, Profile, Task or Scene against an Ai model.
 
-<sub>Source: `guiwins.py` line 8330</sub>
+<sub>Source: `guiwins.py` line 8346</sub>
 
 <a id="cmd-debug"></a>
 ### Debug
@@ -816,7 +816,7 @@ Run the analysis for a Project, Profile, Task or Scene against an Ai model.
 
 Display Runtime Settings option and turn on Debug mode.
 
-<sub>Source: `guiwins.py` line 8331</sub>
+<sub>Source: `guiwins.py` line 8347</sub>
 
 <a id="cmd-project"></a>
 ### Project
@@ -826,7 +826,7 @@ Display Runtime Settings option and turn on Debug mode.
 
 Select a specific Project to target for display or editing.
 
-<sub>Source: `guiwins.py` line 8349</sub>
+<sub>Source: `guiwins.py` line 8365</sub>
 
 <a id="cmd-profile"></a>
 ### Profile
@@ -836,7 +836,7 @@ Select a specific Project to target for display or editing.
 
 Select a specific Profile to target for display or editing.
 
-<sub>Source: `guiwins.py` line 8363</sub>
+<sub>Source: `guiwins.py` line 8379</sub>
 
 <a id="cmd-task"></a>
 ### Task
@@ -846,7 +846,7 @@ Select a specific Profile to target for display or editing.
 
 Select a specific Task to target for display or editing.
 
-<sub>Source: `guiwins.py` line 8377</sub>
+<sub>Source: `guiwins.py` line 8393</sub>
 
 <a id="cmd-scene"></a>
 ### Scene
@@ -856,7 +856,7 @@ Select a specific Task to target for display or editing.
 
 Select a specific Scene to target for display or editing.
 
-<sub>Source: `guiwins.py` line 8391</sub>
+<sub>Source: `guiwins.py` line 8407</sub>
 
 <a id="cmd-list-unnamed-items"></a>
 ### List Unnamed Items
@@ -866,7 +866,7 @@ Select a specific Scene to target for display or editing.
 
 Select this to include Profiles and Tasks that do not have a name in the list.
 
-<sub>Source: `guiwins.py` line 8406</sub>
+<sub>Source: `guiwins.py` line 8422</sub>
 
 <a id="cmd-edit-project"></a>
 ### Edit Project
@@ -878,7 +878,7 @@ Modify the object currently selected in the pulldowns above.
 
 Opens **Edit Project**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8443</sub>
+<sub>Source: `guiwins.py` line 8459</sub>
 
 <a id="cmd-edit-project-enabled"></a>
 #### Enabled
@@ -920,7 +920,7 @@ Opens **Rename**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3357</sub>
+<sub>Source: `guiwins.py` line 3373</sub>
 
 <a id="cmd-edit-project-rename-rename"></a>
 ##### Rename
@@ -930,7 +930,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Give the object being edited a new name.
 
-<sub>Source: `guiwins.py` line 3358</sub>
+<sub>Source: `guiwins.py` line 3374</sub>
 
 <a id="cmd-edit-project-save-to-current-file"></a>
 #### Save To Current File
@@ -1060,7 +1060,7 @@ Create a new object and add it to the loaded XML.
 
 Opens **Add Project**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8451</sub>
+<sub>Source: `guiwins.py` line 8467</sub>
 
 <a id="cmd-add-project-cancel"></a>
 #### Cancel
@@ -1092,7 +1092,7 @@ Modify the object currently selected in the pulldowns above.
 
 Opens **Edit Profile**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8460</sub>
+<sub>Source: `guiwins.py` line 8476</sub>
 
 <a id="cmd-edit-profile-add-task"></a>
 #### Add Task
@@ -1420,7 +1420,7 @@ Opens **Rename**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3357</sub>
+<sub>Source: `guiwins.py` line 3373</sub>
 
 <a id="cmd-edit-profile-rename-rename"></a>
 ##### Rename
@@ -1430,7 +1430,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Give the object being edited a new name.
 
-<sub>Source: `guiwins.py` line 3358</sub>
+<sub>Source: `guiwins.py` line 3374</sub>
 
 <a id="cmd-edit-profile-ok"></a>
 #### Ok
@@ -1570,7 +1570,7 @@ Create a new object and add it to the loaded XML.
 
 Opens **Add Profile**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8468</sub>
+<sub>Source: `guiwins.py` line 8484</sub>
 
 <a id="cmd-add-profile-add-task"></a>
 #### Add Task
@@ -1996,7 +1996,7 @@ Modify the object currently selected in the pulldowns above.
 
 Opens **Edit Task**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8477</sub>
+<sub>Source: `guiwins.py` line 8493</sub>
 
 <a id="cmd-edit-task-pick-a-task"></a>
 #### Pick a Task
@@ -2134,7 +2134,7 @@ Opens **Rename**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3357</sub>
+<sub>Source: `guiwins.py` line 3373</sub>
 
 <a id="cmd-edit-task-rename-rename"></a>
 ##### Rename
@@ -2144,7 +2144,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Give the object being edited a new name.
 
-<sub>Source: `guiwins.py` line 3358</sub>
+<sub>Source: `guiwins.py` line 3374</sub>
 
 <a id="cmd-edit-task-ok"></a>
 #### Ok
@@ -2288,7 +2288,7 @@ Create a new object and add it to the loaded XML.
 
 Opens **Add Task**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8485</sub>
+<sub>Source: `guiwins.py` line 8501</sub>
 
 <a id="cmd-add-task-pick-a-task"></a>
 #### Pick a Task
@@ -2508,7 +2508,7 @@ Modify the object currently selected in the pulldowns above.
 
 Opens **Edit Scene**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8500</sub>
+<sub>Source: `guiwins.py` line 8516</sub>
 
 <a id="cmd-edit-scene-picker"></a>
 #### Picker
@@ -2902,7 +2902,7 @@ Create a new object and add it to the loaded XML.
 
 Opens **Add Scene Version**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8508</sub>
+<sub>Source: `guiwins.py` line 8524</sub>
 
 <a id="cmd-add-scene-legacy-scene"></a>
 #### Legacy Scene
@@ -3192,7 +3192,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Restore every color to its default value.
 
-<sub>Source: `guiwins.py` line 8542</sub>
+<sub>Source: `guiwins.py` line 8558</sub>
 
 <a id="cmd-cancel"></a>
 ### Cancel
@@ -3202,7 +3202,7 @@ Restore every color to its default value.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 8612</sub>
+<sub>Source: `guiwins.py` line 8628</sub>
 
 <a id="cmd-change-prompt"></a>
 ### Change Prompt
@@ -3214,7 +3214,7 @@ Modify the prompt sent to the AI model.
 
 Opens **Change Prompt**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 8654</sub>
+<sub>Source: `guiwins.py` line 8670</sub>
 
 <a id="cmd-change-prompt-cancel"></a>
 #### Cancel
@@ -3224,7 +3224,7 @@ Opens **Change Prompt**, whose own commands are listed beneath this one.
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `userintr.py` line 6969</sub>
+<sub>Source: `userintr.py` line 6966</sub>
 
 <a id="cmd-run-analysis"></a>
 ### Run Analysis
@@ -3234,7 +3234,7 @@ Closes this dialog and keeps nothing it was holding.
 
 Submit the selected Project/Profile/Task and prompt to the selected model.
 
-<sub>Source: `guiwins.py` line 8659</sub>
+<sub>Source: `guiwins.py` line 8675</sub>
 
 <a id="cmd-extended"></a>
 ### Extended
@@ -3250,7 +3250,7 @@ Note: Not all models have been validated and one or more may return an error on 
 
 Note: Enabling this option for the first time will force the installation of the following modules and all of their dependencies: google-genai, anthropic, openai, ollama
 
-<sub>Source: `guiwins.py` line 8678</sub>
+<sub>Source: `guiwins.py` line 8694</sub>
 
 <a id="cmd-indent-option"></a>
 ### Indent Option
@@ -3264,7 +3264,7 @@ The default is '4'.
 
 This affects how the output is formatted in the Map and Diagram views.
 
-<sub>Source: `guiwins.py` line 8785</sub>
+<sub>Source: `guiwins.py` line 8801</sub>
 
 <a id="cmd-viewlimit-optionmenu"></a>
 ### Viewlimit Optionmenu
@@ -3278,7 +3278,7 @@ Anything over this amount will stop the generation of the view as a means to thr
 
 Note: This is only for the 'Map' and 'Diagram' views, not the tree view.
 
-<sub>Source: `guiwins.py` line 8835</sub>
+<sub>Source: `guiwins.py` line 8851</sub>
 
 <a id="cmd-notify-timeout-optionmenu"></a>
 ### Notify Timeout Optionmenu
@@ -3292,7 +3292,7 @@ How long a pop-up message stays on screen before it disappears.
 
 A few messages set their own longer duration because they list things you have to read -- the Tasks affected by deleting or renaming a Scene element, for instance. Those keep their own timing whatever is chosen here.
 
-<sub>Source: `guiwins.py` line 8876</sub>
+<sub>Source: `guiwins.py` line 8892</sub>
 
 <a id="cmd-reset-options"></a>
 ### Reset Options
@@ -3304,7 +3304,7 @@ Reset all of the options to their default values, including colors, font used, a
 
 The currently loaded XML will be cleared out.
 
-<sub>Source: `guiwins.py` line 8900</sub>
+<sub>Source: `guiwins.py` line 8916</sub>
 
 <a id="cmd-report-issue"></a>
 ### Report Issue
@@ -3316,7 +3316,7 @@ Report any issues and/or suggestions to the developer.
 
 This will open a browser window to the GitHub Issues page, and you will need a GitHub account to submit an issue.
 
-<sub>Source: `guiwins.py` line 8933</sub>
+<sub>Source: `guiwins.py` line 8949</sub>
 
 <a id="cmd-font-optionmenu"></a>
 ### Font Optionmenu
@@ -3330,7 +3330,7 @@ The font selected will be used in all output.
 
 'Courier' or 'Courier New' is highly recommended for Diagrams to ensure proper connector alignment. A font that is not monospaced will not hold the Diagram's connectors or the output's indentation in line.
 
-<sub>Source: `guiwins.py` line 8973</sub>
+<sub>Source: `guiwins.py` line 8989</sub>
 
 <a id="cmd-get-xml-from-android-device"></a>
 ### Get XML from Android Device
@@ -3344,7 +3344,7 @@ You must be on the same network as the Android device, and the device must be ru
 
 Opens **Get XML From Android Device**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 9002</sub>
+<sub>Source: `guiwins.py` line 9018</sub>
 
 <a id="cmd-get-xml-from-android-device-list-xml-files"></a>
 #### List XML Files
@@ -3356,7 +3356,7 @@ List the XML files found on the Android device so you can select one rather than
 
 Opens **Android XML File List**, whose own commands are listed beneath this one.
 
-<sub>Source: `userintr.py` line 3299</sub>
+<sub>Source: `userintr.py` line 3296</sub>
 
 <a id="cmd-get-xml-from-android-device-list-xml-files-cancel-entry"></a>
 ##### Cancel Entry
@@ -3382,7 +3382,7 @@ Delete the ones it names from Tasker's own Tasks tab. Nothing here can do it for
 
 Opens **Helper Tasks**, whose own commands are listed beneath this one.
 
-<sub>Source: `userintr.py` line 3315</sub>
+<sub>Source: `userintr.py` line 3312</sub>
 
 <a id="cmd-get-xml-from-android-device-list-helper-tasks-close"></a>
 ##### Close
@@ -3392,7 +3392,7 @@ Opens **Helper Tasks**, whose own commands are listed beneath this one.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 3192</sub>
+<sub>Source: `guiwins.py` line 3208</sub>
 
 <a id="cmd-get-xml-from-android-device-cancel-entry"></a>
 #### Cancel Entry
@@ -3402,7 +3402,7 @@ Closes this window without changing anything.
 
 Back out of the Android fetch process.
 
-<sub>Source: `userintr.py` line 3340</sub>
+<sub>Source: `userintr.py` line 3337</sub>
 
 <a id="cmd-display-help"></a>
 ### Display Help
@@ -3412,7 +3412,7 @@ Back out of the Android fetch process.
 
 Display this help text.
 
-<sub>Source: `guiwins.py` line 9033</sub>
+<sub>Source: `guiwins.py` line 9049</sub>
 
 <a id="cmd-get-android-help"></a>
 ### Get Android Help
@@ -3422,7 +3422,7 @@ Display this help text.
 
 Display the help for fetching the XML file from your Android device.
 
-<sub>Source: `guiwins.py` line 9040</sub>
+<sub>Source: `guiwins.py` line 9056</sub>
 
 ## AI API Key Entry
 
@@ -3494,7 +3494,7 @@ _Confirms deletion of a Project, offering a choice for what happens to the Profi
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3404</sub>
+<sub>Source: `guiwins.py` line 3420</sub>
 
 ## Delete Scene
 
@@ -3664,7 +3664,7 @@ _Builds the UI layout for the various text views, including toolbar and scrollab
 
 Zoom out. Ctrl/⌘ and the scroll wheel does the same.
 
-<sub>Source: `guiwins.py` line 3533</sub>
+<sub>Source: `guiwins.py` line 3549</sub>
 
 <a id="cmd-zoom-in"></a>
 ### Zoom In
@@ -3674,7 +3674,7 @@ Zoom out. Ctrl/⌘ and the scroll wheel does the same.
 
 Zoom in. Ctrl/⌘ and the scroll wheel does the same.
 
-<sub>Source: `guiwins.py` line 3541</sub>
+<sub>Source: `guiwins.py` line 3557</sub>
 
 <a id="cmd-collapse"></a>
 ### Collapse
@@ -3686,7 +3686,7 @@ Collapse every Project down to its title bar.
 
 One Project on its own collapses by clicking the top edge of its box.
 
-<sub>Source: `guiwins.py` line 3546</sub>
+<sub>Source: `guiwins.py` line 3562</sub>
 
 <a id="cmd-expand"></a>
 ### Expand
@@ -3696,7 +3696,7 @@ One Project on its own collapses by clicking the top edge of its box.
 
 Expand every collapsed Project.
 
-<sub>Source: `guiwins.py` line 3559</sub>
+<sub>Source: `guiwins.py` line 3575</sub>
 
 <a id="cmd-reset"></a>
 ### Reset
@@ -3706,7 +3706,7 @@ Expand every collapsed Project.
 
 Back to the whole diagram: no zoom, nothing folded, nothing filtered.
 
-<sub>Source: `guiwins.py` line 3564</sub>
+<sub>Source: `guiwins.py` line 3580</sub>
 
 <a id="cmd-help"></a>
 ### Help
@@ -3726,7 +3726,7 @@ Click the ▾ beside a Project to collapse it, and the ▸ to bring it back.
 
 Ctrl (or ⌘) and the scroll wheel zooms. Esc clears a chain.
 
-<sub>Source: `guiwins.py` line 3571</sub>
+<sub>Source: `guiwins.py` line 3587</sub>
 
 <a id="cmd-search"></a>
 ### Search
@@ -3742,7 +3742,7 @@ Click on the line number to go to that line in the text view box.
 
 The 'Clear' button will clear the search results.
 
-<sub>Source: `guiwins.py` line 5093</sub>
+<sub>Source: `guiwins.py` line 5109</sub>
 
 <a id="cmd-clear-3"></a>
 ### Clear
@@ -3752,7 +3752,7 @@ The 'Clear' button will clear the search results.
 
 Clear the Map/Diagram/Tree view data currently held and displayed.
 
-<sub>Source: `guiwins.py` line 5103</sub>
+<sub>Source: `guiwins.py` line 5119</sub>
 
 <a id="cmd-find-replace"></a>
 ### Find/Replace
@@ -3768,7 +3768,7 @@ Results come back as a list of objects; click one to be taken to it.
 
 Opens **Find / Replace**, whose own commands are listed beneath this one.
 
-<sub>Source: `guiwins.py` line 5112</sub>
+<sub>Source: `guiwins.py` line 5128</sub>
 
 <a id="cmd-find-replace-narrow-to-project"></a>
 #### Narrow to Project
@@ -3780,7 +3780,7 @@ _There is no tooltip on this one; this is the note written beside it in the sour
 
 Hidden under a scope, for the reason the Find tab's own gives.
 
-<sub>Source: `guiwins.py` line 6092</sub>
+<sub>Source: `guiwins.py` line 6108</sub>
 
 <a id="cmd-find-replace-only-the-matching-text"></a>
 #### Only the matching text
@@ -3792,7 +3792,7 @@ _There is no tooltip on this one; this is the note written beside it in the sour
 
 Off means the argument is SET to the new value; on means only the matched text inside it changes. Both are things people mean by "replace", and which one they meant cannot be guessed from the two boxes above -- so it is asked, in the one place where the answer is visible while the values are being typed.
 
-<sub>Source: `guiwins.py` line 6147</sub>
+<sub>Source: `guiwins.py` line 6163</sub>
 
 <a id="cmd-find-replace-add-it-where-missing"></a>
 #### Add it where missing
@@ -3804,7 +3804,7 @@ _There is no tooltip on this one; this is the note written beside it in the sour
 
 Tasker leaves out an argument nobody ever set, so this is what makes "give every Flash a Timeout" reach the Flashes that have none. Off by default: adding an argument to a hundred actions is a bigger thing than editing the ones that already have it, and the preview marks every row that is an addition rather than a change.
 
-<sub>Source: `guiwins.py` line 6153</sub>
+<sub>Source: `guiwins.py` line 6169</sub>
 
 <a id="cmd-find-replace-preview"></a>
 #### Preview
@@ -3814,7 +3814,7 @@ Tasker leaves out an argument nobody ever set, so this is what makes "give every
 
 Display the Scene being edited as it will appear.
 
-<sub>Source: `guiwins.py` line 6638</sub>
+<sub>Source: `guiwins.py` line 6654</sub>
 
 <a id="cmd-find-replace-replace"></a>
 #### Replace
@@ -3824,7 +3824,7 @@ Display the Scene being edited as it will appear.
 
 (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene. Click a result to be taken to it.
 
-<sub>Source: `guiwins.py` line 6639</sub>
+<sub>Source: `guiwins.py` line 6655</sub>
 
 <a id="cmd-find-replace-find"></a>
 #### Find
@@ -3834,7 +3834,7 @@ Display the Scene being edited as it will appear.
 
 (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene. Click a result to be taken to it.
 
-<sub>Source: `guiwins.py` line 6855</sub>
+<sub>Source: `guiwins.py` line 6871</sub>
 
 <a id="cmd-find-replace-replace-2"></a>
 #### Replace
@@ -3844,7 +3844,7 @@ Display the Scene being edited as it will appear.
 
 (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene. Click a result to be taken to it.
 
-<sub>Source: `guiwins.py` line 6856</sub>
+<sub>Source: `guiwins.py` line 6872</sub>
 
 <a id="cmd-find-replace-find-2"></a>
 #### Find
@@ -3854,7 +3854,7 @@ Display the Scene being edited as it will appear.
 
 (Map and Diagram only) Ask the loaded configuration a question rather than searching the text on screen: every Task performing a given action, every Profile a given trigger fires, everything naming a given app or Scene. Click a result to be taken to it.
 
-<sub>Source: `guiwins.py` line 7044</sub>
+<sub>Source: `guiwins.py` line 7060</sub>
 
 <a id="cmd-find-replace-save-results"></a>
 #### Save Results
@@ -3864,7 +3864,7 @@ Display the Scene being edited as it will appear.
 
 Save the 'Find/Replace' results to a text file.
 
-<sub>Source: `guiwins.py` line 7045</sub>
+<sub>Source: `guiwins.py` line 7061</sub>
 
 <a id="cmd-find-replace-close"></a>
 #### Close
@@ -3874,7 +3874,7 @@ Save the 'Find/Replace' results to a text file.
 
 Closes this window without changing anything.
 
-<sub>Source: `guiwins.py` line 7055</sub>
+<sub>Source: `guiwins.py` line 7071</sub>
 
 <a id="cmd-toggle-wrap"></a>
 ### Toggle Wrap
@@ -3884,7 +3884,7 @@ Closes this window without changing anything.
 
 Turn line wrapping on or off in the displayed output.
 
-<sub>Source: `guiwins.py` line 5129</sub>
+<sub>Source: `guiwins.py` line 5145</sub>
 
 <a id="cmd-profiles-per-line"></a>
 ### Profiles Per Line
@@ -3894,7 +3894,7 @@ Turn line wrapping on or off in the displayed output.
 
 (Diagram only) The number of Profiles drawn side-by-side on a single line.
 
-<sub>Source: `guiwins.py` line 5139</sub>
+<sub>Source: `guiwins.py` line 5155</sub>
 
 ## New Version Notice
 
@@ -3966,7 +3966,7 @@ _Confirms overwriting something that is already there, before anything is writte
 
 Closes this dialog and keeps nothing it was holding.
 
-<sub>Source: `guiwins.py` line 3230</sub>
+<sub>Source: `guiwins.py` line 3246</sub>
 
 ## Render Scene
 
@@ -4108,7 +4108,7 @@ _Toolbar, then the scroll area the canvas is drawn into._
 
 Outline every component and name it, the way the designer's tree names it.
 
-<sub>Source: `guiwins.py` line 4355</sub>
+<sub>Source: `guiwins.py` line 4371</sub>
 
 <a id="cmd-actions"></a>
 ### Actions
@@ -4118,7 +4118,7 @@ Outline every component and name it, the way the designer's tree names it.
 
 Show what each component does when tapped, and what it writes to.
 
-<sub>Source: `guiwins.py` line 4368</sub>
+<sub>Source: `guiwins.py` line 4384</sub>
 
 <a id="cmd-landscape-2"></a>
 ### Landscape
@@ -4128,7 +4128,7 @@ Show what each component does when tapped, and what it writes to.
 
 Turn the screen on its side and let the layout re-flow into it.
 
-<sub>Source: `guiwins.py` line 4409</sub>
+<sub>Source: `guiwins.py` line 4425</sub>
 
 <a id="cmd-text-density"></a>
 ### Text density
@@ -4140,7 +4140,7 @@ A Scene's element positions are stored in device pixels, but its text sizes are 
 
 So it is set here. Raise it if the text looks too small for its elements, lower it if the text overflows them.
 
-<sub>Source: `guiwins.py` line 4432</sub>
+<sub>Source: `guiwins.py` line 4448</sub>
 
 <a id="cmd-snap-2"></a>
 ### Snap
@@ -4150,7 +4150,7 @@ So it is set here. Raise it if the text looks too small for its elements, lower 
 
 Round dragged positions and sizes to this many pixels.
 
-<sub>Source: `guiwins.py` line 4465</sub>
+<sub>Source: `guiwins.py` line 4481</sub>
 
 <a id="cmd-screen"></a>
 ### Screen
@@ -4162,7 +4162,7 @@ A Version 2 Scene has no size of its own -- it lays itself out inside whatever s
 
 Change this to see the layout re-flow. A Flow Row wraps differently, and any 'Show when' written against %sv2_render_width is asking about exactly this.
 
-<sub>Source: `guiwins.py` line 4488</sub>
+<sub>Source: `guiwins.py` line 4504</sub>
 
 ## Scene Properties
 
