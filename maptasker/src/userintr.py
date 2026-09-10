@@ -2768,18 +2768,30 @@ class MapTaskerEventHandlers:
             )
             return
 
-        build_health_check_dialog(self.run_health_check_for)
+        build_health_check_dialog(self.run_health_check_for, self.save_health_check_skip)
+
+    def save_health_check_skip(self: "MapTaskerEventHandlers", skip: list[str]) -> None:
+        """Remember which Health Check categories to leave out, in the settings file.
+
+        The GUI's own copy is updated along with program_arguments: the GUI was handed the
+        settings when they were read, and exiting writes its attributes back over
+        program_arguments (rungui.capture_gui_state), so a choice stored in only one of the
+        two would be put back to what it was at startup.
+        """
+        PrimeItems.program_arguments["health_check_skip"] = skip
+        self.gui.health_check_skip = skip
+        save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
 
     def run_health_check_for(self: "MapTaskerEventHandlers", skip: list[str]) -> None:
         """Run the check for the categories the panel left ticked, and show the report.
 
         The choice is remembered here rather than in the panel: the panel closes on Cancel
-        without calling this at all, and a Cancel that had already written the settings
-        would have changed something on its way out.
+        without calling this at all, so boxes ticked or unticked one at a time are dropped
+        by a Cancel.  Select All and Deselect All are the exception -- they save as they are
+        pressed, through save_health_check_skip.
         """
         gui = self.gui
-        PrimeItems.program_arguments["health_check_skip"] = skip
-        save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+        self.save_health_check_skip(skip)
 
         rows, counts = run_health_check(skip)
         file_name = write_health_check_report(rows)

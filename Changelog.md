@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.0.0] ??-Sep-2026  # FIX
+## [14.0.0] 10-Sep-2026
 
 ### Added
 
@@ -20,7 +20,7 @@ All notable changes to this project will be documented in this file!
       Every one of these is read from the file alone, so the report closes with a note saying they are questions to consider rather than faults to fix.
 - Added: 'Health Check' now asks what to look for before it runs.  
 
-      - Clicking it brings up a panel listing all 45 kinds of finding it can report -- grouped as broken references, unreachable and unused objects, naming, Task flow, variables, behaviour on the device, and secrets -- each ticked, with 'Ok' to run and 'Cancel' to think better of it. 
+      - Clicking it brings up a panel listing all 45 kinds of finding it can report -- grouped as broken references, unreachable and unused objects, naming, Task flow, variables, behaviour on the device, and secrets -- each ticked, with 'Run' to start it and 'Cancel' to think better of it, 'Select All' and 'Deselect All'. 
        
       - Your choices are remembered for next time, and unticking a whole group means that part of the scan is skipped rather than merely hidden, which makes the check noticeably quicker on a large configuration.
 - Added: 'Health Check' now also lists what is in your configuration that is nobody else's business -
@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file!
       - API keys, tokens, passwords, phone numbers, email addresses and the coordinates a location Profile watches -- wherever they sit, including a variable's stored value and Tasker's own preferences.
       
       - A new 'Redact secrets' tick-box on the Export button in Edit Project, Profile, Task and Scene then takes those same things out of the exported file and notes at the top of it what went, so a configuration can be posted on a forum or handed to somebody helping you.
+
 
 ### Changed
 
@@ -56,7 +57,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: Warnings such as 'Twisty disabled since the display level is not 3 or above' are no longer printed twice.
 - Fixed: The installed package no longer carries stray files picked up from the development machine -- a Windows thumbnail cache and two leftover run-state files.  Nothing ever read them, but they shipped with every release.
 - Fixed: The MIT licence is now included in the source distribution, which had until now been built without it.
-- Fixed:
 
 ### Known Issues
 

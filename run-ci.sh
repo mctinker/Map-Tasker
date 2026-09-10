@@ -32,6 +32,11 @@ done
 
 cd "$(dirname "$0")" || exit 1
 
+# uv's default network timeout is 30s, which a slow connection can exceed when
+# the build gate fetches hatchling for its isolated build environment. Allow
+# more time, but let a value already set in the environment win.
+export UV_HTTP_TIMEOUT="${UV_HTTP_TIMEOUT:-120}"
+
 # Colour only when writing to a terminal, so piping to a file stays readable.
 if [ -t 1 ]; then
     BOLD=$(tput bold) RED=$(tput setaf 1) GREEN=$(tput setaf 2)

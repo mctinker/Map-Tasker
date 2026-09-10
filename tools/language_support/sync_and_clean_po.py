@@ -108,8 +108,7 @@ def decode(po_literal: str) -> str:
     """Concatenate a (possibly multi-line) .po string literal into its actual value."""
     parts = re.findall(r'"((?:[^"\\]|\\.)*)"', po_literal)
     return (
-        ""
-        .join(parts)
+        "".join(parts)
         .replace("\\n", "\n")
         .replace("\\t", "\t")
         .replace("\\r", "\r")
@@ -121,11 +120,7 @@ def decode(po_literal: str) -> str:
 def encode(text: str) -> str:
     """Render a value back as a single-line .po string literal."""
     escaped = (
-        text.replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\t", "\\t")
-        .replace("\r", "\\r")
+        text.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r")
     )
     return f'"{escaped}"'
 
@@ -235,7 +230,7 @@ def fallback_ai_translate(target_lang: str, text: str) -> str | None:
         elif isinstance(response, dict):
             translated_text = response.get("message", {}).get("content", "").strip()
 
-        print("bingo fallback AI translation:", translated_text)
+        print("      fallback AI translation:", translated_text)
         return translated_text if translated_text else None
 
     except Exception as e:  # noqa: BLE001

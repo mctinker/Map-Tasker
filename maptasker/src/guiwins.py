@@ -3071,7 +3071,10 @@ def build_save_scene_to_android_dialog(
     android_dialog.open()
 
 
-def build_health_check_dialog(on_run: Callable[[list[str]], None]) -> None:
+def build_health_check_dialog(
+    on_run: Callable[[list[str]], None],
+    on_save: Callable[[list[str]], None],
+) -> None:
     """Ask which categories of finding the Health Check should report, then run it.
 
     A panel rather than a settings screen because the answer is a property of the QUESTION
@@ -3085,7 +3088,9 @@ def build_health_check_dialog(on_run: Callable[[list[str]], None]) -> None:
     ["health_check_skip"]).  Storing it that way round is what lets a category added in a
     later release arrive already ticked -- see healthck.CATEGORIES.
 
-    on_run is handed the list to leave out.  The caller does the running and the saving:
+    on_run is handed the list to leave out when Run is pressed.  on_save is handed it the
+    moment Select All or Deselect All is pressed: those replace every choice at once, and
+    should not be lost to a Cancel or an exit.  The caller does the running and the saving:
     this module builds windows and knows nothing about what a health check is.
     """
     skip = set(PrimeItems.program_arguments.get("health_check_skip", []) or [])
@@ -3111,14 +3116,26 @@ def build_health_check_dialog(on_run: Callable[[list[str]], None]) -> None:
                         ui.label(category.tag).classes("font-mono text-xs")
                         ui.label(translate_string(category.what)).classes("text-xs text-gray-500")
 
+        def skipped() -> list[str]:
+            """The categories currently unticked."""
+            return [tag for tag, box in boxes.items() if not box.value]
+
         def run() -> None:
             """Close the panel, then run the check for whatever is still ticked."""
             dialog.close()
-            on_run([tag for tag, box in boxes.items() if not box.value])
+            on_run(skipped())
+
+        def set_all(ticked: bool) -> None:
+            """Tick or untick every category at once, and remember that straight away."""
+            for box in boxes.values():
+                box.value = ticked
+            on_save(skipped())
 
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=dialog.close).props("outline")
-            ui.button(translate_string("Ok"), on_click=run).classes("bg-blue-600")
+            ui.button(translate_string("Select All"), on_click=lambda: set_all(True)).props("outline")
+            ui.button(translate_string("Deselect All"), on_click=lambda: set_all(False)).props("outline")
+            ui.button(translate_string("Run"), on_click=run).classes("bg-blue-600")
 
     dialog.open()
 

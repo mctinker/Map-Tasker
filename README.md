@@ -60,8 +60,7 @@ The Tasker backup or other Tasker exported XML can either be manually uploaded t
 - Ai Analysis option to analyze a specific Project, Profile, Task or Scene using either the server-based ChatGPT/Claude/DeepSeek/Gemini or the local-based Llama (via Ollama) supported models.
 - Display results directly within the GUI: (Configuration) Map View, Tree View, and Diagram View.
 - Automatic update detection and optional installation of new versions.
-- Enhanced search capabilities.
-- Structured 'Find' in the Map and Diagram views: ask for every Task performing a given action, every Profile a given trigger fires, or everything that references a given app or Scene, and get back a clickable list of the objects rather than highlighted text.
+- Enhanced search and structured 'Find/Replace'.
 - Add and Edit Projects, Profiles, Tasks, and Scenes (see [Note 6](#6))
 - Analyze the health of the Tasker XML as well as the numerous variables throughout the configuration.
 - Compare an XML file against the loaded XML. 
