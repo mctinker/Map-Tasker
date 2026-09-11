@@ -286,6 +286,19 @@ def test_a_backup_file_loads_and_builds_the_tables() -> None:
     assert PrimeItems.tasker_root_elements["all_tasks"]["1"]["name"] == "T"
 
 
+def test_a_load_records_the_files_highest_task_or_profile_id() -> None:
+    """The floor new ids are kept clear of (taskedit.NEW_OBJECT_ID_HEADROOM) is the file's own
+    highest id across Tasks AND Profiles -- they share one counter on the device."""
+    xml = (
+        '<TaskerData sr="" dvi="1" tv="6.7.6">'
+        '<Profile sr="prof1210"><id>1210</id></Profile>'
+        '<Task sr="task1208"><id>1208</id><nme>T</nme></Task>'
+        "</TaskerData>"
+    )
+    assert _load_file(xml) == 0
+    assert PrimeItems.loaded_highest_object_id == 1210
+
+
 def test_a_file_that_is_not_a_tasker_backup_is_refused() -> None:
     """Well-formed XML that is not a backup -- any other XML file the user picks by
     mistake.  Parsing it as one would build empty tables and show an empty map, which

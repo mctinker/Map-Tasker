@@ -270,6 +270,8 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
         "xml_tree": PrimeItems.xml_tree,
         "xml_root": PrimeItems.xml_root,
         "tasker_root_elements": PrimeItems.tasker_root_elements,
+        # get_the_xml_data sets it from the file it parses -- here, the other file.
+        "loaded_highest_object_id": PrimeItems.loaded_highest_object_id,
         "error_code": PrimeItems.error_code,
         "error_msg": PrimeItems.error_msg,
     }

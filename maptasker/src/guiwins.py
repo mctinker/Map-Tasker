@@ -96,7 +96,7 @@ from maptasker.src.sysconst import (
 
 if TYPE_CHECKING:
     import collections
-    from collections.abc import Callable, Coroutine, Iterator
+    from collections.abc import Callable, Coroutine, Iterator, Sequence
 
     import defusedxml.ElementTree
 
@@ -653,6 +653,34 @@ def _android_device_fields(gui: MyGui) -> dict:
             ),
         ).style("white-space: pre-wrap")
     fields["verify"] = verify
+
+    # "Check IDs" is remembered on the GUI the same way, and for the same reason.  It defaults OFF
+    # for a different one: it is not free -- the device writes out its whole configuration and this
+    # reads it back, which is seconds on every save, plus a helper Task installed the first time.
+    check_ids = (
+        ui.checkbox(
+            translate_string("Check IDs"),
+            value=bool(getattr(gui, "android_check_ids", False)),
+            on_change=lambda event: setattr(gui, "android_check_ids", bool(event.value)),
+        )
+        .props("dense")
+        .classes("mt-1")
+    )
+    with check_ids:
+        ui.tooltip(
+            translate_string(
+                "Has the device make a fresh backup before anything is sent, and compares its IDs with the "
+                "ones being sent.\n\n"
+                "It reports an ID Tasker has already given to a different Project, Profile or Task, and an "
+                "object Tasker has under a different ID.  Tasker can leave an object out of an import when "
+                "its ID is already taken -- and IDs for anything added here come from the loaded backup, "
+                "which the device may have moved past.\n\n"
+                "It takes a few seconds, and installs a small 'MapTasker Backup For ID Check' Task on the "
+                "device the first time.  The backup is read into memory and deleted from the device; it is "
+                "not saved on this computer.",
+            ),
+        ).style("white-space: pre-wrap")
+    fields["check_ids"] = check_ids
     return fields
 
 
@@ -3215,11 +3243,19 @@ def build_overwrite_confirm_dialog(
     on_confirm: Callable[[], None],
     *,
     unknown: bool = False,
+    file_absent: bool = False,
+    tasker_lines: Sequence[str] = (),
 ) -> None:
     """Confirms overwriting something that is already there, before anything is
     written. Backs every Save/Export path that would otherwise clobber a file
     silently -- the local standalone exports and the Save To Android uploads
     (see userintr's save_* handlers).
+
+    tasker_lines is what Tasker itself already has of the objects being sent (see
+    userintr._what_tasker_already_has), shown under the file's own line so a save that both
+    replaces a file and re-sends objects Tasker has asks once rather than twice.
+    file_absent=True is a prompt raised by those lines alone: there is no file to name and
+    nothing here is overwritten, so it says neither and offers Continue, not Overwrite.
 
     what_exists describes the thing in the user's terms (a full path); on_confirm
     performs the write and is called only if they choose "Overwrite". Cancel
@@ -3232,16 +3268,22 @@ def build_overwrite_confirm_dialog(
     silent write: the honest statement is "this might overwrite something", and
     the user is the one who knows whether that matters.
     """
-    title = "Could not check destination" if unknown else "Already exists"
-    body = (
-        f"Could not confirm whether {what_exists} already exists. Saving may overwrite it."
-        if unknown
-        else f"{what_exists} already exists and will be replaced."
-    )
+    if file_absent:
+        title, body = "Already in Tasker", ""
+    else:
+        title = "Could not check destination" if unknown else "Already exists"
+        body = (
+            f"Could not confirm whether {what_exists} already exists. Saving may overwrite it."
+            if unknown
+            else f"{what_exists} already exists and will be replaced."
+        )
 
     with ui.dialog().props("persistent") as confirm_dialog, ui.card().classes("min-w-[400px] max-w-[600px] w-full p-6"):
         ui.label(title).classes("text-lg font-bold text-orange-600")
-        ui.label(body).classes("mt-1 break-all")
+        if body:
+            ui.label(body).classes("mt-1 break-all")
+        for line in tasker_lines:
+            ui.label(line).classes("mt-2 break-words")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
 
@@ -3251,7 +3293,9 @@ def build_overwrite_confirm_dialog(
                 confirm_dialog.close()
                 on_confirm()
 
-            ui.button(translate_string("Overwrite"), on_click=_confirm).classes("bg-orange-600 text-white")
+            ui.button(translate_string("Continue" if file_absent else "Overwrite"), on_click=_confirm).classes(
+                "bg-orange-600 text-white",
+            )
 
     confirm_dialog.open()
 

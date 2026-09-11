@@ -229,6 +229,9 @@ class PrimeItems:
     # describes a configuration that is about to be replaced.
     taskflow_rows: ClassVar[list] = []
     tasker_root_elements: ClassVar[dict] = initial_tasker_root_elements()
+    # The highest Task/Profile id in the file as it was loaded, set by taskerd.get_the_xml_data.
+    # New ids are kept well above it -- see taskedit.NEW_OBJECT_ID_HEADROOM.  0 = nothing loaded.
+    loaded_highest_object_id = 0
     directories: ClassVar[list] = []
     variables: ClassVar[dict] = {}
     current_project = ""
@@ -316,6 +319,7 @@ class PrimeItemsReset:
         PrimeItems.diagram_model = {}
         PrimeItems.taskflow_rows = []
         PrimeItems.tasker_root_elements = initial_tasker_root_elements()
+        PrimeItems.loaded_highest_object_id = 0
         PrimeItems.directories = []
         PrimeItems.xml_tree = None
         PrimeItems.xml_root = None

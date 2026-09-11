@@ -47,7 +47,11 @@ from maptasker.src.guiwins import (
 from maptasker.src.mapfonts import get_monospaced_fonts
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import TIMELINE_FILE
+from maptasker.src import userintr as _userintr
 from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
+
+# Taken before the autouse tasker_has_nothing fixture stubs it, for the tests of the check itself.
+_REAL_WHAT_TASKER_ALREADY_HAS = _userintr._what_tasker_already_has
 
 # ==========================================
 # Fixtures & MOCKING SETUP
@@ -72,6 +76,20 @@ def reset_translation():
         PrimeItems._ = previous
     elif hasattr(PrimeItems, "_"):
         del PrimeItems._
+
+
+@pytest.fixture(autouse=True)
+def tasker_has_nothing(monkeypatch):
+    """Every device write asks Tasker what it already has (userintr._what_tasker_already_has),
+    which is a real request.  Stubbed to 'nothing there' so each test sees only the prompt it is
+    about; the tests of that check replace this with an answer of their own.
+    """
+    from maptasker.src import userintr
+
+    async def nothing(_ip, _port, _render, _consequence, **_options) -> list[str]:
+        return []
+
+    monkeypatch.setattr(userintr, "_what_tasker_already_has", nothing)
 
 
 @pytest.fixture
@@ -1899,6 +1917,225 @@ def test_every_save_to_android_path_warns_about_the_device_prompts() -> None:
         )
     }
     assert warns == handlers, f"no device warning in: {sorted(handlers - warns)}"
+
+
+def test_every_device_write_asks_tasker_what_it_already_has() -> None:
+    """Five Save To Android handlers and _offer_into_tasker, which the three Import Into Tasker
+    buttons share.  Read off the source for the reason the warning test above gives."""
+    import ast
+    import inspect
+
+    from maptasker.src import userintr
+
+    paths = {
+        "save_task_to_android_event",
+        "save_task_to_android_file_event",
+        "save_profile_to_android_event",
+        "save_project_to_android_event",
+        "save_scene_to_android_event",
+        "_offer_into_tasker",
+    }
+    tree = ast.parse(inspect.getsource(userintr))
+    asks = {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.AsyncFunctionDef)
+        and node.name in paths
+        and any(
+            isinstance(call.func, ast.Name)
+            and call.func.id == "_what_tasker_already_has"
+            # ...and passes the "Check IDs" box on, or ticking it would do nothing on that path.
+            and any(keyword.arg == "check_ids" for keyword in call.keywords)
+            for call in ast.walk(node)
+            if isinstance(call, ast.Call)
+        )
+    }
+    assert asks == paths, f"no Tasker check, or no check_ids, in: {sorted(paths - asks)}"
+
+    importers = {"import_profile_into_tasker_event", "import_project_into_tasker_event", "import_scene_into_tasker_event"}
+    passes_box = {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.AsyncFunctionDef)
+        and node.name in importers
+        and any(
+            isinstance(call.func, ast.Attribute)
+            and call.func.attr == "_offer_into_tasker"
+            and any(keyword.arg == "check_ids" for keyword in call.keywords)
+            for call in ast.walk(node)
+            if isinstance(call, ast.Call)
+        )
+    }
+    assert passes_box == importers, f"Check IDs not passed on by: {sorted(importers - passes_box)}"
+
+
+@pytest.mark.asyncio
+async def test_the_check_ids_box_reaches_the_tasker_check(monkeypatch, event_handler, task_dialog_refs):
+    from maptasker.src import userintr
+
+    _patch_task_file_path(monkeypatch)
+    asked: list = []
+
+    async def record(_ip, _port, _render, _consequence, **options) -> list[str]:
+        asked.append(options)
+        return []
+
+    monkeypatch.setattr(userintr, "_what_tasker_already_has", record)
+    _field_refs, android_refs = task_dialog_refs
+    android_refs["check_ids"] = MagicMock(value=True)
+
+    await _save_task_file(event_handler, task_dialog_refs)
+
+    assert asked == [{"check_ids": True}]
+
+
+@pytest.mark.asyncio
+async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypatch, event_handler, task_dialog_refs):
+    """A missing file used to mean no prompt.  Tasker already having the Task is now a reason
+    of its own -- nothing is uploaded until it is answered, and the prompt says it is Tasker,
+    not a file, that has it."""
+    from maptasker.src import userintr
+
+    calls = _patch_task_file_path(monkeypatch, exists=False)
+    lines = ["Tasker already has the Task 'Opener'.", userintr._FILE_WRITE_CONSEQUENCE]
+
+    async def has_it(_ip, _port, _render, consequence, **_options) -> list[str]:
+        calls["consequence"] = consequence
+        return lines
+
+    monkeypatch.setattr(userintr, "_what_tasker_already_has", has_it)
+
+    await _save_task_file(event_handler, task_dialog_refs)
+
+    assert calls["uploaded"] == []
+    assert len(calls["overwrite"]) == 1
+    _what, on_confirm, kwargs = calls["overwrite"][0]
+    assert kwargs == {"unknown": False, "file_absent": True, "tasker_lines": lines}
+    assert calls["consequence"] == userintr._FILE_WRITE_CONSEQUENCE
+
+    on_confirm()  # the user presses Continue
+    assert calls["uploaded"] == ["Opener"]
+
+
+def _inline_tasker_check(monkeypatch, check_for) -> list:
+    """Run _what_tasker_already_has's worker call inline, answering with check_for(sent)."""
+    from maptasker.src import deviceinv, userintr
+
+    notes: list = []
+
+    async def inline(func, *args, **kwargs):
+        return func(*args, **kwargs)
+
+    monkeypatch.setattr(userintr.run, "io_bound", inline)
+    monkeypatch.setattr(userintr.ui, "notify", lambda message, **_kwargs: notes.append(message))
+    monkeypatch.setattr(
+        userintr.deviceinv,
+        "check_tasker_for_existing",
+        lambda _ip, _port, sent: deviceinv.TaskerCheck(sent, *check_for(sent)),
+    )
+    return notes
+
+
+_ONE_TASK = '<TaskerData sr=""><Task sr="task1"><id>1</id><nme>Test1</nme></Task></TaskerData>'
+_ONE_PROJECT = '<TaskerData sr=""><Project sr="proj0"><name>Test</name></Project></TaskerData>'
+
+
+@pytest.mark.asyncio
+async def test_tasker_lines_end_with_what_happens_to_the_objects(monkeypatch):
+    notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
+
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE")
+
+    assert lines == ["Tasker already has the Task 'Test1'.", "CONSEQUENCE"]
+    assert notes == []  # no Project, so no helper Task to warn about
+
+
+@pytest.mark.asyncio
+async def test_a_check_that_could_not_run_prompts_without_a_consequence(monkeypatch):
+    """Nothing is known to be there, so there is nothing to say will happen to it."""
+    _inline_tasker_check(monkeypatch, lambda _sent: ({}, {"Task": "Tasker did not answer."}))
+
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_TASK, "CONSEQUENCE")
+
+    assert lines == ["Could not check which Tasks Tasker already has: Tasker did not answer."]
+
+
+@pytest.mark.asyncio
+async def test_nothing_in_tasker_means_no_lines_and_a_project_check_is_announced(monkeypatch):
+    notes = _inline_tasker_check(monkeypatch, lambda _sent: ({"Project": []}, {}))
+
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", lambda: _ONE_PROJECT, "CONSEQUENCE")
+
+    assert lines == []
+    assert notes and "Projects" in notes[0]
+
+
+@pytest.mark.asyncio
+async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
+    """Names and ids alike come from the fresh backup -- nothing is asked by name as well."""
+    from maptasker.src import deviceinv, userintr
+
+    notes = _inline_tasker_check(monkeypatch, lambda _sent: pytest.fail("asked by name despite a backup"))
+    clash = deviceinv.IdFinding("Task", "Test1plus", "1209", "Task", "Atest1Plus", "1209")
+    monkeypatch.setattr(
+        userintr.deviceinv,
+        "check_against_device_backup",
+        lambda _ip, _port, _xml: (deviceinv.TaskerCheck({"Task": ["Test1"]}, {"Task": ["Test1"]}, {}), [clash], ""),
+    )
+
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
+        "192.168.0.210",
+        "1821",
+        lambda: _ONE_TASK,
+        "CONSEQUENCE",
+        check_ids=True,
+    )
+
+    assert lines == [
+        "Tasker already has the Task 'Test1'.",
+        "CONSEQUENCE",
+        *deviceinv.describe_id_findings([clash]),
+    ]
+    assert notes and "fresh backup" in notes[0]
+
+
+@pytest.mark.asyncio
+async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypatch):
+    """The id answer is lost, and said to be; the name answer is still worth having."""
+    from maptasker.src import userintr
+
+    _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
+    monkeypatch.setattr(
+        userintr.deviceinv,
+        "check_against_device_backup",
+        lambda _ip, _port, _xml: (None, [], "Tasker did not answer."),
+    )
+
+    lines = await _REAL_WHAT_TASKER_ALREADY_HAS(
+        "192.168.0.210",
+        "1821",
+        lambda: _ONE_TASK,
+        "CONSEQUENCE",
+        check_ids=True,
+    )
+
+    assert lines == [
+        "Tasker already has the Task 'Test1'.",
+        "CONSEQUENCE",
+        "Could not check IDs: Tasker did not answer.",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_an_export_that_cannot_be_rendered_is_left_to_the_save_to_report(monkeypatch):
+    asked: list = []
+    _inline_tasker_check(monkeypatch, lambda sent: (asked.append(sent), ({}, {}))[1])
+
+    def deleted() -> str:
+        raise ValueError("Project 'Test' no longer exists in this backup.")
+
+    assert await _REAL_WHAT_TASKER_ALREADY_HAS("192.168.0.210", "1821", deleted, "CONSEQUENCE") == []
+    assert asked == []
 
 
 @pytest.mark.asyncio

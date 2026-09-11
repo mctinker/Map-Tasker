@@ -228,6 +228,20 @@ def get_the_xml_data() -> bool:
     timeline.record(file_to_parse)
 
     build_tasker_tables()
+    # The highest Task/Profile id as the file has it, before this session adds anything -- the
+    # floor taskedit.next_unique_task_or_profile_id keeps new ids clear of (see
+    # NEW_OBJECT_ID_HEADROOM).  Here rather than in build_tasker_tables, which an undo also
+    # runs: the tables it rebuilds then hold this session's own new objects, and re-basing on
+    # those would push the next id up again.
+    PrimeItems.loaded_highest_object_id = max(
+        (
+            int(key)
+            for table_name in ("all_tasks", "all_profiles")
+            for key in PrimeItems.tasker_root_elements[table_name]
+            if key.isdigit()
+        ),
+        default=0,
+    )
     return 0
 
 

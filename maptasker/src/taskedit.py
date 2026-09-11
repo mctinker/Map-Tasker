@@ -204,8 +204,29 @@ def load_task_for_edit_by_id(task_id: str) -> EditableTask | None:
     )
 
 
+# How far above the loaded file's highest Task/Profile id the first id this program hands out
+# lands.  A backup is a snapshot, and the device goes on numbering after it is taken: a Task or
+# Profile made on the phone since then takes the next id up.  Measured on 2026-09-11: a backup
+# whose highest id was 1208, and a device that had since made Profile 1210 -- so 1209, which
+# highest + 1 handed to a new Task, was already spoken for there.  Two imports of the 'Test'
+# Project carried a new Task under 1209 (once as 'Atest1Plus', once as 'Test1plus'); both times
+# the edited 'Test1' that calls it arrived and the new Task did not.
+#
+# Above the file's highest rather than in one of its gaps, because the gaps are what Tasker's
+# own import renumbering fills: the 'Atest1' Profile imported that same day came back as 1144,
+# the lowest id free in the backup.  An id is an identity, not a count, so the jump costs
+# nothing, and 1000 is headroom for a very busy phone.
+NEW_OBJECT_ID_HEADROOM = 1000
+
+
 def next_unique_task_or_profile_id(reserved: set[str] | None = None) -> int:
     """Computes the next id safe to assign to a brand-new Task or Profile.
+
+    Never lower than NEW_OBJECT_ID_HEADROOM above the highest id the file had when it was
+    loaded (PrimeItems.loaded_highest_object_id), so the first new object sits clear of ids
+    the device may have handed out since the backup was taken.  The ones after it follow on
+    one by one, since by then they are the highest in use.  Nothing loaded from a file (0)
+    means no floor.
 
     `reserved` is ids that are spoken for but not in the tables yet -- Tasks composed but
     not created.  The Scene Properties Event tabs can have one in progress under each of
@@ -234,7 +255,9 @@ def next_unique_task_or_profile_id(reserved: set[str] | None = None) -> int:
         if k.isdigit()
     ]
     existing_ids.extend(int(k) for k in (reserved or ()) if str(k).isdigit())
-    return max(existing_ids, default=0) + 1
+    loaded_highest = PrimeItems.loaded_highest_object_id
+    floor = loaded_highest + NEW_OBJECT_ID_HEADROOM + 1 if loaded_highest else 0
+    return max(max(existing_ids, default=0) + 1, floor)
 
 
 def create_new_task(name: str, priority: str, reserved_ids: set[str] | None = None) -> EditableTask | str:

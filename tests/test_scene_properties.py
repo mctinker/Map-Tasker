@@ -1620,7 +1620,10 @@ def test_creating_two_tasks_from_two_sub_tabs_keeps_them_apart(unbound_event):
 def test_a_reserved_id_is_never_handed_out_again():
     """The unit behind it: next_unique_task_or_profile_id treats a reserved id as taken."""
     saved = dict(PrimeItems.tasker_root_elements)
+    saved_highest = PrimeItems.loaded_highest_object_id
     try:
+        # No file loaded, so no headroom floor -- that has its own test below.
+        PrimeItems.loaded_highest_object_id = 0
         PrimeItems.tasker_root_elements["all_tasks"] = {"10": {}, "11": {}}
         PrimeItems.tasker_root_elements["all_profiles"] = {}
         assert taskedit.next_unique_task_or_profile_id() == 12
@@ -1629,6 +1632,28 @@ def test_a_reserved_id_is_never_handed_out_again():
         # Junk in the reserved set is ignored rather than raising.
         assert taskedit.next_unique_task_or_profile_id({"not-a-number"}) == 12
     finally:
+        PrimeItems.loaded_highest_object_id = saved_highest
+        PrimeItems.tasker_root_elements.clear()
+        PrimeItems.tasker_root_elements.update(saved)
+
+
+def test_new_ids_start_clear_of_the_loaded_files_highest():
+    """A backup is a snapshot and the device keeps numbering after it, so the first new id
+    sits NEW_OBJECT_ID_HEADROOM above the file's own highest -- and the ones after it follow
+    on one by one rather than each jumping again."""
+    saved = dict(PrimeItems.tasker_root_elements)
+    saved_highest = PrimeItems.loaded_highest_object_id
+    try:
+        PrimeItems.tasker_root_elements["all_tasks"] = {"1206": {}, "1208": {}}
+        PrimeItems.tasker_root_elements["all_profiles"] = {"1207": {}}
+        PrimeItems.loaded_highest_object_id = 1208
+        first = taskedit.next_unique_task_or_profile_id()
+        assert first == 1208 + taskedit.NEW_OBJECT_ID_HEADROOM + 1
+        PrimeItems.tasker_root_elements["all_tasks"][str(first)] = {}
+        assert taskedit.next_unique_task_or_profile_id() == first + 1
+        assert taskedit.next_unique_task_or_profile_id({str(first + 1)}) == first + 2
+    finally:
+        PrimeItems.loaded_highest_object_id = saved_highest
         PrimeItems.tasker_root_elements.clear()
         PrimeItems.tasker_root_elements.update(saved)
 

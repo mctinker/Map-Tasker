@@ -1848,6 +1848,85 @@ def _notify_if_plugin_needs_configuration(element: object, name: str) -> None:
         ui.notify(warning, type="warning", multi_line=True, timeout=8000)
 
 
+# What a prompt says after naming what Tasker already has, by how the objects would get there.
+_API_IMPORT_CONSEQUENCE = "Tasker's import adds another Task of the same name beside it rather than replacing it."
+_FILE_WRITE_CONSEQUENCE = "This only writes the file -- nothing in Tasker changes until it is imported."
+_IMPORT_SCREEN_CONSEQUENCE = "Tasker's import screen will ask whether to replace them."
+
+
+async def _what_tasker_already_has(
+    ip_address: str,
+    ip_port: str,
+    render_xml: Callable[[], str | bytes],
+    consequence: str,
+    *,
+    check_ids: bool = False,
+) -> list[str]:
+    """The lines a save's prompt adds for what Tasker already has -- [] when there is nothing to say.
+
+    Called by all six device write paths (the five Save To Android handlers and
+    _offer_into_tasker, which the three Import Into Tasker buttons share), right after their
+    file-existence read, so one prompt answers every question.  The names come from the very
+    document being sent -- see deviceinv.names_in_export -- rendered once more for the purpose;
+    a render that raises leaves the save to report it.
+
+    `consequence` is added only when something IS there, because it describes what happens to
+    those objects; a check that merely could not run has nothing to say about them.
+
+    check_ids is the panel's "Check IDs" box.  Ticked, the device makes a fresh backup and both
+    questions are answered from it (deviceinv.check_against_device_backup) -- names included, so
+    Projects need no helper of their own.  A backup that cannot be had is said so, and the names
+    are then asked for the ordinary way, since that answer is still worth having.
+    """
+    try:
+        xml = render_xml()
+    except ValueError:
+        return []
+    sent = deviceinv.names_in_export(xml)
+    if not any(sent.values()):
+        return []
+
+    check = None
+    id_lines: list[str] = []
+    if check_ids:
+        ui.notify("Taking a fresh backup on the device to check IDs -- this can take a little while.", type="info")
+        check, findings, problem = await run.io_bound(deviceinv.check_against_device_backup, ip_address, ip_port, xml)
+        id_lines = [f"Could not check IDs: {problem}"] if problem else deviceinv.describe_id_findings(findings)
+
+    if check is None:
+        if sent.get("Project"):
+            # Seconds rather than one request, and a MapTasker Task put on the phone the first time
+            # -- worth saying before it happens rather than leaving the button looking stuck.
+            ui.notify(
+                "Checking which Projects, Profiles, Scenes and Tasks Tasker already has -- "
+                "a small MapTasker Task runs on the device for this.",
+                type="info",
+            )
+        check = await run.io_bound(deviceinv.check_tasker_for_existing, ip_address, ip_port, sent)
+
+    name_lines = deviceinv.describe_tasker_check(check)
+    if any(check.present.values()):
+        name_lines.append(consequence)
+    return [*name_lines, *id_lines]
+
+
+def _check_ids_ticked(android_field_refs: dict) -> bool:
+    """The Save To Android panel's "Check IDs" box -- see guiwins._android_device_fields."""
+    checkbox = android_field_refs.get("check_ids")
+    return bool(checkbox is not None and checkbox.value)
+
+
+def _overwrite_prompt_options(exists: bool | None, tasker_lines: list[str]) -> dict:
+    """build_overwrite_confirm_dialog's keyword arguments for a device write: the file's own
+    answer, plus Tasker's lines only when there are some -- a prompt with none is the file
+    prompt exactly as it always was.
+    """
+    options: dict = {"unknown": exists is None}
+    if tasker_lines:
+        options.update(file_absent=exists is False, tasker_lines=tasker_lines)
+    return options
+
+
 def _round_trip_verified(
     android_field_refs: dict,
     verifier: Callable[[], roundtrip.RoundTripReport],
@@ -4189,11 +4268,18 @@ class MapTaskerEventHandlers:
         # why the content comes back with the answer.
         device_path = taskedit.android_task_path(task_name)
         exists, already_there = read_android_file(ip_address, ip_port, device_path)
-        if exists is not False:
+        tasker_lines = await _what_tasker_already_has(
+            ip_address,
+            ip_port,
+            lambda: taskedit.render_standalone_task_xml(edited_task),
+            _API_IMPORT_CONSEQUENCE,
+            check_ids=_check_ids_ticked(android_field_refs),
+        )
+        if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
                 f"'{device_path}' on the Android device",
                 _import,
-                unknown=exists is None,
+                **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
         _import()
@@ -4343,11 +4429,18 @@ class MapTaskerEventHandlers:
         # well as here.  /upload clobbers silently, which is why this is asked at all.
         device_path = taskedit.android_task_path(task_name)
         exists, already_there = read_android_file(ip_address, ip_port, device_path)
-        if exists is not False:
+        tasker_lines = await _what_tasker_already_has(
+            ip_address,
+            ip_port,
+            lambda: taskedit.render_standalone_task_xml(edited_task),
+            _FILE_WRITE_CONSEQUENCE,
+            check_ids=_check_ids_ticked(android_field_refs),
+        )
+        if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
                 f"'{device_path}' on the Android device",
                 _upload,
-                unknown=exists is None,
+                **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
         _upload()
@@ -5194,11 +5287,18 @@ class MapTaskerEventHandlers:
         # risking a silent clobber.
         device_path = sceneedit.android_scene_path(edited_scene.scene_name)
         exists, already_there = read_android_file(ip_address, ip_port, device_path)
-        if exists is not False:
+        tasker_lines = await _what_tasker_already_has(
+            ip_address,
+            ip_port,
+            lambda: sceneedit.render_standalone_scene_xml(edited_scene.scene_name),
+            _FILE_WRITE_CONSEQUENCE,
+            check_ids=_check_ids_ticked(android_field_refs),
+        )
+        if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
                 f"'{device_path}' on the Android device",
                 _upload,
-                unknown=exists is None,
+                **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
         _upload()
@@ -5768,11 +5868,18 @@ class MapTaskerEventHandlers:
         # and one read answers both of the questions the write needs answered.
         device_path = profedit.android_profile_path(profile_name)
         exists, already_there = read_android_file(ip_address, ip_port, device_path)
-        if exists is not False:
+        tasker_lines = await _what_tasker_already_has(
+            ip_address,
+            ip_port,
+            lambda: profedit.render_standalone_profile_xml(edited_profile),
+            _FILE_WRITE_CONSEQUENCE,
+            check_ids=_check_ids_ticked(android_field_refs),
+        )
+        if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
                 f"'{device_path}' on the Android device",
                 _upload,
-                unknown=exists is None,
+                **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
         _upload()
@@ -5967,6 +6074,7 @@ class MapTaskerEventHandlers:
             android_dialog,
             parent_dialog,
             lambda: self._keep_profile_in_loaded_config(edited_profile, profile_name, is_new_profile, project_name),
+            check_ids=_check_ids_ticked(android_field_refs),
         )
 
     async def _offer_into_tasker(
@@ -5982,9 +6090,12 @@ class MapTaskerEventHandlers:
         keep_edit: Callable[[], None],
         by_hand: str = "",
         attempts: int = 0,
+        check_ids: bool = False,
     ) -> None:
         """Offer a Profile, a Project or a Scene to Android's "Open with..." chooser, and
         report what happened.
+
+        check_ids is the panel's "Check IDs" box, passed on to _what_tasker_already_has.
 
         by_hand is what the user does if Tasker is not in that chooser, in their own terms
         ("import it with Tasker's 'Scenes > Import One Scene'").  Every kind has such a step
@@ -6186,7 +6297,14 @@ class MapTaskerEventHandlers:
             with client:
                 await _offer()
 
-        if exists is not False:
+        tasker_lines = await _what_tasker_already_has(
+            ip_address,
+            ip_port,
+            lambda: xml_bytes,
+            _IMPORT_SCREEN_CONSEQUENCE,
+            check_ids=check_ids,
+        )
+        if exists is not False or tasker_lines:
             # Cancel leaves both dialogs open with the edit intact, so nothing is lost by
             # saying no -- the same contract every other overwrite prompt here has.
             # create_task because the prompt's callback is synchronous and the offer is not;
@@ -6208,7 +6326,7 @@ class MapTaskerEventHandlers:
             build_overwrite_confirm_dialog(
                 f"'{device_read_path}' on the Android device",
                 _start_offer,
-                unknown=exists is None,
+                **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
         # Awaited in the handler's own task, which already has a slot -- see
@@ -6309,6 +6427,7 @@ class MapTaskerEventHandlers:
             lambda: None,  # the edits are already in the live tree -- see the apply above
             by_hand=(f"import it with Tasker's 'Scenes > Import One Scene' and pick '{edited_scene.scene_name}'"),
             attempts=deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS,
+            check_ids=_check_ids_ticked(android_field_refs),
         )
 
     async def import_project_into_tasker_event(
@@ -6373,6 +6492,7 @@ class MapTaskerEventHandlers:
             android_dialog,
             parent_dialog,
             lambda: None,
+            check_ids=_check_ids_ticked(android_field_refs),
         )
 
     def open_save_project_to_android_dialog_event(
@@ -6467,11 +6587,18 @@ class MapTaskerEventHandlers:
         # risking a silent clobber.
         device_path = projedit.android_project_path(edited_project.project_name)
         exists, already_there = read_android_file(ip_address, ip_port, device_path)
-        if exists is not False:
+        tasker_lines = await _what_tasker_already_has(
+            ip_address,
+            ip_port,
+            lambda: projedit.render_standalone_project_xml(edited_project.project_name),
+            _FILE_WRITE_CONSEQUENCE,
+            check_ids=_check_ids_ticked(android_field_refs),
+        )
+        if exists is not False or tasker_lines:
             build_overwrite_confirm_dialog(
                 f"'{device_path}' on the Android device",
                 _upload,
-                unknown=exists is None,
+                **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
         _upload()

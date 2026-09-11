@@ -28,7 +28,7 @@ import time
 import xml.etree.ElementTree as ET
 
 import pytest
-from urllib.parse import unquote
+from urllib.parse import parse_qs, unquote, urlparse
 
 from maptasker.src import deviceinv, taskedit, taskerd
 from maptasker.src.primitem import PrimeItems
@@ -2925,3 +2925,397 @@ def test_no_address_is_refused_before_the_device_is_touched() -> None:
     assert return_code != 0
     assert "IP address and port" in message
     assert (stale, current) == ([], [])
+
+
+# ##################################################################################
+# What Tasker already has, of what is about to be sent
+#
+# Names read off the export, the Project-listing helper Task and its payload, and the check
+# that asks one question per kind.  What no test here can settle is what 'Test Tasker' really
+# stores for its Projects type -- which is why the payload carries both spellings and why an
+# answer with neither expanded is refused rather than read as 'no Projects'.
+# ##################################################################################
+_EXPORT = """<TaskerData sr="" dvi="1" tv="6.7.6">
+<Profile sr="prof1"><id>1</id><nme>Morning</nme></Profile>
+<Profile sr="prof2"><id>2</id></Profile>
+<Project sr="proj0"><name>Test</name></Project>
+<Scene sr=""><nme>Panel</nme></Scene>
+<Task sr="task3"><id>3</id><nme>Test1</nme></Task>
+<Task sr="task4"><id>4</id><nme>Test1plus</nme></Task>
+<Task sr="task5"><id>5</id></Task>
+</TaskerData>"""
+
+
+def _objects_payload(
+    projects: str = "Base|~|Test",
+    profiles: str = "Morning",
+    scenes: str = "%mtscenes",  # unset: this device has no Scenes
+    tasks: str = "Test1",
+) -> str:
+    return (
+        f"MAPTASKER-OBJECTS 1\nPROJECTS\n{projects}\nPROFILES\n{profiles}\nSCENES\n{scenes}\nTASKS\n{tasks}\n"
+        "MAPTASKER-END\n"
+    )
+
+
+def test_an_exports_named_objects_are_read_by_kind() -> None:
+    """Unnamed Profiles and Tasks have nothing Tasker could be asked about, so they are left out."""
+    assert deviceinv.names_in_export(_EXPORT.encode()) == {
+        "Project": ["Test"],
+        "Profile": ["Morning"],
+        "Task": ["Test1", "Test1plus"],
+        "Scene": ["Panel"],
+    }
+
+
+def test_a_document_that_does_not_parse_has_nothing_to_ask_about() -> None:
+    assert not any(deviceinv.names_in_export("<TaskerData>").values())
+
+
+def test_an_object_list_reads_back_every_kind_with_whole_names() -> None:
+    """Joined on the device with |~| rather than Tasker's comma form, so a comma is just a character.
+    A kind whose array was never set -- no Scenes here -- is simply empty."""
+    payload = _objects_payload(projects="Base|~|Work, Home|~|Test", profiles="Morning|~|Night")
+
+    assert deviceinv.parse_object_list_payload(payload) == (
+        {"Project": ["Base", "Work, Home", "Test"], "Profile": ["Morning", "Night"], "Scene": [], "Task": ["Test1"]},
+        "",
+    )
+
+
+def test_a_project_named_like_a_heading_is_not_taken_for_one() -> None:
+    names, error = deviceinv.parse_object_list_payload(_objects_payload(projects="SCENES"))
+
+    assert error == ""
+    assert names["Project"] == ["SCENES"]
+    assert names["Scene"] == []
+
+
+@pytest.mark.parametrize(
+    ("payload", "expected"),
+    [
+        (_objects_payload(projects="%mtprojects"), "did not report any Projects"),
+        (_objects_payload(tasks="%mttasks"), "did not report any Tasks"),
+        ("MAPTASKER-FILES 1\nMAPTASKER-END\n", "not a MapTasker object list"),
+        ("MAPTASKER-OBJECTS 1\nPROJECTS\nBase\n", "incomplete"),
+        ("MAPTASKER-OBJECTS 1\nPROJECTS\nBase\nMAPTASKER-END\n", "no Profiles section"),
+    ],
+)
+def test_an_object_list_that_cannot_be_trusted_is_refused(payload: str, expected: str) -> None:
+    """No Projects or no Tasks is refused, not read as 'none': every device has a Project, and this
+    helper is itself a Task -- an empty list would make every one being saved look new."""
+    names, error = deviceinv.parse_object_list_payload(payload)
+    assert names == {}
+    assert expected in error
+
+
+def test_the_object_list_helper_is_current_and_the_project_helper_it_replaced_is_not() -> None:
+    """A helper missing from the current set is one the stale-helper report tells the user to delete."""
+    current, stale = deviceinv.classify_helper_tasks([deviceinv.OBJECT_LIST_TASK_NAME, "MapTasker List Projects v2"])
+
+    assert current == [deviceinv.OBJECT_LIST_TASK_NAME]
+    assert stale == ["MapTasker List Projects v2"]
+
+
+class _FakeTasker:
+    """maputil2's `requests` for a device with some objects on it and no helper Tasks yet."""
+
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, str]] = []
+        self.tasks = ["Test1"]
+        self.profiles = ["Morning"]
+        self.scenes: list[str] = []
+        self.failing: set[str] = set()  # endpoints that answer 500
+        self.objects_payload = _objects_payload()
+        self.installed: set[str] = set()
+        self.imported_xml = ""
+        self.backup_result: str | None = "MAPTASKER-BACKUP 1\nMAPTASKER-END\n"
+        self.backup = _DEVICE_BACKUP
+
+    def get(self, url: str, **_kwargs: object) -> _FakeResponse:
+        self.calls.append(("GET", url))
+        asked = parse_qs(urlparse(url).query).get("name", [])
+        if "/api/auth" in url:
+            return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
+        if "/api/tasks" in url:
+            if asked:  # a helper's is-it-installed check
+                listed = [name for name in asked if name in self.installed]
+            else:  # the whole Task list
+                listed = self.tasks
+            return _FakeResponse(200, json.dumps([{"name": name, "running": False} for name in listed]).encode())
+        for endpoint, have in (("/api/profiles", self.profiles), ("/api/scenes", self.scenes)):
+            if endpoint in url:
+                if endpoint in self.failing:
+                    return _FakeResponse(500)
+                return _FakeResponse(200, json.dumps([{"name": name} for name in asked if name in have]).encode())
+        if "maptasker_objects.txt" in url:
+            return _FakeResponse(200, self.objects_payload.encode())
+        if "maptasker_idcheck.txt" in url:
+            return _FakeResponse(404) if self.backup_result is None else _FakeResponse(200, self.backup_result.encode())
+        if "maptasker_idcheck.xml" in url:
+            return _FakeResponse(200, self.backup.encode())
+        return _FakeResponse(404)
+
+    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+        self.calls.append(("POST", url))
+        if "/api/import" in url:
+            self.imported_xml = kwargs.get("data", b"").decode()
+            self.installed.add(ET.fromstring(self.imported_xml).findtext(".//nme"))  # noqa: S314
+        return _FakeResponse(200, b"{}")
+
+    def delete(self, url: str, **_kwargs: object) -> _FakeResponse:
+        self.calls.append(("DELETE", url))
+        return _FakeResponse(404)
+
+
+@pytest.fixture
+def tasker_device(monkeypatch: pytest.MonkeyPatch) -> _FakeTasker:
+    """A stand-in device, with a loaded configuration for the helper Task's id."""
+    from maptasker.src import maputil2
+
+    fake = _FakeTasker()
+    monkeypatch.setattr(maputil2, "requests", fake)
+    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
+    deviceinv._auth_keys.clear()  # noqa: SLF001
+    _load(_FIXTURE_XML)
+    return fake
+
+
+def test_with_a_project_one_helper_run_answers_every_kind(tasker_device: _FakeTasker) -> None:
+    """The case this exists for: an edited Project going back with one new Task in it.  The helper
+    has to run for the Project, so its answer serves the Profiles, Scenes and Tasks too -- no
+    endpoint is asked as well."""
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export(_EXPORT))
+
+    assert check.unchecked == {}
+    assert check.present == {"Project": ["Test"], "Profile": ["Morning"], "Task": ["Test1"], "Scene": []}
+    assert check.needs_prompt
+    gets = [urlparse(url) for verb, url in tasker_device.calls if verb == "GET"]
+    assert not any(url.path in ("/api/profiles", "/api/scenes") for url in gets)
+    # The whole Task list -- not the helper's is-it-installed check, which carries ?name=.
+    assert not any(url.path == "/api/tasks" and not url.query for url in gets)
+
+
+def test_without_a_project_the_endpoints_answer_and_nothing_is_run(tasker_device: _FakeTasker) -> None:
+    """The same arrays, one request each -- a Task, Profile or Scene save does not wait on a Task run."""
+    sent = {"Project": [], "Profile": ["Morning", "Night"], "Scene": ["Panel"], "Task": ["Test1", "Test1plus"]}
+
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", sent)
+
+    assert check.unchecked == {}
+    assert check.present == {"Profile": ["Morning"], "Scene": [], "Task": ["Test1"]}
+    assert not any(verb == "POST" for verb, _url in tasker_device.calls)
+
+
+def test_the_object_list_helper_asks_test_tasker_for_every_kind(tasker_device: _FakeTasker) -> None:
+    """What actually goes to the device: per kind, 'Test Tasker' of that Type (Projects 11, Profiles
+    5, Scenes 6, Tasks 7) into an array, and 'Variable Join' making it one |~|-joined line -- all
+    before anything is written -- then the payload, terminator last."""
+    deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Project": ["Test"]})
+
+    imported = ET.fromstring(tasker_device.imported_xml)  # noqa: S314  (built by this program)
+    assert imported.findtext(".//nme") == deviceinv.OBJECT_LIST_TASK_NAME
+    actions = sorted(imported.findall(".//Action"), key=lambda action: int(action.get("sr")[3:]))
+    assert [action.findtext("code") for action in actions] == ["347", "592"] * 4 + ["410"] * 10
+    expected = [("11", "%mtprojects"), ("5", "%mtprofiles"), ("6", "%mtscenes"), ("7", "%mttasks")]
+    for index, (type_index, variable) in enumerate(expected):
+        test_tasker, join = actions[2 * index], actions[2 * index + 1]
+        assert test_tasker.find("Int[@sr='arg0']").get("val") == type_index
+        assert test_tasker.findtext("Str[@sr='arg2']") == variable
+        assert join.findtext("Str[@sr='arg0']") == variable
+        assert join.findtext("Str[@sr='arg1']") == "|~|"
+    assert [action.findtext("Str[@sr='arg1']") for action in actions[8:]] == [
+        "MAPTASKER-OBJECTS 1",
+        "PROJECTS",
+        "%mtprojects",
+        "PROFILES",
+        "%mtprofiles",
+        "SCENES",
+        "%mtscenes",
+        "TASKS",
+        "%mttasks",
+        "MAPTASKER-END",
+    ]
+
+
+def test_a_helper_answer_that_cannot_be_read_leaves_every_kind_unchecked(tasker_device: _FakeTasker) -> None:
+    """Unchecked, never 'not there' -- the opposite conclusion.  One run was the only question, so one
+    unreadable answer covers every kind it was asked for."""
+    tasker_device.objects_payload = _objects_payload(projects="%mtprojects")
+
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export(_EXPORT))
+
+    assert set(check.unchecked) == {"Project", "Profile", "Task", "Scene"}
+    assert "did not report any Projects" in check.unchecked["Project"]
+    assert check.present == {}
+
+
+def test_an_endpoint_that_cannot_answer_does_not_stop_the_others(tasker_device: _FakeTasker) -> None:
+    tasker_device.failing.add("/api/profiles")
+
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Profile": ["Morning"], "Task": ["Test1"]})
+
+    assert "Profile" in check.unchecked
+    assert "Profile" not in check.present
+    assert check.present["Task"] == ["Test1"]
+
+
+def test_nothing_named_asks_the_device_nothing(tasker_device: _FakeTasker) -> None:
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", deviceinv.names_in_export("<TaskerData/>"))
+
+    assert not check.needs_prompt
+    assert tasker_device.calls == []
+
+
+def test_the_prompt_lines_say_what_is_there_and_what_is_new() -> None:
+    check = deviceinv.TaskerCheck(
+        sent={"Project": ["Test"], "Profile": ["Morning"], "Task": [f"T{i}" for i in range(12)]},
+        present={"Project": ["Test"], "Profile": [], "Task": [f"T{i}" for i in range(10)]},
+        unchecked={"Scene": "Tasker did not answer."},
+    )
+
+    lines = deviceinv.describe_tasker_check(check)
+
+    assert lines[0] == "Tasker already has the Project 'Test'."
+    assert lines[1].startswith("Tasker already has 10 of the 12 Tasks: 'T0', 'T1',")
+    assert "and 2 more." in lines[1]  # only eight names spelled out
+    assert lines[1].endswith("Not in Tasker yet: 'T10', 'T11'.")
+    assert lines[2] == "Could not check which Scenes Tasker already has: Tasker did not answer."
+    assert len(lines) == 3  # a kind with nothing there says nothing
+
+
+# ##################################################################################
+# IDs -- a fresh backup from the device, compared with what is being sent
+#
+# The backup below is shaped on the device seen on 2026-09-11: Profile 'Atest1' renumbered to
+# 1144 on import, Profile 'Finger' made at 1210 after the loaded backup, the Project renamed
+# 'Test1' there, and (supposed) a Task already holding 1209.
+# ##################################################################################
+_DEVICE_BACKUP = """<TaskerData sr="" dvi="1" tv="6.7.6">
+<Profile sr="prof1144"><id>1144</id><nme>Atest1</nme></Profile>
+<Profile sr="prof1210"><id>1210</id><nme>Finger</nme></Profile>
+<Project sr="proj0"><id>uuid-320495f5</id><name>Test1</name></Project>
+<Scene sr=""><nme>Panel</nme></Scene>
+<Task sr="task179"><id>179</id><nme>Test1</nme></Task>
+<Task sr="task1209"><id>1209</id><nme>Atest1Plus</nme></Task>
+<Task sr="task86"><id>86</id></Task>
+</TaskerData>"""
+
+_SENT_FOR_IDS = """<TaskerData sr="" dvi="1" tv="6.7.6">
+<Profile sr="prof1163"><id>1163</id><nme>Atest1</nme></Profile>
+<Project sr="proj0"><id>uuid-320495f5</id><name>Test</name></Project>
+<Task sr="task179"><id>179</id><nme>Test1</nme></Task>
+<Task sr="task1209"><id>1209</id><nme>Test1plus</nme></Task>
+<Task sr="task1210"><id>1210</id><nme>Brand New</nme></Task>
+<Task sr="task86"><id>86</id></Task>
+<Task sr="task2209"><id>2209</id><nme>Fresh</nme></Task>
+</TaskerData>"""
+
+
+def _id_findings() -> list[deviceinv.IdFinding]:
+    sent = deviceinv._parse_tasker_xml(_SENT_FOR_IDS)  # noqa: SLF001
+    device = deviceinv._parse_tasker_xml(_DEVICE_BACKUP)  # noqa: SLF001
+    return deviceinv.compare_ids(sent, device)
+
+
+def test_ids_that_disagree_with_the_device_are_found_in_export_order() -> None:
+    """Test1 (same id, same name) is the same object; the unnamed Task 86 on both sides is taken
+    to be; 'Fresh' has an id and a name nobody else has.  Everything else disagrees -- including a
+    Task sent under an id the device's Profile holds, since the two share one counter."""
+    findings = _id_findings()
+
+    assert [(f.kind, f.name, f.object_id, f.device_kind, f.device_name, f.device_id) for f in findings] == [
+        ("Profile", "Atest1", "1163", "Profile", "Atest1", "1144"),
+        ("Project", "Test", "uuid-320495f5", "Project", "Test1", "uuid-320495f5"),
+        ("Task", "Test1plus", "1209", "Task", "Atest1Plus", "1209"),
+        ("Task", "Brand New", "1210", "Profile", "Finger", "1210"),
+    ]
+    assert [finding.is_clash for finding in findings] == [False, True, True, True]
+
+
+def test_the_id_lines_put_clashes_first_and_say_what_each_group_risks() -> None:
+    lines = deviceinv.describe_id_findings(_id_findings())
+
+    assert lines[:3] == [
+        "ID uuid-320495f5 of the Project 'Test' being sent already belongs to the device's Project 'Test1'.",
+        "ID 1209 of the Task 'Test1plus' being sent already belongs to the device's Task 'Atest1Plus'.",
+        "ID 1210 of the Task 'Brand New' being sent already belongs to the device's Profile 'Finger'.",
+    ]
+    assert lines[3].startswith("Tasker may leave out or overwrite")
+    assert lines[4] == "The device has the Profile 'Atest1' under ID 1144; the one being sent has ID 1163."
+    assert lines[5].startswith("Tasker may not treat")
+    assert len(lines) == 6
+    assert deviceinv.describe_id_findings([]) == []
+
+
+def test_a_long_list_of_clashes_is_counted_rather_than_listed() -> None:
+    findings = [deviceinv.IdFinding("Task", f"T{i}", str(i), "Task", f"D{i}", str(i)) for i in range(11)]
+
+    lines = deviceinv.describe_id_findings(findings)
+
+    assert len(lines) == 10  # eight spelled out, the count, the risk
+    assert lines[8] == "...and 3 more ID clashes."
+
+
+def test_the_backup_exchange_runs_in_order_and_leaves_no_backup_behind(tasker_device: _FakeTasker) -> None:
+    """The stale answer goes before the run, the download comes after the answer, and the
+    backup -- the user's whole configuration -- is deleted from the device once read."""
+    return_code, message, content = deviceinv.fetch_device_backup("192.168.0.210", "1821")
+
+    assert return_code == 0, message
+    assert content.decode() == _DEVICE_BACKUP
+    calls = [(verb, url.split("1821", 1)[1]) for verb, url in tasker_device.calls]
+    clear_answer = calls.index(("DELETE", "/api/file/Tasker/maptasker_idcheck.txt"))
+    run_task = calls.index(("POST", "/api/tasks"))
+    download = next(i for i, (verb, path) in enumerate(calls) if verb == "GET" and "maptasker_idcheck.xml" in path)
+    delete_backup = calls.index(("DELETE", "/api/file/Tasker/maptasker_idcheck.xml"))
+    assert clear_answer < run_task < download < delete_backup
+
+
+def test_the_backup_task_backs_up_without_user_variables(tasker_device: _FakeTasker) -> None:
+    """'Data Backup' to MapTasker's own file, relative to the storage root as Tasker's own Backup
+    Task does it, variables and preferences left out; then the header and terminator."""
+    deviceinv.fetch_device_backup("192.168.0.210", "1821")
+
+    imported = ET.fromstring(tasker_device.imported_xml)  # noqa: S314  (built by this program)
+    backup = imported.find(".//Action[code='322']")
+    assert backup is not None
+    assert backup.findtext("Str[@sr='arg0']") == "Tasker/maptasker_idcheck.xml"
+    assert backup.find("Int[@sr='arg2']").get("val") == "0"
+    writes = imported.findall(".//Action[code='410']")
+    assert [write.findtext("Str[@sr='arg1']") for write in writes] == ["MAPTASKER-BACKUP 1", "MAPTASKER-END"]
+
+
+def test_a_backup_that_never_finishes_is_not_read(tasker_device: _FakeTasker) -> None:
+    """No terminator means 'Data Backup' failed or is still going -- and a file at the backup path
+    then would be an old one."""
+    tasker_device.backup_result = None
+
+    return_code, _message, content = deviceinv.fetch_device_backup("192.168.0.210", "1821")
+
+    assert return_code != 0
+    assert content == b""
+    assert not any(verb == "GET" and "maptasker_idcheck.xml" in url for verb, url in tasker_device.calls)
+
+
+def test_one_backup_answers_names_and_ids_without_the_project_helper(tasker_device: _FakeTasker) -> None:
+    check, findings, problem = deviceinv.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS)
+
+    assert problem == ""
+    assert check is not None
+    assert check.present == {"Project": [], "Profile": ["Atest1"], "Task": ["Test1"]}
+    assert len(findings) == 4
+    assert deviceinv.OBJECT_LIST_TASK_NAME not in tasker_device.installed
+
+
+def test_a_backup_that_is_not_a_configuration_is_refused(tasker_device: _FakeTasker) -> None:
+    tasker_device.backup = "<html><body>Not found</body></html>"
+
+    check, findings, problem = deviceinv.check_against_device_backup("192.168.0.210", "1821", _SENT_FOR_IDS)
+
+    assert (check, findings) == (None, [])
+    assert "could not be read" in problem
+
+
+def test_the_id_check_helper_is_not_reported_as_a_leftover() -> None:
+    assert deviceinv.ID_CHECK_TASK_NAME in deviceinv.current_helper_task_names()
