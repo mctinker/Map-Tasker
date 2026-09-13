@@ -45,6 +45,20 @@ line = "─"
 arrow = f"├{line * 3}▶"
 
 
+def bare_task_name(name: str) -> str:
+    """
+    Strip the indent and Entry/Exit decoration get_profile_tasks adds to a Profile's Task name.
+        Args:
+            name (str): The Task name as listed under a Profile, e.g. "Test1&nbsp;&nbsp;⬅ Entry Task".
+        Returns:
+            str: The Task's own name, e.g. "Test1".
+    """
+    name = name.split(blank, 1)[0]
+    for arrow_code in ("&#11013;", "&#11157;"):  # Entry and Exit arrows, when there is no indent.
+        name = name.split(arrow_code, 1)[0]
+    return name
+
+
 # Update Task with calls and called_by details
 def update_caller_and_called_tasks(
     task: defusedxml.ElementTree,
@@ -125,10 +139,6 @@ def do_task_actions(
     """
     _update_caller_and_called_tasks = update_caller_and_called_tasks
 
-    # Pre-split the constant delimiter outside the loop if possible,
-    # or ensure it's done efficiently.
-    delimiter = "&nbsp;"
-
     for action in task_actions:
         # 1. Use .find() to look for the <code> tag directly.
         # This avoids iterating through every single child via a Python generator.
@@ -141,8 +151,7 @@ def do_task_actions(
             perform_task_name = action.findtext("Str")
 
             if perform_task_name:
-                # 4. Optimize the string split by limiting it to 1 maxsplit.
-                task["name"] = task["name"].split(delimiter, 1)[0]
+                task["name"] = bare_task_name(task["name"])
                 _update_caller_and_called_tasks(task, perform_task_name)
 
 
@@ -160,8 +169,11 @@ def get_perform_task_actions(the_tasks: list) -> None:
     # Go through each Task to find out if this Task is calling other Tasks.
     _do_task_actions = do_task_actions
     for task in the_tasks:
-        # Only do this if we haven't already processed this task
-        if task["name"] not in PrimeItems.outline_tasks_mapped:
+        # Only do this if we haven't already processed this task.  Compare the bare name: a Task
+        # shared by several Profiles arrives decorated, and would otherwise be scanned (and its
+        # calls recorded) once per Profile.
+        task_name = bare_task_name(task["name"])
+        if task_name not in PrimeItems.outline_tasks_mapped:
             # Get Task's Actions
             try:
                 task_actions = task["xml"].findall("Action")
@@ -172,7 +184,7 @@ def get_perform_task_actions(the_tasks: list) -> None:
             if task_actions:
                 _do_task_actions(task_actions, task)
             # Keep track of the processed task
-            PrimeItems.outline_tasks_mapped.append(task["name"])
+            PrimeItems.outline_tasks_mapped.append(task_name)
 
 
 # Output the Tasks that are not in any Profile

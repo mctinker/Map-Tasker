@@ -28,6 +28,8 @@ def initialize_runtime_arguments() -> dict:
         "android_file": ANDROID_FILE,
         "android_ipaddr": ANDROID_IPADDR,  # IP address of Android device
         "android_port": ANDROID_PORT,  # Port of Android device
+        "android_check_ids": False,  # Save To Android: check IDs against a fresh device backup first
+        "android_verify": False,  # Save To Android: read the XML back before sending it
         "appearance_mode": "system",  # Appearance mode: "system", "dark", or "light"
         "bold": False,  # Display Project/Profile?Task/Scene names in bold text
         "conditions": False,  # Display Profile and Task conditions

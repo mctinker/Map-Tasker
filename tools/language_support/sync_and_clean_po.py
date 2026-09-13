@@ -202,9 +202,9 @@ def get_key_by_value(dictionary: dict, target_value: str) -> str | None:
     return None
 
 
-def fallback_ai_translate(target_lang: str, text: str) -> str | None:
-    """Use Ollama's chat model to translate text when GoogleTranslator fails."""
-    print("Using fallback AI translator (Ollama) for translation:", text)
+def ai_translate(target_lang: str, text: str) -> str | None:
+    """Translate text with the local Ollama chat model.  Returns None if it fails."""
+    print("Using AI translator (Ollama) for translation:", text)
 
     # Try the target_lang directly, or try converting hyphen to underscore as fallback
     target_lang_name = (
@@ -230,18 +230,18 @@ def fallback_ai_translate(target_lang: str, text: str) -> str | None:
         elif isinstance(response, dict):
             translated_text = response.get("message", {}).get("content", "").strip()
 
-        print("      fallback AI translation:", translated_text)
+        print("      AI translation:", translated_text)
         return translated_text if translated_text else None
 
     except Exception as e:  # noqa: BLE001
-        print(f"    [Fallback Error] Ollama chat failed: {e}")
+        print(f"    [AI Error] Ollama chat failed: {e}")
         return None
 
 
-def translate_with_retry(translator: GoogleTranslator, target_lang: str, text: str) -> str | None:
-    """Translate one string, backing off on timeouts and throttling.
+def google_translate_with_retry(translator: GoogleTranslator, text: str) -> str | None:
+    """Translate one string with GoogleTranslator, backing off on timeouts and throttling.
 
-    Falls back to ai-translator if GoogleTranslator attempts fail or crash.
+    Returns None once the attempts are used up or an unrecoverable error occurs.
     """
     for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
@@ -274,8 +274,23 @@ def translate_with_retry(translator: GoogleTranslator, target_lang: str, text: s
             print(f"    [Error] {type(e).__name__}: {e}")
             break
 
-    # If GoogleTranslator runs through retry attempts or throws an exception, use AI fallback
-    return fallback_ai_translate(target_lang, text)
+    return None
+
+
+def translate_with_fallback(translator: GoogleTranslator | None, target_lang: str, text: str) -> str | None:
+    """Translate one string with the local AI (Ollama) first, then GoogleTranslator if that fails.
+
+    `translator` is None when GoogleTranslator could not be created for this language, in
+    which case the AI translator is the only option.
+    """
+    translated = ai_translate(target_lang, text)
+    if translated is not None:
+        return translated
+
+    if translator is None:
+        return None
+    print("    [Fallback] AI translation failed -- trying GoogleTranslator")
+    return google_translate_with_retry(translator, text)
 
 
 def split_for_translation(text: str, limit: int = MAX_TRANSLATE_CHARS) -> list[str]:
@@ -323,7 +338,7 @@ def split_for_translation(text: str, limit: int = MAX_TRANSLATE_CHARS) -> list[s
     return pieces
 
 
-def translate_preserving_edges(translator: GoogleTranslator, target_lang: str, text: str) -> str | None:
+def translate_preserving_edges(translator: GoogleTranslator | None, target_lang: str, text: str) -> str | None:
     r"""Translate, keeping any leading/trailing newlines the original had.
 
     Anything over the translator's length limit goes over in pieces (see
@@ -345,7 +360,7 @@ def translate_preserving_edges(translator: GoogleTranslator, target_lang: str, t
         leading = piece[: len(piece) - len(piece.lstrip("\n"))]
         trailing = piece[len(piece.rstrip("\n")) :]
 
-        translated = translate_with_retry(translator, target_lang, core)
+        translated = translate_with_fallback(translator, target_lang, core)
         if translated is None:
             return None
         # Normalise before re-attaching leading/trailing newlines
@@ -365,23 +380,19 @@ def sync_language(po_file: Path, lang_dir: str, wanted: set[str]) -> tuple[int, 
     target_lang = lang_dir.replace("_", "-")
 
     print(f"{lang_dir}: {len(missing)} missing -> {po_file}")
+    # GoogleTranslator is only the fallback for when the AI translator fails, so a language
+    # it cannot be created for is still translated -- just without that second chance.
     translator = None
     try:
         translator = GoogleTranslator(source="en", target=target_lang)
     except Exception as e:  # noqa: BLE001
-        print(f"  [Error] could not create GoogleTranslator for {lang_dir}: {e}")
+        print(f"  [Error] could not create GoogleTranslator for {lang_dir} (AI translator only): {e}")
 
     added = failed = 0
     # Hold the file open for the whole language rather than reopening per string.
     with po_file.open("a", encoding="utf-8") as out:
         for text in missing:
-            translated = None
-            if translator:
-                translated = translate_preserving_edges(translator, target_lang, text)
-            else:
-                # If GoogleTranslator failed initialization, jump directly to AI Translator fallback
-                translated = fallback_ai_translate(target_lang, text)
-
+            translated = translate_preserving_edges(translator, target_lang, text)
             if translated is None:
                 failed += 1
                 print(f"  [Failed] {text!r}")

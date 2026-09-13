@@ -54,6 +54,7 @@ from maptasker.src import (
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import EDIT_SCENE
 from maptasker.src.format import css_color
+from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_font_choices, sort_languages_with_priority
 
 # The dialog families split out of this file, which had grown past 14,500 lines.  Each is
@@ -603,6 +604,20 @@ def _create_undo_section(self: MyGui) -> None:
 # drift apart.  They were already identical; "Verify" is the first thing added to them
 # since, and adding it in one place is the whole reason this exists.
 # ==========================================
+def remember_android_panel_option(gui: MyGui, name: str, value: object) -> None:
+    """Keep one of the Save To Android panel's checkboxes -- for the next panel and the next session.
+
+    Written to three places, for the reason userintr.save_health_check_skip gives for its own
+    setting: the GUI attribute is what the next panel opens with and what exiting writes back over
+    program_arguments (rungui.capture_gui_state); program_arguments is what the settings file is
+    written from; and the file is written now rather than at exit, since a session that ends any
+    other way would otherwise forget a box ticked in it.
+    """
+    setattr(gui, name, bool(value))
+    PrimeItems.program_arguments[name] = bool(value)
+    save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+
+
 def _android_device_fields(gui: MyGui) -> dict:
     """Where the device is, and whether to check the XML before sending it there.
 
@@ -610,10 +625,11 @@ def _android_device_fields(gui: MyGui) -> dict:
     Fetch Applications dialogs default -- and are written back by the save handlers, not
     here, because a device that was never reached is not one to remember.
 
-    "Verify" is remembered differently: on the checkbox itself, as it is ticked.  It is a
-    preference about how this program behaves rather than a fact about a device, so a user
-    who wants every save checked should not have to re-tick it on the next panel -- and
-    unlike the address, there is no failure that should make it stick less.
+    "Verify" and "Check IDs" are remembered differently: as they are ticked, and in the settings
+    file as well, so they hold across sessions (see remember_android_panel_option).  They are
+    preferences about how this program behaves rather than facts about a device, so a user who
+    wants every save checked should not have to re-tick them on the next panel or the next day --
+    and unlike the address, there is no failure that should make them stick less.
 
     It defaults OFF.  What it does is described in its own tooltip, and what it costs is a
     save it can refuse: a check that could block a save without having been asked for is not
@@ -630,7 +646,7 @@ def _android_device_fields(gui: MyGui) -> dict:
         ui.checkbox(
             translate_string("Verify"),
             value=bool(getattr(gui, "android_verify", False)),
-            on_change=lambda event: setattr(gui, "android_verify", bool(event.value)),
+            on_change=lambda event: remember_android_panel_option(gui, "android_verify", event.value),
         )
         .props("dense")
         .classes("mt-2")
@@ -661,7 +677,7 @@ def _android_device_fields(gui: MyGui) -> dict:
         ui.checkbox(
             translate_string("Check IDs"),
             value=bool(getattr(gui, "android_check_ids", False)),
-            on_change=lambda event: setattr(gui, "android_check_ids", bool(event.value)),
+            on_change=lambda event: remember_android_panel_option(gui, "android_check_ids", event.value),
         )
         .props("dense")
         .classes("mt-1")
@@ -7505,6 +7521,10 @@ def _initialize_feature_flags(self: MyGui) -> None:
     self.save = False
     self.close_tabs_on_exit = False
     self.open_view_in_new_window = False
+    # The Save To Android panels' checkboxes.  Set here because every whole-settings save reads
+    # each ARGUMENT_NAMES entry straight off the GUI, and a missing one would stop the save.
+    self.android_verify = False
+    self.android_check_ids = False
 
 
 def _initialize_data_structures(self: MyGui) -> None:

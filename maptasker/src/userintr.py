@@ -1017,6 +1017,10 @@ class MyGui:
             # Only consulted when the 'Get Local XML File' picker is opened -- there is no
             # widget of its own to restore it into.
             "local_xml_directory",
+            # Likewise only read when a Save To Android panel opens -- see
+            # guiwins._android_device_fields.
+            "android_check_ids",
+            "android_verify",
         }
         # Define what to do for each argument restored.
         set_to = translate_string("set to")

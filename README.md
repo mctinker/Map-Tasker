@@ -121,61 +121,8 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
 
 ## Program Output
 
-- “MapTasker.html”
+Refer to the [wiki](https://github.com/mctinker/Map-Tasker/wiki/Generated-Output) for a complete list of the MapTasker generated output.
 
-     This file will be written to your runtime/current folder, which will be opened in your default browser as a new tab.  It will contain the mapping of your Tasker configuration.
-
-- “MapTasker_Map.txt”
-
-     This file will be written to your runtime/current folder as a result of running with the runtime option '-outline'.  It will contain a textual diagram of the configuration.  It will be displayed in your default text editor.  Ensure that 'text-wrap' is off and a monospace font is used when viewing this map in the text editor.
-
-- "MapTasker_Settings.toml"
-
-     This file contains your saved program settings.  You can modify this file but care should be taken not to change the field formats (e.g. _do not_ change an integer to a text string).  Incorrect values will be ignored.
-	
-- MapTasker_VarXref_date_time.txt
-
-This is the output from the Variable Xref (cross reference) run.
-	
-- "maptasker.log"
-
-  This is a trace log file used for program debugging and will only be created if '-debug' is specified in the runtime options.
-
-- MapTasker_Backups_date_time directory
-
-  Backup files from 'Export' or 'Save to Android', in which the file already existed and an overwrite would occur.
-
-- 'MapTasker_xxx_date_time.txt' files
-  
-    MapTasker_Find_date_time.txt - Saved results from the 'Find > Save Results' command
-    
-    MapTasker_Flowchart_date_time.txt - Saved results from the 'Task Flow' command
-
-    MapTasker_HealthCheck_date_time.txt - Saved results from the 'Health Check' command
-
-    MapTasker_Analysis_date_time.txt - Saved results from the 'Run (AI) Analysis' command
-
-    MapTasker_Compare_date_time.txt - Saved results from the 'Compare Files' command
-
-    MapTasker_VarXref_date_time.txt - Saved results from the 'Variables Xref' command
-
-    MapTasker_Replace_date_time.txt - Saved results from the 'Find > Replace' preview results
-
-- MapTasker_Apps.json
-
-  This contains a list of all Android applications gleaned either the XML file or directly from the Android device.  The list is used to populate the app list when editing a Task action such as 'Launch App'.
-
-- MapTasker_Timeline and MapTasker_Backups Directories
-
-  MapTasker_Timeline is used to track changes.  
-  
-  MapTasker_Backups is used to copy a file just before a save would overwrite an existing file, and only the 10 newest copies are saved. If nothing is at the target path, no copy is made.  While MapTasker removes old backups automatically, you can remove them yourself at anytime.  The copies exist only so you can get a file back yourself. You can delete single copies or the whole folder at any time without breaking anything, and the folder is recreated the next time a save needs to overwrite a file.
-
-- Android
-
-  Various 'maptasker.***' files are created, including Tasker files, to manage the to/from travel of XML.  Examples are: maptasker_import.xxx.xml, maptasker_apps.txt, maptasker_files.txt
-
-- hidden files: system settings, run counter, last 'version checked' date, and API keys.
 
 ## More: [[Runtime Options]](https://github.com/mctinker/Map-Tasker/wiki/Runtime-Options)&nbsp;&nbsp;&nbsp;[[Runtime Option Examples]](https://github.com/mctinker/Map-Tasker/wiki/Sample-Runtime-Options)&nbsp;&nbsp;&nbsp;[[Sample Output]](https://github.com/mctinker/Map-Tasker/wiki#sample-output)
 

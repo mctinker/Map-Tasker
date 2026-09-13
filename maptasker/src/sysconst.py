@@ -139,6 +139,9 @@ ARGUMENT_NAMES = {
     "android_file": "Android Backup File location on Android device",
     "android_ipaddr": "Android IP Address",
     "android_port": "Android Port Number",
+    # The Save To Android panels' two checkboxes -- see guiwins._android_device_fields.
+    "android_check_ids": "Check IDs Before Saving To Android",
+    "android_verify": "Verify XML Before Saving To Android",
     "appearance_mode": "Appearance Mode",
     "bold": "Bold Names",
     "close_tabs_on_exit": "Close Tabs on Exit",
@@ -310,6 +313,7 @@ NOW_TIME = datetime.now()  # noqa: DTZ005
 
 OPENAI_MODELS = [
     "gpt-5.5",
+    "gpt-5.5-pro",
     "gpt-5.4",
     "gpt-5.4-pro",
     "gpt-5.4-mini",
@@ -346,6 +350,7 @@ LLAMA_MODELS = [
     "gemma3:1b",
     "gpt-oss",
     "llama2",
+    "llama3.1",
     "llama3.2",
     "llama3.3",
     "minimax-m3",
@@ -358,17 +363,19 @@ LLAMA_MODELS = [
     "tinyllama",
 ]
 ANTHROPIC_MODELS = [
-    "claude-fable-5",
+    "claude-fable-5.1",
     "claude-haiku-4-5",
     "claude-opus-5",
     "claude-sonnet-5",
 ]
 DEEPSEEK_MODELS = ["deepseek-chat"]
 GEMINI_MODELS = [
-    "gemini-3.1-pro",
+    "gemini-3.1-flash_lite",
     "gemini-3.6-flash",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
+    "gemini-3.8-flash",
+    "gemini-3.7-flash",
 ]
 MODEL_GROUPS = {
     "OpenAI": OPENAI_MODELS,

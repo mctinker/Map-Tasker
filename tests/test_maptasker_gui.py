@@ -1919,6 +1919,36 @@ def test_every_save_to_android_path_warns_about_the_device_prompts() -> None:
     assert warns == handlers, f"no device warning in: {sorted(handlers - warns)}"
 
 
+def test_a_save_to_android_panel_option_is_kept_for_the_next_session(monkeypatch) -> None:
+    """Ticking a box writes the settings file then and there -- not only at Exit, which a session
+    closed any other way never reaches."""
+    written: list = []
+    monkeypatch.setattr(
+        guiwins,
+        "save_restore_args",
+        lambda args, colors, to_save=False: (written.append((dict(args), to_save)), (args, colors))[1],
+    )
+    monkeypatch.setattr(PrimeItems, "program_arguments", {"android_verify": False, "android_check_ids": False})
+    gui = MagicMock()
+
+    guiwins.remember_android_panel_option(gui, "android_check_ids", True)
+
+    assert gui.android_check_ids is True  # the next panel opens with it
+    assert PrimeItems.program_arguments["android_check_ids"] is True
+    assert written == [({"android_verify": False, "android_check_ids": True}, True)]
+
+
+def test_the_save_to_android_panel_options_are_saved_settings() -> None:
+    """In ARGUMENT_NAMES, so every whole-settings save writes them; off by default, as the boxes were."""
+    from maptasker.src.initparg import initialize_runtime_arguments
+    from maptasker.src.sysconst import ARGUMENT_NAMES
+
+    defaults = initialize_runtime_arguments()
+    for name in ("android_verify", "android_check_ids"):
+        assert name in ARGUMENT_NAMES
+        assert defaults[name] is False
+
+
 def test_every_device_write_asks_tasker_what_it_already_has() -> None:
     """Five Save To Android handlers and _offer_into_tasker, which the three Import Into Tasker
     buttons share.  Read off the source for the reason the warning test above gives."""

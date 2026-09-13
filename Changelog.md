@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.0.1] ??-Sep-2026  # FIX
+## [14.0.1] 13-Sep-2026
 
 ### Added
 
@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file!
 ### Changed
 
 - Changed: The arrow beside each Project in the Diagram view is now larger and easier to see, so you can find it and click it to collapse or expand the Project.
+- Changed: The 'Verify' and 'Check IDs' checkboxes on the Save To Android panels are now remembered between MapTasker sessions, so they no longer have to be ticked again each time MapTasker starts.
 - Changed:
 
 ### Removed
@@ -25,6 +26,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: The 'Map / Diagram / Tree View Toolbar' link in the Command Reference wiki page's Contents now jumps to its section.  Any window name containing punctuation got a link that didn't match GitHub's anchor for that heading.
 - Fixed: The 'Health Check' panel's group headings and category descriptions are now translated into every supported language instead of always appearing in English.  The 'Run' button, which had been translated as running on foot, now reads as running a check.
 - Fixed: Importing Tasks to Tasker could fail due to an id conflict..
+- Fixed: The Diagram view no longer repeats a Task's 'Calls' links once for every Profile that uses the Task, so a Task shared by 11 Profiles that performs another Task once now shows that call once instead of 11 times.  Task calls also now appear when the indentation amount is set to zero.
 - Fixed:
 
 ### Known Issues
