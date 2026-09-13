@@ -9,13 +9,12 @@ All notable changes to this project will be documented in this file!
 - Added: The 'Health Check' report now ends with a 'Checks Not Run' section listing every category you unticked in the panel, grouped as the panel shows them.  A report that finds nothing can now be told apart from one that was never asked to look.
 - Added: 'Save To Android' and 'Import Into Tasker' now ask Tasker which of the Project, Profiles, Tasks and Scenes being sent it already has, and list them, along with any that are new, in a prompt before anything is written.  Tasker only reports names, so matches are by name, and checking a Project runs a small 'MapTasker List Tasker Objects' Task on the device.
 - Added: A 'Check IDs' option on every Save To Android panel has the device make a fresh backup first and warns when an ID being sent already belongs to a different Project, Profile or Task on the device, or when Tasker has the same object under a different ID.  Tasker can silently leave out an object whose ID is already taken, so this catches the case the name check cannot.
-- Added:
+- Added: A 'Verify' option on 'Save to Android' validates the object that was saved.
 
 ### Changed
 
 - Changed: The arrow beside each Project in the Diagram view is now larger and easier to see, so you can find it and click it to collapse or expand the Project.
 - Changed: The 'Verify' and 'Check IDs' checkboxes on the Save To Android panels are now remembered between MapTasker sessions, so they no longer have to be ticked again each time MapTasker starts.
-- Changed:
 
 ### Removed
 
@@ -25,9 +24,8 @@ All notable changes to this project will be documented in this file!
 
 - Fixed: The 'Map / Diagram / Tree View Toolbar' link in the Command Reference wiki page's Contents now jumps to its section.  Any window name containing punctuation got a link that didn't match GitHub's anchor for that heading.
 - Fixed: The 'Health Check' panel's group headings and category descriptions are now translated into every supported language instead of always appearing in English.  The 'Run' button, which had been translated as running on foot, now reads as running a check.
-- Fixed: Importing Tasks to Tasker could fail due to an id conflict..
-- Fixed: The Diagram view no longer repeats a Task's 'Calls' links once for every Profile that uses the Task, so a Task shared by 11 Profiles that performs another Task once now shows that call once instead of 11 times.  Task calls also now appear when the indentation amount is set to zero.
-- Fixed:
+- Fixed: Importing Tasks to Tasker could fail due to an id conflict.
+- Fixed: The Diagram view could incorrectly display too many calls to a Task.
 
 ### Known Issues
 
