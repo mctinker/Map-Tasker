@@ -5,7 +5,6 @@ upon reinvocation of the application.
 """
 
 import importlib.util
-import os
 import re
 import sys
 
@@ -23,7 +22,6 @@ from maptasker.src.sysconst import (
     ANALYSIS_FILE,
     DEEPSEEK_MODELS,
     ERROR_FILE,
-    KEYFILE,
 )
 from maptasker.src.xmldata import remove_html_tags
 
@@ -473,11 +471,11 @@ def open_ai(query: str, ai_object: str, item: str) -> None:
         )
         return
 
-    api_key = (
-        get_api_key
-        if PrimeItems.program_arguments["ai_apikey"] == "Hidden" and os.path.isfile(KEYFILE)
-        else PrimeItems.program_arguments["ai_apikey"]
-    )
+    api_key = PrimeItems.program_arguments["ai_apikey"]
+    if api_key == "Hidden":
+        # The settings file only ever holds the word "Hidden"; the key itself is saved apart.
+        get_api_key()
+        api_key = PrimeItems.ai["openai_key"]
     # 1. Dynamically get the 'openai' module
     openai_lib = ensure_and_import("openai", "openai")
     if openai_lib is None:

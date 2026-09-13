@@ -954,6 +954,10 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
     monkeypatch.setattr(userintr, "context", _FakeContext)
 
     async def fake_io_bound(func, *args, **kwargs):
+        # The existence check goes to a worker thread like every other device request, but it
+        # is not one of the calls `results` answers -- its answer is `exists`, faked below.
+        if func is userintr.read_android_file:
+            return func(*args, **kwargs)
         calls["io_bound"].append((func, args, kwargs))
         return results[len(calls["io_bound"]) - 1]
 
@@ -1949,6 +1953,74 @@ def test_the_save_to_android_panel_options_are_saved_settings() -> None:
         assert defaults[name] is False
 
 
+def test_no_save_to_android_path_calls_the_device_on_the_event_loop() -> None:
+    """Every request to the device blocks for seconds, and these handlers run on the event loop
+    the whole window runs on -- so a call made there, or in a closure a handler runs, freezes
+    everything until the phone answers.  Each has to be handed to run.io_bound, which passes
+    the function rather than calling it.  Read off the source for the reason the warning test
+    above gives: the next handler gets written by copying one of these."""
+    import ast
+    import inspect
+
+    from maptasker.src import userintr
+
+    paths = {
+        "save_task_to_android_event",
+        "save_task_to_android_file_event",
+        "save_profile_to_android_event",
+        "save_project_to_android_event",
+        "save_scene_to_android_event",
+        "_offer_into_tasker",
+    }
+    device_calls = {
+        "read_android_file",
+        "save_task_to_android",
+        "save_task_to_android_file",
+        "save_task_to_android_directory",
+        "verify_task_on_android",
+        "save_profile_to_android",
+        "save_project_to_android",
+        "save_scene_to_android",
+        "offer_to_tasker",
+        "import_is_confirmable",
+        "await_import",
+    }
+    tree = ast.parse(inspect.getsource(userintr))
+    handlers = [node for node in ast.walk(tree) if isinstance(node, ast.AsyncFunctionDef) and node.name in paths]
+    assert {node.name for node in handlers} == paths
+
+    blocking = [
+        f"{handler.name}, line {call.lineno}: {ast.unparse(call.func)}"
+        for handler in handlers
+        for call in ast.walk(handler)  # closures included: they run on the event loop too
+        if isinstance(call, ast.Call)
+        and (call.func.id if isinstance(call.func, ast.Name) else getattr(call.func, "attr", None)) in device_calls
+    ]
+    assert blocking == [], "\n".join(blocking)
+
+
+@pytest.mark.asyncio
+async def test_the_overwrite_prompt_waits_for_a_save_that_is_a_coroutine(monkeypatch) -> None:
+    """A Save To Android is a coroutine now -- its requests go to a worker thread and it has to
+    wait for them -- so pressing Overwrite must run it to the end, not start it and drop it.
+    The local exports are still plain functions, and still have to work."""
+    fake_ui = MagicMock()
+    monkeypatch.setattr(guiwins, "ui", fake_ui)
+    ran: list = []
+
+    async def device_save() -> None:
+        await asyncio.sleep(0)
+        ran.append("coroutine")
+
+    for on_confirm in (device_save, lambda: ran.append("function")):
+        fake_ui.button.reset_mock()
+        guiwins.build_overwrite_confirm_dialog("'/Tasker/tasks/Opener.tsk.xml' on the Android device", on_confirm)
+        overwrite = next(call for call in fake_ui.button.call_args_list if call.args[0] == "Overwrite")
+        await overwrite.kwargs["on_click"]()
+
+    assert ran == ["coroutine", "function"]
+
+
 def test_every_device_write_asks_tasker_what_it_already_has() -> None:
     """Five Save To Android handlers and _offer_into_tasker, which the three Import Into Tasker
     buttons share.  Read off the source for the reason the warning test above gives."""
@@ -2043,7 +2115,7 @@ async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypa
     assert kwargs == {"unknown": False, "file_absent": True, "tasker_lines": lines}
     assert calls["consequence"] == userintr._FILE_WRITE_CONSEQUENCE
 
-    on_confirm()  # the user presses Continue
+    await on_confirm()  # the user presses Continue
     assert calls["uploaded"] == ["Opener"]
 
 
@@ -2183,7 +2255,7 @@ async def test_a_task_file_is_not_clobbered_without_asking(monkeypatch, event_ha
     assert "/Tasker/tasks/Opener.tsk.xml" in what
     assert kwargs["unknown"] is False
 
-    on_confirm()  # the user chooses Overwrite
+    await on_confirm()  # the user chooses Overwrite
 
     assert calls["uploaded"] == ["Opener"]
     assert calls["backed_up"] == [("/Tasker/tasks/Opener.tsk.xml", b"<TaskerData>the old one</TaskerData>")]
@@ -2263,7 +2335,7 @@ async def test_the_task_import_asks_before_replacing_the_file_it_writes(
     assert "/Tasker/tasks/Opener.tsk.xml" in what
     assert kwargs["unknown"] is False
 
-    on_confirm()  # the user chooses Overwrite
+    await on_confirm()  # the user chooses Overwrite
 
     assert imported == ["Opener"]
     # and the old file was copied first, from the bytes the existence check already had
@@ -2460,7 +2532,7 @@ async def test_each_kind_reads_its_destination_once_and_keeps_what_was_there(
     assert device_path in what
     assert kwargs["unknown"] is False
 
-    on_confirm()  # the user chooses Overwrite
+    await on_confirm()  # the user chooses Overwrite
 
     assert calls["uploaded"], "the confirmed write never happened"
     assert calls["backed_up"] == [(device_path, b"<TaskerData>the old one</TaskerData>")]

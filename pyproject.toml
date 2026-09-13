@@ -1,6 +1,6 @@
 [project]
 name = "maptasker"
-version = "14.0.1"
+version = "14.0.2"
 description = "Utility to display/edit/analyze your entire Android 'Tasker' configuration in your browser."
 authors = [
     { name = "Michael Rubin", email = "mikrubin@gmail.com" },
@@ -30,6 +30,7 @@ classifiers = [
 dependencies = [
     'darkdetect>=0.8.0',
     'defusedxml>=0.7.1',
+    'keyring>=25.7.0',
     'nicegui>=3.16.0',
     'packaging>=26.3',
     'pillow==12.3.0',

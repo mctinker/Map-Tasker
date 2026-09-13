@@ -4,8 +4,6 @@
 # mapai: Ai support                                                                    #
 #                                                                                      #
 import importlib.util
-import os
-import pickle
 import shutil
 import subprocess
 import time
@@ -19,13 +17,13 @@ if TYPE_CHECKING:
 # from google.genai import Client
 # from openai import OpenAI
 from maptasker.src import console
+from maptasker.src.apikeys import load_api_keys
 from maptasker.src.error import rutroh_error
 from maptasker.src.maputil3 import ensure_and_import
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     DEEPSEEK_MODELS,
     GEMINI_MODELS,
-    KEYFILE,
     OPENAI_MODELS,
 )
 
@@ -474,64 +472,23 @@ def get_deepseek_models() -> list:
     return DEEPSEEK_MODELS
 
 
-# Get the Ai api key
-def get_api_key() -> tuple:
+# Get the Ai api keys
+def get_api_key() -> str:
     """
-    Retrieves the API key from the specified file.
+    Copy the saved AI API keys into PrimeItems.ai.
 
-    This function checks if the KEYFILE exists and if it does, it opens the file and reads the first line. The first line is assumed to be the API key. If the KEYFILE does not exist, it returns the string "None".
+    The keys are kept by apikeys -- in the system password store, or in a file only the user
+    can read where there is no store -- which reads them once a run.
 
     Returns:
-        tuple: The file type and the API key if it exists, otherwise "None".
+        str: the saved 'api_key' entry, or "None" if no keys have been saved at all, in
+            which case PrimeItems.ai is left as it is.
     """
-    if os.path.isfile(KEYFILE):
-        kind_of_file, contents = detect_and_read_file(KEYFILE)
-        if kind_of_file == "text":  # Legacy?
-            return contents
-        if kind_of_file == "pickle":
-            PrimeItems.ai["api_key"] = contents["api_key"]
-            PrimeItems.ai["openai_key"] = contents["openai_key"]
-            PrimeItems.ai["deepseek_key"] = contents["deepseek_key"]
-            # For snthropic, try the old key name first.
-            try:
-                PrimeItems.ai["anthropic_key"] = contents["claude_key"]
-            except KeyError:  # New key name.
-                PrimeItems.ai["anthropic_key"] = contents["anthropic_key"]
-            with suppress(KeyError):
-                PrimeItems.ai["gemini_key"] = contents["gemini_key"]
-            with suppress(KeyError):
-                PrimeItems.ai["ai_name"] = contents["ai_name"]
-            return PrimeItems.ai["api_key"]
-    return "None"
-
-
-def detect_and_read_file(file_path: object) -> tuple:
-    """
-    Detects the file type and reads its content.
-
-    Args:
-        file_path (object): The path to the file to be read.
-
-    Returns:
-        tuple: A tuple containing the file type and its content.
-    """
-    try:
-        # Try opening the file as a pickle
-        with open(file_path, "rb") as file:
-            content = pickle.load(file)  # noqa: S301
-        return "pickle", content  # noqa: TRY300
-    except (pickle.UnpicklingError, EOFError):
-        pass
-
-    try:
-        # Try opening the file as text
-        with open(file_path, encoding="utf-8") as file:
-            content = file.read()
-        return "text", content  # noqa: TRY300
-    except UnicodeDecodeError:
-        pass
-
-    return "None", None
+    saved_keys = load_api_keys()
+    if not any(saved_keys.values()):
+        return "None"
+    PrimeItems.ai.update(saved_keys)
+    return PrimeItems.ai["api_key"]
 
 
 def is_valid_ai_config(self: "MyGui") -> bool:

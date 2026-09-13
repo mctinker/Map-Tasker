@@ -1652,12 +1652,13 @@ async def validate_or_filelist_xml(
 
     Asynchronous because the file listing is no longer a single quick GET: it installs
     (once) and runs a helper Task on the device and waits for the file that Task writes,
-    which takes seconds.  That part goes to run.io_bound so the GUI stays responsive
-    while it happens; everything else here builds widgets and must stay on this thread.
+    which takes seconds.  Every request to the device goes to run.io_bound so the GUI stays
+    responsive while it happens; everything else here builds widgets and must stay on this thread.
     """
     # 1. If a file is specified and we aren't explicitly listing files, validate it
     if len(android_file) != 0 and android_file != "" and not self.list_files:
-        return_code, _ = http_request(
+        return_code, _ = await run.io_bound(
+            http_request,
             android_ipaddr,
             android_port,
             android_file,
@@ -1668,7 +1669,8 @@ async def validate_or_filelist_xml(
         # Validate the XML syntax structure
         if return_code == 0:
             PrimeItems.program_arguments["gui"] = True
-            return_code, error_message = validate_xml_file(
+            return_code, error_message = await run.io_bound(
+                validate_xml_file,
                 android_ipaddr,
                 android_port,
                 android_file,

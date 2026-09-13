@@ -274,7 +274,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Add and Edit Properties
 
-- [ ] Export Map to Portable Formats (Markdown / JSON / PDF)
+- [x] Export Map and Diagram views to Portable Formats (Markdown / JSON / PDF)
 
 - [x] Import Edits Directly Into Tasker
 
@@ -294,7 +294,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Secrets Security Scan
 
-- [ ] Natural Language 'Find'
+- [x] Natural Language 'Find'
 
 - [ ] Configuration Timeline
 
@@ -311,12 +311,12 @@ When reporting an error, you will most likely be asked to provide the output log
 Network traffic is as follows:
 
 - Local LAN traffic when fetching XML directly from your Android device.
-- On startup, check against pypi.com to determine if a new release is available.
+- On startup once a day, check against pypi.com to determine if a new release is available.
 - Update the program from pypi.com (via 'pip) if 'Upgrade' is selected in the GUI.
-- Read file 'maptasker_changelog.json' from '<https://github.com/mctinker/Map-Tasker>' if "What's New" is selected in the GUI.
-- Use chatgpt.com when using AI analysis with any of the OpenAi models.  The output of MapTasker is sent to the server via the standard API call for analysis.  Likewise for Claude (Anthropic), Google (Gemini) and DeepSeek.
-- New and updated local Ai models will be loaded from '<https://ollama.com/library>' when running the AI Analysis feature.
-- Image and video sources as defined via the '<img src=https://...>' HTML tag in Task action labels and TaskerNet descriptions will be accessed.  Examples: imggur.com, Youtube, Dropbox, Google Drive, etc.
+- Read file 'Changelog.md' from '<https://github.com/mctinker/Map-Tasker>' if "What's New" is selected in the GUI.
+- Use chatgpt.com when using AI analysis with any of the OpenAi models.  The output of MapTasker is sent to the server via the standard API call for analysis.  Likewise for Claude (Anthropic), and Gemini (Google).
+- New and updated local AI models will be loaded from '<https://ollama.com/library>' when running the AI Analysis feature.
+- Image and video source hotlinks as defined via the '<img src=https://...>' HTML tag in Task action labels and TaskerNet descriptions will be accessed when clicked.  Examples: imggur.com, Youtube, Dropbox, Google Drive, etc.
 
 ## Contributing
 

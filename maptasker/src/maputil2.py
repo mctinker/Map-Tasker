@@ -6,12 +6,14 @@ These are functions pulled out of maputils, guiwins and guiutils that would othe
 import error.
 """
 
+import asyncio
 import copy
 import os
 import re
 import sys
 import threading
 import time
+import traceback
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -187,6 +189,39 @@ def suppress_stdout() -> Generator:  # type: ignore  # noqa: PGH003
 # ==========================================
 # 3. ENVIRONMENT & PACKAGE MANAGEMENT
 # ==========================================
+# A request to the Android device made on the GUI's event loop is a frozen window.
+def _warn_if_on_event_loop(url: str) -> None:
+    """
+    Log a request to the Android device that is about to be made on the GUI's event loop.
+
+    Every request in this section blocks until the device answers or its timeout runs out,
+    and much of what is built on them (deviceinv's polling, read_back_uploaded_file) blocks
+    for many seconds more.  nicegui runs the whole window on one event loop, so a request
+    made there freezes every button, tab and notification until it returns.  The GUI hands
+    them to run.io_bound, whose worker threads have no running event loop, and the command
+    line has no event loop at all -- so one running in this thread means a caller that
+    should have handed the request off and did not.
+
+    Logged, not raised: a save that is slow is still better than one that fails outright.
+        :param url: the request about to be made, for the log
+    """
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return
+    # Name the first caller outside this module: that is the code that needs fixing.
+    caller = next(
+        (frame for frame in reversed(traceback.extract_stack()[:-1]) if not frame.filename.endswith("maputil2.py")),
+        None,
+    )
+    where = f"{caller.filename}:{caller.lineno} ({caller.name})" if caller else "an unknown caller"
+    logger.warning(
+        "Android device request made on the GUI event loop, which freezes the window until it returns: %s from %s",
+        url,
+        where,
+    )
+
+
 # Issue HTTP Request to get something from the Android device.
 def http_request(
     ip_address: str,
@@ -219,6 +254,7 @@ def http_request(
     error_message = ""
     response = None
 
+    _warn_if_on_event_loop(url)
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
             response = requests.get(url, headers=headers, timeout=5)
@@ -366,6 +402,7 @@ def _request_android_auth_key(url: str) -> tuple[int, str, bool]:
     retryable = True
     response = None
 
+    _warn_if_on_event_loop(url)
     with suppress_stdout():
         try:
             response = requests.get(url, timeout=8)
@@ -504,6 +541,7 @@ def http_post_request(
     error_message = ""
     response = None
 
+    _warn_if_on_event_loop(url)
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
             response = requests.post(url, data=file_content, headers=headers, timeout=15)
@@ -588,6 +626,7 @@ def http_upload_request(
     error_message = ""
     response = None
 
+    _warn_if_on_event_loop(url)
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
             response = requests.post(
@@ -652,6 +691,7 @@ def http_delete_request(
     error_message = ""
     response = None
 
+    _warn_if_on_event_loop(url)
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
             response = requests.delete(url, headers=headers, timeout=10)

@@ -3585,7 +3585,7 @@ def read_cache() -> dict:
 
     A missing or damaged file is not an error and is not reported: it means 'nothing has
     been fetched', which is a state the program is built to work in anyway.  Same reasoning
-    getputer.py applies to a damaged settings pickle -- carry on with the defaults rather
+    getputer.py applies to a damaged settings file -- carry on with the defaults rather
     than refuse to run.
     """
     try:

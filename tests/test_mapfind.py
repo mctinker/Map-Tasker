@@ -25,7 +25,7 @@ from maptasker.src.primitem import PrimeItems
 #   Project 'Home'      Profiles 10,11,12; Tasks 20,21,22,23; Scene 'Menu'
 #   Project 'Away'      Profile 13, Task 24 -- the "narrow to Project" control group
 #   Profile 10 'Timed'  a Time context, entry Task 20 -> the trigger+action pair
-#   Profile 11 'Watch'  State 160 (Wifi Connected), entry Task 21
+#   Profile 11 'Watch'  State 160 (Wifi Connected) set to the network 'HomeNet', entry Task 21
 #   Profile 12 'AppBar' an App context naming Spotify -> the app facet's Profile half
 #   Profile 13 'Away P' a Time context in the other Project, entry Task 24
 #   Task 20 'Fetcher'   HTTP Request (339) at act1, Perform Task (130) at act0.  Written
@@ -59,7 +59,7 @@ _FIXTURE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
     <id>11</id>
     <nme>Watch</nme>
     <mid0>21</mid0>
-    <State sr="con0" ve="2"><code>160</code></State>
+    <State sr="con0" ve="2"><code>160</code><Str sr="arg0" ve="3">HomeNet</Str></State>
   </Profile>
   <Profile sr="prof12" ve="2">
     <id>12</id>
@@ -249,6 +249,15 @@ def test_text_facet_reaches_argument_text(index: mapfind.FindIndex) -> None:
     """The free-text facet searches what an action holds, not just what it is called."""
     hits, _ = mapfind.run_query(index, mapfind.Query(text="quietly"))
     assert _named(hits) == {(TASK, "Quiet")}
+
+
+def test_text_facet_reaches_what_a_profile_context_is_set_to(index: mapfind.FindIndex) -> None:
+    """'Profiles that fire on the home Wifi': the network's name is the context's setting."""
+    hits, _ = mapfind.run_query(index, mapfind.Query(trigger="State: Wifi Connected", text="homenet"))
+    assert _named(hits) == {(PROFILE, "Watch")}
+    # The trigger does not have to be named for the setting to be found.
+    hits, _ = mapfind.run_query(index, mapfind.Query(text="homenet"))
+    assert _named(hits) == {(PROFILE, "Watch")}
 
 
 # ##################################################################################

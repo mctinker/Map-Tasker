@@ -30,7 +30,11 @@ ARGUMENTS_FILE = "MapTasker_Settings.toml"
 FONT_FAMILY = ";font-family:"
 CHANGELOG_FILE = ".maptasker_changelog.txt"
 CHANGELOG_URL = "https://raw.githubusercontent.com/mctinker/Map-Tasker/Master/Changelog.md"
-KEYFILE = ".maptasker.pkl"
+# The AI API keys used to be pickled to LEGACY_KEYFILE in the current directory.  They are
+# kept in the system password store now, or in API_KEYS_FILE in the user's configuration
+# folder on a machine with no store; a leftover LEGACY_KEYFILE is moved over.  See apikeys.
+LEGACY_KEYFILE = ".maptasker.pkl"
+API_KEYS_FILE = "MapTasker_API_Keys.json"
 ERROR_FILE = ".maptasker_error.txt"
 ANALYSIS_FILE = "MapTasker_Analysis.txt"
 HEALTHCHECK_FILE = "MapTasker_HealthCheck.txt"
@@ -42,13 +46,20 @@ SWAP_FILE = "MapTasker_Replace.txt"
 # The preview a refactoring operation was applied from, or declined -- see maprefac.py.
 REFACTOR_FILE = "MapTasker_Refactor.txt"
 DIAGRAM_FILE = "MapTasker_Map.txt"
+# What the Map and Diagram views' 'Export' button writes, with ".md", ".json" or ".pdf" added
+# -- see mapexport.py.  "_Export" on both, since DIAGRAM_FILE above already has the Diagram
+# answering to "MapTasker_Map".
+MAP_EXPORT_FILE = "MapTasker_Map_Export"
+DIAGRAM_EXPORT_FILE = "MapTasker_Diagram_Export"
 # The control-flow report (every Task's If/Else/For/Goto structure, linted) and the
 # flowchart drawn for one Task -- see taskflow.py.  Two files rather than one because
 # they are two different things: the report is prose about the whole configuration, the
 # flowchart is a picture of a single Task, and each is written whenever it is built.
 TASKFLOW_FILE = "MapTasker_TaskFlow.txt"
 FLOWCHART_FILE = "MapTasker_Flowchart.txt"
-SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
+# Older versions pickled a second settings file here, apart from MapTasker_Settings.toml.  It
+# never held anything and is no longer written; getputer deletes a leftover one, unopened.
+LEGACY_SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
 # Where a fetched Application list is kept between runs, keyed by device -- see
 # deviceinv.py.  Alongside MapTasker_Settings.toml (both are written to the current
 # directory) because it is the same kind of thing: remembered, per-installation, and
@@ -181,9 +192,6 @@ ARGUMENT_NAMES = {
     "underline": "Underline Names",
     "language": "Language",
 }
-
-# Window positions etc. that are to be pickled
-SYSTEM_ARGUMENTS = []
 
 # The 'Specific Name' tab's summary line when no single Project/Profile/Task/Scene is being
 # filtered on.  Shared so the message built when a selection is cleared and the one shown

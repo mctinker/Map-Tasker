@@ -199,15 +199,20 @@ def _read_panose_proportion(data: bytes, directory: dict[bytes, tuple[int, int]]
 class _Face:
     """A single font face (one entry of a font file) and the metrics we need from it."""
 
-    __slots__ = ("advances", "cmap", "family", "panose", "style", "units_per_em")
+    __slots__ = ("advances", "cmap", "family", "offset", "panose", "path", "style", "truetype", "units_per_em")
 
-    def __init__(self, data: bytes, offset: int) -> None:
-        """Parse the sfnt tables of the face starting at `offset` within `data`."""
+    def __init__(self, data: bytes, offset: int, path: Path | None = None) -> None:
+        """Parse the sfnt tables of the face starting at `offset` within `data`, read from `path`."""
         directory = _table_directory(data, offset)
         self.family, self.style = _read_names(data, directory)
         self.cmap = _read_cmap(data, directory)
         self.units_per_em, self.advances = _read_metrics(data, directory)
         self.panose = _read_panose_proportion(data, directory)
+        # Where the face came from, so that it can be read again to be embedded in a PDF,
+        # and whether its outlines are TrueType ("glyf") -- the kind mappdf can embed.
+        self.path = path
+        self.offset = offset
+        self.truetype = b"glyf" in directory
 
     def advance(self, codepoint: int) -> float | None:
         """Return the advance width of `codepoint` in em units, or None if not in the font."""
@@ -313,7 +318,7 @@ def _font_index() -> dict[str, _Face]:
             continue
         for offset in offsets:
             try:
-                face = _Face(data, offset)
+                face = _Face(data, offset, path)
             except (struct.error, IndexError, ValueError):
                 continue
             # Families beginning with "." are reserved for the OS and are not selectable.
@@ -392,3 +397,118 @@ def is_double_width(char: str) -> bool:
         return True
     # Supplementary symbol planes render as emoji even when marked Neutral/Ambiguous.
     return ord(char) >= 0x1F000
+
+
+# ##################################################################################
+# Embedding a face in a document
+# ##################################################################################
+# Tried for a PDF, in this order, after the font the output is set to use.  Each is a
+# monospaced TrueType face that draws box-drawing characters, and between them there is one
+# on each system MapTasker runs on: Menlo on macOS, Consolas and Courier New on Windows,
+# DejaVu Sans Mono or Liberation Mono on most Linux distributions.
+EMBED_FAMILIES = (
+    "Menlo",
+    "DejaVu Sans Mono",
+    "Consolas",
+    "Cascadia Mono",
+    "Liberation Mono",
+    "Noto Sans Mono",
+    "Courier New",
+)
+
+
+class EmbeddableFont:
+    """A monospaced TrueType face lifted out of its file, with what a document needs to draw with it.
+
+    Every measurement is in the face's own units -- see units_per_em.
+    """
+
+    __slots__ = ("advances", "ascent", "bbox", "cmap", "descent", "family", "sfnt", "units_per_em")
+
+    def __init__(self, face: _Face, sfnt: bytes, data: bytes) -> None:
+        """`face`, read from the font file whose bytes are `data`, standing alone as the font file `sfnt`."""
+        directory = _table_directory(data, face.offset)
+        self.family = face.family
+        self.sfnt = sfnt
+        self.cmap = face.cmap
+        self.advances = face.advances
+        self.units_per_em = face.units_per_em
+        self.ascent, self.descent = 800, -200
+        if b"hhea" in directory:
+            hhea = directory[b"hhea"][0]
+            self.ascent, self.descent = struct.unpack(">hh", data[hhea + 4 : hhea + 8])
+        self.bbox = (0, self.descent, self.units_per_em, self.ascent)
+        if b"head" in directory:
+            head = directory[b"head"][0]
+            self.bbox = struct.unpack(">hhhh", data[head + 36 : head + 44])
+
+
+def _standalone_face(data: bytes, offset: int) -> bytes:
+    """The face at `offset` in a font file, as a font file of its own.
+
+    A face in a .ttc collection finds its tables by their offsets from the start of the
+    collection, and shares some of them with the other faces, so it cannot simply be sliced
+    out.  A fresh table directory with a copy of each table after it is what a single-face
+    file is.  A face that already is a file of its own comes through this unchanged in every
+    way that matters.
+    """
+    directory = _table_directory(data, offset)
+    tags = sorted(directory)
+    count = len(tags)
+    # The directory header's binary-search hints: the largest power of two not above the
+    # number of tables, and that power's log.
+    power = 1 << (count.bit_length() - 1)
+    header = data[offset : offset + 4] + struct.pack(
+        ">HHHH",
+        count,
+        power * 16,
+        power.bit_length() - 1,
+        (count - power) * 16,
+    )
+    records = bytearray()
+    tables = bytearray()
+    for tag in tags:
+        start, length = directory[tag]
+        raw = data[start : start + length]
+        table = raw + b"\0" * (-len(raw) % 4)
+        checksum = sum(struct.unpack(f">{len(table) // 4}I", table)) & 0xFFFFFFFF
+        records += struct.pack(">4sIII", tag, checksum, 12 + 16 * count + len(tables), len(raw))
+        tables += table
+    return header + bytes(records) + bytes(tables)
+
+
+def embeddable_font(text: str, preferred: str = "") -> EmbeddableFont | None:
+    """The monospaced TrueType face best able to draw `text`, ready to be embedded in a document.
+
+    `preferred` -- the font the output is set to use -- is tried first, then EMBED_FAMILIES,
+    then every other monospaced family installed.  The first with a glyph for every
+    character of `text` is the answer, or failing that the one missing the fewest.
+    Double-width characters (emoji, CJK) are not counted: no monospaced face draws those
+    within the columns the text was laid out in, so none is better for having them.
+
+    Only TrueType outlines qualify.  A face with PostScript (CFF) outlines, as many .otf
+    fonts have, goes into a PDF a different way, which mappdf does not write.
+
+    None when there is no monospaced TrueType face on this system at all.
+    """
+    index = _font_index()
+    needed = {ord(char) for char in set(text) if not char.isspace() and not is_double_width(char)}
+    best: _Face | None = None
+    fewest_missing = 0
+    for family in dict.fromkeys((preferred, *EMBED_FAMILIES, *_monospaced_families())):
+        face = index.get(family)
+        if face is None or face.path is None or not face.truetype or not face.is_monospaced():
+            continue
+        missing = sum(1 for codepoint in needed if codepoint not in face.cmap)
+        if best is None or missing < fewest_missing:
+            best, fewest_missing = face, missing
+            if not missing:
+                break
+    if best is None:
+        return None
+    try:
+        data = best.path.read_bytes()
+        sfnt = _standalone_face(data, best.offset)
+    except (OSError, struct.error, IndexError, ValueError):
+        return None
+    return EmbeddableFont(best, sfnt, data)

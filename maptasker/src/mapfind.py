@@ -539,6 +539,12 @@ def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope:
         # `position` counts the CONTEXTS, not the children -- it is the N in the sr="conN"
         # Tasker writes on each one, and the Profile's metadata sits among them.
         position = 0
+        # What each Event and State context is SET to -- the network a Wifi Connected waits
+        # for, the text a Notification has to hold.  For the free-text facet only, which is
+        # what lets "trigger Wifi Connected, text 'home'" ask which Profiles fire on the home
+        # network.  Read with the same _string_arguments an action's text is, which also
+        # keeps a plugin's opaque Bundle out of it.
+        settings: list[str] = []
         for child in element:
             key = ""
             if child.tag in _CODED_CONTEXTS:
@@ -547,6 +553,7 @@ def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope:
                 value = _trigger_name(child.tag, code)
                 record.triggers.append((value, value))
                 index.catalog[TRIGGER][value] += 1
+                settings.extend(_string_arguments(child).values())
             elif child.tag in _TIME_CONTEXTS:
                 value = _PLAIN_TRIGGER_LABELS[child.tag]
                 record.triggers.append((value, value))
@@ -575,7 +582,13 @@ def _index_profiles(index: FindIndex, project_of_profile: dict[str, str], scope:
             for child in element
             if child.tag.startswith("mid") and (child.text or "").strip()
         ]
-        record.text = " ".join([profile["name"].lower(), *(detail.lower() for _, detail in record.triggers)])
+        record.text = " ".join(
+            [
+                profile["name"].lower(),
+                *(detail.lower() for _, detail in record.triggers),
+                *(setting.lower() for setting in settings),
+            ],
+        )
         index.objects.append(record)
 
 

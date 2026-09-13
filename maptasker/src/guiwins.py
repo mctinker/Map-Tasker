@@ -25,6 +25,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import html
+import inspect
 import json
 import os
 import re
@@ -33,11 +34,13 @@ import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to seriali
 from datetime import date, datetime
 from typing import TYPE_CHECKING
 
-from nicegui import Event, app, context, ui
+from nicegui import Event, app, context, run, ui
 
 from maptasker.src import (
     diagintr,
     healthck,
+    mapask,
+    mapexport,
     mapfind,
     mapjump,
     mapswap,
@@ -3256,7 +3259,7 @@ def build_helper_tasks_dialog(stale: list[str], current: list[str], device: str)
 
 def build_overwrite_confirm_dialog(
     what_exists: str,
-    on_confirm: Callable[[], None],
+    on_confirm: Callable[[], object],
     *,
     unknown: bool = False,
     file_absent: bool = False,
@@ -3274,7 +3277,9 @@ def build_overwrite_confirm_dialog(
     nothing here is overwritten, so it says neither and offers Continue, not Overwrite.
 
     what_exists describes the thing in the user's terms (a full path); on_confirm
-    performs the write and is called only if they choose "Overwrite". Cancel
+    performs the write and is called only if they choose "Overwrite". It may be a
+    coroutine function, and is then awaited to the end: a write to the Android device
+    hands its requests to a worker thread and has to wait for them. Cancel
     closes this dialog and leaves the parent Edit/Add dialog open, so nothing
     in progress is lost -- same convention as build_delete_project_dialog.
 
@@ -3303,11 +3308,15 @@ def build_overwrite_confirm_dialog(
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Cancel"), on_click=confirm_dialog.close).props("outline")
 
-            def _confirm() -> None:
+            async def _confirm() -> None:
                 # Close first: on_confirm may open its own dialog (or close the
                 # parent), and leaving this one stacked on top would hide it.
                 confirm_dialog.close()
-                on_confirm()
+                # Awaited when it is a coroutine.  nicegui runs an async click handler inside
+                # the button's slot, so the notifications a save makes still have a place to go.
+                result = on_confirm()
+                if inspect.isawaitable(result):
+                    await result
 
             ui.button(translate_string("Continue" if file_absent else "Overwrite"), on_click=_confirm).classes(
                 "bg-orange-600 text-white",
@@ -3589,6 +3598,29 @@ def _diagram_spans(
             spans.append((start, end, opening))
     spans.sort()
     return spans
+
+
+def _create_export_menu(view: NiceGuiTextView) -> None:
+    """The Map and Diagram views' 'Export' button, and the menu of formats under it.
+
+    One button with a menu rather than a button per format: the Diagram's toolbar is full
+    already, and the three are one decision.  What is exported is read from the file the
+    view was drawn from (see mapexport), so what is saved is what is on screen.
+    """
+    what = mapexport.DIAGRAM if view.title.startswith("Diagram") else mapexport.MAP
+    with ui.button(translate_string("Export"), icon="file_download").classes("bg-blue-600"):
+        ui.tooltip(
+            translate_string(
+                "'Export' saves what this view shows to a file in the current directory:\n\n"
+                "Markdown, for a wiki page, an issue or a note.\n"
+                "JSON, for a script to read.\n"
+                "PDF, for printing or sending, with searchable text and bookmarks.\n\n",
+            ),
+            # Beside the button, not under it, where it would sit on top of the open menu.
+        ).props('anchor="center right" self="center left"').style("white-space: pre-wrap")
+        with ui.menu():
+            for fmt, label in mapexport.FORMATS.items():
+                ui.menu_item(label, on_click=lambda _e=None, chosen=fmt: view.export_event(what, chosen))
 
 
 def _create_diagram_tools(view: NiceGuiTextView) -> None:
@@ -4958,6 +4990,10 @@ class NiceGuiTextView:
         # re-opening Find comes back to the query whose result row the user just followed,
         # rather than to an empty dialog they have to fill in again.
         self._find_query: mapfind.Query | None = None
+        # The Find dialog's question out with an AI model, while it is out -- held on the view
+        # rather than the dialog so that _dismiss_find_dialog, which deletes a dialog without
+        # its "hide" firing, can still cancel it (see _cancel_find_ask).
+        self._find_ask: asyncio.Task | None = None
         # The last Replace the user set up on this view -- ("action", old key, new key,
         # project) or ("variable", name, owner, new name).  The INPUTS, not the Plan: a
         # Plan holds live elements, and holding those across a dialog that may have been
@@ -5199,6 +5235,9 @@ class NiceGuiTextView:
                                 "Results come back as a list of objects; click one to be taken to it.\n\n",
                             ),
                         ).style("white-space: pre-wrap")
+                    # On the same two views as Find/Replace, and for the same reason: they draw
+                    # the configuration, which is what an export is of (see mapexport).
+                    _create_export_menu(self)
                 ui.separator().props("vertical")
                 ui.button(translate_string("Top"), on_click=lambda: self.scroll("top")).classes("bg-blue-600")
                 ui.button(translate_string("Bottom"), on_click=lambda: self.scroll("bottom")).classes("bg-blue-600")
@@ -6821,11 +6860,44 @@ class NiceGuiTextView:
         A dialog whose page has gone away raises rather than answering.  That is one more
         dialog already gone, not an error to report.
         """
+        # Its question to the AI model goes with it.  Deleting a dialog raises no "hide", so
+        # the dialog's own dispose() is not there to cancel it.
+        self._cancel_find_ask()
         dialog = self._find_dialog
         self._find_dialog = None
         if dialog is not None:
             with contextlib.suppress(Exception):
                 dialog.delete()
+
+    def _cancel_find_ask(self) -> None:
+        """Cancel the question the Find dialog has out with an AI model, if it has one.
+
+        For when an answer would have nowhere to go or nobody waiting for it: the dialog
+        closed or replaced, or the question cleared with its 'X'.  mapask asks every provider
+        through its async client, so cancelling the task drops the request where it waits
+        instead of letting it run on to a reply nobody will read.
+        """
+        task = self._find_ask
+        self._find_ask = None
+        if task is not None and not task.done():
+            task.cancel()
+
+    async def export_event(self, what: str, fmt: str) -> None:
+        """Save the Map or the Diagram as Markdown, JSON or PDF, and say where it went.
+
+        Run off the event loop: a PDF of a large Map takes a moment, most of it spent the
+        first time on looking through the system's fonts for one to embed (see
+        mapfonts.embeddable_font), and the window should not stop answering meanwhile.
+        """
+        try:
+            path = await run.io_bound(mapexport.export_view, what, fmt)
+        except mapexport.ExportError as error:
+            ui.notify(str(error), type="warning", position="top")
+            return
+        except OSError as error:
+            ui.notify(f"{translate_string('The export could not be saved:')} {error}", type="negative", position="top")
+            return
+        ui.notify(f"{translate_string('Exported to')} {path}", type="positive", position="top")
 
     def find_event(self) -> None:
         """Open this view's Find dialog: ask the configuration a question, not the page.
@@ -6930,7 +7002,13 @@ class NiceGuiTextView:
             with ui.tabs().classes("w-full") as tabs:
                 find_tab = ui.tab(translate_string("Find"))
                 replace_tab = ui.tab(translate_string("Replace"))
-            with ui.tab_panels(tabs, value=find_tab).classes("w-full"):
+            # shrink-0 is what lets this dialog scroll.  Quasar caps a dialog's card at the
+            # window's height and scrolls it, but the card is a flex column and the tab panels
+            # hide their own overflow -- so instead of overflowing the card they were squeezed
+            # to fit inside it, and everything below the cut (the rest of the results, the
+            # Find and Save buttons) was clipped off with no scrollbar anywhere.  Worst once
+            # docked, where the narrower card wraps the pulldowns onto more rows.
+            with ui.tab_panels(tabs, value=find_tab).classes("w-full shrink-0"):
                 find_panel = ui.tab_panel(find_tab)
                 replace_panel = ui.tab_panel(replace_tab)
 
@@ -6943,6 +7021,30 @@ class NiceGuiTextView:
                         "many places carry it.",
                     ),
                 ).classes("text-xs text-gray-500 italic mb-3")
+
+                # A question in plain words, for someone who knows what they are looking for
+                # but not which of the boxes below says it.  The AI model selected on the
+                # Analyze tab only fills those boxes in (see mapask): the answer is still the
+                # query they hold, run exactly as if it had been picked by hand, and left in
+                # them to be read and changed.
+                with ui.row().classes("w-full items-center gap-2 mb-2"):
+                    question_input = (
+                        ui.input(
+                            label=translate_string("Ask in plain words"),
+                            placeholder=translate_string("e.g. every Profile that fires on wifi at home"),
+                        )
+                        .classes("flex-1")
+                        .props("dense clearable")
+                    )
+                    ask_button = ui.button(translate_string("Ask AI")).classes("bg-blue-600 text-white px-4")
+                # What the model offered that could not be used, or said it could not express.
+                # Kept on screen beside the query rather than in a notification, because it
+                # qualifies the answer below for as long as that answer is up.
+                ask_notes = ui.label("").classes(
+                    "text-xs text-orange-600 dark:text-orange-400 border-l-4 border-orange-400 pl-2 py-1 mb-1 "
+                    "whitespace-pre-line",
+                )
+                ask_notes.set_visibility(False)
 
                 pickers = {}
                 with ui.row().classes("w-full items-center gap-2"):
@@ -7116,6 +7218,111 @@ class NiceGuiTextView:
                     else:
                         ui.notify(translate_string("Find results could not be saved."), type="negative")
 
+                def fill(query: mapfind.Query) -> None:
+                    """Put a query into the boxes it would have been picked from."""
+                    pickers[mapfind.ACTION].set_value(query.action or None)
+                    pickers[mapfind.TRIGGER].set_value(query.trigger or None)
+                    pickers[mapfind.APP].set_value(query.app or None)
+                    pickers[mapfind.SCENE_FACET].set_value(query.scene or None)
+                    text_input.set_value(query.text)
+                    project_select.set_value(query.project)
+
+                async def ask() -> None:
+                    """The Ask AI button: have the selected model write the query, then run it.
+
+                    Every value in the reply has been checked against these pulldowns' own
+                    entries before any of it is used (mapask.parse_reply), so what goes into
+                    the boxes is always something they offer.  What the model offered that
+                    this configuration does not use, or said it could not express, is shown
+                    above them: a half-translated question answers with fewer objects than
+                    were asked for, and must not look like a right answer.
+                    """
+                    question = (question_input.value or "").strip()
+                    if not question:
+                        ui.notify(translate_string("Type a question first."), type="warning")
+                        return
+                    gui = self.master_gui
+                    try:
+                        settings = mapask.model_settings(getattr(gui, "ai_name", ""), getattr(gui, "ai_model", ""))
+                    except mapask.AskError as error:
+                        ui.notify(str(error), type="warning", multi_line=True)
+                        return
+
+                    ask_notes.set_visibility(False)
+                    # One question at a time: pressing Ask again replaces the one still out.
+                    self._cancel_find_ask()
+                    # A task of its own rather than a plain await, so that closing the dialog
+                    # or clearing the question can cancel it (_cancel_find_ask).  Every
+                    # provider is asked through its async client, so cancelling drops the
+                    # connection rather than leaving a request running for a reply nobody
+                    # is going to read.
+                    task = asyncio.create_task(mapask.translate(question, index, settings))
+                    self._find_ask = task
+                    ask_button.props(add="loading")
+                    try:
+                        translation = await task
+                    except asyncio.CancelledError:
+                        # This handler being cancelled itself is not ours to swallow.
+                        current = asyncio.current_task()
+                        if current is not None and current.cancelling():
+                            raise
+                        # Cleared, or replaced by a newer question.  A dialog that was closed
+                        # has nowhere left to say so, and needs no telling.
+                        if not getattr(dialog, "is_deleted", False):
+                            ui.notify(translate_string("The question to the AI model was cancelled."), type="info")
+                        return
+                    except mapask.AskError as error:
+                        ui.notify(str(error), type="negative", multi_line=True)
+                        return
+                    finally:
+                        if self._find_ask is task:
+                            self._find_ask = None
+                        if not getattr(dialog, "is_deleted", False):
+                            ask_button.props(remove="loading")
+                    # Closed while the model was thinking: there is nothing left to fill in.
+                    if getattr(dialog, "is_deleted", False):
+                        return
+
+                    notes = []
+                    if translation.unknown:
+                        notes.append(
+                            f"{translate_string('Left out, as this configuration does not use it')}: "
+                            f"{', '.join(translation.unknown)}",
+                        )
+                    if translation.surplus:
+                        notes.append(
+                            f"{translate_string('Left out, as each box holds one value')}: "
+                            f"{', '.join(translation.surplus)}",
+                        )
+                    if translation.unexpressed:
+                        notes.append(f"{translate_string('Not expressible as a search')}: {translation.unexpressed}")
+                    ask_notes.set_text("\n".join(notes))
+                    ask_notes.set_visibility(bool(notes))
+
+                    if translation.query.is_empty:
+                        # Not handed to show(), whose warning is about boxes left empty by hand.
+                        # The previous answer goes too: left up, it would read as this one's.
+                        produced.update(query=None, hits=[], total=0)
+                        summary.set_text("")
+                        results_area.clear()
+                        ui.notify(
+                            translate_string(
+                                "The question could not be turned into a search.  Try naming an action, "
+                                "a trigger, an app or a Scene.",
+                            ),
+                            type="warning",
+                            multi_line=True,
+                        )
+                        return
+                    fill(translation.query)
+                    show(translation.query)
+
+                ask_button.on_click(ask)
+                question_input.on("keydown.enter", ask)
+                # The box's own 'X' takes the question back, and a question taken back is not
+                # one to keep the model working on.
+                question_input.on("clear", self._cancel_find_ask)
+
                 with ui.row().classes("w-full justify-end mt-4 gap-2"):
                     ui.button(translate_string("Find"), on_click=run).classes("bg-blue-600 text-white px-4")
                     ui.button(translate_string("Save Results"), on_click=save).classes(
@@ -7140,9 +7347,12 @@ class NiceGuiTextView:
             # itself never gets here at all -- it is still open, and the view's handle on
             # it is what the next press disposes of.
             def dispose() -> None:
-                """Forget this dialog and take it out of the page."""
+                """Forget this dialog and take it out of the page, and its question to the AI with it."""
                 if self._find_dialog is dialog:
                     self._find_dialog = None
+                    # Only this dialog's own: a question still out belongs to the dialog the
+                    # view holds, and one that has already been replaced was cancelled then.
+                    self._cancel_find_ask()
                 dialog.delete()
 
             dialog.on("hide", dispose)
@@ -7157,12 +7367,7 @@ class NiceGuiTextView:
 
             previous = self._find_query
             if previous is not None:
-                pickers[mapfind.ACTION].set_value(previous.action or None)
-                pickers[mapfind.TRIGGER].set_value(previous.trigger or None)
-                pickers[mapfind.APP].set_value(previous.app or None)
-                pickers[mapfind.SCENE_FACET].set_value(previous.scene or None)
-                text_input.set_value(previous.text)
-                project_select.set_value(previous.project)
+                fill(previous)
                 show(previous)
 
         # Held on the view for as long as it is on screen: this one may outlive the click

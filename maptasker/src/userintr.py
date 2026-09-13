@@ -4,7 +4,6 @@ import asyncio
 import contextlib
 import html
 import os
-import pickle
 import time
 import webbrowser
 from collections.abc import Callable, Coroutine
@@ -30,6 +29,7 @@ from maptasker.src import (
     timeline,
 )
 from maptasker.src.aiutils import get_api_key
+from maptasker.src.apikeys import fallback_file, save_api_keys
 from maptasker.src.bildhtml import build_html
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
@@ -172,7 +172,6 @@ from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     CHANGELOG_URL,
     DIAGRAM_PROFILES_PER_LINE,
-    KEYFILE,
     NOTIFY_TIMEOUT_DEFAULT,
     POPOUT_WINDOW_PREFIX,
     TAB_NAMES,
@@ -4176,7 +4175,10 @@ class MapTaskerEventHandlers:
 
         task_name = field_refs["name"].value.strip()
 
-        def _import() -> None:
+        async def _import() -> None:
+            # Every request to the device below blocks for seconds, so each one goes to a
+            # worker thread; the notifications and the dialogs stay here, on the event loop.
+            #
             # The import writes /Tasker/tasks/<name>.tsk.xml and imports THAT, so it
             # clobbers whatever is at that path exactly as 'Save As File' does -- and gets
             # the same safety copy of it, from the same single read of the path.  A copy that
@@ -4189,7 +4191,8 @@ class MapTaskerEventHandlers:
                     type="warning",
                 )
 
-            return_code, result, auth_key = taskedit.save_task_to_android(
+            return_code, result, auth_key = await run.io_bound(
+                taskedit.save_task_to_android,
                 edited_task,
                 ip_address,
                 ip_port,
@@ -4221,10 +4224,11 @@ class MapTaskerEventHandlers:
             # check fails, retry the import once more from the file now sitting in
             # /Tasker/tasks (see taskedit.save_task_to_android_directory's docstring for why
             # a retry, not a different endpoint, is the only fallback that can help).
-            if taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key):
+            if await run.io_bound(taskedit.verify_task_on_android, ip_address, ip_port, task_name, auth_key):
                 ui.notify(translate_string("Task Uploaded to Tasker") + landed, type="positive")
             else:
-                fallback_code, fallback_result = taskedit.save_task_to_android_directory(
+                fallback_code, fallback_result = await run.io_bound(
+                    taskedit.save_task_to_android_directory,
                     edited_task,
                     ip_address,
                     ip_port,
@@ -4241,7 +4245,8 @@ class MapTaskerEventHandlers:
                     # is one tap out of it, on a file that is already there.  This is the
                     # LAST resort, not the route -- api/import needs no tap at all when it
                     # works, which for a Task it usually does.
-                    offer_code, offer_result = deviceinv.offer_to_tasker(
+                    offer_code, offer_result = await run.io_bound(
+                        deviceinv.offer_to_tasker,
                         taskedit.render_standalone_task_xml(edited_task).encode("utf-8"),
                         task_name,
                         [task_name],
@@ -4271,7 +4276,7 @@ class MapTaskerEventHandlers:
         # they pressed -- see save_task_to_android_file_event's identical check, including
         # why the content comes back with the answer.
         device_path = taskedit.android_task_path(task_name)
-        exists, already_there = read_android_file(ip_address, ip_port, device_path)
+        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
@@ -4286,7 +4291,7 @@ class MapTaskerEventHandlers:
                 **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
-        _import()
+        await _import()
 
     def _apply_task_for_android(
         self,
@@ -4396,7 +4401,7 @@ class MapTaskerEventHandlers:
 
         task_name = field_refs["name"].value.strip()
 
-        def _upload() -> None:
+        async def _upload() -> None:
             # Keep whatever is already at that path before /upload writes over it -- the
             # device keeps no versions and has no undo, so this is the only copy of it there
             # will ever be.  The bytes come from the existence check above rather than from a
@@ -4410,7 +4415,14 @@ class MapTaskerEventHandlers:
                     f"Could not copy the file already on the device first: {safety_copy}",
                     type="warning",
                 )
-            return_code, result = taskedit.save_task_to_android_file(edited_task, ip_address, ip_port, task_name)
+            # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
+            return_code, result = await run.io_bound(
+                taskedit.save_task_to_android_file,
+                edited_task,
+                ip_address,
+                ip_port,
+                task_name,
+            )
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
@@ -4432,7 +4444,7 @@ class MapTaskerEventHandlers:
         # maputil2.read_android_file for why two reads was worse than one on the device as
         # well as here.  /upload clobbers silently, which is why this is asked at all.
         device_path = taskedit.android_task_path(task_name)
-        exists, already_there = read_android_file(ip_address, ip_port, device_path)
+        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
@@ -4447,7 +4459,7 @@ class MapTaskerEventHandlers:
                 **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
-        _upload()
+        await _upload()
 
     def open_add_project_dialog_event(self) -> None:
         """Opens the Add Project dialog for a brand-new Project. Unlike Add
@@ -5253,7 +5265,7 @@ class MapTaskerEventHandlers:
         # prompt of its own -- see guiutils.notify_watch_android_device.
         notify_watch_android_device()
 
-        def _upload() -> None:
+        async def _upload() -> None:
             # Keep whatever is already at that path before /upload writes over it.  The
             # device keeps no versions and has no undo, so this is the only copy of it there
             # will ever be; it is kept here rather than left beside the original -- see
@@ -5269,7 +5281,13 @@ class MapTaskerEventHandlers:
                     f"Could not copy the file already on the device first: {safety_copy}",
                     type="warning",
                 )
-            return_code, result = sceneedit.save_scene_to_android(edited_scene.scene_name, ip_address, ip_port)
+            # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
+            return_code, result = await run.io_bound(
+                sceneedit.save_scene_to_android,
+                edited_scene.scene_name,
+                ip_address,
+                ip_port,
+            )
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
@@ -5290,7 +5308,7 @@ class MapTaskerEventHandlers:
         # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
         # risking a silent clobber.
         device_path = sceneedit.android_scene_path(edited_scene.scene_name)
-        exists, already_there = read_android_file(ip_address, ip_port, device_path)
+        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
@@ -5305,7 +5323,7 @@ class MapTaskerEventHandlers:
                 **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
-        _upload()
+        await _upload()
 
     def delete_scene_event(self, edited_scene: sceneedit.EditableScene, dialog: ui.dialog) -> None:
         """Opens the Delete Scene confirmation dialog, nested inside Edit Scene --
@@ -5835,7 +5853,7 @@ class MapTaskerEventHandlers:
 
         profile_name = field_refs["name"].value.strip()
 
-        def _upload() -> None:
+        async def _upload() -> None:
             # Keep whatever is already at that path before /upload writes over it.  The
             # device keeps no versions and has no undo, so this is the only copy of it there
             # will ever be; it is kept here rather than left beside the original -- see
@@ -5851,7 +5869,14 @@ class MapTaskerEventHandlers:
                     f"Could not copy the file already on the device first: {safety_copy}",
                     type="warning",
                 )
-            return_code, result = profedit.save_profile_to_android(edited_profile, ip_address, ip_port, profile_name)
+            # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
+            return_code, result = await run.io_bound(
+                profedit.save_profile_to_android,
+                edited_profile,
+                ip_address,
+                ip_port,
+                profile_name,
+            )
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
@@ -5871,7 +5896,7 @@ class MapTaskerEventHandlers:
         # See save_project_to_android_event's identical check -- /upload clobbers silently,
         # and one read answers both of the questions the write needs answered.
         device_path = profedit.android_profile_path(profile_name)
-        exists, already_there = read_android_file(ip_address, ip_port, device_path)
+        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
@@ -5886,7 +5911,7 @@ class MapTaskerEventHandlers:
                 **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
-        _upload()
+        await _upload()
 
     def _apply_profile_for_android(
         self,
@@ -6161,7 +6186,7 @@ class MapTaskerEventHandlers:
         # asks, and they are asked it in the same words whichever button they pressed -- see
         # save_profile_to_android_event's identical check.
         _filename, device_read_path, device_path = route.staged_file_paths(object_name)
-        exists, already_there = read_android_file(ip_address, ip_port, device_read_path)
+        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_read_path)
 
         async def _offer() -> None:
             """Everything the offer does once the overwrite question has been answered."""
@@ -6553,7 +6578,7 @@ class MapTaskerEventHandlers:
         # prompt of its own -- see guiutils.notify_watch_android_device.
         notify_watch_android_device()
 
-        def _upload() -> None:
+        async def _upload() -> None:
             # Keep whatever is already at that path before /upload writes over it.  The
             # device keeps no versions and has no undo, so this is the only copy of it there
             # will ever be; it is kept here rather than left beside the original -- see
@@ -6569,7 +6594,13 @@ class MapTaskerEventHandlers:
                     f"Could not copy the file already on the device first: {safety_copy}",
                     type="warning",
                 )
-            return_code, result = projedit.save_project_to_android(edited_project.project_name, ip_address, ip_port)
+            # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
+            return_code, result = await run.io_bound(
+                projedit.save_project_to_android,
+                edited_project.project_name,
+                ip_address,
+                ip_port,
+            )
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
@@ -6590,7 +6621,7 @@ class MapTaskerEventHandlers:
         # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
         # risking a silent clobber.
         device_path = projedit.android_project_path(edited_project.project_name)
-        exists, already_there = read_android_file(ip_address, ip_port, device_path)
+        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
@@ -6605,7 +6636,7 @@ class MapTaskerEventHandlers:
                 **_overwrite_prompt_options(exists, tasker_lines),
             )
             return
-        _upload()
+        await _upload()
 
     def open_add_task_dialog_event(self) -> None:
         """Opens the Add Task dialog for a brand-new Task, attached to the
@@ -7048,7 +7079,7 @@ class MapTaskerEventHandlers:
     def ai_apikey_event(self) -> None:
         """
         Prompts the user to enter their API key, or leaves it as is if it already exists.
-        If the user enters a new API key, it is saved to a file.
+        If the user enters a new API key, it is saved (see apikeys).
         """
         the_view = self.gui
         # Get our key, if it exists.
@@ -8098,13 +8129,9 @@ class MapTaskerEventHandlers:
                     f"{clear.replace('_key', '').title()} {text}",
                     "LimeGreen",
                 )
-
-                # Update state tracking if the cleared key belonged to the active model
-                PrimeItems.ai[clear] = ""
-                set_ai_key(gui, gui.ai_model)
-
-                # Force dynamic button styling update
-                update_analysis_button_color(gui)
+                # Only the entry is cleared.  The key itself goes when 'Ok' saves the
+                # dialog -- a blank entry is a change like any other -- and stays if
+                # 'Cancel' backs out, as the dialog's help says.
             return
 
         # 3. GET THE RETURNED API KEYS
@@ -8147,10 +8174,20 @@ class MapTaskerEventHandlers:
                     "LimeGreen",
                 )
 
-        # 5. Save the keys to disk if they have modified state
+        # 5. Save the keys if they have modified state
         if apikey_changed:
-            with open(KEYFILE, "wb") as key_file:
-                pickle.dump(PrimeItems.ai, key_file)
+            try:
+                in_password_store = save_api_keys(PrimeItems.ai)
+            except OSError as error:
+                text = translate_string("The API keys could not be saved:")
+                _display_message_box(f"{text} {error}", "Red")
+                ui.notify(f"{text} {error}", type="negative")
+            else:
+                if not in_password_store:
+                    text = translate_string(
+                        "No password store was available, so the API keys were saved to a file only you can read:"
+                    )
+                    _display_message_box(f"{text} {fallback_file()}", "Orange")
 
             # Refresh keys on the GUI instance and update context-conditional state flags
             set_ai_key(gui, gui.ai_model)

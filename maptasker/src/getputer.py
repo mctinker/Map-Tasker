@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import contextlib
 import os
-import pickle
 import tempfile
 import tomllib
 from datetime import timedelta
@@ -32,9 +31,8 @@ from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import (
     ARGUMENT_NAMES,
     ARGUMENTS_FILE,
+    LEGACY_SYSTEM_SETTINGS_FILE,
     NOW_TIME,
-    SYSTEM_ARGUMENTS,
-    SYSTEM_SETTINGS_FILE,
     TRANSIENT_ARGUMENTS,
     logger,
 )
@@ -155,9 +153,8 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
     except AttributeError:
         program_arguments["file"] = ""
 
-    # Separate user from system settings
+    # The settings to save
     user_args = {}
-    sys_args = {}
     project_translated = translate_string("Project:")
     profile_translated = translate_string("Profile:")
     task_translated = translate_string("Task:")
@@ -184,10 +181,7 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
                     program_arguments[argument] = program_arguments[argument].replace(f"{task_translated} ", "")
 
         # Okay, now capture the argument.
-        if argument in SYSTEM_ARGUMENTS:
-            sys_args[argument] = program_arguments[argument]
-        else:
-            user_args[argument] = program_arguments[argument]
+        user_args[argument] = program_arguments[argument]
 
     # Save dictionaries.  The guidance goes in the same write as everything else: two
     # separate writes is exactly what used to leave a guidance-only file on disk for any
@@ -208,9 +202,10 @@ def save_arguments(program_arguments: dict, colors_to_use: dict, new_file: str) 
         # partial one -- so the user loses this save, not everything saved before it.
         console.error(f"getputer tomli failure: {e}...one or more settings is 'None'!")
 
-    # Write out the system program arguments (e.g. window positions) in PICKLE format.
-    logger.info("Saving system args file...")
-    write_atomically(SYSTEM_SETTINGS_FILE, lambda settings_file: pickle.dump(sys_args, settings_file))
+    # Older versions also pickled a second settings file.  It never held anything, and loading
+    # a pickle runs whatever code has been put in it, so a leftover one is deleted unopened.
+    with contextlib.suppress(OSError):
+        os.remove(LEGACY_SYSTEM_SETTINGS_FILE)
 
 
 # Read the TOML file and return the settings.
@@ -294,27 +289,12 @@ def read_arguments(
     Returns:
         None: This function does not return anything.
     """
-    sys_file = f"{Path.cwd()}{PrimeItems.slash}{SYSTEM_SETTINGS_FILE}"
-
     # Read the user settings TOML file
     if os.path.isfile(new_file):
         program_arguments, colors_to_use = read_toml_file(new_file)
     else:
         program_arguments = PrimeItems.program_arguments
         colors_to_use = set_color_mode(program_arguments["appearance_mode"])
-
-    # Read the window positions from the PICKLE file
-    if os.path.isfile(sys_file):
-        try:
-            with open(sys_file, "rb") as sys_settings_file:
-                sys_args = pickle.load(sys_settings_file)  # noqa: S301
-        except (pickle.UnpicklingError, EOFError, AttributeError, ImportError, IndexError) as e:
-            # Only window positions and the like live here, so a damaged file is no reason
-            # to refuse to start -- carry on with the defaults already in program_arguments.
-            logger.error(f"Could not read {sys_file}: {e}.  Using default window positions.")
-        else:
-            for key, value in sys_args.items():
-                program_arguments[key] = value
 
     # A run always starts out not doing any of the transient things, whatever a settings
     # file written by an older version (or edited by hand) claims.
