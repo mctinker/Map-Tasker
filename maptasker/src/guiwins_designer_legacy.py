@@ -258,7 +258,7 @@ def _legacy_canvas_size(
     Shared by the designer and the Preview so the two never disagree about how big the Scene
     is.  The fields are only present in a dialog that built them, so a missing widget means
     "use the Scene's own value", not an error -- the same contract
-    userintr._apply_scene_field_values relies on.
+    userintr_editors._apply_scene_field_values relies on.
     """
     width_key, height_key = ("widthLand", "heightLand") if landscape else ("widthPort", "heightPort")
     typed: dict[str, int] = {}

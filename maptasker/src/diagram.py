@@ -61,7 +61,7 @@ from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Target
 # from maptasker.src.guiwins import configure_progress_bar
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import find_all_positions
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import DIAGRAM_ATTRIBUTES, PrimeItems, reset_attributes
 from maptasker.src.sysconst import (
     DIAGRAM_FILE,
     DIAGRAM_PROFILES_PER_LINE,
@@ -2133,17 +2133,9 @@ def network_map(network: dict) -> None:
     # Start with a ruler line
     PrimeItems.output_lines.add_line_to_output(1, "<hr>", FormatLine.dont_format_line)
 
-    PrimeItems.netmap_output = []
-    PrimeItems.called_task_tracker = {}
     # Emptied here rather than where they are first written, so that a second run cannot
     # leave the previous diagram's objects standing in this one's line numbers.
-    PrimeItems.diagram_object_seeds = {}
-    PrimeItems.diagram_object_targets = {}
-    PrimeItems.diagram_object_placements = []
-    PrimeItems.diagram_anchors = {}
-    PrimeItems.diagram_call_edges = {}
-    PrimeItems.diagram_connector_calls = {}
-    PrimeItems.diagram_model = {}
+    reset_attributes(*DIAGRAM_ATTRIBUTES)
     _pending_boxes.clear()
     _pending_tasks.clear()
 

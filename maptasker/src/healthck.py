@@ -12,7 +12,7 @@
 # file is loaded (no Map run required) and they are testable without standing up a GUI. #
 #                                                                                      #
 # The report is plain text.  The caller writes it to a file as-is and escapes a COPY of #
-# it for display -- see userintr.health_check_event, which explains why.                #
+# it for display -- see userintr_reports.health_check_event, which explains why.       #
 #                                                                                      #
 from __future__ import annotations
 

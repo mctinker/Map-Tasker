@@ -933,7 +933,7 @@ def _build_task_action_editor(
     WHAT LANDS WHEN.  Adding, copying, moving, deleting, enabling and the If condition are
     written straight onto edited_task -- the working copy -- as they are done.  Argument
     values and labels are NOT: they sit in the widgets recorded in field_refs until
-    something reads them back (userintr._task_arg_values) and applies them.  That split is
+    something reads them back (userintr_editors._task_arg_values) and applies them.  That split is
     the Edit Task dialog's, and every caller inherits it, so each needs its own Ok/Apply.
 
     field_refs gains one entry per editable argument and label, keyed by taskedit.arg_key/
@@ -1389,7 +1389,7 @@ def build_add_task_dialog(
 
     target_project_name is the single Project the top-level "Add Task" button
     requires be selected before this dialog opens (see
-    userintr.open_add_task_dialog_event) -- stored in field_refs (not a widget;
+    userintr_editors.open_add_task_dialog_event) -- stored in field_refs (not a widget;
     there's nothing here for the user to change) purely so _finish_new_task can
     read it back and add the new Task's id to that Project's <tids> once it's
     registered. Left "" for open_add_task_for_profile_link_event's nested

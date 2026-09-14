@@ -1851,7 +1851,7 @@ def test_the_staged_path_is_not_read_before_it_is_written(
     The staged file is the user's own now -- exactly where 'Save As File' writes -- so
     something does have to ask what is already there and copy it.  That is the GUI's job,
     from the same read it uses to put the overwrite prompt up (see
-    userintr._offer_into_tasker).  Reading it here as well would be a second GET of a path
+    userintr_android._offer_into_tasker).  Reading it here as well would be a second GET of a path
     just read, and the Tasker HTTP Server Example flashes 'File doesn't exist' on the phone
     for every miss -- two flashes for one import.
     """

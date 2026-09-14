@@ -1648,7 +1648,7 @@ def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, 
 # The return code both Profile routes use for "Tasker already has one of these".  Its own
 # code rather than the generic 8 because it is the one failure a caller can do something
 # about without the user retyping anything -- the GUI turns it into a confirm-and-retry (see
-# userintr.import_profile_into_tasker_event) -- and matching on the message text to find it
+# userintr_android.import_profile_into_tasker_event) -- and matching on the message text to find it
 # would break the first time the wording is improved.  6 and 9 are already spoken for
 # (maputil2's 'not there' and 'key rejected'); 7 was free.
 DUPLICATE_PROFILE_CODE = 7
@@ -1896,7 +1896,7 @@ def import_profile_to_device(  # noqa: PLR0911
 #                   acknowledged_risk gate on this one.
 #
 # So this is the one to reach for, and the one the GUI is built on -- see
-# userintr.import_profile_into_tasker_event and import_project_into_tasker_event.
+# userintr_android.import_profile_into_tasker_event and import_project_into_tasker_event.
 # SEND_INTENT_* stays as the fallback for a device where implicit resolution does not land
 # on Tasker, not as a second candidate still being chosen between.
 #
@@ -2255,7 +2255,7 @@ def _build_offer_routes(
 
     ONLY A PROFILE AND A PROJECT, which is not an oversight: a Scene cannot be handed to
     Tasker by intent at all (measured four ways -- see the section comment above), so it
-    does not go through here.  userintr.import_scene_into_tasker_event uploads it under its
+    does not go through here.  userintr_android.import_scene_into_tasker_event uploads it under its
     own name and opens Tasker instead.
 
     THE STAGED FILE CARRIES THE OBJECT'S OWN NAME, and it did not used to.  It was one fixed
@@ -2561,7 +2561,7 @@ def import_is_confirmable(
     away -- Tasker replaces in that case, and a replacement leaves the name, the count and
     the enabled state exactly as they were.  So a caller has to know which case it is in
     before it offers, and report the two differently rather than claim a success it cannot
-    see (see userintr.import_profile_into_tasker_event).
+    see (see userintr_android.import_profile_into_tasker_event).
 
     An empty list is False, not True: a Project that owns no Profiles gives nothing to ask
     about, and 'no questions asked' must not read as 'confirmed'.

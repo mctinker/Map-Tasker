@@ -160,7 +160,7 @@ def _build_profile_editor_body(
                         # Registered under a fixed key (not cleared/rebuilt like the cond*
                         # keys) so Save/Ok/Save To Android can link in whatever's currently
                         # picked here even if the user never clicked "Link" separately --
-                        # see userintr._link_pending_task_pickers.
+                        # see userintr_editors._link_pending_task_pickers.
                         field_refs[f"{link_type.lower()}_task_picker"] = picker
                         ui.button(
                             translate_string("Link"),
@@ -558,7 +558,7 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
         # Add/Delete Condition, Link/Unlink Task, the Enabled toggle and a Rename all land on
         # the working copy's element as they happen; every condition's own fields wait in
         # field_refs until a save reads them, as does whatever is sitting picked but not yet
-        # linked in an Entry/Exit Task picker (see userintr._link_pending_task_pickers) --
+        # linked in an Entry/Exit Task picker (see userintr_editors._link_pending_task_pickers) --
         # which is a pending change too, since a save would apply it.  See guiwins.editor_state.
         pending_changes = PendingChangesBanner()
         pending_changes.watch(dialog, lambda: editor_state(edited_profile.profile_element, field_refs))
@@ -772,7 +772,7 @@ def build_add_profile_dialog(
 
     target_project_name is the single Project the top-level "Add Profile"
     button requires be selected before this dialog opens (see
-    userintr.open_add_profile_dialog_event) -- stored in field_refs (not a
+    userintr_editors.open_add_profile_dialog_event) -- stored in field_refs (not a
     widget; there's nothing here for the user to change) purely so
     _validate_and_apply_new_profile/save_profile_to_android_event can read it
     back and attach the new Profile to that Project (see

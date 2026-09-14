@@ -24,7 +24,7 @@ from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getbakup import get_backup_file
 from maptasker.src.maputil2 import log_startup_values, translate_string
 from maptasker.src.maputils import exit_program
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, clear_error
 from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import (
     COUNTER_FILE,
@@ -131,8 +131,7 @@ def open_and_get_backup_xml_file() -> dict:
     # "if PrimeItems.error_code > 0: return PrimeItems.error_code" check would otherwise
     # keep rejecting every subsequent load (even a brand new, valid file the user just
     # picked via "Get Local XML File") with that stale error, forever.
-    PrimeItems.error_code = 0
-    PrimeItems.error_msg = ""
+    clear_error()
 
     # Get current directory
     dir_path = Path.cwd()

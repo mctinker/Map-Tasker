@@ -270,7 +270,9 @@ max-complexity = 20
 'maptasker/src/taskedit.py' = ['ANN001', 'ARG001', 'SIM108', 'TC003']
 'maptasker/src/taskerd.py' = ['PLC0415', 'RUF100']
 'maptasker/src/taskflag.py' = ['D100']
-'maptasker/src/userintr.py' = ['F841', 'RUF059']
+# userintr.py's two entries moved with the Android handlers they belong to (see the guiwins
+# note above): userintr.py itself no longer violates either rule, so it has no line.
+'maptasker/src/userintr_android.py' = ['F841', 'RUF059']
 
 [tool.ruff.lint.pylint]
 max-args = 15

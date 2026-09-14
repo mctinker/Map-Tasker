@@ -21,7 +21,7 @@ from maptasker.src.kidapp import get_kid_app
 from maptasker.src.mapjump import PROJECT, Target, anchor_html
 from maptasker.src.maputils import find_owning_profile, find_owning_project, find_owning_project_for_scene
 from maptasker.src.nameattr import add_name_attribute
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PROJECT_COUNT_ATTRIBUTES, PrimeItems, reset_attributes
 from maptasker.src.proclist import process_list
 from maptasker.src.profiles import process_profiles
 from maptasker.src.property import get_properties
@@ -508,11 +508,7 @@ def setup_summary_counts() -> int:
         :return: zero
     """
     # Set up Project counters for summary line
-    PrimeItems.task_count_for_profile = 0
-    PrimeItems.scene_count = 0
-    PrimeItems.named_task_count_total = 0
-    PrimeItems.task_count_unnamed = 0
-    PrimeItems.task_count_no_profile = 0
+    reset_attributes(*PROJECT_COUNT_ATTRIBUTES)
     return 0
 
 

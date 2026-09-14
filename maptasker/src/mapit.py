@@ -29,6 +29,8 @@ This is the main coordinator module that kicks-off the other components that lau
 import asyncio
 import sys
 
+from nicegui import app
+
 import maptasker.src.proginit as initialize
 from maptasker.src import console
 from maptasker.src.lineout import LineOut
@@ -103,6 +105,11 @@ def handle_async_exceptions(loop, context) -> None:
     logger.error(err_message)
 
 
+def _install_async_exception_handler() -> None:
+    """Route NiceGUI's background-task crashes to handle_async_exceptions (runs as a startup handler)."""
+    asyncio.get_running_loop().set_exception_handler(handle_async_exceptions)
+
+
 # Set up the major variables used within this program, and set up crash routine
 def initialize_everything() -> tuple[list, list, list]:
     """
@@ -124,9 +131,11 @@ def initialize_everything() -> tuple[list, list, list]:
     # with the upcoming call to start_up.
     PrimeItems.output_lines = LineOut()
 
-    # Attach the handler to the active running Nicegui ui loop
-    loop = asyncio.get_event_loop()
-    loop.set_exception_handler(handle_async_exceptions)
+    # Attach the handler to NiceGUI's event loop once that loop is running.  There is no loop yet
+    # at this point -- ui.run() makes its own later -- and asyncio.get_event_loop() raises
+    # "There is no current event loop" here under Python 3.14 instead of creating a spare one.
+    if not app.is_started:
+        app.on_startup(_install_async_exception_handler)
 
     # Get colors to use, runtime arguments etc...all of our primary items we need
     # throughout

@@ -43,6 +43,7 @@
 #   return
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING, ClassVar
 
 from maptasker.src.sysconst import (
@@ -52,6 +53,7 @@ from maptasker.src.sysconst import (
     LLAMA_MODELS,
     NOW_TIME,
     OPENAI_MODELS,
+    VIEW_LIMIT_DEFAULT,
 )
 
 if TYPE_CHECKING:
@@ -121,9 +123,8 @@ def initial_tasker_root_elements() -> dict:
     Build an empty tasker_root_elements dictionary -- no Tasker objects loaded.
 
     This is the "nothing loaded yet" shape.  taskerd.get_the_xml_data builds the same
-    set of keys with the parsed XML in them, so a key added here needs adding there too;
-    maputils.clear_tasker_data also names a subset of them when emptying the tree
-    in place.
+    set of keys with the parsed XML in them, so a key added here needs adding there too
+    (tests/test_primitem.py checks that the two agree).
 
     Returns:
         dict: the root xml element tables for all Projects/Profiles/Tasks/Scenes.
@@ -225,8 +226,9 @@ class PrimeItems:
     # taskflow.flowchart.  Held here rather than handed to the view because the Task Flow
     # view opens in its own browser window, and a popped-out page is built from a URL and
     # is passed nothing (see rungui.popout_view, which reaches the Diagram's file the same
-    # way).  Emptied wherever the Diagram's own records are, and for the same reason: it
-    # describes a configuration that is about to be replaced.
+    # way).  Emptied by a reset, with the rest of a run's state, because it describes a
+    # configuration that is about to be replaced -- but not when a Diagram is drawn, which
+    # leaves the flowchart as it was (it is not in DIAGRAM_ATTRIBUTES).
     taskflow_rows: ClassVar[list] = []
     tasker_root_elements: ClassVar[dict] = initial_tasker_root_elements()
     # The highest Task/Profile id in the file as it was loaded, set by taskerd.get_the_xml_data.
@@ -242,6 +244,24 @@ class PrimeItems:
     task_count_unnamed = 0
     task_count_no_profile = 0
     named_task_count_total = 0
+    # Scenes in the Project being processed (scenes.py), for that Project's totals line.
+    scene_count = 0
+    # The HTML heading at the top of the Map (frontmtr.py).
+    heading = ""
+    # How many output lines the Map is cut off at (bildhtml.write_out_the_file).  The GUI sets
+    # it from its own view limit before every build.
+    view_limit = VIEW_LIMIT_DEFAULT
+    # The Diagram as it is being drawn: its lines, how often each called Task is drawn, and where
+    # each connector between them starts -- all emptied by diagram.py before it draws.
+    netmap_output: ClassVar[list] = []
+    called_task_tracker: ClassVar[dict] = {}
+    diagram_connector_seeds: ClassVar[list] = []
+    # The finished connectors the Diagram view draws: {connector id: its ranges} (see guiwins).
+    diagram_connectors: ClassVar[dict] = {}
+    # The Tasks already written into the Outline (outline.py), so that each is written once.
+    outline_tasks_mapped: ClassVar[list] = []
+    # True on Windows; set at startup, together with slash (proginit).
+    windows_system = False
     tasker_arg_specs: ClassVar[dict] = {}
     tasker_category_descriptions: ClassVar[dict] = {}
     tasker_event_codes: ClassVar[dict] = {}
@@ -289,71 +309,120 @@ class PrimeItems:
     mygui: ClassVar = None
 
 
+# What a reset leaves alone: the session's own settings and the look-up tables loaded once for
+# it, as opposed to the state of one run over one backup.  Everything else on PrimeItems is
+# per-run, and PrimeItemsReset puts it back to exactly what the class body above says -- so a
+# new attribute is reset unless it is named here.
+SESSION_ATTRIBUTES = frozenset(
+    {
+        "languages",  # the language pulldown's choices
+        "languages_translated",  # ...and their names in the language in use (translator)
+        "language_set",  # whether the GUI has switched language yet
+        "last_run",  # when MapTasker last ran, from the settings file
+        "mygui",  # the running GUI
+        "slash",  # the OS's path separator, set at startup (proginit)
+        "windows_system",  # likewise
+        "tasker_arg_specs",  # Tasker's action argument specs, loaded once (proginit)
+        "tasker_category_descriptions",  # likewise
+        "tasker_event_codes",  # Tasker's event and state codes, fetched once (valcodes)
+        "tasker_state_codes",  # likewise
+        "trace",  # debug tracing, switched on once (guiutil2)
+        "view_limit",  # set by the GUI just before a build, which a reset must not undo
+    },
+)
+
+# The per-run defaults, taken as the class is defined -- before anything has had a chance to
+# change them -- and deep-copied, here and on every reset, because most are dicts and lists a
+# run fills in place: handing the same object out twice would bring the last run's contents
+# back with it.
+_RUN_DEFAULTS = copy.deepcopy(
+    {
+        name: value
+        for name, value in vars(PrimeItems).items()
+        if not name.startswith("__") and name not in SESSION_ATTRIBUTES
+    },
+)
+
+
+# Per-run attributes that are reset together part-way through a session, rather than all at
+# once.  Each group is written down once, here beside the class that declares its members,
+# instead of being spelled out again at every place it is reset.
+#
+# The output of one Map build: thrown away together when a view is built (userintr.view_event)
+# and when a build starts its output again part-way through (lineout.refresh_our_output).
+MAP_OUTPUT_ATTRIBUTES = ("directory_items", "emitted_anchors", "grand_totals", "task_action_warnings")
+# Everything diagram.network_map records about the Diagram it draws, emptied before it starts
+# so that a Diagram cannot inherit the last one's objects -- or, if it fails part-way through,
+# the last one's connectors.
+DIAGRAM_ATTRIBUTES = (
+    "netmap_output",
+    "called_task_tracker",
+    "diagram_object_seeds",
+    "diagram_object_targets",
+    "diagram_object_placements",
+    "diagram_anchors",
+    "diagram_call_edges",
+    "diagram_connector_calls",
+    "diagram_connector_seeds",
+    "diagram_connectors",
+    "diagram_model",
+)
+# The counts behind one Project's summary line (projects.setup_summary_counts).
+PROJECT_COUNT_ATTRIBUTES = (
+    "task_count_for_profile",
+    "scene_count",
+    "named_task_count_total",
+    "task_count_unnamed",
+    "task_count_no_profile",
+)
+# The backup that is loaded: everything taskerd.get_the_xml_data sets as it parses one (the
+# highest object id included), the file it was read from, and the error a failed parse leaves.
+# diffload parses a second backup to compare against and puts all of this back afterwards; a
+# test keeps the group in step with what taskerd sets.
+LOADED_CONFIGURATION_ATTRIBUTES = (
+    "file_to_get",
+    "file_to_use",
+    "xml_tree",
+    "xml_root",
+    "tasker_root_elements",
+    "loaded_highest_object_id",
+    "error_code",
+    "error_msg",
+)
+
+
+def reset_attributes(*names: str) -> None:
+    """
+    Put the named per-run attributes of PrimeItems back to their declared defaults.
+
+    Each gets a fresh copy of the value the class body gives it.
+
+    Args:
+        *names (str): attribute names -- usually one of the groups above.  Nothing resets a
+            session attribute, so naming one raises KeyError.
+    """
+    for name in names:
+        setattr(PrimeItems, name, copy.deepcopy(_RUN_DEFAULTS[name]))
+
+
+def clear_error() -> None:
+    """Forget the error the last load or build recorded: error_code and error_msg."""
+    reset_attributes("error_code", "error_msg")
+
+
 # Reset all values
 class PrimeItemsReset:
-    """Re-initialize all values in PrimeItems class"""
+    """Put every per-run attribute of PrimeItems back to its declared default."""
 
     def __init__(self) -> None:
         """
-        Initialize the PrimeItems class
-        Args:
-            self: The instance of the class
-        Returns:
-            None
-        Initializes all attributes of the PrimeItems class with empty values or dictionaries:
-            - Sets found_named_items flags to False
-            - Initializes grand_totals and directory_items dictionaries
-            - Initializes tasker_root_elements dictionary
-            - Sets other attributes like xml_tree, program_arguments etc to empty values
+        Reset PrimeItems for a new run.
+
+        Every attribute not in SESSION_ATTRIBUTES gets a fresh copy of the value the class body
+        gives it.  The class body is the only list: this used to name each attribute a second
+        time, by hand, and that copy had drifted from it.
         """
-        PrimeItems.found_named_items = initial_found_named_items()
-        PrimeItems.grand_totals = initial_grand_totals()
-        PrimeItems.directory_items = initial_directory_items()
-        PrimeItems.emitted_anchors = set()
-        PrimeItems.diagram_anchors = {}
-        PrimeItems.diagram_object_seeds = {}
-        PrimeItems.diagram_object_targets = {}
-        PrimeItems.diagram_object_placements = []
-        PrimeItems.diagram_call_edges = {}
-        PrimeItems.diagram_connector_calls = {}
-        PrimeItems.diagram_model = {}
-        PrimeItems.taskflow_rows = []
-        PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-        PrimeItems.loaded_highest_object_id = 0
-        PrimeItems.directories = []
-        PrimeItems.xml_tree = None
-        PrimeItems.xml_root = None
-        PrimeItems.program_arguments = {}
-        PrimeItems.colors_to_use = {}
-        PrimeItems.output_lines = None
-        PrimeItems.file_to_get = ""
-        PrimeItems.task_count_for_profile = 0
-        PrimeItems.displaying_named_tasks_not_in_profile = False
-        PrimeItems.mono_fonts = {}
-        PrimeItems.directories = []
-        PrimeItems.variables = {}
-        PrimeItems.current_project = ""
-        PrimeItems.error_code = 0
-        PrimeItems.error_msg = ""
-        PrimeItems.view_limit_msg = ""
-        PrimeItems.diagram_limit_msg = ""
-        PrimeItems.ai = {
-            "do_ai": False,
-            "ai_name": "",
-            "model": "",
-            "output_lines": [],
-            "api_key": "",
-            "openai_key": "",
-            "anthropic_key": "",
-            "deepseek_key": "",
-            "gemini_key": "",
-            "openai_models": OPENAI_MODELS,
-            "anthropic_models": ANTHROPIC_MODELS,
-            "deepseek_models": DEEPSEEK_MODELS,
-            "gemini_models": GEMINI_MODELS,
-            "llama_models": LLAMA_MODELS,
-        }
-        PrimeItems.task_action_warnings = {}
+        reset_attributes(*_RUN_DEFAULTS)
 
 
 # All three helpers below take the settings to read as an optional argument: pass a
@@ -431,3 +500,18 @@ def is_single_item_found(config: RunConfig | None = None) -> bool:
         settings.get(name_key) and PrimeItems.found_named_items.get(found_key)
         for name_key, found_key, _ in SINGLE_ITEM_SELECTORS
     )
+
+
+# Clear the single named item being asked for, or all of them but one.
+def clear_single_items(keep: str = "") -> None:
+    """
+    Clear the single Project/Profile/Task/Scene selection: each name asked for and its found-flag.
+
+    Args:
+        keep (str): the program_arguments key of one selection to leave as it is (for
+            example "single_task_name"), or "" to clear them all.
+    """
+    for name_key, found_key, _ in SINGLE_ITEM_SELECTORS:
+        if name_key != keep:
+            PrimeItems.program_arguments[name_key] = ""
+            PrimeItems.found_named_items[found_key] = False

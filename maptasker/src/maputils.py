@@ -36,7 +36,7 @@ from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.getids import get_ids
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.mtexcept import MapTaskerError
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import PrimeItems, clear_single_items
 from maptasker.src.sysconst import HOTLINK_STYLE, FormatLine, logger, logging
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldata import rewrite_xml
@@ -207,17 +207,12 @@ def reset_named_objects() -> None:
     Returns:
         None
     """
-    # Check in name hierarchy: Task then Profile
-    if PrimeItems.program_arguments["single_task_name"]:
-        PrimeItems.program_arguments["single_project_name"] = ""
-        PrimeItems.found_named_items["single_project_found"] = False
-        PrimeItems.program_arguments["single_profile_name"] = ""
-        PrimeItems.found_named_items["single_profile_found"] = False
-    elif PrimeItems.program_arguments["single_profile_name"]:
-        PrimeItems.program_arguments["single_project_name"] = ""
-        PrimeItems.found_named_items["single_project_found"] = False
-        PrimeItems.program_arguments["single_task_name"] = ""
-        PrimeItems.found_named_items["single_task_found"] = False
+    # Check in name hierarchy: Task then Profile.  Whichever was asked for is kept, and every
+    # other selection -- the Project it set among them -- is cleared.
+    for kept in ("single_task_name", "single_profile_name"):
+        if PrimeItems.program_arguments[kept]:
+            clear_single_items(keep=kept)
+            return
 
 
 # Count the number of consecutive occurrences of a substring within a main string.
@@ -374,24 +369,14 @@ def get_value_if_match(
 # Clear all Tasker XML data from memory so we start anew.
 def clear_tasker_data() -> None:
     """
-    Clears all the tasker data stored in the PrimeItems class.
+    Empty every table of the loaded backup's Projects, Profiles, Tasks, Scenes and Services.
 
-    This function clears the tasker data by clearing the following lists:
-    - all_projects: a list of all the projects
-    - all_profiles: a list of all the profiles
-    - all_tasks: a list of all the tasks
-    - all_scenes: a list of all the scenes
-
-    This function does not take any parameters.
-
-    This function does not return anything.
+    Each table in PrimeItems.tasker_root_elements is emptied where it stands, whatever tables
+    there are.  This used to name them one at a time, and named five of the seven: the
+    Profiles by name and the Services went on holding the previous backup's objects.
     """
-    # Get rid of any data we currently have
-    PrimeItems.tasker_root_elements["all_projects"].clear()
-    PrimeItems.tasker_root_elements["all_profiles"].clear()
-    PrimeItems.tasker_root_elements["all_tasks"].clear()
-    PrimeItems.tasker_root_elements["all_tasks_by_name"].clear()
-    PrimeItems.tasker_root_elements["all_scenes"].clear()
+    for table in PrimeItems.tasker_root_elements.values():
+        table.clear()
 
 
 def count_unique_substring(string_list: list, substring: str) -> int:

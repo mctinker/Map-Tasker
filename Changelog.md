@@ -7,13 +7,14 @@ All notable changes to this project will be documented in this file!
 ### Added
 
 - Added: The Find tab of 'Find/Replace' can now take a question in plain words, such as "every Profile that fires on wifi at home", and have the AI model selected on the Analyze tab turn it into a search.  Only the values your configuration's pulldowns offer are sent to the model, never the configuration itself, and the search it writes is put into the boxes and run as if you had picked it, so the answer stays exact and anything it could not use is listed.
-- Added: The Map and Diagram views have a new 'Export' button that saves what the view shows as a Markdown, JSON or PDF file in the current directory, so it can be read, shared or processed without MapTasker.  The PDF's text stays searchable and bookmarks every object, and the Diagram keeps its exact alignment in all three formats.
+- Added: __Export__ in the Map and Diagram views which saves what the view shows as a Markdown, JSON or PDF file in the current directory, so it can be read, shared or processed without MapTasker.  The PDF's text stays searchable and bookmarks every object, and the Diagram keeps its exact alignment in all three formats.
 - Added:
 
 ### Changed
 
 - Changed: The 'Text' box in 'Find/Replace' now also matches what a Profile's Event and State contexts are set to, such as the network a 'Wifi Connected' context waits for.  Choosing that trigger and typing the network's name now finds the Profiles that fire on it.
 - Changed: Your AI API keys are now kept in your computer's own password store (the Keychain on macOS, Credential Manager on Windows, the Secret Service on Linux) instead of an unprotected file in the folder MapTasker was started from.  Keys saved by an earlier version are moved over automatically, and a computer with no password store keeps them in a file only your user account can read.
+- Changed: The 'Replace this argument' pulldown on the Replace tab of 'Find/Replace' now shows each argument's position alongside its name, such as 'arg0 Text' and 'arg3 Title'.  This makes it easy to match an argument to the one Tasker's XML and the Map refer to.
 - Changed:
 
 ### Removed
@@ -26,6 +27,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: The 'Find/Replace' panel that stays at the right of the screen after you click a match can now be scrolled.  The rest of the matches and the buttons below them were being cut off with no way to reach them.
 - Fixed: Clearing an API key in 'Show/Edit API Key(s)' and selecting 'Ok' now removes the saved key.  Before, the cleared key came back the next time it was needed, and 'Cancel' did not undo the clear.
 - Fixed: The window no longer freezes while 'Save To Android' or 'Import Into Tasker' checks the device and sends a Task, Profile, Project or Scene, or while a backup file picked on the device is checked.  Those requests can take many seconds, and every button, tab and message now keeps responding while they run.
+- Fixed: MapTasker no longer stops at startup with 'RuntimeError: There is no current event loop in thread 'MainThread'' when run with Python 3.14.
 - Fixed:
 
 ### Known Issues

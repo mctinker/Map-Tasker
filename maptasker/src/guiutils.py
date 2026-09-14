@@ -29,7 +29,7 @@ from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import http_request, translate_string
 from maptasker.src.maputil3 import validate_xml_file
 from maptasker.src.maputils import get_pypi_version, restart_program_subprocess
-from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems
+from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, clear_single_items
 from maptasker.src.profiles import get_profile_tasks
 from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.sysconst import (
@@ -304,7 +304,7 @@ def refresh_tasker_object_pulldowns(self) -> bool:  # noqa: ANN001
     'Specific Name' tab's pulldown widgets.
 
     This is list_tasker_objects' own tail, split out so callers that already
-    know the backup is loaded -- e.g. userintr.py's Add Profile/Add Task
+    know the backup is loaded -- e.g. userintr_editors.py's Add Profile/Add Task
     handlers, right after registering a new Profile/Task into the live tree --
     can refresh the pulldowns without going through list_tasker_objects' own
     load_xml() gate first. That gate re-fetches from the file/Android whenever
@@ -817,7 +817,7 @@ def select_pulldown_option(optionmenu: ui.select, name: str) -> None:
     ": " from being mis-split.
 
     Note this assignment fires the widget's on_change unless the caller has
-    set self.is_updating (see userintr.single_project_name_event and friends) --
+    set self.is_updating (see userintr_loading.single_project_name_event and friends) --
     which is what makes it double as "select this, as if the user picked it"
     for the Add Project/Profile/Task flows, and why the restore paths that
     only want to *display* a name keep their existing is_updating guard.
@@ -862,7 +862,7 @@ def is_no_selection(name: str) -> bool:
 # button on screen, or an empty tuple for a button that is always shown.
 #
 # Each Edit button goes with its own item -- open_edit_project_dialog_event and its
-# three siblings (userintr.py) read single_<item>_name and refuse to open without it.
+# three siblings (userintr_editors.py) read single_<item>_name and refuse to open without it.
 # Add Project is the always-shown one: a Project is the top of the hierarchy, so there
 # is nothing to attach it to and nothing to select first.
 #
@@ -962,9 +962,7 @@ def clear_single_item_names(self: object) -> None:
     of them clears all of them first.
     """
     clear_single_item_view_names(self)
-    for name_key, found_key, _ in SINGLE_ITEM_SELECTORS:
-        PrimeItems.program_arguments[name_key] = ""
-        PrimeItems.found_named_items[found_key] = False
+    clear_single_items()
 
 
 def reset_single_item_pulldowns(self: object, except_for: str = "") -> None:

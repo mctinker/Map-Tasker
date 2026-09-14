@@ -462,21 +462,14 @@ def clean_up_memory() -> None:
         for elem in PrimeItems.xml_tree.iter():
             elem.clear()
     clear_tasker_data()
-    if PrimeItems.directories:
-        PrimeItems.directories.clear()
-    PrimeItems.directory_items["projects"].clear()
-    PrimeItems.directory_items["profiles"].clear()
-    if PrimeItems.directory_items["tasks"]:
-        PrimeItems.directory_items["tasks"].clear()
-    if PrimeItems.directory_items["scenes"]:
-        PrimeItems.directory_items["scenes"].clear()
+    # The directory and the rest of the run's small state go with the reset below.
     if PrimeItems.xml_root is not None:
         PrimeItems.xml_root.clear()
     if PrimeItems.output_lines is not None:
         PrimeItems.output_lines.output_lines.clear()
     # Reset all of our primasry items
     PrimeItemsReset()
-    PrimeItems.program_arguments = initialize_runtime_arguments
+    PrimeItems.program_arguments = initialize_runtime_arguments()
 
     # Tell python to collect the garbage
     gc.collect()

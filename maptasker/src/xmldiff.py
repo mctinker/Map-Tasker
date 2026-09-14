@@ -12,7 +12,8 @@
 # open is the hard half, and it lives in diffload.py -- see that module's header.       #
 #                                                                                      #
 # The report is plain text.  The caller writes it to a file as-is and escapes a COPY of #
-# it for display -- see userintr.compare_files_event, the same split healthck.py uses.  #
+# it for display -- see userintr_reports.compare_files_event, the same split           #
+# healthck.py uses.                                                                    #
 #                                                                                      #
 from __future__ import annotations
 

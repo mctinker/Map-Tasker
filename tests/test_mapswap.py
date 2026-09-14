@@ -629,11 +629,11 @@ def test_a_picker_argument_is_refused_with_its_reason(loaded) -> None:
 
 
 def test_the_argument_pulldown_names_arguments_the_way_tasker_does(loaded) -> None:
-    """'Text', 'Title', 'Timeout' -- what the user is reading in the Map, not 'arg0'."""
+    """'arg0 Text', 'arg3 Title' -- the position the XML uses beside the name the Map shows."""
     labels = {arg_id: label for arg_id, label, _refusal in mapswap.argument_choices(FLASH)}
 
-    assert labels[FLASH_TEXT].startswith("Text")
-    assert labels[FLASH_TITLE].startswith("Title")
+    assert labels[FLASH_TEXT].startswith("arg0 Text")
+    assert labels[FLASH_TITLE].startswith("arg3 Title")
 
 
 def test_an_action_already_holding_the_new_value_is_not_a_change(loaded) -> None:

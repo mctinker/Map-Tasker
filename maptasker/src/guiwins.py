@@ -610,7 +610,7 @@ def _create_undo_section(self: MyGui) -> None:
 def remember_android_panel_option(gui: MyGui, name: str, value: object) -> None:
     """Keep one of the Save To Android panel's checkboxes -- for the next panel and the next session.
 
-    Written to three places, for the reason userintr.save_health_check_skip gives for its own
+    Written to three places, for the reason userintr_reports.save_health_check_skip gives for its own
     setting: the GUI attribute is what the next panel opens with and what exiting writes back over
     program_arguments (rungui.capture_gui_state); program_arguments is what the settings file is
     written from; and the file is written now rather than at exit, since a session that ends any
@@ -854,12 +854,12 @@ def build_add_project_dialog(self: MyGui, edited_project: projedit.EditableProje
 # need nothing applied before a save.  "name" is read-only (Rename is its own operation),
 # and "project_save_path" is where the export goes rather than anything about the Project.
 #
-# THIS IS A LIST OF WHAT IS SAFE, checked at save time by userintr._unapplied_project_edits,
+# THIS IS A LIST OF WHAT IS SAFE, checked at save time by userintr_editors._unapplied_project_edits,
 # because both of this dialog's saves render the Project from the LIVE TREE by name --
 # projedit.write_standalone_project_xml(project_name, ...) and .save_project_to_android(
 # project_name, ...).  A field added here that edits the Project would therefore be dropped
 # silently from the exported file and the upload, which is the bug Scene had (see
-# userintr.save_scene_to_android_event).  Anything added to field_refs and not named here
+# userintr_android.save_scene_to_android_event).  Anything added to field_refs and not named here
 # fails the save with a message naming the field, rather than writing an incomplete Project.
 #
 # Adding a real editable field means applying it before those two saves -- follow what the
@@ -1133,7 +1133,7 @@ def _build_properties_button(
     Deliberately NOT registered in the caller's field_refs.  The Task dialog's
     _task_arg_values reads .value off every entry there and a button has none; and for
     the Project dialog an unrecognised field_refs entry is what
-    userintr._unapplied_project_edits fails the save on.  Nothing needs to be registered
+    userintr_editors._unapplied_project_edits fails the save on.  Nothing needs to be registered
     anyway -- the properties dialog applies onto the element itself, which is what both
     the save and editor_state() already read.
 
@@ -1793,7 +1793,7 @@ def _render_scene_geometry(
     These are NOT properties of the <PropertiesElement> -- they are the Scene's own
     <widthPort>/<heightPort>/<widthLand>/<heightLand> children, and the Scene dialog behind
     this one already has an input for each.  So these DRIVE THOSE WIDGETS rather than
-    writing the XML: userintr._apply_scene_field_values reads exactly those four field_refs
+    writing the XML: userintr_editors._apply_scene_field_values reads exactly those four field_refs
     entries at save time, so a value written straight to the element here would be
     overwritten by whatever the dialog's own boxes still held.  One source of truth, and
     the two stay level whichever is typed into.
@@ -2280,7 +2280,7 @@ def _render_scene_event_task_actions(
     replacing it would destroy the only copy.
 
     WHERE IT LANDS.  Ok applies every held copy over the live Task
-    (userintr.keep_scene_event_task_edits), and "Apply to Task" does the same for this one
+    (userintr_editors.keep_scene_event_task_edits), and "Apply to Task" does the same for this one
     without closing; Cancel drops the copies unapplied.  Either way it is the loaded
     configuration that changes, not the Scene: neither this dialog's Cancel nor the Scene
     dialog's takes back an edit that has already landed there, and Undo does.
@@ -2361,7 +2361,7 @@ def _render_scene_event_new_task(
 
     Add Task's own two halves without Add Task's dialog: a Name and the action editor over an
     UNREGISTERED EditableTask, then a button that registers it and points the event at it in
-    one undo step (userintr.create_scene_event_task_event).  Ok does the same for any such
+    one undo step (userintr_editors.create_scene_event_task_event).  Ok does the same for any such
     Task that has actions in it, so the button is for creating one without closing -- and
     Cancel does not, so an unpressed button is a Task that never existed.
 
@@ -2490,7 +2490,7 @@ def _build_scene_editor_body(
       shown-and-disabled because a V2 layout is declarative: there is no canvas
       to size, every real V2 Scene carries -1 across all four, and offering the
       four boxes would invite someone to set a number that means nothing.  Their
-      absence from field_refs is what userintr._apply_scene_field_values reads as
+      absence from field_refs is what userintr_editors._apply_scene_field_values reads as
       "nothing to validate here", so no size is ever written to a V2 Scene.
 
     Each branch then hands off to the designer for its kind -- _build_v2_designer
@@ -2500,7 +2500,7 @@ def _build_scene_editor_body(
     here; both are still filling in, and this function's job is only to pick.
 
     Every widget it puts in field_refs is read back by
-    userintr._apply_scene_field_values, which is the only thing that has to grow
+    userintr_editors._apply_scene_field_values, which is the only thing that has to grow
     alongside it.
 
     `dialog` is the dialog this body is being built into, and is needed only by the
@@ -2604,7 +2604,7 @@ def _build_scene_editor_body(
 def build_add_scene_version_dialog(self: MyGui, target_project_name: str) -> None:
     """Asks which kind of Scene to add -- Legacy or Version 2 -- and is what the
     "Add Scene" button actually opens; the Add Scene dialog itself comes second,
-    once the answer is known (see userintr.add_scene_of_version_event).
+    once the answer is known (see userintr_editors.add_scene_of_version_event).
 
     The choice is made up front, in its own prompt, rather than as a toggle
     inside the Add Scene dialog, because it isn't a field of the Scene -- it
@@ -2765,7 +2765,7 @@ def _scene_dialog_closed(gui: MyGui, dialog: ui.dialog, field_refs: dict, event:
 
     Hung on the dialog's own value rather than on its buttons because there are eight of
     them across the two dialogs -- Cancel, Ok, Delete, Rename, three kinds of Save, Export --
-    and they close it through six different event handlers in userintr.  A ninth button
+    and they close it through six different event handlers in userintr_editors.  A ninth button
     added later would be one more that forgot to repaint; the value cannot be.
 
     THE PREVIEW STOPS BEING AN EDITING SURFACE HERE, which is half of drawing the right
@@ -2856,7 +2856,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
         has to come after, because a dialog closing over a notification hides it.
 
         Rename cannot have happened first -- it applies to the live backup and closes this
-        dialog itself (userintr.confirm_rename_scene_event) -- so there is no applied change
+        dialog itself (userintr_editors.confirm_rename_scene_event) -- so there is no applied change
         for a later Cancel to be quietly failing to undo.
         """
         discarded = sceneedit.revert_session(edited_scene, opened_as, field_refs.get("v2_layout"))
@@ -2999,7 +2999,7 @@ def build_edit_scene_dialog(self: MyGui, edited_scene: sceneedit.EditableScene) 
     # Preview has to close this dialog to get at the screen behind it, and the work in
     # progress lives in the dialog's widgets and field_refs -- not in the live tree, which
     # nothing writes to until a save button runs.  Remembering the dialog is what lets the
-    # "Edit Scene" button resume it (userintr.open_edit_scene_dialog_event) rather than
+    # "Edit Scene" button resume it (userintr_editors.open_edit_scene_dialog_event) rather than
     # build a second one from the unedited tree, showing none of the pending edits.
     self.scene_editor_session = {"name": scene_name, "dialog": dialog, "suspended": False}
     dialog.open()
@@ -3268,10 +3268,10 @@ def build_overwrite_confirm_dialog(
     """Confirms overwriting something that is already there, before anything is
     written. Backs every Save/Export path that would otherwise clobber a file
     silently -- the local standalone exports and the Save To Android uploads
-    (see userintr's save_* handlers).
+    (see the save_* handlers in userintr and userintr_android).
 
     tasker_lines is what Tasker itself already has of the objects being sent (see
-    userintr._what_tasker_already_has), shown under the file's own line so a save that both
+    userintr_android._what_tasker_already_has), shown under the file's own line so a save that both
     replaces a file and re-sends objects Tasker has asks once rather than twice.
     file_absent=True is a prompt raised by those lines alone: there is no file to name and
     nothing here is overwritten, so it says neither and offers Continue, not Overwrite.
@@ -3820,7 +3820,7 @@ def scope_badge_text(built_for: str, now: str) -> tuple[str, str]:
 def refresh_scope_badges(master_gui: MyGui) -> None:
     """Tell every open view that the single-item selection has changed.
 
-    Called from the one funnel a changed selection goes through (userintr.process_name_event),
+    Called from the one funnel a changed selection goes through (userintr_loading.process_name_event),
     so a Diagram drawn for the old selection says so the moment the user picks a new one
     rather than the next time they happen to look at its toolbar.
 
@@ -4371,7 +4371,7 @@ class NiceGuiSceneView:
     Version 2 Scene it is the live layout dict the designer edits in place (field_refs
     ["v2_layout"]), so previewing shows components added, moved and retyped a moment ago.
     A Legacy size that isn't a whole number is reported and the saved one used, matching what
-    userintr._apply_scene_field_values would say about it at save time rather than inventing a
+    userintr_editors._apply_scene_field_values would say about it at save time rather than inventing a
     second opinion.
 
     THE PICTURE IS ALSO AN EDITING SURFACE, for both kinds of Scene, whenever the designer
@@ -9285,7 +9285,7 @@ def _create_file_and_message_buttons_section(self: MyGui) -> None:
     """Creates file actions, message configuration button rows, and dynamic android panel containers."""
     with self.gui_right_drawer:
         # This button and its "?" are built once, here, and stay put for the life of the window:
-        # opening the Android panel (get_xml_from_android_event in userintr.py) adds a panel
+        # opening the Android panel (get_xml_from_android_event in userintr_android.py) adds a panel
         # below them rather than replacing them, and clear_android_buttons() (guiutils.py) only
         # tears that panel down again.
         with ui.row().classes("w-full flex-nowrap items-center justify-center gap-2 mt-0") as self.android_button_row:

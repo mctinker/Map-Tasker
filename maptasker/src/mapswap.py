@@ -1718,9 +1718,9 @@ _WRITABLE_CATEGORIES = ("Str", "String", "Int", "Boolean")
 def argument_choices(action_key: str) -> list[tuple[str, str, str]]:
     """(arg id, label, refusal) for every argument of one action, in Tasker's own order.
 
-    The Replace tab's argument pulldown.  Named as Tasker's action editor names them,
-    because that is what the user is looking at in the Map -- "Text", "Title", "Timeout",
-    not "arg0".
+    The Replace tab's argument pulldown.  Each is labelled with both its position and the
+    name Tasker's action editor gives it -- "arg0 Text", "arg3 Title" -- because the name is
+    what the user is looking at in the Map, and the position is what the XML calls it.
 
     An argument that cannot be written carries its reason as the third field and says so in
     its label rather than being dropped: an argument missing from the list teaches nothing,
@@ -1731,7 +1731,7 @@ def argument_choices(action_key: str) -> list[tuple[str, str, str]]:
         if _is_hint_bundle(argument):
             continue  # Not an argument at all -- the plugin's note about what it outputs.
         category = _category(argument)
-        name = argument.arg_name or f"arg{argument.arg_id}"
+        name = f"arg{argument.arg_id} {argument.arg_name}".rstrip()
         writable = category in _WRITABLE_CATEGORIES
         refusal = "" if writable else f"a {category or 'picker'} argument is chosen from a picker, not typed"
         label = f"{name}  ({category})" if writable else f"{name}  ({category} -- cannot be typed)"

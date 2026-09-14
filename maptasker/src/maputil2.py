@@ -1086,8 +1086,8 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     backup_20260721_143005.xml -> backup_20260721_150112.xml rather than
     growing a new suffix each time. Backs the "Save To Current File" button in
     those dialogs (see
-    userintr.py's save_*_to_current_file_event handlers, which then switch the
-    app over to the new copy -- see userintr._reload_saved_copy_and_refresh --
+    userintr_editors.py's save_*_to_current_file_event handlers, which then switch the
+    app over to the new copy -- see userintr_editors._reload_saved_copy_and_refresh --
     so it becomes "the current file" for any further editing/saving), as
     opposed to their "Save"/"Export Task/Profile" button, which exports
     just the one Task/Profile as a standalone file instead.
@@ -1108,7 +1108,7 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     file_to_get = PrimeItems.file_to_get
     # PrimeItems.file_to_get is sometimes an open file object (.name is its path) and
     # sometimes just the path itself as a plain string (e.g. getxml_event's own direct
-    # assignment, or the self-healing load in userintr.open_add_task_dialog_event/
+    # assignment, or the self-healing load in userintr_editors.open_add_task_dialog_event/
     # MyGui.__init__) -- getattr(..., "name", file_to_get) handles both, matching the
     # same pattern already used for this ambiguity elsewhere (see userintr.py's
     # check_name error path).

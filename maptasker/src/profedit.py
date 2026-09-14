@@ -1168,10 +1168,10 @@ def register_new_profile(edited_profile: EditableProfile, profile_name: str) -> 
     add_profile_to_project (this alone doesn't make the Profile visible in the
     Project/Profile/Task pulldowns, Map, Diagram, or Tree views -- see that
     function's own docstring): right after the standalone .prf.xml write
-    succeeds (see userintr.save_new_profile_event), for a
-    keep-without-saving-to-disk Ok without one (see userintr.keep_new_profile_event),
+    succeeds (see userintr_editors.save_new_profile_event), for a
+    keep-without-saving-to-disk Ok without one (see userintr_editors.keep_new_profile_event),
     or after a successful Save To Android import (see
-    userintr.save_profile_to_android_event's is_new_profile branch).
+    userintr_android.save_profile_to_android_event's is_new_profile branch).
     """
     with sessundo.undoable(f"Add Profile '{profile_name}'"):
         PrimeItems.tasker_root_elements["all_profiles"][edited_profile.profile_id] = {
@@ -1238,8 +1238,8 @@ def add_task_to_project(task_id: str, project_name: str) -> None:
     Project's <tids> element -- the <pids>/<tids> counterpart of
     add_profile_to_project, for Tasks instead of Profiles. Call once, right
     after taskedit.register_new_task, for the top-level "Add Task" button
-    (see userintr.open_add_task_dialog_event, which requires a single Project
-    already be selected, and userintr._finish_new_task, which calls this with
+    (see userintr_editors.open_add_task_dialog_event, which requires a single Project
+    already be selected, and userintr_editors._finish_new_task, which calls this with
     it).
 
     Real Tasker backups list every Task belonging to a Project in <tids> --

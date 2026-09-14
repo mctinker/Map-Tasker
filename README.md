@@ -23,7 +23,7 @@
 
 # MapTasker
 
-## Display/Edit/Analyze the Tasker Project(s), Profile(s), Task(s), and Scene(s) in your browser based on Tasker's backup or exported XML file
+## Display/Edit/Analyze the Tasker Project(s), Profile(s), Task(s), and Scene(s) in your (MAC/Windows11/Linux) desktop browser based on Tasker's backup or exported XML file
 
 Configuration Map...
 ![](https://github.com/mctinker/Map-Tasker/blob/Master/documentation_images/intro.png)

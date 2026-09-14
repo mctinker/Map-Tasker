@@ -96,7 +96,7 @@ class EditorKind:
 
         Uses os.getcwd() (the directory the app is running from) rather than the loaded
         backup file's directory -- the backup is picked from wherever the user keeps
-        their XML (see getxml_event/local_xml_start_directory in userintr.py), which
+        their XML (see getxml_event/local_xml_start_directory in userintr_loading.py), which
         isn't necessarily where an exported object should land.
         """
         return os.path.join(os.getcwd(), f"{self.sanitize_filename(name)}{self.extension}")

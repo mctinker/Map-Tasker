@@ -9,7 +9,7 @@
 
 import os
 
-from maptasker.src.primitem import PrimeItems
+from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, clear_single_items
 from maptasker.src.runcli import process_cli
 from maptasker.src.sysconst import DEBUG_PROGRAM
 
@@ -43,16 +43,11 @@ def get_program_arguments() -> None:
     # so anything written before that call is discarded.  config.GUI is read there instead.
     process_cli()
 
-    # Make sure we don't have too much
-    if (
-        (PrimeItems.program_arguments["single_project_name"] and PrimeItems.program_arguments["single_profile_name"])
-        or (PrimeItems.program_arguments["single_project_name"] and PrimeItems.program_arguments["single_task_name"])
-        or (PrimeItems.program_arguments["single_profile_name"] and PrimeItems.program_arguments["single_task_name"])
-    ):
-        # More than one single item wasd specified in saved file.  Set all to blank
-        PrimeItems.program_arguments["single_task_name"] = ""
-        PrimeItems.program_arguments["single_project_name"] = ""
-        PrimeItems.program_arguments["single_profile_name"] = ""
+    # Make sure we don't have too much: more than one single item specified in the saved file
+    # clears them all.  Every kind counts, Scene included -- .get, since a settings file from
+    # before single Scenes existed has no key for one.
+    if sum(bool(PrimeItems.program_arguments.get(name_key)) for name_key, _, _ in SINGLE_ITEM_SELECTORS) > 1:
+        clear_single_items()
 
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:

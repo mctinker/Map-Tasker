@@ -39,7 +39,12 @@ from typing import NamedTuple
 from maptasker.src import sessundo, timeline
 from maptasker.src.maputil2 import TIMESTAMP_SUFFIX_RE
 from maptasker.src.maputils import append_to_filename
-from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
+from maptasker.src.primitem import (
+    LOADED_CONFIGURATION_ATTRIBUTES,
+    PrimeItems,
+    clear_error,
+    initial_tasker_root_elements,
+)
 from maptasker.src.sysconst import COMPARE_FILE, ERROR_FILE, logger
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldiff import Configuration
@@ -264,17 +269,9 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
 
     Not re-entrant and not thread safe.  It does not need to be: one button, one click.
     """
-    saved = {
-        "file_to_get": PrimeItems.file_to_get,
-        "file_to_use": PrimeItems.file_to_use,
-        "xml_tree": PrimeItems.xml_tree,
-        "xml_root": PrimeItems.xml_root,
-        "tasker_root_elements": PrimeItems.tasker_root_elements,
-        # get_the_xml_data sets it from the file it parses -- here, the other file.
-        "loaded_highest_object_id": PrimeItems.loaded_highest_object_id,
-        "error_code": PrimeItems.error_code,
-        "error_msg": PrimeItems.error_msg,
-    }
+    # Everything loading a backup sets, and the file and the error that go with it -- see
+    # primitem.LOADED_CONFIGURATION_ATTRIBUTES, which a test keeps in step with taskerd.
+    saved = {name: getattr(PrimeItems, name) for name in LOADED_CONFIGURATION_ATTRIBUTES}
     # Restored by content into the SAME dict and the same lists inside it, rather than by
     # replacing it with the copy: anything already holding a reference to
     # PrimeItems.directory_items (or to one of its lists) would otherwise be left writing
@@ -303,8 +300,7 @@ def _parsed_in_isolation(file_path: str) -> _Parsed:
             opened = open(scratch)  # noqa: SIM115, PTH123  (closed in the finally below)
             PrimeItems.file_to_get = opened
             PrimeItems.tasker_root_elements = initial_tasker_root_elements()
-            PrimeItems.error_code = 0
-            PrimeItems.error_msg = ""
+            clear_error()
             PrimeItems.program_arguments.update(_FORCED_ARGUMENTS)
 
             # The file being compared against is not a configuration the user opened, so

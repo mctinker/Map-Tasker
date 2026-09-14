@@ -700,7 +700,7 @@ def _build_v2_designer(
     inspector's widgets are destroyed on every selection change, so there would be nothing
     left to collect from; and the dict being edited belongs to the dialog's own deep copy of
     the Scene, so nothing reaches the loaded backup until a save button re-encodes it (see
-    userintr._apply_scene_field_values).  Cancel discards it by simply not encoding.
+    userintr_editors._apply_scene_field_values).  Cancel discards it by simply not encoding.
 
     NOT in this phase: adding, deleting, reordering or reparenting components, and editing
     modifiers or event handlers.  Those are carried through untouched -- see sceneedit.py's

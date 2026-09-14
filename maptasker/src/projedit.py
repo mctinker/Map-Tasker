@@ -270,7 +270,7 @@ def register_new_project(edited_project: EditableProject) -> None:
     behaves like any other Project loaded from the backup -- e.g. so it shows
     up in the Project pulldown and so a second Add Project with the same name
     is caught by project_name_exists(). Call once, right after a successful
-    Add Project (see userintr.keep_new_project_event) -- there's no
+    Add Project (see userintr_editors.keep_new_project_event) -- there's no
     standalone-file/Save-To-Android path to also call this from, unlike
     profedit.register_new_profile/taskedit.register_new_task.
     """
@@ -323,7 +323,7 @@ def set_project_enabled(edited_project: EditableProject, enabled: bool) -> None:
     flipped rather than at save time.  Both of Edit Project's saves render from
     the live tree by name (write_standalone_project_xml/save_project_to_android
     take project_name, not this copy -- see guiwins.EDIT_PROJECT_INERT_FIELDS and
-    userintr._unapplied_project_edits for the trap that creates), and "Save To
+    userintr_editors._unapplied_project_edits for the trap that creates), and "Save To
     Current File" writes the whole live backup, so a disable left on the copy
     alone would be missing from all three.  Applying immediately also matches
     what the rest of this dialog already does: Rename and Delete both hit the

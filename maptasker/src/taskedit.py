@@ -2340,10 +2340,10 @@ def register_new_task(edited_task: EditableTask, task_name: str) -> None:
     e.g. so it shows up in the Edit Task picker (guiutils.py reads
     all_tasks_by_name for that list) and so a second Add Task with the same name
     is caught by task_name_exists(). Call once: right after the standalone
-    .tsk.xml write succeeds (see userintr.save_new_task_event), for a
-    keep-without-saving-to-disk Ok without one (see userintr.keep_new_task_event),
+    .tsk.xml write succeeds (see userintr_editors.save_new_task_event), for a
+    keep-without-saving-to-disk Ok without one (see userintr_editors.keep_new_task_event),
     or after a successful Save To Android import (see
-    userintr.save_task_to_android_event's is_new_task branch).
+    userintr_android.save_task_to_android_event's is_new_task branch).
     """
     with sessundo.undoable(f"Add Task '{task_name}'"):
         PrimeItems.tasker_root_elements["all_tasks"][edited_task.task_id] = {

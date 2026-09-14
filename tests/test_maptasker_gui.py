@@ -47,11 +47,12 @@ from maptasker.src.guiwins import (
 from maptasker.src.mapfonts import get_monospaced_fonts
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import TIMELINE_FILE
-from maptasker.src import userintr as _userintr
+from maptasker.src import userintr_android
+from maptasker.src import userintr_editors
 from maptasker.src.userintr import MapTaskerEventHandlers, MyGui
 
 # Taken before the autouse tasker_has_nothing fixture stubs it, for the tests of the check itself.
-_REAL_WHAT_TASKER_ALREADY_HAS = _userintr._what_tasker_already_has
+_REAL_WHAT_TASKER_ALREADY_HAS = userintr_android._what_tasker_already_has
 
 # ==========================================
 # Fixtures & MOCKING SETUP
@@ -80,7 +81,7 @@ def reset_translation():
 
 @pytest.fixture(autouse=True)
 def tasker_has_nothing(monkeypatch):
-    """Every device write asks Tasker what it already has (userintr._what_tasker_already_has),
+    """Every device write asks Tasker what it already has (userintr_android._what_tasker_already_has),
     which is a real request.  Stubbed to 'nothing there' so each test sees only the prompt it is
     about; the tests of that check replace this with an answer of their own.
     """
@@ -89,7 +90,7 @@ def tasker_has_nothing(monkeypatch):
     async def nothing(_ip, _port, _render, _consequence, **_options) -> list[str]:
         return []
 
-    monkeypatch.setattr(userintr, "_what_tasker_already_has", nothing)
+    monkeypatch.setattr(userintr_android, "_what_tasker_already_has", nothing)
 
 
 @pytest.fixture
@@ -363,7 +364,7 @@ async def test_view_event_map_requires_loaded_xml(mock_io_bound, _mock_ui, event
 
 
 @pytest.mark.asyncio
-@patch("maptasker.src.userintr.ui")
+@patch("maptasker.src.userintr_ai.ui")
 async def test_ai_analyze_event_missing_model_safeguard(_mock_ui, event_handler, mock_gui_instance):
     """Ensures analytical triggers abort dynamically with clean user feedback paths if no context is selected.
 
@@ -580,7 +581,7 @@ def _patched_collaborators(**overrides):
     defaults.update(overrides)
     with contextlib.ExitStack() as stack:
         for name, value in defaults.items():
-            stack.enter_context(patch(f"maptasker.src.userintr.{name}", value))
+            stack.enter_context(patch(f"maptasker.src.userintr_reports.{name}", value))
         yield
 
 
@@ -591,7 +592,7 @@ async def test_compare_refuses_with_nothing_loaded(event_handler, mock_gui_insta
     PrimeItems.tasker_root_elements = {"all_tasks": {}}
     chooser = AsyncMock()
     try:
-        with patch("maptasker.src.userintr._choose_comparison_file", chooser):
+        with patch("maptasker.src.userintr_reports._choose_comparison_file", chooser):
             await event_handler.compare_files_event()
     finally:
         PrimeItems.tasker_root_elements = previous
@@ -720,17 +721,17 @@ def _patched_timeline(comparison, writer=None):
         # changes_since is deliberately NOT patched: what run.io_bound is handed has to be
         # that function itself, and a mock in its place would make the check vacuous.
         io_bound = AsyncMock(return_value=comparison)
-        stack.enter_context(patch("maptasker.src.userintr.run.io_bound", io_bound))
+        stack.enter_context(patch("maptasker.src.userintr_reports.run.io_bound", io_bound))
         stack.enter_context(
             patch(
-                "maptasker.src.userintr.write_comparison_report",
+                "maptasker.src.userintr_reports.write_comparison_report",
                 writer or MagicMock(return_value="MapTasker_Timeline_01-01-2026_00-00-00.txt"),
             ),
         )
         view = MagicMock()
-        stack.enter_context(patch("maptasker.src.userintr.NiceGuiTextView", view))
+        stack.enter_context(patch("maptasker.src.userintr_reports.NiceGuiTextView", view))
         notify = MagicMock()
-        stack.enter_context(patch("maptasker.src.userintr.ui", notify))
+        stack.enter_context(patch("maptasker.src.userintr_reports.ui", notify))
         yield io_bound, view, notify
 
 
@@ -739,7 +740,7 @@ def _patched_timeline(comparison, writer=None):
 async def test_the_button_asks_how_far_back_before_doing_anything(event_handler, _loaded_configuration):
     """Clicking it opens the picker; nothing is compared until a period is chosen."""
     dialog = MagicMock()
-    with patch("maptasker.src.userintr.build_changes_since_dialog", dialog):
+    with patch("maptasker.src.userintr_reports.build_changes_since_dialog", dialog):
         await event_handler.timeline_event()
 
     dialog.assert_called_once_with(event_handler.report_changes_since)
@@ -754,7 +755,7 @@ async def test_the_button_refuses_with_nothing_loaded(event_handler, mock_gui_in
     PrimeItems.tasker_root_elements = {"all_tasks": {}}
     dialog = MagicMock()
     try:
-        with patch("maptasker.src.userintr.build_changes_since_dialog", dialog):
+        with patch("maptasker.src.userintr_reports.build_changes_since_dialog", dialog):
             await event_handler.timeline_event()
     finally:
         PrimeItems.tasker_root_elements = previous
@@ -951,12 +952,12 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
         client = _FakeClient()
 
     _FakeClient.depth = 0
-    monkeypatch.setattr(userintr, "context", _FakeContext)
+    monkeypatch.setattr(userintr_android, "context", _FakeContext)
 
     async def fake_io_bound(func, *args, **kwargs):
         # The existence check goes to a worker thread like every other device request, but it
         # is not one of the calls `results` answers -- its answer is `exists`, faked below.
-        if func is userintr.read_android_file:
+        if func is userintr_android.read_android_file:
             return func(*args, **kwargs)
         calls["io_bound"].append((func, args, kwargs))
         return results[len(calls["io_bound"]) - 1]
@@ -965,31 +966,31 @@ def _patch_import_path(monkeypatch, results: list, exists: bool | None = False) 
         return True
 
     monkeypatch.setattr(userintr.run, "io_bound", fake_io_bound)
-    monkeypatch.setattr(userintr, "ping_android_device", fake_ping)
+    monkeypatch.setattr(userintr_android, "ping_android_device", fake_ping)
     # One read of the path answers both questions -- see maputil2.read_android_file.  The
     # content it hands back is what becomes the safety copy, with no second GET.
     monkeypatch.setattr(
-        userintr,
+        userintr_android,
         "read_android_file",
         lambda _ip, _port, _path: (exists, b"<TaskerData>the old one</TaskerData>" if exists else b""),
     )
     monkeypatch.setattr(
-        userintr.presave,
+        userintr_android.presave,
         "save_android_safety_copy",
         lambda path, content: (calls["backed_up"].append((path, content)), (True, "/copies/old.prf.xml"))[1],
     )
     monkeypatch.setattr(
-        userintr,
+        userintr_android,
         "build_overwrite_confirm_dialog",
         lambda what, on_confirm, **kwargs: calls["overwrite"].append((what, on_confirm, kwargs)),
     )
-    monkeypatch.setattr(userintr.profedit, "render_standalone_profile_xml", lambda _p: "<TaskerData/>")
-    monkeypatch.setattr(userintr.projedit, "render_standalone_project_xml", lambda _n: "<TaskerData/>")
-    monkeypatch.setattr(userintr.projedit, "project_profile_names", lambda _n: ["Watched", "Also Watched"])
-    monkeypatch.setattr(userintr, "_unapplied_project_edits", lambda _refs: [])
-    monkeypatch.setattr(userintr.sceneedit, "render_standalone_scene_xml", lambda _n: "<TaskerData/>")
-    monkeypatch.setattr(userintr.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s: None)
-    monkeypatch.setattr(userintr, "_apply_scene_field_values", lambda _s, _refs: [])
+    monkeypatch.setattr(userintr_android.profedit, "render_standalone_profile_xml", lambda _p: "<TaskerData/>")
+    monkeypatch.setattr(userintr_android.projedit, "render_standalone_project_xml", lambda _n: "<TaskerData/>")
+    monkeypatch.setattr(userintr_android.projedit, "project_profile_names", lambda _n: ["Watched", "Also Watched"])
+    monkeypatch.setattr(userintr_android, "_unapplied_project_edits", lambda _refs: [])
+    monkeypatch.setattr(userintr_android.sceneedit, "render_standalone_scene_xml", lambda _n: "<TaskerData/>")
+    monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s: None)
+    monkeypatch.setattr(userintr_android, "_apply_scene_field_values", lambda _s, _refs: [])
     monkeypatch.setattr(
         userintr.MapTaskerEventHandlers,
         "_apply_profile_for_android",
@@ -1467,7 +1468,7 @@ async def test_unapplied_project_edits_stop_it_before_the_device(monkeypatch, ev
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")])
-    monkeypatch.setattr(userintr, "_unapplied_project_edits", lambda _refs: ["Colour was never applied."])
+    monkeypatch.setattr(userintr_android, "_unapplied_project_edits", lambda _refs: ["Colour was never applied."])
     edited_project = MagicMock()
     edited_project.project_name = "Home"
 
@@ -1662,7 +1663,7 @@ async def test_the_scene_edits_are_applied_before_the_export(monkeypatch, event_
     _field_refs, android_refs = profile_dialog_refs
     _patch_import_path(monkeypatch, _SCENE_RESULTS)
     monkeypatch.setattr(
-        userintr.sceneedit,
+        userintr_android.sceneedit,
         "apply_edited_scene_to_live_tree",
         lambda name, _scene: applied.append(name),
     )
@@ -1684,7 +1685,7 @@ async def test_a_scene_that_fails_validation_never_reaches_the_device(
 
     _field_refs, android_refs = profile_dialog_refs
     calls = _patch_import_path(monkeypatch, [True, (0, "screen is open")])
-    monkeypatch.setattr(userintr, "_apply_scene_field_values", lambda _s, _refs: ["Width must be a number."])
+    monkeypatch.setattr(userintr_android, "_apply_scene_field_values", lambda _s, _refs: ["Width must be a number."])
     edited_scene = MagicMock()
     edited_scene.scene_name = "Dialog"
 
@@ -1790,32 +1791,32 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
     async def fake_ping(_self, _ip, _port) -> bool:
         return True
 
-    monkeypatch.setattr(userintr, "ping_android_device", fake_ping)
-    monkeypatch.setattr(userintr.taskedit, "apply_edits_to_task", lambda *_args: [])
-    monkeypatch.setattr(userintr.taskedit, "task_name_exists", lambda _name: False)
-    monkeypatch.setattr(userintr, "_task_arg_values", lambda _refs: {})
-    monkeypatch.setattr(userintr, "refresh_tasker_object_pulldowns", lambda _gui: None)
+    monkeypatch.setattr(userintr_android, "ping_android_device", fake_ping)
+    monkeypatch.setattr(userintr_android.taskedit, "apply_edits_to_task", lambda *_args: [])
+    monkeypatch.setattr(userintr_android.taskedit, "task_name_exists", lambda _name: False)
+    monkeypatch.setattr(userintr_android, "_task_arg_values", lambda _refs: {})
+    monkeypatch.setattr(userintr_editors, "refresh_tasker_object_pulldowns", lambda _gui: None)
     # Both halves of _keep_task_in_loaded_config: which one runs depends on whether the Task
     # is already registered, and the handler must do exactly one of them.
     monkeypatch.setattr(
-        userintr.taskedit,
+        userintr_android.taskedit,
         "apply_edited_task_to_live_tree",
         lambda _task: calls["kept"].append("existing"),
     )
     monkeypatch.setattr(
-        userintr.taskedit,
+        userintr_android.taskedit,
         "register_new_task",
         lambda _task, name: calls["kept"].append(f"new:{name}"),
     )
     # One read of the path now answers both questions -- see maputil2.read_android_file.
     # The content it hands back is what becomes the safety copy, with no second GET.
     monkeypatch.setattr(
-        userintr,
+        userintr_android,
         "read_android_file",
         lambda _ip, _port, _path: (exists, b"<TaskerData>the old one</TaskerData>" if exists else b""),
     )
     monkeypatch.setattr(
-        userintr.presave,
+        userintr_android.presave,
         "save_android_safety_copy",
         lambda path, content: (calls["backed_up"].append((path, content)), (True, "/copies/Opener.tsk.xml"))[1],
     )
@@ -1824,9 +1825,9 @@ def _patch_task_file_path(monkeypatch, exists=False, upload=(0, "/Tasker/tasks/O
         calls["uploaded"].append(name)
         return upload
 
-    monkeypatch.setattr(userintr.taskedit, "save_task_to_android_file", fake_upload)
+    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android_file", fake_upload)
     monkeypatch.setattr(
-        userintr,
+        userintr_android,
         "build_overwrite_confirm_dialog",
         lambda what, on_confirm, **kwargs: calls["overwrite"].append((what, on_confirm, kwargs)),
     )
@@ -1908,7 +1909,7 @@ def test_every_save_to_android_path_warns_about_the_device_prompts() -> None:
         "save_scene_to_android_event",
         "import_scene_into_tasker_event",
     }
-    tree = ast.parse(inspect.getsource(userintr))
+    tree = ast.parse(inspect.getsource(userintr_android))
     warns = {
         node.name
         for node in ast.walk(tree)
@@ -1985,7 +1986,7 @@ def test_no_save_to_android_path_calls_the_device_on_the_event_loop() -> None:
         "import_is_confirmable",
         "await_import",
     }
-    tree = ast.parse(inspect.getsource(userintr))
+    tree = ast.parse(inspect.getsource(userintr_android))
     handlers = [node for node in ast.walk(tree) if isinstance(node, ast.AsyncFunctionDef) and node.name in paths]
     assert {node.name for node in handlers} == paths
 
@@ -2037,7 +2038,7 @@ def test_every_device_write_asks_tasker_what_it_already_has() -> None:
         "save_scene_to_android_event",
         "_offer_into_tasker",
     }
-    tree = ast.parse(inspect.getsource(userintr))
+    tree = ast.parse(inspect.getsource(userintr_android))
     asks = {
         node.name
         for node in ast.walk(tree)
@@ -2082,7 +2083,7 @@ async def test_the_check_ids_box_reaches_the_tasker_check(monkeypatch, event_han
         asked.append(options)
         return []
 
-    monkeypatch.setattr(userintr, "_what_tasker_already_has", record)
+    monkeypatch.setattr(userintr_android, "_what_tasker_already_has", record)
     _field_refs, android_refs = task_dialog_refs
     android_refs["check_ids"] = MagicMock(value=True)
 
@@ -2099,13 +2100,13 @@ async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypa
     from maptasker.src import userintr
 
     calls = _patch_task_file_path(monkeypatch, exists=False)
-    lines = ["Tasker already has the Task 'Opener'.", userintr._FILE_WRITE_CONSEQUENCE]
+    lines = ["Tasker already has the Task 'Opener'.", userintr_android._FILE_WRITE_CONSEQUENCE]
 
     async def has_it(_ip, _port, _render, consequence, **_options) -> list[str]:
         calls["consequence"] = consequence
         return lines
 
-    monkeypatch.setattr(userintr, "_what_tasker_already_has", has_it)
+    monkeypatch.setattr(userintr_android, "_what_tasker_already_has", has_it)
 
     await _save_task_file(event_handler, task_dialog_refs)
 
@@ -2113,7 +2114,7 @@ async def test_a_save_asks_when_tasker_has_the_object_even_with_no_file(monkeypa
     assert len(calls["overwrite"]) == 1
     _what, on_confirm, kwargs = calls["overwrite"][0]
     assert kwargs == {"unknown": False, "file_absent": True, "tasker_lines": lines}
-    assert calls["consequence"] == userintr._FILE_WRITE_CONSEQUENCE
+    assert calls["consequence"] == userintr_android._FILE_WRITE_CONSEQUENCE
 
     await on_confirm()  # the user presses Continue
     assert calls["uploaded"] == ["Opener"]
@@ -2131,7 +2132,7 @@ def _inline_tasker_check(monkeypatch, check_for) -> list:
     monkeypatch.setattr(userintr.run, "io_bound", inline)
     monkeypatch.setattr(userintr.ui, "notify", lambda message, **_kwargs: notes.append(message))
     monkeypatch.setattr(
-        userintr.deviceinv,
+        userintr_android.deviceinv,
         "check_tasker_for_existing",
         lambda _ip, _port, sent: deviceinv.TaskerCheck(sent, *check_for(sent)),
     )
@@ -2180,7 +2181,7 @@ async def test_check_ids_answers_both_questions_from_one_backup(monkeypatch):
     notes = _inline_tasker_check(monkeypatch, lambda _sent: pytest.fail("asked by name despite a backup"))
     clash = deviceinv.IdFinding("Task", "Test1plus", "1209", "Task", "Atest1Plus", "1209")
     monkeypatch.setattr(
-        userintr.deviceinv,
+        userintr_android.deviceinv,
         "check_against_device_backup",
         lambda _ip, _port, _xml: (deviceinv.TaskerCheck({"Task": ["Test1"]}, {"Task": ["Test1"]}, {}), [clash], ""),
     )
@@ -2208,7 +2209,7 @@ async def test_a_backup_that_cannot_be_had_falls_back_to_asking_by_name(monkeypa
 
     _inline_tasker_check(monkeypatch, lambda _sent: ({"Task": ["Test1"]}, {}))
     monkeypatch.setattr(
-        userintr.deviceinv,
+        userintr_android.deviceinv,
         "check_against_device_backup",
         lambda _ip, _port, _xml: (None, [], "Tasker did not answer."),
     )
@@ -2315,11 +2316,11 @@ async def test_the_task_import_asks_before_replacing_the_file_it_writes(
     calls = _patch_task_file_path(monkeypatch, exists=True)
     imported = []
     monkeypatch.setattr(
-        userintr.taskedit,
+        userintr_android.taskedit,
         "save_task_to_android",
         lambda *args, **_kwargs: (imported.append(args[3]), (0, args[3], "KEY"))[1],
     )
-    monkeypatch.setattr(userintr.taskedit, "verify_task_on_android", lambda *_args: True)
+    monkeypatch.setattr(userintr_android.taskedit, "verify_task_on_android", lambda *_args: True)
     field_refs, android_refs = task_dialog_refs
 
     await event_handler.save_task_to_android_event(
@@ -2355,17 +2356,17 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
     from maptasker.src import deviceinv, userintr
 
     calls = _patch_task_file_path(monkeypatch)
-    monkeypatch.setattr(userintr.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3], "KEY"))
-    monkeypatch.setattr(userintr.taskedit, "verify_task_on_android", lambda *_args: False)
+    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3], "KEY"))
+    monkeypatch.setattr(userintr_android.taskedit, "verify_task_on_android", lambda *_args: False)
     monkeypatch.setattr(
-        userintr.taskedit,
+        userintr_android.taskedit,
         "save_task_to_android_directory",
         lambda *_args, **_kwargs: (8, "Tasker did not report the Task"),
     )
-    monkeypatch.setattr(userintr.taskedit, "render_standalone_task_xml", lambda _task: "<TaskerData/>")
+    monkeypatch.setattr(userintr_android.taskedit, "render_standalone_task_xml", lambda _task: "<TaskerData/>")
     offered: list = []
     monkeypatch.setattr(
-        userintr.deviceinv,
+        userintr_android.deviceinv,
         "offer_to_tasker",
         lambda *args, **kwargs: (offered.append((args, kwargs)), (0, "screen is open"))[1],
     )
@@ -2398,8 +2399,8 @@ async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_h
     from maptasker.src import userintr
 
     calls = _patch_task_file_path(monkeypatch)
-    monkeypatch.setattr(userintr.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3], "KEY"))
-    monkeypatch.setattr(userintr.taskedit, "verify_task_on_android", lambda *_args: True)
+    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3], "KEY"))
+    monkeypatch.setattr(userintr_android.taskedit, "verify_task_on_android", lambda *_args: True)
     field_refs, android_refs = task_dialog_refs
 
     await event_handler.save_task_to_android_event(
@@ -2439,19 +2440,19 @@ def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/T
     async def fake_ping(_self, _ip, _port) -> bool:
         return True
 
-    monkeypatch.setattr(userintr, "ping_android_device", fake_ping)
+    monkeypatch.setattr(userintr_android, "ping_android_device", fake_ping)
     monkeypatch.setattr(
-        userintr,
+        userintr_android,
         "read_android_file",
         lambda _ip, _port, _path: (exists, b"<TaskerData>the old one</TaskerData>" if exists else b""),
     )
     monkeypatch.setattr(
-        userintr.presave,
+        userintr_android.presave,
         "save_android_safety_copy",
         lambda path, content: (calls["backed_up"].append((path, content)), (True, "/copies/old"))[1],
     )
     monkeypatch.setattr(
-        userintr,
+        userintr_android,
         "build_overwrite_confirm_dialog",
         lambda what, on_confirm, **kwargs: calls["overwrite"].append((what, on_confirm, kwargs)),
     )
@@ -2478,17 +2479,17 @@ def _patch_object_save_path(monkeypatch, kind: str, exists=False, upload=(0, "/T
             "_keep_profile_in_loaded_config",
             lambda _self, *_args: None,
         )
-        monkeypatch.setattr(userintr.profedit, "android_profile_path", lambda name: f"/Tasker/profiles/{name}.prf.xml")
-        monkeypatch.setattr(userintr.profedit, "save_profile_to_android", record)
+        monkeypatch.setattr(userintr_android.profedit, "android_profile_path", lambda name: f"/Tasker/profiles/{name}.prf.xml")
+        monkeypatch.setattr(userintr_android.profedit, "save_profile_to_android", record)
     elif kind == "project":
-        monkeypatch.setattr(userintr, "_unapplied_project_edits", lambda _refs: [])
-        monkeypatch.setattr(userintr.projedit, "android_project_path", lambda name: f"/Tasker/projects/{name}.prj.xml")
-        monkeypatch.setattr(userintr.projedit, "save_project_to_android", record)
+        monkeypatch.setattr(userintr_android, "_unapplied_project_edits", lambda _refs: [])
+        monkeypatch.setattr(userintr_android.projedit, "android_project_path", lambda name: f"/Tasker/projects/{name}.prj.xml")
+        monkeypatch.setattr(userintr_android.projedit, "save_project_to_android", record)
     else:
-        monkeypatch.setattr(userintr, "_apply_scene_field_values", lambda _s, _refs: [])
-        monkeypatch.setattr(userintr.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s: None)
-        monkeypatch.setattr(userintr.sceneedit, "android_scene_path", lambda name: f"/Tasker/scenes/{name}.scn.xml")
-        monkeypatch.setattr(userintr.sceneedit, "save_scene_to_android", record)
+        monkeypatch.setattr(userintr_android, "_apply_scene_field_values", lambda _s, _refs: [])
+        monkeypatch.setattr(userintr_android.sceneedit, "apply_edited_scene_to_live_tree", lambda _n, _s: None)
+        monkeypatch.setattr(userintr_android.sceneedit, "android_scene_path", lambda name: f"/Tasker/scenes/{name}.scn.xml")
+        monkeypatch.setattr(userintr_android.sceneedit, "save_scene_to_android", record)
     return calls
 
 
@@ -2602,9 +2603,9 @@ def _patch_helper_task_listing(monkeypatch, result) -> dict:
         return True
 
     monkeypatch.setattr(userintr.run, "io_bound", fake_io_bound)
-    monkeypatch.setattr(userintr, "ping_android_device", fake_ping)
+    monkeypatch.setattr(userintr_android, "ping_android_device", fake_ping)
     monkeypatch.setattr(
-        userintr,
+        userintr_android,
         "build_helper_tasks_dialog",
         lambda stale, current, device: calls["dialog"].append((stale, current, device)),
     )
