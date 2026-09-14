@@ -53,13 +53,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import mapfind, maputil2, profedit, sessundo, taskedit, varxref
+from maptasker.src import mapfind, maputil2, profedit, sceneedit, sessundo, taskedit, varxref
 from maptasker.src.actionc import ArgumentCode, action_codes
-from maptasker.src.globalvr import tasker_global_variables
 from maptasker.src.mapjump import PROFILE, TASK, VARIABLE, Row, Target, current_scope, text_report
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import SWAP_FILE, logger
+from maptasker.src.taskervars import tasker_global_variables
 from maptasker.src.varxref import _LOW_CONFIDENCE_LENGTH, VARIABLE_PATTERN
 
 if TYPE_CHECKING:
@@ -1708,7 +1708,7 @@ def _swap_one_condition(
 # shape, which a typed string cannot stand in for.
 #
 # Both spellings of the string category, because there are two: arg_specs.json says
-# "String" and proginit.load_arg_specs rewrites the entry to "Str" as it
+# "String" and actionc.load_arg_specs rewrites the entry to "Str" as it
 # loads.  Matching only the one in the file left every Str argument in the file --
 # Flash's Text among them -- labelled "cannot be typed", which is every argument anybody
 # would want this for.
@@ -2518,7 +2518,6 @@ def _v2_layout_and_node(site: Site) -> tuple[object, dict | None, str]:
     anything is applied, and would be the wrong object to write into even if it were not:
     what is on disk is the <lj> of the element, and that is what has to be edited.
     """
-    from maptasker.src import sceneedit  # noqa: PLC0415
 
     layout = sceneedit.decode_v2_layout(site.element)
     if layout is None:
@@ -2677,8 +2676,6 @@ def _write_site(site: Site) -> None:
     pattern, new_name = site.rename
 
     if site.kind == V2_SCENE:
-        from maptasker.src import sceneedit  # noqa: PLC0415
-
         layout, node, key = _v2_layout_and_node(site)
         if node is None or key not in node:
             # A layout that will not decode, or a path that no longer resolves.  Left

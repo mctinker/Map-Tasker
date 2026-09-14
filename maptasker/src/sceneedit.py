@@ -84,8 +84,18 @@ from maptasker.src import editcommon, piiscan, sessundo
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.projedit import touch_project_mdate
+from maptasker.src.editcommon import touch_project_mdate
 from maptasker.src.sysconst import SCENE_TASK_TYPES
+from maptasker.src import appinv
+from maptasker.src.taskervars import tasker_global_variable_names, tasker_global_variables
+from maptasker.src.maputil2 import is_html_colour
+from maptasker.src.maputil2 import strip_html_tags
+from maptasker.src.maputil2 import tasker_icon_name
+from maptasker.src.taskedit import apply_arg_values
+from maptasker.src.taskedit import build_editable_args
+from maptasker.src.taskedit import build_synthesized_args
+from maptasker.src.taskedit import classify_action_addability
+from maptasker.src.taskedit import validate_arg_values
 
 # Destination folder on the Android device for Save To Android -- the Scene sibling of
 # projedit.ANDROID_PROJECT_LOCATION ("Tasker/projects"); see android_scene_path.
@@ -184,6 +194,47 @@ def scene_version(scene_element: defusedxml.ElementTree.Element) -> str:
     return SCENE_VERSION_V2 if is_v2_scene(scene_element) else SCENE_VERSION_LEGACY
 
 
+def decompress_gzip_json(b64_string: str) -> dict | str:
+    """Decodes a Base64 string, decompresses it using Gzip, and parses the JSON.
+
+    This function reverses a common data pipeline where a JSON object is
+    serialized, compressed to save space, and encoded into Base64 for
+    safe transmission as text.
+
+    Args:
+        b64_string (str): A Base64-encoded string representing zlib-compressed
+            JSON data.
+
+    Returns:
+        dict|list|str: The parsed JSON data. The type depends on the structure
+            of the original JSON (usually a dictionary or list).
+        str: Returns an error message string if decoding, decompression,
+            or parsing fails.
+
+    Example:
+        >>> example_input = "eJyrViotTi1SslJQcs7PzffLzM8rSyzI0S9ITM5W0lFKzMkMDvIBAL06C9M="
+        >>> decompress_json(example_input)
+        {'status': 'success', 'data': [1, 2, 3]}
+    """
+    try:
+        # 1. Decode Base64 to bytes
+        compressed_data = base64.b64decode(b64_string)
+
+        # 2. Use BytesIO to treat the bytes like a file, then decompress with gzip
+        with gzip.GzipFile(fileobj=io.BytesIO(compressed_data)) as f:
+            decompressed_data = f.read()
+
+        # 3. Parse JSON
+        return json.loads(decompressed_data.decode("utf-8"))
+
+    except (ValueError, OSError, EOFError) as e:
+        # The whole of what this decode chain throws on bad input: binascii.Error and
+        # json.JSONDecodeError and UnicodeDecodeError are all ValueError, gzip.BadGzipFile
+        # is an OSError, and a truncated member is EOFError.  A TypeError here would be a
+        # bug in the caller and no longer disappears into this string.
+        return f"An error occurred: {e}"
+
+
 def decode_v2_layout(scene_element: defusedxml.ElementTree.Element) -> dict | None:
     """The V2 Scene's component tree, decoded from <lj> into plain Python.
 
@@ -193,16 +244,12 @@ def decode_v2_layout(scene_element: defusedxml.ElementTree.Element) -> dict | No
     untouched, which is the safe answer either way: a layout that can't be read
     certainly shouldn't be re-encoded over the top of the original.
 
-    Decoding itself is scenes.decompress_gzip_json, imported lazily -- that module
-    pulls in the whole Map-output stack (tasks, proclist, dirout) which nothing on
-    the editing path needs.  The encode half has no equivalent there and lives
-    here, in encode_v2_layout.
+    Decoding itself is decompress_gzip_json, above, which the Map's Scene output
+    (scenes) decodes with too.  The encode half is encode_v2_layout, below.
     """
     layout_element = scene_element.find(V2_LAYOUT_TAG)
     if layout_element is None or not layout_element.text:
         return None
-
-    from maptasker.src.scenes import decompress_gzip_json  # noqa: PLC0415
 
     decoded = decompress_gzip_json(layout_element.text)
     # decompress_gzip_json reports failure by returning its error message as a
@@ -604,7 +651,6 @@ def v2_is_colour(text: str) -> bool:
     inspector marks, rather than refusing to store it: it is the user's Scene, and a colour
     this app fails to recognise is still theirs to keep.
     """
-    from maptasker.src.maputil2 import is_html_colour  # noqa: PLC0415
     from maptasker.src.sceneview import V2_MATERIAL_PALETTE  # noqa: PLC0415
 
     value = text.strip()
@@ -716,7 +762,7 @@ def _v2_global_choices() -> tuple[list[V2ShowWhenChoice], list[V2ShowWhenChoice]
     them from the backup yields an *empty* category on a real backup while %BATT and %WIFI
     are perfectly usable in a Show When.  Each is offered under its documented name --
     "Airplane Mode Status", not "%AIR", which is not something anyone browses a hundred-item
-    list by -- from globalvr.tasker_global_variable_names, falling back to the variable
+    list by -- from taskervars.tasker_global_variable_names, falling back to the variable
     itself for the handful that table has no name for.  Either way what gets inserted is the
     variable.  The set is the union of that table and globalvr's list, since each holds a few
     the other doesn't (see the note above tasker_global_variable_names).
@@ -725,7 +771,6 @@ def _v2_global_choices() -> tuple[list[V2ShowWhenChoice], list[V2ShowWhenChoice]
     because Tasker's own ordering in the file is the order they were created in and means
     nothing to someone looking for one by name.
     """
-    from maptasker.src.globalvr import tasker_global_variable_names, tasker_global_variables  # noqa: PLC0415
 
     builtin_names = set(tasker_global_variables) | set(tasker_global_variable_names)
     stored_names = (
@@ -1169,12 +1214,8 @@ def v2_node_name(node: dict) -> str:
     own_key = V2_LABEL_FALLBACK.get(str(node.get("type", "")), "")
     own_value = str(node.get(own_key, "") or "") if own_key else ""
     if own_value and v2_reads_as_html(node):
-        from maptasker.src.maputil2 import strip_html_tags  # noqa: PLC0415
-
         own_value = html.unescape(strip_html_tags(own_value))
     if own_value and own_key in _V2_ICON_KEYS:
-        from maptasker.src.maputil2 import tasker_icon_name  # noqa: PLC0415
-
         own_value = tasker_icon_name(own_value)
     return _v2_label_text(own_value) or str(node.get("id", ""))
 
@@ -2922,7 +2963,7 @@ def apply_edits_to_scene(edited_scene: EditableScene, new_name: str) -> list[str
 def touch_scene_edate(scene_element: defusedxml.ElementTree.Element) -> None:
     """Stamps a Scene's <edate> with the current time.  A Scene uses <edate> for
     "last modified", the way Task/Profile do -- not <mdate>, which is the
-    Project-only spelling (see projedit.touch_project_mdate).  Confirmed against
+    Project-only spelling (see editcommon.touch_project_mdate).  Confirmed against
     this repo's own backup.xml: every Scene has <cdate>+<edate>, none has <mdate>.
     """
     _set_child_text(scene_element, "edate", str(int(time.time() * 1000)))
@@ -3392,7 +3433,6 @@ def legacy_element_args(element: defusedxml.ElementTree.Element) -> list:
     would be a much worse answer than showing it with an empty property sheet.
     """
     from maptasker.src.actionc import action_codes  # noqa: PLC0415  (kept off the import path)
-    from maptasker.src.taskedit import build_editable_args  # noqa: PLC0415
 
     action_code = action_codes.get(element.tag)
     if action_code is None:
@@ -3479,7 +3519,6 @@ def legacy_validate_arg(arg: object, value: str) -> list[str]:
     """Whether this value may be written to this argument -- taskedit's own rule, so the
     Scene inspector rejects exactly what the Task editor rejects and with the same words.
     """
-    from maptasker.src.taskedit import validate_arg_values  # noqa: PLC0415
 
     return validate_arg_values([arg], lambda _arg: "value", {"value": str(value)})
 
@@ -3497,7 +3536,6 @@ def legacy_set_arg(arg: object, value: str) -> None:
     Caller validates first (legacy_validate_arg); this assumes a well-formed value, exactly
     as apply_arg_values does for its own callers.
     """
-    from maptasker.src.taskedit import apply_arg_values  # noqa: PLC0415
 
     apply_arg_values([arg], lambda _arg: "value", {"value": str(value)})
 
@@ -3990,7 +4028,6 @@ def legacy_new_element(
     on purpose than one that starts in the same place in both, and the landscape half can be
     dragged somewhere else the moment the designer is switched to it.
     """
-    from maptasker.src.taskedit import build_synthesized_args  # noqa: PLC0415
 
     reason = legacy_can_add(element_type)
     if reason:
@@ -4365,8 +4402,6 @@ def legacy_add_background(element: defusedxml.ElementTree.Element) -> defusedxml
     if existing is not None:
         return existing
 
-    from maptasker.src.taskedit import build_synthesized_args  # noqa: PLC0415
-
     element_cls = type(element)
     background = element_cls("RectElement", {"sr": "background"})
     geometry = element_cls("geom")
@@ -4399,8 +4434,6 @@ def legacy_add_scene_properties(
     existing = legacy_scene_properties(scene_element)
     if existing is not None:
         return existing
-
-    from maptasker.src.taskedit import build_synthesized_args  # noqa: PLC0415
 
     element_cls = type(scene_element)
     properties = element_cls("PropertiesElement", {"sr": "props"})
@@ -4849,7 +4882,6 @@ def legacy_action_item_args(item: LegacyActionItem) -> list:
     argument added to actionc.py shows up here without anything changing.
     """
     from maptasker.src.actionc import action_codes  # noqa: PLC0415
-    from maptasker.src.taskedit import build_editable_args  # noqa: PLC0415
 
     if item.action_element is None:
         return []
@@ -4880,12 +4912,11 @@ def legacy_action_item_icon(item: LegacyActionItem) -> str:
     """The item's icon as one field's worth of text -- deviceinv's spelling, the same one
     every Icon argument in this app is typed into.
     """
-    from maptasker.src import deviceinv  # noqa: PLC0415
 
     image = item.element.find(f"Img[@sr='{LEGACY_ACTION_ITEM_ICON_SR}']")
     if image is None:
         return ""
-    return deviceinv.format_icon_value(deviceinv.read_icon_element(image))
+    return appinv.format_icon_value(appinv.read_icon_element(image))
 
 
 def legacy_set_action_item_icon(item: LegacyActionItem, value: str) -> None:
@@ -4899,11 +4930,10 @@ def legacy_set_action_item_icon(item: LegacyActionItem, value: str) -> None:
     app's "app:package/class" and a %variable are all understood -- the same four forms the
     Task editor's Icon fields accept.
     """
-    from maptasker.src import deviceinv  # noqa: PLC0415
 
     element = item.element
     image = element.find(f"Img[@sr='{LEGACY_ACTION_ITEM_ICON_SR}']")
-    icon = deviceinv.parse_icon_value(value)
+    icon = appinv.parse_icon_value(value)
 
     if icon is None:
         if image is not None:
@@ -4914,7 +4944,7 @@ def legacy_set_action_item_icon(item: LegacyActionItem, value: str) -> None:
         # Last child, which is where all 5 samples that have one keep it -- after <Action>.
         image = type(element)("Img", {"sr": LEGACY_ACTION_ITEM_ICON_SR, "ve": "2"})
         element.append(image)
-    deviceinv.write_icon_element(image, icon)
+    appinv.write_icon_element(image, icon)
 
 
 def legacy_renumber_action_items(properties: defusedxml.ElementTree.Element) -> None:
@@ -4940,7 +4970,6 @@ def legacy_add_action_item(
     label alone is valid (it lands in the overflow menu).  Appended after any existing item,
     which is where Tasker adds one -- its plus button is at the bottom of the list.
     """
-    from maptasker.src.taskedit import build_synthesized_args, classify_action_addability  # noqa: PLC0415
     from maptasker.src.actionc import action_codes  # noqa: PLC0415
 
     addable, reason = classify_action_addability(action_key)

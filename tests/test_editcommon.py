@@ -106,8 +106,10 @@ def test_save_path_exists_agrees_everywhere(
 
 def test_the_non_editors_share_the_same_substitution() -> None:
     """deviceinv and presave used to re-spell the pattern because importing an editor
-    would have been a cycle.  editcommon is below all of them, so they no longer do --
-    and deviceinv's staged path has to keep landing on the editor's own device path.
+    would have been a cycle.  They no longer do: presave takes it from sysconst, where
+    editcommon gets it too (editcommon reaches presave through maputil2, so presave cannot
+    import editcommon), and deviceinv goes through editcommon, so its staged path has to
+    keep landing on the editor's own device path.
     """
     assert presave.ILLEGAL_IN_FILENAME is editcommon.ILLEGAL_IN_FILENAME
     for name in ("Opener", "Wake: Up", "a/b", ""):

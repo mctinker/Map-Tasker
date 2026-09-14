@@ -289,7 +289,7 @@ def create_popup_window(title: str, message: str = "", close_button: bool = Fals
 # when there is.  Typing a field back to what it was does take the message down again, which
 # a flag could not do -- but undoing by *button* often will not, because the undo is not a
 # byte-for-byte one: flipping a Project's Enabled switch off and back on restamps its
-# <mdate> (projedit.touch_project_mdate), and a Profile's leaves <limit> at the end of the
+# <mdate> (editcommon.touch_project_mdate), and a Profile's leaves <limit> at the end of the
 # element rather than where it started.  The message stays up in both cases, correctly:
 # saving really would write a different file than the one that was loaded.
 #
@@ -612,7 +612,7 @@ def remember_android_panel_option(gui: MyGui, name: str, value: object) -> None:
 
     Written to three places, for the reason userintr_reports.save_health_check_skip gives for its own
     setting: the GUI attribute is what the next panel opens with and what exiting writes back over
-    program_arguments (rungui.capture_gui_state); program_arguments is what the settings file is
+    program_arguments (guistate.capture_gui_state); program_arguments is what the settings file is
     written from; and the file is written now rather than at exit, since a session that ends any
     other way would otherwise forget a box ticked in it.
     """

@@ -11,19 +11,13 @@ import re
 import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.actione as action_evaluate
-import maptasker.src.taskflag as task_flags
 from maptasker.src import console
-from maptasker.src.error import error_handler
-from maptasker.src.format import format_html
+from maptasker.src.error import error_handler, rutroh_error
 from maptasker.src.getids import get_ids
-from maptasker.src.kidapp import get_kid_app
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
 from maptasker.src.sysconst import (
     UNNAMED_ITEM,
-    DISPLAY_DETAIL_LEVEL_all_tasks,
-    FormatLine,
-    logger,
     pattern14,
 )
 
@@ -262,239 +256,20 @@ def get_project_for_solo_task(
     return project_name, project_element
 
 
-# We're processing a single task only
-# Optimized
-def do_single_task(
-    our_task_name: str,
-    project_name: str,
-    profile_name: str,
-    task_list: list,
-    our_task_element: defusedxml.ElementTree,
-    list_of_found_tasks: list,
-) -> None:
+def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
     """
-    Process a single Task only.
+    Extracts the task ID from an unnamed task string.
 
     Args:
-        our_task_name (str): The name of the Task to be processed.
-        project_name (str): The name of the Project the Task belongs to.
-        profile_name (str): The name of the Profile the Task belongs to.
-        task_list (list): A list of Tasks.
-        our_task_element (defusedxml.ElementTree): The XML element for this Task.
-        list_of_found_tasks (list): A list of all Tasks processed so far.
+        unnamed_task (str): The unnamed task string.
 
     Returns:
-        None
+        str: The extracted task ID.
     """
-    # This import must reside here to avoid circular error.  Otherwise, get error in save_restore_args.
-    from maptasker.src.proclist import process_list  # noqa: PLC0415
+    # Extract the task ID from the unnamed task string
+    position = unnamed_task.rfind(".")
+    if position != -1:
+        return unnamed_task[position + 1 :].split(" (Unnamed)", maxsplit=1)[0]
 
-    logger.debug(
-        f"Comparing task name:{PrimeItems.program_arguments['single_task_name']} to our Task name:{our_task_name}",
-    )
-
-    if PrimeItems.program_arguments.get("single_task_name") == our_task_name:
-        PrimeItems.found_named_items.update(
-            {
-                "single_task_found": True,
-                "single_project_found": True,
-                "single_profile_found": True,
-            },
-        )
-
-        save_project, save_profile = (
-            PrimeItems.program_arguments["single_project_name"],
-            PrimeItems.program_arguments["single_profile_name"],
-        )
-        PrimeItems.program_arguments.update(
-            {
-                "single_project_name": project_name,
-                "single_profile_name": profile_name or UNNAMED_ITEM,
-            },
-        )
-
-        PrimeItems.output_lines.refresh_our_output(True, project_name, profile_name)
-
-        temporary_task_list = (
-            [item for item in task_list if our_task_name == item[: len(our_task_name)]] if task_list else task_list
-        )
-
-        if PrimeItems.program_arguments.get("pretty") and temporary_task_list:
-            temporary_task_list[0] = temporary_task_list[0].replace("[", "<br>[")
-
-        process_list(
-            "Task:",
-            temporary_task_list,
-            our_task_element,
-            list_of_found_tasks,
-            project_name,
-            profile_name,
-        )
-
-        PrimeItems.program_arguments.update(
-            {"single_project_name": save_project, "single_profile_name": save_profile},
-        )
-    else:
-        PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
-
-        if PrimeItems.program_arguments.get("pretty") and "[" not in our_task_name:
-            task_list[0] = task_list[0].replace(
-                "[",
-                f"<br>{'&nbsp;' * len(our_task_name)}[",
-            )
-
-        process_list("Task:", task_list, our_task_element, list_of_found_tasks, project_name, profile_name)
-        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
-
-
-# Search image xml element for key and return title=value
-def get_image(image: defusedxml.ElementTree, title: str, key: str) -> str:
-    """Returns:
-        - str: Returns a string.
-    Parameters:
-        - image (defusedxml.ElementTree): An XML element tree.
-        - title (str): The title of the image.
-        - key (str): The key to search for in the XML element tree.
-    Processing Logic:
-        - Finds the element with the given key.
-        - If the element is not found, returns an empty string.
-        - If the element's text contains a period, splits the text at the last period and returns the second part.
-        - If the text is empty, returns an empty string.
-        - Otherwise, returns a string containing the title and text."""
-    element = image.find(key)
-    if element is None:
-        return ""
-    text = element.text
-    if "." in text:
-        text = text.rsplit(".", 1)[1]
-    return f"{title}={text} " if text else ""
-
-
-# If Task has an icon, get and format it in the Task output line.
-def get_icon_info(the_task: defusedxml.ElementTree) -> str:
-    """
-    Gets icon information from the task XML.
-    Args:
-        the_task: defusedxml.ElementTree: The task XML tree
-    Returns:
-        str: Formatted icon information text wrapped in brackets
-    - Finds the <Img> element from the task
-    - Extracts the icon name, package and class from the <Img> attributes
-    - Concatenates them together with a space separator and strips trailing spaces
-    - Returns the concatenated text wrapped in [Icon Info()] brackets
-    """
-    if the_task is None:
-        return ""
-    image = the_task.find("Img")
-    if image is None:
-        return ""
-    icon_name = get_image(image, "name", "nme")
-    icon_pkg = get_image(image, "pkg", "pkg")
-    icon_cls = get_image(image, "class", "cls")
-    text = f"{icon_pkg}{icon_cls}{icon_name}"
-    text = text.rstrip(" ")
-
-    return f"[Icon Info({text})]"
-
-
-# Get additional information for this Task
-# Optimized
-def get_extra_details(
-    our_task_element: defusedxml.ElementTree,
-    task_output_lines: list,
-) -> tuple:
-    """
-    Get additional information for this Task.
-
-    Args:
-        our_task_element (xml): The Task head XML element.
-        task_output_lines (list): List of Task's output line(s).
-
-    Returns:
-        tuple (str, str, str, str, str): The extra details as strings.
-    """
-    extra_details = {
-        "kid_app_info": get_kid_app(our_task_element),
-        "priority": task_flags.get_priority(our_task_element, False),
-        "collision": task_flags.get_collision(our_task_element),
-        "stay_awake": task_flags.get_awake(our_task_element),
-        "icon_info": get_icon_info(our_task_element),
-    }
-
-    # Process 'kid_app_info' separately if it exists
-    if extra_details["kid_app_info"]:
-        extra_details["kid_app_info"] = format_html(
-            "task_color",
-            "",
-            extra_details["kid_app_info"],
-            True,
-        )
-
-    # Append non-empty details to the first line of task_output_lines
-    task_output_lines[0] += " " + " ".join(filter(None, extra_details.values()))
-
-    return tuple(extra_details.values())
-
-
-# Given a list of tasks, output them.
-# Optimized
-def output_task_list(
-    list_of_tasks: list,
-    project_name: str,
-    profile_name: str,
-    task_output_lines: str,
-    list_of_found_tasks: list,
-    do_extra: bool,
-) -> bool:
-    """
-    Given a list of tasks, output them.  The list of tasks is a list of tuples.
-        The first element is the Task name, the second is the Task element.
-        Args:
-
-            list_of_tasks (list): list of Tasks to output.
-            project_name (str): name of the owning Projeect
-            profile_name (str): name of the owning Profile
-            task_output_lines (str): the output lines for the Tasks
-            list_of_found_tasks (list): list of Tasks found so far
-            do_extra (bool): True to output extra info.
-        Returns:
-            bool: True if we found a single Task we are looking for"""
-    _get_extra_details = get_extra_details
-    _do_single_task = do_single_task
-    for task_item in list_of_tasks:
-        # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
-        # the Task name.
-        task_output_lines.append(f"{task_item['name']}&nbsp;&nbsp;")
-        count = len(task_output_lines) - 1
-
-        # fmt: off
-        # task_output_lines.append(task_output_lines[count] or f"{task_item['name']}&nbsp;&nbsp;")
-        # fmt: on
-
-        # Doing extra details?
-        if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
-            # Get the extra details for this Task
-            extra_details = _get_extra_details(
-                task_item["xml"],
-                [task_output_lines[count]],
-            )
-            # Tack on the extra info since [task_output_lines[count]] it is immutable
-            task_output_lines[count] += " ".join(filter(None, extra_details))
-
-        # At this point, the 'task name' consist of the Task name and any extra details making up the output text line,
-        task_item["name"] = task_item["name"].split("&nbsp;")[0]  # Just get the name part from the text line
-        _do_single_task(
-            task_item["name"],
-            project_name,
-            profile_name,
-            [task_output_lines[count]],
-            task_item["xml"],
-            list_of_found_tasks,
-        )
-
-        # If only doing a single Task and we found/did it, then we are done
-        if PrimeItems.program_arguments.get("single_task_name") == task_item["name"]:
-            PrimeItems.found_named_items["single_task_found"] = True
-            return True
-
-    return False
+    rutroh_error(f"Error.  Missing period for task ID in Taask name: '{unnamed_task}'")
+    return unnamed_task.split(".")[1].strip()

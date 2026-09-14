@@ -265,7 +265,7 @@ def format_image(child: defusedxml) -> str:
     Tasker writes an icon in six shapes, and only two of them carry an <nme>:
 
         <var>          a %variable, resolved on the phone.  It wins over anything else left
-                       in the element -- the same rule deviceinv.read_icon_element applies
+                       in the element -- the same rule appinv.read_icon_element applies
                        for the editor.
         <nme>          alone: one of Tasker's own built-in icons.
         <nme> + <pkg>  a named icon inside an installed icon pack.

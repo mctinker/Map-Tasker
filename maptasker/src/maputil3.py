@@ -1,11 +1,8 @@
 #! /usr/bin/env python3
-"""
+"""maputil3: installing an optional package the moment something needs it (ensure_and_import).
 
- maputil3: General and GUI utilities.
-
-These are functions pulled out of maputils, guiwins and guiutils that would otherwise cause a circular
-import error.
-
+The AI modules use it for the libraries only an analysis needs.  It used to hold the XML file
+checks as well; those are in getbakup now, beside the rest of getting a backup file.
 """
 
 import importlib
@@ -14,9 +11,6 @@ import subprocess
 import sys
 
 from maptasker.src import console
-from maptasker.src.maputil2 import http_request
-from maptasker.src.maputils import validate_xml
-from maptasker.src.sysconst import logger
 
 
 def ensure_and_import(pypi_name: str, import_path: str) -> object:
@@ -69,52 +63,3 @@ def ensure_and_import(pypi_name: str, import_path: str) -> object:
     except (subprocess.CalledProcessError, ImportError) as e:
         console.error(f"MapTasker: --- Failed to provide Package {import_path}: {e} ---")
         return None
-
-
-# Read XML file and validate the XML.
-def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
-    # Read the file
-    """Validates an XML file from an Android device.
-    Parameters:
-        - ip_address (str): IP address of the Android device.
-        - port (str): Port number of the Android device.
-        - android_file (str): Name of the XML file to be validated.
-    Returns:
-        - bool: True if the file is valid, False if not.
-    Processing Logic:
-        - Reads the file from the Android device.
-        - Validates the XML file.
-        - Checks if the file is Tasker XML.
-        - Returns True if the file is valid, False if not."""
-    if ip_address:
-        return_code, file_contents = http_request(
-            ip_address,
-            port,
-            android_file,
-            "file",
-            "?download=1",
-        )
-        if return_code != 0:
-            return 1, file_contents
-    else:
-        return_code = 0
-
-    # Validate the xml
-    error_message, xml_tree = validate_xml(
-        ip_address,
-        android_file,
-        return_code,
-        file_contents,
-    )
-
-    # If there was an error, bail out.
-    if error_message:
-        logger.debug(error_message)
-        return 1, error_message
-
-    # Make surre this is Tasker XML
-    xml_root = xml_tree.getroot()
-    if xml_root.tag != "TaskerData":
-        return 0, f"File {android_file} is not valid Tasker XML.\n\nTry again."
-
-    return 0, ""

@@ -7,11 +7,11 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.proclist import output_task_list
 from maptasker.src.runcfg import current_config, overridden_config
 from maptasker.src.sysconst import NO_PROJECT, NORMAL_TAB, FormatLine
 from maptasker.src.tasks import (
     get_project_for_solo_task,
-    output_task_list,
 )
 from maptasker.src.twisty import add_twisty, remove_twisty
 

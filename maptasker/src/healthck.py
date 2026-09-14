@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import piiscan, proflint, taskflow, varxref
+from maptasker.src import piiscan, proflint, sceneedit, taskflow, varxref
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import (
     PROFILE,
@@ -562,7 +562,6 @@ def _index_scenes(index: ReferenceIndex) -> None:
     importable on its own -- which is what lets the checks be tested without the editor,
     and keeps a future import the other way from becoming a cycle.
     """
-    from maptasker.src import sceneedit  # noqa: PLC0415
 
     for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():
         # <lj> is the whole V2 test, in both directions (see sceneedit.is_v2_scene).

@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 """The 'build_all' rebuild path -- the one branch no ordinary run ever takes.
 
-proginit.start_up carries a development-only branch that refreshes the half of the
+mapit.start_up carries a development-only branch that refreshes the half of the
 action code tables Tasker does not publish as json.  It reaches the network, rewrites
 files in the source tree and then exits the program, so it is never taken during a real
 run and never taken by the rest of the suite either.  That made it the one piece of the
@@ -25,7 +25,7 @@ import importlib
 import pathlib
 
 import pytest
-from maptasker.src import proginit, valcodes
+from maptasker.src import mapit, proginit, valcodes
 from maptasker.src.primitem import PrimeItems
 
 
@@ -36,7 +36,7 @@ def test_build_all_is_off() -> None:
     branch it guards exits the program.  With it True, MapTasker would rebuild its
     tables from the network and quit before showing anybody anything.
     """
-    tree = ast.parse(pathlib.Path(proginit.__file__).read_text(encoding="utf-8"))
+    tree = ast.parse(pathlib.Path(mapit.__file__).read_text(encoding="utf-8"))
     start_up = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "start_up")
     assignments = [
         node

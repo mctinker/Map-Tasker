@@ -61,7 +61,7 @@ def test_exit_program_raises_rather_than_exiting() -> None:
 
     Imported inside the test because maputils pulls in a large part of the package.
     """
-    from maptasker.src.maputils import exit_program  # noqa: PLC0415
+    from maptasker.src.error import exit_program  # noqa: PLC0415
 
     with pytest.raises(MapTaskerError) as raised:
         exit_program(5)
@@ -74,7 +74,7 @@ def test_a_clean_shutdown_raises_too() -> None:
     If this returned normally instead, every caller written as "exit_program(0)" followed
     by unreachable code would run that code.
     """
-    from maptasker.src.maputils import exit_program  # noqa: PLC0415
+    from maptasker.src.error import exit_program  # noqa: PLC0415
 
     with pytest.raises(MapTaskerError) as raised:
         exit_program(0)
@@ -83,7 +83,7 @@ def test_a_clean_shutdown_raises_too() -> None:
 
 def test_a_caller_can_contain_it() -> None:
     """What a GUI button handler and diffload.load_for_comparison both rely on."""
-    from maptasker.src.maputils import exit_program  # noqa: PLC0415
+    from maptasker.src.error import exit_program  # noqa: PLC0415
 
     def guarded() -> str:
         try:

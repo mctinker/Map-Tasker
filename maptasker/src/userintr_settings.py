@@ -77,7 +77,7 @@ class SettingsEventHandlers:
         # The level is an int on the GUI object.  save_settings_event() writes these attributes
         # to the settings file as-is, and every reader of program_arguments["display_detail_level"]
         # compares it numerically (> 2, == 4, >= DISPLAY_DETAIL_LEVEL_all_tasks ...), so a string
-        # here is what wrote display_detail_level = "5" into the TOML and left capture_gui_state()
+        # here is what wrote display_detail_level = "5" into the TOML and left capture_gui_state() (guistate.py)
         # and process_gui() (rungui.py) converting it back on every run.  The pulldown keeps a
         # string of its own below, since its options are strings.
         raw_level = event_value if isinstance(event_value, (int, str)) else event_value.value

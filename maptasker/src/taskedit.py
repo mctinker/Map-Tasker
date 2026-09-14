@@ -28,14 +28,15 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import deviceinv, editcommon, piiscan, sessundo
+from maptasker.src import appinv, editcommon, piiscan, sessundo
 from maptasker.src.actionc import action_codes
 from maptasker.src.actiont import lookup_values
 from maptasker.src.bundle import bundles
 from maptasker.src.editcommon import set_child_text as _set_child_text
+from maptasker.src.editcommon import touch_project_mdate
+from maptasker.src.maputil2 import get_android_auth_key, http_post_request, http_request
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.projedit import touch_project_mdate
 from maptasker.src.shelsort import shell_sort
 
 # The purely informational Bundle hint (a list of the variables an action/condition
@@ -883,10 +884,10 @@ def _classify_arg_widget(arg) -> tuple[str, str, list[str] | None]:
     # both fields are typed into as well as picked from (see guiwins_taskedit._render_app_arg_field),
     # but a picker with nothing in it is a field the user has no way to fill correctly, so
     # with an empty inventory these stay exactly as read-only as they were before
-    # deviceinv.py existed.  See classify_action_addability, which gates on the same thing.
-    if category == "App" and deviceinv.have_apps():
+    # appinv.py existed.  See classify_action_addability, which gates on the same thing.
+    if category == "App" and appinv.have_apps():
         return "app_picker", "App", None
-    if category in _ICON_CATEGORIES and deviceinv.have_icons():
+    if category in _ICON_CATEGORIES and appinv.have_icons():
         return "icon_picker", "Img", None
     return "readonly", "", None
 
@@ -1018,13 +1019,13 @@ def _build_app_arg(action_element: defusedxml.ElementTree.Element, the_arg: str,
         backing_tag=backing_tag,
         is_var=False,
         element=app_element,
-        current_value=deviceinv.format_app_value(deviceinv.read_app_element(app_element)),
+        current_value=appinv.format_app_value(appinv.read_app_element(app_element)),
     )
 
 
 def _build_icon_arg(action_element: defusedxml.ElementTree.Element, the_arg: str, arg) -> EditableArg:
     """An <Img sr="argN"> argument, as a field holding one icon reference -- see
-    deviceinv.format_icon_value for how the four forms of one are spelled.  Falls back to
+    appinv.format_icon_value for how the four forms of one are spelled.  Falls back to
     read-only on the same two conditions as _build_app_arg, for the same reasons.
     """
     widget_kind, backing_tag, _ = _classify_arg_widget(arg)
@@ -1042,7 +1043,7 @@ def _build_icon_arg(action_element: defusedxml.ElementTree.Element, the_arg: str
         backing_tag=backing_tag,
         is_var=False,
         element=img_element,
-        current_value=deviceinv.format_icon_value(deviceinv.read_icon_element(img_element)),
+        current_value=appinv.format_icon_value(appinv.read_icon_element(img_element)),
     )
 
 
@@ -1327,7 +1328,7 @@ _SAFE_CATEGORIES = ("Int", "Str", "String", "Boolean")
 # fetch from the device -- which the GUI offers wherever it shows either of these exact
 # texts (see guiwins_taskedit._render_inventory_fetch).  The icon one has a way out because an app's
 # own icon is a package and a launcher activity, which is precisely what the Application
-# fetch brings back: see deviceinv._merged_with_device_icons, and the module docstring
+# fetch brings back: see appinv._merged_with_device_icons, and the module docstring
 # there for the two icon kinds no fetch can reach.  Named constants rather than literals so
 # that recognising one is an equality check against a definition, not a substring guess.
 NO_APPS_REASON = "No Applications were found in the loaded configuration to choose from."
@@ -1381,12 +1382,12 @@ def classify_action_addability(action_key: str) -> tuple[bool, str]:
         if category == "Bundle" and get_bundle_definition(action_key) is not None:
             continue
         # An Application or an icon is generatable while there is an inventory to pick one
-        # from -- see deviceinv.py, and _classify_arg_widget, which gates the field itself
+        # from -- see appinv.py, and _classify_arg_widget, which gates the field itself
         # on the same answer.  This is what makes Launch App, Notify and the other 20
         # entries listed in app_icon_fetch_design.md addable at all.
-        if category == "App" and deviceinv.have_apps():
+        if category == "App" and appinv.have_apps():
             continue
-        if category in _ICON_CATEGORIES and deviceinv.have_icons():
+        if category in _ICON_CATEGORIES and appinv.have_icons():
             continue
         if category == "App":
             return False, NO_APPS_REASON
@@ -1416,7 +1417,7 @@ def list_addable_actions() -> list[dict]:
     'Launch App' greyed out, with a reason that stopped being true, until restart.
     """
     global _ADDABLE_ACTIONS_CACHE, _ADDABLE_ACTIONS_GENERATION  # noqa: PLW0603
-    inventory_generation = deviceinv.generation()
+    inventory_generation = appinv.generation()
     if _ADDABLE_ACTIONS_CACHE is not None and inventory_generation == _ADDABLE_ACTIONS_GENERATION:
         return _ADDABLE_ACTIONS_CACHE
 
@@ -1830,9 +1831,9 @@ def apply_arg_values(
             index = arg.dropdown_options.index(value) if value in arg.dropdown_options else 0
             arg.element.set("val", str(index))
         elif arg.backing_tag == "App":
-            deviceinv.write_app_element(arg.element, deviceinv.parse_app_value(value))
+            appinv.write_app_element(arg.element, appinv.parse_app_value(value))
         elif arg.backing_tag == "Img":
-            deviceinv.write_icon_element(arg.element, deviceinv.parse_icon_value(value))
+            appinv.write_icon_element(arg.element, appinv.parse_icon_value(value))
         elif arg.backing_tag == "Int" and arg.is_var:
             var_element = arg.element.find("var")
             var_element.text = value
@@ -2132,8 +2133,6 @@ def save_task_to_android(
     Returns (0, task_name, auth_key_used) on success, so the caller can cache
     auth_key_used for next time, or (return_code, error_message, "") on failure.
     """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import get_android_auth_key, http_post_request  # noqa: PLC0415
 
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
@@ -2258,8 +2257,6 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
     # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
     from urllib.parse import quote  # noqa: PLC0415
 
-    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
-
     return_code, response = http_request(
         ip_address.strip(),
         ip_port.strip(),
@@ -2303,8 +2300,6 @@ def save_task_to_android_directory(
 
     Returns (0, task_name) on success, or (return_code, error_message).
     """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from maptasker.src.maputil2 import http_post_request, http_request  # noqa: PLC0415
 
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()

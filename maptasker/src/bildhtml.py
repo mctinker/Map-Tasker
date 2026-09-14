@@ -9,7 +9,7 @@ import maptasker.src.taskuniq as special_tasks
 from maptasker.src import console, projects
 from maptasker.src.caveats import display_caveats
 from maptasker.src.dirout import output_directory
-from maptasker.src.error import error_handler, rutroh_error
+from maptasker.src.error import error_handler, exit_program, rutroh_error
 from maptasker.src.format import format_line
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.globalvr import get_variables, output_variables
@@ -18,7 +18,6 @@ from maptasker.src.maputil2 import translate_string
 from maptasker.src.maputils import (
     clear_tasker_data,
     display_task_warnings,
-    exit_program,
     restart_program_subprocess,
 )
 from maptasker.src.mtexcept import MapTaskerError

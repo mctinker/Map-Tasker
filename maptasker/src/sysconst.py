@@ -61,7 +61,7 @@ FLOWCHART_FILE = "MapTasker_Flowchart.txt"
 # never held anything and is no longer written; getputer deletes a leftover one, unopened.
 LEGACY_SYSTEM_SETTINGS_FILE = ".MapTasker_Settings.pkl"
 # Where a fetched Application list is kept between runs, keyed by device -- see
-# deviceinv.py.  Alongside MapTasker_Settings.toml (both are written to the current
+# appinv.py.  Alongside MapTasker_Settings.toml (both are written to the current
 # directory) because it is the same kind of thing: remembered, per-installation, and
 # no loss if it is deleted.
 APPS_CACHE_FILE = "MapTasker_Apps.json"
@@ -223,6 +223,14 @@ logger.addHandler(logging.NullHandler())
 debug_out = False  # Prints the line to be added to the output
 DEBUG_PROGRAM = False
 debug_file = "maptasker_debug.log"
+
+# Characters a Tasker name is free to contain and a filename is not.  Tasker names are free
+# text -- "Wake: Up" and "Home/Work" are ordinary names -- and every one of these would either
+# be rejected by the filesystem or change what the path means.  editcommon.sanitize_filename
+# substitutes them in one name; presave flattens a whole device path with them.  Kept here
+# rather than in editcommon because editcommon reaches presave (through maputil2), so presave
+# cannot import it without a loop.
+ILLEGAL_IN_FILENAME = re.compile(r'[\\/:*?"<>|]')
 
 # Compiled match patterns reused throughout
 pattern0 = re.compile(",,")
@@ -412,6 +420,19 @@ NOTIFY_TIMEOUT_DEFAULT = 5000
 SPACE_COUNT1 = [16, "155"]
 SPACE_COUNT2 = [25, "160"]
 SPACE_COUNT3 = [50, "200"]
+
+# A Scene's child tags that describe the Scene itself -- its name, sizes, dates and flags --
+# rather than one of its UI elements, so every walk over a Scene's elements skips them.
+SCENE_TAGS_TO_IGNORE = [
+    "cdate",
+    "edate",
+    "flags",
+    "heightLand",
+    "heightPort",
+    "nme",
+    "widthLand",
+    "widthPort",
+]
 
 SCENE_TASK_TYPES = {
     "checkchangeTask": "Check Change",

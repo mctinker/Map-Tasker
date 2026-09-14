@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import defusedxml
 from nicegui import app, run, ui
 
-from maptasker.src import console, deviceinv
+from maptasker.src import console
 
 # Keep your existing logic imports (e.g., from maptasker.src.aiutils import ...)
 from maptasker.src.aiutils import (
@@ -27,7 +27,6 @@ from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import http_request, translate_string
-from maptasker.src.maputil3 import validate_xml_file
 from maptasker.src.maputils import get_pypi_version, restart_program_subprocess
 from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, clear_single_items
 from maptasker.src.profiles import get_profile_tasks
@@ -46,6 +45,7 @@ from maptasker.src.sysconst import (
     VERSION,
     logger,
 )
+from maptasker.src.tasks import get_taskid_from_unnamed_task
 
 if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
@@ -596,25 +596,6 @@ def display_selected_object_labels(self: "MyGui") -> None:
 # ==========================================
 # 4. PURE LOGIC FUNCTIONS (Unchanged)
 # ==========================================
-def get_taskid_from_unnamed_task(unnamed_task: str) -> str:
-    """
-    Extracts the task ID from an unnamed task string.
-
-    Args:
-        unnamed_task (str): The unnamed task string.
-
-    Returns:
-        str: The extracted task ID.
-    """
-    # Extract the task ID from the unnamed task string
-    position = unnamed_task.rfind(".")
-    if position != -1:
-        return unnamed_task[position + 1 :].split(" (Unnamed)", maxsplit=1)[0]
-
-    rutroh_error(f"Error.  Missing period for task ID in Taask name: '{unnamed_task}'")
-    return unnamed_task.split(".")[1].strip()
-
-
 def display_current_file(self: "MyGui", file_name: str) -> None:
     """
     A function to display the current file as a label in the GUI toolbar row.
@@ -1439,10 +1420,10 @@ def display_error_file_and_ai_response(self) -> None:  # noqa: ANN001
         Returns:
         - None
     """
-    from maptasker.src.userintr import MyGui  # noqa: PLC0415
-
     logger.info("Displaying messages from last run.")
-    gui = self if isinstance(self, MyGui) else self.gui
+    # By class name, as display_model_pulldown does, rather than isinstance: userintr imports
+    # this module, so importing MyGui here would tie guiutils back into a loop with it.
+    gui = self if self.__class__.__name__ == "MyGui" else self.gui
 
     analysis_response = ""
     error_msg = ""
@@ -1636,153 +1617,6 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
         # raised: an unreachable device is a normal outcome of pressing this button.
         self.display_message_box(f"Ping execution failure: {e!s}", "Red")
         return False
-
-
-async def validate_or_filelist_xml(
-    self: "MyGui",
-    android_ipaddr: str,
-    android_port: str,
-    android_file: str,
-) -> tuple[int, str, str, str]:
-    """
-    Validates an XML file on an Android device or generates a NiceGUI dropdown
-    selection list if no file or an explicit 'list files' action is requested.
-
-    Asynchronous because the file listing is no longer a single quick GET: it installs
-    (once) and runs a helper Task on the device and waits for the file that Task writes,
-    which takes seconds.  Every request to the device goes to run.io_bound so the GUI stays
-    responsive while it happens; everything else here builds widgets and must stay on this thread.
-    """
-    # 1. If a file is specified and we aren't explicitly listing files, validate it
-    if len(android_file) != 0 and android_file != "" and not self.list_files:
-        return_code, _ = await run.io_bound(
-            http_request,
-            android_ipaddr,
-            android_port,
-            android_file,
-            "file",
-            "?download=1",
-        )
-
-        # Validate the XML syntax structure
-        if return_code == 0:
-            PrimeItems.program_arguments["gui"] = True
-            return_code, error_message = await run.io_bound(
-                validate_xml_file,
-                android_ipaddr,
-                android_port,
-                android_file,
-            )
-            if return_code != 0:
-                self.display_message_box(error_message, "Red")
-                return 1, android_ipaddr, android_port, android_file
-        else:
-            return 1, android_ipaddr, android_port, android_file
-
-    # 2. File location not provided or "List Files" requested.
-    # Fetch the directory catalog and present a NiceGUI ui.select component.
-    else:
-        clear_android_buttons(self)
-
-        ui.notify(
-            translate_string("Listing the XML files on the Android device..."),
-            type="info",
-            timeout=1500,
-        )
-        return_code, filelist = await run.io_bound(
-            get_list_of_files,
-            android_ipaddr,
-            android_port,
-            deviceinv.FILE_LIST_DIRECTORY,
-        )
-        if return_code != 0:
-            self.display_message_box(filelist, "Red")
-            return 1, android_ipaddr, android_port, android_file
-
-        # Clean slate the container before rendering the picker options
-        if hasattr(self, "android_container") and self.android_container:
-            self.android_container.clear()
-            self.android_container.classes(remove="hidden")
-        else:
-            # Fallback placeholder if no container container is declared
-            self.android_container = ui.column().classes("w-full gap-2 p-2")
-
-        # Mount the native interactive picking layout inside the container tree context
-        with self.android_container:
-            ui.separator().classes("my-2")
-
-            self.filelist_label = (
-                ui.label(translate_string("Select XML From Android Device:"))
-                .classes(
-                    "text-xs font-bold text-purple-600 mt-1 self-start",
-                )
-                .tooltip(
-                    translate_string(
-                        "This will reach out to your Android device to list the available XML files belonging to Tasker.",
-                    ),
-                )
-            )
-
-            # OptionMenu transforms to a reactive NiceGUI ui.select dropdown
-            self.filelist_option = ui.select(
-                options=filelist,
-                label=translate_string("Available Android Backups"),
-                on_change=lambda e: self.event_handlers.file_selected_event(e.value),
-            ).classes("w-full q-mt-none")
-
-            # Flat modern action button to easily close the selection panel
-            ui.button(
-                translate_string("Cancel Entry"),
-                on_click=lambda: (self.android_container.clear(), self.android_container.classes(add="hidden")),
-            ).classes("text-xs w-full mt-2").props("outline color=negative dense")
-
-        # Save connection details to state
-        self.android_ipaddr = android_ipaddr
-        self.android_port = android_port
-
-        # Return status code 2 to indicate layout suspension until user selects a file item.
-        return (2, "", "", "")
-
-    # All checks passed successfully
-    return 0, android_ipaddr, android_port, android_file
-
-
-# List the XML files on the Android device
-def get_list_of_files(ip_address: str, ip_port: str, file_location: str) -> tuple:
-    """Get the list of XML files on an Android device.
-
-    Args:
-        ip_address: the device's TCP/IP address.
-        ip_port: the port its Tasker HTTP server is listening on.
-        file_location: the directory to list.
-
-    Returns:
-        tuple: (0, list of file paths) or (return_code, error message).
-
-    The listing is done by a helper Task MapTasker installs on the device itself -- see
-    deviceinv.fetch_file_list_from_device.  It used to be a GET on the 'maplist' route,
-    which is served by the separate 'MapTasker List' TaskerNet Profile that the user had
-    to import by hand and keep enabled; that Profile is no longer needed for anything.
-
-    The old route answered with each path glued to that path's file count and the whole
-    lot joined by commas, which is why this used to chop three characters off the end of
-    every entry and split on a character that can appear in a file name.  The helper Task
-    writes the paths and nothing else, so neither is necessary any more.
-
-    Blocking -- the helper Task takes a moment to run and this waits for its answer -- so
-    callers on the GUI thread must go through run.io_bound (validate_or_filelist_xml does).
-    """
-    return_code, result = deviceinv.fetch_file_list_from_device(ip_address, ip_port, file_location)
-    if return_code != 0:
-        return return_code, result
-
-    # Paths come back absolute, as Tasker reported them.  The 'file' route is rooted at the
-    # storage root, so that prefix has to come off before any of these can be fetched --
-    # and Tasker's own trash is full of XML nobody wants offered.
-    final_list = [path.replace("/storage/emulated/0", "") for path in result if ".Trash" not in path]
-    if not final_list:
-        return 8, f"Only trashed XML files were found on the Android device under {file_location}."
-    return 0, final_list
 
 
 # Read the change log file, add it to the messages to be displayed and then remove it.

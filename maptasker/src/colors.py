@@ -7,8 +7,7 @@
 import string
 
 from maptasker.src import console
-from maptasker.src.error import error_handler
-from maptasker.src.maputils import exit_program
+from maptasker.src.error import error_handler, exit_program
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import TYPES_OF_COLOR_NAMES, logger
 

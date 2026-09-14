@@ -126,7 +126,7 @@ class ReportEventHandlers:
 
         The GUI's own copy is updated along with program_arguments: the GUI was handed the
         settings when they were read, and exiting writes its attributes back over
-        program_arguments (rungui.capture_gui_state), so a choice stored in only one of the
+        program_arguments (guistate.capture_gui_state), so a choice stored in only one of the
         two would be put back to what it was at startup.
         """
         PrimeItems.program_arguments["health_check_skip"] = skip

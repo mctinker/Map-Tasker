@@ -35,6 +35,7 @@ from maptasker.src.bildhtml import build_html
 from maptasker.src.config import AI_PROMPT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getids import get_ids
+from maptasker.src.guistate import SELECTION_KEYS, capture_gui_state, held_overrides
 from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
@@ -92,7 +93,6 @@ from maptasker.src.primitem import (
     reset_attributes,
 )
 from maptasker.src.runcfg import current_config
-from maptasker.src.rungui import SELECTION_KEYS, capture_gui_state, held_overrides
 from maptasker.src.sysconst import (
     ALL_OBJECTS_MESSAGE,
     ANALYSIS_FILE,
@@ -1409,7 +1409,7 @@ class MapTaskerEventHandlers(
 
         Applying them here is not on its own enough to make them STAY applied -- capture_gui_state
         runs again, off NiceGUI's outbox loop, for messages this build itself sends.  A caller
-        passing overrides must hold them across this call with rungui.held_overrides.
+        passing overrides must hold them across this call with guistate.held_overrides.
         """
         # max_limit = 9999999
         window_title = f"{view_type.capitalize()} View"
@@ -1712,7 +1712,7 @@ class MapTaskerEventHandlers(
             # the only thing writing these: capture_gui_state re-copies the GUI's own
             # single-item selection over program_arguments from NiceGUI's outbox loop, and
             # one of this build's own notifications is enough to trigger it.  See its
-            # definition in rungui for what that cost.
+            # definition in guistate for what that cost.
             with held_overrides(overrides):
                 await self.view_event("map", goto=target.token(), overrides=overrides)
         finally:

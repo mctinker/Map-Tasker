@@ -7,29 +7,27 @@ device, and -- for Save To Android -- upload it and read it back to prove it lan
 Only three things actually differ between them, and they are what EditorKind holds.
 
 Kept as a module of its own, below all four editors in the import order, because the
-duplication had already spread past them: deviceinv and presave each re-spell the
+duplication had already spread past them: deviceinv and presave each re-spelled the
 illegal-character substitution too, both with a comment saying they would rather have
 imported it but that importing an editor would be a cycle.  Nothing here imports an
-editor, so that reason is gone and they import this instead.
+editor, so that reason is gone and deviceinv imports this instead.  The pattern itself,
+ILLEGAL_IN_FILENAME, lives in sysconst, and presave takes it from there: the upload below
+reaches presave through maputil2, so presave importing this module would close a loop.
 """
 
 from __future__ import annotations
 
 import os
-import re
+import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from maptasker.src.sysconst import ILLEGAL_IN_FILENAME
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     import defusedxml.ElementTree
-
-# Characters a Tasker name is free to contain and a filename is not.  Public because
-# presave flattens a whole device path with it rather than sanitizing one name.  Tasker names are
-# free text -- "Wake: Up" and "Home/Work" are ordinary names -- and every one of these
-# would either be rejected by the filesystem or change what the path means.
-ILLEGAL_IN_FILENAME = re.compile(r'[\\/:*?"<>|]')
 
 # What a failed upload's readback answers with when there is nothing to hand back.
 _NO_BYTES = b""
@@ -48,6 +46,20 @@ def set_child_text(parent: defusedxml.ElementTree.Element, tag: str, text: str) 
         child = type(parent)(tag)
         parent.append(child)
     child.text = text
+
+
+def touch_project_mdate(project_element: defusedxml.ElementTree.Element) -> None:
+    """Stamps a Project's <mdate> with the current time -- real Tasker Projects
+    use <mdate> for "last modified", not <edate> the way Task/Profile do (see
+    projedit.create_new_project's docstring for the confirmation). Call this from
+    anything that mutates an already-registered Project's element:
+    projedit.apply_edits_to_project (Rename), profedit.add_profile_to_project/
+    add_task_to_project (Add Profile/Add Task attaching to this Project), and the Task
+    and Scene editors where they change a Project.  Here with set_child_text because
+    all four editors stamp a Project, and "how the timestamp is formatted" is worth
+    keeping in one place.
+    """
+    set_child_text(project_element, "mdate", str(int(time.time() * 1000)))
 
 
 def save_path_exists(output_path: str) -> bool:

@@ -19,27 +19,21 @@ import sys
 import threading
 import time
 from datetime import datetime
-from typing import NoReturn
 from zoneinfo import (
     ZoneInfo,
     ZoneInfoNotFoundError,
 )  # Import ZoneInfoNotFoundError for specific error handling
 
-import defusedxml.ElementTree as et  # noqa: N813
 import requests
 from requests.exceptions import ConnectionError  # noqa: A004
 
 from maptasker.src import console
 from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
-from maptasker.src.getbakup import write_out_backup_file
 from maptasker.src.getids import get_ids
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import PrimeItems, clear_single_items
-from maptasker.src.sysconst import HOTLINK_STYLE, FormatLine, logger, logging
-from maptasker.src.taskerd import get_the_xml_data
-from maptasker.src.xmldata import rewrite_xml
+from maptasker.src.sysconst import HOTLINK_STYLE, FormatLine, logger
 
 
 # Validate TCP/IP Address
@@ -119,83 +113,6 @@ def get_pypi_version() -> str:
         logger.debug("Unable to get version from PYPI!")
         version = ""
     return version
-
-
-# Validate XML
-def validate_xml(
-    ip_address: str,
-    android_file: str,
-    return_code: int,
-    file_contents: str,
-) -> tuple:
-    # Run loop since we may have to rerun validation if unicode error
-    """Validates an XML file and returns an error message and the parsed XML tree.
-    Parameters:
-        android_file (str): The path to the XML file to be validated.
-        return_code (int): The return code from the validation process.
-        file_contents (str): The contents of the XML file.
-        ip_address (str): The TCP/IP address of the Android device or blank.
-    Returns:
-        error_message (str): A message describing any errors encountered during validation.
-        xml_tree (ElementTree): The parsed XML tree if validation was successful.
-    Processing Logic:
-        - Runs a loop to allow for revalidation in case of a unicode error.
-        - Sets the process_file flag to False to exit the loop if validation is successful or an error is encountered.
-        - If validation is successful, sets the xml_tree variable to the parsed XML tree.
-        - If an error is encountered, sets the error_message variable to a descriptive message and exits the loop.
-        - If a unicode error is encountered, rewrites the XML file and loops one more time.
-        - If any other error is encountered, sets the error_message variable to a descriptive message and exits the loop.
-        - Returns the error_message and xml_tree variables."""
-    process_file = True
-    error_message = ""
-    counter = 0
-    xml_tree = None
-    _write_out_backup_file = write_out_backup_file
-    _get_the_xml_data = get_the_xml_data
-    _rewrite_xml = rewrite_xml
-
-    # Loop until we get a valid XML file or invalid XML
-    while process_file:
-        # Validate the file
-        if return_code == 0:
-            # Process the XML file
-            PrimeItems.program_arguments["android_file"] = android_file
-
-            # If getting file from Android device, write out the backup file first.
-            if ip_address:
-                _write_out_backup_file(file_contents)
-
-            # We don't have the file yet.  Lets get it.
-            else:
-                return_code = _get_the_xml_data()
-                if return_code != 0:
-                    return PrimeItems.error_msg, None
-
-            # Run the XML file through the XML parser to validate it.
-            try:
-                filename_location = android_file.rfind(PrimeItems.slash) + 1
-                file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
-                xmlp = et.XMLParser(encoding=" iso8859_9")
-                xml_tree = et.parse(file_to_validate, parser=xmlp)
-                process_file = False  # Get out of while/loop
-            except et.ParseError:  # Parsing error
-                error_message = f"Improperly formatted XML in {android_file}. Try again."
-                process_file = False  # Get out of while/loop
-            except UnicodeDecodeError:  # Unicode error
-                _rewrite_xml(file_to_validate)
-                counter += 1
-                if counter > 2:
-                    error_message = f"Unicode error in {android_file}.  Try again."
-                    break
-                process_file = True  # Loop one more time.
-            except (OSError, LookupError) as e:
-                # What is left once ParseError and UnicodeDecodeError are taken above: the
-                # file not being readable, and the hard-coded parser encoding not being a
-                # codec this interpreter knows.
-                error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
-                process_file = False  # Get out of while/loop
-
-    return error_message, xml_tree
 
 
 # If we have set the single Project name due to a single Task or Profile name, then reset it.
@@ -504,47 +421,6 @@ def find_owning_project_for_scene(scene_name: str) -> str:
         if scenes is not None and scenes.text and scene_name in scenes.text.split(","):
             return project_name
     return ""
-
-
-def close_logfile() -> None:
-    """Close the log file(s)"""
-    # The FileHandler lives on the ROOT logger, not on "MapTasker": maputil2.setup_logging() installs
-    # it via logging.basicConfig(), and our logger simply propagates up to it.  Iterating
-    # logger.handlers here would walk an empty list and close nothing at all.
-    for target in (logger, logging.root):
-        for handler in target.handlers[:]:  # Iterate over a copy to avoid issues during modification
-            handler.close()  # Close the stream associated with the handler
-            target.removeHandler(handler)  # Remove the handler from the logger
-
-
-def exit_program(return_code: int = 0) -> NoReturn:
-    """Stop the run, from anywhere, without stopping the interpreter.
-
-    This used to be close_logfile() followed by sys.exit(), and every caller below it in
-    this package inherited that: a Task name that did not match, a missing output
-    directory, a corrupt XML file: each ended the process outright.
-
-    That is only ever right when MapTasker is the whole program.  It no longer always is.
-    The same functions run underneath a NiceGUI event loop, where SystemExit raised in a
-    `run.io_bound` worker takes the server down instead of the one build that failed, and
-    under pytest, where it ends the test session instead of the test.  diffload even had
-    to force "gui" on solely to steer taskerd's error path away from here.
-
-    So this raises MapTaskerError, which is an ordinary Exception and can therefore be
-    caught, and mapit.mapit_all -- the top of the process -- turns it back into an exit
-    status.  Callers need no change: control still leaves at the call, and the code still
-    travels with it.
-
-    Args:
-        return_code: the status the process should end on if nothing catches this.  0 is
-            a normal, deliberate shutdown and is raised just the same, because the point
-            is to stop unwinding, not to report a failure.
-
-    Raises:
-        MapTaskerError: always.  This function has no normal return.
-    """
-    close_logfile()
-    raise MapTaskerError(exit_code=return_code)
 
 
 def append_to_filename(original_filename_with_type: str, text_to_append: str) -> str:

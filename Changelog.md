@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file!
 - Changed: The 'Text' box in 'Find/Replace' now also matches what a Profile's Event and State contexts are set to, such as the network a 'Wifi Connected' context waits for.  Choosing that trigger and typing the network's name now finds the Profiles that fire on it.
 - Changed: Your AI API keys are now kept in your computer's own password store (the Keychain on macOS, Credential Manager on Windows, the Secret Service on Linux) instead of an unprotected file in the folder MapTasker was started from.  Keys saved by an earlier version are moved over automatically, and a computer with no password store keeps them in a file only your user account can read.
 - Changed: The 'Replace this argument' pulldown on the Replace tab of 'Find/Replace' now shows each argument's position alongside its name, such as 'arg0 Text' and 'arg3 Title'.  This makes it easy to match an argument to the one Tasker's XML and the Map refer to.
+- Changed: Plugin actions now name their last two arguments 'Timeout (Seconds)' and 'Structure Output (JSON, etc)' and treat them as a number and an on/off setting, matching how Tasker stores them.  As a result, the Map now shows a plugin action's timeout and Structure Output setting, which were previously left out, and the Task editor and 'Replace this argument' pulldown offer them under those names.
 - Changed:
 
 ### Removed

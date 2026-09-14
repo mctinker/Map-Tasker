@@ -21,10 +21,9 @@ from maptasker.src.clip import clip_figure
 from maptasker.src.colors import get_and_set_the_color, validate_color
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL, GUI
-from maptasker.src.error import error_handler
+from maptasker.src.error import error_handler, exit_program
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.initparg import initialize_runtime_arguments
-from maptasker.src.maputils import exit_program
 from maptasker.src.parsearg import runtime_parser
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.rungui import process_gui

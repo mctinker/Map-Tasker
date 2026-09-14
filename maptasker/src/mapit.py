@@ -27,15 +27,25 @@ This is the main coordinator module that kicks-off the other components that lau
 # Reference: https://github.com/Taskomater/Tasker-XML-Info                             #
 #                                                                                      #
 import asyncio
+import platform
 import sys
 
 from nicegui import app
 
-import maptasker.src.proginit as initialize
 from maptasker.src import console
+from maptasker.src.actionc import load_arg_specs
+from maptasker.src.error import exit_program
 from maptasker.src.lineout import LineOut
+from maptasker.src.maputil2 import log_startup_values
 from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import PrimeItems, PrimeItemsReset
+from maptasker.src.progargs import get_program_arguments
+from maptasker.src.proginit import (
+    check_versions,
+    get_data_and_output_intro,
+    rebuild_action_tables,
+    setup_colors,
+)
 from maptasker.src.sysconst import (
     debug_file,
     logger,
@@ -110,6 +120,71 @@ def _install_async_exception_handler() -> None:
     asyncio.get_running_loop().set_exception_handler(handle_async_exceptions)
 
 
+# Perform maptasker program initialization functions
+def start_up() -> None:
+    # Get any arguments passed to program
+    """
+    Initializes the program startup.
+    Args:
+        None
+    Returns:
+        None
+    Processing Logic:
+        - Gets any arguments passed to the program
+        - Migrates any old argument files to a new format
+        - Gets runtime arguments from the command line or GUI
+        - Gets the list of available fonts
+        - Gets a map of colors to use
+        - Gets key program elements and outputs intro text
+        - Logs startup values if debug mode is enabled
+    """
+    # If debug mode, fire-up the log.
+    if "-d" in sys.argv or "-debug" in sys.argv:
+        console.say("Debug turned on via startup argument")
+        log_startup_values()
+    logger.info(f"sys.argv{sys.argv!s}")
+
+    # Get the OS so we know which directory slash to use (/ or \)
+    if platform.system() == "Windows":
+        PrimeItems.slash = "\\"
+        PrimeItems.windows_system = True
+    else:
+        PrimeItems.slash = "/"
+        PrimeItems.windows_system = False
+
+    # Validate the runtime version of python
+    check_versions()
+
+    load_arg_specs()
+
+    # NOTE: FOR DEVELOPMENT ONLY!!! 'build_all = True' ONLY WITH A NEW UPDATE OF TASKER!
+    # It rebuilds tables from the network and a backup xml and then exits, so shipping it
+    # as True would end every user's startup.  tests/test_build_all.py asserts it is False.
+    build_all = False
+    if build_all:
+        rebuild_action_tables()
+        exit_program(0)
+    # END OF DEVELOPMENT CODE
+
+    # Get runtime arguments (from CLI or GUI)
+    get_program_arguments()
+
+    # Force GUI mode
+    PrimeItems.program_arguments["gui"] = True
+
+    # Get our map of colors if we don't have them.
+    if not PrimeItems.colors_to_use:
+        PrimeItems.colors_to_use = setup_colors()
+
+    # Display a popup window telling user we are analyzing
+    if PrimeItems.program_arguments["doing_diagram"]:
+        PrimeItems.program_arguments["doing_diagram"] = False
+
+    # Get the XML data and output the front matter
+    if PrimeItems.file_to_get or PrimeItems.program_arguments["file"]:
+        _ = get_data_and_output_intro(True)  # Force the front matter to be created.
+
+
 # Set up the major variables used within this program, and set up crash routine
 def initialize_everything() -> tuple[list, list, list]:
     """
@@ -139,7 +214,7 @@ def initialize_everything() -> tuple[list, list, list]:
 
     # Get colors to use, runtime arguments etc...all of our primary items we need
     # throughout
-    initialize.start_up()
+    start_up()
 
     # Set up to catch all crashes gracefully
     if sys.excepthook == sys.excepthook:

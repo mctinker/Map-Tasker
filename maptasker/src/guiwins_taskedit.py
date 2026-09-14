@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
-from maptasker.src import deviceinv, objprops, profedit, taskedit
+from maptasker.src import appinv, deviceinv, objprops, profedit, taskedit
 from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.mapjump import TASK
 from maptasker.src.maputil2 import translate_string
@@ -121,7 +121,7 @@ def _render_task_name_field(
 
 
 # How many rows either pick-from-the-inventory dialog draws at once.  A real backup
-# harvests ~50 Applications and ~140 icons (see deviceinv.py), but a large configuration
+# harvests ~50 Applications and ~140 icons (see appinv.py), but a large configuration
 # holds more, and the list is rebuilt on every keystroke of the search box -- the same
 # reasoning behind _ICON_PREVIEW_LIMIT, which the Scene designer's own picker uses.
 _PICKER_ROW_LIMIT = 200
@@ -158,7 +158,7 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
     for_icons says the user came here wanting icons rather than Applications, which changes
     what this says and nothing about what it does.  It is the same fetch either way: an
     app's own icon is its package plus its launcher activity, so the Application list is an
-    icon list too (deviceinv._merged_with_device_icons).  Saying so is the point -- a dialog
+    icon list too (appinv._merged_with_device_icons).  Saying so is the point -- a dialog
     headed "Fetch Applications" in answer to "there are no icons" looks like the wrong
     button, and the two kinds of icon the fetch cannot bring back have to be said out loud
     rather than left to be discovered in the picker afterwards.
@@ -212,7 +212,7 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
             ),
         ).classes("text-sm text-amber-700 dark:text-amber-500 mt-2")
 
-        for device, when, count in deviceinv.fetched_devices():
+        for device, when, count in appinv.fetched_devices():
             ui.label(f"{device}: {count} {translate_string('applications, fetched')} {when}").classes(
                 "text-xs text-gray-500 mt-1",
             )
@@ -277,7 +277,7 @@ def _render_variable_entry(on_variable: Callable[[str], None], button_text: str)
     to close the picker and type into the field behind it.  The field is still there and
     still works; this just means the picker no longer has to be got out of the way first.
 
-    Validation is deviceinv.is_variable_reference: a leading '%' and something after it, and
+    Validation is appinv.is_variable_reference: a leading '%' and something after it, and
     nothing more, since what follows the '%' can be an array index or a function call and is
     Tasker's business rather than this tool's.
     """
@@ -285,7 +285,7 @@ def _render_variable_entry(on_variable: Callable[[str], None], button_text: str)
 
     def use_variable() -> None:
         text = str(variable_input.value or "").strip()
-        if not deviceinv.is_variable_reference(text):
+        if not appinv.is_variable_reference(text):
             ui.notify(
                 translate_string("A variable name has to start with '%' -- for example %app_package."),
                 type="warning",
@@ -312,7 +312,7 @@ def _build_app_picker_dialog(field: ui.input, gui: MyGui) -> None:
     over the field, never a replacement for it, so it must not be able to quietly delete a
     value merely because it doesn't recognise it.
     """
-    entries = deviceinv.apps()
+    entries = appinv.apps()
     known_packages = {entry.pkg for entry in entries}
     current = [token.strip() for token in str(field.value or "").split(",") if token.strip()]
     unknown = [token for token in current if token not in known_packages]
@@ -438,7 +438,7 @@ def _render_fetch_apps_button(on_click: Callable[[], object], for_icons: bool = 
         ).style("white-space: pre-wrap")
 
 
-def _build_app_entry_picker_dialog(on_pick: Callable[[deviceinv.AppEntry], None], gui: MyGui) -> None:
+def _build_app_entry_picker_dialog(on_pick: Callable[[appinv.AppEntry], None], gui: MyGui) -> None:
     """Pick one Application, handing the whole triple to the caller.
 
     The single-pick sibling of _build_app_picker_dialog, for the Profile App condition,
@@ -447,7 +447,7 @@ def _build_app_entry_picker_dialog(on_pick: Callable[[deviceinv.AppEntry], None]
     class, not just a package name to write into a field.  Filling all three is the point:
     that condition's class field is the one nobody can be expected to know by heart.
     """
-    entries = deviceinv.apps()
+    entries = appinv.apps()
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
@@ -460,7 +460,7 @@ def _build_app_entry_picker_dialog(on_pick: Callable[[deviceinv.AppEntry], None]
             ),
         ).classes("text-sm text-gray-500 italic")
 
-        def pick(entry: deviceinv.AppEntry) -> None:
+        def pick(entry: appinv.AppEntry) -> None:
             on_pick(entry)
             dialog.close()
 
@@ -490,7 +490,7 @@ def _build_app_entry_picker_dialog(on_pick: Callable[[deviceinv.AppEntry], None]
 
         with ui.row().classes("w-full items-center gap-2 mt-2"):
             ui.label(translate_string("Or a Tasker variable:")).classes("text-xs text-gray-500")
-            _render_variable_entry(lambda name: pick(deviceinv.variable_app_entry(name)), "Use")
+            _render_variable_entry(lambda name: pick(appinv.variable_app_entry(name)), "Use")
 
         async def fetch_then_reopen() -> None:
             dialog.close()
@@ -517,10 +517,10 @@ def _render_app_entry_pick_button(
     on the same terms as a typed one.  Absent entirely when there is nothing to pick from,
     which leaves the three fields precisely as they were before this existed.
     """
-    if not deviceinv.have_apps():
+    if not appinv.have_apps():
         return
 
-    def fill_in(entry: deviceinv.AppEntry) -> None:
+    def fill_in(entry: appinv.AppEntry) -> None:
         field_refs[pkg_key].value = entry.pkg
         field_refs[label_key].value = entry.label
         field_refs[cls_key].value = entry.cls
@@ -542,7 +542,7 @@ def _build_tasker_icon_picker_dialog(field: ui.input, gui: MyGui) -> None:
     an action whose icon was never set has always carried, and it has to stay reachable
     once a picker exists.
     """
-    icons = deviceinv.icons()
+    icons = appinv.icons()
     search = {"text": ""}
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[560px] max-w-[760px] p-6"):
@@ -566,14 +566,14 @@ def _build_tasker_icon_picker_dialog(field: ui.input, gui: MyGui) -> None:
             visible = [
                 icon
                 for icon in icons
-                if not text or text in icon.display.lower() or text in deviceinv.format_icon_value(icon).lower()
+                if not text or text in icon.display.lower() or text in appinv.format_icon_value(icon).lower()
             ]
             with results:
                 if not visible:
                     ui.label(translate_string("Nothing here.")).classes("text-sm italic text-gray-500")
                     return
                 for icon in visible[:_PICKER_ROW_LIMIT]:
-                    reference = deviceinv.format_icon_value(icon)
+                    reference = appinv.format_icon_value(icon)
                     with ui.row().classes("w-full items-center gap-2"):
                         ui.button(
                             icon.display,
@@ -618,7 +618,7 @@ def _render_inventory_fetch(gui: MyGui, reason: str, on_fetched: Callable[[], No
     'No Applications were found...' and 'No icons were found...' are the only two things
     the editor says no to that the user can do something about without leaving the dialog,
     and one fetch answers both: the Application list the device sends back is also a list
-    of app icons (deviceinv._merged_with_device_icons).  Every other refusal is a statement
+    of app icons (appinv._merged_with_device_icons).  Every other refusal is a statement
     about the action itself and gets no button, which is why this is an equality test
     against taskedit's two named constants rather than a guess at the wording.
 
@@ -736,7 +736,7 @@ def _render_icon_arg_field(
     value: str | None = None,
 ) -> None:
     """An Icon argument: the same two-widget arrangement as _render_app_arg_field, holding
-    one icon reference -- see deviceinv.format_icon_value for how each of the four kinds of
+    one icon reference -- see appinv.format_icon_value for how each of the four kinds of
     one is spelled into a single field.
     """
     field_refs[key] = ui.input(

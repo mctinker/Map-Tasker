@@ -7,11 +7,7 @@
 #                                                                                      #
 from __future__ import annotations
 
-import base64
 import contextlib
-import gzip
-import io
-import json
 from typing import TYPE_CHECKING
 
 from maptasker.src import tasks
@@ -27,29 +23,22 @@ from maptasker.src.mapjump import (
     v2_property_holds_a_variable,
 )
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.proclist import process_list
+from maptasker.src.proclist import format_item, process_list
+from maptasker.src.sceneedit import decompress_gzip_json, v2_child_slots, v2_flatten
 from maptasker.src.sysconst import (
+    SCENE_TAGS_TO_IGNORE,
     SCENE_TASK_TYPES,
     TASK_NAME_MAX_LENGTH,
     UNNAMED_ITEM,
     FormatLine,
 )
 from maptasker.src.tasks import get_actions
+from maptasker.src.twisty import remove_twisty
 from maptasker.src.xmldata import tag_in_type
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-SCENE_TAGS_TO_IGNORE = [
-    "cdate",
-    "edate",
-    "flags",
-    "heightLand",
-    "heightPort",
-    "nme",
-    "widthLand",
-    "widthPort",
-]
 blank = "&nbsp;"
 
 
@@ -68,47 +57,6 @@ def get_geometry(scene_element: defusedxml.ElementTree) -> tuple[str, str]:
     if width is not None:
         width = width.text
     return width, height
-
-
-def decompress_gzip_json(b64_string: str) -> dict | str:
-    """Decodes a Base64 string, decompresses it using Gzip, and parses the JSON.
-
-    This function reverses a common data pipeline where a JSON object is
-    serialized, compressed to save space, and encoded into Base64 for
-    safe transmission as text.
-
-    Args:
-        b64_string (str): A Base64-encoded string representing zlib-compressed
-            JSON data.
-
-    Returns:
-        dict|list|str: The parsed JSON data. The type depends on the structure
-            of the original JSON (usually a dictionary or list).
-        str: Returns an error message string if decoding, decompression,
-            or parsing fails.
-
-    Example:
-        >>> example_input = "eJyrViotTi1SslJQcs7PzffLzM8rSyzI0S9ITM5W0lFKzMkMDvIBAL06C9M="
-        >>> decompress_json(example_input)
-        {'status': 'success', 'data': [1, 2, 3]}
-    """
-    try:
-        # 1. Decode Base64 to bytes
-        compressed_data = base64.b64decode(b64_string)
-
-        # 2. Use BytesIO to treat the bytes like a file, then decompress with gzip
-        with gzip.GzipFile(fileobj=io.BytesIO(compressed_data)) as f:
-            decompressed_data = f.read()
-
-        # 3. Parse JSON
-        return json.loads(decompressed_data.decode("utf-8"))
-
-    except (ValueError, OSError, EOFError) as e:
-        # The whole of what this decode chain throws on bad input: binascii.Error and
-        # json.JSONDecodeError and UnicodeDecodeError are all ValueError, gzip.BadGzipFile
-        # is an OSError, and a truncated member is EOFError.  A TypeError here would be a
-        # bug in the caller and no longer disappears into this string.
-        return f"An error occurred: {e}"
 
 
 def process_recursive_json(
@@ -239,7 +187,6 @@ class SceneAnchors:
         """
         if not self.scene_name:
             return
-        from maptasker.src.sceneedit import v2_child_slots, v2_flatten  # noqa: PLC0415
 
         for row in v2_flatten(layout):
             child_slots = {slot for slot, _ in v2_child_slots(row.node)}
@@ -346,35 +293,6 @@ def get_scene_elements(
         (f"{blank * (3 + indentation)}{element_name}Element of type {element_type[0]}{geometry_text}"),
         ["", "scene_color", FormatLine.add_end_span],
     )
-
-
-# Get a simple list of the Scene's UI element names/types (e.g. for a tooltip).
-def get_scene_element_names(scene: defusedxml.ElementTree) -> list[str]:
-    """
-    Build a simple list of a Scene's UI element names/types.
-
-        :param scene: the Scene's xml element to go through.
-        :return: list of strings, one per element, like "'ElementName' (Type)" or just
-            "Type" if the element has no name. "PropertiesElement" and "lj" (compressed
-            Scene V2 JSON) are skipped since they don't represent a single named element.
-    """
-    element_names = []
-    for child in scene:
-        if (
-            child.tag in SCENE_TAGS_TO_IGNORE
-            or child.tag in {"PropertiesElement", "lj"}
-            or not tag_in_type(
-                child.tag,
-                True,
-            )
-        ):
-            continue
-        element_type = child.tag.split("Element")[0]
-        name_xml_element = child.find("Str")
-        name = name_xml_element.text if name_xml_element is not None and name_xml_element.text else ""
-        element_names.append(f"'{name}' ({element_type})" if name else element_type)
-
-    return element_names
 
 
 # Handle sub-lements of the element we are doing.
@@ -924,6 +842,35 @@ def process_scene(
         PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
 
 
+# Output a list of Scenes: each one's line, then its details
+def process_scene_list(
+    scene_list: list[str],
+    the_task: defusedxml.ElementTree,
+    tasks_found: list,
+) -> None:
+    """
+    Output each Scene in the list: its "Scene:" line, then -- above detail level 1 -- its details.
+
+    Scenes used to go through proclist.process_list with the Tasks, which meant proclist
+    importing this module back to reach process_scene.  They start here instead; only the
+    Tasks a Scene carries go back through process_list.
+
+        :param scene_list: names of the Scenes to output
+        :param the_task: xml element handed on to format_item
+        :param tasks_found: list of Tasks found so far
+    """
+    for scene_name in scene_list:
+        format_item("Scene:", scene_name, scene_name, the_task)
+
+        detail_level = PrimeItems.program_arguments["display_detail_level"]
+        if detail_level == 0:
+            continue
+        if detail_level > 1:
+            process_scene(scene_name, tasks_found, None, 0)
+        elif PrimeItems.program_arguments["twisty"]:
+            remove_twisty()
+
+
 # Go through all Scenes for Project, get their detail and output it
 def process_project_scenes(
     project: defusedxml.ElementTree,
@@ -958,12 +905,7 @@ def process_project_scenes(
             # Count what we are actually going to output, which is not necessarily
             # everything the Project lists -- see the single-Scene filter above.
             PrimeItems.scene_count = len(scene_list)
-            process_list(
-                "Scene:",
-                scene_list,
-                our_task_element,
-                found_tasks,
-            )
+            process_scene_list(scene_list, our_task_element, found_tasks)
 
             # Force a line break
             PrimeItems.output_lines.add_line_to_output(

@@ -477,7 +477,7 @@
     "978321511t": {"args": [], "canfail": "", "category": "", "name": "AM Regex", "redirect": "1040876951t"},
     "985050481t": {"args": [], "canfail": "", "category": "", "name": "Actions", "redirect": "1040876951t"},
     "991958998t": {"args": [], "canfail": "", "category": "", "name": "AutoMail Delete", "redirect": "1040876951t"},
-    "1040876951t": {"args": [["0", true, "", "5", ""], ["1", false, "", "1", ", Arg 1="], ["2", false, "", "1", ", Arg 2="], ["3", true, "", "1", "Timeout="], ["4", true, "", "1", ["", "e", ",Structure Output (JSON, etc)"]]], "canfail": "", "category": "", "name": "AutoInput UI Query", "redirect": ""},
+    "1040876951t": {"args": [["0", true, "", "5", ""], ["1", false, "", "1", ", Arg 1="], ["2", false, "", "1", ", Arg 2="], ["3", true, "Timeout (Seconds)", "0", ""], ["4", true, "Structure Output (JSON, etc)", "3", ["", "e", ",Structure Output (JSON, etc)"]]], "canfail": "", "category": "", "name": "AutoInput UI Query", "redirect": ""},
     "1040969826t": {"args": [], "canfail": "", "category": "", "name": "Muzei Wallpaper: Next Artwork", "redirect": "1040876951t"},
     "1094115366t": {"args": [], "canfail": "", "category": "", "name": "AutoCast Device Settings", "redirect": "1040876951t"},
     "1097021615t": {"args": [], "canfail": "", "category": "", "name": "AM Create QR", "redirect": "1040876951t"},

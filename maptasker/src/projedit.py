@@ -49,8 +49,10 @@ if TYPE_CHECKING:
 
 from maptasker.src import editcommon, objprops, piiscan, sessundo
 from maptasker.src.editcommon import set_child_text as _set_child_text
+from maptasker.src.editcommon import touch_project_mdate
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.sceneedit import scene_task_ids
 
 BASE_PROJECT_NAME = "Base"
 # Destination folder on the Android device for Save To Android -- see android_project_path.
@@ -249,20 +251,6 @@ def set_project_members(
     """
     _set_child_text_in_tag_order(project_element, tag, ",".join(member_ids))
     touch_project_mdate(project_element)
-
-
-def touch_project_mdate(project_element: defusedxml.ElementTree.Element) -> None:
-    """Stamps a Project's <mdate> with the current time -- real Tasker Projects
-    use <mdate> for "last modified", not <edate> the way Task/Profile do (see
-    create_new_project's docstring for the confirmation). Call this from
-    anything that mutates an already-registered Project's element:
-    apply_edits_to_project (Rename), and profedit.add_profile_to_project/
-    add_task_to_project (Add Profile/Add Task attaching to this Project) --
-    imported there rather than duplicated the way _set_child_text is per-module,
-    since unlike that one-line body, "how the timestamp is formatted" is worth
-    keeping in one place.
-    """
-    _set_child_text(project_element, "mdate", str(int(time.time() * 1000)))
 
 
 def register_new_project(edited_project: EditableProject) -> None:
@@ -685,10 +673,6 @@ def render_standalone_project_xml(project_name: str, *, redact: bool = False) ->
     # and the standalone Scene export needs exactly the same thing.  Last,
     # after the two id sources above, so a Task that is already coming keeps its place
     # rather than being re-ordered by which Scene happens to mention it.
-    # Lazily imported: sceneedit imports touch_project_mdate from here, so the cycle is
-    # real -- same shape as taskedit reaching back into maputil2.
-    from maptasker.src.sceneedit import scene_task_ids  # noqa: PLC0415
-
     for scene_element in scene_elements:
         for task_id in scene_task_ids(scene_element):
             if task_id not in seen_task_ids:

@@ -45,12 +45,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     import defusedxml.ElementTree
 
-from maptasker.src import deviceinv, editcommon, piiscan, sessundo, taskedit
+from maptasker.src import appinv, editcommon, piiscan, sessundo, taskedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.editcommon import set_child_text as _set_child_text
+from maptasker.src.editcommon import touch_project_mdate
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.projedit import touch_project_mdate
 
 # Condition types offered in the GUI's "Condition Type" picker. Time/Day/App/Loc
 # have simple, well-known field sets, so add_condition_to_profile can add one
@@ -412,7 +412,7 @@ def _list_addable_condition_codes(suffix: str) -> list[dict]:
     # argument (five Events declare one) is addable only while deviceinv has an inventory
     # to pick from, so the memo is thrown away when that generation moves -- the same
     # reasoning, and the same counter, as taskedit.list_addable_actions.
-    inventory_generation = deviceinv.generation()
+    inventory_generation = appinv.generation()
     if inventory_generation != _ADDABLE_CONDITION_CODES_GENERATION:
         _ADDABLE_CONDITION_CODES_CACHE.clear()
         _ADDABLE_CONDITION_CODES_GENERATION = inventory_generation
@@ -1252,7 +1252,7 @@ def add_task_to_project(task_id: str, project_name: str) -> None:
     Directory "Tasks" section empty.
 
     Mutates the Project's XML element in place, same as add_profile_to_project,
-    and likewise stamps its <mdate> (see projedit.touch_project_mdate).
+    and likewise stamps its <mdate> (see editcommon.touch_project_mdate).
     No-op if project_name isn't a known Project (defense in depth; the GUI
     should only offer real Project names).
     """

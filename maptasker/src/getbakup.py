@@ -10,9 +10,14 @@ from __future__ import annotations
 import os.path
 from os import getcwd
 
+import defusedxml.ElementTree as ET
+
 from maptasker.src.error import error_handler
+from maptasker.src.maputil2 import http_request
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
+from maptasker.src.taskerd import get_the_xml_data
+from maptasker.src.xmldata import rewrite_xml
 
 
 # We've read in the xml backup file.  Now save it for processing.
@@ -84,8 +89,6 @@ def get_backup_file() -> str:
 
         :return: The name of the backup file (e.g. backup.xml)
     """
-    # Perform a lazy import to avoid a circular-import error.
-    from maptasker.src.maputil2 import http_request  # noqa: PLC0415
 
     # If running from the GUI, then we have already gotten the file. Just return the name on the local drive.add
     if PrimeItems.program_arguments["gui"]:
@@ -111,3 +114,129 @@ def get_backup_file() -> str:
     write_out_backup_file(file_contents)
 
     return substring_after_last(PrimeItems.program_arguments["android_file"], "/")
+
+
+# Validate XML
+def validate_xml(
+    ip_address: str,
+    android_file: str,
+    return_code: int,
+    file_contents: str,
+) -> tuple:
+    # Run loop since we may have to rerun validation if unicode error
+    """Validates an XML file and returns an error message and the parsed XML tree.
+    Parameters:
+        android_file (str): The path to the XML file to be validated.
+        return_code (int): The return code from the validation process.
+        file_contents (str): The contents of the XML file.
+        ip_address (str): The TCP/IP address of the Android device or blank.
+    Returns:
+        error_message (str): A message describing any errors encountered during validation.
+        xml_tree (ElementTree): The parsed XML tree if validation was successful.
+    Processing Logic:
+        - Runs a loop to allow for revalidation in case of a unicode error.
+        - Sets the process_file flag to False to exit the loop if validation is successful or an error is encountered.
+        - If validation is successful, sets the xml_tree variable to the parsed XML tree.
+        - If an error is encountered, sets the error_message variable to a descriptive message and exits the loop.
+        - If a unicode error is encountered, rewrites the XML file and loops one more time.
+        - If any other error is encountered, sets the error_message variable to a descriptive message and exits the loop.
+        - Returns the error_message and xml_tree variables."""
+    process_file = True
+    error_message = ""
+    counter = 0
+    xml_tree = None
+    _write_out_backup_file = write_out_backup_file
+    _get_the_xml_data = get_the_xml_data
+    _rewrite_xml = rewrite_xml
+
+    # Loop until we get a valid XML file or invalid XML
+    while process_file:
+        # Validate the file
+        if return_code == 0:
+            # Process the XML file
+            PrimeItems.program_arguments["android_file"] = android_file
+
+            # If getting file from Android device, write out the backup file first.
+            if ip_address:
+                _write_out_backup_file(file_contents)
+
+            # We don't have the file yet.  Lets get it.
+            else:
+                return_code = _get_the_xml_data()
+                if return_code != 0:
+                    return PrimeItems.error_msg, None
+
+            # Run the XML file through the XML parser to validate it.
+            try:
+                filename_location = android_file.rfind(PrimeItems.slash) + 1
+                file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
+                xmlp = ET.XMLParser(encoding=" iso8859_9")
+                xml_tree = ET.parse(file_to_validate, parser=xmlp)
+                process_file = False  # Get out of while/loop
+            except ET.ParseError:  # Parsing error
+                error_message = f"Improperly formatted XML in {android_file}. Try again."
+                process_file = False  # Get out of while/loop
+            except UnicodeDecodeError:  # Unicode error
+                _rewrite_xml(file_to_validate)
+                counter += 1
+                if counter > 2:
+                    error_message = f"Unicode error in {android_file}.  Try again."
+                    break
+                process_file = True  # Loop one more time.
+            except (OSError, LookupError) as e:
+                # What is left once ParseError and UnicodeDecodeError are taken above: the
+                # file not being readable, and the hard-coded parser encoding not being a
+                # codec this interpreter knows.
+                error_message = f"XML parsing error {e} in file {android_file}.\n\nTry again."
+                process_file = False  # Get out of while/loop
+
+    return error_message, xml_tree
+
+
+# Read XML file and validate the XML.
+def validate_xml_file(ip_address: str, port: str, android_file: str) -> bool:
+    # Read the file
+    """Validates an XML file from an Android device.
+    Parameters:
+        - ip_address (str): IP address of the Android device.
+        - port (str): Port number of the Android device.
+        - android_file (str): Name of the XML file to be validated.
+    Returns:
+        - bool: True if the file is valid, False if not.
+    Processing Logic:
+        - Reads the file from the Android device.
+        - Validates the XML file.
+        - Checks if the file is Tasker XML.
+        - Returns True if the file is valid, False if not."""
+    if ip_address:
+        return_code, file_contents = http_request(
+            ip_address,
+            port,
+            android_file,
+            "file",
+            "?download=1",
+        )
+        if return_code != 0:
+            return 1, file_contents
+    else:
+        return_code = 0
+
+    # Validate the xml
+    error_message, xml_tree = validate_xml(
+        ip_address,
+        android_file,
+        return_code,
+        file_contents,
+    )
+
+    # If there was an error, bail out.
+    if error_message:
+        logger.debug(error_message)
+        return 1, error_message
+
+    # Make surre this is Tasker XML
+    xml_root = xml_tree.getroot()
+    if xml_root.tag != "TaskerData":
+        return 0, f"File {android_file} is not valid Tasker XML.\n\nTry again."
+
+    return 0, ""

@@ -19,12 +19,12 @@ from __future__ import annotations
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import taskerd, tasks
+from maptasker.src import proclist, taskerd, tasks
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
 from maptasker.src.primitem import PrimeItems, initial_found_named_items
-from maptasker.src.proginit import load_arg_specs
+from maptasker.src.actionc import load_arg_specs
 
 _IF = '<Action sr="act{n}"><code>37</code><ConditionList sr="if"><Condition sr="c0"><lhs>%a</lhs><op>0</op><rhs>1</rhs></Condition></ConditionList></Action>'
 _ELSE = '<Action sr="act{n}"><code>43</code></Action>'
@@ -254,22 +254,22 @@ def test_a_task_icon_is_summarised() -> None:
     task = ET.fromstring(  # noqa: S314  (fixture text, built in this file)
         "<Task><Img><nme>com.foo.bar</nme><pkg>net.dinglisch.android.taskerm</pkg></Img></Task>",
     )
-    assert tasks.get_icon_info(task) == "[Icon Info(pkg=taskerm name=bar)]"
+    assert proclist.get_icon_info(task) == "[Icon Info(pkg=taskerm name=bar)]"
 
 
 def test_a_task_without_an_icon_shows_nothing() -> None:
     """Most Tasks have no icon, so this is the common path -- an empty "[Icon Info()]"
     on every Task line would be noise on every line.
     """
-    assert tasks.get_icon_info(ET.fromstring("<Task/>")) == ""  # noqa: S314
-    assert tasks.get_icon_info(None) == ""
+    assert proclist.get_icon_info(ET.fromstring("<Task/>")) == ""  # noqa: S314
+    assert proclist.get_icon_info(None) == ""
 
 
 def test_an_icon_field_that_is_absent_is_skipped() -> None:
     """get_image is called once per field and most icons set only some of them."""
     image = ET.fromstring("<Img><pkg>a.b.c</pkg></Img>")  # noqa: S314
-    assert tasks.get_image(image, "pkg", "pkg") == "pkg=c "
-    assert tasks.get_image(image, "class", "cls") == ""
+    assert proclist.get_image(image, "pkg", "pkg") == "pkg=c "
+    assert proclist.get_image(image, "class", "cls") == ""
 
 
 def test_an_unqualified_icon_field_is_shown_whole() -> None:
@@ -277,7 +277,7 @@ def test_an_unqualified_icon_field_is_shown_whole() -> None:
     already that segment -- taking the split unconditionally would drop it entirely.
     """
     image = ET.fromstring("<Img><nme>flashlight</nme></Img>")  # noqa: S314
-    assert tasks.get_image(image, "name", "nme") == "name=flashlight "
+    assert proclist.get_image(image, "name", "nme") == "name=flashlight "
 
 
 @pytest.mark.xfail(
@@ -291,7 +291,7 @@ def test_an_empty_icon_field_is_skipped() -> None:
     it, so this is a shape that reaches the parser from a real backup.
     """
     image = ET.fromstring("<Img><nme></nme><pkg>a.b.c</pkg></Img>")  # noqa: S314
-    assert tasks.get_image(image, "name", "nme") == ""
+    assert proclist.get_image(image, "name", "nme") == ""
 
 
 # ##################################################################################

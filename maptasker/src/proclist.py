@@ -10,18 +10,28 @@ MIT License   Refer to https://opensource.org/license/mit
 #                                                                                      #
 # MIT License   Refer to https://opensource.org/license/mit                            #
 import defusedxml
+import defusedxml.ElementTree
 
+import maptasker.src.taskflag as task_flags
 from maptasker.src.dirout import add_directory_item
-from maptasker.src.format import build_tooltip_span
+from maptasker.src.format import build_tooltip_span, format_html
+from maptasker.src.kidapp import get_kid_app
 from maptasker.src.mapjump import SCENE, TASK, Target, anchor_html
 from maptasker.src.maputils import find_owning_project_for_scene
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.property import get_properties
 from maptasker.src.runcfg import current_config
-from maptasker.src.sysconst import FormatLine, logger
+from maptasker.src.sysconst import (
+    SCENE_TAGS_TO_IGNORE,
+    UNNAMED_ITEM,
+    DISPLAY_DETAIL_LEVEL_all_tasks,
+    FormatLine,
+    logger,
+)
 from maptasker.src.taskactn import get_task_actions_and_output
 from maptasker.src.twisty import add_twisty, remove_twisty
+from maptasker.src.xmldata import tag_in_type
 
 
 # ################################################################################
@@ -51,6 +61,35 @@ def adjust_name(list_type: str, the_item: str) -> str:
     altered_name = add_name_attribute(the_name, current_config())
 
     return f"{altered_name}{the_rest}"
+
+
+# Get a simple list of the Scene's UI element names/types (e.g. for a tooltip).
+def get_scene_element_names(scene: defusedxml.ElementTree) -> list[str]:
+    """
+    Build a simple list of a Scene's UI element names/types.
+
+        :param scene: the Scene's xml element to go through.
+        :return: list of strings, one per element, like "'ElementName' (Type)" or just
+            "Type" if the element has no name. "PropertiesElement" and "lj" (compressed
+            Scene V2 JSON) are skipped since they don't represent a single named element.
+    """
+    element_names = []
+    for child in scene:
+        if (
+            child.tag in SCENE_TAGS_TO_IGNORE
+            or child.tag in {"PropertiesElement", "lj"}
+            or not tag_in_type(
+                child.tag,
+                True,
+            )
+        ):
+            continue
+        element_type = child.tag.split("Element")[0]
+        name_xml_element = child.find("Str")
+        name = name_xml_element.text if name_xml_element is not None and name_xml_element.text else ""
+        element_names.append(f"'{name}' ({element_type})" if name else element_type)
+
+    return element_names
 
 
 # ################################################################################
@@ -95,9 +134,6 @@ def format_task_or_scene(
             tooltip_lines.append(f"Project: {project_name}")
         label = build_tooltip_span(list_type, tooltip_lines)
     elif list_type == "Scene:":
-        # This import must stay here to avoid circular import error.  Define it only when needed.
-        from maptasker.src.scenes import get_scene_element_names  # noqa: PLC0415
-
         # Get owning project for this Scene, if known, and add to the tooltip.
         tooltip_lines = []
         if owning_project := find_owning_project_for_scene(the_item):
@@ -356,7 +392,7 @@ def item_anchor(list_type: str, the_item: str, the_task: defusedxml) -> str:
       "--Task:"  -- the_item IS the Task's id (a Task fired by a Scene element; see
                     handle_task above, which looks the Task up by it).
       "Task:"    -- the Task's "sr" attribute, read off the element the caller handed us.
-                    Every Task reaches here through tasks.output_task_list, which walks
+                    Every Task reaches here through output_task_list, which walks
                     one Task at a time and passes that Task's own element down beside its
                     one output line, so this element is this line's Task.  The line's text
                     would not do: it carries the name, and two Tasks may share one.
@@ -471,9 +507,6 @@ def process_item(
     Returns:
         None
     """
-    # This import must stay here to avoid circular import error.  Define it only when needed.
-    from maptasker.src.scenes import process_scene  # noqa: PLC0415
-
     # Given an item, format it with all of the particulars and add to output.
     format_item(list_type, the_item, the_item, the_task, project_name, profile_name)
 
@@ -497,15 +530,6 @@ def process_item(
         # End the twisty hidden lines if not a Task in a Scene
         if PrimeItems.program_arguments["twisty"]:
             remove_twisty()
-
-    elif list_type == "Scene:" and PrimeItems.program_arguments["display_detail_level"] > 1:
-        # We have a Scene: process its details
-        process_scene(
-            the_item,
-            tasks_found,
-            None,
-            0,
-        )
 
     # Remove twisty if not displaying level 0
     elif PrimeItems.program_arguments["twisty"]:
@@ -534,7 +558,8 @@ def process_list(
     """
     Process Task/Scene text/line item: call recursively for Tasks within Scenes
 
-        :param list_type: Task or Scene
+        :param list_type: "Task:", or a Task in a Scene ("--Task: ...").  Scenes themselves go
+            through scenes.process_scene_list.
         :param the_list: list of Task names tro process
         :param the_task: Task/Scene xml element
         :param tasks_found: list of Tasks found so far
@@ -550,3 +575,238 @@ def process_list(
     for the_item in the_list:
         # Process the item (list of items)
         _process_item(the_item, list_type, the_task, tasks_found, project_name, profile_name)
+
+
+# We're processing a single task only
+# Optimized
+def do_single_task(
+    our_task_name: str,
+    project_name: str,
+    profile_name: str,
+    task_list: list,
+    our_task_element: defusedxml.ElementTree,
+    list_of_found_tasks: list,
+) -> None:
+    """
+    Process a single Task only.
+
+    Args:
+        our_task_name (str): The name of the Task to be processed.
+        project_name (str): The name of the Project the Task belongs to.
+        profile_name (str): The name of the Profile the Task belongs to.
+        task_list (list): A list of Tasks.
+        our_task_element (defusedxml.ElementTree): The XML element for this Task.
+        list_of_found_tasks (list): A list of all Tasks processed so far.
+
+    Returns:
+        None
+    """
+    logger.debug(
+        f"Comparing task name:{PrimeItems.program_arguments['single_task_name']} to our Task name:{our_task_name}",
+    )
+
+    if PrimeItems.program_arguments.get("single_task_name") == our_task_name:
+        PrimeItems.found_named_items.update(
+            {
+                "single_task_found": True,
+                "single_project_found": True,
+                "single_profile_found": True,
+            },
+        )
+
+        save_project, save_profile = (
+            PrimeItems.program_arguments["single_project_name"],
+            PrimeItems.program_arguments["single_profile_name"],
+        )
+        PrimeItems.program_arguments.update(
+            {
+                "single_project_name": project_name,
+                "single_profile_name": profile_name or UNNAMED_ITEM,
+            },
+        )
+
+        PrimeItems.output_lines.refresh_our_output(True, project_name, profile_name)
+
+        temporary_task_list = (
+            [item for item in task_list if our_task_name == item[: len(our_task_name)]] if task_list else task_list
+        )
+
+        if PrimeItems.program_arguments.get("pretty") and temporary_task_list:
+            temporary_task_list[0] = temporary_task_list[0].replace("[", "<br>[")
+
+        process_list(
+            "Task:",
+            temporary_task_list,
+            our_task_element,
+            list_of_found_tasks,
+            project_name,
+            profile_name,
+        )
+
+        PrimeItems.program_arguments.update(
+            {"single_project_name": save_project, "single_profile_name": save_profile},
+        )
+    else:
+        PrimeItems.output_lines.add_line_to_output(1, "", FormatLine.dont_format_line)
+
+        if PrimeItems.program_arguments.get("pretty") and "[" not in our_task_name:
+            task_list[0] = task_list[0].replace(
+                "[",
+                f"<br>{'&nbsp;' * len(our_task_name)}[",
+            )
+
+        process_list("Task:", task_list, our_task_element, list_of_found_tasks, project_name, profile_name)
+        PrimeItems.output_lines.add_line_to_output(3, "", FormatLine.dont_format_line)
+
+
+# Search image xml element for key and return title=value
+def get_image(image: defusedxml.ElementTree, title: str, key: str) -> str:
+    """Returns:
+        - str: Returns a string.
+    Parameters:
+        - image (defusedxml.ElementTree): An XML element tree.
+        - title (str): The title of the image.
+        - key (str): The key to search for in the XML element tree.
+    Processing Logic:
+        - Finds the element with the given key.
+        - If the element is not found, returns an empty string.
+        - If the element's text contains a period, splits the text at the last period and returns the second part.
+        - If the text is empty, returns an empty string.
+        - Otherwise, returns a string containing the title and text."""
+    element = image.find(key)
+    if element is None:
+        return ""
+    text = element.text
+    if "." in text:
+        text = text.rsplit(".", 1)[1]
+    return f"{title}={text} " if text else ""
+
+
+# If Task has an icon, get and format it in the Task output line.
+def get_icon_info(the_task: defusedxml.ElementTree) -> str:
+    """
+    Gets icon information from the task XML.
+    Args:
+        the_task: defusedxml.ElementTree: The task XML tree
+    Returns:
+        str: Formatted icon information text wrapped in brackets
+    - Finds the <Img> element from the task
+    - Extracts the icon name, package and class from the <Img> attributes
+    - Concatenates them together with a space separator and strips trailing spaces
+    - Returns the concatenated text wrapped in [Icon Info()] brackets
+    """
+    if the_task is None:
+        return ""
+    image = the_task.find("Img")
+    if image is None:
+        return ""
+    icon_name = get_image(image, "name", "nme")
+    icon_pkg = get_image(image, "pkg", "pkg")
+    icon_cls = get_image(image, "class", "cls")
+    text = f"{icon_pkg}{icon_cls}{icon_name}"
+    text = text.rstrip(" ")
+
+    return f"[Icon Info({text})]"
+
+
+# Get additional information for this Task
+# Optimized
+def get_extra_details(
+    our_task_element: defusedxml.ElementTree,
+    task_output_lines: list,
+) -> tuple:
+    """
+    Get additional information for this Task.
+
+    Args:
+        our_task_element (xml): The Task head XML element.
+        task_output_lines (list): List of Task's output line(s).
+
+    Returns:
+        tuple (str, str, str, str, str): The extra details as strings.
+    """
+    extra_details = {
+        "kid_app_info": get_kid_app(our_task_element),
+        "priority": task_flags.get_priority(our_task_element, False),
+        "collision": task_flags.get_collision(our_task_element),
+        "stay_awake": task_flags.get_awake(our_task_element),
+        "icon_info": get_icon_info(our_task_element),
+    }
+
+    # Process 'kid_app_info' separately if it exists
+    if extra_details["kid_app_info"]:
+        extra_details["kid_app_info"] = format_html(
+            "task_color",
+            "",
+            extra_details["kid_app_info"],
+            True,
+        )
+
+    # Append non-empty details to the first line of task_output_lines
+    task_output_lines[0] += " " + " ".join(filter(None, extra_details.values()))
+
+    return tuple(extra_details.values())
+
+
+# Given a list of tasks, output them.
+# Optimized
+def output_task_list(
+    list_of_tasks: list,
+    project_name: str,
+    profile_name: str,
+    task_output_lines: str,
+    list_of_found_tasks: list,
+    do_extra: bool,
+) -> bool:
+    """
+    Given a list of tasks, output them.  The list of tasks is a list of tuples.
+        The first element is the Task name, the second is the Task element.
+        Args:
+
+            list_of_tasks (list): list of Tasks to output.
+            project_name (str): name of the owning Projeect
+            profile_name (str): name of the owning Profile
+            task_output_lines (str): the output lines for the Tasks
+            list_of_found_tasks (list): list of Tasks found so far
+            do_extra (bool): True to output extra info.
+        Returns:
+            bool: True if we found a single Task we are looking for"""
+    _get_extra_details = get_extra_details
+    _do_single_task = do_single_task
+    for task_item in list_of_tasks:
+        # If we are coming in without a Task name, then we are only doing a single Task and we need to plug in
+        # the Task name.
+        task_output_lines.append(f"{task_item['name']}&nbsp;&nbsp;")
+        count = len(task_output_lines) - 1
+
+        # fmt: off
+        # task_output_lines.append(task_output_lines[count] or f"{task_item['name']}&nbsp;&nbsp;")
+        # fmt: on
+
+        # Doing extra details?
+        if do_extra and PrimeItems.program_arguments["display_detail_level"] > DISPLAY_DETAIL_LEVEL_all_tasks:
+            # Get the extra details for this Task
+            extra_details = _get_extra_details(
+                task_item["xml"],
+                [task_output_lines[count]],
+            )
+            # Tack on the extra info since [task_output_lines[count]] it is immutable
+            task_output_lines[count] += " ".join(filter(None, extra_details))
+
+        # At this point, the 'task name' consist of the Task name and any extra details making up the output text line,
+        task_item["name"] = task_item["name"].split("&nbsp;")[0]  # Just get the name part from the text line
+        _do_single_task(
+            task_item["name"],
+            project_name,
+            profile_name,
+            [task_output_lines[count]],
+            task_item["xml"],
+            list_of_found_tasks,
+        )
+
+        # If only doing a single Task and we found/did it, then we are done
+        if PrimeItems.program_arguments.get("single_task_name") == task_item["name"]:
+            PrimeItems.found_named_items["single_task_found"] = True
+            return True
+
+    return False

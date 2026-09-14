@@ -1,7 +1,11 @@
 #! /usr/bin/env python3
 """Error handling module for MapTasker."""
 
+import logging
+from typing import NoReturn
+
 from maptasker.src import console
+from maptasker.src.mtexcept import MapTaskerError
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ERROR_FILE, Colors, logger
 
@@ -12,8 +16,6 @@ def error_handler(error_message: str, exit_code: int) -> None:
         :param error_message: text of error to print and log
         :param exit_code: error code to exit with
     """
-    from maptasker.src.maputils import exit_program  # noqa: PLC0415
-
     # Add our heading to more easily identify the problem
     if exit_code in {0, 99}:
         final_error_message = f"{Colors.Green}{error_message}"
@@ -70,3 +72,44 @@ def rutroh_error(message: str) -> None:
         None: Does not return anything
     """
     console.debug(f"Rutroh! {message}")
+
+
+def close_logfile() -> None:
+    """Close the log file(s)"""
+    # The FileHandler lives on the ROOT logger, not on "MapTasker": maputil2.setup_logging() installs
+    # it via logging.basicConfig(), and our logger simply propagates up to it.  Iterating
+    # logger.handlers here would walk an empty list and close nothing at all.
+    for target in (logger, logging.root):
+        for handler in target.handlers[:]:  # Iterate over a copy to avoid issues during modification
+            handler.close()  # Close the stream associated with the handler
+            target.removeHandler(handler)  # Remove the handler from the logger
+
+
+def exit_program(return_code: int = 0) -> NoReturn:
+    """Stop the run, from anywhere, without stopping the interpreter.
+
+    This used to be close_logfile() followed by sys.exit(), and every caller below it in
+    this package inherited that: a Task name that did not match, a missing output
+    directory, a corrupt XML file: each ended the process outright.
+
+    That is only ever right when MapTasker is the whole program.  It no longer always is.
+    The same functions run underneath a NiceGUI event loop, where SystemExit raised in a
+    `run.io_bound` worker takes the server down instead of the one build that failed, and
+    under pytest, where it ends the test session instead of the test.  diffload even had
+    to force "gui" on solely to steer taskerd's error path away from here.
+
+    So this raises MapTaskerError, which is an ordinary Exception and can therefore be
+    caught, and mapit.mapit_all -- the top of the process -- turns it back into an exit
+    status.  Callers need no change: control still leaves at the call, and the code still
+    travels with it.
+
+    Args:
+        return_code: the status the process should end on if nothing catches this.  0 is
+            a normal, deliberate shutdown and is raised just the same, because the point
+            is to stop unwinding, not to report a failure.
+
+    Raises:
+        MapTaskerError: always.  This function has no normal return.
+    """
+    close_logfile()
+    raise MapTaskerError(exit_code=return_code)

@@ -16,6 +16,7 @@ from maptasker.src.format import build_tooltip_span, format_html
 from maptasker.src.mapjump import PROFILE, Target, anchor_html
 from maptasker.src.nameattr import add_name_attribute
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.proclist import output_task_list
 from maptasker.src.property import get_properties
 from maptasker.src.runcfg import current_config
 from maptasker.src.share import share
@@ -554,7 +555,7 @@ def do_profile(
     # We have the Tasks for this Profile.  Now let's output them.
     # Return True = we're looking for a specific Task
     # Return False = this is a normal Task
-    return tasks.output_task_list(
+    return output_task_list(
         list_of_tasks,
         project_name,
         profile_name,

@@ -36,9 +36,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from maptasker.src import sceneedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.bundle import bundles
-from maptasker.src.globalvr import tasker_global_variables
 from maptasker.src.mapjump import (
     PROFILE,
     PROJECT,
@@ -59,6 +59,7 @@ from maptasker.src.mapjump import (
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, VARXREF_FILE, logger
+from maptasker.src.taskervars import tasker_global_variables
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree  # Need for type hints
@@ -983,7 +984,6 @@ def _scan_scenes(index: VariableIndex, write_arguments: dict, implicit_writes: d
     editor, nothing else here needs it, and keeping the dependency inside the one function
     that uses it leaves varxref importable on its own.
     """
-    from maptasker.src import sceneedit  # noqa: PLC0415
 
     owners = _project_of_scene()
     for scene_name, scene in PrimeItems.tasker_root_elements["all_scenes"].items():

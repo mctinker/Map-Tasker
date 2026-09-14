@@ -25,11 +25,12 @@ from typing import TYPE_CHECKING
 from nicegui import context, run, ui
 
 from maptasker.src import deviceinv, presave, profedit, projedit, roundtrip, sceneedit, taskedit
+from maptasker.src.getbakup import validate_xml_file
 from maptasker.src.guiutils import (
+    clear_android_buttons,
     notify_watch_android_device,
     ping_android_device,
     update_tasker_object_menus,
-    validate_or_filelist_xml,
 )
 from maptasker.src.guiwins import (
     build_helper_tasks_dialog,
@@ -40,7 +41,7 @@ from maptasker.src.guiwins import (
     build_save_to_android_dialog,
 )
 from maptasker.src.guiwins_profedit import build_save_profile_to_android_dialog
-from maptasker.src.maputil2 import read_android_file, translate_string
+from maptasker.src.maputil2 import http_request, read_android_file, translate_string
 from maptasker.src.maputils import clear_tasker_data
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
@@ -54,6 +55,8 @@ from maptasker.src.userintr_editors import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from maptasker.src.userintr import MyGui
 
 
 # What a prompt says after naming what Tasker already has, by how the objects would get there.
@@ -168,6 +171,115 @@ def _round_trip_verified(
     ui.notify(report.summary(), type="negative")
     build_round_trip_report_dialog(report)
     return False
+
+
+async def validate_or_filelist_xml(
+    self: MyGui,
+    android_ipaddr: str,
+    android_port: str,
+    android_file: str,
+) -> tuple[int, str, str, str]:
+    """
+    Validates an XML file on an Android device or generates a NiceGUI dropdown
+    selection list if no file or an explicit 'list files' action is requested.
+
+    Asynchronous because the file listing is no longer a single quick GET: it installs
+    (once) and runs a helper Task on the device and waits for the file that Task writes,
+    which takes seconds.  Every request to the device goes to run.io_bound so the GUI stays
+    responsive while it happens; everything else here builds widgets and must stay on this thread.
+    """
+    # 1. If a file is specified and we aren't explicitly listing files, validate it
+    if len(android_file) != 0 and android_file != "" and not self.list_files:
+        return_code, _ = await run.io_bound(
+            http_request,
+            android_ipaddr,
+            android_port,
+            android_file,
+            "file",
+            "?download=1",
+        )
+
+        # Validate the XML syntax structure
+        if return_code == 0:
+            PrimeItems.program_arguments["gui"] = True
+            return_code, error_message = await run.io_bound(
+                validate_xml_file,
+                android_ipaddr,
+                android_port,
+                android_file,
+            )
+            if return_code != 0:
+                self.display_message_box(error_message, "Red")
+                return 1, android_ipaddr, android_port, android_file
+        else:
+            return 1, android_ipaddr, android_port, android_file
+
+    # 2. File location not provided or "List Files" requested.
+    # Fetch the directory catalog and present a NiceGUI ui.select component.
+    else:
+        clear_android_buttons(self)
+
+        ui.notify(
+            translate_string("Listing the XML files on the Android device..."),
+            type="info",
+            timeout=1500,
+        )
+        return_code, filelist = await run.io_bound(
+            deviceinv.get_list_of_files,
+            android_ipaddr,
+            android_port,
+            deviceinv.FILE_LIST_DIRECTORY,
+        )
+        if return_code != 0:
+            self.display_message_box(filelist, "Red")
+            return 1, android_ipaddr, android_port, android_file
+
+        # Clean slate the container before rendering the picker options
+        if hasattr(self, "android_container") and self.android_container:
+            self.android_container.clear()
+            self.android_container.classes(remove="hidden")
+        else:
+            # Fallback placeholder if no container container is declared
+            self.android_container = ui.column().classes("w-full gap-2 p-2")
+
+        # Mount the native interactive picking layout inside the container tree context
+        with self.android_container:
+            ui.separator().classes("my-2")
+
+            self.filelist_label = (
+                ui.label(translate_string("Select XML From Android Device:"))
+                .classes(
+                    "text-xs font-bold text-purple-600 mt-1 self-start",
+                )
+                .tooltip(
+                    translate_string(
+                        "This will reach out to your Android device to list the available XML files belonging to Tasker.",
+                    ),
+                )
+            )
+
+            # OptionMenu transforms to a reactive NiceGUI ui.select dropdown
+            self.filelist_option = ui.select(
+                options=filelist,
+                label=translate_string("Available Android Backups"),
+                on_change=lambda e: self.event_handlers.file_selected_event(e.value),
+            ).classes("w-full q-mt-none")
+
+            # Flat modern action button to easily close the selection panel
+            ui.button(
+                translate_string("Cancel Entry"),
+                on_click=lambda: (self.android_container.clear(), self.android_container.classes(add="hidden")),
+            ).classes("text-xs w-full mt-2").props("outline color=negative dense")
+
+        # Save connection details to state
+        self.android_ipaddr = android_ipaddr
+        self.android_port = android_port
+
+        # Return status code 2 to indicate layout suspension until user selects a file item.
+        return (2, "", "", "")
+
+    # All checks passed successfully
+    return 0, android_ipaddr, android_port, android_file
 
 
 class AndroidEventHandlers:

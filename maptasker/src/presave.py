@@ -56,8 +56,7 @@ import shutil
 from datetime import datetime
 from pathlib import Path
 
-from maptasker.src.editcommon import ILLEGAL_IN_FILENAME
-from maptasker.src.sysconst import logger
+from maptasker.src.sysconst import ILLEGAL_IN_FILENAME, logger
 
 # The folder safety copies go in, created next to whatever is being overwritten so a copy
 # is found where its original was rather than somewhere central the user never looks.
@@ -74,10 +73,10 @@ MAX_COPIES_PER_FILE = 10
 # maputil2.TIMESTAMP_SUFFIX_RE's naming.
 _STAMP_FORMAT = "%Y%m%d_%H%M%S"
 
-# Characters no filesystem this runs on will accept.  A device path becomes a local
-# filename below, and those are full of slashes.  The same pattern the four editors
-# sanitize a single name with -- this flattens a whole path, so it wants the pattern
-# rather than editcommon.sanitize_filename itself.
+# Characters no filesystem this runs on will accept (ILLEGAL_IN_FILENAME, from sysconst).  A
+# device path becomes a local filename below, and those are full of slashes.  The same
+# pattern the four editors sanitize a single name with -- this flattens a whole path, so it
+# wants the pattern rather than editcommon.sanitize_filename itself.
 
 
 def _stamped_name(file_name: str) -> str:

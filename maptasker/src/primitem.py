@@ -322,7 +322,7 @@ SESSION_ATTRIBUTES = frozenset(
         "mygui",  # the running GUI
         "slash",  # the OS's path separator, set at startup (proginit)
         "windows_system",  # likewise
-        "tasker_arg_specs",  # Tasker's action argument specs, loaded once (proginit)
+        "tasker_arg_specs",  # Tasker's action argument specs, loaded once (actionc.load_arg_specs)
         "tasker_category_descriptions",  # likewise
         "tasker_event_codes",  # Tasker's event and state codes, fetched once (valcodes)
         "tasker_state_codes",  # likewise

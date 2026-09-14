@@ -75,6 +75,7 @@ from maptasker.src.mapjump import (
     actions_in_map_order,
 )
 from maptasker.src.primitem import PrimeItems
+from maptasker.src.property import PROPERTY_TAGS, VARIABLE_TAG
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -718,7 +719,6 @@ def _properties_elements(element: defusedxml.ElementTree.Element) -> set[int]:
     it, and keeping the dependency in the one place that uses it leaves this module
     importable, and testable, on its own.
     """
-    from maptasker.src.property import PROPERTY_TAGS, VARIABLE_TAG  # noqa: PLC0415
 
     shown: set[int] = set()
     for child in element:

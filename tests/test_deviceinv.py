@@ -30,7 +30,7 @@ import xml.etree.ElementTree as ET
 import pytest
 from urllib.parse import parse_qs, unquote, urlparse
 
-from maptasker.src import deviceinv, taskedit, taskerd
+from maptasker.src import appinv, deviceinv, taskedit, taskerd
 from maptasker.src.primitem import PrimeItems
 
 LAUNCH_APP = "20t"  # App=arg0
@@ -135,7 +135,7 @@ _FIXTURE_XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
 def _isolated_inventory(monkeypatch: pytest.MonkeyPatch, tmp_path: object) -> None:
     """No test in this file may read or write the real MapTasker_Apps.json.
 
-    deviceinv.cache_path() resolves against the current directory, which during a test run
+    appinv.cache_path() resolves against the current directory, which during a test run
     is the checkout -- and anyone who has fetched from their own phone has a real cache
     sitting right there.  Without this, "no configuration is loaded" quietly means "the 630
     applications on the maintainer's phone", and every test that asserts an empty inventory
@@ -145,11 +145,11 @@ def _isolated_inventory(monkeypatch: pytest.MonkeyPatch, tmp_path: object) -> No
     The module-level inventory state is reset for the same reason: it is global, and a test
     that fetches would otherwise leave its applications sitting in the next test's picker.
     """
-    monkeypatch.setattr(deviceinv, "cache_path", lambda: str(tmp_path / "MapTasker_Apps.json"))
+    monkeypatch.setattr(appinv, "cache_path", lambda: str(tmp_path / "MapTasker_Apps.json"))
     monkeypatch.setattr(deviceinv, "_auth_keys", {})
-    monkeypatch.setattr(deviceinv, "_device_apps", [])
-    monkeypatch.setattr(deviceinv, "_cache_loaded", False)
-    monkeypatch.setattr(deviceinv, "_harvested_from", deviceinv._NOT_HARVESTED)  # noqa: SLF001
+    monkeypatch.setattr(appinv, "_device_apps", [])
+    monkeypatch.setattr(appinv, "_cache_loaded", False)
+    monkeypatch.setattr(appinv, "_harvested_from", appinv._NOT_HARVESTED)  # noqa: SLF001
 
 
 def _load(xml_text: str) -> None:
@@ -204,7 +204,7 @@ def _nothing_loaded() -> None:
     PrimeItems.xml_root = None
 
 
-def _packages(entries: list[deviceinv.AppEntry]) -> list[str]:
+def _packages(entries: list[appinv.AppEntry]) -> list[str]:
     return [entry.pkg for entry in entries]
 
 
@@ -218,7 +218,7 @@ def test_apps_come_from_arguments_and_from_conditions(loaded: None) -> None:
     label against pkg0/cls0/label0 -- so reading only one of them is an easy thing to do
     and leaves an inventory that looks plausible and is half empty.
     """
-    found = _packages(deviceinv.apps())
+    found = _packages(appinv.apps())
     assert WHATSAPP in found  # <appPkg>, Task 20
     assert MAPS in found  # <pkg0>, Profile 100 -- and <appPkg> as well
     assert "com.docs" in found  # only ever named by an <Img>, Task 22
@@ -230,7 +230,7 @@ def test_the_most_complete_triple_wins(loaded: None) -> None:
     Picking it must give the complete triple whichever occurrence was met first, since an
     App written without a class is an App that Launch App cannot launch.
     """
-    entry = deviceinv.resolve_app(WHATSAPP)
+    entry = appinv.resolve_app(WHATSAPP)
     assert entry.label == "WhatsApp"
     assert entry.cls == "com.whatsapp.Main"
 
@@ -239,7 +239,7 @@ def test_an_app_icon_contributes_its_launcher_class(loaded: None) -> None:
     """An <Img> naming an app is also a sighting of the app, and it carries the field that
     is hardest to come by anywhere else.
     """
-    entry = deviceinv.resolve_app("com.docs")
+    entry = appinv.resolve_app("com.docs")
     assert entry.cls == "com.docs.Main"
 
 
@@ -247,15 +247,15 @@ def test_variable_packages_sort_last(loaded: None) -> None:
     """'%' leads the alphabet, and a picker that opens on a screen of variables buries the
     apps it exists to offer.
     """
-    found = _packages(deviceinv.apps())
+    found = _packages(appinv.apps())
     assert "%app_package" in found
     assert found[-1] == "%app_package"
 
 
 def test_every_icon_form_is_recognised(loaded: None) -> None:
     """Built-in, icon pack, app icon, %variable -- all four, told apart by kind."""
-    by_kind: dict[str, list[deviceinv.IconRef]] = {}
-    for icon in deviceinv.icons():
+    by_kind: dict[str, list[appinv.IconRef]] = {}
+    for icon in appinv.icons():
         by_kind.setdefault(icon.kind, []).append(icon)
 
     assert {"builtin", "pack", "app", "var"} <= set(by_kind)
@@ -269,9 +269,9 @@ def test_an_empty_configuration_offers_nothing(_nothing_loaded: None) -> None:
     """No inventory is not an error -- it is the state every App and Icon argument was
     permanently in before this module existed, and the fields fall back to read-only.
     """
-    assert deviceinv.apps() == []
-    assert deviceinv.have_apps() is False
-    assert deviceinv.have_icons() is False
+    assert appinv.apps() == []
+    assert appinv.have_apps() is False
+    assert appinv.have_icons() is False
 
 
 # ##################################################################################
@@ -280,7 +280,7 @@ def test_an_empty_configuration_offers_nothing(_nothing_loaded: None) -> None:
 def test_an_app_argument_unzips_into_triples(loaded: None) -> None:
     """Three parallel comma-joined lists, one app per position."""
     element = PrimeItems.tasker_root_elements["all_tasks"]["20"]["xml"].find(".//App[@sr='arg0']")
-    entries = deviceinv.read_app_element(element)
+    entries = appinv.read_app_element(element)
     assert _packages(entries) == [WHATSAPP, MAPS]
     assert entries[1].label == "Maps"
     assert entries[1].cls == "com.google.android.maps.MapsActivity"
@@ -293,8 +293,8 @@ def test_a_missing_label_list_reads_blank_rather_than_shifting(loaded: None) -> 
     back blank.  Anything else would pair a package with the next app's label.
     """
     element = PrimeItems.tasker_root_elements["all_tasks"]["21"]["xml"].find(".//App[@sr='arg0']")
-    entries = deviceinv.read_app_element(element)
-    assert entries == [deviceinv.AppEntry(pkg=WHATSAPP, label="", cls="com.whatsapp.Main")]
+    entries = appinv.read_app_element(element)
+    assert entries == [appinv.AppEntry(pkg=WHATSAPP, label="", cls="com.whatsapp.Main")]
 
 
 def test_writing_fewer_apps_leaves_no_stale_list_behind(loaded: None) -> None:
@@ -302,12 +302,12 @@ def test_writing_fewer_apps_leaves_no_stale_list_behind(loaded: None) -> None:
     label cannot survive to be re-paired with the first package on the next read.
     """
     element = PrimeItems.tasker_root_elements["all_tasks"]["20"]["xml"].find(".//App[@sr='arg0']")
-    deviceinv.write_app_element(element, [deviceinv.AppEntry(pkg=MAPS, label="Maps", cls="MapsActivity")])
+    appinv.write_app_element(element, [appinv.AppEntry(pkg=MAPS, label="Maps", cls="MapsActivity")])
 
     assert element.findtext("appPkg") == MAPS
     assert element.findtext("label") == "Maps"
-    assert deviceinv.read_app_element(element) == [
-        deviceinv.AppEntry(pkg=MAPS, label="Maps", cls="MapsActivity"),
+    assert appinv.read_app_element(element) == [
+        appinv.AppEntry(pkg=MAPS, label="Maps", cls="MapsActivity"),
     ]
 
 
@@ -320,15 +320,15 @@ def test_changing_an_icon_clears_the_previous_form_but_keeps_the_tint(loaded: No
     """
     element = PrimeItems.tasker_root_elements["all_tasks"]["20"]["xml"].find(".//Img[@sr='arg2']")
 
-    deviceinv.write_icon_element(element, deviceinv.IconRef(kind="app", pkg="com.docs", cls="com.docs.Main"))
-    assert deviceinv.read_icon_element(element) == deviceinv.IconRef(
+    appinv.write_icon_element(element, appinv.IconRef(kind="app", pkg="com.docs", cls="com.docs.Main"))
+    assert appinv.read_icon_element(element) == appinv.IconRef(
         kind="app",
         pkg="com.docs",
         cls="com.docs.Main",
     )
 
-    deviceinv.write_icon_element(element, deviceinv.IconRef(kind="builtin", name="hd_action_call"))
-    assert deviceinv.read_icon_element(element) == deviceinv.IconRef(kind="builtin", name="hd_action_call")
+    appinv.write_icon_element(element, appinv.IconRef(kind="builtin", name="hd_action_call"))
+    assert appinv.read_icon_element(element) == appinv.IconRef(kind="builtin", name="hd_action_call")
     assert element.findtext("pkg") is None
     assert element.findtext("tint") == "-1"
 
@@ -338,8 +338,8 @@ def test_an_empty_icon_is_a_reachable_state(loaded: None) -> None:
     to stay reachable now that a picker exists.
     """
     element = PrimeItems.tasker_root_elements["all_tasks"]["20"]["xml"].find(".//Img[@sr='arg2']")
-    deviceinv.write_icon_element(element, deviceinv.parse_icon_value(""))
-    assert deviceinv.read_icon_element(element) is None
+    appinv.write_icon_element(element, appinv.parse_icon_value(""))
+    assert appinv.read_icon_element(element) is None
 
 
 # ##################################################################################
@@ -348,18 +348,18 @@ def test_an_empty_icon_is_a_reachable_state(loaded: None) -> None:
 @pytest.mark.parametrize(
     "icon",
     [
-        deviceinv.IconRef(kind="builtin", name="mw_action_language"),
-        deviceinv.IconRef(kind="pack", name="spreadsheet", pkg=CRYSTAL),
-        deviceinv.IconRef(kind="app", pkg="com.docs", cls="com.docs.Main"),
-        deviceinv.IconRef(kind="app", pkg="com.docs"),
-        deviceinv.IconRef(kind="var", name="%my_icon"),
+        appinv.IconRef(kind="builtin", name="mw_action_language"),
+        appinv.IconRef(kind="pack", name="spreadsheet", pkg=CRYSTAL),
+        appinv.IconRef(kind="app", pkg="com.docs", cls="com.docs.Main"),
+        appinv.IconRef(kind="app", pkg="com.docs"),
+        appinv.IconRef(kind="var", name="%my_icon"),
     ],
 )
-def test_an_icon_reference_survives_a_round_trip_through_a_text_field(icon: deviceinv.IconRef) -> None:
+def test_an_icon_reference_survives_a_round_trip_through_a_text_field(icon: appinv.IconRef) -> None:
     """All four forms go into one field and come back out as themselves -- the field is
     what the user types into, so a form that cannot be spelled cannot be typed.
     """
-    assert deviceinv.parse_icon_value(deviceinv.format_icon_value(icon)) == icon
+    assert appinv.parse_icon_value(appinv.format_icon_value(icon)) == icon
 
 
 def test_a_typed_package_keeps_its_own_text_and_gets_no_class(loaded: None) -> None:
@@ -367,9 +367,9 @@ def test_a_typed_package_keeps_its_own_text_and_gets_no_class(loaded: None) -> N
     the inventory has never heard of is still a working App -- Tasker matches on the
     package -- so it is accepted, labelled with itself, and given no class to invent.
     """
-    entries = deviceinv.parse_app_value(f"{WHATSAPP}, com.nobody.knows")
+    entries = appinv.parse_app_value(f"{WHATSAPP}, com.nobody.knows")
     assert entries[0].cls == "com.whatsapp.Main"  # resolved from the inventory
-    assert entries[1] == deviceinv.AppEntry(pkg="com.nobody.knows", label="com.nobody.knows", cls="")
+    assert entries[1] == appinv.AppEntry(pkg="com.nobody.knows", label="com.nobody.knows", cls="")
 
 
 # ##################################################################################
@@ -663,15 +663,15 @@ def test_backing_the_switch_out_restores_the_bulk_task(
 
 def test_fetched_apps_join_the_inventory_and_the_cache(device: _FakeRequests) -> None:
     """A fetch is only worth making if the picker is different afterwards."""
-    before = {entry.pkg for entry in deviceinv.apps()}
+    before = {entry.pkg for entry in appinv.apps()}
     assert "com.google.android.apps.maps" in before  # harvested from the fixture
 
     return_code, _ = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
     assert return_code == 0
 
-    assert deviceinv.fetched_devices()[0][0] == "192.168.0.210:1821"
-    assert deviceinv.fetched_devices()[0][2] == 2
-    assert json.loads(pathlib.Path(deviceinv.cache_path()).read_text())["devices"]
+    assert appinv.fetched_devices()[0][0] == "192.168.0.210:1821"
+    assert appinv.fetched_devices()[0][2] == 2
+    assert json.loads(pathlib.Path(appinv.cache_path()).read_text())["devices"]
 
 
 def test_the_harvest_wins_where_the_two_sources_disagree(device: _FakeRequests) -> None:
@@ -682,7 +682,7 @@ def test_the_harvest_wins_where_the_two_sources_disagree(device: _FakeRequests) 
     both have an answer, the harvest's is kept.
     """
     deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
-    entry = deviceinv.resolve_app(WHATSAPP)
+    entry = appinv.resolve_app(WHATSAPP)
     assert entry.label == "WhatsApp"
     assert entry.cls == "com.whatsapp.Main"
 
@@ -696,7 +696,7 @@ def test_a_fetch_replaces_that_devices_previous_answer(device: _FakeRequests) ->
     device.task_installed = True
     deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
 
-    cached = json.loads(pathlib.Path(deviceinv.cache_path()).read_text())
+    cached = json.loads(pathlib.Path(appinv.cache_path()).read_text())
     packages = [app["pkg"] for app in cached["devices"]["192.168.0.210:1821"]["apps"]]
     assert packages == ["com.only.this.one"]
 
@@ -711,7 +711,7 @@ def test_an_unfinished_file_is_not_read_as_a_complete_list(device: _FakeRequests
     return_code, message = deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
     assert return_code != 0
     assert "never finished" in message
-    assert deviceinv.fetched_devices() == []
+    assert appinv.fetched_devices() == []
 
 
 # ##################################################################################
@@ -720,7 +720,7 @@ def test_an_unfinished_file_is_not_read_as_a_complete_list(device: _FakeRequests
 def test_an_aligned_payload_gives_complete_triples() -> None:
     entries, error = deviceinv.parse_device_payload(GOOD_PAYLOAD)
     assert error == ""
-    assert entries[0] == deviceinv.AppEntry(pkg=WHATSAPP, label="WhatsApp", cls="com.whatsapp.Main")
+    assert entries[0] == appinv.AppEntry(pkg=WHATSAPP, label="WhatsApp", cls="com.whatsapp.Main")
 
 
 def test_a_mismatched_label_list_is_discarded_rather_than_zipped() -> None:
@@ -805,7 +805,7 @@ def test_the_refusal_the_gui_can_act_on_is_exactly_the_named_one(no_apps_device:
     """Compared by equality against taskedit.NO_APPS_REASON, not by looking for a word in
     it, so the two cannot drift apart without this failing.
     """
-    assert deviceinv.apps() == []
+    assert appinv.apps() == []
     addable, reason = taskedit.classify_action_addability(LAUNCH_APP)
     assert addable is False
     assert reason == taskedit.NO_APPS_REASON
@@ -857,7 +857,7 @@ def test_the_icon_refusal_is_a_named_one_too(no_apps_device: _FakeRequests) -> N
     """The fixture that harvests no Applications harvests no icons either, so Notify --
     whose arg2 is an <Img> -- is refused for the icon reason, by equality.
     """
-    assert deviceinv.icons() == []
+    assert appinv.icons() == []
     addable, reason = taskedit.classify_action_addability(NOTIFY)
     assert addable is False
     assert reason == taskedit.NO_ICONS_REASON
@@ -888,11 +888,11 @@ def test_a_fetched_icon_is_the_app_icon_tasker_writes(no_apps_device: _FakeReque
     """
     deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
 
-    icons = deviceinv.icons()
+    icons = appinv.icons()
     assert {icon.kind for icon in icons} == {"app"}
     whatsapp = next(icon for icon in icons if icon.pkg == WHATSAPP)
     assert whatsapp.cls == "com.whatsapp.Main"
-    assert deviceinv.format_icon_value(whatsapp) == f"app:{WHATSAPP}/com.whatsapp.Main"
+    assert appinv.format_icon_value(whatsapp) == f"app:{WHATSAPP}/com.whatsapp.Main"
 
 
 def test_a_fetch_adds_no_icon_kind_it_cannot_know(no_apps_device: _FakeRequests) -> None:
@@ -904,7 +904,7 @@ def test_a_fetch_adds_no_icon_kind_it_cannot_know(no_apps_device: _FakeRequests)
     """
     deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
 
-    kinds = {icon.kind for icon in deviceinv.icons()}
+    kinds = {icon.kind for icon in appinv.icons()}
     assert "builtin" not in kinds
     assert "pack" not in kinds
 
@@ -916,7 +916,7 @@ def test_the_harvest_wins_for_an_icon_both_sources_have(device: _FakeRequests) -
     """
     deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
 
-    whatsapp = [icon for icon in deviceinv.icons() if icon.kind == "app" and icon.pkg == WHATSAPP]
+    whatsapp = [icon for icon in appinv.icons() if icon.kind == "app" and icon.pkg == WHATSAPP]
     assert len(whatsapp) == 1
     assert whatsapp[0].cls == "com.whatsapp.Main"
 
@@ -928,7 +928,7 @@ def test_fetched_icons_sort_after_the_ones_already_in_use(device: _FakeRequests)
     """
     deviceinv.fetch_apps_from_device("192.168.0.210", "1821")
 
-    kinds = [icon.kind for icon in deviceinv.icons()]
+    kinds = [icon.kind for icon in appinv.icons()]
     assert kinds == sorted(kinds, key={"builtin": 0, "pack": 1, "app": 2, "var": 3}.get)
 
 
@@ -1025,7 +1025,7 @@ def test_what_counts_as_a_variable(text: str, expected: bool) -> None:
     A variable-name pattern would reject '%App(%par1)', which Tasker itself writes into
     <appPkg>.  What follows the '%' is Tasker's business.
     """
-    assert deviceinv.is_variable_reference(text) is expected
+    assert appinv.is_variable_reference(text) is expected
 
 
 def test_a_variable_entry_matches_what_tasker_writes(loaded: None) -> None:
@@ -1034,7 +1034,7 @@ def test_a_variable_entry_matches_what_tasker_writes(loaded: None) -> None:
     Not invented -- every variable-valued <App> in this repo's backup repeats the <appPkg>
     text in <label> and carries no <appClass>.
     """
-    assert deviceinv.variable_app_entry(" %LastMusicApp ") == deviceinv.AppEntry(
+    assert appinv.variable_app_entry(" %LastMusicApp ") == appinv.AppEntry(
         pkg="%LastMusicApp",
         label="%LastMusicApp",
         cls="",
@@ -1046,7 +1046,7 @@ def test_a_variable_reaches_the_xml_through_the_ordinary_field(loaded: None) -> 
     package does -- parsed back out of the field, resolved, and written to <App>.
     """
     element = PrimeItems.tasker_root_elements["all_tasks"]["20"]["xml"].find(".//App[@sr='arg0']")
-    deviceinv.write_app_element(element, deviceinv.parse_app_value("%app_package"))
+    appinv.write_app_element(element, appinv.parse_app_value("%app_package"))
 
     assert element.findtext("appPkg") == "%app_package"
     assert element.findtext("label") == "%app_package"
@@ -1057,7 +1057,7 @@ def test_a_variable_and_real_packages_can_share_one_argument(loaded: None) -> No
     """An <App> argument names a list, and nothing says every entry has to be the same kind
     of thing -- so the variable has to keep its position among them.
     """
-    entries = deviceinv.parse_app_value(f"{WHATSAPP}, %app_package, {MAPS}")
+    entries = appinv.parse_app_value(f"{WHATSAPP}, %app_package, {MAPS}")
 
     assert [entry.pkg for entry in entries] == [WHATSAPP, "%app_package", MAPS]
     assert entries[1].label == "%app_package"
@@ -1253,7 +1253,7 @@ def test_a_listing_that_found_nothing_reads_as_nothing() -> None:
 
 
 # ##################################################################################
-# The GUI's own layer on top of the fetch (guiutils.get_list_of_files).
+# The tidying-up on top of the fetch (deviceinv.get_list_of_files).
 #
 # Two jobs, both of which used to be tangled up with the old route's payload format: the
 # paths have to lose the storage-root prefix before the 'file' route can fetch them, and
@@ -1266,11 +1266,11 @@ def test_a_listing_that_found_nothing_reads_as_nothing() -> None:
 @pytest.fixture
 def listed_files(monkeypatch: pytest.MonkeyPatch):  # noqa: ANN201
     """Lets a test say what the device reported, without a device or a fetch."""
-    from maptasker.src import guiutils
+    from maptasker.src import deviceinv
 
     def _set(return_code: int, result: object) -> None:
         monkeypatch.setattr(
-            guiutils.deviceinv,
+            deviceinv,
             "fetch_file_list_from_device",
             lambda *_args, **_kwargs: (return_code, result),
         )
@@ -1281,7 +1281,7 @@ def listed_files(monkeypatch: pytest.MonkeyPatch):  # noqa: ANN201
 def test_the_storage_root_is_stripped_off_every_path(listed_files) -> None:  # noqa: ANN001
     """The 'file' route is rooted at the storage root, so a path that still carries it
     cannot be fetched -- see deviceinv's own note on the two spellings."""
-    from maptasker.src.guiutils import get_list_of_files
+    from maptasker.src.deviceinv import get_list_of_files
 
     listed_files(0, ["/storage/emulated/0/Tasker/configs/user/backup.xml"])
 
@@ -1293,7 +1293,7 @@ def test_the_storage_root_is_stripped_off_every_path(listed_files) -> None:  # n
 
 def test_trashed_files_are_kept_out_of_the_list(listed_files) -> None:  # noqa: ANN001
     """Tasker's own trash is full of XML nobody wants offered as a configuration."""
-    from maptasker.src.guiutils import get_list_of_files
+    from maptasker.src.deviceinv import get_list_of_files
 
     listed_files(
         0,
@@ -1313,7 +1313,7 @@ def test_a_name_with_a_comma_in_it_survives(listed_files) -> None:  # noqa: ANN0
     """The old route joined its paths with commas, so this file arrived as two.  Nothing
     splits on a comma any more, and a Tasker export named after a Project can easily have
     one in it ('Bonza, Jigsaw.prj.xml')."""
-    from maptasker.src.guiutils import get_list_of_files
+    from maptasker.src.deviceinv import get_list_of_files
 
     listed_files(0, ["/storage/emulated/0/Tasker/Bonza, Jigsaw.prj.xml"])
 
@@ -1326,7 +1326,7 @@ def test_a_name_with_a_comma_in_it_survives(listed_files) -> None:  # noqa: ANN0
 def test_a_fetch_failure_is_passed_straight_through(listed_files) -> None:  # noqa: ANN001
     """The caller shows this message to the user, so it must be the fetch's own account of
     what went wrong rather than a generic one invented here."""
-    from maptasker.src.guiutils import get_list_of_files
+    from maptasker.src.deviceinv import get_list_of_files
 
     listed_files(8, "Tasker did not report the Task afterwards.")
 
@@ -1338,7 +1338,7 @@ def test_a_fetch_failure_is_passed_straight_through(listed_files) -> None:  # no
 
 def test_a_listing_of_nothing_but_trash_is_an_error(listed_files) -> None:  # noqa: ANN001
     """An empty pulldown with a green 'success' behind it tells the user nothing."""
-    from maptasker.src.guiutils import get_list_of_files
+    from maptasker.src.deviceinv import get_list_of_files
 
     listed_files(0, ["/storage/emulated/0/Tasker/.Trash/old.xml"])
 

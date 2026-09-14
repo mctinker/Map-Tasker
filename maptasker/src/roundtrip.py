@@ -77,6 +77,7 @@ from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as ET  # noqa: N817
 
+from maptasker.src import profedit, projedit, sceneedit, taskedit
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
@@ -420,7 +421,6 @@ def verify_rendered(
 # ==========================================
 def verify_task(edited_task: EditableTask) -> RoundTripReport:
     """The Task about to go to the device, checked against the working copy it renders."""
-    from maptasker.src import taskedit  # noqa: PLC0415
 
     try:
         rendered = taskedit.render_standalone_task_xml(edited_task)
@@ -440,7 +440,6 @@ def verify_profile(edited_profile: EditableProfile) -> RoundTripReport:
     live elements are the right thing to compare them against -- and them coming back
     unchanged is the whole point of check 2 for a Profile export.
     """
-    from maptasker.src import profedit  # noqa: PLC0415
 
     try:
         rendered = profedit.render_standalone_profile_xml(edited_profile)
@@ -459,7 +458,6 @@ def verify_project(project_name: str) -> RoundTripReport:
     elements ARE its sources.  The Project element itself is exempt from check 2 -- see this
     module's header, and projedit.render_standalone_project_xml for what it rewrites.
     """
-    from maptasker.src import projedit  # noqa: PLC0415
 
     try:
         rendered = projedit.render_standalone_project_xml(project_name)
@@ -486,7 +484,6 @@ def verify_scene(scene_name: str) -> RoundTripReport:
     sceneedit.apply_edited_scene_to_live_tree), so every object in the document -- the Scene
     included -- has a live element that must match it exactly.
     """
-    from maptasker.src import sceneedit  # noqa: PLC0415
 
     try:
         rendered = sceneedit.render_standalone_scene_xml(scene_name)

@@ -29,7 +29,7 @@ from maptasker.src.primitem import (
     initial_found_named_items,
     initial_grand_totals,
 )
-from maptasker.src.proginit import load_arg_specs
+from maptasker.src.actionc import load_arg_specs
 
 
 @pytest.fixture(autouse=True)

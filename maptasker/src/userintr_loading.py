@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 
 from nicegui import ui
 
+from maptasker.src.getbakup import validate_xml_file
 from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
@@ -37,7 +38,6 @@ from maptasker.src.guiutils import (
 )
 from maptasker.src.guiwins import refresh_scope_badges
 from maptasker.src.maputil2 import translate_string
-from maptasker.src.maputil3 import validate_xml_file
 from maptasker.src.maputils import clear_tasker_data
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import ALL_OBJECTS_MESSAGE

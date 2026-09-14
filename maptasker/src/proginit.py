@@ -7,23 +7,18 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 import atexit
 import contextlib
-import json
-import os
-import platform
 import sys
 from collections import namedtuple
 from json import dumps, loads
 from pathlib import Path
 
-import maptasker.src.progargs as get_arguments
 from maptasker.src import console
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DARK_MODE, GUI
-from maptasker.src.error import error_handler
+from maptasker.src.error import error_handler, exit_program
 from maptasker.src.frontmtr import output_the_front_matter
 from maptasker.src.getbakup import get_backup_file
-from maptasker.src.maputil2 import log_startup_values, translate_string
-from maptasker.src.maputils import exit_program
+from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems, clear_error
 from maptasker.src.runcfg import current_config
 from maptasker.src.sysconst import (
@@ -276,45 +271,6 @@ def check_versions() -> None:
         exit_program(1)
 
 
-def load_arg_specs() -> None:
-    """
-    Load the argument-type and action-category tables an action is mapped through.
-
-    The action code table itself is no longer built here: actionc.py reads
-    task_all_actions.json directly at import.  What is still needed from the assets
-    directory are the two small lookups that table's numbers are resolved against.
-
-    Args:
-        None
-    Returns:
-        None
-    """
-    json_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "json")
-
-    # Get the map of all Tasker task action argument types.
-    try:
-        with open(os.path.join(json_dir, "arg_specs.json"), encoding="utf-8") as file:
-            PrimeItems.tasker_arg_specs = json.load(file)
-            spec_number = len(PrimeItems.tasker_arg_specs)
-            # Add extras for new action specs
-            PrimeItems.tasker_arg_specs[str(spec_number)] = "ConditionList"
-            PrimeItems.tasker_arg_specs[str(spec_number + 1)] = "Img"
-            for key, value in PrimeItems.tasker_arg_specs.items():
-                if value == "String":
-                    PrimeItems.tasker_arg_specs[key] = "Str"
-                    break
-    except FileNotFoundError:
-        logger.error("arg_specs missing!")
-
-    # Get the map of Tasker action category codes to their display names (used by Add Task's picker).
-    try:
-        with open(os.path.join(json_dir, "category_descriptions.json"), encoding="utf-8") as file:
-            for description in json.load(file):
-                PrimeItems.tasker_category_descriptions[description["code"]] = description["name"]
-    except FileNotFoundError:
-        logger.error("category_descriptions missing!")
-
-
 # Where Tasker publishes the Event and State code constants.
 EVENT_CODES_URL = "https://tasker.joaoapps.com/code/EventCodes.java"
 STATE_CODES_URL = "https://tasker.joaoapps.com/code/StateCodes.java"
@@ -350,70 +306,3 @@ def rebuild_action_tables() -> None:
     build_bundles()
     # Add any arguments the backup xml uses that neither action code table declares.
     build_arguments()
-
-
-# Perform maptasker program initialization functions
-def start_up() -> dict:
-    # Get any arguments passed to program
-    """
-    Initializes the program startup.
-    Args:
-        None
-    Returns:
-        None
-    Processing Logic:
-        - Gets any arguments passed to the program
-        - Migrates any old argument files to a new format
-        - Gets runtime arguments from the command line or GUI
-        - Gets the list of available fonts
-        - Gets a map of colors to use
-        - Gets key program elements and outputs intro text
-        - Logs startup values if debug mode is enabled
-    """
-    # If debug mode, fire-up the log.
-    if "-d" in sys.argv or "-debug" in sys.argv:
-        console.say("Debug turned on via startup argument")
-        log_startup_values()
-    logger.info(f"sys.argv{sys.argv!s}")
-
-    # Get the OS so we know which directory slash to use (/ or \)
-    if platform.system() == "Windows":
-        PrimeItems.slash = "\\"
-        PrimeItems.windows_system = True
-    else:
-        PrimeItems.slash = "/"
-        PrimeItems.windows_system = False
-
-    # Validate the runtime version of python
-    check_versions()
-
-    load_arg_specs()
-
-    # NOTE: FOR DEVELOPMENT ONLY!!! 'build_all = True' ONLY WITH A NEW UPDATE OF TASKER!
-    # It rebuilds tables from the network and a backup xml and then exits, so shipping it
-    # as True would end every user's startup.  tests/test_build_all.py asserts it is False.
-    build_all = False
-    if build_all:
-        rebuild_action_tables()
-        exit_program(0)
-    # END OF DEVELOPMENT CODE
-
-    # Get runtime arguments (from CLI or GUI)
-    get_arguments.get_program_arguments()
-
-    # Force GUI mode
-    PrimeItems.program_arguments["gui"] = True
-
-    # Get our map of colors if we don't have them.
-    if not PrimeItems.colors_to_use:
-        PrimeItems.colors_to_use = setup_colors()
-
-    # Display a popup window telling user we are analyzing
-    if PrimeItems.program_arguments["doing_diagram"]:
-        PrimeItems.program_arguments["doing_diagram"] = False
-
-    # Get the XML data and output the front matter
-    if PrimeItems.file_to_get or PrimeItems.program_arguments["file"]:
-        _ = get_data_and_output_intro(True)  # Force the front matter to be created.
-
-    return

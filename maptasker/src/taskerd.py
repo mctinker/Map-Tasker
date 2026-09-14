@@ -10,6 +10,7 @@ import re
 import defusedxml.ElementTree as ET  # noqa: N817
 
 from maptasker.src import condition, sessundo, timeline
+from maptasker.src.actionc import load_arg_specs
 from maptasker.src.actione import get_action_code
 from maptasker.src.error import error_handler
 from maptasker.src.maputil2 import strip_html_tags, truncate_string
@@ -271,8 +272,6 @@ def get_first_action(task: ET) -> str:
     """
     # Build the Tasker argument codes dictionary if we don't yet have it.
     if not PrimeItems.tasker_arg_specs:
-        from maptasker.src.proginit import load_arg_specs  # noqa: PLC0415
-
         load_arg_specs()
 
     task_actions = task.findall("Action")

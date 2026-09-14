@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 
 import maptasker.src.tasks as tasks  # noqa: PLR0402
 from maptasker.src.error import error_handler
-from maptasker.src.guiutils import get_taskid_from_unnamed_task
 from maptasker.src.mapjump import TASK, Target, anchor_attribute
 from maptasker.src.maputils import (
     count_consecutive_substr,
@@ -25,6 +24,7 @@ from maptasker.src.maputils import (
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.share import share
 from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
+from maptasker.src.tasks import get_taskid_from_unnamed_task
 
 if TYPE_CHECKING:
     import defusedxml.ElementTree
@@ -206,7 +206,7 @@ def get_task_actions_and_output(
         # Still no Task?  The unnamed Task's name in the output line can carry display-only
         # markup that defeats the name lookup above: 'pretty' inserts '<br>' in front of the
         # '[' in a name like 'Media Control Cmd=Play [Simula....799 (Unnamed)' (see
-        # tasks.do_single_task).  Every unnamed Task name ends in '.{task id} (Unnamed)',
+        # proclist.do_single_task).  Every unnamed Task name ends in '.{task id} (Unnamed)',
         # so fall back to finding the Task by its ID.
         if the_task is None and UNNAMED in task_name and "." in task_name:
             task_id = get_taskid_from_unnamed_task(task_name)

@@ -13,6 +13,7 @@ import logging
 import sys
 from typing import TYPE_CHECKING
 
+from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
@@ -77,8 +78,6 @@ def _in_debug_mode() -> bool:
         bool: True when the "debug" runtime argument is on.
     """
     with contextlib.suppress(Exception):
-        from maptasker.src.primitem import PrimeItems  # noqa: PLC0415
-
         return bool(PrimeItems.program_arguments and PrimeItems.program_arguments.get("debug"))
     return False
 

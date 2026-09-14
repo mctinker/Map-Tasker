@@ -16,15 +16,17 @@ at the test.
 
 from __future__ import annotations
 
+import ast
 import base64
 import gzip
 import io
 import json
+import pathlib
 import re
 import xml.etree.ElementTree as ET
 
 import pytest
-from maptasker.src import proginit, scenes, taskerd, varxref
+from maptasker.src import actionc, proclist, scenes, taskerd, varxref
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.lineout import LineOut
@@ -107,13 +109,13 @@ def test_scene_v1_elements_are_listed_by_name_and_type() -> None:
         "<TextElement><Str>Heading</Str></TextElement>"
         "</Scene>",
     )
-    assert scenes.get_scene_element_names(scene) == ["'OK' (Button)", "'Heading' (Text)"]
+    assert proclist.get_scene_element_names(scene) == ["'OK' (Button)", "'Heading' (Text)"]
 
 
 def test_an_unnamed_element_is_listed_by_type_alone() -> None:
     """An element the user never named would otherwise be listed as "'' (Text)"."""
     scene = ET.fromstring("<Scene><TextElement><Str></Str></TextElement></Scene>")  # noqa: S314
-    assert scenes.get_scene_element_names(scene) == ["Text"]
+    assert proclist.get_scene_element_names(scene) == ["Text"]
 
 
 def test_the_scenes_own_settings_are_not_listed_as_elements() -> None:
@@ -126,7 +128,7 @@ def test_the_scenes_own_settings_are_not_listed_as_elements() -> None:
         "<ButtonElement><Str>OK</Str></ButtonElement>"
         "</Scene>",
     )
-    assert scenes.get_scene_element_names(scene) == ["'OK' (Button)"]
+    assert proclist.get_scene_element_names(scene) == ["'OK' (Button)"]
 
 
 def test_a_scene_v2_element_row_is_not_listed_as_an_element() -> None:
@@ -134,7 +136,7 @@ def test_a_scene_v2_element_row_is_not_listed_as_an_element() -> None:
     element it becomes a single meaningless row called "lj".
     """
     scene = ET.fromstring(f"<Scene><lj>{_gzipped_json([])}</lj></Scene>")  # noqa: S314
-    assert scenes.get_scene_element_names(scene) == []
+    assert proclist.get_scene_element_names(scene) == []
 
 
 # ##################################################################################
@@ -415,7 +417,7 @@ def _render_scene(elements: str) -> None:
     detail level, and rendering an element's arguments needs them (actargs).
     """
     _scene_with(elements)
-    proginit.load_arg_specs()
+    actionc.load_arg_specs()
     PrimeItems.program_arguments["display_detail_level"] = 5
     scenes.process_scene("Panel", [], None, 0)
 
@@ -581,3 +583,22 @@ def test_a_v2_layout_that_will_not_decode_writes_no_anchors() -> None:
 
     assert "could not be processed" in _output()
     assert not _anchors_written()
+
+
+def test_scenes_are_not_listed_through_process_list() -> None:
+    """Scenes go through scenes.process_scene_list, never proclist.process_list.
+
+    process_list no longer expands a Scene -- doing that meant proclist importing this module
+    back -- so a "Scene:" handed to it would print the Scene's line and silently drop its details.
+    """
+    offenders = [
+        f"{path.name}:{node.lineno}"
+        for path in sorted(pathlib.Path(scenes.__file__).parent.glob("*.py"))
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
+        if isinstance(node, ast.Call)
+        and getattr(node.func, "id", getattr(node.func, "attr", None)) == "process_list"
+        and node.args
+        and isinstance(node.args[0], ast.Constant)
+        and node.args[0].value == "Scene:"
+    ]
+    assert offenders == [], f"use scenes.process_scene_list for these: {offenders}"

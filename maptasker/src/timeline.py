@@ -61,6 +61,7 @@ from typing import TYPE_CHECKING
 
 from maptasker.src.editcommon import sanitize_filename
 from maptasker.src.sysconst import logger
+from maptasker.src.xmldiff import compare
 
 if TYPE_CHECKING:
     from maptasker.src.xmldiff import Configuration
@@ -363,7 +364,6 @@ def changes_since(cutoff: datetime | None, newer: Configuration | None = None) -
     """
     # Lazy imports for the same reason as configuration_of's -- taskerd calls record().
     from maptasker.src.diffload import current_configuration  # noqa: PLC0415
-    from maptasker.src.xmldiff import compare  # noqa: PLC0415
 
     held = snapshots()
     if not held:
