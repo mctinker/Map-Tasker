@@ -21,6 +21,7 @@ from typing import Any
 from nicegui import core, ui
 
 from maptasker.src import console
+from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.error import error_handler, exit_program
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guistate import capture_gui_state, do_colors, live_selection, reapply_selection
@@ -324,7 +325,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
     # Convert display_detail_level to integer
     PrimeItems.program_arguments["display_detail_level"] = convert_to_integer(
         PrimeItems.program_arguments["display_detail_level"],
-        4,
+        DEFAULT_DISPLAY_DETAIL_LEVEL,
     )
     # Convert indent to integer
     PrimeItems.program_arguments["indent"] = convert_to_integer(

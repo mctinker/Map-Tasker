@@ -1,4 +1,4 @@
-"""Tasker <Bundle> definitions extracted from Task64.tsk.xml."""
+"""Tasker <Bundle> definitions extracted from a Tasker export."""
 
 # Key is the owning <code> value with 'e' (Event), 's' (State) or 't' (Action) appended.
 # Value is the <Bundle> tag and its content: {'Bundle': {attributes and sub-tags}}.

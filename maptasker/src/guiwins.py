@@ -2166,7 +2166,7 @@ def _render_task_picker(on_pick: Callable[[str], None]) -> None:
     scrolling list of one clickable row per match.
 
     IT REPLACED A DROPDOWN, and the list is why.  A `ui.select` of every Task in the backup
-    is one control holding several hundred entries -- 352 in this repo's own backup_full.xml
+    is one control holding several hundred entries -- 352 in one of this repo's sample backups
     -- with the owning Project nowhere in sight, so two Tasks called "Setup" in different
     Projects are indistinguishable and the only way through is to already know the name.  The
     action picker solved the same problem for the ~500 action types, and this is that
@@ -7702,9 +7702,6 @@ def _initialize_android_settings(self: MyGui) -> None:
     self.android_ipaddr = ""
     self.android_port = ""
     self.fetched_backup_from_android = False
-    self.android_auth_key = ""  # Cached Tasker HTTP API key for Save To Android (see save_task_to_android_event).
-    self.android_auth_key_ipaddr = ""
-    self.android_auth_key_port = ""
 
 
 def _initialize_display_settings(self: MyGui) -> None:

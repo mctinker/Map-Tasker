@@ -17,7 +17,7 @@ The three that were not obvious, all settled by the sample data:
     ABSENT in the other 12.  There is no <stopEvent>false</stopEvent> anywhere, so off has
     to be stored as absence -- and a filter emptied by turning it off has to go too, or
     ticking and unticking a box would leave litter in a file that had none.  A filter that
-    was ALREADY empty is a different thing and must be left alone; $Simon.xml has one, and
+    was ALREADY empty is a different thing and must be left alone; one sample backup has one, and
     the round-trip test over every sample <PropertiesElement> is what turned that case up.
 
 The rendering tests build the real forms and walk the widget tree, because a mapping that is
@@ -40,8 +40,14 @@ import pytest
 from maptasker.src import sceneedit, taskedit
 from maptasker.src.primitem import PrimeItems
 
+# The backup the Scene tests load: hand-built, in tests/data, so they run anywhere -- CI included --
+# and hold nobody's configuration (see the comment at the top of the file).  The sweeps below also
+# measure whatever real backups are in XML/, which is where most of this mapping was first measured.
+_SYNTHETIC_BACKUP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "synthetic_backup.xml")
+
 # A Legacy Scene shaped the way the sample data shapes one: arguments in order, a keyTask
-# ahead of them, and a LinkClickFilter last.  Transcribed from XML/Smart Reminders.prj.xml.
+# ahead of them, and a LinkClickFilter last.  Transcribed from a real backup's Scene, with its
+# title replaced by an invented one.
 _SCENE_XML = """<Scene sr="Reminder">
   <cdate>1671835573104</cdate>
   <heightLand>-1</heightLand>
@@ -55,7 +61,7 @@ _SCENE_XML = """<Scene sr="Reminder">
     <Int sr="arg1" val="2" />
     <Str sr="arg2" ve="3">%backgroundcolor</Str>
     <Int sr="arg3" val="0" />
-    <Str sr="arg4" ve="3">Smart Reminders</Str>
+    <Str sr="arg4" ve="3">Daily Reminders</Str>
     <Str sr="arg5" ve="3" />
     <Img sr="arg6" ve="2" />
     <Str sr="arg7" ve="3" />
@@ -150,7 +156,7 @@ def test_unticking_keeps_a_filter_that_still_says_which_keys():
 
 
 def test_an_already_empty_filter_is_left_where_it_is():
-    """$Simon.xml carries a <LinkClickFilter sr="filter0" /> with nothing in it, on a Scene
+    """One sample backup carries a <LinkClickFilter sr="filter0" /> with nothing in it, on a Scene
     whose Stop Event is off.  Turning off what is already off must not delete it: a no-op
     has no business removing an element the user never touched.
     """
@@ -201,9 +207,10 @@ def test_unticking_what_was_never_ticked_changes_nothing():
 # 3. THE BACKSTOP: EVERY SAMPLE PROPERTIES ELEMENT
 # ==========================================
 def _sample_properties_elements() -> list[ET.Element]:
-    """Every <PropertiesElement> in the sample backups, deep-copied so a test can write."""
+    """Every <PropertiesElement> in the synthetic backup and in any real ones in XML/, deep-copied so a
+    test can write."""
     found = []
-    for path in sorted(glob.glob("XML/*.xml")):
+    for path in [_SYNTHETIC_BACKUP, *sorted(glob.glob("XML/*.xml"))]:
         try:
             root = ET.parse(path).getroot()  # noqa: S314
         except ET.ParseError:
@@ -380,20 +387,11 @@ def test_applying_action_edits_writes_the_argument_and_the_label(loaded_tasks):
 def _load_sample_backup(path: str) -> ET.Element:
     """Build the PrimeItems lookup tables from a sample file, the way taskerd does.
 
-    Same shape as test_mapswap._load, against a real backup rather than fixture text --
+    Same shape as test_mapswap._load, against a whole backup file rather than fixture text --
     the Event tabs resolve their Task through these tables, so a hand-built stub would not
     exercise the lookup that matters.
     """
     from maptasker.src import taskerd  # noqa: PLC0415
-
-    # XML/ holds real Tasker backups and is deliberately not in the repository, so on a
-    # fresh clone -- and on CI -- these files are simply not there.  Skipped rather than
-    # failed, which is what _sample_properties_elements above already does for the same
-    # reason; without this the thirteen tests that load a sample backup came out as
-    # FileNotFoundError instead, and a CI run that has never had the data reported it as
-    # fifty broken tests.
-    if not os.path.exists(path):
-        pytest.skip(f"no sample XML at {path} -- XML/ is not part of the repository")
 
     root = ET.parse(path).getroot()  # noqa: S314  (this repo's own sample data)
     PrimeItems.xml_root = root
@@ -478,7 +476,7 @@ def key_event_tab(sample_backup, stub_gui):
     """The Event tab's Key panel, over the first sample Scene that fires a key Task."""
     from maptasker.src import guiwins  # noqa: PLC0415
 
-    root = sample_backup("XML/Smart Reminders.prj.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     properties = _scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None)
     if properties is None:
         pytest.skip("no sample Scene with a key Task")
@@ -497,7 +495,7 @@ def test_the_screen_has_taskers_own_three_tabs(sample_backup, stub_gui):
 
     from maptasker.src import guiwins  # noqa: PLC0415
 
-    root = sample_backup("XML/Smart Reminders.prj.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     scene = next(s for s in root.iter("Scene") if s.find("PropertiesElement") is not None)
     edited = MagicMock()
     edited.scene_element = scene
@@ -579,7 +577,7 @@ def test_an_event_with_no_task_says_so_and_still_offers_the_filter(sample_backup
     from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
-    root = sample_backup("XML/Smart Reminders.prj.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
     properties.remove(properties.find(sceneedit.LEGACY_KEY_TASK_TAG))
 
@@ -604,7 +602,7 @@ def test_an_event_the_scene_type_rules_out_still_shows_what_is_bound(sample_back
     from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
-    root = sample_backup("XML/Smart Reminders.prj.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
     properties.find(f"Int[@sr='arg{sceneedit.LEGACY_PROPERTY_TYPE_ARG}']").set(
         "val",
@@ -629,7 +627,7 @@ def actions_tab(sample_backup, stub_gui):
     """The Actions tab over the first sample Scene that has action bar items."""
     from maptasker.src import guiwins  # noqa: PLC0415
 
-    root = sample_backup("XML/backup_full.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     properties = _scene_with(root, lambda p: p.find(sceneedit.LEGACY_ACTION_ITEM_TAG) is not None)
     if properties is None:
         pytest.skip("no sample Scene with action bar items")
@@ -649,13 +647,27 @@ def test_every_action_bar_item_gets_a_row(actions_tab):
         assert item.action_name in header
 
 
+def _first_row_inputs(container, ui):
+    """The first action bar item's inputs, by their label.
+
+    Every row has its own "Icon" and "Label" field, so a plain {label: input} over the whole
+    tab keeps the LAST row's -- and a test about item 0 would quietly read and write another
+    item whenever the Scene has more than one.
+    """
+    labelled = {}
+    for element in _descendants(container):
+        if isinstance(element, ui.input):
+            labelled.setdefault(element._props.get("label"), element)
+    return labelled
+
+
 def test_each_row_carries_the_guides_three_controls(actions_tab):
     """"icon button", "label text" and "action button" -- an icon field, a label field, and
     the item's action with its own arguments.
     """
     container, properties, ui = actions_tab
     item = sceneedit.legacy_action_items(properties)[0]
-    labelled = {e._props.get("label"): e for e in _descendants(container) if isinstance(e, ui.input)}
+    labelled = _first_row_inputs(container, ui)
 
     assert labelled["Icon"].value == sceneedit.legacy_action_item_icon(item)
     assert labelled["Label"].value == item.label
@@ -664,7 +676,7 @@ def test_each_row_carries_the_guides_three_controls(actions_tab):
 
 def test_the_icon_and_label_fields_write_through(actions_tab):
     container, properties, ui = actions_tab
-    labelled = {e._props.get("label"): e for e in _descendants(container) if isinstance(e, ui.input)}
+    labelled = _first_row_inputs(container, ui)
 
     labelled["Label"].value = "Renamed"
     labelled["Icon"].value = "mw_action_alarm"
@@ -697,7 +709,7 @@ def test_a_scene_that_is_not_an_activity_is_told_so_but_keeps_its_items(sample_b
     from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
-    root = sample_backup("XML/backup_full.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_ACTION_ITEM_TAG) is not None))
     properties.find(f"Int[@sr='arg{sceneedit.LEGACY_PROPERTY_TYPE_ARG}']").set(
         "val",
@@ -779,7 +791,7 @@ def test_the_edit_task_dialog_still_builds_after_the_editor_was_lifted_out_of_it
     saved_specs = dict(PrimeItems.tasker_arg_specs)
     saved_args = dict(PrimeItems.program_arguments)
     try:
-        _load_sample_backup("XML/Smart Reminders.prj.xml")
+        _load_sample_backup(_SYNTHETIC_BACKUP)
         # A Task with a real name and something in it -- an empty one would prove nothing.
         named = [
             name
@@ -982,7 +994,7 @@ def test_tab_tap_is_the_tag_every_sample_with_tab_labels_carries():
 @pytest.fixture
 def sample_action_items(sample_backup):
     """A deep copy of the sample <PropertiesElement> with the most action bar items."""
-    root = sample_backup("XML/backup_full.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     best = None
     for properties in root.iter("PropertiesElement"):
         count = len(properties.findall(sceneedit.LEGACY_ACTION_ITEM_TAG))
@@ -1273,8 +1285,8 @@ def test_choosing_a_project_narrows_the_rows(key_event_tab):
     matches = taskedit.search_pickable_tasks("", project)
     everything = taskedit.list_pickable_tasks()
     if len({row["project_name"] for row in everything}) > 1:
-        # Only a real narrowing when the sample has more than one Project to narrow to; this
-        # one has every Task under "Smart Reminders", where the right answer is all of them.
+        # Only a real narrowing when the backup has more than one Project to narrow to; with a
+        # single Project the right answer is all of them.
         assert len(matches) < len(everything)
     assert matches
     assert _task_rows_on_screen(container, ui) == {
@@ -1322,7 +1334,7 @@ def test_an_anonymous_binding_is_not_offered_a_picker(sample_backup, stub_gui):
     from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
-    root = sample_backup("XML/Smart Reminders.prj.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
     properties.find(sceneedit.LEGACY_KEY_TASK_TAG).text = "-1"
 
@@ -1347,7 +1359,7 @@ def test_the_bound_task_is_named_even_when_its_entry_has_no_name(sample_backup, 
     from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
-    root = sample_backup("XML/Smart Reminders.prj.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
     task_id = properties.findtext(sceneedit.LEGACY_KEY_TASK_TAG)
     PrimeItems.tasker_root_elements["all_tasks"][task_id]["name"] = ""
@@ -1386,7 +1398,7 @@ def unbound_event(sample_backup, stub_gui, monkeypatch):
     """
     from maptasker.src import guiwins, userintr  # noqa: PLC0415
 
-    root = sample_backup("XML/Smart Reminders.prj.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     PrimeItems.xml_root = root
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
     for event in sceneedit.LEGACY_SCENE_EVENTS:
@@ -1569,7 +1581,7 @@ def test_an_anonymous_binding_gets_no_editor_of_either_kind(sample_backup, stub_
     from maptasker.src import guiwins  # noqa: PLC0415
 
     ui = pytest.importorskip("nicegui").ui
-    root = sample_backup("XML/Smart Reminders.prj.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     properties = copy.deepcopy(_scene_with(root, lambda p: p.find(sceneedit.LEGACY_KEY_TASK_TAG) is not None))
     properties.find(sceneedit.LEGACY_KEY_TASK_TAG).text = "-1"
 
@@ -1688,7 +1700,7 @@ def scene_properties_dialog(sample_backup, stub_gui, monkeypatch):
 
     from maptasker.src import guiwins, userintr  # noqa: PLC0415
 
-    root = sample_backup("XML/Smart Reminders.prj.xml")
+    root = sample_backup(_SYNTHETIC_BACKUP)
     PrimeItems.xml_root = root
     # One that already fires a key Task, so the bound-Task half is exercised for real; the
     # tests about composing a new one strip the bindings off it themselves.

@@ -129,9 +129,9 @@ def _emit_v2_hull(root: str, width: int, height: int) -> None:
 
     Both halves of that are needed, and each was learned from a real Scene.  A container that
     paints has to be counted or the box would cut through the ring it draws round its
-    children ($V2 Test's header is an ellipse wider than anything inside it).  But a
+    children (one sample V2 Scene's header is an ellipse wider than anything inside it).  But a
     container that fills the screen has to be skipped even when it paints, because a
-    container is stretched by its parent rather than sized by its contents -- $V2 Test's root
+    container is stretched by its parent rather than sized by its contents -- that Scene's root
     Column paints a 1px border and is handed the whole screen, so counting it drew the box
     round the screen and said nothing about where the Scene's elements are.  A leaf that
     happens to fill the screen is a different matter and still counts: a full-screen image is

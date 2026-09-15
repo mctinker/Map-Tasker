@@ -198,13 +198,12 @@ def merge_bundles(existing: dict, harvested: dict) -> tuple[dict, list[str]]:
     return merged, notes
 
 
-def save_bundles(bundles: dict, output_file: str, xml_file: str) -> None:
+def save_bundles(bundles: dict, output_file: str) -> None:
     """
     Write the bundle dictionary out as a python source file.
     Args:
         bundles (dict): the dictionary of bundles to save
         output_file (str): the python file to create
-        xml_file (str): the xml file the bundles came from (used in the docstring)
     Returns:
         None
     """
@@ -215,7 +214,7 @@ def save_bundles(bundles: dict, output_file: str, xml_file: str) -> None:
 
     with open(output_file, "w", encoding="utf-8") as out:
         out.write(
-            f'"""Tasker <Bundle> definitions extracted from {os.path.basename(xml_file)}."""\n\n',
+            '"""Tasker <Bundle> definitions extracted from a Tasker export."""\n\n',
         )
         out.write(
             "# Key is the owning <code> value with 'e' (Event), 's' (State) or 't' (Action) appended.\n",
@@ -294,7 +293,7 @@ def build_bundles(xml_file: str = "", output_file: str = "", live_file: str = ""
     added = len(bundles) - len(existing)
 
     try:
-        save_bundles(bundles, output_file, xml_file)
+        save_bundles(bundles, output_file)
     except OSError as error:
         msg = f"bldbndle: error writing {output_file}: {error}"
         console.error(msg)

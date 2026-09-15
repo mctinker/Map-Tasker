@@ -5,7 +5,7 @@
 #                                                                                      #
 # initparg: intialize command line interface/runtime arguments for MapTasker           #
 #                                                                                      #
-from maptasker.src.config import ANDROID_FILE, ANDROID_IPADDR, ANDROID_PORT, OUTPUT_FONT
+from maptasker.src.config import ANDROID_FILE, ANDROID_IPADDR, ANDROID_PORT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.sysconst import DIAGRAM_PROFILES_PER_LINE, NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAULT
 
 
@@ -36,7 +36,7 @@ def initialize_runtime_arguments() -> dict:
         "debug": False,  # Run in debug mode (create log file)
         "doing_diagram": False,  # Use the GUI to get the diagram view
         "directory": False,  # Display directory
-        "display_detail_level": 4,  # Display detail level
+        "display_detail_level": DEFAULT_DISPLAY_DETAIL_LEVEL,  # Display detail level (see config.py)
         "fetched_backup_from_android": False,  # Backup file was fetched from Android device
         "file": "",  # If we are re-running, then this is the file to re-use
         "font": OUTPUT_FONT,  # Font to use in the output

@@ -84,7 +84,7 @@ def test_save_and_load_round_trip(tmp_path: os.PathLike) -> None:
     """What save_bundles writes is what load_existing_bundles reads back."""
     out = tmp_path / "bundle.py"
     original = {"2099e": FULL_2099, "111t": BARE_2099}
-    save_bundles(original, str(out), "backup.xml")
+    save_bundles(original, str(out))
     assert load_existing_bundles(str(out)) == original
 
 
@@ -120,7 +120,7 @@ def test_2099e_regression(tmp_path: os.PathLike) -> None:
     xml_file = tmp_path / "backup.xml"
     xml_file.write_text(_XML, encoding="utf-8")
     out = tmp_path / "bundle.py"
-    save_bundles({"2099e": FULL_2099, "555t": BARE_2099}, str(out), "older.xml")
+    save_bundles({"2099e": FULL_2099, "555t": BARE_2099}, str(out))
 
     # The bare 2099e really is what this xml offers -- otherwise the test proves nothing.
     assert get_bundles(str(xml_file))["2099e"] == BARE_2099
@@ -147,7 +147,7 @@ def test_default_output_is_the_file_the_program_imports(tmp_path: os.PathLike, m
     xml_file.write_text(_XML, encoding="utf-8")
     written = {}
 
-    def _capture(bundles: dict, output_file: str, xml: str) -> None:
+    def _capture(bundles: dict, output_file: str) -> None:
         written["path"] = output_file
         written["count"] = len(bundles)
 

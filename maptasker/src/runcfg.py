@@ -52,7 +52,7 @@ from dataclasses import dataclass, field, fields, replace
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, ClassVar
 
-from maptasker.src.config import ANDROID_FILE, ANDROID_IPADDR, ANDROID_PORT, OUTPUT_FONT
+from maptasker.src.config import ANDROID_FILE, ANDROID_IPADDR, ANDROID_PORT, DEFAULT_DISPLAY_DETAIL_LEVEL, OUTPUT_FONT
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import DIAGRAM_PROFILES_PER_LINE, NOTIFY_TIMEOUT_DEFAULT, VIEW_LIMIT_DEFAULT
 
@@ -80,7 +80,7 @@ class RunConfig:
     """
 
     # --- What to show ----------------------------------------------------------------
-    display_detail_level: int = 4  # How much Task/Profile detail to display, 0-5
+    display_detail_level: int = DEFAULT_DISPLAY_DETAIL_LEVEL  # How much Task/Profile detail to display, 0-5
     conditions: bool = False  # Display Profile and Task conditions
     directory: bool = False  # Display the directory of hyperlinks
     list_unnamed_items: bool = False  # List unnamed items in the directory

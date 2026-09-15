@@ -20,7 +20,6 @@ once; the device work grew up around it.
 from __future__ import annotations
 
 import json
-import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -33,7 +32,17 @@ from maptasker.src import taskedit
 from maptasker.src.actiont import lookup_values
 from maptasker.src.appinv import AppEntry, _store_fetched_apps
 from maptasker.src.editcommon import sanitize_filename
-from maptasker.src.maputil2 import get_android_auth_key, http_delete_request, http_post_request, http_request
+from maptasker.src.maputil2 import (
+    auth_key_for,
+    device_address,
+    held_auth_key,
+    http_delete_request,
+    http_post_request,
+    http_request,
+    over_one_connection,
+    request_with_auth_key,
+    spaced_attempts,
+)
 from maptasker.src.sysconst import logger
 
 # ==========================================
@@ -353,11 +362,6 @@ def build_helper_task(task_name: str = HELPER_TASK_NAME):  # noqa: ANN201
     return edited_task
 
 
-def _device_key(ip_address: str, ip_port: str) -> str:
-    """How one Android device is named in the cache and in messages."""
-    return f"{ip_address.strip()}:{ip_port.strip()}"
-
-
 def staged_paths(location: str, object_name: str, extension: str, fallback: str) -> tuple[str, str, str]:
     """Where one object's file goes on the device: (filename, read path, absolute path).
 
@@ -384,13 +388,6 @@ def staged_paths(location: str, object_name: str, extension: str, fallback: str)
     return filename, f"/{location}/{filename}", f"/storage/emulated/0/{location}/{filename}"
 
 
-# Auth keys already obtained this session, by device.  The same idea as userintr's own
-# self.android_auth_key -- every request to the api/* endpoints needs one, and fetching a
-# fresh one prompts on the device -- kept here rather than reached for on the GUI because
-# the pickers that trigger a fetch are module-level functions with no MyGui to hand.
-_auth_keys: dict[str, str] = {}
-
-
 def run_task_on_android(
     ip_address: str,
     ip_port: str,
@@ -402,8 +399,8 @@ def run_task_on_android(
     (Params/Body: task object; Response: the Task's return value).
 
     Returns (0, "") or (return_code, error_message).  Return code 9 is passed through
-    unchanged so the caller can tell a rejected key apart from everything else and retry
-    with a fresh one, exactly as taskedit.save_task_to_android does.
+    unchanged so a rejected key can be told apart from everything else and replaced -- see
+    maputil2.request_with_auth_key, which every run goes through.
 
     par1 ARRIVES IN THE TASK AS %par1, and this is not a guess -- it is read off the HTTP
     Server Example's own handler in this repo's sample backup (XML/backup.xml), the same way
@@ -474,76 +471,27 @@ def _install_task_on_android(
     # leaves a .tsk.xml behind in /Tasker/tasks -- a folder the user browses for their own
     # Tasks.  'MapTasker Send Profile v1.tsk.xml' sitting in it is litter they did not ask
     # for and would have to recognize before deleting.
-    return_code, result, used_key = taskedit.save_task_to_android(
+    return_code, result = taskedit.save_task_to_android(
         built,
         ip_address,
         ip_port,
         task_name,
-        auth_key,
         via_file=False,
     )
     if return_code != 0:
         return return_code, str(result)
-    if used_key:
-        _auth_keys[_device_key(ip_address, ip_port)] = used_key
 
     # api/import answering 200 is not evidence Tasker committed the Task -- the same
-    # reservation save_task_to_android_directory exists for.
-    if not taskedit.verify_task_on_android(ip_address, ip_port, task_name, used_key or auth_key):
+    # reservation save_task_to_android_directory exists for.  Checked with the key the import
+    # used, which is a fresh one if the device had rejected the one held.
+    if not taskedit.verify_task_on_android(
+        ip_address, ip_port, task_name, held_auth_key(ip_address, ip_port) or auth_key
+    ):
         return 8, (
             f"'{task_name}' was sent to the device but Tasker did not report it afterwards.  "
             "Tasker 6.2 or higher is required, and Tasker must be running."
         )
     return 0, ""
-
-
-def _ensure_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
-    """This device's API key -- the one already cached for this session, or a fresh one.
-
-    Returns (0, key) or (return_code, error_message).  Fetching a fresh one prompts on the
-    device, which is why the cache exists and why both fetches go through here.
-    """
-
-    key = _device_key(ip_address, ip_port)
-    if auth_key := _auth_keys.get(key, ""):
-        return 0, auth_key
-
-    return_code, auth_key = get_android_auth_key(ip_address, ip_port)
-    if return_code != 0:
-        return return_code, auth_key
-    _auth_keys[key] = auth_key
-    return 0, auth_key
-
-
-def _run_task_refreshing_key(
-    ip_address: str,
-    ip_port: str,
-    task_name: str,
-    auth_key: str,
-    par1: str = "",
-) -> tuple[int, str, str]:
-    """Run task_name, and if the device rejects the key it was given, get a fresh one and
-    try once more.
-
-    Returns (return_code, message, key_used) -- the key so the caller can carry the
-    refreshed one forward.  Return code 9 is 'key rejected', the same signal
-    taskedit.save_task_to_android retries on.
-
-    par1 goes with both attempts, not just the first: a retry that dropped the path would
-    run the helper against an unset %par1 -- see run_task_on_android.
-    """
-
-    return_code, message = run_task_on_android(ip_address, ip_port, task_name, auth_key, par1)
-    if return_code != 9:
-        return return_code, message, auth_key
-
-    return_code, refreshed = get_android_auth_key(ip_address, ip_port)
-    if return_code != 0:
-        return return_code, refreshed, auth_key
-    _auth_keys[_device_key(ip_address, ip_port)] = refreshed
-
-    return_code, message = run_task_on_android(ip_address, ip_port, task_name, refreshed, par1)
-    return return_code, message, refreshed
 
 
 def _poll_for_result(
@@ -568,7 +516,7 @@ def _poll_for_result(
     """
 
     last_error = f"The Android device did not produce {'an' if subject[0] in 'aeiou' else 'a'} {subject}."
-    for attempt in range(attempts):
+    for _ in spaced_attempts(attempts, _RESULT_POLL_SECONDS):
         return_code, response = http_request(ip_address, ip_port, read_path, "file", "?download=1")
         if return_code == 0:
             text = response.decode("utf-8", errors="replace") if isinstance(response, bytes) else str(response)
@@ -578,12 +526,10 @@ def _poll_for_result(
         elif return_code != 6:  # 6 is 'not there yet', which is the normal case while waiting.
             last_error = str(response)
 
-        if attempt < attempts - 1:
-            time.sleep(_RESULT_POLL_SECONDS)
-
     return "", last_error
 
 
+@over_one_connection
 def fetch_apps_from_device(ip_address: str, ip_port: str) -> tuple[int, str]:
     """Fetch the full list of installed Applications from an Android device and cache it.
 
@@ -605,8 +551,8 @@ def fetch_apps_from_device(ip_address: str, ip_port: str) -> tuple[int, str]:
     if not ip_address or not ip_port:
         return 8, "An Android IP address and port are needed.  Set them under 'Get XML from Android Device'."
 
-    key = _device_key(ip_address, ip_port)
-    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    key = device_address(ip_address, ip_port)
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
         return return_code, auth_key
 
@@ -619,7 +565,7 @@ def fetch_apps_from_device(ip_address: str, ip_port: str) -> tuple[int, str]:
     )
     if return_code != 0:
         return return_code, message
-    auth_key = _auth_keys.get(key, auth_key)
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
 
     # Clear the previous answer out of the way BEFORE running anything -- see
     # maputil2.http_delete_request for why this is not optional.  Its own failure is not
@@ -629,9 +575,13 @@ def fetch_apps_from_device(ip_address: str, ip_port: str) -> tuple[int, str]:
     if delete_code != 0:
         logger.info(f"Could not clear {_DEVICE_RESULT_READ_PATH} before fetching: {delete_error}")
 
-    # A rejected cached key is retried once with a fresh one -- see
-    # _run_task_refreshing_key, which is where that dance now lives.
-    return_code, message, auth_key = _run_task_refreshing_key(ip_address, ip_port, HELPER_TASK_NAME, auth_key)
+    # A rejected key is replaced and the run tried once more -- see
+    # maputil2.request_with_auth_key, which is where that dance now lives.
+    return_code, message = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, HELPER_TASK_NAME, auth_key),
+    )
     if return_code != 0:
         return return_code, message
 
@@ -808,6 +758,7 @@ def parse_file_list_payload(text: str) -> tuple[list[str], str]:
     return paths, ""
 
 
+@over_one_connection
 def fetch_file_list_from_device(
     ip_address: str,
     ip_port: str,
@@ -835,8 +786,7 @@ def fetch_file_list_from_device(
     if not ip_address or not ip_port:
         return 8, "An Android IP address and port are needed.  Set them under 'Get XML from Android Device'."
 
-    key = _device_key(ip_address, ip_port)
-    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
         return return_code, auth_key
 
@@ -849,7 +799,7 @@ def fetch_file_list_from_device(
     )
     if return_code != 0:
         return return_code, message
-    auth_key = _auth_keys.get(key, auth_key)
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
 
     # Clear the previous answer BEFORE running anything: a listing is asked for repeatedly
     # within one session, so a stale file here is the normal case rather than the rare one,
@@ -860,7 +810,11 @@ def fetch_file_list_from_device(
     if delete_code != 0:
         logger.info(f"Could not clear {_FILE_LIST_READ_PATH} before listing: {delete_error}")
 
-    return_code, message, auth_key = _run_task_refreshing_key(ip_address, ip_port, FILE_LIST_TASK_NAME, auth_key)
+    return_code, message = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, FILE_LIST_TASK_NAME, auth_key),
+    )
     if return_code != 0:
         return return_code, message
 
@@ -1256,6 +1210,7 @@ def _validate_import_request(
     return ""
 
 
+@over_one_connection
 def import_profile_to_device(  # noqa: PLR0911
     profile_xml: bytes,
     profile_name: str,
@@ -1309,8 +1264,8 @@ def import_profile_to_device(  # noqa: PLR0911
     if refusal := _validate_import_request(profile_xml, profile_name, ip_address, ip_port):
         return 8, refusal
 
-    key = _device_key(ip_address, ip_port)
-    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    key = device_address(ip_address, ip_port)
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
         return return_code, auth_key
 
@@ -1332,7 +1287,7 @@ def import_profile_to_device(  # noqa: PLR0911
     )
     if return_code != 0:
         return return_code, message
-    auth_key = _auth_keys.get(key, auth_key)
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
 
     # Clear the last answer first, for the reason fetch_apps_from_device gives: a stale one
     # left in place would be read as this run's.  Its own failure is not fatal.
@@ -1347,13 +1302,12 @@ def import_profile_to_device(  # noqa: PLR0911
 
     # The staged path goes over WITH the run, as %par1 -- one installed helper, a different
     # file each time.  See run_task_on_android.
-    return_code, message, auth_key = _run_task_refreshing_key(
+    return_code, message = request_with_auth_key(
         ip_address,
         ip_port,
-        task_name,
-        auth_key,
-        stage_task_path,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, task_name, auth_key, stage_task_path),
     )
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
     if return_code != 0:
         return return_code, message
 
@@ -1934,6 +1888,7 @@ def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME):  # noqa:
     return _finish_offer_task(edited_task, task_name, values)
 
 
+@over_one_connection
 def open_tasker_on_device(ip_address: str, ip_port: str) -> tuple[int, str]:
     """Bring Tasker to the foreground on the device.  (0, "") or (return_code, message).
 
@@ -1952,7 +1907,7 @@ def open_tasker_on_device(ip_address: str, ip_port: str) -> tuple[int, str]:
 
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
-    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
         return return_code, auth_key
 
@@ -1965,13 +1920,17 @@ def open_tasker_on_device(ip_address: str, ip_port: str) -> tuple[int, str]:
     )
     if return_code != 0:
         return return_code, message
-    auth_key = _auth_keys.get(_device_key(ip_address, ip_port), auth_key)
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
 
     delete_code, delete_error = http_delete_request(ip_address, ip_port, _LAUNCH_READ_PATH, auth_key)
     if delete_code != 0:
         logger.info(f"Could not clear {_LAUNCH_READ_PATH} before opening Tasker: {delete_error}")
 
-    return_code, message, auth_key = _run_task_refreshing_key(ip_address, ip_port, LAUNCH_TASKER_TASK_NAME, auth_key)
+    return_code, message = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, LAUNCH_TASKER_TASK_NAME, auth_key),
+    )
     if return_code != 0:
         return return_code, message
 
@@ -2050,6 +2009,7 @@ def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, 
     return bool(present) and profile_name in present
 
 
+@over_one_connection
 def import_is_confirmable(
     ip_address: str,
     ip_port: str,
@@ -2078,7 +2038,7 @@ def import_is_confirmable(
     if not names:
         return False
 
-    return_code, auth_key = _ensure_auth_key(ip_address.strip(), ip_port.strip())
+    return_code, auth_key = auth_key_for(ip_address.strip(), ip_port.strip())
     if return_code != 0:
         return None
 
@@ -2088,6 +2048,7 @@ def import_is_confirmable(
     return not present
 
 
+@over_one_connection
 def await_import(
     ip_address: str,
     ip_port: str,
@@ -2125,16 +2086,14 @@ def await_import(
     wanted = {name.strip() for name in names if name and name.strip()}
 
     if not auth_key:
-        return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+        return_code, auth_key = auth_key_for(ip_address, ip_port)
         if return_code != 0:
             return return_code, auth_key
 
-    for attempt in range(attempts):
+    for _ in spaced_attempts(attempts, _RESULT_POLL_SECONDS):
         present = verify_names_on_android(ip_address, ip_port, endpoint, sorted(wanted), auth_key)
         if present is not None and wanted <= present:
-            return 0, f"{subject} is now in Tasker on {_device_key(ip_address, ip_port)}."
-        if attempt < attempts - 1:
-            time.sleep(_RESULT_POLL_SECONDS)
+            return 0, f"{subject} is now in Tasker on {device_address(ip_address, ip_port)}."
 
     waiting = f"  The file is on the device at {staged_at} and can still be imported by hand." if staged_at else ""
     return 8, (
@@ -2187,6 +2146,7 @@ def _stage_xml(
     return 0, task_path
 
 
+@over_one_connection
 def offer_to_tasker(  # noqa: PLR0911
     xml_bytes: bytes,
     object_name: str,
@@ -2246,8 +2206,8 @@ def offer_to_tasker(  # noqa: PLR0911
         return 8, f"There is no {route.label} XML to import."
 
     subject = f"{route.label} '{object_name}'"
-    key = _device_key(ip_address, ip_port)
-    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    key = device_address(ip_address, ip_port)
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
         return return_code, auth_key
 
@@ -2261,7 +2221,7 @@ def offer_to_tasker(  # noqa: PLR0911
     return_code, message = _install_task_on_android(ip_address, ip_port, auth_key, route.task_name, route.builder)
     if return_code != 0:
         return return_code, message
-    auth_key = _auth_keys.get(key, auth_key)
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
 
     delete_code, delete_error = http_delete_request(ip_address, ip_port, route.read_path, auth_key)
     if delete_code != 0:
@@ -2278,13 +2238,12 @@ def offer_to_tasker(  # noqa: PLR0911
 
     # The path goes over WITH the run, as %par1, rather than having been baked into the Task
     # when it was installed -- see run_task_on_android.
-    return_code, message, auth_key = _run_task_refreshing_key(
+    return_code, message = request_with_auth_key(
         ip_address,
         ip_port,
-        route.task_name,
-        auth_key,
-        stage_task_path,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, route.task_name, auth_key, stage_task_path),
     )
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
     if return_code != 0:
         return return_code, message
 
@@ -2430,6 +2389,7 @@ def classify_helper_tasks(task_names: Iterable[str]) -> tuple[list[str], list[st
     return sorted(live), sorted(ours - live)
 
 
+@over_one_connection
 def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, str, list[str]]:
     """Every Task Tasker knows about, by name.  (0, "", names) or (return_code, message, []).
 
@@ -2448,7 +2408,7 @@ def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, st
     if not ip_address or not ip_port:
         return 8, "An Android IP address and port are needed.  Set them under 'Get XML from Android Device'.", []
 
-    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
         return return_code, auth_key, []
 
@@ -2628,6 +2588,7 @@ def parse_object_list_payload(text: str) -> tuple[dict[str, list[str]], str]:
     return names, ""
 
 
+@over_one_connection
 def fetch_tasker_object_names(ip_address: str, ip_port: str) -> tuple[int, str, dict[str, list[str]]]:
     """Every Project, Profile, Scene and Task Tasker has, by name.  (0, "", by kind) or (code, why, {}).
 
@@ -2643,8 +2604,7 @@ def fetch_tasker_object_names(ip_address: str, ip_port: str) -> tuple[int, str, 
     if not ip_address or not ip_port:
         return 8, "An Android IP address and port are needed.", {}
 
-    key = _device_key(ip_address, ip_port)
-    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
         return return_code, auth_key, {}
 
@@ -2657,13 +2617,17 @@ def fetch_tasker_object_names(ip_address: str, ip_port: str) -> tuple[int, str, 
     )
     if return_code != 0:
         return return_code, message, {}
-    auth_key = _auth_keys.get(key, auth_key)
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
 
     delete_code, delete_error = http_delete_request(ip_address, ip_port, _OBJECT_LIST_READ_PATH, auth_key)
     if delete_code != 0:
         logger.info(f"Could not clear {_OBJECT_LIST_READ_PATH} before listing: {delete_error}")
 
-    return_code, message, auth_key = _run_task_refreshing_key(ip_address, ip_port, OBJECT_LIST_TASK_NAME, auth_key)
+    return_code, message = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, OBJECT_LIST_TASK_NAME, auth_key),
+    )
     if return_code != 0:
         return return_code, message, {}
 
@@ -2749,6 +2713,7 @@ class TaskerCheck:
         return any(self.present.values()) or bool(self.unchecked)
 
 
+@over_one_connection
 def check_tasker_for_existing(ip_address: str, ip_port: str, sent: dict[str, list[str]]) -> TaskerCheck:
     """Ask Tasker which of these objects it already has.  Blocking; see the section comment.
 
@@ -2767,7 +2732,7 @@ def check_tasker_for_existing(ip_address: str, ip_port: str, sent: dict[str, lis
             return TaskerCheck(sent, {}, dict.fromkeys(wanted, message))
         return TaskerCheck(sent, {kind: _found_in(names, listed[kind]) for kind, names in wanted.items()}, {})
 
-    return_code, auth_key = _ensure_auth_key(ip_address.strip(), ip_port.strip())
+    return_code, auth_key = auth_key_for(ip_address.strip(), ip_port.strip())
     if return_code != 0:
         return TaskerCheck(sent, {}, dict.fromkeys(wanted, str(auth_key)))
 
@@ -2878,6 +2843,7 @@ def build_id_check_task(task_name: str = ID_CHECK_TASK_NAME):  # noqa: ANN201
     )
 
 
+@over_one_connection
 def fetch_device_backup(ip_address: str, ip_port: str) -> tuple[int, str, bytes]:
     """Have the device back its configuration up now, and read it.  (0, "", xml) or (code, why, b"").
 
@@ -2893,8 +2859,7 @@ def fetch_device_backup(ip_address: str, ip_port: str) -> tuple[int, str, bytes]
     if not ip_address or not ip_port:
         return 8, "An Android IP address and port are needed.", b""
 
-    key = _device_key(ip_address, ip_port)
-    return_code, auth_key = _ensure_auth_key(ip_address, ip_port)
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
     if return_code != 0:
         return return_code, auth_key, b""
 
@@ -2907,7 +2872,7 @@ def fetch_device_backup(ip_address: str, ip_port: str) -> tuple[int, str, bytes]
     )
     if return_code != 0:
         return return_code, message, b""
-    auth_key = _auth_keys.get(key, auth_key)
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
 
     # The previous run's answer, not its backup: a stale result file is what would let this read
     # a stale backup as a fresh one, and the new backup overwrites the old file anyway.
@@ -2915,7 +2880,12 @@ def fetch_device_backup(ip_address: str, ip_port: str) -> tuple[int, str, bytes]
     if delete_code != 0:
         logger.info(f"Could not clear {_ID_CHECK_RESULT_READ_PATH} before the backup: {delete_error}")
 
-    return_code, message, auth_key = _run_task_refreshing_key(ip_address, ip_port, ID_CHECK_TASK_NAME, auth_key)
+    return_code, message = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, ID_CHECK_TASK_NAME, auth_key),
+    )
+    auth_key = held_auth_key(ip_address, ip_port) or auth_key
     if return_code != 0:
         return return_code, message, b""
 

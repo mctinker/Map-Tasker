@@ -247,7 +247,7 @@ class MyGui:
         # PrimeItems.program_arguments["single_project_name"] = self.single_project_name = PrimeItems.program_arguments[
         #     "single_profile_name"
         # ] = self.single_profile_name = PrimeItems.program_arguments["single_task_name"] = self.single_task_name = "None"
-        # PrimeItems.program_arguments["single_project_name"] = self.single_project_name = "Chat GPT"
+        # PrimeItems.program_arguments["single_project_name"] = self.single_project_name = "Garden Watering"
         # PrimeItems.program_arguments["guiview"] = True
         # _ = get_xml(self.debug, self.appearance_mode)
         # self.view_limit = 9999999
@@ -279,9 +279,6 @@ class MyGui:
         self.android_ipaddr = ""
         self.android_port = ""
         self.android_file = ""
-        self.android_auth_key = ""  # Cached Tasker HTTP API key for Save To Android (see save_task_to_android_event).
-        self.android_auth_key_ipaddr = ""
-        self.android_auth_key_port = ""
         self.color_lookup = {}  # Setup default dictionary as empty list
         self.saved_background_color = "#3e1414"
         self.font = OUTPUT_FONT

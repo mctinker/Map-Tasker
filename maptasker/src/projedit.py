@@ -68,10 +68,8 @@ EXPORT = editcommon.EditorKind(
 # These used to be STRIPPED, on the belief that Tasker's own single-Project export leaves
 # them out.  It does not, and the belief came from too small a sample: the derivation diffed
 # four Tasker-produced .prj.xml files that happened to have no <id>, but eight of the
-# eighteen in this repo's sample data do carry one (Ah Ah Ah, Custom Theme, EveryGesture,
-# Flashlight Slider, Scene v2 Dialog, Smart Reminders, Strip Metadata, TAGLY).  The ones
-# without are TaskerNet downloads, which strip identity on the way through the service --
-# not what a device writes.
+# eighteen in this repo's sample data do carry one.  The ones without are TaskerNet
+# downloads, which strip identity on the way through the service -- not what a device writes.
 #
 # Measured on a real device: Tasker REFUSES to import a Project with no <id>.  Every Project
 # in a full backup has one (83 of 83), every Project this program creates has one
@@ -484,8 +482,8 @@ def android_project_path(project_name: str) -> str:
 #
 # Written only when the export actually carries Scenes, because that is what Tasker does.
 # The correlation is not confounded by anything else in the sample: <id> presence cuts
-# across it in both directions (EveryGesture and Strip Metadata have an <id> and no
-# <dmetric>; Chat_GPT, Scan and Pocc have a <dmetric> and no <id>), so this is a real rule
+# across it in both directions (two sample Projects have an <id> and no <dmetric>;
+# three have a <dmetric> and no <id>), so this is a real rule
 # about Scenes rather than a side effect of which files came from a device and which from
 # TaskerNet.  A Project with no Scenes that still needs one would be new evidence.
 _DISPLAY_METRIC_TAG = "dmetric"
@@ -582,7 +580,7 @@ def render_standalone_project_xml(project_name: str, *, redact: bool = False) ->
     # filed under an index that only meant anything inside its original backup.
     #
     # Only the Project is renumbered: genuine exports keep their Profiles' and Tasks'
-    # original sr values (e.g. Chat_GPT.prj.xml ships prof590 and task242, not prof0/
+    # original sr values (e.g. one sample Project export ships prof590 and task242, not prof0/
     # task0), since those are resolved by <id> through <pids>/<tids> rather than by index.
     project_copy.set("sr", "proj0")
 
@@ -621,8 +619,8 @@ def render_standalone_project_xml(project_name: str, *, redact: bool = False) ->
         if scene_name in all_scenes
     ]
 
-    # <dmetric> first, exactly where Tasker puts it (Scan.prj.xml, Custom Theme.prj.xml and
-    # backup.xml all lead with it), and only alongside Scenes -- see _DISPLAY_METRIC_TAG for
+    # <dmetric> first, exactly where Tasker puts it (two sample Project exports
+    # and backup.xml all lead with it), and only alongside Scenes -- see _DISPLAY_METRIC_TAG for
     # the measured correlation and for why the value is copied rather than invented.
     source_metric = PrimeItems.xml_root.find(_DISPLAY_METRIC_TAG) if PrimeItems.xml_root is not None else None
     if scene_elements and source_metric is not None:

@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file!
 - Changed: Your AI API keys are now kept in your computer's own password store (the Keychain on macOS, Credential Manager on Windows, the Secret Service on Linux) instead of an unprotected file in the folder MapTasker was started from.  Keys saved by an earlier version are moved over automatically, and a computer with no password store keeps them in a file only your user account can read.
 - Changed: The 'Replace this argument' pulldown on the Replace tab of 'Find/Replace' now shows each argument's position alongside its name, such as 'arg0 Text' and 'arg3 Title'.  This makes it easy to match an argument to the one Tasker's XML and the Map refer to.
 - Changed: Plugin actions now name their last two arguments 'Timeout (Seconds)' and 'Structure Output (JSON, etc)' and treat them as a number and an on/off setting, matching how Tasker stores them.  As a result, the Map now shows a plugin action's timeout and Structure Output setting, which were previously left out, and the Task editor and 'Replace this argument' pulldown offer them under those names.
+- Changed: Your Android device is now asked to approve MapTasker's connection once, and that approval serves 'Save To Android', 'Import Into Tasker' and fetches from the device alike for the rest of the session.  Before, saving a Task kept its approval separate from the others, so the device could ask again for an approval it had already given.
+- Changed: MapTasker now starts at Display Detail Level 5 when there are no saved settings, the same level 'Reset Options' goes back to.  Before, a first run started at 4 while 'Reset Options' set 5, so resetting changed how much detail was shown.
 - Changed:
 
 ### Removed

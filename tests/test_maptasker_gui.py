@@ -2318,7 +2318,7 @@ async def test_the_task_import_asks_before_replacing_the_file_it_writes(
     monkeypatch.setattr(
         userintr_android.taskedit,
         "save_task_to_android",
-        lambda *args, **_kwargs: (imported.append(args[3]), (0, args[3], "KEY"))[1],
+        lambda *args, **_kwargs: (imported.append(args[3]), (0, args[3]))[1],
     )
     monkeypatch.setattr(userintr_android.taskedit, "verify_task_on_android", lambda *_args: True)
     field_refs, android_refs = task_dialog_refs
@@ -2356,7 +2356,7 @@ async def test_a_task_tasker_never_confirms_falls_back_to_the_open_with(
     from maptasker.src import deviceinv, userintr
 
     calls = _patch_task_file_path(monkeypatch)
-    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3], "KEY"))
+    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
     monkeypatch.setattr(userintr_android.taskedit, "verify_task_on_android", lambda *_args: False)
     monkeypatch.setattr(
         userintr_android.taskedit,
@@ -2399,7 +2399,7 @@ async def test_the_task_import_says_where_the_copy_was_left(monkeypatch, event_h
     from maptasker.src import userintr
 
     calls = _patch_task_file_path(monkeypatch)
-    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3], "KEY"))
+    monkeypatch.setattr(userintr_android.taskedit, "save_task_to_android", lambda *args, **_kwargs: (0, args[3]))
     monkeypatch.setattr(userintr_android.taskedit, "verify_task_on_android", lambda *_args: True)
     field_refs, android_refs = task_dialog_refs
 

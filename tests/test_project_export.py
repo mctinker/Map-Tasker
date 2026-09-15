@@ -232,8 +232,8 @@ def test_a_named_scene_that_is_missing_is_skipped_not_faked() -> None:
 
 
 def test_the_display_metric_leads_the_document() -> None:
-    """First element, where Tasker puts it -- Scan.prj.xml, Custom Theme.prj.xml and
-    backup.xml all lead with it."""
+    """First element, where Tasker puts it -- two sample Project exports and a full
+    backup all lead with it."""
     document = _document("Home")
 
     assert [child.tag for child in document][0] == "dmetric"
@@ -257,8 +257,8 @@ def test_an_export_with_no_scenes_has_no_display_metric() -> None:
 
 
 def test_the_elements_come_in_taskers_own_order() -> None:
-    """dmetric, Profiles, the Project, Scenes, Tasks -- matched against Scan.prj.xml and
-    Custom Theme.prj.xml.  Not Project-first, which is what you would expect from
+    """dmetric, Profiles, the Project, Scenes, Tasks -- matched against two sample Project
+    exports.  Not Project-first, which is what you would expect from
     <pids>/<tids> being inside <Project>."""
     tags = [child.tag for child in _document("Home")]
 

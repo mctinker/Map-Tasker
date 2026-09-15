@@ -63,8 +63,8 @@ PVIT_BY_KIND = {KIND_PROJECT: "pj", KIND_PROFILE: "pr", KIND_TASK: "t"}
 #
 # It is uniform within an object -- all 538 objects in the sample backups that carry
 # variables give every one of them the same <pvid> -- but it is NOT the object's <id>:
-# a Project's <id> is a UUID while its pvid is a small integer (Smart Reminders is
-# id=d69311f4-... pvid=1), and for Tasks the two agree in only 39 of 570 cases.  It
+# a Project's <id> is a UUID while its pvid is a small integer (a Project such as "Garden
+# Watering" might be id=4b7e0c2a-... pvid=1), and for Tasks the two agree in only 39 of 570 cases.  It
 # looks like a Tasker-internal index, and there is nothing in a backup to derive it
 # from, so a value invented here would be wrong.
 #
@@ -647,7 +647,7 @@ def set_child_text_in_tag_order(
     uppercase-tagged ones (Share, Img, Kid, ProfileVariable, and a Profile's condition
     elements) after them all.  Checked across all 880 Projects, 3,526 Profiles and 9,601
     Tasks in this repo's sample backups: one exception, a <limit> after <State> in the
-    hand-made Testaroo.prf.xml.  Appending instead would put <pc> after <ProfileVariable>,
+    hand-made test Profile export.  Appending instead would put <pc> after <ProfileVariable>,
     which no Tasker-written object does -- same reasoning as
     projedit.render_standalone_project_xml's pids-before-tids fix-up: what is exported has
     to look like what Tasker writes.

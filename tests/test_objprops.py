@@ -118,7 +118,9 @@ def _sample_objects() -> tuple[tuple[str, str, ET.Element], ...]:
     parametrizations cannot see each other's edits."""
     here = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     found = []
-    for path in sorted(glob.glob(os.path.join(here, "XML", "*.xml"))):
+    # The synthetic backup always, so this runs on CI too; any real backups in XML/ as well.
+    synthetic = os.path.join(here, "tests", "data", "synthetic_backup.xml")
+    for path in [synthetic, *sorted(glob.glob(os.path.join(here, "XML", "*.xml")))]:
         try:
             root = ET.parse(path).getroot()  # noqa: S314  (this repo's own sample data)
         except ET.ParseError:
@@ -427,8 +429,8 @@ def test_profile_scalars_are_written_ahead_of_the_conditions() -> None:
     with "AND", skipping a fixed ignore list that does NOT include <pc> or <cldm>.  A
     non-condition child landing AFTER a real condition therefore appends a dangling
     ", AND " to the Map view's condition text -- the "document-order luck" caveat
-    profedit._PROFILE_METADATA_TAGS warns about, and visible today on the hand-made
-    Testaroo.prf.xml, whose <limit> sits after its <State>.
+    profedit._PROFILE_METADATA_TAGS warns about, and visible today on a hand-made
+    test Profile export, whose <limit> sits after its <State>.
 
     Nothing here fixes that.  What this asserts is that the properties editor cannot
     TRIGGER it: conditions are uppercase-tagged and the scalars are lowercase, so

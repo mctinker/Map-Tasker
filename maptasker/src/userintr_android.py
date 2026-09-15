@@ -41,7 +41,7 @@ from maptasker.src.guiwins import (
     build_save_to_android_dialog,
 )
 from maptasker.src.guiwins_profedit import build_save_profile_to_android_dialog
-from maptasker.src.maputil2 import http_request, read_android_file, translate_string
+from maptasker.src.maputil2 import held_auth_key, http_request, read_android_file, translate_string
 from maptasker.src.maputils import clear_tasker_data
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
@@ -512,16 +512,6 @@ class AndroidEventHandlers:
         # prompt of its own -- see guiutils.notify_watch_android_device.
         notify_watch_android_device()
 
-        # Reuse a cached API key for this same device -- skips its GET /api/auth
-        # confirmation prompt. taskedit.save_task_to_android falls back to fetching
-        # a fresh one (and retries) if the device has since rejected it.
-        cached_key = (
-            getattr(self.gui, "android_auth_key", "")
-            if getattr(self.gui, "android_auth_key_ipaddr", "") == ip_address
-            and getattr(self.gui, "android_auth_key_port", "") == ip_port
-            else ""
-        )
-
         task_name = field_refs["name"].value.strip()
 
         async def _import() -> None:
@@ -540,23 +530,18 @@ class AndroidEventHandlers:
                     type="warning",
                 )
 
-            return_code, result, auth_key = await run.io_bound(
+            # The key is the one held for this device this session, so a device already asked --
+            # by an earlier save, a fetch or an import -- is not prompted again.
+            return_code, result = await run.io_bound(
                 taskedit.save_task_to_android,
                 edited_task,
                 ip_address,
                 ip_port,
                 task_name,
-                cached_key,
             )
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
-
-            # Cache the auth key (keyed to this ip/port) so the next save skips the
-            # device's connection-authorization prompt entirely.
-            self.gui.android_auth_key = auth_key
-            self.gui.android_auth_key_ipaddr = ip_address
-            self.gui.android_auth_key_port = ip_port
 
             # Remember the connection details for next time, same as the Get XML dialog does.
             self.gui.android_ipaddr = ip_address
@@ -567,6 +552,10 @@ class AndroidEventHandlers:
             # `copied and` matters: on a failure safety_copy holds the reason, not a path.
             replaced = f" The file it replaced was copied to {safety_copy}." if copied and safety_copy else ""
             landed = f" A copy was left on the device at {device_path}.{replaced}"
+
+            # The key the import used -- a fresh one, if the device had rejected the one held.
+            # Read, not asked for.
+            auth_key = held_auth_key(ip_address, ip_port)
 
             # api/import's 200 response doesn't guarantee Tasker actually committed the
             # Task, so confirm via GET /api/tasks before declaring success. If that
@@ -855,7 +844,7 @@ class AndroidEventHandlers:
             # presave.save_android_safety_copy.  The bytes come from the existence check
             # below rather than from a second GET, because the Tasker HTTP Server Example
             # flashes 'File doesn't exist' on the phone for every miss (its /file handler
-            # runs Test File first -- see File_System_Host.prf.xml), so asking twice put two
+            # runs Test File first -- see its file-system Profile), so asking twice put two
             # of them on screen for one save.  A copy that fails is reported and the save
             # goes ahead: presave's module comment says why it must never block one.
             copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
@@ -964,7 +953,7 @@ class AndroidEventHandlers:
             # presave.save_android_safety_copy.  The bytes come from the existence check
             # below rather than from a second GET, because the Tasker HTTP Server Example
             # flashes 'File doesn't exist' on the phone for every miss (its /file handler
-            # runs Test File first -- see File_System_Host.prf.xml), so asking twice put two
+            # runs Test File first -- see its file-system Profile), so asking twice put two
             # of them on screen for one save.  A copy that fails is reported and the save
             # goes ahead: presave's module comment says why it must never block one.
             copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)
@@ -1667,7 +1656,7 @@ class AndroidEventHandlers:
             # presave.save_android_safety_copy.  The bytes come from the existence check
             # below rather than from a second GET, because the Tasker HTTP Server Example
             # flashes 'File doesn't exist' on the phone for every miss (its /file handler
-            # runs Test File first -- see File_System_Host.prf.xml), so asking twice put two
+            # runs Test File first -- see its file-system Profile), so asking twice put two
             # of them on screen for one save.  A copy that fails is reported and the save
             # goes ahead: presave's module comment says why it must never block one.
             copied, safety_copy = presave.save_android_safety_copy(device_path, already_there)

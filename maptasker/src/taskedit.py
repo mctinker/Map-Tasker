@@ -34,7 +34,7 @@ from maptasker.src.actiont import lookup_values
 from maptasker.src.bundle import bundles
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.editcommon import touch_project_mdate
-from maptasker.src.maputil2 import get_android_auth_key, http_post_request, http_request
+from maptasker.src.maputil2 import http_post_request, http_request, over_one_connection, request_with_auth_key
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
@@ -2088,14 +2088,14 @@ def write_standalone_task_xml(edited_task: EditableTask, output_path: str, *, re
     return safety_copy
 
 
+@over_one_connection
 def save_task_to_android(
     edited_task: EditableTask,
     ip_address: str,
     ip_port: str,
     task_name: str,
-    auth_key: str = "",
     via_file: bool = True,
-) -> tuple[int, str, str]:
+) -> tuple[int, str]:
     """Import the edited Task into Tasker on the Android device, from a copy of it left in
     /Tasker/tasks.
 
@@ -2125,19 +2125,18 @@ def save_task_to_android(
     bytes on the storage without Tasker ever reading them.  Every request to it must carry
     an 'Authorization: <key>' header; /upload, in step 1, needs none.
 
-    Pass a previously-cached auth_key (see maputil2.get_android_auth_key) to skip
-    that device's GET /api/auth confirmation prompt. If the device rejects a
-    cached key (401), this falls back to fetching a fresh one and retries once --
-    the cached key may have expired or been revoked on the device.
+    The key is the one held for this device this session (maputil2.auth_key_for), so a device
+    already asked -- by an earlier save, a fetch or an import -- is not prompted again.  If the
+    device rejects it (401), a fresh key is fetched and the import tried once more; the held key
+    may have expired or been revoked on the device.
 
-    Returns (0, task_name, auth_key_used) on success, so the caller can cache
-    auth_key_used for next time, or (return_code, error_message, "") on failure.
+    Returns (0, task_name) on success, or (return_code, error_message).
     """
 
     ip_address = ip_address.strip()
     ip_port = ip_port.strip()
     if not ip_address or not ip_port:
-        return 8, "Android IP address and port are required.", ""
+        return 8, "Android IP address and port are required."
 
     # Step 1, before the key: /upload needs no authorization, so a failed write costs the
     # user nothing and -- more to the point -- does not put an authorization prompt on their
@@ -2145,47 +2144,21 @@ def save_task_to_android(
     if via_file:
         return_code, result, xml_bytes = _put_task_file_on_android(edited_task, ip_address, ip_port, task_name)
         if return_code != 0:
-            return return_code, result, ""
+            return return_code, result
     else:
         xml_bytes = render_standalone_task_xml(edited_task).encode("utf-8")
 
-    had_cached_key = bool(auth_key)
-    if not auth_key:
-        return_code, auth_key = get_android_auth_key(ip_address, ip_port)
-        if return_code != 0:
-            return return_code, auth_key, ""
-
-    # Step 2: the bytes that came off the device, not a fresh render of the same Task.
-    return_code, response = http_post_request(
+    # Step 2: the bytes that came off the device, not a fresh render of the same Task.  The key
+    # is the one held for this device, asked for only if there is none, and a key the device
+    # rejects is replaced and the import tried once more (maputil2.request_with_auth_key).
+    return_code, response = request_with_auth_key(
         ip_address,
         ip_port,
-        "",
-        "api/import",
-        "",
-        xml_bytes,
-        auth_key,
+        lambda auth_key: http_post_request(ip_address, ip_port, "", "api/import", "", xml_bytes, auth_key),
     )
-
-    if return_code == 9 and had_cached_key:
-        # Cached key was rejected -- get a fresh one (device prompts once more) and retry.
-        return_code, auth_key = get_android_auth_key(ip_address, ip_port)
-        if return_code != 0:
-            return return_code, auth_key, ""
-        return_code, response = http_post_request(
-            ip_address,
-            ip_port,
-            "",
-            "api/import",
-            "",
-            xml_bytes,
-            auth_key,
-        )
-        if return_code != 0:
-            return return_code, str(response), ""
-
     if return_code != 0:
-        return return_code, str(response), ""
-    return 0, task_name, auth_key
+        return return_code, str(response)
+    return 0, task_name
 
 
 def _put_task_file_on_android(
@@ -2278,6 +2251,7 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
     return any(task.get("name") == task_name for task in tasks)
 
 
+@over_one_connection
 def save_task_to_android_directory(
     edited_task: EditableTask,
     ip_address: str,

@@ -10,9 +10,9 @@ places at once, which is what makes Rename the interesting operation here:
 
   1. the all_scenes key,
   2. the <nme> child,
-  3. the element's own sr attribute -- sr="sceneElectric Blanket", not the
+  3. the element's own sr attribute -- sr="sceneGarden Lights", not the
      sr="scene0" positional index every other Tasker element uses (confirmed
-     against this repo's own backup.xml and Electric_Blanket.scn.xml: every
+     against this repo's own backup.xml and a single-Scene export: every
      single Scene in both is sr="scene<name>"),
 
 plus, outside the Scene itself, every owning Project's <scenes> element, which
@@ -37,8 +37,8 @@ TWO KINDS OF SCENE, and every function here has to know which it is holding:
   decode_v2_layout/encode_v2_layout, which are the only two functions that should
   ever touch it. The layout is declarative (Column/Row/Scaffold with modifiers
   and event handlers, not x/y geometry), so all four size children are -1 on
-  every V2 Scene -- confirmed across all three in XML/backup.xml, which are the
-  Scenes of the 'Test', 'Scene v2 Dialog' and 'Flashlight Slider' Projects.
+  every V2 Scene -- confirmed across all three in XML/backup.xml, which belong to
+  a test Project, a dialog-builder Project and a torch-brightness Project.
 
   is_v2_scene() is the check; scene_version() gives the display name. The two
   are told apart purely by whether <lj> is there, which is also how
@@ -943,8 +943,8 @@ _ALIGNMENT = ("Start", "Center", "End")
 _VERTICAL_ALIGNMENT = ("Top", "Center", "Bottom")
 
 # What each component type offers the inspector.  Derived from what actually appears in
-# XML/backup.xml -- the three Version 2 Scenes plus everything the 'Scene v2 Dialog'
-# project's builder Task emits -- because Tasker publishes no schema for this format, so
+# XML/backup.xml -- the three Version 2 Scenes plus everything the dialog-builder
+# Project's builder Task emits -- because Tasker publishes no schema for this format, so
 # observed usage is the only schema there is.
 #
 # A type missing from here still opens and still edits: _v2_unschemad_props falls back to
@@ -1659,7 +1659,7 @@ V2_CONTAINER_SLOTS: dict[str, tuple[str, ...]] = {
     "NavigationBar": ("content",),
     "FloatingActionButton": ("content",),
     "Dropdown": ("trigger", "content"),
-    # "content", not "children" -- the Scene v2 Dialog compiler builds its rows as
+    # "content", not "children" -- the dialog-builder Project's compiler builds its rows as
     # {type: "SegmentedButtonRow", ..., content: [SegmentedButtonItem, ...]}.
     "SegmentedButtonRow": ("content",),
     # Confirmed: the 'V2New' Scene's Card holds a Text under "children".
@@ -1710,7 +1710,7 @@ V2_PALETTE_GROUPS = ("Display", "Input", "Layout", "Media")
 # slot-scoped ones it only offers in context (see V2_PARENT_ONLY).
 #
 # `verified` says whether this entry's type string and property keys were read off something
-# real -- a decoded <lj> in XML/*.xml, or the 'Scene v2 Dialog' project's compiler, which
+# real -- a decoded <lj> in XML/*.xml, or the dialog-builder Project's compiler, which
 # emits component JSON as string literals.  Every entry currently is: the 'V2New' Scene in
 # XML/backup.xml was built in Tasker's Screen Builder expressly to carry one of each element
 # this app had never seen a sample of, and it confirmed all ten type strings (PascalCase of
@@ -1870,7 +1870,7 @@ V2_NEW_NODE_DEFAULTS: dict[str, dict] = {
     "NavigationBar": {"content": []},
     "FloatingActionButton": {"content": []},
     "IconButton": {"icon": "icon:Star"},
-    # Traced to the Scene v2 Dialog compiler's own buildButtonRow(), including the string
+    # Traced to the dialog-builder compiler's own buildButtonRow(), including the string
     # "true" rather than a JSON boolean -- see _coerce_like on why that distinction is kept.
     "SegmentedButtonRow": {"allowDeselect": "true", "selectedIndices": "", "content": []},
     "SegmentedButtonItem": {"label": "Item"},
@@ -1915,8 +1915,8 @@ def v2_next_id(layout: dict, node_type: str) -> str:
     """A free id for a new component of this type: "Text1", "Text2", ...
 
     Serial per type, matching how Tasker's own Screen Builder names them (the 'V2' Scene
-    carries Scaffold1/TopAppBar1/Text1/Text2/NavItem1..3) and how the Scene v2 Dialog
-    builder's nextId() does it.  Predictable, collision-free, and readable in a Task that
+    carries Scaffold1/TopAppBar1/Text1/Text2/NavItem1..3) and how the dialog-builder
+    Project's nextId() does it.  Predictable, collision-free, and readable in a Task that
     addresses the component by id.
     """
     taken = v2_all_ids(layout)
@@ -2439,7 +2439,7 @@ V2_ACTION_TYPES = tuple(V2_ACTION_SCHEMA)
 # Which components write a value back out, and under what key.  The state object is always
 # {"<state>": {"outputVariableBindings": {"<key>": [variable, ...]}}} -- confirmed in the
 # 'Dialog' Scene (a TextInput carrying an empty textState) and in every build*() of the
-# Scene v2 Dialog project's compiler.
+# dialog-builder Project's compiler.
 #
 # NOTE the compiler is inconsistent about the "%" prefix inside those lists: it writes
 # textState as ["%" + var] but sliderValueState as [var]. Both evidently work, so the
@@ -2654,8 +2654,8 @@ def new_v2_layout(name: str) -> dict:
     """The component tree a brand-new Version 2 Scene starts with: a single
     centred Column holding nothing, plus the Scene's name.
 
-    Modelled on the smallest real V2 Scene in XML/backup.xml ('Torch Slider v2',
-    the 'Flashlight Slider' Project's) with its one child removed -- same root
+    Modelled on the smallest real V2 Scene in XML/backup.xml (a torch-brightness
+    slider) with its one child removed -- same root
     type, same keys, same order -- rather than invented, so what Tasker's Screen
     Builder opens is a shape it already writes itself.  Deliberately no
     "defaultDisplayMode": only one of the three real V2 Scenes sets it, so it is
@@ -2678,7 +2678,7 @@ def _v2_dismiss_actions(label: str) -> list[dict]:
 
     Copied from the 'Dialog' Scene's own close button rather than invented -- it writes
     sd_button_index and sd_button before DismissLayout, and those two names are what the
-    'Scene v2 Dialog' project's Task reads back afterwards. A template that used different
+    dialog-builder Project's Task reads back afterwards. A template that used different
     variable names would look right and return nothing.
     """
     return [
@@ -2690,7 +2690,7 @@ def _v2_dismiss_actions(label: str) -> list[dict]:
 def _v2_template_dialog(name: str, *, with_buttons: bool) -> dict:
     """A titled dialog: header row with a title and a close button, then a content column.
 
-    This is the 'Dialog' Scene of the 'Scene v2 Dialog' project, reduced to its frame --
+    This is the 'Dialog' Scene of the dialog-builder Project, reduced to its frame --
     same root Column with the rounded border, same SpaceBetween header, same close button
     behaviour -- with its runtime-injected body replaced by an ordinary Text the user can
     edit or delete.
@@ -2768,7 +2768,7 @@ def _v2_template_dialog(name: str, *, with_buttons: bool) -> dict:
 def _v2_template_full_screen(name: str) -> dict:
     """A full-screen app frame: top bar, bottom navigation, and a content column.
 
-    Modelled on the 'V2' Scene of the 'Test' project -- the only real example of a Scaffold
+    Modelled on the 'V2' Scene of a test Project -- the only real example of a Scaffold
     in this repo's backup -- so the slot names (topBar / bottomBar / content) and the
     NavigationItem shape match something Tasker demonstrably opens.
     """
@@ -3252,12 +3252,12 @@ def scene_task_ids(scene_element: defusedxml.ElementTree.Element) -> list[str]:
 
 def render_standalone_scene_xml(scene_name: str, *, redact: bool = False) -> str:
     """Render a Scene as a standalone TaskerData/Scene XML string, matching the
-    shape Tasker's own Scene export produces (verified against this repo's
-    Electric_Blanket.scn.xml: a TaskerData root holding one <Scene>, which keeps
+    shape Tasker's own Scene export produces (verified against a single-Scene
+    export in this repo's sample data: a TaskerData root holding one <Scene>, which keeps
     its sr="scene<name>" and all of its UI elements).
 
     Emits <dmetric>, the Scene, then every Task the Scene's elements fire -- the shape
-    Set_Fake_Call_Time_Scene.scn.xml has exactly ('dmetric', 'Scene', 'Task', 'Task').  The
+    another sample Scene export has exactly ('dmetric', 'Scene', 'Task', 'Task').  The
     Tasks used to be left out on the reasoning that a Scene's UI elements are children of
     the Scene element, so one deep copy was the whole export; that is true of the LAYOUT and
     false of the behaviour.  A <clickTask> holds an id and nothing else, so a Scene exported
@@ -4554,7 +4554,7 @@ def legacy_set_stop_event(element: defusedxml.ElementTree.Element, *, enabled: b
     separate setting this box does not own.
 
     A filter that was ALREADY EMPTY is left exactly where it is.  Tasker writes those -- 6
-    of the 87 in the sample data, and $Simon.xml has one on a Scene whose Stop Event is off
+    of the 87 in the sample data, and one sample backup has one on a Scene whose Stop Event is off
     -- so turning off something already off would otherwise delete an element the user never
     touched, which is the one thing a no-op must not do.
     """

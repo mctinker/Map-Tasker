@@ -30,7 +30,7 @@ import xml.etree.ElementTree as ET
 import pytest
 from urllib.parse import parse_qs, unquote, urlparse
 
-from maptasker.src import appinv, deviceinv, taskedit, taskerd
+from maptasker.src import appinv, deviceinv, maputil2, taskedit, taskerd
 from maptasker.src.primitem import PrimeItems
 
 LAUNCH_APP = "20t"  # App=arg0
@@ -146,7 +146,7 @@ def _isolated_inventory(monkeypatch: pytest.MonkeyPatch, tmp_path: object) -> No
     that fetches would otherwise leave its applications sitting in the next test's picker.
     """
     monkeypatch.setattr(appinv, "cache_path", lambda: str(tmp_path / "MapTasker_Apps.json"))
-    monkeypatch.setattr(deviceinv, "_auth_keys", {})
+    monkeypatch.setattr(maputil2, "_auth_keys", {})
     monkeypatch.setattr(appinv, "_device_apps", [])
     monkeypatch.setattr(appinv, "_cache_loaded", False)
     monkeypatch.setattr(appinv, "_harvested_from", appinv._NOT_HARVESTED)  # noqa: SLF001
@@ -497,7 +497,17 @@ class _FakeResponse:
         return json.loads(self.content)
 
 
-class _FakeRequests:
+class _SessionOfItself:
+    """What requests.Session() hands a flow's exchange (maputil2.DeviceClient): the same fake device."""
+
+    def Session(self) -> "_SessionOfItself":  # noqa: N802 -- stands in for requests.Session
+        return self
+
+    def close(self) -> None:
+        """No connection to close."""
+
+
+class _FakeRequests(_SessionOfItself):
     """Stands in for maputil2's `requests`, recording every call and answering by URL."""
 
     def __init__(self, payload: str = GOOD_PAYLOAD, task_installed: bool = False) -> None:
@@ -543,7 +553,7 @@ def device(monkeypatch: pytest.MonkeyPatch) -> _FakeRequests:
 
     fake = _FakeRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
     _load(_FIXTURE_XML)
     return fake
 
@@ -796,7 +806,7 @@ def no_apps_device(monkeypatch: pytest.MonkeyPatch) -> _FakeRequests:
 
     fake = _FakeRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
     _load(_NO_APPS_XML)
     return fake
 
@@ -1084,7 +1094,7 @@ MAPTASKER-END
 """
 
 
-class _FakeFileListRequests:
+class _FakeFileListRequests(_SessionOfItself):
     """maputil2's `requests`, answering for a device that has no listing Task on it yet."""
 
     def __init__(self, payload: str | None = GOOD_FILE_PAYLOAD, task_installed: bool = False) -> None:
@@ -1125,8 +1135,8 @@ def file_list_device(monkeypatch: pytest.MonkeyPatch) -> _FakeFileListRequests:
 
     fake = _FakeFileListRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
     return fake
 
@@ -1214,8 +1224,8 @@ def test_a_device_that_never_writes_the_file_is_an_error(monkeypatch: pytest.Mon
 
     fake = _FakeFileListRequests(payload=None)
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = deviceinv.fetch_file_list_from_device("192.168.0.210", "1821")
@@ -1371,7 +1381,7 @@ MAPTASKER-END
 _STAGED_PROFILE_XML = b'<TaskerData sr="" dvi="1" tv="6.3.13"><Profile sr="prof1"><nme>Watched</nme></Profile></TaskerData>'
 
 
-class _FakeImportRequests:
+class _FakeImportRequests(_SessionOfItself):
     """maputil2's `requests`, for a device with neither the helper Task nor the Profile."""
 
     def __init__(
@@ -1461,8 +1471,8 @@ def import_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
 
     fake = _FakeImportRequests()
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
     return fake
 
@@ -1559,8 +1569,8 @@ def test_a_staged_profile_still_settling_is_read_back_again(monkeypatch: pytest.
     fake = _SlowToSettle()
     monkeypatch.setattr(maputil2, "requests", fake)
     monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)  # the read-back settle
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = _import(fake)
@@ -1588,8 +1598,8 @@ def test_a_staged_profile_that_never_lands_still_stops_the_import(monkeypatch: p
     fake = _NeverLands()
     monkeypatch.setattr(maputil2, "requests", fake)
     monkeypatch.setattr(maputil2.time, "sleep", lambda _seconds: None)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = _import(fake)
@@ -1697,8 +1707,8 @@ def test_a_task_that_writes_nothing_reads_as_a_refused_import(monkeypatch: pytes
 
     fake = _FakeImportRequests(payload=None)
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = _import(fake)
@@ -1715,8 +1725,8 @@ def test_an_import_tasker_does_not_confirm_is_not_a_success(monkeypatch: pytest.
 
     fake = _FakeImportRequests(profiles_after=set())
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = _import(fake)
@@ -1797,8 +1807,8 @@ def open_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)
     fake.result_filename = "maptasker_open_profile.txt"
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
     return fake
 
@@ -1920,8 +1930,8 @@ def test_an_unconfirmed_offer_is_not_reported_as_a_save(monkeypatch: pytest.Monk
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD, profiles_after=set())
     fake.result_filename = "maptasker_open_profile.txt"
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = _open(fake, wait_for_confirmation=False)
@@ -1938,8 +1948,8 @@ def test_a_confirmation_that_never_comes_is_not_a_success(monkeypatch: pytest.Mo
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD, profiles_after=set())
     fake.result_filename = "maptasker_open_profile.txt"
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = _open(fake)
@@ -2008,7 +2018,7 @@ def test_import_is_confirmable_keeps_could_not_ask_apart_from_absent(
     open_device.installed_profiles = {"Watched"}
     assert deviceinv.import_is_confirmable("192.168.0.210", "1821", ["Watched"]) is False
 
-    monkeypatch.setattr(deviceinv, "_ensure_auth_key", lambda _ip, _port: (8, "unreachable"))
+    monkeypatch.setattr(deviceinv, "auth_key_for", lambda _ip, _port: (8, "unreachable"))
     assert deviceinv.import_is_confirmable("192.168.0.210", "1821", ["Watched"]) is None
 
 
@@ -2042,8 +2052,8 @@ def intent_device(monkeypatch: pytest.MonkeyPatch) -> _FakeImportRequests:
     fake = _FakeImportRequests(payload=GOOD_INTENT_PAYLOAD)
     fake.result_filename = "maptasker_send_profile.txt"
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
     return fake
 
@@ -2091,8 +2101,8 @@ def test_a_route_reads_only_its_own_answer_file(monkeypatch: pytest.MonkeyPatch)
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)  # the wrong route's payload
     fake.result_filename = "maptasker_send_profile.txt"
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = _open(fake, route=deviceinv.SEND_INTENT_ROUTE)
@@ -2111,8 +2121,8 @@ def test_the_intent_route_names_the_failure_only_it_has(monkeypatch: pytest.Monk
     fake = _FakeImportRequests(payload=None)
     fake.result_filename = "maptasker_send_profile.txt"
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = _open(fake, route=deviceinv.SEND_INTENT_ROUTE)
@@ -2157,7 +2167,7 @@ def test_the_endpoint_reaches_the_request(monkeypatch: pytest.MonkeyPatch) -> No
 
     fake = _Recorder()
     monkeypatch.setattr(maputil2, "requests", fake)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     deviceinv.import_is_confirmable("192.168.0.210", "1821", ["Dialog"], deviceinv.SCENES_ENDPOINT)
@@ -2288,8 +2298,8 @@ def test_opening_tasker_runs_its_own_task_and_reads_its_own_answer(monkeypatch: 
     fake = _FakeImportRequests(payload="MAPTASKER-LAUNCH-TASKER 1\nOFFERED\n/Tasker/scenes\nMAPTASKER-END\n")
     fake.result_filename = "maptasker_launch_tasker.txt"
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821")
@@ -2307,8 +2317,8 @@ def test_another_routes_answer_is_not_read_as_a_launch(monkeypatch: pytest.Monke
     fake = _FakeImportRequests(payload=GOOD_OPEN_PAYLOAD)  # the wrong route's answer
     fake.result_filename = "maptasker_launch_tasker.txt"
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
 
     return_code, message = deviceinv.open_tasker_on_device("192.168.0.210", "1821")
@@ -2343,7 +2353,7 @@ def test_a_scene_has_a_route_again_and_it_is_the_open_with_one() -> None:
 # ##################################################################################
 
 
-class _FakeUploadRequests:
+class _FakeUploadRequests(_SessionOfItself):
     """A device that accepts /upload and serves back whatever it was given.
 
     served_back is what a read-back gets, so a test can hand it something OTHER than what
@@ -2471,7 +2481,7 @@ def test_an_import_leaves_the_task_in_the_tasks_folder(monkeypatch: pytest.Monke
     """The copy is not a side effect to be tidied away later -- it is where the import reads
     from, and afterwards it is the record of exactly what was imported."""
     fake = _FakeImportViaFileRequests()
-    return_code, result, _key = _import_task(monkeypatch, fake)
+    return_code, result = _import_task(monkeypatch, fake)
 
     assert return_code == 0, result
     assert fake.location == "Tasker/tasks"
@@ -2490,7 +2500,7 @@ def test_the_import_posts_the_devices_bytes_and_not_a_second_render(monkeypatch:
     # failed write -- which is the other half of the contract, tested just below.  Here the
     # verify is neutralised so the import step itself can be observed.
     monkeypatch.setattr(taskedit, "render_standalone_task_xml", lambda _task: from_device.decode())
-    return_code, result, _key = _import_task(monkeypatch, fake)
+    return_code, result = _import_task(monkeypatch, fake)
 
     assert return_code == 0, result
     assert fake.imported == [from_device]
@@ -2501,7 +2511,7 @@ def test_a_file_that_did_not_land_is_never_imported(monkeypatch: pytest.MonkeyPa
     the in-memory render at that point would import something other than what the copy on
     the device says was imported.  So the import does not happen at all."""
     fake = _FakeImportViaFileRequests(served_back=b"<TaskerData>not what was sent</TaskerData>")
-    return_code, result, _key = _import_task(monkeypatch, fake)
+    return_code, result = _import_task(monkeypatch, fake)
 
     assert return_code != 0
     assert "could not confirm it landed correctly" in result
@@ -2515,7 +2525,7 @@ def test_a_helper_task_does_not_leave_a_file_behind(monkeypatch: pytest.MonkeyPa
     browses for their own Tasks; 'MapTasker Send Profile v1.tsk.xml' in it is litter they
     never asked for and would have to recognize before deleting."""
     fake = _FakeImportViaFileRequests()
-    return_code, result, _key = _import_task(monkeypatch, fake, via_file=False)
+    return_code, result = _import_task(monkeypatch, fake, via_file=False)
 
     assert return_code == 0, result
     assert fake.imported, "nothing was imported"
@@ -2571,7 +2581,7 @@ def test_a_write_still_settling_is_waited_for_rather_than_failed(monkeypatch: py
 
     fake.get = slow_to_appear
     edited_task = taskedit.load_task_for_edit("Opener")
-    return_code, result, _key = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener")
+    return_code, result = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener")
 
     assert return_code == 0, result
     assert misses[0] == 2  # it really did have to wait
@@ -2592,7 +2602,7 @@ def test_a_write_that_never_appears_is_still_a_failure(monkeypatch: pytest.Monke
     )
 
     edited_task = taskedit.load_task_for_edit("Opener")
-    return_code, result, _key = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener")
+    return_code, result = taskedit.save_task_to_android(edited_task, "192.168.0.210", "1821", "Opener")
 
     assert return_code != 0
     assert "could not confirm it landed correctly" in result
@@ -2664,8 +2674,8 @@ def test_the_staged_file_carries_the_objects_own_name() -> None:
     assert read_path == profedit.android_profile_path("Morning") == "/Tasker/profiles/Morning.prf.xml"
     assert task_path == "/storage/emulated/0/Tasker/profiles/Morning.prf.xml"
 
-    _filename, read_path, _task_path = deviceinv.OPEN_PROJECT_ROUTE.staged_file_paths("Save Parking Spot")
-    assert read_path == projedit.android_project_path("Save Parking Spot") == "/Tasker/projects/Save Parking Spot.prj.xml"
+    _filename, read_path, _task_path = deviceinv.OPEN_PROJECT_ROUTE.staged_file_paths("Garden Watering")
+    assert read_path == projedit.android_project_path("Garden Watering") == "/Tasker/projects/Garden Watering.prj.xml"
 
 
 def test_a_name_that_is_no_filename_still_stages_somewhere() -> None:
@@ -2882,8 +2892,8 @@ def test_the_whole_task_list_is_asked_for_without_a_name_filter(monkeypatch: pyt
 
     fake = _FakeTaskListRequests(["MapTasker Open Profile v1", "MapTasker Open Profile v4", "Morning Alarm"])
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
 
     return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("192.168.0.210", "1821")
 
@@ -2908,8 +2918,8 @@ def test_a_device_that_cannot_be_asked_reports_rather_than_guesses(monkeypatch: 
 
     fake = _NoTaskList([])
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
 
     return_code, message, stale, current = deviceinv.stale_helper_tasks_on_device("192.168.0.210", "1821")
 
@@ -3017,7 +3027,7 @@ def test_the_object_list_helper_is_current_and_the_project_helper_it_replaced_is
     assert stale == ["MapTasker List Projects v2"]
 
 
-class _FakeTasker:
+class _FakeTasker(_SessionOfItself):
     """maputil2's `requests` for a device with some objects on it and no helper Tasks yet."""
 
     def __init__(self) -> None:
@@ -3075,8 +3085,8 @@ def tasker_device(monkeypatch: pytest.MonkeyPatch) -> _FakeTasker:
 
     fake = _FakeTasker()
     monkeypatch.setattr(maputil2, "requests", fake)
-    monkeypatch.setattr(deviceinv.time, "sleep", lambda _seconds: None)
-    deviceinv._auth_keys.clear()  # noqa: SLF001
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
     _load(_FIXTURE_XML)
     return fake
 

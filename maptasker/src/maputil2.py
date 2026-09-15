@@ -8,6 +8,7 @@ import error.
 
 import asyncio
 import copy
+import inspect
 import os
 import re
 import sys
@@ -15,10 +16,12 @@ import threading
 import time
 import traceback
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
-from collections.abc import Generator
+from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
+from contextvars import ContextVar, Token
 from datetime import datetime
-from functools import lru_cache
+from functools import lru_cache, wraps
+from typing import Self, TypeVar
 
 import requests
 from requests.exceptions import ConnectionError, InvalidSchema, RequestException, Timeout
@@ -222,6 +225,167 @@ def _warn_if_on_event_loop(url: str) -> None:
     )
 
 
+# How long each kind of request to the Android device waits for an answer, in seconds.
+_READ_TIMEOUT_SECONDS = 5
+_AUTH_TIMEOUT_SECONDS = 8
+_WRITE_TIMEOUT_SECONDS = 15
+_DELETE_TIMEOUT_SECONDS = 10
+
+
+def _device_url(ip_address: str, ip_port: str, path: str) -> str:
+    """http://<address>:<port>/<path> on the device -- the scheme added unless the address already has it."""
+    http = "http://" if "http://" not in ip_address else ""
+    return f"{http}{ip_address}:{ip_port}/{path}"
+
+
+def _auth_headers(auth_key: str = "", content_type: str = "") -> dict[str, str] | None:
+    """The headers a device request carries, or None for none.
+
+    The API key from get_android_auth_key goes as the raw 'Authorization' value, with no
+    "Bearer " prefix; a Content-Type only when the endpoint cares what it is sent.
+    """
+    headers = {}
+    if auth_key:
+        headers["Authorization"] = auth_key
+    if content_type:
+        headers["Content-Type"] = content_type
+    return headers or None
+
+
+class DeviceClient:
+    """One exchange with one Android device, over one connection.
+
+    Entered around a whole exchange -- a fetch, a save, an import -- so that every request inside
+    it, however deep in the call it is made, goes through one requests.Session: one connection to
+    the device, kept open and reused, instead of a new one for each of the many requests such an
+    exchange makes (a poll alone can run to dozens).  Requests made outside any exchange, or to a
+    different device, are made exactly as before, a connection each.
+
+    The session lives only from entering to leaving and is closed on the way out, error or not, so
+    nothing is left open between exchanges for a device to drop.  Entering again for the same device
+    inside an exchange changes nothing: the outer connection carries on.  An exchange is seen only
+    by the thread running it, so each worker run.io_bound hands one to has its own.
+    """
+
+    def __init__(self, ip_address: str, ip_port: str) -> None:
+        """The device at ip_address:ip_port, with no connection to it until the exchange is entered."""
+        self.base_url = _device_url(ip_address.strip(), ip_port.strip(), "")
+        self.session: requests.Session | None = None
+        self._token: Token | None = None
+
+    def __enter__(self) -> Self:
+        """Open the connection and make this the running exchange -- or carry on the outer one for this device."""
+        outer = _active_client.get()
+        if outer is not None and outer.base_url == self.base_url:
+            return outer
+        self.session = requests.Session()
+        self._token = _active_client.set(self)
+        return self
+
+    def __exit__(self, *_exc_info: object) -> None:
+        """Close the connection and end the exchange; an exchange that only carried on the outer one leaves it be."""
+        if self._token is None:
+            return
+        _active_client.reset(self._token)
+        self._token = None
+        self.session.close()
+        self.session = None
+
+
+# The exchange with a device running in this context, if any -- see DeviceClient.  A context
+# variable rather than a module global, so that one thread's exchange is never another's.
+_active_client: ContextVar[DeviceClient | None] = ContextVar("device_client", default=None)
+
+_Result = TypeVar("_Result")
+
+
+def over_one_connection(function: Callable[..., _Result]) -> Callable[..., _Result]:
+    """Run each call of `function` as one exchange with the device it names (see DeviceClient).
+
+    For the functions that make many requests to one device -- polls, uploads read back, imports.
+    The device comes from the call's own ip_address and ip_port arguments, however they are passed.
+    """
+    signature = inspect.signature(function)
+    if not {"ip_address", "ip_port"} <= set(signature.parameters):
+        message = f"{function.__qualname__} names no device: it takes no ip_address and ip_port"
+        raise TypeError(message)
+
+    @wraps(function)
+    def exchange(*args: object, **kwargs: object) -> _Result:
+        arguments = signature.bind(*args, **kwargs).arguments
+        with DeviceClient(arguments["ip_address"], arguments["ip_port"]):
+            return function(*args, **kwargs)
+
+    return exchange
+
+
+def _device_call(
+    method: str,
+    url: str,
+    *,
+    unreachable: str = "Unable to reach Android device.",
+    timed_out: str = "",
+    **request_arguments: object,
+) -> tuple[requests.Response | None, str, bool]:
+    """Make one request to the Android device: (response, "", True) or (None, error_message, retryable).
+
+    Every request to the device goes through here, so every one is logged when it is made on the
+    GUI's event loop, kept from writing to the terminal, and fails in the same words.  What a
+    response MEANS -- which status is success and which is 'not found' -- differs by endpoint, and
+    stays with the caller.
+
+    `requests` is this module's global, looked up as the call is made, which is what lets a test
+    stand a fake device in for it; inside a DeviceClient's exchange with this device, its session is used
+    instead.  `unreachable` and `timed_out` finish the connection-error and
+    timeout messages with what the caller was doing.  `retryable` is False only for a malformed
+    URL, which asking again will never fix.
+
+    Callers test `response is None`, never the response's truth: requests.Response is falsy for any
+    status of 400 or more, so truth-testing it would send every HTTP error down the failure branch.
+    """
+    _warn_if_on_event_loop(url)
+    # Over the running exchange's connection when the request is to its device (see DeviceClient).
+    client = _active_client.get()
+    sender = client.session if client is not None and url.startswith(client.base_url) else requests
+    with suppress_stdout():  # Suppress any errors (system IMK)
+        try:
+            response = getattr(sender, method)(url, **request_arguments)
+        except InvalidSchema:
+            error_message, retryable = f"Request failed for url: {url} .  Invalid url!", False
+        except ConnectionError:
+            error_message, retryable = f"Request failed for url: {url} .  Connection error! {unreachable}", True
+        except Timeout:
+            error_message, retryable = f"Request failed for url: {url} .  Timeout error.{timed_out}", True
+        except RequestException as e:
+            # The base of everything requests raises, the three above included.
+            error_message, retryable = f"Request failed for url: {url}, error: {e} .", True
+        else:
+            if response is None:
+                return None, f"Request failed for url: {url} ...no response from the Android device.", True
+            return response, "", True
+
+    logger.debug(error_message)
+    return None, error_message, retryable
+
+
+def spaced_attempts(attempts: int, interval_seconds: float) -> Iterator[int]:
+    """Attempt numbers 1 to `attempts`, with `interval_seconds` of waiting between one and the next.
+
+    The shape of every retry and poll against the device: ask, and when the answer is not yet the
+    one wanted, wait and ask again.  The loop body decides what counts as done and what to report
+    when it never is; this only counts and waits.  The wait comes as the next attempt is asked for,
+    so there is none after the last attempt -- and a loop that returns or breaks, on an answer that
+    is final either way, waits no longer either.
+
+    Blocking, like the requests it paces: a caller on the GUI's event loop hands the whole loop to
+    run.io_bound.
+    """
+    for attempt in range(1, attempts + 1):
+        if attempt > 1:
+            time.sleep(interval_seconds)
+        yield attempt
+
+
 # Issue HTTP Request to get something from the Android device.
 def http_request(
     ip_address: str,
@@ -243,49 +407,19 @@ def http_request(
         :return: return code, response: eitherr text string with error message or the
         contents of the backup file
     """
-    # Create the URL to request the backup xml file from the Android device running the
-    # Tasker server.
     # Something like: 192.168.0.210:1821/file/path/to/backup.xml?download=1
-    http = "http://" if "http://" not in ip_address else ""
-    url = f"{http}{ip_address}:{ip_port}/{request_name}{file_location}{request_parm}"
-    headers = {"Authorization": auth_key} if auth_key else None
-
-    # Make the request.
-    error_message = ""
-    response = None
-
-    _warn_if_on_event_loop(url)
-    with suppress_stdout():  # Suppress any errors (system IMK)
-        try:
-            response = requests.get(url, headers=headers, timeout=5)
-        except InvalidSchema:
-            error_message = f"Request failed for url: {url} .  Invalid url!"
-        except ConnectionError:
-            error_message = f"Request failed for url: {url} .  Connection error! Unable to get XML from Android device."
-        except Timeout:
-            error_message = (
-                f"Request failed for url: {url} .  Timeout error.  Check that the Tasker "
-                "'HTTP Server Example' project is installed and running on the Android device."
-            )
-        except RequestException as e:
-            # RequestException is the base of everything requests raises -- including the
-            # three caught by name above -- so this is the whole of "the request failed",
-            # and no longer the whole of "anything at all went wrong in this block".
-            error_message = f"Request failed for url: {url}, error: {e} ."
-
-    # If we have an error message, return as error.
-    if error_message:
-        logger.debug(error_message)
+    url = _device_url(ip_address, ip_port, f"{request_name}{file_location}{request_parm}")
+    response, error_message, _ = _device_call(
+        "get",
+        url,
+        headers=_auth_headers(auth_key),
+        timeout=_READ_TIMEOUT_SECONDS,
+        unreachable="Unable to get XML from Android device.",
+        timed_out="  Check that the Tasker 'HTTP Server Example' project is installed and running on the Android device.",
+    )
+    if response is None:
         return 8, error_message
 
-    # Test "response is not None", never "if response": requests.Response.__bool__ returns
-    # .ok, so a Response carrying any status >= 400 is falsy.  Truth-testing it would make
-    # the 404 branch below unreachable and would send every error status to the generic
-    # message at the bottom.
-    if response is None:
-        return 8, f"Request failed for url: {url} ...no response from the Android device."
-
-    # Check the response status code.  200 is good!
     if response.status_code == 200:
         # Return the contents of the file.
         return 0, response.content
@@ -293,10 +427,7 @@ def http_request(
     if response.status_code == 404:
         return 6, "File " + file_location + " not found."
 
-    return (
-        8,
-        f"Request failed for url: {url} ...with status code {response.status_code}",
-    )
+    return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
 
 
 # How long to keep asking for a file /upload has just written, before calling the write
@@ -335,7 +466,7 @@ def read_android_file(ip_address: str, ip_port: str, device_path: str) -> tuple[
     twice means two round trips, two chances to disagree about what was there, and -- on the
     Tasker HTTP Server Example -- two 'File doesn't exist' flashes on the user's phone for a
     single save.  That server's /file handler runs 'Test File' on the path and flashes on
-    every miss (see File_System_Host.prf.xml), so an ordinary first-time save of a new object
+    every miss (see that server's file-system Profile), so an ordinary first-time save of a new object
     put two of them on screen before anything was written.
     """
     return_code, response = http_request(ip_address, ip_port, device_path, "file", "")
@@ -367,14 +498,12 @@ def read_back_uploaded_file(
     must not report a save it cannot show landed.
     """
     last = f"Uploaded to {device_path}, but could not confirm it landed correctly."
-    for attempt in range(attempts):
+    for _ in spaced_attempts(attempts, _UPLOAD_SETTLE_SECONDS):
         return_code, response = http_request(ip_address, ip_port, device_path, "file", "")
         if return_code == 0 and response == expected:
             return 0, response
         if return_code not in (0, 6):  # not 'a hit' and not 'not there yet' -- a real error
             last = str(response)
-        if attempt < attempts - 1:
-            time.sleep(_UPLOAD_SETTLE_SECONDS)
     return 8, last
 
 
@@ -398,36 +527,9 @@ def _request_android_auth_key(url: str) -> tuple[int, str, bool]:
     AUTH_KEY_MAX_ATTEMPTS comment above.  A malformed URL or a well-formed response that
     simply has no key in it will never change, so those are reported immediately.
     """
-    error_message = ""
-    retryable = True
-    response = None
-
-    _warn_if_on_event_loop(url)
-    with suppress_stdout():
-        try:
-            response = requests.get(url, timeout=8)
-        except InvalidSchema:
-            error_message = f"Request failed for url: {url} .  Invalid url!"
-            retryable = False  # a bad URL is a bad URL, no matter how often we ask
-        except ConnectionError:
-            error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
-        except Timeout:
-            error_message = f"Request failed for url: {url} .  Timeout error."
-        except RequestException as e:
-            # RequestException is the base of everything requests raises -- including the
-            # three caught by name above -- so this is the whole of "the request failed",
-            # and no longer the whole of "anything at all went wrong in this block".
-            error_message = f"Request failed for url: {url}, error: {e} ."
-
-    if error_message:
-        logger.debug(error_message)
-        return 8, error_message, retryable
-
-    # "response is not None", never "if response" -- see the note in http_request(): a
-    # Response with any status >= 400 is falsy, so truth-testing it reported every real
-    # HTTP error as the useless "status code no response".
+    response, error_message, retryable = _device_call("get", url, timeout=_AUTH_TIMEOUT_SECONDS)
     if response is None:
-        return 8, f"Request failed for url: {url} ...no response from the Android device.", True
+        return 8, error_message, retryable
 
     # Parse the body before checking the status.  Tasker answers an unauthorized device
     # with 403 *and* a perfectly clear {"authorized": false} payload, so reading the body
@@ -478,11 +580,10 @@ def get_android_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
         :param ip_port: port the Tasker HTTP API is listening on
         :return: return code (0 on success), and either the API key or an error message
     """
-    http = "http://" if "http://" not in ip_address else ""
-    url = f"{http}{ip_address}:{ip_port}/api/auth"
+    url = _device_url(ip_address, ip_port, "api/auth")
 
     return_code, result, retryable = 8, "", False
-    for attempt in range(1, AUTH_KEY_MAX_ATTEMPTS + 1):
+    for attempt in spaced_attempts(AUTH_KEY_MAX_ATTEMPTS, AUTH_KEY_RETRY_SECONDS):
         return_code, result, retryable = _request_android_auth_key(url)
         if return_code == 0:
             if attempt > 1:
@@ -492,9 +593,74 @@ def get_android_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
             break
         if attempt < AUTH_KEY_MAX_ATTEMPTS:
             logger.debug(f"Android auth attempt {attempt} of {AUTH_KEY_MAX_ATTEMPTS} failed: {result}  Retrying.")
-            time.sleep(AUTH_KEY_RETRY_SECONDS)
 
     return return_code, result
+
+
+# The API key each Android device has handed over this session, by address.  Asking a device for
+# a key puts an authorization prompt on its screen, so each device is asked once and its key serves
+# every save, fetch and import after that, whichever part of MapTasker is doing it.  (Save To
+# Android used to keep a key of its own apart from the fetches and imports, so a device could be
+# asked again for a key it had already given.)
+_auth_keys: dict[str, str] = {}
+
+
+def device_address(ip_address: str, ip_port: str) -> str:
+    """How one Android device is named: "address:port", in the key cache and in messages."""
+    return f"{ip_address.strip()}:{ip_port.strip()}"
+
+
+def held_auth_key(ip_address: str, ip_port: str) -> str:
+    """The API key held for this device this session, or "" -- never asks the device, so never blocks."""
+    return _auth_keys.get(device_address(ip_address, ip_port), "")
+
+
+def refresh_auth_key(ip_address: str, ip_port: str) -> tuple[int, str]:
+    """A fresh API key from the device, held in place of any it gave before.
+
+    (0, key) or (return_code, error_message).  For a device that has rejected the key held for
+    it; a failure leaves that key where it was, since nothing better is known.
+    """
+    return_code, auth_key = get_android_auth_key(ip_address, ip_port)
+    if return_code == 0:
+        _auth_keys[device_address(ip_address, ip_port)] = auth_key
+    return return_code, auth_key
+
+
+def auth_key_for(ip_address: str, ip_port: str) -> tuple[int, str]:
+    """This device's API key: the one held for it, or -- only when there is none -- a fresh one.
+
+    (0, key) or (return_code, error_message).  Asking prompts on the device, which is why a held
+    key is always preferred.
+    """
+    if auth_key := held_auth_key(ip_address, ip_port):
+        return 0, auth_key
+    return refresh_auth_key(ip_address, ip_port)
+
+
+def request_with_auth_key(
+    ip_address: str,
+    ip_port: str,
+    request: Callable[[str], tuple[int, object]],
+) -> tuple[int, object]:
+    """An authorized request with this device's key, made once more with a fresh key if the device rejects it.
+
+    `request` is called with the key and answers (return_code, response) the way
+    http_post_request does, where 9 is the device rejecting the key.  One refresh, not a loop:
+    each refresh is another prompt on the device, and a key refused twice running is reported
+    rather than chased.  Returns what the last attempt returned, or (return_code, error_message)
+    when no key could be had.
+    """
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
+    if return_code != 0:
+        return return_code, auth_key
+    return_code, response = request(auth_key)
+    if return_code != 9:
+        return return_code, response
+    return_code, auth_key = refresh_auth_key(ip_address, ip_port)
+    if return_code != 0:
+        return return_code, auth_key
+    return request(auth_key)
 
 
 # Issue HTTP Request to post/save something to the Android device.
@@ -527,50 +693,22 @@ def http_post_request(
         :return: return code, response: either a text string with an error message or
         the contents of the response
     """
-    # Build the URL the same way http_request() does.
-    http = "http://" if "http://" not in ip_address else ""
-    url = f"{http}{ip_address}:{ip_port}/{request_name}{file_location}{request_parm}"
-    headers = {}
-    if auth_key:
-        headers["Authorization"] = auth_key
-    if content_type:
-        headers["Content-Type"] = content_type
-    headers = headers or None
-
-    # Make the request.
-    error_message = ""
-    response = None
-
-    _warn_if_on_event_loop(url)
-    with suppress_stdout():  # Suppress any errors (system IMK)
-        try:
-            response = requests.post(url, data=file_content, headers=headers, timeout=15)
-        except InvalidSchema:
-            error_message = f"Request failed for url: {url} .  Invalid url!"
-        except ConnectionError:
-            error_message = f"Request failed for url: {url} .  Connection error! Unable to post XML to Android device."
-        except Timeout:
-            error_message = f"Request failed for url: {url} .  Timeout error.  Perhaps Tasker server is not active or the Project 'HTTP Server Example' has not been imported into Tasker on the Android device!"
-        except RequestException as e:
-            # RequestException is the base of everything requests raises -- including the
-            # three caught by name above -- so this is the whole of "the request failed",
-            # and no longer the whole of "anything at all went wrong in this block".
-            error_message = f"Request failed for url: {url}, error: {e} ."
-
-    # If we have an error message, return as error.
-    if error_message:
-        logger.debug(error_message)
+    url = _device_url(ip_address, ip_port, f"{request_name}{file_location}{request_parm}")
+    response, error_message, _ = _device_call(
+        "post",
+        url,
+        data=file_content,
+        headers=_auth_headers(auth_key, content_type),
+        timeout=_WRITE_TIMEOUT_SECONDS,
+        unreachable="Unable to post XML to Android device.",
+        timed_out=(
+            "  Perhaps Tasker server is not active or the Project 'HTTP Server Example' has not been imported"
+            " into Tasker on the Android device!"
+        ),
+    )
+    if response is None:
         return 8, error_message
 
-    # Test "response is not None", never "if response": requests.Response.__bool__ returns
-    # .ok, so a Response carrying any status >= 400 is falsy.  Truth-testing it made both
-    # branches below unreachable -- 401 never produced return code 9, which silently
-    # disabled the retry-with-a-fresh-key logic in taskedit.save_task_to_android and
-    # profedit.save_profile_to_android that depends on seeing that 9.
-    if response is None:
-        return 8, f"Request failed for url: {url} ...no response from the Android device."
-
-    # Check the response status code.  200 is good!
     if response.status_code == 200:
         return 0, response.content
 
@@ -583,10 +721,7 @@ def http_post_request(
     if response.status_code == 404:
         return 6, "Directory " + file_location + " not found."
 
-    return (
-        8,
-        f"Request failed for url: {url} ...with status code {response.status_code}",
-    )
+    return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
 
 
 # Issue HTTP Request to write a raw file onto the Android device's storage (NOT into
@@ -620,39 +755,16 @@ def http_upload_request(
         :param file_content: raw bytes to write
         :return: return code (0 on success), and "" or an error message
     """
-    http = "http://" if "http://" not in ip_address else ""
-    url = f"{http}{ip_address}:{ip_port}/upload"
-
-    error_message = ""
-    response = None
-
-    _warn_if_on_event_loop(url)
-    with suppress_stdout():  # Suppress any errors (system IMK)
-        try:
-            response = requests.post(
-                url,
-                params={"location": location},
-                files={filename: (filename, file_content, "application/octet-stream")},
-                timeout=15,
-            )
-        except InvalidSchema:
-            error_message = f"Request failed for url: {url} .  Invalid url!"
-        except ConnectionError:
-            error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
-        except Timeout:
-            error_message = f"Request failed for url: {url} .  Timeout error."
-        except RequestException as e:
-            # RequestException is the base of everything requests raises -- including the
-            # three caught by name above -- so this is the whole of "the request failed",
-            # and no longer the whole of "anything at all went wrong in this block".
-            error_message = f"Request failed for url: {url}, error: {e} ."
-
-    if error_message:
-        logger.debug(error_message)
-        return 8, error_message
-
+    url = _device_url(ip_address, ip_port, "upload")
+    response, error_message, _ = _device_call(
+        "post",
+        url,
+        params={"location": location},
+        files={filename: (filename, file_content, "application/octet-stream")},
+        timeout=_WRITE_TIMEOUT_SECONDS,
+    )
     if response is None:
-        return 8, f"Request failed for url: {url} ...no response from the Android device."
+        return 8, error_message
 
     if response.status_code != 200:
         return 8, f"Request failed for url: {url} ...with status code {response.status_code}"
@@ -684,39 +796,17 @@ def http_delete_request(
         'Authorization' header value (no "Bearer " prefix)
         :return: return code (0 on success or 'already absent'), and "" or an error message
     """
-    http = "http://" if "http://" not in ip_address else ""
-    url = f"{http}{ip_address}:{ip_port}/api/file{file_location}"
-    headers = {"Authorization": auth_key} if auth_key else None
-
-    error_message = ""
-    response = None
-
-    _warn_if_on_event_loop(url)
-    with suppress_stdout():  # Suppress any errors (system IMK)
-        try:
-            response = requests.delete(url, headers=headers, timeout=10)
-        except InvalidSchema:
-            error_message = f"Request failed for url: {url} .  Invalid url!"
-        except ConnectionError:
-            error_message = f"Request failed for url: {url} .  Connection error! Unable to reach Android device."
-        except Timeout:
-            error_message = f"Request failed for url: {url} .  Timeout error."
-        except RequestException as e:
-            # RequestException is the base of everything requests raises -- including the
-            # three caught by name above -- so this is the whole of "the request failed",
-            # and no longer the whole of "anything at all went wrong in this block".
-            error_message = f"Request failed for url: {url}, error: {e} ."
-
-    if error_message:
-        logger.debug(error_message)
+    url = _device_url(ip_address, ip_port, f"api/file{file_location}")
+    response, error_message, _ = _device_call(
+        "delete",
+        url,
+        headers=_auth_headers(auth_key),
+        timeout=_DELETE_TIMEOUT_SECONDS,
+    )
+    if response is None:
         return 8, error_message
 
-    # "response is not None", never "if response" -- see http_request's own note: a
-    # Response carrying any status >= 400 is falsy, which would send the 404 below (a
-    # success here) to the error return.
-    if response is None:
-        return 8, f"Request failed for url: {url} ...no response from the Android device."
-
+    # A 404 is success here: the goal is 'nothing at that path', and nothing is there.
     if response.status_code in (200, 404):
         return 0, ""
 

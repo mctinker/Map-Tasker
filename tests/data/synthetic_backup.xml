@@ -1,0 +1,329 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<!--
+	Synthetic Tasker backup for MapTasker's tests.
+
+	Hand-built rather than exported from any device, and holding nobody's configuration: every
+	Project, Profile, Task and Scene in it is invented.  Its actions and action bar items were made
+	by MapTasker's own builders (taskedit.build_synthesized_args, sceneedit.legacy_add_action_item),
+	the same code 'Add an action' uses, so they carry the arguments Tasker writes.
+
+	What the tests need from it: a Scene whose Key event fires a Task (Reminder), an Activity with an
+	icon and Tab Labels binding Home Tap and Tab Tap (Reminder List), a Scene with action bar items
+	(Chores), two Projects, a Task in neither, an unnamed Task and a Profile.
+-->
+<TaskerData sr="" dvi="1" tv="6.3.13">
+	<Profile sr="prof10" ve="2">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<flags>8</flags>
+		<id>10</id>
+		<mid0>101</mid0>
+		<nme>Morning Reminder</nme>
+		<Time sr="con0">
+			<fh>8</fh>
+			<fm>0</fm>
+			<th>9</th>
+			<tm>0</tm>
+		</Time>
+	</Profile>
+	<Project sr="proj0" ve="2">
+		<cdate>1735689600000</cdate>
+		<mdate>1735689600000</mdate>
+		<name>Reminders</name>
+		<pids>10</pids>
+		<scenes>Reminder,Reminder List</scenes>
+		<tids>101,102,103</tids>
+	</Project>
+	<Project sr="proj1" ve="2">
+		<cdate>1735689600000</cdate>
+		<mdate>1735689600000</mdate>
+		<name>Household</name>
+		<scenes>Chores</scenes>
+		<tids>104,105,107</tids>
+	</Project>
+	<Scene sr="Reminder">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<heightLand>-1</heightLand>
+		<heightPort>-1</heightPort>
+		<nme>Reminder</nme>
+		<widthLand>-1</widthLand>
+		<widthPort>-1</widthPort>
+		<PropertiesElement sr="props">
+			<keyTask>101</keyTask>
+			<Int sr="arg0" val="2" />
+			<Int sr="arg1" val="2" />
+			<Str sr="arg2" ve="3">%backgroundcolor</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">Reminders</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+			<LinkClickFilter sr="filter0">
+				<stopEvent>true</stopEvent>
+				<urlMatch>back/home</urlMatch>
+			</LinkClickFilter>
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="Reminder List">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<heightLand>-1</heightLand>
+		<heightPort>-1</heightPort>
+		<nme>Reminder List</nme>
+		<widthLand>-1</widthLand>
+		<widthPort>-1</widthPort>
+		<PropertiesElement sr="props">
+			<iconclickTask>102</iconclickTask>
+			<itemselectedTask>103</itemselectedTask>
+			<Int sr="arg0" val="2" />
+			<Int sr="arg1" val="2" />
+			<Str sr="arg2" ve="3">%backgroundcolor</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">Reminder List</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2">
+				<nme>mw_action_view_list</nme>
+			</Img>
+			<Str sr="arg7" ve="3">Today,Upcoming</Str>
+		</PropertiesElement>
+	</Scene>
+	<Scene sr="Chores">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<heightLand>-1</heightLand>
+		<heightPort>-1</heightPort>
+		<nme>Chores</nme>
+		<widthLand>-1</widthLand>
+		<widthPort>-1</widthPort>
+		<PropertiesElement sr="props">
+			<Int sr="arg0" val="2" />
+			<Int sr="arg1" val="2" />
+			<Str sr="arg2" ve="3">%backgroundcolor</Str>
+			<Int sr="arg3" val="0" />
+			<Str sr="arg4" ve="3">Chores</Str>
+			<Str sr="arg5" ve="3" />
+			<Img sr="arg6" ve="2" />
+			<Str sr="arg7" ve="3" />
+			<LinkClickFilter sr="filter0">
+				<urlMatch>back</urlMatch>
+			</LinkClickFilter>
+			<ListElementItem sr="item0">
+				<label>Done</label>
+				<Action sr="action" ve="7">
+					<code>548</code>
+					<Str sr="arg0" ve="3">Chores done</Str>
+					<Int sr="arg1" val="0" />
+					<Int sr="arg2" val="0" />
+					<Str sr="arg3" ve="3" />
+					<Str sr="arg4" ve="3" />
+					<Str sr="arg5" ve="3" />
+					<Str sr="arg6" ve="3" />
+					<Str sr="arg7" ve="3" />
+					<Str sr="arg8" ve="3" />
+					<Int sr="arg9" val="0" />
+					<Str sr="arg10" ve="3" />
+					<Int sr="arg11" val="0" />
+					<Int sr="arg12" val="0" />
+					<Str sr="arg13" ve="3" />
+					<Int sr="arg14" val="0" />
+					<Str sr="arg15" ve="3" />
+				</Action>
+				<Img sr="icon" ve="2">
+					<nme>mw_action_done</nme>
+				</Img>
+			</ListElementItem>
+			<ListElementItem sr="item1">
+				<label>Snooze</label>
+				<Action sr="action" ve="7">
+					<code>547</code>
+					<Str sr="arg0" ve="3">%ChoresSnoozed</Str>
+					<Str sr="arg1" ve="3">1</Str>
+					<Int sr="arg2" val="0" />
+					<Int sr="arg3" val="0" />
+					<Int sr="arg4" val="0" />
+					<Int sr="arg5" val="0" />
+					<Int sr="arg6" val="0" />
+				</Action>
+			</ListElementItem>
+			<ListElementItem sr="item2">
+				<label>Settings</label>
+				<Action sr="action" ve="7">
+					<code>130</code>
+					<Str sr="arg0" ve="3">Chores Done</Str>
+					<Int sr="arg1" val="0" />
+					<Str sr="arg2" ve="3" />
+					<Str sr="arg3" ve="3" />
+					<Str sr="arg4" ve="3" />
+					<Int sr="arg5" val="0" />
+					<Int sr="arg6" val="0" />
+					<Str sr="arg7" ve="3" />
+					<Int sr="arg8" val="0" />
+					<Int sr="arg9" val="0" />
+					<Int sr="arg10" val="0" />
+				</Action>
+			</ListElementItem>
+		</PropertiesElement>
+	</Scene>
+	<Task sr="task101">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<id>101</id>
+		<nme>Remind Me</nme>
+		<pri>100</pri>
+		<Action sr="act0" ve="7">
+			<code>548</code>
+			<Str sr="arg0" ve="3">Time to check your reminders</Str>
+			<Int sr="arg1" val="0" />
+			<Int sr="arg2" val="0" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg5" ve="3" />
+			<Str sr="arg6" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Str sr="arg8" ve="3" />
+			<Int sr="arg9" val="0" />
+			<Str sr="arg10" ve="3" />
+			<Int sr="arg11" val="0" />
+			<Int sr="arg12" val="0" />
+			<Str sr="arg13" ve="3" />
+			<Int sr="arg14" val="0" />
+			<Str sr="arg15" ve="3" />
+		</Action>
+	</Task>
+	<Task sr="task102">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<id>102</id>
+		<nme>Open Reminder List</nme>
+		<pri>100</pri>
+		<Action sr="act0" ve="7">
+			<code>547</code>
+			<Str sr="arg0" ve="3">%ReminderView</Str>
+			<Str sr="arg1" ve="3">list</Str>
+			<Int sr="arg2" val="0" />
+			<Int sr="arg3" val="0" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task103">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<id>103</id>
+		<nme>Show Chosen Tab</nme>
+		<pri>100</pri>
+		<Action sr="act0" ve="7">
+			<code>548</code>
+			<Str sr="arg0" ve="3">Showing %tap_label</Str>
+			<Int sr="arg1" val="0" />
+			<Int sr="arg2" val="0" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg5" ve="3" />
+			<Str sr="arg6" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Str sr="arg8" ve="3" />
+			<Int sr="arg9" val="0" />
+			<Str sr="arg10" ve="3" />
+			<Int sr="arg11" val="0" />
+			<Int sr="arg12" val="0" />
+			<Str sr="arg13" ve="3" />
+			<Int sr="arg14" val="0" />
+			<Str sr="arg15" ve="3" />
+		</Action>
+	</Task>
+	<Task sr="task104">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<id>104</id>
+		<nme>Chores Done</nme>
+		<pri>100</pri>
+		<Action sr="act0" ve="7">
+			<code>547</code>
+			<Str sr="arg0" ve="3">%ChoresDone</Str>
+			<Str sr="arg1" ve="3">1</Str>
+			<Int sr="arg2" val="0" />
+			<Int sr="arg3" val="0" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+		</Action>
+		<Action sr="act1" ve="7">
+			<code>548</code>
+			<Str sr="arg0" ve="3">Nice work</Str>
+			<Int sr="arg1" val="0" />
+			<Int sr="arg2" val="0" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg5" ve="3" />
+			<Str sr="arg6" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Str sr="arg8" ve="3" />
+			<Int sr="arg9" val="0" />
+			<Str sr="arg10" ve="3" />
+			<Int sr="arg11" val="0" />
+			<Int sr="arg12" val="0" />
+			<Str sr="arg13" ve="3" />
+			<Int sr="arg14" val="0" />
+			<Str sr="arg15" ve="3" />
+		</Action>
+	</Task>
+	<Task sr="task105">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<id>105</id>
+		<nme>Snooze Chores</nme>
+		<pri>100</pri>
+		<Action sr="act0" ve="7">
+			<code>547</code>
+			<Str sr="arg0" ve="3">%ChoresSnoozed</Str>
+			<Str sr="arg1" ve="3">%TIMES</Str>
+			<Int sr="arg2" val="0" />
+			<Int sr="arg3" val="0" />
+			<Int sr="arg4" val="0" />
+			<Int sr="arg5" val="0" />
+			<Int sr="arg6" val="0" />
+		</Action>
+	</Task>
+	<Task sr="task106">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<id>106</id>
+		<nme>Alarm Check</nme>
+		<pri>100</pri>
+		<Action sr="act0" ve="7">
+			<code>548</code>
+			<Str sr="arg0" ve="3">Alarm checked</Str>
+			<Int sr="arg1" val="0" />
+			<Int sr="arg2" val="0" />
+			<Str sr="arg3" ve="3" />
+			<Str sr="arg4" ve="3" />
+			<Str sr="arg5" ve="3" />
+			<Str sr="arg6" ve="3" />
+			<Str sr="arg7" ve="3" />
+			<Str sr="arg8" ve="3" />
+			<Int sr="arg9" val="0" />
+			<Str sr="arg10" ve="3" />
+			<Int sr="arg11" val="0" />
+			<Int sr="arg12" val="0" />
+			<Str sr="arg13" ve="3" />
+			<Int sr="arg14" val="0" />
+			<Str sr="arg15" ve="3" />
+		</Action>
+	</Task>
+	<Task sr="task107">
+		<cdate>1735689600000</cdate>
+		<edate>1735689600000</edate>
+		<id>107</id>
+		<pri>100</pri>
+		<Action sr="act0" ve="7">
+			<code>549</code>
+			<Str sr="arg0" ve="3">%ChoresSnoozed</Str>
+			<Int sr="arg1" val="0" />
+			<Int sr="arg2" val="0" />
+			<Int sr="arg3" val="0" />
+		</Action>
+	</Task>
+</TaskerData>

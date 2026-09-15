@@ -294,9 +294,9 @@ def runtime_parser() -> None:
                             0 = display simple Project/Profile/Task/Scene names only with no details
                             1 = display all Task action details for unknown Tasks only
                             2 = display full Task action name on every Task
-                            3 = display full Task action details on every Task with action details (default)
+                            3 = display full Task action details on every Task with action details
                             4 = detail level 3 plus global variables
-                            5 = detail level 4 plus Scene element UI details.
+                            5 = detail level 4 plus Scene element UI details (default).
                             Example: '-detail 2' for Task action names only
                             """,
         ),
