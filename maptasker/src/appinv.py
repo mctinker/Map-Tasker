@@ -620,7 +620,7 @@ def _store_fetched_apps(device: str, entries: list[AppEntry]) -> str:
         devices = {}
         cache["devices"] = devices
     devices[device] = {
-        "fetched": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # noqa: DTZ005
+        "fetched": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S"),
         "apps": [{"pkg": entry.pkg, "label": entry.label, "cls": entry.cls} for entry in entries],
     }
     error = _write_cache(cache)

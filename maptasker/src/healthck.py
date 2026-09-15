@@ -1287,7 +1287,7 @@ def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
         # explaining findings that are no longer in the report.
         index.findings = [item for item in index.findings if item.tag not in skip]
 
-    return _build_report(index, datetime.now(), skip), _counts(index.findings)  # noqa: DTZ005
+    return _build_report(index, datetime.now().astimezone(), skip), _counts(index.findings)
 
 
 def write_health_check_report(rows: list[Row]) -> str:
@@ -1303,7 +1303,7 @@ def write_health_check_report(rows: list[Row]) -> str:
     get_current_local_time_auto_timezone: that one geolocates by IP with a five second
     timeout, which is a strange thing to make a local button click wait for.
     """
-    stamp = datetime.now().strftime("_%m-%d-%Y_%H-%M-%S")  # noqa: DTZ005
+    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(HEALTHCHECK_FILE, stamp)
     if not file_name:
         return ""

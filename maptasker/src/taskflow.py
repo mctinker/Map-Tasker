@@ -922,7 +922,7 @@ def _header_rows(title: str) -> list[Row]:
         Row(title),
         Row("=" * _REPORT_WIDTH),
         Row(f"XML file:    {_current_xml_file()}"),
-        Row(f"Generated:   {datetime.now().strftime('%d-%b-%Y %H:%M:%S')}"),  # noqa: DTZ005
+        Row(f"Generated:   {datetime.now().astimezone().strftime('%d-%b-%Y %H:%M:%S')}"),
         Row(f"Version:     {MY_VERSION}"),
     ]
 
@@ -992,7 +992,7 @@ def write_flowchart(rows: list[Row]) -> str:
 
 def _write(rows: list[Row], base_name: str, what: str) -> str:
     """Write rows as plain text to a timestamped copy of base_name in the current directory."""
-    stamp = datetime.now().strftime("_%m-%d-%Y_%H-%M-%S")  # noqa: DTZ005
+    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(base_name, stamp)
     if not file_name:
         return ""

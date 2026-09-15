@@ -75,3 +75,15 @@ def test_an_old_system_settings_pickle_is_never_loaded_and_is_deleted_on_save(
     getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
     assert not legacy_file.exists()
     assert not marker.exists()
+
+
+def test_a_language_saved_under_the_old_tamil_spelling_is_carried_over(program_arguments: dict) -> None:
+    """Tamil was listed as 'Tamali', and the language is saved by its name.  A settings file from
+    before the fix has to come back as Tamil, not as a name nothing recognizes."""
+    program_arguments["language"] = "Tamali"
+    getputer.save_restore_args(program_arguments, set_color_mode("Dark"), to_save=True)
+
+    restored_arguments, _ = getputer.save_restore_args({}, {}, to_save=False)
+
+    assert restored_arguments["language"] == "Tamil"
+    assert restored_arguments["language"] in PrimeItems.languages

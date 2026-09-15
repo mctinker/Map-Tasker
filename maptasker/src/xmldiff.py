@@ -913,5 +913,5 @@ def compare(older: Configuration, newer: Configuration) -> tuple[str, dict]:
     _compare_named_values("Variable", older_side.variables, newer_side.variables, entries)
     _compare_named_values("Setting", older_side.settings, newer_side.settings, entries)
 
-    report = _build_report(older, newer, older_side, newer_side, entries, collisions, datetime.now())  # noqa: DTZ005
+    report = _build_report(older, newer, older_side, newer_side, entries, collisions, datetime.now().astimezone())
     return report, _counts(entries)

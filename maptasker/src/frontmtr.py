@@ -64,7 +64,7 @@ def output_the_heading(config: RunConfig) -> None:
 
     # Output date and time if in debug mode
     # now_for_output = NOW_TIME.strftime("%d-%B-%Y %H:%M:%S")
-    current_time = datetime.datetime.now()  # noqa: DTZ005
+    current_time = datetime.datetime.now().astimezone()
     # formatted_time = current_time.strftime('%H:%M:%S')
     now_for_output = current_time.strftime("%d-%B-%Y %H:%M:%S")
 

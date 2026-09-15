@@ -246,6 +246,10 @@ def read_toml_file(new_file: str) -> tuple[dict, dict]:
             # Get program arguments
             try:
                 program_arguments = settings["program_arguments"]
+                # Tamil was listed as 'Tamali', and the language is saved by its name: carry an
+                # older settings file over rather than quietly falling back to English.
+                if program_arguments.get("language") == "Tamali":
+                    program_arguments["language"] = "Tamil"
                 # Start log. file if debug is on.
                 if program_arguments["debug"]:
                     log_startup_values()

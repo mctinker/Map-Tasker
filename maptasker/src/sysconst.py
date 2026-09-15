@@ -325,6 +325,7 @@ TABLE_BACKGROUND_COLOR = "DarkSteelBlue" if darkdetect.isDark() else "PaleTurquo
 TABLE_BORDER_COLOR = "DarkSlateGrey" if darkdetect.isDark() else "LightGrey"
 TABLE_BORDER = f"\n<style> table, td, th {{ padding: 5px; border: 2px solid {TABLE_BORDER_COLOR}; border-radius: 3px; background-color: {TABLE_BACKGROUND_COLOR}; text-align: center;}} </style>"
 
+# Naive: saved to the settings file as last_run, where existing files hold naive times too.
 NOW_TIME = datetime.now()  # noqa: DTZ005
 
 OPENAI_MODELS = [

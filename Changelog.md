@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file!
 - Fixed: Clearing an API key in 'Show/Edit API Key(s)' and selecting 'Ok' now removes the saved key.  Before, the cleared key came back the next time it was needed, and 'Cancel' did not undo the clear.
 - Fixed: The window no longer freezes while 'Save To Android' or 'Import Into Tasker' checks the device and sends a Task, Profile, Project or Scene, or while a backup file picked on the device is checked.  Those requests can take many seconds, and every button, tab and message now keeps responding while they run.
 - Fixed: MapTasker no longer stops at startup with 'RuntimeError: There is no current event loop in thread 'MainThread'' when run with Python 3.14.
+- Fixed: Tamil is now spelled correctly in the language list, where it appeared as 'Tamali'.  If you had chosen it, your saved choice carries over instead of reverting to English.
+- Fixed: The daily check for a newer version of MapTasker no longer holds up the window while it waits for PyPI, and gives up after five seconds when PyPI does not answer.  The upgrade buttons appear as soon as the answer arrives.
 - Fixed:
 
 ### Known Issues

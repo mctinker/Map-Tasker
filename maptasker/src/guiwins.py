@@ -59,6 +59,12 @@ from maptasker.src.config import EDIT_SCENE
 from maptasker.src.format import css_color
 from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_font_choices, sort_languages_with_priority
+from maptasker.src.guiutils import (
+    add_logo,
+    display_model_pulldown,
+    refresh_object_action_buttons,
+    update_analysis_button_color,
+)
 
 # The dialog families split out of this file, which had grown past 14,500 lines.  Each is
 # imported for the handful of names this module still calls into: the Scene canvas the
@@ -3376,7 +3382,7 @@ def build_changes_since_dialog(on_choose: Callable[[str, date | None], Coroutine
                     if on_date is None:
                         ui.notify(translate_string("Choose a date first."), type="warning")
                         return
-                    if on_date > date.today():  # noqa: DTZ011
+                    if on_date > datetime.now().astimezone().date():
                         ui.notify(
                             translate_string("That date is in the future.  Choose a day that has happened."),
                             type="warning",
@@ -3402,7 +3408,7 @@ def _parse_picked_date(value: object) -> date | None:
     if not isinstance(value, str) or not value:
         return None
     try:
-        return datetime.strptime(value, "%Y-%m-%d").date()  # noqa: DTZ007
+        return date.fromisoformat(value)
     except ValueError:
         return None
 
@@ -8266,8 +8272,6 @@ def initialize_screen(self: MyGui) -> None:
             "bg-gray-100 dark:bg-gray-800 p-4 w-96 force-scrollbar gap-y-0 m-0 p-0 leading-none",
         ) as self.gui_left_drawer
     ):
-        from maptasker.src.guiutils import add_logo  # noqa: PLC0415  Avoid circular import
-
         add_logo(self, "maptasker")
 
         ui.label(translate_string("Display Options")).classes("text-lg font-bold mb-2 gap-y-0 m-0 p-0 leading-none")
@@ -8821,10 +8825,6 @@ def initialize_screen(self: MyGui) -> None:
                 # restore runs after initialize_screen).  On a rebuild, though -- a
                 # language change re-runs this whole function (see reload_gui) -- there
                 # very much can be a live selection to match.
-                from maptasker.src.guiutils import (  # noqa: PLC0415  Avoid circular import
-                    refresh_object_action_buttons,
-                )
-
                 refresh_object_action_buttons(self)
 
             # --- TAB 2: COLORS (MINIMIZED SPACING) ---
@@ -8929,11 +8929,6 @@ async def get_rid_of_windows_and_exit(self: MyGui, _delete_all: bool = True) -> 
 
 def _create_analyze_tab_content(self: MyGui, tab: ui.tab_panel) -> None:
     """Populates the 'Analyze' (AI) tab using NiceGUI and colors the analysis button contextually."""
-    from maptasker.src.guiutils import (  # noqa: PLC0415  Avoid circular import
-        display_model_pulldown,
-        update_analysis_button_color,
-    )
-
     # Use the 'with' context manager to place elements inside the passed tab panel
     with tab:
         # 1. Action Buttons Row

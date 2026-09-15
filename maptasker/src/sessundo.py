@@ -259,7 +259,7 @@ def undoable(label: str) -> Iterator[None]:
         # changed is unknown -- and unknown is kept, because the alternative is throwing
         # away the only copy of a state that may well have just been mutated.
         if before is not None and (after is None or after != before):
-            _undo.append(Checkpoint(label=label, when=datetime.now(), payload=_compress(before)))  # noqa: DTZ005
+            _undo.append(Checkpoint(label=label, when=datetime.now().astimezone(), payload=_compress(before)))
             # Redoing only makes sense along the line the user walked back down.  Making a
             # fresh change from here is a new line, and the old one can no longer be reached.
             _redo.clear()
@@ -314,7 +314,7 @@ def undo() -> tuple[bool, str]:
         return False, "That undo step could not be restored -- nothing was changed."
 
     if current is not None:
-        _redo.append(Checkpoint(label=checkpoint.label, when=datetime.now(), payload=_compress(current)))  # noqa: DTZ005
+        _redo.append(Checkpoint(label=checkpoint.label, when=datetime.now().astimezone(), payload=_compress(current)))
     return True, checkpoint.label
 
 
@@ -330,7 +330,7 @@ def redo() -> tuple[bool, str]:
         return False, "That redo step could not be restored -- nothing was changed."
 
     if current is not None:
-        _undo.append(Checkpoint(label=checkpoint.label, when=datetime.now(), payload=_compress(current)))  # noqa: DTZ005
+        _undo.append(Checkpoint(label=checkpoint.label, when=datetime.now().astimezone(), payload=_compress(current)))
         _trim()
     return True, checkpoint.label
 

@@ -1130,7 +1130,7 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     # replace that timestamp instead of appending another one -- otherwise every
     # save would tack on yet another suffix (backup_20260101_120000_20260101_130000...).
     base_path = TIMESTAMP_SUFFIX_RE.sub("", base_path)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # noqa: DTZ005
+    timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S")
     new_file_path = f"{base_path}_{timestamp}{extension}"
 
     # Normally there is nothing at that name and this does nothing -- the name has this

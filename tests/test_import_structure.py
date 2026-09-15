@@ -46,7 +46,6 @@ _KEPT_DEFERRED = {
     ("mapai", "cria"): "cria installs httpx, psutil and ollama the moment it is imported.",
     ("mapask", "cria"): "cria installs httpx, psutil and ollama the moment it is imported.",
     ("sceneedit", "sceneview"): "sceneview brings in the GUI, and sceneedit is otherwise free of it.",
-    ("sceneedit", "actionc"): "Kept off the import path, as the notes where it is imported say.",
     ("mapjump", "maputil2"): "Kept GUI-free and off the import path; only one function needs it.",
     ("maputil2", "presave"): "Most of the package imports maputil2, and every one of them would depend on presave.",
     ("sessundo", "maputil2"): "Keeps sessundo out of the middle of the import graph -- see the note at the import.",
@@ -55,8 +54,6 @@ _KEPT_DEFERRED = {
     ("proginit", "valcodes"): "Checks the codes against the network, only when asked; tests patch it there.",
     ("deviceinv", "maputil2"): "Tests patch maputil2.http_upload_request and read_back_uploaded_file for these calls.",
     ("editcommon", "maputil2"): "Tests patch maputil2.http_upload_request and read_back_uploaded_file for these calls.",
-    ("guiwins", "guiutils"): "Not yet reviewed: its note gives a circular import that no longer exists.",
-    ("guiwins_profedit", "guiwins"): "Not yet reviewed: its docstring gives a circular import that no longer exists.",
     ("rungui", "userintr"): "Loads the GUI modules when the GUI starts: at startup, diagram's import-time default is discarded.",
 }
 

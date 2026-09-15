@@ -2583,7 +2583,7 @@ def write_swap_report(rows: list[Row]) -> str:
     hundred-row preview is a work list, and 'which ones did I decide to leave' does not
     survive closing the dialog otherwise.
     """
-    stamp = datetime.now().strftime("_%m-%d-%Y_%H-%M-%S")  # noqa: DTZ005
+    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(SWAP_FILE, stamp)
     if not file_name:
         return ""

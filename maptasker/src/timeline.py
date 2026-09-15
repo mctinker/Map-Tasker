@@ -180,6 +180,9 @@ def _snapshot_from(path: Path) -> Snapshot | None:
     if match is None:
         return None
     try:
+        # Naive on purpose, like every time this module compares it with: the stamp in the name
+        # carries no UTC offset, so these are local wall-clock times throughout -- and an aware
+        # datetime compared against a naive one raises TypeError.
         when = datetime.strptime(match["stamp"], _STAMP_FORMAT)  # noqa: DTZ007
     except ValueError:
         return None

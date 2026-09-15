@@ -96,6 +96,7 @@ from maptasker.src.taskedit import build_editable_args
 from maptasker.src.taskedit import build_synthesized_args
 from maptasker.src.taskedit import classify_action_addability
 from maptasker.src.taskedit import validate_arg_values
+from maptasker.src.actionc import action_codes
 
 # Destination folder on the Android device for Save To Android -- the Scene sibling of
 # projedit.ANDROID_PROJECT_LOCATION ("Tasker/projects"); see android_scene_path.
@@ -3432,8 +3433,6 @@ def legacy_element_args(element: defusedxml.ElementTree.Element) -> list:
     schema at all.  Losing the ability to reposition an element this app cannot describe
     would be a much worse answer than showing it with an empty property sheet.
     """
-    from maptasker.src.actionc import action_codes  # noqa: PLC0415  (kept off the import path)
-
     action_code = action_codes.get(element.tag)
     if action_code is None:
         return []
@@ -3886,8 +3885,6 @@ def legacy_can_add(element_type: str) -> str:
     says why -- the same treatment v2_can_add gives a component that cannot go where it is
     being put.  VideoElement is the one type in this position today.
     """
-    from maptasker.src.actionc import action_codes  # noqa: PLC0415
-
     if element_type in action_codes:
         return ""
     return (
@@ -3906,8 +3903,6 @@ def _legacy_effective_args(element_type: str) -> list:
     is an exception where taking the entry at its word works.  Hence: use the target when it
     exists, the entry itself when it does not.
     """
-    from maptasker.src.actionc import action_codes  # noqa: PLC0415
-
     action_code = action_codes[element_type]
     target = action_codes.get(action_code.redirect) if action_code.redirect else None
     return target.args if target is not None else action_code.args
@@ -4850,8 +4845,6 @@ def legacy_action_items(properties: defusedxml.ElementTree.Element) -> list[Lega
     every reorder (which is what legacy_move_action_item does here), so document order is
     the display order and the sr is only an identity to hold a selection by.
     """
-    from maptasker.src.actionc import action_codes  # noqa: PLC0415  (kept off the import path)
-
     items = []
     for index, element in enumerate(properties.findall(LEGACY_ACTION_ITEM_TAG)):
         action_element = element.find(f"Action[@sr='{LEGACY_ACTION_ITEM_ACTION_SR}']")
@@ -4881,8 +4874,6 @@ def legacy_action_item_args(item: LegacyActionItem) -> list:
     so it goes through the same model the Task editor and the element inspector use, and an
     argument added to actionc.py shows up here without anything changing.
     """
-    from maptasker.src.actionc import action_codes  # noqa: PLC0415
-
     if item.action_element is None:
         return []
     code = (item.action_element.findtext("code") or "").strip()
@@ -4970,8 +4961,6 @@ def legacy_add_action_item(
     label alone is valid (it lands in the overflow menu).  Appended after any existing item,
     which is where Tasker adds one -- its plus button is at the bottom of the list.
     """
-    from maptasker.src.actionc import action_codes  # noqa: PLC0415
-
     addable, reason = classify_action_addability(action_key)
     if not addable:
         return [reason or f"'{action_key}' cannot be added."]

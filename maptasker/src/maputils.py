@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import asyncio
 import ipaddress
-import json
 import os
 import re
 import shutil
@@ -25,7 +24,6 @@ from zoneinfo import (
 )  # Import ZoneInfoNotFoundError for specific error handling
 
 import requests
-from requests.exceptions import ConnectionError  # noqa: A004
 
 from maptasker.src import console
 from maptasker.src.error import rutroh_error
@@ -103,13 +101,22 @@ def update_maptasker() -> None:
     subprocess.call(command)  # noqa: S603
 
 
+# How long the version check waits on PyPI: the same as the timezone lookup above, since both
+# are conveniences MapTasker works without.
+PYPI_TIMEOUT_SECONDS = 5
+
+
 # Get the version of our code out on Pypi
 def get_pypi_version() -> str:
     """Get the PyPi version of this package."""
     url = "https://pypi.org/pypi/maptasker/json"
     try:
-        version = "==" + requests.get(url).json()["info"]["version"]  # noqa: S113
-    except (json.decoder.JSONDecodeError, ConnectionError, Exception):  # noqa: BLE001
+        # Bounded, so an unreachable PyPI cannot hold up whoever asked for long.  The daily
+        # check asks from a worker thread (guiutils.check_new_version).
+        version = "==" + requests.get(url, timeout=PYPI_TIMEOUT_SECONDS).json()["info"]["version"]
+    except (requests.RequestException, ValueError, KeyError, TypeError):
+        # The connection failing or timing out; a reply that is not JSON; JSON that is not
+        # PyPI's shape.
         logger.debug("Unable to get version from PYPI!")
         version = ""
     return version
@@ -487,7 +494,7 @@ def get_timezone_from_ip() -> str:
         return None
 
 
-def get_current_local_time_auto_timezone() -> str:
+def get_current_local_time_auto_timezone() -> datetime:
     """
     Attempts to get the current local time by first discovering the timezone
     via IP geolocation. Works with Python 3.9+.
@@ -506,18 +513,19 @@ def get_current_local_time_auto_timezone() -> str:
             logger.debug(
                 f"Error: Discovered timezone '{timezone_string}' is not recognized by zoneinfo.",
             )
-            return datetime.now()  # noqa: DTZ005
+            return datetime.now().astimezone()
         except ValueError as e:
             # ZoneInfo rejects a key that is not a well-formed name with ValueError, and
             # raises ZoneInfoNotFoundError (caught above) for one that simply is not there.
             logger.debug(f"Error creating timezone-aware datetime: {e}")
-            return datetime.now()  # noqa: DTZ005
+            return datetime.now().astimezone()
     else:
         logger.debug(
-            "\nCould not determine timezone automatically. Falling back to naive datetime.",
+            "\nCould not determine timezone automatically. Falling back to the system's local time.",
         )
-        logger.debug(f"Current naive datetime: {datetime.now()}")  # noqa: DTZ005
-        return datetime.now()  # noqa: DTZ005
+        now_local = datetime.now().astimezone()
+        logger.debug(f"Current local datetime: {now_local}")
+        return now_local
 
 
 def rename_file(old_file_path: str, new_file_path: str) -> bool:

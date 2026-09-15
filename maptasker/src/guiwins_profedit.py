@@ -18,6 +18,13 @@ from typing import TYPE_CHECKING
 from nicegui import ui
 
 from maptasker.src import objprops, profedit
+from maptasker.src.guiwins import (
+    PendingChangesBanner,
+    _android_device_fields,
+    _build_properties_button,
+    build_redact_checkbox,
+    editor_state,
+)
 from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.guiwins_taskedit import (
     _after_condition_fetch,
@@ -97,10 +104,6 @@ def _build_profile_editor_body(
     differs between the two. Must be called inside the caller's own
     `with ui.dialog(), ui.card():` block, after field_refs["name"] is set.
     """
-    # Imported here rather than at the top of the file: guiwins imports this module, so a
-    # module-level import would be a cycle.  See this module's docstring.
-    from maptasker.src.guiwins import _build_properties_button  # noqa: PLC0415
-
     with ui.row().classes("w-full items-center gap-4"):
         enabled_switch = ui.switch(
             value=profedit.is_profile_enabled(edited_profile),
@@ -528,10 +531,6 @@ def build_edit_profile_dialog(self: MyGui, edited_profile: profedit.EditableProf
     per Profile. Field widgets are kept in a plain dict (matching this file's existing
     ad-hoc widget-ref pattern) and read at Save time rather than using NiceGUI bindings.
     """
-    # Imported here rather than at the top of the file: guiwins imports this module, so a
-    # module-level import would be a cycle.  See this module's docstring.
-    from maptasker.src.guiwins import PendingChangesBanner, build_redact_checkbox, editor_state  # noqa: PLC0415
-
     profile_name = edited_profile.profile_element.findtext("nme", "")
     field_refs: dict = {}
 
@@ -660,10 +659,6 @@ def build_save_profile_to_android_dialog(
     live configuration. On success both this prompt and the parent (Edit/Add
     Profile) dialog are closed.
     """
-    # Imported here rather than at the top of the file: guiwins imports this module, so a
-    # module-level import would be a cycle.  See this module's docstring.
-    from maptasker.src.guiwins import _android_device_fields  # noqa: PLC0415
-
     with ui.dialog().props("persistent") as android_dialog, ui.card().classes("min-w-[350px] p-6"):
         ui.label(translate_string("Save Profile To Android Device")).classes("text-lg font-bold text-blue-600")
         android_field_refs = _android_device_fields(self)

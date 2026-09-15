@@ -198,7 +198,7 @@ def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
     the same pile as "how do these two files differ", which is a different question with
     a different answer.
     """
-    stamp = datetime.now().strftime("_%m-%d-%Y_%H-%M-%S")  # noqa: DTZ005
+    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(base_name, stamp)
     if not file_name:
         return ""
@@ -233,6 +233,7 @@ def _modified_time(file_path: str) -> datetime | None:
     two files in an order nobody can check.
     """
     try:
+        # Naive local time, like the timeline snapshot times these are ordered against.
         return datetime.fromtimestamp(os.path.getmtime(file_path))  # noqa: DTZ006
     except OSError:
         return None

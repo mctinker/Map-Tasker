@@ -88,7 +88,7 @@ def _stamped_name(file_name: str) -> str:
     made at the FIRST dot instead: "Wake Up_20260820_143005.tsk.xml", which still opens in
     whatever the original opened in.
     """
-    stamp = datetime.now().strftime(_STAMP_FORMAT)  # noqa: DTZ005
+    stamp = datetime.now().astimezone().strftime(_STAMP_FORMAT)
     base, dot, extensions = file_name.partition(".")
     return f"{base}_{stamp}{dot}{extensions}" if dot else f"{base}_{stamp}"
 

@@ -1443,7 +1443,7 @@ def build_report(index: VariableIndex, when: datetime | None = None, include_ind
     something nobody scrolls through on screen.  The SAVED file always has everything --
     the index is a reference document, and the point of it is to be searched.
     """
-    when = when or datetime.now()  # noqa: DTZ005
+    when = when or datetime.now().astimezone()
     counts = _counts_by_scope(index)
     declared = sum(1 for variable in index.variables.values() if variable.declared)
     rule = "=" * _REPORT_WIDTH
@@ -1708,7 +1708,7 @@ def write_variable_xref_report(rows: list[Row]) -> str:
     only the save went wrong.  Named and timestamped exactly as the Health Check report
     is, so successive runs from one day sort by when they were run.
     """
-    stamp = datetime.now().strftime("_%m-%d-%Y_%H-%M-%S")  # noqa: DTZ005
+    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(VARXREF_FILE, stamp)
     if not file_name:
         return ""

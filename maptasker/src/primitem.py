@@ -287,7 +287,7 @@ class PrimeItems:
         "Marathi": "mr",
         "Telugu": "te",
         "Turkish": "tr",
-        "Tamali": "ta",
+        "Tamil": "ta",
         "Vietnamese": "vi",
         "Italian": "it",
         "Ukrainian": "uk",
