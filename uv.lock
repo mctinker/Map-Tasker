@@ -1129,7 +1129,7 @@ requires-dist = [
     { name = "keyring", specifier = ">=25.7.0" },
     { name = "nicegui", specifier = ">=3.16.0" },
     { name = "packaging", specifier = ">=26.3" },
-    { name = "pillow", specifier = "==12.3.0" },
+    { name = "pillow", specifier = ">=12.3.0" },
     { name = "requests", specifier = ">=2.34.2" },
     { name = "tomli-w", specifier = ">=1.2.0" },
 ]

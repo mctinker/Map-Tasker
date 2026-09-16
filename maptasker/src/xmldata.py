@@ -5,6 +5,7 @@
 #                                                                                      #
 # xmldata: deal with the xml data                                                      #
 #                                                                                      #
+import io
 import os
 import re
 import shutil
@@ -268,3 +269,39 @@ def rewrite_xml(file_to_parse: str) -> None:
     os.remove(file_to_parse)
     os.rename(".maptasker_tmp.xml", file_to_parse)
     os.remove(".maptasker_tmp.xml")
+
+
+# A start tag, and a closing quote that runs straight into the next attribute name.
+_START_TAG = re.compile(rb"<[A-Za-z_][^<>]*>")
+_ATTRIBUTE_GAP = re.compile(rb'"(?=[A-Za-z_][\w.:-]*=")')
+
+
+def separate_attributes(xml_bytes: bytes) -> bytes:
+    """Insert the whitespace XML requires between attributes.
+
+    Some Tasker versions (e.g. 6.7.6-beta) write compact backups such as
+    <TaskerData sr=""dvi="1"tv="6.7.6-beta">, which strict XML parsers reject as
+    "not well-formed (invalid token)".  Only start tags are touched; text content
+    cannot hold a raw '<', so it is left as is.
+    """
+    return _START_TAG.sub(lambda tag: _ATTRIBUTE_GAP.sub(b'" ', tag.group()), xml_bytes)
+
+
+def parse_tasker_xml(file_to_parse: str, encoding: str = "utf-8") -> defusedxml.ElementTree:
+    """Parse a Tasker backup file, tolerating attributes with no whitespace between them.
+
+    Raises ET.ParseError / UnicodeDecodeError exactly as ET.parse does when the file is
+    bad for any other reason.  The file on disk is not modified.
+    """
+    try:
+        return defusedxml.ElementTree.parse(file_to_parse, parser=defusedxml.ElementTree.XMLParser(encoding=encoding))
+    except defusedxml.ElementTree.ParseError:
+        with open(file_to_parse, "rb") as xml_file:
+            original = xml_file.read()
+        repaired = separate_attributes(original)
+        if repaired == original:
+            raise
+        return defusedxml.ElementTree.parse(
+            io.BytesIO(repaired),
+            parser=defusedxml.ElementTree.XMLParser(encoding=encoding),
+        )

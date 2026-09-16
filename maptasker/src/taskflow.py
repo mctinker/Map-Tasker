@@ -35,6 +35,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from maptasker.src.actionc import action_codes
+from maptasker.src.condjoin import boolean_operators, join_conditions
 from maptasker.src.mapjump import (
     TASK,
     Row,
@@ -308,22 +309,20 @@ def _condition_text(action: defusedxml.ElementTree.Element) -> str:
     themselves, whose condition IS that same element -- which is what lets one function
     answer "under what circumstances does this action run" for every action alike.
 
-    The joiners live outside the conditions they join: Tasker writes <bool0>Or</bool0>
-    before the pair it applies to, so the Nth joiner sits between condition N and N+1.
+    The joiners live outside the conditions they join (see condjoin.boolean_operators), and
+    are grouped the way Tasker's And/Or precedence groups them.
     """
     condition_list = action.find("ConditionList")
     if condition_list is None:
         return ""
 
     parts = []
-    for position, condition in enumerate(condition_list.findall("Condition")):
-        if position:
-            parts.append((condition_list.findtext(f"bool{position - 1}") or "And").strip().upper())
+    for condition in condition_list.findall("Condition"):
         left = (condition.findtext("lhs") or "").strip()
         operator = _OPERATORS.get((condition.findtext("op") or "").strip(), "?")
         right = (condition.findtext("rhs") or "").strip()
         parts.append(f"{left} {operator}" if operator in _UNARY_OPERATORS else f"{left} {operator} {right}".rstrip())
-    return " ".join(parts)
+    return join_conditions(parts, boolean_operators(condition_list, len(parts)))
 
 
 def _action_name(code: str) -> str:

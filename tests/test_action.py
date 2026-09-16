@@ -144,6 +144,22 @@ def test_and_is_not_rendered_as_or() -> None:
     assert " AND " in action.get_conditions(_action_with(conditions), IF_ACTION)
 
 
+def test_booleans_written_after_all_the_conditions() -> None:
+    """Newer Tasker backups put every <boolN> after the last Condition instead of between
+    the pair it joins.  Reading them in passing then ran out of booleans and crashed the load.
+    """
+    conditions = (
+        '<ConditionList sr="if">'
+        f"{ET.tostring(_condition()).decode()}"
+        f'{ET.tostring(_condition(lhs="%b", op="1", rhs="2", ref="c1")).decode()}'
+        f'{ET.tostring(_condition(lhs="%c", ref="c2")).decode()}'
+        "<bool0>Or</bool0><bool1>And</bool1>"
+        "</ConditionList>"
+    )
+    result = action.get_conditions(_action_with(conditions), IF_ACTION)
+    assert result == " ((<em>IF</em> %a = 5 OR <em>IF</em> %b NEQ 2) AND <em>IF</em> %c = 5)"
+
+
 def test_wait_until_is_a_loop_not_a_branch() -> None:
     """Wait Until (35) blocks until its condition becomes true -- reading it as an "IF"
     describes an action that skips instead of one that waits.

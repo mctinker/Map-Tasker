@@ -17,7 +17,7 @@ from maptasker.src.maputil2 import http_request
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 from maptasker.src.taskerd import get_the_xml_data
-from maptasker.src.xmldata import rewrite_xml
+from maptasker.src.xmldata import parse_tasker_xml, rewrite_xml
 
 
 # We've read in the xml backup file.  Now save it for processing.
@@ -170,8 +170,7 @@ def validate_xml(
             try:
                 filename_location = android_file.rfind(PrimeItems.slash) + 1
                 file_to_validate = PrimeItems.program_arguments["android_file"][filename_location:]
-                xmlp = ET.XMLParser(encoding=" iso8859_9")
-                xml_tree = ET.parse(file_to_validate, parser=xmlp)
+                xml_tree = parse_tasker_xml(file_to_validate, encoding=" iso8859_9")
                 process_file = False  # Get out of while/loop
             except ET.ParseError:  # Parsing error
                 error_message = f"Improperly formatted XML in {android_file}. Try again."

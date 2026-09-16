@@ -1565,6 +1565,67 @@ def notify_watch_android_device() -> None:
     )
 
 
+# Where every Android connection dialog opens when nothing has been entered yet.
+DEFAULT_ANDROID_IPADDR = "192.168.0.210"
+DEFAULT_ANDROID_PORT = "1821"
+
+
+def android_address_defaults(gui: "MyGui") -> tuple[str, str]:
+    """The (IP address, port) an Android connection dialog should open with.
+
+    The last address entered in ANY of them -- Get XML, Save To Android, Fetch Applications --
+    comes first, since that is the one kept across sessions (see remember_android_address).
+    android_ipaddr/android_port are only the fallback: they describe where the loaded XML came
+    from, so loading a local file empties them, and a settings file written before the
+    remembered address existed has only those.
+    """
+    ipaddr = (
+        getattr(gui, "android_last_ipaddr", "")
+        or getattr(gui, "android_ipaddr", "")
+        or PrimeItems.program_arguments.get("android_last_ipaddr", "")
+        or DEFAULT_ANDROID_IPADDR
+    )
+    port = (
+        getattr(gui, "android_last_port", "")
+        or getattr(gui, "android_port", "")
+        or PrimeItems.program_arguments.get("android_last_port", "")
+        or DEFAULT_ANDROID_PORT
+    )
+    return str(ipaddr), str(port)
+
+
+def remember_android_address(gui: "MyGui", ipaddr: str, port: str) -> None:
+    """Keep the Android address just entered, for the next dialog and the next session.
+
+    Kept apart from android_ipaddr/android_port on purpose.  Those double as "the loaded XML
+    came from the device" -- load_xml re-fetches whenever android_ipaddr is set, and picking
+    a local file clears all three -- so the address the user typed could not survive in them.
+
+    Written to the GUI (what the next dialog opens with, and what exiting copies back over
+    program_arguments), to program_arguments (what the settings file is written from), and to
+    the settings file now rather than at exit, for the reason remember_android_panel_option
+    gives: a session that ends any other way never reaches the exit save.  Only written when
+    something changed, so a repeated save to the same device does not rewrite the file.
+    """
+    ipaddr = str(ipaddr or "").strip()
+    port = str(port or "").strip()
+    if not ipaddr:
+        return
+    unchanged = (
+        getattr(gui, "android_last_ipaddr", "") == ipaddr
+        and getattr(gui, "android_last_port", "") == port
+        and PrimeItems.program_arguments.get("android_last_ipaddr") == ipaddr
+        and PrimeItems.program_arguments.get("android_last_port") == port
+    )
+    gui.android_last_ipaddr = ipaddr
+    gui.android_last_port = port
+    if unchanged:
+        return
+    PrimeItems.program_arguments["android_last_ipaddr"] = ipaddr
+    PrimeItems.program_arguments["android_last_port"] = port
+    save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+
+
 # Ping the Android evice to make sure it is reachable.
 async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
     """

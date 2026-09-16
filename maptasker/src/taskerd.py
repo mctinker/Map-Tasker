@@ -17,7 +17,7 @@ from maptasker.src.maputil2 import strip_html_tags, truncate_string
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.profiles import conditions_to_name
 from maptasker.src.sysconst import UNNAMED_ITEM, FormatLine
-from maptasker.src.xmldata import rewrite_xml
+from maptasker.src.xmldata import parse_tasker_xml, rewrite_xml
 
 
 # Convert list of xml to dictionary
@@ -192,8 +192,7 @@ def get_the_xml_data() -> bool:
     # Validate the XML file by parsing it twice if necessary.
     while True:
         try:
-            xmlp = ET.XMLParser(encoding="utf-8")
-            PrimeItems.xml_tree = ET.parse(file_to_parse, parser=xmlp)
+            PrimeItems.xml_tree = parse_tasker_xml(file_to_parse)
             break
         # If error, rewrite thqat file with correct encoding.  Try this twice and then call it quits if still fails.
         except (ET.ParseError, UnicodeDecodeError) as e:

@@ -12,6 +12,7 @@ import defusedxml.ElementTree  # Need for type hints
 
 import maptasker.src.action as get_action
 from maptasker.src.actiond import process_condition_list
+from maptasker.src.condjoin import join_conditions
 from maptasker.src.format import format_html
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import FormatLine, logger
@@ -364,25 +365,17 @@ def extract_condition(
     Processing Logic:
         - Get the argument from evaluated_results
         - Process the condition list and boolean list from the code action
-        - Iterate through conditions and boolean operators, appending to a list
-        - Join the condition list with separators and add to evaluated_results
+        - Join the conditions by their boolean operators, grouped by Tasker's precedence,
+          and add to evaluated_results
     """
     extract_argument(evaluated_results, arg, argeval)
 
     # Get the conditions
     condition_list, boolean_list = process_condition_list(code_action)
 
-    # Go through all conditions
-    conditions = []
-    for numx, condition in enumerate(condition_list):
-        # Add the condition 0 1 2: a = x
-        conditions.append(f" {condition[0]}{condition[1]}{condition[2]}")
-        # Add the boolean operator if it exists
-        if boolean_list and len(boolean_list) > numx:
-            conditions.append(f" {boolean_list[numx]}")
-    seperator = ""
-
-    evaluated_results[f"arg{arg}"]["value"] = seperator.join(conditions)
+    # Chain the conditions, grouped by Tasker's And/Or precedence
+    conditions = [f"{condition[0]}{condition[1]}{condition[2]}" for condition in condition_list]
+    evaluated_results[f"arg{arg}"]["value"] = f" {join_conditions(conditions, boolean_list)}" if conditions else ""
 
 
 # Get the argument details from action xml

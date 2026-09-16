@@ -61,6 +61,7 @@ from maptasker.src.getputer import save_restore_args
 from maptasker.src.guiutil2 import get_font_choices, sort_languages_with_priority
 from maptasker.src.guiutils import (
     add_logo,
+    android_address_defaults,
     display_model_pulldown,
     refresh_object_action_buttons,
     update_analysis_button_color,
@@ -644,8 +645,7 @@ def _android_device_fields(gui: MyGui) -> dict:
     save it can refuse: a check that could block a save without having been asked for is not
     one to turn on behind the user's back.  See roundtrip.py's header.
     """
-    default_ip = getattr(gui, "android_ipaddr", "") or "192.168.0.210"
-    default_port = getattr(gui, "android_port", "") or "1821"
+    default_ip, default_port = android_address_defaults(gui)
 
     fields = {
         "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
@@ -7701,6 +7701,8 @@ def _initialize_android_settings(self: MyGui) -> None:
     self.android_file = ""
     self.android_ipaddr = ""
     self.android_port = ""
+    self.android_last_ipaddr = ""
+    self.android_last_port = ""
     self.fetched_backup_from_android = False
 
 

@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING
 from nicegui import run, ui
 
 from maptasker.src import appinv, deviceinv, objprops, profedit, taskedit
+from maptasker.src.guiutils import android_address_defaults, remember_android_address
 from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.mapjump import TASK
 from maptasker.src.maputil2 import translate_string
@@ -173,8 +174,7 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
     use, which is both the right thing to test and the thing whose failure message is worth
     showing.
     """
-    default_ip = getattr(gui, "android_ipaddr", "") or "192.168.0.210"
-    default_port = getattr(gui, "android_port", "") or "1821"
+    default_ip, default_port = android_address_defaults(gui)
 
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[460px] p-6"):
         title = "Fetch Icons From Android Device" if for_icons else "Fetch Applications From Android Device"
@@ -237,6 +237,7 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
         async def fetch() -> None:
             ip_address = str(ip_field.value or "").strip()
             ip_port = str(port_field.value or "").strip()
+            remember_android_address(gui, ip_address, ip_port)
 
             fetch_button.set_text(translate_string("Fetching..."))
             fetch_button.set_enabled(False)

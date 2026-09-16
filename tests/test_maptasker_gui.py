@@ -93,6 +93,17 @@ def tasker_has_nothing(monkeypatch):
     monkeypatch.setattr(userintr_android, "_what_tasker_already_has", nothing)
 
 
+@pytest.fixture(autouse=True)
+def settings_file_untouched(monkeypatch):
+    """Every Android dialog writes the address it was given to the settings file
+    (guiutils.remember_android_address), which is the real file in the working directory.
+    Stubbed out; the test of that write replaces this with a recorder of its own.
+    """
+    from maptasker.src import guiutils  # noqa: PLC0415
+
+    monkeypatch.setattr(guiutils, "save_restore_args", lambda args, colors, to_save=False: (args, colors))
+
+
 @pytest.fixture
 def mock_gui_instance():
     """Creates a decoupled MyGui mockup context with required UI attribute references."""
@@ -1952,6 +1963,44 @@ def test_the_save_to_android_panel_options_are_saved_settings() -> None:
     for name in ("android_verify", "android_check_ids"):
         assert name in ARGUMENT_NAMES
         assert defaults[name] is False
+
+
+def test_an_android_address_entered_is_kept_for_the_next_session(monkeypatch) -> None:
+    """Entering an address writes the settings file then and there, and survives a local file
+    load clearing android_ipaddr -- the next dialog still opens on it."""
+    from maptasker.src import guiutils  # noqa: PLC0415
+
+    written: list = []
+    monkeypatch.setattr(
+        guiutils,
+        "save_restore_args",
+        lambda args, colors, to_save=False: (written.append((dict(args), to_save)), (args, colors))[1],
+    )
+    monkeypatch.setattr(PrimeItems, "program_arguments", {})
+    gui = MagicMock(android_ipaddr="", android_port="", android_last_ipaddr="", android_last_port="")
+
+    guiutils.remember_android_address(gui, " 10.0.0.7 ", "1822")
+    guiutils.remember_android_address(gui, "10.0.0.7", "1822")  # unchanged: no second write
+
+    assert written == [({"android_last_ipaddr": "10.0.0.7", "android_last_port": "1822"}, True)]
+    gui.android_ipaddr = gui.android_port = ""  # what loading a local XML file does
+    assert guiutils.android_address_defaults(gui) == ("10.0.0.7", "1822")
+
+    # Nothing entered yet anywhere: the defaults.
+    fresh = MagicMock(android_ipaddr="", android_port="", android_last_ipaddr="", android_last_port="")
+    monkeypatch.setattr(PrimeItems, "program_arguments", {})
+    assert guiutils.android_address_defaults(fresh) == ("192.168.0.210", "1821")
+
+
+def test_the_last_android_address_is_a_saved_setting() -> None:
+    """In ARGUMENT_NAMES, so every whole-settings save (Exit, Save Settings, a map run) writes it."""
+    from maptasker.src.initparg import initialize_runtime_arguments  # noqa: PLC0415
+    from maptasker.src.sysconst import ARGUMENT_NAMES  # noqa: PLC0415
+
+    defaults = initialize_runtime_arguments()
+    for name in ("android_last_ipaddr", "android_last_port"):
+        assert name in ARGUMENT_NAMES
+        assert defaults[name] == ""
 
 
 def test_no_save_to_android_path_calls_the_device_on_the_event_loop() -> None:

@@ -36,7 +36,7 @@ def get_boolean_or_condition(
     """
 
     if "bool" in child.tag:
-        boolean_list.append(child.text.upper())
+        boolean_list.append((child.text or "And").strip().upper())
     elif child.tag == "Condition":
         (
             first_string,

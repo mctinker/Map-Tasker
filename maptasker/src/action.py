@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 import contextlib
 
 from maptasker.src.actiont import lookup_values
+from maptasker.src.condjoin import boolean_operators, join_conditions
 from maptasker.src.error import error_handler
 from maptasker.src.format import format_html, format_label
 from maptasker.src.primitem import PrimeItems
@@ -320,34 +321,22 @@ def get_conditions(child: defusedxml, the_action_code: str) -> str:
     Returns:
         result: {A string of concatenated conditional statements}
 
-    1. Counts the number of conditions
-    2. Initializes variables to store booleans and result
-    3. Loops through <ConditionList> sub-elements
-    4. Evaluates each <Condition> and adds to result string
-    5. Returns the concatenated conditional statements or empty string
+    1. Evaluates each <Condition> in the <ConditionList>
+    2. Joins them by their And/Or operators, parenthesized by Tasker's precedence
+    3. Returns the chained conditional statements or empty string
     """
-    condition_count = 0
-    boolean_to_inject = result = ""
-    booleans = []
-    # Go through <ConditionList sr="if"> sub-elements
+    condition_list = child.find("ConditionList")
+    keyword = "<em>UNTIL</em>" if the_action_code == "35" else "<em>IF</em>"  # Wait Until?
+    conditions = []
     _evaluate_condition = evaluate_condition
-    for children in child.find("ConditionList"):
-        if "bool" in children.tag:
-            booleans.append(children.text)
-        # elif children.tag == "Condition" and the_action_code != "37":
-        elif children.tag == "Condition":
-            # Evaluate the condition to add to output
-            string1, operator, string2 = _evaluate_condition(children)
-            if condition_count != 0:
-                boolean_to_inject = f" {booleans[condition_count - 1].upper()} "
-                # Add this conditional statement to the chain of conditional statements
-            result = f"{result}{boolean_to_inject} condition: If {string1}{operator}{string2}"
-            condition_count += 1
-    if the_action_code == "35":  # Wait Until?
-        result = result.replace(" condition: If", "<em>UNTIL</em>")
-        # Just make all ":condition: If" as "IF"
+    for children in condition_list.findall("Condition"):
+        # Evaluate the condition to add to output
+        string1, operator, string2 = _evaluate_condition(children)
+        conditions.append(f"{keyword} {string1}{operator}{string2}")
+    # Chain the conditions, grouped by Tasker's And/Or precedence
+    result = join_conditions(conditions, boolean_operators(condition_list, len(conditions)))
     if result:
-        result = f" ({result.replace(' condition: If', '<em>IF</em>')})"
+        result = f" ({result})"
 
     return result
 

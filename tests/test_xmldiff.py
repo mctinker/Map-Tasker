@@ -621,8 +621,12 @@ def test_many_id_collisions_warn_at_the_top() -> None:
     assert "7 objects share an id between these two files" in text
 
 
-def test_detail_lines_are_capped() -> None:
-    """One wholly-rewritten Task must not bury every other entry in the report."""
+def test_every_detail_line_is_listed() -> None:
+    """A wholly-rewritten Task lists every difference, not the first few and a count.
+
+    A count of what was left out tells the reader something changed but not what, which
+    sends them back to the XML to find it.
+    """
     def one_side(text: str) -> str:
         actions = "".join(
             f'<Action sr="act{index}" ve="7"><code>548</code>'
@@ -637,8 +641,8 @@ def test_detail_lines_are_capped() -> None:
 
     text, _ = compare(_configuration(one_side("before"), "a.xml"), _configuration(one_side("after"), "b.xml"))
     block = _block_at(text, "[TASK-CHANGED]  Task 'Huge' (id 20)")
-    assert "more differences." in block
-    assert len(block.splitlines()) < 20
+    assert "more differences." not in block
+    assert len(block.splitlines()) > 40
 
 
 def test_limitations_are_always_stated(report: str) -> None:

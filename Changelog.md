@@ -2,13 +2,13 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.0.2] ??-Sep-2026  # FIX
+## [14.0.2] 16-Sep-2026
 
 ### Added
 
 - Added: The Find tab of 'Find/Replace' can now take a question in plain words, such as "every Profile that fires on wifi at home", and have the AI model selected on the Analyze tab turn it into a search.  Only the values your configuration's pulldowns offer are sent to the model, never the configuration itself, and the search it writes is put into the boxes and run as if you had picked it, so the answer stays exact and anything it could not use is listed.
 - Added: __Export__ in the Map and Diagram views which saves what the view shows as a Markdown, JSON or PDF file in the current directory, so it can be read, shared or processed without MapTasker.  The PDF's text stays searchable and bookmarks every object, and the Diagram keeps its exact alignment in all three formats.
-- Added:
+- Added: 'keyring' program  (installed automatically along with MapTasker) added to store and access passwords/API keys securely.
 
 ### Changed
 
@@ -18,22 +18,26 @@ All notable changes to this project will be documented in this file!
 - Changed: Plugin actions now name their last two arguments 'Timeout (Seconds)' and 'Structure Output (JSON, etc)' and treat them as a number and an on/off setting, matching how Tasker stores them.  As a result, the Map now shows a plugin action's timeout and Structure Output setting, which were previously left out, and the Task editor and 'Replace this argument' pulldown offer them under those names.
 - Changed: Your Android device is now asked to approve MapTasker's connection once, and that approval serves 'Save To Android', 'Import Into Tasker' and fetches from the device alike for the rest of the session.  Before, saving a Task kept its approval separate from the others, so the device could ask again for an approval it had already given.
 - Changed: MapTasker now starts at Display Detail Level 5 when there are no saved settings, the same level 'Reset Options' goes back to.  Before, a first run started at 4 while 'Reset Options' set 5, so resetting changed how much detail was shown.
-- Changed:
+- Changed: An action's chained 'If' conditions are now shown with parentheses that group them the way Tasker evaluates them, including the high-precedence And+ and Or+ joins.  Before, 'And2' and 'Or2' appeared as-is, and a mix of And and Or gave no hint that Tasker groups Or more tightly than And.
+- Changed: Code optimization for better reliability.
 
 ### Removed
 
 - Removed: MapTasker no longer keeps the hidden '.MapTasker_Settings.pkl' file in its working folder, which never held any settings and, as a Python pickle file, could run code planted in it when loaded.  A leftover one is deleted, without being opened, the next time settings are saved.
-- Removed:
 
 ### Fixed
 
 - Fixed: The 'Find/Replace' panel that stays at the right of the screen after you click a match can now be scrolled.  The rest of the matches and the buttons below them were being cut off with no way to reach them.
 - Fixed: Clearing an API key in 'Show/Edit API Key(s)' and selecting 'Ok' now removes the saved key.  Before, the cleared key came back the next time it was needed, and 'Cancel' did not undo the clear.
 - Fixed: The window no longer freezes while 'Save To Android' or 'Import Into Tasker' checks the device and sends a Task, Profile, Project or Scene, or while a backup file picked on the device is checked.  Those requests can take many seconds, and every button, tab and message now keeps responding while they run.
-- Fixed: MapTasker no longer stops at startup with 'RuntimeError: There is no current event loop in thread 'MainThread'' when run with Python 3.14.
+- Fixed: Windows 11 bug - MapTasker no longer stops at startup with 'RuntimeError: There is no current event loop in thread 'MainThread'' when run with Python 3.14.
 - Fixed: Tamil is now spelled correctly in the language list, where it appeared as 'Tamali'.  If you had chosen it, your saved choice carries over instead of reverting to English.
 - Fixed: The daily check for a newer version of MapTasker no longer holds up the window while it waits for PyPI, and gives up after five seconds when PyPI does not answer.  The upgrade buttons appear as soon as the answer arrives.
-- Fixed:
+- Fixed: 'Get XML From Android Device', 'Save To Android', 'Import Into Tasker' and 'Fetch Applications' now always open with the last TCP/IP address and port you entered, including in later sessions.  Before, the address was lost whenever a local XML file was loaded or MapTasker was closed without using 'Exit'.
+- Fixed: 'Save To Android' and 'Import Into Tasker' no longer report "Could not check which Tasks Tasker already has: ... Connection error!" for a device that is working.  The check now asks Tasker only about the Tasks being sent, which answers at once instead of taking several seconds on a large configuration.
+- Fixed: 'Save To Android', 'Import Into Tasker' and other requests to the Android device no longer fail at random with "Connection error!".  MapTasker was reusing connections that Tasker's HTTP server had already closed, and now opens a fresh one for every request.
+- Fixed: Backups written by newer Tasker versions (such as 6.7.6-beta), which leave out the spaces between XML attributes, no longer get rejected as 'Invalid XML' and now load normally.
+- Fixed: Program error 'list index out of range' when loading a backup if an action has three or more 'If' conditions and Tasker saved their And/Or joins after the last condition.
 
 ### Known Issues
 

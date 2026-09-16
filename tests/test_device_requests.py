@@ -313,6 +313,7 @@ class _Session:
     def __init__(self, transport: "_Transport") -> None:
         self.transport = transport
         self.closed = False
+        self.closes = 0
 
     def get(self, url: str, **_kwargs: object) -> SimpleNamespace:
         self.transport.sent.append(("session", url))
@@ -320,6 +321,7 @@ class _Session:
 
     def close(self) -> None:
         self.closed = True
+        self.closes += 1
 
 
 class _Transport:
@@ -405,6 +407,19 @@ def test_a_decorated_function_is_one_exchange_with_the_device_it_is_given(transp
     assert _ways(transport) == ["session", "session"]
 
 
+def test_an_exchange_never_sends_a_request_down_a_used_connection(transport: _Transport) -> None:
+    """Tasker's server drops the connection after every response without saying so, and the next
+    request down it fails with 'Connection reset by peer' -- which is how an api/import after the
+    file write reported a connection error.  Each request's connection is closed once answered."""
+    with maputil2.DeviceClient("192.168.0.210", "1821"):
+        _read()
+        _read()
+        _read()
+
+    assert _ways(transport) == ["session"] * 3
+    assert transport.sessions[0].closes >= 3
+
+
 def test_only_a_function_that_names_its_device_can_be_an_exchange() -> None:
     """Without an ip_address and an ip_port there is no device to hold a connection to."""
     with pytest.raises(TypeError, match="names no device"):
@@ -435,6 +450,7 @@ def test_an_exchange_belongs_to_the_thread_running_it(transport: _Transport) -> 
         "deviceinv.import_profile_to_device",
         "deviceinv.offer_to_tasker",
         "deviceinv.open_tasker_on_device",
+        "deviceinv.task_names_on_device",
         "taskedit.save_task_to_android",
         "taskedit.save_task_to_android_directory",
         "editcommon.EditorKind.upload_and_verify",
@@ -447,3 +463,26 @@ def test_each_exchange_with_a_device_holds_one_connection(function: str) -> None
     for part in attribute.split("."):
         target = getattr(target, part)
     assert hasattr(target, "__wrapped__"), f"{function} is not wrapped by maputil2.over_one_connection"
+
+
+@pytest.mark.parametrize(
+    ("names", "query"),
+    [
+        (["WhatsApp Notification"], "?name=WhatsApp%20Notification"),
+        (["$NewTask"], "?name=%24NewTask"),
+        # quote() leaves '/' alone, and the server's name match stops at it.
+        (["CHECK / READ"], "?name=CHECK%20%2F%20READ"),
+        (["Sonos & Off"], "?name=Sonos%20%26%20Off"),
+        (["拼图🧩"], "?name=%E6%8B%BC%E5%9B%BE%F0%9F%A7%A9"),
+        (["a_b-c", "Two"], "?name=a_b-c&name=Two"),
+    ],
+)
+def test_a_tasker_name_filter_carries_every_character_the_server_can_match(names: list[str], query: str) -> None:
+    """Only [A-Za-z0-9_-] goes as itself; the server's handler matches [\\w%+-]+ and decodes afterwards."""
+    assert maputil2.tasker_name_query(names) == query
+
+
+@pytest.mark.parametrize("name", ["Updater - .check", "home~dir"])
+def test_a_name_with_a_dot_or_tilde_cannot_be_filtered_on(name: str) -> None:
+    """The server decodes '%2E' and '%7E' before matching, so the filter would ask about a shorter name."""
+    assert maputil2.tasker_name_query(["Fine", name]) is None

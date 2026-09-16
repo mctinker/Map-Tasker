@@ -27,9 +27,11 @@ from nicegui import context, run, ui
 from maptasker.src import deviceinv, presave, profedit, projedit, roundtrip, sceneedit, taskedit
 from maptasker.src.getbakup import validate_xml_file
 from maptasker.src.guiutils import (
+    android_address_defaults,
     clear_android_buttons,
     notify_watch_android_device,
     ping_android_device,
+    remember_android_address,
     update_tasker_object_menus,
 )
 from maptasker.src.guiwins import (
@@ -301,11 +303,7 @@ class AndroidEventHandlers:
         gui.android_container.classes(remove="hidden")
 
         # 2. Extract Fallback Default Values
-        android_ipaddr = (
-            "192.168.0.210" if gui.android_ipaddr == "" or gui.android_ipaddr is None else gui.android_ipaddr
-        )
-
-        android_port = "1821" if gui.android_port == "" or gui.android_port is None else gui.android_port
+        android_ipaddr, android_port = android_address_defaults(gui)
 
         if gui.android_file == "" or gui.android_file is None:
             android_file = "/Tasker/configs/user/backup.xml".replace("/", PrimeItems.slash)
@@ -437,6 +435,7 @@ class AndroidEventHandlers:
         ip_address = self.gui.ip_entry.value if hasattr(self.gui, "ip_entry") and self.gui.ip_entry else ""
         ip_port = self.gui.port_entry.value if hasattr(self.gui, "port_entry") and self.gui.port_entry else ""
         ip_address, ip_port = ip_address.strip(), ip_port.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
 
         if not await ping_android_device(self.gui, ip_address, ip_port):
             return
@@ -498,6 +497,7 @@ class AndroidEventHandlers:
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
 
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
@@ -701,6 +701,7 @@ class AndroidEventHandlers:
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
 
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
@@ -823,6 +824,7 @@ class AndroidEventHandlers:
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
 
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
@@ -930,6 +932,7 @@ class AndroidEventHandlers:
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
 
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
@@ -1144,6 +1147,7 @@ class AndroidEventHandlers:
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
 
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
@@ -1489,6 +1493,7 @@ class AndroidEventHandlers:
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
 
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
@@ -1561,6 +1566,7 @@ class AndroidEventHandlers:
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
 
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
@@ -1635,6 +1641,7 @@ class AndroidEventHandlers:
 
         ip_address = android_field_refs["ip_address"].value.strip()
         ip_port = android_field_refs["ip_port"].value.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
 
         # The panel's "Verify" checkbox, answered before the device is touched at all:
         # a document that cannot be read back unchanged is refused here rather than
@@ -1732,6 +1739,10 @@ class AndroidEventHandlers:
             if error_msg:
                 gui.display_message_box(error_msg, "Red")
                 return
+
+        # Kept whether or not the device answers: the next try, in this session or the next,
+        # should start from what was typed rather than from the default.
+        remember_android_address(gui, android_ipaddr, android_port)
 
         # --- Await the async ping function ---
         if not await ping_android_device(gui, android_ipaddr, android_port):

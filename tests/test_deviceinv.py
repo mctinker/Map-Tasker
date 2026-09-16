@@ -3048,8 +3048,8 @@ class _FakeTasker(_SessionOfItself):
         if "/api/auth" in url:
             return _FakeResponse(200, b'{"key": "TESTKEY", "authorized": true}')
         if "/api/tasks" in url:
-            if asked:  # a helper's is-it-installed check
-                listed = [name for name in asked if name in self.installed]
+            if asked:  # just the Tasks named -- a helper's is-it-installed check, or what a save sends
+                listed = [name for name in asked if name in self.installed or name in self.tasks]
             else:  # the whole Task list
                 listed = self.tasks
             return _FakeResponse(200, json.dumps([{"name": name, "running": False} for name in listed]).encode())
@@ -3168,6 +3168,50 @@ def test_an_endpoint_that_cannot_answer_does_not_stop_the_others(tasker_device: 
     assert "Profile" in check.unchecked
     assert "Profile" not in check.present
     assert check.present["Task"] == ["Test1"]
+
+
+def test_tasks_are_asked_about_by_name_not_by_reading_the_whole_list(tasker_device: _FakeTasker) -> None:
+    """The whole list makes the device look up every Task it has before it answers -- seconds, and
+    past the read timeout on a busy phone, which is what reported a connection error on a device
+    that was fine.  The names being sent go in the filter instead, all in one request."""
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Test1", "$New Task/2"]})
+
+    assert check.unchecked == {}
+    assert check.present == {"Task": ["Test1"]}
+    task_gets = [urlparse(url) for verb, url in tasker_device.calls if verb == "GET" and "/api/tasks" in url]
+    assert len(task_gets) == 1
+    assert parse_qs(task_gets[0].query)["name"] == ["Test1", "$New Task/2"]
+
+
+def test_a_task_name_the_filter_cannot_carry_reads_the_whole_list(tasker_device: _FakeTasker) -> None:
+    """The server turns '%2E' back into '.' before its name match, which then stops at it -- so a
+    name with a dot is looked for in the full list, where it is still found."""
+    tasker_device.tasks = ["Updater - .check Connection"]
+
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Updater - .check Connection"]})
+
+    assert check.present == {"Task": ["Updater - .check Connection"]}
+    task_gets = [urlparse(url) for verb, url in tasker_device.calls if verb == "GET" and "/api/tasks" in url]
+    assert [url.query for url in task_gets] == [""]
+
+
+def test_the_whole_task_list_is_given_time_to_arrive(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Measured at 4.5 seconds for ~500 Tasks on an idle phone: the ordinary 5-second read timeout
+    is not enough for it."""
+    from maptasker.src import maputil2
+
+    timeouts: list = []
+
+    def fake_http_request(*_args: object, **kwargs: object) -> tuple[int, bytes]:
+        timeouts.append(kwargs.get("timeout"))
+        return 0, b"[]"
+
+    monkeypatch.setattr(deviceinv, "http_request", fake_http_request)
+    monkeypatch.setattr(deviceinv, "auth_key_for", lambda *_args: (0, "KEY"))
+
+    deviceinv.fetch_task_names_from_device("192.168.0.210", "1821")
+
+    assert timeouts == [maputil2.LIST_READ_TIMEOUT_SECONDS]
 
 
 def test_nothing_named_asks_the_device_nothing(tasker_device: _FakeTasker) -> None:

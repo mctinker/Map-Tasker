@@ -33,6 +33,7 @@ from maptasker.src.actiont import lookup_values
 from maptasker.src.appinv import AppEntry, _store_fetched_apps
 from maptasker.src.editcommon import sanitize_filename
 from maptasker.src.maputil2 import (
+    LIST_READ_TIMEOUT_SECONDS,
     auth_key_for,
     device_address,
     held_auth_key,
@@ -42,6 +43,7 @@ from maptasker.src.maputil2 import (
     over_one_connection,
     request_with_auth_key,
     spaced_attempts,
+    tasker_name_query,
 )
 from maptasker.src.sysconst import logger
 
@@ -2400,6 +2402,9 @@ def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, st
     JSON array of {"name":..., "running":...} that verify_names_on_android reads a filtered
     version of.
 
+    Slow, because the handler looks every Task up one at a time before it answers -- see
+    maputil2.LIST_READ_TIMEOUT_SECONDS.  To ask about particular Tasks, task_names_on_device.
+
     Blocking, like every other call here; a caller on the GUI thread must use run.io_bound.
     """
 
@@ -2412,7 +2417,48 @@ def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, st
     if return_code != 0:
         return return_code, auth_key, []
 
-    return_code, response = http_request(ip_address, ip_port, "", TASKS_ENDPOINT, "", auth_key)
+    return_code, response = http_request(
+        ip_address,
+        ip_port,
+        "",
+        TASKS_ENDPOINT,
+        "",
+        auth_key,
+        timeout=LIST_READ_TIMEOUT_SECONDS,
+    )
+    if return_code != 0:
+        return return_code, str(response), []
+
+    try:
+        reported = json.loads(response)
+    except (ValueError, TypeError):
+        return 8, "The device's Task list was not readable as JSON.", []
+    if not isinstance(reported, list):
+        return 8, "The device's Task list was not the list of Tasks it should be.", []
+
+    return 0, "", [entry.get("name", "") for entry in reported if isinstance(entry, dict)]
+
+
+@over_one_connection
+def task_names_on_device(ip_address: str, ip_port: str, names: list[str]) -> tuple[int, str, list[str]]:
+    """Which of these Task names Tasker has.  (0, "", names_found) or (return_code, message, []).
+
+    One GET api/tasks?name=...&name=..., which the handler answers from just those Tasks, in a
+    fraction of a second.  Only when a name cannot go in the filter (see
+    maputil2.tasker_name_query) does it read the whole list instead, which takes seconds.
+    """
+    names = [name for name in names if name]
+    query = tasker_name_query(names) if names else ""
+    if query is None:
+        return fetch_task_names_from_device(ip_address, ip_port)
+    if not names:
+        return 0, "", []
+
+    return_code, auth_key = auth_key_for(ip_address.strip(), ip_port.strip())
+    if return_code != 0:
+        return return_code, auth_key, []
+
+    return_code, response = http_request(ip_address.strip(), ip_port.strip(), "", TASKS_ENDPOINT, query, auth_key)
     if return_code != 0:
         return return_code, str(response), []
 
@@ -2455,9 +2501,12 @@ def stale_helper_tasks_on_device(ip_address: str, ip_port: str) -> tuple[int, st
 # different object cannot be seen from here.  Unnamed Profiles and Tasks have nothing to ask
 # about and are left out rather than guessed at.
 #
-# Tasks are read as the WHOLE list (fetch_task_names_from_device) and matched here: api/profiles
-# and api/scenes document 'name' as repeatable, the Task handler does not, and one unfiltered
-# request answers any number of names.
+# Tasks are asked about BY NAME too (task_names_on_device).  They used to be read as the whole
+# list and matched here, but the handler looks up every Task in Tasker before answering that --
+# seconds on a large configuration, and past the read timeout whenever the phone was busy, which
+# failed the check with a connection error on a device that was fine.  Its 'name=' filter takes
+# repeated names like the Profile and Scene ones do (checked against a real device), and answers
+# at once.
 #
 # PROJECTS HAVE NO ENDPOINT.  Tasker's own 'Test Tasker' action does have a Projects type, so a
 # helper Task asks it and writes the answer where the 'file' route can read it -- the exchange the
@@ -2747,7 +2796,7 @@ def check_tasker_for_existing(ip_address: str, ip_port: str, sent: dict[str, lis
             else:
                 present[kind] = _found_in(names, found)
             continue
-        return_code, message, reported = fetch_task_names_from_device(ip_address, ip_port)
+        return_code, message, reported = task_names_on_device(ip_address, ip_port, names)
         if return_code != 0:
             unchecked[kind] = message
         else:

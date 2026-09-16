@@ -230,6 +230,41 @@ _READ_TIMEOUT_SECONDS = 5
 _AUTH_TIMEOUT_SECONDS = 8
 _WRITE_TIMEOUT_SECONDS = 15
 _DELETE_TIMEOUT_SECONDS = 10
+# A request Tasker answers by working through its whole configuration -- GET api/tasks with no
+# name, which looks up every Task one by one.  Measured at 4.5 seconds for ~500 Tasks on an
+# idle phone, and past 5 whenever the phone is still busy with the request before it, so the
+# ordinary read timeout failed it on devices that were answering perfectly well.  Thirty is
+# the HTTP Server Example's own limit for answering a request.
+LIST_READ_TIMEOUT_SECONDS = 30
+
+# What Tasker's HTTP Server Example lets through in a 'name=' filter.  Its handlers pick the
+# names out of the request path with (?:\?|&)name=([\w%+-]+) and URL-decode them afterwards, so
+# every other character has to arrive percent-encoded -- which works for all of them except
+# '.' and '~': those are unreserved, the server turns '%2E' and '%7E' back into the plain
+# character before the handler sees the path, and the match then stops short at it.  A name
+# holding either cannot be asked about by name at all.
+_NAME_FILTER_LITERALS = re.compile(r"[A-Za-z0-9_-]")
+_NAME_FILTER_UNSENDABLE = frozenset(".~")
+
+
+def tasker_name_query(names: list[str]) -> str | None:
+    """'?name=...&name=...' for asking a Tasker endpoint about these names, or None if one can't be sent.
+
+    Every character outside [A-Za-z0-9_-] goes as its UTF-8 bytes percent-encoded, spaces
+    included -- urllib's quote leaves '/' alone, which ends the server's match early.  None
+    when any name holds '.' or '~' (see _NAME_FILTER_UNSENDABLE): the caller has to read the
+    whole list instead, since a filtered answer would be about a different, shorter name.
+    """
+    if any(_NAME_FILTER_UNSENDABLE.intersection(name) for name in names):
+        return None
+
+    def encode(name: str) -> str:
+        return "".join(
+            char if _NAME_FILTER_LITERALS.fullmatch(char) else "".join(f"%{byte:02X}" for byte in char.encode())
+            for char in name
+        )
+
+    return "?" + "&".join(f"name={encode(name)}" for name in names)
 
 
 def _device_url(ip_address: str, ip_port: str, path: str) -> str:
@@ -253,13 +288,13 @@ def _auth_headers(auth_key: str = "", content_type: str = "") -> dict[str, str] 
 
 
 class DeviceClient:
-    """One exchange with one Android device, over one connection.
+    """One exchange with one Android device, over one session.
 
     Entered around a whole exchange -- a fetch, a save, an import -- so that every request inside
-    it, however deep in the call it is made, goes through one requests.Session: one connection to
-    the device, kept open and reused, instead of a new one for each of the many requests such an
-    exchange makes (a poll alone can run to dozens).  Requests made outside any exchange, or to a
-    different device, are made exactly as before, a connection each.
+    it, however deep in the call it is made, goes through one requests.Session.  The session's
+    connection is NOT kept between requests: Tasker's HTTP server drops it after every response,
+    so _device_call closes it each time rather than send the next request down a dead one.
+    Requests made outside any exchange, or to a different device, are made exactly as before.
 
     The session lives only from entering to leaving and is closed on the way out, error or not, so
     nothing is left open between exchanges for a device to drop.  Entering again for the same device
@@ -349,7 +384,19 @@ def _device_call(
     sender = client.session if client is not None and url.startswith(client.base_url) else requests
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
-            response = getattr(sender, method)(url, **request_arguments)
+            try:
+                response = getattr(sender, method)(url, **request_arguments)
+            finally:
+                # Never reuse the connection.  Tasker's HTTP server closes it after every
+                # response without saying so (no 'Connection: close'), and a request sent down
+                # it anyway fails at once with 'Connection reset by peer' -- measured on a
+                # real device, every other request in a row did.  A GET here was often rescued
+                # by a retry further up; the api/import POST was not, and reported a
+                # connection error for a device that was fine.  The response has already been
+                # read in full, so closing now loses nothing; the session opens a fresh
+                # connection for the exchange's next request.
+                if sender is not requests:
+                    sender.close()
         except InvalidSchema:
             error_message, retryable = f"Request failed for url: {url} .  Invalid url!", False
         except ConnectionError:
@@ -394,6 +441,7 @@ def http_request(
     request_name: str,
     request_parm: str,
     auth_key: str = "",
+    timeout: float = _READ_TIMEOUT_SECONDS,
 ) -> tuple[int, object]:
     """
     Issue HTTP Request to get the backup XML file from the Android device.
@@ -404,6 +452,8 @@ def http_request(
         :param auth_key: API key from get_android_auth_key(), sent as the raw
         'Authorization' header value (no "Bearer " prefix) -- required by the
         newer 'api/*' endpoints (e.g. api/tasks), unused by the plain 'file' one
+        :param timeout: seconds to wait for the answer -- LIST_READ_TIMEOUT_SECONDS for a
+        request the device answers by going through its whole configuration
         :return: return code, response: eitherr text string with error message or the
         contents of the backup file
     """
@@ -413,7 +463,7 @@ def http_request(
         "get",
         url,
         headers=_auth_headers(auth_key),
-        timeout=_READ_TIMEOUT_SECONDS,
+        timeout=timeout,
         unreachable="Unable to get XML from Android device.",
         timed_out="  Check that the Tasker 'HTTP Server Example' project is installed and running on the Android device.",
     )

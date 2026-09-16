@@ -115,6 +115,8 @@ class RunConfig:
     android_file: str = ANDROID_FILE  # File location on the Android device
     android_ipaddr: str = ANDROID_IPADDR  # IP address of the Android device
     android_port: str = ANDROID_PORT  # Port of the Android device
+    android_last_ipaddr: str = ""  # IP address last entered in any Android dialog
+    android_last_port: str = ""  # Port last entered in any Android dialog
     android_check_ids: bool = False  # Save To Android: check IDs against a fresh device backup first
     android_verify: bool = False  # Save To Android: read the XML back before sending it
     fetched_backup_from_android: bool = False  # XML came off an Android device

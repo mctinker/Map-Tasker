@@ -44,11 +44,6 @@ _SECTION_HEADINGS = {
 
 _REPORT_WIDTH = 78
 
-# How many detail lines one entry may print before the rest is summarised.  A Task with
-# forty rewritten actions would otherwise bury every other entry; the number left out is
-# still shown, so nothing is dropped silently.
-_MAX_DETAILS = 12
-
 # Timestamps, not content.  Tasker rewrites these on every save, so counting them would
 # report every object in the file as changed and make the whole feature useless.
 _VOLATILE_TAGS = frozenset({"cdate", "mdate", "edate"})
@@ -774,8 +769,6 @@ def _compare_one(kind: str, older: _Side, newer: _Side, key: str, entries: list[
     # twice: once as the rename, and once as a change with nothing to say.
     if not details and old_name != new_name:
         return
-    if len(details) > _MAX_DETAILS:
-        details = [*details[:_MAX_DETAILS], f"...and {len(details) - _MAX_DETAILS} more differences."]
     entries.append(Entry(kind, CHANGED, where, details or ["Changed."]))
 
 

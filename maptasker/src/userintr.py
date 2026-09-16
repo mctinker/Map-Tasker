@@ -279,6 +279,8 @@ class MyGui:
         self.android_ipaddr = ""
         self.android_port = ""
         self.android_file = ""
+        self.android_last_ipaddr = ""
+        self.android_last_port = ""
         self.color_lookup = {}  # Setup default dictionary as empty list
         self.saved_background_color = "#3e1414"
         self.font = OUTPUT_FONT
@@ -830,6 +832,9 @@ class MyGui:
             # guiwins._android_device_fields.
             "android_check_ids",
             "android_verify",
+            # Only read when an Android dialog opens -- see guiutils.android_address_defaults.
+            "android_last_ipaddr",
+            "android_last_port",
         }
         # Define what to do for each argument restored.
         set_to = translate_string("set to")

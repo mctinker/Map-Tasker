@@ -34,7 +34,14 @@ from maptasker.src.actiont import lookup_values
 from maptasker.src.bundle import bundles
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.editcommon import touch_project_mdate
-from maptasker.src.maputil2 import http_post_request, http_request, over_one_connection, request_with_auth_key
+from maptasker.src.maputil2 import (
+    LIST_READ_TIMEOUT_SECONDS,
+    http_post_request,
+    http_request,
+    over_one_connection,
+    request_with_auth_key,
+    tasker_name_query,
+)
 from maptasker.src.presave import backup_local_file
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.shelsort import shell_sort
@@ -2227,16 +2234,17 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
     Returns True if the GET succeeded and returned at least one Task named
     task_name, False otherwise.
     """
-    # Lazy import to avoid a circular-import error (mirrors getbakup.get_backup_file()).
-    from urllib.parse import quote  # noqa: PLC0415
-
+    # A name the filter cannot carry (see maputil2.tasker_name_query) is looked for in the
+    # whole list, which the device takes seconds to produce.
+    query = tasker_name_query([task_name])
     return_code, response = http_request(
         ip_address.strip(),
         ip_port.strip(),
         "",
         "api/tasks",
-        f"?name={quote(task_name)}",
+        query or "",
         auth_key,
+        **({} if query else {"timeout": LIST_READ_TIMEOUT_SECONDS}),
     )
     if return_code != 0:
         return False

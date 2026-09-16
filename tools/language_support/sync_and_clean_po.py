@@ -135,7 +135,7 @@ def source_strings() -> set[str]:
         try:
             tree = ast.parse(py_file.read_text(encoding="utf-8"))
         except SyntaxError as e:
-            print(f"[Skipping] {py_file.name} does not parse: {e}")
+            print(f"[Skipping] {py_file.name} does not parse: {e}")  # noqa: T201
             continue
 
         for node in ast.walk(tree):
@@ -195,6 +195,7 @@ def escape_po(text: str) -> str:
 
 
 def get_key_by_value(dictionary: dict, target_value: str) -> str | None:
+    # sourcery skip: use-next
     """Returns the first key that matches target_value, or None if not found."""
     for key, value in dictionary.items():
         if value == target_value:
@@ -204,7 +205,7 @@ def get_key_by_value(dictionary: dict, target_value: str) -> str | None:
 
 def ai_translate(target_lang: str, text: str) -> str | None:
     """Translate text with the local Ollama chat model.  Returns None if it fails."""
-    print("Using AI translator (Ollama) for translation:", text)
+    print("Using AI translator (Ollama) for translation:", text)  # noqa: T201
 
     # Try the target_lang directly, or try converting hyphen to underscore as fallback
     target_lang_name = (
@@ -230,11 +231,11 @@ def ai_translate(target_lang: str, text: str) -> str | None:
         elif isinstance(response, dict):
             translated_text = response.get("message", {}).get("content", "").strip()
 
-        print("      AI translation:", translated_text)
+        print("      AI translation:", translated_text)  # noqa: T201
         return translated_text if translated_text else None
 
     except Exception as e:  # noqa: BLE001
-        print(f"    [AI Error] Ollama chat failed: {e}")
+        print(f"    [AI Error] Ollama chat failed: {e}")  # noqa: T201
         return None
 
 
