@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file!
 
-## [14.0.2] 16-Sep-2026
+## [14.0.2-14.0.3] 17-Sep-2026
 
 ### Added
 
@@ -34,9 +34,9 @@ All notable changes to this project will be documented in this file!
 - Fixed: Tamil is now spelled correctly in the language list, where it appeared as 'Tamali'.  If you had chosen it, your saved choice carries over instead of reverting to English.
 - Fixed: The daily check for a newer version of MapTasker no longer holds up the window while it waits for PyPI, and gives up after five seconds when PyPI does not answer.  The upgrade buttons appear as soon as the answer arrives.
 - Fixed: 'Get XML From Android Device', 'Save To Android', 'Import Into Tasker' and 'Fetch Applications' now always open with the last TCP/IP address and port you entered, including in later sessions.  Before, the address was lost whenever a local XML file was loaded or MapTasker was closed without using 'Exit'.
-- Fixed: 'Save To Android' and 'Import Into Tasker' no longer report "Could not check which Tasks Tasker already has: ... Connection error!" for a device that is working.  The check now asks Tasker only about the Tasks being sent, which answers at once instead of taking several seconds on a large configuration.
+- Fixed: 'Save To Android' and 'Import Into Tasker' no longer report "Could not check which Tasks Tasker already has: ... Connection error!" for a device that is working.
 - Fixed: 'Save To Android', 'Import Into Tasker' and other requests to the Android device no longer fail at random with "Connection error!".  MapTasker was reusing connections that Tasker's HTTP server had already closed, and now opens a fresh one for every request.
-- Fixed: The 'Report Issue' button no longer fails with "can only concatenate str (not "tuple") to str".  It now opens MapTasker's GitHub issues page and explains what to do there.
+- Fixed: The 'Report Issue' button no longer fails with "can only concatenate str (not "tuple") to str".
 - Fixed: Backups written by newer Tasker versions (such as 6.7.6-beta), which leave out the spaces between XML attributes, no longer get rejected as 'Invalid XML' and now load normally.
 - Fixed: Program error 'list index out of range' when loading a backup if an action has three or more 'If' conditions and Tasker saved their And/Or joins after the last condition.
 
