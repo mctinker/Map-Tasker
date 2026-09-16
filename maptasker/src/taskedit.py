@@ -38,7 +38,6 @@ from maptasker.src.maputil2 import (
     LIST_READ_TIMEOUT_SECONDS,
     http_post_request,
     http_request,
-    over_one_connection,
     request_with_auth_key,
     tasker_name_query,
 )
@@ -2095,7 +2094,6 @@ def write_standalone_task_xml(edited_task: EditableTask, output_path: str, *, re
     return safety_copy
 
 
-@over_one_connection
 def save_task_to_android(
     edited_task: EditableTask,
     ip_address: str,
@@ -2259,7 +2257,6 @@ def verify_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_k
     return any(task.get("name") == task_name for task in tasks)
 
 
-@over_one_connection
 def save_task_to_android_directory(
     edited_task: EditableTask,
     ip_address: str,

@@ -270,6 +270,23 @@ def test_font_extraction_handles_fallback_stacks(font_extractor, css, expected):
 # ==========================================
 # 2. SYNCHRONOUS ROUTINE HANDLERS
 # ==========================================
+def test_report_issue_opens_the_issues_page_and_says_what_to_do(event_handler, mock_gui_instance, monkeypatch):
+    """The message is one string -- a stray trailing comma once made half of it a tuple, and
+    the button raised TypeError instead of saying anything."""
+    from maptasker.src import userintr  # noqa: PLC0415
+
+    opened = []
+    monkeypatch.setattr(userintr.webbrowser, "open", lambda url, new=0: opened.append(url))
+
+    event_handler.report_issue_event()
+
+    assert opened == ["https://github.com/mctinker/Map-Tasker/issues"]
+    [(message, color)] = [call.args for call in mock_gui_instance.display_message_box.call_args_list]
+    assert isinstance(message, str)
+    assert "create a new issue" in message
+    assert color == "Green"
+
+
 def test_detail_selected_event(event_handler, mock_gui_instance):
     """Verifies display level modifications and UI state synchronization filters."""
     mock_event = MagicMock()

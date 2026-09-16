@@ -1991,15 +1991,13 @@ class MapTaskerEventHandlers(
             - Uses the url variable to direct the user to the correct page on GitHub.
             - If the web browser is not supported, a message box is displayed.
             - If the web browser is supported, a message box is displayed with instructions for creating a new issue."""
-        url = "//github.com/mctinker/Map-Tasker/issues"
-        issue_text = (
-            translate_string(
-                "Go to your browser and create a new issue or feature request, providing as much detail as possible.",
-            ),
+        url = "https://github.com/mctinker/Map-Tasker/issues"
+        issue_text = translate_string(
+            "Go to your browser and create a new issue or feature request, providing as much detail as possible.",
         )
         the_view = self.gui
         try:
-            webbrowser.open(f"https:{PrimeItems.slash * 2}{url}", new=2)
+            webbrowser.open(url, new=2)
         except webbrowser.Error:
             the_view.display_message_box(
                 translate_string("Error: Failed to open output in browser: your browser is not supported."),

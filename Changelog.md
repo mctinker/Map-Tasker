@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: 'Get XML From Android Device', 'Save To Android', 'Import Into Tasker' and 'Fetch Applications' now always open with the last TCP/IP address and port you entered, including in later sessions.  Before, the address was lost whenever a local XML file was loaded or MapTasker was closed without using 'Exit'.
 - Fixed: 'Save To Android' and 'Import Into Tasker' no longer report "Could not check which Tasks Tasker already has: ... Connection error!" for a device that is working.  The check now asks Tasker only about the Tasks being sent, which answers at once instead of taking several seconds on a large configuration.
 - Fixed: 'Save To Android', 'Import Into Tasker' and other requests to the Android device no longer fail at random with "Connection error!".  MapTasker was reusing connections that Tasker's HTTP server had already closed, and now opens a fresh one for every request.
+- Fixed: The 'Report Issue' button no longer fails with "can only concatenate str (not "tuple") to str".  It now opens MapTasker's GitHub issues page and explains what to do there.
 - Fixed: Backups written by newer Tasker versions (such as 6.7.6-beta), which leave out the spaces between XML attributes, no longer get rejected as 'Invalid XML' and now load normally.
 - Fixed: Program error 'list index out of range' when loading a backup if an action has three or more 'If' conditions and Tasker saved their And/Or joins after the last condition.
 

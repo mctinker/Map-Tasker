@@ -8,7 +8,6 @@ import error.
 
 import asyncio
 import copy
-import inspect
 import os
 import re
 import sys
@@ -18,10 +17,8 @@ import traceback
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
-from contextvars import ContextVar, Token
 from datetime import datetime
-from functools import lru_cache, wraps
-from typing import Self, TypeVar
+from functools import lru_cache
 
 import requests
 from requests.exceptions import ConnectionError, InvalidSchema, RequestException, Timeout
@@ -287,73 +284,6 @@ def _auth_headers(auth_key: str = "", content_type: str = "") -> dict[str, str] 
     return headers or None
 
 
-class DeviceClient:
-    """One exchange with one Android device, over one session.
-
-    Entered around a whole exchange -- a fetch, a save, an import -- so that every request inside
-    it, however deep in the call it is made, goes through one requests.Session.  The session's
-    connection is NOT kept between requests: Tasker's HTTP server drops it after every response,
-    so _device_call closes it each time rather than send the next request down a dead one.
-    Requests made outside any exchange, or to a different device, are made exactly as before.
-
-    The session lives only from entering to leaving and is closed on the way out, error or not, so
-    nothing is left open between exchanges for a device to drop.  Entering again for the same device
-    inside an exchange changes nothing: the outer connection carries on.  An exchange is seen only
-    by the thread running it, so each worker run.io_bound hands one to has its own.
-    """
-
-    def __init__(self, ip_address: str, ip_port: str) -> None:
-        """The device at ip_address:ip_port, with no connection to it until the exchange is entered."""
-        self.base_url = _device_url(ip_address.strip(), ip_port.strip(), "")
-        self.session: requests.Session | None = None
-        self._token: Token | None = None
-
-    def __enter__(self) -> Self:
-        """Open the connection and make this the running exchange -- or carry on the outer one for this device."""
-        outer = _active_client.get()
-        if outer is not None and outer.base_url == self.base_url:
-            return outer
-        self.session = requests.Session()
-        self._token = _active_client.set(self)
-        return self
-
-    def __exit__(self, *_exc_info: object) -> None:
-        """Close the connection and end the exchange; an exchange that only carried on the outer one leaves it be."""
-        if self._token is None:
-            return
-        _active_client.reset(self._token)
-        self._token = None
-        self.session.close()
-        self.session = None
-
-
-# The exchange with a device running in this context, if any -- see DeviceClient.  A context
-# variable rather than a module global, so that one thread's exchange is never another's.
-_active_client: ContextVar[DeviceClient | None] = ContextVar("device_client", default=None)
-
-_Result = TypeVar("_Result")
-
-
-def over_one_connection(function: Callable[..., _Result]) -> Callable[..., _Result]:
-    """Run each call of `function` as one exchange with the device it names (see DeviceClient).
-
-    For the functions that make many requests to one device -- polls, uploads read back, imports.
-    The device comes from the call's own ip_address and ip_port arguments, however they are passed.
-    """
-    signature = inspect.signature(function)
-    if not {"ip_address", "ip_port"} <= set(signature.parameters):
-        message = f"{function.__qualname__} names no device: it takes no ip_address and ip_port"
-        raise TypeError(message)
-
-    @wraps(function)
-    def exchange(*args: object, **kwargs: object) -> _Result:
-        arguments = signature.bind(*args, **kwargs).arguments
-        with DeviceClient(arguments["ip_address"], arguments["ip_port"]):
-            return function(*args, **kwargs)
-
-    return exchange
-
-
 def _device_call(
     method: str,
     url: str,
@@ -370,8 +300,7 @@ def _device_call(
     stays with the caller.
 
     `requests` is this module's global, looked up as the call is made, which is what lets a test
-    stand a fake device in for it; inside a DeviceClient's exchange with this device, its session is used
-    instead.  `unreachable` and `timed_out` finish the connection-error and
+    stand a fake device in for it.  `unreachable` and `timed_out` finish the connection-error and
     timeout messages with what the caller was doing.  `retryable` is False only for a malformed
     URL, which asking again will never fix.
 
@@ -379,24 +308,14 @@ def _device_call(
     status of 400 or more, so truth-testing it would send every HTTP error down the failure branch.
     """
     _warn_if_on_event_loop(url)
-    # Over the running exchange's connection when the request is to its device (see DeviceClient).
-    client = _active_client.get()
-    sender = client.session if client is not None and url.startswith(client.base_url) else requests
     with suppress_stdout():  # Suppress any errors (system IMK)
         try:
-            try:
-                response = getattr(sender, method)(url, **request_arguments)
-            finally:
-                # Never reuse the connection.  Tasker's HTTP server closes it after every
-                # response without saying so (no 'Connection: close'), and a request sent down
-                # it anyway fails at once with 'Connection reset by peer' -- measured on a
-                # real device, every other request in a row did.  A GET here was often rescued
-                # by a retry further up; the api/import POST was not, and reported a
-                # connection error for a device that was fine.  The response has already been
-                # read in full, so closing now loses nothing; the session opens a fresh
-                # connection for the exchange's next request.
-                if sender is not requests:
-                    sender.close()
+            # A new connection for every request, never a pooled requests.Session.  Tasker's HTTP
+            # server closes the connection after every response without saying so (no
+            # 'Connection: close'), and a request sent down a reused one fails at once with
+            # 'Connection reset by peer' -- measured on a real device, where it failed every
+            # other request and reported a connection error for a device that was fine.
+            response = getattr(requests, method)(url, **request_arguments)
         except InvalidSchema:
             error_message, retryable = f"Request failed for url: {url} .  Invalid url!", False
         except ConnectionError:

@@ -10,10 +10,8 @@ when it does not.  No device is involved: requests.get answers 404 at once.
 from __future__ import annotations
 
 import asyncio
-import importlib
 import json
 import logging
-import threading
 from types import SimpleNamespace
 
 import pytest
@@ -306,163 +304,31 @@ def test_the_held_key_is_read_without_asking_the_device(key_device: _KeyDevice) 
 
 
 # --------------------------------------------------------------------------------------
-# One connection per exchange.  A maputil2.DeviceClient carries every request to its device
-# over one requests.Session for as long as an exchange lasts, and closes it at the end.
+# A new connection for every request.  Tasker's HTTP server closes the connection after each
+# response without saying so, so nothing may send a request down one that was used before.
 # --------------------------------------------------------------------------------------
-class _Session:
-    def __init__(self, transport: "_Transport") -> None:
-        self.transport = transport
-        self.closed = False
-        self.closes = 0
-
-    def get(self, url: str, **_kwargs: object) -> SimpleNamespace:
-        self.transport.sent.append(("session", url))
-        return SimpleNamespace(status_code=404, content=b"")
-
-    def close(self) -> None:
-        self.closed = True
-        self.closes += 1
-
-
-class _Transport:
-    """A `requests` that records which way each request went: directly, or over a session."""
+class _Direct:
+    """A `requests` with no Session to offer: any attempt to pool connections fails loudly."""
 
     def __init__(self) -> None:
-        self.sent: list[tuple[str, str]] = []
-        self.sessions: list[_Session] = []
+        self.sent: list[str] = []
 
     def get(self, url: str, **_kwargs: object) -> SimpleNamespace:
-        self.sent.append(("direct", url))
+        self.sent.append(url)
         return SimpleNamespace(status_code=404, content=b"")
 
-    def Session(self) -> _Session:  # noqa: N802 -- stands in for requests.Session
-        session = _Session(self)
-        self.sessions.append(session)
-        return session
 
-
-@pytest.fixture
-def transport(monkeypatch: pytest.MonkeyPatch) -> _Transport:
-    fake = _Transport()
+def test_every_request_to_the_device_is_made_on_a_new_connection(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A reused connection failed every other request with 'Connection reset by peer' on a real
+    device -- the api/import after a file write among them."""
+    fake = _Direct()
     monkeypatch.setattr(maputil2, "requests", fake)
-    return fake
 
+    for _ in range(3):
+        maputil2.http_request("192.168.0.210", "1821", "/Tasker/x.xml", "file", "")
 
-def _read(ip_address: str = "192.168.0.210", ip_port: str = "1821") -> tuple:
-    return maputil2.http_request(ip_address, ip_port, "/Tasker/x.xml", "file", "")
-
-
-def _ways(transport: _Transport) -> list[str]:
-    return [way for way, _url in transport.sent]
-
-
-def test_inside_an_exchange_its_device_is_reached_over_one_session(transport: _Transport) -> None:
-    """Before and after, and for any other device, each request is made the way it always was."""
-    _read()
-    with maputil2.DeviceClient("192.168.0.210", "1821"):
-        _read()
-        _read()
-        _read("192.168.0.99")  # a different device
-    _read()
-
-    assert _ways(transport) == ["direct", "session", "session", "direct", "direct"]
-    assert len(transport.sessions) == 1
-    assert transport.sessions[0].closed
-
-
-def test_the_session_is_closed_even_when_the_exchange_fails(transport: _Transport) -> None:
-    """Nothing stays open for the device to drop, and nothing after it uses a closed session."""
-    with pytest.raises(RuntimeError), maputil2.DeviceClient("192.168.0.210", "1821"):
-        raise RuntimeError("the device went away")
-    _read()
-
-    assert transport.sessions[0].closed
-    assert _ways(transport) == ["direct"]
-
-
-def test_an_exchange_within_an_exchange_keeps_the_outer_connection(transport: _Transport) -> None:
-    """A save that uploads inside an import is still one exchange -- the address as typed, spaces and all."""
-    with maputil2.DeviceClient("192.168.0.210", "1821"):
-        with maputil2.DeviceClient(" 192.168.0.210 ", "1821"):
-            _read()
-        _read()
-
-    assert len(transport.sessions) == 1
-    assert _ways(transport) == ["session", "session"]
-
-
-def test_a_decorated_function_is_one_exchange_with_the_device_it_is_given(transport: _Transport) -> None:
-    """The device is read from the call, however its address and port are passed."""
-
-    @maputil2.over_one_connection
-    def read_twice(label: str, ip_address: str, ip_port: str) -> str:
-        _read(ip_address, ip_port)
-        _read(ip_address, ip_port)
-        return label
-
-    assert read_twice("done", ip_port="1821", ip_address="192.168.0.210") == "done"
-    assert read_twice.__name__ == "read_twice"
-    assert len(transport.sessions) == 1
-    assert transport.sessions[0].closed
-    assert _ways(transport) == ["session", "session"]
-
-
-def test_an_exchange_never_sends_a_request_down_a_used_connection(transport: _Transport) -> None:
-    """Tasker's server drops the connection after every response without saying so, and the next
-    request down it fails with 'Connection reset by peer' -- which is how an api/import after the
-    file write reported a connection error.  Each request's connection is closed once answered."""
-    with maputil2.DeviceClient("192.168.0.210", "1821"):
-        _read()
-        _read()
-        _read()
-
-    assert _ways(transport) == ["session"] * 3
-    assert transport.sessions[0].closes >= 3
-
-
-def test_only_a_function_that_names_its_device_can_be_an_exchange() -> None:
-    """Without an ip_address and an ip_port there is no device to hold a connection to."""
-    with pytest.raises(TypeError, match="names no device"):
-        maputil2.over_one_connection(lambda task_name: task_name)
-
-
-def test_an_exchange_belongs_to_the_thread_running_it(transport: _Transport) -> None:
-    """Another worker's requests never ride on this thread's session."""
-    with maputil2.DeviceClient("192.168.0.210", "1821"):
-        worker = threading.Thread(target=_read)
-        worker.start()
-        worker.join()
-
-    assert _ways(transport) == ["direct"]
-
-
-@pytest.mark.parametrize(
-    "function",
-    [
-        "deviceinv.await_import",
-        "deviceinv.check_tasker_for_existing",
-        "deviceinv.fetch_apps_from_device",
-        "deviceinv.fetch_device_backup",
-        "deviceinv.fetch_file_list_from_device",
-        "deviceinv.fetch_task_names_from_device",
-        "deviceinv.fetch_tasker_object_names",
-        "deviceinv.import_is_confirmable",
-        "deviceinv.import_profile_to_device",
-        "deviceinv.offer_to_tasker",
-        "deviceinv.open_tasker_on_device",
-        "deviceinv.task_names_on_device",
-        "taskedit.save_task_to_android",
-        "taskedit.save_task_to_android_directory",
-        "editcommon.EditorKind.upload_and_verify",
-    ],
-)
-def test_each_exchange_with_a_device_holds_one_connection(function: str) -> None:
-    """The functions that make many requests to one device are each one exchange (over_one_connection)."""
-    module_name, _, attribute = function.partition(".")
-    target = importlib.import_module(f"maptasker.src.{module_name}")
-    for part in attribute.split("."):
-        target = getattr(target, part)
-    assert hasattr(target, "__wrapped__"), f"{function} is not wrapped by maputil2.over_one_connection"
+    assert len(fake.sent) == 3
+    assert not hasattr(maputil2, "DeviceClient")
 
 
 @pytest.mark.parametrize(

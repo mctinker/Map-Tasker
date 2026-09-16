@@ -22,7 +22,6 @@ import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from maptasker.src.maputil2 import over_one_connection
 from maptasker.src.sysconst import ILLEGAL_IN_FILENAME
 
 if TYPE_CHECKING:
@@ -127,7 +126,6 @@ class EditorKind:
         """
         return f"/{self.android_location}/{self.sanitize_filename(name)}{self.extension}"
 
-    @over_one_connection
     def upload_and_verify(
         self,
         ip_address: str,

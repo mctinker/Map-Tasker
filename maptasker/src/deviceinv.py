@@ -40,7 +40,6 @@ from maptasker.src.maputil2 import (
     http_delete_request,
     http_post_request,
     http_request,
-    over_one_connection,
     request_with_auth_key,
     spaced_attempts,
     tasker_name_query,
@@ -531,7 +530,6 @@ def _poll_for_result(
     return "", last_error
 
 
-@over_one_connection
 def fetch_apps_from_device(ip_address: str, ip_port: str) -> tuple[int, str]:
     """Fetch the full list of installed Applications from an Android device and cache it.
 
@@ -760,7 +758,6 @@ def parse_file_list_payload(text: str) -> tuple[list[str], str]:
     return paths, ""
 
 
-@over_one_connection
 def fetch_file_list_from_device(
     ip_address: str,
     ip_port: str,
@@ -1212,7 +1209,6 @@ def _validate_import_request(
     return ""
 
 
-@over_one_connection
 def import_profile_to_device(  # noqa: PLR0911
     profile_xml: bytes,
     profile_name: str,
@@ -1890,7 +1886,6 @@ def build_launch_tasker_task(task_name: str = LAUNCH_TASKER_TASK_NAME):  # noqa:
     return _finish_offer_task(edited_task, task_name, values)
 
 
-@over_one_connection
 def open_tasker_on_device(ip_address: str, ip_port: str) -> tuple[int, str]:
     """Bring Tasker to the foreground on the device.  (0, "") or (return_code, message).
 
@@ -2011,7 +2006,6 @@ def verify_profile_on_android(ip_address: str, ip_port: str, profile_name: str, 
     return bool(present) and profile_name in present
 
 
-@over_one_connection
 def import_is_confirmable(
     ip_address: str,
     ip_port: str,
@@ -2050,7 +2044,6 @@ def import_is_confirmable(
     return not present
 
 
-@over_one_connection
 def await_import(
     ip_address: str,
     ip_port: str,
@@ -2148,7 +2141,6 @@ def _stage_xml(
     return 0, task_path
 
 
-@over_one_connection
 def offer_to_tasker(  # noqa: PLR0911
     xml_bytes: bytes,
     object_name: str,
@@ -2391,7 +2383,6 @@ def classify_helper_tasks(task_names: Iterable[str]) -> tuple[list[str], list[st
     return sorted(live), sorted(ours - live)
 
 
-@over_one_connection
 def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, str, list[str]]:
     """Every Task Tasker knows about, by name.  (0, "", names) or (return_code, message, []).
 
@@ -2439,7 +2430,6 @@ def fetch_task_names_from_device(ip_address: str, ip_port: str) -> tuple[int, st
     return 0, "", [entry.get("name", "") for entry in reported if isinstance(entry, dict)]
 
 
-@over_one_connection
 def task_names_on_device(ip_address: str, ip_port: str, names: list[str]) -> tuple[int, str, list[str]]:
     """Which of these Task names Tasker has.  (0, "", names_found) or (return_code, message, []).
 
@@ -2637,7 +2627,6 @@ def parse_object_list_payload(text: str) -> tuple[dict[str, list[str]], str]:
     return names, ""
 
 
-@over_one_connection
 def fetch_tasker_object_names(ip_address: str, ip_port: str) -> tuple[int, str, dict[str, list[str]]]:
     """Every Project, Profile, Scene and Task Tasker has, by name.  (0, "", by kind) or (code, why, {}).
 
@@ -2762,7 +2751,6 @@ class TaskerCheck:
         return any(self.present.values()) or bool(self.unchecked)
 
 
-@over_one_connection
 def check_tasker_for_existing(ip_address: str, ip_port: str, sent: dict[str, list[str]]) -> TaskerCheck:
     """Ask Tasker which of these objects it already has.  Blocking; see the section comment.
 
@@ -2892,7 +2880,6 @@ def build_id_check_task(task_name: str = ID_CHECK_TASK_NAME):  # noqa: ANN201
     )
 
 
-@over_one_connection
 def fetch_device_backup(ip_address: str, ip_port: str) -> tuple[int, str, bytes]:
     """Have the device back its configuration up now, and read it.  (0, "", xml) or (code, why, b"").
 

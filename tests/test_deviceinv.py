@@ -497,17 +497,7 @@ class _FakeResponse:
         return json.loads(self.content)
 
 
-class _SessionOfItself:
-    """What requests.Session() hands a flow's exchange (maputil2.DeviceClient): the same fake device."""
-
-    def Session(self) -> "_SessionOfItself":  # noqa: N802 -- stands in for requests.Session
-        return self
-
-    def close(self) -> None:
-        """No connection to close."""
-
-
-class _FakeRequests(_SessionOfItself):
+class _FakeRequests:
     """Stands in for maputil2's `requests`, recording every call and answering by URL."""
 
     def __init__(self, payload: str = GOOD_PAYLOAD, task_installed: bool = False) -> None:
@@ -1094,7 +1084,7 @@ MAPTASKER-END
 """
 
 
-class _FakeFileListRequests(_SessionOfItself):
+class _FakeFileListRequests:
     """maputil2's `requests`, answering for a device that has no listing Task on it yet."""
 
     def __init__(self, payload: str | None = GOOD_FILE_PAYLOAD, task_installed: bool = False) -> None:
@@ -1381,7 +1371,7 @@ MAPTASKER-END
 _STAGED_PROFILE_XML = b'<TaskerData sr="" dvi="1" tv="6.3.13"><Profile sr="prof1"><nme>Watched</nme></Profile></TaskerData>'
 
 
-class _FakeImportRequests(_SessionOfItself):
+class _FakeImportRequests:
     """maputil2's `requests`, for a device with neither the helper Task nor the Profile."""
 
     def __init__(
@@ -2353,7 +2343,7 @@ def test_a_scene_has_a_route_again_and_it_is_the_open_with_one() -> None:
 # ##################################################################################
 
 
-class _FakeUploadRequests(_SessionOfItself):
+class _FakeUploadRequests:
     """A device that accepts /upload and serves back whatever it was given.
 
     served_back is what a read-back gets, so a test can hand it something OTHER than what
@@ -3027,7 +3017,7 @@ def test_the_object_list_helper_is_current_and_the_project_helper_it_replaced_is
     assert stale == ["MapTasker List Projects v2"]
 
 
-class _FakeTasker(_SessionOfItself):
+class _FakeTasker:
     """maputil2's `requests` for a device with some objects on it and no helper Tasks yet."""
 
     def __init__(self) -> None:
