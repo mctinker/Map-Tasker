@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file!
 - Fixed: An Android TCP/IP address entered in 'Run On Android' (or any other Android dialog) is no longer put back to the old one on exit when MapTasker is open in more than one browser tab.  The same applies to the other settings saved as soon as they change: the Save To Android checkboxes, the Health Check categories and the local XML folder.
 - Fixed: A changed Android TCP/IP address or port is now kept even if you close the dialog or panel without running, fetching or saving anything.  It used to be kept only once something had used it, so changing the address and then clicking 'Close' lost the change.
 - Fixed: Windows bug - picking a local XML file no longer fails with "No module named 'win32api'".  The file picker now lists your drives without needing the separate pywin32 package, and starts on the drive you are browsing.
+- Fixed: Closing the 'import screen is open' notice before an Import Into Tasker finished no longer prints an 'element has been deleted but is still being used' warning with a stack trace in the terminal.
 - Fixed:
 
 ### Known Issues

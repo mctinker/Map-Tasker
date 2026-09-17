@@ -389,7 +389,7 @@ class AndroidEventHandlers:
                             "Once they are in that Project, deleting the 'MapTasker' Project in Tasker removes "
                             "all of them at once.  MapTasker puts back any it needs the next time it is used.\n\n"
                             "Tasker refuses the whole Project if it already has any of these Tasks, so any "
-                            "helper Tasks already on the device are listed first for you to delete.",
+                            "helper Tasks already on the device are listed first for you to delete manu.",
                         ),
                     ).style("white-space: pre-wrap")
 
@@ -546,8 +546,9 @@ class AndroidEventHandlers:
             staged_at=result.device_path,
         )
         # Guarded for the reason _offer_into_tasker gives: the pending notice may be gone by now.
-        with contextlib.suppress(Exception):
-            pending.dismiss()
+        if not getattr(pending, "is_deleted", False):
+            with contextlib.suppress(Exception):
+                pending.dismiss()
         with contextlib.suppress(Exception):
             ui.notify(message, type="positive" if return_code == 0 else "warning")
 
@@ -1472,8 +1473,12 @@ class AndroidEventHandlers:
             # takes its elements with it.  Dismissing a deleted element makes nicegui log a
             # warning about a bug in the application code -- and the two-minute wait is exactly
             # the window in which the user is most likely to have tidied it away themselves.
-            with contextlib.suppress(Exception):
-                pending.dismiss()
+            # Checked rather than suppressed: nicegui LOGS that warning instead of raising it,
+            # so a suppress around the dismiss never saw it.  Only a deleted element warns -- a
+            # deleted client is silently ignored by nicegui -- so is_deleted is the whole check.
+            if not getattr(pending, "is_deleted", False):
+                with contextlib.suppress(Exception):
+                    pending.dismiss()
             # Not an error in the usual sense: most likely nobody has got to the phone yet, or
             # they declined.  Either way it is the DEVICE this reports on, not the edit here.
             with contextlib.suppress(Exception):
