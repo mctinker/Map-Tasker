@@ -1,9 +1,21 @@
 """File selection dialog for NiceGUI."""
 
+import os
 import platform
+import string
 from pathlib import Path
 
 from nicegui import events, ui
+
+
+def windows_drives() -> list[str]:
+    """Return the drive roots on Windows, such as C: and D:, without needing pywin32."""
+    if hasattr(os, "listdrives"):  # Python 3.12+
+        return list(os.listdrives())
+    import ctypes
+
+    bitmask = ctypes.windll.kernel32.GetLogicalDrives()
+    return [f"{letter}:\\" for i, letter in enumerate(string.ascii_uppercase) if bitmask & (1 << i)]
 
 
 class Local_File_Picker(ui.dialog):
@@ -54,10 +66,11 @@ class Local_File_Picker(ui.dialog):
 
     def add_drives_toggle(self):
         if platform.system() == "Windows":
-            import win32api
-
-            drives = win32api.GetLogicalDriveStrings().split("\000")[:-1]
-            self.drives_toggle = ui.toggle(drives, value=drives[0], on_change=self.update_drive)
+            drives = windows_drives()
+            if not drives:
+                return
+            value = self.path.anchor if self.path.anchor in drives else drives[0]
+            self.drives_toggle = ui.toggle(drives, value=value, on_change=self.update_drive)
 
     def update_drive(self):
         self.path = Path(self.drives_toggle.value).expanduser()
