@@ -11,10 +11,11 @@ from __future__ import annotations
 import importlib.metadata
 import logging
 import re
-from datetime import datetime
 from enum import Enum
 
 import darkdetect
+
+from maptasker.src import clock
 
 # Global constants
 UNNAMED_ITEM = "(Unnamed)"
@@ -328,8 +329,9 @@ TABLE_BACKGROUND_COLOR = "DarkSteelBlue" if darkdetect.isDark() else "PaleTurquo
 TABLE_BORDER_COLOR = "DarkSlateGrey" if darkdetect.isDark() else "LightGrey"
 TABLE_BORDER = f"\n<style> table, td, th {{ padding: 5px; border: 2px solid {TABLE_BORDER_COLOR}; border-radius: 3px; background-color: {TABLE_BACKGROUND_COLOR}; text-align: center;}} </style>"
 
-# Naive: saved to the settings file as last_run, where existing files hold naive times too.
-NOW_TIME = datetime.now()  # noqa: DTZ005
+# When this run started.  Aware local time (see clock): saved to the settings file as last_run,
+# which TOML writes with its UTC offset and which nothing compares with an older, naive entry.
+NOW_TIME = clock.now()
 
 OPENAI_MODELS = [
     "gpt-5.5",

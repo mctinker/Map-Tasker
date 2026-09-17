@@ -7,9 +7,9 @@
 # MIT License   Refer to https://opensource.org/license/mit                            #
 from __future__ import annotations
 
-import datetime
 from typing import TYPE_CHECKING
 
+from maptasker.src import clock
 from maptasker.src.addcss import add_css
 from maptasker.src.debug import display_debug_info
 from maptasker.src.format import css_color, format_html
@@ -64,7 +64,7 @@ def output_the_heading(config: RunConfig) -> None:
 
     # Output date and time if in debug mode
     # now_for_output = NOW_TIME.strftime("%d-%B-%Y %H:%M:%S")
-    current_time = datetime.datetime.now().astimezone()
+    current_time = clock.now()
     # formatted_time = current_time.strftime('%H:%M:%S')
     now_for_output = current_time.strftime("%d-%B-%Y %H:%M:%S")
 

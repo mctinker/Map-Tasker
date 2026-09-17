@@ -70,16 +70,17 @@ import contextlib
 import gzip
 import xml.etree.ElementTree as ETW  # noqa: ICN001, N814  (stdlib "ET Write" -- only to wrap a root)
 from dataclasses import dataclass
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 import defusedxml.ElementTree as ET  # noqa: N817
 
+from maptasker.src import clock
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from datetime import datetime
 
 # How many steps back the history goes.  Deep enough that a user who realises three or four
 # edits later is still covered, shallow enough to stay a bounded amount of memory.
@@ -259,7 +260,7 @@ def undoable(label: str) -> Iterator[None]:
         # changed is unknown -- and unknown is kept, because the alternative is throwing
         # away the only copy of a state that may well have just been mutated.
         if before is not None and (after is None or after != before):
-            _undo.append(Checkpoint(label=label, when=datetime.now().astimezone(), payload=_compress(before)))
+            _undo.append(Checkpoint(label=label, when=clock.now(), payload=_compress(before)))
             # Redoing only makes sense along the line the user walked back down.  Making a
             # fresh change from here is a new line, and the old one can no longer be reached.
             _redo.clear()
@@ -314,7 +315,7 @@ def undo() -> tuple[bool, str]:
         return False, "That undo step could not be restored -- nothing was changed."
 
     if current is not None:
-        _redo.append(Checkpoint(label=checkpoint.label, when=datetime.now().astimezone(), payload=_compress(current)))
+        _redo.append(Checkpoint(label=checkpoint.label, when=clock.now(), payload=_compress(current)))
     return True, checkpoint.label
 
 
@@ -330,7 +331,7 @@ def redo() -> tuple[bool, str]:
         return False, "That redo step could not be restored -- nothing was changed."
 
     if current is not None:
-        _undo.append(Checkpoint(label=checkpoint.label, when=datetime.now().astimezone(), payload=_compress(current)))
+        _undo.append(Checkpoint(label=checkpoint.label, when=clock.now(), payload=_compress(current)))
         _trim()
     return True, checkpoint.label
 

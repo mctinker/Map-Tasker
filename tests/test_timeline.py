@@ -21,11 +21,11 @@ went quiet.
 from __future__ import annotations
 
 import gzip
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 
 import pytest
-from maptasker.src import diffload, taskerd, timeline
+from maptasker.src import clock, diffload, taskerd, timeline
 from maptasker.src.lineout import LineOut
 from maptasker.src.primitem import PrimeItems, initial_tasker_root_elements
 
@@ -229,7 +229,7 @@ def test_the_history_is_capped(tmp_path, monkeypatch) -> None:
 # ##################################################################################
 def test_since_picks_the_newest_entry_no_later_than_the_cutoff() -> None:
     """"What changed since Tuesday" wants the configuration as it stood on Tuesday."""
-    now = datetime.now()  # noqa: DTZ005
+    now = clock.now()
     for days, text in ((20, "Alpha"), (10, "Beta"), (2, "Gamma")):
         timeline.record(_named(text), when=now - timedelta(days=days))
 
@@ -241,7 +241,7 @@ def test_since_picks_the_newest_entry_no_later_than_the_cutoff() -> None:
 
 def test_snapshots_are_ordered_by_their_stamp_not_their_mtime(tmp_path) -> None:
     """Sorted by the timestamp in the name, which a copy or a sync cannot rewrite."""
-    now = datetime.now()  # noqa: DTZ005
+    now = clock.now()
     timeline.record(_named("Newer"), when=now)
     timeline.record(_named("Older"), when=now - timedelta(days=5))
 
@@ -262,7 +262,7 @@ def test_no_history_folder_is_an_empty_history_not_an_error() -> None:
     """Asked before anything was ever loaded."""
     assert timeline.snapshots() == []
     assert timeline.earliest() is None
-    assert timeline.since(datetime.now()) is None  # noqa: DTZ005
+    assert timeline.since(clock.now()) is None
 
 
 # ##################################################################################
@@ -270,7 +270,7 @@ def test_no_history_folder_is_an_empty_history_not_an_error() -> None:
 # ##################################################################################
 def test_what_changed_since_reports_the_difference(tmp_path) -> None:
     """A week ago against now, with no file picker and nothing to hunt for."""
-    now = datetime.now()  # noqa: DTZ005
+    now = clock.now()
     timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=now - timedelta(days=7))
     _load_as_current(_write(tmp_path, "today.xml", _LATER_XML))
 
@@ -288,7 +288,7 @@ def test_the_older_side_is_named_by_when_it_was_not_by_its_temporary_file(tmp_pa
     """The report header has to say which configuration this is being compared against,
     and the file it was expanded into lives for a few milliseconds under a random name.
     """
-    when = datetime.now() - timedelta(days=3)  # noqa: DTZ005
+    when = clock.now() - timedelta(days=3)
     timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=when)
     _load_as_current(_write(tmp_path, "today.xml", _LATER_XML))
 
@@ -302,7 +302,7 @@ def test_the_older_side_is_named_by_when_it_was_not_by_its_temporary_file(tmp_pa
 
 def test_an_unchanged_configuration_reports_no_differences(tmp_path) -> None:
     """Ran fine, found nothing -- distinct from having nothing to compare."""
-    timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=datetime.now() - timedelta(days=7))  # noqa: DTZ005
+    timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=clock.now() - timedelta(days=7))
     _load_as_current(_write(tmp_path, "today.xml", _LOADED_XML))
 
     result = timeline.changes_over_last(14)
@@ -315,7 +315,7 @@ def test_a_history_that_does_not_reach_back_says_so(tmp_path) -> None:
     """Answering "since last week" with three months ago, quietly, would be worse than
     saying the history is short.  The report is still produced -- it is still useful.
     """
-    timeline.record(_write(tmp_path, "yesterday.xml", _LOADED_XML), when=datetime.now() - timedelta(days=1))  # noqa: DTZ005
+    timeline.record(_write(tmp_path, "yesterday.xml", _LOADED_XML), when=clock.now() - timedelta(days=1))
     _load_as_current(_write(tmp_path, "today.xml", _LATER_XML))
 
     result = timeline.changes_over_last(30)
@@ -334,7 +334,7 @@ def test_an_empty_history_is_explained_not_crashed() -> None:
 
 def test_nothing_loaded_is_explained(tmp_path) -> None:
     """There is no "now" to compare the history against."""
-    timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=datetime.now() - timedelta(days=7))  # noqa: DTZ005
+    timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=clock.now() - timedelta(days=7))
     PrimeItems.tasker_root_elements = initial_tasker_root_elements()
 
     result = timeline.changes_over_last(14)
@@ -347,7 +347,7 @@ def test_a_corrupt_snapshot_is_reported_not_raised(tmp_path) -> None:
     """A snapshot that will not parse produces the message a picked file would, and
     leaves the loaded configuration exactly where it was.
     """
-    timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=datetime.now() - timedelta(days=7))  # noqa: DTZ005
+    timeline.record(_write(tmp_path, "week_ago.xml", _LOADED_XML), when=clock.now() - timedelta(days=7))
     _load_as_current(_write(tmp_path, "today.xml", _LATER_XML))
     loaded_before = PrimeItems.tasker_root_elements
     stored = timeline.snapshots()[0].path
@@ -417,14 +417,14 @@ def _named(name: str) -> str:
 # through the GUI.  The mix of calendar and rolling is deliberate -- see timeline's own
 # note -- which makes it exactly the kind of thing that needs pinning down.
 # ##################################################################################
-_NOON = datetime(2026, 9, 9, 14, 30, 0)
+_NOON = datetime(2026, 9, 9, 14, 30, 0).astimezone()
 
 
 def test_today_starts_at_midnight_not_24_hours_ago() -> None:
     """"What changed today" means since this morning.  A rolling 24 hours would report
     yesterday evening's edits as today's, which is not what was asked.
     """
-    assert timeline.cutoff_for(timeline.TODAY, now=_NOON) == datetime(2026, 9, 9, 0, 0, 0)
+    assert timeline.cutoff_for(timeline.TODAY, now=_NOON) == datetime(2026, 9, 9, 0, 0, 0).astimezone()
 
 
 def test_week_and_month_roll_rather_than_follow_the_calendar() -> None:
@@ -444,7 +444,10 @@ def test_all_has_no_cutoff_at_all() -> None:
 
 def test_a_specific_date_starts_at_midnight_on_that_day() -> None:
     """So that picking today's date and picking "Today" agree."""
-    assert timeline.cutoff_for(timeline.ON_DATE, on_date=date(2026, 8, 20), now=_NOON) == datetime(2026, 8, 20, 0, 0)
+    assert (
+        timeline.cutoff_for(timeline.ON_DATE, on_date=date(2026, 8, 20), now=_NOON)
+        == datetime(2026, 8, 20, 0, 0).astimezone()
+    )
     assert timeline.cutoff_for(timeline.ON_DATE, on_date=_NOON.date(), now=_NOON) == timeline.cutoff_for(
         timeline.TODAY,
         now=_NOON,
@@ -475,7 +478,7 @@ def test_all_reaches_the_oldest_snapshot_without_complaining(tmp_path) -> None:
     """Asking for everything and being given everything is the answer, so it carries no
     note -- unlike asking for a year and only having a fortnight.
     """
-    timeline.record(_write(tmp_path, "old.xml", _LOADED_XML), when=datetime.now() - timedelta(days=200))  # noqa: DTZ005
+    timeline.record(_write(tmp_path, "old.xml", _LOADED_XML), when=clock.now() - timedelta(days=200))
     _load_as_current(_write(tmp_path, "today.xml", _LATER_XML))
 
     result = timeline.changes_since(None)
@@ -484,3 +487,37 @@ def test_all_reaches_the_oldest_snapshot_without_complaining(tmp_path) -> None:
     assert result.note == ""
     assert result.older.source == "old.xml"
     assert result.counts["ADDED"] >= 1
+
+
+# ##################################################################################
+# Times: aware throughout, and the history written before they were still reads.
+# ##################################################################################
+def test_a_snapshot_named_by_an_older_version_still_reads_and_compares() -> None:
+    """Snapshot names hold local wall-clock time with no offset, as they always have."""
+    # Naive on purpose: what record() was handed before times were aware.
+    timeline.record(_named("Kept"), when=datetime.combine(date(2026, 3, 1), time(8, 30)))
+    (held,) = timeline.snapshots()
+
+    assert held.path.name.startswith("20260301_083000__")
+    assert held.when.tzinfo is not None
+    assert held.when == datetime(2026, 3, 1, 8, 30, 0).astimezone()
+    # A naive cutoff, an aware local one and an aware UTC one all compare without a TypeError.
+    assert timeline.since(datetime.combine(date(2026, 3, 2), time.min)) == held
+    assert timeline.since(clock.now()) == held
+    assert timeline.since(datetime(2026, 2, 1, tzinfo=UTC)) is None
+
+
+def test_a_time_in_another_timezone_is_stamped_in_local_time() -> None:
+    """The name is read back as local time, so it has to be written in local time."""
+    moment = clock.now().astimezone(UTC)
+    timeline.record(_named("Utc"), when=moment)
+    (held,) = timeline.snapshots()
+
+    assert held.when == moment.replace(microsecond=0)
+
+
+def test_every_period_cutoff_is_aware() -> None:
+    """A naive cutoff next to an aware snapshot time is the TypeError this all avoids."""
+    for period in (timeline.TODAY, timeline.THIS_WEEK, timeline.THIS_MONTH):
+        assert timeline.cutoff_for(period).tzinfo is not None, period
+    assert timeline.cutoff_for(timeline.ON_DATE, on_date=date(2026, 1, 5)) == datetime(2026, 1, 5).astimezone()

@@ -33,10 +33,9 @@ import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import sceneedit
+from maptasker.src import clock, sceneedit
 from maptasker.src.actionc import action_codes
 from maptasker.src.bundle import bundles
 from maptasker.src.mapjump import (
@@ -62,6 +61,8 @@ from maptasker.src.sysconst import MY_VERSION, VARXREF_FILE, logger
 from maptasker.src.taskervars import tasker_global_variables
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     import defusedxml.ElementTree  # Need for type hints
 
 # A Tasker variable name begins with a letter and continues with letters, digits and
@@ -1443,7 +1444,7 @@ def build_report(index: VariableIndex, when: datetime | None = None, include_ind
     something nobody scrolls through on screen.  The SAVED file always has everything --
     the index is a reference document, and the point of it is to be searched.
     """
-    when = when or datetime.now().astimezone()
+    when = when or clock.now()
     counts = _counts_by_scope(index)
     declared = sum(1 for variable in index.variables.values() if variable.declared)
     rule = "=" * _REPORT_WIDTH
@@ -1708,7 +1709,7 @@ def write_variable_xref_report(rows: list[Row]) -> str:
     only the save went wrong.  Named and timestamped exactly as the Health Check report
     is, so successive runs from one day sort by when they were run.
     """
-    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
+    stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(VARXREF_FILE, stamp)
     if not file_name:
         return ""

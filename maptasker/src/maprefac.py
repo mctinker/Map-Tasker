@@ -70,10 +70,9 @@ import os
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import mapjump, maputil2, profedit, projedit, sessundo, taskedit, varxref
+from maptasker.src import clock, mapjump, maputil2, profedit, projedit, sessundo, taskedit, varxref
 from maptasker.src.actionc import action_codes
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.mapjump import PROFILE, PROJECT, SCENE, TASK, Row, Target, text_report
@@ -2127,7 +2126,7 @@ def write_refactor_report(rows: list[Row]) -> str:
     a block's explanation names the actions that would have to be selected differently, and
     that is a work list which does not survive closing the dialog otherwise.
     """
-    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
+    stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(REFACTOR_FILE, stamp)
     if not file_name:
         return ""

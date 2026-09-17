@@ -53,9 +53,9 @@ from __future__ import annotations
 
 import re
 import shutil
-from datetime import datetime
 from pathlib import Path
 
+from maptasker.src import clock
 from maptasker.src.sysconst import ILLEGAL_IN_FILENAME, logger
 
 # The folder safety copies go in, created next to whatever is being overwritten so a copy
@@ -88,7 +88,7 @@ def _stamped_name(file_name: str) -> str:
     made at the FIRST dot instead: "Wake Up_20260820_143005.tsk.xml", which still opens in
     whatever the original opened in.
     """
-    stamp = datetime.now().astimezone().strftime(_STAMP_FORMAT)
+    stamp = clock.now().strftime(_STAMP_FORMAT)
     base, dot, extensions = file_name.partition(".")
     return f"{base}_{stamp}{dot}{extensions}" if dot else f"{base}_{stamp}"
 

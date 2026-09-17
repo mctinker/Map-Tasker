@@ -17,12 +17,12 @@ import traceback
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to build/serialize
 from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
-from datetime import datetime
 from functools import lru_cache
 
 import requests
 from requests.exceptions import ConnectionError, InvalidSchema, RequestException, Timeout
 
+from maptasker.src import clock
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import MY_VERSION, NOW_TIME, logger, logging
 from maptasker.src.translator import T
@@ -1213,7 +1213,7 @@ def write_full_backup_to_current_file() -> tuple[bool, str]:
     # replace that timestamp instead of appending another one -- otherwise every
     # save would tack on yet another suffix (backup_20260101_120000_20260101_130000...).
     base_path = TIMESTAMP_SUFFIX_RE.sub("", base_path)
-    timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S")
+    timestamp = clock.now().strftime("%Y%m%d_%H%M%S")
     new_file_path = f"{base_path}_{timestamp}{extension}"
 
     # Normally there is nothing at that name and this does nothing -- the name has this

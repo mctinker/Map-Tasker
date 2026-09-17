@@ -3,13 +3,12 @@
 import asyncio
 import contextlib
 import os
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 import defusedxml
 from nicegui import app, run, ui
 
-from maptasker.src import console
+from maptasker.src import clock, console
 
 # Keep your existing logic imports (e.g., from maptasker.src.aiutils import ...)
 from maptasker.src.aiutils import (
@@ -1827,7 +1826,7 @@ def is_first_run_today(filename: str = ".maptasker_last_run.txt") -> bool:
     a older date, it returns True. Otherwise, it returns False.
     """
     # 1. Get today's date as a string (YYYY-MM-DD)
-    today_str = str(datetime.now().astimezone().date())
+    today_str = str(clock.now().date())
 
     # 2. Check if the tracking file exists
     if os.path.exists(filename):

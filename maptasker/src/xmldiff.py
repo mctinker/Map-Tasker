@@ -18,14 +18,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from difflib import SequenceMatcher
 from typing import TYPE_CHECKING, NamedTuple
 
+from maptasker.src import clock
 from maptasker.src.actionc import action_codes
 from maptasker.src.sysconst import MY_VERSION, SCENE_TASK_TYPES
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     import defusedxml.ElementTree
 
 # The four things that can happen to an object, and the order their sections appear in.
@@ -906,5 +908,5 @@ def compare(older: Configuration, newer: Configuration) -> tuple[str, dict]:
     _compare_named_values("Variable", older_side.variables, newer_side.variables, entries)
     _compare_named_values("Setting", older_side.settings, newer_side.settings, entries)
 
-    report = _build_report(older, newer, older_side, newer_side, entries, collisions, datetime.now().astimezone())
+    report = _build_report(older, newer, older_side, newer_side, entries, collisions, clock.now())
     return report, _counts(entries)

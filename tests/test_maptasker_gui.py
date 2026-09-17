@@ -26,12 +26,12 @@ keeps that true regardless of what an earlier test did.
 
 import asyncio
 import contextlib
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from maptasker.src import timeline
+from maptasker.src import clock, timeline
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     clear_single_item_view_names,
@@ -807,7 +807,7 @@ async def test_the_chosen_period_is_what_gets_reported(event_handler, mock_gui_i
     assert io_bound.await_args[0][0] is timeline.changes_since
     # A week back, not None and not today -- the cutoff actually reflects the choice.
     cutoff = io_bound.await_args[0][1]
-    assert 6 < (datetime.now() - cutoff).days < 8
+    assert 6 < (clock.now() - cutoff).days < 8
     # Its own file name, so "what changed since" does not land in the same pile as
     # "how do these two files differ".
     assert writer.call_args[0][1] == TIMELINE_FILE
@@ -823,7 +823,7 @@ async def test_every_period_the_picker_offers_reaches_the_report(event_handler, 
     to the picker without a cutoff to go with it fails here.
     """
     result = timeline.Comparison(report="what changed", counts={"ADDED": 1})
-    chosen_date = date.today() - timedelta(days=100)  # noqa: DTZ011
+    chosen_date = clock.now().date() - timedelta(days=100)
     expected_days = {timeline.TODAY: 0, timeline.THIS_WEEK: 7, timeline.THIS_MONTH: 30, timeline.ON_DATE: 100}
 
     for period in timeline.PERIOD_LABELS:
@@ -834,7 +834,7 @@ async def test_every_period_the_picker_offers_reaches_the_report(event_handler, 
             assert cutoff is None, "All must reach back as far as the history goes"
             continue
         assert cutoff is not None, period
-        assert abs((datetime.now() - cutoff).days - expected_days[period]) <= 1, period
+        assert abs((clock.now() - cutoff).days - expected_days[period]) <= 1, period
 
 
 @pytest.mark.asyncio

@@ -434,12 +434,12 @@ def test_original_of_uses_the_same_pattern_that_writes_the_names() -> None:
 
 def test_order_by_age_puts_the_older_file_first(tmp_path) -> None:
     """Whichever way round the user picked them, "added" means added in the newer file."""
-    from datetime import datetime  # noqa: PLC0415
+    from datetime import UTC, datetime  # noqa: PLC0415
 
     from maptasker.src.xmldiff import Configuration  # noqa: PLC0415
 
-    early = Configuration(path="early.xml", tables={}, when=datetime(2026, 1, 1))  # noqa: DTZ001
-    late = Configuration(path="late.xml", tables={}, when=datetime(2026, 6, 1))  # noqa: DTZ001
+    early = Configuration(path="early.xml", tables={}, when=datetime(2026, 1, 1, tzinfo=UTC))
+    late = Configuration(path="late.xml", tables={}, when=datetime(2026, 6, 1, tzinfo=UTC))
 
     assert diffload.order_by_age(late, early) == (early, late)
     assert diffload.order_by_age(early, late) == (early, late)

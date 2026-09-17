@@ -20,7 +20,7 @@ assertions catch.
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from maptasker.src import taskerd
@@ -234,7 +234,7 @@ def _configuration(xml_text: str, path: str) -> Configuration:
     tables["all_tasks_by_name"] = {
         task["name"]: {"xml": task["xml"], "id": key} for key, task in tables["all_tasks"].items() if task["name"]
     }
-    return Configuration(path=path, tables=tables, root=root, when=datetime(2026, 8, 18, 9, 0, 0))  # noqa: DTZ001
+    return Configuration(path=path, tables=tables, root=root, when=datetime(2026, 8, 18, 9, 0, 0, tzinfo=UTC))
 
 
 def _entries_for(report: str, tag: str) -> list[str]:

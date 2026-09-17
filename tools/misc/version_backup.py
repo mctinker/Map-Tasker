@@ -163,7 +163,7 @@ def main() -> None:
 
     # 2. Construct Filename
     current_dir_name = os.path.basename(os.getcwd())
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # noqa: DTZ005
+    timestamp = datetime.datetime.now().astimezone().strftime("%Y-%m-%d_%H-%M-%S")
     zip_filename = f"{current_dir_name}_{timestamp}-Version-{version_id}.zip"
     try:
         # 3. Test algorithms and write the smallest zip file locally

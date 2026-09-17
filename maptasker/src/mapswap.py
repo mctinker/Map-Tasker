@@ -50,10 +50,9 @@ import os
 import re
 from collections import Counter
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import mapfind, maputil2, profedit, sceneedit, sessundo, taskedit, varxref
+from maptasker.src import clock, mapfind, maputil2, profedit, sceneedit, sessundo, taskedit, varxref
 from maptasker.src.actionc import ArgumentCode, action_codes
 from maptasker.src.mapjump import PROFILE, TASK, VARIABLE, Row, Target, current_scope, text_report
 from maptasker.src.maputils import append_to_filename
@@ -2583,7 +2582,7 @@ def write_swap_report(rows: list[Row]) -> str:
     hundred-row preview is a work list, and 'which ones did I decide to leave' does not
     survive closing the dialog otherwise.
     """
-    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
+    stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(SWAP_FILE, stamp)
     if not file_name:
         return ""

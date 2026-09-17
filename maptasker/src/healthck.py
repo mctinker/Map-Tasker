@@ -19,10 +19,9 @@ from __future__ import annotations
 import os
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING
 
-from maptasker.src import piiscan, proflint, sceneedit, taskflow, varxref
+from maptasker.src import clock, piiscan, proflint, sceneedit, taskflow, varxref
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import (
     PROFILE,
@@ -47,6 +46,7 @@ from maptasker.src.sysconst import (
 
 if TYPE_CHECKING:
     from collections.abc import Collection
+    from datetime import datetime
 
     import defusedxml.ElementTree  # Need for type hints
 
@@ -1287,7 +1287,7 @@ def run_health_check(skip: Collection[str] = ()) -> tuple[list[Row], dict]:
         # explaining findings that are no longer in the report.
         index.findings = [item for item in index.findings if item.tag not in skip]
 
-    return _build_report(index, datetime.now().astimezone(), skip), _counts(index.findings)
+    return _build_report(index, clock.now(), skip), _counts(index.findings)
 
 
 def write_health_check_report(rows: list[Row]) -> str:
@@ -1299,11 +1299,11 @@ def write_health_check_report(rows: list[Row]) -> str:
 
     Named date-then-time (MapTasker_HealthCheck_08-17-2026_14-52-07.txt), zero padded so
     the name is a fixed width and successive reports from the same day sort by when they
-    were run.  datetime.now() rather than maputils'
+    were run.  clock.now() rather than maputils'
     get_current_local_time_auto_timezone: that one geolocates by IP with a five second
     timeout, which is a strange thing to make a local button click wait for.
     """
-    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
+    stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(HEALTHCHECK_FILE, stamp)
     if not file_name:
         return ""

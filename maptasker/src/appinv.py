@@ -48,7 +48,6 @@ import json
 import os
 import re
 from dataclasses import dataclass
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -56,6 +55,7 @@ if TYPE_CHECKING:
 
     import defusedxml.ElementTree
 
+from maptasker.src import clock
 from maptasker.src.editcommon import set_child_text as _set_child_text
 from maptasker.src.primitem import PrimeItems
 from maptasker.src.sysconst import APPS_CACHE_FILE, logger
@@ -620,7 +620,7 @@ def _store_fetched_apps(device: str, entries: list[AppEntry]) -> str:
         devices = {}
         cache["devices"] = devices
     devices[device] = {
-        "fetched": datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S"),
+        "fetched": clock.now().strftime("%Y-%m-%d %H:%M:%S"),
         "apps": [{"pkg": entry.pkg, "label": entry.label, "cls": entry.cls} for entry in entries],
     }
     error = _write_cache(cache)

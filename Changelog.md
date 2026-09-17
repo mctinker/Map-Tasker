@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file!
 
 ### Changed
 
-- Changed:
+- Changed: Ensure the use of the proper timezone in all date and time operations.
 
 ### Removed
 

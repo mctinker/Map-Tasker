@@ -64,9 +64,9 @@ from __future__ import annotations
 import os
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING
 
+from maptasker.src import clock
 from maptasker.src.actionc import action_codes
 from maptasker.src.mapjump import (
     PROFILE,
@@ -815,7 +815,7 @@ def report_rows(query: Query, hits: list[Hit], total: int, index: FindIndex) -> 
     Rows rather than text so the saved file and anything rendered from these are the one
     report, and so every row keeps the Target that makes it clickable.
     """
-    when = datetime.now().astimezone().strftime("%B %d, %Y  %H:%M:%S")
+    when = clock.now().strftime("%B %d, %Y  %H:%M:%S")
     shown = f"{len(hits)} of {total}" if total > len(hits) else str(total)
     rows = [
         Row("MapTasker Find"),
@@ -877,7 +877,7 @@ def write_find_report(rows: list[Row]) -> str:
     Returns the file name written, or "" if the write failed -- the results are on screen
     either way, and a search whose save went wrong is still a search worth showing.
     """
-    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
+    stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(FIND_FILE, stamp)
     if not file_name:
         return ""

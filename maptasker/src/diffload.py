@@ -33,10 +33,9 @@ import copy
 import os
 import shutil
 import tempfile
-from datetime import datetime
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
 
-from maptasker.src import sessundo, timeline
+from maptasker.src import clock, sessundo, timeline
 from maptasker.src.maputil2 import TIMESTAMP_SUFFIX_RE
 from maptasker.src.maputils import append_to_filename
 from maptasker.src.primitem import (
@@ -48,6 +47,9 @@ from maptasker.src.primitem import (
 from maptasker.src.sysconst import COMPARE_FILE, ERROR_FILE, logger
 from maptasker.src.taskerd import get_the_xml_data
 from maptasker.src.xmldiff import Configuration
+
+if TYPE_CHECKING:
+    from datetime import datetime
 
 # What get_the_xml_data returns, and what to tell the user about each.  Its own docstring
 # documents these; a bare number in the GUI would tell nobody anything.
@@ -189,7 +191,7 @@ def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
 
     Named and stamped exactly as healthck.write_health_check_report does
     (MapTasker_Compare_08-18-2026_14-52-07.txt), zero padded so successive reports from
-    one day sort by when they were run, and datetime.now() rather than maputils'
+    one day sort by when they were run, and clock.now() rather than maputils'
     get_current_local_time_auto_timezone -- that one geolocates by IP with a five second
     timeout, which is a strange thing to make a local button click wait for.
 
@@ -198,7 +200,7 @@ def write_comparison_report(report: str, base_name: str = COMPARE_FILE) -> str:
     the same pile as "how do these two files differ", which is a different question with
     a different answer.
     """
-    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
+    stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(base_name, stamp)
     if not file_name:
         return ""
@@ -233,8 +235,8 @@ def _modified_time(file_path: str) -> datetime | None:
     two files in an order nobody can check.
     """
     try:
-        # Naive local time, like the timeline snapshot times these are ordered against.
-        return datetime.fromtimestamp(os.path.getmtime(file_path))  # noqa: DTZ006
+        # Aware local time, like the timeline snapshot times these are ordered against.
+        return clock.from_timestamp(os.path.getmtime(file_path))
     except OSError:
         return None
 

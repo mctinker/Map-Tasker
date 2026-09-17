@@ -31,9 +31,9 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING
 
+from maptasker.src import clock
 from maptasker.src.actionc import action_codes
 from maptasker.src.condjoin import boolean_operators, join_conditions
 from maptasker.src.mapjump import (
@@ -921,7 +921,7 @@ def _header_rows(title: str) -> list[Row]:
         Row(title),
         Row("=" * _REPORT_WIDTH),
         Row(f"XML file:    {_current_xml_file()}"),
-        Row(f"Generated:   {datetime.now().astimezone().strftime('%d-%b-%Y %H:%M:%S')}"),
+        Row(f"Generated:   {clock.now().strftime('%d-%b-%Y %H:%M:%S')}"),
         Row(f"Version:     {MY_VERSION}"),
     ]
 
@@ -991,7 +991,7 @@ def write_flowchart(rows: list[Row]) -> str:
 
 def _write(rows: list[Row], base_name: str, what: str) -> str:
     """Write rows as plain text to a timestamped copy of base_name in the current directory."""
-    stamp = datetime.now().astimezone().strftime("_%m-%d-%Y_%H-%M-%S")
+    stamp = clock.now().strftime("_%m-%d-%Y_%H-%M-%S")
     file_name = append_to_filename(base_name, stamp)
     if not file_name:
         return ""

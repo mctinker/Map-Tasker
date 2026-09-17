@@ -55,10 +55,11 @@ import re
 import shutil
 import tempfile
 from dataclasses import dataclass, field
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from maptasker.src import clock
 from maptasker.src.editcommon import sanitize_filename
 from maptasker.src.sysconst import logger
 from maptasker.src.xmldiff import compare
@@ -180,10 +181,9 @@ def _snapshot_from(path: Path) -> Snapshot | None:
     if match is None:
         return None
     try:
-        # Naive on purpose, like every time this module compares it with: the stamp in the name
-        # carries no UTC offset, so these are local wall-clock times throughout -- and an aware
-        # datetime compared against a naive one raises TypeError.
-        when = datetime.strptime(match["stamp"], _STAMP_FORMAT)  # noqa: DTZ007
+        # The stamp in the name carries no UTC offset: it is the local wall-clock time it was
+        # written in, and is read back as that, timezone-aware, like every time it is compared with.
+        when = clock.parse_local(match["stamp"], _STAMP_FORMAT)
     except ValueError:
         return None
     return Snapshot(path=path, when=when, source=match["source"], digest=match["digest"])
@@ -249,7 +249,7 @@ def record(file_path: str, *, when: datetime | None = None) -> Snapshot | None:
     if folder is None:
         return None
 
-    when = when or datetime.now()  # noqa: DTZ005
+    when = clock.aware(when) if when else clock.now()
     source = sanitize_filename(Path(file_path).name, "configuration")
     target = folder / f"{when.strftime(_STAMP_FORMAT)}__{source}__{digest}{_SUFFIX}"
     try:
@@ -273,6 +273,7 @@ def since(cutoff: datetime) -> Snapshot | None:
     three months ago would be answering a question nobody asked.  The caller says so and
     offers what there is -- see earliest().
     """
+    cutoff = clock.aware(cutoff)
     reachable = [snapshot for snapshot in snapshots() if snapshot.when <= cutoff]
     return reachable[-1] if reachable else None
 
@@ -395,7 +396,7 @@ def changes_since(cutoff: datetime | None, newer: Configuration | None = None) -
 
 def changes_over_last(days: int, newer: Configuration | None = None) -> Comparison:
     """changes_since, counted back in whole days -- "this week" is days=7."""
-    return changes_since(datetime.now() - timedelta(days=days), newer)  # noqa: DTZ005
+    return changes_since(clock.now() - timedelta(days=days), newer)
 
 
 # ##################################################################################
@@ -441,11 +442,11 @@ def cutoff_for(period: str, *, on_date: date | None = None, now: datetime | None
     something else is a bug -- and answering with more history than was asked for is a
     visibly odd report, where an exception is a dead button.
     """
-    now = now or datetime.now()  # noqa: DTZ005
+    now = clock.aware(now) if now else clock.now()
     if period == TODAY:
         return now.replace(hour=0, minute=0, second=0, microsecond=0)
     if period in _ROLLING_DAYS:
         return now - timedelta(days=_ROLLING_DAYS[period])
     if period == ON_DATE and on_date is not None:
-        return datetime.combine(on_date, time.min)
+        return clock.start_of(on_date)
     return None

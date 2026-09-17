@@ -25,7 +25,7 @@ from zoneinfo import (
 
 import requests
 
-from maptasker.src import console
+from maptasker.src import clock, console
 from maptasker.src.error import rutroh_error
 from maptasker.src.format import format_html
 from maptasker.src.getids import get_ids
@@ -513,17 +513,17 @@ def get_current_local_time_auto_timezone() -> datetime:
             logger.debug(
                 f"Error: Discovered timezone '{timezone_string}' is not recognized by zoneinfo.",
             )
-            return datetime.now().astimezone()
+            return clock.now()
         except ValueError as e:
             # ZoneInfo rejects a key that is not a well-formed name with ValueError, and
             # raises ZoneInfoNotFoundError (caught above) for one that simply is not there.
             logger.debug(f"Error creating timezone-aware datetime: {e}")
-            return datetime.now().astimezone()
+            return clock.now()
     else:
         logger.debug(
             "\nCould not determine timezone automatically. Falling back to the system's local time.",
         )
-        now_local = datetime.now().astimezone()
+        now_local = clock.now()
         logger.debug(f"Current local datetime: {now_local}")
         return now_local
 

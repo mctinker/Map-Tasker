@@ -31,12 +31,13 @@ import os
 import re
 import weakref
 import xml.etree.ElementTree as ETW  # stdlib "ET Write" -- used only to serialize, never to parse
-from datetime import date, datetime
+from datetime import date
 from typing import TYPE_CHECKING
 
 from nicegui import Event, app, context, run, ui
 
 from maptasker.src import (
+    clock,
     diagintr,
     healthck,
     mapask,
@@ -3385,7 +3386,7 @@ def build_changes_since_dialog(on_choose: Callable[[str, date | None], Coroutine
                     if on_date is None:
                         ui.notify(translate_string("Choose a date first."), type="warning")
                         return
-                    if on_date > datetime.now().astimezone().date():
+                    if on_date > clock.now().date():
                         ui.notify(
                             translate_string("That date is in the future.  Choose a day that has happened."),
                             type="warning",
