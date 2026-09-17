@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
+- Added: A 'Run On Android' button in the Edit Task dialog and beside Edit Task/Add Task in the Specific Name tab runs the Task on your Android device, with optional %par1/%par2 values, and shows what it returned or why it failed.  You can test a Task straight from MapTasker, but it runs the version already on the device, so use 'Save To Android' first to test your edits.
 - Added:
 
 ### Changed
@@ -18,6 +19,11 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: Tasks and Profiles whose names contain characters such as $, (, + or ? (for example '$Taskaroo') were reported as missing from the Android device even when Tasker had them, because Tasker's HTTP server reads those names as search patterns.  MapTasker now asks Tasker directly for such names through a small helper Task, and 'Run On Android' runs those Tasks through another.
+- Fixed: 'Save To Android' no longer reports a Task whose name contains characters such as $, (, + or ? (for example '$Taskaroo') as missing after saving it, which could import it a second time and then offer 'Open with'.  MapTasker now confirms such a Task with its object-list helper Task, because Tasker's HTTP server never lists those names.
+- Fixed: Settings such as the selected Task and the Android TCP/IP address are now saved when MapTasker is stopped with Ctrl-C in the terminal, not only when it is closed with the Exit button.  A selected Task also no longer turns into its Profile when the window is reloaded, which had caused the wrong selection to be saved and restored next time.
+- Fixed: An Android TCP/IP address entered in 'Run On Android' (or any other Android dialog) is no longer put back to the old one on exit when MapTasker is open in more than one browser tab.  The same applies to the other settings saved as soon as they change: the Save To Android checkboxes, the Health Check categories and the local XML folder.
+- Fixed: A changed Android TCP/IP address or port is now kept even if you close the dialog or panel without running, fetching or saving anything.  It used to be kept only once something had used it, so changing the address and then clicking 'Close' lost the change.
 - Fixed: Windows bug - picking a local XML file no longer fails with "No module named 'win32api'".  The file picker now lists your drives without needing the separate pywin32 package, and starts on the drive you are browsing.
 - Fixed:
 

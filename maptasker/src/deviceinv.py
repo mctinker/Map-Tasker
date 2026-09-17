@@ -20,6 +20,7 @@ once; the device work grew up around it.
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -42,6 +43,7 @@ from maptasker.src.maputil2 import (
     http_request,
     request_with_auth_key,
     spaced_attempts,
+    tasker_name_matchable,
     tasker_name_query,
 )
 from maptasker.src.sysconst import logger
@@ -395,11 +397,16 @@ def run_task_on_android(
     task_name: str,
     auth_key: str,
     par1: str = "",
+    par2: str = "",
+    timeout: float | None = None,
+    variables: dict[str, str] | None = None,
 ) -> tuple[int, str]:
     """Run an existing Task on the device, via the Tasker HTTP API's POST /api/tasks
     (Params/Body: task object; Response: the Task's return value).
 
-    Returns (0, "") or (return_code, error_message).  Return code 9 is passed through
+    Returns (0, return_value) or (return_code, error_message).  return_value is what the Task
+    handed back with 'Return', or "" when it set none -- see task_return_value.  The helper
+    Tasks return nothing and their callers ignore it; run_task_for_result is what reads it.  Return code 9 is passed through
     unchanged so a rejected key can be told apart from everything else and replaced -- see
     maputil2.request_with_auth_key, which every run goes through.
 
@@ -420,11 +427,24 @@ def run_task_on_android(
     their file path in at install time because 'POST /api/tasks carries a Task name and
     nothing else', which was simply wrong: it carries whatever the body carries.  Sent only
     when non-empty, so a Task with no path to be told about is called exactly as before.
+    par2 arrives as %par2 the same way (act18).
+
+    timeout: seconds to wait for the answer, or None for http_post_request's own.  The handler
+    answers only once the Task has finished, so a Task that does real work needs longer than a
+    helper that only writes a file.
+
+    variables: local variables for the Task, by name without the '%' -- act19's JavaScriptlet
+    does setLocal() for each, and the passthrough hands them on.  run_task_for_result sends the
+    name of the Task its helper is to run this way.
     """
 
-    body: dict[str, str] = {"name": task_name}
+    body: dict[str, object] = {"name": task_name}
     if par1:
         body["par1"] = par1
+    if par2:
+        body["par2"] = par2
+    if variables:
+        body["variables"] = variables
 
     return_code, response = http_post_request(
         ip_address,
@@ -435,10 +455,247 @@ def run_task_on_android(
         json.dumps(body).encode("utf-8"),
         auth_key,
         content_type="application/json",
+        **({} if timeout is None else {"timeout": timeout}),
     )
     if return_code != 0:
         return return_code, str(response)
-    return 0, ""
+    return 0, task_return_value(response)
+
+
+# What the HTTP Server Example's 'POST Task' handler answers when the Task it ran set no
+# return value.  Its HTTP Response body is '%return' plus a newline (task1077 act28), and it
+# clears %return before the Perform Task (act20) -- so a Task that returns nothing leaves the
+# variable unset, and Tasker sends an unset variable's name as its text.
+_UNSET_RETURN = "%return"
+
+# The helper that runs a Task the handler cannot find by name -- see run_task_for_result.  It
+# does one 'Perform Task' of the name it is handed in %mt_run_task and hands back what that
+# returned, so its own name is the only one the handler has to find.
+RUN_TASK_HELPER_NAME = "MapTasker Run Task v1"
+_PERFORM_TASK_ACTION = "130t"  # arg0 Name, arg1 Priority, arg4 Return Value Variable, arg6 Passthrough, arg7 Limit
+_RETURN_ACTION = "126t"  # arg0 Value
+_RUN_TASK_NAME_VARIABLE = "mt_run_task"  # set by the handler's JavaScriptlet, from the body's 'variables'
+_RUN_TASK_RESULT_VARIABLE = "%mt_run_result"
+# The helper's own variables stay behind; %par1, %par2 and the rest go on to the Task it runs.
+_RUN_TASK_PASSTHROUGH_LIMIT = "!%mt_run*"
+
+# How long a Task run for its result may take before MapTasker stops waiting.  The handler
+# answers only when the Task finishes, so this is the Task's own running time plus the
+# round trip -- generous, since a Task that asks the user something waits on them.
+RUN_TASK_TIMEOUT_SECONDS = 60
+
+
+def task_return_value(response: object) -> str:
+    """The Task's return value out of a POST /api/tasks response body: "" when it set none.
+
+    Only the one newline the handler adds is taken off, not all surrounding whitespace -- a
+    Task that deliberately returns indented text or trailing spaces gets them shown.
+    """
+    text = response.decode("utf-8", errors="replace") if isinstance(response, bytes) else str(response or "")
+    text = text.removesuffix("\n")
+    # The helper's 'Return' of an unset result comes back as that variable's name, the same way.
+    return "" if text.strip() in (_UNSET_RETURN, _RUN_TASK_RESULT_VARIABLE) else text
+
+
+def build_run_task_helper(task_name: str = RUN_TASK_HELPER_NAME):  # noqa: ANN201
+    """Build the Task that runs another Task by name and returns what it returned.
+
+    Returns an EditableTask, or an error message string, like every other builder here.
+
+    Its 'Perform Task' is the HTTP Server Example's own (task1077 act22), copied: priority
+    %priority, a return value variable, and Local Variable Passthrough on -- which is how the
+    Task it runs still gets %par1 and %par2.  A priority can only be written as a number
+    through taskedit, so the %priority variable is put into the built action afterwards.
+    """
+    built = _new_offer_task(task_name)
+    if isinstance(built, str):
+        return built
+    edited_task, add, values = built
+
+    error = add(
+        _PERFORM_TASK_ACTION,
+        {
+            "0": f"%{_RUN_TASK_NAME_VARIABLE}",
+            "4": _RUN_TASK_RESULT_VARIABLE,
+            "6": "1",
+            "7": _RUN_TASK_PASSTHROUGH_LIMIT,
+        },
+    ) or add(_RETURN_ACTION, {"0": _RUN_TASK_RESULT_VARIABLE})
+    if error:
+        return error
+    finished = _finish_offer_task(edited_task, task_name, values)
+    if isinstance(finished, str):
+        return finished
+
+    priority = finished.task_element.find("Action[code='130']/Int[@sr='arg1']")
+    if priority is None:
+        return "The helper Task's 'Perform Task' has no Priority to set."
+    priority.attrib.pop("val", None)
+    var = priority.makeelement("var", {})
+    var.text = "%priority"
+    priority.append(var)
+    return finished
+
+
+def _run_timed_out(timeout: float) -> str:
+    """What a run that outlasted its timeout is reported as: it may not have failed at all."""
+    return (
+        f"The Android device did not answer within {timeout:g} seconds.  The Task may still be running, "
+        "may be waiting on something on the device, or may have stopped on an error without "
+        "finishing -- check Tasker's Run Log on the device."
+    )
+
+
+@dataclass(frozen=True)
+class TaskRunResult:
+    """What running a Task on the device came to: its return value, or why there is none.
+
+    ok is True when the device ran the Task and answered; output is then its return value
+    ("" when it set none).  error says what went wrong otherwise, in words for the user.
+    seconds is how long the run took, answer or not.
+    """
+
+    ok: bool
+    output: str = ""
+    error: str = ""
+    seconds: float = 0.0
+
+
+def run_task_for_result(
+    ip_address: str,
+    ip_port: str,
+    task_name: str,
+    par1: str = "",
+    par2: str = "",
+    timeout: float = RUN_TASK_TIMEOUT_SECONDS,
+) -> TaskRunResult:
+    """Run a Task that is already on the device, wait for it to finish, and report what it returned.
+
+    The Task runs as Tasker has it, not as the loaded configuration or an open editor has it --
+    edits reach the device only through Save To Android.  par1 and par2 arrive as %par1 and
+    %par2 (see run_task_on_android).
+
+    A failure is explained rather than passed on raw where the reason can be known: a run that
+    outlasts the timeout may still be going on the device, and a Task the device does not have
+    is answered by the handler with a bare 400 -- told apart from any other refusal by asking
+    the device whether it has a Task of that name.
+
+    A name the handler cannot find at all -- '$Taskaroo', or anything else holding a character
+    it reads as a regular expression (see maputil2.tasker_name_matchable) -- is run through
+    RUN_TASK_HELPER_NAME instead, whose own name it can.
+    """
+    ip_address, ip_port, task_name = ip_address.strip(), ip_port.strip(), task_name.strip()
+    if not task_name:
+        return TaskRunResult(ok=False, error="There is no Task name to run.")
+
+    started = time.monotonic()
+    if not tasker_name_matchable(task_name):
+        return _run_task_through_helper(ip_address, ip_port, task_name, par1, par2, timeout, started)
+
+    return_code, response = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda auth_key: run_task_on_android(ip_address, ip_port, task_name, auth_key, par1, par2, timeout),
+    )
+    if return_code == 0:
+        return TaskRunResult(ok=True, output=str(response), seconds=time.monotonic() - started)
+
+    message = str(response)
+    if "Timeout error" in message:
+        message = _run_timed_out(timeout)
+    elif return_code != 9 and "Connection error" not in message:
+        # The device answered, and refused.  The likeliest reason by far is that it has no such Task.
+        auth_key = held_auth_key(ip_address, ip_port)
+        if auth_key and not taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key):
+            message = (
+                f"Tasker on the Android device has no Task named '{task_name}'.  "
+                "Use 'Save To Android' to put it there first."
+            )
+    return TaskRunResult(ok=False, error=message, seconds=time.monotonic() - started)
+
+
+def _run_task_through_helper(
+    ip_address: str,
+    ip_port: str,
+    task_name: str,
+    par1: str,
+    par2: str,
+    timeout: float,
+    started: float,
+) -> TaskRunResult:
+    """run_task_for_result for a name the handler cannot find: check, install the helper, run it.
+
+    Checked first, because a helper asked to run a Task that is not there stops on 'Perform Task'
+    without returning anything, which would read as a run that worked.  And checked with the
+    object-list helper (fetch_tasker_object_names), not the HTTP API: GET api/tasks cannot answer
+    for these names even unfiltered -- its handler builds the whole list by testing each name
+    against %tasks(#?~R<name>) and silently leaves out every one that fails, which these all do.
+    'Test Tasker' lists names as they are.
+    """
+
+    def failed(message: str) -> TaskRunResult:
+        return TaskRunResult(ok=False, error=message, seconds=time.monotonic() - started)
+
+    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port)
+    if return_code != 0:
+        return failed(f"Could not check that Tasker has '{task_name}': {message}")
+    if task_name not in listed.get("Task", []):
+        return failed(
+            f"Tasker on the Android device has no Task named '{task_name}'.  "
+            "Use 'Save To Android' to put it there first."
+        )
+
+    return_code, auth_key = auth_key_for(ip_address, ip_port)
+    if return_code != 0:
+        return failed(auth_key)
+    return_code, message = _install_task_on_android(
+        ip_address, ip_port, auth_key, RUN_TASK_HELPER_NAME, build_run_task_helper
+    )
+    if return_code != 0:
+        return failed(f"Could not install '{RUN_TASK_HELPER_NAME}', which runs this Task: {message}")
+
+    return_code, response = request_with_auth_key(
+        ip_address,
+        ip_port,
+        lambda key: run_task_on_android(
+            ip_address,
+            ip_port,
+            RUN_TASK_HELPER_NAME,
+            key,
+            par1,
+            par2,
+            timeout,
+            variables={_RUN_TASK_NAME_VARIABLE: task_name},
+        ),
+    )
+    if return_code == 0:
+        return TaskRunResult(ok=True, output=str(response), seconds=time.monotonic() - started)
+    message = str(response)
+    if "Timeout error" in message:
+        message = _run_timed_out(timeout)
+    return failed(message)
+
+
+def confirm_task_on_android(ip_address: str, ip_port: str, task_name: str, auth_key: str) -> bool:
+    """Whether Tasker has a Task of this name -- taskedit.verify_task_on_android, for any name.
+
+    That asks GET api/tasks, whose handler reads the name as a regular expression, so a name
+    maputil2.tasker_name_matchable refuses ('$Taskaroo', '... [Task/0]') is never in its answer,
+    filtered or not.  Those are checked with the object-list helper Task instead: seconds rather
+    than a fraction of one, but the only way Tasker reports them.  Answering False for a Task that
+    is there is not harmless -- a caller that retries the import on False gets a second Task of the
+    same name, because api/import adds rather than replaces (see _install_task_on_android).
+
+    Here rather than in taskedit, which deviceinv imports.  Blocking.
+    """
+    if tasker_name_matchable(task_name):
+        return taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key)
+
+    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port)
+    if return_code != 0:
+        logger.info(f"Could not list Tasker's objects to confirm '{task_name}': {message}")
+        return False
+    return task_name in listed["Task"]
 
 
 def _install_task_on_android(
@@ -461,7 +718,7 @@ def _install_task_on_android(
     configuration.  That is also why every helper Task name carries a version.
     """
 
-    if taskedit.verify_task_on_android(ip_address, ip_port, task_name, auth_key):
+    if confirm_task_on_android(ip_address, ip_port, task_name, auth_key):
         return 0, ""
 
     built = builder()
@@ -485,9 +742,7 @@ def _install_task_on_android(
     # api/import answering 200 is not evidence Tasker committed the Task -- the same
     # reservation save_task_to_android_directory exists for.  Checked with the key the import
     # used, which is a fresh one if the device had rejected the one held.
-    if not taskedit.verify_task_on_android(
-        ip_address, ip_port, task_name, held_auth_key(ip_address, ip_port) or auth_key
-    ):
+    if not confirm_task_on_android(ip_address, ip_port, task_name, held_auth_key(ip_address, ip_port) or auth_key):
         return 8, (
             f"'{task_name}' was sent to the device but Tasker did not report it afterwards.  "
             "Tasker 6.2 or higher is required, and Tasker must be running."
@@ -2363,6 +2618,7 @@ def current_helper_task_names() -> set[str]:
         ID_CHECK_TASK_NAME,
         LAUNCH_TASKER_TASK_NAME,
         HELPER_TASK_NAME,
+        RUN_TASK_HELPER_NAME,
     }
 
 
@@ -2754,8 +3010,8 @@ class TaskerCheck:
 def check_tasker_for_existing(ip_address: str, ip_port: str, sent: dict[str, list[str]]) -> TaskerCheck:
     """Ask Tasker which of these objects it already has.  Blocking; see the section comment.
 
-    With a Project among them, the helper has to run for it anyway, so that one run answers every
-    kind -- and a run that fails leaves every kind unchecked, having been the only question asked.
+    With a Project among them, or a name the HTTP API's lookups cannot find, the helper has to run
+    anyway, so that one run answers every kind -- and a run that fails leaves every kind unchecked, having been the only question asked.
     Without one, each kind is a single endpoint request, and a kind that cannot be asked is
     recorded as unchecked without stopping the others.
     """
@@ -2763,7 +3019,10 @@ def check_tasker_for_existing(ip_address: str, ip_port: str, sent: dict[str, lis
     if not wanted:
         return TaskerCheck(sent, {}, {})
 
-    if "Project" in wanted:
+    # The helper also answers for a name the HTTP API cannot find at all (see
+    # maputil2.tasker_name_matchable) -- the endpoints would report '$New Task' missing when it is there.
+    unmatchable = any(not tasker_name_matchable(name) for names in wanted.values() for name in names)
+    if "Project" in wanted or unmatchable:
         return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port)
         if return_code != 0:
             return TaskerCheck(sent, {}, dict.fromkeys(wanted, message))

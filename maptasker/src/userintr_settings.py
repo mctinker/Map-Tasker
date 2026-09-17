@@ -21,6 +21,7 @@ from nicegui import context, run, ui
 from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
 from maptasker.src.getputer import save_restore_args
+from maptasker.src.guistate import gui_settings
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     add_logo,
@@ -660,11 +661,9 @@ class SettingsEventHandlers:
         - Display confirmation message box
         """
         the_view = self.gui
-        temp_args = {value: getattr(the_view, value) for value in ARGUMENT_NAMES}
-
         # Save the arguments in the temporary dictionary
-        temp_args, the_view.color_lookup = save_restore_args(
-            temp_args,
+        _, the_view.color_lookup = save_restore_args(
+            gui_settings(the_view),
             the_view.color_lookup,
             to_save=True,
         )

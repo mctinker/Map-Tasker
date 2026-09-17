@@ -58,12 +58,14 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.config import EDIT_SCENE
 from maptasker.src.format import css_color
 from maptasker.src.getputer import save_restore_args
+from maptasker.src.guistate import remember_setting
 from maptasker.src.guiutil2 import get_font_choices, sort_languages_with_priority
 from maptasker.src.guiutils import (
     add_logo,
     android_address_defaults,
     display_model_pulldown,
     refresh_object_action_buttons,
+    remember_android_address_fields,
     update_analysis_button_color,
 )
 
@@ -623,17 +625,17 @@ def remember_android_panel_option(gui: MyGui, name: str, value: object) -> None:
     written from; and the file is written now rather than at exit, since a session that ends any
     other way would otherwise forget a box ticked in it.
     """
-    setattr(gui, name, bool(value))
-    PrimeItems.program_arguments[name] = bool(value)
+    remember_setting(gui, name, bool(value))
     save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
 
 
 def _android_device_fields(gui: MyGui) -> dict:
     """Where the device is, and whether to check the XML before sending it there.
 
-    The address and port default to the last ones that worked, the same way the Get XML and
-    Fetch Applications dialogs default -- and are written back by the save handlers, not
-    here, because a device that was never reached is not one to remember.
+    The address and port default to the last ones entered, the same way the Get XML and
+    Fetch Applications dialogs default, and are kept as soon as either field is left -- the
+    panel can be backed out of without saving, and an address typed there should not be lost
+    (see guiutils.remember_android_address_fields).
 
     "Verify" and "Check IDs" are remembered differently: as they are ticked, and in the settings
     file as well, so they hold across sessions (see remember_android_panel_option).  They are
@@ -651,6 +653,7 @@ def _android_device_fields(gui: MyGui) -> dict:
         "ip_address": ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full"),
         "ip_port": ui.input(translate_string("Port"), value=default_port).classes("w-full"),
     }
+    remember_android_address_fields(gui, fields["ip_address"], fields["ip_port"])
     verify = (
         ui.checkbox(
             translate_string("Verify"),
@@ -8720,7 +8723,7 @@ def initialize_screen(self: MyGui) -> None:
                 # -- which is most of the time.  The Edit/Add buttons give up their fixed
                 # width to pay for it (see their flex-1 below).
                 with ui.row(wrap=False).classes("w-full items-start justify-between gap-4 m-0 p-0"):
-                    # All eight Edit/Add buttons are built here, but only the ones the
+                    # All the Edit/Add buttons (and Run On Android) are built here, but only the ones the
                     # current pulldown selection can actually drive are ever on screen --
                     # guiutils.refresh_object_action_buttons hides the rest (and any row
                     # left with nothing in it) every time the selection changes, starting
@@ -8782,6 +8785,19 @@ def initialize_screen(self: MyGui) -> None:
                                 )
                                 .classes("flex-1 min-w-0 mt-2 bg-blue-500")
                                 .style("max-width:12rem")
+                            )
+                            self.run_task_button = (
+                                ui.button(
+                                    translate_string("Run On Android"),
+                                    on_click=self.event_handlers.open_run_task_on_android_dialog_event,
+                                )
+                                .classes("flex-1 min-w-0 mt-2 bg-blue-500")
+                                .style("max-width:12rem")
+                                .tooltip(
+                                    translate_string(
+                                        "Run the selected Task on your Android device and see what it returned.",
+                                    ),
+                                )
                             )
                         # The Scene pair is the only one of the four behind a switch -- Scene
                         # editing is still filling in (see sceneedit.py).  Not built at all when

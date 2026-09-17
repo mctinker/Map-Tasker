@@ -29,6 +29,7 @@ from maptasker.src.diffload import (
 )
 from maptasker.src.getfile import Local_File_Picker
 from maptasker.src.getputer import save_restore_args
+from maptasker.src.guistate import remember_setting
 from maptasker.src.guiwins import NiceGuiTextView, build_changes_since_dialog, build_health_check_dialog
 from maptasker.src.healthck import ERROR, WARNING, run_health_check, write_health_check_report
 from maptasker.src.maputil2 import translate_string
@@ -129,8 +130,7 @@ class ReportEventHandlers:
         program_arguments (guistate.capture_gui_state), so a choice stored in only one of the
         two would be put back to what it was at startup.
         """
-        PrimeItems.program_arguments["health_check_skip"] = skip
-        self.gui.health_check_skip = skip
+        remember_setting(self.gui, "health_check_skip", skip)
         save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
 
     def run_health_check_for(self: MapTaskerEventHandlers, skip: list[str]) -> None:

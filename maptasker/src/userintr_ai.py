@@ -19,6 +19,7 @@ from maptasker.src.aiutils import get_api_key
 from maptasker.src.apikeys import fallback_file, save_api_keys
 from maptasker.src.config import AI_PROMPT
 from maptasker.src.getputer import save_restore_args
+from maptasker.src.guistate import gui_settings
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     display_analyze_button,
@@ -33,7 +34,7 @@ from maptasker.src.guiwins2 import APIKeyDialog
 from maptasker.src.mapai import get_ai_object, map_ai, valid_api_key
 from maptasker.src.maputil2 import translate_string
 from maptasker.src.primitem import PrimeItems
-from maptasker.src.sysconst import ARGUMENT_NAMES, logger
+from maptasker.src.sysconst import logger
 
 if TYPE_CHECKING:
     from nicegui import Event
@@ -262,9 +263,7 @@ class AIEventHandlers:
                 PrimeItems.program_arguments["ai_name"] = gui.ai_name
 
             # Do the analysis.  First save our windows and settings.
-            temp_args = {value: getattr(gui, value) for value in ARGUMENT_NAMES}
-            # PrimeItems.program_arguments = temp_args
-            _, _ = save_restore_args(temp_args, gui.color_lookup, to_save=True)
+            _, _ = save_restore_args(gui_settings(gui), gui.color_lookup, to_save=True)
 
             # Now make certain we have the api key set for the model we are using.
             PrimeItems.program_arguments["ai_apikey"] = gui.ai_apikey

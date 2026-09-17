@@ -30,13 +30,17 @@ if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
 
 
-# The single-item selection the running session is on.  Mutually exclusive -- at most one is
-# ever set -- and each is mirrored on the MyGui instance as single_<x>_name.
+# The single-item selection the running session is on, each mirrored on the MyGui instance as
+# single_<x>_name.  The user picks only one, but mapping it fills in its owners in
+# program_arguments as it goes (a Task's Profile, a Profile's Project), so more than one can be
+# set there.  Most specific first, therefore: live_selection takes the first one it finds, and
+# checking Project or Profile first turned a selected Task into its Profile on every rebuild --
+# which is then what got saved.
 SELECTION_KEYS = (
-    "single_project_name",
-    "single_profile_name",
     "single_task_name",
     "single_scene_name",
+    "single_profile_name",
+    "single_project_name",
 )
 
 
@@ -171,6 +175,41 @@ def held_overrides(overrides: dict | None) -> Iterator[None]:
         _active_overrides = previous
 
 
+# The settings saved to the file the moment they change -- the Android address, the Save To
+# Android panel's checkboxes, the Health Check skip list, the local XML directory -- recorded as
+# they are set through remember_setting.  Each one's latest value lives in program_arguments.
+_remembered_settings: set[str] = set()
+
+
+def remember_setting(gui: MyGui, name: str, value: object) -> None:
+    """Set one setting on the GUI and in program_arguments, and make that value win later saves.
+
+    Every whole-settings save reads the settings off a MyGui instance, and there can be more than
+    one: each browser tab on the app builds its own, and only the latest is the one the exit save
+    reads.  A value set in another tab's window used to be written to the file at once and then
+    overwritten at exit with that instance's stale copy.  capture_gui_state and gui_settings put
+    the value recorded here back over whatever the instance they read holds.
+
+    The caller still writes the settings file.
+    """
+    setattr(gui, name, value)
+    PrimeItems.program_arguments[name] = value
+    _remembered_settings.add(name)
+
+
+def _apply_remembered_settings(gui: MyGui) -> None:
+    """Bring a (possibly stale) MyGui instance up to date with every remember_setting value."""
+    for name in _remembered_settings:
+        if name in PrimeItems.program_arguments:
+            setattr(gui, name, PrimeItems.program_arguments[name])
+
+
+def gui_settings(gui: MyGui) -> dict:
+    """The settings to save, read off a MyGui instance -- with remember_setting's values in force."""
+    _apply_remembered_settings(gui)
+    return {name: getattr(gui, name) for name in ARGUMENT_NAMES}
+
+
 def capture_gui_state(user_input: MyGui, data: dict) -> None:
     """Capture the current state of the GUI and save it to PrimeItems.
     Parameters:
@@ -183,6 +222,7 @@ def capture_gui_state(user_input: MyGui, data: dict) -> None:
 
     # Do the entire enchillada if it is not a specific entry:
     else:
+        _apply_remembered_settings(user_input)
         for value in ARGUMENT_NAMES:
             with contextlib.suppress(AttributeError):
                 PrimeItems.program_arguments[value] = getattr(user_input, value)

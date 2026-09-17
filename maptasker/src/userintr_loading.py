@@ -22,6 +22,7 @@ from nicegui import ui
 
 from maptasker.src.getbakup import validate_xml_file
 from maptasker.src.getfile import Local_File_Picker
+from maptasker.src.guistate import remember_setting
 from maptasker.src.guiutils import (
     SINGLE_ITEM_LABELS,
     clear_android_buttons,
@@ -81,8 +82,7 @@ def remember_local_xml_directory(gui: MyGui, file_path: str) -> None:
     if not file_path:
         return
     directory = str(Path(file_path).expanduser().parent)
-    gui.local_xml_directory = directory
-    PrimeItems.program_arguments["local_xml_directory"] = directory
+    remember_setting(gui, "local_xml_directory", directory)
 
 
 def _single_item_selection_message(gui: MyGui, item_type: str, name_entered: str) -> str:

@@ -16,15 +16,20 @@ at the top of its own file and a module-level import here would close the loop.
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 from nicegui import run, ui
 
 from maptasker.src import appinv, deviceinv, objprops, profedit, taskedit
-from maptasker.src.guiutils import android_address_defaults, remember_android_address
+from maptasker.src.guiutils import (
+    android_address_defaults,
+    remember_android_address,
+    remember_android_address_fields,
+)
 from maptasker.src.guiwins_impact import build_impact_panel
 from maptasker.src.mapjump import TASK
-from maptasker.src.maputil2 import translate_string
+from maptasker.src.maputil2 import tasker_name_matchable, translate_string
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -219,6 +224,7 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
 
         ip_field = ui.input(translate_string("Android IP Address"), value=default_ip).classes("w-full")
         port_field = ui.input(translate_string("Port"), value=default_port).classes("w-full")
+        remember_android_address_fields(gui, ip_field, port_field, dialog)
 
         # Hidden until the fetch starts.  The button going grey and saying 'Fetching...' is
         # not enough on its own: what the user has to do next is happening on the phone, not
@@ -266,6 +272,157 @@ async def _build_fetch_apps_dialog(gui: MyGui, on_fetched: Callable[[], None], f
             fetch_button.tooltip(
                 translate_string("Fetch the full list of installed Applications from the Android device."),
             )
+
+    dialog.open()
+
+
+def _format_task_output(output: str) -> str:
+    """A Task's return value as the Run dialog shows it: JSON laid out, anything else as it came."""
+    try:
+        parsed = json.loads(output)
+    except ValueError:
+        return output
+    if isinstance(parsed, (dict, list)):
+        return json.dumps(parsed, indent=2, ensure_ascii=False)
+    return output
+
+
+def build_run_task_on_android_dialog(
+    gui: MyGui,
+    task_name: str,
+    has_pending_edits: Callable[[], bool] | None = None,
+) -> None:
+    """Run a Task on the Android device and show what it returned, or why it did not.
+
+    Opened from the Edit Task dialog and from the Map's 'Run On Android' button.  The Task
+    runs as Tasker on the device has it -- nothing from the loaded configuration or an open
+    editor is sent -- so has_pending_edits, when given, is asked at Run time and a warning
+    shown if the editor holds changes the device has not seen.
+
+    The dialog stays open after a run, success or failure, so the Task can be run again with
+    different %par1/%par2 values without re-entering the address.  The run itself waits for
+    the Task to finish, so it goes through run.io_bound -- see deviceinv.run_task_for_result.
+    """
+    default_ip, default_port = android_address_defaults(gui)
+
+    with ui.dialog() as dialog, ui.card().classes("min-w-[520px] max-w-[900px] w-full p-6"):
+        ui.label(f"{translate_string('Run Task On Android')}: {task_name}").classes(
+            "text-lg font-bold text-blue-600",
+        )
+        ui.label(
+            translate_string(
+                "Runs the Task as Tasker on the Android device has it now, waits for it to finish, and "
+                "shows what it returned.  Edits not yet sent with 'Save To Android' are not part of the "
+                "run.  Tasker must be running, with the 'HTTP Server Example' project active.",
+            ),
+        ).classes("text-sm text-gray-500 italic")
+        if not tasker_name_matchable(task_name):
+            ui.label(
+                translate_string(
+                    f"Tasker's HTTP server cannot look up a name holding characters such as $ ( ) + or ?, so "
+                    f"this Task is run through a small helper Task, '{deviceinv.RUN_TASK_HELPER_NAME}', which "
+                    "MapTasker installs on the device the first time.",
+                ),
+            ).classes("text-sm text-gray-500 italic mt-1")
+        ui.label(
+            translate_string(
+                "The Task really runs: anything it does on the device -- messages, settings, files -- "
+                "happens for real.",
+            ),
+        ).classes("text-sm text-amber-700 dark:text-amber-500 mt-1")
+        # Tasker asks per request rather than once (see guiutils.notify_watch_android_device), and a
+        # run can take several -- a lookup, a helper install, the run itself -- so say to expect more
+        # than one, in the words the device shows, before Run is pressed.
+        ui.label(
+            translate_string(
+                "Watch your Android device: expect one or more prompts from Tasker reading 'Tasker API "
+                "Authorize request from python-requests...'.  Accept each one, or the run fails.",
+            ),
+        ).classes("text-sm text-amber-700 dark:text-amber-500 mt-1")
+
+        with ui.row().classes("w-full gap-4"):
+            ip_field = ui.input(translate_string("Android IP Address"), value=default_ip).classes("flex-1")
+            port_field = ui.input(translate_string("Port"), value=default_port).classes("w-32")
+        remember_android_address_fields(gui, ip_field, port_field, dialog)
+        with ui.row().classes("w-full gap-4"):
+            par1_field = ui.input(translate_string("%par1 (optional)")).classes("flex-1")
+            par2_field = ui.input(translate_string("%par2 (optional)")).classes("flex-1")
+
+        progress_row = ui.row().classes("w-full items-center gap-2 mt-3")
+        progress_row.set_visibility(False)
+        with progress_row:
+            ui.spinner(size="sm")
+            ui.label(
+                translate_string(
+                    "Running on the Android device -- accept the authorization prompt there if one appears.",
+                ),
+            ).classes("text-sm text-amber-700 dark:text-amber-500")
+
+        # Built empty and hidden; each run fills it with that run's outcome.
+        result_column = ui.column().classes("w-full gap-1 mt-3")
+        result_column.set_visibility(False)
+
+        def show_result(result: deviceinv.TaskRunResult) -> None:
+            result_column.clear()
+            with result_column:
+                if result.ok:
+                    ui.label(
+                        f"{translate_string('Task finished in')} {result.seconds:.1f}s.",
+                    ).classes("text-sm font-bold text-green-700 dark:text-green-500")
+                    if result.output:
+                        ui.label(translate_string("Return value:")).classes("text-xs text-gray-500")
+                        ui.code(_format_task_output(result.output), language="text").classes(
+                            "w-full max-h-80 overflow-auto",
+                        )
+                    else:
+                        ui.label(translate_string("The Task did not return a value.")).classes(
+                            "text-sm text-gray-500 italic",
+                        )
+                else:
+                    ui.label(translate_string("The Task could not be run.")).classes(
+                        "text-sm font-bold text-red-600",
+                    )
+                    ui.label(result.error).classes("text-sm text-red-600 whitespace-pre-wrap")
+            result_column.set_visibility(True)
+
+        async def run_task() -> None:
+            ip_address = str(ip_field.value or "").strip()
+            ip_port = str(port_field.value or "").strip()
+            if not ip_address or not ip_port:
+                ui.notify(translate_string("Enter the Android device's IP Address and Port."), type="warning")
+                return
+            remember_android_address(gui, ip_address, ip_port)
+            if has_pending_edits is not None and has_pending_edits():
+                ui.notify(
+                    translate_string(
+                        "This Task has unsaved edits.  The device runs the version it already has -- "
+                        "use 'Save To Android' first to run the edited one.",
+                    ),
+                    type="warning",
+                )
+
+            run_button.set_text(translate_string("Running..."))
+            run_button.set_enabled(False)
+            progress_row.set_visibility(True)
+            result_column.set_visibility(False)
+            try:
+                result = await run.io_bound(
+                    deviceinv.run_task_for_result,
+                    ip_address,
+                    ip_port,
+                    task_name,
+                    str(par1_field.value or ""),
+                    str(par2_field.value or ""),
+                )
+            finally:
+                run_button.set_text(translate_string("Run"))
+                run_button.set_enabled(True)
+                progress_row.set_visibility(False)
+            show_result(result)
+
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Close"), on_click=dialog.close).props("outline")
+            run_button = ui.button(translate_string("Run"), on_click=run_task).classes("bg-blue-600")
 
     dialog.open()
 
@@ -1312,6 +1469,22 @@ def build_edit_task_dialog(self: MyGui, edited_task: taskedit.EditableTask) -> N
                         "Watch the Android device while either one runs: Tasker asks you to authorize "
                         "the connection several times for one save, and a prompt left untapped fails it.\n\n"
                         "You must exit and restart Tasker to see an imported Task in the Tasker UI.",
+                    ),
+                ).style("white-space: pre-wrap")
+            run_on_android = ui.button(
+                translate_string("Run On Android"),
+                on_click=lambda: build_run_task_on_android_dialog(
+                    self,
+                    field_refs["name"].value.strip(),
+                    lambda: bool(pending_changes.row.visible),
+                ),
+            ).props("outline")
+            with run_on_android:
+                ui.tooltip(
+                    translate_string(
+                        "Runs this Task on your Android device and shows what it returned, or the error.\n\n"
+                        "The device runs the Task as Tasker already has it: use 'Save To Android' first to "
+                        "run your edits.",
                     ),
                 ).style("white-space: pre-wrap")
             task_save = ui.button(

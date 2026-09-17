@@ -243,6 +243,23 @@ LIST_READ_TIMEOUT_SECONDS = 30
 _NAME_FILTER_LITERALS = re.compile(r"[A-Za-z0-9_-]")
 _NAME_FILTER_UNSENDABLE = frozenset(".~")
 
+# Characters that make a name unfindable by the HTTP Server Example's own lookups, however it is
+# sent.  Its handlers do not compare names, they match them as regular expressions: GET api/tasks
+# filters with %tasks(#?~R%name), GET api/profiles with %profiles(#?~R^%name$), and POST api/tasks
+# refuses to run a Task unless %tasks(#?~R^<name>$) finds it.  A name holding any of these is a
+# different pattern from the name itself -- '$Taskaroo' asks for text after the end of the text,
+# which nothing is -- so the device answers that a Task it plainly has does not exist.  Reading the
+# whole list is no way round it: GET api/tasks builds that list by putting every name through the
+# same test and leaving out the ones that fail.  Only the object-list helper Task (deviceinv's
+# fetch_tasker_object_names, which uses Tasker's own 'Test Tasker') reports such a name.  '.' is
+# the one metacharacter left out here: it matches itself as well as anything else.
+_NAME_REGEX_SPECIALS = frozenset("\\^$|?*+()[]{}")
+
+
+def tasker_name_matchable(name: str) -> bool:
+    """Whether the HTTP Server Example's handlers can find this name -- see _NAME_REGEX_SPECIALS."""
+    return not _NAME_REGEX_SPECIALS.intersection(name)
+
 
 def tasker_name_query(names: list[str]) -> str | None:
     """'?name=...&name=...' for asking a Tasker endpoint about these names, or None if one can't be sent.
@@ -251,6 +268,9 @@ def tasker_name_query(names: list[str]) -> str | None:
     included -- urllib's quote leaves '/' alone, which ends the server's match early.  None
     when any name holds '.' or '~' (see _NAME_FILTER_UNSENDABLE): the caller has to read the
     whole list instead, since a filtered answer would be about a different, shorter name.
+
+    Not a way round tasker_name_matchable: the whole list is built by the same regular-expression
+    test, and leaves those names out of it too.
     """
     if any(_NAME_FILTER_UNSENDABLE.intersection(name) for name in names):
         return None
@@ -642,6 +662,7 @@ def http_post_request(
     file_content: bytes,
     auth_key: str = "",
     content_type: str = "",
+    timeout: float = _WRITE_TIMEOUT_SECONDS,
 ) -> tuple[int, object]:
     """
     Issue HTTP POST request to write a file (e.g. a standalone Task .tsk.xml) to the
@@ -659,6 +680,9 @@ def http_post_request(
         api/tasks takes a JSON task object and is entitled to be told so -- see
         deviceinv.run_task_on_android, the one caller that passes this.  Left empty, no
         Content-Type header is sent at all, exactly as before.
+        :param timeout: seconds to wait for the answer.  api/tasks answers only once the Task
+        it runs has finished, so a Task run for its result (deviceinv.run_task_for_result)
+        waits longer than a write does.
         :return: return code, response: either a text string with an error message or
         the contents of the response
     """
@@ -668,7 +692,7 @@ def http_post_request(
         url,
         data=file_content,
         headers=_auth_headers(auth_key, content_type),
-        timeout=_WRITE_TIMEOUT_SECONDS,
+        timeout=timeout,
         unreachable="Unable to post XML to Android device.",
         timed_out=(
             "  Perhaps Tasker server is not active or the Project 'HTTP Server Example' has not been imported"

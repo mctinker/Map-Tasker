@@ -287,7 +287,7 @@ Refer the the [Caveats](https://github.com/mctinker/Map-Tasker/blob/Master/cavea
 
 - [x] Impact Analysis Before Destructive Edit
 
-- [ ] Test-run Task on Android
+- [x] Test-run Task on Android
 
 - [ ] Live Variable Inspector
 

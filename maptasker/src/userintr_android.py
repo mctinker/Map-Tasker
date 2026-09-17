@@ -32,6 +32,7 @@ from maptasker.src.guiutils import (
     notify_watch_android_device,
     ping_android_device,
     remember_android_address,
+    remember_android_address_fields,
     update_tasker_object_menus,
 )
 from maptasker.src.guiwins import (
@@ -323,6 +324,7 @@ class AndroidEventHandlers:
             gui.port_entry = ui.input(label=translate_string("2-Port Number:"), value=android_port).classes(
                 "w-full q-py-none",
             )
+            remember_android_address_fields(gui, gui.ip_entry, gui.port_entry)
             gui.file_entry = ui.input(label=translate_string("3-File Location:"), value=android_file).classes(
                 "w-full q-py-none",
             )
@@ -558,11 +560,13 @@ class AndroidEventHandlers:
             auth_key = held_auth_key(ip_address, ip_port)
 
             # api/import's 200 response doesn't guarantee Tasker actually committed the
-            # Task, so confirm via GET /api/tasks before declaring success. If that
-            # check fails, retry the import once more from the file now sitting in
-            # /Tasker/tasks (see taskedit.save_task_to_android_directory's docstring for why
-            # a retry, not a different endpoint, is the only fallback that can help).
-            if await run.io_bound(taskedit.verify_task_on_android, ip_address, ip_port, task_name, auth_key):
+            # Task, so confirm it is there before declaring success -- by GET /api/tasks, or
+            # for a name that cannot find ('$Taskaroo') the object-list helper, since a Task
+            # wrongly reported missing would be imported twice.  If that check fails, retry
+            # the import once more from the file now sitting in /Tasker/tasks (see
+            # taskedit.save_task_to_android_directory's docstring for why a retry, not a
+            # different endpoint, is the only fallback that can help).
+            if await run.io_bound(deviceinv.confirm_task_on_android, ip_address, ip_port, task_name, auth_key):
                 ui.notify(translate_string("Task Uploaded to Tasker") + landed, type="positive")
             else:
                 fallback_code, fallback_result = await run.io_bound(

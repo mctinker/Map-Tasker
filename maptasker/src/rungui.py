@@ -18,7 +18,7 @@ import os
 import socket
 from typing import Any
 
-from nicegui import core, ui
+from nicegui import app, core, ui
 
 from maptasker.src import console
 from maptasker.src.config import DEFAULT_DISPLAY_DETAIL_LEVEL
@@ -89,6 +89,56 @@ def convert_to_integer(value_to_convert: str, default_value: int) -> int:
 # route will answer for.  The title is no longer derived from the path: "Task Flow" is two
 # words, and NiceGuiTextView decides how to render a view by what its title starts with.
 POPOUT_TITLES = {"map": "Map View", "diagram": "Diagram View", "flow": "Task Flow View"}
+
+
+# Guards against saving twice: the shutdown hook and the code after ui.run() both ask.
+_settings_saved = {"done": False}
+
+
+def save_gui_settings(user_input: object) -> None:
+    """Copy the GUI's current settings into program_arguments/colors_to_use and write the settings file.
+
+    Called once per run, from whichever gets there first: the server's shutdown hook (every way
+    the server stops, Ctrl-C included) or the code after ui.run() returns.
+
+        :param user_input: the MyGui instance, or None if the page was never built -- in which
+            case there is nothing from this session to save.
+    """
+    if not user_input or _settings_saved["done"]:
+        return
+    _settings_saved["done"] = True
+
+    # Establish our runtime default values if we don't yet have 'em.
+    if not PrimeItems.colors_to_use:
+        PrimeItems.program_arguments = initialize_runtime_arguments()
+
+    # Move user_input values into our program_arguments dictionary and colors_to_use dictionary
+    capture_gui_state(user_input, {})
+
+    # Hide the Ai key so when settings are saved, it isn't written to toml file.
+    ai_apikey = getattr(user_input, "ai_apikey", None)
+    if ai_apikey is not None and ai_apikey:
+        PrimeItems.ai["api_key"] = ai_apikey
+        PrimeItems.program_arguments["ai_apikey"] = "HIDDEN"
+
+    # Convert display_detail_level to integer
+    PrimeItems.program_arguments["display_detail_level"] = convert_to_integer(
+        PrimeItems.program_arguments["display_detail_level"],
+        DEFAULT_DISPLAY_DETAIL_LEVEL,
+    )
+    # Convert indent to integer
+    PrimeItems.program_arguments["indent"] = convert_to_integer(
+        PrimeItems.program_arguments["indent"],
+        4,
+    )
+
+    # Save our runtime settings.
+    _, _ = save_restore_args(
+        PrimeItems.program_arguments,
+        PrimeItems.colors_to_use,
+        to_save=True,
+    )
+    logger.info("Settings saved on exit.")
 
 
 def process_gui(use_gui: bool) -> tuple[dict, dict]:
@@ -242,7 +292,7 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # =========================================================================
     # Intercept all interactions with the UI to save MyGui to PrimeItems and shared_state
-    # from nicegui import core, ui
+    # from nicegui import app, core, ui
     # 1. Save a reference to NiceGUI's core Socket.IO emitter function
     _original_sio_emit = core.sio.emit
 
@@ -276,6 +326,12 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
 
     # =========================================================================
 
+    # 4b. Save the settings as the server shuts down, however it was told to.  The save used to
+    # happen only after ui.run() returned, which it does for the Exit button -- but Ctrl-C in
+    # the terminal (or a SIGTERM) makes ui.run() raise KeyboardInterrupt instead, and every
+    # setting changed in the session was lost.  Shutdown handlers run in both cases.
+    app.on_shutdown(lambda: save_gui_settings(shared_state.get("user_input")))
+
     # 5. Start the server (This will now properly block without running main() twice)
     try:
         ui.run(
@@ -297,6 +353,9 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
                 "Error: Address already in use. Please close any other instances of MapTasker or change the port.",
                 100,  # Force an exit.
             )
+    except KeyboardInterrupt:
+        # Ctrl-C: the shutdown hook above has saved the settings; carry on to the normal exit.
+        logger.info("GUI interrupted from the keyboard.")
 
     logger.info("GUI closed. Cleaning up...")
     console.say("MapTasker GUI closed. Cleaning up...")
@@ -309,36 +368,10 @@ def process_gui(use_gui: bool) -> tuple[dict, dict]:
         error_handler("Program exited. Goodbye.", 0)
         exit_program(0)
 
-    # Establish our runtime default values if we don't yet have 'em.
-    if not PrimeItems.colors_to_use:
-        PrimeItems.program_arguments = initialize_runtime_arguments()
+    # Normally already done by the shutdown hook; this catches a server that stopped without
+    # running it.
+    save_gui_settings(user_input)
 
-    # Move user_input values into our program_arguments dictionary and colors_to_use dictionary
-    capture_gui_state(user_input, {})
-
-    # Hide the Ai key so when settings are saved, it isn't written to toml file.
-    ai_apikey = getattr(user_input, "ai_apikey", None)
-    if ai_apikey is not None and ai_apikey:
-        PrimeItems.ai["api_key"] = ai_apikey
-        PrimeItems.program_arguments["ai_apikey"] = "HIDDEN"
-
-    # Convert display_detail_level to integer
-    PrimeItems.program_arguments["display_detail_level"] = convert_to_integer(
-        PrimeItems.program_arguments["display_detail_level"],
-        DEFAULT_DISPLAY_DETAIL_LEVEL,
-    )
-    # Convert indent to integer
-    PrimeItems.program_arguments["indent"] = convert_to_integer(
-        PrimeItems.program_arguments["indent"],
-        4,
-    )
-
-    # Save our runtime settings.
-    _, _ = save_restore_args(
-        PrimeItems.program_arguments,
-        PrimeItems.colors_to_use,
-        to_save=True,
-    )
     # Spit out the message and log it.
     error_handler("Program exited. Goodbye.", 0)
 

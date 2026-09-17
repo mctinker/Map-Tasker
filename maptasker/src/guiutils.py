@@ -25,6 +25,7 @@ from maptasker.src.colrmode import set_color_mode
 from maptasker.src.error import rutroh_error
 from maptasker.src.getids import get_ids
 from maptasker.src.getputer import save_restore_args
+from maptasker.src.guistate import gui_settings, remember_setting
 from maptasker.src.guiutil2 import get_changelog_file
 from maptasker.src.lineout import LineOut
 from maptasker.src.maputil2 import http_request, translate_string
@@ -35,7 +36,6 @@ from maptasker.src.proginit import get_data_and_output_intro
 from maptasker.src.sysconst import (
     ALL_OBJECTS_MESSAGE,
     ANALYSIS_FILE,
-    ARGUMENT_NAMES,
     CHANGELOG_FILE,
     CHANGELOG_URL,
     ERROR_FILE,
@@ -862,6 +862,7 @@ OBJECT_ACTION_BUTTONS = (
     ("add_profile_button", ("Project", "Profile")),
     ("edit_task_button", ("Task",)),
     ("add_task_button", ("Project", "Task")),
+    ("run_task_button", ("Task",)),
     ("edit_scene_button", ("Scene",)),
     ("add_scene_button", ("Project", "Scene")),
 )
@@ -872,7 +873,7 @@ OBJECT_ACTION_BUTTONS = (
 OBJECT_ACTION_ROWS = (
     ("project_buttons_row", ("edit_project_button", "add_project_button")),
     ("profile_buttons_row", ("edit_profile_button", "add_profile_button")),
-    ("task_buttons_row", ("edit_task_button", "add_task_button")),
+    ("task_buttons_row", ("edit_task_button", "add_task_button", "run_task_button")),
     ("scene_buttons_row", ("edit_scene_button", "add_scene_button")),
 )
 
@@ -1524,8 +1525,7 @@ def reload_gui(self: object) -> None:
     self.tab_to_use = selected_tab_name(self)
 
     # Save the settings
-    temp_args = {value: getattr(self, value) for value in ARGUMENT_NAMES}
-    _, _ = save_restore_args(temp_args, self.color_lookup, to_save=True)
+    _, _ = save_restore_args(gui_settings(self), self.color_lookup, to_save=True)
 
     # ReRun via a new process, which will load and run the new program/version.
     # Note: this current process will not return after this call, but simply be killed.
@@ -1617,13 +1617,38 @@ def remember_android_address(gui: "MyGui", ipaddr: str, port: str) -> None:
         and PrimeItems.program_arguments.get("android_last_ipaddr") == ipaddr
         and PrimeItems.program_arguments.get("android_last_port") == port
     )
-    gui.android_last_ipaddr = ipaddr
-    gui.android_last_port = port
+    remember_setting(gui, "android_last_ipaddr", ipaddr)
+    remember_setting(gui, "android_last_port", port)
     if unchanged:
         return
-    PrimeItems.program_arguments["android_last_ipaddr"] = ipaddr
-    PrimeItems.program_arguments["android_last_port"] = port
     save_restore_args(PrimeItems.program_arguments, PrimeItems.colors_to_use, to_save=True)
+
+
+def remember_android_address_fields(
+    gui: "MyGui",
+    ip_field: ui.input,
+    port_field: ui.input,
+    dialog: ui.dialog | None = None,
+) -> None:
+    """Keep an address typed into an Android dialog even when nothing is done with it.
+
+    Without this the address was only kept once a Run, Fetch, Get XML or Save had used it, so
+    changing it and then pressing Close or Cancel lost it.  Kept when either field loses focus --
+    which clicking Close does first -- and, for a dialog, when it closes by any means, since
+    Escape or a click outside it closes without taking the focus away first.  An empty address
+    is ignored (see remember_android_address), so clearing the field does not wipe the saved one.
+
+    Call while the fields are being built: a listener added to an element the browser already
+    holds makes NiceGUI rebuild it (see guiwins.register_finding_clicks).
+    """
+
+    def keep() -> None:
+        remember_android_address(gui, ip_field.value, port_field.value)
+
+    ip_field.on("blur", lambda _: keep())
+    port_field.on("blur", lambda _: keep())
+    if dialog is not None:
+        dialog.on_value_change(lambda event: None if event.value else keep())
 
 
 # Ping the Android evice to make sure it is reachable.

@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import re
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -1427,6 +1428,10 @@ class _FakeImportRequests:
         # the same way, and a double that 404s that read cannot tell a good write from a bad.
         if any(url.endswith(kind) or f"{kind}?" in url for kind in (".prf.xml", ".prj.xml", ".scn.xml")):
             return _FakeResponse(200, self.uploaded) if self.uploaded else _FakeResponse(404)
+        if "maptasker_objects.txt" in url:
+            # The object-list helper: how a helper named with [ ] ('... [Task/0]') is confirmed,
+            # since the real handler reads that name as a regular expression.
+            return _FakeResponse(200, _objects_payload(tasks="|~|".join(self.installed_tasks)).encode())
         if self.result_filename in url:
             if self.payload is None or not self.task_ran:
                 return _FakeResponse(404)
@@ -3164,13 +3169,26 @@ def test_tasks_are_asked_about_by_name_not_by_reading_the_whole_list(tasker_devi
     """The whole list makes the device look up every Task it has before it answers -- seconds, and
     past the read timeout on a busy phone, which is what reported a connection error on a device
     that was fine.  The names being sent go in the filter instead, all in one request."""
-    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Test1", "$New Task/2"]})
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["Test1", "New Task/2"]})
 
     assert check.unchecked == {}
     assert check.present == {"Task": ["Test1"]}
     task_gets = [urlparse(url) for verb, url in tasker_device.calls if verb == "GET" and "/api/tasks" in url]
     assert len(task_gets) == 1
-    assert parse_qs(task_gets[0].query)["name"] == ["Test1", "$New Task/2"]
+    assert parse_qs(task_gets[0].query)["name"] == ["Test1", "New Task/2"]
+
+
+def test_a_name_the_server_reads_as_a_pattern_is_asked_of_the_helper(tasker_device: _FakeTasker) -> None:
+    """The HTTP API matches names as regular expressions -- in its filter AND in building its whole
+    list -- so it reports '$New Task' missing on a device that has it.  The object-list helper's
+    'Test Tasker' does not."""
+    tasker_device.objects_payload = _objects_payload(tasks="Test1|~|$New Task")
+
+    check = deviceinv.check_tasker_for_existing("192.168.0.210", "1821", {"Task": ["$New Task", "Other"]})
+
+    assert check.unchecked == {}
+    assert check.present == {"Task": ["$New Task"]}
+    assert any("maptasker_objects.txt" in url for verb, url in tasker_device.calls if verb == "GET")
 
 
 def test_a_task_name_the_filter_cannot_carry_reads_the_whole_list(tasker_device: _FakeTasker) -> None:
@@ -3363,3 +3381,86 @@ def test_a_backup_that_is_not_a_configuration_is_refused(tasker_device: _FakeTas
 
 def test_the_id_check_helper_is_not_reported_as_a_leftover() -> None:
     assert deviceinv.ID_CHECK_TASK_NAME in deviceinv.current_helper_task_names()
+
+
+# ##################################################################################
+# Confirming a saved Task whose name the HTTP Server Example reads as a regular expression
+# ##################################################################################
+class _FakeRegexTasker(_FakeTasker):
+    """_FakeTasker whose GET api/tasks answers the way the handler does: by pattern, not by name.
+
+    Filtered, it keeps the Tasks %tasks(#?~R%name) matches; unfiltered, it tests each name as a
+    pattern against the Task list and leaves out the ones that fail -- so '$Taskaroo' is in
+    neither answer on a device that has it.  The object-list helper reports every Task by name.
+    """
+
+    def __init__(self, tasks: list[str]) -> None:
+        super().__init__()
+        self.tasks = tasks
+        self.objects_payload = _objects_payload(tasks="|~|".join(tasks))
+
+    def _matches(self, pattern: str) -> list[str]:
+        try:
+            return [name for name in [*self.tasks, *self.installed] if re.search(pattern, name)]
+        except re.error:
+            return []
+
+    def get(self, url: str, **kwargs: object) -> _FakeResponse:
+        if "/api/tasks" not in url:
+            return super().get(url, **kwargs)
+        self.calls.append(("GET", url))
+        asked = parse_qs(urlparse(url).query).get("name", [])
+        if asked:
+            listed = [name for pattern in asked for name in self._matches(pattern)]
+        else:
+            listed = [name for name in self.tasks if self._matches(name)]
+        return _FakeResponse(200, json.dumps([{"name": name, "running": False} for name in listed]).encode())
+
+
+@pytest.fixture
+def regex_tasker(monkeypatch: pytest.MonkeyPatch) -> _FakeRegexTasker:
+    from maptasker.src import maputil2
+
+    fake = _FakeRegexTasker(["Wake Up", "$Taskaroo", "M$ Rewards"])
+    monkeypatch.setattr(maputil2, "requests", fake)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
+    _load(_FIXTURE_XML)
+    return fake
+
+
+def test_the_task_list_really_leaves_a_regex_name_out(regex_tasker: _FakeRegexTasker) -> None:
+    """Why confirm_task_on_android cannot use GET api/tasks for such a name, even unfiltered."""
+    return_code, message, names = deviceinv.fetch_task_names_from_device("192.168.0.210", "1821")
+
+    assert return_code == 0, message
+    assert names == ["Wake Up"]
+
+
+@pytest.mark.parametrize("name", ["$Taskaroo", "M$ Rewards"])
+def test_a_saved_task_with_a_regex_name_is_confirmed_by_the_object_list(
+    regex_tasker: _FakeRegexTasker, name: str
+) -> None:
+    """Reporting it missing would make Save To Android import it a second time -- and api/import
+    adds another Task of the same name rather than replacing the one already there."""
+    assert deviceinv.confirm_task_on_android("192.168.0.210", "1821", name, "TESTKEY")
+    assert deviceinv.OBJECT_LIST_TASK_NAME in regex_tasker.installed
+
+
+def test_a_regex_name_the_device_lacks_is_still_reported_missing(regex_tasker: _FakeRegexTasker) -> None:
+    assert not deviceinv.confirm_task_on_android("192.168.0.210", "1821", "$NewTask", "TESTKEY")
+
+
+def test_a_regex_name_is_reported_missing_when_the_object_list_cannot_be_read(
+    regex_tasker: _FakeRegexTasker,
+) -> None:
+    regex_tasker.objects_payload = "MAPTASKER-OBJECTS 1\nPROJECTS\nBase\n"  # never finished
+
+    assert not deviceinv.confirm_task_on_android("192.168.0.210", "1821", "$Taskaroo", "TESTKEY")
+
+
+def test_an_ordinary_name_is_still_confirmed_without_the_helper(regex_tasker: _FakeRegexTasker) -> None:
+    """The fast path stays: one filtered GET, nothing installed or run."""
+    assert deviceinv.confirm_task_on_android("192.168.0.210", "1821", "Wake Up", "TESTKEY")
+    assert not regex_tasker.installed
+    assert not any(verb == "POST" for verb, _url in regex_tasker.calls)

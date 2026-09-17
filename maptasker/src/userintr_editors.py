@@ -55,7 +55,12 @@ from maptasker.src.guiwins_profedit import (
     build_delete_profile_dialog,
     build_edit_profile_dialog,
 )
-from maptasker.src.guiwins_taskedit import build_add_task_dialog, build_delete_task_dialog, build_edit_task_dialog
+from maptasker.src.guiwins_taskedit import (
+    build_add_task_dialog,
+    build_delete_task_dialog,
+    build_edit_task_dialog,
+    build_run_task_on_android_dialog,
+)
 from maptasker.src.maputil2 import translate_string, write_full_backup_to_current_file
 from maptasker.src.maputils import find_owning_project, find_owning_project_for_scene, find_owning_project_for_task
 from maptasker.src.primitem import PrimeItems
@@ -801,6 +806,18 @@ class EditorEventHandlers:
             return
 
         build_edit_task_dialog(the_view, edited_task)
+
+    def open_run_task_on_android_dialog_event(self) -> None:
+        """Opens the Run Task On Android dialog for the currently selected single Task name.
+
+        Nothing is loaded for edit: the device runs the Task Tasker already has, so the name is
+        all the run needs.
+        """
+        task_name = getattr(self.gui, "single_task_name", "")
+        if not task_name:
+            ui.notify(translate_string("Select a single Task first (Task pulldown above)."), type="warning")
+            return
+        build_run_task_on_android_dialog(self.gui, task_name)
 
     def rename_task_event(
         self,
