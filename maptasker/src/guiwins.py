@@ -3247,7 +3247,8 @@ def build_helper_tasks_dialog(stale: list[str], current: list[str], device: str)
             ui.label(
                 translate_string(
                     "Delete them from Tasker's Tasks tab -- long-press one, then Delete.  Nothing here can "
-                    "do it: Tasker's HTTP API has no way to delete a Task.",
+                    "do it: Tasker's HTTP API has no way to delete a Task.  To make the next cleanup a single "
+                    "delete, put the helper Tasks in the 'MapTasker' Project from the Android panel.",
                 ),
             ).classes("text-xs text-gray-500 italic mt-2")
         else:
@@ -3261,6 +3262,36 @@ def build_helper_tasks_dialog(stale: list[str], current: list[str], device: str)
                 for name in current:
                     ui.label(name).classes("font-mono text-sm text-gray-500 break-all")
 
+        with ui.row().classes("w-full justify-end gap-2 mt-4"):
+            ui.button(translate_string("Close"), on_click=dialog.close).props("outline")
+
+    dialog.open()
+
+
+def build_helpers_in_the_way_dialog(present: list[str], device: str) -> None:
+    """Names the helper Tasks that must be deleted before the 'MapTasker' Project can be imported.
+
+    Tasker rejects a whole Project with 'Import failed.' if it already has any Task in it (see
+    deviceinv.stage_helper_project), so the file is not even written until these are gone.
+    """
+    with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[420px] max-w-[680px] w-full p-6"):
+        ui.label(translate_string("Delete These Helper Tasks First")).classes("text-lg font-bold text-blue-600")
+        ui.label(f"{translate_string('On')} {device}").classes("text-xs text-gray-500")
+        ui.label(
+            translate_string(
+                "Tasker refuses to import a Project that contains a Task it already has, so the 'MapTasker' "
+                "Project cannot be imported while these are in Tasker:",
+            ),
+        ).classes("mt-3")
+        with ui.column().classes("gap-0 mt-1"):
+            for name in present:
+                ui.label(name).classes("font-mono text-sm break-all")
+        ui.label(
+            translate_string(
+                "Delete them in Tasker -- or delete the 'MapTasker' Project, if they are already in it -- "
+                "and then try again.",
+            ),
+        ).classes("text-xs text-gray-500 italic mt-2")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Close"), on_click=dialog.close).props("outline")
 

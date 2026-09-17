@@ -3464,3 +3464,141 @@ def test_an_ordinary_name_is_still_confirmed_without_the_helper(regex_tasker: _F
     assert deviceinv.confirm_task_on_android("192.168.0.210", "1821", "Wake Up", "TESTKEY")
     assert not regex_tasker.installed
     assert not any(verb == "POST" for verb, _url in regex_tasker.calls)
+
+
+# ##################################################################################
+# Every helper in one 'MapTasker' Project
+#
+# Tasker cannot be told to delete a Task, so the helpers are handed to it as one Project the
+# user can delete in a single step.  Tasker refuses the whole Project if it already has any Task
+# in it, so nothing may be installed on the way, and helpers already there stop it cold.
+# ##################################################################################
+
+
+def test_the_helper_project_carries_every_current_helper_under_its_own_id(loaded: None) -> None:
+    """Every builder mints its id without knowing about the others, so without renumbering
+    they would all share one -- and <tids> would name a single Task."""
+    root = ET.fromstring(deviceinv.build_helper_project_xml())  # noqa: S314
+
+    project = root.find("Project")
+    assert project is not None
+    assert project.findtext("name") == deviceinv.HELPER_PROJECT_NAME
+    assert project.get("sr") == "proj0"
+    assert project.findtext("id")
+
+    tasks = root.findall("Task")
+    assert {task.findtext("nme") for task in tasks} == deviceinv.current_helper_task_names()
+    ids = [task.findtext("id") for task in tasks]
+    assert len(set(ids)) == len(ids)
+    assert all(task.get("sr") == f"task{task.findtext('id')}" for task in tasks)
+    assert sorted(project.findtext("tids").split(","), key=int) == sorted(ids, key=int)
+    existing = set(PrimeItems.tasker_root_elements["all_tasks"]) | set(PrimeItems.tasker_root_elements["all_profiles"])
+    assert not existing & set(ids)
+
+
+@pytest.mark.usefixtures("_nothing_loaded")
+def test_the_helper_project_needs_a_loaded_backup() -> None:
+    """Every helper's Task id comes from the loaded configuration, so without one there is
+    nothing to number them against -- refused before the device is touched."""
+    with pytest.raises(ValueError, match="Load a Tasker backup"):
+        deviceinv.build_helper_project_xml()
+
+
+def test_the_helper_project_numbers_past_the_devices_backup(loaded: None) -> None:
+    """Measured: the loaded backup's highest id plus headroom was 2209, which the device had
+    already given the user's own Task.  Tasker's automatic backup is read so the ids clear what
+    the device holds too; a 'MapTasker' Project already there keeps its id."""
+    device_backup = f"""<TaskerData sr="" dvi="1" tv="6.7.6">
+<Project sr="proj0" ve="2"><id>kept-project-uuid</id><name>{deviceinv.HELPER_PROJECT_NAME}</name></Project>
+<Task sr="task2209"><id>2209</id><nme>Test1plus</nme></Task>
+<Profile sr="prof4100"><id>4100</id><nme>Newest</nme></Profile>
+</TaskerData>"""
+
+    root = ET.fromstring(deviceinv.build_helper_project_xml(device_xml=device_backup))  # noqa: S314
+
+    ids = [int(task.findtext("id")) for task in root.findall("Task")]
+    assert min(ids) == 4100 + taskedit.NEW_OBJECT_ID_HEADROOM + 1
+    assert len(set(ids)) == len(ids)
+    project = root.find("Project")
+    assert project.findtext("id") == "kept-project-uuid"
+    assert project.findtext("tids").split(",") == [str(task_id) for task_id in ids]
+
+
+def test_an_unreadable_device_backup_builds_nothing(loaded: None) -> None:
+    """A caller that wants the loaded ids instead asks for them by passing no backup."""
+    with pytest.raises(ValueError, match="could not be read"):
+        deviceinv.build_helper_project_xml(device_xml=b"not xml")
+
+
+class _FakeHelperProjectDevice(_FakeTasker):
+    """A device that serves Tasker's automatic backup and accepts uploads."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.tasks = []
+        self.auto_backup = (
+            '<TaskerData sr="" dvi="1" tv="6.7.6"><Task sr="task5000"><id>5000</id><nme>Mine</nme></Task></TaskerData>'
+        )
+        self.uploaded: dict[str, bytes] = {}
+
+    def get(self, url: str, **kwargs: object) -> _FakeResponse:
+        if "/Tasker/configs/user/backup.xml" in url:
+            self.calls.append(("GET", url))
+            return _FakeResponse(200, self.auto_backup.encode())
+        if "MapTasker.prj.xml" in url:
+            self.calls.append(("GET", url))
+            return _FakeResponse(200, self.uploaded["MapTasker.prj.xml"])
+        return super().get(url, **kwargs)
+
+    def post(self, url: str, **kwargs: object) -> _FakeResponse:
+        if "/upload" in url:
+            self.calls.append(("POST", url))
+            files = kwargs.get("files", {})
+            name = next(iter(files))
+            self.uploaded[name] = next(iter(files.values()))[1]
+            return _FakeResponse(200, b"{}")
+        return super().post(url, **kwargs)
+
+
+@pytest.fixture
+def helper_project_device(monkeypatch: pytest.MonkeyPatch) -> _FakeHelperProjectDevice:
+    """A stand-in device with no helpers on it, and a loaded configuration to build them from."""
+    from maptasker.src import maputil2
+
+    fake = _FakeHelperProjectDevice()
+    monkeypatch.setattr(maputil2, "requests", fake)
+    monkeypatch.setattr(time, "sleep", lambda _seconds: None)
+    maputil2._auth_keys.clear()  # noqa: SLF001
+    _load(_FIXTURE_XML)
+    return fake
+
+
+def test_the_helper_project_is_uploaded_without_installing_or_running_anything(
+    helper_project_device: _FakeHelperProjectDevice,
+) -> None:
+    """Every helper installed on the way would be a Task the Project carries that Tasker already
+    has -- and Tasker refuses the whole Project for one of those (measured on a device)."""
+    result = deviceinv.stage_helper_project("192.168.0.210", "1821")
+
+    assert result.ok, result.error
+    assert result.device_path.endswith("/Tasker/projects/MapTasker.prj.xml")
+    posts = [url for verb, url in helper_project_device.calls if verb == "POST"]
+    assert posts
+    assert all("/upload" in url for url in posts)
+    sent = ET.fromstring(helper_project_device.uploaded["MapTasker.prj.xml"])  # noqa: S314
+    assert {task.findtext("nme") for task in sent.findall("Task")} == deviceinv.current_helper_task_names()
+    assert min(int(task.findtext("id")) for task in sent.findall("Task")) > 5000
+
+
+def test_helpers_already_on_the_device_are_named_and_nothing_is_written(
+    helper_project_device: _FakeHelperProjectDevice,
+) -> None:
+    """Probe B on a real device: one helper Tasker already had, and the Project would not import."""
+    helper_project_device.tasks = [deviceinv.OPEN_PROJECT_ROUTE.task_name, "Mine"]
+
+    result = deviceinv.stage_helper_project("192.168.0.210", "1821")
+
+    assert not result.ok
+    assert result.helpers_present == (deviceinv.OPEN_PROJECT_ROUTE.task_name,)
+    assert not helper_project_device.uploaded
+    assert not any(verb == "POST" for verb, _url in helper_project_device.calls)

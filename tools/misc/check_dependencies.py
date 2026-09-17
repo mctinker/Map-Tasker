@@ -137,14 +137,14 @@ def check_dependency_updates(dependencies: list, output_file: str, req_file: str
 # === Your dependency list ===
 # Auto-generated updated dependency list
 dependencies = [
-    'darkdetect>=0.8.0',
-    'defusedxml>=0.7.1',
-    'keyring>=25.7.0',
-    'nicegui>=3.16.0',
-    'packaging>=26.3',
-    'pillow>=12.3.0',
-    'requests>=2.34.2',
-    'tomli_w>=1.2.0',
+    "darkdetect>=0.8.0",
+    "defusedxml>=0.7.1",
+    "keyring>=25.7.0",
+    "nicegui>=3.17.0",
+    "packaging>=26.3",
+    "pillow>=12.3.0",
+    "requests>=2.34.2",
+    "tomli_w>=1.2.0",
     # Development dependencies
     "ai-translator>=0.1.0",
     "black>=26.5.1",

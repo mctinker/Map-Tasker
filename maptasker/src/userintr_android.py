@@ -37,6 +37,7 @@ from maptasker.src.guiutils import (
 )
 from maptasker.src.guiwins import (
     build_helper_tasks_dialog,
+    build_helpers_in_the_way_dialog,
     build_overwrite_confirm_dialog,
     build_round_trip_report_dialog,
     build_save_project_to_android_dialog,
@@ -368,6 +369,30 @@ class AndroidEventHandlers:
                         ),
                     ).style("white-space: pre-wrap")
 
+            # The other half of the housekeeping: gathering every helper into one Project, so
+            # the user can remove them all with one delete -- see install_helper_project_event.
+            with ui.row().classes("w-full items-center"):
+                gui.helper_project_button = (
+                    ui.button(
+                        translate_string("Put Helper Tasks in 'MapTasker' Project"),
+                        on_click=gui.event_handlers.install_helper_project_event,
+                    )
+                    .props("flat dense color=primary")
+                    .classes("flex-grow text-xs")
+                )
+                with gui.helper_project_button:
+                    ui.tooltip(
+                        translate_string(
+                            "Puts every helper Task this version of MapTasker uses into one Project file, "
+                            "'MapTasker.prj.xml', in /Tasker/projects on the device.  Import it in Tasker: "
+                            "long-press the Projects tab bar and choose Import Project.\n\n"
+                            "Once they are in that Project, deleting the 'MapTasker' Project in Tasker removes "
+                            "all of them at once.  MapTasker puts back any it needs the next time it is used.\n\n"
+                            "Tasker refuses the whole Project if it already has any of these Tasks, so any "
+                            "helper Tasks already on the device are listed first for you to delete.",
+                        ),
+                    ).style("white-space: pre-wrap")
+
             # Inline Button Row 2 (.or. Separator and Cancel Action)
             with ui.row().classes("w-full items-center justify-center gap-2 mt-1"):
                 gui.label_or = ui.label(translate_string(".or.")).classes("text-xs text-gray-400 italic")
@@ -458,6 +483,73 @@ class AndroidEventHandlers:
         self.gui.android_port = ip_port
 
         build_helper_tasks_dialog(stale, current, f"{ip_address}:{ip_port}")
+
+    async def install_helper_project_event(self) -> None:
+        """Put every current helper Task in /Tasker/projects as one Project named 'MapTasker',
+        for the user to import in Tasker, and wait for it to arrive.
+
+        Tasker's HTTP API cannot delete a Task, so the helpers cannot be removed from here --
+        but inside one Project, the user can remove every one of them in Tasker with a single
+        delete.  Imported by hand, and refused while any helper is already on the device,
+        because Tasker rejects the whole Project if it already has one of its Tasks -- see
+        deviceinv.stage_helper_project.
+
+        Reads the connection details out of the Get XML panel's own fields, as
+        list_helper_tasks_event does.
+        """
+        ip_address = self.gui.ip_entry.value if hasattr(self.gui, "ip_entry") and self.gui.ip_entry else ""
+        ip_port = self.gui.port_entry.value if hasattr(self.gui, "port_entry") and self.gui.port_entry else ""
+        ip_address, ip_port = ip_address.strip(), ip_port.strip()
+        remember_android_address(self.gui, ip_address, ip_port)
+
+        # Checked before the device is touched: the helpers are built out of the loaded
+        # configuration, and a Project that cannot be built should not put an authorization
+        # prompt on the phone.
+        if PrimeItems.xml_root is None:
+            ui.notify("Load a Tasker backup file first (building the helper Tasks needs it).", type="negative")
+            return
+
+        if not await ping_android_device(self.gui, ip_address, ip_port):
+            return
+        notify_watch_android_device()
+
+        result = await run.io_bound(deviceinv.stage_helper_project, ip_address, ip_port)
+        if result.helpers_present:
+            build_helpers_in_the_way_dialog(list(result.helpers_present), f"{ip_address}:{ip_port}")
+            return
+        if not result.ok:
+            ui.notify(f"Could not put the helper Tasks on the device: {result.error}", type="negative")
+            return
+
+        self.gui.android_ipaddr = ip_address
+        self.gui.android_port = ip_port
+        project = deviceinv.HELPER_PROJECT_NAME
+
+        # A status line for a step only the user can take, so no timeout: the outcome below
+        # takes it down.  See _offer_into_tasker's identical note.
+        pending = ui.notification(
+            f"{result.device_path} is on {ip_address}:{ip_port}.  In Tasker, long-press the Projects tab bar, "
+            f"choose Import Project and pick '{deviceinv.HELPER_PROJECT_NAME}.prj.xml'.",
+            type="info",
+            timeout=None,
+            close_button=True,
+            multi_line=True,
+        )
+        return_code, message = await run.io_bound(
+            deviceinv.await_import,
+            ip_address,
+            ip_port,
+            sorted(deviceinv.current_helper_task_names()),
+            f"Project '{project}'",
+            deviceinv.TASKS_ENDPOINT,
+            attempts=deviceinv.MANUAL_IMPORT_POLL_ATTEMPTS,
+            staged_at=result.device_path,
+        )
+        # Guarded for the reason _offer_into_tasker gives: the pending notice may be gone by now.
+        with contextlib.suppress(Exception):
+            pending.dismiss()
+        with contextlib.suppress(Exception):
+            ui.notify(message, type="positive" if return_code == 0 else "warning")
 
     def open_save_to_android_dialog_event(
         self,

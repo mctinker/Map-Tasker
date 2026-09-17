@@ -6,12 +6,15 @@ All notable changes to this project will be documented in this file!
 
 ### Added
 
-- Added: A 'Run On Android' button in the Edit Task dialog and beside Edit Task/Add Task in the Specific Name tab runs the Task on your Android device, with optional %par1/%par2 values, and shows what it returned or why it failed.  You can test a Task straight from MapTasker, but it runs the version already on the device, so use 'Save To Android' first to test your edits.
+- Added: A __Run On Android__ button in the Edit Task dialog and beside Edit Task/Add Task in the Specific Name tab runs the Task on your Android device, with optional %par1/%par2 values, and shows what it returned or why it failed.  You can test a Task straight from MapTasker, but it runs the version already on the device, so use 'Save To Android' first to test your edits.
+- Added: __Put Helper Tasks in "MapTasker" Project__ button in the 'GET XML FROM ANDROID DEVICE' panel saves every helper Task that MapTasker uses as one Project, 'MapTasker.prj.xml', in /Tasker/projects for you to import in Tasker.  This project will not successfully import if prior MapTasker helper Tasks already exist in Tasker...you must delete them manually first.  Having the helper Tasks in the MapTasker Project allows you to delete them all, as you desire, by deleting this single Project.
+- Added: __List Helper Tasks__ lists the MapTasker helper Tasks that are leftover from previous sessions in the Base project.  Because Tasker cannot delete Tasks remotely, this identifies those that must be removed before you can successfully import the MapTasker project created by the __Put Helper Tasks in "MapTasker" Project__ button.
 - Added:
 
 ### Changed
 
 - Changed: Ensure the use of the proper timezone in all date and time operations.
+- Changed: All Tasker helper Tasks (i.e. named 'MapTasker ...') can now be collectively kept in the 'MapTasker' project.
 
 ### Removed
 
