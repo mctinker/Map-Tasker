@@ -9,16 +9,11 @@ All notable changes to this project will be documented in this file!
 - Added: A __Run On Android__ button in the Edit Task dialog and beside Edit Task/Add Task in the Specific Name tab runs the Task on your Android device, with optional %par1/%par2 values, and shows what it returned or why it failed.  You can test a Task straight from MapTasker, but it runs the version already on the device, so use 'Save To Android' first to test your edits.
 - Added: __Put Helper Tasks in "MapTasker" Project__ button in the 'GET XML FROM ANDROID DEVICE' panel saves every helper Task that MapTasker uses as one Project, 'MapTasker.prj.xml', in /Tasker/projects for you to import in Tasker.  This project will not successfully import if prior MapTasker helper Tasks already exist in Tasker...you must delete them manually first.  Having the helper Tasks in the MapTasker Project allows you to delete them all, as you desire, by deleting this single Project.
 - Added: __List Helper Tasks__ lists the MapTasker helper Tasks that are leftover from previous sessions in the Base project.  Because Tasker cannot delete Tasks remotely, this identifies those that must be removed before you can successfully import the MapTasker project created by the __Put Helper Tasks in "MapTasker" Project__ button.
-- Added:
 
 ### Changed
 
 - Changed: Ensure the use of the proper timezone in all date and time operations.
 - Changed: All Tasker helper Tasks (i.e. named 'MapTasker ...') can now be collectively kept in the 'MapTasker' project.
-
-### Removed
-
-- Removed:
 
 ### Fixed
 
@@ -29,7 +24,6 @@ All notable changes to this project will be documented in this file!
 - Fixed: A changed Android TCP/IP address or port is now kept even if you close the dialog or panel without running, fetching or saving anything.  It used to be kept only once something had used it, so changing the address and then clicking 'Close' lost the change.
 - Fixed: Windows bug - picking a local XML file no longer fails with "No module named 'win32api'".  The file picker now lists your drives without needing the separate pywin32 package, and starts on the drive you are browsing.
 - Fixed: Closing the 'import screen is open' notice before an Import Into Tasker finished no longer prints an 'element has been deleted but is still being used' warning with a stack trace in the terminal.
-- Fixed:
 
 ### Known Issues
 
