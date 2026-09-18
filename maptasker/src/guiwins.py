@@ -3268,11 +3268,16 @@ def build_helper_tasks_dialog(stale: list[str], current: list[str], device: str)
     dialog.open()
 
 
-def build_helpers_in_the_way_dialog(present: list[str], device: str) -> None:
+def build_helpers_in_the_way_dialog(present: list[str], device: str, project_exists: bool | None = None) -> None:
     """Names the helper Tasks that must be deleted before the 'MapTasker' Project can be imported.
 
     Tasker rejects a whole Project with 'Import failed.' if it already has any Task in it (see
     deviceinv.stage_helper_project), so the file is not even written until these are gone.
+
+    project_exists says whether Tasker already has the 'MapTasker' Project, which changes what
+    the user actually does: deleting that one Project takes the Tasks in it with it.  None means
+    it could not be asked -- the helper that answers it was not on the device to run -- and then
+    the Project is mentioned as a possibility rather than as a fact.
     """
     with ui.dialog().props("persistent") as dialog, ui.card().classes("min-w-[420px] max-w-[680px] w-full p-6"):
         ui.label(translate_string("Delete These Helper Tasks First")).classes("text-lg font-bold text-blue-600")
@@ -3286,12 +3291,19 @@ def build_helpers_in_the_way_dialog(present: list[str], device: str) -> None:
         with ui.column().classes("gap-0 mt-1"):
             for name in present:
                 ui.label(name).classes("font-mono text-sm break-all")
-        ui.label(
-            translate_string(
+        if project_exists:
+            advice = (
+                "Tasker already has a 'MapTasker' Project.  Delete that Project -- which deletes the Tasks "
+                "in it -- along with any of the Tasks above that are outside it, and then try again."
+            )
+        elif project_exists is None:
+            advice = (
                 "Delete them in Tasker -- or delete the 'MapTasker' Project, if they are already in it -- "
-                "and then try again.",
-            ),
-        ).classes("text-xs text-gray-500 italic mt-2")
+                "and then try again."
+            )
+        else:
+            advice = "Delete them from Tasker's Tasks tab -- long-press one, then Delete -- and try again."
+        ui.label(translate_string(advice)).classes("text-xs text-gray-500 italic mt-2")
         with ui.row().classes("w-full justify-end gap-2 mt-4"):
             ui.button(translate_string("Close"), on_click=dialog.close).props("outline")
 
@@ -6937,6 +6949,11 @@ class NiceGuiTextView:
             return
         except OSError as error:
             ui.notify(f"{translate_string('The export could not be saved:')} {error}", type="negative", position="top")
+            return
+        # None is not a path: nicegui answers it when the wait is cancelled or the app is
+        # stopping (see nicegui.run._run).  The file is written either way; what is gone is the
+        # page that would have been told where.
+        if path is None:
             return
         ui.notify(f"{translate_string('Exported to')} {path}", type="positive", position="top")
 

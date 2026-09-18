@@ -1690,6 +1690,11 @@ async def ping_android_device(self: "MyGui", ipaddr: str, port: str) -> bool:
 
         if device_is_reachable:
             return True
+        # None, not False: nicegui answers None when the wait is cancelled or the app is
+        # stopping (see nicegui.run._run), which says nothing about the device.  Reported as
+        # unreachable it would be a lie on a page that has already gone, so it says nothing.
+        if device_is_reachable is None:
+            return False
 
         # Handle connectivity breakdown state safely
         error_msg = (
@@ -1784,6 +1789,8 @@ async def _show_upgrade_if_newer(self: "MyGui") -> None:
     """Ask PyPI on a worker thread, then fill the upgrade slot if there is a newer version."""
     # Set test_button to True for development testing, False for production.
     test_button = False
+    # None (a cancelled wait, or the app stopping -- see nicegui.run._run) is falsy and lands
+    # here with 'no newer version', which is the right thing to do with a page that has gone.
     if not (await run.io_bound(is_new_version) or test_button):
         return
 

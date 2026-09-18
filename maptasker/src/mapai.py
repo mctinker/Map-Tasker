@@ -610,6 +610,8 @@ async def _run_analysis_in_background(popup: popupwindow) -> None:
         # loop.  In this way, the popup window can be displayed while the AI processing is happening in the background.
         # The delay is to give the popup window time to display before the AI processing starts, so the user sees the
         # "Please wait..." message.
+        # Nothing to check for None here: this call returns nothing, so nicegui's cancelled-wait
+        # answer and its ordinary one are the same value (see nicegui.run._run).
         await run.io_bound(ai_func, query, ai_object, item)
 
         console.say(f"MapTasker analysis for {ai_object} '{item}' is done.")

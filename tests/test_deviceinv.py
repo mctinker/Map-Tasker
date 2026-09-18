@@ -3602,3 +3602,40 @@ def test_helpers_already_on_the_device_are_named_and_nothing_is_written(
     assert result.helpers_present == (deviceinv.OPEN_PROJECT_ROUTE.task_name,)
     assert not helper_project_device.uploaded
     assert not any(verb == "POST" for verb, _url in helper_project_device.calls)
+    # Nothing was asked about Projects: the helper that answers that was not there to run, and
+    # installing it is exactly what must not happen here.
+    assert not any("maptasker_objects.txt" in url for _verb, url in helper_project_device.calls)
+
+
+def test_helpers_already_in_the_project_are_reported_as_done(
+    helper_project_device: _FakeHelperProjectDevice,
+) -> None:
+    """Every helper there and a 'MapTasker' Project to hold them is the finished state, not a
+    pile of Tasks to delete.  Asked with the object-listing helper, which is one of the helpers
+    and so is already installed whenever this case arises -- nothing new goes on the device."""
+    helper_project_device.tasks = sorted(deviceinv.current_helper_task_names())
+    helper_project_device.objects_payload = _objects_payload(projects=f"Base|~|{deviceinv.HELPER_PROJECT_NAME}")
+
+    result = deviceinv.stage_helper_project("192.168.0.210", "1821")
+
+    assert result.already_in_project
+    assert result.project_exists
+    assert not result.helpers_present
+    assert not helper_project_device.uploaded
+    assert not any("/api/import" in url for _verb, url in helper_project_device.calls)
+
+
+def test_a_project_holding_only_some_helpers_still_names_the_ones_in_the_way(
+    helper_project_device: _FakeHelperProjectDevice,
+) -> None:
+    """A MapTasker that added a helper since the Project was imported: the Project is there, the
+    new helper is not, and Tasker would refuse an import of the Project as it stands."""
+    helper_project_device.tasks = [deviceinv.OBJECT_LIST_TASK_NAME, deviceinv.FILE_LIST_TASK_NAME]
+    helper_project_device.objects_payload = _objects_payload(projects=deviceinv.HELPER_PROJECT_NAME)
+
+    result = deviceinv.stage_helper_project("192.168.0.210", "1821")
+
+    assert not result.ok
+    assert not result.already_in_project
+    assert result.project_exists is True
+    assert result.helpers_present == (deviceinv.FILE_LIST_TASK_NAME, deviceinv.OBJECT_LIST_TASK_NAME)

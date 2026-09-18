@@ -363,6 +363,10 @@ class ReportEventHandlers:
         gui = self.gui
         cutoff = timeline.cutoff_for(period, on_date=on_date)
         result = await run.io_bound(timeline.changes_since, cutoff)
+        # None, not a report: nicegui answers that when the wait is cancelled or the app is
+        # stopping (see nicegui.run._run), and there is no page left to write the report to.
+        if result is None:
+            return
 
         if result.problem:
             gui.display_message_box(translate_string(result.problem), "Red")

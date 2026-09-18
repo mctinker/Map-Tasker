@@ -63,6 +63,15 @@ if TYPE_CHECKING:
     from maptasker.src.userintr import MyGui
 
 
+# EVERY 'await run.io_bound(...)' HERE IS CHECKED FOR None.  nicegui answers None instead of the
+# call's result when the wait is cancelled or the app is shutting down (see nicegui.run._run) --
+# a reloaded or closed page is the everyday case, and an Android call waiting minutes on someone
+# to pick up their phone is the one most likely to meet it.  Unpacking that None is a TypeError
+# raised into nicegui's event handler, which is what the user sees.  Nothing is lost by stopping:
+# whatever was asked of the device has already happened or will finish on its own, and the only
+# thing left here is a report for a page that is no longer there.  So each one stops quietly.
+
+
 # What a prompt says after naming what Tasker already has, by how the objects would get there.
 _API_IMPORT_CONSEQUENCE = "Tasker's import adds another Task of the same name beside it rather than replacing it."
 _FILE_WRITE_CONSEQUENCE = "This only writes the file -- nothing in Tasker changes until it is imported."
@@ -105,7 +114,10 @@ async def _what_tasker_already_has(
     id_lines: list[str] = []
     if check_ids:
         ui.notify("Taking a fresh backup on the device to check IDs -- this can take a little while.", type="info")
-        check, findings, problem = await run.io_bound(deviceinv.check_against_device_backup, ip_address, ip_port, xml)
+        checked = await run.io_bound(deviceinv.check_against_device_backup, ip_address, ip_port, xml)
+        if checked is None:  # cancelled -- see the note at the top of this file
+            return []
+        check, findings, problem = checked
         id_lines = [f"Could not check IDs: {problem}"] if problem else deviceinv.describe_id_findings(findings)
 
     if check is None:
@@ -118,6 +130,8 @@ async def _what_tasker_already_has(
                 type="info",
             )
         check = await run.io_bound(deviceinv.check_tasker_for_existing, ip_address, ip_port, sent)
+        if check is None:  # cancelled -- see the note at the top of this file
+            return []
 
     name_lines = deviceinv.describe_tasker_check(check)
     if any(check.present.values()):
@@ -194,7 +208,7 @@ async def validate_or_filelist_xml(
     """
     # 1. If a file is specified and we aren't explicitly listing files, validate it
     if len(android_file) != 0 and android_file != "" and not self.list_files:
-        return_code, _ = await run.io_bound(
+        fetched = await run.io_bound(
             http_request,
             android_ipaddr,
             android_port,
@@ -202,16 +216,22 @@ async def validate_or_filelist_xml(
             "file",
             "?download=1",
         )
+        if fetched is None:  # cancelled -- see the note at the top of this file
+            return 1, android_ipaddr, android_port, android_file
+        return_code, _ = fetched
 
         # Validate the XML syntax structure
         if return_code == 0:
             PrimeItems.program_arguments["gui"] = True
-            return_code, error_message = await run.io_bound(
+            validated = await run.io_bound(
                 validate_xml_file,
                 android_ipaddr,
                 android_port,
                 android_file,
             )
+            if validated is None:  # cancelled -- see the note at the top of this file
+                return 1, android_ipaddr, android_port, android_file
+            return_code, error_message = validated
             if return_code != 0:
                 self.display_message_box(error_message, "Red")
                 return 1, android_ipaddr, android_port, android_file
@@ -228,12 +248,15 @@ async def validate_or_filelist_xml(
             type="info",
             timeout=1500,
         )
-        return_code, filelist = await run.io_bound(
+        listed = await run.io_bound(
             deviceinv.get_list_of_files,
             android_ipaddr,
             android_port,
             deviceinv.FILE_LIST_DIRECTORY,
         )
+        if listed is None:  # cancelled -- see the note at the top of this file
+            return 1, android_ipaddr, android_port, android_file
+        return_code, filelist = listed
         if return_code != 0:
             self.display_message_box(filelist, "Red")
             return 1, android_ipaddr, android_port, android_file
@@ -469,11 +492,14 @@ class AndroidEventHandlers:
 
         # Blocking -- a key fetch and a GET -- so it goes to a worker thread like every other
         # Android call from the GUI.
-        return_code, message, stale, current = await run.io_bound(
+        listed = await run.io_bound(
             deviceinv.stale_helper_tasks_on_device,
             ip_address,
             ip_port,
         )
+        if listed is None:  # cancelled -- see the note at the top of this file
+            return
+        return_code, message, stale, current = listed
         if return_code != 0:
             ui.notify(f"Could not read the device's Task list: {message}", type="negative")
             return
@@ -514,8 +540,24 @@ class AndroidEventHandlers:
         notify_watch_android_device()
 
         result = await run.io_bound(deviceinv.stage_helper_project, ip_address, ip_port)
+        # None, not a result: nicegui's run.io_bound answers None when the wait is cancelled or
+        # the app is shutting down (see its own docstring), and nothing was staged in that case.
+        if result is None:
+            return
+        if result.already_in_project:
+            ui.notify(
+                f"Every helper Task is already in the '{deviceinv.HELPER_PROJECT_NAME}' Project in Tasker.  "
+                f"Deleting that Project removes all of them.",
+                type="positive",
+                multi_line=True,
+            )
+            return
         if result.helpers_present:
-            build_helpers_in_the_way_dialog(list(result.helpers_present), f"{ip_address}:{ip_port}")
+            build_helpers_in_the_way_dialog(
+                list(result.helpers_present),
+                f"{ip_address}:{ip_port}",
+                project_exists=result.project_exists,
+            )
             return
         if not result.ok:
             ui.notify(f"Could not put the helper Tasks on the device: {result.error}", type="negative")
@@ -535,7 +577,12 @@ class AndroidEventHandlers:
             close_button=True,
             multi_line=True,
         )
-        return_code, message = await run.io_bound(
+        # Five minutes of waiting on someone to work Tasker's import menu, which is ample time
+        # for the page to be reloaded or closed underneath it -- and run.io_bound answers None
+        # rather than a result when its wait is cancelled, or when the app is shutting down.
+        # The import itself is unaffected: the file is on the device and Tasker is doing its own
+        # thing; all that is lost is this report of it.
+        outcome = await run.io_bound(
             deviceinv.await_import,
             ip_address,
             ip_port,
@@ -549,6 +596,9 @@ class AndroidEventHandlers:
         if not getattr(pending, "is_deleted", False):
             with contextlib.suppress(Exception):
                 pending.dismiss()
+        if outcome is None:
+            return
+        return_code, message = outcome
         with contextlib.suppress(Exception):
             ui.notify(message, type="positive" if return_code == 0 else "warning")
 
@@ -627,13 +677,16 @@ class AndroidEventHandlers:
 
             # The key is the one held for this device this session, so a device already asked --
             # by an earlier save, a fetch or an import -- is not prompted again.
-            return_code, result = await run.io_bound(
+            saved = await run.io_bound(
                 taskedit.save_task_to_android,
                 edited_task,
                 ip_address,
                 ip_port,
                 task_name,
             )
+            if saved is None:  # cancelled -- see the note at the top of this file
+                return
+            return_code, result = saved
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
@@ -659,10 +712,13 @@ class AndroidEventHandlers:
             # the import once more from the file now sitting in /Tasker/tasks (see
             # taskedit.save_task_to_android_directory's docstring for why a retry, not a
             # different endpoint, is the only fallback that can help).
-            if await run.io_bound(deviceinv.confirm_task_on_android, ip_address, ip_port, task_name, auth_key):
+            confirmed = await run.io_bound(deviceinv.confirm_task_on_android, ip_address, ip_port, task_name, auth_key)
+            if confirmed is None:  # cancelled -- see the note at the top of this file
+                return
+            if confirmed:
                 ui.notify(translate_string("Task Uploaded to Tasker") + landed, type="positive")
             else:
-                fallback_code, fallback_result = await run.io_bound(
+                retried = await run.io_bound(
                     taskedit.save_task_to_android_directory,
                     edited_task,
                     ip_address,
@@ -670,6 +726,9 @@ class AndroidEventHandlers:
                     task_name,
                     auth_key,
                 )
+                if retried is None:  # cancelled -- see the note at the top of this file
+                    return
+                fallback_code, fallback_result = retried
                 if fallback_code == 0:
                     ui.notify(translate_string("Task Uploaded to Tasker.") + landed, type="positive")
                 else:
@@ -680,7 +739,7 @@ class AndroidEventHandlers:
                     # is one tap out of it, on a file that is already there.  This is the
                     # LAST resort, not the route -- api/import needs no tap at all when it
                     # works, which for a Task it usually does.
-                    offer_code, offer_result = await run.io_bound(
+                    offered = await run.io_bound(
                         deviceinv.offer_to_tasker,
                         taskedit.render_standalone_task_xml(edited_task).encode("utf-8"),
                         task_name,
@@ -690,6 +749,9 @@ class AndroidEventHandlers:
                         wait_for_confirmation=False,
                         route=deviceinv.OPEN_TASK_ROUTE,
                     )
+                    if offered is None:  # cancelled -- see the note at the top of this file
+                        return
+                    offer_code, offer_result = offered
                     if offer_code == 0:
                         ui.notify(
                             f"Tasker did not report the Task ({fallback_result}), so it was handed to "
@@ -711,7 +773,10 @@ class AndroidEventHandlers:
         # they pressed -- see save_task_to_android_file_event's identical check, including
         # why the content comes back with the answer.
         device_path = taskedit.android_task_path(task_name)
-        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        if read is None:  # cancelled -- see the note at the top of this file
+            return
+        exists, already_there = read
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
@@ -830,13 +895,16 @@ class AndroidEventHandlers:
                     type="warning",
                 )
             # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
-            return_code, result = await run.io_bound(
+            saved = await run.io_bound(
                 taskedit.save_task_to_android_file,
                 edited_task,
                 ip_address,
                 ip_port,
                 task_name,
             )
+            if saved is None:  # cancelled -- see the note at the top of this file
+                return
+            return_code, result = saved
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
@@ -858,7 +926,10 @@ class AndroidEventHandlers:
         # maputil2.read_android_file for why two reads was worse than one on the device as
         # well as here.  /upload clobbers silently, which is why this is asked at all.
         device_path = taskedit.android_task_path(task_name)
-        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        if read is None:  # cancelled -- see the note at the top of this file
+            return
+        exists, already_there = read
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
@@ -953,12 +1024,15 @@ class AndroidEventHandlers:
                     type="warning",
                 )
             # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
-            return_code, result = await run.io_bound(
+            saved = await run.io_bound(
                 sceneedit.save_scene_to_android,
                 edited_scene.scene_name,
                 ip_address,
                 ip_port,
             )
+            if saved is None:  # cancelled -- see the note at the top of this file
+                return
+            return_code, result = saved
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
@@ -979,7 +1053,10 @@ class AndroidEventHandlers:
         # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
         # risking a silent clobber.
         device_path = sceneedit.android_scene_path(edited_scene.scene_name)
-        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        if read is None:  # cancelled -- see the note at the top of this file
+            return
+        exists, already_there = read
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
@@ -1063,13 +1140,16 @@ class AndroidEventHandlers:
                     type="warning",
                 )
             # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
-            return_code, result = await run.io_bound(
+            saved = await run.io_bound(
                 profedit.save_profile_to_android,
                 edited_profile,
                 ip_address,
                 ip_port,
                 profile_name,
             )
+            if saved is None:  # cancelled -- see the note at the top of this file
+                return
+            return_code, result = saved
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
@@ -1089,7 +1169,10 @@ class AndroidEventHandlers:
         # See save_project_to_android_event's identical check -- /upload clobbers silently,
         # and one read answers both of the questions the write needs answered.
         device_path = profedit.android_profile_path(profile_name)
-        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        if read is None:  # cancelled -- see the note at the top of this file
+            return
+        exists, already_there = read
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,
@@ -1358,7 +1441,10 @@ class AndroidEventHandlers:
         # asks, and they are asked it in the same words whichever button they pressed -- see
         # save_profile_to_android_event's identical check.
         _filename, device_read_path, device_path = route.staged_file_paths(object_name)
-        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_read_path)
+        read = await run.io_bound(read_android_file, ip_address, ip_port, device_read_path)
+        if read is None:  # cancelled -- see the note at the top of this file
+            return
+        exists, already_there = read
 
         async def _offer() -> None:
             """Everything the offer does once the overwrite question has been answered."""
@@ -1380,6 +1466,9 @@ class AndroidEventHandlers:
             # nothing.  None ('could not ask') is treated the same as False: neither can be
             # confirmed, and guessing the other way would turn an unconfirmable import into a
             # reported success.
+            # The one await here with nothing to check: None is already this call's own answer
+            # for 'could not ask', and a cancelled wait lands in the same place -- an import
+            # that cannot be confirmed, reported as exactly that.
             confirmable = await run.io_bound(
                 deviceinv.import_is_confirmable,
                 ip_address,
@@ -1390,7 +1479,7 @@ class AndroidEventHandlers:
 
             # Blocking -- it installs a Task, uploads, runs and polls -- so it goes to a worker
             # thread, the way every other Android call from the GUI does.
-            return_code, message = await run.io_bound(
+            offered = await run.io_bound(
                 deviceinv.offer_to_tasker,
                 xml_bytes,
                 object_name,
@@ -1400,6 +1489,9 @@ class AndroidEventHandlers:
                 wait_for_confirmation=False,
                 route=route,
             )
+            if offered is None:  # cancelled -- see the note at the top of this file
+                return
+            return_code, message = offered
             if return_code != 0:
                 ui.notify(f"Could not import into Tasker: {message}", type="negative")
                 return
@@ -1457,7 +1549,7 @@ class AndroidEventHandlers:
             )
 
             # Runs on with the dialogs gone; all it can do now is report.
-            return_code, message = await run.io_bound(
+            outcome = await run.io_bound(
                 deviceinv.await_import,
                 ip_address,
                 ip_port,
@@ -1479,6 +1571,9 @@ class AndroidEventHandlers:
             if not getattr(pending, "is_deleted", False):
                 with contextlib.suppress(Exception):
                     pending.dismiss()
+            if outcome is None:  # cancelled -- see the note at the top of this file
+                return
+            return_code, message = outcome
             # Not an error in the usual sense: most likely nobody has got to the phone yet, or
             # they declined.  Either way it is the DEVICE this reports on, not the edit here.
             with contextlib.suppress(Exception):
@@ -1774,12 +1869,15 @@ class AndroidEventHandlers:
                     type="warning",
                 )
             # Uploads and reads back, which takes seconds: a worker thread, not the event loop.
-            return_code, result = await run.io_bound(
+            saved = await run.io_bound(
                 projedit.save_project_to_android,
                 edited_project.project_name,
                 ip_address,
                 ip_port,
             )
+            if saved is None:  # cancelled -- see the note at the top of this file
+                return
+            return_code, result = saved
             if return_code != 0:
                 ui.notify(f"Could not save to Android device: {result}", type="negative")
                 return
@@ -1800,7 +1898,10 @@ class AndroidEventHandlers:
         # maputil2.read_android_file).  None = couldn't tell, which still prompts rather than
         # risking a silent clobber.
         device_path = projedit.android_project_path(edited_project.project_name)
-        exists, already_there = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        read = await run.io_bound(read_android_file, ip_address, ip_port, device_path)
+        if read is None:  # cancelled -- see the note at the top of this file
+            return
+        exists, already_there = read
         tasker_lines = await _what_tasker_already_has(
             ip_address,
             ip_port,

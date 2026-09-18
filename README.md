@@ -97,7 +97,7 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
   - `python -m venv venv`
   - Activate the virtual environment...
     MAC/linux: `source {directory path to 'xxx'}/venv/bin/activate`
-    Windows: `.venv\Scripts\activate`
+    Windows: `venv\Scripts\activate`
   - `pip install maptasker`
 
   ...or...
@@ -107,7 +107,7 @@ This program and all of it's perquisites will take about 230MBs of space.  It is
   - `uv venv`
   - Activate the virtual environment...
     MAC/linux: `source {directory path to 'xxx'}/venv/bin/activate`
-    Windows: `.venv\Scripts\activate`
+    Windows: `venv\Scripts\activate`
   - `uv pip install maptasker`
   
 ## Usage

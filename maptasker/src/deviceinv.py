@@ -2867,23 +2867,44 @@ def build_helper_project_xml(project_name: str = HELPER_PROJECT_NAME, device_xml
 class HelperProjectResult:
     """What stage_helper_project did.
 
-    ok with a device_path: the file is on the device to be imported by hand.  Not ok with
-    helpers_present: the device already has these helpers, and the Project would be refused
-    until they are deleted.  Not ok without them: error says why.
+    ok with a device_path: the file is on the device to be imported by hand.  already_in_project:
+    every helper is in the 'MapTasker' Project already and there is nothing to do.  Not ok with
+    helpers_present: the device has these helpers where the Project cannot carry them, and they
+    must be deleted first -- with project_exists saying whether deleting the Project is what does
+    it (None when it could not be asked).  Not ok without either: error says why.
     """
 
     ok: bool
     error: str = ""
     helpers_present: tuple[str, ...] = ()
     device_path: str = ""
+    already_in_project: bool = False
+    project_exists: bool | None = None
+
+
+def _helper_project_on_device(ip_address: str, ip_port: str) -> bool | None:
+    """Whether Tasker has a Project called 'MapTasker'.  None if it could not be asked.
+
+    The object-listing helper answers it ('Test Tasker' with Type Projects into an array -- see
+    build_object_list_task), because Tasker's HTTP API has no /api/projects.  ONLY CALLED WITH
+    THAT HELPER ALREADY ON THE DEVICE, so this installs nothing: a helper installed here would
+    be a Task the Project carries that Tasker already has, which is the one thing that makes the
+    import fail (see the section comment).
+    """
+    return_code, message, listed = fetch_tasker_object_names(ip_address, ip_port)
+    if return_code != 0:
+        logger.info(f"Could not list the device's Projects: {message}")
+        return None
+    return HELPER_PROJECT_NAME in listed.get("Project", [])
 
 
 def stage_helper_project(ip_address: str, ip_port: str) -> HelperProjectResult:
     """Put the 'MapTasker' Project in /Tasker/projects for the user to import, installing nothing.
 
     The exchange: ask which helpers Tasker already has (and stop if any -- see the section
-    comment), read Tasker's automatic backup for ids to keep clear of, build the Project, upload
-    it and read it back.  No helper Task is installed or run at any step, because every one
+    comment), ask whether the 'MapTasker' Project is there when that can be done without
+    installing anything, read Tasker's automatic backup for ids to keep clear of, build the
+    Project, upload it and read it back.  No helper Task is installed or run at any step, because every one
     installed would be a Task the Project carries that Tasker already has.
 
     Blocking; a caller on the GUI thread must use run.io_bound.
@@ -2899,7 +2920,19 @@ def stage_helper_project(ip_address: str, ip_port: str) -> HelperProjectResult:
     if return_code != 0:
         return HelperProjectResult(ok=False, error=f"Could not read the device's Task list: {message}")
     if present:
-        return HelperProjectResult(ok=False, helpers_present=tuple(sorted(set(present))))
+        # Asked only when the helper that answers it is one of the ones already there, so that
+        # asking cannot install anything.  It decides what the user is told to delete: the
+        # Project, or the Tasks.
+        project_exists = None
+        if OBJECT_LIST_TASK_NAME in present:
+            project_exists = _helper_project_on_device(ip_address, ip_port)
+        if project_exists and set(present) == current_helper_task_names():
+            return HelperProjectResult(ok=False, already_in_project=True, project_exists=True)
+        return HelperProjectResult(
+            ok=False,
+            helpers_present=tuple(sorted(set(present))),
+            project_exists=project_exists,
+        )
 
     # Only a help: a device with no automatic backup, or one that cannot be read, still gets a
     # Project numbered past the loaded configuration.

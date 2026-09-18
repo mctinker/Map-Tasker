@@ -1089,6 +1089,8 @@ class SettingsEventHandlers:
         gui.profiles_per_line = profiles_per_line
         PrimeItems.program_arguments["profiles_per_line"] = profiles_per_line
 
+        # Nothing to check for None here: this call returns nothing, so nicegui's cancelled-wait
+        # answer and its ordinary one are the same value (see nicegui.run._run).
         await run.io_bound(outline_the_configuration)
 
         # Reload every open Diagram view -- "Open View In New Window" can leave more than one up.
