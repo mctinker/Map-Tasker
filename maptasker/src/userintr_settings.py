@@ -41,6 +41,7 @@ from maptasker.src.guiwins import (
     live_views,
     set_document_language_js,
     set_notification_timeout,
+    view_limit_options,
 )
 from maptasker.src.initparg import initialize_runtime_arguments
 from maptasker.src.maputil2 import translate_string
@@ -736,6 +737,10 @@ class SettingsEventHandlers:
         if hasattr(guiview, "viewlimit_optionmenu") and guiview.viewlimit_optionmenu:
             try:
                 guiview.is_updating = True
+                # A limit that is not one of the choices offered -- one given on the command
+                # line, say -- is added to them first, so the pulldown can show it instead of
+                # going blank on a value it does not know.
+                guiview.viewlimit_optionmenu.options = view_limit_options(display_value)
                 guiview.viewlimit_optionmenu.value = display_value
                 guiview.viewlimit_optionmenu.update()  # Force NiceGUI to update component properties
             finally:

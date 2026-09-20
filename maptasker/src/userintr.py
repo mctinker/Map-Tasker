@@ -210,6 +210,10 @@ class MyGui:
             if self.color_lookup and not PrimeItems.colors_to_use:
                 capture_gui_state(self, {})
 
+        # A view limit asked for on this run's command line goes on last, over whatever the
+        # restore above put in place.
+        self.seed_view_limit_from_command_line()
+
         # Check if newer version of our code is available on Pypi.
         check_new_version(self)
 
@@ -255,6 +259,24 @@ class MyGui:
         # self.event_handlers.view_event("map")
 
         self.initialization = False
+
+    def seed_view_limit_from_command_line(self: "MyGui") -> None:
+        """Put a view limit given with -view_limit in force, over the restored settings.
+
+        The settings file knows nothing about this run's command line, so the restore that
+        has just finished would quietly discard a limit the user asked for a moment ago.
+        The value goes in through the same handler a user's own change goes through, so the
+        pulldown moves with it rather than sitting on a number that is no longer true.
+
+        Once only, and the command line's value is dropped on the way past: the GUI builds a
+        fresh MyGui for every page load, and a limit the user changed in the window during
+        the session must not be put back by a refresh.
+        """
+        view_limit = PrimeItems.cli_view_limit
+        if view_limit is None:
+            return
+        PrimeItems.cli_view_limit = None
+        self.event_handlers.viewlimit_event(str(view_limit))
 
     def set_defaults(self: "MyGui") -> None:
         """Initializes all the default variables that MapTasker relies on."""

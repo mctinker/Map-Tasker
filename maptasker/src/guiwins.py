@@ -155,6 +155,38 @@ NOTIFY_TIMEOUT_CHOICES: tuple[tuple[str, int], ...] = (
     ("30 seconds", 30000),
     ("Until dismissed", 0),
 )
+# The View Limit pulldown's choices, as the strings it shows.  Round numbers and
+# "Unlimited": the setting is a throttle, and nobody throttling a report is thinking in
+# single lines.
+VIEW_LIMIT_CHOICES: tuple[str, ...] = ("5000", "10000", "15000", "20000", "25000", "30000", "Unlimited")
+
+
+def view_limit_options(current: str) -> list[str]:
+    """The View Limit pulldown's choices, with the limit in force among them.
+
+    A limit that is not one of the round numbers offered -- one given on the command line
+    with -view_limit, or restored from a settings file that holds one -- still has to be
+    offered, or the pulldown shows nothing at all, which reads as "no limit set" when there
+    very much is one.  It goes in numeric order, ahead of "Unlimited", where the user would
+    look for it.
+
+    Args:
+        current (str): the limit in force, as the pulldown would show it.
+
+    Returns:
+        list[str]: the choices to offer.
+    """
+    options = list(VIEW_LIMIT_CHOICES)
+    if current in options or not current.isdigit():
+        return options
+    position = next(
+        (index for index, option in enumerate(options) if option.isdigit() and int(option) > int(current)),
+        options.index("Unlimited"),
+    )
+    options.insert(position, current)
+    return options
+
+
 # Mutable so the pulldown can change it live; read at notify time, not at install time.
 _NOTIFY_TIMEOUT = {"ms": NOTIFY_TIMEOUT_DEFAULT}
 _NOTIFY_WRAPPED = False
@@ -9204,9 +9236,10 @@ def _create_view_limit_section(self: MyGui) -> None:
         temp_view_limit = getattr(self, "view_limit", str(VIEW_LIMIT_DEFAULT))
         if temp_view_limit == 9999999:
             self.view_limit = "Unlimited"
+        current_choice = str(getattr(self, "view_limit", VIEW_LIMIT_DEFAULT))
         self.viewlimit_optionmenu = ui.select(
-            options=["5000", "10000", "15000", "20000", "25000", "30000", "Unlimited"],
-            value=str(getattr(self, "view_limit", VIEW_LIMIT_DEFAULT)),
+            options=view_limit_options(current_choice),
+            value=current_choice,
             on_change=self.event_handlers.viewlimit_event,
         ).classes("flex-grow")
         with self.viewlimit_optionmenu:

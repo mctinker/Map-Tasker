@@ -2541,3 +2541,7 @@ msgid "This Task has unsaved edits.  The device runs the version it already has 
 msgstr "Denne oppgaven inneholder usaved endringer. Enheten kjører den versjonen den allerede har – bruk «Lagre til Android» først for å kjøre den endrede versjonen."
 msgid "Watch your Android device: expect one or more prompts from Tasker reading 'Tasker API Authorize request from python-requests...'.  Accept each one, or the run fails."
 msgstr "Overvåk Android-enheten din: du vil sannsynligvis motta ett eller flere forespørsler fra Tasker som sier «Tasker API – Autorisering av forespørsel fra python-requests...». Godta hver av dem, ellers vil programmet mislykkes."
+msgid "Exit MapTasker and update it from the command line: 'pip install --upgrade maptasker'."
+msgstr "Kart-app: Installer og oppdater den fra kommandolinjen: 'pip install --upgrade maptasker'."
+msgid "The update failed and MapTasker is still on the version you were running."
+msgstr "Oppdateringen mislyktes, og MapTasker kjører fortsatt på den versjonen du brukte."

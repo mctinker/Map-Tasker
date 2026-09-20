@@ -11,7 +11,30 @@ import os
 
 from maptasker.src.primitem import SINGLE_ITEM_SELECTORS, PrimeItems, clear_single_items
 from maptasker.src.runcli import process_cli
-from maptasker.src.sysconst import DEBUG_PROGRAM
+from maptasker.src.sysconst import DEBUG_PROGRAM, VIEW_LIMIT_DEFAULT
+
+# The "Unlimited" the GUI's View Limit dropdown offers, as a number of lines.
+VIEW_LIMIT_UNLIMITED = 9999999
+
+
+# Settle on the view limit for this run.
+def resolve_view_limit(view_limit: object) -> int:
+    """Turn the view limit held in the runtime arguments into a number of output lines.
+
+    Args:
+        view_limit (object): the value the runtime arguments hold, which is normally a
+            number of lines but can be the GUI dropdown's own "Unlimited".
+
+    Returns:
+        int: the number of lines to cut the Map off at.
+    """
+    if view_limit == "Unlimited":
+        return VIEW_LIMIT_UNLIMITED
+    try:
+        return int(view_limit)
+    except (TypeError, ValueError):
+        # Nothing usable (an empty or hand-edited settings file): the default stands.
+        return VIEW_LIMIT_DEFAULT
 
 
 # Get the program arguments (e.g. python mapit.py -x)
@@ -26,6 +49,7 @@ def get_program_arguments() -> None:
       runs it (see runcli.process_cli for how that choice is made)
     - Blank the single Project/Profile/Task names if more than one was restored
     - Override debug argument to True if in debug mode
+    - Carry the view limit over to where the Map build reads it
     - Fall back to backup.xml if the file named in the arguments does not exist"""
     # Process the command line runtime options.  This will call the GUI if the GUI is being used,
     # and will call the CLI processing if not.  This is where we will get all of our runtime arguments
@@ -48,6 +72,12 @@ def get_program_arguments() -> None:
     # before single Scenes existed has no key for one.
     if sum(bool(PrimeItems.program_arguments.get(name_key)) for name_key, _, _ in SINGLE_ITEM_SELECTORS) > 1:
         clear_single_items()
+
+    # The Map build reads the view limit from PrimeItems.view_limit (bildhtml.write_out_the_file),
+    # not from the runtime arguments, so hand the value over.  The GUI sets it again from its
+    # own "View Limit" setting before each build (userintr.MapTaskerEventHandlers.view_event); this
+    # gives a command-line run -- which has no GUI to do that -- the limit it asked for.
+    PrimeItems.view_limit = resolve_view_limit(PrimeItems.program_arguments.get("view_limit"))
 
     # Are we in development mode?  If so, override debug argument
     if DEBUG_PROGRAM:

@@ -23,6 +23,12 @@ from maptasker.src.sysconst import (
 
 blank = "&nbsp;"
 
+# Tasker's control-flow action codes, used to indent the Actions within a block.  Keyed
+# off the code rather than the rendered text, since an Action's label or arguments can
+# contain the words "If"/"Else"/"For" without being that Action.
+INDENT_OUT_CODES = frozenset({"38", "43", "40"})  # End If, Else/Else If, End For
+INDENT_IN_CODES = frozenset({"37", "43", "39"})  # If, Else/Else If, For
+
 
 def replace_except_last(the_text: str, target: str, replacement: str) -> str:
     """
@@ -106,8 +112,9 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
     for action in task_actions:
         child = action.find("code")
         task_code = _get_action_code(child, action, True, "t")
+        action_code = child.text if child is not None else ""
 
-        if any(token in task_code for token in [">End If", ">Else", ">End For"]):
+        if action_code in INDENT_OUT_CODES:
             indentation = max(indentation - 1, 0)
             indentation_amount = indentation_amount[: -(indent_size * 6)]
 
@@ -122,7 +129,7 @@ def get_actions(current_task: defusedxml.ElementTree) -> list:
             indentation_amount,
         )
 
-        if any(token in task_code for token in [">If", ">Else", ">For<"]):
+        if action_code in INDENT_IN_CODES:
             indentation += 1
             indentation_amount += blanks
 

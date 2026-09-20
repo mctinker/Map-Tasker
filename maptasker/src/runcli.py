@@ -256,9 +256,10 @@ def process_extended_arguments(args: list) -> None:
         else:
             program_arguments["file"] = file
 
-    # Map view limit
-    if view_limit := get_arg_if_in_list(args, "view_limit"):
-        program_arguments["view_limit"] = view_limit
+    # Map view limit.  Only when one was actually asked for: with nothing on the command
+    # line the parser hands back None, and whatever the settings file restored stands.
+    if getattr(args, "view_limit", None) is not None:
+        program_arguments["view_limit"] = get_arg_if_in_list(args, "view_limit")
 
 
 # Get our parsed program arguments and save them to PrimeItems.program_args"]
@@ -551,6 +552,12 @@ def process_cli() -> None:
 
     # Get the debug argument and startup log file if in debug mode.
     PrimeItems.program_arguments["debug"] = getattr(args, debug_flag)
+
+    # Remember a view limit asked for on the command line before restore_arguments() below
+    # replaces the runtime arguments with what the settings file holds.  The GUI seeds its
+    # own View Limit from it (userintr.MyGui.seed_view_limit_from_command_line); the command
+    # line path applies it in process_extended_arguments.
+    PrimeItems.cli_view_limit = getattr(args, "view_limit", None)
 
     logger.debug(f"Program arguments: {args}")
 

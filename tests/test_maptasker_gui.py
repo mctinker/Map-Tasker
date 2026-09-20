@@ -344,6 +344,88 @@ def test_viewlimit_normalization(event_handler, mock_gui_instance):
     assert mock_gui_instance.view_limit == 25000
 
 
+# ##################################################################################
+# The View Limit, and the one the command line asked for
+# ##################################################################################
+@pytest.fixture
+def command_line_view_limit():
+    """PrimeItems.cli_view_limit is a session value: put it back as it was found."""
+    saved = PrimeItems.cli_view_limit
+    yield
+    PrimeItems.cli_view_limit = saved
+
+
+def test_the_offered_limits_are_left_alone_for_one_of_their_own():
+    """A choice already on the pulldown adds nothing to it."""
+    from maptasker.src.guiwins import VIEW_LIMIT_CHOICES, view_limit_options  # noqa: PLC0415
+
+    assert view_limit_options("25000") == list(VIEW_LIMIT_CHOICES)
+    assert view_limit_options("Unlimited") == list(VIEW_LIMIT_CHOICES)
+
+
+def test_a_limit_of_its_own_is_offered_in_numeric_order():
+    """A limit given with -view_limit has to be on the pulldown for it to be shown."""
+    from maptasker.src.guiwins import view_limit_options  # noqa: PLC0415
+
+    assert view_limit_options("250")[0] == "250"
+    assert view_limit_options("12345")[2] == "12345"  # Between 10000 and 15000.
+    assert view_limit_options("99999")[-2] == "99999"  # Last of the numbers, before Unlimited.
+
+
+def test_the_pulldown_is_given_the_limit_it_is_asked_to_show(event_handler, mock_gui_instance):
+    """Set to a value it does not offer, a pulldown shows nothing at all."""
+    mock_gui_instance.is_updating = False
+    mock_gui_instance.viewlimit_optionmenu = FakeSelect("10000", ["5000", "10000", "Unlimited"])
+
+    event_handler.viewlimit_event("250")
+
+    assert mock_gui_instance.view_limit == 250
+    assert mock_gui_instance.viewlimit_optionmenu.value == "250"
+    assert "250" in mock_gui_instance.viewlimit_optionmenu.options
+
+
+def test_a_limit_from_the_command_line_beats_the_restored_one(mock_gui_instance, command_line_view_limit):
+    """-view_limit is this run's instruction; the settings file knows nothing about it."""
+    mock_gui_instance.is_updating = False
+    mock_gui_instance.viewlimit_optionmenu = FakeSelect("30000")
+    mock_gui_instance.event_handlers = MapTaskerEventHandlers(mock_gui_instance)
+    mock_gui_instance.view_limit = 30000  # As just restored from the settings file.
+    PrimeItems.cli_view_limit = 250
+
+    MyGui.seed_view_limit_from_command_line(mock_gui_instance)
+
+    assert mock_gui_instance.view_limit == 250
+    assert mock_gui_instance.viewlimit_optionmenu.value == "250"
+
+
+def test_the_command_line_limit_is_only_seeded_once(mock_gui_instance, command_line_view_limit):
+    """Every page load builds a new view: a refresh must not undo a change made in the window."""
+    mock_gui_instance.is_updating = False
+    mock_gui_instance.viewlimit_optionmenu = FakeSelect("10000")
+    mock_gui_instance.event_handlers = MapTaskerEventHandlers(mock_gui_instance)
+    PrimeItems.cli_view_limit = 250
+
+    MyGui.seed_view_limit_from_command_line(mock_gui_instance)
+    mock_gui_instance.view_limit = 30000  # The user picks their own limit.
+    MyGui.seed_view_limit_from_command_line(mock_gui_instance)  # The page is refreshed.
+
+    assert mock_gui_instance.view_limit == 30000
+    assert PrimeItems.cli_view_limit is None
+
+
+def test_nothing_happens_when_the_command_line_said_nothing(mock_gui_instance, command_line_view_limit):
+    """The restored setting stands, untouched."""
+    mock_gui_instance.is_updating = False
+    mock_gui_instance.viewlimit_optionmenu = FakeSelect("30000")
+    mock_gui_instance.event_handlers = MapTaskerEventHandlers(mock_gui_instance)
+    mock_gui_instance.view_limit = 30000
+    PrimeItems.cli_view_limit = None
+
+    MyGui.seed_view_limit_from_command_line(mock_gui_instance)
+
+    assert mock_gui_instance.view_limit == 30000
+
+
 def test_twisty_versus_everything_mutual_exclusivity(event_handler, mock_gui_instance):
     """Validates mutual exclusivity constraint behavior for global view options."""
     mock_gui_instance.twisty_checkbox.value = True

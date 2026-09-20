@@ -2557,3 +2557,7 @@ msgid "This Task has unsaved edits.  The device runs the version it already has 
 msgstr "এই কাজটি এখনও সংরক্ষিত হয়নি। ডিভাইসটি বর্তমানে যে সংস্করণটি রয়েছে সেটিই ব্যবহার করবে – সম্পাদিত সংস্করণটি ব্যবহার করতে, প্রথমে 'সেভ টু অ্যান্ড্রয়েড' অপশনটি ব্যবহার করুন।"
 msgid "Watch your Android device: expect one or more prompts from Tasker reading 'Tasker API Authorize request from python-requests...'.  Accept each one, or the run fails."
 msgstr "আপনার অ্যান্ড্রয়েড ডিভাইসটি পর্যবেক্ষণ করুন: Tasker থেকে \"Tasker API থেকে python-requests... এর মাধ্যমে অথরাইজেশন রিকোয়েস্ট\" - এই ধরনের একটি বা একাধিক অনুরোধ আসার প্রত্যাশা করুন। প্রতিটি অনুরোধ গ্রহণ করুন, অথবা তাহলে প্রোগ্রামটি কাজ করবে না।"
+msgid "Exit MapTasker and update it from the command line: 'pip install --upgrade maptasker'."
+msgstr "ম্যাপটাস্কারকে বন্ধ করুন এবং কমান্ড লাইনে এটি আপডেট করুন: 'pip install --upgrade maptasker'।"
+msgid "The update failed and MapTasker is still on the version you were running."
+msgstr "আপডেটটি ব্যর্থ হয়েছে এবং MapTasker এখনও আগের সংস্করণে রয়েছে।"

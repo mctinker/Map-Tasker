@@ -16,6 +16,9 @@ All notable changes to this project will be documented in this file!
 
 ### Fixed
 
+- Fixed: Task actions in the Map are now indented by the block they are actually in.  An action whose label or Goto destination began with words like 'If' or 'End If' was counted as the start or end of a block, which shifted the actions around it in or out a level.
+- Fixed: The directory now lists only what belongs to the single Project, Profile, Task or Scene you asked for.  Another Project's Profiles, Tasks and Scenes could previously appear in it, since the entries were never checked against the object selected.
+- Fixed: The '-view_limit' command line option now takes a number of lines, and that limit is what the run uses: it seeds the 'View Limit' setting the Map is built to, and the pulldown shows it.  The option could not be given a value at all before, and naming it cut the Map down to a single line.
 - Fixed: A directory entry in the Map is now plain text rather than a hotlink when the view limit has cut the item it points to out of the Map.  Clicking such an entry previously did nothing.
 - Fixed: Speed up 'Display Help' results by only displaying the previous 5, rather than 10, change logs (history).
 - Fixed: A Project's or a Profile's TaskerNet description is no longer shown twice in the Map.

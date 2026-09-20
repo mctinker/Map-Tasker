@@ -26,6 +26,31 @@ from maptasker.src.sysconst import (
 )
 
 
+# Validate the -view_limit value
+def validate_view_limit(value: str) -> int:
+    """Validate the number of lines given for -view_limit.
+
+    Args:
+        value (str): the value as it was typed on the command line
+
+    Returns:
+        int: the number of output lines to stop the Map at
+
+    Raises:
+        argparse.ArgumentTypeError: the value is not a whole number of lines, or is not
+            a count that would produce any output at all.
+    """
+    try:
+        limit = int(value)
+    except ValueError:
+        msg = f"'{value}' is not a number of lines."
+        raise argparse.ArgumentTypeError(msg) from None
+    if limit < 1:
+        msg = f"{limit} would leave the Map empty: give a limit of 1 line or more."
+        raise argparse.ArgumentTypeError(msg)
+    return limit
+
+
 # Validate mutually inclusive variables
 def validate_vars(var1: str, var2: int, var3: str) -> None:
     """Validate mutually inclusive arguments
@@ -388,8 +413,12 @@ def runtime_parser() -> None:
     parser.add_argument(
         "-view_limit",
         help=argparse.SUPPRESS,  # Don't display this in the help
-        action="store_true",
-        default=5000,
+        type=validate_view_limit,
+        metavar="LIMIT",
+        # None rather than a number, so that "not given" can be told apart from "given the
+        # default": a limit restored from the settings file has to survive a run that says
+        # nothing about it (see runcli.process_extended_arguments).
+        default=None,
     )
     # Display Project/Profile/Task/Scene names in bold
     parser.add_argument(

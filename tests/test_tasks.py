@@ -32,6 +32,22 @@ _END_IF = '<Action sr="act{n}"><code>38</code></Action>'
 _FOR = '<Action sr="act{n}"><code>39</code><Str sr="arg0">%item</Str><Str sr="arg1">%list</Str></Action>'
 _END_FOR = '<Action sr="act{n}"><code>40</code></Action>'
 _FLASH = '<Action sr="act{n}"><code>548</code><Str sr="arg0">hi</Str></Action>'
+# A Flash and a Goto whose own text reads like control flow: the label of the one and the
+# action-label destination of the other.  Neither is a block, and both are ordinary in
+# real Tasks -- a Goto looping back to an action labelled "If ..." is the usual way to
+# write a loop.
+_FLASH_LABELLED_IF = (
+    '<Action sr="act{n}"><code>548</code><label>If Last of Data: Request Chart?</label>'
+    '<Str sr="arg0">hi</Str></Action>'
+)
+_FLASH_LABELLED_END_IF = (
+    '<Action sr="act{n}"><code>548</code><label>End If no more Data is waiting</label>'
+    '<Str sr="arg0">hi</Str></Action>'
+)
+_GOTO_TO_IF_LABEL = (
+    '<Action sr="act{n}"><code>135</code><Int sr="arg0" val="1"/><Int sr="arg1" val="1"/>'
+    '<Str sr="arg2">If Array Data Exists</Str></Action>'
+)
 
 _XML = """<TaskerData sr="" dvi="1" tv="6.3.13">
   <Project sr="proj0"><name>Home</name><tids>10,11</tids></Project>
@@ -127,6 +143,24 @@ def test_a_stray_end_if_cannot_indent_backwards() -> None:
     """
     lines = tasks.get_actions(_task_of(_END_IF, _FLASH, _END_IF, _FLASH))
     assert [_indent_of(line) for line in lines] == [0, 0, 0, 0]
+
+
+def test_a_label_that_reads_like_an_if_does_not_open_a_block() -> None:
+    """Nesting is the action's code, never its wording.  A Flash labelled
+    "If Last of Data..." is still a Flash, and the Goto after it still belongs to the
+    Task's outer level -- read the label as an If and everything below it is drawn
+    inside a block the Task does not have.
+    """
+    lines = tasks.get_actions(_task_of(_FLASH, _FLASH_LABELLED_IF, _GOTO_TO_IF_LABEL, _FLASH))
+    assert [_indent_of(line) for line in lines] == [0, 0, 0, 0]
+
+
+def test_a_label_that_reads_like_an_end_if_does_not_close_a_block() -> None:
+    """The same in the other direction: a labelled action inside an If must not pop the
+    block out from under the actions that follow it.
+    """
+    lines = tasks.get_actions(_task_of(_IF, _FLASH_LABELLED_END_IF, _FLASH, _END_IF, _FLASH))
+    assert [_indent_of(line) for line in lines] == [0, 1, 1, 0, 0]
 
 
 def test_actions_are_sorted_by_their_number_not_document_order() -> None:

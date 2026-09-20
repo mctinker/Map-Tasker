@@ -251,6 +251,10 @@ class PrimeItems:
     # How many output lines the Map is cut off at (bildhtml.write_out_the_file).  The GUI sets
     # it from its own view limit before every build.
     view_limit = VIEW_LIMIT_DEFAULT
+    # The limit given on this run's command line (-view_limit), or None when it was not.  Held
+    # apart from the runtime arguments because the settings restore replaces those wholesale,
+    # and the GUI seeds its own View Limit from it once, at startup (userintr.MyGui).
+    cli_view_limit = None
     # The Diagram as it is being drawn: its lines, how often each called Task is drawn, and where
     # each connector between them starts -- all emptied by diagram.py before it draws.
     netmap_output: ClassVar[list] = []
@@ -328,6 +332,7 @@ SESSION_ATTRIBUTES = frozenset(
         "tasker_state_codes",  # likewise
         "trace",  # debug tracing, switched on once (guiutil2)
         "view_limit",  # set by the GUI just before a build, which a reset must not undo
+        "cli_view_limit",  # what this run's command line asked for, which outlives any one run
     },
 )
 

@@ -2521,3 +2521,7 @@ msgid "This Task has unsaved edits.  The device runs the version it already has 
 msgstr "Diese Aufgabe enthält noch nicht gespeicherte Änderungen. Das Gerät verwendet die aktuelle Version – verwenden Sie zuerst „Speichern für Android“, um die geänderte Version zu öffnen."
 msgid "Watch your Android device: expect one or more prompts from Tasker reading 'Tasker API Authorize request from python-requests...'.  Accept each one, or the run fails."
 msgstr "Überwachen Sie Ihr Android-Gerät: Erwarten Sie eine oder mehrere Anfragen von Tasker, die lauten: „Tasker API – Autorisierungsanfrage von python-requests...“. Akzeptieren Sie jede Anfrage, andernfalls schlägt der Vorgang fehl."
+msgid "Exit MapTasker and update it from the command line: 'pip install --upgrade maptasker'."
+msgstr "Verlassen Sie die Anwendung \"Tasker\" und aktualisieren Sie diese über die Kommandozeile: 'pip install --upgrade maptasker'."
+msgid "The update failed and MapTasker is still on the version you were running."
+msgstr "Die Aktualisierung ist fehlgeschlagen und MapTasker läuft weiterhin auf der Version, die Sie zuvor verwendet haben."

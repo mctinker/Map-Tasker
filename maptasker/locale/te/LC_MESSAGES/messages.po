@@ -2559,3 +2559,7 @@ msgid "This Task has unsaved edits.  The device runs the version it already has 
 msgstr "ఈ పనిలో సేవ్ చేయని మార్పులు ఉన్నాయి. పరికరం ప్రస్తుతం ఉన్న వెర్షన్‌ను ఉపయోగిస్తుంది - కాబట్టి, మీరు మార్పులు చేసిన తర్వాత, \"సేవ్ టు ఆండ్రాయిడ్\" ఉపయోగించి దాన్ని ప్రారంభించండి."
 msgid "Watch your Android device: expect one or more prompts from Tasker reading 'Tasker API Authorize request from python-requests...'.  Accept each one, or the run fails."
 msgstr "మీ Android పరికరాన్ని గమనించండి: టాస్కర్ నుండి 'python-requests నుండి టాస్కర్ API అభ్యర్థన...' అని ఒక లేదా అంతకంటే ఎక్కువ ప్రాంప్ట్‌లను ఆశించండి. ప్రతి ఒక్కదాన్ని అంగీకరించండి, లేకపోతే అప్లికేషన్ పని చేయదు."
+msgid "Exit MapTasker and update it from the command line: 'pip install --upgrade maptasker'."
+msgstr "ఎగ్జిట్ మ్యాప్ట్యాస్కర్ మరియు కమాండ్ లైన్ నుండి దాన్ని నవీకరించండి: 'pip install --upgrade maptasker'."
+msgid "The update failed and MapTasker is still on the version you were running."
+msgstr "నవీకరణ విఫలమైంది, మరియు మీరు ఇంతకు ముందు ఉపయోగిస్తున్న వెర్షన్‌లోనే MapTasker ఇంకా ఉంది."

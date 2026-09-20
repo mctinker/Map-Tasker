@@ -312,84 +312,84 @@ def do_trailing_matters(config: RunConfig, dropped_anchors: set) -> None:
     output_table(trailing_matter, 4)
 
 
-# Determinme if an item is in a specific a specific Project.
-def find_task_in_project(
-    start_index: object,
-    item_to_match: str,
-    items_to_search: str,
-) -> bool:
-    """
-    Determinme if an item is in a specific a specific Project.
+# ##################################################################################
+# Which Project a Profile/Task/Scene belongs to, and what the single item selected
+# brings into the directory with it.
+#
+# The directory only ever holds names the Map actually wrote (add_directory_item is
+# called as each object is output), so these filters are not deciding what the run
+# displayed -- they are keeping the directory to the one object that was asked for.  An
+# item that some OTHER Project claims is the thing to drop; an item no Project claims at
+# all is kept, because Tasker leaves Tasks that way -- a Task attached only to a Scene is
+# not always listed in its Project's <tids> -- and dropping those would lose directory
+# entries for Tasks that are on the page.
+#
+# Read straight off the Project XML rather than through maputils' equivalents: dirout
+# sits below maputils in the import graph (maputils -> taskerd -> profiles -> dirout).
+# ##################################################################################
+def project_owning(items_tag: str, item_to_match: str) -> str:
+    """Find the Project that claims a Profile, Task or Scene.
+
         Args:
-            start_index (object): Which index to start our search within
-                PrimeItems.tasker_root_elements["all_projects"]
-            item_to_match (str): item to look for within Project
-            items_to_search (str): Project item to search: "scenes", "pids", "tids"
+            items_tag (str): the Project element holding the list to search: "pids" for
+                Profile ids, "tids" for Task ids, "scenes" for Scene names.
+            item_to_match (str): the Profile id, Task id or Scene name to look for.
 
         Returns:
-            bool: True if found, False otherwise
+            str: the name of the Project that lists it, or "" when none does.
     """
-    if start_index:
-        begin_search_at = PrimeItems.tasker_root_elements["all_projects"][start_index]
-    else:
-        begin_search_at = PrimeItems.tasker_root_elements["all_projects"]
-    for project_item in begin_search_at:
-        project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
-        items_in_project = project.find(items_to_search)
-        if items_in_project is not None and item_to_match in items_in_project.text.split(","):
-            return True, project
-    return False, ""
+    if not item_to_match:
+        return ""
+    for project_name, project in PrimeItems.tasker_root_elements["all_projects"].items():
+        items_in_project = project["xml"].find(items_tag)
+        if items_in_project is not None and items_in_project.text and item_to_match in items_in_project.text.split(","):
+            return project_name
+    return ""
 
 
-# Doing Scene hyperlink.  Make sure it is okay to do this Scene hyperlink.
-def check_scene(item: str, config: RunConfig) -> bool:
-    """
-    Check to make sure this Scene should be included in the output
+def belongs_to(items_tag: str, item_to_match: str, project_name: str) -> bool:
+    """Is this Profile, Task or Scene one that the given Project owns?
+
         Args:
-            item (str): directory hyperlink item we are processing
-            config (RunConfig): the run's settings, for the single-item selection.
+            items_tag (str): "pids", "tids" or "scenes" -- see project_owning.
+            item_to_match (str): the Profile id, Task id or Scene name to place.
+            project_name (str): the name of the Project it has to belong to.
 
-        Returns:20.
-            bool: True if we should output this hperlink, False if it is to be ingored.
+        Returns:
+            bool: True unless another Project claims it (see this section's note on the
+                items no Project claims at all).
     """
-    # Single Scene?  Only that one Scene gets a hyperlink.
-    if single_scene_name := config.single_scene_name:
-        return item[1] == single_scene_name
+    owner = project_owning(items_tag, item_to_match)
+    return owner in ("", project_name)
 
-    # Single Project?
-    _find_task_in_project = find_task_in_project
-    if config.single_project_name:
-        found, project = _find_task_in_project("", item[1], "scenes")
-        return found
 
-    # Single Profile?
-    if profile_name := config.single_profile_name:
-        # Find out if this Scene is in the single Project's Profile' we are looking for.
-        # Get the Profile ID for the single Profile we are looking for
-        for profile_id in PrimeItems.tasker_root_elements["all_profiles"]:
-            if PrimeItems.tasker_root_elements["all_profiles"][profile_id]["name"] == profile_name:
-                found, project = _find_task_in_project("", profile_id, "pids")
-                if found:
-                    scenes = project.find("scenes")
-                    if scenes is not None and item[1] in scenes.text.split(","):
-                        return True
+def profile_id(profile_name: str) -> str:
+    """Get the id of the Profile with this name, or "" if there is no such Profile.
 
-        return False
-    # Single Task?
-    if (profile_name := config.single_task_name) and (
-        this_task_id := PrimeItems.tasker_root_elements["all_tasks_by_name"][config.single_task_name]["id"]
-    ):
-        # Find the Project this single Task belongs to.
-        found, project = _find_task_in_project("", this_task_id, "tids")
-        if found:
-            # Found Project with Profile, now check If Scenes in Project
-            scenes = project.find("scenes")
-            if scenes is not None and item[1] in scenes.text.split(","):
-                return True
-        return False
+        Args:
+            profile_name (str): the Profile's name, as the directory holds it -- which for
+                an unnamed Profile is the name MapTasker gave it (see profiles.py).
 
-    # Not doing single name...Scene hyperlink is okay to include.
-    return True
+        Returns:
+            str: the Profile's id.
+    """
+    for this_id, profile in PrimeItems.tasker_root_elements.get("all_profiles", {}).items():
+        if profile.get("name") == profile_name:
+            return this_id
+    return ""
+
+
+def task_id(task_name: str) -> str:
+    """Get the id of the Task with this name, or "" if there is no such Task.
+
+        Args:
+            task_name (str): the Task's name, without the " (Scene)" the directory appends
+                to a Task that belongs to a Scene.
+
+        Returns:
+            str: the Task's id.
+    """
+    return PrimeItems.tasker_root_elements.get("all_tasks_by_name", {}).get(task_name, {}).get("id", "")
 
 
 # Get the Task IDs that a Profile directly references: its Entry/Exit Tasks.
@@ -421,36 +421,37 @@ def check_task(item: str, config: RunConfig) -> bool:
         Returns:
             bool: True if we should output this hyperlink, False if it is to be ingored.
     """
-    if config.single_task_name and item[1] != config.single_task_name and UNNAMED_ITEM not in item[1]:
-        return False
+    # A Task that belongs to a Scene is held with " (Scene)" on the end of its name.
+    this_task_id = task_id(item[1].replace(" (Scene)", ""))
+
+    # Doing a single Task?  Only that Task.  An unnamed Task is let through whatever its
+    # name: the name it is listed under is one MapTasker made up from its first action.
+    if config.single_task_name:
+        return item[1] == config.single_task_name or UNNAMED_ITEM in item[1]
+
     # Doing a single Profile?
-    if single_profile_name := config.single_profile_name:
-        # Get this Task's ID.
-        name_to_find = item[1].replace(" (Scene)", "")
-        this_task_id = PrimeItems.tasker_root_elements["all_tasks_by_name"].get(name_to_find, {}).get("id", "")
-        if not this_task_id:
-            return False
+    if config.single_profile_name:
         # The Profile's own Entry/Exit Tasks always belong to it.  Check these first:
         # Tasker doesn't always list such a Task in the owning Project's <tids>, and
         # the Task would otherwise be dropped from the directory even though it is
         # displayed in the output.
-        if this_task_id in get_profile_task_ids(single_profile_name):
+        if this_task_id in get_profile_task_ids(config.single_profile_name):
             return True
         # Otherwise the Task has to belong to the Project that owns this Profile
         # (e.g. a Task attached to one of that Project's Scenes).
-        for project_item in PrimeItems.tasker_root_elements["all_projects"]:
-            project = PrimeItems.tasker_root_elements["all_projects"][project_item]["xml"]
-            pids = project.find("pids")
-            # See if the Profile we are looking for is in this Project
-            if pids is not None and pids.text:
-                for profile_id in pids.text.split(","):
-                    profile = PrimeItems.tasker_root_elements["all_profiles"].get(profile_id, {})
-                    if single_profile_name == profile.get("name"):
-                        # Get the Project's Task IDs
-                        tids = project.find("tids")
-                        if tids is not None and tids.text and this_task_id in tids.text.split(","):
-                            return True
-        return False
+        owning_project = project_owning("pids", profile_id(config.single_profile_name))
+        return bool(owning_project) and belongs_to("tids", this_task_id, owning_project)
+
+    # Doing a single Project?  Only the Tasks that Project owns.
+    if config.single_project_name:
+        return belongs_to("tids", this_task_id, config.single_project_name)
+
+    # Doing a single Scene?  Only the Tasks of the Project the Scene belongs to -- which
+    # are the Scene's own Tasks, since that is all the run displayed.
+    if config.single_scene_name:
+        owning_project = project_owning("scenes", config.single_scene_name)
+        return bool(owning_project) and belongs_to("tids", this_task_id, owning_project)
+
     return True
 
 
@@ -465,10 +466,19 @@ def check_profile(item: str, config: RunConfig) -> bool:
         Returns:
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
-    if config.single_profile_name and item[1] != config.single_profile_name:
-        return False
+    # Doing a single Profile?  Only that Profile.
+    if config.single_profile_name:
+        return item[1] == config.single_profile_name
+
     # No Profiles are displayed for a single Task or a single Scene, so don't link any.
-    return not (config.single_task_name or config.single_scene_name)
+    if config.single_task_name or config.single_scene_name:
+        return False
+
+    # Doing a single Project?  Only the Profiles that Project owns.
+    if config.single_project_name:
+        return belongs_to("pids", profile_id(item[1]), config.single_project_name)
+
+    return True
 
 
 # Doing Project hyperlinks.  Make sure it is okay to do this Project hyperlink.
@@ -482,28 +492,52 @@ def check_project(item: str, config: RunConfig) -> bool:
         Returns:
             bool: True if we should output this hperlink, False if it is to be ingored.
     """
-    project = PrimeItems.tasker_root_elements["all_projects"][item[1]]["xml"]
-    project_id = project.attrib.get("sr")
-    project_id = project_id[4:]
-    # Are we looking for specific Preoject and this is it?
+    # Doing a single Project?  Only that Project.
     if config.single_project_name:
-        if item[1] != config.single_project_name:
-            return False
-    # Single Profile?
-    elif config.single_profile_name:
-        pids = project.find("pids")
-        if pids is None or project_id not in pids.text.split(","):
-            return False
-    # Single Task?
-    elif config.single_task_name:
-        return False
-    # Single Scene?  Only the Project that owns it is displayed, so only it gets a link.
-    # Checked against this Project's own <scenes> list rather than through
-    # maputils.find_owning_project_for_scene: dirout sits below maputils in the import
-    # graph (maputils -> taskerd -> profiles -> dirout), and we already have the XML.
-    elif single_scene_name := config.single_scene_name:
-        scenes = project.find("scenes")
-        return scenes is not None and scenes.text is not None and single_scene_name in scenes.text.split(",")
+        return item[1] == config.single_project_name
+
+    # Doing a single Scene?  Only the Project that owns it is displayed, so only it gets a
+    # link.
+    if config.single_scene_name:
+        return item[1] == project_owning("scenes", config.single_scene_name)
+
+    # Doing a single Profile or a single Task?  No Project is listed: the object asked for
+    # is the whole of what the directory is for.  output_directory leaves the Projects
+    # section out altogether for those two; this says the same thing for the one entry at
+    # a time, so the two cannot disagree.
+    return not (config.single_profile_name or config.single_task_name)
+
+
+# Doing Scene hyperlink.  Make sure it is okay to do this Scene hyperlink.
+def check_scene(item: str, config: RunConfig) -> bool:
+    """
+    Check to make sure this Scene should be included in the output
+        Args:
+            item (str): directory hyperlink item we are processing
+            config (RunConfig): the run's settings, for the single-item selection.
+
+        Returns:
+            bool: True if we should output this hperlink, False if it is to be ingored.
+    """
+    # Doing a single Scene?  Only that Scene.
+    if config.single_scene_name:
+        return item[1] == config.single_scene_name
+
+    # Doing a single Project?  Only that Project's Scenes.
+    if config.single_project_name:
+        return belongs_to("scenes", item[1], config.single_project_name)
+
+    # Doing a single Profile?  Only the Scenes of the Project that owns it, which are
+    # displayed along with it.
+    if config.single_profile_name:
+        owning_project = project_owning("pids", profile_id(config.single_profile_name))
+        return bool(owning_project) and belongs_to("scenes", item[1], owning_project)
+
+    # Doing a single Task?  Only the Scenes of the Project that owns the Task.
+    if config.single_task_name:
+        owning_project = project_owning("tids", task_id(config.single_task_name))
+        return bool(owning_project) and belongs_to("scenes", item[1], owning_project)
+
     return True
 
 
